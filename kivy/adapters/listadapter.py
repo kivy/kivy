@@ -105,7 +105,8 @@ class RangeObservingObservableList(ObservableList):
     # affected.
     #
 
-    # TODO: Remove cached_view_indices_and_data, or use it to solve sorting.
+    # TODO: Use cached_view_indices_and_data to solve sorting, drag and drop,
+    #       and move ops, or remove it if a better way is found.
 
     cached_view_indices_and_data = DictProperty({})
     '''This has keys as the indices of the containing adapter's cached_views,
@@ -174,7 +175,7 @@ class RangeObservingObservableList(ObservableList):
     def extend(self, *largs):
         start_index = len(self)
         end_index = start_index + len(largs) - 1
-        self.range_change = ('rool_add', (start_index, end_index))
+        self.range_change = ('rool_extend', (start_index, end_index))
         super(RangeObservingObservableList, self).extend(*largs)
 
     def sort(self, *largs):
@@ -336,8 +337,18 @@ class ListAdapter(Adapter, EventDispatcher):
 
             data_op, (start_index, end_index) = self.data.range_change
 
-            if data_op == 'rool_add':
-                # The add op is an append, so this shouldn't affect anything.
+            if len(self.data) == 1 and data_op in ['rool_add', 'rool_extend']:
+                # Special case: deletion resulted in no data, leading up to the
+                # present op, which adds one or more items. Cached views should
+                # have already been treated.  Call check_for_empty_selection()
+                # to re-establish selection if needed.
+                self.check_for_empty_selection()
+                return
+
+            if data_op in ['rool_add', 'rool_extend']:
+                # The add op is an append or extend, so this shouldn't affect
+                # anything here, as cached_views items can be built as needed
+                # through normal get_view() calls to build back up.
                 pass
 
             elif data_op == 'rool_delete':
@@ -484,6 +495,7 @@ class ListAdapter(Adapter, EventDispatcher):
                 if item['is_selected']:
                     self.handle_selection(view_instance)
             elif hasattr(item, 'is_selected'):
+                # TODO: Change this to use callable().
                 if (inspect.isfunction(item.is_selected)
                         or inspect.ismethod(item.is_selected)):
                     if item.is_selected():
@@ -552,8 +564,10 @@ class ListAdapter(Adapter, EventDispatcher):
         if isinstance(item, SelectableDataItem):
             item.is_selected = value
         elif type(item) == dict:
-            item['is_selected'] = value
+            if 'is_selected' in item:
+                item['is_selected'] = value
         elif hasattr(item, 'is_selected'):
+            # TODO: Change this to use callable().
             if (inspect.isfunction(item.is_selected)
                     or inspect.ismethod(item.is_selected)):
                 item.is_selected()
@@ -561,9 +575,27 @@ class ListAdapter(Adapter, EventDispatcher):
                 item.is_selected = value
 
     def select_item_view(self, view):
-        view.select()
-        view.is_selected = True
-        self.selection.append(view)
+
+        has_selection = False
+
+        if hasattr(view, 'select'):
+            # TODO: Change this to use callable().
+            if (inspect.isfunction(view.select)
+                    or inspect.ismethod(view.select)):
+                view.select()
+                has_selection = True
+
+        if hasattr(view, 'is_selected'):
+            # TODO: Change this to use callable().
+            if (inspect.isfunction(view.is_selected)
+                    or inspect.ismethod(view.is_selected)):
+                view.is_selected()
+            else:
+                view.is_selected = True
+            has_selection = True
+
+        if has_selection:
+            self.selection.append(view)
 
         # [TODO] sibling selection for composite items
         #        Needed? Or handled from parent?
