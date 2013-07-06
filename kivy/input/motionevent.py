@@ -257,6 +257,7 @@ class MotionEvent(MotionEventBase):
         self.is_double_tap = False
 
         #: Indicate if the touch is a triple tap or not
+        #:
         #: .. versionadded:: 1.7.0
         self.is_triple_tap = False
 
