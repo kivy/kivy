@@ -132,7 +132,8 @@ class UrlRequest(Thread):
             If True, it will use the Logger.debug to print information about url
             access/progression/error.
         `file_path`: str, default to None
-            If set, the result of the UrlRequest will be written to this path.
+            If set, the result of the UrlRequest will be written to this path instead
+            of in memory.
 
     .. versionadded:: 1.8.0
         Parameter `decode` added.
@@ -140,7 +141,7 @@ class UrlRequest(Thread):
     '''
 
     def __init__(self, url, on_success=None, on_redirect=None,
-            on_failure=None,on_error=None, on_progress=None, req_body=None,
+            on_failure=None, on_error=None, on_progress=None, req_body=None,
             req_headers=None, chunk_size=8192, timeout=None, method=None,
             decode=True, debug=False, file_path=None):
         super(UrlRequest, self).__init__()
@@ -279,20 +280,21 @@ class UrlRequest(Thread):
 
                     if fd:
                         fd.write(chunk)
+                    else:
+                        result += chunk
 
                     bytes_so_far += len(chunk)
-                    result += chunk
                     # report progress to user
                     if report_progress:
                         q(('progress', resp, (bytes_so_far, total_size)))
                         trigger()
-                return bytes_so_far
+                return bytes_so_far, result
 
             if file_path is not None:
                 with open(file_path, 'wb') as fd:
-                    bytes_so_far = get_chunks(fd)
+                    bytes_so_far, result = get_chunks(fd)
             else:
-                bytes_so_far = get_chunks()
+                bytes_so_far, result = get_chunks()
 
             # ensure that restults are dispatched for the last chunk,
             # avoid trigger
@@ -489,4 +491,3 @@ if __name__ == '__main__':
 
     print('result =', req.result)
     print('error =', req.error)
-
