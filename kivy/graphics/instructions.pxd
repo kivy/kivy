@@ -11,13 +11,14 @@ from context_instructions cimport *
 from compiler cimport *
 from shader cimport *
 from texture cimport Texture
+from kivy._event cimport ObjectWithUid
 
 cdef void reset_gl_context()
 
 cdef class Instruction
 cdef class InstructionGroup(Instruction)
 
-cdef class Instruction:
+cdef class Instruction(ObjectWithUid):
     cdef int flags
     cdef str group
     cdef InstructionGroup parent

@@ -38,7 +38,7 @@ cdef void reset_gl_context():
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
 
-cdef class Instruction:
+cdef class Instruction(ObjectWithUid):
     '''Represents the smallest instruction available. This class is for internal
     usage only, don't use it directly.
     '''

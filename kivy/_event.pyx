@@ -32,14 +32,25 @@ def _get_bases(cls):
         for cbase in _get_bases(base):
             yield cbase
 
-cdef class EventDispatcher(object):
+cdef class ObjectWithUid(object):
+    def __cinit__(self):
+        global widget_uid
+
+        # XXX for the moment, we need to create a uniq id for properties.
+        # Properties need a identifier to the class instance. hash() and id()
+        # are longer than using a custom __uid. I hope we can figure out a way
+        # of doing that without require any python code. :)
+        widget_uid += 1
+        self.uid = widget_uid
+
+cdef class EventDispatcher(ObjectWithUid):
     '''Generic event dispatcher interface
 
     See the module docstring for usage.
     '''
 
     def __cinit__(self, *largs, **kwargs):
-        global widget_uid, cache_properties
+        global cache_properties
         cdef dict cp = cache_properties
         cdef dict attrs_found
         cdef list attrs
@@ -50,13 +61,6 @@ cdef class EventDispatcher(object):
         self.__storage = {}
 
         __cls__ = self.__class__
-
-        # XXX for the moment, we need to create a uniq id for properties.
-        # Properties need a identifier to the class instance. hash() and id()
-        # are longer than using a custom __uid. I hope we can figure out a way
-        # of doing that without require any python code. :)
-        widget_uid += 1
-        self.uid = widget_uid
 
         if __cls__ not in cp:
             attrs_found = cp[__cls__] = {}
