@@ -132,7 +132,8 @@ class UrlRequest(Thread):
             If True, it will use the Logger.debug to print information about url
             access/progression/error.
         `file_path`: str, default to None
-            If set, the result of the UrlRequest will be written to this path.
+            If set, the result of the UrlRequest will be written to this path instead
+            of in memory.
 
     .. versionadded:: 1.8.0
         Parameter `decode` added.
