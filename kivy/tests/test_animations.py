@@ -9,6 +9,7 @@ from kivy.animation import Animation, AnimationTransition
 from kivy.uix.widget import Widget
 from functools import partial
 from kivy.clock import Clock
+from kivy.graphics import Scale
 
 
 class AnimationTestCase(unittest.TestCase):
@@ -52,3 +53,11 @@ class AnimationTestCase(unittest.TestCase):
 
     def test_animated_properties(self):
         self.assertEqual(self.a.animated_properties['x'], 100)
+
+    def test_animated_instruction(self):
+        instruction = Scale(3)
+        self.a.start(instruction)
+        self.assertEqual(self.a.animated_properties['x'], 100)
+        self.assertAlmostEqual(instruction.x, 3)
+        self.sleep(1.5)
+        self.assertAlmostEqual(instruction.x, 100)
