@@ -1079,25 +1079,43 @@ class ListView(AbstractView, EventDispatcher):
 
     def data_changed(self, *dt):
 
+        # Note: rool == RangeObservingObservableList
+        #       rood == RangeObservingObservableDict
+        #
+        # Callbacks could come here from either, and there could be differences
+        # in handling.
+
         print 'LISTVIEW data_changed callback', dt
 
         print self.adapter.data.range_change
 
+        data_op, (start_index, end_index) = self.adapter.data.range_change
+
         if self.adapter.data.range_change:
+
+            if len(self.container.children) == 0:
+                # Delete action(s) have resulted in total deletion of items.
+                if data_op in ['rool_add', 'rool_extend', 'rood_add']:
+                    self.scroll_after_add()
+                return
+
+            # Otherwise, we may have item_views as children of self.container
+            # that should be removed.
+
             first_item_view = self.container.children[-1]
             last_item_view = self.container.children[0]
-
-            data_op, (start_index, end_index) = self.adapter.data.range_change
 
             change_in_range = False
 
             if (first_item_view.index <= start_index <= last_item_view.index
-                or
-                first_item_view.index <= end_index <= last_item_view.index):
+                   or
+                   first_item_view.index <= end_index <= last_item_view.index):
                 change_in_range = True
 
-            if data_op in ['rool_add', 'rood_add']:
-
+            if data_op in ['rool_add',
+                           'rool_extend',
+                           'rood_add',
+                           'rood_update']:
                 self.scroll_after_add()
 
             elif data_op in ['rool_delete', 'rood_delete']:

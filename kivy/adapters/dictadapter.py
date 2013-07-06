@@ -98,7 +98,7 @@ class RangeObservingObservableDict(ObservableDict):
 
     def update(self, *largs):
         present_keys = super(RangeObservingObservableDict, self).keys()
-        self.range_change = ('rood_add', list(set(largs) - set(present_keys)))
+        self.range_change = ('rood_update', list(set(largs) - set(present_keys)))
         super(RangeObservingObservableDict, self).update(*largs)
 
 
@@ -164,7 +164,7 @@ class DictAdapter(ListAdapter):
 
             data_op, keys = self.data.range_change
 
-            if data_op == 'rood_add':
+            if data_op in ['rood_add', 'rood_update':
                 self.sorted_keys.extend(keys)
             elif data_op == 'rood_delete':
 
