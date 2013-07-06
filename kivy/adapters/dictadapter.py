@@ -22,21 +22,37 @@ __all__ = ('DictAdapter', )
 
 from kivy.properties import DictProperty
 from kivy.properties import ListProperty
+from kivy.properties import ObjectProperty
 from kivy.properties import ObservableDict
 from kivy.adapters.listadapter import ListAdapter
-from kivy.adapters.listadapter import RangeObservingObservableList
+from kivy.adapters.listadapter import ChangeRecordingObservableList
 
 
-class RangeObservingObservableDict(ObservableDict):
+class ChangeRecordingObservableDict(ObservableDict):
+    '''Adds range-observing and other intelligence to ObservableDict, storing
+    change_info for use by an observer.
+    '''
 
-    # range_change is a normal python object consisting of the op name and
+    def __init__(self, *largs):
+        super(ChangeRecordingObservableDict, self).__init__(*largs)
+
+    # TODO: For running test apps, it is ok to have change_info commented out,
+    #       but tests will not run, because change_info is not seen as as
+    #       property. Conversely, if it is present, test apps will not run,
+    #       because it expects an EventDispatcher for the set.
+    #
+    #           in self.data.change_info,
+    #           (the self obj is not an EventDispatcher)
+    #
+    change_info = ObjectProperty(None)
+    # change_info is a normal python object consisting of the op name and
     # the keys involved:
     #
     #     (data_op, (keys))
     #
-    # If the op does not cause a range change, range_change is set to None.
+    # If the op does not cause a range change, change_info is set to None.
     #
-    # Observers of data changes may consult range_change if needed, for
+    # Observers of data changes may consult change_info if needed, for
     # example, listview needs to know details for scrolling.
     #
     # DictAdapter itself, the owner of data, is the first observer of data
@@ -44,62 +60,76 @@ class RangeObservingObservableDict(ObservableDict):
     # affected.
     #
 
-    # TODO: Do something on this one?
-    #def __setattr__(self, attr, value):
+    # ObservableDict __setattr__
+    # def __setattr__(self, attr, value):
     #    if attr in ('prop', 'obj'):
     #        super(ObservableDict, self).__setattr__(attr, value)
     #        return
     #    self.__setitem__(attr, value)
 
+
+#    def __setattr__(self, attr, value):
+#        self.change_info = ('crod_setattr', (attr, ))
+#        # TODO: Understand this. For one thing, iadd and imul hit a nonetype
+#        #       error in this neighborhood.
+#        if attr in ('prop', 'obj'):
+#            super(ChangeRecordingObservableDict, self).__setattr__(attr, value)
+#            return
+#        super(ChangeRecordingObservableDict, self).__setitem__(attr, value)
+
     def __setitem__(self, key, value):
-        if isinstance(value, tuple) and key == 'range_change':
+        if isinstance(value, tuple) and key == 'change_info':
             return
         if value is None:
             # ObservableDict will delete the item if value is None, so this is
             # like a delete op.
-            self.range_change = ('rood_delete', (key, ))
+            self.change_info = ('crod_setitem_delete', (key, ))
         else:
-            self.range_change = ('rood_add', (key, ))
-        super(RangeObservingObservableDict, self).__setitem__(key, value)
+            self.change_info = ('crod_setitem_add', (key, ))
+        super(ChangeRecordingObservableDict, self).__setitem__(key, value)
 
     def __delitem__(self, key):
-        self.range_change = ('rood_delete', (key, ))
-        super(RangeObservingObservableDict, self).__delitem__(key)
+        self.change_info = ('crod_delitem', (key, ))
+        super(ChangeRecordingObservableDict, self).__delitem__(key)
 
     def clear(self, *largs):
-        # TODO: Should this, and other cases below, be (*largs)?
-        self.range_change = ('rood_delete', largs)
-        super(RangeObservingObservableDict, self).clear(*largs)
+        self.change_info = ('crod_clear', (None, ))
+        super(ChangeRecordingObservableDict, self).clear(*largs)
 
     def remove(self, *largs):
         # remove(x) is same as del s[s.index(x)]
-        self.range_change = ('rood_delete', largs)
-        super(RangeObservingObservableDict, self).remove(*largs)
+        self.change_info = ('crod_remove', (largs[0], ))
+        super(ChangeRecordingObservableDict, self).remove(*largs)
 
     def pop(self, *largs):
-        # This is pop on a specific key.
+        # This is pop on a specific key. If that key is absent, the second arg
+        # is returned. If there is no second arg in that case, a key error is
+        # raised. But the key is always largs[0], so store that.
         # s.pop([i]) is same as x = s[i]; del s[i]; return x
-        self.range_change = ('rood_delete', largs)
-        return super(RangeObservingObservableDict, self).pop(*largs)
+        self.change_info = ('crod_pop', (largs[0], ))
+        return super(ChangeRecordingObservableDict, self).pop(*largs)
 
     def popitem(self, *largs):
         # From python docs, "Remove and return an arbitrary (key, value) pair
         # from the dictionary." From other reading, arbitrary here effectively
         # means "random" in the loose sense -- for truely random ops, use the
         # proper random module. Nevertheless, the item is deleted and returned.
-        self.range_change = ('rood_delete', largs)
-        return super(RangeObservingObservableDict, self).popitem(*largs)
+        # If the dict is empty, a key error is raised.
+        if len(self.keys()) != 0:
+            self.change_info = ('crod_popitem', (largs[0], ))
+        return super(ChangeRecordingObservableDict, self).popitem(*largs)
 
     def setdefault(self, *largs):
-        present_keys = super(RangeObservingObservableDict, self).keys()
-        if not largs[0] in present_keys:
-            self.range_change = ('rood_add', largs)
-        super(RangeObservingObservableDict, self).setdefault(*largs)
+        present_keys = super(ChangeRecordingObservableDict, self).keys()
+        key = largs[0]
+        if not key in present_keys:
+            self.change_info = ('crod_setdefault', (key, ))
+        super(ChangeRecordingObservableDict, self).setdefault(*largs)
 
     def update(self, *largs):
-        present_keys = super(RangeObservingObservableDict, self).keys()
-        self.range_change = ('rood_update', list(set(largs) - set(present_keys)))
-        super(RangeObservingObservableDict, self).update(*largs)
+        present_keys = super(ChangeRecordingObservableDict, self).keys()
+        self.change_info = ('crod_update', list(set(largs) - set(present_keys)))
+        super(ChangeRecordingObservableDict, self).update(*largs)
 
 
 class DictAdapter(ListAdapter):
@@ -120,7 +150,7 @@ class DictAdapter(ListAdapter):
     '''
 
     # TODO: This was initialized to None. Problem with setting to {} instead?
-    data = DictProperty({}, cls=RangeObservingObservableDict)
+    data = DictProperty({}, cls=ChangeRecordingObservableDict)
     '''A dict that indexes records by keys that are equivalent to the keys in
     sorted_keys, or they are a superset of the keys in sorted_keys.
 
@@ -158,27 +188,42 @@ class DictAdapter(ListAdapter):
 
         print 'DICT ADAPTER data_changed callback', dt
 
-        print self.data.range_change
+        print self.data.change_info
 
-        if self.adapter.data.range_change:
+        data_op, keys = self.data.change_info
 
-            data_op, keys = self.data.range_change
+        if data_op == 'crod_setattr':
 
-            if data_op in ['rood_add', 'rood_update':
-                self.sorted_keys.extend(keys)
-            elif data_op == 'rood_delete':
+            # TODO: If keys[0] is 'prop' or 'obj' the superclass of crod
+            # was called. Otherwise, it was the crod. What to do?
+            pass
 
-                delete_affected_selection = False
+        elif data_op in ['crod_setitem_add',
+                         'crod_setdefault',
+                         'crod_update']:
 
-                for selected_key in [sel.text for sel in self.selection]:
-                    if selected_key in keys:
-                        del self.selection[self.selection.index(selected_key)]
-                        delete_affected_selection = True
+            self.sorted_keys.extend(keys)
 
-                if delete_affected_selection:
-                    self.dispatch('on_selection_change')
+        elif data_op in ['crod_setitem_delete',
+                         'crod_delitem',
+                         'crod_clear',
+                         'crod_remove',
+                         'crod_pop',
+                         'crod_popitem']:
 
-                self.check_for_empty_selection()
+            # crod_pop can have second arg as a return dict.
+
+            delete_affected_selection = False
+
+            for selected_key in [sel.text for sel in self.selection]:
+                if selected_key in keys:
+                    del self.selection[self.selection.index(selected_key)]
+                    delete_affected_selection = True
+
+            if delete_affected_selection:
+                self.dispatch('on_selection_change')
+
+            self.check_for_empty_selection()
 
     def bind_triggers_to_view(self, func):
         self.bind(sorted_keys=func)

@@ -634,6 +634,12 @@ class ListItemButton(SelectableView, Button):
     :class:`~kivy.uix.listview.ListView`.
     '''
 
+    # TODO: ListItemButton could have a set of cosmetic (or otherwise, perhaps)
+    #       effects that should happen upon selection / deselection. For
+    #       example, instead of changing the background color, show a bold
+    #       border. Can this be handled by subclassing? Should there be a
+    #       "typical" set of optional effects?
+
     selected_color = ListProperty([1., 0., 0., 1])
     '''
     :data:`selected_color` is a :class:`~kivy.properties.ListProperty`,
@@ -935,12 +941,12 @@ class ListView(AbstractView, EventDispatcher):
                   item_strings=self.item_strings_changed,
                   adapter=self._trigger_populate)
 
-        # The bindings setup above sets self._trigger_populate() to fire
-        # when the adapter changes, but we also need this binding for when
-        # adapter.data and other possible triggers change for view updating.
-        # We don't know that these are, so we ask the adapter to set up the
-        # bindings back to the view updating function here.
-        self.adapter.bind_triggers_to_view(self._trigger_reset_populate)
+        self.adapter.bind(data=self.data_changed)
+
+    def adapter_changed(self, *args):
+
+        self.adapter.bind(data=self.data_changed)
+        self._trigger_populate()
 
     # Added to set data when item_strings is set in a kv template, but it will
     # be good to have also if item_strings is reset generally.
@@ -948,6 +954,7 @@ class ListView(AbstractView, EventDispatcher):
         self.adapter.data = self.item_strings
 
     def _scroll(self, scroll_y):
+
         if self.row_height is None:
             return
         self._scroll_y = scroll_y
@@ -976,6 +983,11 @@ class ListView(AbstractView, EventDispatcher):
 
     def _spopulate(self, *args):
         self.populate()
+        # simulate the scroll again, only if we already scrolled before
+        # the position might not be the same, mostly because we don't know the
+        # size of the new item.
+        if hasattr(self, '_scroll_y'):
+            self._scroll(self._scroll_y)
 
     def _reset_spopulate(self, *args):
         self._wend = None
@@ -987,6 +999,7 @@ class ListView(AbstractView, EventDispatcher):
             self._scroll(self._scroll_y)
 
     def populate(self, istart=None, iend=None):
+
         container = self.container
         sizes = self._sizes
         rh = self.row_height
@@ -1044,6 +1057,7 @@ class ListView(AbstractView, EventDispatcher):
                     self.row_height = real_height / count
 
     def scroll_to(self, index=0):
+
         if not self.scrolling:
             self.scrolling = True
             self._index = index
@@ -1051,6 +1065,7 @@ class ListView(AbstractView, EventDispatcher):
             self.dispatch('on_scroll_complete')
 
     def scroll_after_add(self):
+
         if not self.scrolling:
             available_height = self.height
             index = self._index
@@ -1077,67 +1092,162 @@ class ListView(AbstractView, EventDispatcher):
     def on_scroll_complete(self, *args):
         self.scrolling = False
 
-    def data_changed(self, *dt):
+    def data_changed(self, *args):
 
-        # Note: rool == RangeObservingObservableList
-        #       rood == RangeObservingObservableDict
+        # TODO: Bounds-checking here? (We should let things fail in python?)
+
+        # list and dict change ops:
         #
-        # Callbacks could come here from either, and there could be differences
-        # in handling.
+        #      crol == ChangeRecordingObservableList
+        #
+        #            set ops:
+        #
+        #                crol_setitem  - single item set
+        #                crol_setslice - range of items
+        #
+        #            add ops:
+        #
+        #                crol_iadd   - adds items to end
+        #                crol_imul   - adds items to end
+        #                crol_append - adds items to end
+        #                crol_insert - insert
+        #                crol_extend - adds items to end
+        #
+        #            delete ops:
+        #
+        #                crol_delitem  - single item
+        #                crol_delslice - multiple items
+        #                crol_remove   - single item
+        #                crol_pop      - single item
+        #
+        #            sort ops:
+        #
+        #                crol_sort
+        #                crol_reverse
+        #
+        #       crod == ChangeRecordingObservableDict
+        #
+        #            set op:
+        #
+        #                crod_setattr - single item set
+        #
+        #            add ops:
+        #
+        #                crod_setitem_add - single item
+        #                crod_setdefault  - single item
+        #                crod_update      - single or multiple items
+        #
+        #            delete ops:
+        #
+        #                crod_setitem_delete - single item
+        #                crod_delitem        - single item
+        #                crod_clear          - all items deleted
+        #                crod_remove         - single item
+        #                crod_pop            - single item
+        #                crod_popitem        - single item
 
-        print 'LISTVIEW data_changed callback', dt
+        # Callbacks could come here from either crol or crod, and there could
+        # be differences in handling.
 
-        print self.adapter.data.range_change
+        print 'LISTVIEW data_changed callback', args
 
-        data_op, (start_index, end_index) = self.adapter.data.range_change
+        print self.adapter.data.change_info
 
-        if self.adapter.data.range_change:
+        if self.adapter.data.change_info[0].startswith('crol'):
+            data_op, (start_index, end_index) = self.adapter.data.change_info
+        else:
+            data_op, keys = self.adapter.data.change_info
+            start_index = self.sorted_keys.index(keys[0])
+            # TODO: Assume contiguous?
+            end_index = max([self.sorted_keys.index(k) for k in keys])
 
-            if len(self.container.children) == 0:
-                # Delete action(s) have resulted in total deletion of items.
-                if data_op in ['rool_add', 'rool_extend', 'rood_add']:
-                    self.scroll_after_add()
-                return
-
-            # Otherwise, we may have item_views as children of self.container
-            # that should be removed.
-
-            first_item_view = self.container.children[-1]
-            last_item_view = self.container.children[0]
-
-            change_in_range = False
-
-            if (first_item_view.index <= start_index <= last_item_view.index
-                   or
-                   first_item_view.index <= end_index <= last_item_view.index):
-                change_in_range = True
-
-            if data_op in ['rool_add',
-                           'rool_extend',
-                           'rood_add',
-                           'rood_update']:
+        if len(self.container.children) == 0:
+            # Delete action(s) have resulted in total deletion of items.
+            if data_op in ['crol_append',
+                           'crol_extend',
+                           'crod_setattr',    # TODO: not scroll_after_add()?
+                           'crod_setitem_add',
+                           'crod_setdefault',
+                           'crod_update']:
                 self.scroll_after_add()
+            return
 
-            elif data_op in ['rool_delete', 'rood_delete']:
+        # Otherwise, we may have item_views as children of self.container
+        # that should be removed.
 
-                deleted_indices = range(start_index, end_index + 1)
-                num_deleted = len(deleted_indices)
+        if data_op in ['crol_setitem', ]:
 
-                for item_view in self.container.children:
-                    if item_view.index in deleted_indices:
-                        self.container.remove_widget(item_view)
+            # TODO: Better, faster way?
+            for i, item_view in enumerate(self.container.children):
+                if item_view.index == start_index:
+                    widget_index = i
+                    break
 
-                if change_in_range:
-                    self.scrolling = True
-                    self.populate()
-                    self.dispatch('on_scroll_complete')
+            widget = self.container.children[widget_index]
+            self.container.remove_widget(widget)
 
-            elif data_op in ['rool_insert', 'rood_insert']:
+            item_view = self.adapter.get_view(start_index)
+            self.container.add_widget(item_view, widget_index)
 
-                self.scroll_after_add()
+        elif data_op in ['crol_setslice', ]:
 
-            elif data_op in ['rool_sort', 'rood_sort']:
+            slice_indices = range(start_index, end_index + 1)
 
-                self.scrolling = True
-                self.populate()
-                self.dispatch('on_scroll_complete')
+            widget_indices = []
+
+            for i, item_view in enumerate(self.container.children):
+                if item_view.index in slice_indices:
+                    widget_indices.append(i)
+                    if len(widget_indices) == len(slice_indices):
+                        break
+
+            for widget_index in reversed(sorted(widget_indices)):
+                widget = self.container.children[widget_index]
+                self.container.remove_widget(widget)
+
+            add_index = min(widget_indices)
+            for slice_index in slice_indices:
+                item_view = self.adapter.get_view(slice_index)
+                self.container.add_widget(item_view, add_index)
+
+        elif data_op in ['crol_append',
+                         'crol_extend',
+                         'crod_setattr',    # TODO: not scroll_after_add()?
+                         'crod_add',
+                         'crod_update']:
+
+            self.scroll_after_add()
+
+        elif data_op in ['crol_delitem',
+                         'crol_delslice',
+                         'crol_remove',
+                         'crol_pop',
+                         'crod_setitem_delete',
+                         'crod_delitem',
+                         'crod_clear',
+                         'crod_remove',
+                         'crod_pop',
+                         'crod_popitem', ]:
+
+            deleted_indices = range(start_index, end_index + 1)
+
+            for item_view in self.container.children:
+                if item_view.index in deleted_indices:
+                    self.container.remove_widget(item_view)
+
+            self.scrolling = True
+            self.populate()
+            self.dispatch('on_scroll_complete')
+
+        elif data_op == 'crol_insert':
+
+            #self.scroll_after_add()
+            self.scrolling = True
+            self.populate()
+            self.dispatch('on_scroll_complete')
+
+        elif data_op == 'crol_sort':
+
+            self.scrolling = True
+            self.populate()
+            self.dispatch('on_scroll_complete')
