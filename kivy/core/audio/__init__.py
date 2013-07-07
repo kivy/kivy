@@ -1,7 +1,7 @@
 '''
 Audio
 =====
-f
+
 Load an audio sound and play it with::
 
     from kivy.core.audio import SoundLoader
