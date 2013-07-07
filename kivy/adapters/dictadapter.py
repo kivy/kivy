@@ -44,7 +44,7 @@ class ChangeRecordingObservableDict(ObservableDict):
     #           in self.data.change_info,
     #           (the self obj is not an EventDispatcher)
     #
-    change_info = ObjectProperty(None)
+    #change_info = ObjectProperty(None)
     # change_info is a normal python object consisting of the op name and
     # the keys involved:
     #
