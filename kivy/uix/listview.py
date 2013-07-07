@@ -1191,12 +1191,15 @@ class ListView(AbstractView, EventDispatcher):
 
         elif data_op in ['crol_setslice', ]:
 
+            len_data = len(self.adapter.data)
+
             slice_indices = range(start_index, end_index + 1)
 
-            if start_index > len(self.adapter.data) - 1:
-                return
+            len_slice_indices = len(slice_indices)
 
-            if end_index > len(self.adapter.data) - 1:
+            if not (0 <= start_index <= len_data - len(slice_indices)
+                    and
+                    len_slice_indices - 1 <= end_index < len_data):
                 return
 
             widget_indices = []
