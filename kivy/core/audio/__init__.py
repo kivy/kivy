@@ -34,7 +34,7 @@ from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
 
 
 class SoundLoader:
-    '''Load a sound, using of the best loader for the given file type.
+    '''Load a sound, using the best loader for the given file type.
     '''
 
     _classes = []
