@@ -1187,6 +1187,12 @@ class ListView(AbstractView, EventDispatcher):
 
             slice_indices = range(start_index, end_index + 1)
 
+            if start_index > len(self.adapter.data) - 1:
+                return
+
+            if end_index > len(self.adapter.data) - 1:
+                return
+
             widget_indices = []
 
             for i, item_view in enumerate(self.container.children):
