@@ -171,10 +171,12 @@ cdef class Fbo(RenderContext):
         self.depthbuffer_id = 0
 
     cdef void create_fbo(self):
-        cdef GLuint f_id = 0
+        cdef GLuint f_id = 1
         cdef GLint old_fid = 0
         cdef int status
         cdef int do_clear = 0
+        # we assume that for graphic texture id is 0
+        cdef GLuint depth_texture = 1
 
         # create texture
         if self._texture is None:
@@ -192,18 +194,28 @@ cdef class Fbo(RenderContext):
 
         # if we need depth, create a renderbuffer
         if self._depthbuffer_attached:
-            glGenRenderbuffers(1, &f_id)
-            self.depthbuffer_id = f_id
-            glBindRenderbuffer(GL_RENDERBUFFER, self.depthbuffer_id)
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
-                                  self._width, self._height)
-            glBindRenderbuffer(GL_RENDERBUFFER, 0)
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                                      GL_RENDERBUFFER, self.depthbuffer_id)
+                        
+            glGenTextures(1, &(depth_texture) )
+            glBindTexture(GL_TEXTURE_2D, depth_texture)
+            
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+                    self._width, self._height,
+                    0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL)
+            
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
 
+        
+        if self._depthbuffer_attached:
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                                        GL_TEXTURE_2D, depth_texture, 0)
+        
         # attach the framebuffer to our texture
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                 self._texture._target, self._texture._id, 0)
+        
 
         # check the status of the framebuffer
         status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
@@ -389,3 +401,22 @@ cdef class Fbo(RenderContext):
             data = py_glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE)
             self.release()
             return data
+
+    cpdef get_pixel_color(self, int wx, int wy):
+        """
+            Get the color of the pixel with specified window
+            coordinates wx, wy. It returns result in RGBA format
+ 
+        .. versionadded:: 1.8.0
+        """
+        if wx > self._width or wy > self._height:
+            # window coordinates should not exceed the
+            # frame buffer size
+            return (0, 0, 0, 0)
+        self.bind()
+        data = py_glReadPixels(wx, wy, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE)
+        self.release()
+        raw_data = str(buffer(data))
+        
+        return [ord(i) for i in raw_data]
+
