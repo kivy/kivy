@@ -66,9 +66,6 @@ if not PY2:
         'blue_mask=(int)0x0000ff'])
 
 
-
-
-
 def _gst_new_buffer(obj, appsink):
     obj = obj()
     if not obj:
@@ -109,9 +106,9 @@ class VideoGStreamer(VideoBase):
             self._videosink.set_property('caps', gst.Caps(_VIDEO_CAPS))
         else:
             self._videosink = gst.ElementFactory.make('appsink', 'videosink')
-            self._videosink.set_property('caps', gst.caps_from_string(_VIDEO_CAPS))
+            self._videosink.set_property('caps',
+                 gst.caps_from_string(_VIDEO_CAPS))
 
-        
         self._videosink.set_property('async', True)
         self._videosink.set_property('drop', True)
         self._videosink.set_property('qos', True)
@@ -139,6 +136,7 @@ class VideoGStreamer(VideoBase):
         # texture will be updated with newest buffer/frame
         caps = buf.get_caps()
         _s = caps.get_structure(0)
+        data = size = None
         if PY2:
             size = _s['width'], _s['height']
         else:
@@ -149,16 +147,18 @@ class VideoGStreamer(VideoBase):
             self._texture.flip_vertical()
             self.dispatch('on_load')
         # upload texture data to GPU
-        data = size = None
         if not PY2:
             mapinfo = None
             try:
                 mem = buf.get_buffer()
-                result, mapinfo = mem.map(0)
+                #from pudb import set_trace; set_trace()
+                #result, mapinfo = mem.map(0)
+                #result, mapinfo = mem.map_range(0, -1, gst.MapFlags.READ)
+
                 # repr(mapinfo) will return <void at 0x1aa3530>
                 # but there is no python attribute to get the address... so we
                 # need to parse it.
-                addr = int(repr(mapinfo).split()[-1][:-1], 16)
+                addr = int(repr(mem.get_memory(0)).split()[-1][:-1], 16)
                 # now get the memory
                 data = ctypes.string_at(addr, mem.get_size())
                 #print('got data', len(data), addr)
