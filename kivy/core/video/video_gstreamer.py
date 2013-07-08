@@ -17,6 +17,7 @@ try:
     if PY2:
         import gst
     else:
+        import ctypes
         import gi
         from gi.repository import Gst as gst
 except:
@@ -148,17 +149,26 @@ class VideoGStreamer(VideoBase):
             self._texture.flip_vertical()
             self.dispatch('on_load')
         # upload texture data to GPU
+        data = size = None
         if not PY2:
-            buf = buf.get_buffer()
-            # TODO: FIXME
-            # see bug at https://bugzilla.gnome.org/show_bug.cgi?id=678663
-            #map_info = buf.map_range(0, -1, gst.MapFlags.READ)[1]
-            #data = map_info.to_bytes().unref_to_array()
-            #print (mp.data)
-            #self._texture.blit_buffer(mp.data.to_bytes(mp.size, 'big'), size=size, colorfmt='rgb')
-            #buf.unmap(mp)
+            mapinfo = None
+            try:
+                mem = buf.get_buffer()
+                result, mapinfo = mem.map(0)
+                # repr(mapinfo) will return <void at 0x1aa3530>
+                # but there is no python attribute to get the address... so we
+                # need to parse it.
+                addr = int(repr(mapinfo).split()[-1][:-1], 16)
+                # now get the memory
+                data = ctypes.string_at(addr, mem.get_size())
+                #print('got data', len(data), addr)
+            finally:
+                if mapinfo is not None:
+                    mem.unmap(mapinfo)
         else:
-            self._texture.blit_buffer(buf.data, size=size, colorfmt='rgb')
+            data = buf.data
+
+        self._texture.blit_buffer(data, size=size, colorfmt='rgb')
 
     def _update(self, dt):
         buf = None
