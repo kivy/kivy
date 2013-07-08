@@ -48,6 +48,7 @@ A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
 __all__ = ('ListAdapter', )
 
 import inspect
+from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.models import SelectableDataItem
@@ -385,6 +386,12 @@ class ListAdapter(Adapter, EventDispatcher):
         print 'sort op starting'
 
     def crol_data_changed(self, *args):
+
+        # TODO: This is to solve a timing issue when running tests. Remove when
+        #       no longer needed.
+        if not hasattr(self.data, 'change_info'):
+            Clock.schedule_once(lambda dt: self.crol_data_changed(*args))
+            return
 
         if self.data.change_info[0].startswith('crod'):
             return
