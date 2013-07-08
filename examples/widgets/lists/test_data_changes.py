@@ -12,6 +12,7 @@ from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.dictadapter import DictAdapter
 
 from kivy.properties import ListProperty
+from kivy.properties import StringProperty
 
 from kivy.uix.listview import ListItemButton
 from kivy.uix.listview import ListView
@@ -19,16 +20,6 @@ from kivy.uix.screenmanager import FadeTransition
 from kivy.uix.screenmanager import Screen
 from kivy.uix.screenmanager import ScreenManager
 
-
-def list_args_converter(row_index, value):
-    return {"text": str(value),
-            "size_hint_y": None,
-            "height" : 25}
-
-def dict_args_converter(row_index, rec):
-    return {"text": rec['text'],
-            "size_hint_y": None,
-            "height" : 25}
 
 Builder.load_string('''
 #:import choice random.choice
@@ -239,6 +230,16 @@ Builder.load_string('''
                 padding: 3
                 spacing: 5
 
+                Button:
+                    size_hint: None, None
+                    width: 96
+                    height: 30
+                    text: 'setitem set'
+                    on_release: app.dict_adapter.data[ \
+                            app.dict_adapter.selection[0].key] = \
+                                {'key': app.dict_adapter.selection[0].key, \
+                                 'value': ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))}
+
                 Label:
 #                Button:
                     size_hint: None, None
@@ -246,8 +247,8 @@ Builder.load_string('''
                     height: 30
                     text: 'setitem add'
 #                    on_release: app.dict_adapter.data[ \
-#                            app.dict_adapter.selection[0].text] = \
-#                            choice(app.nato_alphabet_words)
+#                            ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))] = \
+#                            ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
 
                 Label:
 #                Button:
@@ -258,14 +259,13 @@ Builder.load_string('''
 #                    on_release: app.dict_adapter.data[ \
 #                            app.dict_adapter.selection[0].text] = None
 
-#                Label:
                 Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'delitem'
                     on_release: del app.dict_adapter.data[ \
-                                    app.dict_adapter.selection[0].text]
+                                    app.dict_adapter.sorted_keys[app.dict_adapter.selection[0].index]]
 
                 Label:
 #                Button:
@@ -328,6 +328,26 @@ class ItemsScreen(Screen):
     pass
 
 
+def list_args_converter(row_index, value):
+    return {"text": str(value),
+            "size_hint_y": None,
+            "height" : 25}
+
+def dict_args_converter(row_index, rec):
+    return {"text": "{} : {}".format(rec['key'], rec['value']),
+            "key": rec['key'],
+            "size_hint_y": None,
+            "height" : 25}
+
+
+class KeyedListItemButton(ListItemButton):
+
+    key = StringProperty('')
+
+    def __init__(self, **kwargs):
+        super(KeyedListItemButton, self).__init__(**kwargs)
+
+
 class Test(App):
 
     nato_alphabet_words = ListProperty([
@@ -341,7 +361,6 @@ class Test(App):
         'Alpha', 'November', 'Delta',
         'Charlie', 'Alpha', 'Tango', 'Sierra'])
 
-
     def build(self):
 
         self.list_adapter = ListAdapter(data=self.data,
@@ -350,8 +369,8 @@ class Test(App):
                                         allow_empty_selection=False,
                                         args_converter=list_args_converter)
 
-        self.dict_adapter = DictAdapter(data={k: {'text': k} for k in self.nato_alphabet_words},
-                                        cls=ListItemButton,
+        self.dict_adapter = DictAdapter(data={k: {'key': k, 'value': k} for k in self.nato_alphabet_words},
+                                        cls=KeyedListItemButton,
                                         selection_mode='single',
                                         allow_empty_selection=False,
                                         args_converter=dict_args_converter)

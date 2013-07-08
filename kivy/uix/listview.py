@@ -947,7 +947,7 @@ class ListView(AbstractView, EventDispatcher):
 
         if self.adapter:
             print 'and the adapter changed to', self.adapter
-            self.adapter.bind(data=self.data_changed)
+            self.adapter.bind(on_data_change=self.data_changed)
             self._trigger_populate()
 
     # Added to set data when item_strings is set in a kv template, but it will
@@ -1099,6 +1099,9 @@ class ListView(AbstractView, EventDispatcher):
     def data_changed(self, *args):
 
         # TODO: Bounds-checking here? (We should let things fail in python?)
+        #       UPDATE: Actually, after getting the order right on the bindings
+        #               and after adding the ChangeMonitor, by the time we get
+        #               called here, there would have already been an error.
 
         # list and dict change ops:
         #
@@ -1133,7 +1136,8 @@ class ListView(AbstractView, EventDispatcher):
         #
         #            set op:
         #
-        #                crod_setattr - single item set
+        #                crod_setattr     - single item set
+        #                crod_setitem_set - single item set
         #
         #            add ops:
         #
@@ -1143,33 +1147,31 @@ class ListView(AbstractView, EventDispatcher):
         #
         #            delete ops:
         #
-        #                crod_setitem_delete - single item
-        #                crod_delitem        - single item
-        #                crod_clear          - all items deleted
-        #                crod_remove         - single item
-        #                crod_pop            - single item
-        #                crod_popitem        - single item
+        #                crod_setitem_del - single item
+        #                crod_delitem     - single item
+        #                crod_clear       - all items deleted
+        #                crod_remove      - single item
+        #                crod_pop         - single item
+        #                crod_popitem     - single item
 
         # Callbacks could come here from either crol or crod, and there could
         # be differences in handling.
 
-        #print self.adapter.data.change_info
-
         # TODO: This is to solve a timing issue when running tests. Remove when
         #       no longer needed.
-        if not hasattr(self.adapter.data, 'change_info'):
-            Clock.schedule_once(lambda dt: self.data_changed(*args))
-            return
+#        if self.adapter.data.change_monitor.change_info == None:
+#            Clock.schedule_once(lambda dt: self.data_changed(*args))
+#            return
 
-        if self.adapter.data.change_info[0].startswith('crol'):
-            data_op, (start_index, end_index) = self.adapter.data.change_info
+        change_info = self.adapter.data.change_monitor.change_info
+
+        if change_info[0].startswith('crol'):
+            data_op, (start_index, end_index) = change_info
         else:
-            data_op, keys = self.adapter.data.change_info
+            data_op, keys = change_info
+            start_index, end_index = self.adapter.additional_change_info
 
-        print 'LISTVIEW data_changed callback'
-
-            #start_index = self.adapter.sorted_keys.index(keys[0])
-            #end_index = max([self.adapter.sorted_keys.index(k) for k in keys])
+        print 'LISTVIEW data_changed callback', change_info
 
         if len(self.container.children) == 0:
             # Delete action(s) have resulted in total deletion of items.
@@ -1185,7 +1187,7 @@ class ListView(AbstractView, EventDispatcher):
         # Otherwise, we may have item_views as children of self.container
         # that should be removed.
 
-        if data_op in ['crol_setitem', ]:
+        if data_op in ['crol_setitem', 'crod_setitem_set', ]:
 
             # TODO: Better, faster way?
             for i, item_view in enumerate(self.container.children):
@@ -1232,6 +1234,7 @@ class ListView(AbstractView, EventDispatcher):
         elif data_op in ['crol_append',
                          'crol_extend',
                          'crod_setattr',    # TODO: not scroll_after_add()?
+                         'crod_setitem_add',
                          'crod_add',
                          'crod_update']:
 
@@ -1240,39 +1243,24 @@ class ListView(AbstractView, EventDispatcher):
         elif data_op in ['crol_delitem',
                          'crol_delslice',
                          'crol_remove',
-                         'crol_pop', ]:
-
-            deleted_indices = range(start_index, end_index + 1)
-
-            for item_view in self.container.children:
-                if item_view.index in deleted_indices:
-                    self.container.remove_widget(item_view)
-
-            self.scrolling = True
-            self.populate()
-            self.dispatch('on_scroll_complete')
-
-        elif data_op in ['crod_setitem_delete',
+                         'crol_pop',
                          'crod_delitem',
+                         'crod_setitem_del',
                          'crod_clear',
                          'crod_remove',
                          'crod_pop',
                          'crod_popitem', ]:
 
-            print 'LISTView', data_op
-
-            removals_done = False
+            deleted_indices = range(start_index, end_index + 1)
 
             for item_view in self.container.children:
-                if item_view.text in keys:
-                    print 'removing', item_view.text
+                if (hasattr(item_view, 'index')
+                        and item_view.index in deleted_indices):
                     self.container.remove_widget(item_view)
-                    removals_done = True
 
-            if removals_done:
-                self.scrolling = True
-                self.populate()
-                self.dispatch('on_scroll_complete')
+            self.scrolling = True
+            self.populate()
+            self.dispatch('on_scroll_complete')
 
         elif data_op == 'crol_insert':
 
@@ -1286,3 +1274,8 @@ class ListView(AbstractView, EventDispatcher):
             self.scrolling = True
             self.populate()
             self.dispatch('on_scroll_complete')
+
+        # TODO: The system of this set, and the check at the top of this
+        #       method, needs timing torture tests.
+        self.adapter.data.change_monitor.change_info = None
+

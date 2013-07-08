@@ -89,6 +89,28 @@ from kivy.lang import Builder
 #        pass
 
 
+class ChangeMonitor(EventDispatcher):
+    '''The ChangeRecordingObservableList/Dict instances need to store change
+    info without triggering a data_changed() callback themselves. Use this
+    intermediary to hold change info for CROL and CROD observers.
+    '''
+
+    change_info = ObjectProperty(None, allownone=True)
+
+    __events__ = ('on_change_info',)
+
+    def __init__(self, *largs):
+        super(ChangeMonitor, self).__init__(*largs)
+
+        self.bind(change_info=self.dispatch_change)
+
+    def dispatch_change(self, *args):
+        self.dispatch('on_change_info')
+
+    def on_change_info(self, *args):
+        pass
+
+
 class ChangeRecordingObservableList(ObservableList):
     '''Adds range-observing and other intelligence to ObservableList, storing
     change_info for use by an observer.
@@ -131,20 +153,19 @@ class ChangeRecordingObservableList(ObservableList):
 
     def __init__(self, *largs):
         super(ChangeRecordingObservableList, self).__init__(*largs)
+        self.change_monitor = ChangeMonitor()
 
         #self.change_info = None
 
         #self.crol_dispatcher = CROLDispatcher()
 
     def __setitem__(self, key, value):
-        self.change_info = ('crol_setitem', (key, key))
         super(ChangeRecordingObservableList, self).__setitem__(key, value)
+        self.change_monitor.change_info = ('crol_setitem', (key, key))
 
     def __delitem__(self, key):
-        self.change_info = ('crol_delitem', (key, key))
         super(ChangeRecordingObservableList, self).__delitem__(key)
-        #self.crol_dispatcher.sort_op_starting = True
-        #self.crol_dispatcher.dispatch('on_sort_op_starting')
+        self.change_monitor.change_info = ('crol_delitem', (key, key))
 
     def __setslice__(self, *largs):
         #
@@ -159,8 +180,8 @@ class ChangeRecordingObservableList(ObservableList):
         #
         start_index = largs[0]
         end_index = largs[1] - 1
-        self.change_info = ('crol_setslice', (start_index, end_index))
         super(ChangeRecordingObservableList, self).__setslice__(*largs)
+        self.change_monitor.change_info = ('crol_setslice', (start_index, end_index))
 
     def __delslice__(self, *largs):
         # Delete the slice of a from index b to index c-1. del a[b:c],
@@ -168,62 +189,64 @@ class ChangeRecordingObservableList(ObservableList):
         # Also deprecated.
         start_index = largs[0]
         end_index = largs[1] - 1
-        self.change_info = ('crol_delslice', (start_index, end_index))
         super(ChangeRecordingObservableList, self).__delslice__(*largs)
+        self.change_monitor.change_info = ('crol_delslice', (start_index, end_index))
 
     def __iadd__(self, *largs):
         start_index = len(self)
         end_index = start_index + len(largs) - 1
-        self.change_info = ('crol_iadd', (start_index, end_index))
         super(ChangeRecordingObservableList, self).__iadd__(*largs)
+        self.change_monitor.change_info = ('crol_iadd', (start_index, end_index))
 
     def __imul__(self, *largs):
         num = largs[0]
         start_index = len(self)
         end_index = start_index + (len(self) * num)
-        self.change_info = ('crol_imul', (start_index, end_index))
         super(ChangeRecordingObservableList, self).__imul__(*largs)
+        self.change_monitor.change_info = ('crol_imul', (start_index, end_index))
 
     def append(self, *largs):
         index = len(self)
-        self.change_info = ('crol_append', (index, index))
         super(ChangeRecordingObservableList, self).append(*largs)
+        self.change_monitor.change_info = ('crol_append', (index, index))
 
     def remove(self, *largs):
         index = self.index(largs[0])
-        self.change_info = ('crol_remove', (index, index))
         super(ChangeRecordingObservableList, self).remove(*largs)
+        self.change_monitor.change_info = ('crol_remove', (index, index))
 
     def insert(self, *largs):
         index = largs[0]
-        self.change_info = ('crol_insert', (index, index))
         super(ChangeRecordingObservableList, self).insert(*largs)
+        self.change_monitor.change_info = ('crol_insert', (index, index))
 
     def pop(self, *largs):
         if largs:
             index = largs[0]
         else:
             index = len(self) - 1
-        self.change_info = ('crol_pop', (index, index))
-        return super(ChangeRecordingObservableList, self).pop(*largs)
+        result = super(ChangeRecordingObservableList, self).pop(*largs)
+        self.change_monitor.change_info = ('crol_pop', (index, index))
+        return result
 
     def extend(self, *largs):
         start_index = len(self)
         end_index = start_index + len(largs[0]) - 1
-        self.change_info = ('crol_extend', (start_index, end_index))
         super(ChangeRecordingObservableList, self).extend(*largs)
+        self.change_monitor.change_info = ('crol_extend', (start_index, end_index))
 
     def sort(self, *largs):
-        #self.crol_dispatcher.sort_op_starting = True
+        #self.change_monitor.sort_op_starting = True
         for i in self.cached_view_indices_and_data:
             self.cached_view_indices_and_data[i] = self.data[i]
 
-        self.change_info = ('crol_sort', (0, len(self) - 1))
         super(ChangeRecordingObservableList, self).sort(*largs)
+        self.change_monitor.change_info = ('crol_sort', (0, len(self) - 1))
 
     def reverse(self, *largs):
-        self.change_info = ('crol_reverse', (0, len(self) - 1))
+        #self.change_monitor.reverse_op_starting = True
         super(ChangeRecordingObservableList, self).reverse(*largs)
+        self.change_monitor.change_info = ('crol_reverse', (0, len(self) - 1))
 
 
 class ListAdapter(Adapter, EventDispatcher):
@@ -365,14 +388,15 @@ class ListAdapter(Adapter, EventDispatcher):
     defaults to {}.
     '''
 
-    __events__ = ('on_selection_change',)
+    __events__ = ('on_selection_change', 'on_data_change')
 
     def __init__(self, **kwargs):
         super(ListAdapter, self).__init__(**kwargs)
 
         self.bind(selection_mode=self.selection_mode_changed,
-                  allow_empty_selection=self.check_for_empty_selection,
-                  data=self.crol_data_changed)
+                  allow_empty_selection=self.check_for_empty_selection)
+
+        self.data.change_monitor.bind(on_change_info=self.crol_data_changed)
 
         #self.data.crol_dispatcher.bind(
                 #on_change_info=self.data_changed,
@@ -387,13 +411,15 @@ class ListAdapter(Adapter, EventDispatcher):
 
     def crol_data_changed(self, *args):
 
+        change_info = args[0].change_info
+
         # TODO: This is to solve a timing issue when running tests. Remove when
         #       no longer needed.
-        if not hasattr(self.data, 'change_info'):
+        if not change_info:
             Clock.schedule_once(lambda dt: self.crol_data_changed(*args))
             return
 
-        if self.data.change_info[0].startswith('crod'):
+        if change_info[0].startswith('crod'):
             return
 
         # crol_setitem
@@ -410,11 +436,9 @@ class ListAdapter(Adapter, EventDispatcher):
         # crol_sort
         # crol_reverse
 
-        print 'LIST ADAPTER data_changed callback', args
+        print 'LIST ADAPTER data_changed callback', change_info
 
-        #print self.data.change_info
-
-        data_op, (start_index, end_index) = self.data.change_info
+        data_op, (start_index, end_index) = change_info
 
         if len(self.data) == 1 and data_op in ['crol_append',
                                                'crol_insert',
@@ -538,6 +562,9 @@ class ListAdapter(Adapter, EventDispatcher):
         elif data_op in ['crol_sort',
                          'crol_reverse']:
             pass
+
+        self.dispatch('on_data_change')
+
 #                for item_view in self.cached_views:
 #                    item_view.index = self.data.index(
 #                            self.data.cached_view_indices_and_data[item_view])
@@ -655,6 +682,12 @@ class ListAdapter(Adapter, EventDispatcher):
     def on_selection_change(self, *args):
         '''on_selection_change() is the default handler for the
         on_selection_change event.
+        '''
+        pass
+
+    def on_data_change(self, *args):
+        '''on_data_change() is the default handler for the
+        on_data_change event.
         '''
         pass
 
@@ -812,7 +845,7 @@ class ListAdapter(Adapter, EventDispatcher):
                 # Select the first item if we have it.
                 v = self.get_view(0)
                 if v is not None:
-                    print 'selecting', v, v.text
+                    print 'cfes selecting', v, v.text
                     self.handle_selection(v)
 
     # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,
@@ -832,7 +865,6 @@ class ListAdapter(Adapter, EventDispatcher):
         '''
         if len(self.selection) > 0:
             last_sel_index = max([sel.index for sel in self.selection])
-            print('last_sel_index', last_sel_index)
             self.data = self.data[:last_sel_index + 1]
 
     def trim_to_sel(self, *args):
