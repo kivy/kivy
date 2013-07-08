@@ -20,6 +20,7 @@ If you wish to have a bare-bones list adapter, without selection, use the
 
 __all__ = ('DictAdapter', )
 
+from kivy.clock import Clock
 from kivy.properties import DictProperty
 from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
@@ -183,6 +184,12 @@ class DictAdapter(ListAdapter):
         # TODO: call update on dict to match?
 
     def crod_data_changed(self, *dt):
+
+        # TODO: This is to solve a timing issue when running tests. Remove when
+        #       no longer needed.
+        if not hasattr(self.data, 'change_info'):
+            Clock.schedule_once(lambda dt: self.crod_data_changed(*args))
+            return
 
         print 'DICT ADAPTER crod_data_changed callback'
 

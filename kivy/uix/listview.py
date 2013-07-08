@@ -1155,6 +1155,12 @@ class ListView(AbstractView, EventDispatcher):
 
         #print self.adapter.data.change_info
 
+        # TODO: This is to solve a timing issue when running tests. Remove when
+        #       no longer needed.
+        if not hasattr(self.adapter.data, 'change_info'):
+            Clock.schedule_once(lambda dt: self.data_changed(*args))
+            return
+
         if self.adapter.data.change_info[0].startswith('crol'):
             data_op, (start_index, end_index) = self.adapter.data.change_info
         else:
