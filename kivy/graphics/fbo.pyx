@@ -194,26 +194,19 @@ cdef class Fbo(RenderContext):
 
         # if we need depth, create a renderbuffer
         if self._depthbuffer_attached:
-                        
-            glGenTextures(1, &(depth_texture) )
-            glBindTexture(GL_TEXTURE_2D, depth_texture)
-            
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-                    self._width, self._height,
-                    0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL)
-            
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+             
+            glGenRenderbuffers(1, &f_id)
+            self.depthbuffer_id = f_id
+            glBindRenderbuffer(GL_RENDERBUFFER, self.depthbuffer_id)
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16,
+                                  self._width, self._height)
+            glBindRenderbuffer(GL_RENDERBUFFER, 0)
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                                      GL_RENDERBUFFER, self.depthbuffer_id)
 
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                                        GL_TEXTURE_2D, depth_texture, 0)
-        
         # attach the framebuffer to our texture
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                 self._texture._target, self._texture._id, 0)
-        
 
         # check the status of the framebuffer
         status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
