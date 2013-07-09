@@ -300,15 +300,18 @@ Builder.load_string('''
                                 app.dict_adapter.data.setdefault(k, {'key': k, 'value': k})
 
                 Label:
-#                Button:
+                Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'update (3)'
-#                    on_release: app.dict_adapter.data.update( \
-#                            {''.join(sample('abcdefghijklmnopqrstuvwxyz', 26)): 'random letters', \
-#                             ''.join(sample('abcdefghijklmnopqrstuvwxyz', 26)): 'random letters', \
-#                             ''.join(sample('abcdefghijklmnopqrstuvwxyz', 26)): 'random letters'})
+                    on_release: k1 = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10)); \
+                                k2 = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10)); \
+                                k3 = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10)); \
+                                app.dict_adapter.data.update({k1: {'key': k1, 'value': k1}, \
+                                                              k2: {'key': k2, 'value': k2}, \
+                                                              k3: {'key': k3, 'value': k3}})
+                                #print len(app.dict_adapter.data), len(app.dict_adapter.sorted_keys)
 
                 Label:
                     size_hint: None, None

@@ -180,7 +180,9 @@ class ChangeRecordingObservableDict(ObservableDict):
         change_info = None
         present_keys = self.keys()
         if present_keys:
-            change_info = ('crod_update', list(set(largs) - set(present_keys)))
+            change_info = (
+                    'crod_update',
+                    list(set(largs[0].keys()) - set(present_keys)))
         super(ChangeRecordingObservableDict, self).update(*largs)
         if change_info:
             self.change_monitor.change_info = change_info
@@ -282,6 +284,9 @@ class DictAdapter(ListAdapter):
         if data_op in ['crod_setitem_add', 'crod_setdefault', ]:
             self.sorted_keys.append(keys[0])
 
+        if data_op == 'crod_update':
+            self.sorted_keys.extend(keys)
+
         indices = [self.sorted_keys.index(k) for k in keys]
 
         start_index = min(indices)
@@ -314,7 +319,7 @@ class DictAdapter(ListAdapter):
             #       was called. Otherwise, it was the crod. What to do?
             pass
 
-        elif data_op in ['crod_setitem_add', 'crod_setdefault' ]:
+        elif data_op in ['crod_setitem_add', 'crod_setdefault', 'crod_update']:
 
             # We have already added the key to sorted_keys, above.
             pass
