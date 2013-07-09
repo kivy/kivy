@@ -79,19 +79,20 @@ class ChangeRecordingObservableDict(ObservableDict):
     def __setattr__(self, attr, value):
         if attr in ('prop', 'obj', 'change_monitor'):
             super(ChangeRecordingObservableDict, self).__setattr__(attr, value)
-            if not attr == 'change_monitor':
+            if attr != 'change_monitor':
                 self.change_monitor.change_info = ('crod_setattr', (attr, ))
             return
         super(ChangeRecordingObservableDict, self).__setitem__(attr, value)
 
     def __setitem__(self, key, value):
+
         if value is None:
             # ObservableDict will delete the item if value is None, so this is
             # like a delete op. __delitem__ gets called, so we will not set
             # self.change_monitor.change_info at the end of this method.
             change_info = ('crod_setitem_del', (key, ))
         else:
-            if key in self:
+            if key in self.keys():
                 change_info = ('crod_setitem_set', (key, ))
             else:
                 change_info = ('crod_setitem_add', (key, ))
@@ -165,14 +166,15 @@ class ChangeRecordingObservableDict(ObservableDict):
         return key, value
 
     def setdefault(self, *largs):
-        present_keys = super(ChangeRecordingObservableDict, self).keys()
+        present_keys = self.keys()
         key = largs[0]
         change_info = None
         if not key in present_keys:
             change_info = ('crod_setdefault', (key, ))
-        super(ChangeRecordingObservableDict, self).setdefault(*largs)
+        result = super(ChangeRecordingObservableDict, self).setdefault(*largs)
         if change_info:
             self.change_monitor.change_info = change_info
+        return result
 
     def update(self, *largs):
         change_info = None
@@ -277,7 +279,7 @@ class DictAdapter(ListAdapter):
             self.dispatch('on_data_change')
             return
 
-        if data_op == 'crod_setitem_add':
+        if data_op in ['crod_setitem_add', 'crod_setdefault', ]:
             self.sorted_keys.append(keys[0])
 
         indices = [self.sorted_keys.index(k) for k in keys]
@@ -292,11 +294,7 @@ class DictAdapter(ListAdapter):
 
         print 'DICT ADAPTER crod_data_changed callback', change_info
 
-        # TODO: -1 because change_monitor attr included in self.data!!!
-        #       NOTE: This is not the case for CROL.
-        len_self_data = len(self.data) - 1
-
-        if len_self_data == 1 and data_op in ['crod_setitem_add',
+        if len(self.data) == 1 and data_op in ['crod_setitem_add',
                                               'crod_setdefault',
                                               'crod_update']:
             # Special case: deletion resulted in no data, leading up to the
@@ -316,7 +314,7 @@ class DictAdapter(ListAdapter):
             #       was called. Otherwise, it was the crod. What to do?
             pass
 
-        elif data_op in ['crod_setitem_add', ]:
+        elif data_op in ['crod_setitem_add', 'crod_setdefault' ]:
 
             # We have already added the key to sorted_keys, above.
             pass
