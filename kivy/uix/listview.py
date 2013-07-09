@@ -1209,6 +1209,9 @@ class ListView(AbstractView, EventDispatcher):
 
             len_slice_indices = len(slice_indices)
 
+            # TODO: This range-checking was added before the order of change
+            #       and callback was sorted out. Remove this, because a range
+            #       violation would have already occurred by this point?
             if not (0 <= start_index <= len_data - len(slice_indices)
                     and
                     len_slice_indices - 1 <= end_index < len_data):
