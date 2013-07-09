@@ -1,5 +1,5 @@
 '''
-Clipboard Pygame: implementation of clipboard using pygame.scrap.
+Clipboard Pygame: an implementation of the Clipboard using pygame.scrap.
 '''
 
 __all__ = ('ClipboardPygame', )
