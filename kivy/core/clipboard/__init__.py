@@ -2,7 +2,7 @@
 Clipboard
 =========
 
-Core class for accessing to the Clipboard. If we are not able to access to the
+Core class for accessing the Clipboard. If we are not able to access the
 system clipboard, a fake one will be used.
 
 Usage example::
@@ -20,8 +20,8 @@ Usage example::
     >>> Clipboard.get('UTF8_STRING')
     'Great'
 
-.. note:: The main implementation rely on Pygame, and works great with
-          text/string. Anything else might not work the same on all platform.
+.. note:: The main implementation relies on Pygame and works well with
+          text/strings. Anything else might not work the same on all platforms.
 '''
 
 __all__ = ('ClipboardBase', 'Clipboard')
