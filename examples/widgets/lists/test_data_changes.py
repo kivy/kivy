@@ -291,14 +291,13 @@ Builder.load_string('''
                     text: 'popitem'
                     on_release: app.dict_adapter.data.popitem()
 
-                Label:
-#                Button:
+                Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'setdefault'
-#                    on_release: app.dict_adapter.data.setdefault( \
-#                            ''.join(sample('abcdefghijklmnopqrstuvwxyz', 26)), 'random letters')
+                    on_release: k = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10)); \
+                                app.dict_adapter.data.setdefault(k, {'key': k, 'value': k})
 
                 Label:
 #                Button:
@@ -311,6 +310,11 @@ Builder.load_string('''
 #                             ''.join(sample('abcdefghijklmnopqrstuvwxyz', 26)): 'random letters', \
 #                             ''.join(sample('abcdefghijklmnopqrstuvwxyz', 26)): 'random letters'})
 
+                Label:
+                    size_hint: None, None
+                    width: 96
+                    height: 30
+                    text: '[insert]'
 ''')
 
 
