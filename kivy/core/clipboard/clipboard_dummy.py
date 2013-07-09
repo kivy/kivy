@@ -1,5 +1,5 @@
 '''
-Clipboard Dummy: internal implementation without using system
+Clipboard Dummy: an internal implementation without using the system clipboard.
 '''
 
 __all__ = ('ClipboardDummy', )
