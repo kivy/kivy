@@ -240,15 +240,14 @@ Builder.load_string('''
                                 {'key': app.dict_adapter.selection[0].key, \
                                  'value': ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))}
 
-                Label:
-#                Button:
+                Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'setitem add'
-#                    on_release: app.dict_adapter.data[ \
-#                            ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))] = \
-#                            ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+                    on_release: app.dict_adapter.data[ \
+                            ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))] = \
+                            ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
 
                 Button:
                     size_hint: None, None
