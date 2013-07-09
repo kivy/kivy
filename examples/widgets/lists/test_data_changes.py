@@ -276,22 +276,21 @@ Builder.load_string('''
                     text: 'clear'
                     on_release: app.dict_adapter.data.clear()
 
-                Label:
-#                Button:
+                Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'pop'
-#                    on_release: app.dict_adapter.data.pop()
+                    on_release: app.dict_adapter.data.pop( \
+                                        app.dict_adapter.sorted_keys[ \
+                                            app.dict_adapter.selection[0].index])
 
-                Label:
-#                Button:
+                Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'popitem'
-#                    on_release: app.dict_adapter.data.popitem( \
-#                            app.dict_adapter.selection[0].text)
+                    on_release: app.dict_adapter.data.popitem()
 
                 Label:
 #                Button:

@@ -33,48 +33,54 @@ from kivy.adapters.listadapter import ChangeRecordingObservableList
 
 class ChangeRecordingObservableDict(ObservableDict):
     '''Adds range-observing and other intelligence to ObservableDict, storing
-    change_info for use by an observer.
+    change_info for use by an observer. The change_info is stored in an
+    instance of ClassMonitor as an attr here (in this dict), so special
+    handling in the overridden dict methods is needed, e.g. to keep
+    class_monitor from being deleted, and to keep it out of keys() and
+    iterators.
     '''
 
     def __init__(self, *largs):
         self.change_monitor = ChangeMonitor()
         super(ChangeRecordingObservableDict, self).__init__(*largs)
 
-    # TODO: For running test apps, it is ok to have change_info commented out,
-    #       but tests will not run, because change_info is not seen as as
-    #       property. Conversely, if it is present, test apps will not run,
-    #       because it expects an EventDispatcher for the set.
-    #
-    #           in self.data.change_info,
-    #           (the self obj is not an EventDispatcher)
-    #
-    #change_info = ObjectProperty(None)
-    # change_info is a normal python object consisting of the op name and
-    # the keys involved:
-    #
-    #     (data_op, (keys))
-    #
-    # If the op does not cause a range change, change_info is set to None.
-    #
-    # Observers of data changes may consult change_info if needed, for
-    # example, listview needs to know details for scrolling.
-    #
-    # DictAdapter itself, the owner of data, is the first observer of data
-    # change that must react to delete ops, if the existing selection is
-    # affected.
-    #
+    def __len__(self, *largs):
+        # We should always have our own change_monitor to remove from len
+        # calculation. Our self.keys() takes care of that, so use it for len.
+        return len(self.keys())
 
-    # ObservableDict __setattr__
-    # def __setattr__(self, attr, value):
-    #    if attr in ('prop', 'obj'):
-    #        super(ObservableDict, self).__setattr__(attr, value)
-    #        return
-    #    self.__setitem__(attr, value)
+    def keys(self, *largs):
+        # Do not include change_monitor.
+        keys = super(ChangeRecordingObservableDict, self).keys(*largs)
+        return list(set(keys) - set(['change_monitor', ]))
+
+    # As for __len__() and keys(), omit our change_monitor instance in other
+    # iterating methods. Use our own self.keys() in these:
+
+    def __iter__(self, *largs):
+        return iter(self.keys())
+
+    def values(self):
+        return [self[key] for key in self.keys()]
+
+    def items(self):
+        return [(key, self[key]) for key in self.keys()]
+
+    def iterkeys(self):
+        return iter(self.keys())
+
+    def itervalues(self):
+        return (self[key] for key in self.keys())
+
+    def iteritems(self):
+        for k in self.keys():
+            yield (k, self[k])
 
     def __setattr__(self, attr, value):
         if attr in ('prop', 'obj', 'change_monitor'):
             super(ChangeRecordingObservableDict, self).__setattr__(attr, value)
-            self.change_monitor.change_info = ('crod_setattr', (attr, ))
+            if not attr == 'change_monitor':
+                self.change_monitor.change_info = ('crod_setattr', (attr, ))
             return
         super(ChangeRecordingObservableDict, self).__setitem__(attr, value)
 
@@ -94,6 +100,11 @@ class ChangeRecordingObservableDict(ObservableDict):
             self.change_monitor.change_info = change_info
 
     def __delitem__(self, key):
+        # Protect change_monitor from deletion.
+        if key == 'change_monitor':
+            # TODO: Raise an exception?
+            print 'tried to delete change_monitor'
+            return
         super(ChangeRecordingObservableDict, self).__delitem__(key)
         self.change_monitor.change_info = ('crod_delitem', (key, ))
 
@@ -105,26 +116,53 @@ class ChangeRecordingObservableDict(ObservableDict):
         super(ChangeRecordingObservableDict, self).clear(*largs)
 
     def pop(self, *largs):
+        key = largs[0]
+
+        # Protect change_monitor from deletion.
+        if key == 'change_monitor':
+            # TODO: Raise an exception?
+            print 'tried to pop change_monitor'
+            return
+
         # This is pop on a specific key. If that key is absent, the second arg
         # is returned. If there is no second arg in that case, a key error is
         # raised. But the key is always largs[0], so store that.
         # s.pop([i]) is same as x = s[i]; del s[i]; return x
-        return super(ChangeRecordingObservableDict, self).pop(*largs)
-        self.change_monitor.change_info = ('crod_pop', (largs[0], ))
+        result = super(ChangeRecordingObservableDict, self).pop(*largs)
+        self.change_monitor.change_info = ('crod_pop', (key, ))
+        return result
 
     def popitem(self, *largs):
         # From python docs, "Remove and return an arbitrary (key, value) pair
         # from the dictionary." From other reading, arbitrary here effectively
-        # means "random" in the loose sense -- for truely random ops, use the
-        # proper random module. Nevertheless, the item is deleted and returned.
-        # If the dict is empty, a key error is raised.
-        change_info = None
-        if len(self.keys()) != 0:
-            change_info = ('crod_popitem', (largs[0], ))
-        result = super(ChangeRecordingObservableDict, self).popitem(*largs)
-        if change_info:
-            self.change_monitor.change_info = change_info
-        return result
+        # means "random" in the loose sense, of removing on the basis of how
+        # items are stored internally as links -- for truely random ops, use
+        # the proper random module. Nevertheless, the item is deleted and
+        # returned.  If the dict is empty, a key error is raised.
+
+        last = None
+        if len(largs):
+            last = largs[0]
+
+        if not self.keys():
+            raise KeyError('dictionary is empty')
+
+        key = next((self) if last else iter(self))
+
+        if key == 'change_monitor':
+            # TODO: Raise an exception?
+            print 'tried to popitem change_monitor'
+            return
+
+        value = self[key]
+
+        # NOTE: We have no set to self.change_monitor.change_info for
+        # crod_popitem, because the following del self[key] will trigger a
+        # crod_delitem, which should suffice for ListView to react as it would
+        # for crod_popitem. If we set self.change_monitor.change_info with
+        # crod_popitem here, we get a double-callback.
+        del self[key]
+        return key, value
 
     def setdefault(self, *largs):
         present_keys = super(ChangeRecordingObservableDict, self).keys()
@@ -138,7 +176,7 @@ class ChangeRecordingObservableDict(ObservableDict):
 
     def update(self, *largs):
         change_info = None
-        present_keys = super(ChangeRecordingObservableDict, self).keys()
+        present_keys = self.keys()
         if present_keys:
             change_info = ('crod_update', list(set(largs) - set(present_keys)))
         super(ChangeRecordingObservableDict, self).update(*largs)
@@ -192,11 +230,7 @@ class DictAdapter(ListAdapter):
 
         super(DictAdapter, self).__init__(**kwargs)
 
-        # Set the change monitor in our ChangeRecordingObservableDict.
-        #self.data.change_monitor = ChangeMonitor()
-
-        #self.bind(sorted_keys=self.initialize_sorted_keys,
-        #self.bind(data=self.crod_data_changed)
+        # Bind to the ChangeRecordingObservableDict's change_monitor.
         self.data.change_monitor.bind(on_change_info=self.crod_data_changed)
 
     def on_data_change(self, *args):
@@ -225,6 +259,7 @@ class DictAdapter(ListAdapter):
             # Reset the change_monitor, because the clear() removed it and
             # everything else.
             self.data.change_monitor = ChangeMonitor()
+            self.data.change_monitor.bind(on_change_info=self.crod_data_changed)
 
             # Empty all our things.
             self.sorted_keys = []
@@ -295,8 +330,6 @@ class DictAdapter(ListAdapter):
                          'crod_clear',
                          'crod_pop',
                          'crod_popitem']:
-
-            # Note: crod_pop can have second arg as a return dict.
 
             deleted_indices = [self.sorted_keys.index(k) for k in keys]
 
