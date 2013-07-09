@@ -21,10 +21,10 @@ except ImportError:
 
     class Hg(object):
         '''
-        On OSX, not only are the import names different, but also the API
-        differs.  There is no module called 'highgui' but the names are directly
-        available in the 'cv' module and some of them even have a different
-        name.
+        On OSX, not only are the import names different, but the API also
+        differs. There is no module called 'highgui' but the names are directly
+        available in the 'cv' module. Some of them even have a different
+        names.
 
         Therefore we use this proxy object.
         '''
