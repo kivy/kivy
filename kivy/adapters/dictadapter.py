@@ -96,7 +96,7 @@ class ChangeRecordingObservableDict(ObservableDict):
             else:
                 change_info = ('crod_setitem_add', (key, ))
         super(ChangeRecordingObservableDict, self).__setitem__(key, value)
-        if change_info[0] == 'crod_setitem_set':
+        if change_info[0] in ['crod_setitem_set', 'crod_setitem_add', ]:
             self.change_monitor.change_info = change_info
 
     def __delitem__(self, key):
@@ -238,6 +238,11 @@ class DictAdapter(ListAdapter):
         '''
         pass
 
+    # TODO: If the desired action is inserting an item at a particular index,
+    #       as in the typical case, it is too expensive to reset the entire
+    #       sorted_keys. We could add a special method to DictAdapter that
+    #       takes a key, value pair and an index, and in there do what is
+    #       needed, as would happen for a crol_insert op.
     def reset_sorted_keys(self, sorted_keys):
         self.sorted_keys = sorted_keys
         # TODO: call update on dict to match?
@@ -271,6 +276,9 @@ class DictAdapter(ListAdapter):
 
             self.dispatch('on_data_change')
             return
+
+        if data_op == 'crod_setitem_add':
+            self.sorted_keys.append(keys[0])
 
         indices = [self.sorted_keys.index(k) for k in keys]
 
@@ -306,6 +314,11 @@ class DictAdapter(ListAdapter):
 
             # TODO: If keys[0] is 'prop' or 'obj' the superclass of crod
             #       was called. Otherwise, it was the crod. What to do?
+            pass
+
+        elif data_op in ['crod_setitem_add', ]:
+
+            # We have already added the key to sorted_keys, above.
             pass
 
         elif data_op in ['crod_setitem_set', ]:
