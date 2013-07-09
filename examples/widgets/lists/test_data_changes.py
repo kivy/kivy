@@ -281,15 +281,6 @@ Builder.load_string('''
                     size_hint: None, None
                     width: 96
                     height: 30
-                    text: 'remove'
-#                    on_release: app.dict_adapter.data.remove( \
-#                            app.dict_adapter.selection[0].text)
-
-                Label:
-#                Button:
-                    size_hint: None, None
-                    width: 96
-                    height: 30
                     text: 'pop'
 #                    on_release: app.dict_adapter.data.pop()
 

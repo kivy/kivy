@@ -650,10 +650,6 @@ class ObservableDict(dict):
         dict.clear(self, *largs)
         observable_dict_dispatch(self)
 
-    def remove(self, *largs):
-        dict.remove(self, *largs)
-        observable_dict_dispatch(self)
-
     def pop(self, *largs):
         cdef object result = dict.pop(self, *largs)
         observable_dict_dispatch(self)
