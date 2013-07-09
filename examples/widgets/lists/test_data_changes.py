@@ -250,14 +250,15 @@ Builder.load_string('''
 #                            ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))] = \
 #                            ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
 
-                Label:
-#                Button:
+                Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'setitem del'
-#                    on_release: app.dict_adapter.data[ \
-#                            app.dict_adapter.selection[0].text] = None
+                    on_release: \
+                        app.dict_adapter.data[ \
+                            app.dict_adapter.sorted_keys[ \
+                                app.dict_adapter.selection[0].index]] = None
 
                 Button:
                     size_hint: None, None
@@ -265,7 +266,8 @@ Builder.load_string('''
                     height: 30
                     text: 'delitem'
                     on_release: del app.dict_adapter.data[ \
-                                    app.dict_adapter.sorted_keys[app.dict_adapter.selection[0].index]]
+                                        app.dict_adapter.sorted_keys[ \
+                                            app.dict_adapter.selection[0].index]]
 
                 Label:
 #                Button:

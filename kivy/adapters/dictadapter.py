@@ -82,7 +82,8 @@ class ChangeRecordingObservableDict(ObservableDict):
     def __setitem__(self, key, value):
         if value is None:
             # ObservableDict will delete the item if value is None, so this is
-            # like a delete op.
+            # like a delete op. __delitem__ gets called, so we will not set
+            # self.change_monitor.change_info at the end of this method.
             change_info = ('crod_setitem_del', (key, ))
         else:
             if key in self:
@@ -90,7 +91,8 @@ class ChangeRecordingObservableDict(ObservableDict):
             else:
                 change_info = ('crod_setitem_add', (key, ))
         super(ChangeRecordingObservableDict, self).__setitem__(key, value)
-        self.change_monitor.change_info = change_info
+        if change_info[0] == 'crod_setitem_set':
+            self.change_monitor.change_info = change_info
 
     def __delitem__(self, key):
         super(ChangeRecordingObservableDict, self).__delitem__(key)
