@@ -104,11 +104,6 @@ class ChangeRecordingObservableDict(ObservableDict):
         self.change_monitor.change_info = ('crod_clear', (None, ))
         super(ChangeRecordingObservableDict, self).clear(*largs)
 
-    def remove(self, *largs):
-        # remove(x) is same as del s[s.index(x)]
-        super(ChangeRecordingObservableDict, self).remove(*largs)
-        self.change_monitor.change_info = ('crod_remove', (largs[0], ))
-
     def pop(self, *largs):
         # This is pop on a specific key. If that key is absent, the second arg
         # is returned. If there is no second arg in that case, a key error is
@@ -298,7 +293,6 @@ class DictAdapter(ListAdapter):
         elif data_op in ['crod_setitem_del',
                          'crod_delitem',
                          'crod_clear',
-                         'crod_remove',
                          'crod_pop',
                          'crod_popitem']:
 
