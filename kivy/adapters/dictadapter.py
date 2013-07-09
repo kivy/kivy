@@ -71,9 +71,8 @@ class ChangeRecordingObservableDict(ObservableDict):
     #        return
     #    self.__setitem__(attr, value)
 
-
     def __setattr__(self, attr, value):
-        if attr in ('prop', 'obj'):
+        if attr in ('prop', 'obj', 'change_monitor'):
             super(ChangeRecordingObservableDict, self).__setattr__(attr, value)
             self.change_monitor.change_info = ('crod_setattr', (attr, ))
             return
@@ -99,8 +98,11 @@ class ChangeRecordingObservableDict(ObservableDict):
         self.change_monitor.change_info = ('crod_delitem', (key, ))
 
     def clear(self, *largs):
-        super(ChangeRecordingObservableDict, self).clear(*largs)
+        # We have to call first on this one, because the clear() will remove
+        # everything, including our self.change_monitor. The change_monitor
+        # will be reset from the adapter after the clear().
         self.change_monitor.change_info = ('crod_clear', (None, ))
+        super(ChangeRecordingObservableDict, self).clear(*largs)
 
     def remove(self, *largs):
         # remove(x) is same as del s[s.index(x)]
@@ -222,6 +224,23 @@ class DictAdapter(ListAdapter):
             return
 
         data_op, keys = change_info
+
+        if data_op == 'crod_clear':
+
+            # Reset the change_monitor, because the clear() removed it and
+            # everything else.
+            self.data.change_monitor = ChangeMonitor()
+
+            # Empty all our things.
+            self.sorted_keys = []
+            self.selection = []
+            self.delete_cache()
+
+            # Set indices to full range (that was cleared).
+            self.additional_change_info = (0, len(self.data) - 1)
+
+            self.dispatch('on_data_change')
+            return
 
         indices = [self.sorted_keys.index(k) for k in keys]
 

@@ -269,13 +269,12 @@ Builder.load_string('''
                                         app.dict_adapter.sorted_keys[ \
                                             app.dict_adapter.selection[0].index]]
 
-                Label:
-#                Button:
+                Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'clear'
-#                    on_release: app.dict_adapter.data.clear()
+                    on_release: app.dict_adapter.data.clear()
 
                 Label:
 #                Button:
