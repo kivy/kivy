@@ -110,11 +110,12 @@ class ChangeRecordingObservableDict(ObservableDict):
         self.change_monitor.change_info = ('crod_delitem', (key, ))
 
     def clear(self, *largs):
-        # We have to call first on this one, because the clear() will remove
-        # everything, including our self.change_monitor. The change_monitor
-        # will be reset from the adapter after the clear().
-        self.change_monitor.change_info = ('crod_clear', (None, ))
+        # Store a local copy of self.change_monitor, because the clear() will
+        # remove everything, including it. Restore it after the clear.
+        change_monitor = self.change_monitor
         super(ChangeRecordingObservableDict, self).clear(*largs)
+        self.change_monitor = change_monitor
+        self.change_monitor.change_info = ('crod_clear', (None, ))
 
     def pop(self, *largs):
         key = largs[0]
@@ -265,11 +266,6 @@ class DictAdapter(ListAdapter):
 
         if data_op == 'crod_clear':
 
-            # Reset the change_monitor, because the clear() removed it and
-            # everything else.
-            self.data.change_monitor = ChangeMonitor()
-            self.data.change_monitor.bind(on_change_info=self.crod_data_changed)
-
             # Empty all our things.
             self.sorted_keys = []
             self.selection = []
@@ -375,6 +371,7 @@ class DictAdapter(ListAdapter):
                     self.selection.remove(sel)
 
             # Do a check_for_empty_selection type step, if data remains.
+            len_self_data = len(self.data)
             if (len_self_data > 0
                     and not self.selection
                     and not self.allow_empty_selection):
@@ -385,12 +382,8 @@ class DictAdapter(ListAdapter):
                     new_sel_index = start_index
                 else:
                     new_sel_index = len_self_data - 1
-                print 'new_sel_index', new_sel_index
-                print 'len_self_data)', len_self_data
-                print 'len(self.sorted_keys)', len(self.sorted_keys)
                 v = self.get_view(new_sel_index)
                 if v is not None:
-                    print 'handling sel for', v.text
                     self.handle_selection(v)
 
         # Dispatch for ListView.

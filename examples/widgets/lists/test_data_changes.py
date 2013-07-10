@@ -8,6 +8,7 @@ from string import ascii_uppercase, digits
 from kivy.app import App
 from kivy.lang import Builder
 
+from kivy.adapters.models import SelectableDataItem
 from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.dictadapter import DictAdapter
 
@@ -37,6 +38,26 @@ Builder.load_string('''
             orientation: 'vertical'
             padding: 3
             spacing: 5
+
+            Button:
+                pos_hint: {'center_x': .5}
+                size_hint: None, None
+                width: 200
+                height: 30
+                text: 'Load with String Data'
+                on_release: app.list_adapter.args_converter = app.strings_args_converter; \
+                            del app.list_adapter.data[0:len(app.list_adapter.data)]; \
+                            [app.list_adapter.data.append(s) for s in app.string_data]
+
+            Button:
+                pos_hint: {'center_x': .5}
+                size_hint: None, None
+                width: 200
+                height: 30
+                text: 'Load with Object Data'
+                on_release: app.list_adapter.args_converter = app.objects_args_converter; \
+                            del app.list_adapter.data[0:len(app.list_adapter.data)]; \
+                            [app.list_adapter.data.append(o) for o in app.object_data]
 
             Label:
                 pos_hint: {'center_x': .5}
@@ -176,31 +197,21 @@ Builder.load_string('''
                     on_release: app.list_adapter.data.extend( \
                             [choice(app.nato_alphabet_words)] * 3)
 
-    # TODO: sort and reverse
-    #
-    #            Button:
-    #                size_hint: None, None
-    #                width:80
-    #                height: 30
-    #                text: 'sort'
-    #
-    #            Button:
-    #                size_hint: None, None
-    #                width:80
-    #                height: 30
-    #                text: 'reverse'
-
-                Label:
+                Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'sort'
+                    on_release: app.list_adapter.data.sort(key=lambda obj: obj.text) \
+                                    if app.list_adapter.args_converter == app.objects_args_converter \
+                                    else app.list_adapter.data.sort()
 
-                Label:
+                Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'reverse'
+                    on_release: app.list_adapter.data.reverse()
 
         BoxLayout:
             orientation: 'vertical'
@@ -245,9 +256,8 @@ Builder.load_string('''
                     width: 96
                     height: 30
                     text: 'setitem add'
-                    on_release: app.dict_adapter.data[ \
-                            ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))] = \
-                            ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+                    on_release: k = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10)); \
+                                app.dict_adapter.data[k] = {'key': k, 'value': k}
 
                 Button:
                     size_hint: None, None
@@ -299,7 +309,6 @@ Builder.load_string('''
                     on_release: k = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10)); \
                                 app.dict_adapter.data.setdefault(k, {'key': k, 'value': k})
 
-                Label:
                 Button:
                     size_hint: None, None
                     width: 96
@@ -318,23 +327,17 @@ Builder.load_string('''
                     width: 96
                     height: 30
                     text: '[insert]'
+
+                Label:
+                    size_hint: None, None
+                    width: 96
+                    height: 30
+                    text: '[sort]'
 ''')
 
 
 class ItemsScreen(Screen):
     pass
-
-
-def list_args_converter(row_index, value):
-    return {"text": str(value),
-            "size_hint_y": None,
-            "height" : 25}
-
-def dict_args_converter(row_index, rec):
-    return {"text": "{} : {}".format(rec['key'], rec['value']),
-            "key": rec['key'],
-            "size_hint_y": None,
-            "height" : 25}
 
 
 class KeyedListItemButton(ListItemButton):
@@ -345,6 +348,12 @@ class KeyedListItemButton(ListItemButton):
         super(KeyedListItemButton, self).__init__(**kwargs)
 
 
+class CustomDataItem(SelectableDataItem):
+
+    def __init__(self, **kwargs):
+        super(CustomDataItem, self).__init__(**kwargs)
+        self.text = kwargs.get('text', '')
+
 class Test(App):
 
     nato_alphabet_words = ListProperty([
@@ -353,24 +362,45 @@ class Test(App):
         'Oscar', 'Papa', 'Quebec', 'Romeo', 'Sierra', 'Tango', 'Uniform',
         'Victor', 'Whiskey', 'X-ray', 'Yankee', 'Zulu'])
 
-    data = ListProperty([
+    string_data = ListProperty([
         'Delta', 'Oscar', 'Golf', 'Sierra',
         'Alpha', 'November', 'Delta',
         'Charlie', 'Alpha', 'Tango', 'Sierra'])
 
+    object_data = ListProperty([])
+
+    def strings_args_converter(self, row_index, value):
+        return {"text": str(value),
+                "size_hint_y": None,
+                "height" : 25}
+
+    def objects_args_converter(self, row_index, obj):
+        return {"text": obj.text,
+                "size_hint_y": None,
+                "height" : 25}
+
+    def dict_args_converter(self, row_index, rec):
+        return {"text": "{0} : {1}".format(rec['key'], rec['value']),
+                "key": rec['key'],
+                "size_hint_y": None,
+                "height" : 25}
+
     def build(self):
 
-        self.list_adapter = ListAdapter(data=self.data,
+        self.list_adapter = ListAdapter(data=self.string_data,
                                         cls=ListItemButton,
                                         selection_mode='single',
                                         allow_empty_selection=False,
-                                        args_converter=list_args_converter)
+                                        args_converter=self.strings_args_converter)
 
         self.dict_adapter = DictAdapter(data={k: {'key': k, 'value': k} for k in self.nato_alphabet_words},
                                         cls=KeyedListItemButton,
                                         selection_mode='single',
                                         allow_empty_selection=False,
-                                        args_converter=dict_args_converter)
+                                        args_converter=self.dict_args_converter)
+
+        for word in self.nato_alphabet_words:
+            self.object_data.append(CustomDataItem(text=word))
 
         self._screen_manager = ScreenManager()
 

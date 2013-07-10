@@ -52,41 +52,15 @@ from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.models import SelectableDataItem
-from kivy.properties import ObjectProperty
-from kivy.properties import ListProperty
-from kivy.properties import DictProperty
 from kivy.properties import BooleanProperty
-from kivy.properties import OptionProperty
+from kivy.properties import DictProperty
+from kivy.properties import ListProperty
 from kivy.properties import NumericProperty
+from kivy.properties import ObjectProperty
 from kivy.properties import ObservableList
+from kivy.properties import OptionProperty
+from kivy.properties import StringProperty
 from kivy.lang import Builder
-
-
-# TODO: This is an experiment to dispatch from the
-#       ChangeRecordingObservableList (CROL), which is not an EventDispatcher
-#       (it seems it cannot be, as the ObservableList is a cython class). This
-#       is currently not used, however -- no callbacks received.
-
-#class CROLDispatcher(EventDispatcher):
-#
-#    sort_op_starting = BooleanProperty(False)
-#
-#    __events__ = ('on_change_info', 'on_sort_op_starting',)
-#
-#    def __init__(self, **kwargs):
-#        super(CROLDispatcher, self).__init__(**kwargs)
-#
-#    def on_change_info(self, *args):
-#        '''on_change_info() is the default handler for the
-#        on_change_info event.
-#        '''
-#        pass
-#
-#    def on_sort_op_starting(self, *args):
-#        '''on_sort_op_starting() is the default handler for the
-#        sort_op_starting event.
-#        '''
-#        pass
 
 
 class ChangeMonitor(EventDispatcher):
@@ -96,18 +70,37 @@ class ChangeMonitor(EventDispatcher):
     '''
 
     change_info = ObjectProperty(None, allownone=True)
+    crol_sort_started = BooleanProperty(False)
+    sort_largs = ObjectProperty(None)
+    sort_kwds = ObjectProperty(None)
+    sort_op = StringProperty('')
 
-    __events__ = ('on_change_info',)
+    presort_indices_and_data = DictProperty({})
+    '''This temporary association has keys as the indices of the adapter's
+    cached_views and the adapter's data items, for use in post-sort widget
+    reordering.  It is set by the adapter when needed.  It is cleared by the
+    adapter at the end of its sort op callback.
+    '''
+
+    __events__ = ('on_change_info', 'on_crol_sort_started', )
 
     def __init__(self, *largs):
         super(ChangeMonitor, self).__init__(*largs)
 
-        self.bind(change_info=self.dispatch_change)
+        self.bind(change_info=self.dispatch_change,
+                  crol_sort_started=self.dispatch_crol_sort_started)
 
     def dispatch_change(self, *args):
         self.dispatch('on_change_info')
 
     def on_change_info(self, *args):
+        pass
+
+    def dispatch_crol_sort_started(self, *args):
+        if self.crol_sort_started:
+            self.dispatch('on_crol_sort_started')
+
+    def on_crol_sort_started(self, *args):
         pass
 
 
@@ -116,49 +109,13 @@ class ChangeRecordingObservableList(ObservableList):
     change_info for use by an observer.
     '''
 
-    # TODO: For running test apps, it is ok to have change_info commented out,
-    #       but tests will not run, because change_info is not seen as as
-    #       property. Conversely, if it is present, test apps will not run,
-    #       because it expects an EventDispatcher for the set.
-    #
-    #           in self.data.change_info,
-    #           (the self obj is not an EventDispatcher)
-    #
-    #change_info = ObjectProperty(None)
-    # change_info is a normal python object consisting of:
-    #
-    #     (data_op, (start_index, end_index)
-    #
-    # Observers of data changes may consult change_info if needed, for
-    # example, listview needs to know details for scrolling.
-    #
-    # ListAdapter itself, the owner of data, is the first observer of data
-    # change that must react to delete ops, if the existing selection is
-    # affected.
-    #
-
-    # TODO: Use cached_view_indices_and_data to solve sorting, drag and drop,
-    #       and move ops, or remove it if a better way is found.
-
-    cached_view_indices_and_data = DictProperty({})
-    '''This has keys as the indices of the cached_views in the parent adapter,
-    for use in sorting operations. It is set by the adapter when needed.  In
-    sorting, a temporary association is made to the data items. It is destroyed
-    by the adapter in its sort op callback.
-    '''
-
-    # TODO: ObservableList has the benefit of normal args checking on the call,
-    #       but here we pluck them out of the air on the way, so there should
-    #       be args checking.
-
     def __init__(self, *largs):
         super(ChangeRecordingObservableList, self).__init__(*largs)
         self.change_monitor = ChangeMonitor()
 
-        #self.change_info = None
+    # TODO: How do we see a full set (...adapter.data = [new list]) ?
 
-        #self.crol_dispatcher = CROLDispatcher()
-
+    # TODO: setitem and delitem are supposed to handle slices.
     def __setitem__(self, key, value):
         super(ChangeRecordingObservableList, self).__setitem__(key, value)
         self.change_monitor.change_info = ('crol_setitem', (key, key))
@@ -233,20 +190,40 @@ class ChangeRecordingObservableList(ObservableList):
         start_index = len(self)
         end_index = start_index + len(largs[0]) - 1
         super(ChangeRecordingObservableList, self).extend(*largs)
-        self.change_monitor.change_info = ('crol_extend', (start_index, end_index))
+        self.change_monitor.change_info = \
+                ('crol_extend', (start_index, end_index))
 
-    def sort(self, *largs):
-        #self.change_monitor.sort_op_starting = True
-        for i in self.cached_view_indices_and_data:
-            self.cached_view_indices_and_data[i] = self.data[i]
+    def start_sort_op(self, op, *largs, **kwds):
 
-        super(ChangeRecordingObservableList, self).sort(*largs)
-        self.change_monitor.change_info = ('crol_sort', (0, len(self) - 1))
+        self.change_monitor.sort_largs = largs
+        self.change_monitor.sort_kwds = kwds
+        self.change_monitor.sort_op = op
+
+        # Trigger the "sort is starting" callback to the adapter, so it can do
+        # pre-sort writing of the current arrangement of indices and data.
+        self.change_monitor.crol_sort_started = True
+
+    def finish_sort_op(self):
+
+        largs = self.change_monitor.sort_largs
+        kwds = self.change_monitor.sort_kwds
+        sort_op = self.change_monitor.sort_op
+
+        # Perform the sort.
+        if sort_op == 'crol_sort':
+            super(ChangeRecordingObservableList, self).sort(*largs, **kwds)
+        else:
+            super(ChangeRecordingObservableList, self).reverse(*largs)
+
+        # Finalize. Will go back to adapter for handling cached_views,
+        # selection, and prep for triggering data_changed on ListView.
+        self.change_monitor.change_info = (sort_op, (0, len(self) - 1))
+
+    def sort(self, *largs, **kwds):
+        self.start_sort_op('crol_sort', *largs, **kwds)
 
     def reverse(self, *largs):
-        #self.change_monitor.reverse_op_starting = True
-        super(ChangeRecordingObservableList, self).reverse(*largs)
-        self.change_monitor.change_info = ('crol_reverse', (0, len(self) - 1))
+        self.start_sort_op('crol_reverse', *largs)
 
 
 class ListAdapter(Adapter, EventDispatcher):
@@ -396,18 +373,32 @@ class ListAdapter(Adapter, EventDispatcher):
         self.bind(selection_mode=self.selection_mode_changed,
                   allow_empty_selection=self.check_for_empty_selection)
 
-        self.data.change_monitor.bind(on_change_info=self.crol_data_changed)
-
-        #self.data.crol_dispatcher.bind(
-                #on_change_info=self.data_changed,
-                #on_sort_op_starting=self.sort_op_starting)
+        self.data.change_monitor.bind(on_change_info=self.crol_data_changed,
+                                      on_crol_sort_started=self.crol_sort_started)
 
         self.delete_cache()
         self.initialize_selection()
 
-    def sort_op_starting(self, *args):
+    def crol_sort_started(self, *args):
 
-        print 'sort op starting'
+        # Save a pre-sort order, and position detail, if there are duplicates
+        # of strings.
+        self.data.change_monitor.presort_indices_and_data = {}
+
+        for i in self.cached_views:
+            data_item = self.data[i]
+            if isinstance(data_item, str):
+                duplicates = sorted(
+                        [j for j, s in enumerate(self.data) if s == data_item])
+                pos_in_instances = duplicates.index(i)
+            else:
+                pos_in_instances = 0
+
+            self.data.change_monitor.presort_indices_and_data[i] = \
+                        {'data_item': data_item,
+                         'pos_in_instances': pos_in_instances}
+
+        self.data.finish_sort_op()
 
     def crol_data_changed(self, *args):
 
@@ -448,6 +439,7 @@ class ListAdapter(Adapter, EventDispatcher):
             # have already been treated.  Call check_for_empty_selection()
             # to re-establish selection if needed.
             self.check_for_empty_selection()
+            self.dispatch('on_data_change')
             return
 
         if data_op in ['crol_iadd',
@@ -533,11 +525,6 @@ class ListAdapter(Adapter, EventDispatcher):
 
             self.cached_views = new_cached_views
 
-            # Removed deleted_indices from the sorting-related dict in
-            # self.data, a ChangeRecordingObservableList.
-            #for i in deleted_indices:
-                #del self.data.cached_view_indices_and_data[i]
-
             # Remove deleted views from selection.
             #for selected_index in [item.index for item in self.selection]:
             for sel in self.selection:
@@ -561,38 +548,56 @@ class ListAdapter(Adapter, EventDispatcher):
 
         elif data_op in ['crol_sort',
                          'crol_reverse']:
-            pass
+
+            presort_indices_and_data = \
+                    self.data.change_monitor.presort_indices_and_data
+
+            # We have an association of presort indices with data items.
+            # Where is each data item after sort? Change the index of the
+            # item_view to match present position.
+            new_cached_views = {}
+            for i in self.cached_views:
+                item_view = self.cached_views[i]
+                old_index = item_view.index
+                data_item = presort_indices_and_data[old_index]['data_item']
+                if isinstance(data_item, str):
+                    duplicates = sorted(
+                        [j for j, s in enumerate(self.data) if s == data_item])
+                    pos_in_instances = \
+                        presort_indices_and_data[old_index]['pos_in_instances']
+                    postsort_index = duplicates[pos_in_instances]
+                else:
+                    postsort_index = self.data.index(data_item)
+                item_view.index = postsort_index
+                new_cached_views[postsort_index] = item_view
+
+            self.cached_views = new_cached_views
+
+            # Reset flags and temporary storage.
+            self.data.change_monitor.crol_sort_started = False
+            self.data.change_monitor.presort_indices_and_data.clear()
 
         self.dispatch('on_data_change')
 
-#                for item_view in self.cached_views:
-#                    item_view.index = self.data.index(
-#                            self.data.cached_view_indices_and_data[item_view])
-#
-#                self.data.cached_view_indices_and_data = {}
+    def delete_cache(self, maintain_selection=False):
 
-# This was mistakenly added to handle inserting a list into data, which is not
-# part of the list API:
-#
-#            elif data_op == 'crol_?':
-#
-#                inserted_indices = range(start_index, end_index + 1)
-#
-#                new_cached_views = {}
-#
-#                i = 0
-#                for k, v in self.cached_views.iteritems():
-#                    new_cached_views[i] = self.cached_views[k]
-#                    i += 1
-#                    if k >= start_index:
-#                        new_cached_views[i].index = i
-#
-#                self.cached_views = new_cached_views
-#
+        selected_indices_and_data = {}
 
-    def delete_cache(self, *args):
-        self.cached_views = {}
-        #self.data.cached_view_indices_and_data = {}
+        if self.selection and maintain_selection:
+            for i in self.cached_views:
+                item_view = self.cached_views[i]
+                if item_view.is_selected:
+                    selected_indices_and_data[i] = self.data[item_view.index]
+
+        print 'saved selection', selected_indices_and_data
+
+        self.cached_views.clear()
+
+        for i in selected_indices_and_data:
+            new_index = self.data.index(selected_indices_and_data[i])
+            v = self.get_view(new_index)
+            if v:
+                self.handle_selection(v)
 
     def get_count(self):
         return len(self.data)
@@ -615,13 +620,6 @@ class ListAdapter(Adapter, EventDispatcher):
         item_view = self.create_view(index)
         if item_view:
             self.cached_views[index] = item_view
-
-            # Prepare the dict property cached_view_indices_and_data, in our data
-            # property (an ObservableList instance) so that, in the case of
-            # sorting-related ops, an association can be made between the
-            # item_views in cached_views to the data_items in data, enabling a
-            # post-op update of cached_views indices.
-            #self.data.cached_view_indices_and_data[index] = None
 
         return item_view
 
@@ -845,7 +843,6 @@ class ListAdapter(Adapter, EventDispatcher):
                 # Select the first item if we have it.
                 v = self.get_view(0)
                 if v is not None:
-                    print 'cfes selecting', v, v.text
                     self.handle_selection(v)
 
     # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,

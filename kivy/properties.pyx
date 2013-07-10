@@ -561,8 +561,11 @@ class ObservableList(list):
         list.extend(self, *largs)
         observable_list_dispatch(self)
 
-    def sort(self, *largs):
-        list.sort(self, *largs)
+    # TODO: Added **kwds because of complaining when key=lambda... was passed.
+    #       What is the official signature?
+    #def sort(self, *largs):
+    def sort(self, *largs, **kwds):
+        list.sort(self, *largs, **kwds)
         observable_list_dispatch(self)
 
     def reverse(self, *largs):
