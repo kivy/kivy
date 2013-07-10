@@ -1163,6 +1163,12 @@ class ListView(AbstractView, EventDispatcher):
 #            Clock.schedule_once(lambda dt: self.data_changed(*args))
 #            return
 
+        # TODO: In some cases, such as when all data is deleted and new data is
+        #       added back, the items in view are at the end, where the last
+        #       item was just appended (if that is how it was added). Should we
+        #       scroll to keep the selected object in view always, or should it
+        #       be to show the most recently added item?
+
         change_info = self.adapter.data.change_monitor.change_info
 
         if change_info[0].startswith('crol'):
@@ -1172,17 +1178,6 @@ class ListView(AbstractView, EventDispatcher):
             start_index, end_index = self.adapter.additional_change_info
 
         print 'LISTVIEW data_changed callback', change_info
-
-        if len(self.container.children) == 0:
-            # Delete action(s) have resulted in total deletion of items.
-            if data_op in ['crol_append',
-                           'crol_extend',
-                           'crod_setattr',    # TODO: not scroll_after_add()?
-                           'crod_setitem_add',
-                           'crod_setdefault',
-                           'crod_update']:
-                self.scroll_after_add()
-            return
 
         # Otherwise, we may have item_views as children of self.container
         # that should be removed.
@@ -1241,7 +1236,10 @@ class ListView(AbstractView, EventDispatcher):
                          'crod_setdefault',
                          'crod_update']:
 
-            self.scroll_after_add()
+            #self.scroll_after_add()
+            self.scrolling = True
+            self.populate()
+            self.dispatch('on_scroll_complete')
 
         elif data_op in ['crol_delitem',
                          'crol_delslice',
@@ -1273,7 +1271,9 @@ class ListView(AbstractView, EventDispatcher):
             self.populate()
             self.dispatch('on_scroll_complete')
 
-        elif data_op == 'crol_sort':
+        elif data_op in ['crol_sort', 'crol_reverse', ]:
+
+            self.container.clear_widgets()
 
             self.scrolling = True
             self.populate()
