@@ -2,13 +2,13 @@
 Image
 =====
 
-Core classes for loading image and convert them to
+Core classes for loading images and converting them to a
 :class:`~kivy.graphics.texture.Texture`. The raw image data can be keep in
 memory for further access.
 
 .. note::
 
-    Saving image is not yet supported.
+    Saving an image is not yet supported.
 '''
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
@@ -39,7 +39,7 @@ Cache.register('kv.atlas')
 
 
 class ImageData(object):
-    '''Container for image and mipmap images.
+    '''Container for images and mipmap images.
     The container will always have at least the mipmap level 0.
     '''
 
@@ -118,7 +118,7 @@ class ImageData(object):
         self.mipmaps[level] = [int(width), int(height), data]
 
     def get_mipmap(self, level):
-        '''Get the mipmap image at a specific level if exist
+        '''Get the mipmap image at a specific level if it exists
 
         .. versionadded:: 1.0.7
         '''
@@ -160,7 +160,7 @@ class ImageLoaderBase(object):
 
     @staticmethod
     def can_save():
-        '''Indicate if the loader can save Image object
+        '''Indicate if the loader can save the Image object
         '''
         return False
 

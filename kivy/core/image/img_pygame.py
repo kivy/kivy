@@ -15,11 +15,11 @@ except:
 
 
 class ImageLoaderPygame(ImageLoaderBase):
-    '''Image loader based on PIL library'''
+    '''Image loader based on the PIL library'''
 
     @staticmethod
     def extensions():
-        '''Return accepted extension for this loader'''
+        '''Return accepted extensions for this loader'''
         # under macosx, i got with "pygame.error: File is not a Windows BMP
         # file". documentation said: The image module is a required dependency
         # of Pygame, but it only optionally supports any extended file formats.

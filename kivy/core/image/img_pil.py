@@ -14,19 +14,19 @@ from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
 
 class ImageLoaderPIL(ImageLoaderBase):
-    '''Image loader based on PIL library.
+    '''Image loader based on the PIL library.
 
     .. versionadded::
 
-        In 1.0.8, GIF animation have been supported.
+        In 1.0.8, support for GIF animation was added.
 
         Gif animation has a lot of issues(transparency/color depths... etc).
-        In order to keep it simple; what is implimented here is what is
-        natively supported by pil.
+        In order to keep it simple, what is implimented here is what is
+        natively supported by the PIL library.
 
         As a general rule, try to use gifs that have no transparency.
-        Gif's with transparency will work but be ready for some
-        artifacts for now.
+        Gif's with transparency will work but be prepared for some
+        artifacts until transparency support is improved.
 
     '''
 
@@ -36,7 +36,7 @@ class ImageLoaderPIL(ImageLoaderBase):
 
     @staticmethod
     def extensions():
-        '''Return accepted extension for this loader'''
+        '''Return accepted extensions for this loader'''
         # See http://www.pythonware.com/library/pil/handbook/index.htm
         return ('bmp', 'bufr', 'cur', 'dcx', 'fits', 'fl', 'fpx', 'gbr',
                 'gd', 'gif', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
