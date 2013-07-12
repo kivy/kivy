@@ -92,6 +92,16 @@ version published on pypi::
 
     $ sudo pip install --upgrade cython
 
+Mac OS X
+++++++++
+
+You will need to install at least the following:
+
+* PyGame - we recommend installing from a binary packaged for your version
+  of Mac OS X. Download it from http://www.pygame.org/download.shtml
+
+If you run into problems, please read :ref:`troubleshooting-macosx`.
+
 .. _dev-install:
 
 Installing Kivy for Development
