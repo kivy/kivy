@@ -126,6 +126,8 @@
     nil
   (setq kivy-mode-map (make-sparse-keymap))
   (define-key kivy-mode-map [backspace] 'kivy-electric-backspace)
+  (define-key kivy-mode-map "\C-c<" 'kivy-indent-shift-left)
+  (define-key kivy-mode-map "\C-c>" 'kivy-indent-shift-right)
   )
 
 (defvar kivy-mode-syntax-table nil
@@ -240,6 +242,45 @@ immediately previous multiple of `kivy-indent-offset' spaces."
   (interactive)
   (message "kivy-mode %s" kivy-mode-version)
   kivy-mode-version)
+
+(defun kivy-indent-shift-left (start end &optional count)
+  "Shift lines contained in region START END by COUNT columns to the left.
+COUNT defaults to `kivy-indent-offset'.  If region isn't
+active, the current line is shifted.  The shifted region includes
+the lines in which START and END lie.  An error is signaled if
+any lines in the region are indented less than COUNT columns."
+  (interactive
+   (if mark-active
+       (list (region-beginning) (region-end) current-prefix-arg)
+     (list (line-beginning-position) (line-end-position) current-prefix-arg)))
+  (if count
+      (setq count (prefix-numeric-value count))
+    (setq count kivy-indent-offset))
+  (when (> count 0)
+    (let ((deactivate-mark nil))
+      (save-excursion
+        (goto-char start)
+        (while (< (point) end)
+          (if (and (< (current-indentation) count)
+                   (not (looking-at "[ \t]*$")))
+              (error "Can't shift all lines enough"))
+          (forward-line))
+        (indent-rigidly start end (- count))))))
+
+(defun kivy-indent-shift-right (start end &optional count)
+  "Shift lines contained in region START END by COUNT columns to the left.
+COUNT defaults to `kivy-indent-offset'.  If region isn't
+active, the current line is shifted.  The shifted region includes
+the lines in which START and END lie."
+  (interactive
+   (if mark-active
+       (list (region-beginning) (region-end) current-prefix-arg)
+     (list (line-beginning-position) (line-end-position) current-prefix-arg)))
+  (let ((deactivate-mark nil))
+    (if count
+        (setq count (prefix-numeric-value count))
+      (setq count kivy-indent-offset))
+    (indent-rigidly start end count)))
 
 (provide 'kivy-mode)
 
