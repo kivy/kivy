@@ -74,7 +74,7 @@ Architecture: all
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          ${python:Depends},
-         python-kivy
+         python-kivy  (= ${binary:Version})
 Description: Kivy - Multimedia / Multitouch framework in Python
  This package includes all examples which can be found in the git repo.
 
@@ -83,8 +83,8 @@ Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          ${python:Depends},
-         python-kivy-common,
-         python-kivy-bin,
+         python-kivy-common (= ${binary:Version}),
+         python-kivy-bin (= ${binary:Version}),
          python-docutils,
          python-pygame,
          python-pygments,
@@ -107,7 +107,8 @@ Package: python-kivy-bin
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         ${python:Depends}
+         ${python:Depends},
+         python-kivy  (= ${binary:Version})
 Description: Kivy - Multimedia / Multitouch framework in Python
  Kivy is an open source library for developing multi-touch applications. It is
  completely cross platform (Linux/OSX/Win/Android) and released under the terms
@@ -126,7 +127,8 @@ Package: python-kivy-common
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         ${python:Depends}
+         ${python:Depends},
+         python-kivy  (= ${binary:Version})
 Description: Kivy - Multimedia / Multitouch framework in Python
  Kivy is an open source library for developing multi-touch applications. It is
  completely cross platform (Linux/OSX/Win/Android) and released under the terms
@@ -146,8 +148,8 @@ Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          ${python3:Depends},
-         python3-kivy-common,
-         python3-kivy-bin,
+         python3-kivy-common (= ${binary:Version}),
+         python3-kivy-bin (= ${binary:Version}),
          python3-docutils,
          python-pygame,
          python3-pygments,
@@ -170,7 +172,8 @@ Package: python3-kivy-bin
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         ${python3:Depends}
+         ${python3:Depends},
+         python3-kivy  (= ${binary:Version})
 Description: Kivy - Multimedia / Multitouch framework in Python
  Kivy is an open source library for developing multi-touch applications. It is
  completely cross platform (Linux/OSX/Win/Android) and released under the terms
@@ -189,7 +192,8 @@ Package: python3-kivy-common
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         ${python3:Depends}
+         ${python3:Depends},
+         python3-kivy (= ${binary:Version})
 Description: Kivy - Multimedia / Multitouch framework in Python
  Kivy is an open source library for developing multi-touch applications. It is
  completely cross platform (Linux/OSX/Win/Android) and released under the terms
