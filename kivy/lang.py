@@ -159,7 +159,9 @@ the value can use the values of other properties using reserved keywords.
         arguments passed to the callback.::
 
             TextInput:
-                on_focus: self.insert_text("I'm focused!") if args[1] else self.insert_text("I'm not focused.")
+                on_focus:
+                    self.insert_text("I'm focused!")\
+                    if args[1] else self.insert_text("I'm not focused.")
 
 Furthermore, if a class definition contains an id, you can use it as a
 keyword::
@@ -962,6 +964,10 @@ class Parser(object):
                     raise ParserException(self, ln, 'Invalid value')
                 global_idmap[name] = value
 
+            elif cmd[:8] == 'include ':
+                _filename = cmd[8:].strip()
+                if _filename[-3:] == '.kv':
+                    Builder.load_file(_filename)
             elif cmd[:7] == 'import ':
                 package = cmd[7:].strip()
                 l = package.split(' ')
@@ -1181,6 +1187,7 @@ class Parser(object):
 def custom_callback(__kvlang__, idmap, *largs, **kwargs):
     idmap['args'] = largs
     exec(__kvlang__.co_value, idmap)
+
 
 def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     locals()['__kvlang__'] = rule
@@ -1532,7 +1539,8 @@ class BuilderBase(object):
 
         # append the properties and handlers to our final resolution task
         if rule.properties:
-            rctx['set'].append((widget.proxy_ref, list(rule.properties.values())))
+            rctx['set'].append((widget.proxy_ref,
+                                list(rule.properties.values())))
         if rule.handlers:
             rctx['hdl'].append((widget.proxy_ref, rule.handlers))
 
@@ -1655,7 +1663,8 @@ class BuilderBase(object):
                     value = prule.co_value
                     if type(value) is CodeType:
                         value = create_handler(
-                            widget, instr.proxy_ref, key, value, prule, idmap, True)
+                                                widget, instr.proxy_ref, key,
+                                                value, prule, idmap, True)
                     setattr(instr, key, value)
             except Exception as e:
                 raise BuilderException(prule.ctx, prule.line,
