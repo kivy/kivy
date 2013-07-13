@@ -152,15 +152,16 @@ class VideoGStreamer(VideoBase):
             try:
                 mem = buf.get_buffer()
                 #from pudb import set_trace; set_trace()
-                #result, mapinfo = mem.map(0)
+                result, mapinfo = mem.map(gst.MapFlags.READ)
                 #result, mapinfo = mem.map_range(0, -1, gst.MapFlags.READ)
 
                 # repr(mapinfo) will return <void at 0x1aa3530>
                 # but there is no python attribute to get the address... so we
                 # need to parse it.
-                addr = int(repr(mem.get_memory(0)).split()[-1][:-1], 16)
+                addr = int(repr(mapinfo.memory).split()[-1][:-1], 16)
                 # now get the memory
-                data = ctypes.string_at(addr, mem.get_size())
+                _size = mem.__sizeof__() + mapinfo.memory.__sizeof__()
+                data = ctypes.string_at(addr + _size, mapinfo.size)
                 #print('got data', len(data), addr)
             finally:
                 if mapinfo is not None:
