@@ -47,7 +47,7 @@ from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix, \
         Translate, Rotate, Scale
 from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
         NumericProperty, StringProperty, OptionProperty, \
-        ReferenceListProperty, AliasProperty
+        ReferenceListProperty, AliasProperty, VariableListProperty
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from functools import partial
@@ -436,8 +436,10 @@ class Inspector(FloatLayout):
             content = TextInput(text=value or '', multiline=True)
             content.bind(text=partial(
                 self.save_property_text, widget, key, index))
-        elif isinstance(prop, ListProperty) or isinstance(prop,
-                ReferenceListProperty) or dtype == 'list':
+        elif (isinstance(prop, ListProperty) or
+              isinstance(prop, ReferenceListProperty) or
+              isinstance(prop, VariableListProperty) or
+              dtype == 'list'):
             content = GridLayout(cols=1, size_hint_y=None)
             content.bind(minimum_height=content.setter('height'))
             for i, item in enumerate(value):

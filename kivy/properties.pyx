@@ -1157,6 +1157,11 @@ cdef class VariableListProperty(Property):
         self.length = length
         super(VariableListProperty, self).__init__(defaultvalue, **kw)
 
+    cpdef link(self, EventDispatcher obj, str name):
+        Property.link(self, obj, name)
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        ps.value = ObservableList(self, obj, ps.value)
+
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
