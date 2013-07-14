@@ -1145,8 +1145,6 @@ cdef class VariableListProperty(Property):
     .. versionadded:: 1.7.0
     '''
 
-    cdef public int length
-
     def __init__(self, defaultvalue=None, length=4, **kw):
         if length == 4:
             defaultvalue = defaultvalue or [0, 0, 0, 0]
