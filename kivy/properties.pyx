@@ -1132,11 +1132,11 @@ cdef class VariableListProperty(Property):
     Accepts a list of 1 or 2 (or 4 when length=4) Numeric arguments or a single
     Numeric argument.
 
-    VariableListProperty([1]) represents [1, 1, 1, 1].
-    VariableListProperty([1, 2]) represents [1, 2, 1, 2].
-    VariableListProperty(['1px', (2, 'px'), 3, 4.0]) represents [1, 2, 3, 4.0].
-    VariableListProperty(5) represents [5, 5, 5, 5].
-    VariableListProperty(3, length=2) represents [3, 3].
+    - VariableListProperty([1]) represents [1, 1, 1, 1].
+    - VariableListProperty([1, 2]) represents [1, 2, 1, 2].
+    - VariableListProperty(['1px', (2, 'px'), 3, 4.0]) represents [1, 2, 3, 4.0].
+    - VariableListProperty(5) represents [5, 5, 5, 5].
+    - VariableListProperty(3, length=2) represents [3, 3].
 
     :Parameters:
         `length`: int
