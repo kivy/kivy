@@ -400,7 +400,7 @@ class Inspector(FloatLayout):
     def show_property(self, instance, value, key=None, index=-1, *l):
         # normal call: (tree node, focus, )
         # nested call: (widget, prop value, prop key, index in dict/list)
-        if not value:
+        if value is False:
             return
 
         content = None
@@ -418,6 +418,7 @@ class Inspector(FloatLayout):
             prop = None
 
         dtype = None
+
         if isinstance(prop, AliasProperty) or nested:
             # trying to resolve type dynamicly
             if type(value) in (str, str):
