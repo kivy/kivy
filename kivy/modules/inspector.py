@@ -86,6 +86,12 @@ Builder.load_string('''
             size_hint_y: None
             height: 50
             spacing: 5
+            Button:
+                text: 'Move to Top'
+                on_release: root.toggle_position(args[0])
+                size_hint_x: None
+                width: 120
+
             ToggleButton:
                 text: 'Inspect'
                 on_state: root.inspect_enabled = args[1] == 'down'
@@ -177,6 +183,8 @@ class Inspector(FloatLayout):
 
     content = ObjectProperty(None)
 
+    at_bottom = BooleanProperty(True)
+
     def __init__(self, **kwargs):
         super(Inspector, self).__init__(**kwargs)
         self.avoid_bring_to_top = False
@@ -266,6 +274,31 @@ class Inspector(FloatLayout):
         # fix warning about scale property deprecation
         self.gscale.xyz = (scale,) * 3
 
+    def toggle_position(self, button):
+        to_bottom = button.text == 'Move to Bottom'
+
+        if to_bottom:
+            button.text = 'Move to Top'
+            if self.widget_info:
+                Animation(top=250, t='out_quad', d=.3).start(self.layout)
+            else:
+                Animation(top=60, t='out_quad', d=.3).start(self.layout)
+
+            bottom_bar = self.layout.children[1]
+            self.layout.remove_widget(bottom_bar)
+            self.layout.add_widget(bottom_bar)
+        else:
+            button.text = 'Move to Bottom'
+            if self.widget_info:
+                Animation(top=self.height, t='out_quad', d=.3).start(self.layout)
+            else:
+                Animation(y=self.height - 60, t='out_quad', d=.3).start(self.layout)
+
+            bottom_bar = self.layout.children[1]
+            self.layout.remove_widget(bottom_bar)
+            self.layout.add_widget(bottom_bar)
+        self.at_bottom = to_bottom
+
     def pick(self, widget, x, y):
         ret = None
         # try to filter widgets that are not visible (invalid inspect target)
@@ -282,14 +315,21 @@ class Inspector(FloatLayout):
     def on_activated(self, instance, activated):
         if not activated:
             self.grect.size = 0, 0
-            anim = Animation(top=0, t='out_quad', d=.3)
+            if self.at_bottom:
+                anim = Animation(top=0, t='out_quad', d=.3)
+            else:
+                anim = Animation(y=self.height, t='out_quad', d=.3)
             anim.bind(on_complete=self.animation_close)
             anim.start(self.layout)
             self.widget = None
+            self.widget_info = False
         else:
             self.win.add_widget(self)
             Logger.info('Inspector: inspector activated')
-            Animation(top=60, t='out_quad', d=.3).start(self.layout)
+            if self.at_bottom:
+                Animation(top=60, t='out_quad', d=.3).start(self.layout)
+            else:
+                Animation(y=self.height - 60, t='out_quad', d=.3).start(self.layout)
 
     def animation_close(self, instance, value):
         if self.activated is False:
@@ -309,11 +349,17 @@ class Inspector(FloatLayout):
             node.widget_ref = None
             treeview.remove_node(node)
         if not widget:
-            Animation(top=60, t='out_quad', d=.3).start(self.layout)
+            if self.at_bottom:
+                Animation(top=60, t='out_quad', d=.3).start(self.layout)
+            else:
+                Animation(y=self.height - 60, t='out_quad', d=.3).start(self.layout)
             self.widget_info = False
             return
         self.widget_info = True
-        Animation(top=250, t='out_quad', d=.3).start(self.layout)
+        if self.at_bottom:
+            Animation(top=250, t='out_quad', d=.3).start(self.layout)
+        else:
+            Animation(top=self.height, t='out_quad', d=.3).start(self.layout)
         for node in list(treeview.iterate_all_nodes())[:]:
             treeview.remove_node(node)
 
