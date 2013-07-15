@@ -329,6 +329,11 @@ to add a property for the image filename::
                 source: 'world.png'
                 on_press: root.do_something_else()
 
+In Python you can create an instance of the dynamic class by::
+
+    from kivy.factory import Factory
+    button_inst = Factory.ImageButton()
+
 
 .. _template_usage:
 
