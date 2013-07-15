@@ -39,6 +39,7 @@ from kivy.uix.label import Label
 from kivy.properties import OptionProperty, StringProperty, ListProperty
 from kivy.clock import Clock
 
+
 class Button(Label):
     '''Button class, see module documentation for more information.
 
@@ -138,10 +139,10 @@ class Button(Label):
             return False
         if not self.collide_point(touch.x, touch.y):
             return False
-        if self in touch.ud:
+        if repr(self) in touch.ud:
             return False
         touch.grab(self)
-        touch.ud[self] = True
+        touch.ud[repr(self)] = True
         self._do_press()
         self.dispatch('on_press')
         return True
@@ -151,12 +152,12 @@ class Button(Label):
             return True
         if super(Button, self).on_touch_move(touch):
             return True
-        return self in touch.ud
+        return repr(self) in touch.ud
 
     def on_touch_up(self, touch):
         if touch.grab_current is not self:
             return super(Button, self).on_touch_up(touch)
-        assert(self in touch.ud)
+        assert(repr(self) in touch.ud)
         touch.ungrab(self)
         self._do_release()
         self.dispatch('on_release')
@@ -181,9 +182,11 @@ class Button(Label):
         '''
         self._do_press()
         self.dispatch("on_press")
+
         def trigger_release(dt):
             self._do_release()
             self.dispatch("on_release")
+
         if not duration:
             trigger_release(0)
         else:
