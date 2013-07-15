@@ -8,19 +8,27 @@ VideoGStreamer: implementation of VideoBase with GStreamer
 # To prevent memory leak, you must connect() to a func, and you might want to
 # pass the referenced object with weakref()
 #
-
+from kivy.compat import PY2
 try:
-    import pygst
-    if not hasattr(pygst, '_gst_already_checked'):
-        pygst.require('0.10')
-        pygst._gst_already_checked = True
-    import gst
+    #import pygst
+    #if not hasattr(pygst, '_gst_already_checked'):
+    #    pygst.require('0.10')
+    #    pygst._gst_already_checked = True
+    if PY2:
+        import gst
+    else:
+        import ctypes
+        import gi
+        from gi.repository import Gst as gst
 except:
     raise
 
 from os import path
 from threading import Lock
-from urllib.request import pathname2url
+if PY2:
+    from urllib import pathname2url
+else:
+    from urllib.request import pathname2url
 from kivy.graphics.texture import Texture
 from kivy.logger import Logger
 from functools import partial
@@ -31,12 +39,31 @@ from kivy.core.video import VideoBase
 from kivy.support import install_gobject_iteration
 install_gobject_iteration()
 
-
+BUF_SAMPLE = 'buffer'
 _VIDEO_CAPS = ','.join([
     'video/x-raw-rgb',
     'red_mask=(int)0xff0000',
     'green_mask=(int)0x00ff00',
     'blue_mask=(int)0x0000ff'])
+
+if not PY2:
+    gst.init(None)
+    gst.STATE_NULL = gst.State.NULL
+    gst.STATE_READY = gst.State.READY
+    gst.STATE_PLAYING = gst.State.PLAYING
+    gst.STATE_PAUSED = gst.State.PAUSED
+    gst.FORMAT_TIME = gst.Format.TIME
+    gst.SEEK_FLAG_FLUSH = gst.SeekFlags.KEY_UNIT
+    gst.SEEK_FLAG_KEY_UNIT = gst.SeekFlags.KEY_UNIT
+    gst.MESSAGE_ERROR = gst.MessageType.ERROR
+    BUF_SAMPLE = 'sample'
+
+    _VIDEO_CAPS = ','.join([
+        'video/x-raw',
+        'format=RGB',
+        'red_mask=(int)0xff0000',
+        'green_mask=(int)0x00ff00',
+        'blue_mask=(int)0x0000ff'])
 
 
 def _gst_new_buffer(obj, appsink):
@@ -44,7 +71,7 @@ def _gst_new_buffer(obj, appsink):
     if not obj:
         return
     with obj._buffer_lock:
-        obj._buffer = obj._videosink.emit('pull-buffer')
+        obj._buffer = obj._videosink.emit('pull-' + BUF_SAMPLE)
 
 
 def _on_gst_message(bus, message):
@@ -74,19 +101,28 @@ class VideoGStreamer(VideoBase):
 
     def _gst_init(self):
         # self._videosink will receive the buffers so we can upload them to GPU
-        self._videosink = gst.element_factory_make('appsink', 'videosink')
-        self._videosink.set_property('caps', gst.Caps(_VIDEO_CAPS))
+        if PY2:
+            self._videosink = gst.element_factory_make('appsink', 'videosink')
+            self._videosink.set_property('caps', gst.Caps(_VIDEO_CAPS))
+        else:
+            self._videosink = gst.ElementFactory.make('appsink', 'videosink')
+            self._videosink.set_property('caps',
+                 gst.caps_from_string(_VIDEO_CAPS))
+
         self._videosink.set_property('async', True)
         self._videosink.set_property('drop', True)
         self._videosink.set_property('qos', True)
         self._videosink.set_property('emit-signals', True)
-        self._videosink.connect('new-buffer', partial(
+        self._videosink.connect('new-' + BUF_SAMPLE, partial(
             _gst_new_buffer, ref(self)))
 
         # playbin, takes care of all, loading, playing, etc.
         # XXX playbin2 have some issue when playing some video or streaming :/
         #self._playbin = gst.element_factory_make('playbin2', 'playbin')
-        self._playbin = gst.element_factory_make('playbin', 'playbin')
+        if PY2:
+            self._playbin = gst.element_factory_make('playbin', 'playbin')
+        else:
+            self._playbin = gst.ElementFactory.make('playbin', 'playbin')
         self._playbin.set_property('video-sink', self._videosink)
 
         # gstreamer bus, to attach and listen to gst messages
@@ -98,15 +134,42 @@ class VideoGStreamer(VideoBase):
 
     def _update_texture(self, buf):
         # texture will be updated with newest buffer/frame
-        caps = buf.get_caps()[0]
-        size = caps['width'], caps['height']
+        caps = buf.get_caps()
+        _s = caps.get_structure(0)
+        data = size = None
+        if PY2:
+            size = _s['width'], _s['height']
+        else:
+            size = _s.get_int('width')[1], _s.get_int('height')[1]
         if not self._texture:
             # texture is not allocated yet, so create it first
             self._texture = Texture.create(size=size, colorfmt='rgb')
             self._texture.flip_vertical()
             self.dispatch('on_load')
         # upload texture data to GPU
-        self._texture.blit_buffer(buf.data, size=size, colorfmt='rgb')
+        if not PY2:
+            mapinfo = None
+            try:
+                mem = buf.get_buffer()
+                #from pudb import set_trace; set_trace()
+                result, mapinfo = mem.map(gst.MapFlags.READ)
+                #result, mapinfo = mem.map_range(0, -1, gst.MapFlags.READ)
+
+                # repr(mapinfo) will return <void at 0x1aa3530>
+                # but there is no python attribute to get the address... so we
+                # need to parse it.
+                addr = int(repr(mapinfo.memory).split()[-1][:-1], 16)
+                # now get the memory
+                _size = mem.__sizeof__() + mapinfo.memory.__sizeof__()
+                data = ctypes.string_at(addr + _size, mapinfo.size)
+                #print('got data', len(data), addr)
+            finally:
+                if mapinfo is not None:
+                    mem.unmap(mapinfo)
+        else:
+            data = buf.data
+
+        self._texture.blit_buffer(data, size=size, colorfmt='rgb')
 
     def _update(self, dt):
         buf = None

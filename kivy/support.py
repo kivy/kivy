@@ -8,6 +8,8 @@ Activate other framework/toolkit inside our event loop
 __all__ = ('install_gobject_iteration', 'install_twisted_reactor',
     'install_android')
 
+from kivy.compat import PY2
+
 
 def install_gobject_iteration():
     '''Import and install gobject context iteration inside our event loop.
@@ -15,7 +17,12 @@ def install_gobject_iteration():
     '''
 
     from kivy.clock import Clock
-    import gobject
+
+    if PY2:
+        import gobject
+    else:
+        from gi.repository import GObject as gobject
+
     if hasattr(gobject, '_gobject_already_installed'):
         # already installed, don't do it twice.
         return

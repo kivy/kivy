@@ -1,6 +1,7 @@
-============================
+.. _troubleshooting-macosx:
+
 Troubleshooting on Mac OS X
-============================
+===========================
 
 Having trouble installing Kivy on Mac OS X? This page contains issues 
 
