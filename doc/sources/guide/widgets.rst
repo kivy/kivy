@@ -307,6 +307,8 @@ This gives us:
 As with |size_hint|, you should experiment with |pos_hint| to
 understand the effect it has on the widget positions.
 
+.. _adding_widget_background:
+
 Adding a Background to a Layout
 -------------------------------
 
