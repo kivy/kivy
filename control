@@ -8,8 +8,8 @@ Build-Depends: debhelper (>= 7.0.50~), cdbs,
                python3,         python3-all-dev,         python3-nose,                  python3-sphinx,
                cython, cython3,
                xvfb,
-               libgl1-mesa-dev [!armhf],
-               libgles2-mesa-dev [armhf],
+               libgl1-mesa-dev,
+               libgles2-mesa-dev,
                texlive-latex-base, texlive-latex-recommended, texlive-latex-extra, texlive-fonts-extra, texlive-fonts-recommended
 Standards-Version: 3.9.1
 Homepage: http://kivy.org/
