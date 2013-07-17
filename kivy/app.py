@@ -200,15 +200,15 @@ The current implemented Pause mechanism is:
     #. We got a `resume`, :func:`App.on_resume` is called.
     #. If our app memory has been reclaimed by the OS, then nothing will be
        called.
-       
+
 Here is a simple example of how on_pause() should be used::
 
    class TestApp(App):
-   
+
       def on_pause(self):
          # Here you can save data if needed
          return True
-   
+
       def on_resume(self):
          # Here you can check if any data needs replacing (usually nothing)
          pass
@@ -397,7 +397,8 @@ class App(EventDispatcher):
             except TypeError:
                 # if it's a builtin module.. use the current dir.
                 default_kv_directory = '.'
-            kv_directory = self.options.get('kv_directory', default_kv_directory)
+            kv_directory = self.options.get('kv_directory',
+                                            default_kv_directory)
             clsname = self.__class__.__name__
             if clsname.endswith('App'):
                 clsname = clsname[:-3]
@@ -540,7 +541,8 @@ class App(EventDispatcher):
         data like preferences, saved games, and settings. This function
         implements those conventions.
 
-        On iOS `~/Documents<app_name>` is returned (which is inside the apps sandbox).
+        On iOS `~/Documents<app_name>` is returned (which is inside the apps
+        sandbox).
 
         On Android `/sdcard/<app_name>` is returned.
 
@@ -688,6 +690,8 @@ class App(EventDispatcher):
 
         :return: True if the settings have been opened
         '''
+        if not self.use_kivy_settings:
+            return False
         win = self._app_window
         if not win:
             raise Exception('No windows are set on the application, you cannot'
@@ -717,8 +721,7 @@ class App(EventDispatcher):
         if self._app_settings is None:
             self._app_settings = s = Settings()
             self.build_settings(s)
-            if self.use_kivy_settings:
-                s.add_kivy_panel()
+            s.add_kivy_panel()
             s.bind(on_close=self.close_settings,
                    on_config_change=self._on_config_change)
         return self._app_settings
