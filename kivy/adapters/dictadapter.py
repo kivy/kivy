@@ -21,14 +21,11 @@ If you wish to have a bare-bones list adapter, without selection, use the
 __all__ = ('DictAdapter', )
 
 from kivy.logger import Logger
-from kivy.clock import Clock
 from kivy.event import EventDispatcher
-from kivy.properties import BooleanProperty
 from kivy.properties import DictProperty
 from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
 from kivy.properties import ObservableDict
-from kivy.properties import StringProperty
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.listadapter import ChangeRecordingObservableList
 from kivy.adapters.list_op_handler import ListOpHandler
@@ -209,6 +206,10 @@ class ChangeRecordingObservableDict(ObservableDict):
         if change_info:
             self.change_monitor.change_info = change_info
 
+    # Expose this through the adapter.
+    def insert(self, key, value):
+        super(ChangeRecordingObservableDict, self).__setitem__(key, value)
+
 
 class DictAdapter(Adapter, EventDispatcher):
     '''A :class:`~kivy.adapters.dictadapter.DictAdapter` is an adapter around a
@@ -285,6 +286,15 @@ class DictAdapter(Adapter, EventDispatcher):
         '''
         pass
 
+    def insert(self, index, key, value):
+
+        # This special insert() crod call only does a dict set (it does not
+        # write change_info). We will let the sorted_keys insert trigger a
+        # data change event.
+        self.data.insert(key, value)
+
+        self.sorted_keys.insert(index, key)
+
     def sorted_keys_changed(self, *args):
         '''This callback happens as a result of the direct sorted_keys binding
         set up in __init__(). It is needed for the direct set of sorted_keys,
@@ -340,8 +350,8 @@ class DictAdapter(Adapter, EventDispatcher):
             # Force a rebuild of the view for which data item has changed.
             # If the item was selected before, maintain the seletion.
 
-            # We do not alter sorted_keys -- the key is the same, only the value
-            # has changed. So, we must dispatch here.
+            # We do not alter sorted_keys -- the key is the same, only the
+            # value has changed. So, we must dispatch here.
 
             index = self.sorted_keys.index(keys[0])
 
@@ -374,7 +384,7 @@ class DictAdapter(Adapter, EventDispatcher):
             self.additional_change_info = (start_index, end_index)
 
             # Trigger the data change callback.
-            del self.sorted_keys[start_index : end_index + 1]
+            del self.sorted_keys[start_index:end_index + 1]
 
         elif data_op == 'crod_clear':
 
