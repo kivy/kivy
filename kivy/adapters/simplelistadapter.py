@@ -17,6 +17,7 @@ strings that do not require user interaction.
 
 __all__ = ('SimpleListAdapter', )
 
+from kivy.adapters.args_converters import list_item_args_converter
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
@@ -76,6 +77,9 @@ class SimpleListAdapter(EventDispatcher):
         if type(kwargs['data']) not in (tuple, list):
             raise Exception('list adapter: data must be a tuple or list')
         super(SimpleListAdapter, self).__init__(**kwargs)
+
+        if not 'args_converter' in kwargs:
+            self.args_converter = list_item_args_converter
 
     def get_count(self):
         return len(self.data)

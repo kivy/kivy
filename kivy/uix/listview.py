@@ -921,7 +921,9 @@ class ListView(AbstractView, EventDispatcher):
         # TODO: The __no_builder hack is temporary, until the working of kv
         #       with and without adapter setting, and related diffs between
         #       py and kv are sorted out.
-        if 'adapter' not in kwargs and '__no_builder' not in kwargs:
+        #if 'adapter' not in kwargs and '__no_builder' not in kwargs:
+
+        if 'adapter' not in kwargs:
             if 'item_strings' not in kwargs:
                 # Could be missing, or it could be that the ListView is
                 # declared in a kv file. If kv is in use, and item_strings is
