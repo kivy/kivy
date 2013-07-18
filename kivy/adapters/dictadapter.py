@@ -296,6 +296,7 @@ class DictAdapter(Adapter, EventDispatcher):
 
         if (hasattr(self.sorted_keys, 'change_monitor')
                and not self.sorted_keys.change_monitor.op_started):
+
             self.cached_views.clear()
 
             self.list_op_handler.source_list = self.sorted_keys

@@ -360,11 +360,12 @@ Builder.load_string('''
                     height: 30
                     text: '[insert]'
 
-                Label:
+                Button:
                     size_hint: None, None
-                    width: 96
+                    width:80
                     height: 30
-                    text: '[sort]'
+                    text: 'sort'
+                    on_release: app.dict_adapter.sorted_keys.sort(key=lambda k: k.lower())
 ''')
 
 

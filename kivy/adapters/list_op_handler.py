@@ -282,7 +282,8 @@ class ListOpHandler(object):
             for i in self.adapter.cached_views:
                 data_item = self.source_list[i]
                 if isinstance(data_item, str):
-                    duplicates = sorted([j for j, s in enumerate(self.source_list)
+                    duplicates = \
+                            sorted([j for j, s in enumerate(self.source_list)
                                                  if s == data_item])
                     pos_in_instances = duplicates.index(i)
                 else:
@@ -292,7 +293,7 @@ class ListOpHandler(object):
                             {'data_item': data_item,
                              'pos_in_instances': pos_in_instances}
         else:
-            for i in self.cached_views:
+            for i in self.adapter.cached_views:
                 data_item = self.source_list[i]
                 pos_in_instances = 0
                 self.source_list.change_monitor.presort_indices_and_items[i] = \
@@ -333,7 +334,7 @@ class ListOpHandler(object):
                 item_view.index = postsort_index
                 new_cached_views[postsort_index] = item_view
         else:
-            for i in self.cached_views:
+            for i in self.adapter.cached_views:
                 item_view = self.adapter.cached_views[i]
                 old_index = item_view.index
                 data_item = presort_indices_and_items[old_index]['data_item']
