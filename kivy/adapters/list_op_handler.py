@@ -82,7 +82,7 @@ class ListOpHandler(object):
             Clock.schedule_once(lambda dt: self.data_changed(*args))
             return
 
-        # Make a copy in the adapter for more convenience access by observers.
+        # Make a copy in the adapter for more convenient access by observers.
         self.adapter.change_info = change_info
 
         Logger.info(('ListAdapter: '
