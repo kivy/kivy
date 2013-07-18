@@ -573,6 +573,8 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
+from kivy.adapters.dictadapter import DictAdapter
+from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.uix.abstractview import AbstractView
 from kivy.properties import ObjectProperty, DictProperty, \
@@ -1312,6 +1314,25 @@ class ListView(AbstractView, EventDispatcher):
 
             Logger.info('ListView: unhandled data change op ' + str(data_op))
 
+        # Data ops in adapter lists and dicts can be the same, one after
+        # another, e.g. ('crol_delslice', (0, 0)) could be done repeatedly. As
+        # these are identical, the change events stop firing.  Solve this by
+        # resetting the change_info storage item to None after each op. The op
+        # handlers will not do anything (they simply return) when change_info
+        # is None, so this reset fires a blank.
+        #
+        # We get list change (crol) events from ListAdapter.data and from
+        # DictAdapter.sorted_keys. Choose the correct one. Also, if the adapter
+        # is a DictAdapter, differentiate between list (crol) and dict (crod)
+        # events, and the property involved.
+        #
         # TODO: The system of this set, and the check at the top of this
         #       method, needs timing torture tests.
-        self.adapter.data.change_monitor.change_info = None
+        #
+        if isinstance(self.adapter, ListAdapter):
+            self.adapter.data.change_monitor.change_info = None
+        else:
+            if data_op.startswith('crol'):
+                self.adapter.sorted_keys.change_monitor.change_info = None
+            else:
+                self.adapter.data.change_monitor.change_info = None

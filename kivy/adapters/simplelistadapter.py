@@ -17,12 +17,13 @@ strings that do not require user interaction.
 
 __all__ = ('SimpleListAdapter', )
 
-from kivy.adapters.adapter import Adapter
+from kivy.event import EventDispatcher
 from kivy.properties import ListProperty
+from kivy.properties import ObjectProperty
 from kivy.lang import Builder
 
 
-class SimpleListAdapter(Adapter):
+class SimpleListAdapter(EventDispatcher):
     '''A :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` is an
     adapter around a Python list.
 
@@ -39,6 +40,34 @@ class SimpleListAdapter(Adapter):
 
     :data:`data` is a :class:`~kivy.properties.ListProperty` and
     defaults to [].
+    '''
+
+    cls = ObjectProperty(None)
+    '''
+    A class for instantiating a given view item (Use this or template).
+
+    :data:`cls` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
+    '''
+
+    template = ObjectProperty(None)
+    '''
+    A kv template for instantiating a given view item (Use this or cls).
+
+    :data:`template` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
+    '''
+
+    args_converter = ObjectProperty(None)
+    '''
+    A function that prepares an args dict for the cls or kv template to build
+    a view from a data item.
+
+    If an args_converter is not provided, a default one is set that assumes
+    simple content in the form of a list of strings.
+
+    :data:`args_converter` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     def __init__(self, **kwargs):

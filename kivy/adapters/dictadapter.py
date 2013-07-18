@@ -28,10 +28,22 @@ from kivy.properties import DictProperty
 from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
 from kivy.properties import ObservableDict
-from kivy.adapters.listadapter import ChangeMonitor
-from kivy.adapters.listadapter import ListAdapter
+from kivy.properties import StringProperty
+from kivy.adapters.adapter import Adapter
 from kivy.adapters.listadapter import ChangeRecordingObservableList
 from kivy.adapters.list_op_handler import ListOpHandler
+
+
+class DictChangeMonitor(EventDispatcher):
+    '''The ChangeRecordingObservableList/Dict instances need to store change
+    info without triggering a data_changed() callback themselves. Use this
+    intermediary to hold change info for CROL and CROD observers.
+    '''
+
+    change_info = ObjectProperty(None, allownone=True)
+
+    def __init__(self, *largs):
+        super(DictChangeMonitor, self).__init__(*largs)
 
 
 class ChangeRecordingObservableDict(ObservableDict):
@@ -45,7 +57,7 @@ class ChangeRecordingObservableDict(ObservableDict):
 
     def __init__(self, *largs):
         super(ChangeRecordingObservableDict, self).__init__(*largs)
-        self.change_monitor = ChangeMonitor()
+        self.change_monitor = DictChangeMonitor()
 
     def __len__(self, *largs):
         # We should always have our own change_monitor to remove from len
@@ -97,18 +109,13 @@ class ChangeRecordingObservableDict(ObservableDict):
                 change_info = ('crod_setitem_set', (key, ))
             else:
                 change_info = ('crod_setitem_add', (key, ))
-        if (key != 'change_monitor' and hasattr(self, 'change_monitor')
-                and change_info[0] in ['crod_setitem_set',
-                                       'crod_setitem_add', ]):
-            self.change_monitor.start()
         super(ChangeRecordingObservableDict, self).__setitem__(key, value)
         if change_info[0] in ['crod_setitem_set', 'crod_setitem_add', ]:
-            self.change_monitor.change_info = change_info
-
-        self.change_monitor.stop()
+            # Ignore if it is change_monitor itself being set.
+            if key != 'change_monitor':
+                self.change_monitor.change_info = change_info
 
     def __delitem__(self, key):
-        self.change_monitor.start()
         # Protect change_monitor from deletion.
         if key == 'change_monitor':
             # TODO: Raise an exception?
@@ -116,20 +123,16 @@ class ChangeRecordingObservableDict(ObservableDict):
             return
         super(ChangeRecordingObservableDict, self).__delitem__(key)
         self.change_monitor.change_info = ('crod_delitem', (key, ))
-        self.change_monitor.stop()
 
     def clear(self, *largs):
-        self.change_monitor.start()
         # Store a local copy of self.change_monitor, because the clear() will
         # remove everything, including it. Restore it after the clear.
         change_monitor = self.change_monitor
         super(ChangeRecordingObservableDict, self).clear(*largs)
         self.change_monitor = change_monitor
         self.change_monitor.change_info = ('crod_clear', (None, ))
-        self.change_monitor.stop()
 
     def pop(self, *largs):
-        self.change_monitor.start()
         key = largs[0]
 
         # Protect change_monitor from deletion.
@@ -144,11 +147,9 @@ class ChangeRecordingObservableDict(ObservableDict):
         # s.pop([i]) is same as x = s[i]; del s[i]; return x
         result = super(ChangeRecordingObservableDict, self).pop(*largs)
         self.change_monitor.change_info = ('crod_pop', (key, ))
-        self.change_monitor.stop()
         return result
 
     def popitem(self, *largs):
-        self.change_monitor.start()
         # From python docs, "Remove and return an arbitrary (key, value) pair
         # from the dictionary." From other reading, arbitrary here effectively
         # means "random" in the loose sense, of removing on the basis of how
@@ -184,11 +185,9 @@ class ChangeRecordingObservableDict(ObservableDict):
         # for crod_popitem. If we set self.change_monitor.change_info with
         # crod_popitem here, we get a double-callback.
         del self[key]
-        self.change_monitor.stop()
         return key, value
 
     def setdefault(self, *largs):
-        self.change_monitor.start()
         present_keys = self.keys()
         key = largs[0]
         change_info = None
@@ -197,11 +196,9 @@ class ChangeRecordingObservableDict(ObservableDict):
         result = super(ChangeRecordingObservableDict, self).setdefault(*largs)
         if change_info:
             self.change_monitor.change_info = change_info
-        self.change_monitor.stop()
         return result
 
     def update(self, *largs):
-        self.change_monitor.start()
         change_info = None
         present_keys = self.keys()
         if present_keys:
@@ -211,10 +208,9 @@ class ChangeRecordingObservableDict(ObservableDict):
         super(ChangeRecordingObservableDict, self).update(*largs)
         if change_info:
             self.change_monitor.change_info = change_info
-        self.change_monitor.stop()
 
 
-class DictAdapter(ListAdapter):
+class DictAdapter(Adapter, EventDispatcher):
     '''A :class:`~kivy.adapters.dictadapter.DictAdapter` is an adapter around a
     python dictionary of records. It extends the list-like capabilities of
     the :class:`~kivy.adapters.listadapter.ListAdapter`.
@@ -245,9 +241,10 @@ class DictAdapter(ListAdapter):
     to None.
     '''
 
-    __events__ = ('on_data_change', 'on_sorted_keys_change')
+    __events__ = ('on_data_change', )
 
     def __init__(self, **kwargs):
+
         if 'sorted_keys' in kwargs:
             if type(kwargs['sorted_keys']) not in (tuple, list):
                 msg = 'DictAdapter: sorted_keys must be tuple or list'
@@ -266,15 +263,15 @@ class DictAdapter(ListAdapter):
 
         # Delegate handling for sorted_keys changes to a ListOpHandler.
         self.list_op_handler = ListOpHandler(adapter=self,
-                                               source_list=self.sorted_keys,
-                                               duplicates_allowed=False)
+                                             source_list=self.sorted_keys,
+                                             duplicates_allowed=False)
         self.sorted_keys.change_monitor.bind(
-                on_change_info=self.list_op_handler.data_changed,
+                on_crol_change_info=self.list_op_handler.data_changed,
                 on_crol_sort_started=self.list_op_handler.sort_started)
 
         # We handle data (ChangeRecordingObservableDict) changes here.
         self.data.change_monitor.bind(
-                on_change_info=self.crod_data_changed)
+                change_info=self.crod_data_changed)
 
     # TODO: Document the reason for on_data_change and on_sorted_keys_change,
     #       instead of on_data and on_sorted_keys: These are peculiar to the
@@ -282,11 +279,6 @@ class DictAdapter(ListAdapter):
     #       leaves on_data and on_sorted_keys still available for use in the
     #       "regular" manner, perhaps for some Kivy widgets, perhaps for
     #       custom widgets.
-
-    def on_sorted_keys_change(self, *args):
-        '''Default data handler for on_sorted_keys_change event.
-        '''
-        pass
 
     def on_data_change(self, *args):
         '''Default data handler for on_data_change event.
@@ -309,7 +301,7 @@ class DictAdapter(ListAdapter):
             self.list_op_handler.source_list = self.sorted_keys
 
             self.sorted_keys.change_monitor.bind(
-                on_change_info=self.list_op_handler.data_changed,
+                on_crol_change_info=self.list_op_handler.data_changed,
                 on_crol_sort_started=self.list_op_handler.sort_started)
 
             self.change_info = ('crol_reset', (0, 0))
@@ -324,7 +316,7 @@ class DictAdapter(ListAdapter):
         # TODO: This is to solve a timing issue when running tests. Remove when
         #       no longer needed.
         if not change_info:
-            Clock.schedule_once(lambda dt: self.data_changed(*args))
+            #Clock.schedule_once(lambda dt: self.crod_data_changed(*args))
             return
 
         # Make a copy for more convenience access by observers.
