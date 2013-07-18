@@ -7,6 +7,7 @@ from string import ascii_uppercase, digits
 
 from kivy.app import App
 from kivy.lang import Builder
+from random import sample
 
 from kivy.adapters.models import SelectableDataItem
 from kivy.adapters.listadapter import ListAdapter
@@ -354,11 +355,12 @@ Builder.load_string('''
                                                               k2: {'key': k2, 'value': k2}, \
                                                               k3: {'key': k3, 'value': k3}})
 
-                Label:
+                Button:
                     size_hint: None, None
-                    width: 96
+                    width:80
                     height: 30
-                    text: '[insert]'
+                    text: 'insert'
+                    on_release: app.insert_into_dict(app.dict_adapter.selection[0].index)
 
                 Button:
                     size_hint: None, None
@@ -415,6 +417,10 @@ class Test(App):
                 "key": rec['key'],
                 "size_hint_y": None,
                 "height" : 25}
+
+    def insert_into_dict(self, index):
+        key = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+        self.dict_adapter.insert(index, key, {'key': key, 'value': key})
 
     def build(self):
 
