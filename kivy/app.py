@@ -730,7 +730,6 @@ class App(EventDispatcher):
             self.build_settings(s)
             if self.use_kivy_settings:
                 s.add_kivy_panel()
-            s.add_kivy_panel()
             s.bind(on_close=self.close_settings,
                    on_config_change=self._on_config_change)
         return self._app_settings
