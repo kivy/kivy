@@ -161,12 +161,21 @@ user, in order to adapt or reload your UI. You can overload the
                 elif token == ('section1', 'key2'):
                     print('Our key2 have been changed to', value)
 
-One last note, the Kivy configuration panel is added by default in the settings
-instance. If you don't want it, you can declare your Application like this::
+One last note. The Kivy configuration panel is added by default to the settings
+instance. If you don't want this panel, you can declare your Application like
+this::
 
     class TestApp(App):
         use_kivy_settings = False
         # ...
+
+This only removes the Kivy panel, but does not stop the settings instance
+from appearing. If you want to prevent the settings instance from appearing
+altogether, you can do this::
+
+    class TestApp(App):
+        def open_settings(self, *largs):
+            pass
 
 
 Pause mode
