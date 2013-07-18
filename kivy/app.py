@@ -699,8 +699,6 @@ class App(EventDispatcher):
 
         :return: True if the settings have been opened
         '''
-        if not self.use_kivy_settings:
-            return False
         win = self._app_window
         if not win:
             raise Exception('No windows are set on the application, you cannot'
@@ -730,6 +728,8 @@ class App(EventDispatcher):
         if self._app_settings is None:
             self._app_settings = s = Settings()
             self.build_settings(s)
+            if self.use_kivy_settings:
+                s.add_kivy_panel()
             s.add_kivy_panel()
             s.bind(on_close=self.close_settings,
                    on_config_change=self._on_config_change)
