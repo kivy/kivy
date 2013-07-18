@@ -251,10 +251,9 @@ class DictAdapter(Adapter, EventDispatcher):
                 msg = 'DictAdapter: sorted_keys must be tuple or list'
                 raise Exception(msg)
             else:
-                # Remove any keys in sorted_keys that are not found in
-                # self.data.keys(). This is the set intersection op (&).
-                self.sorted_keys = list(set(kwargs.pop('sorted_keys'))
-                                            & set(kwargs['data'].keys()))
+                self.sorted_keys = \
+                        self.sorted_keys_checked(kwargs.pop('sorted_keys'),
+                                                 kwargs['data'].keys())
         else:
             self.sorted_keys = sorted(kwargs['data'].keys())
 
@@ -273,6 +272,15 @@ class DictAdapter(Adapter, EventDispatcher):
         # We handle data (ChangeRecordingObservableDict) changes here.
         self.data.change_monitor.bind(
                 change_info=self.crod_data_changed)
+
+    def sorted_keys_checked(self, sorted_keys, data_keys):
+
+        # Remove any keys in sorted_keys that are not found in
+        # self.data.keys(). This is the set intersection op (&).
+        sorted_keys_checked = list(set(sorted_keys) & set(data_keys))
+
+        # Maintain sort order of incoming sorted_keys.
+        return [k for k in sorted_keys if k in sorted_keys_checked]
 
     # TODO: Document the reason for on_data_change and on_sorted_keys_change,
     #       instead of on_data and on_sorted_keys: These are peculiar to the
