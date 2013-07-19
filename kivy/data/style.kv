@@ -488,6 +488,109 @@
     background_down: 'atlas://data/images/defaulttheme/spinner_pressed'
 
 # =============================================================================
+# ActionBar widget
+# =============================================================================
+
+<ActionBar>:
+    padding: '2sp'
+    canvas:
+        Color:
+            rgba: self.background_color
+        BorderImage:
+            pos: self.pos
+            size: self.size
+            source: self.background_image
+
+<ActionView>:
+    orientation: 'horizontal'
+    padding: '2sp'
+    canvas:
+        Color:
+            rgba: self.background_color
+        BorderImage:
+            pos: self.pos
+            size: self.size
+            source: self.background_image
+
+<ActionSeparator>:
+    size_hint_x: None
+    minimum_width: '2sp'
+    width: self.minimum_width
+    canvas:
+        Rectangle:
+            pos: self.x, self.y+sp(5)
+            size: self.width, self.height-sp(10)
+            source: self.background_image
+
+<ActionButton>:
+    background_normal: 'atlas://data/images/defaulttheme/action_bar' if self.inside_group else 'atlas://data/images/defaulttheme/action_item'
+
+<ActionToggleButton>:
+    background_normal: 'atlas://data/images/defaulttheme/action_bar' if self.inside_group else 'atlas://data/images/defaulttheme/action_item'
+
+<ActionCheck>:
+    background_normal: 'atlas://data/images/defaulttheme/action_bar' if self.inside_group else 'atlas://data/images/defaulttheme/action_item'
+
+<ActionPrevious>:
+    size_hint_x: None
+    minimum_width: '100sp'
+    width: self.minimum_width
+    important: True
+    BoxLayout:
+        orientation: 'horizontal'
+        pos: root.pos
+        size: root.size
+        padding: '2dp'
+        Image:
+            source: root.previous_image
+            opacity: 1 if root.with_previous else 0
+            allow_stretch: True
+            size_hint_x: None
+            width: self.texture_size[0] if self.texture else 20
+        Image:
+            source: root.app_icon
+            allow_stretch: True
+            size_hint_x: None
+            width: self.texture_size[0] if self.texture else 20
+        Label:
+            text: root.title
+            text_size: self.size
+            shorten: True
+            halign: 'right'
+            valign: 'middle'
+
+<ActionGroup>:
+    background_normal: 'atlas://data/images/defaulttheme/action_group'
+    background_down: 'atlas://data/images/defaulttheme/action_group_down'
+    background_disabled_normal: 'atlas://data/images/defaulttheme/action_group_disabled'
+    border: 30, 30, 3, 3
+    ActionSeparator:
+        pos: root.pos
+        size: root.separator_width, root.height
+        opacity: 1 if root.use_separator else 0
+        background_image: root.separator_image if root.use_separator else 'action_view'
+
+<ActionOverflow>:
+    border: 3, 3, 3, 3
+    background_normal: 'atlas://data/images/defaulttheme/action_item'
+    background_down: 'atlas://data/images/defaulttheme/action_item_down'
+    background_disabled_normal: 'atlas://data/images/defaulttheme/button_disabled'
+    size_hint_x: None
+    minimum_width: '48sp'
+    width: self.texture_size[0] if self.texture else self.minimum_width
+    canvas.after:
+        Rectangle:
+            pos: root.center_x - sp(24), root.center_y - sp(24)
+            size: sp(48), sp(48)
+            source: root.overflow_image
+
+<ActionDropDown>:
+    auto_width: False
+
+<ContextualActionView>:
+
+
+# =============================================================================
 # Accordion widget
 # =============================================================================
 
