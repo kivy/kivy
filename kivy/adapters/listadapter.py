@@ -49,240 +49,26 @@ A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
 
 __all__ = ('ListAdapter', )
 
-import inspect
-from kivy.logger import Logger
-from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.adapters.adapter import Adapter
-from kivy.adapters.list_op_handler import ListOpHandler
-from kivy.adapters.models import SelectableDataItem
-from kivy.properties import BooleanProperty
-from kivy.properties import DictProperty
+from kivy.adapters.list_ops import ListOpHandler
+from kivy.adapters.list_ops import RecordingObservableList
 from kivy.properties import ListProperty
-from kivy.properties import NumericProperty
 from kivy.properties import ObjectProperty
-from kivy.properties import ObservableList
-from kivy.properties import OptionProperty
-from kivy.properties import StringProperty
-from kivy.lang import Builder
-
-
-class ListChangeMonitor(EventDispatcher):
-    ''':class:`~kivy.adapters.listadapter.ListChangeMonitor` is an
-    intermediary used to hold change info about a
-    :class:`ChangeRecordingObservableList` instance in a list adapter. The list
-    adapter observes for changes, and retrieves the information stored in the
-    change_info property.
-
-    :class:`~kivy.adapters.listadapter.ListChangeMonitor` is stored as an item
-    instance in the CROL list. This requires special handling internally, so
-    that it is not treated as a real list item -- it does not show up in a
-    listing, it does not count in the length, and so on.
-
-    It should be hidden to the user.
-    '''
-
-    op_started = BooleanProperty(False)
-    change_info = ObjectProperty(None, allownone=True)
-    crol_sort_started = BooleanProperty(False)
-    sort_largs = ObjectProperty(None)
-    sort_kwds = ObjectProperty(None)
-    sort_op = StringProperty('')
-
-    presort_indices_and_items = DictProperty({})
-    '''This temporary association has keys as the indices of the adapter's
-    cached_views and the adapter's data items, for use in post-sort widget
-    reordering.  It is set by the adapter when needed.  It is cleared by the
-    adapter at the end of its sort op callback.
-    '''
-
-    __events__ = ('on_crol_change_info', 'on_crol_sort_started', )
-
-    def __init__(self, *largs):
-        super(ListChangeMonitor, self).__init__(*largs)
-
-        self.bind(change_info=self.dispatch_change,
-                  crol_sort_started=self.dispatch_crol_sort_started)
-
-    def dispatch_change(self, *args):
-        self.dispatch('on_crol_change_info')
-
-    def on_crol_change_info(self, *args):
-        pass
-
-    def dispatch_crol_sort_started(self, *args):
-        if self.crol_sort_started:
-            self.dispatch('on_crol_sort_started')
-
-    def on_crol_sort_started(self, *args):
-        pass
-
-    def start(self):
-        self.op_started = True
-
-    def stop(self):
-        self.op_started = False
-
-
-class ChangeRecordingObservableList(ObservableList):
-    '''Adds range-observing and other intelligence to ObservableList, storing
-    change_info for use by an observer.
-    '''
-
-    def __init__(self, *largs):
-        super(ChangeRecordingObservableList, self).__init__(*largs)
-        self.change_monitor = ListChangeMonitor()
-
-    # TODO: setitem and delitem are supposed to handle slices, instead of the
-    #       deprecated setslice() and delslice() methods.
-    def __setitem__(self, key, value):
-        self.change_monitor.start()
-        super(ChangeRecordingObservableList, self).__setitem__(key, value)
-        self.change_monitor.change_info = ('crol_setitem', (key, key))
-        self.change_monitor.stop()
-
-    def __delitem__(self, key):
-        self.change_monitor.start()
-        super(ChangeRecordingObservableList, self).__delitem__(key)
-        self.change_monitor.change_info = ('crol_delitem', (key, key))
-        self.change_monitor.stop()
-
-    def __setslice__(self, *largs):
-        self.change_monitor.start()
-        #
-        # Python docs:
-        #
-        #     operator.__setslice__(a, b, c, v)
-        #
-        #     Set the slice of a from index b to index c-1 to the sequence v.
-        #
-        #     Deprecated since version 2.6: This function is removed in Python
-        #     3.x. Use setitem() with a slice index.
-        #
-        start_index = largs[0]
-        end_index = largs[1] - 1
-        super(ChangeRecordingObservableList, self).__setslice__(*largs)
-        self.change_monitor.change_info = ('crol_setslice', (start_index, end_index))
-        self.change_monitor.stop()
-
-    def __delslice__(self, *largs):
-        self.change_monitor.start()
-        # Delete the slice of a from index b to index c-1. del a[b:c],
-        # where the args here are b and c.
-        # Also deprecated.
-        start_index = largs[0]
-        end_index = largs[1] - 1
-        super(ChangeRecordingObservableList, self).__delslice__(*largs)
-        self.change_monitor.change_info = ('crol_delslice', (start_index, end_index))
-        self.change_monitor.stop()
-
-    def __iadd__(self, *largs):
-        self.change_monitor.start()
-        start_index = len(self)
-        end_index = start_index + len(largs) - 1
-        super(ChangeRecordingObservableList, self).__iadd__(*largs)
-        self.change_monitor.change_info = ('crol_iadd', (start_index, end_index))
-        self.change_monitor.stop()
-
-    def __imul__(self, *largs):
-        self.change_monitor.start()
-        num = largs[0]
-        start_index = len(self)
-        end_index = start_index + (len(self) * num)
-        super(ChangeRecordingObservableList, self).__imul__(*largs)
-        self.change_monitor.change_info = ('crol_imul', (start_index, end_index))
-        self.change_monitor.stop()
-
-    def append(self, *largs):
-        self.change_monitor.start()
-        index = len(self)
-        super(ChangeRecordingObservableList, self).append(*largs)
-        self.change_monitor.change_info = ('crol_append', (index, index))
-        self.change_monitor.stop()
-
-    def remove(self, *largs):
-        self.change_monitor.start()
-        index = self.index(largs[0])
-        super(ChangeRecordingObservableList, self).remove(*largs)
-        self.change_monitor.change_info = ('crol_remove', (index, index))
-        self.change_monitor.stop()
-
-    def insert(self, *largs):
-        self.change_monitor.start()
-        index = largs[0]
-        super(ChangeRecordingObservableList, self).insert(*largs)
-        self.change_monitor.change_info = ('crol_insert', (index, index))
-        self.change_monitor.stop()
-
-    def pop(self, *largs):
-        self.change_monitor.start()
-        if largs:
-            index = largs[0]
-        else:
-            index = len(self) - 1
-        result = super(ChangeRecordingObservableList, self).pop(*largs)
-        self.change_monitor.change_info = ('crol_pop', (index, index))
-        return result
-        self.change_monitor.stop()
-
-    def extend(self, *largs):
-        self.change_monitor.start()
-        start_index = len(self)
-        end_index = start_index + len(largs[0]) - 1
-        super(ChangeRecordingObservableList, self).extend(*largs)
-        self.change_monitor.change_info = \
-                ('crol_extend', (start_index, end_index))
-        self.change_monitor.stop()
-
-    def start_sort_op(self, op, *largs, **kwds):
-        self.change_monitor.start()
-
-        self.change_monitor.sort_largs = largs
-        self.change_monitor.sort_kwds = kwds
-        self.change_monitor.sort_op = op
-
-        # Trigger the "sort is starting" callback to the adapter, so it can do
-        # pre-sort writing of the current arrangement of indices and data.
-        self.change_monitor.crol_sort_started = True
-        self.change_monitor.stop()
-
-    def finish_sort_op(self):
-        self.change_monitor.start()
-
-        largs = self.change_monitor.sort_largs
-        kwds = self.change_monitor.sort_kwds
-        sort_op = self.change_monitor.sort_op
-
-        # Perform the sort.
-        if sort_op == 'crol_sort':
-            super(ChangeRecordingObservableList, self).sort(*largs, **kwds)
-        else:
-            super(ChangeRecordingObservableList, self).reverse(*largs)
-
-        # Finalize. Will go back to adapter for handling cached_views,
-        # selection, and prep for triggering data_changed on ListView.
-        self.change_monitor.change_info = (sort_op, (0, len(self) - 1))
-        self.change_monitor.stop()
-
-    def sort(self, *largs, **kwds):
-        self.start_sort_op('crol_sort', *largs, **kwds)
-
-    def reverse(self, *largs):
-        self.start_sort_op('crol_reverse', *largs)
 
 
 class ListAdapter(Adapter, EventDispatcher):
     '''A :class:`~kivy.adapters.listadapter.ListAdapter` is an adapter around a
-    python list of items. It is an alternative to the dict
-    capabilities of :class:`~kivy.adapters.dictadapter.DictAdapter`.
+    python list of items. It is an alternative to the dict capabilities of
+    :class:`~kivy.adapters.dictadapter.DictAdapter`.
 
     :class:`~kivy.adapters.dictadapter.ListAdapter` and
     :class:`~kivy.adapters.listadapter.DictAdapter` use special
     :class:`~kivy.properties.ListProperty` and
     :class:`~kivy.properties.DictProperty` variants,
-    :class:`~kivy.adapters.listadapter.ChangeRecordingObservableList` and
-    :class:`~kivy.adapters.dictadapter.ChangeRecordingObservableDict`, which
-    record change_info for use in the adapter system.
+    :class:`~kivy.adapters.list_ops.RecordingObservableList` and
+    :class:`~kivy.adapters.dict_ops.RecordingObservableDict`, which
+    record op_info for use in the adapter system.
 
     This system endeavors to allow normal Python programming of the contained
     list or dict objects. For lists, this means normal operations (append,
@@ -290,14 +76,14 @@ class ListAdapter(Adapter, EventDispatcher):
     setdefault, clear, etc.).
 
     :class:`~kivy.adapters.listadapter.ListAdapter` has data, a
-    :class:`~kivy.adapters.listadapter.ChangeRecordingObservableList`. You can
+    :class:`~kivy.adapters.list_ops.RecordingObservableList`. You can
     change the data list as you wish and the system will react accordingly.
 
     It may help you to understand how the system works, combining an adapter
     such as this one with a collection-style widget such as
     :class:`~kivy.uix.widgets.ListView`. When something happens in your program
     to change the list (here we are talking about the property called data),
-    the change_info stored is a Python tuple containing the name of the data
+    the op_info stored is a Python tuple containing the name of the data
     operation that occurred, along with a contained tuple with (start_index,
     end_index).  The system cannot know the details about operations
     beforehand, so it must react after-the-fact for which items were affected
@@ -311,10 +97,10 @@ class ListAdapter(Adapter, EventDispatcher):
     item view widget to its container and scrolls the list, and so on.
     '''
 
-    data = ListProperty([], cls=ChangeRecordingObservableList)
+    data = ListProperty([], cls=RecordingObservableList)
     '''A Python list that uses :class:`~kivy.properties.ObservableList` for
-    storage, and uses :class:`ChangeRecordingObservableList` as a
-    "change-aware" wrapper that records change_info for list ops.
+    storage, and uses :class:`~kivy.adapters.list_ops.RecordingObservableList`
+    as a "change-aware" wrapper that records op_info for list ops.
 
     The data list property contains the normal items allowed in Python, but
     they need to be strings if no args_converter function is provided. If there
@@ -327,16 +113,16 @@ class ListAdapter(Adapter, EventDispatcher):
 
     list_op_handler = ObjectProperty(None)
     '''An instance of :class:`ListOpHandler`, containing methods that perform
-    steps needed after the data (a :class:`ChangeRecordingObservableList`)
-    has changed. The methods are responsible for updating cached_views and
-    selection.
+    steps needed after the data (a
+    :class:`~kivy.adapters/list_ops.RecordingObservableList`) has changed. The
+    methods are responsible for updating cached_views and selection.
 
     :data:`list_op_handler` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to None. It is instantiated and set on init.
     '''
 
-    change_info = ObjectProperty(None, allownone=True)
-    '''This is a copy of our data's change_monitor.change_info. We make a copy
+    op_info = ObjectProperty(None, allownone=True)
+    '''This is a copy of our data's recorder.op_info. We make a copy
     before dispatching the on_data_change event, so that observers can more
     conveniently access it.
     '''
@@ -354,31 +140,31 @@ class ListAdapter(Adapter, EventDispatcher):
                                              source_list=self.data,
                                              duplicates_allowed=True)
 
-        self.data.change_monitor.bind(
-                on_crol_change_info=self.list_op_handler.data_changed,
-                on_crol_sort_started=self.list_op_handler.sort_started)
+        self.data.recorder.bind(
+                op_info=self.list_op_handler.data_changed,
+                sort_started=self.list_op_handler.sort_started)
 
         self.initialize_selection()
 
     def data_changed(self, *args):
         '''This callback happens as a result of the direct data binding set up
         in __init__(). It is needed for the direct set of data, as happens in
-        ...data = [some new data list], which is not picked up by the CROL data
-        change system. We check by looking for a valid change_monitor that is
-        created when CROL has fired. If not present, we know this call is from
-        a direct data set.
+        ...data = [some new data list], which is not picked up by the ROL data
+        change system. We check by looking for a valid recorder that is created
+        when a ROL event has fired. If not present, we know this call is from a
+        direct data set.
         '''
-        if (hasattr(self.data, 'change_monitor')
-               and not self.data.change_monitor.op_started):
+        if (hasattr(self.data, 'recorder')
+               and not self.data.recorder.op_started):
             self.cached_views.clear()
 
             self.list_op_handler.source_list = self.data
 
-            self.data.change_monitor.bind(
-                on_crol_change_info=self.list_op_handler.data_changed,
-                on_crol_sort_started=self.list_op_handler.sort_started)
+            self.data.recorder.bind(
+                on_op_info=self.list_op_handler.data_changed,
+                on_sort_started=self.list_op_handler.sort_started)
 
-            self.change_info = ('crol_reset', (0, 0))
+            self.op_info = ('ROL_reset', (0, 0))
             self.dispatch('on_data_change')
 
             self.initialize_selection()
