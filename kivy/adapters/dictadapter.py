@@ -28,13 +28,23 @@ from kivy.properties import ObjectProperty
 from kivy.properties import ObservableDict
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.listadapter import ChangeRecordingObservableList
-from kivy.adapters.list_op_handler import ListOpHandler
+from kivy.adapters.dict_ops import DictOpHandler
+from kivy.adapters.list_ops import ListOpHandler
 
 
 class DictChangeMonitor(EventDispatcher):
-    '''The ChangeRecordingObservableList/Dict instances need to store change
-    info without triggering a data_changed() callback themselves. Use this
-    intermediary to hold change info for CROL and CROD observers.
+    ''':class:`~kivy.adapters.dictadapter.DictChangeMonitor` is an
+    intermediary used to hold change info about a
+    :class:`ChangeRecordingObservableDict` instance in a dict adapter. The dict
+    adapter observes for changes, and retrieves the information stored in the
+    change_info property.
+
+    :class:`~kivy.adapters.dictadapter.DictChangeMonitor` is stored as an item
+    instance in the CROD dict. This requires special handling internally, so
+    that it is not treated as a real key/value pair -- it does not show up in a
+    listing, it does not count in the length, as a key, and so on.
+
+    It should be hidden to the user.
     '''
 
     change_info = ObjectProperty(None, allownone=True)
@@ -66,8 +76,8 @@ class ChangeRecordingObservableDict(ObservableDict):
         keys = super(ChangeRecordingObservableDict, self).keys(*largs)
         return list(set(keys) - set(['change_monitor', ]))
 
-    # As for __len__() and keys(), omit our change_monitor instance in other
-    # iterating methods. Use our own self.keys() in these:
+    # As for __len__() and keys() above, omit our change_monitor instance in
+    # other iterating methods. Use our own self.keys() in these:
 
     def __iter__(self, *largs):
         return iter(self.keys())
@@ -178,9 +188,10 @@ class ChangeRecordingObservableDict(ObservableDict):
 
         # NOTE: We have no set to self.change_monitor.change_info for
         # crod_popitem, because the following del self[key] will trigger a
-        # crod_delitem, which should suffice for ListView to react as it would
-        # for crod_popitem. If we set self.change_monitor.change_info with
-        # crod_popitem here, we get a double-callback.
+        # crod_delitem, which should suffice for the owning collection view
+        # (e.g., ListView) to react as it would for crod_popitem. If we set
+        # self.change_monitor.change_info with crod_popitem here, we get a
+        # double-callback.
         del self[key]
         return key, value
 
@@ -213,33 +224,83 @@ class ChangeRecordingObservableDict(ObservableDict):
 
 class DictAdapter(Adapter, EventDispatcher):
     '''A :class:`~kivy.adapters.dictadapter.DictAdapter` is an adapter around a
-    python dictionary of records. It extends the list-like capabilities of
-    the :class:`~kivy.adapters.listadapter.ListAdapter`.
+    python dictionary of records. It is an alternative to the list
+    capabilities of :class:`~kivy.adapters.listadapter.ListAdapter`.
+
+    :class:`~kivy.adapters.dictadapter.ListAdapter` and
+    :class:`~kivy.adapters.listadapter.DictAdapter` use special
+    :class:`~kivy.properties.ListProperty` and
+    :class:`~kivy.properties.DictProperty` variants,
+    :class:`~kivy.adapters.listadapter.ChangeRecordingObservableList` and
+    :class:`~kivy.adapters.dictadapter.ChangeRecordingObservableDict`, which
+    record change_info for use in the adapter system.
+
+    This system endeavors to allow normal Python programming of the contained
+    list or dict objects. For lists, this means normal operations (append,
+    insert, pop, sort, etc.) and the ones for dicts (setitem, pop, popitem,
+    setdefault, clear, etc.).
+
+    :class:`~kivy.adapters.dictadapter.DictAdapter` has sorted_keys, a
+    :class:`~kivy.adapters.listadapter.ChangeRecordingObservableList`, and data,
+    :class:`~kivy.adapters.dictadapter.ChangeRecordingObservableDict`. You can
+    change these as you wish and the system will react accordingly.
+
+    It may help you to understand how the system works, combining an adapter
+    such as this one with a collection-style widget such as
+    :class:`~kivy.uix.widgets.ListView`. When something happens in your program
+    to change the list or dict in the aforementioned special properties (here
+    we are talking about sorted_keys and data), the change_info stored is a
+    Python tuple containing the name of the data operation that occurred, along
+    with a contained tuple with (start_index, end_index) for lists or (keys,)
+    for dicts. The system cannot know the details about operations beforehand,
+    so it must react after-the-fact for which items were affected and how. The
+    adapters have callbacks that handle specific operations, and make needed
+    changes to their internal cached_views, selection, and related properties,
+    in preparation for sending, in turn, a data-changed event to the
+    collection-style widget that uses the adapter. For example,
+    :class:`~kivy.uix.widgets.ListView` observes its adapter for data-changed
+    events and updates the user interface. When an item is deleted, it removes
+    the item view widget from its container, or for an addition, it adds the
+    item view widget to its container and scrolls the list, and so on.
     '''
 
     # TODO: Adapt to Python's OrderedDict?
 
     sorted_keys = ListProperty([], cls=ChangeRecordingObservableList)
-    '''The sorted_keys list property contains a list of hashable objects (can
-    be strings) that will be used directly if no args_converter function is
-    provided. If there is an args_converter, the record received from a
-    lookup of the data, using keys from sorted_keys, will be passed
-    to it for instantiation of list item view class instances.
+    '''A Python list that uses :class:`~kivy.properties.ObservableList` for
+    storage, and uses :class:`ChangeRecordingObservableList` as a
+    "change-aware" wrapper that records change_info for list ops.
+
+    The sorted_keys list property contains hashable objects that need to be
+    strings if no args_converter function is provided. If there is an
+    args_converter, the record received from a lookup of the data, using keys
+    from sorted_keys, will be passed to it for instantiation of item view class
+    instances.
 
     :data:`sorted_keys` is a :class:`~kivy.properties.ListProperty` and
     defaults to [].
     '''
 
     data = DictProperty({}, cls=ChangeRecordingObservableDict)
-    '''A dict that indexes records by keys that are equivalent to the keys in
-    sorted_keys, or they are a superset of the keys in sorted_keys.
+    '''A Python dict that uses :class:`~kivy.properties.ObservableDict` for
+    storage, and uses :class:`ChangeRecordingObservableDict` as a
+    "change-aware" wrapper that records change_info for dict ops.
 
-    TODO: Is that last statement about "superset" correct?
-
-    The values can be strings, class instances, dicts, etc.
+    The dict may contain more data items than are present in sorted_keys --
+    sorted_keys can be a subset of data.keys().
 
     :data:`data` is a :class:`~kivy.properties.DictProperty` and defaults
     to None.
+    '''
+
+    dict_op_handler = ObjectProperty(None)
+    '''An instance of :class:`DictOpHandler`, containing methods that perform
+    steps needed after the data (a :class:`ChangeRecordingObservableDict`)
+    has changed. The methods are responsible for updating cached_views and
+    selection.
+
+    :data:`dict_op_handler` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to None. It is instantiated and set on init.
     '''
 
     __events__ = ('on_data_change', )
@@ -269,9 +330,11 @@ class DictAdapter(Adapter, EventDispatcher):
                 on_crol_change_info=self.list_op_handler.data_changed,
                 on_crol_sort_started=self.list_op_handler.sort_started)
 
-        # We handle data (ChangeRecordingObservableDict) changes here.
+        # Delegate handling for data changes to a DictOpHandler.
+        self.dict_op_handler = DictOpHandler(adapter=self,
+                                             source_dict=self.data)
         self.data.change_monitor.bind(
-                change_info=self.crod_data_changed)
+                change_info=self.dict_op_handler.data_changed)
 
     def sorted_keys_checked(self, sorted_keys, data_keys):
 
@@ -282,7 +345,7 @@ class DictAdapter(Adapter, EventDispatcher):
         # Maintain sort order of incoming sorted_keys.
         return [k for k in sorted_keys if k in sorted_keys_checked]
 
-    # TODO: Document the reason for on_data_change and on_sorted_keys_change,
+    # NOTE: The reason for on_data_change and on_sorted_keys_change,
     #       instead of on_data and on_sorted_keys: These are peculiar to the
     #       adapters and their API (using and referring to change_info). This
     #       leaves on_data and on_sorted_keys still available for use in the
@@ -328,85 +391,8 @@ class DictAdapter(Adapter, EventDispatcher):
 
             self.initialize_selection()
 
-    def crod_data_changed(self, *args):
-
-        change_info = args[0].change_info
-
-        # TODO: This is to solve a timing issue when running tests. Remove when
-        #       no longer needed.
-        if not change_info:
-            #Clock.schedule_once(lambda dt: self.crod_data_changed(*args))
-            return
-
-        # Make a copy for more convenience access by observers.
-        self.change_info = change_info
-
-        data_op, keys = change_info
-
-        # For add ops, crod_setitem_add, crod_setdefault, and crod_update, we
-        # only need to append or extend sorted_keys, whose change will trigger
-        # a data changed callback.
-        if data_op in ['crod_setitem_add', 'crod_setdefault', ]:
-            self.sorted_keys.append(keys[0])
-        if data_op == 'crod_update':
-            self.sorted_keys.extend(keys)
-
-        Logger.info('DictAdapter: data_changed callback ' + str(change_info))
-
-        if data_op in ['crod_setitem_set', ]:
-
-            # Force a rebuild of the view for which data item has changed.
-            # If the item was selected before, maintain the seletion.
-
-            # We do not alter sorted_keys -- the key is the same, only the
-            # value has changed. So, we must dispatch here.
-
-            index = self.sorted_keys.index(keys[0])
-
-            is_selected = False
-            if hasattr(self.cached_views[index], 'is_selected'):
-                is_selected = self.cached_views[index].is_selected
-
-            del self.cached_views[index]
-
-            item_view = self.get_view(index)
-            if is_selected:
-                self.handle_selection(item_view)
-
-            # Set start_index, end_index to the index.
-            self.additional_change_info = (index, index)
-
-            # Dispatch directly, because we did not change sorted_keys.
-            self.dispatch('on_data_change')
-
-        elif data_op in ['crod_setitem_del',
-                         'crod_delitem',
-                         'crod_pop',
-                         'crod_popitem']:
-
-            indices = [self.sorted_keys.index(k) for k in keys]
-
-            start_index = min(indices)
-            end_index = max(indices)
-
-            self.additional_change_info = (start_index, end_index)
-
-            # Trigger the data change callback.
-            del self.sorted_keys[start_index:end_index + 1]
-
-        elif data_op == 'crod_clear':
-
-            # Set start_index and end_index to full range (that was cleared).
-            self.additional_change_info = (0, len(self.data) - 1)
-
-            self.cached_views.clear()
-            self.selection = []
-
-            # Trigger the data reset callback.
-            self.sorted_keys = []
-
-    # NOTE: This is not len(self.data).
-    # TODO: Recheck this in light of new approach with crol, crod.
+    # NOTE: This is not len(self.data). (The data dict may contain more items
+    #       than sorted_keys -- sorted_keys can be a subset.).
     def get_count(self):
         return len(self.sorted_keys)
 
@@ -418,8 +404,8 @@ class DictAdapter(Adapter, EventDispatcher):
             return None
         return self.data[self.sorted_keys[index]]
 
-    # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,
-    #        scroll_to_sel_middle.
+    # TODO: Also make methods for scroll_to_sel_start, scroll_to_sel_end,
+    #       scroll_to_sel_middle.
 
     def trim_left_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are less than the
