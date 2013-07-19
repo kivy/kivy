@@ -1,49 +1,267 @@
 from kivy.clock import Clock
 from kivy.logger import Logger
+from kivy.event import EventDispatcher
+from kivy.properties import BooleanProperty
+from kivy.properties import DictProperty
+from kivy.properties import ObjectProperty
+from kivy.properties import ObservableList
+from kivy.properties import StringProperty
+
+
+class ListOpRecorder(EventDispatcher):
+    ''':class:`~kivy.adapters.listadapter.ListOpRecorder` is an
+    intermediary used to hold change info about a
+    :class:`RecordingObservableList` instance in a list adapter. The list
+    adapter observes for changes, and retrieves the information stored in the
+    op_info property.
+
+    :class:`~kivy.adapters.listadapter.ListOpRecorder` is stored as an item
+    instance in the ROL list. This requires special handling internally, so
+    that it is not treated as a real list item -- it does not show up in a
+    listing, it does not count in the length, and so on.
+
+    It should be hidden to the user.
+    '''
+
+    op_started = BooleanProperty(False)
+    op_info = ObjectProperty(None, allownone=True)
+    sort_started = BooleanProperty(False)
+    sort_largs = ObjectProperty(None)
+    sort_kwds = ObjectProperty(None)
+    sort_op = StringProperty('')
+
+    presort_indices_and_items = DictProperty({})
+    '''This temporary association has keys as the indices of the adapter's
+    cached_views and the adapter's data items, for use in post-sort widget
+    reordering.  It is set by the adapter when needed.  It is cleared by the
+    adapter at the end of its sort op callback.
+    '''
+
+    __events__ = ('on_op_info', 'on_sort_started', )
+
+    def __init__(self, *largs):
+        super(ListOpRecorder, self).__init__(*largs)
+
+        self.bind(op_info=self.dispatch_change,
+                  sort_started=self.dispatch_sort_started)
+
+    def dispatch_change(self, *args):
+        self.dispatch('on_op_info')
+
+    def on_op_info(self, *args):
+        pass
+
+    def dispatch_sort_started(self, *args):
+        if self.sort_started:
+            self.dispatch('on_sort_started')
+
+    def on_sort_started(self, *args):
+        pass
+
+    def start(self):
+        self.op_started = True
+
+    def stop(self):
+        self.op_started = False
+
+
+class RecordingObservableList(ObservableList):
+    '''Adds range-observing and other intelligence to ObservableList, storing
+    op_info for use by an observer.
+    '''
+
+    def __init__(self, *largs):
+        super(RecordingObservableList, self).__init__(*largs)
+        self.recorder = ListOpRecorder()
+
+    # TODO: setitem and delitem are supposed to handle slices, instead of the
+    #       deprecated setslice() and delslice() methods.
+    def __setitem__(self, key, value):
+        self.recorder.start()
+        super(RecordingObservableList, self).__setitem__(key, value)
+        self.recorder.op_info = ('ROL_setitem', (key, key))
+        self.recorder.stop()
+
+    def __delitem__(self, key):
+        self.recorder.start()
+        super(RecordingObservableList, self).__delitem__(key)
+        self.recorder.op_info = ('ROL_delitem', (key, key))
+        self.recorder.stop()
+
+    def __setslice__(self, *largs):
+        self.recorder.start()
+        #
+        # Python docs:
+        #
+        #     operator.__setslice__(a, b, c, v)
+        #
+        #     Set the slice of a from index b to index c-1 to the sequence v.
+        #
+        #     Deprecated since version 2.6: This function is removed in Python
+        #     3.x. Use setitem() with a slice index.
+        #
+        start_index = largs[0]
+        end_index = largs[1] - 1
+        super(RecordingObservableList, self).__setslice__(*largs)
+        self.recorder.op_info = \
+                ('ROL_setslice', (start_index, end_index))
+        self.recorder.stop()
+
+    def __delslice__(self, *largs):
+        self.recorder.start()
+        # Delete the slice of a from index b to index c-1. del a[b:c],
+        # where the args here are b and c.
+        # Also deprecated.
+        start_index = largs[0]
+        end_index = largs[1] - 1
+        super(RecordingObservableList, self).__delslice__(*largs)
+        self.recorder.op_info = \
+                ('ROL_delslice', (start_index, end_index))
+        self.recorder.stop()
+
+    def __iadd__(self, *largs):
+        self.recorder.start()
+        start_index = len(self)
+        end_index = start_index + len(largs) - 1
+        super(RecordingObservableList, self).__iadd__(*largs)
+        self.recorder.op_info = \
+                ('ROL_iadd', (start_index, end_index))
+        self.recorder.stop()
+
+    def __imul__(self, *largs):
+        self.recorder.start()
+        num = largs[0]
+        start_index = len(self)
+        end_index = start_index + (len(self) * num)
+        super(RecordingObservableList, self).__imul__(*largs)
+        self.recorder.op_info = \
+                ('ROL_imul', (start_index, end_index))
+        self.recorder.stop()
+
+    def append(self, *largs):
+        self.recorder.start()
+        index = len(self)
+        super(RecordingObservableList, self).append(*largs)
+        self.recorder.op_info = \
+                ('ROL_append', (index, index))
+        self.recorder.stop()
+
+    def remove(self, *largs):
+        self.recorder.start()
+        index = self.index(largs[0])
+        super(RecordingObservableList, self).remove(*largs)
+        self.recorder.op_info = \
+                ('ROL_remove', (index, index))
+        self.recorder.stop()
+
+    def insert(self, *largs):
+        self.recorder.start()
+        index = largs[0]
+        super(RecordingObservableList, self).insert(*largs)
+        self.recorder.op_info = \
+                ('ROL_insert', (index, index))
+        self.recorder.stop()
+
+    def pop(self, *largs):
+        self.recorder.start()
+        if largs:
+            index = largs[0]
+        else:
+            index = len(self) - 1
+        result = super(RecordingObservableList, self).pop(*largs)
+        self.recorder.op_info = \
+                ('ROL_pop', (index, index))
+        return result
+        self.recorder.stop()
+
+    def extend(self, *largs):
+        self.recorder.start()
+        start_index = len(self)
+        end_index = start_index + len(largs[0]) - 1
+        super(RecordingObservableList, self).extend(*largs)
+        self.recorder.op_info = \
+                ('ROL_extend', (start_index, end_index))
+        self.recorder.stop()
+
+    def start_sort_op(self, op, *largs, **kwds):
+        self.recorder.start()
+
+        self.recorder.sort_largs = largs
+        self.recorder.sort_kwds = kwds
+        self.recorder.sort_op = op
+
+        # Trigger the "sort is starting" callback to the adapter, so it can do
+        # pre-sort writing of the current arrangement of indices and data.
+        self.recorder.sort_started = True
+        self.recorder.stop()
+
+    def finish_sort_op(self):
+        self.recorder.start()
+
+        largs = self.recorder.sort_largs
+        kwds = self.recorder.sort_kwds
+        sort_op = self.recorder.sort_op
+
+        # Perform the sort.
+        if sort_op == 'ROL_sort':
+            super(RecordingObservableList, self).sort(*largs, **kwds)
+        else:
+            super(RecordingObservableList, self).reverse(*largs)
+
+        # Finalize. Will go back to adapter for handling cached_views,
+        # selection, and prep for triggering data_changed on ListView.
+        self.recorder.op_info = (sort_op, (0, len(self) - 1))
+        self.recorder.stop()
+
+    def sort(self, *largs, **kwds):
+        self.start_sort_op('ROL_sort', *largs, **kwds)
+
+    def reverse(self, *largs):
+        self.start_sort_op('ROL_reverse', *largs)
 
 
 class ListOpHandler(object):
     '''A :class:`ListOpHandler` reacts to the following operations that are
-    possible for a ChangeRecordingObservableList (crol) instance in an adapter.
+    possible for a RecordingObservableList (ROL) instance in an adapter.
 
     The following methods react to the list operations possible:
 
         handle_add_first_item_op()
 
-            crol_append
-            crol_extend
-            crol_insert
+            ROL_append
+            ROL_extend
+            ROL_insert
 
         handle_add_op()
 
-            crol_append
-            crol_extend
-            crol_iadd
-            crol_imul
+            ROL_append
+            ROL_extend
+            ROL_iadd
+            ROL_imul
 
         handle_insert_op()
 
-            crol_insert
+            ROL_insert
 
         handle_setitem_op()
 
-            crol_setitem
+            ROL_setitem
 
         handle_setslice_op()
 
-            crol_setslice
+            ROL_setslice
 
         handle_delete_op()
 
-            crol_delitem
-            crol_delslice
-            crol_remove
-            crol_pop
+            ROL_delitem
+            ROL_delslice
+            ROL_remove
+            ROL_pop
 
         handle_sort_op()
 
-            crol_sort
-            crol_reverse
+            ROL_sort
+            ROL_reverse
 
         These methods adjust cached_views and selection for the adapter.
     '''
@@ -52,15 +270,15 @@ class ListOpHandler(object):
     '''A :class:`ListAdapter` or :class:`DictAdapter` instance.'''
 
 #    source_list = ObjectProperty(None)
-    '''A ChangeRecordingObservableList instance which writes op data to a
+    '''A RecordingObservableList instance which writes op data to a
     contained ChangeMonitor instance. The ChangeMonitor instance is consulted
     for additional information for some ops.
     '''
 
 #    duplicates_allowed = BooleanProperty(True)
-    '''For ListAdapter, and its data property, a ChangeRecordingObservableList,
+    '''For ListAdapter, and its data property, a RecordingObservableList,
     the data can have duplicates, even strings. For DictAdapter, and its
-    sorted_keys property, also a CROL, duplicates are not allowed, because
+    sorted_keys property, also a ROL, duplicates are not allowed, because
     sorted_keys is a subset or is equal to data.keys(), the keys of the dict.
     '''
 
@@ -74,66 +292,66 @@ class ListOpHandler(object):
 
     def data_changed(self, *args):
 
-        change_info = args[0].change_info
+        op_info = args[0].op_info
 
         # TODO: This is to solve a timing issue when running tests. Remove when
         #       no longer needed.
-        if not change_info:
+        if not op_info:
             Clock.schedule_once(lambda dt: self.data_changed(*args))
             return
 
         # Make a copy in the adapter for more convenient access by observers.
-        self.adapter.change_info = change_info
+        self.adapter.op_info = op_info
 
         Logger.info(('ListAdapter: '
-                     'crol data_changed callback ') + str(change_info))
+                     'ROL data_changed callback ') + str(op_info))
 
-        data_op, (start_index, end_index) = change_info
+        data_op, (start_index, end_index) = op_info
 
         if (len(self.source_list) == 1
-                and data_op in ['crol_append',
-                                'crol_insert',
-                                'crol_extend']):
+                and data_op in ['ROL_append',
+                                'ROL_insert',
+                                'ROL_extend']):
 
             self.handle_add_first_item_op()
 
         else:
 
-            if data_op in ['crol_iadd',
-                           'crol_imul',
-                           'crol_append',
-                           'crol_extend']:
+            if data_op in ['ROL_iadd',
+                           'ROL_imul',
+                           'ROL_append',
+                           'ROL_extend']:
 
                 self.handle_add_op()
 
-            elif data_op in ['crol_setitem']:
+            elif data_op in ['ROL_setitem']:
 
                 self.handle_setitem_op(start_index)
 
-            elif data_op in ['crol_setslice']:
+            elif data_op in ['ROL_setslice']:
 
                 self.handle_setslice_op(start_index, end_index)
 
-            elif data_op in ['crol_insert']:
+            elif data_op in ['ROL_insert']:
 
                 self.handle_insert_op(start_index)
 
-            elif data_op in ['crol_delitem',
-                             'crol_delslice',
-                             'crol_remove',
-                             'crol_pop']:
+            elif data_op in ['ROL_delitem',
+                             'ROL_delslice',
+                             'ROL_remove',
+                             'ROL_pop']:
 
                 self.handle_delete_op(start_index, end_index)
 
-            elif data_op in ['crol_sort',
-                             'crol_reverse']:
+            elif data_op in ['ROL_sort',
+                             'ROL_reverse']:
 
                 self.handle_sort_op()
 
             else:
 
                 Logger.info(('ListOpHandler: '
-                             'crol data_changed callback, uncovered data_op ')
+                             'ROL data_changed callback, uncovered data_op ')
                                  + str(data_op))
 
         self.adapter.dispatch('on_data_change')
@@ -276,7 +494,7 @@ class ListOpHandler(object):
 
         # Save a pre-sort order, and position detail, if there are duplicates
         # of strings.
-        self.source_list.change_monitor.presort_indices_and_items = {}
+        presort_indices_and_items = {}
 
         if self.duplicates_allowed:
             for i in self.adapter.cached_views:
@@ -289,16 +507,19 @@ class ListOpHandler(object):
                 else:
                     pos_in_instances = 0
 
-                self.source_list.change_monitor.presort_indices_and_items[i] = \
+                presort_indices_and_items[i] = \
                             {'data_item': data_item,
                              'pos_in_instances': pos_in_instances}
         else:
             for i in self.adapter.cached_views:
                 data_item = self.source_list[i]
                 pos_in_instances = 0
-                self.source_list.change_monitor.presort_indices_and_items[i] = \
+                presort_indices_and_items[i] = \
                             {'data_item': data_item,
                              'pos_in_instances': pos_in_instances}
+
+        self.source_list.recorder.presort_indices_and_items = \
+                presort_indices_and_items
 
         self.source_list.finish_sort_op()
 
@@ -310,7 +531,7 @@ class ListOpHandler(object):
         '''
 
         presort_indices_and_items = \
-                self.source_list.change_monitor.presort_indices_and_items
+                self.source_list.recorder.presort_indices_and_items
 
         # We have an association of presort indices with data items.
         # Where is each data item after sort? Change the index of the
@@ -320,14 +541,14 @@ class ListOpHandler(object):
         if self.duplicates_allowed:
             for i in self.adapter.cached_views:
                 item_view = self.adapter.cached_views[i]
-                old_index = item_view.index
-                data_item = presort_indices_and_items[old_index]['data_item']
+                old_i = item_view.index
+                data_item = presort_indices_and_items[old_i]['data_item']
                 if isinstance(data_item, str):
                     duplicates = sorted(
                         [j for j, s in enumerate(self.source_list)
                                 if s == data_item])
                     pos_in_instances = \
-                        presort_indices_and_items[old_index]['pos_in_instances']
+                        presort_indices_and_items[old_i]['pos_in_instances']
                     postsort_index = duplicates[pos_in_instances]
                 else:
                     postsort_index = self.source_list.index(data_item)
@@ -336,8 +557,8 @@ class ListOpHandler(object):
         else:
             for i in self.adapter.cached_views:
                 item_view = self.adapter.cached_views[i]
-                old_index = item_view.index
-                data_item = presort_indices_and_items[old_index]['data_item']
+                old_i = item_view.index
+                data_item = presort_indices_and_items[old_i]['data_item']
                 postsort_index = self.source_list.index(data_item)
                 item_view.index = postsort_index
                 new_cached_views[postsort_index] = item_view
@@ -345,5 +566,5 @@ class ListOpHandler(object):
         self.adapter.cached_views = new_cached_views
 
         # Reset flags and temporary storage.
-        self.source_list.change_monitor.crol_sort_started = False
-        self.source_list.change_monitor.presort_indices_and_items.clear()
+        self.source_list.recorder.sort_started = False
+        self.source_list.recorder.presort_indices_and_items.clear()

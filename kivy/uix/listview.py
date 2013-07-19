@@ -1130,86 +1130,86 @@ class ListView(AbstractView, EventDispatcher):
 
         # list and dict change ops:
         #
-        #      crol == ChangeRecordingObservableList
+        #      rol == ChangeRecordingObservableList
         #
         #            set ops:
         #
-        #                crol_setitem  - single item set
-        #                crol_setslice - range of items
+        #                ROL_setitem  - single item set
+        #                ROL_setslice - range of items
         #
         #            add ops:
         #
-        #                crol_iadd   - adds items to end
-        #                crol_imul   - adds items to end
-        #                crol_append - adds items to end
-        #                crol_insert - insert
-        #                crol_extend - adds items to end
+        #                ROL_iadd   - adds items to end
+        #                ROL_imul   - adds items to end
+        #                ROL_append - adds items to end
+        #                ROL_insert - insert
+        #                ROL_extend - adds items to end
         #
         #            delete ops:
         #
-        #                crol_delitem  - single item
-        #                crol_delslice - multiple items
-        #                crol_remove   - single item
-        #                crol_pop      - single item
+        #                ROL_delitem  - single item
+        #                ROL_delslice - multiple items
+        #                ROL_remove   - single item
+        #                ROL_pop      - single item
         #
         #            sort ops:
         #
-        #                crol_sort
-        #                crol_reverse
+        #                ROL_sort
+        #                ROL_reverse
         #
-        #       crod == ChangeRecordingObservableDict
+        #       rod == ChangeRecordingObservableDict
         #
         #            set op:
         #
-        #                crod_setattr     - single item set
+        #                ROD_setattr     - single item set
         #                    (We do not receive.)
-        #                crod_setitem_set - single item set
-        #                    (We receive the crod op directly.)
+        #                ROD_setitem_set - single item set
+        #                    (We receive the ROD op directly.)
         #
         #            add ops:
         #
-        #                crod_setitem_add - single item
-        #                crod_setdefault  - single item
-        #                crod_update      - single or multiple items
+        #                ROD_setitem_add - single item
+        #                ROD_setdefault  - single item
+        #                ROD_update      - single or multiple items
         #
-        #                    (We receive crol ops, from changes to
+        #                    (We receive ROL ops, from changes to
         #                     sorted_keys fired by these):
         #
         #            delete ops:
         #
-        #                crod_setitem_del - single item
-        #                crod_delitem     - single item
-        #                crod_pop         - single item
-        #                crod_popitem     - single item
-        #                  [NOTE: crod_popitem is performed as crol_delitem]
-        #                crod_clear       - all items deleted
+        #                ROD_setitem_del - single item
+        #                ROD_delitem     - single item
+        #                ROD_pop         - single item
+        #                ROD_popitem     - single item
+        #                  [NOTE: ROD_popitem is performed as ROL_delitem]
+        #                ROD_clear       - all items deleted
         #
-        #                    (We receive crol ops, from changes to
+        #                    (We receive ROL ops, from changes to
         #                     sorted_keys fired by these):
 
-        # Callbacks could come here from either crol or crod, and there could
+        # Callbacks could come here from either ROL or ROD, and there could
         # be differences in handling.
 
         # TODO: This is to solve a timing issue when running tests. Remove when
         #       no longer needed.
-#        if self.adapter.data.change_monitor.change_info == None:
+#        if self.adapter.data.recorder.op_info == None:
 #            Clock.schedule_once(lambda dt: self.data_changed(*args))
 #            return
 
-        change_info = self.adapter.change_info
+        op_info = self.adapter.op_info
 
-        if change_info[0].startswith('crol'):
-            data_op, (start_index, end_index) = change_info
+        if op_info[0].startswith('ROL'):
+            data_op, (start_index, end_index) = op_info
         else:
-            data_op, keys = change_info
-            start_index, end_index = self.adapter.additional_change_info
+            data_op, keys = op_info
+            start_index, end_index = self.adapter.additional_op_info
 
-        Logger.info('ListView: change_info: ' + str(change_info))
+        Logger.info('ListView: op_info: ' + str(op_info))
 
         # Otherwise, we may have item_views as children of self.container
         # that should be removed.
 
-        if data_op in ['crol_setitem', 'crod_setitem_set', ]:
+        if data_op in ['ROL_setitem', 'ROD_setitem_set', ]:
 
             widget_index = -1
 
@@ -1226,7 +1226,7 @@ class ListView(AbstractView, EventDispatcher):
                 item_view = self.adapter.get_view(start_index)
                 self.container.add_widget(item_view, widget_index)
 
-        elif data_op in ['crol_setslice', ]:
+        elif data_op in ['ROL_setslice', ]:
 
             len_data = len(self.adapter.data)
 
@@ -1259,12 +1259,12 @@ class ListView(AbstractView, EventDispatcher):
                 item_view = self.adapter.get_view(slice_index)
                 self.container.add_widget(item_view, add_index)
 
-        elif data_op in ['crol_append',
-                         'crol_extend',
-                         'crod_setattr',    # TODO: not scroll_after_add()?
-                         'crod_setitem_add',
-                         'crod_setdefault',
-                         'crod_update']:
+        elif data_op in ['ROL_append',
+                         'ROL_extend',
+                         'ROD_setattr',    # TODO: not scroll_after_add()?
+                         'ROD_setitem_add',
+                         'ROD_setdefault',
+                         'ROD_update']:
 
             self.scroll_to_end()
 
@@ -1274,17 +1274,17 @@ class ListView(AbstractView, EventDispatcher):
             #self.populate()
             #self.dispatch('on_scroll_complete')
 
-        elif data_op in ['crol_delitem',
-                         'crol_delslice',
-                         'crol_remove',
-                         'crol_pop',
-                         'crod_delitem',
-                         'crod_setitem_del',
-                         'crod_clear',
-                         'crod_pop', ]:
+        elif data_op in ['ROL_delitem',
+                         'ROL_delslice',
+                         'ROL_remove',
+                         'ROL_pop',
+                         'ROD_delitem',
+                         'ROD_setitem_del',
+                         'ROD_clear',
+                         'ROD_pop', ]:
 
-            # NOTE: There is no crod_popitem here, because it is performed as
-            #       a crod_delitem.
+            # NOTE: There is no ROD_popitem here, because it is performed as
+            #       a ROD_delitem.
 
             deleted_indices = range(start_index, end_index + 1)
 
@@ -1297,14 +1297,14 @@ class ListView(AbstractView, EventDispatcher):
             self.populate()
             self.dispatch('on_scroll_complete')
 
-        elif data_op == 'crol_insert':
+        elif data_op == 'ROL_insert':
 
             #self.scroll_after_add()
             self.scrolling = True
             self.populate()
             self.dispatch('on_scroll_complete')
 
-        elif data_op in ['crol_sort', 'crol_reverse', 'crol_reset', ]:
+        elif data_op in ['ROL_sort', 'ROL_reverse', 'ROL_reset', ]:
 
             self.container.clear_widgets()
 
@@ -1317,24 +1317,24 @@ class ListView(AbstractView, EventDispatcher):
             Logger.info('ListView: unhandled data change op ' + str(data_op))
 
         # Data ops in adapter lists and dicts can be the same, one after
-        # another, e.g. ('crol_delslice', (0, 0)) could be done repeatedly. As
+        # another, e.g. ('ROL_delslice', (0, 0)) could be done repeatedly. As
         # these are identical, the change events stop firing.  Solve this by
-        # resetting the change_info storage item to None after each op. The op
-        # handlers will not do anything (they simply return) when change_info
+        # resetting the op_info storage item to None after each op. The op
+        # handlers will not do anything (they simply return) when op_info
         # is None, so this reset fires a blank.
         #
-        # We get list change (crol) events from ListAdapter.data and from
+        # We get list change (ROL) events from ListAdapter.data and from
         # DictAdapter.sorted_keys. Choose the correct one. Also, if the adapter
-        # is a DictAdapter, differentiate between list (crol) and dict (crod)
+        # is a DictAdapter, differentiate between list (ROL) and dict (ROD)
         # events, and the property involved.
         #
         # TODO: The system of this set, and the check at the top of this
         #       method, needs timing torture tests.
         #
         if isinstance(self.adapter, ListAdapter):
-            self.adapter.data.change_monitor.change_info = None
+            self.adapter.data.recorder.op_info = None
         else:
-            if data_op.startswith('crol'):
-                self.adapter.sorted_keys.change_monitor.change_info = None
+            if data_op.startswith('ROL'):
+                self.adapter.sorted_keys.recorder.op_info = None
             else:
-                self.adapter.data.change_monitor.change_info = None
+                self.adapter.data.recorder.op_info = None
