@@ -4,9 +4,9 @@ from kivy.logger import Logger
 
 class ListOpHandler(object):
     '''A :class:`ListOpHandler` reacts to the following operations that are
-    possible for the adapter data property (ChangeRecordingObservableList
-    (crol) instance). The following methods react to the list operations
-    possible:
+    possible for a ChangeRecordingObservableList (crol) instance in an adapter.
+
+    The following methods react to the list operations possible:
 
         handle_add_first_item_op()
 
