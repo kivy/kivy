@@ -2,12 +2,12 @@
 Spelling
 ========
 
-Provide abstracted access to a range of spellchecking backends.  Also provides
-word suggestions. The API is inspired by enchant, but other backends can be
+Provides abstracted access to a range of spellchecking backends as well as
+word suggestions. The API is inspired by enchant but other backends can be
 added that implement the same API.
 
-Spelling currently require `python-enchant` for all platform, except OSX, where
-a native implementation exist.
+Spelling currently requires `python-enchant` for all platforms except OSX, where
+a native implementation exists.
 
 ::
 
@@ -92,36 +92,36 @@ class SpellingBase(object):
 
     def list_languages(self):
         '''
-        Return a list of all languages supported by the registered languages.
-        E.g.: ['en', 'en_GB', 'en_US', 'de', ...]
+        Return a list of all supported languages.
+        E.g. ['en', 'en_GB', 'en_US', 'de', ...]
         '''
         raise NotImplementedError('list_languages() is not implemented '
                                   'by abstract spelling base class!')
 
     def check(self, word):
         '''
-        If `word` is a valid word in `self._language`, return True.
+        If `word` is a valid word in `self._language` (the currently active
+        language), returns True. If the word shouldn't be checked, returns
+        None (e.g. for ''). If it is not a valid word in `self._language`,
+        return False.
 
         :Parameters:
             `word` : str
-                The word to check. If the word is a valid word in the currently
-                active language, True is returned.
-                If the word shouldn't be checked, return None (e.g. for '').
-
+                The word to check.
         '''
         raise NotImplementedError('check() not implemented by abstract ' +
                                   'spelling base class!')
 
     def suggest(self, fragment):
         '''
-        For a given `fragment` (i.e., part of a word or a word by itself),
+        For a given `fragment` (i.e. part of a word or a word by itself),
         provide corrections (`fragment` may be misspelled) or completions
         as a list of strings.
 
         :Parameters:
             `fragment` : str
                 The word fragment to get suggestions/corrections for.
-                E.g.: 'foo' might become 'of', 'food' or 'foot'.
+                E.g. 'foo' might become 'of', 'food' or 'foot'.
 
         '''
         raise NotImplementedError('suggest() not implemented by abstract ' +
