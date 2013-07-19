@@ -292,20 +292,17 @@ Consider the code below:
 
     <MyWidget>:
         Button:
-            text:
-                "Hello world, watch this text wrap inside the button"
+            text: "Hello world, watch this text wrap inside the button"
             text_size: self.size
             font_size: '25sp'
             markup: True
         Button:
-            text:
-                "Even absolute is relative to itself"
+            text: "Even absolute is relative to itself"
             text_size: self.size
             font_size: '25sp'
             markup: True
         Button:
-            text:
-                "repeating the same thing over and over in a comp = fail"
+            text: "Repeating the same thing over and over in a comp = fail"
             text_size: self.size
             font_size: '25sp'
             markup: True
