@@ -2,8 +2,9 @@
 Graphics
 ========
 
-This package assemble all low level function to draw object. The whole graphics
-package is compatible OpenGL ES 2.0, and have a lot of rendering optimizations.
+This package assembles many low level functions used for drawing. The whole
+graphics package is compatible with OpenGL ES 2.0 and has many rendering
+optimizations.
 
 The basics
 ----------
@@ -13,8 +14,9 @@ For drawing on a screen, you will need :
     1. a :class:`~kivy.graphics.instructions.Canvas` object.
     2. :class:`~kivy.graphics.instructions.Instruction` objects.
 
-Each widget in Kivy already have by default their :class:`Canvas`. When you are
-creating a widget, you can create all the instructions needed for drawing. If
+Each :class:`~kivy.uix.widget.Widget`
+in Kivy already has a :class:`Canvas` by default. When you create
+a widget, you can create all the instructions needed for drawing. If
 `self` is your current widget, you can do::
 
     from kivy.graphics import *
@@ -26,7 +28,15 @@ creating a widget, you can create all the instructions needed for drawing. If
         Rectangle(pos=(10, 10), size=(500, 500))
 
 The instructions :class:`Color` and :class:`Rectangle` are automaticly added to
-the canvas object, and will be used when the window drawing will happen.
+the canvas object and will be used when the window is drawn.
+
+.. note::
+
+    Drawing instructions are rendered directly by the OpenGL layer,
+    which means they do not automatically redraw when your widget moves. In
+    order to achieve this, the instructions need either to be declared in the
+    :mod:`KvLang <kivy.lang>` or bound to pos and size changes. Please see
+    :ref:`adding_widget_background` for more detail.
 
 GL Reloading mechanism
 ----------------------

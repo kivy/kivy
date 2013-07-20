@@ -282,8 +282,10 @@ declaration in the first place. The syntax of the dynamic classes is similar to
 the Rules, but you need to specify what are the bases classes you want to
 subclasses.
 
-The syntax look like::
+The syntax look like:
 
+.. code-block:: kv
+     
     # Simple inheritance
     <NewWidget@Button>:
         ...
@@ -293,7 +295,9 @@ The syntax look like::
         ...
 
 The `@` character is used to seperate the name from the classes you want to
-subclass. The Python equivalent would have been::
+subclass. The Python equivalent would have been:
+
+.. code-block:: python
 
     # Simple inheritance
     class NewWidget(Button):
@@ -309,7 +313,9 @@ created as an :class:`~kivy.properties.ObjectProperty`.
 
 Let's illustrate the usage of theses dynamic classes with an implementation of a
 basic Image button. We could derivate our classes from the Button, we just need
-to add a property for the image filename::
+to add a property for the image filename:
+
+.. code-block:: kv
 
     <ImageButton@Button>:
         source: None
@@ -329,7 +335,9 @@ to add a property for the image filename::
                 source: 'world.png'
                 on_press: root.do_something_else()
 
-In Python you can create an instance of the dynamic class by::
+In Python you can create an instance of the dynamic class by:
+
+.. code-block:: python
 
     from kivy.factory import Factory
     button_inst = Factory.ImageButton()
@@ -352,7 +360,9 @@ Using a template in Kivy require 2 things :
     #. a context to pass for the context (will be ctx inside template)
     #. a kv definition of the template
 
-Syntax of a template::
+Syntax of a template:
+
+.. code-block:: kv
 
     # With only one base class
     [ClassName@BaseClass]:
@@ -366,7 +376,9 @@ For example, for a list, you'll need to create a entry with a image on
 the left, and a label on the right. You can create a template for making
 that definition more easy to use.
 So, we'll create a template that require 2 entry in the context: a image
-filename and a title::
+filename and a title:
+
+.. code-block:: kv
 
     [IconItem@BoxLayout]:
         Image:
@@ -374,9 +386,9 @@ filename and a title::
         Label:
             text: ctx.title
 
-.. highlight:: python
+Then in Python, you can create instanciate the template with:
 
-Then in Python, you can create instanciate the template with::
+.. code-block:: python
 
     from kivy.lang import Builder
 
@@ -396,11 +408,11 @@ Then in Python, you can create instanciate the template with::
 Template example
 ~~~~~~~~~~~~~~~~
 
-.. highlight:: kv
-
 Most of time, when you are creating screen into kv lang, you have lot of
 redefinition. In our example, we'll create a Toolbar, based on a BoxLayout, and
-put many Image that will react to on_touch_down::
+put many Image that will react to on_touch_down:
+
+.. code-block:: kv
 
     <MyToolbar>:
         BoxLayout:
@@ -428,7 +440,9 @@ put many Image that will react to on_touch_down::
 We can see that the size and size_hint attribute are exactly the same.
 More than that, the callback in on_touch_down and the image are changing.
 Theses can be the variable part of the template that we can put into a context.
-Let's try to create a template for the Image::
+Let's try to create a template for the Image:
+
+.. code-block:: kv
 
     [ToolbarButton@Image]:
 
@@ -440,7 +454,9 @@ Let's try to create a template for the Image::
         # Now, we are using the ctx for the variable part of the template
         on_touch_down: self.collide_point(*args[1].pos) and self.callback()
 
-The template can be used directly in the MyToolbar rule::
+The template can be used directly in the MyToolbar rule:
+
+.. code-block:: kv
 
     <MyToolbar>:
         BoxLayout:
@@ -462,8 +478,10 @@ Template limitations
 
 When you are creating a context:
 
-    #. you cannot use references other than "root"::
+    #. you cannot use references other than "root":
 
+    .. code-block:: kv
+    
         <MyRule>:
             Widget:
                 id: mywidget
@@ -471,8 +489,10 @@ When you are creating a context:
             Template:
                 ctxkey: mywidget.value # << fail, this reference mywidget id
 
-    #. all the dynamic part will be not understood::
+    #. all the dynamic part will be not understood:
 
+    .. code-block:: kv
+    
         <MyRule>:
             Template:
                 ctxkey: 'value 1' if root.prop1 else 'value2' # << even if
@@ -489,12 +509,16 @@ canvas instructions instead of automatically using the canvas instructions
 inherited from Label. We can achieve this by prepending a dash (-) before
 the class name in the .kv style definition.
 
-In myapp.py::
+In myapp.py:
+
+.. code-block:: python
 
     class MyWidget(Label):
         pass
 
-and in my.kv::
+and in my.kv:
+
+.. code-block:: kv
 
     <-MyWidget>:
         canvas:
@@ -510,7 +534,9 @@ Lang Directives
 ---------------
 
 You can use directive to control part of the lang files. Directive is done with
-a comment line starting with::
+a comment line starting with:
+
+.. code-block:: kv
 
     #:<directivename> <options>
 
@@ -519,11 +545,15 @@ import <package>
 
 .. versionadded:: 1.0.5
 
-Syntax::
+Syntax:
+
+.. code-block:: kv
 
     #:import <alias> <package>
 
-You can import a package by writing::
+You can import a package by writing:
+
+.. code-block:: kv
 
     #:import os os
 
@@ -531,7 +561,9 @@ You can import a package by writing::
         Button:
             text: os.getcwd()
 
-Or more complex::
+Or more complex:
+
+.. code-block:: kv
 
     #:import ut kivy.utils
 
@@ -542,7 +574,9 @@ Or more complex::
 
 .. versionadded:: 1.0.7
 
-You can directly import class from a module::
+You can directly import class from a module:
+
+.. code-block:: kv
 
     #: import Animation kivy.animation.Animation
     <Rule>:
@@ -553,11 +587,15 @@ set <key> <expr>
 
 .. versionadded:: 1.0.6
 
-Syntax::
+Syntax:
+
+.. code-block:: kv
 
     #:set <key> <expr>
 
-Set a key that will be available anywhere in the kv. For example::
+Set a key that will be available anywhere in the kv. For example:
+
+.. code-block:: kv
 
     #:set my_color (.4, .3, .4)
     #:set my_color_hl (.5, .4, .5)
