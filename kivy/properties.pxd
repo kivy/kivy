@@ -76,3 +76,9 @@ cdef class AliasProperty(Property):
     cdef list bind_objects
     cdef int use_cache
     cpdef trigger_change(self, EventDispatcher obj, value)
+
+cdef class VariableListProperty(Property):
+    cdef public int length
+    cdef _convert_numeric(self, EventDispatcher obj, x)
+    cdef float parse_str(self, EventDispatcher obj, value)
+    cdef float parse_list(self, EventDispatcher obj, value, str ext)
