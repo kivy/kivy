@@ -4,6 +4,8 @@ Adapter tests
 '''
 
 import unittest
+from random import sample
+from random import choice
 
 from kivy.uix.listview import SelectableView
 from kivy.uix.listview import ListItemButton
@@ -18,6 +20,7 @@ from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.dictadapter import DictAdapter
 
 from kivy.properties import BooleanProperty
+from kivy.properties import ListProperty
 from kivy.properties import StringProperty
 
 from kivy.factory import Factory
@@ -26,6 +29,9 @@ from kivy.compat import string_types
 
 from nose.tools import raises
 
+
+#########################
+#  Fruits Example Code
 
 # The following integers_dict and fruit categories / fruit data dictionaries
 # are from kivy/examples/widgets/lists/fixtures.py, and the classes are from
@@ -197,7 +203,8 @@ for fruit_record in fruit_data_list_of_dicts:
             dict({'name': fruit_record['name'],
                   'Serving Size': fruit_record['Serving Size'],
                   'is_selected': fruit_record['is_selected']},
-            **dict(list(zip(list(attributes_and_units.keys()), fruit_record['data']))))
+            **dict(list(zip(list(attributes_and_units.keys()),
+                            fruit_record['data']))))
 
 
 class CategoryItem(SelectableDataItem):
@@ -273,8 +280,50 @@ Builder.load_string('''
         text: ctx.text
 ''')
 
+##################################
+#  Phonetic Alphabet Example Code
 
-class AdaptersTestCase(unittest.TestCase):
+
+class KeyedListItemButton(ListItemButton):
+
+    key = StringProperty('')
+
+    def __init__(self, **kwargs):
+        super(KeyedListItemButton, self).__init__(**kwargs)
+
+
+class CustomDataItem(SelectableDataItem):
+
+    def __init__(self, **kwargs):
+        super(CustomDataItem, self).__init__(**kwargs)
+        self.text = kwargs.get('text', '')
+
+
+# NATO alphabet words
+phonetic_string_data = ListProperty([
+    'Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf',
+    'Hotel', 'India', 'Juliet', 'Kilo', 'Lima', 'Mike', 'November',
+    'Oscar', 'Papa', 'Quebec', 'Romeo', 'Sierra', 'Tango', 'Uniform',
+    'Victor', 'Whiskey', 'X-ray', 'Yankee', 'Zulu'])
+
+phonetic_string_data_subset = ListProperty([
+    'Delta', 'Oscar', 'Golf', 'Sierra',
+    'Alpha', 'November', 'Delta',
+    'Charlie', 'Alpha', 'Tango', 'Sierra'])
+
+
+class PhoneticAlphabetAdapter(ListAdapter):
+
+    object_data = ListProperty([])
+
+    def create_list_item_obj(self):
+        return CustomDataItem(text=choice(self.nato_alphabet_words))
+
+    def create_list_item_obj_list(self, n):
+        return [CustomDataItem(text=choice(self.nato_alphabet_words))] * n
+
+
+class FruitAdaptersTestCase(unittest.TestCase):
 
     def setUp(self):
         self.args_converter = lambda row_index, rec: {'text': rec['name'],
@@ -306,14 +355,6 @@ class AdaptersTestCase(unittest.TestCase):
         reset_to_defaults(fruit_data)
 
     @raises(Exception)
-    def test_instantiating_an_adapter_with_neither_cls_nor_template(self):
-        def dummy_converter():
-            pass
-
-        fruit_categories_list_adapter = \
-            Adapter(data='cat',
-                    args_converter=dummy_converter)
-
     def test_instantiating_an_adapter_with_neither_cls_nor_template(self):
         def dummy_converter():
             pass
@@ -351,6 +392,8 @@ class AdaptersTestCase(unittest.TestCase):
                         cls=None,
                         template=None)
 
+        self.assertIsNotNone(fruit_categories_list_adapter)
+
         msg = 'adapter: cannot use cls and template at the same time'
         self.assertEqual(str(cm.exception), msg)
 
@@ -358,6 +401,8 @@ class AdaptersTestCase(unittest.TestCase):
         # with no data
         with self.assertRaises(Exception) as cm:
             adapter = Adapter()
+
+        self.assertIsNotNone(adapter)
 
         msg = 'adapter: input must include data argument'
         self.assertEqual(str(cm.exception), msg)
@@ -370,6 +415,8 @@ class AdaptersTestCase(unittest.TestCase):
                               args_converter=list_item_args_converter,
                               template='CustomListItem',
                               cls=ListItemButton)
+
+        self.assertIsNotNone(adapter)
 
         msg = 'adapter: cannot use cls and template at the same time'
         self.assertEqual(str(cm.exception), msg)
@@ -438,6 +485,8 @@ class AdaptersTestCase(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             simple_list_adapter = SimpleListAdapter(data=dict)
 
+        self.assertIsNotNone(simple_list_adapter)
+
         msg = 'list adapter: data must be a tuple or list'
         self.assertEqual(str(cm.exception), msg)
 
@@ -451,6 +500,8 @@ class AdaptersTestCase(unittest.TestCase):
                 SimpleListAdapter(data=['cat', 'dog'],
                                   args_converter=list_item_args_converter,
                                   template='CustomSimpleListItem')
+
+        self.assertIsNotNone(simple_list_adapter)
 
         view = simple_list_adapter.get_view(0)
         self.assertEqual(view.__class__.__name__, 'CustomSimpleListItem')
@@ -872,6 +923,8 @@ class AdaptersTestCase(unittest.TestCase):
                             template='CustomListItem',
                             cls=ListItemButton)
 
+        self.assertIsNotNone(fruit_categories_list_adapter)
+
         msg = 'adapter: cannot use cls and template at the same time'
         self.assertEqual(str(cm.exception), msg)
 
@@ -1049,12 +1102,13 @@ class AdaptersTestCase(unittest.TestCase):
         # data records, and the args_converter above that will operate one
         # each item in the data to produce list item view instances from the
         # CompositeListItem class.
-        dict_adapter = DictAdapter(sorted_keys=item_strings,
-                                   data=self.integers_dict,
-                                   args_converter=self.composite_args_converter,
-                                   selection_mode='single',
-                                   allow_empty_selection=False,
-                                   cls=CompositeListItem)
+        dict_adapter = DictAdapter(
+                sorted_keys=item_strings,
+                data=self.integers_dict,
+                args_converter=self.composite_args_converter,
+                selection_mode='single',
+                allow_empty_selection=False,
+                cls=CompositeListItem)
 
         self.assertEqual(len(dict_adapter.selection), 1)
 
@@ -1065,11 +1119,12 @@ class AdaptersTestCase(unittest.TestCase):
 
     # test that sorted_keys is built, if not provided.
     def test_dict_adapter_no_sorted_keys(self):
-        dict_adapter = DictAdapter(data=self.integers_dict,
-                                   args_converter=self.composite_args_converter,
-                                   selection_mode='single',
-                                   allow_empty_selection=False,
-                                   cls=CompositeListItem)
+        dict_adapter = DictAdapter(
+                data=self.integers_dict,
+                args_converter=self.composite_args_converter,
+                selection_mode='single',
+                allow_empty_selection=False,
+                cls=CompositeListItem)
 
         self.assertEqual(len(dict_adapter.sorted_keys), 100)
 
@@ -1089,6 +1144,8 @@ class AdaptersTestCase(unittest.TestCase):
                     selection_mode='single',
                     allow_empty_selection=False,
                     cls=CompositeListItem)
+
+        self.assertIsNotNone(dict_adapter)
 
         msg = 'DictAdapter: sorted_keys must be tuple or list'
         self.assertEqual(str(cm.exception), msg)
@@ -1407,3 +1464,153 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertEqual(len(letters_dict_adapter.data), 2)
 
         self.assertTrue(sorted_keys_ok(letters_dict_adapter))
+
+
+class RecordingObservableListOpsTestCase(unittest.TestCase):
+
+    def strings_args_converter(self, row_index, value):
+        return {"text": str(value),
+                "size_hint_y": None,
+                "height": 25}
+
+    def objects_args_converter(self, row_index, obj):
+        return {"text": obj.text,
+                "size_hint_y": None,
+                "height": 25}
+
+    def setUp(self):
+
+        self.list_adapter = ListAdapter(
+                data=phonetic_string_data_subset,
+                cls=ListItemButton,
+                selection_mode='single',
+                allow_empty_selection=False,
+                args_converter=self.strings_args_converter)
+
+    def test_ROL_setitem_op(self):
+        sel_index = self.list_adapter.selection[0].index
+        before_cached_item_view = self.list_adapter.get_view(sel_index)
+        self.list_adapter.data[sel_index] = \
+                choice(phonetic_string_data)
+        after_cached_item_view = self.list_adapter.get_view(sel_index)
+        # The cached_item_view should be a new object.
+        self.assertNotEqual(before_cached_item_view,
+                            after_cached_item_view)
+        # The item should still be selected.
+        self.assertIsTrue(after_cached_item_view.is_selected)
+
+    def test_ROL_delitem_op(self):
+        sel_index = self.list_adapter.selection[0].index
+        del self.list_adapter.data[sel_index]
+
+    def test_ROL_setslice_op(self):
+        sel_index = self.list_adapter.selection[0].index
+        self.list_adapter.data[sel_index:sel_index + 3] = \
+                [choice(phonetic_string_data)] * 3
+
+    def test_ROL_delslice_op(self):
+        sel_index = self.list_adapter.selection[0].index
+        del self.list_adapter.data[sel_index:sel_index + 3]
+
+    def test_ROL_append_op(self):
+        self.list_adapter.data.append(
+                choice(phonetic_string_data))
+
+    def test_ROL_remove_op(self):
+        sel_index = self.list_adapter.selection[0].index
+        sel_obj = self.list_adapter.data[sel_index]
+        self.list_adapter.data.remove(sel_obj)
+
+    def test_ROL_insert_op(self):
+        self.list_adapter.data.insert(
+                self.list_adapter.selection[0].index,
+                choice(phonetic_string_data))
+
+    def test_ROL_pop_op(self):
+        self.list_adapter.data.pop()
+
+    def test_ROL_pop_i_op(self):
+        sel_index = self.list_adapter.selection[0].index
+        self.list_adapter.data.pop(sel_index)
+
+    def test_ROL_extend_op(self):
+        self.list_adapter.data.extend(
+                [choice(phonetic_string_data)] * 3)
+
+    def test_ROL_sort_op(self):
+        self.list_adapter.data.sort()
+
+    def test_ROL_reverse_op(self):
+        self.list_adapter.data.reverse()
+
+
+class RecordingObservableDictOpsTestCase(unittest.TestCase):
+
+    def dict_args_converter(self, row_index, rec):
+        return {"text": "{0} : {1}".format(rec['key'], rec['value']),
+                "key": rec['key'],
+                "size_hint_y": None,
+                "height": 25}
+
+    def setUp(self):
+        data = {k: {'key': k, 'value': k} for k in phonetic_string_data}
+
+        self.dict_adapter = DictAdapter(
+                data=data,
+                cls=KeyedListItemButton,
+                selection_mode='single',
+                allow_empty_selection=False,
+                args_converter=self.dict_args_converter)
+
+    def test_ROD_setitem_set_op(self):
+        sel_key = self.dict_adapter.selection[0].key
+        new_value = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+        self.dict_adapter.data[sel_key] = {'key': sel_key,
+                                           'value': new_value}
+
+    def test_ROD_setitem_add_op(self):
+        k = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+        self.dict_adapter.data[k] = {'key': k, 'value': k}
+
+    def test_ROD_setitem_del_op(self):
+        sel_index = self.dict_adapter.selection[0].index
+        sel_key = self.dict_adapter.sorted_keys[sel_index]
+        self.dict_adapter.data[sel_key] = None
+
+    def test_ROD_delitem_del_op(self):
+        sel_index = self.dict_adapter.selection[0].index
+        sel_key = self.dict_adapter.sorted_keys[sel_index]
+        del self.dict_adapter.data[sel_key]
+
+    def test_ROD_clear_del_op(self):
+        self.dict_adapter.data.clear()
+
+    def test_ROD_pop_op(self):
+        sel_index = self.dict_adapter.selection[0].index
+        sel_key = self.dict_adapter.sorted_keys[sel_index]
+        self.dict_adapter.data.pop(sel_key)
+
+    def test_ROD_popitem_op(self):
+        self.dict_adapter.data.popitem()
+
+    def test_ROD_setdefault_op(self):
+        k = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+        self.dict_adapter.data.setdefault(k, {'key': k, 'value': k})
+
+    def test_ROD_update_op(self):
+        k1 = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+        k2 = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+        k3 = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+
+        self.dict_adapter.data.update(
+                {k1: {'key': k1, 'value': k1},
+                 k2: {'key': k2, 'value': k2},
+                 k3: {'key': k3, 'value': k3}})
+
+    def test_dict_adapter_insert_op(self):
+        sel_index = self.dict_adapter.selection[0].index
+        key = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+        self.dict_adapter.insert(sel_index, key, {'key': key, 'value': key})
+
+    def test_ROD_sort_op(self):
+        self.dict_adapter.sorted_keys.sort(key=lambda k: k.lower())
