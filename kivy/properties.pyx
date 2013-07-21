@@ -969,9 +969,15 @@ cdef class OptionProperty(Property):
             return self.options
 
 class ObservableReferenceList(ObservableList):
-    def __setitem__(self, key, value):
-        super(ObservableReferenceList, self).__setitem__(key, value)
-        self.prop.setitem(self.obj(), key, value)
+    def __setitem__(self, key, value, update_properties=True):
+        list.__setitem__(self, key, value)
+        if update_properties:
+            self.prop.setitem(self.obj(), key, value)
+
+    def __setslice__(self, start, stop, value, update_properties=True):  # Python 2 only method
+        list.__setslice__(self, start, stop, value)
+        if update_properties:
+            self.prop.setitem(self.obj(), slice(start, stop), value)
 
 cdef class ReferenceListProperty(Property):
     '''Property that allows the creaton of a tuple of other properties.
@@ -1011,7 +1017,16 @@ cdef class ReferenceListProperty(Property):
         if ps.stop_event:
             return
         p = ps.properties
-        ps.value[:] = [prop.get(obj) for prop in p]
+
+        try:
+            ps.value.__setslice__(0, len(p),
+                    [prop.get(obj) for prop in p],
+                    update_properties=False)
+        except AttributeError:
+            ps.value.__setitem__(slice(len(p)),
+                    [prop.get(obj) for prop in p],
+                    update_properties=False)
+
         self.dispatch(obj)
 
     cdef convert(self, EventDispatcher obj, value):
@@ -1044,7 +1059,12 @@ cdef class ReferenceListProperty(Property):
             x = value[idx]
             prop.set(obj, x)
         ps.stop_event = 0
-        ps.value[:] = value
+        try:
+            ps.value.__setslice__(0, len(value), value,
+                    update_properties=False)
+        except AttributeError:
+            ps.value.__setitem__(slice(len(value)), value,
+                    update_properties=False)
         self.dispatch(obj)
         return True
 
@@ -1052,15 +1072,29 @@ cdef class ReferenceListProperty(Property):
         cdef PropertyStorage ps = obj.__storage[self._name]
 
         ps.stop_event = 1
-        prop = ps.properties[key]
-        prop.set(obj, value)
+        if isinstance(key, slice):
+            props = ps.properties[key]
+            for index in xrange(len(props)):
+                prop = props[index]
+                x = value[index]
+                prop.set(obj, x)
+        else:
+            prop = ps.properties[key]
+            prop.set(obj, value)
         ps.stop_event = 0
         self.dispatch(obj)
 
     cpdef get(self, EventDispatcher obj):
         cdef PropertyStorage ps = obj.__storage[self._name]
         cdef tuple p = ps.properties
-        ps.value[:] = [prop.get(obj) for prop in p]
+        try:
+            ps.value.__setslice__(0, len(p),
+                    [prop.get(obj) for prop in p],
+                    update_properties=False)
+        except AttributeError:
+            ps.value.__setitem__(slice(len(p)),
+                    [prop.get(obj) for prop in p],
+                    update_properties=False)
         return ps.value
 
 cdef class AliasProperty(Property):
