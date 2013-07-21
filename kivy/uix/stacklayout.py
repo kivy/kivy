@@ -192,18 +192,10 @@ class StackLayout(Layout):
         urev = (deltau < 0)
         vrev = (deltav < 0)
         for c in reversed(self.children):
-            # Issue#823: ReferenceListProperty doesn't allow changing
-            # individual properties.
-            # when the above issue is fixed we can remove csize from below and
-            # access c.size[i] directly
-            csize = c.size[:]  # we need to update the whole tuple at once.
             if c.size_hint[0]:
-                # calculate width
-                csize[0] = c.size_hint[0] * (selfsize[0] - padding_x)
+                c.width = c.size_hint[0] * (selfsize[0] - padding_x)
             if c.size_hint[1]:
-                # calculate height
-                csize[1] = c.size_hint[1] * (selfsize[1] - padding_y)
-            c.size = tuple(csize)
+                c.height = c.size_hint[1] * (selfsize[1] - padding_y)
 
             # does the widget fit in the row/column?
             if lu - c.size[innerattr] >= 0:
@@ -217,15 +209,14 @@ class StackLayout(Layout):
             for c2 in lc:
                 if urev:
                     u -= c2.size[innerattr]
-                p = [0, 0]  # issue #823
-                p[innerattr] = u
-                p[outerattr] = v
+                c2.pos[innerattr] = u
+                pos_outer = v
                 if vrev:
                     # v position is actually the top/right side of the widget
                     # when going from high to low coordinate values,
                     # we need to subtract the height/width from the position.
-                    p[outerattr] -= c2.size[outerattr]
-                c2.pos = tuple(p)  # issue #823
+                    pos_outer -= c2.size[outerattr]
+                c2.pos[outerattr] = pos_outer
                 if urev:
                     u -= spacing_u
                 else:
@@ -244,17 +235,14 @@ class StackLayout(Layout):
             for c2 in lc:
                 if urev:
                     u -= c2.size[innerattr]
-                p = [0, 0]  # issue #823
-                p[innerattr] = u
-                p[outerattr] = v
+                c2.pos[innerattr] = u
+                pos_outer = v
                 if vrev:
-                    p[outerattr] -= c2.size[outerattr]
-                c2.pos = tuple(p)  # issue #823
+                    pos_outer -= c2.size[outerattr]
+                c2.pos[outerattr] = pos_outer
                 if urev:
                     u -= spacing_u
                 else:
                     u += c2.size[innerattr] + spacing_u
 
-        minsize = self.minimum_size[:]  # issue #823
-        minsize[outerattr] = sv
-        self.minimum_size = tuple(minsize)
+        self.minimum_size[outerattr] = sv
