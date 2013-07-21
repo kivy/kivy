@@ -245,6 +245,9 @@ class PropertiesTestCase(unittest.TestCase):
         pos.get(wid)[0] = 10
         self.assertEqual(pos.get(wid), [10, 0])
 
+        pos.get(wid)[:] = (20, 30)
+        self.assertEqual(pos.get(wid), [20, 30])
+
     def test_dict(self):
         from kivy.properties import DictProperty
 
