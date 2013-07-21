@@ -1002,7 +1002,7 @@ cdef class ReferenceListProperty(Property):
         if ps.stop_event:
             return
         p = ps.properties
-        ps.value = [p[x].get(obj) for x in xrange(len(p))]
+        ps.value = [prop.get(obj) for prop in p]
         self.dispatch(obj)
 
     cdef convert(self, EventDispatcher obj, value):
@@ -1042,7 +1042,7 @@ cdef class ReferenceListProperty(Property):
     cpdef get(self, EventDispatcher obj):
         cdef PropertyStorage ps = obj.__storage[self._name]
         cdef tuple p = ps.properties
-        ps.value = [p[x].get(obj) for x in xrange(len(p))]
+        ps.value = [prop.get(obj) for prop in p]
         return ps.value
 
 cdef class AliasProperty(Property):
