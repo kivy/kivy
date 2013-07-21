@@ -69,6 +69,7 @@ cdef class OptionProperty(Property):
 cdef class ReferenceListProperty(Property):
     cdef list properties
     cpdef trigger_change(self, EventDispatcher obj, value)
+    cpdef setitem(self, EventDispatcher obj, key, value)
 
 cdef class AliasProperty(Property):
     cdef object getter
