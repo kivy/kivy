@@ -968,6 +968,10 @@ cdef class OptionProperty(Property):
         def __get__(self):
             return self.options
 
+class ObservableReferenceList(ObservableList):
+    def __setitem__(self, key, value):
+        super(ObservableReferenceList, self).__setitem__(key, value)
+        self.prop.setitem(self.obj(), key, value)
 
 cdef class ReferenceListProperty(Property):
     '''Property that allows the creaton of a tuple of other properties.
@@ -991,6 +995,11 @@ cdef class ReferenceListProperty(Property):
         storage.properties = tuple(self.properties)
         storage.stop_event = 0
 
+    cpdef link(self, EventDispatcher obj, str name):
+        Property.link(self, obj, name)
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        ps.value = ObservableReferenceList(self, obj, ps.value)
+
     cpdef link_deps(self, EventDispatcher obj, str name):
         cdef Property prop
         Property.link_deps(self, obj, name)
@@ -1002,7 +1011,7 @@ cdef class ReferenceListProperty(Property):
         if ps.stop_event:
             return
         p = ps.properties
-        ps.value = [prop.get(obj) for prop in p]
+        ps.value[:] = [prop.get(obj) for prop in p]
         self.dispatch(obj)
 
     cdef convert(self, EventDispatcher obj, value):
@@ -1035,14 +1044,23 @@ cdef class ReferenceListProperty(Property):
             x = value[idx]
             prop.set(obj, x)
         ps.stop_event = 0
-        ps.value = value
+        ps.value[:] = value
         self.dispatch(obj)
         return True
+
+    cpdef setitem(self, EventDispatcher obj, key, value):
+        cdef PropertyStorage ps = obj.__storage[self._name]
+
+        ps.stop_event = 1
+        prop = ps.properties[key]
+        prop.set(obj, value)
+        ps.stop_event = 0
+        self.dispatch(obj)
 
     cpdef get(self, EventDispatcher obj):
         cdef PropertyStorage ps = obj.__storage[self._name]
         cdef tuple p = ps.properties
-        ps.value = [prop.get(obj) for prop in p]
+        ps.value[:] = [prop.get(obj) for prop in p]
         return ps.value
 
 cdef class AliasProperty(Property):
