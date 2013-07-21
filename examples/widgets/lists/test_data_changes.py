@@ -81,7 +81,7 @@ Builder.load_string('''
                 size_hint: None, None
                 width: 200
                 height: 30
-                text: 'TEST ChangeRecordingObservableList'
+                text: 'TEST RecordingObservableList'
 
             ListView:
                 adapter: app.list_adapter
@@ -140,7 +140,7 @@ Builder.load_string('''
                             app.list_adapter.selection[0].index + 3]
     #
     # TODO: iadd and imul are getting a nonetype is not iterable error on the base
-    # crod object. So we will add labels instead of buttons for them for now.
+    # ROD object. So we will add labels instead of buttons for them for now.
     #
     #            Button:
     #                size_hint: None, None
@@ -250,7 +250,7 @@ Builder.load_string('''
                 size_hint: None, None
                 width: 200
                 height: 30
-                text: 'TEST ChangeRecordingObservableDict'
+                text: 'TEST RecordingObservableDict'
 
             ListView:
                 adapter: app.dict_adapter

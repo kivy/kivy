@@ -134,7 +134,7 @@ class ListAdapter(Adapter, EventDispatcher):
 
         self.bind(selection_mode=self.selection_mode_changed,
                   allow_empty_selection=self.check_for_empty_selection,
-                  data=self.data_changed)
+                  data=self.data_changed_directly)
 
         self.list_op_handler = ListOpHandler(adapter=self,
                                              source_list=self.data,
@@ -146,7 +146,7 @@ class ListAdapter(Adapter, EventDispatcher):
 
         self.initialize_selection()
 
-    def data_changed(self, *args):
+    def data_changed_directly(self, *args):
         '''This callback happens as a result of the direct data binding set up
         in __init__(). It is needed for the direct set of data, as happens in
         ...data = [some new data list], which is not picked up by the ROL data
@@ -154,8 +154,10 @@ class ListAdapter(Adapter, EventDispatcher):
         when a ROL event has fired. If not present, we know this call is from a
         direct data set.
         '''
+
         if (hasattr(self.data, 'recorder')
                and not self.data.recorder.op_started):
+
             self.cached_views.clear()
 
             self.list_op_handler.source_list = self.data
@@ -165,6 +167,7 @@ class ListAdapter(Adapter, EventDispatcher):
                 on_sort_started=self.list_op_handler.sort_started)
 
             self.op_info = ('ROL_reset', (0, 0))
+
             self.dispatch('on_data_change')
 
             self.initialize_selection()

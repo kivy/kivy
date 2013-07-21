@@ -140,7 +140,8 @@ class DictAdapter(Adapter, EventDispatcher):
 
         super(DictAdapter, self).__init__(**kwargs)
 
-        self.bind(sorted_keys=self.sorted_keys_changed)
+        self.bind(data=self.data_changed_directly,
+                  sorted_keys=self.sorted_keys_changed_directly)
 
         # Delegate handling for sorted_keys changes to a ListOpHandler.
         self.list_op_handler = ListOpHandler(adapter=self,
@@ -165,6 +166,12 @@ class DictAdapter(Adapter, EventDispatcher):
         # Maintain sort order of incoming sorted_keys.
         return [k for k in sorted_keys if k in sorted_keys_checked]
 
+    # TODO: bind_triggers_to_view() is no longer used. Leave, but mark as
+    #       deprecated.
+    def bind_triggers_to_view(self, func):
+        self.bind(sorted_keys=func)
+        self.bind(data=func)
+
     # NOTE: The reason for on_data_change and on_sorted_keys_change,
     #       instead of on_data and on_sorted_keys: These are peculiar to the
     #       adapters and their API (using and referring to op_info). This
@@ -186,7 +193,27 @@ class DictAdapter(Adapter, EventDispatcher):
 
         self.sorted_keys.insert(index, key)
 
-    def sorted_keys_changed(self, *args):
+    def data_changed_directly(self, *args):
+
+        # data has been reset totally. We get this callback from a direct
+        # binding to data in our __init__.py -- we do not get it from the
+        # bindings for RecordingObservableDict, for which only the fine-
+        # grained, op-by-op change events are fired.
+
+        # Instead of dispatching on_data_change here, set sorted_keys to
+        # the keys of the new dict, and let that fire the data changed
+        # event. Regarding the reset of sorted_keys on data reset, it has
+        # been the practice that to change out data completely, the
+        # programmer should do a two-step process, resetting the data dict,
+        # then resetting sorted_keys. This approach continues here -- it is
+        # up to the programmer to set sorted_keys as needed after this set.
+
+        self.sorted_keys = self.data.keys()
+
+        # TODO: Add a method to DictAdapter called reset_data_and_sorted_keys()
+        #       to do the two-step process mentioned above with one call.
+
+    def sorted_keys_changed_directly(self, *args):
         '''This callback happens as a result of the direct sorted_keys binding
         set up in __init__(). It is needed for the direct set of sorted_keys,
         as happens in ...sorted_keys = [some new list], which is not picked up

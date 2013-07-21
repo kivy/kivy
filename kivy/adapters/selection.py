@@ -199,6 +199,16 @@ class Selection(EventDispatcher):
         '''
         pass
 
+    def get_selection(self):
+        '''A convenience method.
+        '''
+        return self.selection
+
+    def get_first_selected_item(self):
+        '''A convenience method.
+        '''
+        return self.selection[0] if self.selection else None
+
     def handle_selection(self, view, hold_dispatch=False, *args):
         if view not in self.selection:
             if self.selection_mode in ['none', 'single'] and \

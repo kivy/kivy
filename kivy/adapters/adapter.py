@@ -41,6 +41,7 @@ from kivy.event import EventDispatcher
 from kivy.properties import DictProperty
 from kivy.properties import ObjectProperty
 from kivy.lang import Builder
+from kivy.adapters.models import SelectableDataItem
 from kivy.adapters.selection import Selection
 from kivy.adapters.args_converters import list_item_args_converter
 
