@@ -1,8 +1,8 @@
 '''
-ActionBar
-=========
+Action Bar
+==========
 
-..versionadded:: 1.8.0
+.. versionadded:: 1.8.0
 
 .. image:: images/actionbar.png
     :align: right
