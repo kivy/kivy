@@ -492,6 +492,8 @@
 # =============================================================================
 
 <ActionBar>:
+	height: '48dp'
+	size_hint_y: None
     canvas:
         Color:
             rgba: self.background_color
@@ -516,13 +518,26 @@
     width: self.minimum_width
     canvas:
         Rectangle:
-            pos: self.x, self.y+sp(5)
-            size: self.width, self.height-sp(10)
+            pos: self.x, self.y + sp(4)
+            size: self.width, self.height - sp(8)
             source: self.background_image
 
 <ActionButton>:
     background_normal: 'atlas://data/images/defaulttheme/action_bar' if self.inside_group else 'atlas://data/images/defaulttheme/action_item'
 	background_down: 'atlas://data/images/defaulttheme/action_item_down'
+	size_hint_x: None if not root.inside_group else 1
+	width: [dp(48) if (root.icon and not root.inside_group) else max(dp(48), (self.texture_size[0] + dp(32))), self.size_hint_x][0]
+	color: self.color[:3] + [0 if (root.icon and not root.inside_group) else 1]
+
+	Image:
+		opacity: 1 if (root.icon and not root.inside_group) else 0
+		source: root.icon
+		pos: root.x + dp(4), root.y + dp(4)
+		size: root.width - dp(8), root.height - sp(8)
+
+<ActionGroup>:
+	size_hint_x: None
+	width: self.texture_size[0] + dp(32)
 
 <ActionToggleButton>:
     background_normal: 'atlas://data/images/defaulttheme/action_bar' if self.inside_group else 'atlas://data/images/defaulttheme/action_item'
@@ -531,31 +546,33 @@
     background_normal: 'atlas://data/images/defaulttheme/action_bar' if self.inside_group else 'atlas://data/images/defaulttheme/action_item'
 
 <ActionPrevious>:
-    size_hint_x: None
+	size_hint_x: 1
     minimum_width: '100sp'
-    width: self.minimum_width
     important: True
     BoxLayout:
         orientation: 'horizontal'
         pos: root.pos
         size: root.size
-        padding: '2dp'
         Image:
             source: root.previous_image
             opacity: 1 if root.with_previous else 0
             allow_stretch: True
             size_hint_x: None
-            width: self.texture_size[0] if self.texture else 20
+            width: self.texture_size[0] if root.with_previous else dp(8)
         Image:
             source: root.app_icon
             allow_stretch: True
             size_hint_x: None
             width: self.texture_size[0] if self.texture else 20
+			mipmap: True
+		Widget:
+			size_hint_x: None
+			width: '5sp'
         Label:
             text: root.title
             text_size: self.size
             shorten: True
-            halign: 'right'
+            halign: 'left'
             valign: 'middle'
 
 <ActionGroup>:
@@ -581,8 +598,8 @@
 		Color:
 			rgb: 1, 1, 1
         Rectangle:
-            pos: root.center_x - sp(24), root.center_y - sp(24)
-            size: sp(48), sp(48)
+            pos: root.center_x - sp(16), root.center_y - sp(16)
+            size: sp(32), sp(32)
             source: root.overflow_image
 
 <ActionDropDown>:

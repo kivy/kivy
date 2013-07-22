@@ -4,10 +4,10 @@ ActionBar
 
 ..versionadded:: 1.8.0
 
-.. image:: images/actionbar.jpg
+.. image:: images/actionbar.png
     :align: right
 
-ActionBar widget is like Andriod's ActionBar, where items are stacked
+ActionBar widget is like Android's ActionBar, where items are stacked
 horizontally.
 
 The :class:`ActionBar` will contain one :class:`ActionView` and many
@@ -35,11 +35,9 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.checkbox import CheckBox
-from kivy.uix.label import Label
 from kivy.properties import ObjectProperty, NumericProperty, \
     BooleanProperty, StringProperty, ListProperty, OptionProperty
 from kivy.uix.spinner import Spinner
-from kivy.graphics import Canvas
 from kivy.lang import Builder
 from functools import partial
 from kivy.config import Config
@@ -98,10 +96,28 @@ class ActionItem(object):
     '''
 
 
+
 class ActionButton(Button, ActionItem):
     '''ActionButton class, see module documentation for more information.
+
+    The text color, width and size_hint_x are set manually via the Kv language
+    file. It cover lot of cases: with/without icon, with/without a group, and
+    take care of the padding between elements.
+
+    You don't have the control on it, if you want to create your own button
+    representation, re-create a class that subclass an existing widget +
+    :class:`ActionItem`::
+
+        class MyOwnActionButton(Button, ActionItem):
+            pass
+
+    And create your own style with Kv language.
     '''
-    pass
+
+    icon = StringProperty(None, allownone=True)
+    '''Source image to use when the Button is part of the ActionBar. If the
+    Button is in a group, the text will be preferred.
+    '''
 
 
 class ActionPrevious(ActionButton):
@@ -195,11 +211,11 @@ class ActionGroup(ActionItem, Spinner):
        default to 'separator'.
     '''
 
-    separator_width = NumericProperty(1)
+    separator_width = NumericProperty(0)
     '''Width of ActionSeparator in ActionView.
 
        :data:`separator_width` is a :class:`~kivy.properties.NumericProperty`,
-       default to 1.
+       default to 0.
     '''
 
     mode = OptionProperty('normal', options=('normal', 'spinner'))
@@ -267,8 +283,6 @@ class ActionOverflow(ActionGroup):
        default to 'overflow'.
     '''
 
-    pass
-
 
 class ActionView(BoxLayout):
     '''ActionView class, see module documentation for more information.
@@ -325,7 +339,8 @@ class ActionView(BoxLayout):
             return
 
         if not isinstance(action_item, ActionItem):
-            raise ActionBarException('ActionView only accepts ActionItem')
+            raise ActionBarException('ActionView only accepts ActionItem'
+                    ' (got {!r}'.format(action_item))
 
         elif isinstance(action_item, ActionOverflow):
             self.overflow_group = action_item
@@ -568,20 +583,25 @@ if __name__ == "__main__":
     from kivy.base import runTouchApp
     from kivy.uix.floatlayout import FloatLayout
     from kivy.lang import Builder
+    from kivy.factory import Factory
+
+    # XXX clean the first registration done from '__main__' here.
+    # otherwise kivy.uix.actionbar.ActionPrevious != __main__.ActionPrevious
+    Factory.unregister('ActionPrevious')
 
     Builder.load_string('''
 <MainWindow>:
     ActionBar:
-        size_hint: 1,0.1
         pos_hint: {'top':1}
         ActionView:
             use_separator: True
             ActionPrevious:
-                title: 'Title'
+                title: 'Action Bar'
                 with_previous: False
             ActionOverflow:
             ActionButton:
                 text: 'Btn0'
+                icon: 'atlas://data/images/defaulttheme/audio-volume-high'
             ActionButton:
                 text: 'Btn1'
             ActionButton:
