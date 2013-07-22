@@ -43,6 +43,11 @@ from functools import partial
 from kivy.config import Config
 
 
+window_icon = ''
+if Config:
+    window_icon = Config.get('kivy', 'window_icon')
+
+
 class ActionBarException(Exception):
     '''ActionBarException class
     '''
@@ -132,8 +137,7 @@ class ActionPrevious(ActionButton):
        default to True.
     '''
 
-    app_icon = StringProperty(
-        Config.get('kivy', 'window_icon'))
+    app_icon = StringProperty(window_icon)
     '''Application icon for the ActionView.
 
        :data:`app_icon` is a :class:`~kivy.properties.StringProperty`,
