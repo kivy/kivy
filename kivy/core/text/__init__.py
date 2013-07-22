@@ -2,15 +2,15 @@
 Text
 ====
 
-Abstraction of text creation. Depending of the selected backend, the text
-rendering can be more or less accurate.
+An abstraction of text creation. Depending of the selected backend, the accuracy
+of text rendering may vary.
 
 .. versionchanged:: 1.5.0
     :data:`LabelBase.line_height` added.
 
 .. versionchanged:: 1.0.7
-    The :class:`LabelBase` don't generate any texture is the text have a width
-    <= 1.
+    The :class:`LabelBase` does not generate any texture if the text has a
+    width <= 1.
 '''
 
 __all__ = ('LabelBase', 'Label')
@@ -33,48 +33,48 @@ FONT_BOLDITALIC = 3
 
 class LabelBase(object):
     '''Core text label.
-    This is the abstract class used for different backend to render text.
+    This is the abstract class used by different backends to render text.
 
     .. warning::
-        The core text label can't be changed at runtime, you must recreate one.
+        The core text label can't be changed at runtime. You must recreate one.
 
     .. versionadded::
-        In 1.0.7, the valign is now respected. This wasn't the case before. You
-        might have issue in your application if you never think about that
-        before.
+        In 1.0.7, the valign is now respected. This wasn't the case previously
+        so you might have an issue in your application if you have not
+        considered this.
 
     .. versionadded::
-        In 1.0.8, `size` have been deprecated and replaced with `text_size`
+        In 1.0.8, `size` have been deprecated and replaced with `text_size`.
 
     :Parameters:
-        `font_size`: int, default to 12
+        `font_size`: int, defaults to 12
             Font size of the text
-        `font_name`: str, default to DEFAULT_FONT
+        `font_name`: str, defaults to DEFAULT_FONT
             Font name of the text
-        `bold`: bool, default to False
+        `bold`: bool, defaults to False
             Activate "bold" text style
-        `italic`: bool, default to False
+        `italic`: bool, defaults to False
             Activate "italic" text style
-        `text_size`: tuple, default to (None, None)
-            Add constraint to render the text (inside a bounding box)
+        `text_size`: tuple, defaults to (None, None)
+            Add constraint to render the text (inside a bounding box).
             If no size is given, the label size will be set to the text size.
-        `padding`: float, default to None
+        `padding`: float, defaults to None
             If it's a float, it will set padding_x and padding_y
-        `padding_x`: float, default to 0.0
+        `padding_x`: float, defaults to 0.0
             Left/right padding
-        `padding_y`: float, default to 0.0
+        `padding_y`: float, defaults to 0.0
             Top/bottom padding
-        `halign`: str, default to "left"
-            Horizontal text alignement inside bounding box
-        `valign`: str, default to "bottom"
-            Vertical text alignement inside bounding box
+        `halign`: str, defaults to "left"
+            Horizontal text alignment inside the bounding box
+        `valign`: str, defaults to "bottom"
+            Vertical text alignment inside the bounding box
         `shorten`: bool, defaults to False
             Indicate whether the label should attempt to shorten its textual
             contents as much as possible if a `size` is given.
-            Setting this to True without an appropriately set size will lead
+            Setting this to True without an appropriately set size will lead to
             unexpected results.
         `mipmap` : bool, default to False
-            Create mipmap for the texture
+            Create a mipmap for the texture
     '''
 
     __slots__ = ('options', 'texture', '_label', '_text_size')
@@ -132,10 +132,11 @@ class LabelBase(object):
 
         .. versionadded:: 1.1.0
 
-        If you're using a ttf directly, you might not be able to use bold/italic
-        of the ttf version. If the font is delivered with different version of
-        it (one regular, one italic and one bold), then you need to register it
-        and use the alias instead.
+        If you're using a ttf directly, you might not be able to use the
+        bold/italic properties of
+        the ttf version. If the font is delivered in multiple files
+        (one regular, one italic and one bold), then you need to register these
+        files and use the alias instead.
 
         All the fn_regular/fn_italic/fn_bold parameters are resolved with
         :func:`kivy.resources.resource_find`. If fn_italic/fn_bold are None,
@@ -187,7 +188,8 @@ class LabelBase(object):
             options['font_name_r'] = filename
 
     def get_extents(self, text):
-        '''Return a tuple with (width, height) for a text.'''
+        '''Return a tuple (width, height) indicating the size of the specified
+        text'''
         return (0, 0)
 
     def _render_begin(self):
@@ -223,13 +225,13 @@ class LabelBase(object):
             return u'{0}...'.format(text[:segment].strip())
 
     def render(self, real=False):
-        '''Return a tuple(width, height) to create the image
+        '''Return a tuple (width, height) to create the image
         with the user constraints.
 
         2 differents methods are used:
-          * if user don't set width, splitting line
+          * if the user does not set the width, split the line
             and calculate max width + height
-          * if user set a width, blit per glyph
+          * if the user sets a width, blit per glyph
         '''
 
         options = self.options
@@ -502,7 +504,7 @@ class LabelBase(object):
 
     @property
     def fontid(self):
-        '''Return an uniq id for all font parameters'''
+        '''Return a unique id for all font parameters'''
         return str([self.options[x] for x in (
             'font_size', 'font_name_r', 'bold', 'italic')])
 
