@@ -10,6 +10,7 @@ from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.relativelayout import RelativeLayout
+from kivy.lang import Builder
 
 def sandbox(f):
     def _f2(self, *args, **kwargs):
@@ -43,8 +44,9 @@ class Sandbox(FloatLayout):
         self._context['ExceptionManager'] = SandboxExceptionManager(self)
         self._context.push()
         self.on_context_created()
+        self._container = None
         super(Sandbox, self).__init__(**kwargs)
-        self._container = SandboxContent()
+        self._container = SandboxContent(size=self.size, pos=self.pos)
         self._context.pop()
 
         # now force Clock scheduling
@@ -93,22 +95,24 @@ class Sandbox(FloatLayout):
 
     @sandbox
     def on_size(self, *args):
-        self._container.size = self.size
+        if self._container:
+            self._container.size = self.size
 
     @sandbox
     def on_pos(self, *args):
-        self._container.pos = self.pos
+        if self._container:
+            self._container.pos = self.pos
 
     @sandbox
     def _clock_sandbox(self, dt):
-        import pdb; pdb.set_trace()
-        Clock.tick(dt)
-        Builder.apply()
+        #import pdb; pdb.set_trace()
+        Clock.tick()
+        Builder.sync()
 
     @sandbox
     def _clock_sandbox_draw(self, dt):
         Clock.tick_draw()
-        Builder.apply()
+        Builder.sync()
 
 
 if __name__ == '__main__':
