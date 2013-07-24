@@ -1311,7 +1311,7 @@ class ListView(AbstractView, EventDispatcher):
             self.populate()
             self.dispatch('on_scroll_complete')
 
-        elif op in ['ROL_sort', 'ROL_reverse', 'ROL_reset', ]:
+        elif op in ['ROL_sort', 'ROL_reverse', 'ROL_set', ]:
 
             self.container.clear_widgets()
 
