@@ -579,6 +579,8 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
+from kivy.adapters.list_ops import ListOpInfo
+from kivy.adapters.dict_ops import DictOpInfo
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.simplelistadapter import SimpleListAdapter
@@ -1183,7 +1185,6 @@ class ListView(AbstractView, EventDispatcher):
         #
         #            delete ops:
         #
-        #                ROD_setitem_del - single item
         #                ROD_delitem     - single item
         #                ROD_pop         - single item
         #                ROD_popitem     - single item
@@ -1198,24 +1199,31 @@ class ListView(AbstractView, EventDispatcher):
 
         # TODO: This is to solve a timing issue when running tests. Remove when
         #       no longer needed.
-#        if self.adapter.data.recorder.op_info == None:
+#        if self.adapter.data.op_info == None:
 #            Clock.schedule_once(lambda dt: self.data_changed(*args))
 #            return
 
         op_info = self.adapter.op_info
 
-        if op_info[0].startswith('ROL'):
-            data_op, (start_index, end_index) = op_info
-        else:
-            data_op, keys = op_info
-            start_index, end_index = self.adapter.additional_op_info
+        op = op_info.op_name
 
-        Logger.info('ListView: op_info: ' + str(op_info))
+        if isinstance(op_info, ListOpInfo):
+            start_index = op_info.start_index
+            end_index = op_info.end_index
+            Logger.info(("ListView: op_info -- {0} "
+                         "start_index: {1}, end_index: {2}").format(
+                             op, start_index, end_index))
+        elif isinstance(op_info, DictOpInfo):
+            keys = op_info.keys
+            start_index, end_index = self.adapter.additional_op_info
+            Logger.info(("ListView: op_info -- {0} "
+                         "keys: {0}, start_index: {1}, end_index: {2}").format(
+                             op, keys, start_index, end_index))
 
         # Otherwise, we may have item_views as children of self.container
         # that should be removed.
 
-        if data_op in ['ROL_setitem', 'ROD_setitem_set', ]:
+        if op in ['ROL_setitem', 'ROD_setitem_set', ]:
 
             widget_index = -1
 
@@ -1232,7 +1240,7 @@ class ListView(AbstractView, EventDispatcher):
                 item_view = self.adapter.get_view(start_index)
                 self.container.add_widget(item_view, widget_index)
 
-        elif data_op in ['ROL_setslice', ]:
+        elif op in ['ROL_setslice', ]:
 
             len_data = len(self.adapter.data)
 
@@ -1265,12 +1273,12 @@ class ListView(AbstractView, EventDispatcher):
                 item_view = self.adapter.get_view(slice_index)
                 self.container.add_widget(item_view, add_index)
 
-        elif data_op in ['ROL_append',
-                         'ROL_extend',
-                         'ROD_setattr',    # TODO: not scroll_after_add()?
-                         'ROD_setitem_add',
-                         'ROD_setdefault',
-                         'ROD_update']:
+        elif op in ['ROL_append',
+                    'ROL_extend',
+                    'ROD_setattr',    # TODO: not scroll_after_add()?
+                    'ROD_setitem_add',
+                    'ROD_setdefault',
+                    'ROD_update']:
 
             self.scroll_to_end()
 
@@ -1280,14 +1288,13 @@ class ListView(AbstractView, EventDispatcher):
             #self.populate()
             #self.dispatch('on_scroll_complete')
 
-        elif data_op in ['ROL_delitem',
-                         'ROL_delslice',
-                         'ROL_remove',
-                         'ROL_pop',
-                         'ROD_delitem',
-                         'ROD_setitem_del',
-                         'ROD_clear',
-                         'ROD_pop', ]:
+        elif op in ['ROL_delitem',
+                    'ROL_delslice',
+                    'ROL_remove',
+                    'ROL_pop',
+                    'ROD_delitem',
+                    'ROD_clear',
+                    'ROD_pop', ]:
 
             # NOTE: There is no ROD_popitem here, because it is performed as
             #       a ROD_delitem.
@@ -1303,14 +1310,14 @@ class ListView(AbstractView, EventDispatcher):
             self.populate()
             self.dispatch('on_scroll_complete')
 
-        elif data_op == 'ROL_insert':
+        elif op == 'ROL_insert':
 
             #self.scroll_after_add()
             self.scrolling = True
             self.populate()
             self.dispatch('on_scroll_complete')
 
-        elif data_op in ['ROL_sort', 'ROL_reverse', 'ROL_reset', ]:
+        elif op in ['ROL_sort', 'ROL_reverse', 'ROL_reset', ]:
 
             self.container.clear_widgets()
 
@@ -1320,27 +1327,4 @@ class ListView(AbstractView, EventDispatcher):
 
         else:
 
-            Logger.info('ListView: unhandled data change op ' + str(data_op))
-
-        # Data ops in adapter lists and dicts can be the same, one after
-        # another, e.g. ('ROL_delslice', (0, 0)) could be done repeatedly. As
-        # these are identical, the change events stop firing.  Solve this by
-        # resetting the op_info storage item to None after each op. The op
-        # handlers will not do anything (they simply return) when op_info
-        # is None, so this reset fires a blank.
-        #
-        # We get list change (ROL) events from ListAdapter.data and from
-        # DictAdapter.sorted_keys. Choose the correct one. Also, if the adapter
-        # is a DictAdapter, differentiate between list (ROL) and dict (ROD)
-        # events, and the property involved.
-        #
-        # TODO: The system of this set, and the check at the top of this
-        #       method, needs timing torture tests.
-        #
-        if isinstance(self.adapter, ListAdapter):
-            self.adapter.data.recorder.op_info = None
-        else:
-            if data_op.startswith('ROL'):
-                self.adapter.sorted_keys.recorder.op_info = None
-            else:
-                self.adapter.data.recorder.op_info = None
+            Logger.info('ListView: unhandled data change op ' + str(op))

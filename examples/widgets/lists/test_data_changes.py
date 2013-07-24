@@ -72,9 +72,7 @@ Builder.load_string('''
                 width: 200
                 height: 30
                 text: 'Load with Object Data'
-                on_release: app.list_adapter.args_converter = app.objects_args_converter; \
-                            del app.list_adapter.data[0:len(app.list_adapter.data)]; \
-                            app.list_adapter.data = app.object_data
+                on_release: app.set_object_data()
 
             Label:
                 pos_hint: {'center_x': .5}
@@ -292,17 +290,6 @@ Builder.load_string('''
                     size_hint: None, None
                     width: 96
                     height: 30
-                    text: 'setitem del'
-                    on_release: app.dict_adapter.data[ \
-                                    app.dict_adapter.sorted_keys[ \
-                                        app.dict_adapter.selection[0].index]] = None \
-                                if app.dict_adapter.selection \
-                                else Logger.info('Testing: No selection. Cannot setitem del.')
-
-                Button:
-                    size_hint: None, None
-                    width: 96
-                    height: 30
                     text: 'delitem'
                     on_release: del app.dict_adapter.data[ \
                                         app.dict_adapter.sorted_keys[ \
@@ -421,6 +408,10 @@ class Test(App):
     def insert_into_dict(self, index):
         key = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
         self.dict_adapter.insert(index, key, {'key': key, 'value': key})
+
+    def set_object_data(self):
+        self.list_adapter.args_converter = self.objects_args_converter
+        self.list_adapter.data.set(self.object_data)
 
     def build(self):
 

@@ -58,19 +58,19 @@ class DictAdapter(Adapter, EventDispatcher):
     such as this one with a collection-style widget such as
     :class:`~kivy.uix.widgets.ListView`. When something happens in your program
     to change the list or dict in the aforementioned special properties (here
-    we are talking about sorted_keys and data), the op_info stored is a
-    Python tuple containing the name of the data operation that occurred, along
-    with a contained tuple with (start_index, end_index) for lists or (keys,)
-    for dicts. The system cannot know the details about operations beforehand,
-    so it must react after-the-fact for which items were affected and how. The
-    adapters have callbacks that handle specific operations, and make needed
-    changes to their internal cached_views, selection, and related properties,
-    in preparation for sending, in turn, a data-changed event to the
-    collection-style widget that uses the adapter. For example,
-    :class:`~kivy.uix.widgets.ListView` observes its adapter for data-changed
-    events and updates the user interface. When an item is deleted, it removes
-    the item view widget from its container, or for an addition, it adds the
-    item view widget to its container and scrolls the list, and so on.
+    we are talking about sorted_keys and data), the op_info stored is a Python
+    object containing the name of the data operation that occurred, along with
+    a (start_index, end_index) for lists or (keys,) for dicts. The system
+    cannot know the details about operations beforehand, so it must react
+    after-the-fact for which items were affected and how. The adapters have
+    callbacks that handle specific operations, and make needed changes to their
+    internal cached_views, selection, and related properties, in preparation
+    for sending, in turn, a data-changed event to the collection-style widget
+    that uses the adapter. For example, :class:`~kivy.uix.widgets.ListView`
+    observes its adapter for data-changed events and updates the user
+    interface. When an item is deleted, it removes the item view widget from
+    its container, or for an addition, it adds the item view widget to its
+    container and scrolls the list, and so on.
     '''
 
     # TODO: Adapt to Python's OrderedDict?
@@ -112,8 +112,8 @@ class DictAdapter(Adapter, EventDispatcher):
     defaults to None. It is instantiated and set on init.
     '''
 
-    op_info = ObjectProperty(None, allownone=True)
-    '''This is a copy of our data's recorder.op_info. We make a copy
+    op_info = ObjectProperty(None)
+    '''This is a copy of our data's op_info. We make a copy
     before dispatching the on_data_change event, so that observers can more
     conveniently access it.
     '''
@@ -140,22 +140,18 @@ class DictAdapter(Adapter, EventDispatcher):
 
         super(DictAdapter, self).__init__(**kwargs)
 
-        self.bind(data=self.data_changed_directly,
-                  sorted_keys=self.sorted_keys_changed_directly)
-
         # Delegate handling for sorted_keys changes to a ListOpHandler.
         self.list_op_handler = ListOpHandler(adapter=self,
                                              source_list=self.sorted_keys,
                                              duplicates_allowed=False)
-        self.sorted_keys.recorder.bind(
-                on_op_info=self.list_op_handler.data_changed,
-                on_sort_started=self.list_op_handler.sort_started)
+        self.sorted_keys.bind(
+                op_info=self.list_op_handler.data_changed,
+                sort_op_info=self.list_op_handler.sort_started)
 
         # Delegate handling for data changes to a DictOpHandler.
         self.dict_op_handler = DictOpHandler(adapter=self,
                                              source_dict=self.data)
-        self.data.recorder.bind(
-                op_info=self.dict_op_handler.data_changed)
+        self.data.bind(op_info=self.dict_op_handler.data_changed)
 
     def sorted_keys_checked(self, sorted_keys, data_keys):
 
@@ -178,6 +174,8 @@ class DictAdapter(Adapter, EventDispatcher):
     #       leaves on_data and on_sorted_keys still available for use in the
     #       "regular" manner, perhaps for some Kivy widgets, perhaps for
     #       custom widgets.
+    # TODO: Remove this note, because the events are no longer used by the
+    #       internal system. Keep the events?
 
     def on_data_change(self, *args):
         '''Default data handler for on_data_change event.
@@ -208,35 +206,10 @@ class DictAdapter(Adapter, EventDispatcher):
         # then resetting sorted_keys. This approach continues here -- it is
         # up to the programmer to set sorted_keys as needed after this set.
 
-        self.sorted_keys = self.data.keys()
+        self.sorted_keys.set(self.data.keys())
 
         # TODO: Add a method to DictAdapter called reset_data_and_sorted_keys()
         #       to do the two-step process mentioned above with one call.
-
-    def sorted_keys_changed_directly(self, *args):
-        '''This callback happens as a result of the direct sorted_keys binding
-        set up in __init__(). It is needed for the direct set of sorted_keys,
-        as happens in ...sorted_keys = [some new list], which is not picked up
-        by the ROL data change system. We check by looking for a valid recorder
-        that is created when a ROL event has fired. If not present, we know
-        this call is from a direct sorted_keys set.
-        '''
-
-        if (hasattr(self.sorted_keys, 'recorder')
-               and not self.sorted_keys.recorder.op_started):
-
-            self.cached_views.clear()
-
-            self.list_op_handler.source_list = self.sorted_keys
-
-            self.sorted_keys.recorder.bind(
-                on_op_info=self.list_op_handler.data_changed,
-                on_sort_started=self.list_op_handler.sort_started)
-
-            self.op_info = ('ROL_reset', (0, 0))
-            self.dispatch('on_data_change')
-
-            self.initialize_selection()
 
     # NOTE: This is not len(self.data). (The data dict may contain more items
     #       than sorted_keys -- sorted_keys can be a subset.).
