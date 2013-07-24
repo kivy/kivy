@@ -2,7 +2,7 @@
 Video
 =====
 
-Core class for reading video file and manage the
+Core class for reading video files and managing the
 :class:`kivy.graphics.texture.Texture` video.
 
 .. note::
@@ -19,27 +19,31 @@ from kivy.logger import Logger
 
 
 class VideoBase(EventDispatcher):
-    '''VideoBase, a class to implement a video reader.
+    '''VideoBase, a class used to implement a video reader.
 
     :Parameters:
         `filename` : str
             Filename of the video. Can be a file or an URI.
-        `eos` : str, default to 'pause'
-            Action to do when EOS is hit. Can be one of 'pause', 'stop' or
-            'loop'
-            .. versionchanged:: added 'pause'
-        `async` : bool, default to True
-            Asynchronous loading (may be not supported by all providers)
-        `autoplay` : bool, default to False
-            Auto play the video at init
+        `eos` : str, defaults to 'pause'
+            Action to take when EOS is hit. Can be one of 'pause', 'stop' or
+            'loop'.
+
+            .. versionchanged::
+                added 'pause'
+
+        `async` : bool, defaults to True
+            Load the video asynchronously (may be not supported by all
+            providers).
+        `autoplay` : bool, defaults to False
+            Auto play the video on init.
 
     :Events:
         `on_eos`
-            Fired when EOS is hit
+            Fired when EOS is hit.
         `on_load`
-            Fired when the video is loaded, texture is available
+            Fired when the video is loaded and the texture is available.
         `on_frame`
-            Fired when a new frame is written on texture
+            Fired when a new frame is written to the texture.
     '''
 
     __slots__ = ('_wantplay', '_buffer', '_filename', '_texture',
@@ -101,7 +105,7 @@ class VideoBase(EventDispatcher):
 
     filename = property(lambda self: self._get_filename(),
             lambda self, x: self._set_filename(x),
-            doc='Get/set the filename/uri of current video')
+            doc='Get/set the filename/uri of the current video')
 
     def _get_position(self):
         return 0
@@ -170,6 +174,7 @@ class VideoBase(EventDispatcher):
 
     def pause(self):
         '''Pause the video
+
         .. versionadded:: 1.4.0
         '''
         self._state = 'paused'
