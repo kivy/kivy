@@ -566,23 +566,31 @@ demonstrate the use of kv templates and composite list views.
 __all__ = ('SelectableView', 'ListItemButton', 'ListItemLabel',
            'CompositeListItem', 'ListView', )
 
-from kivy.logger import Logger
-from kivy.event import EventDispatcher
+from math import ceil, floor
+
 from kivy.clock import Clock
-from kivy.uix.widget import Widget
+from kivy.event import EventDispatcher
+from kivy.lang import Builder
+from kivy.logger import Logger
+
+from kivy.uix.abstractview import AbstractView
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
-from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
+
+from kivy.properties import BooleanProperty
+from kivy.properties import DictProperty
+from kivy.properties import ListProperty
+from kivy.properties import NumericProperty
+from kivy.properties import ObjectProperty
+
+from kivy.ops_properties import DictOpInfo
 from kivy.ops_properties import ListOpInfo
-from kivy.adapters.dict_ops import DictOpInfo
+
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.simplelistadapter import SimpleListAdapter
-from kivy.uix.abstractview import AbstractView
-from kivy.properties import ObjectProperty, DictProperty, \
-        NumericProperty, ListProperty, BooleanProperty
-from kivy.lang import Builder
-from math import ceil, floor
 
 
 class SelectableView(object):
