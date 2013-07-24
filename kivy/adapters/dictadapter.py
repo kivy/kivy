@@ -10,12 +10,7 @@ DictAdapter
     future version.
 
 A :class:`~kivy.adapters.dictadapter.DictAdapter` is an adapter around a
-python dictionary of records. It extends the list-like capabilities of the
-:class:`~kivy.adapters.listadapter.ListAdapter`.
-
-If you wish to have a bare-bones list adapter, without selection, use the
-:class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`.
-
+python dictionary of records.
 '''
 
 __all__ = ('DictAdapter', )
@@ -37,64 +32,49 @@ class DictAdapter(Adapter):
     python dictionary of records. It is an alternative to the list capabilities
     of :class:`~kivy.adapters.listadapter.ListAdapter`.
 
+    This class supports a "collection" style view such as
+    :class:`~kivy.uix.listview.ListView`.
+
     :class:`~kivy.adapters.dictadapter.ListAdapter` and
     :class:`~kivy.adapters.listadapter.DictAdapter` use special
     :class:`~kivy.properties.ListProperty` and
     :class:`~kivy.properties.DictProperty` variants,
-    :class:`~kivy.adapters.list_ops.RecordingObservableList` and
-    :class:`~kivy.adapters.dict_ops.RecordingObservableDict`, which
+    :class:`~kivy.ops_properties.RecordingObservableList` and
+    :class:`~kivy.ops_properties.RecordingObservableDict`, which
     record op_info for use in the adapter system.
 
-    This system endeavors to allow normal Python programming of the contained
-    list or dict objects. For lists, this means normal operations (append,
-    insert, pop, sort, etc.) and the ones for dicts (setitem, pop, popitem,
-    setdefault, clear, etc.).
-
     :class:`~kivy.adapters.dictadapter.DictAdapter` has sorted_keys, a
-    :class:`~kivy.adapters.list_ops.RecordingObservableList`, and
-    data, :class:`~kivy.adapters.dict_ops.RecordingObservableDict`.
-    You can change these as you wish and the system will react accordingly.
+    :class:`~kivy.ops_properties.RecordingObservableList`, and data, a
+    :class:`~kivy.ops_properties.RecordingObservableDict`.  You can change
+    these as you wish and the system will react accordingly (for the
+    sorted_keys list: append, insert, pop, sort, etc.; for the data dict:
+    setitem, pop, popitem, setdefault, clear, etc.).
 
-    It may help you to understand how the system works, combining an adapter
-    such as this one with a collection-style widget such as
-    :class:`~kivy.uix.widgets.ListView`. When something happens in your program
-    to change the list or dict in the aforementioned special properties (here
-    we are talking about sorted_keys and data), the op_info stored is a Python
-    object containing the name of the data operation that occurred, along with
-    a (start_index, end_index) for lists or (keys,) for dicts. The system
-    cannot know the details about operations beforehand, so it must react
-    after-the-fact for which items were affected and how. The adapters have
-    callbacks that handle specific operations, and make needed changes to their
-    internal cached_views, selection, and related properties, in preparation
-    for sending, in turn, a data-changed event to the collection-style widget
-    that uses the adapter. For example, :class:`~kivy.uix.widgets.ListView`
-    observes its adapter for data-changed events and updates the user
-    interface. When an item is deleted, it removes the item view widget from
-    its container, or for an addition, it adds the item view widget to its
-    container and scrolls the list, and so on.
+    See :class:`~kivy.adapters.dictadapter.ListAdapter` for discussion of how
+    the system works for :class:`~kivy.ops_properties.RecordingObservableList`
+    (sorted_keys here is one of those).
+
+    Here we also have a data property, which is a
+    :class:`~kivy.ops_properties.RecordingObservableDict`, sending change info
+    for possible ops to an associated helper op handler,
+    :class:`~kivy.adapters.dict_ops.AdapterDictOpHandler`. The op handler
+    responds to data changes by updating cached_views and selection, in support
+    of the "collection" style view that uses this adapter.
     '''
 
-    # TODO: Adapt to Python's OrderedDict?
-
     sorted_keys = ListProperty([], cls=RecordingObservableList)
-    '''A Python list that uses :class:`~kivy.properties.ObservableList` for
-    storage, and uses :class:`~kivy.adapters.list_ops.RecordingObservableList`
+    '''A Python list that uses
+    :class:`~kivy.ops_properties.RecordingObservableList`
     as a "change-aware" wrapper that records op_info for list ops.
-
-    The sorted_keys list property contains hashable objects that need to be
-    strings if no args_converter function is provided. If there is an
-    args_converter, the record received from a lookup of the data, using keys
-    from sorted_keys, will be passed to it for instantiation of item view class
-    instances.
 
     :data:`sorted_keys` is a :class:`~kivy.properties.ListProperty` and
     defaults to [].
     '''
 
     data = DictProperty({}, cls=RecordingObservableDict)
-    '''A Python dict that uses :class:`~kivy.properties.ObservableDict` for
-    storage, and uses :class:`~kivy.adapters.dict_ops.RecordingObservableDict`
-    as a "change-aware" wrapper that records op_info for dict ops.
+    '''A Python dict that uses
+    :class:`~kivy.ops_properties.RecordingObservableDict` as a "change-aware"
+    wrapper that records op_info for dict ops.
 
     The dict may contain more data items than are present in sorted_keys --
     sorted_keys can be a subset of data.keys().
@@ -104,9 +84,9 @@ class DictAdapter(Adapter):
     '''
 
     dict_op_handler = ObjectProperty(None)
-    '''An instance of :class:`DictOpHandler`, containing methods that perform
-    steps needed after the data (a
-    :class:`~kivy.adapters.dict_ops.RecordingObservableDict`) has changed. The
+    '''An instance of :class:`~kivy.adapters.dict_ops.DictOpHandler`,
+    containing methods that perform steps needed after the data (a
+    :class:`~kivy.ops_properties.RecordingObservableDict`) has changed. The
     methods are responsible for updating cached_views and selection.
 
     :data:`dict_op_handler` is a :class:`~kivy.properties.ObjectProperty` and
@@ -114,14 +94,13 @@ class DictAdapter(Adapter):
     '''
 
     op_info = ObjectProperty(None)
-    '''This is a copy of our data's op_info. We make a copy
-    before dispatching the on_data_change event, so that observers can more
-    conveniently access it.
+    '''This is a copy of our data's op_info. We make a copy before dispatching
+    the on_data_change event, so that observers can more conveniently access
+    it.
     '''
 
     additional_op_info = ObjectProperty(None)
-    '''Some ops need to store additional info, such as start_index and
-    end_index.
+    '''Some ops need to store additional info, start_index and end_index.
     '''
 
     __events__ = ('on_data_change', )
@@ -193,26 +172,6 @@ class DictAdapter(Adapter):
         self.data.insert(key, value)
 
         self.sorted_keys.insert(index, key)
-
-    def data_changed_directly(self, *args):
-
-        # data has been reset totally. We get this callback from a direct
-        # binding to data in our __init__.py -- we do not get it from the
-        # bindings for RecordingObservableDict, for which only the fine-
-        # grained, op-by-op change events are fired.
-
-        # Instead of dispatching on_data_change here, set sorted_keys to
-        # the keys of the new dict, and let that fire the data changed
-        # event. Regarding the reset of sorted_keys on data reset, it has
-        # been the practice that to change out data completely, the
-        # programmer should do a two-step process, resetting the data dict,
-        # then resetting sorted_keys. This approach continues here -- it is
-        # up to the programmer to set sorted_keys as needed after this set.
-
-        self.sorted_keys.set(self.data.keys())
-
-        # TODO: Add a method to DictAdapter called reset_data_and_sorted_keys()
-        #       to do the two-step process mentioned above with one call.
 
     # NOTE: This is not len(self.data). (The data dict may contain more items
     #       than sorted_keys -- sorted_keys can be a subset.).

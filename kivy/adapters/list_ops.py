@@ -3,8 +3,8 @@ from kivy.ops_properties import ListOpHandler
 
 
 class AdapterListOpHandler(ListOpHandler):
-    ''':class:`~kivy.adapters.listadapter.ListAdapterListOpHandler` is a helper
-    class for :class:`~kivy.adapters.listadapter.ListAdapter` reacts to the
+    ''':class:`~kivy.adapters.list_ops.AdapterListOpHandler` is a helper class
+    for :class:`~kivy.adapters.listadapter.ListAdapter`. It reacts to the
     following operations that are possible for a RecordingObservableList (ROL)
     instance in an adapter:
 
