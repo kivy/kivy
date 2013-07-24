@@ -49,7 +49,6 @@ A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
 
 __all__ = ('ListAdapter', )
 
-from kivy.event import EventDispatcher
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.list_ops import ListOpHandler
 from kivy.adapters.list_ops import RecordingObservableList
@@ -57,7 +56,7 @@ from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
 
 
-class ListAdapter(Adapter, EventDispatcher):
+class ListAdapter(Adapter):
     '''A :class:`~kivy.adapters.listadapter.ListAdapter` is an adapter around a
     python list of items. It is an alternative to the dict capabilities of
     :class:`~kivy.adapters.dictadapter.DictAdapter`.
