@@ -23,11 +23,13 @@ __all__ = ('DictAdapter', )
 from kivy.properties import DictProperty
 from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
+
+from kivy.ops_properties import RecordingObservableList
+
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.dict_ops import DictOpHandler
 from kivy.adapters.dict_ops import RecordingObservableDict
-from kivy.adapters.list_ops import ListOpHandler
-from kivy.adapters.list_ops import RecordingObservableList
+from kivy.adapters.list_ops import AdapterListOpHandler
 
 
 class DictAdapter(Adapter):
@@ -140,9 +142,10 @@ class DictAdapter(Adapter):
         super(DictAdapter, self).__init__(**kwargs)
 
         # Delegate handling for sorted_keys changes to a ListOpHandler.
-        self.list_op_handler = ListOpHandler(adapter=self,
-                                             source_list=self.sorted_keys,
-                                             duplicates_allowed=False)
+        self.list_op_handler = \
+                AdapterListOpHandler(adapter=self,
+                                     source_list=self.sorted_keys,
+                                     duplicates_allowed=False)
         self.sorted_keys.bind(
                 op_info=self.list_op_handler.data_changed,
                 sort_op_info=self.list_op_handler.sort_started)

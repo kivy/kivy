@@ -50,8 +50,8 @@ A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
 __all__ = ('ListAdapter', )
 
 from kivy.adapters.adapter import Adapter
-from kivy.adapters.list_ops import ListOpHandler
-from kivy.adapters.list_ops import RecordingObservableList
+from kivy.adapters.list_ops import AdapterListOpHandler
+from kivy.ops_properties import RecordingObservableList
 from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
 
@@ -134,9 +134,9 @@ class ListAdapter(Adapter):
         self.bind(selection_mode=self.selection_mode_changed,
                   allow_empty_selection=self.check_for_empty_selection)
 
-        self.list_op_handler = ListOpHandler(adapter=self,
-                                             source_list=self.data,
-                                             duplicates_allowed=True)
+        self.list_op_handler = AdapterListOpHandler(adapter=self,
+                                                    source_list=self.data,
+                                                    duplicates_allowed=True)
 
         self.data.bind(op_info=self.list_op_handler.data_changed,
                        sort_op_info=self.list_op_handler.sort_started)

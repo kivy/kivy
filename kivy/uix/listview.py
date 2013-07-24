@@ -573,7 +573,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
-from kivy.adapters.list_ops import ListOpInfo
+from kivy.ops_properties import ListOpInfo
 from kivy.adapters.dict_ops import DictOpInfo
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.adapters.listadapter import ListAdapter
