@@ -25,10 +25,10 @@ from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
 
 from kivy.ops_properties import RecordingObservableList
+from kivy.ops_properties import RecordingObservableDict
 
 from kivy.adapters.adapter import Adapter
-from kivy.adapters.dict_ops import DictOpHandler
-from kivy.adapters.dict_ops import RecordingObservableDict
+from kivy.adapters.dict_ops import AdapterDictOpHandler
 from kivy.adapters.list_ops import AdapterListOpHandler
 
 
@@ -78,8 +78,8 @@ class DictAdapter(Adapter):
 
     sorted_keys = ListProperty([], cls=RecordingObservableList)
     '''A Python list that uses :class:`~kivy.properties.ObservableList` for
-    storage, and uses :class:`~kivy.adapters.list_ops.RecordingObservableList` as a
-    "change-aware" wrapper that records op_info for list ops.
+    storage, and uses :class:`~kivy.adapters.list_ops.RecordingObservableList`
+    as a "change-aware" wrapper that records op_info for list ops.
 
     The sorted_keys list property contains hashable objects that need to be
     strings if no args_converter function is provided. If there is an
@@ -151,8 +151,9 @@ class DictAdapter(Adapter):
                 sort_op_info=self.list_op_handler.sort_started)
 
         # Delegate handling for data changes to a DictOpHandler.
-        self.dict_op_handler = DictOpHandler(adapter=self,
-                                             source_dict=self.data)
+        self.dict_op_handler = \
+                AdapterDictOpHandler(adapter=self,
+                                     source_dict=self.data)
         self.data.bind(op_info=self.dict_op_handler.data_changed)
 
     def sorted_keys_checked(self, sorted_keys, data_keys):
