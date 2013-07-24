@@ -17,6 +17,7 @@ strings that do not require user interaction.
 
 __all__ = ('SimpleListAdapter', )
 
+from kivy.adapters.adapter import Adapter
 from kivy.adapters.args_converters import list_item_args_converter
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty
