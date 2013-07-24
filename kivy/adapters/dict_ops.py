@@ -3,9 +3,10 @@ from kivy.ops_properties import DictOpHandler
 
 
 class AdapterDictOpHandler(DictOpHandler):
-    '''A :class:`~kivy.adapters.dictadapter.DictAdapter` reacts to the
-    following operations that are possible for a RecordingObservableDict (ROD)
-    instance in an adapter.
+    ''':class:`~kivy.adapters.dict_ops.AdapterDictOpHandler` is a helper class
+    for :class:`~kivy.adapters.dictadapter.DictAdapter`. It reacts to the
+    operations listed below that are possible for a RecordingObservableDict
+    (ROD) instance in an adapter.
 
     For :class:`~kivy.adapters.dictadapter.DictAdapter` the ops that could be
     considered misssing from this coverage are handled by a companion handler

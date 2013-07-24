@@ -11,7 +11,7 @@ ListAdapter
 
 A :class:`ListAdapter` is an adapter around a python list.
 
-From an :class:`~kivy.adapters.adapter.Adapter`, a
+From :class:`~kivy.adapters.adapter.Adapter`, a
 :class:`~kivy.adapters.listadapter.ListAdapter` gets cls, template, and
 args_converter properties.
 
@@ -25,12 +25,6 @@ selection behaviour:
 * *allow_empty_selection*, a boolean -- If False, a selection is forced. If
   True, and only user or programmatic action will change selection, it can
   be empty.
-
-If you wish to have a bare-bones list adapter, without selection, use a
-:class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`.
-
-A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
-:class:`~kivy.adapters.adapter.Adapter`.
 
     :Events:
 
@@ -65,65 +59,57 @@ class ListAdapter(Adapter):
     :class:`~kivy.adapters.listadapter.DictAdapter` use special
     :class:`~kivy.properties.ListProperty` and
     :class:`~kivy.properties.DictProperty` variants,
-    :class:`~kivy.adapters.list_ops.RecordingObservableList` and
-    :class:`~kivy.adapters.dict_ops.RecordingObservableDict`, which
-    record op_info for use in the adapter system.
+    :class:`~kivy.ops_properties.RecordingObservableList` and
+    :class:`~kivy.ops_properties.RecordingObservableDict`, which record
+    op_info for use in the adapter system.
+
+    The data property of :class:`~kivy.adapters.listadapter.ListAdapter` is a
+    :class:`~kivy.ops_properties.RecordingObservableList`.
 
     This system endeavors to allow normal Python programming of the contained
-    list or dict objects. For lists, this means normal operations (append,
-    insert, pop, sort, etc.) and the ones for dicts (setitem, pop, popitem,
-    setdefault, clear, etc.).
+    data list object. When normal operations such as append, insert, pop,
+    sort, are performed on the data list, and the system will notice those
+    changes and react accordingly, adjusting its cached_views and selection in
+    support of the "collection" style view that uses the adapter (e.g.,
+    :class:`~kivy.uix.listview.ListView`).
 
-    :class:`~kivy.adapters.listadapter.ListAdapter` has data, a
-    :class:`~kivy.adapters.list_ops.RecordingObservableList`. You can
-    change the data list as you wish and the system will react accordingly.
-
-    It may help you to understand how the system works, combining an adapter
-    such as this one with a collection-style widget such as
+    This adapter supports collection-style widgets such as
     :class:`~kivy.uix.widgets.ListView`. When something happens in your program
-    to change the list (here we are talking about the property called data),
-    the op_info stored is a Python object containing the name of the data
-    operation that occurred, along with start_index, end_index.  The system
-    cannot know the details about operations beforehand, so it must react
-    after-the-fact for which items were affected and how. The adapter has
-    callbacks that handle specific operations, and make needed changes to the
-    internal cached_views, selection, and related properties, in preparation
-    for sending, in turn, a data-changed event to the collection-style widget
-    that uses the adapter.  For example, :class:`~kivy.uix.widgets.ListView`
-    observes its adapter for data-changed events and updates the user
-    interface. When an item is deleted, it removes the item view widget from
-    its container, or for an addition, it adds the item view widget to its
-    container and scrolls the list, and so on.
+    to change the data list, the name of the data operation that occurred,
+    along with start_index, end_index of the item(s) affected are stored.  The
+    adapter, via its instance of a :class:`~kivy.ops_properties.ListOpHandler`,
+    has callbacks that handle specific operations, and make needed changes to
+    the internal cached_views, selection, and related properties, in
+    preparation for sending, in turn, a data-changed event to the
+    collection-style widget that uses the adapter.  For example,
+    :class:`~kivy.uix.widgets.ListView` observes its adapter for data-changed
+    events and updates the user interface. When an item is deleted, it removes
+    the item view widget from its container, or for an addition, it adds the
+    item view widget to its container and scrolls the list, and so on.
     '''
 
     data = ListProperty([], cls=RecordingObservableList)
-    '''A Python list that uses :class:`~kivy.properties.ObservableList` for
-    storage, and uses :class:`~kivy.adapters.list_ops.RecordingObservableList`
-    as a "change-aware" wrapper that records op_info for list ops.
-
-    The data list property contains the normal items allowed in Python, but
-    they need to be strings if no args_converter function is provided. If there
-    is an args_converter, the record received from a lookup of the data will be
-    passed to it for instantiation of item view class instances.
+    '''A Python list that uses
+    :class:`~kivy.ops_properties.RecordingObservableList` for storage, as a
+    "change-aware" wrapper that records change info for list ops.
 
     :data:`data` is a :class:`~kivy.properties.ListProperty` and defaults
     to [].
     '''
 
     list_op_handler = ObjectProperty(None)
-    '''An instance of :class:`ListOpHandler`, containing methods that perform
-    steps needed after the data (a
-    :class:`~kivy.adapters/list_ops.RecordingObservableList`) has changed. The
-    methods are responsible for updating cached_views and selection.
+    '''An instance of :class:`~kivy.adapters.list_ops.AdapterListOpHandler`,
+    containing methods that perform steps needed after the data has changed.
+    The methods are responsible for updating cached_views and selection.
 
     :data:`list_op_handler` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to None. It is instantiated and set on init.
     '''
 
     op_info = ObjectProperty(None)
-    '''This is a copy of our data's op_info. We make a copy
-    before dispatching the on_data_change event, so that observers can more
-    conveniently access it.
+    '''This is a copy of our data's op_info. We make a copy before dispatching
+    the on_data_change event, so that observers can more conveniently access
+    it.
     '''
 
     __events__ = ('on_data_change', )
