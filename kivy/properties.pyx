@@ -640,6 +640,7 @@ class ObservableDict(dict):
         if value is None:
             # remove attribute if value is None
             # is this really needed?
+            # NOTE: RecordingObservableDict allows None values.
             self.__delitem__(key)
         else:
             dict.__setitem__(self, key, value)
@@ -712,6 +713,14 @@ cdef class ObjectProperty(Property):
     .. warning::
 
         To mark the property as changed, you must reassign a new python object.
+
+        Be careful of using tuples, for instance: if a tuple were used in
+        setting a delete_op ObjectProperty instance to mark a list delete
+        operation with (0, 0) for start and end indices, repeated delete ops
+        set with (0, 0) would not dispatch for a change, because in
+        :class:`~kivy.properties.Property` the comparison for change is made
+        with the == operator, not the is comparison. Use a class to hold the
+        start and stop indices instead.
 
     .. versionchanged:: 1.7.0
 

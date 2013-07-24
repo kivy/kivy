@@ -83,18 +83,18 @@ class ListAdapter(Adapter, EventDispatcher):
     such as this one with a collection-style widget such as
     :class:`~kivy.uix.widgets.ListView`. When something happens in your program
     to change the list (here we are talking about the property called data),
-    the op_info stored is a Python tuple containing the name of the data
-    operation that occurred, along with a contained tuple with (start_index,
-    end_index).  The system cannot know the details about operations
-    beforehand, so it must react after-the-fact for which items were affected
-    and how. The adapter has callbacks that handle specific operations, and
-    make needed changes to the internal cached_views, selection, and related
-    properties, in preparation for sending, in turn, a data-changed event to
-    the collection-style widget that uses the adapter.  For example,
-    :class:`~kivy.uix.widgets.ListView` observes its adapter for data-changed
-    events and updates the user interface. When an item is deleted, it removes
-    the item view widget from its container, or for an addition, it adds the
-    item view widget to its container and scrolls the list, and so on.
+    the op_info stored is a Python object containing the name of the data
+    operation that occurred, along with start_index, end_index.  The system
+    cannot know the details about operations beforehand, so it must react
+    after-the-fact for which items were affected and how. The adapter has
+    callbacks that handle specific operations, and make needed changes to the
+    internal cached_views, selection, and related properties, in preparation
+    for sending, in turn, a data-changed event to the collection-style widget
+    that uses the adapter.  For example, :class:`~kivy.uix.widgets.ListView`
+    observes its adapter for data-changed events and updates the user
+    interface. When an item is deleted, it removes the item view widget from
+    its container, or for an addition, it adds the item view widget to its
+    container and scrolls the list, and so on.
     '''
 
     data = ListProperty([], cls=RecordingObservableList)
@@ -121,8 +121,8 @@ class ListAdapter(Adapter, EventDispatcher):
     defaults to None. It is instantiated and set on init.
     '''
 
-    op_info = ObjectProperty(None, allownone=True)
-    '''This is a copy of our data's recorder.op_info. We make a copy
+    op_info = ObjectProperty(None)
+    '''This is a copy of our data's op_info. We make a copy
     before dispatching the on_data_change event, so that observers can more
     conveniently access it.
     '''
@@ -133,44 +133,16 @@ class ListAdapter(Adapter, EventDispatcher):
         super(ListAdapter, self).__init__(**kwargs)
 
         self.bind(selection_mode=self.selection_mode_changed,
-                  allow_empty_selection=self.check_for_empty_selection,
-                  data=self.data_changed_directly)
+                  allow_empty_selection=self.check_for_empty_selection)
 
         self.list_op_handler = ListOpHandler(adapter=self,
                                              source_list=self.data,
                                              duplicates_allowed=True)
 
-        self.data.recorder.bind(
-                op_info=self.list_op_handler.data_changed,
-                sort_started=self.list_op_handler.sort_started)
+        self.data.bind(op_info=self.list_op_handler.data_changed,
+                       sort_op_info=self.list_op_handler.sort_started)
 
         self.initialize_selection()
-
-    def data_changed_directly(self, *args):
-        '''This callback happens as a result of the direct data binding set up
-        in __init__(). It is needed for the direct set of data, as happens in
-        ...data = [some new data list], which is not picked up by the ROL data
-        change system. We check by looking for a valid recorder that is created
-        when a ROL event has fired. If not present, we know this call is from a
-        direct data set.
-        '''
-
-        if (hasattr(self.data, 'recorder')
-               and not self.data.recorder.op_started):
-
-            self.cached_views.clear()
-
-            self.list_op_handler.source_list = self.data
-
-            self.data.recorder.bind(
-                on_op_info=self.list_op_handler.data_changed,
-                on_sort_started=self.list_op_handler.sort_started)
-
-            self.op_info = ('ROL_reset', (0, 0))
-
-            self.dispatch('on_data_change')
-
-            self.initialize_selection()
 
     def on_data_change(self, *args):
         '''on_data_change() is the default handler for the
