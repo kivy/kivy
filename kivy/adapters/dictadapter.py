@@ -20,7 +20,6 @@ If you wish to have a bare-bones list adapter, without selection, use the
 
 __all__ = ('DictAdapter', )
 
-from kivy.event import EventDispatcher
 from kivy.properties import DictProperty
 from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
@@ -31,7 +30,7 @@ from kivy.adapters.list_ops import ListOpHandler
 from kivy.adapters.list_ops import RecordingObservableList
 
 
-class DictAdapter(Adapter, EventDispatcher):
+class DictAdapter(Adapter):
     '''A :class:`~kivy.adapters.dictadapter.DictAdapter` is an adapter around a
     python dictionary of records. It is an alternative to the list capabilities
     of :class:`~kivy.adapters.listadapter.ListAdapter`.
