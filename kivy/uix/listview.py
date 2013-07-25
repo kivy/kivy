@@ -591,8 +591,8 @@ from kivy.properties import ListProperty
 from kivy.properties import NumericProperty
 from kivy.properties import ObjectProperty
 
-from kivy.ops_properties import DictOpInfo
-from kivy.ops_properties import ListOpInfo
+from kivy.properties import DictOpInfo
+from kivy.properties import ListOpInfo
 
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.adapters.listadapter import ListAdapter
@@ -1146,63 +1146,63 @@ class ListView(AbstractView, EventDispatcher):
 
         # list and dict change ops:
         #
-        #      rol == ChangeRecordingObservableList
+        #      ool == OpObservableList
         #
         #            set ops:
         #
-        #                ROL_setitem  - single item set
-        #                ROL_setslice - range of items
+        #                OOL_setitem  - single item set
+        #                OOL_setslice - range of items
         #
         #            add ops:
         #
-        #                ROL_iadd   - adds items to end
-        #                ROL_imul   - adds items to end
-        #                ROL_append - adds items to end
-        #                ROL_insert - insert
-        #                ROL_extend - adds items to end
+        #                OOL_iadd   - adds items to end
+        #                OOL_imul   - adds items to end
+        #                OOL_append - adds items to end
+        #                OOL_insert - insert
+        #                OOL_extend - adds items to end
         #
         #            delete ops:
         #
-        #                ROL_delitem  - single item
-        #                ROL_delslice - multiple items
-        #                ROL_remove   - single item
-        #                ROL_pop      - single item
+        #                OOL_delitem  - single item
+        #                OOL_delslice - multiple items
+        #                OOL_remove   - single item
+        #                OOL_pop      - single item
         #
         #            sort ops:
         #
-        #                ROL_sort
-        #                ROL_reverse
+        #                OOL_sort
+        #                OOL_reverse
         #
-        #       rod == ChangeRecordingObservableDict
+        #       ood == OpObservableDict
         #
         #            set op:
         #
-        #                ROD_setattr     - single item set
+        #                OOD_setattr     - single item set
         #                    (We do not receive.)
-        #                ROD_setitem_set - single item set
-        #                    (We receive the ROD op directly.)
+        #                OOD_setitem_set - single item set
+        #                    (We receive the OOD op directly.)
         #
         #            add ops:
         #
-        #                ROD_setitem_add - single item
-        #                ROD_setdefault  - single item
-        #                ROD_update      - single or multiple items
+        #                OOD_setitem_add - single item
+        #                OOD_setdefault  - single item
+        #                OOD_update      - single or multiple items
         #
-        #                    (We receive ROL ops, from changes to
+        #                    (We receive OOL ops, from changes to
         #                     sorted_keys fired by these):
         #
         #            delete ops:
         #
-        #                ROD_delitem     - single item
-        #                ROD_pop         - single item
-        #                ROD_popitem     - single item
-        #                  [NOTE: ROD_popitem is performed as ROL_delitem]
-        #                ROD_clear       - all items deleted
+        #                OOD_delitem     - single item
+        #                OOD_pop         - single item
+        #                OOD_popitem     - single item
+        #                  [NOTE: OOD_popitem is performed as OOL_delitem]
+        #                OOD_clear       - all items deleted
         #
-        #                    (We receive ROL ops, from changes to
+        #                    (We receive OOL ops, from changes to
         #                     sorted_keys fired by these):
 
-        # Callbacks could come here from either ROL or ROD, and there could
+        # Callbacks could come here from either OOL or OOD, and there could
         # be differences in handling.
 
         # TODO: This is to solve a timing issue when running tests. Remove when
@@ -1231,7 +1231,7 @@ class ListView(AbstractView, EventDispatcher):
         # Otherwise, we may have item_views as children of self.container
         # that should be removed.
 
-        if op in ['ROL_setitem', 'ROD_setitem_set', ]:
+        if op in ['OOL_setitem', 'OOD_setitem_set', ]:
 
             widget_index = -1
 
@@ -1248,7 +1248,7 @@ class ListView(AbstractView, EventDispatcher):
                 item_view = self.adapter.get_view(start_index)
                 self.container.add_widget(item_view, widget_index)
 
-        elif op in ['ROL_setslice', ]:
+        elif op in ['OOL_setslice', ]:
 
             len_data = len(self.adapter.data)
 
@@ -1281,12 +1281,12 @@ class ListView(AbstractView, EventDispatcher):
                 item_view = self.adapter.get_view(slice_index)
                 self.container.add_widget(item_view, add_index)
 
-        elif op in ['ROL_append',
-                    'ROL_extend',
-                    'ROD_setattr',    # TODO: not scroll_after_add()?
-                    'ROD_setitem_add',
-                    'ROD_setdefault',
-                    'ROD_update']:
+        elif op in ['OOL_append',
+                    'OOL_extend',
+                    'OOD_setattr',    # TODO: not scroll_after_add()?
+                    'OOD_setitem_add',
+                    'OOD_setdefault',
+                    'OOD_update']:
 
             self.scroll_to_end()
 
@@ -1296,16 +1296,16 @@ class ListView(AbstractView, EventDispatcher):
             #self.populate()
             #self.dispatch('on_scroll_complete')
 
-        elif op in ['ROL_delitem',
-                    'ROL_delslice',
-                    'ROL_remove',
-                    'ROL_pop',
-                    'ROD_delitem',
-                    'ROD_clear',
-                    'ROD_pop', ]:
+        elif op in ['OOL_delitem',
+                    'OOL_delslice',
+                    'OOL_remove',
+                    'OOL_pop',
+                    'OOD_delitem',
+                    'OOD_clear',
+                    'OOD_pop', ]:
 
-            # NOTE: There is no ROD_popitem here, because it is performed as
-            #       a ROD_delitem.
+            # NOTE: There is no OOD_popitem here, because it is performed as
+            #       a OOD_delitem.
 
             deleted_indices = range(start_index, end_index + 1)
 
@@ -1318,14 +1318,14 @@ class ListView(AbstractView, EventDispatcher):
             self.populate()
             self.dispatch('on_scroll_complete')
 
-        elif op == 'ROL_insert':
+        elif op == 'OOL_insert':
 
             #self.scroll_after_add()
             self.scrolling = True
             self.populate()
             self.dispatch('on_scroll_complete')
 
-        elif op in ['ROL_sort', 'ROL_reverse', 'ROL_set', ]:
+        elif op in ['OOL_sort', 'OOL_reverse', 'OOL_set', ]:
 
             self.container.clear_widgets()
 

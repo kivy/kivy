@@ -45,7 +45,7 @@ __all__ = ('ListAdapter', )
 
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.list_ops import AdapterListOpHandler
-from kivy.ops_properties import RecordingObservableList
+from kivy.properties import OpObservableList
 from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
 
@@ -59,12 +59,12 @@ class ListAdapter(Adapter):
     :class:`~kivy.adapters.listadapter.DictAdapter` use special
     :class:`~kivy.properties.ListProperty` and
     :class:`~kivy.properties.DictProperty` variants,
-    :class:`~kivy.ops_properties.RecordingObservableList` and
-    :class:`~kivy.ops_properties.RecordingObservableDict`, which record
+    :class:`~kivy.properties.OpObservableList` and
+    :class:`~kivy.properties.OpObservableDict`, which record
     op_info for use in the adapter system.
 
     The data property of :class:`~kivy.adapters.listadapter.ListAdapter` is a
-    :class:`~kivy.ops_properties.RecordingObservableList`.
+    :class:`~kivy.properties.OpObservableList`.
 
     This system endeavors to allow normal Python programming of the contained
     data list object. When normal operations such as append, insert, pop,
@@ -77,7 +77,7 @@ class ListAdapter(Adapter):
     :class:`~kivy.uix.widgets.ListView`. When something happens in your program
     to change the data list, the name of the data operation that occurred,
     along with start_index, end_index of the item(s) affected are stored.  The
-    adapter, via its instance of a :class:`~kivy.ops_properties.ListOpHandler`,
+    adapter, via its instance of a :class:`~kivy.properties.ListOpHandler`,
     has callbacks that handle specific operations, and make needed changes to
     the internal cached_views, selection, and related properties, in
     preparation for sending, in turn, a data-changed event to the
@@ -88,9 +88,9 @@ class ListAdapter(Adapter):
     item view widget to its container and scrolls the list, and so on.
     '''
 
-    data = ListProperty([], cls=RecordingObservableList)
+    data = ListProperty([], cls=OpObservableList)
     '''A Python list that uses
-    :class:`~kivy.ops_properties.RecordingObservableList` for storage, as a
+    :class:`~kivy.properties.OpObservableList` for storage, as a
     "change-aware" wrapper that records change info for list ops.
 
     :data:`data` is a :class:`~kivy.properties.ListProperty` and defaults
@@ -117,15 +117,12 @@ class ListAdapter(Adapter):
     def __init__(self, **kwargs):
         super(ListAdapter, self).__init__(**kwargs)
 
+        self.list_op_handler = AdapterListOpHandler(
+                source_list=self.data, duplicates_allowed=True)
+
         self.bind(selection_mode=self.selection_mode_changed,
-                  allow_empty_selection=self.check_for_empty_selection)
-
-        self.list_op_handler = AdapterListOpHandler(adapter=self,
-                                                    source_list=self.data,
-                                                    duplicates_allowed=True)
-
-        self.data.bind(op_info=self.list_op_handler.data_changed,
-                       sort_op_info=self.list_op_handler.sort_started)
+                  allow_empty_selection=self.check_for_empty_selection,
+                  data=self.list_op_handler.data_changed)
 
         self.initialize_selection()
 

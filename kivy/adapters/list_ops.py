@@ -1,49 +1,50 @@
 from kivy.logger import Logger
-from kivy.ops_properties import ListOpHandler
+from kivy.properties import ListOpHandler
+from kivy.properties import ListOpInfo
 
 
 class AdapterListOpHandler(ListOpHandler):
     ''':class:`~kivy.adapters.list_ops.AdapterListOpHandler` is a helper class
     for :class:`~kivy.adapters.listadapter.ListAdapter`. It reacts to the
-    following operations that are possible for a RecordingObservableList (ROL)
+    following operations that are possible for a OpObservableList (OOL)
     instance in an adapter:
 
         handle_add_first_item_op()
 
-            ROL_append
-            ROL_extend
-            ROL_insert
+            OOL_append
+            OOL_extend
+            OOL_insert
 
         handle_add_op()
 
-            ROL_append
-            ROL_extend
-            ROL_iadd
-            ROL_imul
+            OOL_append
+            OOL_extend
+            OOL_iadd
+            OOL_imul
 
         handle_insert_op()
 
-            ROL_insert
+            OOL_insert
 
         handle_setitem_op()
 
-            ROL_setitem
+            OOL_setitem
 
         handle_setslice_op()
 
-            ROL_setslice
+            OOL_setslice
 
         handle_delete_op()
 
-            ROL_delitem
-            ROL_delslice
-            ROL_remove
-            ROL_pop
+            OOL_delitem
+            OOL_delslice
+            OOL_remove
+            OOL_pop
 
         handle_sort_op()
 
-            ROL_sort
-            ROL_reverse
+            OOL_sort
+            OOL_reverse
 
         These methods adjust cached_views and selection for the adapter.
     '''
@@ -51,82 +52,85 @@ class AdapterListOpHandler(ListOpHandler):
     # TODO: Document that, e.g., self.adapter.sorted_keys = [] is not covered,
     #       and a call to, e.g., self.adapter.sorted_keys.set([]) is required.
 
-    def __init__(self, adapter, source_list, duplicates_allowed):
+    def __init__(self, source_list, duplicates_allowed):
 
-        self.adapter = adapter
         self.source_list = source_list
+
         self.duplicates_allowed = duplicates_allowed
 
         super(AdapterListOpHandler, self).__init__()
 
     def data_changed(self, *args):
 
-        op_info = args[0].op_info
-
-        # TODO: This is to solve a timing issue when running tests. Remove when
-        #       no longer needed.
-        if not op_info:
-            #Clock.schedule_once(lambda dt: self.data_changed(*args))
-            return
+        self.adapter = args[0]
+        # TODO: args[1] is the modified list -- can utilize?
+        if len(args) == 3:
+            op_info = args[2]
+        else:
+            op_info = ListOpInfo('OOL_set', 0, 0)
 
         # Make a copy in the adapter for more convenient access by observers.
         self.adapter.op_info = op_info
 
         Logger.info(('ListAdapter: '
-                     'ROL data_changed callback ') + str(op_info))
+                     'OOL data_changed callback ') + str(op_info))
 
         op = op_info.op_name
         start_index = op_info.start_index
         end_index = op_info.end_index
 
-        if op == 'ROL_set':
+        if op == 'OOL_sort_start':
+            self.sort_started(*args)
+            return
+
+        if op == 'OOL_set':
 
             self.handle_set()
 
         elif (len(self.source_list) == 1
-                and op in ['ROL_append',
-                           'ROL_insert',
-                           'ROL_extend']):
+                and op in ['OOL_append',
+                           'OOL_insert',
+                           'OOL_extend']):
 
             self.handle_add_first_item_op()
 
         else:
 
-            if op in ['ROL_iadd',
-                      'ROL_imul',
-                      'ROL_append',
-                      'ROL_extend']:
+            if op in ['OOL_iadd',
+                      'OOL_imul',
+                      'OOL_append',
+                      'OOL_extend']:
 
                 self.handle_add_op()
 
-            elif op in ['ROL_setitem']:
+            elif op in ['OOL_setitem']:
 
                 self.handle_setitem_op(start_index)
 
-            elif op in ['ROL_setslice']:
+            elif op in ['OOL_setslice']:
 
                 self.handle_setslice_op(start_index, end_index)
 
-            elif op in ['ROL_insert']:
+            elif op in ['OOL_insert']:
 
                 self.handle_insert_op(start_index)
 
-            elif op in ['ROL_delitem',
-                        'ROL_delslice',
-                        'ROL_remove',
-                        'ROL_pop']:
+            elif op in ['OOL_delitem',
+                        'OOL_delslice',
+                        'OOL_remove',
+                        'OOL_pop']:
 
                 self.handle_delete_op(start_index, end_index)
 
-            elif op in ['ROL_sort',
-                        'ROL_reverse']:
+            elif op in ['OOL_sort',
+                        'OOL_reverse']:
 
                 self.handle_sort_op()
 
             else:
 
                 Logger.info(('ListOpHandler: '
-                             'ROL data_changed callback, uncovered op ')
+                             'OOL data_changed callback, uncovered op ')
                                  + str(op))
 
         self.adapter.dispatch('on_data_change')
@@ -272,8 +276,10 @@ class AdapterListOpHandler(ListOpHandler):
 
     def sort_started(self, *args):
 
-        # Save a pre-sort order, and position detail, if there are duplicates
-        # of strings.
+        # This temporary association has keys as the indices of the adapter's
+        # cached_views and the adapter's data items, for use in post-sort
+        # widget reordering.
+
         presort_indices_and_items = {}
 
         if self.duplicates_allowed:
@@ -298,8 +304,7 @@ class AdapterListOpHandler(ListOpHandler):
                             {'data_item': data_item,
                              'pos_in_instances': pos_in_instances}
 
-        self.source_list.presort_indices_and_items = \
-                presort_indices_and_items
+        self.presort_indices_and_items = presort_indices_and_items
 
         self.source_list.finish_sort_op()
 
@@ -310,8 +315,7 @@ class AdapterListOpHandler(ListOpHandler):
         cached_views entirely.
         '''
 
-        presort_indices_and_items = \
-                self.source_list.presort_indices_and_items
+        presort_indices_and_items = self.presort_indices_and_items
 
         # We have an association of presort indices with data items.
         # Where is each data item after sort? Change the index of the
@@ -346,4 +350,4 @@ class AdapterListOpHandler(ListOpHandler):
         self.adapter.cached_views = new_cached_views
 
         # Clear temporary storage.
-        self.source_list.presort_indices_and_items.clear()
+        self.presort_indices_and_items.clear()

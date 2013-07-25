@@ -19,8 +19,8 @@ from kivy.properties import DictProperty
 from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
 
-from kivy.ops_properties import RecordingObservableList
-from kivy.ops_properties import RecordingObservableDict
+from kivy.properties import OpObservableList
+from kivy.properties import OpObservableDict
 
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.dict_ops import AdapterDictOpHandler
@@ -39,41 +39,41 @@ class DictAdapter(Adapter):
     :class:`~kivy.adapters.listadapter.DictAdapter` use special
     :class:`~kivy.properties.ListProperty` and
     :class:`~kivy.properties.DictProperty` variants,
-    :class:`~kivy.ops_properties.RecordingObservableList` and
-    :class:`~kivy.ops_properties.RecordingObservableDict`, which
+    :class:`~kivy.properties.OpObservableList` and
+    :class:`~kivy.properties.OpObservableDict`, which
     record op_info for use in the adapter system.
 
     :class:`~kivy.adapters.dictadapter.DictAdapter` has sorted_keys, a
-    :class:`~kivy.ops_properties.RecordingObservableList`, and data, a
-    :class:`~kivy.ops_properties.RecordingObservableDict`.  You can change
+    :class:`~kivy.properties.OpObservableList`, and data, a
+    :class:`~kivy.properties.OpObservableDict`.  You can change
     these as you wish and the system will react accordingly (for the
     sorted_keys list: append, insert, pop, sort, etc.; for the data dict:
     setitem, pop, popitem, setdefault, clear, etc.).
 
     See :class:`~kivy.adapters.dictadapter.ListAdapter` for discussion of how
-    the system works for :class:`~kivy.ops_properties.RecordingObservableList`
+    the system works for :class:`~kivy.properties.OpObservableList`
     (sorted_keys here is one of those).
 
     Here we also have a data property, which is a
-    :class:`~kivy.ops_properties.RecordingObservableDict`, sending change info
+    :class:`~kivy.properties.OpObservableDict`, sending change info
     for possible ops to an associated helper op handler,
     :class:`~kivy.adapters.dict_ops.AdapterDictOpHandler`. The op handler
     responds to data changes by updating cached_views and selection, in support
     of the "collection" style view that uses this adapter.
     '''
 
-    sorted_keys = ListProperty([], cls=RecordingObservableList)
+    sorted_keys = ListProperty([], cls=OpObservableList)
     '''A Python list that uses
-    :class:`~kivy.ops_properties.RecordingObservableList`
+    :class:`~kivy.properties.OpObservableList`
     as a "change-aware" wrapper that records op_info for list ops.
 
     :data:`sorted_keys` is a :class:`~kivy.properties.ListProperty` and
     defaults to [].
     '''
 
-    data = DictProperty({}, cls=RecordingObservableDict)
+    data = DictProperty({}, cls=OpObservableDict)
     '''A Python dict that uses
-    :class:`~kivy.ops_properties.RecordingObservableDict` as a "change-aware"
+    :class:`~kivy.properties.OpObservableDict` as a "change-aware"
     wrapper that records op_info for dict ops.
 
     The dict may contain more data items than are present in sorted_keys --
@@ -86,7 +86,7 @@ class DictAdapter(Adapter):
     dict_op_handler = ObjectProperty(None)
     '''An instance of :class:`~kivy.adapters.dict_ops.DictOpHandler`,
     containing methods that perform steps needed after the data (a
-    :class:`~kivy.ops_properties.RecordingObservableDict`) has changed. The
+    :class:`~kivy.properties.OpObservableDict`) has changed. The
     methods are responsible for updating cached_views and selection.
 
     :data:`dict_op_handler` is a :class:`~kivy.properties.ObjectProperty` and
@@ -121,19 +121,14 @@ class DictAdapter(Adapter):
         super(DictAdapter, self).__init__(**kwargs)
 
         # Delegate handling for sorted_keys changes to a ListOpHandler.
-        self.list_op_handler = \
-                AdapterListOpHandler(adapter=self,
-                                     source_list=self.sorted_keys,
-                                     duplicates_allowed=False)
-        self.sorted_keys.bind(
-                op_info=self.list_op_handler.data_changed,
-                sort_op_info=self.list_op_handler.sort_started)
+        self.list_op_handler = AdapterListOpHandler(
+                source_list=self.sorted_keys, duplicates_allowed=False)
 
         # Delegate handling for data changes to a DictOpHandler.
-        self.dict_op_handler = \
-                AdapterDictOpHandler(adapter=self,
-                                     source_dict=self.data)
-        self.data.bind(op_info=self.dict_op_handler.data_changed)
+        self.dict_op_handler = AdapterDictOpHandler(source_dict=self.data)
+
+        self.bind(sorted_keys=self.list_op_handler.data_changed,
+                  data=self.dict_op_handler.data_changed)
 
     def sorted_keys_checked(self, sorted_keys, data_keys):
 
@@ -166,7 +161,7 @@ class DictAdapter(Adapter):
 
     def insert(self, index, key, value):
 
-        # This special insert() ROD call only does a dict set (it does not
+        # This special insert() OOD call only does a dict set (it does not
         # write op_info). We will let the sorted_keys insert trigger a
         # data change event.
         self.data.insert(key, value)
