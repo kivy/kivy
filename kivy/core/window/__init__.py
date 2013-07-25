@@ -3,8 +3,8 @@
 Window
 ======
 
-Core class for create the default Kivy window. Kivy support only one window
-creation. Don't try to create more than one.
+Core class for creating the default Kivy window. Kivy supports only one window
+per application: please don't try to create more than one.
 '''
 
 __all__ = ('Keyboard', 'WindowBase', 'Window')
@@ -28,19 +28,19 @@ VKeyboard = None
 
 
 class Keyboard(EventDispatcher):
-    '''Keyboard interface, that is returned by
+    '''Keyboard interface that is returned by
     :meth:`WindowBase.request_keyboard`. When you request a keyboard, you'll get
-    an instance of this class. Whatever is the keyboard input (system or virtual
-    keyboard), you'll receive event though this instance.
+    an instance of this class. Whatever the keyboard input is (system or virtual
+    keyboard), you'll receive events though this instance.
 
     :Events:
         `on_key_down`: keycode, text, modifiers
-            Fired when a new key is down
+            Fired when a new key is pressed down
         `on_key_up`: keycode
-            Fired when a key is up
+            Fired when a key is released (up)
 
-    Here is an example about how to request a Keyboard, according to the current
-    configuration:
+    Here is an example of how to request a Keyboard in accordance with the
+    current configuration:
 
     .. include:: ../../examples/widgets/keyboardlistener.py
         :literal:
@@ -119,7 +119,7 @@ class Keyboard(EventDispatcher):
 
     def release(self):
         '''Call this method to release the current keyboard.
-        This will ensure that keyboard is not attached to you anymore.
+        This will ensure that keyboard is not attached to your callback anymore.
         '''
         if self.window:
             self.window.release_keyboard(self.target)
@@ -145,15 +145,15 @@ class Keyboard(EventDispatcher):
         return self.dispatch('on_key_up', keycode)
 
     def string_to_keycode(self, value):
-        '''Convert a string to a keycode number, according to the
+        '''Convert a string to a keycode number according to the
         :data:`Keyboard.keycodes`. If the value is not found in the keycodes, it
         will return -1.
         '''
         return Keyboard.keycodes.get(value, -1)
 
     def keycode_to_string(self, value):
-        '''Convert a keycode number to a string, according to the
-        :data:`Keyboard.keycodes`. If the value is not found inside the
+        '''Convert a keycode number to a string according to the
+        :data:`Keyboard.keycodes`. If the value is not found in the
         keycodes, it will return ''.
         '''
         keycodes = list(Keyboard.keycodes.values())
@@ -163,16 +163,17 @@ class Keyboard(EventDispatcher):
 
 
 class WindowBase(EventDispatcher):
-    '''WindowBase is a abstract window widget, for any window implementation.
+    '''WindowBase is a abstract window widget for any window implementation.
 
     :Parameters:
         `fullscreen`: str, one of ('0', '1', 'auto', 'fake')
-            Make window as fullscreen, check config documentation for more
-            explaination about the values.
+            Make the window fullscreen. Check the
+            :mod:`~kivy.config` documentation for a
+            more detailed explanation on the values.
         `width`: int
-            Width of window
+            Width of the window
         `height`: int
-            Height of window
+            Height of the window
 
     :Events:
         `on_motion`: etype, motionevent
