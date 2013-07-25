@@ -35,6 +35,7 @@ cdef class Property:
     cdef check(self, EventDispatcher obj, x)
     cdef convert(self, EventDispatcher obj, x)
     cpdef dispatch(self, EventDispatcher obj)
+    cpdef dispatch_with_op_info(self, EventDispatcher obj, op_info)
 
 cdef class NumericProperty(Property):
     cdef float parse_str(self, EventDispatcher obj, value)

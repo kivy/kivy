@@ -411,7 +411,7 @@ class Test(App):
 
     def set_object_data(self):
         self.list_adapter.args_converter = self.objects_args_converter
-        self.list_adapter.data.set(self.object_data)
+        self.list_adapter.data = self.object_data
 
     def build(self):
 
