@@ -31,7 +31,7 @@ class Keyboard(EventDispatcher):
     '''Keyboard interface that is returned by
     :meth:`WindowBase.request_keyboard`. When you request a keyboard, you'll get
     an instance of this class. Whatever the keyboard input is (system or virtual
-    keyboard), you'll receive events though this instance.
+    keyboard), you'll receive events through this instance.
 
     :Events:
         `on_key_down`: keycode, text, modifiers
