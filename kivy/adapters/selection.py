@@ -209,6 +209,24 @@ class Selection(EventDispatcher):
         '''
         return self.selection[0] if self.selection else None
 
+    # TODO: The change event here is called on_selection_change. This is not
+    # consistent with general use, because there is no selection_change
+    # property, to which the on_ prefix has been added. The reason why doing
+    # selection this way, by making the API for binding as:
+    #
+    #     ...list.adapter.bind(on_selection_change=self.some_func) ...
+    #
+    # was related to batch updating of selection for the select_list() and
+    # deselect_list() methods, which call here with hold_dispatch=True. This
+    # can be changed to pass in a temporary selection list, tmp_selection. If
+    # tmp_selection is not None, work off a copy somehow and return it. Then,
+    # the select_list() and deselect_list() methods will set to selection on
+    # return. This way, we can simplify the API to:
+    #
+    #     ...list.adapter.bind(selection=self.some_func) ...
+    #
+    # and, we will be better prepared to make a simpler usage in kv also.
+    #
     def handle_selection(self, view, hold_dispatch=False, *args):
         if view not in self.selection:
             if self.selection_mode in ['none', 'single'] and \
