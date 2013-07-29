@@ -1140,7 +1140,7 @@ class ListView(AbstractView, EventDispatcher):
 
         # list and dict change ops:
         #
-        #      ool == OpObservableList
+        #      OOL == OpObservableList
         #
         #            set ops:
         #
@@ -1167,7 +1167,7 @@ class ListView(AbstractView, EventDispatcher):
         #                OOL_sort
         #                OOL_reverse
         #
-        #       ood == OpObservableDict
+        #       OOD == OpObservableDict
         #
         #            set op:
         #
@@ -1198,12 +1198,6 @@ class ListView(AbstractView, EventDispatcher):
 
         # Callbacks could come here from either OOL or OOD, and there could
         # be differences in handling.
-
-        # TODO: This is to solve a timing issue when running tests. Remove when
-        #       no longer needed.
-#        if self.adapter.data.op_info == None:
-#            Clock.schedule_once(lambda dt: self.data_changed(*args))
-#            return
 
         op_info = self.adapter.op_info
 
@@ -1271,6 +1265,7 @@ class ListView(AbstractView, EventDispatcher):
                 self.container.remove_widget(widget)
 
             add_index = min(widget_indices)
+
             for slice_index in slice_indices:
                 item_view = self.adapter.get_view(slice_index)
                 self.container.add_widget(item_view, add_index)

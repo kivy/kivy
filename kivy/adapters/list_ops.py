@@ -49,9 +49,6 @@ class AdapterListOpHandler(ListOpHandler):
         These methods adjust cached_views and selection for the adapter.
     '''
 
-    # TODO: Document that, e.g., self.adapter.sorted_keys = [] is not covered,
-    #       and a call to, e.g., self.adapter.sorted_keys.set([]) is required.
-
     def __init__(self, source_list, duplicates_allowed):
 
         self.source_list = source_list
