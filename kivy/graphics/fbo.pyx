@@ -171,7 +171,7 @@ cdef class Fbo(RenderContext):
         self.depthbuffer_id = 0
 
     cdef void create_fbo(self):
-        cdef GLuint f_id = 1
+        cdef GLuint f_id = 0
         cdef GLint old_fid = 0
         cdef int status
         cdef int do_clear = 0
