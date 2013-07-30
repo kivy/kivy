@@ -494,6 +494,7 @@
 <ActionBar>:
 	height: '48dp'
 	size_hint_y: None
+    spacing: '4dp'
     canvas:
         Color:
             rgba: self.background_color
@@ -563,7 +564,7 @@
             source: root.app_icon
             allow_stretch: True
             size_hint_x: None
-            width: self.texture_size[0] if self.texture else 20
+            width: self.height
 			mipmap: True
 		Widget:
 			size_hint_x: None
