@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import random
 from random import choice
-from string import ascii_uppercase, digits
 
 from kivy.app import App
 from kivy.lang import Builder
@@ -17,8 +15,6 @@ from kivy.properties import ListProperty
 from kivy.properties import StringProperty
 
 from kivy.uix.listview import ListItemButton
-from kivy.uix.listview import ListView
-from kivy.uix.screenmanager import FadeTransition
 from kivy.uix.screenmanager import Screen
 from kivy.uix.screenmanager import ScreenManager
 
@@ -62,9 +58,12 @@ Builder.load_string('''
                 width: 200
                 height: 30
                 text: 'Load with String Data'
-                on_release: app.list_adapter.args_converter = app.strings_args_converter; \
-                            del app.list_adapter.data[0:len(app.list_adapter.data)]; \
-                            [app.list_adapter.data.append(s) for s in app.string_data]
+                on_release: app.list_adapter.args_converter = \
+                                    app.strings_args_converter; \
+                            del app.list_adapter.data[\
+                                    0:len(app.list_adapter.data)]; \
+                            [app.list_adapter.data.append(s) \
+                                    for s in app.string_data]
 
             Button:
                 pos_hint: {'center_x': .5}
@@ -79,7 +78,7 @@ Builder.load_string('''
                 size_hint: None, None
                 width: 200
                 height: 30
-                text: 'TEST RecordingObservableList'
+                text: 'TEST OpObservableList'
 
             ListView:
                 adapter: app.list_adapter
@@ -137,7 +136,7 @@ Builder.load_string('''
                             app.list_adapter.selection[0].index: \
                             app.list_adapter.selection[0].index + 3]
     #
-    # TODO: iadd and imul are getting a nonetype is not iterable error on the base
+    # TODO: iadd and imul are getting a nonetype is not iterable error.
     # ROD object. So we will add labels instead of buttons for them for now.
     #
     #            Button:
@@ -227,8 +226,10 @@ Builder.load_string('''
                     width:80
                     height: 30
                     text: 'sort'
-                    on_release: app.list_adapter.data.sort(key=lambda obj: obj.text) \
-                                    if app.list_adapter.args_converter == app.objects_args_converter \
+                    on_release: app.list_adapter.data.sort( \
+                                        key=lambda obj: obj.text) \
+                                    if app.list_adapter.args_converter == \
+                                            app.objects_args_converter \
                                     else app.list_adapter.data.sort()
 
                 Button:
@@ -248,7 +249,7 @@ Builder.load_string('''
                 size_hint: None, None
                 width: 200
                 height: 30
-                text: 'TEST RecordingObservableDict'
+                text: 'TEST OpObservableDict'
 
             ListView:
                 adapter: app.dict_adapter
@@ -273,18 +274,20 @@ Builder.load_string('''
                     text: 'setitem set'
                     on_release: app.dict_adapter.data[ \
                                 app.dict_adapter.selection[0].key] = \
-                                    {'key': app.dict_adapter.selection[0].key, \
-                                     'value': ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))} \
+                                  {'key': app.dict_adapter.selection[0].key, \
+                                   'value': app.random_10()}; \
                                 if app.dict_adapter.selection \
-                                else Logger.info('Testing: No selection. Cannot setitem set.')
+                                else Logger.info( \
+                                  'Testing: No selection. Cannot setitem set.')
 
                 Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'setitem add'
-                    on_release: k = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10)); \
-                                app.dict_adapter.data[k] = {'key': k, 'value': k}
+                    on_release: k = \
+                        app.random_10(); \
+                        app.dict_adapter.data[k] = {'key': k, 'value': k}
 
                 Button:
                     size_hint: None, None
@@ -292,8 +295,8 @@ Builder.load_string('''
                     height: 30
                     text: 'delitem'
                     on_release: del app.dict_adapter.data[ \
-                                        app.dict_adapter.sorted_keys[ \
-                                            app.dict_adapter.selection[0].index]]
+                                    app.dict_adapter.sorted_keys[ \
+                                    app.dict_adapter.selection[0].index]]
 
                 Button:
                     size_hint: None, None
@@ -308,10 +311,11 @@ Builder.load_string('''
                     height: 30
                     text: 'pop'
                     on_release: app.dict_adapter.data.pop( \
-                                        app.dict_adapter.sorted_keys[ \
-                                            app.dict_adapter.selection[0].index]) \
+                                    app.dict_adapter.sorted_keys[ \
+                                    app.dict_adapter.selection[0].index]) \
                                 if app.dict_adapter.data.keys() \
-                                else Logger.info('Testing: Data is empty. Cannot pop.')
+                                else Logger.info( \
+                                    'Testing: Data is empty. Cannot pop.')
 
                 Button:
                     size_hint: None, None
@@ -320,41 +324,48 @@ Builder.load_string('''
                     text: 'popitem'
                     on_release: app.dict_adapter.data.popitem() \
                                 if app.dict_adapter.data.keys() \
-                                else Logger.info('Testing: Data is empty. Cannot popitem.')
+                                else Logger.info(
+                                    'Testing: Data is empty. Cannot popitem.')
 
                 Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'setdefault'
-                    on_release: k = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10)); \
-                                app.dict_adapter.data.setdefault(k, {'key': k, 'value': k})
+                    on_release: k = \
+                        app.random_10(); \
+                        app.dict_adapter.data.setdefault( \
+                                    k, {'key': k, 'value': k})
 
                 Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'update (3)'
-                    on_release: k1 = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10)); \
-                                k2 = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10)); \
-                                k3 = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10)); \
-                                app.dict_adapter.data.update({k1: {'key': k1, 'value': k1}, \
-                                                              k2: {'key': k2, 'value': k2}, \
-                                                              k3: {'key': k3, 'value': k3}})
+                    on_release: \
+                        k1 = app.random_10(); \
+                        k2 = app.random_10(); \
+                        k3 = app.random_10(); \
+                        app.dict_adapter.data.update(
+                            {k1: {'key': k1, 'value': k1}, \
+                             k2: {'key': k2, 'value': k2}, \
+                             k3: {'key': k3, 'value': k3}})
 
                 Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'insert'
-                    on_release: app.insert_into_dict(app.dict_adapter.selection[0].index)
+                    on_release: app.insert_into_dict( \
+                            app.dict_adapter.selection[0].index)
 
                 Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'sort'
-                    on_release: app.dict_adapter.sorted_keys.sort(key=lambda k: k.lower())
+                    on_release: app.dict_adapter.sorted_keys.sort( \
+                            key=lambda k: k.lower())
 ''')
 
 
@@ -386,13 +397,13 @@ class Test(App):
     def strings_args_converter(self, row_index, value):
         return {"text": str(value),
                 "size_hint_y": None,
-                "height" : 25}
+                "height": 25}
 
     def objects_args_converter(self, row_index, obj):
         print row_index, obj
         return {"text": obj.text,
                 "size_hint_y": None,
-                "height" : 25}
+                "height": 25}
 
     def data_is_strings(self):
         if self.list_adapter.args_converter == self.strings_args_converter:
@@ -403,29 +414,37 @@ class Test(App):
         return {"text": "{0} : {1}".format(rec['key'], rec['value']),
                 "key": rec['key'],
                 "size_hint_y": None,
-                "height" : 25}
+                "height": 25}
 
     def insert_into_dict(self, index):
-        key = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+        key = self.random_10()
         self.dict_adapter.insert(index, key, {'key': key, 'value': key})
 
     def set_object_data(self):
         self.list_adapter.args_converter = self.objects_args_converter
         self.list_adapter.data = self.object_data
 
+    def random_10(self):
+        return ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+
+    def alphabet_dict(self):
+        return {k: {'key': k, 'value': k} for k in self.nato_alphabet_words}
+
     def build(self):
 
-        self.list_adapter = ListAdapter(data=self.string_data,
-                                        cls=ListItemButton,
-                                        selection_mode='single',
-                                        allow_empty_selection=False,
-                                        args_converter=self.strings_args_converter)
+        self.list_adapter = ListAdapter(
+                data=self.string_data,
+                cls=ListItemButton,
+                selection_mode='single',
+                allow_empty_selection=False,
+                args_converter=self.strings_args_converter)
 
-        self.dict_adapter = DictAdapter(data={k: {'key': k, 'value': k} for k in self.nato_alphabet_words},
-                                        cls=KeyedListItemButton,
-                                        selection_mode='single',
-                                        allow_empty_selection=False,
-                                        args_converter=self.dict_args_converter)
+        self.dict_adapter = DictAdapter(
+                data=self.aphabet_dict(),
+                cls=KeyedListItemButton,
+                selection_mode='single',
+                allow_empty_selection=False,
+                args_converter=self.dict_args_converter)
 
         for word in self.nato_alphabet_words:
             self.object_data.append(CustomDataItem(text=word))
