@@ -274,7 +274,15 @@ class Image(Widget):
 
 
 class AsyncImage(Image):
-    '''Asynchronous Image class. See module documentation for more information.
+    '''Asynchronous Image class. See the module documentation for more
+    information.
+
+    .. note::
+
+        The AsyncImage is a specialized form of the Image class. You may want to
+        refer to the :mod:`~kivy.loader` documentation and in particular, the
+        :class:`~kivy.loader.ProxyImage` for more detail on how to handle events
+        around asynchronous image loading.
     '''
 
     def __init__(self, **kwargs):
