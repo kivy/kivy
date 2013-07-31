@@ -175,8 +175,6 @@ cdef class Fbo(RenderContext):
         cdef GLint old_fid = 0
         cdef int status
         cdef int do_clear = 0
-        # we assume that for graphic texture id is 0
-        cdef GLuint depth_texture = 1
 
         # create texture
         if self._texture is None:
