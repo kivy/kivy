@@ -100,6 +100,14 @@ class ActionItem(object):
        default to 'atlas://data/images/defaulttheme/action_item_down'.
     '''
 
+    mipmap = BooleanProperty(True)
+    '''Defines whether the Image/icon dispayed on top of the button uses
+    mipamap or not.
+
+    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty` defaults
+    to `True`
+    '''
+
 
 class ActionButton(Button, ActionItem):
     '''ActionButton class, see module documentation for more information.
@@ -578,6 +586,10 @@ class ActionBar(BoxLayout):
 
       :data:`background_image` is an :class:`~kivy.properties.StringProperty`,
       default to 'action_bar'
+    '''
+
+    border = ListProperty([2, 2, 2, 2])
+    ''':data:`border` to be applied to the :data:`background_image`
     '''
 
     __events__ = ('on_previous',)
