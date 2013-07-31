@@ -18,7 +18,7 @@ We have multiple implementations:
   the drag, the position is returned to one of the bounds.
 - :class:`~kivy.effects.opacityscroll.OpacityScrollEffect`: uses the overscroll
   information to reduce the opacity of the scrollview widget. When the user
-  stops the drag, the opacity back to set to 1.
+  stops the drag, the opacity is set back to 1.
 
 '''
 
