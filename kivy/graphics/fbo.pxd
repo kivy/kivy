@@ -18,6 +18,7 @@ cdef class Fbo(RenderContext):
     cpdef clear_buffer(self)
     cpdef bind(self)
     cpdef release(self)
+    cpdef get_pixel_color(self, int wx, int wy)
 
     cdef void create_fbo(self)
     cdef void delete_fbo(self)
