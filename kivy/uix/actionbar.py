@@ -472,7 +472,6 @@ class ActionView(BoxLayout):
 
         # if space is left then display ActionItem inside their
         # ActionGroup
-        group_index = len(self.children)
         if total_width < self.width:
             for group in self._list_action_group:
                 if group.minimum_width + total_width +\
@@ -485,6 +484,7 @@ class ActionView(BoxLayout):
                 else:
                     hidden_groups.append(group)
 
+        group_index = len(self.children) - 1
         # if space is left then display other ActionItems
         if total_width < self.width:
             for child in hidden_items[:]:
