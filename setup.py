@@ -438,7 +438,7 @@ setup(
     author='Kivy Crew',
     author_email='kivy-dev@googlegroups.com',
     url='http://kivy.org/',
-    license='LGPL',
+    license='MIT',
     description=(
         'A software library for rapid development of '
         'hardware-accelerated multitouch applications.'),
@@ -509,8 +509,7 @@ setup(
         'Intended Audience :: End Users/Desktop',
         'Intended Audience :: Information Technology',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: GNU Library or Lesser '
-        'General Public License (LGPL)',
+        'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows',
