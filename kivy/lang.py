@@ -643,6 +643,7 @@ Cache.register('kv.lang')
 lang_str = re.compile('([\'"][^\'"]*[\'"])')
 lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
+lang_tr = re.compile('(_\()')
 
 # delayed calls are canvas expression triggered during an loop
 _delayed_calls = []
@@ -796,6 +797,11 @@ class ParserRuleProperty(object):
         wk = list(set(findall(lang_keyvalue, tmp)))
         if len(wk):
             self.watched_keys = [x.split('.') for x in wk]
+        if findall(lang_tr, tmp):
+            if self.watched_keys:
+                self.watched_keys += [['_']]
+            else:
+                self.watched_keys = [['_']]
 
     def __repr__(self):
         return '<ParserRuleProperty name=%r filename=%s:%d ' \
