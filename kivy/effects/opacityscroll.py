@@ -14,6 +14,10 @@ from kivy.effects.dampedscroll import DampedScrollEffect
 
 
 class OpacityScrollEffect(DampedScrollEffect):
+    '''OpacityScrollEffect class. Uses the overscroll
+    information to reduce the opacity of the scrollview widget. When the user
+    stops the drag, the opacity is set back to 1.
+    '''
 
     def on_overscroll(self, *args):
         if self.target_widget and self.target_widget.height != 0:

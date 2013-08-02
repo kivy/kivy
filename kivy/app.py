@@ -161,12 +161,21 @@ user, in order to adapt or reload your UI. You can overload the
                 elif token == ('section1', 'key2'):
                     print('Our key2 have been changed to', value)
 
-One last note, the Kivy configuration panel is added by default in the settings
-instance. If you don't want it, you can declare your Application like this::
+One last note. The Kivy configuration panel is added by default to the settings
+instance. If you don't want this panel, you can declare your Application like
+this::
 
     class TestApp(App):
         use_kivy_settings = False
         # ...
+
+This only removes the Kivy panel, but does not stop the settings instance
+from appearing. If you want to prevent the settings instance from appearing
+altogether, you can do this::
+
+    class TestApp(App):
+        def open_settings(self, *largs):
+            pass
 
 
 Pause mode
@@ -200,15 +209,15 @@ The current implemented Pause mechanism is:
     #. We got a `resume`, :func:`App.on_resume` is called.
     #. If our app memory has been reclaimed by the OS, then nothing will be
        called.
-       
+
 Here is a simple example of how on_pause() should be used::
 
    class TestApp(App):
-   
+
       def on_pause(self):
          # Here you can save data if needed
          return True
-   
+
       def on_resume(self):
          # Here you can check if any data needs replacing (usually nothing)
          pass
@@ -397,7 +406,8 @@ class App(EventDispatcher):
             except TypeError:
                 # if it's a builtin module.. use the current dir.
                 default_kv_directory = '.'
-            kv_directory = self.options.get('kv_directory', default_kv_directory)
+            kv_directory = self.options.get('kv_directory',
+                                            default_kv_directory)
             clsname = self.__class__.__name__
             if clsname.endswith('App'):
                 clsname = clsname[:-3]
@@ -540,7 +550,8 @@ class App(EventDispatcher):
         data like preferences, saved games, and settings. This function
         implements those conventions.
 
-        On iOS `~/Documents<app_name>` is returned (which is inside the apps sandbox).
+        On iOS `~/Documents<app_name>` is returned (which is inside the
+        apps sandbox).
 
         On Android `/sdcard/<app_name>` is returned.
 

@@ -6,7 +6,7 @@ Damped scroll effect
 
 This damped scroll effect will use the
 :data:`~kivy.effects.scroll.ScrollEffect.overscroll` to calculate the scroll
-value, and slowing going back to the upper or lower limit.
+value, and slows going back to the upper or lower limit.
 
 '''
 
@@ -19,21 +19,22 @@ from kivy.metrics import sp
 
 
 class DampedScrollEffect(ScrollEffect):
-    '''DampedScrollEffect class. See module documentation for more information.
+    '''DampedScrollEffect class. See the module documentation for more
+    information.
     '''
 
     edge_damping = NumericProperty(0.25)
     '''Edge damping.
 
-    :data:`edge_damping` is a :class:`~kivy.properties.NumericProperty`, default
-    to 0.25
+    :data:`edge_damping` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.25
     '''
 
     spring_constant = NumericProperty(2.0)
     '''Spring constant.
 
-    :data:`spring_constant` is a :class:`~kivy.properties.NumericProperty`, default
-    to 2.0
+    :data:`spring_constant` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 2.0
     '''
 
     def update_velocity(self, dt):

@@ -60,20 +60,35 @@ to support at least OpenGL 2.0 ES.
 Phones
 ~~~~~~
 
-- Motorola Droid 1
-- Motorola Droid 2
 - HTC Desire
 - HTC Desire Z
-- Xperia 10 (custom ROM 2.1 + GLES 2.0 support)
+- HTC Desire SV (Kivy apps run, but there are issues running some apps via the
+  Kivy Launcher)
 - LG Optimus S
 - LG Optimus V
-- Samsung Galaxy S (mostly works, seems to have some weird OpenGL behaviour, most notably the kivy splash screen doesn't work)
+- Motorola Droid 1
+- Motorola Droid 2
+- Samsung Galaxy S (mostly works, seems to have some weird OpenGL behaviour,
+  most notably the kivy splash screen doesn't work)
+- Samsumg Galaxy Pocket S5300
+- Samsung Galaxy SII (I9100)
+- Samsung Galaxy SIII (I9300)
+- Samsung Galaxy S4 (I9500)
 - Samsung Galaxy Note GT-N7000
+- Samsung Galaxy Note (N7000)
+- Samsung Galaxy Note II (N7100)
+- Xperia 10 (custom ROM 2.1 + GLES 2.0 support)
+
 
 Tablets
 ~~~~~~~
 
-- Samsung Galaxy Tab
-- Motorola Xoom
 - Asus EeePad Transformer
+- Motorola Xoom
+- Samsung Galaxy Note 8.0” (N5100)
+- Samsung Galaxy Note 10.1 (N8000) (Kivy Launcher does not install)
+- Samsung Galaxy Tab (P1000)
+- Samsung Galaxy Tab 7.0 Plus (P6200)
+- Samsung Galaxy Tab 2 7.0 (P3100)
+- Samsung Galaxy Tab 10.1” (P7500)
 

@@ -416,7 +416,7 @@ class ShaderTransition(TransitionBase):
         elif screen_rotation == 270:
             pos = (-1, 1)
 
-        self.render_ctx = RenderContext(fs=self.fs)
+        self.render_ctx = RenderContext(fs=self.fs, vs=self.vs)
         with self.render_ctx:
             BindTexture(texture=self.fbo_out.texture, index=1)
             BindTexture(texture=self.fbo_in.texture, index=2)

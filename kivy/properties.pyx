@@ -968,6 +968,16 @@ cdef class OptionProperty(Property):
         def __get__(self):
             return self.options
 
+class ObservableReferenceList(ObservableList):
+    def __setitem__(self, key, value, update_properties=True):
+        list.__setitem__(self, key, value)
+        if update_properties:
+            self.prop.setitem(self.obj(), key, value)
+
+    def __setslice__(self, start, stop, value, update_properties=True):  # Python 2 only method
+        list.__setslice__(self, start, stop, value)
+        if update_properties:
+            self.prop.setitem(self.obj(), slice(start, stop), value)
 
 cdef class ReferenceListProperty(Property):
     '''Property that allows the creaton of a tuple of other properties.
@@ -991,6 +1001,11 @@ cdef class ReferenceListProperty(Property):
         storage.properties = tuple(self.properties)
         storage.stop_event = 0
 
+    cpdef link(self, EventDispatcher obj, str name):
+        Property.link(self, obj, name)
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        ps.value = ObservableReferenceList(self, obj, ps.value)
+
     cpdef link_deps(self, EventDispatcher obj, str name):
         cdef Property prop
         Property.link_deps(self, obj, name)
@@ -1002,7 +1017,16 @@ cdef class ReferenceListProperty(Property):
         if ps.stop_event:
             return
         p = ps.properties
-        ps.value = [p[x].get(obj) for x in xrange(len(p))]
+
+        try:
+            ps.value.__setslice__(0, len(p),
+                    [prop.get(obj) for prop in p],
+                    update_properties=False)
+        except AttributeError:
+            ps.value.__setitem__(slice(len(p)),
+                    [prop.get(obj) for prop in p],
+                    update_properties=False)
+
         self.dispatch(obj)
 
     cdef convert(self, EventDispatcher obj, value):
@@ -1035,14 +1059,42 @@ cdef class ReferenceListProperty(Property):
             x = value[idx]
             prop.set(obj, x)
         ps.stop_event = 0
-        ps.value = value
+        try:
+            ps.value.__setslice__(0, len(value), value,
+                    update_properties=False)
+        except AttributeError:
+            ps.value.__setitem__(slice(len(value)), value,
+                    update_properties=False)
         self.dispatch(obj)
         return True
+
+    cpdef setitem(self, EventDispatcher obj, key, value):
+        cdef PropertyStorage ps = obj.__storage[self._name]
+
+        ps.stop_event = 1
+        if isinstance(key, slice):
+            props = ps.properties[key]
+            for index in xrange(len(props)):
+                prop = props[index]
+                x = value[index]
+                prop.set(obj, x)
+        else:
+            prop = ps.properties[key]
+            prop.set(obj, value)
+        ps.stop_event = 0
+        self.dispatch(obj)
 
     cpdef get(self, EventDispatcher obj):
         cdef PropertyStorage ps = obj.__storage[self._name]
         cdef tuple p = ps.properties
-        ps.value = [p[x].get(obj) for x in xrange(len(p))]
+        try:
+            ps.value.__setslice__(0, len(p),
+                    [prop.get(obj) for prop in p],
+                    update_properties=False)
+        except AttributeError:
+            ps.value.__setitem__(slice(len(p)),
+                    [prop.get(obj) for prop in p],
+                    update_properties=False)
         return ps.value
 
 cdef class AliasProperty(Property):
@@ -1132,11 +1184,11 @@ cdef class VariableListProperty(Property):
     Accepts a list of 1 or 2 (or 4 when length=4) Numeric arguments or a single
     Numeric argument.
 
-    VariableListProperty([1]) represents [1, 1, 1, 1].
-    VariableListProperty([1, 2]) represents [1, 2, 1, 2].
-    VariableListProperty(['1px', (2, 'px'), 3, 4.0]) represents [1, 2, 3, 4.0].
-    VariableListProperty(5) represents [5, 5, 5, 5].
-    VariableListProperty(3, length=2) represents [3, 3].
+    - VariableListProperty([1]) represents [1, 1, 1, 1].
+    - VariableListProperty([1, 2]) represents [1, 2, 1, 2].
+    - VariableListProperty(['1px', (2, 'px'), 3, 4.0]) represents [1, 2, 3, 4.0].
+    - VariableListProperty(5) represents [5, 5, 5, 5].
+    - VariableListProperty(3, length=2) represents [3, 3].
 
     :Parameters:
         `length`: int
@@ -1144,8 +1196,6 @@ cdef class VariableListProperty(Property):
 
     .. versionadded:: 1.7.0
     '''
-
-    cdef public int length
 
     def __init__(self, defaultvalue=None, length=4, **kw):
         if length == 4:
@@ -1158,6 +1208,11 @@ cdef class VariableListProperty(Property):
 
         self.length = length
         super(VariableListProperty, self).__init__(defaultvalue, **kw)
+
+    cpdef link(self, EventDispatcher obj, str name):
+        Property.link(self, obj, name)
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        ps.value = ObservableList(self, obj, ps.value)
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
