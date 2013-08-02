@@ -9,9 +9,9 @@ __all__ = ('MotionEventFactory', )
 
 
 class MotionEventFactory:
-    '''MotionEvent factory is a class who register all availables input
-    factories.  If you create a new input factory, don't forget to register
-    it::
+    '''MotionEvent factory is a class that registers all availables input
+    factories. If you create a new input factory, you need to register
+    it here::
 
         MotionEventFactory.register('myproviderid', MyInputProvider)
 
@@ -25,12 +25,12 @@ class MotionEventFactory:
 
     @staticmethod
     def list():
-        '''Get a list of all providers availables'''
+        '''Get a list of all available providers'''
         return MotionEventFactory.__providers__
 
     @staticmethod
     def get(name):
-        '''Get a provider class from provider id'''
+        '''Get a provider class from the provider id'''
         if name in MotionEventFactory.__providers__:
             return MotionEventFactory.__providers__[name]
         return None
