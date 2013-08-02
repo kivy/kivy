@@ -127,6 +127,15 @@
 <TabbedPanelStrip>
     rows: 1
 
+<StripLayout>
+    padding: '2dp', '2dp', '2dp', '2dp'
+    canvas.before:
+        BorderImage:
+            pos: self.pos
+            size: self.size
+            border: root.border
+            source: root.background_image
+
 <TabbedPanelHeader>:
     halign: 'center'
     valign: 'middle'
