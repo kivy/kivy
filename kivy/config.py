@@ -175,6 +175,10 @@ Available configuration tokens
     Anything after the = will be passed to the module as arguments.
     Check the specific module's documentation for a list of accepted arguments.
 
+.. versionchanged:: 1.8.0
+    `systemanddock` and `systemandmulti` has been added as possible value for
+    `keyboard_mode` in kivy section.
+
 .. versionchanged:: 1.2.0
     `resizable` has been added to graphics section
 
