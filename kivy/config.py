@@ -201,14 +201,13 @@ try:
     from ConfigParser import ConfigParser as PythonConfigParser
 except ImportError:
     from configparser import RawConfigParser as PythonConfigParser
-from sys import platform
 from os import environ
 from os.path import exists
 from kivy import kivy_config_fn
 from kivy.logger import Logger, logger_config_update
 from collections import OrderedDict
 from kivy.utils import platform
-from kivy.compat import PY2
+from kivy.compat import PY2, string_types
 
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
@@ -278,7 +277,7 @@ class ConfigParser(PythonConfigParser):
         '''
         e_value = value
         if PY2:
-            if not isinstance(value, basestring):
+            if not isinstance(value, string_types):
                 # might be boolean, int, etc.
                 e_value = str(value)
             else:

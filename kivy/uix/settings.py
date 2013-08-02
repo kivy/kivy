@@ -111,6 +111,7 @@ import os
 from kivy.metrics import dp
 from kivy.config import ConfigParser
 from kivy.animation import Animation
+from kivy.compat import string_types
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.filechooser import FileChooserListView
@@ -272,7 +273,7 @@ class SettingItem(FloatLayout):
             return
         # get current value in config
         panel = self.panel
-        if not isinstance(value, basestring):
+        if not isinstance(value, string_types):
             value = str(value)
         panel.set_value(self.section, self.key, value)
 
