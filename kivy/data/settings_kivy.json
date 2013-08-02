@@ -64,7 +64,7 @@
 		"desc": "Activate the usage of Kivy Virtual Keyboard",
 		"section": "kivy",
 		"key": "keyboard_mode",
-		"options": ["system", "dock", "multi"]
+		"options": ["system", "dock", "multi", "systemanddock", "systemandmulti"]
 	},
 	{
 		"type": "options",
@@ -72,7 +72,7 @@
 		"desc": "Select a layout for virtual keyboard",
 		"section": "kivy",
 		"key": "keyboard_layout",
-		"options": ["qwerty", "azerty"]
+		"options": ["qwerty", "azerty", "qwertz"]
 	},
 
 	{

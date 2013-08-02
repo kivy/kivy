@@ -43,11 +43,14 @@ Available configuration tokens
         Format string to use for the filename of log file
     `log_enable`: (0, 1)
         Activate file logging
-    `keyboard_mode`: ('', 'system', 'dock', 'multi')
+    `keyboard_mode`: ('', 'system', 'dock', 'multi', 'systemanddock',
+            'systemandmulti')
         Keyboard mode to use. If empty, Kivy will decide for you what is the
         best for your current platform. Otherwise, you can set one of 'system'
         (real keyboard), 'dock' (one virtual keyboard docked in a screen side),
-        'multi' (one virtual keyboard everytime a widget ask for.)
+        'multi' (one virtual keyboard everytime a widget ask for),
+        'systemanddock' (virtual docked keyboard plus input from real keyboard)
+        'systemandmulti' (analogous)
     `keyboard_layout`: string
         Identifier of the layout to use
     `window_icon`: string
@@ -515,4 +518,3 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.write()
         except Exception as e:
             Logger.exception('Core: Error while saving default config file')
-
