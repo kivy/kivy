@@ -652,7 +652,7 @@ _delayed_calls = []
 # widget is deleted
 _handlers = {}
 
-
+    
 class ProxyApp(object):
     # proxy app object
     # taken from http://code.activestate.com/recipes/496741-object-proxying/
@@ -1226,6 +1226,11 @@ class Parser(object):
 
         return objects, []
 
+def get_proxy(widget):
+    try:
+        return widget.proxy_ref
+    except AttributeError:
+        return widget
 
 def custom_callback(__kvlang__, idmap, *largs, **kwargs):
     idmap['args'] = largs
@@ -1267,7 +1272,8 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                     f = getattr(f, x)
                 if hasattr(f, 'bind'):
                     f.bind(**{k[-1]: fn})
-                    _handlers[uid].append([f, k[-1], fn])
+                    # make sure _handlers doesn't keep widgets alive
+                    _handlers[uid].append([get_proxy(f), k[-1], fn])
             except KeyError:
                 continue
             except AttributeError:
@@ -1459,7 +1465,11 @@ class BuilderBase(object):
             cls = type(name, tuple(rootwidgets), {})
             Cache.append('kv.lang', key, cls)
         widget = cls()
-        self._apply_rule(widget, rule, rule, template_ctx=ctx)
+        # in previous versions, ``ctx`` is passed as is as ``template_ctx``
+        # preventing widgets in it from be collected by the GC. This was
+        # especially relevant to AccordionItem's title_template.
+        proxy_ctx = {k: get_proxy(v) for k, v in ctx.items()}
+        self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
         return widget
 
     def apply(self, widget):
