@@ -127,6 +127,15 @@
 <TabbedPanelStrip>
     rows: 1
 
+<StripLayout>
+    padding: '2dp', '2dp', '2dp', '2dp'
+    canvas.before:
+        BorderImage:
+            pos: self.pos
+            size: self.size
+            border: root.border
+            source: root.background_image
+
 <TabbedPanelHeader>:
     halign: 'center'
     valign: 'middle'
@@ -494,10 +503,12 @@
 <ActionBar>:
 	height: '48dp'
 	size_hint_y: None
+    spacing: '4dp'
     canvas:
         Color:
             rgba: self.background_color
         BorderImage:
+            border: root.border
             pos: self.pos
             size: self.size
             source: self.background_image
@@ -523,7 +534,7 @@
             source: self.background_image
 
 <ActionButton>:
-    background_normal: 'atlas://data/images/defaulttheme/action_bar' if self.inside_group else 'atlas://data/images/defaulttheme/action_item'
+    background_normal: 'atlas://data/images/defaulttheme/' + ('action_bar' if self.inside_group else 'action_item')
 	background_down: 'atlas://data/images/defaulttheme/action_item_down'
 	size_hint_x: None if not root.inside_group else 1
 	width: [dp(48) if (root.icon and not root.inside_group) else max(dp(48), (self.texture_size[0] + dp(32))), self.size_hint_x][0]
@@ -532,6 +543,7 @@
 	Image:
 		opacity: 1 if (root.icon and not root.inside_group) else 0
 		source: root.icon
+        mipmap: root.mipmap
 		pos: root.x + dp(4), root.y + dp(4)
 		size: root.width - dp(8), root.height - sp(8)
 
@@ -559,18 +571,20 @@
             allow_stretch: True
             size_hint_x: None
             width: self.texture_size[0] if root.with_previous else dp(8)
+            mipmap: root.mipmap
         Image:
             source: root.app_icon
             allow_stretch: True
             size_hint_x: None
-            width: self.texture_size[0] if self.texture else 20
-			mipmap: True
+            width: self.height
+			mipmap: root.mipmap
 		Widget:
 			size_hint_x: None
 			width: '5sp'
         Label:
             text: root.title
             text_size: self.size
+            color: root.color
             shorten: True
             halign: 'left'
             valign: 'middle'

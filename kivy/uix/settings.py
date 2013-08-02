@@ -463,9 +463,9 @@ class SettingNumeric(SettingString):
         self._dismiss()
         try:
             if is_float:
-                self.value = float(self.textinput.text)
+                self.value = unicode(float(self.textinput.text))
             else:
-                self.value = int(self.textinput.text)
+                self.value = unicode(int(self.textinput.text))
         except ValueError:
             return
 

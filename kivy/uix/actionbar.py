@@ -100,6 +100,13 @@ class ActionItem(object):
        default to 'atlas://data/images/defaulttheme/action_item_down'.
     '''
 
+    mipmap = BooleanProperty(True)
+    '''Defines whether the Image/icon dispayed on top of the button uses
+    mipamap or not.
+
+    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty` defaults
+    to `True`
+    '''
 
 
 class ActionButton(Button, ActionItem):
@@ -234,6 +241,7 @@ class ActionGroup(ActionItem, Spinner):
 
     def __init__(self, **kwargs):
         self.list_action_item = []
+        self._list_overflow_items = []
         super(ActionGroup, self).__init__(**kwargs)
         self.dropdown_cls = ActionDropDown
 
@@ -249,7 +257,7 @@ class ActionGroup(ActionItem, Spinner):
 
     def show_group(self):
         self.clear_widgets()
-        for item in self.list_action_item:
+        for item in self._list_overflow_items + self.list_action_item:
             item.inside_group = True
             self._dropdown.add_widget(item)
 
@@ -264,10 +272,11 @@ class ActionGroup(ActionItem, Spinner):
 
     def _toggle_dropdown(self, *largs):
         self.is_open = not self.is_open
-        self._dropdown.size_hint_x = None
-        self._dropdown.width = max([self.width,
-                                    self.list_action_item[0].minimum_width])
-        for item in self.list_action_item:
+        ddn = self._dropdown
+        ddn.size_hint_x = None
+        children = ddn.children[0].children
+        ddn.width = max([self.width, children[0].minimum_width])
+        for item in children:
             item.size_hint_y = None
             item.height = max([self.height, '48sp'])
 
@@ -286,6 +295,32 @@ class ActionOverflow(ActionGroup):
       :data:`overflow_image` is an :class:`~kivy.properties.ObjectProperty`,
        default to 'overflow'.
     '''
+
+    def __init__(self, **kwargs):
+        super(ActionOverflow, self).__init__(**kwargs)
+
+    def add_widget(self, action_item, index=0):
+        if action_item is None:
+            return
+
+        if isinstance(action_item, ActionSeparator):
+            return
+
+        if not isinstance(action_item, ActionItem):
+            raise ActionBarException('ActionView only accepts ActionItem'
+                    ' (got {!r}'.format(action_item))
+
+        else:
+            if index == 0:
+                index = len(self._list_overflow_items)
+            self._list_overflow_items.insert(index, action_item)
+
+    def show_default_items(self, parent):
+        # display overflow and it's items if widget's directly added to it
+        if self._list_overflow_items == []:
+            return
+        self.show_group()
+        super(parent.__class__, parent).add_widget(self)
 
 
 class ActionView(BoxLayout):
@@ -324,7 +359,7 @@ class ActionView(BoxLayout):
     overflow_group = ObjectProperty(None)
     '''Widget to be used for overflow.
 
-       :data:`action_previous` is an :class:`~kivy.properties.ObjectProperty`,
+       :data:`overflow_group` is an :class:`~kivy.properties.ObjectProperty`,
        default to an instance of ActionOverflow.
     '''
 
@@ -377,7 +412,7 @@ class ActionView(BoxLayout):
         self.overflow_group.list_action_item = []
 
     def _layout_all(self):
-        # all the items can fit to the view, so expand everything. 
+        # all the items can fit to the view, so expand everything
         super_add = super(ActionView, self).add_widget
         self._state = 'all'
         self._clear_all()
@@ -398,6 +433,8 @@ class ActionView(BoxLayout):
                     child.inside_group = False
                     super_add(child)
 
+        self.overflow_group.show_default_items(self)
+
     def _layout_group(self):
         # layout all the items in order to pack them per group
         super_add = super(ActionView, self).add_widget
@@ -413,6 +450,8 @@ class ActionView(BoxLayout):
             super_add(group)
             group.show_group()
 
+        self.overflow_group.show_default_items(self)
+
     def _layout_random(self):
         # layout the items in order to pack all of them grouped, and display
         # only the action items having 'important'
@@ -427,7 +466,7 @@ class ActionView(BoxLayout):
         width = (self.width - self.overflow_group.minimum_width -
                 self.action_previous.minimum_width)
 
-        if len(self._list_action_items) >= 1:
+        if len(self._list_action_items) > 0:
             for child in self._list_action_items[1:]:
                 if child.important:
                     if child.minimum_width + total_width < width:
@@ -453,26 +492,32 @@ class ActionView(BoxLayout):
                 else:
                     hidden_groups.append(group)
 
+        group_index = len(self.children) - 1
         # if space is left then display other ActionItems
         if total_width < self.width:
             for child in hidden_items[:]:
                 if child.minimum_width + total_width < width:
-                    super_add(child, 1)
+                    super_add(child, group_index)
                     total_width += child.minimum_width
                     child.inside_group = False
                     hidden_items.remove(child)
 
         # for all the remaining ActionItems and ActionItems with in
         # ActionGroups, Display them inside overflow_group
+        extend_hidden = hidden_items.extend
         for group in hidden_groups:
-            hidden_items.extend(group.list_action_item)
+            extend_hidden(group.list_action_item)
+
+        overflow_group = self.overflow_group
 
         if hidden_items != []:
+            over_add = super(overflow_group.__class__,
+                             overflow_group).add_widget
             for child in hidden_items:
-                self.overflow_group.add_widget(child)
+                over_add(child)
 
-            self.overflow_group.show_group()
-            super_add(self.overflow_group)
+            overflow_group.show_group()
+            super_add(overflow_group)
 
     def on_width(self, width, *args):
         # determine the layout to use
@@ -503,7 +548,6 @@ class ActionView(BoxLayout):
 
         # none of the solutions worked, display them in pack mode
         self._layout_random()
-
 
 
 class ContextualActionView(ActionView):
@@ -542,6 +586,10 @@ class ActionBar(BoxLayout):
 
       :data:`background_image` is an :class:`~kivy.properties.StringProperty`,
       default to 'action_bar'
+    '''
+
+    border = ListProperty([2, 2, 2, 2])
+    ''':data:`border` to be applied to the :data:`background_image`
     '''
 
     __events__ = ('on_previous',)
@@ -610,10 +658,14 @@ if __name__ == "__main__":
                 text: 'Btn1'
             ActionButton:
                 text: 'Btn2'
-            ActionButton:
-                text: 'Btn3'
-            ActionButton:
-                text: 'Btn4'
+            ActionGroup:
+                text: 'Group 2'
+                ActionButton:
+                    text: 'Btn3'
+                ActionButton:
+                    text: 'Btn4'
+            #ActionButton:
+            #        text: '4.5'
             ActionGroup:
                 text: 'Group1'
                 ActionButton:
