@@ -64,7 +64,7 @@
 		"desc": "Activate the usage of Kivy Virtual Keyboard",
 		"section": "kivy",
 		"key": "keyboard_mode",
-		"options": ["system", "dock", "multi"]
+		"options": ["system", "dock", "multi", "systemanddock", "systemandmulti"]
 	},
 	{
 		"type": "options",
