@@ -824,6 +824,9 @@ class WindowBase(EventDispatcher):
             on_key_up=sk._on_window_key_up)
 
         # use the device's real keyboard
+        self.use_syskeyboard = True
+
+        # use the device's real keyboard
         self.allow_vkeyboard = False
 
         # one single vkeyboard shared between all widgets
@@ -834,19 +837,33 @@ class WindowBase(EventDispatcher):
 
         # now read the configuration
         mode = Config.get('kivy', 'keyboard_mode')
-        if mode not in ('', 'system', 'dock', 'multi'):
+        if mode not in ('', 'system', 'dock', 'multi', 'systemanddock',
+                'systemandmulti'):
             Logger.critical('Window: unknown keyboard mode %r' % mode)
 
         # adapt mode according to the configuration
         if mode == 'system':
+            self.use_syskeyboard = True
             self.allow_vkeyboard = False
             self.single_vkeyboard = True
             self.docked_vkeyboard = False
         elif mode == 'dock':
+            self.use_syskeyboard = False
             self.allow_vkeyboard = True
             self.single_vkeyboard = True
             self.docked_vkeyboard = True
         elif mode == 'multi':
+            self.use_syskeyboard = False
+            self.allow_vkeyboard = True
+            self.single_vkeyboard = False
+            self.docked_vkeyboard = False
+        elif mode == 'systemanddock':
+            self.use_syskeyboard = True
+            self.allow_vkeyboard = True
+            self.single_vkeyboard = True
+            self.docked_vkeyboard = True
+        elif mode == 'systemandmulti':
+            self.use_syskeyboard = True
             self.allow_vkeyboard = True
             self.single_vkeyboard = False
             self.docked_vkeyboard = False
@@ -944,14 +961,23 @@ class WindowBase(EventDispatcher):
             keyboard.widget.docked = self.docked_vkeyboard
             keyboard.widget.setup_mode()
 
-            # return it.
-            return keyboard
-
         else:
             # system keyboard, just register the callback.
-            self._system_keyboard.callback = callback
-            self._system_keyboard.target = target
-            return self._system_keyboard
+            keyboard = self._system_keyboard
+            keyboard.callback = callback
+            keyboard.target = target
+
+        # use system (hardware) keyboard according to flag
+        if self.use_syskeyboard:
+            self.bind(
+                on_key_down=keyboard._on_window_key_down,
+                on_key_up=keyboard._on_window_key_up)
+        else:
+            self.unbind(
+                on_key_down=keyboard._on_window_key_down,
+                on_key_up=keyboard._on_window_key_up)
+
+        return keyboard
 
     def release_keyboard(self, target=None):
         '''.. versionadded:: 1.0.4

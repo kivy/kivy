@@ -43,11 +43,14 @@ Available configuration tokens
         Format string to use for the filename of log file
     `log_enable`: (0, 1)
         Activate file logging
-    `keyboard_mode`: ('', 'system', 'dock', 'multi')
+    `keyboard_mode`: ('', 'system', 'dock', 'multi', 'systemanddock',
+            'systemandmulti')
         Keyboard mode to use. If empty, Kivy will decide for you what is the
         best for your current platform. Otherwise, you can set one of 'system'
         (real keyboard), 'dock' (one virtual keyboard docked in a screen side),
-        'multi' (one virtual keyboard everytime a widget ask for.)
+        'multi' (one virtual keyboard everytime a widget ask for),
+        'systemanddock' (virtual docked keyboard plus input from real keyboard)
+        'systemandmulti' (analogous)
     `keyboard_layout`: string
         Identifier of the layout to use
     `window_icon`: string
@@ -172,6 +175,10 @@ Available configuration tokens
     Anything after the = will be passed to the module as arguments.
     Check the specific module's documentation for a list of accepted arguments.
 
+.. versionchanged:: 1.8.0
+    `systemanddock` and `systemandmulti` has been added as possible value for
+    `keyboard_mode` in kivy section.
+
 .. versionchanged:: 1.2.0
     `resizable` has been added to graphics section
 
@@ -194,14 +201,13 @@ try:
     from ConfigParser import ConfigParser as PythonConfigParser
 except ImportError:
     from configparser import RawConfigParser as PythonConfigParser
-from sys import platform
 from os import environ
 from os.path import exists
 from kivy import kivy_config_fn
 from kivy.logger import Logger, logger_config_update
 from collections import OrderedDict
 from kivy.utils import platform
-from kivy.compat import PY2
+from kivy.compat import PY2, string_types
 
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
@@ -271,7 +277,7 @@ class ConfigParser(PythonConfigParser):
         '''
         e_value = value
         if PY2:
-            if not isinstance(value, basestring):
+            if not isinstance(value, string_types):
                 # might be boolean, int, etc.
                 e_value = str(value)
             else:
@@ -515,4 +521,3 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.write()
         except Exception as e:
             Logger.exception('Core: Error while saving default config file')
-

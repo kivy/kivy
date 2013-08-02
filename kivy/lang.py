@@ -627,7 +627,6 @@ from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.compat import PY2, iteritems, iterkeys
 import kivy.metrics as Metrics
-from weakref import ref, proxy
 
 
 trace = Logger.trace
