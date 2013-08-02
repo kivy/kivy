@@ -576,7 +576,6 @@ from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.lib.debug import make_traceback
 import kivy.metrics as Metrics
-from weakref import ref, proxy
 
 
 trace = Logger.trace
@@ -600,7 +599,7 @@ _delayed_calls = []
 # widget is deleted
 _handlers = {}
 
-    
+
 class ProxyApp(object):
     # proxy app object
     # taken from http://code.activestate.com/recipes/496741-object-proxying/
