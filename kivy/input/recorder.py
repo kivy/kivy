@@ -82,7 +82,7 @@ Known limitations
 
   - Unable to save attributes with instances of complex classes.
   - Values that represent time will not be adjusted.
-  - Can replay only complete records, if a begin/update/end event is missing,
+  - Can replay only complete records. If a begin/update/end event is missing,
     this could lead to ghost touches.
   - Stopping the replay before the end can lead to ghost touches.
 
