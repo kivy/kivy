@@ -30,11 +30,11 @@ Available configuration tokens
 ------------------------------
 
 :kivy:
+
     `desktop`: (0, 1)
         Enable/disable specific features if True/False. For example enabling
         drag-able scroll-bar in scroll views, disabling of bubbles in
         TextInput...  True etc.
-
     `log_level`: (debug, info, warning, error, critical)
         Set the minimum log level to use
     `log_dir`: string
@@ -44,7 +44,7 @@ Available configuration tokens
     `log_enable`: (0, 1)
         Activate file logging
     `keyboard_mode`: ('', 'system', 'dock', 'multi', 'systemanddock',
-            'systemandmulti')
+        'systemandmulti')
         Keyboard mode to use. If empty, Kivy will decide for you what is the
         best for your current platform. Otherwise, you can set one of 'system'
         (real keyboard), 'dock' (one virtual keyboard docked in a screen side),
