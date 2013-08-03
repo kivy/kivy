@@ -69,8 +69,8 @@ class AdapterListOpHandler(ListOpHandler):
         # Make a copy in the adapter for more convenient access by observers.
         self.adapter.op_info = op_info
 
-        Logger.info(('ListAdapter: '
-                     'OOL data_changed callback ') + str(op_info))
+        Logger.debug(('ListAdapter: '
+                      'OOL data_changed callback ') + str(op_info))
 
         op = op_info.op_name
         start_index = op_info.start_index
@@ -126,8 +126,8 @@ class AdapterListOpHandler(ListOpHandler):
 
             else:
 
-                Logger.info(('ListOpHandler: '
-                             'OOL data_changed callback, uncovered op ')
+                Logger.debug(('ListOpHandler: '
+                              'OOL data_changed callback, uncovered op ')
                                  + str(op))
 
         self.adapter.dispatch('on_data_change')

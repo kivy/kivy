@@ -39,6 +39,16 @@ selection behaviour:
     an ObjectProperty, so we need to reset it here to ListProperty). See also
     DictAdapter and its set of data = DictProperty().
 
+.. versionchanged:: 1.8.0
+
+    A new class, OpObservableList is passed to ListProperty to replace its
+    internal use of ObservableList. OpObservableList dispatches change events
+    on a per op basis, as compared to the gross dispatching done by
+    ObservableList. This new functionality is paired with changeds in ListView,
+    which now reacts in a more fine-grained way to data changes. See its new
+    data_changed() method. See also new adapter modules, list_ops.py and
+    dict_ops.py which contain code for the more detailed dispatching logic.
+
 '''
 
 __all__ = ('ListAdapter', )
@@ -86,6 +96,27 @@ class ListAdapter(Adapter):
     events and updates the user interface. When an item is deleted, it removes
     the item view widget from its container, or for an addition, it adds the
     item view widget to its container and scrolls the list, and so on.
+
+    .. versionchanged:: 1.8.0
+
+        A new class, OpObserverableList, was added to kivy/properties.pyx as an
+        alternative to ObservableList, which only dispatches when data is
+        set, or when any change occurs. The new ObObservableList dispatches on
+        a fine-grained basis, after any individual op is performed.
+
+        This new class is used in the ListProperty for data.
+
+        ListAdapter must react to the events that come for a change to data.
+        It delegates handling of these events to a ListOpHandler
+        instance, defined in a new module, adapters/list_ops.py. This handling
+        mainly involves adjusting cached_views and selection, in support of
+        collection type widgets, such as ListView, that use ListAdapter.
+
+        The data_changed() method of the delegate ListOpHandler and methods
+        called there do what is needed to cached_views and selection, then they
+        dispatch, in turn, up to the owning collection type view, such as
+        ListView. The collection type view then reacts with changes to its
+        children and other parts of the user interface as needed.
     '''
 
     data = ListProperty([], cls=OpObservableList)

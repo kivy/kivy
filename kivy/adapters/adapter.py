@@ -52,6 +52,12 @@ class Adapter(Selection, EventDispatcher):
     '''An :class:`~kivy.adapters.adapter.Adapter` is a bridge between data and
     an :class:`~kivy.uix.abstractview.AbstractView` or one of its subclasses,
     such as a :class:`~kivy.uix.listview.ListView`.
+
+    .. versionchanged:: 1.8.0
+
+        Selection code was pulled out of ListAdapter and pushed down here, so
+        now all adapters have selection functionality. cached_views and related
+        code was also moved here.
     '''
 
     data = ObjectProperty(None)
@@ -137,6 +143,7 @@ class Adapter(Selection, EventDispatcher):
         if not 'args_converter' in kwargs:
             self.args_converter = list_item_args_converter
 
+    # TODO: Mark as deprecated.
     def bind_triggers_to_view(self, func):
         self.bind(data=func)
 
