@@ -29,8 +29,13 @@ Users of this class dispatch the *on_selection_change* event.
 
 .. versionchanged:: 1.8.0
 
-    Broke out of :class:`ListAdapter` into a mixin class.
+    Broke this code out of :class:`ListAdapter` into a separate mixin class
+    that is used in Adapter. This way all adapters have selection available.
 
+    Added a new bind_selection_to_children property to allow control of
+    selection for composite widgets.
+
+    Added convenience methods, get_selection() and get_first_selected_item().
 '''
 
 __all__ = ('Selection', )

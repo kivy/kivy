@@ -605,6 +605,24 @@ cdef class ListProperty(Property):
     '''Property that represents a list.
 
     Only lists are allowed. Tuple or any other classes are forbidden.
+
+    .. versionchanged:: 1.8.0
+
+        The following change does not affect the API. It has to do with
+        internal event dispatching. It may be interesting to widget developers.
+
+        A new class, OpObservableList, is defined in this module, complimenting
+        the original ObservableList.  Whereas the new OpObservableList
+        dispatches change events on a per op basis, the original ObservableList
+        does gross dispatching, so that there is no detailed change information
+        available to widgets.  
+
+        A new cls argument is checked, and if not defined, the original
+        ObservableList is used. Otherwise, the OpObservableList is used.
+
+        The default behavior remains the same: an observer sees a change event
+        when either the list is reset or when it changes in some way. The new
+        more detailed change info is not available, but is not always needed.
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or []
@@ -705,6 +723,24 @@ cdef class DictProperty(Property):
     '''Property that represents a dict.
 
     Only dict are allowed. Any other classes are forbidden.
+
+    .. versionchanged:: 1.8.0
+
+        The following change does not affect the API. It has to do with
+        internal event dispatching. It may be interesting to widget developers.
+
+        A new class, OpObservableDict, is defined in this module, complimenting
+        the original ObservableDict.  Whereas the new OpObservableDict
+        dispatches change events on a per op basis, the original ObservableDict
+        does gross dispatching, so that there is no detailed change information
+        available to widgets.
+        
+        A new cls argument is checked, and if not defined, the original
+        ObservableDict is used. Otherwise, the OpObservableDict is used.
+
+        The default behavior remains the same: an observer sees a change event
+        when either the dict is reset or when it changes in some way. The new
+        more detailed change info is not available, but is not always needed.
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or {}
@@ -732,6 +768,9 @@ cdef class DictProperty(Property):
 
 
 class ListOpInfo(object):
+    '''Holds change info about an OpObservableList instance.
+    '''
+
     def __init__(self, op_name, start_index, end_index):
         self.op_name = op_name
         self.start_index = start_index
@@ -757,6 +796,12 @@ class OpObservableList(list):
 
     Range-observing and granular (per op) data is stored in op_info and
     sort_op_info for use by an observer.
+
+    .. versionchanged:: 1.8.0
+
+        Added, along with modifications to ListProperty to allow its use.
+        ListOpInfo and ListOpHander were also added.
+
     '''
 
     def __init__(self, *largs):
@@ -936,6 +981,8 @@ class ListOpHandler(object):
 
 
 class DictOpInfo(object):
+    '''Holds change info about an OpObservableDict instance.
+    '''
 
     def __init__(self, op_name, keys):
         self.op_name = op_name
@@ -960,6 +1007,12 @@ class OpObservableDict(dict):
 
     Range-observing and granular (per op) data is stored in op_info for use by
     an observer.
+
+    .. versionchanged:: 1.8.0
+
+        Added, along with modifications to DictProperty to allow its use.
+        DictOpInfo and DictOpHander were also added.
+
     '''
 
     def __init__(self, *largs):

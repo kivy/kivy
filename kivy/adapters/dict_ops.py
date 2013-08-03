@@ -61,7 +61,7 @@ class AdapterDictOpHandler(DictOpHandler):
         if op == 'OOD_update':
             self.adapter.sorted_keys.extend(keys)
 
-        Logger.info('DictAdapter: data_changed callback ' + str(op_info))
+        Logger.debug('DictAdapter: data_changed callback ' + str(op_info))
 
         if op == 'OOD_set':
 

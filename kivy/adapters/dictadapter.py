@@ -55,11 +55,37 @@ class DictAdapter(Adapter):
     (sorted_keys here is one of those).
 
     Here we also have a data property, which is a
-    :class:`~kivy.properties.OpObservableDict`, sending change info
-    for possible ops to an associated helper op handler,
+    :class:`~kivy.properties.OpObservableDict`, sending change info for
+    possible ops to an associated helper op handler,
     :class:`~kivy.adapters.dict_ops.AdapterDictOpHandler`. The op handler
     responds to data changes by updating cached_views and selection, in support
     of the "collection" style view that uses this adapter.
+
+    .. versionchanged:: 1.8.0
+
+        New classes, OpObserverableList and OpObservableDict, were added to
+        kivy/properties.pyx as alternatives to ObservableList and
+        ObservableDict, which only dispatch when data is set, or when any
+        change occurs. The new ObObservableList and OpObservableDict dispatch
+        on a fine-grained basis, after any individual op is performed.
+
+        These new classes are used in the ListProperty for sorted_keys and in
+        the DictProperty for data.
+
+        DictAdapter must react to the events that come for a change to
+        sorted_keys or to data. It delegates handling of these events for
+        sorted_keys to a ListOpHandler instance, defined in a new module,
+        adapters/list_ops.py.  Likewise, for data, it delegates event handling
+        to a dedicated DictOpHandler. This handling mainly involves adjusting
+        cached_views and selection, in support of collection type widgets, such
+        as ListView, that use DictAdapter.
+
+        The data_changed() method of the delegate ListOpHandler and
+        DictOpHandler modules, and methods used there, do what is needed to
+        cached_views and selection, then they dispatch, in turn, up to the
+        owning collection type view, such as ListView. The collection type view
+        then reacts with changes to its children and other parts of the user
+        interface as needed.
     '''
 
     sorted_keys = ListProperty([], cls=OpObservableList)

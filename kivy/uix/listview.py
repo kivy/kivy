@@ -20,6 +20,19 @@ vertical scrollable list. :class:`AbstractView` has one property, adapter.
 :class:`~kivy.adapters.listadapter.ListAdapter`, or
 :class:`~kivy.adapters.dictadapter.DictAdapter`.
 
+.. versionchanged:: 1.8.0
+
+    The underlying adapter and selection system changed in support of
+    operations here, which needed to receive more detailed information about
+    changes to data held in adapters, either in ListAdapter or DictAdapter. The
+    data_changed() method replaces a call to bind_triggers_to_view(), now
+    deprecated. Previously, with limited information about data change, only
+    broad scroll and child handling reactions could be made. Now, in the new
+    data_changed() method, there is an opportunity to react to individual item
+    resets, to insertions, deletions, sort, etc. Sometimes it is necessary to
+    remove and force recreation of views, sometimes it is necessary to make a
+    specific scroll action, and so on.
+
 Introduction
 ------------
 
@@ -667,7 +680,9 @@ class ListItemButton(SelectableView, Button):
 
     def select(self, *args):
         self.background_color = self.selected_color
+        print 'select ListItemButton'
         if type(self.parent) is CompositeListItem:
+            print 'select ListItemButton -- select_from_child', args
             self.parent.select_from_child(self, *args)
 
     def deselect(self, *args):
@@ -777,6 +792,9 @@ class CompositeListItem(SelectableView, BoxLayout):
 
             if cls_kwargs:
                 cls_kwargs['index'] = index
+
+                # TODO: Implement something to make the select and
+                #       deselect cosmetic effects a parameter.
 
                 if 'selection_target' not in cls_kwargs:
                     cls_kwargs['selection_target'] = self
@@ -969,6 +987,7 @@ class ListView(AbstractView, EventDispatcher):
 
             self._trigger_populate()
 
+    # TODO: Is this used?
     # Added to set data when item_strings is set in a kv template, but it will
     # be good to have also if item_strings is reset generally.
     def item_strings_changed(self, *args):

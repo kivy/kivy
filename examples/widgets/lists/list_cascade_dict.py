@@ -22,8 +22,6 @@ class FruitsDictAdapter(DictAdapter):
         category = \
                 fruit_categories[fruit_categories_adapter.selection[0].text]
 
-        print 'new category', category['fruits']
-
         self.sorted_keys = category['fruits']
 
 
