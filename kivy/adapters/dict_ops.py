@@ -1,5 +1,6 @@
 from kivy.logger import Logger
 from kivy.properties import DictOpHandler
+from kivy.properties import DictOpInfo
 
 
 class AdapterDictOpHandler(DictOpHandler):
@@ -41,7 +42,10 @@ class AdapterDictOpHandler(DictOpHandler):
 
         self.adapter = args[0]
         # TODO: args[1] is the modified dict -- utilize somehow?
-        op_info = args[2]
+        if len(args) == 3:
+            op_info = args[2]
+        else:
+            op_info = DictOpInfo('OOD_set', ())
 
         # Make a copy for more convenience access by observers.
         self.adapter.op_info = op_info
@@ -59,24 +63,29 @@ class AdapterDictOpHandler(DictOpHandler):
 
         Logger.info('DictAdapter: data_changed callback ' + str(op_info))
 
-        if op in ['OOD_setitem_set', ]:
+        if op == 'OOD_set':
 
-            # NOTE: handle_setitem_set_op() fires a data change dispatch.
+            self.handle_set()
+
+        elif op in ['OOD_setitem_set', ]:
+
             self.handle_setitem_set_op(keys[0])
 
         elif op in ['OOD_delitem',
                     'OOD_pop',
                     'OOD_popitem']:
 
-            # NOTE: handle_delete_op() does not dispatch, because it changes
-            #       self.adapter.sorted_keys, which will dispatch.
             self.handle_delete_op(keys)
 
         elif op == 'OOD_clear':
 
-            # NOTE: handle_clear_op() does not dispatch, because it resets
-            #       self.adapter.sorted_keys, which will dispatch.
             self.handle_clear_op()
+
+    def handle_set(self):
+
+        # Will trigger a data set callback in sorted_keys, which will clear
+        # the cache and (re)initialize selection:
+        self.adapter.sorted_keys = self.adapter.data.keys()
 
     def handle_setitem_set_op(self, key):
 
@@ -113,17 +122,17 @@ class AdapterDictOpHandler(DictOpHandler):
 
         self.adapter.additional_op_info = (start_index, end_index)
 
-        # Trigger the data change callback (The event will fire from the
-        # adapter, under control of the delegated list_op_handler).
+        # Do not dispatch here. Trigger the data change callback. The event
+        # will fire from the adapter, under control of the delegated
+        # list_op_handler. The cache will be cleared and selection
+        # reinitialized.
         del self.adapter.sorted_keys[start_index:end_index + 1]
 
     def handle_clear_op(self):
 
-        # Set start_index and end_index to full range (that was cleared).
-        self.adapter.additional_op_info = (0, len(self.source_dict) - 1)
-
-        self.adapter.cached_views.clear()
-        self.adapter.selection = []
+        # The data has been cleared, so there is no meaningful length to set
+        # here (len(self.data) would give the new data length). So, set (0, 0).
+        self.adapter.additional_op_info = (0, 0)
 
         # Trigger the data set callback, as above.
         self.adapter.sorted_keys = []

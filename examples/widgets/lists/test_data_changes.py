@@ -58,12 +58,7 @@ Builder.load_string('''
                 width: 200
                 height: 30
                 text: 'Load with String Data'
-                on_release: app.list_adapter.args_converter = \
-                                    app.strings_args_converter; \
-                            del app.list_adapter.data[\
-                                    0:len(app.list_adapter.data)]; \
-                            [app.list_adapter.data.append(s) \
-                                    for s in app.string_data]
+                on_release: app.list_load_with_string_data()
 
             Button:
                 pos_hint: {'center_x': .5}
@@ -101,40 +96,28 @@ Builder.load_string('''
                     width:80
                     height: 30
                     text: 'setitem'
-                    on_release: app.list_adapter.data[ \
-                            app.list_adapter.selection[0].index] = \
-                                choice(app.nato_alphabet_words) \
-                                if app.data_is_strings() \
-                                else app.create_list_item_obj()
+                    on_release: app.list_setitem()
 
                 Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'delitem'
-                    on_release: del app.list_adapter.data[ \
-                            app.list_adapter.selection[0].index]
+                    on_release: app.list_delitem()
 
                 Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'setslice (3)'
-                    on_release: app.list_adapter.data[ \
-                            app.list_adapter.selection[0].index: \
-                            app.list_adapter.selection[0].index + 3] = \
-                                [choice(app.nato_alphabet_words)] * 3 \
-                                if app.data_is_strings() \
-                                else app.create_list_item_obj_list(3)
+                    on_release: app.list_setslice()
 
                 Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'delslice (3)'
-                    on_release: del app.list_adapter.data[ \
-                            app.list_adapter.selection[0].index: \
-                            app.list_adapter.selection[0].index + 3]
+                    on_release: app.list_setslice()
     #
     # TODO: iadd and imul are getting a nonetype is not iterable error.
     # ROD object. So we will add labels instead of buttons for them for now.
@@ -171,73 +154,56 @@ Builder.load_string('''
                     width:80
                     height: 30
                     text: 'append'
-                    on_release: app.list_adapter.data.append( \
-                                    choice(app.nato_alphabet_words) \
-                                        if app.data_is_strings() \
-                                        else app.create_list_item_obj())
+                    on_release: app.list_append()
 
                 Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'remove'
-                    on_release: app.list_adapter.data.remove( \
-                            app.list_adapter.data[ \
-                                app.list_adapter.selection[0].index])
+                    on_release: app.list_remove()
 
                 Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'insert'
-                    on_release: app.list_adapter.data.insert( \
-                                    app.list_adapter.selection[0].index, \
-                                    choice(app.nato_alphabet_words) \
-                                        if app.data_is_strings() \
-                                        else app.create_list_item_obj())
+                    on_release: app.list_insert()
 
                 Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'pop()'
-                    on_release: app.list_adapter.data.pop()
+                    on_release: app.list_pop()
 
                 Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'pop(i)'
-                    on_release: app.list_adapter.data.pop( \
-                                app.list_adapter.selection[0].index)
+                    on_release: app.list_pop_i()
 
                 Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'extend (3)'
-                    on_release: app.list_adapter.data.extend( \
-                                    [choice(app.nato_alphabet_words)] * 3 \
-                                        if app.data_is_strings() \
-                                        else app.create_list_item_obj_list(3))
+                    on_release: app.list_extend()
 
                 Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'sort'
-                    on_release: app.list_adapter.data.sort( \
-                                        key=lambda obj: obj.text) \
-                                    if app.list_adapter.args_converter == \
-                                            app.objects_args_converter \
-                                    else app.list_adapter.data.sort()
+                    on_release: app.list_sort()
 
                 Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'reverse'
-                    on_release: app.list_adapter.data.reverse()
+                    on_release: app.list_reverse()
 
         BoxLayout:
             orientation: 'vertical'
@@ -272,100 +238,70 @@ Builder.load_string('''
                     width: 96
                     height: 30
                     text: 'setitem set'
-                    on_release: app.dict_adapter.data[ \
-                                app.dict_adapter.selection[0].key] = \
-                                  {'key': app.dict_adapter.selection[0].key, \
-                                   'value': app.random_10()}; \
-                                if app.dict_adapter.selection \
-                                else Logger.info( \
-                                  'Testing: No selection. Cannot setitem set.')
+                    on_release: app.dict_setitem_set()
 
                 Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'setitem add'
-                    on_release: k = \
-                        app.random_10(); \
-                        app.dict_adapter.data[k] = {'key': k, 'value': k}
+                    on_release: app.dict_setitem_add()
 
                 Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'delitem'
-                    on_release: del app.dict_adapter.data[ \
-                                    app.dict_adapter.sorted_keys[ \
-                                    app.dict_adapter.selection[0].index]]
+                    on_release: app.dict_delitem()
 
                 Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'clear'
-                    on_release: app.dict_adapter.data.clear()
+                    on_release: app.dict_clear()
 
                 Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'pop'
-                    on_release: app.dict_adapter.data.pop( \
-                                    app.dict_adapter.sorted_keys[ \
-                                    app.dict_adapter.selection[0].index]) \
-                                if app.dict_adapter.data.keys() \
-                                else Logger.info( \
-                                    'Testing: Data is empty. Cannot pop.')
+                    on_release: app.dict_pop()
 
                 Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'popitem'
-                    on_release: app.dict_adapter.data.popitem() \
-                                if app.dict_adapter.data.keys() \
-                                else Logger.info(
-                                    'Testing: Data is empty. Cannot popitem.')
+                    on_release: app.dict_popitem()
 
                 Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'setdefault'
-                    on_release: k = \
-                        app.random_10(); \
-                        app.dict_adapter.data.setdefault( \
-                                    k, {'key': k, 'value': k})
+                    on_release: app.dict_setdefault()
 
                 Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'update (3)'
-                    on_release: \
-                        k1 = app.random_10(); \
-                        k2 = app.random_10(); \
-                        k3 = app.random_10(); \
-                        app.dict_adapter.data.update(
-                            {k1: {'key': k1, 'value': k1}, \
-                             k2: {'key': k2, 'value': k2}, \
-                             k3: {'key': k3, 'value': k3}})
+                    on_release: app.dict_update()
 
                 Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'insert'
-                    on_release: app.insert_into_dict( \
-                            app.dict_adapter.selection[0].index)
+                    on_release: app.dict_insert()
 
                 Button:
                     size_hint: None, None
                     width:80
                     height: 30
                     text: 'sort'
-                    on_release: app.dict_adapter.sorted_keys.sort( \
-                            key=lambda k: k.lower())
+                    on_release: app.dict_sort()
 ''')
 
 
@@ -440,7 +376,7 @@ class Test(App):
                 args_converter=self.strings_args_converter)
 
         self.dict_adapter = DictAdapter(
-                data=self.aphabet_dict(),
+                data=self.alphabet_dict(),
                 cls=KeyedListItemButton,
                 selection_mode='single',
                 allow_empty_selection=False,
@@ -455,6 +391,133 @@ class Test(App):
 
         return self._screen_manager
 
+    def list_load_with_string_data(self):
+        self.list_adapter.args_converter = self.strings_args_converter
+        del self.list_adapter.data[0:len(self.list_adapter.data)]
+        [self.list_adapter.data.append(s) for s in self.string_data]
+
+    def new_item(self):
+        if self.data_is_strings():
+            return choice(self.nato_alphabet_words)
+        else:
+            return self.create_list_item_obj()
+
+    def new_data(self, how_many):
+        if self.data_is_strings():
+            return [choice(self.nato_alphabet_words)] * how_many
+        else:
+            return self.create_list_item_obj_list(how_many)
+
+    def list_setitem(self):
+        sel_index = self.list_adapter.selection[0].index
+
+        self.list_adapter.data[sel_index] = self.new_item()
+
+    def list_delitem(self):
+        del self.list_adapter.data[self.list_adapter.selection[0].index]
+
+    def list_setslice(self):
+        sel_index = self.list_adapter.selection[0].index
+
+        self.list_adapter.data[sel_index:sel_index + 3] = self.new_data(3)
+
+    def list_delslice(self):
+        sel_index = self.list_adapter.selection[0].index
+
+        del self.list_adapter.data[sel_index:sel_index + 3]
+
+    def list_append(self):
+        self.list_adapter.data.append(self.new_item())
+
+    def list_remove(self):
+        sel_index = self.list_adapter.selection[0].index
+
+        item = self.list_adapter.data[sel_index]
+
+        self.list_adapter.data.remove(item)
+
+    def list_insert(self):
+        sel_index = self.list_adapter.selection[0].index
+
+        self.list_adapter.data.insert(sel_index, self.new_item())
+
+    def list_pop(self):
+        self.list_adapter.data.pop()
+
+    def list_pop_i(self):
+        sel_index = self.list_adapter.selection[0].index
+
+        self.list_adapter.data.pop(sel_index)
+
+    def list_extend(self):
+        self.list_adapter.data.extend(self.new_data(3))
+
+    def list_sort(self):
+        if self.data_is_strings():
+            self.list_adapter.data.sort()
+        else:
+            self.list_adapter.data.sort(key=lambda obj: obj.text)
+
+    def list_reverse(self):
+        self.list_adapter.data.reverse()
+
+    def dict_setitem_set(self):
+        sel_key = self.dict_adapter.selection[0].key
+
+        if self.dict_adapter.selection:
+            new_item = {'key': sel_key, 'value': self.random_10()}
+            self.dict_adapter.data[sel_key] = new_item
+        else:
+            Logger.info('Testing: No selection. Cannot setitem set.')
+
+    def dict_setitem_add(self):
+        k = self.random_10()
+        self.dict_adapter.data[k] = {'key': k, 'value': k}
+
+    def dict_delitem(self):
+        sel_index = self.dict_adapter.selection[0].index
+
+        sel_key = self.dict_adapter.sorted_keys[sel_index]
+
+        del self.dict_adapter.data[sel_key]
+
+    def dict_clear(self):
+        self.dict_adapter.data.clear()
+
+    def dict_pop(self):
+        sel_index = self.dict_adapter.selection[0].index
+
+        sel_key = self.dict_adapter.sorted_keys[sel_index]
+
+        if self.dict_adapter.data.keys():
+            self.dict_adapter.data.pop(sel_key)
+        else:
+            Logger.info('Testing: Data is empty. Cannot pop.')
+
+    def dict_popitem(self):
+        if self.dict_adapter.data.keys():
+            self.dict_adapter.data.popitem()
+        else:
+            Logger.info('Testing: Data is empty. Cannot popitem.')
+
+    def dict_setdefault(self):
+        k = self.random_10()
+        self.dict_adapter.data.setdefault(k, {'key': k, 'value': k})
+
+    def dict_update(self):
+        k1 = self.random_10()
+        k2 = self.random_10()
+        k3 = self.random_10()
+
+        self.dict_adapter.data.update({k1: {'key': k1, 'value': k1},
+                                       k2: {'key': k2, 'value': k2},
+                                       k3: {'key': k3, 'value': k3}})
+
+    def dict_insert(self):
+        self.insert_into_dict(self.dict_adapter.selection[0].index)
+
+    def dict_sort(self):
+        self.dict_adapter.sorted_keys.sort(key=lambda k: k.lower())
 
 if __name__ == '__main__':
     Test().run()
