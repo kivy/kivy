@@ -36,6 +36,24 @@ Users of this class dispatch the *on_selection_change* event.
     selection for composite widgets.
 
     Added convenience methods, get_selection() and get_first_selected_item().
+
+    Added use of OpObservableList in the selection list, mainly to use a new
+    batch_delete() method made for revised select_list() and deselect_list()
+    methods. This is part of a change to allow selection to be observed
+    directly, in addition to the already available on_selection_change event.
+    Now either of the following will work, but have differing types of events
+    associated:
+
+        1) ...adapter.bind(selection=some_method)
+
+            Events are per-op dispatches, with an additional argument, op_info,
+            available if an observer needs more detailed change info.
+
+        2) ...adapter.bind(on_selection_change=some_method)
+
+            Events are the regular type, where dispatches happen as a result of
+            the list being set, or as a result of any change (There is no
+            op_info detail available).
 '''
 
 __all__ = ('Selection', )
@@ -50,7 +68,7 @@ from kivy.properties import DictProperty
 from kivy.properties import ListProperty
 from kivy.properties import NumericProperty
 from kivy.properties import ObjectProperty
-from kivy.properties import ObservableList
+from kivy.properties import OpObservableList
 from kivy.properties import OptionProperty
 from kivy.properties import StringProperty
 from kivy.lang import Builder
@@ -63,7 +81,7 @@ class Selection(EventDispatcher):
     and management functonality.
     '''
 
-    selection = ListProperty([])
+    selection = ListProperty([], cls=OpObservableList)
     '''The selection list property is the container for selected items.
 
     :data:`selection` is a :class:`~kivy.properties.ListProperty` and defaults
@@ -214,45 +232,45 @@ class Selection(EventDispatcher):
         '''
         return self.selection[0] if self.selection else None
 
-    # TODO: The change event here is called on_selection_change. This is not
-    # consistent with general use, because there is no selection_change
-    # property, to which the on_ prefix has been added. The reason why doing
-    # selection this way, by making the API for binding as:
-    #
-    #     ...list.adapter.bind(on_selection_change=self.some_func) ...
-    #
-    # was related to batch updating of selection for the select_list() and
-    # deselect_list() methods, which call here with hold_dispatch=True. This
-    # can be changed to pass in a temporary selection list, tmp_selection. If
-    # tmp_selection is not None, work off a copy somehow and return it. Then,
-    # the select_list() and deselect_list() methods will set to selection on
-    # return. This way, we can simplify the API to:
-    #
-    #     ...list.adapter.bind(selection=self.some_func) ...
-    #
-    # and, we will be better prepared to make a simpler usage in kv also.
-    #
     def handle_selection(self, view, hold_dispatch=False, *args):
         if view not in self.selection:
             if self.selection_mode in ['none', 'single'] and \
                     len(self.selection) > 0:
                 for selected_view in self.selection:
-                    self.deselect_item_view(selected_view)
+                    if hold_dispatch:
+                        return 'd'
+                    else:
+                        self.deselect_item_view(selected_view)
             if self.selection_mode != 'none':
                 if self.selection_mode == 'multiple':
                     if self.allow_empty_selection:
                         # If < 0, selection_limit is not active.
                         if self.selection_limit < 0:
-                            self.select_item_view(view)
+                            if hold_dispatch:
+                                return 's'
+                            else:
+                                self.select_item_view(view)
                         else:
                             if len(self.selection) < self.selection_limit:
-                                self.select_item_view(view)
+                                if hold_dispatch:
+                                    return 's'
+                                else:
+                                    self.select_item_view(view)
+                    else:
+                        if hold_dispatch:
+                            return 's'
+                        else:
+                            self.select_item_view(view)
+                else:
+                    if hold_dispatch:
+                        return 's'
                     else:
                         self.select_item_view(view)
-                else:
-                    self.select_item_view(view)
         else:
-            self.deselect_item_view(view)
+            if hold_dispatch:
+                return 'check_for_empty_selection-d'
+            else:
+                self.deselect_item_view(view)
             if self.selection_mode != 'none':
                 #
                 # If the deselection makes selection empty, the following call
@@ -289,7 +307,7 @@ class Selection(EventDispatcher):
             else:
                 item.is_selected = value
 
-    def select_item_view(self, view):
+    def select_item_view(self, view, add_to_selection=True):
 
         has_selection = False
 
@@ -313,9 +331,6 @@ class Selection(EventDispatcher):
                 view.is_selected = True
             has_selection = True
 
-        if has_selection:
-            self.selection.append(view)
-
         # [TODO] sibling selection for composite items
         #        Needed? Or handled from parent?
         #        (avoid circular, redundant selection)
@@ -329,6 +344,9 @@ class Selection(EventDispatcher):
             data_item = self.get_data_item(view.index)
             self.select_data_item(data_item)
 
+        if has_selection and add_to_selection:
+            self.selection.append(view)
+
     def select_list(self, view_list, extend=True):
         '''The select call is made for the items in the provided view_list.
 
@@ -339,18 +357,67 @@ class Selection(EventDispatcher):
 
             extend: boolean for whether or not to extend the existing list
         '''
+
         if not extend:
             self.selection = []
 
+        self._handle_batch(view_list)
+
+    def deselect_list(self, view_list):
+        self._handle_batch(view_list)
+
+    def _handle_batch(self, view_list):
+        # Use hold_dispatch to keep handle_selection() from calling select or
+        # deselect methods, which avoids changing selection. Collect the select
+        # and deselect ops that handle_selection() reports are needed (this way
+        # we use the same logic there), and then do the ops in a quick loop,
+        # followed by a batch call for the actuall selection list changes.
+
+        ops = []
         for view in view_list:
-            self.handle_selection(view, hold_dispatch=True)
+            ops.append(self.handle_selection(view, hold_dispatch=True))
+
+        check_for_empty_selection = False
+
+        # When we call the select and deselect methods, have them do everything
+        # except actually changing selection -- we'll do a batch op instead.
+        #
+        # Accumulate the adds and deletes for the batch calls.
+        #
+        sel_adds = []
+        sel_deletes = []
+        for op, view in zip(ops, view_list):
+            if op[0] == 's':
+                self.select_item_view(view, add_to_selection=False)
+                sel_adds.append(view)
+            elif op[0] == 'd':
+                self.deselect_item_view(view, remove_from_selection=False)
+                sel_deletes.append(view)
+            else:  # check_for_empty_selection(), and deselect
+                self.deselect_item_view(view, remove_from_selection=False)
+                sel_deletes.append(self.selection.index(view))
+                check_for_empty_selection = True
+
+        # Now do the ops as batch calls:
+        if sel_adds:
+            self.selection.extend(sel_adds)
+        elif sel_deletes:
+            # sel_deletes contains indices.
+            self.selection.batch_delete(reversed(sel_deletes))
+
+        # Also, see the logic in handle_selection(), which includes calling
+        # check_for_empty_selection() if the view is in selection and needs
+        # deselection. We use that information to do the check and call here
+        # after the batch ops.
+        if check_for_empty_selection:
+            if self.selection_mode != 'none':
+                self.check_for_empty_selection()
 
         self.dispatch('on_selection_change')
 
-    def deselect_item_view(self, view):
+    def deselect_item_view(self, view, remove_from_selection=True):
         view.deselect()
         view.is_selected = False
-        self.selection.remove(view)
 
         # [TODO] sibling deselection for composite items
         #        Needed? Or handled from parent?
@@ -365,11 +432,8 @@ class Selection(EventDispatcher):
             item = self.get_data_item(view.index)
             self.deselect_data_item(item)
 
-    def deselect_list(self, l):
-        for view in l:
-            self.handle_selection(view, hold_dispatch=True)
-
-        self.dispatch('on_selection_change')
+        if remove_from_selection:
+            self.selection.remove(view)
 
     # [TODO] Could easily add select_all() and deselect_all().
 
