@@ -22,7 +22,7 @@ class ListViewTestCase(unittest.TestCase):
                 ListView(item_strings=[str(index) for index in range(100)])
 
         self.assertEqual(type(list_view.adapter), SimpleListAdapter)
-        self.assertFalse(hasattr(list_view.adapter, 'selection'))
+        self.assertTrue(hasattr(list_view.adapter, 'selection'))
         self.assertEqual(len(list_view.adapter.data), 100)
 
     def test_simple_list_view_explicit_simple_list_adapter(self):
@@ -35,7 +35,7 @@ class ListViewTestCase(unittest.TestCase):
         list_view = ListView(adapter=simple_list_adapter)
 
         self.assertEqual(type(list_view.adapter), SimpleListAdapter)
-        self.assertFalse(hasattr(list_view.adapter, 'selection'))
+        self.assertTrue(hasattr(list_view.adapter, 'selection'))
         self.assertEqual(len(list_view.adapter.data), 100)
         self.assertEqual(type(list_view.adapter.get_view(0)), Label)
 
@@ -172,28 +172,16 @@ class ListViewTestCase(unittest.TestCase):
             BooleanProperty
 
         Builder.load_string("""
-#:import label kivy.uix.label
-#:import sla kivy.adapters.simplelistadapter
-
-<ListViewModal>:
-    size_hint: None,None
-    size: 400,400
-    lvm: lvm
-    ListView:
-        id: lvm
-        size_hint: .8,.8
-        adapter:
-            sla.SimpleListAdapter(
-            data=["Item #{0}".format(i) for i in range(100)],
-            cls=label.Label)
+<ListViewTest>:
+    adapter: self.list_adapter
 """)
 
-        class ListViewModal(ModalView):
+        class ListViewTest(ListView):
             def __init__(self, **kwargs):
-                super(ListViewModal, self).__init__(**kwargs)
+                data = ["Item #{0}".format(i) for i in range(100)]
+                self.list_adapter = ListAdapter(data=data, cls=Label)
+                super(ListView, self).__init__(**kwargs)
 
-        list_view_modal = ListViewModal()
+        list_view_test = ListViewTest()
 
-        list_view = list_view_modal.lvm
-
-        self.assertEqual(len(list_view.adapter.data), 100)
+        self.assertEqual(len(list_view_test.adapter.data), 100)

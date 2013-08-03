@@ -37,6 +37,8 @@ Arguments:
 
 __all__ = ('Adapter', )
 
+import inspect
+
 from kivy.event import EventDispatcher
 from kivy.properties import DictProperty
 from kivy.properties import ObjectProperty
@@ -137,9 +139,6 @@ class Adapter(Selection, EventDispatcher):
 
     def bind_triggers_to_view(self, func):
         self.bind(data=func)
-
-    def get_data_item(self):
-        return self.data
 
     def get_view(self, index):
         if index in self.cached_views:
