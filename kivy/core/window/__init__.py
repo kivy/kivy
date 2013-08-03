@@ -71,8 +71,9 @@ class Keyboard(EventDispatcher):
         # numpad
         'numpad0': 256, 'numpad1': 257, 'numpad2': 258, 'numpad3': 259,
         'numpad4': 260, 'numpad5': 261, 'numpad6': 262, 'numpad7': 263,
-        'numpad8': 264, 'numpad9': 265, 'numpaddecimal': 266, 'numpaddivide': 267,
-        'numpadmul': 268, 'numpadsubstract': 269, 'numpadadd': 270,
+        'numpad8': 264, 'numpad9': 265, 'numpaddecimal': 266,
+        'numpaddivide': 267, 'numpadmul': 268, 'numpadsubstract': 269,
+        'numpadadd': 270,
 
         # F1-15
         'f1': 282, 'f2': 283, 'f3': 282, 'f4': 285, 'f5': 286, 'f6': 287,
@@ -436,7 +437,8 @@ class WindowBase(EventDispatcher):
         if 'rotation' not in kwargs:
             kwargs['rotation'] = Config.getint('graphics', 'rotation')
         if 'position' not in kwargs:
-            kwargs['position'] = Config.getdefault('graphics', 'position', 'auto')
+            kwargs['position'] = Config.getdefault('graphics', 'position',
+                                     'auto')
         if 'top' in kwargs:
             kwargs['position'] = 'custom'
             kwargs['top'] = kwargs['top']
@@ -968,12 +970,11 @@ class WindowBase(EventDispatcher):
             keyboard.target = target
 
         # use system (hardware) keyboard according to flag
-        if self.use_syskeyboard:
-            self.bind(
+        if self.allow_vkeyboard and self.use_syskeyboard:
+            self.unbind(
                 on_key_down=keyboard._on_window_key_down,
                 on_key_up=keyboard._on_window_key_up)
-        else:
-            self.unbind(
+            self.bind(
                 on_key_down=keyboard._on_window_key_down,
                 on_key_up=keyboard._on_window_key_up)
 
