@@ -771,7 +771,7 @@ class ListOpInfo(object):
         self.end_index = end_index
 
 
-cdef inline void recording_observable_list_dispatch(object self, object op_info):
+cdef inline void op_observable_list_dispatch(object self, object op_info):
     cdef Property prop = self.prop
     obj = self.obj()
     if obj is not None:
@@ -814,12 +814,12 @@ class OpObservableList(list):
     #       deprecated setslice() and delslice() methods.
     def __setitem__(self, key, value):
         list.__setitem__(self, key, value)
-        recording_observable_list_dispatch(self,
+        op_observable_list_dispatch(self,
                ListOpInfo('OOL_setitem', key, key))
 
     def __delitem__(self, key):
         list.__delitem__(self, key)
-        recording_observable_list_dispatch(self,
+        op_observable_list_dispatch(self,
                ListOpInfo('OOL_delitem', key, key))
 
     def __setslice__(self, *largs):
@@ -836,7 +836,7 @@ class OpObservableList(list):
         start_index = largs[0]
         end_index = largs[1] - 1
         list.__setslice__(self, *largs)
-        recording_observable_list_dispatch(self,
+        op_observable_list_dispatch(self,
                 ListOpInfo('OOL_setslice', start_index, end_index))
 
     def __delslice__(self, *largs):
@@ -846,14 +846,14 @@ class OpObservableList(list):
         start_index = largs[0]
         end_index = largs[1] - 1
         list.__delslice__(self, *largs)
-        recording_observable_list_dispatch(self,
+        op_observable_list_dispatch(self,
                 ListOpInfo('OOL_delslice', start_index, end_index))
 
     def __iadd__(self, *largs):
         start_index = len(self)
         end_index = start_index + len(largs) - 1
         list.__iadd__(self, *largs)
-        recording_observable_list_dispatch(self,
+        op_observable_list_dispatch(self,
                 ListOpInfo('OOL_iadd', start_index, end_index))
 
     def __imul__(self, *largs):
@@ -861,25 +861,25 @@ class OpObservableList(list):
         start_index = len(self)
         end_index = start_index + (len(self) * num)
         list.__imul__(self, *largs)
-        recording_observable_list_dispatch(self,
+        op_observable_list_dispatch(self,
                 ListOpInfo('OOL_imul', start_index, end_index))
 
     def append(self, *largs):
         index = len(self)
         list.append(self, *largs)
-        recording_observable_list_dispatch(self,
+        op_observable_list_dispatch(self,
                 ListOpInfo('OOL_append', index, index))
 
     def remove(self, *largs):
         index = self.index(largs[0])
         list.remove(self, *largs)
-        recording_observable_list_dispatch(self,
+        op_observable_list_dispatch(self,
                 ListOpInfo('OOL_remove', index, index))
 
     def insert(self, *largs):
         index = largs[0]
         list.insert(self, *largs)
-        recording_observable_list_dispatch(self,
+        op_observable_list_dispatch(self,
                 ListOpInfo('OOL_insert', index, index))
 
     def pop(self, *largs):
@@ -888,7 +888,7 @@ class OpObservableList(list):
         else:
             index = len(self) - 1
         result = list.pop(self, *largs)
-        recording_observable_list_dispatch(self,
+        op_observable_list_dispatch(self,
                 ListOpInfo('OOL_pop', index, index))
         return result
 
@@ -896,7 +896,7 @@ class OpObservableList(list):
         start_index = len(self)
         end_index = start_index + len(largs[0]) - 1
         list.extend(self, *largs)
-        recording_observable_list_dispatch(self,
+        op_observable_list_dispatch(self,
                 ListOpInfo('OOL_extend', start_index, end_index))
 
     def start_sort_op(self, op, *largs, **kwds):
@@ -906,7 +906,7 @@ class OpObservableList(list):
 
         # Trigger the "sort is starting" callback to the adapter, so it can do
         # pre-sort writing of the current arrangement of indices and data.
-        recording_observable_list_dispatch(self,
+        op_observable_list_dispatch(self,
                 ListOpInfo('OOL_sort_start', 0, 0))
 
     def finish_sort_op(self):
@@ -922,7 +922,7 @@ class OpObservableList(list):
 
         # Finalize. Will go back to adapter for handling cached_views,
         # selection, and prep for triggering data_changed on ListView.
-        recording_observable_list_dispatch(self,
+        op_observable_list_dispatch(self,
                 ListOpInfo(sort_op, 0, len(self) - 1))
 
     def sort(self, *largs, **kwds):
@@ -931,6 +931,11 @@ class OpObservableList(list):
     def reverse(self, *largs):
         self.start_sort_op('OOL_reverse', *largs)
 
+    def batch_delete(self, indices):
+        for index in indices:
+            list.__delitem__(self, index)
+        op_observable_list_dispatch(self,
+                ListOpInfo('batch_delete', 0, len(self) - 1))
 
 class ListOpHandler(object):
     '''A :class:`ListOpHandler` reacts to the following operations that are
@@ -983,7 +988,7 @@ class DictOpInfo(object):
         self.keys = keys
 
 
-cdef inline void recording_observable_dict_dispatch(object self,
+cdef inline void op_observable_dict_dispatch(object self,
                                                     object op_info):
     cdef Property prop = self.prop
     prop.dispatch_with_op_info(self.obj, op_info)
@@ -1063,11 +1068,11 @@ class OpObservableDict(dict):
         else:
             op_info = DictOpInfo('OOD_setitem_add', (key, ))
         dict.__setitem__(self, key, value)
-        recording_observable_dict_dispatch(self, op_info)
+        op_observable_dict_dispatch(self, op_info)
 
     def __delitem__(self, key):
         dict.__delitem__(self, key)
-        recording_observable_dict_dispatch(self,
+        op_observable_dict_dispatch(self,
                 DictOpInfo('OOD_delitem', (key, )))
 
     def clear(self, *largs):
@@ -1076,7 +1081,7 @@ class OpObservableDict(dict):
         recorder = self
         dict.clear(self, *largs)
         self = recorder
-        recording_observable_dict_dispatch(self,
+        op_observable_dict_dispatch(self,
                 DictOpInfo('OOD_clear', (None, )))
 
     def pop(self, *largs):
@@ -1087,7 +1092,7 @@ class OpObservableDict(dict):
         # raised. But the key is always largs[0], so store that.
         # s.pop([i]) is same as x = s[i]; del s[i]; return x
         result = dict.pop(self, *largs)
-        recording_observable_dict_dispatch(self,
+        op_observable_dict_dispatch(self,
                 DictOpInfo('OOD_pop', (key, )))
         return result
 
@@ -1133,7 +1138,7 @@ class OpObservableDict(dict):
             op_info = DictOpInfo('OOD_setdefault', (key, ))
         result = dict.setdefault(self, *largs)
         if op_info:
-            recording_observable_dict_dispatch(self, op_info)
+            op_observable_dict_dispatch(self, op_info)
         return result
 
     def update(self, *largs):
@@ -1145,12 +1150,12 @@ class OpObservableDict(dict):
                     list(set(largs[0].keys()) - set(present_keys)))
         dict.update(self, *largs)
         if op_info:
-            recording_observable_dict_dispatch(self, op_info)
+            op_observable_dict_dispatch(self, op_info)
 
     # TODO: This was exposed through the adapter, but now we are doing it here.
     def insert(self, key, value):
         dict.__setitem__(self, key, value)
-        recording_observable_dict_dispatch(self,
+        op_observable_dict_dispatch(self,
                 DictOpInfo('OOD_insert', (key, )))
 
 
