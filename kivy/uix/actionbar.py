@@ -102,7 +102,7 @@ class ActionItem(object):
 
     mipmap = BooleanProperty(True)
     '''Defines whether the Image/icon dispayed on top of the button uses
-    mipamap or not.
+    mipmap or not.
 
     :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty` defaults
     to `True`
@@ -296,9 +296,6 @@ class ActionOverflow(ActionGroup):
        default to 'overflow'.
     '''
 
-    def __init__(self, **kwargs):
-        super(ActionOverflow, self).__init__(**kwargs)
-
     def add_widget(self, action_item, index=0):
         if action_item is None:
             return
@@ -466,7 +463,7 @@ class ActionView(BoxLayout):
         width = (self.width - self.overflow_group.minimum_width -
                 self.action_previous.minimum_width)
 
-        if len(self._list_action_items) > 0:
+        if len(self._list_action_items):
             for child in self._list_action_items[1:]:
                 if child.important:
                     if child.minimum_width + total_width < width:
@@ -664,8 +661,6 @@ if __name__ == "__main__":
                     text: 'Btn3'
                 ActionButton:
                     text: 'Btn4'
-            #ActionButton:
-            #        text: '4.5'
             ActionGroup:
                 text: 'Group1'
                 ActionButton:

@@ -576,7 +576,7 @@
             source: root.app_icon
             allow_stretch: True
             size_hint_x: None
-            width: self.height
+            width: min(self.height, self.texture_size[0]) if self.texture else self.height
 			mipmap: root.mipmap
 		Widget:
 			size_hint_x: None
