@@ -14,7 +14,7 @@ class Shape(object):
 
 
 class ShapeRect(Shape):
-    '''Representation of a rectangle.'''
+    '''Class for the representation of a rectangle.'''
     __slots__ = ('width', 'height')
 
     def __init__(self):
