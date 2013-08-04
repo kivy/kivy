@@ -7,7 +7,6 @@ import unittest
 from time import time, sleep
 from kivy.animation import Animation, AnimationTransition
 from kivy.uix.widget import Widget
-from functools import partial
 from kivy.clock import Clock
 from kivy.graphics import Scale
 
@@ -61,3 +60,27 @@ class AnimationTestCase(unittest.TestCase):
         self.assertAlmostEqual(instruction.x, 3)
         self.sleep(1.5)
         self.assertAlmostEqual(instruction.x, 100)
+
+
+class SequentialAnimationTestCase(unittest.TestCase):
+
+    def sleep(self, t):
+        start = time()
+        while time() < start + t:
+            sleep(.01)
+            Clock.tick()
+
+    def setUp(self):
+        self.a = Animation(x=100, d=1, t='out_bounce')
+        self.a += Animation(x=0, d=1, t='out_bounce')
+        self.w = Widget()
+
+    def test_stop_all(self):
+        self.a.start(self.w)
+        self.sleep(.5)
+        Animation.stop_all(self.w)
+
+    def test_stop_all_2(self):
+        self.a.start(self.w)
+        self.sleep(.5)
+        Animation.stop_all(self.w, 'x')
