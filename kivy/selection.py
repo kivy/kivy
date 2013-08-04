@@ -25,7 +25,14 @@ Users of this class dispatch the *on_selection_change* event.
 
     :Events:
         `on_selection_change`: (view, view list )
-            Fired when selection changes
+            Fired when selection changes, more generally, as when selection is
+            set entirely, or when any operation is performed, per the gross
+            dispatching done via ObservableList.
+        `on_selection`: (view, view list, op_info)
+            Fired when selection changes, as when selection is set entirely, or
+            specifically on a per-op basis. When any operation is performed,
+            dispatching done via OpObservableList, which sends along an op_info
+            argument containing details about what changed.
 
 .. versionchanged:: 1.8.0
 
@@ -37,6 +44,11 @@ Users of this class dispatch the *on_selection_change* event.
 
     Added convenience methods, get_selection() and get_first_selected_item().
 
+    Changed the way select_list() and deselect_list() avoid uneeded
+    dispatching, which allows the API to include the usual binding to
+    selection, as compared to the original way, where only binding to
+    on_selection_change was suggested.
+
     Added use of OpObservableList in the selection list, mainly to use a new
     batch_delete() method made for revised select_list() and deselect_list()
     methods. This is part of a change to allow selection to be observed
@@ -45,6 +57,8 @@ Users of this class dispatch the *on_selection_change* event.
     associated:
 
         1) ...adapter.bind(selection=some_method)
+             or
+           ...adapter.bind(on_selection=some_method)
 
             Events are per-op dispatches, with an additional argument, op_info,
             available if an observer needs more detailed change info.
@@ -54,6 +68,10 @@ Users of this class dispatch the *on_selection_change* event.
             Events are the regular type, where dispatches happen as a result of
             the list being set, or as a result of any change (There is no
             op_info detail available).
+
+    Moved selection.py out of kivy/adapters to kivy/, to allow use in
+    traditional controllers, which do not do item view creation and caching
+    covered by adapters.
 '''
 
 __all__ = ('Selection', )

@@ -53,8 +53,8 @@ selection behaviour:
 
 __all__ = ('ListAdapter', )
 
+from kivy.selection import Selection
 from kivy.adapters.adapter import Adapter
-from kivy.adapters.selection import Selection
 from kivy.adapters.list_ops import AdapterListOpHandler
 from kivy.properties import OpObservableList
 from kivy.properties import ListProperty
