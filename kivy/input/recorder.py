@@ -9,7 +9,7 @@ Input recorder
     This part of Kivy is still experimental and this API is subject to change in
     a future version.
 
-This is a class that can record and replay some part of input events. This can
+This is a class that can record and replay some input events. This can
 be used for test cases, screen savers etc.
 
 Once activated, the recorder will listen for any input event and save its
@@ -24,7 +24,7 @@ Recording events
 ----------------
 
 The best way is to use the "recorder" module. Check the :doc:`api-kivy.modules`
-documentation for learning about how to activate a module.
+documentation to see how to activate a module.
 
 Once activated, you can press F8 to start the recording. By default, events will
 be written to `<currentpath>/recorder.kvi`. When you want to stop recording,
