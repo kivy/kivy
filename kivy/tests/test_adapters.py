@@ -13,7 +13,7 @@ from kivy.uix.listview import ListItemLabel
 from kivy.uix.listview import CompositeListItem
 from kivy.uix.label import Label
 
-from kivy.adapters.models import SelectableDataItem
+from kivy.models import SelectableDataItem
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.adapters.listadapter import ListAdapter
