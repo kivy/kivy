@@ -23,11 +23,12 @@ from kivy.properties import OpObservableList
 from kivy.properties import OpObservableDict
 
 from kivy.adapters.adapter import Adapter
+from kivy.adapters.selection import Selection
 from kivy.adapters.dict_ops import AdapterDictOpHandler
 from kivy.adapters.list_ops import AdapterListOpHandler
 
 
-class DictAdapter(Adapter):
+class DictAdapter(Selection, Adapter):
     '''A :class:`~kivy.adapters.dictadapter.DictAdapter` is an adapter around a
     python dictionary of records. It is an alternative to the list capabilities
     of :class:`~kivy.adapters.listadapter.ListAdapter`.
