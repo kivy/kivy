@@ -353,7 +353,6 @@ class Sequence(Animation):
 
     def start(self, widget):
         self.stop(widget)
-        self._widgets[widget.uid] = True
         self._register()
         self.anim1.start(widget)
 
