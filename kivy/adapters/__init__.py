@@ -24,7 +24,7 @@ parameters.
   provide and receive selection information (data items are not required to be
   "selection-aware", but in some cases it may be desired).
 
-    :doc:`api-kivy.adapters.models`,
+    :doc:`api-kivy.models`,
 
 - **Args Converters**: Argument converters are made by the application
   programmer to do the work of converting data items to argument dictionaries
