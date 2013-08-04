@@ -375,17 +375,27 @@ class LoaderBase(object):
         self._trigger_update()
 
     def image(self, filename, load_callback=None, post_callback=None, **kwargs):
-        '''Load a image using loader. A Proxy image is returned with a loading
-        image.
+        '''Load a image using the Loader. A ProxyImage is returned with a
+        loading image. You can use it as follows::
+            
+            from kivy.app import App
+            from kivy.uix.image import Image
+            from kivy.loader import Loader
 
-      ::
-            img = Loader.image(filename)
-            # img will be a ProxyImage.
-            # You'll use it the same as an Image class.
-            # Later, when the image is really loaded,
-            # the loader will change the img.image property
-            # to the new loaded image
+            class TestApp(App):
+                def _image_loaded(self, proxyImage):
+                    if proxyImage.image.texture:
+                        self.image.texture = proxyImage.image.texture
 
+                def build(self):
+                    proxyImage = Loader.image("myPic.jpg")
+                    proxyImage.bind(on_load=self._image_loaded)
+                    self.image = Image()
+                    return self.image
+
+            TestApp().run()
+
+        In order to cancel all background loading, call *Loader.stop()*.
         '''
         data = Cache.get('kv.loader', filename)
         if data not in (None, False):
