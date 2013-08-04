@@ -40,6 +40,10 @@ system with Kivy, this class could be redefined as::
 
 It is easy to build such a class with plain Python.
 
+.. versionchanged:: 1.8
+
+    Moved to kivy/, because models are not specific to adapters.
+
 '''
 
 __all__ = ('SelectableDataItem', )

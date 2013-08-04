@@ -39,12 +39,12 @@ __all__ = ('Adapter', )
 
 import inspect
 
+from kivy.adapters.args_converters import list_item_args_converter
 from kivy.event import EventDispatcher
+from kivy.lang import Builder
+from kivy.models import SelectableDataItem
 from kivy.properties import DictProperty
 from kivy.properties import ObjectProperty
-from kivy.lang import Builder
-from kivy.adapters.models import SelectableDataItem
-from kivy.adapters.args_converters import list_item_args_converter
 
 
 class Adapter(EventDispatcher):
