@@ -209,7 +209,7 @@ class LabelBase(object):
         else:
             width = int(self.text_size[0])
 
-        letters = ' ... ' + text
+        letters = '_..._' + text
         while textwidth(letters) > width:
             letters = letters[: letters.rfind(' ')]
 
