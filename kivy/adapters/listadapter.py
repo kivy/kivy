@@ -54,13 +54,14 @@ selection behaviour:
 __all__ = ('ListAdapter', )
 
 from kivy.adapters.adapter import Adapter
+from kivy.adapters.selection import Selection
 from kivy.adapters.list_ops import AdapterListOpHandler
 from kivy.properties import OpObservableList
 from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
 
 
-class ListAdapter(Adapter):
+class ListAdapter(Selection, Adapter):
     '''A :class:`~kivy.adapters.listadapter.ListAdapter` is an adapter around a
     python list of items. It is an alternative to the dict capabilities of
     :class:`~kivy.adapters.dictadapter.DictAdapter`.

@@ -44,20 +44,22 @@ from kivy.properties import DictProperty
 from kivy.properties import ObjectProperty
 from kivy.lang import Builder
 from kivy.adapters.models import SelectableDataItem
-from kivy.adapters.selection import Selection
 from kivy.adapters.args_converters import list_item_args_converter
 
 
-class Adapter(Selection, EventDispatcher):
+class Adapter(EventDispatcher):
     '''An :class:`~kivy.adapters.adapter.Adapter` is a bridge between data and
     an :class:`~kivy.uix.abstractview.AbstractView` or one of its subclasses,
     such as a :class:`~kivy.uix.listview.ListView`.
 
     .. versionchanged:: 1.8.0
 
-        Selection code was pulled out of ListAdapter and pushed down here, so
-        now all adapters have selection functionality. cached_views and related
-        code was also moved here.
+        Selection code was pulled out of ListAdapter and put separately as a
+        mixin. Now adapters have to choose whether or not to mix it in. In a
+        related move, cached_views and related code were moved from ListAdapter
+        to this base class. This is what adapters do -- they create and cache
+        views in a kind of helper system for collection style views. In contrast,
+        traditional controllers do not perform this role, and are simpler.
     '''
 
     data = ObjectProperty(None)

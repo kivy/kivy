@@ -11,13 +11,12 @@ SimpleListAdapter
 
 The :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` is used for
 basic lists. For example, it can be used for displaying a list of read-only
-strings that do not require user interaction.
+strings that do not require user interaction. It does not do selection.
 
 .. versionchanged:: 1.8.0
 
-    Changed the class to subclass Adapter, which now has a now separate
-    Selection mixin. This means that selection functionality is now available
-    in SimpleListAdapter.
+    Changed the class to subclass Adapter, which now contains view caching
+    and related code.
 '''
 
 __all__ = ('SimpleListAdapter', )
