@@ -3,21 +3,21 @@ Modules
 =======
 
 Modules are classes that can be loaded when a Kivy application is starting. The
-loading of modules are managed inside the config file. For example, we have few
+loading of modules is managed by the config file. For example, we have a few
 modules like:
 
-    * touchring: Draw a circle around each touch
-    * monitor: Add a red topbar that indicate the FPS and little graph about
-      activity input.
-    * keybinding: Bind some keys to action, like screenshot.
+    * touchring: Draw a circle around each touch.
+    * monitor: Add a red topbar that indicates the FPS and a small graph
+      indicating input activity.
+    * keybinding: Bind some keys to actions, such as a screenshot.
 
-Modules are automatically searched accross Kivy path and User path:
+Modules are automatically loaded from the Kivy path and User path:
 
     * `PATH_TO_KIVY/kivy/modules`
     * `HOME/.kivy/mods`
 
-Activate module in config
--------------------------
+Activate a module in the config
+-------------------------------
 
 To activate a module, you can edit your configuration file (in your
 `HOME/.kivy/config.ini`)::
@@ -28,11 +28,11 @@ To activate a module, you can edit your configuration file (in your
     # monitor =
     # keybinding =
 
-Only the name of the module followed by a = is sufficient to activate the
+Only the name of the module followed by "=" is sufficient to activate the
 module.
 
-Activate module in Python
--------------------------
+Activate a module in Python
+---------------------------
 
 Before starting your application, preferably at the start of your import, you
 can do something like this::
@@ -40,13 +40,13 @@ can do something like this::
     import kivy
     kivy.require('1.0.8')
 
-    # here, activate touchring module
+    # Activate the touchring module
     from kivy.config import Config
     Config.set('modules', 'touchring', '')
 
 
-Create my own module
---------------------
+Create your own module
+----------------------
 
 Create a file in your `HOME/.kivy/mods`, and create 2 functions::
 
@@ -57,9 +57,9 @@ Create a file in your `HOME/.kivy/mods`, and create 2 functions::
         pass
 
 Start/stop are functions that will be called for every window opened in Kivy.
-When you are starting a module, to use global variables to store the module
-state. Use the `ctx` variable as a dictionnary. This context is unique for each
-instance / start() call of the module, and will be passed to stop() too.
+When you are starting a module, you can use these to store and manage the module
+state. Use the `ctx` variable as a dictionary. This context is unique for each
+instance/start() call of the module, and will be passed to stop() too.
 
 '''
 
@@ -83,15 +83,15 @@ class ModuleContext:
 
 
 class ModuleBase:
-    '''Handle modules of Kivy. Automaticly load and instance
-    module for the general window'''
+    '''Handle Kivy modules. It will automaticly load and instanciate the
+    module for the general window.'''
 
     def __init__(self, **kwargs):
         self.mods = {}
         self.wins = []
 
     def add_path(self, path):
-        '''Add a path to search modules in'''
+        '''Add a path to search for modules in'''
         if not os.path.exists(path):
             return
         if path not in sys.path:
@@ -163,19 +163,19 @@ class ModuleBase:
             self.mods[name]['activated'] = False
 
     def register_window(self, win):
-        '''Add window in window list'''
+        '''Add the window to the window list'''
         if win not in self.wins:
             self.wins.append(win)
         self.update()
 
     def unregister_window(self, win):
-        '''Remove window from window list'''
+        '''Remove the window from the window list'''
         if win in self.wins:
             self.wins.remove(win)
         self.update()
 
     def update(self):
-        '''Update status of module for each windows'''
+        '''Update the status of the module for each window'''
         modules_to_activate = [x[0] for x in Config.items('modules')]
         for win in self.wins:
             for name in self.mods:
@@ -190,7 +190,7 @@ class ModuleBase:
                     raise
 
     def configure(self):
-        '''(internal) Configure all the modules before using it.
+        '''(internal) Configure all the modules before using them.
         '''
         modules_to_configure = [x[0] for x in Config.items('modules')]
         for name in modules_to_configure:
