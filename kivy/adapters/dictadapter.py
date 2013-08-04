@@ -15,6 +15,8 @@ python dictionary of records.
 
 __all__ = ('DictAdapter', )
 
+from kivy.selection import Selection
+
 from kivy.properties import DictProperty
 from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
@@ -23,7 +25,6 @@ from kivy.properties import OpObservableList
 from kivy.properties import OpObservableDict
 
 from kivy.adapters.adapter import Adapter
-from kivy.adapters.selection import Selection
 from kivy.adapters.dict_ops import AdapterDictOpHandler
 from kivy.adapters.list_ops import AdapterListOpHandler
 

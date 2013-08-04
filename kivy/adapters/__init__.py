@@ -4,14 +4,13 @@ Adapters
 
 .. versionadded:: 1.5.0
 
-An adapter is an intermediating controller-type class that builds views
-for top-level widgets, interacting with data as prescribed by parameters.
-On the view side is :class:`AbstractView`, which is the base view for
-:class:`ListView`.
+An adapter is an intermediating controller-type class that builds views for
+top-level collection-type widgets, interacting with data as prescribed by
+parameters.
 
-- **Adapters**: The base :class:`Adapter` is subclassed by
-  :class:`SimpleListAdapter` and by :class:`ListAdapter`. Further,
-  :class:`DictAdapter` is subclass of :class:`ListAdapter`.
+- **Adapters**: The base :class:`~kivy.adapters.Adapter` is subclassed by
+  :class:`~kivy.adapters.SimpleListAdapter`, :class:`~kivy.adapters.ListAdapter`, and
+  :class:`~kivy.adapters.DictAdapter`.
 
     :doc:`api-kivy.adapters.adapter`,
     :doc:`api-kivy.adapters.simplelistadapter`,
