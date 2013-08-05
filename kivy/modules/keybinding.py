@@ -2,13 +2,13 @@
 Keybinding
 ==========
 
-This module force the mapping of some keys to functions:
+This module forces the mapping of some keys to functions:
 
-* F11: Rotate the Window from 0, 90, 180, 270
-* Shift + F11: Switches between portrait and landscape on PC
+* F11: Rotate the Window through 0, 90, 180 and 270 degrees
+* Shift + F11: Switches between portrait and landscape on desktops
 * F12: Take a screenshot
 
-Note: this don't work if the application requires keyboard before.
+Note: this does't work if the application requests the keyboard beforehand.
 
 '''
 
