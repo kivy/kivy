@@ -392,9 +392,8 @@ cdef class Fbo(RenderContext):
             return data
 
     cpdef get_pixel_color(self, int wx, int wy):
-        """
-            Get the color of the pixel with specified window
-            coordinates wx, wy. It returns result in RGBA format
+        """Get the color of the pixel with specified window
+        coordinates wx, wy. It returns result in RGBA format.
  
         .. versionadded:: 1.8.0
         """

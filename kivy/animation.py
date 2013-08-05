@@ -230,6 +230,15 @@ class Animation(EventDispatcher):
         if not props['properties']:
             self.cancel(widget)
 
+    def have_properties_to_animate(self, widget):
+        '''Return True if a widget still have properties to animate.
+
+        .. versionadded:: 1.8.0
+        '''
+        props = self._widgets.get(widget.uid, None)
+        if props and props['properties']:
+            return True
+
     #
     # Private
     #
@@ -365,6 +374,13 @@ class Sequence(Animation):
             self.dispatch('on_complete', widget)
         super(Sequence, self).cancel(widget)
 
+    def stop_property(self, widget, prop):
+        self.anim1.stop_property(widget, prop)
+        self.anim2.stop_property(widget, prop)
+        if (not self.anim1.have_properties_to_animate(widget) and
+            not self.anim2.have_properties_to_animate(widget)):
+            self.stop(widget)
+
     def cancel(self, widget):
         self.anim1.cancel(widget)
         self.anim2.cancel(widget)
@@ -415,6 +431,13 @@ class Parallel(Animation):
         if props:
             self.dispatch('on_complete', widget)
         super(Parallel, self).cancel(widget)
+
+    def stop_property(self, widget, prop):
+        self.anim1.stop_property(widget, prop)
+        self.anim2.stop_property(widget, prop)
+        if (not self.anim1.have_properties_to_animate(widget) and
+            not self.anim2.have_properties_to_animate(widget)):
+            self.stop(widget)
 
     def cancel(self, widget):
         self.anim1.cancel(widget)
