@@ -258,14 +258,14 @@ Builder.load_string('''
 #                    on_release: app.dict_adapter.data[ \
 #                            app.dict_adapter.selection[0].text] = None
 
-                Label:
-#                Button:
+#                Label:
+                Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'delitem'
-#                    on_release: del app.dict_adapter.data[ \
-#                            app.dict_adapter.selection[0].text]
+                    on_release: del app.dict_adapter.data[ \
+                                    app.dict_adapter.selection[0].text]
 
                 Label:
 #                Button:

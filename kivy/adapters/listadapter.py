@@ -131,6 +131,8 @@ class ChangeRecordingObservableList(ObservableList):
     def __init__(self, *largs):
         super(ChangeRecordingObservableList, self).__init__(*largs)
 
+        #self.change_info = None
+
         #self.crol_dispatcher = CROLDispatcher()
 
     def __setitem__(self, key, value):
@@ -369,7 +371,7 @@ class ListAdapter(Adapter, EventDispatcher):
 
         self.bind(selection_mode=self.selection_mode_changed,
                   allow_empty_selection=self.check_for_empty_selection,
-                  data=self.data_changed)
+                  data=self.crol_data_changed)
 
         #self.data.crol_dispatcher.bind(
                 #on_change_info=self.data_changed,
@@ -382,7 +384,10 @@ class ListAdapter(Adapter, EventDispatcher):
 
         print 'sort op starting'
 
-    def data_changed(self, *args):
+    def crol_data_changed(self, *args):
+
+        if self.data.change_info[0].startswith('crod'):
+            return
 
         # crol_setitem
         # crol_delitem
@@ -400,7 +405,7 @@ class ListAdapter(Adapter, EventDispatcher):
 
         print 'LIST ADAPTER data_changed callback', args
 
-        print self.data.change_info
+        #print self.data.change_info
 
         data_op, (start_index, end_index) = self.data.change_info
 
@@ -482,8 +487,6 @@ class ListAdapter(Adapter, EventDispatcher):
                          'crol_remove',
                          'crol_pop']:
 
-            selection_was_affected = False
-
             deleted_indices = range(start_index, end_index + 1)
 
             # Delete views from cache.
@@ -509,7 +512,6 @@ class ListAdapter(Adapter, EventDispatcher):
             for sel in self.selection:
                 if sel.index in deleted_indices:
                     self.selection.remove(sel)
-                    selection_was_affected = True
 
             # Do a check_for_empty_selection type step, if data remains.
             if (len(self.data) > 0
@@ -803,6 +805,7 @@ class ListAdapter(Adapter, EventDispatcher):
                 # Select the first item if we have it.
                 v = self.get_view(0)
                 if v is not None:
+                    print 'selecting', v, v.text
                     self.handle_selection(v)
 
     # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,
