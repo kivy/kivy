@@ -60,6 +60,10 @@ class Adapter(EventDispatcher):
         to this base class. This is what adapters do -- they create and cache
         views in a kind of helper system for collection style views. In contrast,
         traditional controllers do not perform this role, and are simpler.
+
+        create_view() now handles additional arguments that may come from
+        get_data_item(), specifically for the dictionary key added to the args
+        of the DictAdapter args_converter.
     '''
 
     data = ObjectProperty(None)
@@ -159,40 +163,81 @@ class Adapter(EventDispatcher):
         return item_view
 
     def get_count(self):
-        return len(self.data)
+        pass
 
     def get_data_item(self, index):
-        if index < 0 or index >= len(self.data):
-            return None
-        return self.data[index]
+        '''This method is responsible for returning a single data item,
+        whatever that means, for a given adapter. The result is used in view
+        creation, where it is passed as the argument to the args_converter.
+
+        The default return, prior to Kivy version 1.8, was only the data
+        item. In newer Kivy, the return is a tuple with the data item in the
+        first position, along with additional items, per adapter.
+        '''
+        pass
 
     def create_view(self, index):
-        '''This method is more complicated than the one in
-        :class:`kivy.adapters.adapter.Adapter` and
-        :class:`kivy.adapters.simplelistadapter.SimpleListAdapter`, because
-        here we create bindings for the data item and its children back to
+        '''This method is used by :class:`kivy.adapters.adapter.Adapter` and
+        :class:`kivy.adapters.simplelistadapter.SimpleListAdapter`.  Here we
+        create bindings for the data item and its children back to
         self.handle_selection(), and do other selection-related tasks to keep
         item views in sync with the data.
         '''
-        item = self.get_data_item(index)
+
+        data_item_ret = self.get_data_item(index)
+
+        # Backwards compatibility: get_data_item() returns either the data item
+        # alone, prior to Kivy 1.8, or a tuple with the data item in the first
+        # position in later versions.
+        if not isinstance(data_item_ret, tuple):
+            item = data_item_ret
+        else:
+            item = data_item_ret[0]
+
         if item is None:
             return None
 
-        item_args = self.args_converter(index, item)
+        # data_item_ret could contain additional items needed by the converter,
+        # such as the dictionary key within sorted_keys of DictAdapter. The
+        # first argument is the index, and the second the data item, followed
+        # by any additional args.
+
+        # Inspect the args_converter, which could be a function, method, or a
+        # lambda, with a varying number of arguments, to make the call to the
+        # args_converter in a backwards-compatible way.
+        args_converter_spec = inspect.getargspec(self.args_converter)
+
+        num_args = len(args_converter_spec.args)
+
+        # functions or methods vs. lambdas
+        if args_converter_spec.args[0] == 'self':
+            num_args -= 1
+
+        # The else handles the post Kivy 1.8 allowance for additional args, for
+        # example, for DictAdapter.
+        if num_args <= 2:
+            item_args = self.args_converter(index, item)
+        else:
+            item_args = self.args_converter(index, item, *data_item_ret[1:])
 
         item_args['index'] = index
 
+        # Finally, create the view with the prepared arguments.
         if self.cls:
             view_instance = self.cls(**item_args)
         else:
             view_instance = Builder.template(self.template, **item_args)
 
-        if self.propagate_selection_to_data:
+        # This adapter could be using selection. If it is, and if
+        # sync_with_model_data, the view should reflect the state of selection
+        # in the data item.
+        if hasattr(self, 'selection') and self.sync_with_model_data:
+
             # The data item must be a subclass of SelectableDataItem, or must
             # have an is_selected boolean or function, so it has is_selected
             # available.  If is_selected is unavailable on the data item, an
             # exception is raised.
-            #
+
             if isinstance(item, SelectableDataItem):
                 if item.is_selected:
                     self.handle_selection(view_instance)

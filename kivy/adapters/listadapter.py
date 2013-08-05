@@ -158,6 +158,15 @@ class ListAdapter(Selection, Adapter):
 
         self.initialize_selection()
 
+    def get_count(self):
+        return len(self.data)
+
+    def get_data_item(self, index):
+        if index < 0 or index >= len(self.data):
+            return None
+
+        return self.data[index]
+
     def on_data_change(self, *args):
         '''on_data_change() is the default handler for the
         on_data_change event.
