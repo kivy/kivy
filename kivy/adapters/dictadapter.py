@@ -153,7 +153,7 @@ class DictAdapter(Selection, Adapter):
                 source_list=self.sorted_keys, duplicates_allowed=False)
 
         # Delegate handling for data changes to a DictOpHandler.
-        self.dict_op_handler = AdapterDictOpHandler(source_dict=self.data)
+        self.dict_op_handler = AdapterDictOpHandler()
 
         self.bind(sorted_keys=self.list_op_handler.data_changed,
                   data=self.dict_op_handler.data_changed)

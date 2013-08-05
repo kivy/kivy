@@ -37,10 +37,10 @@ class MainView(GridLayout):
         super(MainView, self).__init__(**kwargs)
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['text'],
-                                        'is_selected': rec['is_selected'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': key,
+                                             'is_selected': rec['is_selected'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         # Here we create a dict adapter with 1..100 integer strings as
         # sorted_keys, and integers_dict from fixtures as data, passing our

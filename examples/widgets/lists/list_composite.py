@@ -3,8 +3,6 @@ from kivy.uix.listview import ListItemButton, ListItemLabel, \
         CompositeListItem, ListView
 from kivy.uix.gridlayout import GridLayout
 
-from fixtures import integers_dict
-
 
 class MainView(GridLayout):
     '''Uses :class:`CompositeListItem` for list item views comprised by two
@@ -23,18 +21,22 @@ class MainView(GridLayout):
         # height are arguments for CompositeListItem. The cls_dicts list contains
         # argument sets for each of the member widgets for this composite:
         # ListItemButton and ListItemLabel.
-        args_converter = \
-            lambda row_index, rec: \
-                {'text': rec['text'],
-                 'size_hint_y': None,
-                 'height': 25,
-                 'cls_dicts': [{'cls': ListItemButton,
-                                'kwargs': {'text': rec['text']}},
-                               {'cls': ListItemLabel,
-                                'kwargs': {'text': "Middle-{0}".format(rec['text']),
-                                           'is_representing_cls': True}},
-                               {'cls': ListItemButton,
-                                'kwargs': {'text': rec['text']}}]}
+        args_converter = lambda index, rec, key: \
+            {'text': key,
+             'size_hint_y': None,
+             'height': 25,
+             'cls_dicts': [{'cls': ListItemButton,
+                            'kwargs': {'text': key}},
+                           {'cls': ListItemLabel,
+                            'kwargs': {'text': "x10={0}".format(rec['x10']),
+                                       'is_representing_cls': True}},
+                           {'cls': ListItemButton,
+                            'kwargs': {'text': str(rec['x100_text'])}}]}
+
+        integers_dict = \
+            { str(i): {'x10': i * 10,
+                       'x100_text': 'x100={0}'.format(i * 100),
+                       'is_selected': False} for i in range(100)}
 
         item_strings = ["{0}".format(index) for index in range(100)]
 
