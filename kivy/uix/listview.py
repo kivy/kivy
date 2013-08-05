@@ -483,7 +483,7 @@ widget method::
              'cls_dicts': [{'cls': ListItemButton,
                             'kwargs': {'text': rec['text']}},
                            {'cls': ListItemLabel,
-                            'kwargs': {'text': "Middle-{0}".format(rec['text']),
+                            'kwargs': {'text': "Mid-{0}".format(rec['text']),
                                        'is_representing_cls': True}},
                            {'cls': ListItemButton,
                             'kwargs': {'text': rec['text']}}]}
@@ -566,6 +566,7 @@ demonstrate the use of kv templates and composite list views.
 __all__ = ('SelectableView', 'ListItemButton', 'ListItemLabel',
            'CompositeListItem', 'ListView', )
 
+from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
@@ -930,6 +931,10 @@ class ListView(AbstractView, EventDispatcher):
 
         super(ListView, self).__init__(**kwargs)
 
+        if self.adapter:
+
+            self.adapter.bind(on_data_change=self.data_changed)
+
         self._trigger_populate = Clock.create_trigger(self._spopulate, -1)
         self._trigger_reset_populate = \
             Clock.create_trigger(self._reset_spopulate, -1)
@@ -941,13 +946,13 @@ class ListView(AbstractView, EventDispatcher):
 
         self.adapter.bind(data=self.data_changed)
 
-    # TODO: This was causing a double data_changed() callback when bound as:
-    #            adapter=self.adapter_changed. What should be done here?
     def adapter_changed(self, *args):
 
         if self.adapter:
-            print 'and the adapter changed to', self.adapter
+            Logger.info(('ListView: '
+                         'and the adapter changed to ') + str(self.adapter))
             self.adapter.bind(on_data_change=self.data_changed)
+
             self._trigger_populate()
 
     # Added to set data when item_strings is set in a kv template, but it will
@@ -1062,11 +1067,30 @@ class ListView(AbstractView, EventDispatcher):
 
     def scroll_to(self, index=0):
 
+        # TODO: Add range-checking.
+
         if not self.scrolling:
             self.scrolling = True
             self._index = index
             self.populate()
             self.dispatch('on_scroll_complete')
+
+    def scroll_to_end(self, index=0):
+
+        # TODO: This stops working after a manual scroll.
+
+        if not self.scrolling:
+            available_height = self.height
+            index = len(self.adapter.data) - 1
+
+            while available_height > 0:
+                item_view = self.adapter.get_view(index)
+                if item_view is None:
+                    break
+                index -= 1
+                available_height -= item_view.height
+
+            self.scroll_to(index + 1)
 
     def scroll_after_add(self):
 
@@ -1074,8 +1098,9 @@ class ListView(AbstractView, EventDispatcher):
             available_height = self.height
             index = self._index
 
-            print 'index', index
-            print 'available_height', available_height
+            Logger.info('ListView: self._index = {0}'.format(index))
+            Logger.info('ListView: available_height = {0}'.format(
+                                                        available_height))
 
             while available_height > 0:
                 item_view = self.adapter.get_view(index)
@@ -1084,7 +1109,8 @@ class ListView(AbstractView, EventDispatcher):
                 index += 1
                 available_height -= item_view.height
 
-            print 'available_height', available_height
+            Logger.info('ListView: available_height = {0}'.format(
+                                                        available_height))
 
             if available_height <= 0:
                 self._index += 1
@@ -1097,11 +1123,6 @@ class ListView(AbstractView, EventDispatcher):
         self.scrolling = False
 
     def data_changed(self, *args):
-
-        # TODO: Bounds-checking here? (We should let things fail in python?)
-        #       UPDATE: Actually, after getting the order right on the bindings
-        #               and after adding the ChangeMonitor, by the time we get
-        #               called here, there would have already been an error.
 
         # list and dict change ops:
         #
@@ -1137,7 +1158,9 @@ class ListView(AbstractView, EventDispatcher):
         #            set op:
         #
         #                crod_setattr     - single item set
+        #                    (We do not receive.)
         #                crod_setitem_set - single item set
+        #                    (We receive the crod op directly.)
         #
         #            add ops:
         #
@@ -1145,14 +1168,20 @@ class ListView(AbstractView, EventDispatcher):
         #                crod_setdefault  - single item
         #                crod_update      - single or multiple items
         #
+        #                    (We receive crol ops, from changes to
+        #                     sorted_keys fired by these):
+        #
         #            delete ops:
         #
         #                crod_setitem_del - single item
         #                crod_delitem     - single item
-        #                crod_clear       - all items deleted
         #                crod_pop         - single item
         #                crod_popitem     - single item
-        #                  [NOTE: crod_popitem is performed as crod_delitem]
+        #                  [NOTE: crod_popitem is performed as crol_delitem]
+        #                crod_clear       - all items deleted
+        #
+        #                    (We receive crol ops, from changes to
+        #                     sorted_keys fired by these):
 
         # Callbacks could come here from either crol or crod, and there could
         # be differences in handling.
@@ -1163,13 +1192,7 @@ class ListView(AbstractView, EventDispatcher):
 #            Clock.schedule_once(lambda dt: self.data_changed(*args))
 #            return
 
-        # TODO: In some cases, such as when all data is deleted and new data is
-        #       added back, the items in view are at the end, where the last
-        #       item was just appended (if that is how it was added). Should we
-        #       scroll to keep the selected object in view always, or should it
-        #       be to show the most recently added item?
-
-        change_info = self.adapter.data.change_monitor.change_info
+        change_info = self.adapter.change_info
 
         if change_info[0].startswith('crol'):
             data_op, (start_index, end_index) = change_info
@@ -1177,12 +1200,14 @@ class ListView(AbstractView, EventDispatcher):
             data_op, keys = change_info
             start_index, end_index = self.adapter.additional_change_info
 
-        print 'LISTVIEW data_changed callback', change_info
+        Logger.info('ListView: change_info: ' + str(change_info))
 
         # Otherwise, we may have item_views as children of self.container
         # that should be removed.
 
         if data_op in ['crol_setitem', 'crod_setitem_set', ]:
+
+            widget_index = -1
 
             # TODO: Better, faster way?
             for i, item_view in enumerate(self.container.children):
@@ -1190,11 +1215,12 @@ class ListView(AbstractView, EventDispatcher):
                     widget_index = i
                     break
 
-            widget = self.container.children[widget_index]
-            self.container.remove_widget(widget)
+            if widget_index >= 0:
+                widget = self.container.children[widget_index]
+                self.container.remove_widget(widget)
 
-            item_view = self.adapter.get_view(start_index)
-            self.container.add_widget(item_view, widget_index)
+                item_view = self.adapter.get_view(start_index)
+                self.container.add_widget(item_view, widget_index)
 
         elif data_op in ['crol_setslice', ]:
 
@@ -1236,10 +1262,13 @@ class ListView(AbstractView, EventDispatcher):
                          'crod_setdefault',
                          'crod_update']:
 
+            self.scroll_to_end()
+
             #self.scroll_after_add()
-            self.scrolling = True
-            self.populate()
-            self.dispatch('on_scroll_complete')
+
+            #self.scrolling = True
+            #self.populate()
+            #self.dispatch('on_scroll_complete')
 
         elif data_op in ['crol_delitem',
                          'crol_delslice',
@@ -1271,7 +1300,7 @@ class ListView(AbstractView, EventDispatcher):
             self.populate()
             self.dispatch('on_scroll_complete')
 
-        elif data_op in ['crol_sort', 'crol_reverse', ]:
+        elif data_op in ['crol_sort', 'crol_reverse', 'crol_reset', ]:
 
             self.container.clear_widgets()
 
@@ -1279,7 +1308,10 @@ class ListView(AbstractView, EventDispatcher):
             self.populate()
             self.dispatch('on_scroll_complete')
 
+        else:
+
+            Logger.info('ListView: unhandled data change op ' + str(data_op))
+
         # TODO: The system of this set, and the check at the top of this
         #       method, needs timing torture tests.
         self.adapter.data.change_monitor.change_info = None
-

@@ -14,12 +14,16 @@ from fruit_detail_view import FruitDetailView
 class FruitsDictAdapter(DictAdapter):
 
     def fruit_category_changed(self, fruit_categories_adapter, *args):
+
         if len(fruit_categories_adapter.selection) == 0:
             self.data = {}
             return
 
         category = \
                 fruit_categories[fruit_categories_adapter.selection[0].text]
+
+        print 'new category', category['fruits']
+
         self.sorted_keys = category['fruits']
 
 
