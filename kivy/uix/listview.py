@@ -908,7 +908,11 @@ class ListView(AbstractView, EventDispatcher):
         # Check for an adapter argument. If it doesn't exist, we
         # check for item_strings in use with SimpleListAdapter
         # to make a simple list.
-        if 'adapter' not in kwargs:
+        #
+        # TODO: The __no_builder hack is temporary, until the working of kv
+        #       with and without adapter setting, and related diffs between
+        #       py and kv are sorted out.
+        if 'adapter' not in kwargs and '__no_builder' not in kwargs:
             if 'item_strings' not in kwargs:
                 # Could be missing, or it could be that the ListView is
                 # declared in a kv file. If kv is in use, and item_strings is
@@ -937,14 +941,20 @@ class ListView(AbstractView, EventDispatcher):
 
         self.adapter.bind(data=self.data_changed)
 
+    # TODO: This was causing a double data_changed() callback when bound as:
+    #            adapter=self.adapter_changed. What should be done here?
     def adapter_changed(self, *args):
 
-        self.adapter.bind(data=self.data_changed)
-        self._trigger_populate()
+        if self.adapter:
+            print 'and the adapter changed to', self.adapter
+            self.adapter.bind(data=self.data_changed)
+            self._trigger_populate()
 
     # Added to set data when item_strings is set in a kv template, but it will
     # be good to have also if item_strings is reset generally.
     def item_strings_changed(self, *args):
+        # TODO: Only if our adapter is a SimpleListAdapter, and we have
+        #       item_strings.
         self.adapter.data = self.item_strings
 
     def _scroll(self, scroll_y):
@@ -1143,17 +1153,17 @@ class ListView(AbstractView, EventDispatcher):
         # Callbacks could come here from either crol or crod, and there could
         # be differences in handling.
 
-        print 'LISTVIEW data_changed callback', args
-
-        print self.adapter.data.change_info
+        #print self.adapter.data.change_info
 
         if self.adapter.data.change_info[0].startswith('crol'):
             data_op, (start_index, end_index) = self.adapter.data.change_info
         else:
             data_op, keys = self.adapter.data.change_info
-            start_index = self.sorted_keys.index(keys[0])
-            # TODO: Assume contiguous?
-            end_index = max([self.sorted_keys.index(k) for k in keys])
+
+        print 'LISTVIEW data_changed callback'
+
+            #start_index = self.adapter.sorted_keys.index(keys[0])
+            #end_index = max([self.adapter.sorted_keys.index(k) for k in keys])
 
         if len(self.container.children) == 0:
             # Delete action(s) have resulted in total deletion of items.
@@ -1224,13 +1234,7 @@ class ListView(AbstractView, EventDispatcher):
         elif data_op in ['crol_delitem',
                          'crol_delslice',
                          'crol_remove',
-                         'crol_pop',
-                         'crod_setitem_delete',
-                         'crod_delitem',
-                         'crod_clear',
-                         'crod_remove',
-                         'crod_pop',
-                         'crod_popitem', ]:
+                         'crol_pop', ]:
 
             deleted_indices = range(start_index, end_index + 1)
 
@@ -1241,6 +1245,28 @@ class ListView(AbstractView, EventDispatcher):
             self.scrolling = True
             self.populate()
             self.dispatch('on_scroll_complete')
+
+        elif data_op in ['crod_setitem_delete',
+                         'crod_delitem',
+                         'crod_clear',
+                         'crod_remove',
+                         'crod_pop',
+                         'crod_popitem', ]:
+
+            print 'LISTView', data_op
+
+            removals_done = False
+
+            for item_view in self.container.children:
+                if item_view.text in keys:
+                    print 'removing', item_view.text
+                    self.container.remove_widget(item_view)
+                    removals_done = True
+
+            if removals_done:
+                self.scrolling = True
+                self.populate()
+                self.dispatch('on_scroll_complete')
 
         elif data_op == 'crol_insert':
 

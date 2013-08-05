@@ -68,14 +68,13 @@ class ChangeRecordingObservableDict(ObservableDict):
     #    self.__setitem__(attr, value)
 
 
-#    def __setattr__(self, attr, value):
-#        self.change_info = ('crod_setattr', (attr, ))
-#        # TODO: Understand this. For one thing, iadd and imul hit a nonetype
-#        #       error in this neighborhood.
-#        if attr in ('prop', 'obj'):
-#            super(ChangeRecordingObservableDict, self).__setattr__(attr, value)
-#            return
-#        super(ChangeRecordingObservableDict, self).__setitem__(attr, value)
+    def __setattr__(self, attr, value):
+        if attr in ('prop', 'obj'):
+            super(ChangeRecordingObservableDict, self).__setattr__(attr, value)
+            return
+        super(ChangeRecordingObservableDict, self).__setitem__(attr, value)
+        if attr != 'change_info':
+            self.change_info = ('crod_setattr', (attr, ))
 
     def __setitem__(self, key, value):
         if isinstance(value, tuple) and key == 'change_info':
@@ -149,7 +148,6 @@ class DictAdapter(ListAdapter):
     defaults to [].
     '''
 
-    # TODO: This was initialized to None. Problem with setting to {} instead?
     data = DictProperty({}, cls=ChangeRecordingObservableDict)
     '''A dict that indexes records by keys that are equivalent to the keys in
     sorted_keys, or they are a superset of the keys in sorted_keys.
@@ -178,19 +176,19 @@ class DictAdapter(ListAdapter):
         super(DictAdapter, self).__init__(**kwargs)
 
         self.bind(sorted_keys=self.initialize_sorted_keys,
-                  data=self.data_changed)
+                  data=self.crod_data_changed)
 
     def reset_sorted_keys(self, sorted_keys):
         self.sorted_keys = sorted_keys
-        # call update on dict to match?
+        # TODO: call update on dict to match?
 
-    def data_changed(self, *dt):
+    def crod_data_changed(self, *dt):
 
-        print 'DICT ADAPTER data_changed callback', dt
-
-        print self.data.change_info
+        print 'DICT ADAPTER crod_data_changed callback'
 
         data_op, keys = self.data.change_info
+
+        #print self.data.change_info
 
         if data_op == 'crod_setattr':
 
@@ -213,17 +211,47 @@ class DictAdapter(ListAdapter):
 
             # crod_pop can have second arg as a return dict.
 
-            delete_affected_selection = False
+            deleted_indices = [self.sorted_keys.index(k) for k in keys]
 
-            for selected_key in [sel.text for sel in self.selection]:
-                if selected_key in keys:
-                    del self.selection[self.selection.index(selected_key)]
-                    delete_affected_selection = True
+            for i in reversed(sorted(deleted_indices)):
+                del self.sorted_keys[i]
 
-            if delete_affected_selection:
-                self.dispatch('on_selection_change')
+            start_index = min(deleted_indices)
 
-            self.check_for_empty_selection()
+            # Delete views from cache.
+            new_cached_views = {}
+
+            i = 0
+            for k, v in self.cached_views.iteritems():
+                if not k in deleted_indices:
+                    new_cached_views[i] = self.cached_views[k]
+                    if k >= start_index:
+                        new_cached_views[i].index = i
+                    i += 1
+
+            self.cached_views = new_cached_views
+
+            # Handle selection.
+            for sel in self.selection:
+                if sel.index in deleted_indices:
+                    print 'deleting', sel.text
+                    del self.selection[self.selection.index(sel)]
+
+            # Do a check_for_empty_selection type step, if data remains.
+            if (len(self.data) > 0
+                    and not self.selection
+                    and not self.allow_empty_selection):
+                # Find a good index to select, if the deletion results in
+                # no selection, which is common, as the selected item is
+                # often the one deleted.
+                if start_index < len(self.data):
+                    new_sel_index = start_index
+                else:
+                    new_sel_index = start_index - 1
+                v = self.get_view(new_sel_index)
+                if v is not None:
+                    print 'handling selection for', v.text
+                    self.handle_selection(v)
 
     def bind_triggers_to_view(self, func):
         self.bind(sorted_keys=func)
