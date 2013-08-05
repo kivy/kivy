@@ -2040,8 +2040,11 @@ class TextInput(Widget):
     def _get_text(self, encode=True):
         lf = self._lines_flags
         l = self._lines
-        text = u''.join([(u'\n' if (lf[i] & FL_IS_NEWLINE) else u'') + l[i]
+        try:
+            text = u''.join([(u'\n' if (lf[i] & FL_IS_NEWLINE) else u'') + l[i]
                         for i in range(len(l))])
+        except IndexError:
+            pass
         if PY2 and encode and type(text) is not str:
             text = text.encode('utf-8')
         return text
