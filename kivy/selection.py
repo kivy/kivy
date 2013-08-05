@@ -52,13 +52,10 @@ Users of this class dispatch the *on_selection_change* event.
     Added use of OpObservableList in the selection list, mainly to use a new
     batch_delete() method made for revised select_list() and deselect_list()
     methods. This is part of a change to allow selection to be observed
-    directly, in addition to the already available on_selection_change event.
-    Now either of the following will work, but have differing types of events
-    associated:
+    directly, to replace the on_selection_change event.  Now either of the
+    following will work, but have differing types of events associated:
 
         1) ...adapter.bind(selection=some_method)
-             or
-           ...adapter.bind(on_selection=some_method)
 
             Events are per-op dispatches, with an additional argument, op_info,
             available if an observer needs more detailed change info.
@@ -66,22 +63,26 @@ Users of this class dispatch the *on_selection_change* event.
         2) ...adapter.bind(on_selection_change=some_method)
 
             Events are the regular type, where dispatches happen as a result of
-            the list being set, or as a result of any change (There is no
-            op_info detail available).
+            the list being set, or as a result of any change ("any change"
+            means that dispatching is triggered when something changes, without
+            regard to what changed; there is no op_info detail available).
+
+            This 2) method is kept for backwards compatibility, and because it
+            could prove to be faster in some cases?
 
     Moved selection.py out of kivy/adapters to kivy/, to allow use in
     traditional controllers, which do not do item view creation and caching
     covered by adapters.
 
     Changed references to view, item_view, and view_list to selectable_item,
-    item, and selectable_item_list, to make Selection work more easily with
+    item, and selectable_item_list, to make it clear that Selection work with
     non-view items, as are used in traditional controllers. Also, changed many
-    references to data item to model data item, to make the distinction between
+    references for data item to model data item, to make the distinction between
     selectable data items, the items for which selection is maintained, and
     associated model data. Selectable items are view instances for adapters,
     but they may be normal Python class instances for controllers. Model data
     can be anything, even Python class instances, but more typically consists
-    of primitives such as integers, floats, strings, and so on.
+    of primitives such as integers, floats, strings, or dicts with those, etc.
 
     Deprecated propagate_selection_to_data, in favor of sync_with_model_data.
 '''
@@ -226,6 +227,7 @@ class Selection(EventDispatcher):
     __events__ = ('on_selection_change', )
 
     def __init__(self, **kwargs):
+
         # Cover propagate_selection_to_data deprecation.
         if 'propagate_selection_to_data' in kwargs:
             kwargs['sync_with_model_data'] = \
@@ -277,6 +279,7 @@ class Selection(EventDispatcher):
         return self.selection[0] if self.selection else None
 
     def handle_selection(self, item, hold_dispatch=False, *args):
+
         if item not in self.selection:
             if self.selection_mode in ['none', 'single'] and \
                     len(self.selection) > 0:

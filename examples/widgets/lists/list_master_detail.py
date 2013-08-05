@@ -39,7 +39,7 @@ class MasterDetailView(GridLayout):
                 fruit_name=dict_adapter.selection[0].text,
                 size_hint=(.7, 1.0))
 
-        dict_adapter.bind(on_selection_change=detail_view.fruit_changed)
+        dict_adapter.bind(selection=detail_view.fruit_changed)
         self.add_widget(detail_view)
 
 

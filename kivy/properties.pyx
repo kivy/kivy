@@ -418,17 +418,7 @@ cdef class Property:
     cpdef dispatch_with_op_info(self, EventDispatcher obj, op_info):
         '''Dispatch the value change to all observers.
 
-        .. versionchanged:: 1.1.0
-            The method is now accessible from Python.
-
-        This can be used to force the dispatch of the property, even if the
-        value didn't change::
-
-            button = Button()
-            # get the Property class instance
-            prop = button.property('text')
-            # dispatch this property on the button instance
-            prop.dispatch(button)
+        .. versionadded:: 1.8
 
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -756,6 +746,7 @@ cdef class DictProperty(Property):
                 obj.__class__.__name__,
                 self.name,
                 self.cls.__name__))
+
     cpdef set(self, EventDispatcher obj, value):
         value = self.cls(self, obj, value)
         Property.set(self, obj, value)
@@ -989,7 +980,7 @@ class DictOpInfo(object):
 
 
 cdef inline void op_observable_dict_dispatch(object self,
-                                                    object op_info):
+                                             object op_info):
     cdef Property prop = self.prop
     prop.dispatch_with_op_info(self.obj, op_info)
 

@@ -18,7 +18,7 @@ class OpsDictAdapter(DictAdapter):
         self.listview_id = kwargs['listview_id']
         super(OpsDictAdapter, self).__init__(**kwargs)
 
-    def on_selection_change(self, *args):
+    def on_selection(self, *args):
         for i in range(len(self.selection)):
             listview_selection_buttons[self.listview_id][i].text = \
                     self.selection[i].text

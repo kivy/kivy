@@ -37,9 +37,7 @@ class AdapterDictOpHandler(DictOpHandler):
         These methods adjust cached_views and selection for the adapter.
     '''
 
-    def __init__(self, source_dict):
-
-        self.source_dict = source_dict
+    def __init__(self):
 
         super(AdapterDictOpHandler, self).__init__()
 
@@ -50,27 +48,27 @@ class AdapterDictOpHandler(DictOpHandler):
         if len(args) == 3:
             op_info = args[2]
         else:
-            op_info = DictOpInfo('OOD_set', ())
+            op_info = DictOpInfo('OOD_set', (None, ))
 
-        # Make a copy for more convenience access by observers.
+        # Make a copy for more convenient access by observers.
         self.adapter.op_info = op_info
 
         op = op_info.op_name
         keys = op_info.keys
 
-        # For add ops, OOD_setitem_add, OOD_setdefault, and OOD_update, we
-        # only need to append or extend the sorted_keys (a OOL instance),
-        # whose change will trigger a data changed callback.
-        if op in ['OOD_setitem_add', 'OOD_setdefault', ]:
-            self.adapter.sorted_keys.append(keys[0])
-        if op == 'OOD_update':
-            self.adapter.sorted_keys.extend(keys)
-
-        Logger.debug('DictAdapter: data_changed callback ' + str(op_info))
+        Logger.debug('DictAdapter: data_changed callback ' + op_info.op_name)
 
         if op == 'OOD_set':
 
             self.handle_set()
+
+        elif op in ['OOD_setitem_add', 'OOD_setdefault', ]:
+
+            self.handle_add_op(keys[0])
+
+        elif op == 'OOD_update':
+
+            self.handle_update_op(keys)
 
         elif op in ['OOD_setitem_set', ]:
 
@@ -117,6 +115,17 @@ class AdapterDictOpHandler(DictOpHandler):
 
         # Dispatch directly, because we did not change sorted_keys.
         self.adapter.dispatch('on_data_change')
+
+    def handle_add_op(self, key):
+
+        # For add ops, OOD_setitem_add, OOD_setdefault, and OOD_update, we
+        # only need to append or extend the sorted_keys (a OOL instance),
+        # whose change will trigger a data changed callback.
+        self.adapter.sorted_keys.append(key)
+
+    def handle_update_op(self, key):
+
+        self.adapter.sorted_keys.extend(keys)
 
     def handle_delete_op(self, keys):
 
