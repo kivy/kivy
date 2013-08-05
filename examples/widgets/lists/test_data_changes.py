@@ -22,9 +22,25 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.screenmanager import ScreenManager
 
 
+class KeyedListItemButton(ListItemButton):
+
+    key = StringProperty('')
+
+    def __init__(self, **kwargs):
+        super(KeyedListItemButton, self).__init__(**kwargs)
+
+
+class CustomDataItem(SelectableDataItem):
+
+    def __init__(self, **kwargs):
+        super(CustomDataItem, self).__init__(**kwargs)
+        self.text = kwargs.get('text', '')
+
+
 Builder.load_string('''
 #:import choice random.choice
 #:import sample random.sample
+#:import Logger kivy.logger.Logger
 
 <ItemsScreen>:
 
@@ -57,7 +73,7 @@ Builder.load_string('''
                 text: 'Load with Object Data'
                 on_release: app.list_adapter.args_converter = app.objects_args_converter; \
                             del app.list_adapter.data[0:len(app.list_adapter.data)]; \
-                            [app.list_adapter.data.append(o) for o in app.object_data]
+                            app.list_adapter.data = app.object_data
 
             Label:
                 pos_hint: {'center_x': .5}
@@ -89,7 +105,9 @@ Builder.load_string('''
                     text: 'setitem'
                     on_release: app.list_adapter.data[ \
                             app.list_adapter.selection[0].index] = \
-                            choice(app.nato_alphabet_words)
+                                choice(app.nato_alphabet_words) \
+                                if app.data_is_strings() \
+                                else app.create_list_item_obj()
 
                 Button:
                     size_hint: None, None
@@ -107,7 +125,9 @@ Builder.load_string('''
                     on_release: app.list_adapter.data[ \
                             app.list_adapter.selection[0].index: \
                             app.list_adapter.selection[0].index + 3] = \
-                            [choice(app.nato_alphabet_words)] * 3
+                                [choice(app.nato_alphabet_words)] * 3 \
+                                if app.data_is_strings() \
+                                else app.create_list_item_obj_list(3)
 
                 Button:
                     size_hint: None, None
@@ -154,7 +174,9 @@ Builder.load_string('''
                     height: 30
                     text: 'append'
                     on_release: app.list_adapter.data.append( \
-                            choice(app.nato_alphabet_words))
+                                    choice(app.nato_alphabet_words) \
+                                        if app.data_is_strings() \
+                                        else app.create_list_item_obj())
 
                 Button:
                     size_hint: None, None
@@ -171,8 +193,10 @@ Builder.load_string('''
                     height: 30
                     text: 'insert'
                     on_release: app.list_adapter.data.insert( \
-                            app.list_adapter.selection[0].index, \
-                            choice(app.nato_alphabet_words))
+                                    app.list_adapter.selection[0].index, \
+                                    choice(app.nato_alphabet_words) \
+                                        if app.data_is_strings() \
+                                        else app.create_list_item_obj())
 
                 Button:
                     size_hint: None, None
@@ -195,7 +219,9 @@ Builder.load_string('''
                     height: 30
                     text: 'extend (3)'
                     on_release: app.list_adapter.data.extend( \
-                            [choice(app.nato_alphabet_words)] * 3)
+                                    [choice(app.nato_alphabet_words)] * 3 \
+                                        if app.data_is_strings() \
+                                        else app.create_list_item_obj_list(3))
 
                 Button:
                     size_hint: None, None
@@ -247,9 +273,11 @@ Builder.load_string('''
                     height: 30
                     text: 'setitem set'
                     on_release: app.dict_adapter.data[ \
-                            app.dict_adapter.selection[0].key] = \
-                                {'key': app.dict_adapter.selection[0].key, \
-                                 'value': ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))}
+                                app.dict_adapter.selection[0].key] = \
+                                    {'key': app.dict_adapter.selection[0].key, \
+                                     'value': ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))} \
+                                if app.dict_adapter.selection \
+                                else Logger.info('Testing: No selection. Cannot setitem set.')
 
                 Button:
                     size_hint: None, None
@@ -264,10 +292,11 @@ Builder.load_string('''
                     width: 96
                     height: 30
                     text: 'setitem del'
-                    on_release: \
-                        app.dict_adapter.data[ \
-                            app.dict_adapter.sorted_keys[ \
-                                app.dict_adapter.selection[0].index]] = None
+                    on_release: app.dict_adapter.data[ \
+                                    app.dict_adapter.sorted_keys[ \
+                                        app.dict_adapter.selection[0].index]] = None \
+                                if app.dict_adapter.selection \
+                                else Logger.info('Testing: No selection. Cannot setitem del.')
 
                 Button:
                     size_hint: None, None
@@ -292,14 +321,18 @@ Builder.load_string('''
                     text: 'pop'
                     on_release: app.dict_adapter.data.pop( \
                                         app.dict_adapter.sorted_keys[ \
-                                            app.dict_adapter.selection[0].index])
+                                            app.dict_adapter.selection[0].index]) \
+                                if app.dict_adapter.data.keys() \
+                                else Logger.info('Testing: Data is empty. Cannot pop.')
 
                 Button:
                     size_hint: None, None
                     width: 96
                     height: 30
                     text: 'popitem'
-                    on_release: app.dict_adapter.data.popitem()
+                    on_release: app.dict_adapter.data.popitem() \
+                                if app.dict_adapter.data.keys() \
+                                else Logger.info('Testing: Data is empty. Cannot popitem.')
 
                 Button:
                     size_hint: None, None
@@ -320,7 +353,6 @@ Builder.load_string('''
                                 app.dict_adapter.data.update({k1: {'key': k1, 'value': k1}, \
                                                               k2: {'key': k2, 'value': k2}, \
                                                               k3: {'key': k3, 'value': k3}})
-                                #print len(app.dict_adapter.data), len(app.dict_adapter.sorted_keys)
 
                 Label:
                     size_hint: None, None
@@ -340,20 +372,6 @@ class ItemsScreen(Screen):
     pass
 
 
-class KeyedListItemButton(ListItemButton):
-
-    key = StringProperty('')
-
-    def __init__(self, **kwargs):
-        super(KeyedListItemButton, self).__init__(**kwargs)
-
-
-class CustomDataItem(SelectableDataItem):
-
-    def __init__(self, **kwargs):
-        super(CustomDataItem, self).__init__(**kwargs)
-        self.text = kwargs.get('text', '')
-
 class Test(App):
 
     nato_alphabet_words = ListProperty([
@@ -369,15 +387,27 @@ class Test(App):
 
     object_data = ListProperty([])
 
+    def create_list_item_obj(self):
+        return CustomDataItem(text=choice(self.nato_alphabet_words))
+
+    def create_list_item_obj_list(self, n):
+        return [CustomDataItem(text=choice(self.nato_alphabet_words))] * n
+
     def strings_args_converter(self, row_index, value):
         return {"text": str(value),
                 "size_hint_y": None,
                 "height" : 25}
 
     def objects_args_converter(self, row_index, obj):
+        print row_index, obj
         return {"text": obj.text,
                 "size_hint_y": None,
                 "height" : 25}
+
+    def data_is_strings(self):
+        if self.list_adapter.args_converter == self.strings_args_converter:
+            return True
+        return False
 
     def dict_args_converter(self, row_index, rec):
         return {"text": "{0} : {1}".format(rec['key'], rec['value']),

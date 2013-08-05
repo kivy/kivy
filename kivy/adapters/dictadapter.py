@@ -20,8 +20,10 @@ If you wish to have a bare-bones list adapter, without selection, use the
 
 __all__ = ('DictAdapter', )
 
+from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
+from kivy.properties import BooleanProperty
 from kivy.properties import DictProperty
 from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
@@ -29,6 +31,7 @@ from kivy.properties import ObservableDict
 from kivy.adapters.listadapter import ChangeMonitor
 from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.listadapter import ChangeRecordingObservableList
+from kivy.adapters.list_op_handler import ListOpHandler
 
 
 class ChangeRecordingObservableDict(ObservableDict):
@@ -41,8 +44,8 @@ class ChangeRecordingObservableDict(ObservableDict):
     '''
 
     def __init__(self, *largs):
-        self.change_monitor = ChangeMonitor()
         super(ChangeRecordingObservableDict, self).__init__(*largs)
+        self.change_monitor = ChangeMonitor()
 
     def __len__(self, *largs):
         # We should always have our own change_monitor to remove from len
@@ -77,12 +80,10 @@ class ChangeRecordingObservableDict(ObservableDict):
             yield (k, self[k])
 
     def __setattr__(self, attr, value):
-        if attr in ('prop', 'obj', 'change_monitor'):
+        if attr in ('prop', 'obj'):
             super(ChangeRecordingObservableDict, self).__setattr__(attr, value)
-            if attr != 'change_monitor':
-                self.change_monitor.change_info = ('crod_setattr', (attr, ))
             return
-        super(ChangeRecordingObservableDict, self).__setitem__(attr, value)
+        self.__setitem__(attr, value)
 
     def __setitem__(self, key, value):
 
@@ -96,34 +97,45 @@ class ChangeRecordingObservableDict(ObservableDict):
                 change_info = ('crod_setitem_set', (key, ))
             else:
                 change_info = ('crod_setitem_add', (key, ))
+        if (key != 'change_monitor' and hasattr(self, 'change_monitor')
+                and change_info[0] in ['crod_setitem_set',
+                                       'crod_setitem_add', ]):
+            self.change_monitor.start()
         super(ChangeRecordingObservableDict, self).__setitem__(key, value)
         if change_info[0] in ['crod_setitem_set', 'crod_setitem_add', ]:
             self.change_monitor.change_info = change_info
 
+        self.change_monitor.stop()
+
     def __delitem__(self, key):
+        self.change_monitor.start()
         # Protect change_monitor from deletion.
         if key == 'change_monitor':
             # TODO: Raise an exception?
-            print 'tried to delete change_monitor'
+            Logger.info('CROD: tried to delete change_monitor')
             return
         super(ChangeRecordingObservableDict, self).__delitem__(key)
         self.change_monitor.change_info = ('crod_delitem', (key, ))
+        self.change_monitor.stop()
 
     def clear(self, *largs):
+        self.change_monitor.start()
         # Store a local copy of self.change_monitor, because the clear() will
         # remove everything, including it. Restore it after the clear.
         change_monitor = self.change_monitor
         super(ChangeRecordingObservableDict, self).clear(*largs)
         self.change_monitor = change_monitor
         self.change_monitor.change_info = ('crod_clear', (None, ))
+        self.change_monitor.stop()
 
     def pop(self, *largs):
+        self.change_monitor.start()
         key = largs[0]
 
         # Protect change_monitor from deletion.
         if key == 'change_monitor':
             # TODO: Raise an exception?
-            print 'tried to pop change_monitor'
+            Logger.info('CROD: tried to pop change_monitor')
             return
 
         # This is pop on a specific key. If that key is absent, the second arg
@@ -132,9 +144,11 @@ class ChangeRecordingObservableDict(ObservableDict):
         # s.pop([i]) is same as x = s[i]; del s[i]; return x
         result = super(ChangeRecordingObservableDict, self).pop(*largs)
         self.change_monitor.change_info = ('crod_pop', (key, ))
+        self.change_monitor.stop()
         return result
 
     def popitem(self, *largs):
+        self.change_monitor.start()
         # From python docs, "Remove and return an arbitrary (key, value) pair
         # from the dictionary." From other reading, arbitrary here effectively
         # means "random" in the loose sense, of removing on the basis of how
@@ -146,17 +160,23 @@ class ChangeRecordingObservableDict(ObservableDict):
         if len(largs):
             last = largs[0]
 
+        Logger.info('CROD: popitem, last = {0}'.format(last))
+
         if not self.keys():
             raise KeyError('dictionary is empty')
 
         key = next((self) if last else iter(self))
 
+        Logger.info('CROD: popitem, key = {0}'.format(key))
+
         if key == 'change_monitor':
             # TODO: Raise an exception?
-            print 'tried to popitem change_monitor'
+            Logger.info('CROD: tried to popitem change_monitor')
             return
 
         value = self[key]
+
+        Logger.info('CROD: popitem, value = {0}'.format(value))
 
         # NOTE: We have no set to self.change_monitor.change_info for
         # crod_popitem, because the following del self[key] will trigger a
@@ -164,9 +184,11 @@ class ChangeRecordingObservableDict(ObservableDict):
         # for crod_popitem. If we set self.change_monitor.change_info with
         # crod_popitem here, we get a double-callback.
         del self[key]
+        self.change_monitor.stop()
         return key, value
 
     def setdefault(self, *largs):
+        self.change_monitor.start()
         present_keys = self.keys()
         key = largs[0]
         change_info = None
@@ -175,9 +197,11 @@ class ChangeRecordingObservableDict(ObservableDict):
         result = super(ChangeRecordingObservableDict, self).setdefault(*largs)
         if change_info:
             self.change_monitor.change_info = change_info
+        self.change_monitor.stop()
         return result
 
     def update(self, *largs):
+        self.change_monitor.start()
         change_info = None
         present_keys = self.keys()
         if present_keys:
@@ -187,6 +211,7 @@ class ChangeRecordingObservableDict(ObservableDict):
         super(ChangeRecordingObservableDict, self).update(*largs)
         if change_info:
             self.change_monitor.change_info = change_info
+        self.change_monitor.stop()
 
 
 class DictAdapter(ListAdapter):
@@ -195,7 +220,9 @@ class DictAdapter(ListAdapter):
     the :class:`~kivy.adapters.listadapter.ListAdapter`.
     '''
 
-    sorted_keys = ListProperty([])
+    # TODO: Adapt to Python's OrderedDict?
+
+    sorted_keys = ListProperty([], cls=ChangeRecordingObservableList)
     '''The sorted_keys list property contains a list of hashable objects (can
     be strings) that will be used directly if no args_converter function is
     provided. If there is an args_converter, the record received from a
@@ -218,7 +245,7 @@ class DictAdapter(ListAdapter):
     to None.
     '''
 
-    __events__ = ('on_data_change', )
+    __events__ = ('on_data_change', 'on_sorted_keys_change')
 
     def __init__(self, **kwargs):
         if 'sorted_keys' in kwargs:
@@ -226,31 +253,69 @@ class DictAdapter(ListAdapter):
                 msg = 'DictAdapter: sorted_keys must be tuple or list'
                 raise Exception(msg)
             else:
-                # Copy the provided sorted_keys, and maintain it internally.
-                # The only function in the API for sorted_keys is to reset it
-                # wholesale with a call to reset_sorted_keys().
-                self.sorted_keys = list(kwargs.pop('sorted_keys'))
+                # Remove any keys in sorted_keys that are not found in
+                # self.data.keys(). This is the set intersection op (&).
+                self.sorted_keys = list(set(kwargs.pop('sorted_keys'))
+                                            & set(kwargs['data'].keys()))
         else:
             self.sorted_keys = sorted(kwargs['data'].keys())
 
         super(DictAdapter, self).__init__(**kwargs)
 
-        # Bind to the ChangeRecordingObservableDict's change_monitor.
-        self.data.change_monitor.bind(on_change_info=self.crod_data_changed)
+        self.bind(sorted_keys=self.sorted_keys_changed)
+
+        # Delegate handling for sorted_keys changes to a ListOpHandler.
+        self.list_op_handler = ListOpHandler(adapter=self,
+                                               source_list=self.sorted_keys,
+                                               duplicates_allowed=False)
+        self.sorted_keys.change_monitor.bind(
+                on_change_info=self.list_op_handler.data_changed,
+                on_crol_sort_started=self.list_op_handler.sort_started)
+
+        # We handle data (ChangeRecordingObservableDict) changes here.
+        self.data.change_monitor.bind(
+                on_change_info=self.crod_data_changed)
+
+    # TODO: Document the reason for on_data_change and on_sorted_keys_change,
+    #       instead of on_data and on_sorted_keys: These are peculiar to the
+    #       adapters and their API (using and referring to change_info). This
+    #       leaves on_data and on_sorted_keys still available for use in the
+    #       "regular" manner, perhaps for some Kivy widgets, perhaps for
+    #       custom widgets.
+
+    def on_sorted_keys_change(self, *args):
+        '''Default data handler for on_sorted_keys_change event.
+        '''
+        pass
 
     def on_data_change(self, *args):
         '''Default data handler for on_data_change event.
         '''
         pass
 
-    # TODO: If the desired action is inserting an item at a particular index,
-    #       as in the typical case, it is too expensive to reset the entire
-    #       sorted_keys. We could add a special method to DictAdapter that
-    #       takes a key, value pair and an index, and in there do what is
-    #       needed, as would happen for a crol_insert op.
-    def reset_sorted_keys(self, sorted_keys):
-        self.sorted_keys = sorted_keys
-        # TODO: call update on dict to match?
+    def sorted_keys_changed(self, *args):
+        '''This callback happens as a result of the direct sorted_keys binding
+        set up in __init__(). It is needed for the direct set of sorted_keys,
+        as happens in ...sorted_keys = [some new list], which is not picked up
+        by the CROL data change system. We check by looking for a valid
+        change_monitor that is created when CROL has fired. If not present, we
+        know this call is from a direct sorted_keys set.
+        '''
+
+        if (hasattr(self.sorted_keys, 'change_monitor')
+               and not self.sorted_keys.change_monitor.op_started):
+            self.cached_views.clear()
+
+            self.list_op_handler.source_list = self.sorted_keys
+
+            self.sorted_keys.change_monitor.bind(
+                on_change_info=self.list_op_handler.data_changed,
+                on_crol_sort_started=self.list_op_handler.sort_started)
+
+            self.change_info = ('crol_reset', (0, 0))
+            self.dispatch('on_data_change')
+
+            self.initialize_selection()
 
     def crod_data_changed(self, *args):
 
@@ -259,71 +324,31 @@ class DictAdapter(ListAdapter):
         # TODO: This is to solve a timing issue when running tests. Remove when
         #       no longer needed.
         if not change_info:
-            Clock.schedule_once(lambda dt: self.crod_data_changed(*args))
+            Clock.schedule_once(lambda dt: self.data_changed(*args))
             return
+
+        # Make a copy for more convenience access by observers.
+        self.change_info = change_info
 
         data_op, keys = change_info
 
-        if data_op == 'crod_clear':
-
-            # Empty all our things.
-            self.sorted_keys = []
-            self.selection = []
-            self.delete_cache()
-
-            # Set indices to full range (that was cleared).
-            self.additional_change_info = (0, len(self.data) - 1)
-
-            self.dispatch('on_data_change')
-            return
-
+        # For add ops, crod_setitem_add, crod_setdefault, and crod_update, we
+        # only need to append or extend sorted_keys, whose change will trigger
+        # a data changed callback.
         if data_op in ['crod_setitem_add', 'crod_setdefault', ]:
             self.sorted_keys.append(keys[0])
-
         if data_op == 'crod_update':
             self.sorted_keys.extend(keys)
 
-        indices = [self.sorted_keys.index(k) for k in keys]
+        Logger.info('DictAdapter: data_changed callback ' + str(change_info))
 
-        start_index = min(indices)
-        end_index = max(indices)
-
-        # Add start_index and end_index to change_info, because by the time
-        # data_changed() in ListView is called, we may have changed
-        # sorted_keys, cached_views, and selection.
-        self.additional_change_info = (start_index, end_index)
-
-        print 'DICT ADAPTER crod_data_changed callback', change_info
-
-        if len(self.data) == 1 and data_op in ['crod_setitem_add',
-                                              'crod_setdefault',
-                                              'crod_update']:
-            # Special case: deletion resulted in no data, leading up to the
-            # present op, which adds one or more items. Cached views should
-            # have already been treated.  Call check_for_empty_selection()
-            # to re-establish selection if needed.
-            self.check_for_empty_selection()
-
-            # Dispatch for ListView.
-            self.dispatch('on_data_change')
-
-            return
-
-        if data_op == 'crod_setattr':
-
-            # TODO: If keys[0] is 'prop' or 'obj' the superclass of crod
-            #       was called. Otherwise, it was the crod. What to do?
-            pass
-
-        elif data_op in ['crod_setitem_add', 'crod_setdefault', 'crod_update']:
-
-            # We have already added the key to sorted_keys, above.
-            pass
-
-        elif data_op in ['crod_setitem_set', ]:
+        if data_op in ['crod_setitem_set', ]:
 
             # Force a rebuild of the view for which data item has changed.
             # If the item was selected before, maintain the seletion.
+
+            # We do not alter sorted_keys -- the key is the same, only the value
+            # has changed. So, we must dispatch here.
 
             index = self.sorted_keys.index(keys[0])
 
@@ -337,94 +362,40 @@ class DictAdapter(ListAdapter):
             if is_selected:
                 self.handle_selection(item_view)
 
+            # Set start_index, end_index to the index.
+            self.additional_change_info = (index, index)
+
+            # Dispatch directly, because we did not change sorted_keys.
+            self.dispatch('on_data_change')
+
         elif data_op in ['crod_setitem_del',
                          'crod_delitem',
-                         'crod_clear',
                          'crod_pop',
                          'crod_popitem']:
 
-            deleted_indices = [self.sorted_keys.index(k) for k in keys]
+            indices = [self.sorted_keys.index(k) for k in keys]
 
-            start_index = min(deleted_indices)
+            start_index = min(indices)
+            end_index = max(indices)
 
-            # Delete keys from sorted_keys.
-            # TODO: another way: del at min index * len(deleted_indices) ?
-            for i in reversed(sorted(deleted_indices)):
-                del self.sorted_keys[i]
+            self.additional_change_info = (start_index, end_index)
 
-            # Delete views from cache.
-            new_cached_views = {}
+            # Trigger the data change callback.
+            del self.sorted_keys[start_index : end_index + 1]
 
-            i = 0
-            for k, v in self.cached_views.iteritems():
-                if not k in deleted_indices:
-                    new_cached_views[i] = self.cached_views[k]
-                    if k >= start_index:
-                        new_cached_views[i].index = i
-                    i += 1
+        elif data_op == 'crod_clear':
 
-            self.cached_views = new_cached_views
+            # Set start_index and end_index to full range (that was cleared).
+            self.additional_change_info = (0, len(self.data) - 1)
 
-            # Handle selection.
-            for sel in self.selection:
-                if sel.index in deleted_indices:
-                    self.selection.remove(sel)
+            self.cached_views.clear()
+            self.selection = []
 
-            # Do a check_for_empty_selection type step, if data remains.
-            len_self_data = len(self.data)
-            if (len_self_data > 0
-                    and not self.selection
-                    and not self.allow_empty_selection):
-                # Find a good index to select, if the deletion results in
-                # no selection, which is common, as the selected item is
-                # often the one deleted.
-                if start_index < len_self_data:
-                    new_sel_index = start_index
-                else:
-                    new_sel_index = len_self_data - 1
-                v = self.get_view(new_sel_index)
-                if v is not None:
-                    self.handle_selection(v)
+            # Trigger the data reset callback.
+            self.sorted_keys = []
 
-        # Dispatch for ListView.
-        self.dispatch('on_data_change')
-
-    # TODO: No longer used. Backwards compatibility issue? At least provide
-    #       migration instructions?
-    def bind_triggers_to_view(self, func):
-        self.bind(sorted_keys=func)
-        self.bind(data=func)
-
-    # self.data is paramount to self.sorted_keys. If sorted_keys is reset to
-    # mismatch data, force a reset of sorted_keys to data.keys(). So, in order
-    # to do a complete reset of data and sorted_keys, data must be reset
-    # first, followed by a reset of sorted_keys, if needed.
-    #
-    # UPDATE: For crol and crod (data changed) development, the binding to this
-    #         method has been removed, because sorted_keys needs to be updated
-    #         and managed internally. For example if an item is deleted, its
-    #         key in sorted_keys is removed, but other reactions, such as
-    #         deleting cache items and updating selection are done in the crod
-    #         code -- the code here would interfere.
-    #
-    #         TODO: Delete this method?
-    #
-    def initialize_sorted_keys(self, *args):
-        stale_sorted_keys = False
-        for key in self.sorted_keys:
-            if not key in self.data:
-                stale_sorted_keys = True
-                break
-        if stale_sorted_keys:
-            self.sorted_keys = sorted(self.data.keys())
-        self.delete_cache()
-        self.initialize_selection()
-
-    # Override ListAdapter.update_for_new_data().
-    def update_for_new_data(self, *args):
-        self.initialize_sorted_keys()
-
-    # Note: this is not len(self.data).
+    # NOTE: This is not len(self.data).
+    # TODO: Recheck this in light of new approach with crol, crod.
     def get_count(self):
         return len(self.sorted_keys)
 
@@ -442,8 +413,6 @@ class DictAdapter(ListAdapter):
     def trim_left_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are less than the
         index of the first selected item, if there is a selection.
-
-        sorted_keys will be updated by update_for_new_data().
         '''
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]
@@ -454,8 +423,6 @@ class DictAdapter(ListAdapter):
     def trim_right_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are greater than
         the index of the last selected item, if there is a selection.
-
-        sorted_keys will be updated by update_for_new_data().
         '''
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]
@@ -468,8 +435,6 @@ class DictAdapter(ListAdapter):
         greater than the index of the last selected item, if there is a
         selection. This preserves intervening list items within the selected
         range.
-
-        sorted_keys will be updated by update_for_new_data().
         '''
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]
@@ -481,8 +446,6 @@ class DictAdapter(ListAdapter):
     def cut_to_sel(self, *args):
         '''Same as trim_to_sel, but intervening list items within the selected
         range are also cut, leaving only list items that are selected.
-
-        sorted_keys will be updated by update_for_new_data().
         '''
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]

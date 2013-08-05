@@ -22,6 +22,7 @@ from fruit_detail_view import FruitDetailView
 class FruitsListAdapter(ListAdapter):
 
     def fruit_category_changed(self, fruit_categories_adapter, *args):
+
         if len(fruit_categories_adapter.selection) == 0:
             self.data = []
             return
