@@ -201,13 +201,26 @@ class DictAdapter(Selection, Adapter):
     def get_count(self):
         return len(self.sorted_keys)
 
-    # TODO: It might be nice to return (key, data_item). Is this a good idea?
-    #       There would be a backwards compatibility issue. If needed, make
-    #       this the default function, and add a new one? Then later deprecate?
     def get_data_item(self, index):
+        '''args_converters for DictAdapter instances receive the index and the
+        data value, along with the key at the index, as the last argument:
+
+            data item at sorted_keys[index],
+            the key (sorted_keys[index])
+
+        So, an args_converter for DictAdapter will now get three arguments:
+
+            index, data_item, key
+
+        See the create_view() method of the Adapter base class.
+        '''
+
         if index < 0 or index >= len(self.sorted_keys):
             return None
-        return self.data[self.sorted_keys[index]]
+
+        key = self.sorted_keys[index]
+
+        return self.data[key], key
 
     # TODO: Also make methods for scroll_to_sel_start, scroll_to_sel_end,
     #       scroll_to_sel_middle.

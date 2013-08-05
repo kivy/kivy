@@ -451,12 +451,6 @@ class FruitAdaptersTestCase(unittest.TestCase):
         adapter_2 = Adapter(**kwargs_2)
         self.assertEqual(adapter_2.args_converter, list_item_args_converter)
 
-        adapter = Adapter(data=['cat'], cls=Label)
-        self.assertEqual(adapter.get_data_item(0), 'cat')
-
-        adapter = Adapter(data='cat', cls=Label)
-        self.assertEqual(adapter.get_data_item(0), 'c')
-
     def test_instantiating_adapter_bind_triggers_to_view(self):
         class PetListener(object):
             def __init__(self, pet):
@@ -1256,7 +1250,9 @@ class FruitAdaptersTestCase(unittest.TestCase):
         self.assertEqual(dict_adapter.args_converter, list_item_args_converter)
         self.assertEqual(dict_adapter.template, None)
 
-        apple_data_item = dict_adapter.get_data_item(0)
+        apple_data_ret = dict_adapter.get_data_item(0)
+        self.assertTrue(isinstance(apple_data_ret, tuple))
+        apple_data_item = apple_data_ret[0]
         self.assertTrue(isinstance(apple_data_item, dict))
         self.assertEqual(apple_data_item['name'], 'Apple')
 
@@ -1292,8 +1288,9 @@ class FruitAdaptersTestCase(unittest.TestCase):
         self.assertEqual(dict_adapter.args_converter, list_item_args_converter)
         self.assertEqual(dict_adapter.template, None)
 
-        apple_data_item = dict_adapter.get_data_item(0)
-        self.assertTrue(isinstance(apple_data_item, dict))
+        apple_data_ret = dict_adapter.get_data_item(0)
+        self.assertTrue(isinstance(apple_data_ret, tuple))
+        apple_data_item = apple_data_ret[0]
         self.assertEqual(apple_data_item['name'], 'Apple')
 
         apple_view = dict_adapter.get_view(0)

@@ -11,9 +11,14 @@ class AdapterDictOpHandler(DictOpHandler):
 
     For :class:`~kivy.adapters.dictadapter.DictAdapter` the ops that could be
     considered misssing from this coverage are handled by a companion handler
-    for sorted_keys (OOL) changes.
+    for sorted_keys (OOL) changes. Sometimes the decision is made here to
+    change sorted_keys, and let that trigger a data changed event.
 
     The following methods here react to some of the dict operations possible:
+
+        handle_set()
+
+            OOD_set
 
         handle_setitem_set_op()
 

@@ -331,10 +331,18 @@ class Selection(EventDispatcher):
         if not hold_dispatch:
             self.dispatch('on_selection_change')
 
-    def select_model_data_item(self, item):
+    def select_model_data_item(self, arg):
+        if isinstance(arg, tuple):
+            item = arg[0]
+        else:
+            item = arg
         self.set_model_data_item_selection(item, True)
 
-    def deselect_model_data_item(self, item):
+    def deselect_model_data_item(self, arg):
+        if isinstance(arg, tuple):
+            item = arg[0]
+        else:
+            item = arg
         self.set_model_data_item_selection(item, False)
 
     def set_model_data_item_selection(self, item, value):
