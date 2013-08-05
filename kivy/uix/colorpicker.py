@@ -1,6 +1,6 @@
 '''
-ColorPicker widget
-==================
+Color Picker
+============
 
 .. versionadded:: 1.7.0
 
@@ -14,7 +14,8 @@ The ColorPicker widget allows a user to pick a color utilizing from a chromatic
 wheel where pinch/zoom can be used to change available colors or using a slider
 or directly entering the colors in the text boxes.
 
-.. usage::
+Usage::
+
     clr_picker = ColorPicker()
     parent.add_widget(ColorPicker)
     # print currently selected color in rgba format
@@ -69,7 +70,7 @@ def rect_to_polar(origin, x, y):
 class ColorWheel(Widget):
     '''Chromatic wheel for the ColorPiker.
 
-    .. versionchanged::
+    .. versionchanged:: 1.7.1
 
         `font_size`, `font_name`, `foreground_color` have been removed. The
         sizing is now the same as others widget, based on 'sp'. Orientation is
@@ -390,14 +391,14 @@ class ColorPicker(RelativeLayout):
         self.color = get_color_from_hex(value)[:4]
 
     hex_color = AliasProperty(_get_hex, _set_hex, bind=('color', ))
-    '''The :data:`hex_color ` holds the currently selected color in hex.
+    '''The :data:`hex_color` holds the currently selected color in hex.
 
     :data:`hex_color` is a :class:`~kivy.properties.AliasProperty` default to
     `#ffffffff`
     '''
 
     wheel = ObjectProperty(None)
-    '''The :data:`wheel ` holds the color wheel.
+    '''The :data:`wheel` holds the color wheel.
 
     :data:`wheel` is an :class:`~kivy.properties.ObjectProperty` defaults to
     None
