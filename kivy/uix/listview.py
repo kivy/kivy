@@ -605,7 +605,6 @@ from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
-from kivy.logger import Logger
 
 from kivy.properties import BooleanProperty
 from kivy.properties import DictProperty
@@ -997,8 +996,6 @@ class ListView(AbstractView, EventDispatcher):
     def adapter_changed(self, *args):
 
         if self.adapter:
-            Logger.debug(('ListView: '
-                          'and the adapter changed to ') + str(self.adapter))
             self.adapter.bind(on_data_change=self.data_changed)
 
             self._trigger_populate()
@@ -1142,19 +1139,12 @@ class ListView(AbstractView, EventDispatcher):
             available_height = self.height
             index = self._index
 
-            Logger.debug('ListView: self._index = {0}'.format(index))
-            Logger.debug('ListView: available_height = {0}'.format(
-                                                        available_height))
-
             while available_height > 0:
                 item_view = self.adapter.get_view(index)
                 if item_view is None:
                     break
                 index += 1
                 available_height -= item_view.height
-
-            Logger.debug('ListView: available_height = {0}'.format(
-                                                        available_height))
 
             if available_height <= 0:
                 self._index += 1
@@ -1236,15 +1226,9 @@ class ListView(AbstractView, EventDispatcher):
         if isinstance(op_info, ListOpInfo):
             start_index = op_info.start_index
             end_index = op_info.end_index
-            Logger.debug(("ListView: op_info -- {0} "
-                          "start_index: {1}, end_index: {2}").format(
-                              op, start_index, end_index))
         elif isinstance(op_info, DictOpInfo):
             keys = op_info.keys
             start_index, end_index = self.adapter.additional_op_info
-            Logger.debug(("ListView: op_info -- {0} "
-                          "keys: {0}, start_index: {1}, end_index: {2}").format(
-                              op, keys, start_index, end_index))
 
         # Otherwise, we may have item_views as children of self.container
         # that should be removed.
@@ -1342,7 +1326,3 @@ class ListView(AbstractView, EventDispatcher):
             self.scrolling = True
             self.populate()
             self.dispatch('on_scroll_complete')
-
-        else:
-
-            Logger.debug('ListView: unhandled data change op ' + str(op))

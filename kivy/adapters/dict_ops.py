@@ -1,4 +1,3 @@
-from kivy.logger import Logger
 from kivy.properties import DictOpHandler
 from kivy.properties import DictOpInfo
 
@@ -57,8 +56,6 @@ class AdapterDictOpHandler(DictOpHandler):
 
         op = op_info.op_name
         keys = op_info.keys
-
-        Logger.debug('DictAdapter: data_changed callback ' + op_info.op_name)
 
         if op == 'OOD_set':
 
