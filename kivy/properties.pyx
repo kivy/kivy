@@ -413,8 +413,6 @@ cdef class Property:
                 observer(obj, value)
 
 
-    # TODO: Can the op_info arg be added to dispatch() without problems?
-
     cpdef dispatch_with_op_info(self, EventDispatcher obj, op_info):
         '''Dispatch the value change to all observers.
 
@@ -579,10 +577,10 @@ class ObservableList(list):
         list.extend(self, *largs)
         observable_list_dispatch(self)
 
-    # TODO: Added **kwds because of complaining when key=lambda... was passed.
-    #       What is the official signature?
-    #def sort(self, *largs):
     def sort(self, *largs, **kwds):
+        '''NOTE: Added **kwds because of complaining when key=lambda... was
+                 passed.
+        '''
         list.sort(self, *largs, **kwds)
         observable_list_dispatch(self)
 
@@ -808,6 +806,7 @@ class OpObservableList(list):
 
     # TODO: setitem and delitem are supposed to handle slices, instead of the
     #       deprecated setslice() and delslice() methods.
+
     def __setitem__(self, key, value):
         list.__setitem__(self, key, value)
         op_observable_list_dispatch(self,
@@ -1049,16 +1048,6 @@ class OpObservableDict(dict):
 
     def __setitem__(self, key, value):
 
-        # TODO: This is the code in ObservableDict.__setitem__. Note the
-        #       handling for None. Resurrect OOD_setitem_del?
-        #if value is None:
-        #    # remove attribute if value is None
-        #    # is this really needed?
-        #    # NOTE: OpObservableDict allows None values.
-        #    self.__delitem__(key)
-        #else:
-        #    dict.__setitem__(self, key, value)
-
         if key in self.keys():
             op_info = DictOpInfo('OOD_setitem_set', (key, ))
         else:
@@ -1148,11 +1137,10 @@ class OpObservableDict(dict):
         if op_info:
             op_observable_dict_dispatch(self, op_info)
 
-    # TODO: This was exposed through the adapter, but now we are doing it here.
-    def insert(self, key, value):
+    def setitem_for_insert(self, key, value):
+        # Do not dispatch. The adapter will do an insert to sorted_keys, which
+        # will trigger a change event.
         dict.__setitem__(self, key, value)
-        op_observable_dict_dispatch(self,
-                DictOpInfo('OOD_insert', (key, )))
 
 
 class DictOpHandler(object):

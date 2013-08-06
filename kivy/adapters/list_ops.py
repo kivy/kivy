@@ -60,7 +60,9 @@ class AdapterListOpHandler(ListOpHandler):
     def data_changed(self, *args):
 
         self.adapter = args[0]
-        # TODO: args[1] is the modified list -- can utilize?
+
+        # NOTE: args[1] is the modified list.
+
         if len(args) == 3:
             op_info = args[2]
         else:
