@@ -167,9 +167,16 @@ class DictAdapter(Selection, Adapter):
         # Maintain sort order of incoming sorted_keys.
         return [k for k in sorted_keys if k in sorted_keys_checked]
 
-    # TODO: bind_triggers_to_view() is no longer used. Leave, but mark as
-    #       deprecated.
     def bind_triggers_to_view(self, func):
+        '''
+        .. deprecated:: 1.8
+
+             The data changed system was changed to use variants of
+             ObservableList/Dict that dispatch after individual operations,
+             passing information about what changed to a data_changed()
+             handler, which should be implemented by observers of adapters.
+        '''
+
         self.bind(sorted_keys=func)
         self.bind(data=func)
 
