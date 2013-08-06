@@ -219,10 +219,6 @@ class ListAdapter(Selection, Adapter):
                 msg = "ListAdapter: unselectable data item for {0}"
                 raise Exception(msg.format(index))
 
-            if self.bind_selection_to_children:
-                for child in view_instance.children:
-                    child.bind(on_release=self.handle_selection)
-
         return view_instance
 
     # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,

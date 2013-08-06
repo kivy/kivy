@@ -18,22 +18,19 @@ from fruit_detail_view import FruitImageDetailView
 Factory.register('SelectableView', cls=SelectableView)
 Factory.register('ListItemButton', cls=ListItemButton)
 
-# [TODO] Problem: Had to add index here, to get it from ctx. Might need a
-#                 "selection_template" to do this for the dev? Or is this
-#                 the task of the dev to know and follow this need to
-#                 code for index?
-
 Builder.load_string('''
 [ThumbnailedListItem@SelectableView+BoxLayout]:
     index: ctx.index
     fruit_name: ctx.text
     size_hint_y: ctx.size_hint_y
     height: ctx.height
+    carry_selection_to_children: True
     Image
         source: "fruit_images/{0}.32.jpg".format(ctx.text)
     ListItemButton:
         index: ctx.index
         text: ctx.text
+        on_release: self.parent.trigger_action(duration=0)
 ''')
 
 
