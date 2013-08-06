@@ -36,9 +36,6 @@ Elements that control selection behaviour:
     Broke this code out of :class:`ListAdapter` into a separate mixin class
     that is used in Adapter. This way all adapters have selection available.
 
-    Added a new bind_selection_to_children property to allow control of
-    selection for composite widgets.
-
     Added convenience methods, get_selection() and get_first_selected_item().
 
     Changed the way select_list() and deselect_list() avoid uneeded
@@ -186,16 +183,6 @@ class Selection(EventDispatcher):
     defaults to -1 (no limit).
     '''
 
-    bind_selection_to_children = BooleanProperty(True)
-    '''Should the children of selectable list items have their selection follow
-    that of their parent (if they are themselves selectable)?
-
-    :data:`bind_selection_to_children` is a
-    :class:`~kivy.properties.BooleanProperty` and defaults to True (There will
-    be a call to select/deselect children of any list item when that item is
-    itself selected/deselected.).
-    '''
-
     __events__ = ('on_selection_change', )
 
     def __init__(self, **kwargs):
@@ -336,14 +323,9 @@ class Selection(EventDispatcher):
                     or inspect.ismethod(item.select)):
                 item.select()
                 has_selection = True
-
-        # Set the selection state of the view_instance.
-        if hasattr(item, 'is_selected'):
+        elif hasattr(item, 'is_selected'):
             item.is_selected = True
             has_selection = True
-
-        # NOTE: It is the responsibility of a composite view instance to handle
-        #       selection of its children.
 
         if self.sync_with_model_data:
             self.select_model_data_item(self.get_data_item(item.index))
@@ -428,14 +410,9 @@ class Selection(EventDispatcher):
                     or inspect.ismethod(item.deselect)):
                 item.deselect()
                 has_selection = True
-
-        # Set the selection state of the view_instance.
-        if hasattr(item, 'is_selected'):
+        elif hasattr(item, 'is_selected'):
             item.is_selected = False
             has_selection = True
-
-        # NOTE: It is the responsibility of a composite view instance to handle
-        #       selection of its children.
 
         if self.sync_with_model_data:
             self.deselect_model_data_item(self.get_data_item(item.index))

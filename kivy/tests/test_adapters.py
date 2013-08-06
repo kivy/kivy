@@ -7,11 +7,10 @@ import unittest
 from random import sample
 from random import choice
 
+from kivy.uix.label import Label
 from kivy.uix.listview import SelectableView
 from kivy.uix.listview import ListItemButton
-from kivy.uix.listview import ListItemLabel
 from kivy.uix.listview import CompositeListItem
-from kivy.uix.label import Label
 
 from kivy.models import SelectableDataItem
 from kivy.adapters.adapter import Adapter
@@ -343,9 +342,8 @@ class FruitAdaptersTestCase(unittest.TestCase):
                  'height': 25,
                  'cls_dicts': [{'cls': ListItemButton,
                                 'kwargs': {'text': rec['text']}},
-                               {'cls': ListItemLabel,
-                                'kwargs': {'text': "#-{0}".format(rec['text']),
-                                           'is_representing_cls': True}},
+                               {'cls': Label,
+                                'kwargs': {'text': "#-{0}".format(rec['text'])}},
                                {'cls': ListItemButton},
                                {'cls': ListItemButton,
                                 'kwargs': {'some key': 'some value'}},

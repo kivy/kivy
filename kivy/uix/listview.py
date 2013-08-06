@@ -34,6 +34,14 @@ The :class:`~kivy.uix.listview.ListView` sets an adapter to one of a
     remove and force recreation of views, sometimes it is necessary to make a
     specific scroll action, and so on.
 
+    Removed ListItemLabel.
+
+    SelectableView now subclasses ButtonBehavior, and has a
+    carry_selection_to_children property.
+
+    CompositeListItem now has a bind_selection_from_children property, and its
+    is_representing_cls is now deprecated.
+
 Introduction
 ------------
 
@@ -509,8 +517,7 @@ widget method::
              'cls_dicts': [{'cls': ListItemButton,
                             'kwargs': {'text': key}},
                            {'cls': ListItemLabel,
-                            'kwargs': {'text': "x10={0}".format(rec['x10']),
-                                       'is_representing_cls': True}},
+                            'kwargs': {'text': "x10={0}".format(rec['x10'])}},
                            {'cls': ListItemButton,
                             'kwargs': {'text': str(rec['x100_text'])}}]}
 
@@ -591,21 +598,19 @@ demonstrate the use of kv templates and composite list views.
 
 '''
 
-__all__ = ('SelectableView', 'ListItemButton', 'ListItemLabel',
+__all__ = ('SelectableView', 'ListItemButton',
            'CompositeListItem', 'ListView', )
 
 from math import ceil, floor
+
+from kivy.adapters.dictadapter import DictAdapter
+from kivy.adapters.listadapter import ListAdapter
+from kivy.adapters.simplelistadapter import SimpleListAdapter
 
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.logger import Logger
-
-from kivy.uix.abstractview import AbstractView
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.uix.widget import Widget
 
 from kivy.properties import BooleanProperty
 from kivy.properties import DictProperty
@@ -616,18 +621,42 @@ from kivy.properties import ObjectProperty
 from kivy.properties import DictOpInfo
 from kivy.properties import ListOpInfo
 
-from kivy.adapters.dictadapter import DictAdapter
-from kivy.adapters.listadapter import ListAdapter
-from kivy.adapters.simplelistadapter import SimpleListAdapter
+from kivy.uix.abstractview import AbstractView
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.widget import Widget
 
 
-class SelectableView(object):
+class SelectableView(ButtonBehavior):
     '''The :class:`~kivy.uix.listview.SelectableView` mixin is used to design
     list item and other classes that are to be instantiated by an adapter to be
     used in a listview.  The :class:`~kivy.adapters.listadapter.ListAdapter`
     and :class:`~kivy.adapters.dictadapter.DictAdapter` adapters are
     selection-enabled. select() and deselect() are to be overridden with
     display code to mark items as selected or not, if desired.
+
+    For children, there are two directions for selection, from parent to
+    children, and from a child up to parent. The default for
+    carry_selection_to_children is True, so selection of children will follow
+    that of the parent. This can be handy is the SelectableView is treated as a
+    container, without its own cosmetic selection effects, and the UI
+    reflection of selection is done by the children (if the SelectableView
+    contains a combination of ListItemButtons and Labels for a listview
+    row item, the buttons will show selection of the row).
+
+    For the other direction, depending on the layout, the parent (the
+    SelectableView) may get events such as on_release. Or, if children
+    are ListItemButtons, they might get the events. In the second case, if
+    children are to fire selection for the parent, do something like the
+    following on the child:
+
+        on_release: self.parent.trigger_action(duration=0)
+
+    Depending on the need, on_release could be, among other possibilities,
+    on_touch_up. SelectableView, the parent, mixes in ButtonBehavior, which has
+    the trigger_action() method.
     '''
 
     index = NumericProperty(-1)
@@ -639,27 +668,49 @@ class SelectableView(object):
     '''
 
     is_selected = BooleanProperty(False)
-    '''A SelectableView instance carries this property, which should be kept
-    in sync with the equivalent property in the data item it represents.
+    '''A SelectableView instance carries this property, which can be optionally
+    kept in sync with the equivalent property in the data item it represents.
 
     :data:`is_selected` is a :class:`~kivy.properties.BooleanProperty`, default
     to False.
+    '''
+
+    carry_selection_to_children = BooleanProperty(True)
+    '''If true, select() and deselect() are called on children, if these
+    methods are defined.
+
+    .. versionadded:: 1.8
+
+    :data:`carry_selection_to_children` is a
+    :class:`~kivy.properties.BooleanProperty`, default to True.
     '''
 
     def __init__(self, **kwargs):
         super(SelectableView, self).__init__(**kwargs)
 
     def select(self, *args):
-        '''The list item is responsible for updating the display for
-        being selected, if desired.
+        '''The list item is responsible for updating the display for being
+        selected, if desired. Subclasses should call super() to assure that
+        is_selected is updated.
         '''
         self.is_selected = True
 
+        if self.carry_selection_to_children:
+            for c in self.children:
+                if hasattr(c, 'select'):
+                    c.select(args)
+
     def deselect(self, *args):
-        '''The list item is responsible for updating the display for
-        being unselected, if desired.
+        '''The list item is responsible for updating the display for being
+        deselected, if desired. Subclasses should call super() to assure that
+        is_selected is updated.
         '''
         self.is_selected = False
+
+        if self.carry_selection_to_children:
+            for c in self.children:
+                if hasattr(c, 'deselect'):
+                    c.deselect(args)
 
 
 class ListItemButton(SelectableView, Button):
@@ -689,58 +740,21 @@ class ListItemButton(SelectableView, Button):
 
     def select(self, *args):
         '''The default cosmetic reflection of selection state is the background
-        color. To change, subclass ListItemButton and override this method.
+        color. To change, subclass ListItemButton and override this method,
+        making sure to call super(), as shown, or make a new subclass of
+        SelectableView.
         '''
         self.background_color = self.selected_color
-        if type(self.parent) is CompositeListItem:
-            self.parent.select_from_child(self, *args)
+        super(ListItemButton, self).select(args)
 
     def deselect(self, *args):
         '''The default cosmetic reflection of selection state is the background
-        color. To change, subclass ListItemButton and override this method.
+        color. To change, subclass ListItemButton and override this method,
+        making sure to call super(), as shown, or make a new subclass of
+        SelectableView.
         '''
         self.background_color = self.deselected_color
-        if type(self.parent) is CompositeListItem:
-            self.parent.deselect_from_child(self, *args)
-
-    def select_from_composite(self, *args):
-        self.background_color = self.selected_color
-
-    def deselect_from_composite(self, *args):
-        self.background_color = self.deselected_color
-
-    def __repr__(self):
-        return '<%s text=%s>' % (self.__class__.__name__, self.text)
-
-
-# [TODO] Why does this mix in SelectableView -- that makes it work like
-#        button, which is redundant.
-
-class ListItemLabel(SelectableView, Label):
-    ''':class:`~kivy.uix.listview.ListItemLabel` mixes
-    :class:`~kivy.uix.listview.SelectableView` with
-    :class:`~kivy.uix.label.Label` to produce a label suitable for use in
-    :class:`~kivy.uix.listview.ListView`.
-    '''
-
-    def __init__(self, **kwargs):
-        super(ListItemLabel, self).__init__(**kwargs)
-
-    def select(self, *args):
-        self.bold = True
-        if type(self.parent) is CompositeListItem:
-            self.parent.select_from_child(self, *args)
-
-    def deselect(self, *args):
-        self.bold = False
-        if type(self.parent) is CompositeListItem:
-            self.parent.deselect_from_child(self, *args)
-
-    def select_from_composite(self, *args):
-        self.bold = True
-
-    def deselect_from_composite(self, *args):
-        self.bold = False
+        super(ListItemButton, self).deselect(args)
 
     def __repr__(self):
         return '<%s text=%s>' % (self.__class__.__name__, self.text)
@@ -772,9 +786,23 @@ class CompositeListItem(SelectableView, BoxLayout):
     default to [.33, .33, .33, 1].
     '''
 
+    bind_selection_from_children = BooleanProperty(True)
+    '''The selectable children of CompositeListItem, depending on use, may need
+    to fire selection events for the CompositeListItem. If so, set this to True
+    so that bindings are created on instantiation of the children.
+
+    .. versionadded:: 1.8
+
+    '''
+
     representing_cls = ObjectProperty(None)
-    '''Which component view class, if any, should represent for the
-    composite list item in __repr__()?
+    '''The component view class that should represent for the
+    composite list item in __repr__().
+
+    .. deprecated:: 1.8
+
+         Can be useful in debugging, but for this, use a debugger, the
+         inspector, or the Python inspect module.
 
     :data:`representing_cls` is an :class:`~kivy.properties.ObjectProperty`,
     default to None.
@@ -782,16 +810,6 @@ class CompositeListItem(SelectableView, BoxLayout):
 
     def __init__(self, **kwargs):
         super(CompositeListItem, self).__init__(**kwargs)
-
-        # Example data:
-        #
-        #    'cls_dicts': [{'cls': ListItemButton,
-        #                   'kwargs': {'text': "Left"}},
-        #                   'cls': ListItemLabel,
-        #                   'kwargs': {'text': "Middle",
-        #                              'is_representing_cls': True}},
-        #                   'cls': ListItemButton,
-        #                   'kwargs': {'text': "Right"}]
 
         # There is an index to the data item this composite list item view
         # represents. Get it from kwargs and pass it along to children in the
@@ -805,43 +823,39 @@ class CompositeListItem(SelectableView, BoxLayout):
             if cls_kwargs:
                 cls_kwargs['index'] = index
 
-                # TODO: Implement something to make the select and
-                #       deselect cosmetic effects a parameter.
-
-                if 'selection_target' not in cls_kwargs:
-                    cls_kwargs['selection_target'] = self
-
                 if 'text' not in cls_kwargs:
                     cls_kwargs['text'] = kwargs['text']
 
                 if 'is_representing_cls' in cls_kwargs:
                     self.representing_cls = cls
-
-                self.add_widget(cls(**cls_kwargs))
             else:
                 cls_kwargs = {}
                 cls_kwargs['index'] = index
                 if 'text' in kwargs:
                     cls_kwargs['text'] = kwargs['text']
-                self.add_widget(cls(**cls_kwargs))
+
+            child = cls(**cls_kwargs)
+
+            if self.bind_selection_from_children:
+                child.bind(on_release=self.on_release_on_child)
+
+            self.add_widget(child)
+
+    def on_release_on_child(self, *args):
+        self.trigger_action(duration=0)
 
     def select(self, *args):
+        super(CompositeListItem, self).select(args)
         self.background_color = self.selected_color
 
     def deselect(self, *args):
+        super(CompositeListItem, self).deselect(args)
         self.background_color = self.deselected_color
 
-    def select_from_child(self, child, *args):
-        for c in self.children:
-            if c is not child:
-                c.select_from_composite(*args)
-
-    def deselect_from_child(self, child, *args):
-        for c in self.children:
-            if c is not child:
-                c.deselect_from_composite(*args)
-
     def __repr__(self):
+        # NOTE: This conditional, and the method itself, is kept here for
+        #       backwards compatibility, because representing_cls is
+        #       deprecated. When it is removed, remove this __repr__().
         if self.representing_cls is not None:
             return '<%r>, representing <%s>' % (
                 self.representing_cls, self.__class__.__name__)

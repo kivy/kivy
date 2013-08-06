@@ -1,6 +1,8 @@
 from kivy.adapters.dictadapter import DictAdapter
-from kivy.uix.listview import ListItemButton, ListItemLabel, \
-        CompositeListItem, ListView
+from kivy.uix.label import Label
+from kivy.uix.listview import ListItemButton
+from kivy.uix.listview import CompositeListItem
+from kivy.uix.listview import ListView
 from kivy.uix.gridlayout import GridLayout
 
 
@@ -16,22 +18,33 @@ class MainView(GridLayout):
         super(MainView, self).__init__(**kwargs)
 
         # This is quite an involved args_converter, so we should go through the
-        # details. A CompositeListItem instance is made with the args
-        # returned by this converter. The first three, text, size_hint_y,
-        # height are arguments for CompositeListItem. The cls_dicts list contains
-        # argument sets for each of the member widgets for this composite:
-        # ListItemButton and ListItemLabel.
+        # details. A CompositeListItem instance is made with the args returned
+        # by this converter. The first three, text, size_hint_y, height are
+        # arguments for CompositeListItem. The cls_dicts list contains argument
+        # sets for each of the member widgets for this composite:
+        # ListItemButton and Label.
+        def left_button_args(rec, key):
+            return {'cls': ListItemButton, 'kwargs': {'text': key}}
+
+        def middle_label_args(rec, key):
+            return {
+                'cls': Label,
+                'kwargs': {'text': "x10={0}".format(rec['x10'])}}
+
+        def right_button_args(rec, key):
+            return {
+                'cls': ListItemButton,
+                'kwargs': {'text': str(rec['x100_text'])}}
+
         args_converter = lambda index, rec, key: \
             {'text': key,
              'size_hint_y': None,
              'height': 25,
-             'cls_dicts': [{'cls': ListItemButton,
-                            'kwargs': {'text': key}},
-                           {'cls': ListItemLabel,
-                            'kwargs': {'text': "x10={0}".format(rec['x10']),
-                                       'is_representing_cls': True}},
-                           {'cls': ListItemButton,
-                            'kwargs': {'text': str(rec['x100_text'])}}]}
+             'carry_selection_to_children': True,
+             'bind_selection_from_children': True,
+             'cls_dicts': [left_button_args(rec, key),
+                           middle_label_args(rec, key),
+                           right_button_args(rec, key)]}
 
         integers_dict = \
             { str(i): {'x10': i * 10,
