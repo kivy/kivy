@@ -149,8 +149,16 @@ class Adapter(EventDispatcher):
         if not 'args_converter' in kwargs:
             self.args_converter = list_item_args_converter
 
-    # TODO: Mark as deprecated.
     def bind_triggers_to_view(self, func):
+        '''
+        .. deprecated:: 1.8
+
+             The data changed system was changed to use variants of
+             ObservableList/Dict that dispatch after individual operations,
+             passing information about what changed to a data_changed()
+             handler, which should be implemented by observers of adapters.
+        '''
+
         self.bind(data=func)
 
     def get_view(self, index):

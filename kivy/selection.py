@@ -127,7 +127,10 @@ class Selection(EventDispatcher):
     '''
 
     propagate_selection_to_data = BooleanProperty(False)
-    '''Deprecated, in favor of sync_with_model_data.
+    '''
+    .. deprecated:: 1.8
+
+         Use sync_with_model_data instead.
     '''
 
     sync_with_model_data = BooleanProperty(False)
@@ -137,19 +140,19 @@ class Selection(EventDispatcher):
     of the maintained selection list. However, if the model data items do have
     an is_selected property, or if they mix in
     :class:`~kivy.adapters.models.SelectableDataItem`, the selection machinery
-    can propagate selection to model data items. This can be useful for storing
+    can sync selection with model data items. This can be useful for storing
     selection state in a local database or backend database for maintaining
     state in game play or other similar scenarios. It is a convenience
     function.
 
-    To propagate selection or not?
+    To sync selection or not?
 
     Consider a shopping list application for shopping for fruits at the market.
     The app allows for the selection of fruits to buy for each day of the week,
     presenting seven lists: one for each day of the week. Each list is loaded
     with all the available fruits, but the selection for each is a subset.
     There is only one set of fruit model data shared between the lists, so it
-    would not make sense to propagate selection to the model data because
+    would not make sense to sync selection with the model data because
     selection in any of the seven lists would clash and mix with that of the
     others.
 
@@ -157,7 +160,7 @@ class Selection(EventDispatcher):
     fruits available for fruit-tossing. A given round of play could have a full
     fruits list, with fruits available for tossing shown selected. If the game
     is saved and rerun, the full fruits list, with selection marked on each
-    item, would be reloaded correctly if selection is always propagated to the
+    item, would be reloaded correctly if selection is always synced to the
     model data. You could accomplish the same functionality by writing code to
     operate on list selection, but having selection stored in the data
     ListProperty might prove convenient in some cases.
