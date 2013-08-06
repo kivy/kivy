@@ -1,4 +1,3 @@
-from kivy.logger import Logger
 from kivy.properties import ListOpHandler
 from kivy.properties import ListOpInfo
 
@@ -71,10 +70,6 @@ class AdapterListOpHandler(ListOpHandler):
         # Make a copy in the adapter for more convenient access by observers.
         self.adapter.op_info = op_info
 
-        Logger.debug(
-            'ListAdapter: OOL data_changed callback, {0}, {1}, {2}'.format(
-                  op_info.op_name, op_info.start_index, op_info.end_index))
-
         op = op_info.op_name
         start_index = op_info.start_index
         end_index = op_info.end_index
@@ -126,12 +121,6 @@ class AdapterListOpHandler(ListOpHandler):
                         'OOL_reverse']:
 
                 self.handle_sort_op()
-
-            else:
-
-                Logger.debug(('ListOpHandler: '
-                              'OOL data_changed callback, uncovered op ')
-                                 + str(op))
 
         self.adapter.dispatch('on_data_change')
 
