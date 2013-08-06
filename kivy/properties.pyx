@@ -590,6 +590,11 @@ class ObservableList(list):
         list.reverse(self, *largs)
         observable_list_dispatch(self)
 
+    def batch_delete(self, indices):
+        for index in indices:
+            list.__delitem__(self, index)
+        observable_list_dispatch(self)
+
 
 cdef class ListProperty(Property):
     '''Property that represents a list.

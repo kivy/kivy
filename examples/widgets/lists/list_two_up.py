@@ -9,8 +9,6 @@ class ReceivingFruitsDictAdapter(DictAdapter):
 
     def fruits_changed(self, *args):
         fruits_dict_adapter = args[0]
-        changed_selection = args[1]
-        op_info = args[2]
 
         if fruits_dict_adapter.selection:
 

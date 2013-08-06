@@ -21,18 +21,15 @@ Elements that control selection behaviour:
   True, and only user or programmatic action will change selection, it can
   be empty.
 
-Users of this class dispatch the *on_selection_change* event.
-
     :Events:
         `on_selection_change`: (selectable_item, selectable_item list )
             Fired when selection changes, more generally, as when selection is
             set entirely, or when any operation is performed, per the gross
             dispatching done via ObservableList.
         `on_selection`: (selectable_item, selectable_item list, op_info)
-            Fired when selection changes, as when selection is set entirely, or
-            specifically on a per-op basis. When any operation is performed,
-            dispatching done via OpObservableList, which sends along an op_info
-            argument containing details about what changed.
+            This event works the same way, except that there is no actual
+            dispatching via calls in the code, but by the default ListProperty
+            (and its ObservableList) and normal data change events.
 
 .. versionchanged:: 1.8.0
 
@@ -49,26 +46,18 @@ Users of this class dispatch the *on_selection_change* event.
     selection, as compared to the original way, where only binding to
     on_selection_change was suggested.
 
-    Added use of OpObservableList in the selection list, mainly to use a new
-    batch_delete() method made for revised select_list() and deselect_list()
-    methods. This is part of a change to allow selection to be observed
-    directly, to replace the on_selection_change event.  Now either of the
-    following will work, but have differing types of events associated:
+    Added a batch_delete() to ObservableList in the selection list This method
+    is for calling from revised select_list() and deselect_list() methods. This
+    is part of a change to allow selection to be observed directly, to replace
+    the on_selection_change event.  Now either of the following will work, but
+    the first is preferred:
 
         1) ...adapter.bind(selection=some_method)
 
-            Events are per-op dispatches, with an additional argument, op_info,
-            available if an observer needs more detailed change info.
-
         2) ...adapter.bind(on_selection_change=some_method)
 
-            Events are the regular type, where dispatches happen as a result of
-            the list being set, or as a result of any change ("any change"
-            means that dispatching is triggered when something changes, without
-            regard to what changed; there is no op_info detail available).
-
-            This 2) method is kept for backwards compatibility, and because it
-            could prove to be faster in some cases?
+    Events are the normal type, where dispatches happen as a result of the
+    list being set, or as a result of any change.
 
     Moved selection.py out of kivy/adapters to kivy/, to allow use in
     traditional controllers, which do not do item view creation and caching
@@ -99,7 +88,6 @@ from kivy.properties import DictProperty
 from kivy.properties import ListProperty
 from kivy.properties import NumericProperty
 from kivy.properties import ObjectProperty
-from kivy.properties import OpObservableList
 from kivy.properties import OptionProperty
 from kivy.properties import StringProperty
 from kivy.lang import Builder
@@ -111,7 +99,7 @@ class Selection(EventDispatcher):
     dictionaries or other collections.
     '''
 
-    selection = ListProperty([], cls=OpObservableList)
+    selection = ListProperty([])
     '''The selection list property is the container for selected items.
 
     :data:`selection` is a :class:`~kivy.properties.ListProperty` and defaults

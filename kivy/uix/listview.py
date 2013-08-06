@@ -989,7 +989,7 @@ class ListView(AbstractView, EventDispatcher):
                   item_strings=self.item_strings_changed,
                   adapter=self._trigger_populate)
 
-        self.adapter.bind(data=self.data_changed)
+        #self.adapter.bind(data=self.data_changed)
 
     def adapter_changed(self, *args):
 

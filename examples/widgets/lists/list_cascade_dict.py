@@ -16,8 +16,6 @@ class FruitsDictAdapter(DictAdapter):
     def fruit_category_changed(self, *args):
 
         fruit_categories_adapter = args[0]
-        changed_selection = args[1]
-        op_info = args[2]
 
         if fruit_categories_adapter.selection:
             # Categories are shown with the number of fruits in parentheses,
