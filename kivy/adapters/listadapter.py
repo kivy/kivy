@@ -53,12 +53,18 @@ selection behaviour:
 
 __all__ = ('ListAdapter', )
 
-from kivy.selection import Selection
+import inspect
+
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.list_ops import AdapterListOpHandler
+
+from kivy.models import SelectableDataItem
+
 from kivy.properties import OpObservableList
 from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
+
+from kivy.selection import Selection
 
 
 class ListAdapter(Selection, Adapter):
@@ -85,18 +91,19 @@ class ListAdapter(Selection, Adapter):
     :class:`~kivy.uix.listview.ListView`).
 
     This adapter supports collection-style widgets such as
-    :class:`~kivy.uix.widgets.ListView`. When something happens in your program
-    to change the data list, the name of the data operation that occurred,
-    along with start_index, end_index of the item(s) affected are stored.  The
-    adapter, via its instance of a :class:`~kivy.properties.ListOpHandler`,
-    has callbacks that handle specific operations, and make needed changes to
-    the internal cached_views, selection, and related properties, in
-    preparation for sending, in turn, a data-changed event to the
-    collection-style widget that uses the adapter.  For example,
-    :class:`~kivy.uix.widgets.ListView` observes its adapter for data-changed
-    events and updates the user interface. When an item is deleted, it removes
-    the item view widget from its container, or for an addition, it adds the
-    item view widget to its container and scrolls the list, and so on.
+    :class:`~kivy.uix.widgets.ListView`. When something happens in an
+    application to change the data list, the name of the data operation that
+    occurred, along with start_index, end_index of the item(s) affected are
+    stored.  The adapter, via its instance of a
+    :class:`~kivy.properties.ListOpHandler`, has callbacks that handle specific
+    operations, and make needed changes to the internal cached_views,
+    selection, and related properties, in preparation for sending, in turn, a
+    data-changed event to the collection-style widget that uses the adapter.
+    For example, :class:`~kivy.uix.widgets.ListView` observes its adapter for
+    data-changed events and updates the user interface. When an item is
+    deleted, it removes the item view widget from its container, or for an
+    addition, it adds the item view widget to its container and scrolls the
+    list, and so on.
 
     .. versionchanged:: 1.8.0
 
@@ -162,9 +169,6 @@ class ListAdapter(Selection, Adapter):
         return len(self.data)
 
     def get_data_item(self, index):
-        if index < 0 or index >= len(self.data):
-            return None
-
         return self.data[index]
 
     def on_data_change(self, *args):
@@ -172,6 +176,54 @@ class ListAdapter(Selection, Adapter):
         on_data_change event.
         '''
         pass
+
+    def create_view(self, index):
+        '''This method first calls the Adapter superclass to get the data_item
+        and new view_instance created from it. Then bindings are created for
+        the view_instance and perhaps its children to self.handle_selection().
+        Selection of view instances is optionally kept in sync with the
+        selection of data items.
+        '''
+
+        if index < 0 or index > len(self.data) -1:
+            return None
+
+        data_item, view_instance = super(ListAdapter, self).create_view(index)
+
+        view_instance.bind(on_release=self.handle_selection)
+
+        # Should the view instance reflect the state of selection in the
+        # underlying data item?
+        if self.sync_with_model_data:
+
+            # The data item must be a subclass of SelectableDataItem, or must
+            # have an is_selected boolean or function, so it has is_selected
+            # available.  If is_selected is unavailable on the data item, an
+            # exception is raised.
+
+            if isinstance(data_item, SelectableDataItem):
+                if data_item.is_selected:
+                    self.handle_selection(view_instance)
+            elif type(data_item) == dict and 'is_selected' in data_item:
+                if data_item['is_selected']:
+                    self.handle_selection(view_instance)
+            elif hasattr(data_item, 'is_selected'):
+                if (inspect.isfunction(data_item.is_selected)
+                        or inspect.ismethod(data_item.is_selected)):
+                    if data_item.is_selected():
+                        self.handle_selection(view_instance)
+                else:
+                    if data_item.is_selected:
+                        self.handle_selection(view_instance)
+            else:
+                msg = "ListAdapter: unselectable data item for {0}"
+                raise Exception(msg.format(index))
+
+            if self.bind_selection_to_children:
+                for child in view_instance.children:
+                    child.bind(on_release=self.handle_selection)
+
+        return view_instance
 
     # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,
     #        scroll_to_sel_middle.
