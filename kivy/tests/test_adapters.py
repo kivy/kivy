@@ -825,10 +825,6 @@ class FruitAdaptersTestCase(unittest.TestCase):
 
         self.assertEqual(list_adapter.get_count(), 100)
 
-        # Bad index:
-        self.assertIsNone(list_adapter.get_data_item(-1))
-        self.assertIsNone(list_adapter.get_data_item(101))
-
     def test_list_adapter_with_dicts_as_data_multiple_selection(self):
         bare_minimum_dicts = \
             [{'text': str(i), 'is_selected': False} for i in range(100)]
@@ -1221,10 +1217,6 @@ class FruitAdaptersTestCase(unittest.TestCase):
 
         # 1, because get_count() does len(self.sorted_keys).
         self.assertEqual(dict_adapter.get_count(), 1)
-
-        # Bad index:
-        self.assertIsNone(dict_adapter.get_data_item(-1))
-        self.assertIsNone(dict_adapter.get_data_item(2))
 
     def test_dict_adapter_selection_mode_single_without_propagation(self):
 

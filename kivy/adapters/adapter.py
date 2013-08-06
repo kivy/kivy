@@ -42,7 +42,6 @@ import inspect
 from kivy.adapters.args_converters import list_item_args_converter
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
-from kivy.models import SelectableDataItem
 from kivy.properties import DictProperty
 from kivy.properties import ObjectProperty
 
@@ -97,8 +96,8 @@ class Adapter(EventDispatcher):
     '''
     A kv template for instantiating a given view item (Use this or cls).
 
-    :data:`template` is an :class:`~kivy.properties.ObjectProperty` and defaults
-    to None.
+    :data:`template` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     args_converter = ObjectProperty(None)
@@ -185,30 +184,30 @@ class Adapter(EventDispatcher):
         pass
 
     def create_view(self, index):
-        '''This method is used by :class:`kivy.adapters.adapter.Adapter` and
-        :class:`kivy.adapters.simplelistadapter.SimpleListAdapter`.  Here we
-        create bindings for the data item and its children back to
-        self.handle_selection(), and do other selection-related tasks to keep
-        item views in sync with the data.
+        '''This method returns the data_item at the index, and a view built
+        from it. The view is is an instance of self.cls, made from arguments
+        parpared by self.args_converter(). This method is used by
+        :class:`kivy.adapters.listadapter.ListAdapter` and
+        :class:`kivy.adapters.dictadapter.DictListAdapter`.
         '''
 
-        data_item_ret = self.get_data_item(index)
+        get_data_item_ret = self.get_data_item(index)
 
         # Backwards compatibility: get_data_item() returns either the data item
         # alone, prior to Kivy 1.8, or a tuple with the data item in the first
         # position in later versions.
-        if not isinstance(data_item_ret, tuple):
-            item = data_item_ret
+        if not isinstance(get_data_item_ret, tuple):
+            data_item = get_data_item_ret
         else:
-            item = data_item_ret[0]
+            data_item = get_data_item_ret[0]
 
-        if item is None:
+        if data_item is None:
             return None
 
-        # data_item_ret could contain additional items needed by the converter,
-        # such as the dictionary key within sorted_keys of DictAdapter. The
-        # first argument is the index, and the second the data item, followed
-        # by any additional args.
+        # get_data_item_ret could contain additional items needed by the
+        # converter, such as the dictionary key within sorted_keys of
+        # DictAdapter. The first argument is the index, and the second the data
+        # item, followed by any additional args.
 
         # Inspect the args_converter, which could be a function, method, or a
         # lambda, with a varying number of arguments, to make the call to the
@@ -224,9 +223,11 @@ class Adapter(EventDispatcher):
         # The else handles the post Kivy 1.8 allowance for additional args, for
         # example, for DictAdapter.
         if num_args <= 2:
-            item_args = self.args_converter(index, item)
+            item_args = self.args_converter(index, data_item)
         else:
-            item_args = self.args_converter(index, item, *data_item_ret[1:])
+            item_args = self.args_converter(index,
+                                            data_item,
+                                            *get_data_item_ret[1:])
 
         item_args['index'] = index
 
@@ -236,39 +237,4 @@ class Adapter(EventDispatcher):
         else:
             view_instance = Builder.template(self.template, **item_args)
 
-        # This adapter could be using selection. If it is, and if
-        # sync_with_model_data, the view should reflect the state of selection
-        # in the data item.
-        if hasattr(self, 'selection') and self.sync_with_model_data:
-
-            # The data item must be a subclass of SelectableDataItem, or must
-            # have an is_selected boolean or function, so it has is_selected
-            # available.  If is_selected is unavailable on the data item, an
-            # exception is raised.
-
-            if isinstance(item, SelectableDataItem):
-                if item.is_selected:
-                    self.handle_selection(view_instance)
-            elif type(item) == dict and 'is_selected' in item:
-                if item['is_selected']:
-                    self.handle_selection(view_instance)
-            elif hasattr(item, 'is_selected'):
-                # TODO: Change this to use callable().
-                if (inspect.isfunction(item.is_selected)
-                        or inspect.ismethod(item.is_selected)):
-                    if item.is_selected():
-                        self.handle_selection(view_instance)
-                else:
-                    if item.is_selected:
-                        self.handle_selection(view_instance)
-            else:
-                msg = "ListAdapter: unselectable data item for {0}"
-                raise Exception(msg.format(index))
-
-        view_instance.bind(on_release=self.handle_selection)
-
-        if self.bind_selection_to_children:
-            for child in view_instance.children:
-                child.bind(on_release=self.handle_selection)
-
-        return view_instance
+        return data_item, view_instance

@@ -15,7 +15,13 @@ python dictionary of records.
 
 __all__ = ('DictAdapter', )
 
-from kivy.selection import Selection
+import inspect
+
+from kivy.adapters.adapter import Adapter
+from kivy.adapters.dict_ops import AdapterDictOpHandler
+from kivy.adapters.list_ops import AdapterListOpHandler
+
+from kivy.models import SelectableDataItem
 
 from kivy.properties import DictProperty
 from kivy.properties import ListProperty
@@ -24,9 +30,7 @@ from kivy.properties import ObjectProperty
 from kivy.properties import OpObservableList
 from kivy.properties import OpObservableDict
 
-from kivy.adapters.adapter import Adapter
-from kivy.adapters.dict_ops import AdapterDictOpHandler
-from kivy.adapters.list_ops import AdapterListOpHandler
+from kivy.selection import Selection
 
 
 class DictAdapter(Selection, Adapter):
@@ -219,15 +223,61 @@ class DictAdapter(Selection, Adapter):
 
             index, data_item, key
 
-        See the create_view() method of the Adapter base class.
+        See the create_view() method of the Adapter base class, where argument
+        parsing is done.
         '''
-
-        if index < 0 or index >= len(self.sorted_keys):
-            return None
 
         key = self.sorted_keys[index]
 
         return self.data[key], key
+
+    def create_view(self, index):
+        '''This method first calls the Adapter superclass to get the data_item
+        and new view_instance created from it. Then bindings are created for
+        the view_instance and perhaps its children to self.handle_selection().
+        Selection of view instances is optionally kept in sync with the
+        selection of data items.
+        '''
+
+        if index < 0 or index > len(self.sorted_keys) -1:
+            return None
+
+        data_item, view_instance = super(DictAdapter, self).create_view(index)
+
+        view_instance.bind(on_release=self.handle_selection)
+
+        # Should the view instance reflect the state of selection in the
+        # underlying data item?
+        if self.sync_with_model_data:
+
+            # The data item must be a subclass of SelectableDataItem, or must
+            # have an is_selected boolean or function, so it has is_selected
+            # available.  If is_selected is unavailable on the data item, an
+            # exception is raised.
+
+            if isinstance(data_item, SelectableDataItem):
+                if data_item.is_selected:
+                    self.handle_selection(view_instance)
+            elif type(data_item) == dict and 'is_selected' in data_item:
+                if data_item['is_selected']:
+                    self.handle_selection(view_instance)
+            elif hasattr(data_item, 'is_selected'):
+                if (inspect.isfunction(data_item.is_selected)
+                        or inspect.ismethod(data_item.is_selected)):
+                    if data_item.is_selected():
+                        self.handle_selection(view_instance)
+                else:
+                    if data_item.is_selected:
+                        self.handle_selection(view_instance)
+            else:
+                msg = "ListAdapter: unselectable data item for {0}"
+                raise Exception(msg.format(index))
+
+            if self.bind_selection_to_children:
+                for child in view_instance.children:
+                    child.bind(on_release=self.handle_selection)
+
+        return view_instance
 
     # TODO: Also make methods for scroll_to_sel_start, scroll_to_sel_end,
     #       scroll_to_sel_middle.
