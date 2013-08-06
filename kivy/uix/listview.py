@@ -664,12 +664,6 @@ class ListItemButton(SelectableView, Button):
     :class:`~kivy.uix.listview.ListView`.
     '''
 
-    # TODO: ListItemButton could have a set of cosmetic (or otherwise, perhaps)
-    #       effects that should happen upon selection / deselection. For
-    #       example, instead of changing the background color, show a bold
-    #       border. Can this be handled by subclassing? Should there be a
-    #       "typical" set of optional effects?
-
     selected_color = ListProperty([1., 0., 0., 1])
     '''
     :data:`selected_color` is a :class:`~kivy.properties.ListProperty`,
@@ -689,11 +683,17 @@ class ListItemButton(SelectableView, Button):
         self.background_color = self.deselected_color
 
     def select(self, *args):
+        '''The default cosmetic reflection of selection state is the background
+        color. To change, subclass ListItemButton and override this method.
+        '''
         self.background_color = self.selected_color
         if type(self.parent) is CompositeListItem:
             self.parent.select_from_child(self, *args)
 
     def deselect(self, *args):
+        '''The default cosmetic reflection of selection state is the background
+        color. To change, subclass ListItemButton and override this method.
+        '''
         self.background_color = self.deselected_color
         if type(self.parent) is CompositeListItem:
             self.parent.deselect_from_child(self, *args)
@@ -744,8 +744,7 @@ class ListItemLabel(SelectableView, Label):
 class CompositeListItem(SelectableView, BoxLayout):
     ''':class:`~kivy.uix.listview.CompositeListItem` mixes
     :class:`~kivy.uix.listview.SelectableView` with :class:`BoxLayout` for a
-    generic container-style list item, to be used in
-    :class:`~kivy.uix.listview.ListView`.
+    generic container-style list item.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
@@ -944,16 +943,11 @@ class ListView(AbstractView, EventDispatcher):
     __events__ = ('on_scroll_complete', )
 
     def __init__(self, **kwargs):
-        # Check for an adapter argument. If it doesn't exist, we
-        # check for item_strings in use with SimpleListAdapter
-        # to make a simple list.
-        #
-        # TODO: The __no_builder hack is temporary, until the working of kv
-        #       with and without adapter setting, and related diffs between
-        #       py and kv are sorted out.
-        #if 'adapter' not in kwargs and '__no_builder' not in kwargs:
 
+        # Check for an adapter argument. If it doesn't exist, we check for
+        # item_strings in use with SimpleListAdapter to make a simple list.
         if 'adapter' not in kwargs:
+
             if 'item_strings' not in kwargs:
                 # Could be missing, or it could be that the ListView is
                 # declared in a kv file. If kv is in use, and item_strings is
@@ -995,12 +989,9 @@ class ListView(AbstractView, EventDispatcher):
 
             self._trigger_populate()
 
-    # TODO: Is this used?
-    # Added to set data when item_strings is set in a kv template, but it will
-    # be good to have also if item_strings is reset generally.
+    # Reset data when item_strings is set in a kv template, or when if
+    # item_strings is changed generally.
     def item_strings_changed(self, *args):
-        # TODO: Only if our adapter is a SimpleListAdapter, and we have
-        #       item_strings.
         self.adapter.data = self.item_strings
 
     def _scroll(self, scroll_y):
@@ -1107,8 +1098,6 @@ class ListView(AbstractView, EventDispatcher):
                     self.row_height = real_height / count
 
     def scroll_to(self, index=0):
-
-        # TODO: Add range-checking.
 
         if not self.scrolling:
             self.scrolling = True
@@ -1250,7 +1239,6 @@ class ListView(AbstractView, EventDispatcher):
 
             widget_index = -1
 
-            # TODO: Better, faster way?
             for i, item_view in enumerate(self.container.children):
                 if item_view.index == start_index:
                     widget_index = i
@@ -1270,14 +1258,6 @@ class ListView(AbstractView, EventDispatcher):
             slice_indices = range(start_index, end_index + 1)
 
             len_slice_indices = len(slice_indices)
-
-            # TODO: This range-checking was added before the order of change
-            #       and callback was sorted out. Remove this, because a range
-            #       violation would have already occurred by this point?
-            if not (0 <= start_index <= len_data - len(slice_indices)
-                    and
-                    len_slice_indices - 1 <= end_index < len_data):
-                return
 
             widget_indices = []
 
@@ -1299,7 +1279,7 @@ class ListView(AbstractView, EventDispatcher):
 
         elif op in ['OOL_append',
                     'OOL_extend',
-                    'OOD_setattr',    # TODO: not scroll_after_add()?
+                    'OOD_setattr',
                     'OOD_setitem_add',
                     'OOD_setdefault',
                     'OOD_update']:

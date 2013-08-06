@@ -66,12 +66,13 @@ Elements that control selection behaviour:
     Changed references to view, item_view, and view_list to selectable_item,
     item, and selectable_item_list, to make it clear that Selection work with
     non-view items, as are used in traditional controllers. Also, changed many
-    references for data item to model data item, to make the distinction between
-    selectable data items, the items for which selection is maintained, and
-    associated model data. Selectable items are view instances for adapters,
-    but they may be normal Python class instances for controllers. Model data
-    can be anything, even Python class instances, but more typically consists
-    of primitives such as integers, floats, strings, or dicts with those, etc.
+    references for data item to model data item, to make the distinction
+    between selectable data items, the items for which selection is maintained,
+    and associated model data. Selectable items are view instances for
+    adapters, but they may be normal Python class instances for controllers.
+    Model data can be anything, even Python class instances, but more typically
+    consists of primitives such as integers, floats, strings, or dicts with
+    those, etc.
 
     Deprecated propagate_selection_to_data, in favor of sync_with_model_data.
 '''
@@ -79,18 +80,12 @@ Elements that control selection behaviour:
 __all__ = ('Selection', )
 
 import inspect
-from kivy.logger import Logger
-from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.adapters.models import SelectableDataItem
 from kivy.properties import BooleanProperty
-from kivy.properties import DictProperty
 from kivy.properties import ListProperty
 from kivy.properties import NumericProperty
-from kivy.properties import ObjectProperty
 from kivy.properties import OptionProperty
-from kivy.properties import StringProperty
-from kivy.lang import Builder
 
 
 class Selection(EventDispatcher):
@@ -201,20 +196,6 @@ class Selection(EventDispatcher):
     itself selected/deselected.).
     '''
 
-    # TODO: Evaluate the need for this. If this is added, how will the bind
-    #       call work? (on_release here is not a string, but an arg):
-    #
-    #           view_instance.bind(on_release=self.handle_selection)
-    #
-    # selection_triggering_event = StringProperty('on_release')
-    # '''What is the name of the event fired from list items to affect
-    # selection?
-    #
-    # :data:`selection_triggering_event` is a
-    # :class:`~kivy.properties.StringProperty` and defaults to the Kivy event
-    # on_release, which is the typical case for buttons.
-    # '''
-
     __events__ = ('on_selection_change', )
 
     def __init__(self, **kwargs):
@@ -305,21 +286,13 @@ class Selection(EventDispatcher):
                     else:
                         self.select_item(item)
         else:
+
             if hold_dispatch:
                 return 'DESELECT-AND-CHECK'
             else:
                 self.deselect_item(item)
+
             if self.selection_mode != 'none':
-                #
-                # If the deselection makes selection empty, the following call
-                # will check allows_empty_selection, and if False, will
-                # select the first item. If item happens to be the first item,
-                # this will be a reselection, and the user will notice no
-                # change, except perhaps a flicker.
-                #
-                # TODO: Does the above paragraph describe a timing issue that
-                #       is hard to predict? If so, clarify. Otherwise, clarify.
-                #
                 self.check_for_empty_selection()
 
         if not hold_dispatch:
@@ -346,7 +319,6 @@ class Selection(EventDispatcher):
             if 'is_selected' in item:
                 item['is_selected'] = value
         elif hasattr(item, 'is_selected'):
-            # TODO: Change this to use callable().
             if (inspect.isfunction(item.is_selected)
                     or inspect.ismethod(item.is_selected)):
                 item.is_selected()
@@ -357,37 +329,21 @@ class Selection(EventDispatcher):
 
         has_selection = False
 
+        # The select() method handles the cosmetic effects that happen as a
+        # result of selection change.
         if hasattr(item, 'select'):
-            # TODO: Change this to use callable().
             if (inspect.isfunction(item.select)
                     or inspect.ismethod(item.select)):
                 item.select()
                 has_selection = True
 
-        # TODO: The check for is_selected is not put here as an else clause of
-        #       the if above, which could lead to redundant or unwanted
-        #       behavior, unless the API is made clear that select() and
-        #       deselect() are used for the UI changes only, and not for
-        #       setting is_selected. This can be cleared up with a more
-        #       explicit was_selected() and was_deselected() or something
-        #       similiar, which is a style more common for UI reacting method
-        #       names. There is another TODO that suggests a "selection
-        #       effects" enum to be used in a system of predefined, and
-        #       customizable selection effects.
-
+        # Set the selection state of the view_instance.
         if hasattr(item, 'is_selected'):
-            # TODO: Change this to use callable().
             item.is_selected = True
             has_selection = True
 
-        # [TODO] sibling selection for composite items
-        #        Needed? Or handled from parent?
-        #        (avoid circular, redundant selection)
-        #if hasattr(item, 'parent') and hasattr(item.parent, 'children'):
-         #siblings = [child for child in item.parent.children if child != item]
-         #for sibling in siblings:
-             #if hasattr(sibling, 'select'):
-                 #sibling.select()
+        # NOTE: It is the responsibility of a composite view instance to handle
+        #       selection of its children.
 
         if self.sync_with_model_data:
             self.select_model_data_item(self.get_data_item(item.index))
@@ -465,28 +421,21 @@ class Selection(EventDispatcher):
 
     def deselect_item(self, item, remove_from_selection=True):
 
+        # The deselect() method handles the cosmetic effects that happen as a
+        # result of selection change.
         if hasattr(item, 'deselect'):
-            # TODO: Change this to use callable().
             if (inspect.isfunction(item.deselect)
                     or inspect.ismethod(item.deselect)):
                 item.deselect()
                 has_selection = True
 
-        # TODO: See note in same place within select_item(), above.
-
+        # Set the selection state of the view_instance.
         if hasattr(item, 'is_selected'):
-            # TODO: Change this to use callable().
             item.is_selected = False
             has_selection = True
 
-        # [TODO] sibling deselection for composite items
-        #        Needed? Or handled from parent?
-        #        (avoid circular, redundant selection)
-        #if hasattr(item, 'parent') and hasattr(item.parent, 'children'):
-         #siblings = [child for child in item.parent.children if child != item]
-         #for sibling in siblings:
-             #if hasattr(sibling, 'deselect'):
-                 #sibling.deselect()
+        # NOTE: It is the responsibility of a composite view instance to handle
+        #       selection of its children.
 
         if self.sync_with_model_data:
             self.deselect_model_data_item(self.get_data_item(item.index))

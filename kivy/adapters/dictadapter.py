@@ -184,27 +184,21 @@ class DictAdapter(Selection, Adapter):
         self.bind(sorted_keys=func)
         self.bind(data=func)
 
-    # NOTE: The reason for on_data_change and on_sorted_keys_change,
-    #       instead of on_data and on_sorted_keys: These are peculiar to the
-    #       adapters and their API (using and referring to op_info). This
-    #       leaves on_data and on_sorted_keys still available for use in the
-    #       "regular" manner, perhaps for some Kivy widgets, perhaps for
-    #       custom widgets.
-    # TODO: Remove this note, because the events are no longer used by the
-    #       internal system. Keep the events?
-
     def on_data_change(self, *args):
         '''Default data handler for on_data_change event.
         '''
         pass
 
     def insert(self, index, key, value):
+        '''A Python dict does not have an insert(), because keys are unordered.
+        Here, with sorted_keys, an insert() makes sense, but we put it as part
+        of the adapter API, not as a public method of the data dict.
+        '''
 
         # This special insert() OOD call only does a dict set (it does not
-        # write op_info). We will let the sorted_keys insert trigger a
-        # data change event.
-        self.data.insert(key, value)
-
+        # write op_info). The sorted_keys insert will trigger a data change
+        # event.
+        self.data.setitem_for_insert(key, value)
         self.sorted_keys.insert(index, key)
 
     # NOTE: This is not len(self.data). (The data dict may contain more items
