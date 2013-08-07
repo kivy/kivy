@@ -5,8 +5,8 @@ Scroll effect
 .. versionadded:: 1.7.0
 
 Based on the :class:`~kivy.effects.kinetic` effect, the :class:`ScrollEffect`
-will limit the movement to bounds determined by its :data:`~ScrollEffect.min` and
-:data:`~ScrollEffect.max` properties. If the movement exceeds these
+will limit the movement to bounds determined by its :data:`~ScrollEffect.min`
+and :data:`~ScrollEffect.max` properties. If the movement exceeds these
 bounds, it will calculate the amount of :data:`~ScrollEffect.overscroll` and
 try to return to the value of one of the bounds.
 
@@ -51,7 +51,7 @@ class ScrollEffect(KineticEffect):
 
     scroll = NumericProperty(0)
     '''Computed value for scrolling. This value is different from
-    `KineticEffect.value <:py:data:~kivy.effects.kinetic.KineticEffect.value>`_
+    :py:data:`kivy.effects.kinetic.KineticEffect.value`
     in that it will return to one of the min/max bounds.
 
     :data:`scroll` is a :class:`~kivy.properties.NumericProperty` and defaults
