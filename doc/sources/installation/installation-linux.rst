@@ -8,7 +8,7 @@ Using software packages
 
 For installing distribution relative packages .deb/.rpm/...
 
-Ubuntu / Kubuntu / Xubuntu / Lubuntu (Oneirc and above)
+Ubuntu / Kubuntu / Xubuntu / Lubuntu (Oneiric and above)
 -------------------------------------------------------
 
 #. Add one of the PPAs as you prefer
@@ -39,7 +39,7 @@ Debian
         
         :stable builds:
             deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
-        :nightly builds:
+        :daily builds:
             deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu oneiric main
 
         **Notice**: Don't forget to use the python2.7 interpreter
