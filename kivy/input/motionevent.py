@@ -4,30 +4,32 @@
 Motion Event
 ============
 
-The :class:`MotionEvent` is the base class used for every touch and no-touch
-event. This class define all the properties and methods needed to handle 2D and
-3D position, but may have more capabilities.
+The :class:`MotionEvent` is the base class used for every touch and non-touch
+event. This class defines all the properties and methods needed to handle 2D and
+3D movements but has many more capabilities.
 
 .. note::
 
-    You never create the :class:`MotionEvent` yourself, this is the role of the
+    You never create the :class:`MotionEvent` yourself: this is the role of the
     :mod:`~kivy.input.providers`.
 
 Motion Event and Touch
 ----------------------
 
-We differentiate Motion Event and Touch event. A Touch event is a
-:class:`MotionEvent` with the `pos` profile. Only theses event are dispatched
-all over the widget tree.
+We differentiate between a Motion Event and Touch event. A Touch event is a
+:class:`MotionEvent` with the `pos` profile. Only theses events are dispatched
+throughout the widget tree.
 
-1. The :class:`MotionEvent` are gathered from input providers
-2. All the :class:`MotionEvent` are dispatched in
-    :func:`~kivy.core.window.Window.on_motion`.
-3. If a :class:`MotionEvent` have a `pos` profile, we dispatch them in
-    :func:`~kivy.core.window.Window.on_touch_down`,move,up.
+1. The :class:`MotionEvent` 's are gathered from input providers.
+2. All the :class:`MotionEvent` 's are dispatched from
+    :py:func:`~kivy.core.window.WindowBase.on_motion`.
+3. If a :class:`MotionEvent` has a `pos` profile, we dispatch it through
+    :py:func:`~kivy.core.window.WindowBase.on_touch_down`,
+    :py:func:`~kivy.core.window.WindowBase.on_touch_move` and
+    :py:func:`~kivy.core.window.WindowBase.on_touch_up`.
 
-Listen to Motion Event
-----------------------
+Listening to a Motion Event
+---------------------------
 
 If you want to receive all Motion Event, Touch or not, you can bind motion event
 from :class:`~kivy.core.window.Window` to your own callbacks::
