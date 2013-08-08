@@ -2,7 +2,7 @@
 Vector
 ======
 
-The :class:`Vector` represent a 2D vector (x, y).
+The :class:`Vector` represents a 2D vector (x, y).
 Our implementation is made in top of a Python list.
 
 Exemple for constructing a Vector::
@@ -34,7 +34,7 @@ Exemple for constructing a Vector::
 Optimized usage
 ---------------
 
-Most of time, you can use a list for arguments, instead of using a Vector. For
+Most of the time, you can use a list for arguments, instead of using a Vector. For
 example, if you want to have the distance between 2 points::
 
     a = (10, 10)
@@ -52,7 +52,7 @@ example, if you want to have the distance between 2 points::
 Vector operators
 ----------------
 
-The :class:`Vector` support some numeric operator like +, -, /::
+The :class:`Vector` supports some numeric operator like +, -, /::
 
     >>> Vector(1, 1) + Vector(9, 5)
     [10, 6]
