@@ -31,11 +31,11 @@ throughout the widget tree.
 Listening to a Motion Event
 ---------------------------
 
-If you want to receive all Motion Event, Touch or not, you can bind motion event
-from :class:`~kivy.core.window.Window` to your own callbacks::
+If you want to receive all MotionEvents, Touch or not, you can bind the
+MotionEvent from the :class:`~kivy.core.window.Window` to your own callback::
 
     def on_motion(self, etype, motionevent):
-        # will receive all motion event.
+        # will receive all motion events.
         pass
 
     Window.bind(on_motion=on_motion)
@@ -44,14 +44,14 @@ from :class:`~kivy.core.window.Window` to your own callbacks::
 Profiles
 --------
 
-A capability is the ability of a :class:`MotionEvent` to store a new
-information, or a way to indicate what is supported by the Motion Event. For
-example, you can receive a Motion Event that have an angle, a fiducial ID, or
+A capability is the ability of a :class:`MotionEvent` to store new
+information or a way to indicate what is supported by the MotionEvent. For
+example, you can receive a MotionEvent that has an angle, a fiducial ID, or
 even a shape.  You can check the :attr:`~MotionEvent.profile` attribute to check
-what is currently supported by the Motion Event, and how to access on it.
+what is currently supported by the MotionEvent and how to access it.
 
 This is a tiny list of the supported profiles by default. Check other input
-providers to know if they are other profiles available.
+providers to see if there are other profiles available.
 
 ============== ================================================================
 Profile name   Description
@@ -66,7 +66,7 @@ pressure       Pressure of the contact. Use property `pressure`
 shape          Contact shape. Use property `shape`
 ============== ================================================================
 
-If yo want to know if the current :class:`MotionEvent` have an angle::
+If you want to know whether the current :class:`MotionEvent` has an angle::
 
     def on_touch_move(self, touch):
         if 'angle' in touch.profile:
@@ -118,13 +118,13 @@ MotionEventBase = MotionEventMetaclass('MotionEvent', (object, ), {})
 
 
 class MotionEvent(MotionEventBase):
-    '''Abstract class to represent a touch and no-touch object.
+    '''Abstract class to represent a touch and non-touch object.
 
     :Parameters:
         `id` : str
-            uniq ID of the Motion Event
+            unique ID of the MotionEvent
         `args` : list
-            list of parameters, passed to depack() function
+            list of parameters, passed to the depack() function
     '''
     __uniq_id = 0
     __attrs__ = \
@@ -178,8 +178,8 @@ class MotionEvent(MotionEventBase):
         self.grab_exclusive_class = None
         self.grab_state = False
 
-        #: Used to determine which widget the touch is being dispatched.
-        #: Check :func:`grab` function for more information.
+        #: Used to determine which widget the touch is being dispatched to.
+        #: Check the :func:`grab` function for more information.
         self.grab_current = None
 
         #: Profiles currently used in the touch
@@ -279,7 +279,7 @@ class MotionEvent(MotionEventBase):
         self.depack(args)
 
     def depack(self, args):
-        '''Depack `args` into attributes in class'''
+        '''Depack `args` into attributes of the class'''
         # set initial position and last position
         if self.osx is None:
             self.psx = self.osx = self.sx
@@ -300,29 +300,29 @@ class MotionEvent(MotionEventBase):
 
             def on_touch_move(self, touch):
                 if touch.grab_current is self:
-                    # i receive my grabbed touch
+                    # I received my grabbed touch
                 else:
                     # it's a normal touch
 
             def on_touch_up(self, touch):
                 if touch.grab_current is self:
-                    # i receive my grabbed touch, i must ungrab it !
+                    # I receive my grabbed touch, I must ungrab it!
                     touch.ungrab(self)
                 else:
                     # it's a normal touch
                     pass
         '''
         if not self.is_touch:
-            raise Exception('Grab work only for Touch Motion Event.')
+            raise Exception('Grab works only for Touch MotionEvents.')
         if self.grab_exclusive_class is not None:
-            raise Exception('Cannot grab the touch, touch are exclusive')
+            raise Exception('Cannot grab the touch, touch is exclusive')
         class_instance = weakref.ref(class_instance)
         if exclusive:
             self.grab_exclusive_class = class_instance
         self.grab_list.append(class_instance)
 
     def ungrab(self, class_instance):
-        '''Ungrab a previous grabbed touch
+        '''Ungrab a previously grabbed touch
         '''
         class_instance = weakref.ref(class_instance)
         if self.grab_exclusive_class == class_instance:
@@ -377,7 +377,7 @@ class MotionEvent(MotionEventBase):
         self.pos = self.x, self.y
 
     def push(self, attrs=None):
-        '''Push attributes values in `attrs` in the stack
+        '''Push attribute values in `attrs` onto the stack
         '''
         if attrs is None:
             attrs = self.push_attrs
