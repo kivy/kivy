@@ -9,7 +9,7 @@ Using software packages
 For installing distribution relative packages .deb/.rpm/...
 
 Ubuntu / Kubuntu / Xubuntu / Lubuntu (Oneiric and above)
--------------------------------------------------------
+--------------------------------------------------------
 
 #. Add one of the PPAs as you prefer
 
