@@ -24,7 +24,7 @@ class InputPostprocRetainTouch(object):
             retain_time = 100
             retain_distance = 50
 
-    The Distance parameter is in the range 0-1000 and time is in milliseconds.
+    The distance parameter is in the range 0-1000 and time is in milliseconds.
     '''
 
     def __init__(self):
