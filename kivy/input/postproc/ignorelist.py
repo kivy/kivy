@@ -2,7 +2,7 @@
 Ignore list
 ===========
 
-Ignore touch in some part on screen
+Ignore touch on some areas of the screen
 '''
 
 __all__ = ('InputPostprocIgnoreList', )
@@ -13,14 +13,14 @@ from kivy.utils import strtotuple
 
 class InputPostprocIgnoreList(object):
     '''
-    InputPostprocIgnoreList is a post-processor who remove touch in ignore list.
-    Ignore list can be configured in the Kivy config file::
+    InputPostprocIgnoreList is a post-processor which removes touches in the
+    Ignore list. The Ignore list can be configured in the Kivy config file::
 
         [postproc]
         # Format: [(xmin, ymin, xmax, ymax), ...]
         ignore = [(0.1, 0.1, 0.15, 0.15)]
 
-    Ignore list coordinate are in 0-1, not in the screen width/height.
+    The Ignore list coordinates are in the range 0-1, not in screen pixels.
     '''
 
     def __init__(self):
