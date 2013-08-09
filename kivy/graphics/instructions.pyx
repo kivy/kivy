@@ -508,6 +508,7 @@ cdef class Callback(Instruction):
 
 
 cdef class CanvasBase(InstructionGroup):
+    '''CanvasBase provides the context manager methods for :class:`Canvas`.'''
     def __enter__(self):
         pushActiveCanvas(self)
 
@@ -558,6 +559,7 @@ cdef class Canvas(CanvasBase):
         '''
 
     cpdef clear(self):
+        '''Clears every :class:`Instruction` in the canvas, leaving it clean.'''
         cdef Instruction c
         for c in self.children[:]:
             if c is self._before or c is self._after:
