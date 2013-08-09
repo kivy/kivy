@@ -25,7 +25,7 @@ class InputPostprocTripleTap(object):
         triple_tap_time = 250
         triple_tap_distance = 20
 
-    Distance parameter is in 0-1000, and time is in millisecond.
+    The distance parameter is in the range 0-1000 and time is in milliseconds.
     '''
 
     def __init__(self):
@@ -36,10 +36,10 @@ class InputPostprocTripleTap(object):
         self.touches = {}
 
     def find_triple_tap(self, ref):
-        '''Find a triple tap touch within self.touches.
-        The touch must be not a previous triple tap, and the distance
-        must be ok, also, the touch profile must be compared so the kind
-        of touch is the same
+        '''Find a triple tap touch within *self.touches*.
+        The touch must be not be a previous triple tap and the distance
+        must be be within the bounds specified. Additionally, the touch profile
+        must be the same kind of touch.
         '''
         ref_button = None
         if 'button' in ref.profile:
