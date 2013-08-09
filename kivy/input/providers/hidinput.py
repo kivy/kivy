@@ -16,7 +16,7 @@ To configure HIDInput, add this to your configuration::
 
 You can use a custom range for the X, Y and pressure values.
 For some drivers, the range reported is invalid.
-To fix that, you can these options in the argument line:
+To fix that, you can add these options in the argument line:
 
 * invert_x : 1 to invert X axis
 * invert_y : 1 to invert Y axis
