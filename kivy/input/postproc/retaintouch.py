@@ -2,7 +2,7 @@
 Retain Touch
 ============
 
-Reuse touch to counter finger lost behavior
+Reuse touch to counter lost finger behavior
 '''
 
 __all__ = ('InputPostprocRetainTouch', )
@@ -16,7 +16,7 @@ class InputPostprocRetainTouch(object):
     '''
     InputPostprocRetainTouch is a post-processor to delay the 'up' event of a
     touch, to reuse it under certains conditions. This module is designed to
-    prevent finger lost on some hardware/setup.
+    prevent lost finger touches on some hardware/setups.
 
     Retain touch can be configured in the Kivy config file::
 
@@ -24,7 +24,7 @@ class InputPostprocRetainTouch(object):
             retain_time = 100
             retain_distance = 50
 
-    Distance parameter is in 0-1000, and time is in millisecond.
+    The Distance parameter is in the range 0-1000 and time is in milliseconds.
     '''
 
     def __init__(self):
