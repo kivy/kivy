@@ -2,24 +2,26 @@
 Mouse provider implementation
 =============================
 
-On linux system, mouse provider can be annoying when used with another
-multitouch provider (hidinput or mtdev.). Mouse can conflict with them: a single
-touch can generate one event from mouse provider and from multitouch provider.
+On linux systems, the mouse provider can be annoying when used with another
+multitouch provider (hidinput or mtdev). The Mouse can conflict with them: a
+single touch can generate one event from the mouse provider and another
+from the multitouch provider.
 
 To avoid this behavior, you can activate the "disable_on_activity" token in
-mouse. Then, if they are any touch active from another provider, the mouse will
-be discarded. Put in your configuration::
+the mouse configuration. Then, if there are any touches activated by another
+provider, the mouse event will be discarded. Put in in your configuration::
 
     [input]
     mouse = mouse,disable_on_activity
 
-Disabling multitouch interaction with mouse
--------------------------------------------
+Disabling multitouch interaction with the mouse
+-----------------------------------------------
 
 .. versionadded:: 1.3.0
 
-By default middle and right mouse buttons ared used for multitouch emulation.
-If you want to use them for other purpose you can disable this behavior by
+By default, the middle and right mouse buttons ared used for multitouch
+emulation.
+If you want to use them for other purposes, you can disable this behavior by
 activating the "disable_multitouch" token::
 
    [input]
