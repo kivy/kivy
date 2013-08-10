@@ -120,6 +120,15 @@ class Popup(ModalView):
     None.
     '''
 
+    title_color = ListProperty([1, 1, 1, 1])
+    '''Color used by the Title
+
+    .. versionadded:: 1.8.0
+
+    :data:`title_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [1, 1, 1, 1]
+    '''
+
     separator_color = ListProperty([47 / 255., 167 / 255., 212 / 255., 1.])
     '''Color used by the separator between title and content.
 
