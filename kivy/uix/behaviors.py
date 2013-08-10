@@ -63,10 +63,10 @@ class ButtonBehavior(object):
             return False
         if not self.collide_point(touch.x, touch.y):
             return False
-        if self in touch.ud:
+        if repr(self) in touch.ud:
             return False
         touch.grab(self)
-        touch.ud[self] = True
+        touch.ud[repr(self)] = True
         self._do_press()
         self.dispatch('on_press')
         return True
@@ -76,12 +76,12 @@ class ButtonBehavior(object):
             return True
         if super(ButtonBehavior, self).on_touch_move(touch):
             return True
-        return self in touch.ud
+        return repr(self) in touch.ud
 
     def on_touch_up(self, touch):
         if touch.grab_current is not self:
             return super(ButtonBehavior, self).on_touch_up(touch)
-        assert(self in touch.ud)
+        assert(repr(self) in touch.ud)
         touch.ungrab(self)
         self._do_release()
         self.dispatch('on_release')
