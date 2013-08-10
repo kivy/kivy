@@ -2,7 +2,7 @@
 TUIO Input Provider
 ===================
 
-TUIO is a de facto standard network protocol for the transmission of touch and
+TUIO is the de facto standard network protocol for the transmission of touch and
 fiducial information between a server and a client.
 To learn more about TUIO (which is itself based on the OSC protocol), please
 refer to http://tuio.org -- The specification should be of special interest.
@@ -20,7 +20,7 @@ The TUIO provider can be configured in the configuration file in the
 Configure a TUIO provider in the App
 ------------------------------------
 
-You must add the provider before your application is runned, like::
+You must add the provider before your application is run, like this::
 
     from kivy.app import App
     from kivy.config import Config
