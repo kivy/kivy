@@ -42,6 +42,8 @@ The :class:`~kivy.uix.listview.ListView` sets an adapter to one of a
     CompositeListItem now has a bind_selection_from_children property, and its
     is_representing_cls is now deprecated.
 
+    For scrolling, added scroll_advance. Removed _count, which was unused.
+
 Introduction
 ------------
 
@@ -865,13 +867,15 @@ class CompositeListItem(SelectableView, BoxLayout):
 Builder.load_string('''
 <ListView>:
     container: container
+    scrollview: scrollview
     ScrollView:
+        id: scrollview
         pos: root.pos
         on_scroll_y: root._scroll(args[1])
         do_scroll_x: False
         GridLayout:
-            cols: 1
             id: container
+            cols: 1
             size_hint_y: None
 ''')
 
@@ -951,10 +955,30 @@ class ListView(AbstractView, EventDispatcher):
     default to False.
     '''
 
-    _index = NumericProperty(0)
-    _sizes = DictProperty({})
-    _count = NumericProperty(0)
+    scroll_advance = NumericProperty(10)
+    '''For a kind of pre-fetching during scrolling, a "advance" of view instances
+    is requested when the scroll position is within some count of items, the
+    scroll_advance, difference from either the start or end of the scroll window.
+    View instances are either pulled from the adapter.view_cache or created
+    anew. Perhaps, for larger datasets, or for speed variances, this needs to
+    be changed from the default arbitrary 10.
 
+    .. versionadded:: 1.8
+
+    :data:`scroll_advance` is a :class:`~kivy.properties.NumericProperty`,
+    default to 10.
+    '''
+
+    # _index is the position of the window-on-the-data within data.
+    _index = NumericProperty(0)
+
+    # _sizes is used to store a cache of view instance heights, for use in
+    # calculating a padding that might be needed during scrolling.
+    _sizes = DictProperty({})
+
+    # These two are for window-on-the-data-height-sum, which for a measure
+    # within istart, iend, which are for the data-height-sum. These are integer
+    # values, as are istart and iend.
     _wstart = NumericProperty(0)
     _wend = NumericProperty(None, allownone=True)
 
@@ -988,13 +1012,14 @@ class ListView(AbstractView, EventDispatcher):
             self.adapter.bind(on_data_change=self.data_changed)
 
         self._trigger_populate = Clock.create_trigger(self._spopulate, -1)
-        self._trigger_reset_populate = \
+        self._trigger_reset_spopulate = \
             Clock.create_trigger(self._reset_spopulate, -1)
 
         self.bind(size=self._trigger_populate,
                   pos=self._trigger_populate,
                   item_strings=self.item_strings_changed,
-                  adapter=self._trigger_populate)
+                  adapter=self.adapter_changed)
+                  #adapter=self._trigger_populate)
 
         #self.adapter.bind(data=self.data_changed)
 
@@ -1012,35 +1037,125 @@ class ListView(AbstractView, EventDispatcher):
 
     def _scroll(self, scroll_y):
 
+        # Scrolling is aided by view item caching done by the adapter, via
+        # calls to get_view(index), which either grabs an existing view
+        # instance from the cache, or calls its create_view() for a new
+        # instance. The populate() method below does the orchestration of calls
+        # to the adapter.  Scrolling is done by moving a window-on-the-data,
+        # for which view instances that cover this range are added to the
+        # container. The variable names are illustrated below, shown for an
+        # arbitrary state of scrolling:
+        #
+        #   0 data item --------------------
+        #   1 data item --------------------
+        #   2 data item --------------------
+        #   3 data item --------------------
+        #   4 data item --------------------
+        #   5 data item --------------------
+        #   6 data item --- view instance -- _wstart  x 6
+        #   7 data item --- view instance --          x
+        #   8 data item --- view instance --          x
+        #   9 data item --- view instance --          x window-on-the-data is
+        #  10 data item --- view instance --          x calculated from row
+        #  11 data item --- view instance --          x heights and available
+        #  12 data item --- view instance --          x space in the listview
+        #  13 data item --- view instance --          x container.
+        #  14 data item --- view instance --          x
+        #  15 data item --- view instance --          x
+        #  16 data item --- view instance --          x
+        #  17 data item --- view instance --          x
+        #  18 data item --- view instance -- _wend    x 18
+        #  19 data item --- view instance --                - These three view
+        #  20 data item --- view instance --                - instances are in
+        #  21 data item --- view instance --                - the view_cache,
+        #  22 data item --------------------                  but are not seen
+        #  23 data item --------------------                  in the display.
+        #  24 data item --------------------
+        #
+        # With a user action to scroll, a binding from the ScrollView's
+        # scroll_y fires to here. The scroll_y value is 1.0 for "completely
+        # scrolled up" and 0.0 for "completely scrolled down." There is a
+        # relation made between this value and the total height of all items in
+        # the ListView, and from that is determined the range of indices in the
+        # data that constitute the current "window-on-the-data." The populate()
+        # method is called with istart and/or iend set appropriately to get
+        # views for this data range from the adapter.view_cache, or to build
+        # them anew. _wstart and _wend are updated for the indices of the
+        # window-on-the-data. scroll_y, set from user action, is by definition,
+        # in sync.
+        #
+        # When we use scroll_to() to programmatically scroll, we emulate this
+        # procedure, and must do a kind of inverse updating to the ScrollView,
+        # to tell it the updated scroll_y.
+        #
+        # View instances are delivered by the adapter as needed. If scrolling
+        # is downward, the window-on-the-data is walked along, and if a check
+        # determines that the process is about to exhaust the supply of cached
+        # views, an amount of view instances are pre-fetched. This amount is
+        # determined by a configurable property called scroll_advance.  This
+        # weaves a kind of batching into the process for better performance,
+        # and insures that view instances are available to cover the "forward
+        # edge" of the scrolled view.
+
         if self.row_height is None:
             return
+
+        # container is a GridLayout.
+        container = self.container
+
         self._scroll_y = scroll_y
         scroll_y = 1 - min(1, max(scroll_y, 0))
-        container = self.container
+
+        # mstart and mend are the height values for the start and end of the
+        # window-on-the-data in terms of total height of view instances
+        # covering the entire data range.  scroll_y is the percentage for the
+        # start of the window-on-the-data, relative to the total height,
+        # expressed in the inverse, such that the value is 1.0 when scrolled to
+        # the top and 0.0 when scrolled to the bottom. For 1000 items at 25 row
+        # height each, total height would be 25000, and for a case where
+        # scrolling has gone to near the "middle" of available items, mstart
+        # and mend might be 11940, 12714, where self.height is 775, for the
+        # actual size of the container.
         mstart = (container.height - self.height) * scroll_y
         mend = mstart + self.height
 
-        # convert distance to index
+        # Convert mstart and mend to the equivalent indices within the data.
         rh = self.row_height
         istart = int(ceil(mstart / rh))
         iend = int(floor(mend / rh))
 
+        # Don't let either istart or iend go negative.
         istart = max(0, istart - 1)
         iend = max(0, iend - 1)
 
+        # Handle scroll up.
         if istart < self._wstart:
-            rstart = max(0, istart - 10)
-            self.populate(rstart, iend)
-            self._wstart = rstart
-            self._wend = iend
-        elif iend > self._wend:
-            self.populate(istart, iend + 10)
+
+            # Populate backward, for view instances needed, to the istart
+            # position, and a bit farther back, as configured by scroll_advance.
+            # The max() call keeps the value from going negative.
+            istart = max(0, istart - self.scroll_advance)
+            self.populate(istart, iend)
+
+            # Update window-on-the-data values.
             self._wstart = istart
-            self._wend = iend + 10
+            self._wend = iend
+
+        # Handle scroll down.
+        elif iend > self._wend:
+
+            # Populate forward, for view instances needed, to the istart
+            # position, and a bit farther forward, as configured by
+            # self.scroll_advance.
+            self.populate(istart, iend + self.scroll_advance)
+
+            # Update window-on-the-data values.
+            self._wstart = istart
+            self._wend = iend + self.scroll_advance
 
     def _spopulate(self, *args):
         self.populate()
-        # simulate the scroll again, only if we already scrolled before
+        # Simulate the scroll again, only if we already scrolled before
         # the position might not be the same, mostly because we don't know the
         # size of the new item.
         if hasattr(self, '_scroll_y'):
@@ -1049,7 +1164,7 @@ class ListView(AbstractView, EventDispatcher):
     def _reset_spopulate(self, *args):
         self._wend = None
         self.populate()
-        # simulate the scroll again, only if we already scrolled before
+        # Simulate the scroll again, only if we already scrolled before
         # the position might not be the same, mostly because we don't know the
         # size of the new item.
         if hasattr(self, '_scroll_y'):
@@ -1061,24 +1176,24 @@ class ListView(AbstractView, EventDispatcher):
         sizes = self._sizes
         rh = self.row_height
 
-        # ensure we know what we want to show
+        # Ensure we know what we want to show.
         if istart is None:
             istart = self._wstart
             iend = self._wend
 
-        # clear the view
+        # Clear the view.
         container.clear_widgets()
 
         # guess only ?
         if iend is not None:
 
-            # fill with a "padding"
+            # Fill with a "padding" of fill height, fh.
             fh = 0
             for x in range(istart):
                 fh += sizes[x] if x in sizes else rh
-            container.add_widget(Widget(size_hint_y=None, height=fh))
+            container.add_widget(Widget(size_hint_y=None, height=fh, background_color=(0,1,0)))
 
-            # now fill with real item_view
+            # Now fill with real item view instances.
             index = istart
             while index <= iend:
                 item_view = self.adapter.get_view(index)
@@ -1087,11 +1202,14 @@ class ListView(AbstractView, EventDispatcher):
                     continue
                 sizes[index] = item_view.height
                 container.add_widget(item_view)
+
         else:
+
             available_height = self.height
             real_height = 0
             index = self._index
             count = 0
+
             while available_height > 0:
                 item_view = self.adapter.get_view(index)
                 if item_view is None:
@@ -1103,40 +1221,176 @@ class ListView(AbstractView, EventDispatcher):
                 available_height -= item_view.height
                 real_height += item_view.height
 
-            self._count = count
-
-            # extrapolate the full size of the container from the size
-            # of view instances in the adapter
+            # Extrapolate the full size of the container from the sum
+            # of view instance heights.
+            #
+            # TODO: self._count was removed in 1.8, because it was not used,
+            #       but this could be a regression, in that the call to
+            #       self.adapter.get_count() is made unnecessarily often.
+            #
             if count:
                 container.height = \
-                    real_height / count * self.adapter.get_count()
+                    (real_height / count) * self.adapter.get_count()
                 if self.row_height is None:
                     self.row_height = real_height / count
 
-    def scroll_to(self, index=0):
+    def scroll_to(self, index, position_in_window=None):
+        '''Call the scroll_to(i) method with a valid index for the data. If the
+        index is out of bounds, nothing happens.
 
+        The position_in_window argument is measured from the top, so a value
+        of .20, with a count of items in the current view (the
+        window-on-the-data) of 30, the item it the index would appear about 6
+        rows down from the top.
+        '''
+
+        if index < 0 or index > len(self.adapter.data) - 1:
+            return
+
+        # If this method is called while scrolling operations are happening, a
+        # call recursion error can occur, hence the check to see that scrolling
+        # is False before calling populate(). At the end, dispatch a
+        # scrolling_complete event, which sets scrolling back to False.
         if not self.scrolling:
+            if not self.row_height:
+                return
+
             self.scrolling = True
-            self._index = index
-            self.populate()
+
+            len_data = len(self.adapter.data) - 1
+
+            n_window = int(ceil(self.height / self.row_height))
+
+            if index == 0:
+                self._index = 0
+                self._wstart = self._index
+                self._wend = self._index + n_window
+                self.populate()
+
+                self._scroll_y = 1.0
+
+            elif index == len(self.adapter.data) - 1:
+
+                self._index = max(0, index - n_window)
+                self._wstart = self._index
+                self._wend = None
+                self.populate()
+
+                # Update window-on-the-data values.
+                self._wstart = self._index
+                self._wend = min(self._index + n_window, len(self.adapter.data) -1)
+
+                self._scroll_y = -0.0
+
+                self.scrollview.scroll_y = 1.0
+
+            else:
+
+                # TODO: Test this.
+                index_adjustment = 0
+                if position_in_window:
+                    index_adjustment = int(ceil(position_in_window * n_window))
+                    index += index_adjustment
+
+                iend_downward = min(index + n_window, len(self.adapter.data) -1)
+
+                self._index = index
+
+                self._wstart = index
+                self._wend = iend_downward
+                self.populate()
+
+                self._scroll_y = 1.0 - (float(self._wstart + 1) / len(self.adapter.data))
+
+                self.scrollview.scroll_y = self._scroll_y
+
             self.dispatch('on_scroll_complete')
 
-    def scroll_to_end(self, index=0):
+    def scroll_by(self, count=1):
+        '''The scroll_by(count=10) method is used to scroll by a number of
+        items, the count argument, forward or backward.
 
-        # TODO: This stops working after a manual scroll.
+        Use a negative count to go backward.
+        '''
 
-        if not self.scrolling:
-            available_height = self.height
-            index = len(self.adapter.data) - 1
+        if count == 0:
+            return
 
-            while available_height > 0:
-                item_view = self.adapter.get_view(index)
-                if item_view is None:
-                    break
-                index -= 1
-                available_height -= item_view.height
+        if count > 0:
+            if self._index < len(self.adapter.data) - count - 1:
+                self.scroll_to(self._index + count)
+        else:
+            if self._index >= abs(count):
+                self.scroll_to(self._index + count)
 
-            self.scroll_to(index + 1)
+    def scroll_to_first(self):
+        '''scroll_to_first() scrolls to the first item.
+        '''
+
+        self.scroll_to(0)
+
+    def scroll_to_last(self):
+        '''Call the scroll_to_last() method to scroll to the last item.
+        '''
+
+        self.scroll_to(len(self.adapter.data) - 1)
+
+    def scroll_item_to_wstart(self, index):
+        # Move the view instance at the index to the top of the present
+        # window-on-the-data.
+        pass
+
+    def scroll_item_to_wend(self, index):
+        # Move the view instance at the index to the bottom of the present
+        # window-on-the-data.
+        pass
+
+    def scroll_to_selection(self):
+        '''Call the scroll_to_selection() method to scroll to the middle of the
+        selection. If there is a big spread between the first and last selected
+        item indices, it is possible that no selected item will be in view. See
+        also scroll_to_first_selected() and scroll_to_last_selected().
+
+        If there is no selection, nothing happens.
+        '''
+
+        if self.adapter.selection:
+            indices = [v.index for v in self.adapter.selection]
+            first_sel_index = min(indices)
+            last_sel_index = max(indices)
+            spread = last_sel_index - first_sel_index
+            if spread == 1:
+                middle_index = first_sel_index
+            else:
+                middle_index = first_sel_index + spread / 2
+
+            self.scroll_to(middle_index)
+
+    def scroll_to_first_selected(self):
+        '''Call the scroll_to_first_selected() method to scroll to the
+        beginning of the selected range.
+
+        If there is no selection, nothing happens.
+        '''
+
+        if self.adapter.selection:
+            indices = [v.index for v in self.adapter.selection]
+            first_sel_index = min(indices)
+
+            self.scroll_to(first_sel_index)
+
+    def scroll_to_last_selected(self):
+        '''Call the scroll_to_last_selected() method to scroll to the end of
+        the selected range.
+
+        If there is no selection, nothing happens.
+        '''
+
+        if self.adapter.selection:
+            indices = [v.index for v in self.adapter.selection]
+            first_sel_index = min(indices)
+
+            self.scroll_to(first_sel_index)
 
     def scroll_after_add(self):
 
@@ -1287,7 +1541,7 @@ class ListView(AbstractView, EventDispatcher):
                     'OOD_setdefault',
                     'OOD_update']:
 
-            self.scroll_to_end()
+            self.scroll_to_last()
 
             #self.scroll_after_add()
 
@@ -1331,3 +1585,4 @@ class ListView(AbstractView, EventDispatcher):
             self.scrolling = True
             self.populate()
             self.dispatch('on_scroll_complete')
+

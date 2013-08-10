@@ -117,7 +117,7 @@ Builder.load_string('''
                     width:80
                     height: 30
                     text: 'delslice (3)'
-                    on_release: app.list_setslice()
+                    on_release: app.list_delslice()
     #
     # TODO: iadd and imul are getting a nonetype is not iterable error.
     # ROD object. So we will add labels instead of buttons for them for now.
@@ -336,7 +336,6 @@ class Test(App):
                 "height": 25}
 
     def objects_args_converter(self, row_index, obj):
-        print row_index, obj
         return {"text": obj.text,
                 "size_hint_y": None,
                 "height": 25}

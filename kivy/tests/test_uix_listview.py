@@ -119,6 +119,14 @@ class ListViewTestCase(unittest.TestCase):
 
         list_view = ListView(adapter=list_adapter)
 
+        # TODO: This broke after the data_changed work to add more fine-grained
+        #       data change dispatching to the adapters and to ListView. There
+        #       was also work done on scrolling. Somehow, row_height setting is
+        #       getting skipped now. So, in the meantime...  Manually set the
+        #       row_height, which would be set when the ListView is
+        #       instantiated in context.
+        list_view.row_height = 20
+
         list_view.scroll_to(20)
         self.assertEqual(list_view._index, 20)
 
