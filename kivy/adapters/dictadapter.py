@@ -20,8 +20,84 @@ If you wish to have a bare-bones list adapter, without selection, use the
 
 __all__ = ('DictAdapter', )
 
-from kivy.properties import ListProperty, DictProperty
+from kivy.properties import DictProperty
+from kivy.properties import ListProperty
+from kivy.properties import ObservableDict
 from kivy.adapters.listadapter import ListAdapter
+from kivy.adapters.listadapter import RangeObservingObservableList
+
+
+class RangeObservingObservableDict(ObservableDict):
+
+    # range_change is a normal python object consisting of the op name and
+    # the keys involved:
+    #
+    #     (data_op, (keys))
+    #
+    # If the op does not cause a range change, range_change is set to None.
+    #
+    # Observers of data changes may consult range_change if needed, for
+    # example, listview needs to know details for scrolling.
+    #
+    # DictAdapter itself, the owner of data, is the first observer of data
+    # change that must react to delete ops, if the existing selection is
+    # affected.
+    #
+
+    # TODO: Do something on this one?
+    #def __setattr__(self, attr, value):
+    #    if attr in ('prop', 'obj'):
+    #        super(ObservableDict, self).__setattr__(attr, value)
+    #        return
+    #    self.__setitem__(attr, value)
+
+    def __setitem__(self, key, value):
+        if value is None:
+            # ObservableDict will delete the item if value is None, so this is
+            # like a delete op.
+            self.range_change = ('delete', (key, ))
+        else:
+            self.range_change = ('add', (key, ))
+        super(RangeObservingObservableDict, self).__setitem__(key, value)
+
+    def __delitem__(self, key):
+        self.range_change = ('delete', (key, ))
+        super(RangeObservingObservableDict, self).__delitem__(key)
+
+    def clear(self, *largs):
+        # TODO: Should this, and other cases below, be (*largs)?
+        self.range_change = ('delete', largs)
+        super(RangeObservingObservableDict, self).clear(*largs)
+
+    def remove(self, *largs):
+        # remove(x) is same as del s[s.index(x)]
+        self.range_change = ('delete', largs)
+        super(RangeObservingObservableDict, self).remove(*largs)
+
+    def pop(self, *largs):
+        # This is pop on a specific key.
+        # s.pop([i]) is same as x = s[i]; del s[i]; return x
+        self.range_change = ('delete', largs)
+        return super(RangeObservingObservableDict, self).pop(*largs)
+
+    def popitem(self, *largs):
+        # From python docs, "Remove and return an arbitrary (key, value) pair
+        # from the dictionary." From other reading, arbitrary here effectively
+        # means "random" in the loose sense -- for truely random ops, use the
+        # proper random module. Nevertheless, the item is deleted and returned.
+        self.range_change = ('delete', largs)
+        return super(RangeObservingObservableDict, self).popitem(*largs)
+
+    def setdefault(self, *largs):
+        present_keys = super(RangeObservingObservableDict, self).keys()
+        if not largs[0] in present_keys:
+            self.range_change = ('add', largs)
+        super(RangeObservingObservableDict, self).setdefault(*largs)
+
+    def update(self, *largs):
+        present_keys = super(RangeObservingObservableDict, self).keys()
+        self.range_change = ('add', list(set(largs) - set(present_keys)))
+        super(RangeObservingObservableDict, self).update(*largs)
 
 
 class DictAdapter(ListAdapter):
@@ -41,9 +117,12 @@ class DictAdapter(ListAdapter):
     defaults to [].
     '''
 
-    data = DictProperty(None)
+    # TODO: This was initialized to None. Problem with setting to {} instead?
+    data = DictProperty({}, RangeObservingObservableDict)
     '''A dict that indexes records by keys that are equivalent to the keys in
     sorted_keys, or they are a superset of the keys in sorted_keys.
+
+    TODO: Is that last statement about "superset" correct?
 
     The values can be strings, class instances, dicts, etc.
 
@@ -56,12 +135,49 @@ class DictAdapter(ListAdapter):
             if type(kwargs['sorted_keys']) not in (tuple, list):
                 msg = 'DictAdapter: sorted_keys must be tuple or list'
                 raise Exception(msg)
+            else:
+                # Copy the provided sorted_keys, and maintain it internally.
+                # The only function in the API for sorted_keys is to reset it
+                # wholesale with a call to reset_sorted_keys().
+                self.sorted_keys = list(kwargs['sorted_keys'])
+                kwargs.remove('sorted_keys')
         else:
             self.sorted_keys = sorted(kwargs['data'].keys())
 
         super(DictAdapter, self).__init__(**kwargs)
 
-        self.bind(sorted_keys=self.initialize_sorted_keys)
+        self.bind(sorted_keys=self.initialize_sorted_keys,
+                  data=self.data_changed)
+
+    def reset_sorted_keys(self, sorted_keys):
+        self.sorted_keys = sorted_keys
+        # call update on dict to match?
+
+    def data_changed(self, *dt):
+
+        print 'DICT ADAPTER data_changed callback', dt
+
+        print self.data.range_change
+
+        if self.adapter.data.range_change:
+
+            data_op, keys = self.data.range_change
+
+            if data_op == 'add':
+                self.sorted_keys.extend(keys)
+            elif data_op == 'delete':
+
+                delete_affected_selection = False
+
+                for selected_key in [sel.text for sel in self.selection]:
+                    if selected_key in keys:
+                        del self.selection[self.selection.index(selected_key)]
+                        delete_affected_selection = True
+
+                if delete_affected_selection:
+                    self.dispatch('on_selection_change')
+
+                self.check_for_empty_selection()
 
     def bind_triggers_to_view(self, func):
         self.bind(sorted_keys=func)
