@@ -51,12 +51,114 @@ import inspect
 from kivy.event import EventDispatcher
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.models import SelectableDataItem
+from kivy.properties import ObjectProperty
 from kivy.properties import ListProperty
 from kivy.properties import DictProperty
 from kivy.properties import BooleanProperty
 from kivy.properties import OptionProperty
 from kivy.properties import NumericProperty
+from kivy.properties import ObservableList
 from kivy.lang import Builder
+
+
+class RangeObservingObservableList(ObservableList):
+    '''Adds range-observing intelligence to ObservableList'''
+
+    # range_change is a normal python object consisting of:
+    #
+    #     (data_op, (start_index, end_index)
+    #
+    # If the op does not cause a range change, range_change is set to None.
+    #
+    # Observers of data changes may consult range_change if needed, for
+    # example, listview needs to know details for scrolling.
+    #
+    # ListAdapter itself, the owner of data, is the first observer of data
+    # change that must react to delete ops, if the existing selection is
+    # affected.
+    #
+
+    cached_views_and_data = DictProperty({})
+    '''This is a temporary association used in sorting. It is created when we
+    sort, and destroyed by the adapter in its sort op callback.
+    '''
+
+    cached_views = ObjectProperty(None)
+    '''This is a reference to the containing adapter's cached_views, for use
+    in sorting operations. It is set by the adapter when needed.
+    '''
+
+    def __init__(self, *largs):
+        super(RangeObservingObservableList, self).__init__(*largs)
+
+    def __setitem__(self, key, value):
+        self.range_change = None
+        super(RangeObservingObservableList, self).__setitem__(key, value)
+
+    def __delitem__(self, key):
+        index = self.index(key)
+        self.range_change = ('delete', (index, index))
+        super(RangeObservingObservableList, self).__delitem__(key)
+
+    def __setslice__(self, *largs):
+        self.range_change = None
+        super(RangeObservingObservableList, self).__setslice__(*largs)
+
+    def __delslice__(self, *largs):
+        start_index = largs[0]
+        end_index = largs[-1]
+        self.range_change = ('delete', (start_index, end_index))
+        super(RangeObservingObservableList, self).__delslice__(*largs)
+
+    def __iadd__(self, *largs):
+        self.range_change = None
+        super(RangeObservingObservableList, self).__iadd__(*largs)
+
+    def __imul__(self, *largs):
+        self.range_change = None
+        super(RangeObservingObservableList, self).__imul__(*largs)
+
+    def append(self, *largs):
+        index = len(self)
+        self.range_change = ('add', (index, index))
+        super(RangeObservingObservableList, self).append(*largs)
+
+    def remove(self, *largs):
+        index = self.index(largs[0])
+        self.range_change = ('delete', (index, index))
+        super(RangeObservingObservableList, self).remove(*largs)
+
+    def insert(self, *largs):
+        index = self.index(largs[0])
+        self.range_change = ('insert', (index, index))
+        super(RangeObservingObservableList, self).insert(*largs)
+
+    def pop(self, *largs):
+        if largs[0]:
+            index = self.index(largs[0])
+        else:
+            index = len(self) - 1
+        self.range_change = ('delete', (index, index))
+        return super(RangeObservingObservableList, self).pop(*largs)
+
+    def extend(self, *largs):
+        start_index = len(self)
+        end_index = start_index + len(largs) - 1
+        self.range_change = ('add', (start_index, end_index))
+        super(RangeObservingObservableList, self).extend(*largs)
+
+    def sort(self, *largs):
+        if self.cached_views:
+            for item_view in self.cached_views:
+                self.cached_views_and_data[item_view] = \
+                        self.data[item_view.index]
+
+        self.range_change = ('sort', (0, len(self) - 1))
+        super(RangeObservingObservableList, self).sort(*largs)
+
+    def reverse(self, *largs):
+        self.range_change = ('sort', (0, len(self) - 1))
+        super(RangeObservingObservableList, self).reverse(*largs)
 
 
 class ListAdapter(Adapter, EventDispatcher):
@@ -66,7 +168,7 @@ class ListAdapter(Adapter, EventDispatcher):
     functonality.
     '''
 
-    data = ListProperty([])
+    data = ListProperty([], cls=RangeObservingObservableList)
     '''The data list property is redefined here, overriding its definition as
     an ObjectProperty in the Adapter class. We bind to data so that any
     changes will trigger updates. See also how the
@@ -114,6 +216,8 @@ class ListAdapter(Adapter, EventDispatcher):
     useful for storing selection state in a local database or backend database
     for maintaining state in game play or other similar scenarios. It is a
     convenience function.
+
+    NOTE: This would probably be better named as sync_selection_with_data().
 
     To propagate selection or not?
 
@@ -173,16 +277,100 @@ class ListAdapter(Adapter, EventDispatcher):
     defaults to {}.
     '''
 
-    __events__ = ('on_selection_change', )
+    __events__ = ('on_selection_change',)
 
     def __init__(self, **kwargs):
         super(ListAdapter, self).__init__(**kwargs)
 
         self.bind(selection_mode=self.selection_mode_changed,
                   allow_empty_selection=self.check_for_empty_selection,
-                  data=self.update_for_new_data)
+                  data=self.data_changed)
 
-        self.update_for_new_data()
+        # Set a reference in data (an ObservableList instance) to our so that,
+        # in the case of sorting-related ops, an association can be made
+        # between the item_views in cached_views to the data_items in data,
+        # enabling a post-op update of cached_views indices.
+        self.data.cached_views = self.cached_views
+
+        self.delete_cache()
+        self.initialize_selection()
+
+    def data_changed(self, *dt):
+
+        print 'ADAPTER data_changed callback', dt
+
+        print self.data.range_change
+
+        if self.data.range_change:
+
+            data_op, (start_index, end_index) = self.data.range_change
+
+            if data_op == 'add':
+                # The add op is an append, so this shouldn't affect anything.
+                pass
+
+            elif data_op == 'delete':
+
+                selection_was_affected = False
+
+                deleted_indices = range(start_index, end_index + 1)
+
+                # Delete views from cache.
+                print 'cached_views', self.cached_views
+                deleted_indices = range(start_index, end_index + 1)
+
+                new_cached_views = {}
+
+                i = 0
+                for k, v in self.cached_views.iteritems():
+                    if not k in deleted_indices:
+                        new_cached_views[i] = self.cached_views[k]
+                        if k >= start_index:
+                            new_cached_views[i].index = i
+                        i += 1
+
+                self.cached_views = new_cached_views
+                print 'cached_views', self.cached_views
+
+                # Remove deleted views from selection.
+                for selected_index in [item.index for item in self.selection]:
+                    if selected_index in deleted_indices:
+                        del self.selection[selected_index]
+                        selection_was_affected = True
+
+                if selection_was_affected:
+                    self.dispatch('on_selection_change')
+
+                self.check_for_empty_selection()
+
+            elif data_op == 'insert':
+
+                inserted_indices = range(start_index, end_index + 1)
+
+                new_cached_views = {}
+
+                i = 0
+                for k, v in self.cached_views.iteritems():
+                    new_cached_views[i] = self.cached_views[k]
+                    i += 1
+                    if k >= start_index:
+                        new_cached_views[i].index = i
+
+                self.cached_views = new_cached_views
+
+            elif data_op == 'sort':
+
+                for item_view in self.cached_views:
+                    item_view.index = self.data.index(
+                            self.data.cached_views_and_data[item_view])
+
+                self.data.cached_views_and_data = {}
+
+    def data_will_be_sorted(self, *args):
+        self.cached_views_with_data_items = {}
+
+        for item_view in self.cached_views:
+            self.cached_views_with_data_items[item_view] = self.data[item_view.index]
 
     def delete_cache(self, *args):
         self.cached_views = {}
@@ -290,6 +478,7 @@ class ListAdapter(Adapter, EventDispatcher):
         else:
             self.deselect_item_view(view)
             if self.selection_mode != 'none':
+                #
                 # If the deselection makes selection empty, the following call
                 # will check allows_empty_selection, and if False, will
                 # select the first item. If view happens to be the first item,
@@ -380,10 +569,6 @@ class ListAdapter(Adapter, EventDispatcher):
         self.dispatch('on_selection_change')
 
     # [TODO] Could easily add select_all() and deselect_all().
-
-    def update_for_new_data(self, *args):
-        self.delete_cache()
-        self.initialize_selection()
 
     def initialize_selection(self, *args):
         if len(self.selection) > 0:

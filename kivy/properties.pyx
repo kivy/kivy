@@ -578,23 +578,26 @@ cdef class ListProperty(Property):
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or []
 
+        self.cls = kw.get('cls', ObservableList)
+
         super(ListProperty, self).__init__(defaultvalue, **kw)
 
     cpdef link(self, EventDispatcher obj, str name):
         Property.link(self, obj, name)
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.value = ObservableList(self, obj, ps.value)
+        ps.value = self.cls(self, obj, ps.value)
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
-        if type(value) is not ObservableList:
-            raise ValueError('%s.%s accept only ObservableList' % (
+        if type(value) is not self.cls:
+            raise ValueError('{}.{} accept only {}'.format(
                 obj.__class__.__name__,
-                self.name))
+                self.name,
+                self.cls.__name__))
 
     cpdef set(self, EventDispatcher obj, value):
-        value = ObservableList(self, obj, value)
+        value = self.cls(self, obj, value)
         Property.set(self, obj, value)
 
 cdef inline void observable_dict_dispatch(object self):
@@ -678,23 +681,25 @@ cdef class DictProperty(Property):
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or {}
 
+        self.cls = kw.get('cls', ObservableDict)
+
         super(DictProperty, self).__init__(defaultvalue, **kw)
 
     cpdef link(self, EventDispatcher obj, str name):
         Property.link(self, obj, name)
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.value = ObservableDict(self, obj, ps.value)
+        ps.value = self.cls(self, obj, ps.value)
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
-        if type(value) is not ObservableDict:
-            raise ValueError('%s.%s accept only ObservableDict' % (
+        if type(value) is not self.cls:
+            raise ValueError('{}.{} accept only {}'.format(
                 obj.__class__.__name__,
-                self.name))
-
+                self.name,
+                self.cls.__name__))
     cpdef set(self, EventDispatcher obj, value):
-        value = ObservableDict(self, obj, value)
+        value = self.cls(self, obj, value)
         Property.set(self, obj, value)
 
 
