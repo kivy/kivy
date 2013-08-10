@@ -8,13 +8,12 @@ from kivy.graphics import Color, Ellipse, Line
 class MyPaintWidget(Widget):
 
     def on_touch_down(self, touch):
-        userdata = touch.ud
-        userdata['color'] = c = (random(), 1, 1)
+        color = (random(), 1, 1)
         with self.canvas:
-            Color(*c, mode='hsv')
-            d = 30
-            Ellipse(pos=(touch.x - d/2, touch.y - d/2), size=(d, d))
-            userdata['line'] = Line(points=(touch.x, touch.y))
+            Color(*color, mode='hsv')
+            d = 30.
+            Ellipse(pos=(touch.x - d / 2, touch.y - d / 2), size=(d, d))
+            touch.ud['line'] = Line(points=(touch.x, touch.y))
 
     def on_touch_move(self, touch):
         touch.ud['line'].points += [touch.x, touch.y]

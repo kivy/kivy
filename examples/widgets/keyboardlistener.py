@@ -13,14 +13,14 @@ class MyKeyboardListener(Widget):
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
 
     def _keyboard_closed(self):
-        print 'My keyboard have been closed!'
+        print('My keyboard have been closed!')
         self._keyboard.unbind(on_key_down=self._on_keyboard_down)
         self._keyboard = None
 
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        print 'The key', keycode, 'have been pressed'
-        print ' - text is %r' % text
-        print ' - modifiers are %r' % modifiers
+        print('The key', keycode, 'have been pressed')
+        print(' - text is %r' % text)
+        print(' - modifiers are %r' % modifiers)
 
         # Keycode is composed of an integer + a string
         # If we hit escape, release the keyboard

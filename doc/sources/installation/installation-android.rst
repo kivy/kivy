@@ -8,31 +8,35 @@ absolutely nothing. Kivy is not an application.
 
 That said, we provide a "launcher" that allows you to push
 your Kivy application onto your phone and execute it through a simple interface.
-We'll provide instructions for packaging your Kivy application in a standalone
-way in the future.
+Instructions for packaging your Kivy app as a standalone application
+can be found in the programming guide under
+:doc:`Create a package for Android </guide/packaging-android>`.
 
 To install the Kivy launcher, you must:
 
 #. Go to the `Kivy Launcher <https://market.android.com/details?id=org.kivy.pygame>`_
-   on the Android market
+   on the Google Play Store
 #. Click on Install
 #. Select your phone... And you're done!
 
-Now, you can put your Kivy applications in the Kivy directory on the SD Card.
+If you don't have access to the Google Play Store on your phone/tablet,
+you can download and install the APK manually from  http://kivy.org/#download.
+
+Once the Kivy laucher is installed, you can put your Kivy applications in the Kivy
+directory on the SD Card. The launcher will then automatically detect and display
+them in its menu, provided you have
+:ref:`packaged them correctly <Packaging your application for Kivy Launcher>`.
+
 Refer to :ref:`android` for a more detailed explanation.
 
 Installation of Examples
 ------------------------
 
-.. warning::
-
-    These examples are not final, they are just tests for the Kivy environment
-    on Android.
-
-#. Download the `KivyTest for Android <http://kivy.googlecode.com/files/kivytest-for-android.zip>`_
-#. Unzip the content to the SD Card of your phone, in the kivy directory::
+#. Download the `Kivy demos for Android <http://kivy.googlecode.com/files/kivydemo-for-android.zip>`_
+#. Unzip the contents and go to the folder `kivydemo-for-android`
+#. Copy all the the subfolders here to
 
     /sdcard/kivy
 
-#. Run the launcher and select Kivytest
+#. Run the launcher and select one of the Pictures, Showcase, Touchtracer, Cymunk or other demos...
 

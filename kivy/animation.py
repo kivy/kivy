@@ -60,10 +60,10 @@ the first half of size=(800, 800)::
 
 __all__ = ('Animation', 'AnimationTransition')
 
-from types import ListType, TupleType, DictType
 from math import sqrt, cos, sin, pi
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
+from kivy.compat import string_types, iterkeys
 
 
 class Animation(EventDispatcher):
@@ -75,6 +75,8 @@ class Animation(EventDispatcher):
         `transition` or `t`: str or func
             Transition function for animate properties. It can be the name of a
             method from :class:`AnimationTransition`
+        `step` or `s`: float
+            Step in milliseconds of the animation. Default to 1 / 60.
 
     :Events:
         `on_start`: widget
@@ -83,25 +85,27 @@ class Animation(EventDispatcher):
             Fired when the animation is completed or stopped on a widget
         `on_progress`: widget, progression
             Fired when the progression of the animation is changing
+
+    .. versionchanged:: 1.4.0
+        Added s/step parameter.
+
     '''
 
     _instances = set()
 
-    def __init__(self, **kw):
-        # Register events
-        self.register_event_type('on_start')
-        self.register_event_type('on_progress')
-        self.register_event_type('on_complete')
+    __events__ = ('on_start', 'on_progress', 'on_complete')
 
+    def __init__(self, **kw):
         super(Animation, self).__init__(**kw)
 
         # Initialize
         self._clock_installed = False
         self._duration = kw.get('d', kw.get('duration', 1.))
         self._transition = kw.get('t', kw.get('transition', 'linear'))
-        if isinstance(self._transition, basestring):
+        self._step = kw.get('s', kw.get('step', 1. / 60.))
+        if isinstance(self._transition, string_types):
             self._transition = getattr(AnimationTransition, self._transition)
-        for key in ('d', 't', 'duration', 'transition'):
+        for key in ('d', 't', 's', 'step', 'duration', 'transition'):
             kw.pop(key, None)
         self._animated_properties = kw
         self._widgets = {}
@@ -119,7 +123,7 @@ class Animation(EventDispatcher):
         return self._transition
 
     @property
-    def animated_animated_properties(self):
+    def animated_properties(self):
         '''Return the properties used to animate
         '''
         return self._animated_properties
@@ -129,7 +133,7 @@ class Animation(EventDispatcher):
         '''Stop all animations that concern a specific widget / list of
         properties.
 
-        Example ::
+        Example::
 
             anim = Animation(x=50)
             anim.start(widget)
@@ -142,8 +146,31 @@ class Animation(EventDispatcher):
                 for x in largs:
                     animation.stop_property(widget, x)
         else:
-            for animation in Animation._instances[:]:
+            for animation in set(Animation._instances):
                 animation.stop(widget)
+
+    @staticmethod
+    def cancel_all(widget, *largs):
+        '''Cancel all animations that concern a specific widget / list of
+        properties. see :data:`cancel`
+
+        Example::
+
+            anim = Animation(x=50)
+            anim.start(widget)
+
+            # and later
+            Animation.cancel_all(widget, 'x')
+
+        .. versionadded:: 1.4.0
+        '''
+        if len(largs):
+            for animation in list(Animation._instances):
+                for x in largs:
+                    animation.cancel_property(widget, x)
+        else:
+            for animation in set(Animation._instances):
+                animation.cancel(widget)
 
     def start(self, widget):
         '''Start the animation on a widget
@@ -154,20 +181,31 @@ class Animation(EventDispatcher):
         self.dispatch('on_start', widget)
 
     def stop(self, widget):
-        '''Stop the animation previously applied on a widget
-        '''
-        props = self._widgets.pop(widget, None)
+        '''Stop the animation previously applied on a widget, triggering
+        `on_complete` event '''
+        props = self._widgets.pop(widget.uid, None)
         if props:
             self.dispatch('on_complete', widget)
+        self.cancel(widget)
+
+    def cancel(self, widget):
+        '''Cancel the animation previously applied on a widget. Same
+        effect as :data:`stop`, except the `on_complete` event will
+        *not* be triggered!
+
+        .. versionadded:: 1.4.0
+        '''
+        self._widgets.pop(widget.uid, None)
         self._clock_uninstall()
         if not self._widgets:
             self._unregister()
 
     def stop_property(self, widget, prop):
         '''Even if an animation is running, remove a property. It will not be
-        animated further.
+        animated further. If it was the only/last property being animated on.
+        the widget, the animation will be stopped (see :data:`stop`)
         '''
-        props = self._widgets.get(widget, None)
+        props = self._widgets.get(widget.uid, None)
         if not props:
             return
         props['properties'].pop(prop, None)
@@ -175,6 +213,31 @@ class Animation(EventDispatcher):
         # no more properties to animation ? kill the animation.
         if not props['properties']:
             self.stop(widget)
+
+    def cancel_property(self, widget, prop):
+        '''Even if an animation is running, remove a property. It will not be
+        animated further. If it was the only/last property being animated on.
+        the widget, the animation will be canceled (see :data:`cancel`)
+
+        .. versionadded:: 1.4.0
+        '''
+        props = self._widgets.get(widget.uid, None)
+        if not props:
+            return
+        props['properties'].pop(prop, None)
+
+        # no more properties to animation ? kill the animation.
+        if not props['properties']:
+            self.cancel(widget)
+
+    def have_properties_to_animate(self, widget):
+        '''Return True if a widget still have properties to animate.
+
+        .. versionadded:: 1.8.0
+        '''
+        props = self._widgets.get(widget.uid, None)
+        if props and props['properties']:
+            return True
 
     #
     # Private
@@ -187,13 +250,14 @@ class Animation(EventDispatcher):
             Animation._instances.remove(self)
 
     def _initialize(self, widget):
-        d = self._widgets[widget] = {
+        d = self._widgets[widget.uid] = {
+            'widget': widget,
             'properties': {},
-            'time': 0.}
+            'time': None}
 
         # get current values
         p = d['properties']
-        for key, value in self._animated_properties.iteritems():
+        for key, value in self._animated_properties.items():
             p[key] = (getattr(widget, key), value)
 
         # install clock
@@ -202,7 +266,7 @@ class Animation(EventDispatcher):
     def _clock_install(self):
         if self._clock_installed:
             return
-        Clock.schedule_interval(self._update, 1 / 60.)
+        Clock.schedule_interval(self._update, self._step)
         self._clock_installed = True
 
     def _clock_uninstall(self):
@@ -215,16 +279,20 @@ class Animation(EventDispatcher):
         widgets = self._widgets
         transition = self._transition
         calculate = self._calculate
-        for widget in widgets.keys()[:]:
-            anim = widgets[widget]
-            anim['time'] += dt
+        for uid in list(widgets.keys())[:]:
+            anim = widgets[uid]
+            widget = anim['widget']
+            if anim['time'] is None:
+                anim['time'] = 0.
+            else:
+                anim['time'] += dt
 
             # calculate progression
             progress = min(1., anim['time'] / self._duration)
             t = transition(progress)
 
             # apply progression on widget
-            for key, values in anim['properties'].iteritems():
+            for key, values in anim['properties'].items():
                 a, b = values
                 value = calculate(a, b, t)
                 setattr(widget, key, value)
@@ -237,16 +305,16 @@ class Animation(EventDispatcher):
 
     def _calculate(self, a, b, t):
         _calculate = self._calculate
-        if isinstance(a, ListType) or isinstance(a, TupleType):
-            if isinstance(a, ListType):
+        if isinstance(a, list) or isinstance(a, tuple):
+            if isinstance(a, list):
                 tp = list
             else:
                 tp = tuple
-            return tp([_calculate(a[x], b[x], t) for x in xrange(len(a))])
-        elif isinstance(a, DictType):
+            return tp([_calculate(a[x], b[x], t) for x in range(len(a))])
+        elif isinstance(a, dict):
             d = {}
-            for x in a.iterkeys():
-                if not x in b.keys():
+            for x in iterkeys(a):
+                if x not in b:
                     # User requested to animate only part of the dict.
                     # Copy the rest
                     d[x] = a[x]
@@ -294,16 +362,29 @@ class Sequence(Animation):
 
     def start(self, widget):
         self.stop(widget)
-        self.anim1.start(widget)
-        self._widgets[widget] = True
+        self._widgets[widget.uid] = True
         self._register()
+        self.anim1.start(widget)
 
     def stop(self, widget):
         self.anim1.stop(widget)
         self.anim2.stop(widget)
-        self._widgets.pop(widget, None)
-        if not self._widgets:
-            self._unregister()
+        props = self._widgets.pop(widget.uid, None)
+        if props:
+            self.dispatch('on_complete', widget)
+        super(Sequence, self).cancel(widget)
+
+    def stop_property(self, widget, prop):
+        self.anim1.stop_property(widget, prop)
+        self.anim2.stop_property(widget, prop)
+        if (not self.anim1.have_properties_to_animate(widget) and
+            not self.anim2.have_properties_to_animate(widget)):
+            self.stop(widget)
+
+    def cancel(self, widget):
+        self.anim1.cancel(widget)
+        self.anim2.cancel(widget)
+        super(Sequence, self).cancel(widget)
 
     def on_anim1_start(self, instance, widget):
         self.dispatch('on_start', widget)
@@ -315,7 +396,7 @@ class Sequence(Animation):
         self.dispatch('on_progress', widget, progress / 2.)
 
     def on_anim2_complete(self, instance, widget):
-        self.dispatch('on_complete', widget)
+        self.stop(widget)
 
     def on_anim2_progress(self, instance, widget, progress):
         self.dispatch('on_progress', widget, .5 + progress / 2.)
@@ -339,21 +420,34 @@ class Parallel(Animation):
         self.stop(widget)
         self.anim1.start(widget)
         self.anim2.start(widget)
-        self._widgets[widget] = {'complete': 0}
+        self._widgets[widget.uid] = {'complete': 0}
         self._register()
         self.dispatch('on_start', widget)
 
     def stop(self, widget):
         self.anim1.stop(widget)
         self.anim2.stop(widget)
-        self._widgets.pop(widget, None)
-        if not self._widgets:
-            self._unregister()
+        props = self._widgets.pop(widget.uid, None)
+        if props:
+            self.dispatch('on_complete', widget)
+        super(Parallel, self).cancel(widget)
+
+    def stop_property(self, widget, prop):
+        self.anim1.stop_property(widget, prop)
+        self.anim2.stop_property(widget, prop)
+        if (not self.anim1.have_properties_to_animate(widget) and
+            not self.anim2.have_properties_to_animate(widget)):
+            self.stop(widget)
+
+    def cancel(self, widget):
+        self.anim1.cancel(widget)
+        self.anim2.cancel(widget)
+        super(Parallel, self).cancel(widget)
 
     def on_anim_complete(self, instance, widget):
-        self._widgets[widget]['complete'] += 1
-        if self._widgets[widget]['complete'] == 2:
-            self.dispatch('on_complete', widget)
+        self._widgets[widget.uid]['complete'] += 1
+        if self._widgets[widget.uid]['complete'] == 2:
+            self.stop(widget)
 
 
 class AnimationTransition(object):
@@ -464,13 +558,13 @@ class AnimationTransition(object):
     def in_sine(progress):
         '''.. image:: images/anim_in_sine.png
         '''
-        return -1.0 * cos(progress * (pi/2.0)) + 1.0
+        return -1.0 * cos(progress * (pi / 2.0)) + 1.0
 
     @staticmethod
     def out_sine(progress):
         '''.. image:: images/anim_out_sine.png
         '''
-        return sin(progress * (pi/2.0))
+        return sin(progress * (pi / 2.0))
 
     @staticmethod
     def in_out_sine(progress):
@@ -565,7 +659,7 @@ class AnimationTransition(object):
             return 1.0
         if q < 1:
             q -= 1.0
-            return -.5 * (pow(2, 10 * q) * sin((q - s) * (2.0 *pi) / p))
+            return -.5 * (pow(2, 10 * q) * sin((q - s) * (2.0 * pi) / p))
         else:
             q -= 1.0
             return pow(2, -10 * q) * sin((q - s) * (2.0 * pi) / p) * .5 + 1.0
@@ -633,4 +727,3 @@ class AnimationTransition(object):
         if p < 1.:
             return AnimationTransition._in_bounce_internal(p, 1.) * .5
         return AnimationTransition._out_bounce_internal(p - 1., 1.) * .5 + .5
-

@@ -52,7 +52,7 @@ class GestureBoard(FloatLayout):
         try:
             touch.ud['line'].points += [touch.x, touch.y]
             return True
-        except (KeyError), e:
+        except (KeyError) as e:
             pass
 
     def on_touch_up(self, touch):
@@ -60,27 +60,26 @@ class GestureBoard(FloatLayout):
         # known gesture.
         g = simplegesture(
                 '',
-                zip(touch.ud['line'].points[::2], touch.ud['line'].points[1::2])
+                list(zip(touch.ud['line'].points[::2], touch.ud['line'].points[1::2]))
                 )
-        # print the gesture representation, you can use that to add
         # gestures to my_gestures.py
-        print "gesture representation:", self.gdb.gesture_to_str(g)
+        print("gesture representation:", self.gdb.gesture_to_str(g))
 
         # print match scores between all known gestures
-        print "cross:", g.get_score(cross)
-        print "check:", g.get_score(check)
-        print "circle:", g.get_score(circle)
-        print "square:", g.get_score(square)
+        print("cross:", g.get_score(cross))
+        print("check:", g.get_score(check))
+        print("circle:", g.get_score(circle))
+        print("square:", g.get_score(square))
 
         # use database to find the more alike gesture, if any
         g2 = self.gdb.find(g, minscore=0.70)
 
-        print g2
+        print(g2)
         if g2:
-            if g2[1] == circle: print "circle"
-            if g2[1] == square: print "square"
-            if g2[1] == check: print "check"
-            if g2[1] == cross: print "cross"
+            if g2[1] == circle: print("circle")
+            if g2[1] == square: print("square")
+            if g2[1] == check: print("check")
+            if g2[1] == cross: print("cross")
 
         # erase the lines on the screen, this is a bit quick&dirty, since we
         # can have another touch event on the way...

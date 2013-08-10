@@ -7,7 +7,7 @@ texture, and use your fbo as a texture for another drawing.
 
 Fbo act as a :class:`kivy.graphics.instructions.Canvas`.
 
-Exemple of using an fbo for some color rectangles ::
+Example of using an fbo for some color rectangles::
 
     from kivy.graphics import Fbo, Color, Rectangle
 
@@ -81,8 +81,9 @@ from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.instructions cimport RenderContext, Canvas
+from kivy.graphics.opengl import glReadPixels as py_glReadPixels
 
-cdef list fbo_stack = [0]
+cdef list fbo_stack = []
 cdef list fbo_release_list = []
 
 
@@ -148,8 +149,8 @@ cdef class Fbo(RenderContext):
         if 'texture' not in kwargs:
             kwargs['texture'] = None
 
-        self.buffer_id = -1
-        self.depthbuffer_id = -1
+        self.buffer_id = 0
+        self.depthbuffer_id = 0
         self._width, self._height  = kwargs['size']
         self.clear_color = kwargs['clear_color']
         self._depthbuffer_attached = int(kwargs['with_depthbuffer'])
@@ -166,11 +167,12 @@ cdef class Fbo(RenderContext):
     cdef void delete_fbo(self):
         self._texture = None
         get_context().dealloc_fbo(self)
-        self.buffer_id = -1
-        self.depthbuffer_id = -1
+        self.buffer_id = 0
+        self.depthbuffer_id = 0
 
     cdef void create_fbo(self):
         cdef GLuint f_id = 0
+        cdef GLint old_fid = 0
         cdef int status
         cdef int do_clear = 0
 
@@ -179,17 +181,22 @@ cdef class Fbo(RenderContext):
             self._texture = Texture.create(size=(self._width, self._height))
             do_clear = 1
 
+        # apply any changes if needed
+        self._texture.bind()
+
         # create framebuffer
         glGenFramebuffers(1, &f_id)
         self.buffer_id = f_id
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &old_fid)
         glBindFramebuffer(GL_FRAMEBUFFER, self.buffer_id)
 
         # if we need depth, create a renderbuffer
         if self._depthbuffer_attached:
+             
             glGenRenderbuffers(1, &f_id)
             self.depthbuffer_id = f_id
             glBindRenderbuffer(GL_RENDERBUFFER, self.depthbuffer_id)
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16,
                                   self._width, self._height)
             glBindRenderbuffer(GL_RENDERBUFFER, 0)
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
@@ -209,7 +216,7 @@ cdef class Fbo(RenderContext):
             self.clear_buffer()
 
         # unbind the framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        glBindFramebuffer(GL_FRAMEBUFFER, old_fid)
 
         cdef Matrix projection_mat = Matrix()
         projection_mat.view_clip(0.0, self._width, 0.0, self._height, -1.0, 1.0, 0)
@@ -231,7 +238,7 @@ cdef class Fbo(RenderContext):
             self.fbo.release()
 
             # then, your fbo texture is available at
-            print self.fbo.texture
+            print(self.fbo.texture)
         '''
         if self._is_bound:
             self.raise_exception('FBO already binded.')
@@ -239,6 +246,12 @@ cdef class Fbo(RenderContext):
             self._is_bound = 1
 
         # stack our fbo to the last binded fbo
+        cdef GLint old_fid = 0
+        if len(fbo_stack) == 0:
+            # the very first time we're going to create it, fill with the
+            # initial framebuffer
+            glGetIntegerv(GL_FRAMEBUFFER_BINDING, &old_fid)
+            fbo_stack.append(old_fid)
         fbo_stack.append(self.buffer_id)
         glBindFramebuffer(GL_FRAMEBUFFER, self.buffer_id)
 
@@ -365,4 +378,33 @@ cdef class Fbo(RenderContext):
         '''
         def __get__(self):
             return self._texture
+
+    property pixels:
+        '''Get the pixels texture, in RGBA format only, unsigned byte.
+
+        .. versionadded:: 1.7.0
+        '''
+        def __get__(self):
+            w,h = self._width, self._height
+            self.bind()
+            data = py_glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE)
+            self.release()
+            return data
+
+    cpdef get_pixel_color(self, int wx, int wy):
+        """Get the color of the pixel with specified window
+        coordinates wx, wy. It returns result in RGBA format.
+ 
+        .. versionadded:: 1.8.0
+        """
+        if wx > self._width or wy > self._height:
+            # window coordinates should not exceed the
+            # frame buffer size
+            return (0, 0, 0, 0)
+        self.bind()
+        data = py_glReadPixels(wx, wy, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE)
+        self.release()
+        raw_data = str(memoryview(data))
+        
+        return [ord(i) for i in raw_data]
 

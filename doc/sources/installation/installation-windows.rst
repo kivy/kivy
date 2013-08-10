@@ -6,18 +6,18 @@ Installation on Windows
 For Windows, we provide what we call a 'portable package'. You don't have
 to install anything "system" wide. Just unzip & run:
 
-#. Download the latest version from http://kivy.org/#downloads
+#. Download the latest version from http://kivy.org/#download
 
     .. image:: images/win-step1.png
-        :scale: 50%
+        :scale: 75%
 
 #. Unzip the package
 
     .. image:: images/win-step3.png
-        :scale: 50%
+        :scale: 75%
 
-#. Then, in the unzipped package, you have a script called `kivy.bat`,
-   use it for launching any kivy application as described below
+#. In the folder where you unzipped the package, you have a script called `kivy.bat`.
+   Use this file for launching any kivy application as described below
 
 
 .. _windows-run-app:
@@ -30,45 +30,52 @@ Send-to method
 
 You can launch a .py file with our Python using the Send-to menu:
 
-#. Copy the kivy.bat in the Clipboard
+#. Copy the kivy.bat file to the Clipboard
 
     .. image:: images/win-step4.png
+        :scale: 75%
 
-#. Open the explorer, and to go the address 'shell:sendto'
+#. Open Windows explorer (File explorer in Windows 8), and to go the address 'shell:sendto'
 
     .. image:: images/win-step5.png
+        :scale: 75%
 
-#. You should get the special windows directory SendTo
+#. You should get the special Windows directory `SendTo`
 
     .. image:: images/win-step6.png
+        :scale: 75%
 
-#. Paste the previously copied kivy.bat **as a shortcut**
+#. Paste the previously copied kivy.bat file **as a shortcut**
 
     .. image:: images/win-step7.png
+        :scale: 75%
 
 #. Rename it to Kivy <kivy-version>
 
     .. image:: images/win-step8.png
+        :scale: 75%
 
-Then, you can execute application by doing a right click on the .py file ->
+You can now execute your application by right clicking on the .py file ->
 "Send To" -> "Kivy <version>".
 
     .. image:: images/win-step9.png
+        :scale: 75%
 
 Double-click method
 ~~~~~~~~~~~~~~~~~~~
 
-There are some simple steps that you need to do once in order to be able
-to launch any kivy application by just double-clicking it:
+There are some simple steps that you need to complete in order to be able
+to launch Kivy applications by just double-clicking them:
 
-    #. Right click on the main python file (.py ending) of the application you want to launch
+    #. Right click on the main Python file (.py file extention) of the application you want to launch
     #. From the context menu that appears, select *Open With*
     #. Browse your hard disk drive and find the file ``kivy.bat`` from the portable package. Select it.
-    #. Select "Always open the file with..." if you don't want to repeat this procedure every time you double click a .py file.
+    #. Select "Always open the file with..." if you don't want to repeat this procedure every time you 
+       double click a .py file.
     #. You are done. Open the file.
 
 The next time you double click a .py file, it will be executed with the version
-of python that Kivy ships with.
+of Python that Kivy ships with.
 
 .. note::
    On Windows we have to ship our own version of Python since it's not
@@ -81,25 +88,25 @@ of python that Kivy ships with.
    If you do encounter unexpected problems, please :ref:`contact`.
 
 
-Start from Command-Line
------------------------
+Start from the Command-line
+---------------------------
 
-If you just want to use or develop with the latest stable kivy version, we offer
-an alternative way with a console. You need a minimalist GNU system installed on
-your system. Use `msysGit <http://code.google.com/p/msysgit/>`_.
+If you just want to use or develop with the latest stable Kivy version, this can
+be achieved using the console. You will need a minimalist GNU system installed.
+We recommend `msysGit <http://code.google.com/p/msysgit/>`_.
 
-When you install msysGit, you must select theses options:
+When you install msysGit, you must select these options:
 
     * Don't replace windows shell
     * Checkout as-is, commit as-is (no CLRF replacement!)
 
-You'll have an icon "Git bash" on your desktop, this is the console we want:
+You'll have an icon "Git bash" on your desktop. This is the console we want:
 
     #. Start "Git bash"
     #. ``cd <directory of portable kivy>``
     #. ``source kivyenv.sh <full directory path of portable kivy>`` # (don't use .)
 
-You are now ready to launch python/kivy from the command-line! Just do::
+You are now ready to launch Python/Kivy from the command-line! Just do::
 
     python <filename.py>
 
@@ -110,6 +117,38 @@ Also, all other scripts and binaries are available, such as:
     * easy_install
     * gst-inspect-0.10
 
+
+Use development Kivy
+--------------------
+
+.. warning::
+
+    Using the latest development version can be risky and you might encounter
+    issues during development. If you encounter any bugs, please report them.
+
+If you want to use the latest development version of Kivy, you can follow these steps:
+
+#. Download and install Kivy for Windows as explained above
+#. Go into the portable Kivy directory. This contains the `kivy.bat` file and the `Python`, `kivy`, `Mingw` folders etc.
+#. Rename the kivy directory to kivy.stable
+#. Go to github, and download the `latest development version of Kivy <https://github.com/kivy/kivy/zipball/master>`_
+#. Extract the zip into the Kivy portable directory
+#. Rename the directory named "kivy-<some hash>" to just "kivy"
+#. Launch kivy.bat
+#. Go to the Kivy portable directory/kivy
+#. Type::
+
+    make force
+
+#. That's all, you have a latest development version!
+
+.. note::
+
+    If you get errors you may need to upgrade Cython:
+    
+    1.  Launch kivy.bat
+    2. ``cd Python/Scripts``
+    3. ``pip install --upgrade cython``
 
 .. _winpackagecontents:
 
@@ -123,7 +162,7 @@ The latest Windows package contains:
     * Glew 1.5.7
     * Pygame 1.9.2
     * Cython 0.14
-    * MingW
-    * Gstreamer
+    * MinGW
+    * GStreamer
     * Setuptools
 

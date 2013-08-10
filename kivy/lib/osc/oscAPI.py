@@ -1,3 +1,4 @@
+# pylint: disable=W0611
 '''    simpleOSC 0.2
     ixi software - July, 2006
     www.ixi-software.net
@@ -28,7 +29,7 @@
     Thanks for the support to Buchsenhausen, Innsbruck, Austria.
 '''
 
-import OSC
+from . import OSC
 import socket, os, time, errno, sys
 from threading import Lock
 from kivy.logger import Logger
@@ -38,7 +39,7 @@ try:
         raise
     use_multiprocessing = True
     from multiprocessing import Process, Queue, Value
-    __import__('multiprocessing.synchronize')
+    import multiprocessing.synchronize
     Logger.info('OSC: using <multiprocessing> for socket')
 except:
     use_multiprocessing = False
@@ -202,15 +203,14 @@ class OSCServer(_OSCServer):
                 self.socket.settimeout(0.5)
                 self.haveSocket = True
 
-            except socket.error, e:
+            except socket.error as e:
                 error, message = e.args
 
                 # special handle for EADDRINUSE
                 if error == errno.EADDRINUSE:
                     Logger.error('OSC: Address %s:%i already in use, retry in 2 second' % (self.ipAddr, self.port))
                 else:
-                    Logger.exception(e)
-                self.haveSocket = False
+                    self.haveSocket = False
 
                 # sleep 2 second before retry
                 time.sleep(2)
@@ -221,11 +221,10 @@ class OSCServer(_OSCServer):
             try:
                 message = self.socket.recv(65535)
                 self._queue_message(message)
-            except Exception, e:
+            except Exception as e:
                 if type(e) == socket.timeout:
                     continue
-                Logger.error('OSC: Error in Tuio recv()')
-                Logger.exception(e)
+                Logger.exception('OSC: Error in Tuio recv()')
                 return 'no data arrived'
 
 def listen(ipAddr='127.0.0.1', port=9001):
@@ -249,7 +248,7 @@ def dontListen(id = None):
     if id and id in oscThreads:
         ids = [id]
     else:
-        ids = oscThreads.keys()
+        ids = list(oscThreads.keys())
     for id in ids:
         #oscThreads[id].socket.close()
         Logger.debug('OSC: Stop thread <%s>' % id)
@@ -268,9 +267,9 @@ if __name__ == '__main__':
     def printStuff(msg):
         '''deals with "print" tagged OSC addresses
         '''
-        print "printing in the printStuff function ", msg
-        print "the oscaddress is ", msg[0]
-        print "the value is ", msg[2]
+        print("printing in the printStuff function ", msg)
+        print("the oscaddress is ", msg[0])
+        print("the value is ", msg[2])
 
     bind(printStuff, "/test")
 

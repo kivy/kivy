@@ -16,14 +16,14 @@ import sys, os
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
-sys.path.append(os.path.abspath('sphinxext'))
+sys.path.insert(0, os.path.abspath('sphinxext'))
 
 # General configuration
 # ---------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['autodoc', 'sphinx.ext.todo', 'preprocess']
+extensions = ['autodoc', 'sphinx.ext.todo', 'preprocess', 'sphinx.ext.ifconfig']
 
 # Todo configuration
 todo_include_todos = True
@@ -51,7 +51,7 @@ copyright = '2010, The Kivy Authors'
 #
 os.environ['KIVY_DOC_INCLUDE'] = '1'
 import kivy
-print kivy.__file__
+print(kivy.__file__)
 
 version = kivy.__version__
 release = kivy.__version__
@@ -62,12 +62,8 @@ release = kivy.__version__
 # Else, today_fmt is used as the format for a strftime call.
 today_fmt = '%B %d, %Y'
 
-# List of documents that shouldn't be included in the build.
-#unused_docs = []
-
-# List of directories, relative to source directories, that shouldn't be searched
-# for source files.
-#exclude_dirs = []
+# suppress exclusion warnings
+exclude_patterns = ['guide/layouts.rst', 'api-kivy.lib.osc*']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
@@ -93,7 +89,7 @@ pygments_style = 'kivy_pygments_theme.KivyStyle'
 # The style sheet to use for HTML and HTML Help pages. A file of that name
 # must exist either in Sphinx' static/ path, or in one of the custom paths
 # given in html_static_path.
-html_style = 'default.css'
+html_style = 'fresh.css'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -104,7 +100,7 @@ html_style = 'default.css'
 
 # The name of an image file (within the static path) to place at the top of
 # the sidebar.
-html_logo = 'logo_kivy.png'
+html_logo = 'logo-kivy.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32

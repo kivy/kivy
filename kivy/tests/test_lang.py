@@ -4,17 +4,25 @@ Language tests
 '''
 
 import unittest
+from weakref import proxy
 
 
 class BaseClass(object):
+    uid = 0
+
     # base class needed for builder
     def __init__(self, **kwargs):
         super(BaseClass, self).__init__()
+        self.proxy_ref = proxy(self)
         self.children = []
         self.parent = None
         self.binded_func = {}
         self.id = None
+        self.ids = {}
         self.cls = []
+        self.ids = {}
+        self.uid = BaseClass.uid
+        BaseClass.uid += 1
 
     def add_widget(self, widget):
         self.children.append(widget)
@@ -154,9 +162,60 @@ class LangTestCase(unittest.TestCase):
         Builder.load_string('''
 <TestClass>:
     on_press:
-        print 'hello world'
-        print 'this is working !'
+        print('hello world')
+        print('this is working !')
         self.a = 1
+''')
+        wid = TestClass()
+        Builder.apply(wid)
+        wid.a = 0
+
+        self.assertTrue('on_press' in wid.binded_func)
+        wid.binded_func['on_press']()
+        self.assertEquals(wid.a, 1)
+
+    def test_with_eight_spaces(self):
+        Builder = self.import_builder()
+        Builder.load_string('''
+<TestClass>:
+        on_press:
+                print('hello world')
+                print('this is working !')
+                self.a = 1
+''')
+        wid = TestClass()
+        Builder.apply(wid)
+        wid.a = 0
+
+        self.assertTrue('on_press' in wid.binded_func)
+        wid.binded_func['on_press']()
+        self.assertEquals(wid.a, 1)
+
+    def test_with_one_space(self):
+        Builder = self.import_builder()
+        Builder.load_string('''
+<TestClass>:
+ on_press:
+  print('hello world')
+  print('this is working !')
+  self.a = 1
+''')
+        wid = TestClass()
+        Builder.apply(wid)
+        wid.a = 0
+
+        self.assertTrue('on_press' in wid.binded_func)
+        wid.binded_func['on_press']()
+        self.assertEquals(wid.a, 1)
+
+    def test_with_two_spaces(self):
+        Builder = self.import_builder()
+        Builder.load_string('''
+<TestClass>:
+  on_press:
+    print('hello world')
+    print('this is working !')
+    self.a = 1
 ''')
         wid = TestClass()
         Builder.apply(wid)

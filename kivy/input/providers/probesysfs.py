@@ -9,7 +9,7 @@ be made by other providers like: hidinput, mtdev, linuxwacom. mtdev is used
 prior to other providers. For more information about mtdev, check
 :py:class:`~kivy.input.providers.mtdev`.
 
-Here is an example of auto creation ::
+Here is an example of auto creation::
 
     [input]
     # using mtdev
@@ -52,6 +52,7 @@ else:
     from kivy.logger import Logger
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory
+    from kivy.config import _is_rpi
 
     # See linux/input.h
     ABS_MT_POSITION_X = 0x35
@@ -80,7 +81,7 @@ else:
             long_bit = getconf("LONG_BIT")
             for i, word in enumerate(line.split(" ")):
                 word = int(word, 16)
-                subcapabilities = [bool(word & 1<<i) for i in range(long_bit)]
+                subcapabilities = [bool(word & 1 << i) for i in range(long_bit)]
                 capabilities[:0] = subcapabilities
 
             return capabilities
@@ -120,7 +121,7 @@ else:
             self.provider = 'mtdev'
             self.match = None
             self.input_path = '/sys/class/input'
-            self.select_all = False
+            self.select_all = True if _is_rpi else False 
             self.use_regex = False
             self.args = []
 
@@ -154,12 +155,13 @@ else:
 
         def probe(self):
             inputs = get_inputs(self.input_path)
+            Logger.debug('ProbeSysfs: using probsysfs!')
             if not self.select_all:
-                inputs = [x for x in inputs if \
+                inputs = [x for x in inputs if
                           x.has_capability(ABS_MT_POSITION_X)]
             for device in inputs:
                 Logger.debug('ProbeSysfs: found device: %s at %s' % (
-                                 device.name, device.device))
+                    device.name, device.device))
 
                 # must ignore ?
                 if self.match:
@@ -193,6 +195,5 @@ else:
                 if instance:
                     from kivy.base import EventLoop
                     EventLoop.add_input_provider(instance)
-
 
     MotionEventFactory.register('probesysfs', ProbeSysfsHardwareProbe)

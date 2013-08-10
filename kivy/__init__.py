@@ -4,7 +4,7 @@ Kivy framework
 
 Kivy is an open source library for developing multi-touch applications. It is
 completely cross-platform (Linux/OSX/Win) and released under the terms of the
-GNU LGPL.
+MIT License.
 
 It comes with native support for many multi-touch input devices, a growing
 library of multi-touch aware widgets and hardware accelerated OpenGL drawing.
@@ -24,11 +24,11 @@ __all__ = (
     'kivy_configure', 'kivy_register_post_configuration',
     'kivy_options', 'kivy_base_dir',
     'kivy_modules_dir', 'kivy_data_dir', 'kivy_shader_dir',
-    'kivy_icons_dir', 'kivy_home_dir',
+    'kivy_icons_dir', 'kivy_home_dir', 'kivy_userexts_dir',
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.3.0-dev'
+__version__ = '1.8.0-dev'
 
 import sys
 import shutil
@@ -42,8 +42,8 @@ from kivy.utils import platform
 __kivy_post_configuration = []
 
 
-if platform() == 'macosx' and sys.maxint < 9223372036854775807:
-    r ='''Unsupported Python version detected!:
+if platform() == 'macosx' and sys.maxsize < 9223372036854775807:
+    r = '''Unsupported Python version detected!:
     Kivy requires a 64 bit version of Python to run on OS X. We strongly advise
     you to use the version of Python that is provided by Apple (don't use ports,
     fink or homebrew unless you know what you're doing).
@@ -112,7 +112,7 @@ def require(version):
     if tag == 'dev' and systag != 'dev':
         Logger.warning('Application requested a -dev version of Kivy. '
                        '(You have %s, but the application requires %s)' % (
-                            __version__, version))
+                           __version__, version))
     # not tag rev (-alpha-1, -beta-x) allowed.
     if tagrev is not None:
         raise Exception('Revision format must not contain any tagrevision')
@@ -143,7 +143,7 @@ def kivy_register_post_configuration(callback):
 
 
 def kivy_usage():
-    '''Kivy Usage: %s [OPTION...] ::
+    '''Kivy Usage: %s [OPTION...]::
 
         -h, --help
             Prints this help message.
@@ -171,8 +171,10 @@ def kivy_usage():
             Save current Kivy configuration.
         --size=640x480
             Size of window geometry.
+        --dpi=96
+            Manually overload the Window DPI (for testing only.)
     '''
-    print kivy_usage.__doc__ % (basename(sys.argv[0]))
+    print(kivy_usage.__doc__ % (basename(sys.argv[0])))
 
 
 # Start !
@@ -184,11 +186,11 @@ else:
 
 #: Global settings options for kivy
 kivy_options = {
-    'window': ('pygame', ),
-    'text': ('pil', 'pygame'),
-    'video': ('ffmpeg', 'gstreamer', 'pyglet'),
-    'audio': ('pygame', 'gstreamer', ),
-    'image': ('dds', 'gif', 'pil', 'pygame'),
+    'window': ('egl_rpi', 'pygame', 'sdl', 'x11'),
+    'text': ('pil', 'pygame', 'sdlttf'),
+    'video': ('ffmpeg', 'gstreamer', 'pyglet', 'null'),
+    'audio': ('pygame', 'gstreamer', 'sdl'),
+    'image': ('tex', 'imageio', 'dds', 'gif', 'pil', 'pygame'),
     'camera': ('opencv', 'gstreamer', 'videocapture'),
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': ('pygame', 'dummy'), }
@@ -199,7 +201,7 @@ for option in kivy_options:
     if key in environ:
         try:
             if type(kivy_options[option]) in (list, tuple):
-                kivy_options[option] = (str(environ[key]), )
+                kivy_options[option] = environ[key].split(',')
             else:
                 kivy_options[option] = environ[key].lower() in \
                     ('true', '1', 'yes', 'yup')
@@ -224,24 +226,30 @@ kivy_shader_dir = join(kivy_data_dir, 'glsl')
 #: Kivy icons config path (don't remove the last '')
 kivy_icons_dir = join(kivy_data_dir, 'icons', '')
 #: Kivy user-home storage directory
-kivy_home_dir = None
+kivy_home_dir = ''
 #: Kivy configuration filename
-kivy_config_fn = None
+kivy_config_fn = ''
 #: Kivy user modules directory
-kivy_usermodules_dir = None
+kivy_usermodules_dir = ''
+#: Kivy user extensions directory
+kivy_userexts_dir = ''
+
 
 # Don't go further if we generate documentation
-if basename(sys.argv[0]) in ('sphinx-build', 'autobuild.py'):
+if any(name in sys.argv[0] for name in ('sphinx-build', 'autobuild.py')):
     environ['KIVY_DOC'] = '1'
-if basename(sys.argv[0]) in ('sphinx-build', ):
+if 'sphinx-build' in sys.argv[0]:
     environ['KIVY_DOC_INCLUDE'] = '1'
-if basename(sys.argv[0]) in ('nosetests', ) or 'nosetests' in sys.argv:
+if any('nosetests' in arg for arg in sys.argv):
     environ['KIVY_UNITTEST'] = '1'
-if not 'KIVY_DOC_INCLUDE' in environ:
+
+if not environ.get('KIVY_DOC_INCLUDE'):
     # Configuration management
     user_home_dir = expanduser('~')
     if platform() == 'android':
         user_home_dir = environ['ANDROID_APP_PATH']
+    elif platform() == 'ios':
+        user_home_dir = join(expanduser('~'), 'Documents')
     kivy_home_dir = join(user_home_dir, '.kivy')
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
@@ -258,7 +266,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
         if not exists(icon_dir):
             try:
                 shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
-            except shutil.Error, e:
+            except shutil.Error as e:
                 Logger.exception('Error when copying logo directory')
 
     # configuration
@@ -268,7 +276,6 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
     Logger.setLevel(level=level)
     Logger.setLevel(level=LOG_LEVELS.get('debug'))
-
 
     # Can be overrided in command line
     if 'KIVY_UNITTEST' not in environ:
@@ -281,9 +288,10 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             opts, args = getopt(sys_argv[1:], 'hp:fkawFem:sr:dc:',
                 ['help', 'fullscreen', 'windowed', 'fps', 'event',
                  'module=', 'save', 'fake-fullscreen', 'auto-fullscreen',
-                 'display=', 'size=', 'rotate=', 'config=', 'debug'])
+                 'display=', 'size=', 'rotate=', 'config=', 'debug',
+                 'dpi='])
 
-        except GetoptError, err:
+        except GetoptError as err:
             Logger.error('Core: %s' % str(err))
             kivy_usage()
             sys.exit(2)
@@ -293,7 +301,6 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     else:
         opts = []
         args = []
-
 
     need_save = False
     for opt, arg in opts:
@@ -351,22 +358,30 @@ if not 'KIVY_DOC_INCLUDE' in environ:
         elif opt in ('-d', '--debug'):
             level = LOG_LEVELS.get('debug')
             Logger.setLevel(level=level)
+        elif opt == '--dpi':
+            environ['KIVY_DPI'] = arg
 
     if need_save and 'KIVY_NO_CONFIG' not in environ:
         try:
             with open(kivy_config_fn, 'w') as fd:
                 Config.write(fd)
-        except Exception, e:
+        except Exception as e:
             Logger.exception('Core: error while saving default'
                              'configuration file:', str(e))
         Logger.info('Core: Kivy configuration saved.')
         sys.exit(0)
 
-# android hooks: force fullscreen and add android touch input provider
-if platform() == 'android':
-    from kivy.config import Config
-    Config.set('graphics', 'fullscreen', 'auto')
-    Config.remove_section('input')
-    Config.add_section('input')
-    Config.set('input', 'androidtouch', 'android')
+    # configure all activated modules
+    from kivy.modules import Modules
+    Modules.configure()
+
+    # android hooks: force fullscreen and add android touch input provider
+    if platform() in ('android', 'ios'):
+        from kivy.config import Config
+        Config.set('graphics', 'fullscreen', 'auto')
+        Config.remove_section('input')
+        Config.add_section('input')
+
+    if platform() == 'android':
+        Config.set('input', 'androidtouch', 'android')
 

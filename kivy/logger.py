@@ -13,8 +13,8 @@ Examples of usage::
 
     try:
         raise Exception('bleh')
-    except Exception, e:
-        Logger.exception(e)
+    except Exception:
+        Logger.exception('Something happen!')
 
 The message passed to the logger is splited to the first :. The left part is
 used as a title, and the right part is used as a message. This way, you can
@@ -48,7 +48,7 @@ messages::
 
     from kivy.logger import LoggerHistory
 
-    print LoggerHistory.history
+    print(LoggerHistory.history)
 
 '''
 
@@ -56,6 +56,7 @@ import logging
 import os
 import sys
 import kivy
+from kivy.compat import PY2
 from random import randint
 from functools import partial
 
@@ -63,7 +64,7 @@ __all__ = ('Logger', 'LOG_LEVELS', 'COLORS', 'LoggerHistory')
 
 Logger = None
 
-BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
+BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = list(range(8))
 
 #These are the sequences need to get colored ouput
 RESET_SEQ = "\033[0m"
@@ -115,28 +116,28 @@ class FileHandler(logging.Handler):
         # Use config ?
         maxfiles = 100
 
-        print 'Purge log fired. Analysing...'
+        print('Purge log fired. Analysing...')
         join = os.path.join
         unlink = os.unlink
 
         # search all log files
-        l = map(lambda x: join(directory, x), os.listdir(directory))
+        l = [join(directory, x) for x in os.listdir(directory)]
         if len(l) > maxfiles:
             # get creation time on every files
-            l = zip(l, map(os.path.getctime, l))
+            l = [{'fn': x, 'ctime': os.path.getctime(x)} for x in l]
 
             # sort by date
-            l.sort(cmp=lambda x, y: cmp(x[1], y[1]))
+            l = sorted(l, key=lambda x: x['ctime'])
 
             # get the oldest (keep last maxfiles)
             l = l[:-maxfiles]
-            print 'Purge %d log files' % len(l)
+            print('Purge %d log files' % len(l))
 
             # now, unlink every files in the list
             for filename in l:
-                unlink(filename[0])
+                unlink(filename['fn'])
 
-        print 'Purge finished !'
+        print('Purge finished !')
 
     def _configure(self):
         from time import strftime
@@ -162,7 +163,7 @@ class FileHandler(logging.Handler):
             if not os.path.exists(filename):
                 break
             n += 1
-            if n > 10000: # prevent maybe flooding ?
+            if n > 10000:  # prevent maybe flooding ?
                 raise Exception('Too many logfile, remove them')
 
         FileHandler.filename = filename
@@ -178,13 +179,20 @@ class FileHandler(logging.Handler):
         try:
             FileHandler.fd.write(record.msg)
         except UnicodeEncodeError:
-            FileHandler.fd.write(record.msg.encode('utf8'))
+            if PY2:
+                FileHandler.fd.write(record.msg.encode('utf8'))
         FileHandler.fd.write('\n')
         FileHandler.fd.flush()
 
     def emit(self, message):
-        if not Logger.logfile_activated:
+        # during the startup, store the message in the history
+        if Logger.logfile_activated is None:
             FileHandler.history += [message]
+            return
+
+        # startup done, if the logfile is not activated, avoid history.
+        if Logger.logfile_activated is False:
+            FileHandler.history = []
             return
 
         if FileHandler.fd is None:
@@ -195,7 +203,8 @@ class FileHandler(logging.Handler):
                 FileHandler.fd = False
                 Logger.exception('Error while activating FileHandler logger')
                 return
-            for _message in FileHandler.history:
+            while FileHandler.history:
+                _message = FileHandler.history.pop()
                 self._write_message(_message)
 
         self._write_message(message)
@@ -232,8 +241,8 @@ class ColoredFormatter(logging.Formatter):
             levelname = 'TRACE'
             record.levelname = levelname
         if self.use_color and levelname in COLORS:
-            levelname_color = COLOR_SEQ % (30 + COLORS[levelname]) \
-                                + levelname + RESET_SEQ
+            levelname_color = (
+                COLOR_SEQ % (30 + COLORS[levelname]) + levelname + RESET_SEQ)
             record.levelname = levelname_color
         return logging.Formatter.format(self, record)
 
@@ -272,9 +281,15 @@ class LogFile(object):
     def flush(self):
         return
 
+
+def logger_config_update(section, key, value):
+    if LOG_LEVELS.get(value) is None:
+        raise AttributeError('Loglevel {0!r} doesn\'t exists'.format(value))
+    Logger.setLevel(level=LOG_LEVELS.get(value))
+
 #: Kivy default logger instance
 Logger = logging.getLogger('kivy')
-Logger.logfile_activated = False
+Logger.logfile_activated = None
 Logger.trace = partial(Logger.log, logging.TRACE)
 
 # add default kivy logger
@@ -288,7 +303,10 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
         Logger.addHandler(getattr(sys, '_kivy_logging_handler'))
     else:
         use_color = os.name != 'nt'
-        color_fmt = formatter_message('[%(levelname)-18s] %(message)s', use_color)
+        if os.environ.get('KIVY_BUILD') in ('android', 'ios'):
+            use_color = False
+        color_fmt = formatter_message(
+            '[%(levelname)-18s] %(message)s', use_color)
         formatter = ColoredFormatter(color_fmt, use_color=use_color)
         console = ConsoleHandler()
         console.setFormatter(formatter)
@@ -299,4 +317,3 @@ sys.stderr = LogFile('stderr', Logger.warning)
 
 #: Kivy history handler
 LoggerHistory = LoggerHistory
-

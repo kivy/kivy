@@ -1,27 +1,38 @@
 Layouts
 --------
 
-.. container:: title
+Layouts are containers used to arrange widgets in a particular manner::
 
-    Arranging Your Widgets
+    AnchorLayout:   Widgets can be anchored to the 'top', 'bottom', 'left',
+                    'right' or 'center'.
+    BoxLayout:      Widgets are arranged sequentially, in either a 'vertical'
+                    or a 'horizontal' orientation.
+    FloatLayout:    Widgets are essentially unrestricted.
+    RelativeLayout: Child widgets are positioned relative to the layout.
+    GridLayout:     Widgets are arranged in a grid defined by the `rows` and
+                    `cols` properties.
+    StackLayout:    Widgets are stacked in a `lr-tb` (left to right then top to
+                    bottom) or `tb-lr` order.
 
-Layouts are used to arrange widgets in a perticular manner. ::
+When you add a widget to a layout, the following properties are used to
+determine the widget's size and position, depending on the type of layout:
 
-    AnchorLayout:   widgets can be anchored to 'top', 'bottom', 'left', 'right', 'center'
-    BoxLayout:      widgets arranged in a box either in 'vertical' or 'horizontal' orientation
-    FloatLayout:    Widgets are essentially unrestricted
-    GridLayout:     widgets arranged in a grid defined by `rows` and `cols` properties
-    StackLayout:    widgets are stacked in `lr-tb` (left to right then top to bottom) or `tb-lr`
+    **size_hint**: defines the size of a widget in its parent space as a percentage.
+    Values are restricted to the range 0.0 - 1.0 i.e. 0.01 = 1% and 1. = 100%.
 
-**Size_hint**: defines the size of a widget in parent space in percentages, values restricted to range 0 - 1 i.e. 0.01 = 1% and 1. = 100%.
-**pos_hint**: is used to place the widget relative to the parent.
+    **pos_hint**: is used to place the widget relative to the parent.
 
-size_hint or pos_hint are used to calculate widget's size and position only if the value/s are not set to None.
-However one can set these to None and provide direct values in screen coordinates.
+The **size_hint** and **pos_hint** are used to calculate a widget's size and
+position only if the value(s) are not set to ``None``. If you set these values to
+``None``, the layout will not position/size the widget and you can specify the
+values (x, y, width, height) directly in screen coordinates.
 
-For a detailed look at how you can arrange widgets using layouts look in
-`AnchorLayout <http://kivy.org/docs/api-kivy.uix.anchorlayout.html>`_
-`BoxLayout <http://kivy.org/docs/api-kivy.uix.boxlayout.html>`_
-`FloatLayout <http://kivy.org/docs/api-kivy.uix.floatlayout.html>`_
-`GridLayout <http://kivy.org/docs/api-kivy.uix.gridlayout.html>`_
-`StackLayout <http://kivy.org/docs/api-kivy.uix.stacklayout.html>`_
+For a detailed look at how you can arrange widgets using layouts, please refer
+to:
+
+- :mod:`AnchorLayout <kivy.uix.anchorlayout>`
+- :mod:`BoxLayout <kivy.uix.boxlayout>`
+- :mod:`FloatLayout <kivy.uix.floatlayout>`
+- :mod:`GridLayout <kivy.uix.gridlayout>`
+- :mod:`StackLayout <kivy.uix.stacklayout>`
+- :mod:`RelativeLayout <kivy.uix.relativelayout>`

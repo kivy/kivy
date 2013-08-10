@@ -9,10 +9,11 @@ a great number of software libraries that you can simply import and use right
 away.
 
 For some third-party libraries, it's not as easy as that though. Some libraries
-require special *wrappers* being written for them to be compatible with Kivy.
+require special *wrappers* to be written for them in order to be compatible with
+Kivy.
 Some libraries might even need to be patched so that they can be used (e.g. if
 they open their own OpenGL context to draw in and don't support proper offscreen
-rendering). In those occasions it is often possible to patch the library in
+rendering). On those occasions it is often possible to patch the library in
 question and to provide a Python wrapper around it that is compatible with Kivy.
 Sticking with this example, you can't just use the wrapper with a 'normal'
 installation of the library because the patch would be missing.
@@ -70,7 +71,7 @@ def load(extname, version):
     # XXX platform check?
     '''Use this function to tell Kivy to load a specific version of the given
     Extension. This is different from kivy's require() in that it will always
-    use the exact same major version you specify, even if a newer (major)
+    use the exact same major version you specify even if a newer (major)
     version is available. This is because we cannot make the same
     backwards-compatibility guarantee that we make with Kivy for third-party
     extensions. You will still get fixes and optimizations that don't break
@@ -129,8 +130,8 @@ def load(extname, version):
         searchpath = [bestpath]
     else:
         # Didn't find a matching extension
-        raise ImportError("No extension found that satisfies your criteria: " +
-                          "('%s', %s)" % (extname, version))
+        raise ImportError("No extension found that satisfies your criteria: "\
+                          + "('%s', %s)" % (extname, version))
 
     file, pathname, desc = imp.find_module(extname, searchpath)
     msg = 'Extension found for ' + repr(extname) + ':\n\t' + str(file) + \
@@ -152,13 +153,13 @@ def _is_valid_ext_name(name):
         major, minor = version.split('.')
         major, minor = int(major), int(minor)
     except:
-        print "The name '%s' is not a valid extension name." % name
+        print("The name '%s' is not a valid extension name." % name)
         return False
     return (extname, (major, minor))
 
 
 def unzip_extensions():
-    '''Unzips Kivy extensions. Internal usage only; Don't use it yourself unless
+    '''Unzips Kivy extensions. Internal usage only: don't use it yourself unless
     you know what you're doing and really want to trigger installation of new
     extensions.
 
@@ -170,7 +171,7 @@ def unzip_extensions():
 
      * We require that the ``*.kex`` extension files be put into any of the
        directories listed in EXTENSION_PATHS which is normally
-       ~/.kivy/extensions and extensions/ inside kivy's base dirextory. We do
+       ~/.kivy/extensions and extensions/ inside kivy's base directory. We do
        not look for extensions on sys.path or elsewhere in the system.
 
      * We require that the Kivy extension is zipped in a way so that Python's
@@ -231,20 +232,20 @@ def unzip_extensions():
             except IOError:
                 Logger.warn("Malformed zipfile '%s'! Skipping it." % zipfn)
                 continue
-            except Exception, e:
+            except Exception as e:
                 Logger.warn("Malformed extension '%s'! Skipping it." % zipfn)
                 zipf.close()
                 continue
 
             already_unzipped = False
             if extdir in files:
-                Logger.trace(("Extension '%s' has already been " % extname) + \
+                Logger.trace(("Extension '%s' has already been " % extname) +
                               "extracted manually, just moving the zip.")
                 already_unzipped = True
 
             # Filter the namelist of zipfile to take only the members that start
             # with the extension name (MyExt/...)
-            members = [x for x in zipf.namelist() \
+            members = [x for x in zipf.namelist()
                        if x.startswith(extname + '/')]
 
             if not already_unzipped:
@@ -268,9 +269,9 @@ def unzip_extensions():
                                 mkdir(join(epath, extdir, directory))
                         with open(join(epath, extdir, member), 'wb') as fd:
                             fd.write(zipf.read(member))
-                except Exception, e:
+                except Exception as e:
                     # Catch any error, e.g. non-writable directory, etc.
-                    Logger.error("Failed installing extension " + \
+                    Logger.error("Failed installing extension " +
                                  "'%s' %s." % (extname, e))
                     return
                 finally:

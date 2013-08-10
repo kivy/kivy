@@ -4,36 +4,38 @@
 Motion Event
 ============
 
-The :class:`MotionEvent` is the base class used for every touch and no-touch
-event. This class define all the properties and methods needed to handle 2D and
-3D position, but may have more capabilities.
+The :class:`MotionEvent` is the base class used for every touch and non-touch
+event. This class defines all the properties and methods needed to handle 2D and
+3D movements but has many more capabilities.
 
 .. note::
 
-    You never create the :class:`MotionEvent` yourself, this is the role of the
+    You never create the :class:`MotionEvent` yourself: this is the role of the
     :mod:`~kivy.input.providers`.
 
 Motion Event and Touch
 ----------------------
 
-We differentiate Motion Event and Touch event. A Touch event is a
-:class:`MotionEvent` with the `pos` profile. Only theses event are dispatched
-all over the widget tree.
+We differentiate between a Motion Event and Touch event. A Touch event is a
+:class:`MotionEvent` with the `pos` profile. Only theses events are dispatched
+throughout the widget tree.
 
-1. The :class:`MotionEvent` are gathered from input providers
-2. All the :class:`MotionEvent` are dispatched in
-    :func:`~kivy.core.window.Window.on_motion`.
-3. If a :class:`MotionEvent` have a `pos` profile, we dispatch them in
-    :func:`~kivy.core.window.Window.on_touch_down`,move,up.
+1. The :class:`MotionEvent` 's are gathered from input providers.
+2. All the :class:`MotionEvent` 's are dispatched from
+    :py:func:`~kivy.core.window.WindowBase.on_motion`.
+3. If a :class:`MotionEvent` has a `pos` profile, we dispatch it through
+    :py:func:`~kivy.core.window.WindowBase.on_touch_down`,
+    :py:func:`~kivy.core.window.WindowBase.on_touch_move` and
+    :py:func:`~kivy.core.window.WindowBase.on_touch_up`.
 
-Listen to Motion Event
-----------------------
+Listening to a Motion Event
+---------------------------
 
-If you want to receive all Motion Event, Touch or not, you can bind motion event
-from :class:`~kivy.core.window.Window` to your own callbacks ::
+If you want to receive all MotionEvents, Touch or not, you can bind the
+MotionEvent from the :class:`~kivy.core.window.Window` to your own callback::
 
     def on_motion(self, etype, motionevent):
-        # will receive all motion event.
+        # will receive all motion events.
         pass
 
     Window.bind(on_motion=on_motion)
@@ -42,14 +44,14 @@ from :class:`~kivy.core.window.Window` to your own callbacks ::
 Profiles
 --------
 
-A capability is the ability of a :class:`MotionEvent` to store a new
-information, or a way to indicate what is supported by the Motion Event. For
-example, you can receive a Motion Event that have an angle, a fiducial ID, or
+A capability is the ability of a :class:`MotionEvent` to store new
+information or a way to indicate what is supported by the MotionEvent. For
+example, you can receive a MotionEvent that has an angle, a fiducial ID, or
 even a shape.  You can check the :attr:`~MotionEvent.profile` attribute to check
-what is currently supported by the Motion Event, and how to access on it.
+what is currently supported by the MotionEvent and how to access it.
 
 This is a tiny list of the supported profiles by default. Check other input
-providers to know if they are other profiles available.
+providers to see if there are other profiles available.
 
 ============== ================================================================
 Profile name   Description
@@ -58,19 +60,19 @@ angle          2D angle. Use property `a`
 button         Mouse button (left, right, middle, scrollup, scrolldown)
                Use property `button`
 markerid       Marker or Fiducial ID. Use property `fid`
-pos            2D position. Use properties `x`, `y`
+pos            2D position. Use properties `x`, `y` or `pos``
 pos3d          3D position. Use properties `x`, `y`, `z`
 pressure       Pressure of the contact. Use property `pressure`
 shape          Contact shape. Use property `shape`
 ============== ================================================================
 
-If yo want to know if the current :class:`MotionEvent` have an angle ::
+If you want to know whether the current :class:`MotionEvent` has an angle::
 
     def on_touch_move(self, touch):
         if 'angle' in touch.profile:
-            print 'The touch angle is', touch.a
+            print('The touch angle is', touch.a)
 
-If you want to select only the fiducials ::
+If you want to select only the fiducials::
 
     def on_touch_move(self, touch):
         if 'markerid' not in touch.profile:
@@ -112,17 +114,18 @@ class MotionEventMetaclass(type):
         return super(MotionEventMetaclass, mcs).__new__(mcs, name, bases, attrs)
 
 
-class MotionEvent(object):
-    '''Abstract class to represent a touch and no-touch object.
+MotionEventBase = MotionEventMetaclass('MotionEvent', (object, ), {})
+
+
+class MotionEvent(MotionEventBase):
+    '''Abstract class to represent a touch and non-touch object.
 
     :Parameters:
         `id` : str
-            uniq ID of the Motion Event
+            unique ID of the MotionEvent
         `args` : list
-            list of parameters, passed to depack() function
+            list of parameters, passed to the depack() function
     '''
-
-    __metaclass__ = MotionEventMetaclass
     __uniq_id = 0
     __attrs__ = \
         ('device', 'push_attrs', 'push_attrs_stack',
@@ -143,8 +146,10 @@ class MotionEvent(object):
          'px', 'py', 'pz',
          # delta from the last position and current one, in screen range
          'dx', 'dy', 'dz',
-         'time_start', 'is_double_tap',
-         'double_tap_time', 'ud')
+         'time_start',
+         'is_double_tap', 'double_tap_time',
+         'is_triple_tap', 'triple_tap_time',
+         'ud')
 
     def __init__(self, device, id, args):
         if self.__class__ == MotionEvent:
@@ -159,7 +164,7 @@ class MotionEvent(object):
         #: dx, dy, dz, ox, oy, oz, px, py, pz.
         self.push_attrs_stack = []
         self.push_attrs = ('x', 'y', 'z', 'dx', 'dy', 'dz', 'ox', 'oy', 'oz',
-                           'px', 'py', 'pz')
+                           'px', 'py', 'pz', 'pos')
 
         #: Uniq ID of the touch. You can safely use this property, it will be
         #: never the same accross all existing touches.
@@ -173,8 +178,8 @@ class MotionEvent(object):
         self.grab_exclusive_class = None
         self.grab_state = False
 
-        #: Used to determine which widget the touch is beeing dispatched.
-        #: Check :func:`grab` function for more information.
+        #: Used to determine which widget the touch is being dispatched to.
+        #: Check the :func:`grab` function for more information.
         self.grab_current = None
 
         #: Profiles currently used in the touch
@@ -238,6 +243,8 @@ class MotionEvent(object):
         self.dy = None
         #: Delta between self.z and self.pz, in window range
         self.dz = None
+        #: Position (X, Y), in window range
+        self.pos = (0.0, 0.0)
 
         #: Initial time of the touch creation
         self.time_start = time()
@@ -251,9 +258,19 @@ class MotionEvent(object):
         #: Indicate if the touch is a double tap or not
         self.is_double_tap = False
 
+        #: Indicate if the touch is a triple tap or not
+        #:
+        #: .. versionadded:: 1.7.0
+        self.is_triple_tap = False
+
         #: If the touch is a :attr:`is_double_tap`, this is the time between the
         #: previous tap and the current touch.
         self.double_tap_time = 0
+
+        #: If the touch is a :attr:`is_triple_tap`, this is the time between the
+        #: first tap and the current touch.
+        #: .. versionadded:: 1.7.0
+        self.triple_tap_time = 0
 
         #: User data dictionnary. Use this dictionnary to save your own data on
         #: the touch.
@@ -262,7 +279,7 @@ class MotionEvent(object):
         self.depack(args)
 
     def depack(self, args):
-        '''Depack `args` into attributes in class'''
+        '''Depack `args` into attributes of the class'''
         # set initial position and last position
         if self.osx is None:
             self.psx = self.osx = self.sx
@@ -276,36 +293,36 @@ class MotionEvent(object):
     def grab(self, class_instance, exclusive=False):
         '''Grab this motion event. You can grab a touch if you absolutly want to
         receive on_touch_move() and on_touch_up(), even if the touch is not
-        dispatched by your parent ::
+        dispatched by your parent::
 
             def on_touch_down(self, touch):
                 touch.grab(self)
 
             def on_touch_move(self, touch):
                 if touch.grab_current is self:
-                    # i receive my grabbed touch
+                    # I received my grabbed touch
                 else:
                     # it's a normal touch
 
             def on_touch_up(self, touch):
                 if touch.grab_current is self:
-                    # i receive my grabbed touch, i must ungrab it !
+                    # I receive my grabbed touch, I must ungrab it!
                     touch.ungrab(self)
                 else:
                     # it's a normal touch
                     pass
         '''
         if not self.is_touch:
-            raise Exception('Grab work only for Touch Motion Event.')
+            raise Exception('Grab works only for Touch MotionEvents.')
         if self.grab_exclusive_class is not None:
-            raise Exception('Cannot grab the touch, touch are exclusive')
+            raise Exception('Cannot grab the touch, touch is exclusive')
         class_instance = weakref.ref(class_instance)
         if exclusive:
             self.grab_exclusive_class = class_instance
         self.grab_list.append(class_instance)
 
     def ungrab(self, class_instance):
-        '''Ungrab a previous grabbed touch
+        '''Ungrab a previously grabbed touch
         '''
         class_instance = weakref.ref(class_instance)
         if self.grab_exclusive_class == class_instance:
@@ -356,8 +373,11 @@ class MotionEvent(object):
         self.dy = self.y - self.py
         self.dz = self.z - self.pz
 
+        # cache position
+        self.pos = self.x, self.y
+
     def push(self, attrs=None):
-        '''Push attributes values in `attrs` in the stack
+        '''Push attribute values in `attrs` onto the stack
         '''
         if attrs is None:
             attrs = self.push_attrs
@@ -368,14 +388,14 @@ class MotionEvent(object):
         '''Pop attributes values from the stack
         '''
         attrs, values = self.push_attrs_stack.pop()
-        for i in xrange(len(attrs)):
+        for i in range(len(attrs)):
             setattr(self, attrs[i], values[i])
 
     def apply_transform_2d(self, transform):
         '''Apply a transformation on x, y, z, px, py, pz,
         ox, oy, oz, dx, dy, dz
         '''
-        self.x, self.y = transform(self.x, self.y)
+        self.x, self.y = self.pos = transform(self.x, self.y)
         self.px, self.py = transform(self.px, self.py)
         self.ox, self.oy = transform(self.ox, self.oy)
         self.dx = self.x - self.px
@@ -395,12 +415,6 @@ class MotionEvent(object):
         self.time_end = time()
 
     # facilities
-    @property
-    def pos(self):
-        '''Return position of the touch in the screen coordinate
-        system (self.x, self.y)'''
-        return self.x, self.y
-
     @property
     def dpos(self):
         '''Return delta between last position and current position, in the
@@ -443,3 +457,10 @@ class MotionEvent(object):
             self.__class__.__name__,
             ' '.join(out))
 
+    @property
+    def is_mouse_scrolling(self, *args):
+        '''Returns True if the touch is a mousewheel scrolling
+
+        .. versionadded:: 1.6.0
+        '''
+        return 'button' in self.profile and 'scroll' in self.button

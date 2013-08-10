@@ -15,7 +15,7 @@ application/json, the result will be automatically passed through json.loads.
 The syntax to create a request::
 
     from kivy.network.urlrequest import UrlRequest
-    req = UrlRequest(url, callback_success, callback_error, body, headers)
+    req = UrlRequest(url, on_success, on_error, req_body, req_headers)
 
 
 Only the first argument is mandatory, all the rest is optional.
@@ -28,10 +28,9 @@ Example of fetching twitter trends::
 
     def got_twitter_trends(req, result):
         trends = result[0]['trends']
-        print 'Last %d twitter trends:' % len(trends),
+        print('Last %d twitter trends:' % len(trends))
         for trend in trends:
-            print trend['name'],
-        print '!'
+            print(' - ', trend['name'])
 
     req = UrlRequest('https://api.twitter.com/1/trends/1.json',
             got_twitter_trends)
@@ -41,8 +40,8 @@ Example of Posting data (adapted from httplib example)::
     import urllib
 
     def bug_posted(req, result):
-        print 'Our bug is posted !'
-        print result
+        print('Our bug is posted !')
+        print(result)
 
     params = urllib.urlencode({'@number': 12524, '@type': 'issue',
         '@action': 'show'})
@@ -57,31 +56,54 @@ Example of Posting data (adapted from httplib example)::
 from collections import deque
 from threading import Thread
 from json import loads
-from httplib import HTTPConnection
 from time import sleep
+from kivy.compat import PY2
 
-HTTPSConnection = None
+if PY2:
+    from httplib import HTTPConnection
+    from urlparse import urlparse
+else:
+    from http.client import HTTPConnection
+    from urllib.parse import urlparse
+
 try:
-    from httplib import HTTPSConnection
+    HTTPSConnection = None
+    if PY2:
+        from httplib import HTTPSConnection
+    else:
+        from http.client import HTTPSConnection
 except ImportError:
-    # on android platform, this is not available yet.
+    # depending the platform, if openssl support wasn't compiled before python,
+    # this class is not available.
     pass
 
-from urlparse import urlparse
 from kivy.clock import Clock
+from kivy.weakmethod import WeakMethod
+from kivy.logger import Logger
+
+
+# list to save UrlRequest and prevent GC on un-referenced objects
+g_requests = []
 
 
 class UrlRequest(Thread):
     '''Url request. See module documentation for usage.
 
-    .. versionchanged::
-        Add `method` parameters
+    .. versionchanged:: 1.5.1
+        Add `debug` parameter
+
+    .. versionchanged:: 1.0.10
+        Add `method` parameter
 
     :Parameters:
         `url`: str
             Complete url string to call.
         `on_success`: callback(request, result)
             Callback function to call when the result have been fetched
+        `on_redirect`: callback(request, result)
+            Callback function to call if the server returns a Redirect
+        `on_failure`: callback(request, result)
+            Callback function to call if the server returns a Client Error or Server Error
         `on_error`: callback(request, error)
             Callback function to call when an error happen
         `on_progress`: callback(request, current_size, total_size)
@@ -102,20 +124,40 @@ class UrlRequest(Thread):
             on_progress.
         `timeout`: int, default to None
             If set, blocking operations will timeout after that many seconds.
-        `method'`: str, default to 'GET' (or 'POST' if body)
+        `method`: str, default to 'GET' (or 'POST' if body)
             HTTP method to use
+        `decode`: bool, default to True
+            If False, skip decoding of response.
+        `debug`: bool, default to False
+            If True, it will use the Logger.debug to print information about url
+            access/progression/error.
+        `file_path`: str, default to None
+            If set, the result of the UrlRequest will be written to this path instead
+            of in memory.
+
+    .. versionadded:: 1.8.0
+        Parameter `decode` added.
+        Parameter `file_path` added.
+        Parameter `on_redirect` added.
+        Parameter `on_failure` added.
     '''
 
-    def __init__(self, url, on_success=None, on_error=None, on_progress=None,
-            req_body=None, req_headers=None, chunk_size=8192, timeout=None,
-            method=None):
+    def __init__(self, url, on_success=None, on_redirect=None,
+            on_failure=None, on_error=None, on_progress=None, req_body=None,
+            req_headers=None, chunk_size=8192, timeout=None, method=None,
+            decode=True, debug=False, file_path=None):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
         self.daemon = True
-        self.on_success = on_success
-        self.on_error = on_error
-        self.on_progress = on_progress
+        self.on_success = WeakMethod(on_success) if on_success else None
+        self.on_redirect = WeakMethod(on_redirect) if on_redirect else None
+        self.on_failure = WeakMethod(on_failure) if on_failure else None
+        self.on_error = WeakMethod(on_error) if on_error else None
+        self.on_progress = WeakMethod(on_progress) if on_progress else None
+        self.decode = decode
+        self.file_path = file_path
+        self._debug = debug
         self._result = None
         self._error = None
         self._is_finished = False
@@ -135,6 +177,9 @@ class UrlRequest(Thread):
         #: Request headers passed in __init__
         self.req_headers = req_headers
 
+        # save our request to prevent GC
+        g_requests.append(self)
+
         self.start()
 
     def run(self):
@@ -142,20 +187,27 @@ class UrlRequest(Thread):
         url = self.url
         req_body = self.req_body
         req_headers = self.req_headers
-        resp = result = e = None
 
         try:
             result, resp = self._fetch_url(url, req_body, req_headers, q)
-            result = self.decode_result(result, resp)
-        except Exception, e:
-            pass
-
-        if e is not None:
-            q(('error', resp, e))
+            if self.decode:
+                result = self.decode_result(result, resp)
+        except Exception as e:
+            q(('error', None, e))
         else:
             q(('success', resp, result))
 
+        # using trigger can result in a missed on_success event
         self._trigger_result()
+
+        # clean ourself when the queue is empty
+        while len(self._queue):
+            sleep(.1)
+            self._trigger_result()
+
+        # ok, authorize the GC to clean us.
+        if self in g_requests:
+            g_requests.remove(self)
 
     def _fetch_url(self, url, body, headers, q):
         # Parse and fetch the current url
@@ -163,6 +215,15 @@ class UrlRequest(Thread):
         chunk_size = self._chunk_size
         report_progress = self.on_progress is not None
         timeout = self._timeout
+        file_path = self.file_path
+
+        if self._debug:
+            Logger.debug('UrlRequest: {0} Fetch url <{1}>'.format(
+                id(self), url))
+            Logger.debug('UrlRequest: {0} - body: {1}'.format(
+                id(self), body))
+            Logger.debug('UrlRequest: {0} - headers: {1}'.format(
+                id(self), headers))
 
         # parse url
         parse = urlparse(url)
@@ -200,23 +261,46 @@ class UrlRequest(Thread):
         resp = req.getresponse()
 
         # read content
-        if report_progress:
-            bytes_so_far = 0
-            result = ''
+        if report_progress or file_path is not None:
             try:
                 total_size = int(resp.getheader('content-length'))
             except:
                 total_size = -1
+
             # before starting the download, send a fake progress to permit the
             # user to initialize his ui
-            q(('progress', resp, (bytes_so_far, total_size)))
-            while 1:
-                chunk = resp.read(chunk_size)
-                if not chunk:
-                    break
-                bytes_so_far += len(chunk)
-                result += chunk
-                # report progress to user
+            if report_progress:
+                q(('progress', resp, (0, total_size)))
+
+            def get_chunks(fd=None):
+                bytes_so_far = 0
+                result = b''
+                while 1:
+                    chunk = resp.read(chunk_size)
+                    if not chunk:
+                        break
+
+                    if fd:
+                        fd.write(chunk)
+                    else:
+                        result += chunk
+
+                    bytes_so_far += len(chunk)
+                    # report progress to user
+                    if report_progress:
+                        q(('progress', resp, (bytes_so_far, total_size)))
+                        trigger()
+                return bytes_so_far, result
+
+            if file_path is not None:
+                with open(file_path, 'wb') as fd:
+                    bytes_so_far, result = get_chunks(fd)
+            else:
+                bytes_so_far, result = get_chunks()
+
+            # ensure that restults are dispatched for the last chunk,
+            # avoid trigger
+            if report_progress:
                 q(('progress', resp, (bytes_so_far, total_size)))
                 trigger()
         else:
@@ -246,12 +330,14 @@ class UrlRequest(Thread):
         # Entry to decode url from the content type.
         # For example, if the content type is a json, it will be automatically
         # decoded.
-        ct = resp.getheader('Content-Type', None).split(';')[0]
-        if ct == 'application/json':
-            try:
-                return loads(result)
-            except:
-                return result
+        content_type = resp.getheader('Content-Type', None)
+        if content_type is not None:
+            ct = content_type.split(';')[0]
+            if ct == 'application/json':
+                try:
+                    return loads(result)
+                except:
+                    return result
         return result
 
     def _dispatch_result(self, dt):
@@ -269,18 +355,62 @@ class UrlRequest(Thread):
                 self._resp_headers = dict(resp.getheaders())
                 self._resp_status = resp.status
             if result == 'success':
-                self._is_finished = True
-                self._result = data
-                if self.on_success:
-                    self.on_success(self, data)
+                status_class = resp.status // 100
+
+                if status_class in (1, 2):
+                    if self._debug:
+                        Logger.debug('UrlRequest: {0} Download finished with'
+                                ' {1} datalen'.format(
+                                id(self), len(data)))
+                    self._is_finished = True
+                    self._result = data
+                    if self.on_success:
+                        func = self.on_success()
+                        if func:
+                            func(self, data)
+
+                elif status_class == 3:
+                    if self._debug:
+                        Logger.debug('UrlRequest: {} Download '
+                                'redirected'.format(id(self)))
+                    self._is_finished = True
+                    self._result = data
+                    if self.on_redirect:
+                        func = self.on_redirect()
+                        if func:
+                            func(self, data)
+
+                elif status_class in (4, 5):
+                    if self._debug:
+                        Logger.debug('UrlRequest: {} Download failed with '
+                                'http error {}'.format(id(self), resp.status))
+                    self._is_finished = True
+                    self._result = data
+                    if self.on_failure:
+                        func = self.on_failure()
+                        if func:
+                            func(self, data)
+
             elif result == 'error':
+                if self._debug:
+                    Logger.debug('UrlRequest: {0} Download error '
+                            '<{1}>'.format(id(self), data))
                 self._is_finished = True
                 self._error = data
                 if self.on_error:
-                    self.on_error(self, data)
+                    func = self.on_error()
+                    if func:
+                        func(self, data)
+
             elif result == 'progress':
+                if self._debug:
+                    Logger.debug('UrlRequest: {0} Download progress {1}'.format(
+                        id(self), data))
                 if self.on_progress:
-                    self.on_progress(self, data[0], data[1])
+                    func = self.on_progress()
+                    if func:
+                        func(self, data[0], data[1])
+
             else:
                 assert(0)
 
@@ -300,15 +430,15 @@ class UrlRequest(Thread):
 
     @property
     def resp_headers(self):
-        '''If the request have been done, return a dictionnary containing the
+        '''If the request have been done, return a dictionary containing the
         headers of the response. Otherwise, it will return None
         '''
         return self._resp_headers
 
     @property
     def resp_status(self):
-        '''Return the status code of the response if the request have been done,
-        otherwise, return None
+        '''Return the status code of the response if the request is complete,
+        otherwise return None
         '''
         return self._resp_status
 
@@ -330,6 +460,11 @@ class UrlRequest(Thread):
         '''If you want a sync request, you can call the wait() method. It will
         wait for the request to be finished (until :data:`resp_status` is not
         None)
+
+        .. note::
+            This method is intended to be used in the main thread, and the
+            callback will be dispatched from the same thread as the thread
+            you're calling it.
 
         .. versionadded:: 1.1.0
         '''
@@ -356,6 +491,5 @@ if __name__ == '__main__':
         sleep(1)
         Clock.tick()
 
-    print 'result =', req.result
-    print 'error =', req.error
-
+    print('result =', req.result)
+    print('error =', req.error)

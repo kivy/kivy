@@ -9,10 +9,10 @@ Root:
             size_hint_y: None
             height: 30
             Button:
-                text: 'load'
+                text: 'Load'
                 on_release: root.show_load()
             Button:
-                text: 'save'
+                text: 'Save'
                 on_release: root.show_save()
 
         BoxLayout:
@@ -36,11 +36,11 @@ Root:
             size_hint_y: None
             height: 30
             Button:
-                text: "cancel"
+                text: "Cancel"
                 on_release: root.cancel()
 
             Button:
-                text: "load"
+                text: "Load"
                 on_release: root.load(filechooser.path, filechooser.selection)
 
 <SaveDialog>:
@@ -63,10 +63,10 @@ Root:
             size_hint_y: None
             height: 30
             Button:
-                text: "cancel"
+                text: "Cancel"
                 on_release: root.cancel()
 
             Button:
-                text: "save"
+                text: "Save"
                 on_release: root.save(filechooser.path, text_input.text)
 

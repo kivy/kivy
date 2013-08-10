@@ -6,7 +6,7 @@ The :class:`Widget` class is the base class required to create a Widget.
 Our widget class is designed with a couple of principles in mind:
 
     Event Driven
-        The widget interaction is build on top of events that occur.
+        The widget interaction is built on top of events that occur.
         If a property changes, the widget can do something. If nothing changes
         in the widget, nothing will be done. That's the main goal of the
         :class:`~kivy.properties.Property` class.
@@ -25,13 +25,31 @@ Our widget class is designed with a couple of principles in mind:
         Often you want to know if a certain point is within the bounds of your
         widget. An example would be a button widget where you want to only
         trigger an action when the button itself is actually touched.
-        For this, you can use the :func:`Widget.collide_point` method, which
+        For this, you can use the :meth:`Widget.collide_point` method, which
         will return True if the point you pass it is inside the axis-aligned
-        bounding box defined by the widgets position and size.
+        bounding box defined by the widget's position and size.
         If a simple AABB is not sufficient, you can override the method to
-        perform the collision checks with more complex shapes (e.g. a polygon).
+        perform the collision checks with more complex shapes, e.g., a polygon.
         You can also check if a widget collides with another widget with
-        :func:`Widget.collide_widget`.
+        :meth:`Widget.collide_widget`.
+
+
+We also have some defaults that you should be aware of:
+
+* A :class:`Widget` is not a :class:`Layout`: it will not change the position
+  nor the size of its children. If you want a better positionning / sizing, use
+  a :class:`Layout`.
+
+* The default size is (100, 100), if the parent is not a :class:`Layout`. For
+  example, adding a widget inside a :class:`Button`, :class:`Label`, will not
+  inherit from the parent size or pos.
+
+* The default size_hint is (1, 1). If the parent is a :class:`Layout`, then the
+  widget size will be the parent/layout size.
+
+* :meth:`Widget.on_touch_down`, :meth:`Widget.on_touch_move`,
+  :meth:`Widget.on_touch_up` don't do any sort of collisions. If you want to
+  know if the touch is inside your widget, use :meth:`Widget.collide_point`.
 
 Using Properties
 ----------------
@@ -45,67 +63,102 @@ For example::
     :data:`Widget.pos` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`Widget.x`, :data:`Widget.y`) properties.
 
-If you want to be notified when the pos attribute changes (i.e. when the
-widget moves), you can bind your own function (callback) like this::
+If you want to be notified when the pos attribute changes, i.e., when the
+widget moves, you can bind your own callback function like this::
 
     def callback_pos(instance, value):
-        print 'The widget', instance, 'moved to', value
+        print('The widget', instance, 'moved to', value)
 
     wid = Widget()
     wid.bind(pos=callback_pos)
+
+Read more about the :doc:`/api-kivy.properties`.
 
 '''
 
 __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
-from kivy.properties import NumericProperty, StringProperty, \
-        AliasProperty, ReferenceListProperty, ObjectProperty, \
-        ListProperty
+from kivy.factory import Factory
+from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
+                             ReferenceListProperty, ObjectProperty,
+                             ListProperty, DictProperty, BooleanProperty)
 from kivy.graphics import Canvas
 from kivy.base import EventLoop
 from kivy.lang import Builder
+from weakref import proxy
+from functools import partial
+
+
+# references to all the destructors widgets (partial method with widget uid as
+# key.)
+_widget_destructors = {}
+
+
+def _widget_destructor(uid, r):
+    # internal method called when a widget is deleted from memory. the only
+    # thing we remember about it is its uid. Clear all the associated callback
+    # created in kv language.
+    del _widget_destructors[uid]
+    Builder.unbind_widget(uid)
 
 
 class WidgetException(Exception):
-    '''Fired when the widget got an exception
+    '''Fired when the widget gets an exception.
     '''
     pass
 
 
-class Widget(EventDispatcher):
+class WidgetMetaclass(type):
+    '''Metaclass to auto register new widget into :class:`~kivy.factory.Factory`
+
+    .. warning::
+        This metaclass is used for Widget. Don't use it directly !
+    '''
+    def __init__(mcs, name, bases, attrs):
+        super(WidgetMetaclass, mcs).__init__(name, bases, attrs)
+        Factory.register(name, cls=mcs)
+
+
+#: Base class used for widget, that inherit from :class:`EventDispatcher`
+WidgetBase = WidgetMetaclass('WidgetBase', (EventDispatcher, ), {})
+
+
+class Widget(WidgetBase):
     '''Widget class. See module documentation for more information.
 
     :Events:
         `on_touch_down`:
-            Fired when a new touch appear
+            Fired when a new touch happens
         `on_touch_move`:
             Fired when an existing touch is moved
         `on_touch_up`:
             Fired when an existing touch disappears
 
     .. versionchanged:: 1.0.9
+        Everything related to event properties has been moved to
+        :class:`~kivy.event.EventDispatcher`. Event properties can now be used
+        in contructing a simple class, without subclassing :class:`Widget`.
 
-        Everything related to properties have been moved in
-        :class:`~kivy.event.EventDispatcher`. Properties can now be used for
-        contruct simple class, without inherit of :class:`Widget`.
-
+    .. versionchanged:: 1.5.0
+        Constructor now accept on_* arguments to automatically bind callbacks to
+        properties or events, as the Kv language.
     '''
 
+    __metaclass__ = WidgetMetaclass
+    __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
+
     def __init__(self, **kwargs):
+        self._proxy_ref = None
+
         # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
-
-        # Register touch events
-        self.register_event_type('on_touch_down')
-        self.register_event_type('on_touch_move')
-        self.register_event_type('on_touch_up')
 
         super(Widget, self).__init__(**kwargs)
 
         # Create the default canvas if not exist
         if self.canvas is None:
-            self.canvas = Canvas()
+            self.canvas = Canvas(opacity=self.opacity)
 
         # Apply all the styles
         if '__no_builder' not in kwargs:
@@ -116,6 +169,39 @@ class Widget(EventDispatcher):
             #    Builder.idmap['root'] = current_root
             #else:
             #    Builder.idmap.pop('root')
+
+        # Bind all the events
+        for argument in kwargs:
+            if argument[:3] == 'on_':
+                self.bind(**{argument: kwargs[argument]})
+
+    @property
+    def proxy_ref(self):
+        '''Return a proxy reference to the widget, ie, without taking a
+        reference of the widget. See `weakref.proxy
+        <http://docs.python.org/2/library/weakref.html?highlight\
+        =proxy#weakref.proxy>`_ for more information about it.
+
+        .. versionadded:: 1.7.2
+        '''
+        _proxy_ref = self._proxy_ref
+        if _proxy_ref is None:
+            f = partial(_widget_destructor, self.uid)
+            self._proxy_ref = _proxy_ref = proxy(self, f)
+            # only f should be enough here, but it appears that is a very
+            # specific case, the proxy destructor is not called if both f and
+            # _proxy_ref are not together in a tuple
+            _widget_destructors[self.uid] = (f, _proxy_ref)
+        return _proxy_ref
+
+    def __eq__(self, other):
+        if not isinstance(other, Widget):
+            return False
+        return self.proxy_ref is other.proxy_ref
+
+    @property
+    def __self__(self):
+        return self
 
     #
     # Collision
@@ -167,7 +253,6 @@ class Widget(EventDispatcher):
             return False
         return True
 
-
     #
     # Default event handlers
     #
@@ -181,6 +266,8 @@ class Widget(EventDispatcher):
         :Returns:
             bool. If True, the dispatching of the touch will stop.
         '''
+        if self.disabled and self.collide_point(*touch.pos):
+            return True
         for child in self.children[:]:
             if child.dispatch('on_touch_down', touch):
                 return True
@@ -188,8 +275,10 @@ class Widget(EventDispatcher):
     def on_touch_move(self, touch):
         '''Receive a touch move event.
 
-        See :func:`on_touch_down` for more information
+        See :meth:`on_touch_down` for more information
         '''
+        if self.disabled:
+            return
         for child in self.children[:]:
             if child.dispatch('on_touch_move', touch):
                 return True
@@ -197,12 +286,17 @@ class Widget(EventDispatcher):
     def on_touch_up(self, touch):
         '''Receive a touch up event.
 
-        See :func:`on_touch_down` for more information
+        See :meth:`on_touch_down` for more information
         '''
+        if self.disabled:
+            return
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True
 
+    def on_disabled(self, instance, value):
+        for child in self.children:
+            child.disabled = value
 
     #
     # Tree management
@@ -222,12 +316,23 @@ class Widget(EventDispatcher):
         >>> slider = Slider()
         >>> root.add_widget(slider)
         '''
-        if widget is self:
-            raise WidgetException('You cannot add yourself in a Widget')
         if not isinstance(widget, Widget):
             raise WidgetException(
                 'add_widget() can be used only with Widget classes.')
-        widget.parent = self
+
+        widget = widget.__self__
+        if widget is self:
+            raise WidgetException('You cannot add yourself in a Widget')
+        parent = widget.parent
+        # check if widget is already a child of another widget
+        if parent:
+            raise WidgetException('Cannot add %r, it already has a parent %r'
+                % (widget, parent))
+        widget.parent = parent = self
+        # child will be disabled if added to a disabled parent
+        if parent.disabled:
+            widget.disabled = True
+
         if index == 0 or len(self.children) == 0:
             self.children.insert(0, widget)
             self.canvas.add(widget.canvas)
@@ -246,6 +351,9 @@ class Widget(EventDispatcher):
                     next_index += 1
 
             children.insert(index, widget)
+            # we never want to insert widget _before_ canvas.before.
+            if next_index == 0 and canvas.has_before:
+                next_index = 1
             canvas.insert(next_index, widget.canvas)
 
     def remove_widget(self, widget):
@@ -262,6 +370,7 @@ class Widget(EventDispatcher):
         '''
         if widget not in self.children:
             return
+        parent = widget.parent
         self.children.remove(widget)
         self.canvas.remove(widget.canvas)
         widget.parent = None
@@ -335,7 +444,6 @@ class Widget(EventDispatcher):
             return (x - self.x, y - self.y)
         return (x, y)
 
-
     x = NumericProperty(0)
     '''X position of the widget.
 
@@ -383,7 +491,7 @@ class Widget(EventDispatcher):
         self.x = value - self.width
 
     right = AliasProperty(get_right, set_right, bind=('x', 'width'))
-    '''Right position of the widget
+    '''Right position of the widget.
 
     :data:`right` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`x` + :data:`width`)
@@ -396,7 +504,7 @@ class Widget(EventDispatcher):
         self.y = value - self.height
 
     top = AliasProperty(get_top, set_top, bind=('y', 'height'))
-    '''Top position of the widget
+    '''Top position of the widget.
 
     :data:`top` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`y` + :data:`height`)
@@ -408,7 +516,7 @@ class Widget(EventDispatcher):
     def set_center_x(self, value):
         self.x = value - self.width / 2.
     center_x = AliasProperty(get_center_x, set_center_x, bind=('x', 'width'))
-    '''X center position of the widget
+    '''X center position of the widget.
 
     :data:`center_x` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`x` + :data:`width` / 2.)
@@ -420,14 +528,14 @@ class Widget(EventDispatcher):
     def set_center_y(self, value):
         self.y = value - self.height / 2.
     center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'height'))
-    '''Y center position of the widget
+    '''Y center position of the widget.
 
     :data:`center_y` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`y` + :data:`height` / 2.)
     '''
 
     center = ReferenceListProperty(center_x, center_y)
-    '''Center position of the widget
+    '''Center position of the widget.
 
     :data:`center` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`center_x`, :data:`center_y`)
@@ -435,16 +543,6 @@ class Widget(EventDispatcher):
 
     cls = ListProperty([])
     '''Class of the widget, used for styling.
-    '''
-
-    def get_uid(self):
-        return self.__dict__['__uid']
-    uid = AliasProperty(get_uid, None)
-    '''Unique identifier of the widget in the whole Kivy instance.
-
-    .. versionadded:: 1.0.7
-
-    :data:`uid` is a :class:`~kivy.properties.AliasProperty`, read-only.
     '''
 
     id = StringProperty(None, allownone=True)
@@ -459,34 +557,34 @@ class Widget(EventDispatcher):
     '''
 
     children = ListProperty([])
-    '''List of children of this widget
+    '''List of children of this widget.
 
     :data:`children` is a :class:`~kivy.properties.ListProperty` instance,
     default to an empty list.
 
-    Use :func:`add_widget` and :func:`remove_widget` for manipulate children
-    list. Don't manipulate children list directly until you know what you are
-    doing.
+    Use :meth:`add_widget` and :meth:`remove_widget` for manipulating the
+    children list. Don't manipulate the children list directly until you know
+    what you are doing.
     '''
 
     parent = ObjectProperty(None, allownone=True)
-    '''Parent of this widget
+    '''Parent of this widget.
 
     :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance,
     default to None.
 
     The parent of a widget is set when the widget is added to another one, and
-    unset when the widget is removed from his parent.
+    unset when the widget is removed from its parent.
     '''
 
     size_hint_x = NumericProperty(1, allownone=True)
-    '''X size hint. It represents how much space the widget should use in the
+    '''X size hint. Represents how much space the widget should use in the
     direction of the X axis, relative to its parent's width.
     Only :class:`~kivy.uix.layout.Layout` and
     :class:`~kivy.core.window.Window` make use of the hint.
 
     The value is in percent as a float from 0. to 1., where 1. means the full
-    size of his parent, i.e. 100%. 0.5 represents 50%.
+    size of his parent. 0.5 represents 50%.
 
     :data:`size_hint_x` is a :class:`~kivy.properties.NumericProperty`, default
     to 1.
@@ -522,7 +620,7 @@ class Widget(EventDispatcher):
     The keys 'x', 'right', 'center_x', will use the parent width.
     The keys 'y', 'top', 'center_y', will use the parent height.
 
-    Check :doc:`api-kivy.uix.floatlayout` for further reference.
+    See :doc:`api-kivy.uix.floatlayout` for further reference.
 
     Position hint is only used in :class:`~kivy.uix.floatlayout.FloatLayout` and
     :class:`~kivy.core.window.Window`.
@@ -531,10 +629,68 @@ class Widget(EventDispatcher):
     dict.
     '''
 
+    ids = DictProperty({})
+    '''This is a Dictionary of id's defined in your kv language. This will only
+    be populated if you use id's in your kv language code.
+
+    .. versionadded:: 1.7.0
+
+    :data:`ids` is a :class:`~kivy.properties.DictProperty`, defaults to a empty
+    dict {}.
+    '''
+
+    opacity = NumericProperty(1.0)
+    '''Opacity of the widget and all the children.
+
+    .. versionadded:: 1.4.1
+
+    The opacity attribute controls the opacity of the widget and its children.
+    Be careful, it's a cumulative attribute: the value is multiplied to the
+    current global opacity, and the result is applied to the current context
+    color.
+
+    For example: if your parent have an opacity of 0.5, and one children have an
+    opacity of 0.2, the real opacity of the children will be 0.5 * 0.2 = 0.1.
+
+    Then, the opacity is applied on the shader as::
+
+        frag_color = color * vec4(1.0, 1.0, 1.0, opacity);
+
+    :data:`opacity` is a :class:`~kivy.properties.NumericProperty`, default to
+    1.0.
+    '''
+
+    def on_opacity(self, instance, value):
+        canvas = self.canvas
+        if canvas is not None:
+            canvas.opacity = value
+
     canvas = None
     '''Canvas of the widget.
 
     The canvas is a graphics object that contains all the drawing instructions
     for the graphical representation of the widget.
-    Check :class:`~kivy.graphics.Canvas` for more information about the usage.
+
+    There are no general properties for the Widget class, such as background
+    color, to keep the design simple and lean. Some derived classes, such as
+    Button, do add such convenience properties, but generally the developer is
+    responsible for implementing the graphics representation for a custom
+    widget from the ground up. See the derived widget classes for patterns to
+    follow and extend.
+
+    See :class:`~kivy.graphics.Canvas` for more information about the usage.
+    '''
+
+    disabled = BooleanProperty(False)
+    '''Indicates whether this widget can interact with input or not.
+
+    .. Note::
+        1. Child Widgets when added onto a disabled widget will be disabled
+        automatically
+        2. Disabling/enabling a parent disables/enables all it's children.
+
+    .. versionadded:: 1.8.0
+
+    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
+    default to False.
     '''

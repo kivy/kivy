@@ -28,10 +28,8 @@ class TestApp(App):
 
     def build(self):
         # create a button, and  attach animate() method as a on_press handler
-        button = Button(size_hint=(None, None), text='plop')
-        button.bind(on_press=self.animate)
+        button = Button(size_hint=(None, None), text='plop', on_press=self.animate)
         return button
 
-if __name__ in ('__main__', '__android__'):
+if __name__ == '__main__':
     TestApp().run()
-

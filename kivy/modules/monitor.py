@@ -2,10 +2,11 @@
 Monitor module
 ==============
 
-Monitor module is a toolbar that show activity of your current application :
+The Monitor module is a toolbar that shows the activity of your current
+application :
 
 * FPS
-* Graph of input event
+* Graph of input events
 
 '''
 
@@ -60,7 +61,7 @@ def start(win, ctx):
         ctx.color = Color(1, 1, 1)
         ctx.rectangle = Rectangle(pos=(5, win.height - 20))
         ctx.color = Color(1, 1, 1, .5)
-        for x in xrange(64):
+        for x in range(64):
             ctx.stats.append(0)
             ctx.statsr.append(
                 Rectangle(pos=(win.width - 64 * 4 + x * 4, win.height - 25),

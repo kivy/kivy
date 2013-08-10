@@ -310,7 +310,6 @@ GL_RENDERBUFFER = c_opengl.GL_RENDERBUFFER
 GL_RGBA4 = c_opengl.GL_RGBA4
 GL_RGB5_A1 = c_opengl.GL_RGB5_A1
 GL_DEPTH_COMPONENT16 = c_opengl.GL_DEPTH_COMPONENT16
-GL_STENCIL_INDEX = c_opengl.GL_STENCIL_INDEX
 GL_STENCIL_INDEX8 = c_opengl.GL_STENCIL_INDEX8
 GL_RENDERBUFFER_WIDTH = c_opengl.GL_RENDERBUFFER_WIDTH
 GL_RENDERBUFFER_HEIGHT = c_opengl.GL_RENDERBUFFER_HEIGHT
@@ -715,7 +714,7 @@ def glDrawElements(GLenum mode, GLsizei count, GLenum type, bytes indices):
     '''See: `glDrawElements() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDrawElements.xml>`_
     '''
-    c_opengl.glDrawElements(mode, count, type, <void *>indices)
+    c_opengl.glDrawElements(mode, count, type, <GLvoid *>(<char *>indices))
 
 def glEnable(GLenum cap):
     '''See: `glEnable() on Kronos website
@@ -1196,7 +1195,7 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
     c_opengl.glPixelStorei(GL_PACK_ALIGNMENT, 1)
     c_opengl.glReadPixels(x, y, width, height, format, type, data)
     try:
-        py_pixels = PyString_FromStringAndSize(data, size)
+        py_pixels = data[:size]
     finally:
         free(data)
 
@@ -1471,14 +1470,11 @@ def glUniformMatrix3fv(GLint location, GLsizei count):#, GLboolean transpose,  b
     # c_opengl.glUniformMatrix3fv(location, count, transpose, <GLfloat*>ptr_value)
     raise NotImplemented()
 
-def glUniformMatrix4fv(GLint location, GLsizei count):#, GLboolean transpose,  bytes values):
+def glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose,  bytes value):
     '''See: `glUniformMatrix4fv() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glUniformMatrix4fv.xml>`_
-
-    .. warning:: Not implemented yet.
     '''
-    # c_opengl.glUniformMatrix4fv(location, count, transpose, <GLfloat*>ptr_value)
-    raise NotImplemented()
+    c_opengl.glUniformMatrix4fv(location, count, transpose, <GLfloat*>(<char *>value))
 
 def glUseProgram(GLuint program):
     '''See: `glUseProgram() on Kronos website
@@ -1552,14 +1548,12 @@ def glVertexAttrib4fv(GLuint indx, list values):
     #c_opengl.glVertexAttrib4fv(indx, values)
     raise NotImplemented()
 
-def glVertexAttribPointer(GLuint indx, GLint size):#, GLenum type, GLboolean normalized, GLsizei stride,  GLvoid* ptr):
+def glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, bytes data):
     '''See: `glVertexAttribPointer() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glVertexAttribPointer.xml>`_
 
-    .. warning:: Not implemented yet.
     '''
-    # c_opengl.glVertexAttribPointer(indx, size, type, normalized, stride, <GLvoid*>ptr)
-    raise NotImplemented()
+    c_opengl.glVertexAttribPointer(index, size, type, normalized, stride, <GLvoid *>(<char *>data))
 
 def glViewport(GLint x, GLint y, GLsizei width, GLsizei height):
     '''See: `glViewport() on Kronos website
@@ -1570,9 +1564,18 @@ def glViewport(GLint x, GLint y, GLsizei width, GLsizei height):
 IF USE_GLEW:
     cdef extern from "gl_redirect.h":
         int glewInit()
+        int GLEW_OK
+        char *glewGetErrorString(int)
         void glew_dynamic_binding()
     def gl_init_symbols():
-        glewInit()
+        cdef int result
+        cdef bytes error
+        result = glewInit()
+        if result != GLEW_OK:
+            error = glewGetErrorString(result)
+            print('GLEW initialization error:', error)
+        else:
+            print('GLEW initialization succeeded')
         glew_dynamic_binding()
 
 ELSE:

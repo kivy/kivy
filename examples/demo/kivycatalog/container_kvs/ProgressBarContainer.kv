@@ -1,0 +1,17 @@
+#:kivy 1.4
+
+BoxLayout:
+    orientation: 'vertical'
+    padding: 50
+    ProgressBar:
+        id: bar
+        value: 140
+        max: 300
+    Slider:
+        id: slider
+        max: 200
+        value: 140
+        on_value: bar.value = self.value
+    Slider:
+        orientation: 'vertical'
+        on_value: slider.value = self.value

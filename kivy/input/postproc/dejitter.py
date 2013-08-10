@@ -20,7 +20,7 @@ from kivy.config import Config
 class InputPostprocDejitter(object):
     '''
     Get rid of jitterish BLOBs.
-    Example ::
+    Example::
 
         [postproc]
         jitter_distance = 0.004
@@ -43,7 +43,7 @@ class InputPostprocDejitter(object):
 
     def taxicab_distance(self, p, q):
         # Get the taxicab/manhattan/citiblock distance for efficiency reasons
-        return abs(p[0]-q[0]) + abs(p[1]-q[1])
+        return abs(p[0] - q[0]) + abs(p[1] - q[1])
 
     def process(self, events):
         if not self.jitterdist:

@@ -50,7 +50,7 @@ class BezierTest(FloatLayout):
 
     def on_touch_down(self, touch):
         if self.collide_point(touch.pos[0], touch.pos[1]):
-            for i, p in enumerate(zip(self.points[::2], self.points[1::2])):
+            for i, p in enumerate(list(zip(self.points[::2], self.points[1::2]))):
                 if (
                         abs(touch.pos[0] - self.pos[0] - p[0]) < self.d and
                         abs(touch.pos[1] - self.pos[1] - p[1]) < self.d):
@@ -85,7 +85,7 @@ class Main(App):
         l = 100
         # Pacman !
         points = [x, y]
-        for i in xrange(45, 360, 45):
+        for i in range(45, 360, 45):
             i = radians(i)
             points.extend([x + cos(i) * l, y + sin(i) * l])
         return BezierTest(points=points, loop=True)

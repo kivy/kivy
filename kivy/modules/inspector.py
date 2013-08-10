@@ -8,20 +8,21 @@ Inspector
 
     This module is highly experimental, use it with care.
 
-Inspector is a tool to lookup the widget tree by pointing widget on the screen.
-Some keyboard shortcut are activated:
+The Inspector is a tool for finding a widget in the widget tree by clicking or
+tapping on it.
+Some keyboard shortcuts are activated:
 
-    * "Ctrl + e": activate / deactivate inspector view
-    * "Escape": cancel widget inspect first, then hide inspector view
+    * "Ctrl + e": activate / deactivate the inspector view
+    * "Escape": cancel widget lookup first, then hide the inspector view
 
-Available inspect interactions:
+Available inspector interactions:
 
     * tap once on a widget to select it without leaving inspect mode
     * double tap on a widget to select and leave inspect mode (then you can
       manipulate the widget again)
 
-Some properties can be edited in live. However, this due to delayed usage of
-some properties, you might have crash if you didn't handle all the case.
+Some properties can be edited live. However, due to the delayed usage of
+some properties, it might crash if you don't handle all the cases.
 
 '''
 
@@ -47,7 +48,7 @@ from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix, \
         Translate, Rotate, Scale
 from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
         NumericProperty, StringProperty, OptionProperty, \
-        ReferenceListProperty, AliasProperty
+        ReferenceListProperty, AliasProperty, VariableListProperty
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from functools import partial
@@ -86,6 +87,12 @@ Builder.load_string('''
             size_hint_y: None
             height: 50
             spacing: 5
+            Button:
+                text: 'Move to Top'
+                on_release: root.toggle_position(args[0])
+                size_hint_x: None
+                width: 120
+
             ToggleButton:
                 text: 'Inspect'
                 on_state: root.inspect_enabled = args[1] == 'down'
@@ -177,6 +184,8 @@ class Inspector(FloatLayout):
 
     content = ObjectProperty(None)
 
+    at_bottom = BooleanProperty(True)
+
     def __init__(self, **kwargs):
         super(Inspector, self).__init__(**kwargs)
         self.avoid_bring_to_top = False
@@ -224,6 +233,7 @@ class Inspector(FloatLayout):
 
     def highlight_at(self, x, y):
         widget = None
+        # reverse the loop - look at children on top first
         for child in self.win.children:
             if child is self:
                 continue
@@ -262,13 +272,43 @@ class Inspector(FloatLayout):
         gr.size = widget.size
         self.gtranslate.xy = Vector(widget.to_window(*widget.pos))
         self.grotate.angle = angle
-        self.gscale.scale = scale
+        # fix warning about scale property deprecation
+        self.gscale.xyz = (scale,) * 3
+
+    def toggle_position(self, button):
+        to_bottom = button.text == 'Move to Bottom'
+
+        if to_bottom:
+            button.text = 'Move to Top'
+            if self.widget_info:
+                Animation(top=250, t='out_quad', d=.3).start(self.layout)
+            else:
+                Animation(top=60, t='out_quad', d=.3).start(self.layout)
+
+            bottom_bar = self.layout.children[1]
+            self.layout.remove_widget(bottom_bar)
+            self.layout.add_widget(bottom_bar)
+        else:
+            button.text = 'Move to Bottom'
+            if self.widget_info:
+                Animation(top=self.height, t='out_quad', d=.3).start(self.layout)
+            else:
+                Animation(y=self.height - 60, t='out_quad', d=.3).start(self.layout)
+
+            bottom_bar = self.layout.children[1]
+            self.layout.remove_widget(bottom_bar)
+            self.layout.add_widget(bottom_bar)
+        self.at_bottom = to_bottom
 
     def pick(self, widget, x, y):
         ret = None
+        # try to filter widgets that are not visible (invalid inspect target)
+        if (hasattr(widget, 'visible') and not widget.visible):
+            return ret
         if widget.collide_point(x, y):
             ret = widget
             x2, y2 = widget.to_local(x, y)
+            # reverse the loop - look at children on top first
             for child in widget.children:
                 ret = self.pick(child, x2, y2) or ret
         return ret
@@ -276,14 +316,21 @@ class Inspector(FloatLayout):
     def on_activated(self, instance, activated):
         if not activated:
             self.grect.size = 0, 0
-            anim = Animation(top=0, t='out_quad', d=.3)
+            if self.at_bottom:
+                anim = Animation(top=0, t='out_quad', d=.3)
+            else:
+                anim = Animation(y=self.height, t='out_quad', d=.3)
             anim.bind(on_complete=self.animation_close)
             anim.start(self.layout)
             self.widget = None
+            self.widget_info = False
         else:
             self.win.add_widget(self)
             Logger.info('Inspector: inspector activated')
-            Animation(top=60, t='out_quad', d=.3).start(self.layout)
+            if self.at_bottom:
+                Animation(top=60, t='out_quad', d=.3).start(self.layout)
+            else:
+                Animation(y=self.height - 60, t='out_quad', d=.3).start(self.layout)
 
     def animation_close(self, instance, value):
         if self.activated is False:
@@ -303,15 +350,21 @@ class Inspector(FloatLayout):
             node.widget_ref = None
             treeview.remove_node(node)
         if not widget:
-            Animation(top=60, t='out_quad', d=.3).start(self.layout)
+            if self.at_bottom:
+                Animation(top=60, t='out_quad', d=.3).start(self.layout)
+            else:
+                Animation(y=self.height - 60, t='out_quad', d=.3).start(self.layout)
             self.widget_info = False
             return
         self.widget_info = True
-        Animation(top=250, t='out_quad', d=.3).start(self.layout)
+        if self.at_bottom:
+            Animation(top=250, t='out_quad', d=.3).start(self.layout)
+        else:
+            Animation(top=self.height, t='out_quad', d=.3).start(self.layout)
         for node in list(treeview.iterate_all_nodes())[:]:
             treeview.remove_node(node)
 
-        keys = widget.properties().keys()
+        keys = list(widget.properties().keys())
         keys.sort()
         node = None
         wk_widget = weakref.ref(widget)
@@ -348,7 +401,7 @@ class Inspector(FloatLayout):
     def show_property(self, instance, value, key=None, index=-1, *l):
         # normal call: (tree node, focus, )
         # nested call: (widget, prop value, prop key, index in dict/list)
-        if not value:
+        if value is False:
             return
 
         content = None
@@ -366,9 +419,10 @@ class Inspector(FloatLayout):
             prop = None
 
         dtype = None
+
         if isinstance(prop, AliasProperty) or nested:
             # trying to resolve type dynamicly
-            if type(value) in (unicode, str):
+            if type(value) in (str, str):
                 dtype = 'string'
             elif type(value) in (int, float):
                 dtype = 'numeric'
@@ -383,8 +437,10 @@ class Inspector(FloatLayout):
             content = TextInput(text=value or '', multiline=True)
             content.bind(text=partial(
                 self.save_property_text, widget, key, index))
-        elif isinstance(prop, ListProperty) or isinstance(prop,
-                ReferenceListProperty) or dtype == 'list':
+        elif (isinstance(prop, ListProperty) or
+              isinstance(prop, ReferenceListProperty) or
+              isinstance(prop, VariableListProperty) or
+              dtype == 'list'):
             content = GridLayout(cols=1, size_hint_y=None)
             content.bind(minimum_height=content.setter('height'))
             for i, item in enumerate(value):

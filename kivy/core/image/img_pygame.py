@@ -4,6 +4,7 @@ Pygame: Pygame image loader
 
 __all__ = ('ImageLoaderPygame', )
 
+from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
@@ -14,11 +15,11 @@ except:
 
 
 class ImageLoaderPygame(ImageLoaderBase):
-    '''Image loader based on PIL library'''
+    '''Image loader based on the PIL library'''
 
     @staticmethod
     def extensions():
-        '''Return accepted extension for this loader'''
+        '''Return accepted extensions for this loader'''
         # under macosx, i got with "pygame.error: File is not a Windows BMP
         # file". documentation said: The image module is a required dependency
         # of Pygame, but it only optionally supports any extended file formats.
@@ -30,12 +31,17 @@ class ImageLoaderPygame(ImageLoaderBase):
         return ('jpg', 'jpeg', 'png', 'bmp', 'pcx', 'tga', 'tiff', 'tif', 'lbm',
                'pbm', 'ppm', 'xpm')
 
+    @staticmethod
+    def can_save():
+        return True
+
     def load(self, filename):
         try:
             try:
                 im = pygame.image.load(filename)
             except UnicodeEncodeError:
-                im = pygame.image.load(filename.encode('utf8'))
+                if PY2:
+                    im = pygame.image.load(filename.encode('utf8'))
         except:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise
@@ -52,17 +58,29 @@ class ImageLoaderPygame(ImageLoaderBase):
                 imc = im.convert(32)
                 fmt = 'rgba'
             except:
-                Logger.warning(
-                    'Image: Unable to convert image <%s> to rgba (was %s)' %
-                    filename, im.fmt)
-                raise
+                try:
+                    imc = im.convert_alpha()
+                    fmt = 'rgba'
+                except:
+                    Logger.warning(
+                        'Image: Unable to convert image %r to rgba (was %r)' %
+                        (filename, im.fmt))
+                    raise
             im = imc
 
         # update internals
         self.filename = filename
-        data = pygame.image.tostring(im, fmt.upper(), True)
+        data = pygame.image.tostring(im, fmt.upper())
         return [ImageData(im.get_width(), im.get_height(),
             fmt, data, source=filename)]
+
+    @staticmethod
+    def save(filename, width, height, fmt, pixels):
+        surface = pygame.image.fromstring(
+                pixels, (width, height), fmt.upper(), False)
+        pygame.image.save(surface, filename)
+        return True
+
 
 # register
 ImageLoader.register(ImageLoaderPygame)

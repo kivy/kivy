@@ -6,10 +6,11 @@ Support of WM_PEN message (Window platform)
 __all__ = ('WM_PenProvider', 'WM_Pen')
 
 import os
-from kivy.input.providers.wm_common import PEN_OR_TOUCH_SIGNATURE, \
-        PEN_OR_TOUCH_MASK, GWL_WNDPROC, WM_MOUSEMOVE, WM_LBUTTONUP, \
-        WM_LBUTTONDOWN, WM_TABLET_QUERYSYSTEMGESTURE, \
-        QUERYSYSTEMGESTURE_WNDPROC, PEN_EVENT_TOUCH_MASK
+from kivy.input.providers.wm_common import (
+    PEN_OR_TOUCH_SIGNATURE, PEN_OR_TOUCH_MASK, GWL_WNDPROC,
+    WM_MOUSEMOVE, WM_LBUTTONUP, WM_LBUTTONDOWN,
+    WM_TABLET_QUERYSYSTEMGESTURE, QUERYSYSTEMGESTURE_WNDPROC,
+    PEN_EVENT_TOUCH_MASK)
 from kivy.input.motionevent import MotionEvent
 
 
@@ -30,26 +31,47 @@ if 'KIVY_DOC' in os.environ:
 
 else:
     from collections import deque
-    from ctypes.wintypes import ULONG
-    from ctypes import Structure, windll, byref, c_int16, \
-            c_int, c_long, WINFUNCTYPE
+    from ctypes.wintypes import (ULONG, UINT, WPARAM, LPARAM,
+                                 HANDLE, BOOL, POINTER)
+    from ctypes import (Structure, windll, byref, c_int16,
+                        c_int, WINFUNCTYPE)
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory
 
-    WNDPROC = WINFUNCTYPE(c_long, c_int, c_int, c_int, c_int)
+    LRESULT = LPARAM
+    WNDPROC = WINFUNCTYPE(LRESULT, HANDLE, UINT, WPARAM, LPARAM)
 
     class RECT(Structure):
         _fields_ = [
-        ('left', ULONG),
-        ('top', ULONG),
-        ('right', ULONG),
-        ('bottom', ULONG)]
+            ('left', ULONG),
+            ('top', ULONG),
+            ('right', ULONG),
+            ('bottom', ULONG)]
 
         x = property(lambda self: self.left)
         y = property(lambda self: self.top)
-        w = property(lambda self: self.right-self.left)
-        h = property(lambda self: self.bottom-self.top)
+        w = property(lambda self: self.right - self.left)
+        h = property(lambda self: self.bottom - self.top)
     win_rect = RECT()
+
+    try:
+        windll.user32.SetWindowLongPtrW.restype = WNDPROC
+        windll.user32.SetWindowLongPtrW.argtypes = [HANDLE, c_int, WNDPROC]
+        SetWindowLong_wrapper = windll.user32.SetWindowLongPtrW
+    except AttributeError:
+        windll.user32.SetWindowLongW.restype = WNDPROC
+        windll.user32.SetWindowLongW.argtypes = [HANDLE, c_int, WNDPROC]
+        SetWindowLong_wrapper = windll.user32.SetWindowLongW
+
+    windll.user32.GetMessageExtraInfo.restype = LPARAM
+    windll.user32.GetMessageExtraInfo.argtypes = []
+    windll.user32.GetClientRect.restype = BOOL
+    windll.user32.GetClientRect.argtypes = [HANDLE, POINTER(RECT)]
+    windll.user32.CallWindowProcW.restype = LRESULT
+    windll.user32.CallWindowProcW.argtypes = [WNDPROC, HANDLE, UINT, WPARAM,
+                                              LPARAM]
+    windll.user32.GetActiveWindow.restype = HANDLE
+    windll.user32.GetActiveWindow.argtypes = []
 
     class WM_PenProvider(MotionEventProvider):
 
@@ -88,7 +110,7 @@ else:
                 return 1
             else:
                 return windll.user32.CallWindowProcW(self.old_windProc,
-                                                hwnd, msg, wParam, lParam)
+                                                     hwnd, msg, wParam, lParam)
 
         def start(self):
             self.uid = 0
@@ -101,10 +123,8 @@ else:
             # inject our own wndProc to handle messages
             # before window manager does
             self.new_windProc = WNDPROC(self._pen_wndProc)
-            self.old_windProc = windll.user32.SetWindowLongW(
-                self.hwnd,
-                GWL_WNDPROC,
-                self.new_windProc)
+            self.old_windProc = SetWindowLong_wrapper(
+                self.hwnd, GWL_WNDPROC, self.new_windProc)
 
         def update(self, dispatch_fn):
             while True:
@@ -126,9 +146,6 @@ else:
 
         def stop(self):
             self.pen = None
-            windll.user32.SetWindowLongW(
-                self.hwnd,
-                GWL_WNDPROC,
-                self.old_windProc)
+            SetWindowLong_wrapper(self.hwnd, GWL_WNDPROC, self.old_windProc)
 
     MotionEventFactory.register('wm_pen', WM_PenProvider)

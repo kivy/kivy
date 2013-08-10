@@ -1,6 +1,6 @@
 '''
-InteractiveLauncher
-===================
+Interactive launcher
+====================
 
 .. versionadded:: 1.3.0
 
@@ -43,7 +43,7 @@ can be quickly listed by using the '.' operator and pressing 'tab.'  Try this
 code in an Ipython shell.::
 
     from kivy.interactive import InteractiveLauncher
-    from kivy.app imort App
+    from kivy.app import App
     from kivy.uix.widget import Widget
     from kivy.graphics import Color, Ellipse
 
@@ -201,8 +201,8 @@ class SafeMembrane(object):
 
     def __call__(self, *args, **kw):
         self.safeIn()
-        args = map(unwrap, args)
-        for k in kw.keys():
+        args = list(map(unwrap, args))
+        for k in list(kw.keys()):
             kw[k] = unwrap(kw[k])
         r = self._ref(*args, **kw)
         self.safeOut()
@@ -210,7 +210,7 @@ class SafeMembrane(object):
             return SafeMembrane(r)
 
     def __getattribute__(self, attr, oga=object.__getattribute__):
-        if attr.startswith('__') or attr =='_ref':
+        if attr.startswith('__') or attr == '_ref':
             subject = oga(self, '_ref')
             if attr == '_ref':
                 return subject
@@ -239,7 +239,7 @@ class SafeMembrane(object):
         delattr(self._ref, attr)
         self.safeOut()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self._ref)
 
     def __get__(self, instance, owner):

@@ -1,0 +1,51 @@
+Source: kivy
+Section: python
+Priority: optional
+Maintainer: Thomas-Karl Pietrowski <thopiekar@googlemail.com>
+Uploaders: Kivy Launchpad-Team <ubuntu@kivy.org>
+Build-Depends: debhelper (>= 7.0.50~),
+               cdbs,
+               python (>= 2.7),
+               python-all-dev (>= 2.7),
+               python-nose, python-coverage, xvfb,
+               cython,
+               libgl1-mesa-dev [!armhf],
+               libgles2-mesa-dev [armhf]
+Standards-Version: 3.9.1
+Homepage: http://kivy.org/
+Vcs-Browser: https://github.com/kivy/kivy
+Vcs-Git: https://github.com/kivy/kivy.git
+Vcs-Bzr: https://code.launchpad.net/~kivy-team/kivy/master
+X-Python-Version: >= 2.7
+
+Package: python-kivy
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         ${python:Depends},
+         python-docutils,
+         python-pygame,
+         python-pygments,
+         python-gst0.10
+Description: Kivy - Multimedia / Multitouch framework in Python
+ Kivy is an open source library for developing multi-touch applications. It is
+ completely cross platform (Linux/OSX/Win/Android) and released under the terms
+ of the GNU LGPL V3.
+ .
+ It comes with native support for many multi-touch input devices, a growing
+ library of multi-touch aware widgets, hardware accelerated OpenGL drawing, and
+ an architecture that is designed to let you focus on building custom and highly
+ interactive applications as quickly and easily as possible.
+ .
+ Kivy is a mixed Python library with Cython code, to take advantage of its
+ highly dynamic nature and use any of the thousands of high quality and open
+ source python libraries out there, with the speed of C code.
+
+Package: python-kivy-examples
+Architecture: all
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         ${python:Depends},
+         python-kivy
+Description: Kivy - Multimedia / Multitouch framework in Python
+ This package includes all examples which can be found in the git repository.

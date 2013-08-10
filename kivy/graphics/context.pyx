@@ -12,6 +12,7 @@ You can read more about it at :doc:`api-kivy.graphics`
 
 include "config.pxi"
 
+from cpython.array cimport array
 import gc
 from os import environ
 from weakref import ref
@@ -33,6 +34,7 @@ cdef class Context:
 
     def __init__(self):
         self.observers = []
+        self.observers_before = []
         self.l_texture = []
         self.l_canvas = []
         self.l_vbo = []
@@ -43,43 +45,52 @@ cdef class Context:
         self.trigger_gl_dealloc = Clock.create_trigger(self.gl_dealloc, 0)
 
     cdef void flush(self):
-        self.lr_texture = []
+        gc.collect()
+        self.lr_texture = array('i')
         self.lr_canvas = []
-        self.lr_vbo = []
-        self.lr_fbo = []
+        self.lr_vbo = array('i')
+        self.lr_fbo_rb = array('i')
+        self.lr_fbo_fb = array('i')
 
     cdef void register_texture(self, Texture texture):
-        self.l_texture.append(ref(texture))
+        self.l_texture.append(ref(texture, self.l_texture.remove))
 
     cdef void register_canvas(self, Canvas canvas):
-        self.l_canvas.append(ref(canvas))
+        self.l_canvas.append(ref(canvas, self.l_canvas.remove))
 
     cdef void register_vbo(self, VBO vbo):
-        self.l_vbo.append(ref(vbo))
+        self.l_vbo.append(ref(vbo, self.l_vbo.remove))
 
     cdef void register_vertexbatch(self, VertexBatch vb):
-        self.l_vertexbatch.append(ref(vb))
+        self.l_vertexbatch.append(ref(vb, self.l_vertexbatch.remove))
 
     cdef void register_shader(self, Shader shader):
-        self.l_shader.append(ref(shader))
+        self.l_shader.append(ref(shader, self.l_shader.remove))
 
     cdef void register_fbo(self, Fbo fbo):
-        self.l_fbo.append(ref(fbo))
+        self.l_fbo.append(ref(fbo, self.l_fbo.remove))
 
     cdef void dealloc_texture(self, Texture texture):
+        cdef array arr
         if texture._nofree or texture.__class__ is TextureRegion:
             return
-        self.lr_texture.append(texture.id)
-        self.trigger_gl_dealloc()
+        if texture.id > 0:
+            arr = self.lr_texture
+            arr.append(texture.id)
+            self.trigger_gl_dealloc()
 
     cdef void dealloc_vbo(self, VBO vbo):
+        cdef array arr
         if vbo.have_id():
-            self.lr_vbo.append(vbo.id)
+            arr = self.lr_vbo
+            arr.append(vbo.id)
             self.trigger_gl_dealloc()
 
     cdef void dealloc_vertexbatch(self, VertexBatch batch):
+        cdef array arr
         if batch.have_id():
-            self.lr_vbo.append(batch.id)
+            arr = self.lr_vbo
+            arr.append(batch.id)
             self.trigger_gl_dealloc()
 
     cdef void dealloc_shader(self, Shader shader):
@@ -92,27 +103,45 @@ cdef class Context:
         glDeleteProgram(shader.program)
 
     cdef void dealloc_fbo(self, Fbo fbo):
-        if fbo.buffer_id != -1:
-            self.lr_fbo.append((fbo.buffer_id, fbo.depthbuffer_id))
+        cdef array arr_fb
+        cdef array arr_rb
+        if fbo.buffer_id != 0:
+            arr_fb = self.lr_fbo_fb
+            arr_fb.append(fbo.buffer_id)
             self.trigger_gl_dealloc()
+        if fbo.depthbuffer_id != 0:
+            arr_rb = self.lr_fbo_rb
+            arr_rb.append(fbo.depthbuffer_id)
+            # no need to trigger, depthbuffer required absolutely a buffer.
 
-    def add_reload_observer(self, callback):
+    def add_reload_observer(self, callback, before=False):
         '''Add a callback to be called after the whole graphics context have
         been reloaded. This is where you can reupload your custom data in GPU.
 
         :Parameters:
             `callback`: func(context) -> return None
                 The first parameter will be the context itself
-        '''
-        self.observers.append(WeakMethod(callback))
+            `before`: boolean, default to False
+                If True, the callback will be executed before the whole
+                reloading processus. Use it if you want to clear your cache for
+                example.
 
-    def remove_reload_observer(self, callback):
+        .. versionchanged:: 1.4.0
+            `before` parameter added.
+        '''
+        if before:
+            self.observers_before.append(WeakMethod(callback))
+        else:
+            self.observers.append(WeakMethod(callback))
+
+    def remove_reload_observer(self, callback, before=False):
         '''Remove a callback from the observer list, previously added by
         :func:`add_reload_observer`. 
         '''
-        for cb in self.observers[:]:
+        lst = self.observers_before if before else self.observers
+        for cb in lst[:]:
             if cb.is_dead() or cb() is callback:
-                self.observers.remove(cb)
+                lst.remove(cb)
                 continue
 
     def reload(self):
@@ -122,16 +151,38 @@ cdef class Context:
         cdef Shader shader
         cdef Canvas canvas
 
-        Cache.remove('kv.atlas')
+        # call reload observers that want to do something after a whole gpu
+        # reloading.
+        for callback in self.observers_before[:]:
+            if callback.is_dead():
+                self.observers_before.remove(callback)
+                continue
+            callback()(self)
+
+        # mark all the texture to not delete from the previous reload as to
+        # delete now.
+        for item in self.l_texture[:]:
+            texture = item()
+            if texture is None:
+                continue
+            if texture._nofree == 1:
+                texture._nofree = 0
+                self.l_texture.remove(item)
+
+        image_objects = Cache._objects['kv.image']
+        Cache.remove('kv.loader')
         Cache.remove('kv.image')
-        Cache.remove('kv.texture')
         Cache.remove('kv.shader')
+
+        # For texture cache, save the objects. We need to clean the cache as the
+        # others to prevent of using it during the reloading part.
+        # We'll restore the object later.
+        texture_objects = Cache._objects['kv.texture']
+        Cache.remove('kv.texture')
 
         start = time()
         Logger.info('Context: Reloading graphics data...')
         Logger.debug('Context: Collect and flush all garbage')
-        self.gc()
-        gc.collect()
         self.flush()
 
         # First step, prevent double loading by setting everything to -1
@@ -143,6 +194,7 @@ cdef class Context:
             texture = item()
             if texture is None:
                 continue
+            Logger.trace('Context: unset texture id %r' % texture)
             texture._id = -1
 
         # First time, only reload base texture
@@ -150,14 +202,24 @@ cdef class Context:
             texture = item()
             if texture is None or isinstance(texture, TextureRegion):
                 continue
+            Logger.trace('Context: >> reload base texture %r' % texture)
             texture.reload()
+            Logger.trace('Context: << reload base texture %r' % texture)
 
         # Second time, update texture region id
         for item in l:
             texture = item()
             if texture is None or not isinstance(texture, TextureRegion):
                 continue
+            Logger.trace('Context: >> reload region texture %r' % texture)
             texture.reload()
+            Logger.trace('Context: << reload region texture %r' % texture)
+
+        # Restore texture cache
+        texture_objects.update(Cache._objects['kv.texture'])
+        Cache._objects['kv.texture'] = texture_objects
+        image_objects.update(Cache._objects['kv.image'])
+        Cache._objects['kv.image'] = image_objects
 
         Logger.debug('Context: Reload vbos')
         for item in self.l_vbo[:]:
@@ -196,35 +258,39 @@ cdef class Context:
         dt = time() - start
         Logger.info('Context: Reloading done in %2.4fs' % dt)
 
-
-    def gc(self, *largs):
-        self.l_texture = [x for x in self.l_texture if x() is not None]
-        self.l_canvas = [x for x in self.l_canvas if x() is not None]
-        self.l_vbo = [x for x in self.l_vbo if x() is not None]
-        self.l_vertexbatch = [x for x in self.l_vertexbatch if x() is not None]
+    def flag_update_canvas(self):
+        cdef Canvas canvas
+        for item in self.l_canvas:
+            canvas = item()
+            if canvas:
+                canvas.flag_update()
 
     def gl_dealloc(self, *largs):
         # dealloc all gl resources asynchronously
         cdef GLuint i, j
+        cdef array arr
+
         if len(self.lr_vbo):
             Logger.trace('Context: releasing %d vbos' % len(self.lr_vbo))
-            while len(self.lr_vbo):
-                i = self.lr_vbo.pop()
-                glDeleteBuffers(1, &i)
+            arr = self.lr_vbo
+            glDeleteBuffers(len(self.lr_vbo), arr.data.as_uints)
+            del self.lr_vbo[:]
         if len(self.lr_texture):
             Logger.trace('Context: releasing %d textures: %r' % (
                 len(self.lr_texture), self.lr_texture))
-            while len(self.lr_texture):
-                i = self.lr_texture.pop()
-                glDeleteTextures(1, &i)
-        if len(self.lr_fbo):
-            Logger.trace('Context: releasing %d fbos' % len(self.lr_fbo))
-            while len(self.lr_fbo):
-                i, j = self.lr_fbo.pop()
-                if i != -1:
-                    glDeleteFramebuffers(1, &i)
-                if j != -1:
-                    glDeleteRenderbuffers(1, &j)
+            arr = self.lr_texture
+            glDeleteTextures(len(self.lr_texture), arr.data.as_uints)
+            del self.lr_texture[:]
+        if len(self.lr_fbo_fb):
+            Logger.trace('Context: releasing %d framebuffer fbos' % len(self.lr_fbo_fb))
+            arr = self.lr_fbo_fb
+            glDeleteFramebuffers(len(self.lr_fbo_fb), arr.data.as_uints)
+            del self.lr_fbo_fb[:]
+        if len(self.lr_fbo_rb):
+            Logger.trace('Context: releasing %d renderbuffer fbos' % len(self.lr_fbo_fb))
+            arr = self.lr_fbo_rb
+            glDeleteRenderbuffers(len(self.lr_fbo_rb), arr.data.as_uints)
+            del self.lr_fbo_rb[:]
 
 
 cpdef Context get_context():

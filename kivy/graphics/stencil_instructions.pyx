@@ -5,7 +5,6 @@ Stencil instructions
 .. versionadded:: 1.0.4
 
 .. versionchanged:: 1.3.0
-
     The stencil operation have been updated to resolve some issues appearing
     when nested. You **must** know have a StencilUnUse and repeat the same
     operation as you did after StencilPush.
@@ -94,13 +93,30 @@ __all__ = ('StencilPush', 'StencilPop', 'StencilUse', 'StencilUnUse')
 include "config.pxi"
 include "opcodes.pxi"
 
-from c_opengl cimport *
+from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
-    from c_opengl_debug cimport *
-from instructions cimport Instruction
+    from kivy.graphics.c_opengl_debug cimport *
+from kivy.graphics.instructions cimport Instruction
 
 cdef int _stencil_level = 0
 cdef int _stencil_in_push = 0
+
+
+cdef dict _gl_stencil_op = {
+    'never': GL_NEVER, 'less': GL_LESS, 'equal': GL_EQUAL,
+    'lequal': GL_LEQUAL, 'greater': GL_GREATER, 'notequal': GL_NOTEQUAL,
+    'gequal': GL_GEQUAL, 'always': GL_ALWAYS }
+
+
+cdef inline int _stencil_op_to_gl(x):
+    '''Return the GL numeric value from a stencil operator
+    '''
+    x = x.lower()
+    try:
+        return _gl_stencil_op[x]
+    except KeyError:
+        raise Exception('Unknow <%s> stencil op' % x)
+
 
 cdef class StencilPush(Instruction):
     '''Push the stencil stack. See module documentation for more information.
@@ -148,12 +164,40 @@ cdef class StencilUse(Instruction):
     '''Use current stencil buffer as a mask. Check module documentation for more
     information.
     '''
+    def __init__(self, **kwargs):
+        super(StencilUse, self).__init__(**kwargs)
+        if 'op' in kwargs:
+            self._op = _stencil_op_to_gl(kwargs['op'])
+        else:
+            self._op = GL_EQUAL
+
     cdef void apply(self):
         global _stencil_in_push
         _stencil_in_push = 0
         glColorMask(1, 1, 1, 1)
-        glStencilFunc(GL_EQUAL, _stencil_level, 0xff)
+        glStencilFunc(self._op, _stencil_level, 0xff)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+
+    property func_op:
+        '''Determine the stencil operation to use for glStencilFunc(). Can be
+        one of 'never', 'less', 'equal', 'lequal', 'greater', 'notequal',
+        'gequal', 'always'.
+
+        By default, the operator is set to 'equal'.
+
+        .. versionadded:: 1.5.0
+        '''
+
+        def __get__(self):
+            index = _gl_stencil_op.values().index(self._op)
+            return _gl_stencil_op.keys()[index]
+
+        def __set__(self, x):
+            cdef int op = _stencil_op_to_gl(x)
+            if op != self._op:
+                self._op = op
+                self.flag_update()
+
 
 cdef class StencilUnUse(Instruction):
     '''Use current stencil buffer to unset the mask.

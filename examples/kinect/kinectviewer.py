@@ -213,7 +213,7 @@ class KinectViewer(Widget):
         # update projection mat and uvsize
         self.canvas['projection_mat'] = Window.render_context['projection_mat']
         self.canvas['depth_range'] = self.depth_range
-        self.canvas['size'] = map(float, self.size)
+        self.canvas['size'] = list(map(float, self.size))
         try:
             value = self.kinect.pop()
         except:

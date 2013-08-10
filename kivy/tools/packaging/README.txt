@@ -1,4 +1,4 @@
-The files in teh win32 and osx subdirectories are 
+The files in the win32 and osx subdirectories are 
 source and resource files that are used in the respective 
 portable packaged versions of kivy for each OS.  Here, they
 are under version controll.  

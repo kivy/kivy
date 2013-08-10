@@ -16,7 +16,7 @@ from kivy.factory import Factory
 
 
 def get_modules():
-    return [x.get('module', None) for x in Factory.classes.itervalues()]
+    return [x.get('module', None) for x in Factory.classes.values()]
 
 
 datas = [
@@ -43,7 +43,6 @@ _kivy_modules = [
     'kivy.lib.osc.OSC',
     'kivy.lib.osc.oscAPI',
     'kivy.lib.mtdev',
-    'kivy.lib.debug',
     'kivy.factory_registers',
     'kivy.input.recorder',
     'kivy.input.providers',

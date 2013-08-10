@@ -28,12 +28,12 @@ class Root(FloatLayout):
 
     def show_load(self):
         content = LoadDialog(load=self.load, cancel=self.dismiss_popup)
-        self._popup = Popup(title="load file", content=content, size_hint=(0.9, 0.9))
+        self._popup = Popup(title="Load file", content=content, size_hint=(0.9, 0.9))
         self._popup.open()
 
     def show_save(self):
         content = SaveDialog(save=self.save, cancel=self.dismiss_popup)
-        self._popup = Popup(title="save file", content=content, size_hint=(0.9, 0.9))
+        self._popup = Popup(title="Save file", content=content, size_hint=(0.9, 0.9))
         self._popup.open()
 
     def load(self, path, filename):

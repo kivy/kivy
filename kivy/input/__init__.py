@@ -1,27 +1,28 @@
+# pylint: disable=W0611
 '''
 Input management
 ================
 
 Our input system is wide and simple at the same time. We are currently able to
-support natively :
+natively support :
 
-* Windows multitouch event (pencil and finger)
-* MacOSX touchpad
-* Linux multitouch event (kernel and mtdev)
-* Linux wacom driver (pencil and finger)
+* Windows multitouch events (pencil and finger)
+* MacOSX touchpads
+* Linux multitouch events (kernel and mtdev)
+* Linux wacom drivers (pencil and finger)
 * TUIO
 
-All the input management is configurable in the Kivy configuration. You can
-easily use many multitouch device into one Kivy application.
+All the input management is configurable in the Kivy :mod:`~kivy.config`. You
+can easily use many multitouch devices in one Kivy application.
 
-When the event have been read from devices, they are dispatched through post
-processing module, before sending them to your application. We got also several
-module by default for :
+When the events have been read from the devices, they are dispatched through
+a post processing module before being sent to your application. We also have
+several default modules for :
 
 * Double tap detection
-* Decrease jittering
-* Decrease the loose of touch on "bad" DIY hardware
-* Ignore regions
+* Decreasing jittering
+* Decreasing the inaccuracy of touch on "bad" DIY hardware
+* Ignoring regions
 '''
 
 
@@ -29,7 +30,7 @@ from kivy.input.motionevent import MotionEvent
 from kivy.input.postproc import kivy_postproc_modules
 from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory
-__import__('kivy.input.providers')
+import kivy.input.providers
 
 __all__ = (
     MotionEvent.__name__,

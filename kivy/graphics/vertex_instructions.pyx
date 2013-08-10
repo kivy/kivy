@@ -19,143 +19,14 @@ from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.logger import Logger
-from kivy.graphics.texture import Texture
+from kivy.graphics.texture cimport Texture
 
 
 class GraphicException(Exception):
     '''Exception fired when a graphic error is fired.
     '''
 
-cdef class Line(VertexInstruction):
-    '''A 2d line.
-
-    .. versionadded:: 1.0.8
-        `dash_offset` and `dash_length` have been added
-
-    :Parameters:
-        `points`: list
-            List of points in the format (x1, y1, x2, y2...)
-        `dash_length`: int
-            length of a segment (if dashed), default 1
-        `dash_offset`: int
-            offset between the end of a segments and the begining of the
-            next one, default 0, changing this makes it dashed.
-    '''
-    cdef list _points
-    cdef int _dash_offset, _dash_length
-
-    def __init__(self, **kwargs):
-        VertexInstruction.__init__(self, **kwargs)
-        v = kwargs.get('points')
-        self.points = v if v is not None else []
-        self.batch.set_mode('line_strip')
-        self._dash_length = kwargs.get('dash_length') or 1
-        self._dash_offset = kwargs.get('dash_offset') or 0
-
-    cdef void build(self):
-        cdef int i, count = len(self.points) / 2
-        cdef list p = self.points
-        cdef vertex_t *vertices = NULL
-        cdef unsigned short *indices = NULL
-        cdef float tex_x
-        cdef char *buf = NULL
-        cdef Texture texture = self.texture
-
-        if count < 2:
-            self.batch.clear_data()
-            return
-
-        if self._dash_offset != 0:
-            if texture is None or texture._width != \
-                (self._dash_length + self._dash_offset) or \
-                texture._height != 1:
-
-                self.texture = texture = Texture.create(
-                        size=(self._dash_length + self._dash_offset, 1))
-                texture.wrap = 'repeat'
-
-            # create a buffer to fill our texture
-            buf = <char *>malloc(4 * (self._dash_length + self._dash_offset))
-            memset(buf, 255, self._dash_length * 4)
-            memset(buf + self._dash_length * 4, 0, self._dash_offset * 4)
-            p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 4)
-
-            self.texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
-            free(buf)
-
-        elif texture is not None:
-            self.texture = None
-
-        vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
-        if vertices == NULL:
-            raise MemoryError('vertices')
-
-        indices = <unsigned short *>malloc(count * sizeof(unsigned short))
-        if indices == NULL:
-            free(vertices)
-            raise MemoryError('indices')
-
-        tex_x = 0
-        for i in xrange(count):
-            if self._dash_offset != 0 and i > 0:
-                tex_x += sqrt(
-                        pow(p[i * 2]     - p[(i - 1) * 2], 2)  +
-                        pow(p[i * 2 + 1] - p[(i - 1) * 2 + 1], 2)) / (
-                                self._dash_length + self._dash_offset)
-
-                vertices[i].s0 = tex_x
-                vertices[i].t0 = 0
-
-            vertices[i].x = p[i * 2]
-            vertices[i].y = p[i * 2 + 1]
-            indices[i] = i
-
-        self.batch.set_data(vertices, count, indices, count)
-
-        free(vertices)
-        free(indices)
-
-    property points:
-        '''Property for getting/settings points of the line
-
-        .. warning::
-
-            This will always reconstruct the whole graphics from the new points
-            list. It can be very CPU expensive.
-        '''
-        def __get__(self):
-            return self._points
-        def __set__(self, points):
-            self._points = list(points)
-            self.flag_update()
-
-    property dash_length:
-        '''Property for getting/setting the length of the dashes in the curve
-
-        .. versionadded:: 1.0.8
-        '''
-        def __get__(self):
-            return self._dash_length
-
-        def __set__(self, value):
-            if value < 0:
-                raise GraphicException('Invalid dash_length value, must be >= 0')
-            self._dash_length = value
-            self.flag_update()
-
-    property dash_offset:
-        '''Property for getting/setting the offset between the dashes in the curve
-
-        .. versionadded:: 1.0.8
-        '''
-        def __get__(self):
-            return self._dash_offset
-
-        def __set__(self, value):
-            if value < 0:
-                raise GraphicException('Invalid dash_offset value, must be >= 0')
-            self._dash_offset = value
-            self.flag_update()
+include "vertex_instructions_line.pxi"
 
 
 cdef class Bezier(VertexInstruction):
@@ -227,7 +98,7 @@ cdef class Bezier(VertexInstruction):
             memset(buf, 255, self._dash_length * 4)
             memset(buf + self._dash_length * 4, 0, self._dash_offset * 4)
 
-            p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 4)
+            p_str = buf[:(self._dash_length + self._dash_offset) * 4]
 
             texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
             free(buf)
@@ -380,6 +251,7 @@ cdef class Mesh(VertexInstruction):
     '''
     cdef list _vertices
     cdef list _indices
+    cdef VertexFormat vertex_format
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
@@ -387,21 +259,26 @@ cdef class Mesh(VertexInstruction):
         self.vertices = v if v is not None else []
         v = kwargs.get('indices')
         self.indices = v if v is not None else []
+        fmt = kwargs.get('fmt')
+        if fmt is not None:
+            self.vertex_format = VertexFormat(*fmt)
+            self.batch = VertexBatch(vbo=VBO(self.vertex_format))
         self.mode = kwargs.get('mode') or 'points'
 
     cdef void build(self):
-        cdef int i, vcount = len(self._vertices) / 4
+        cdef int i, vcount = len(self._vertices)
         cdef int icount = len(self._indices)
-        cdef vertex_t *vertices = NULL
+        cdef float *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef list lvertices = self._vertices
         cdef list lindices = self._indices
+        cdef vsize = self.batch.vbo.vertex_format.vsize
 
         if vcount == 0 or icount == 0:
             self.batch.clear_data()
             return
 
-        vertices = <vertex_t *>malloc(vcount * sizeof(vertex_t))
+        vertices = <float *>malloc(vcount * sizeof(float))
         if vertices == NULL:
             raise MemoryError('vertices')
 
@@ -411,15 +288,11 @@ cdef class Mesh(VertexInstruction):
             raise MemoryError('indices')
 
         for i in xrange(vcount):
-            vertices[i].x = lvertices[i * 4]
-            vertices[i].y = lvertices[i * 4 + 1]
-            vertices[i].s0 = lvertices[i * 4 + 2]
-            vertices[i].t0 = lvertices[i * 4 + 3]
-
+            vertices[i] = lvertices[i]
         for i in xrange(icount):
             indices[i] = lindices[i]
 
-        self.batch.set_data(vertices, vcount, indices, icount)
+        self.batch.set_data(vertices, vcount / vsize, indices, icount)
 
         free(vertices)
         free(indices)
@@ -487,11 +360,10 @@ cdef class Point(VertexInstruction):
         self.pointsize = kwargs.get('pointsize') or 1.
 
     cdef void build(self):
-        cdef float t0, t1, t2, t3, t4, t5, t6, t7
         cdef float x, y, ps = self._pointsize
         cdef int i, iv, ii, count = <int>(len(self._points) * 0.5)
         cdef list p = self.points
-        cdef list tc = self._tex_coords
+        cdef float *tc = self._tex_coords
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
 
@@ -509,28 +381,26 @@ cdef class Point(VertexInstruction):
             free(vertices)
             raise MemoryError('indices')
 
-        t0, t1, t2, t3, t4, t5, t6, t7 = tc
-
         for i in xrange(count):
             x = p[i * 2]
             y = p[i * 2 + 1]
             iv = i * 4
             vertices[iv].x = x - ps
             vertices[iv].y = y - ps
-            vertices[iv].s0 = t0
-            vertices[iv].t0 = t1
+            vertices[iv].s0 = tc[0]
+            vertices[iv].t0 = tc[1]
             vertices[iv + 1].x = x + ps
             vertices[iv + 1].y = y - ps
-            vertices[iv + 1].s0 = t2
-            vertices[iv + 1].t0 = t3
+            vertices[iv + 1].s0 = tc[2]
+            vertices[iv + 1].t0 = tc[3]
             vertices[iv + 2].x = x + ps
             vertices[iv + 2].y = y + ps
-            vertices[iv + 2].s0 = t4
-            vertices[iv + 2].t0 = t5
+            vertices[iv + 2].s0 = tc[4]
+            vertices[iv + 2].t0 = tc[5]
             vertices[iv + 3].x = x - ps
             vertices[iv + 3].y = y + ps
-            vertices[iv + 3].s0 = t6
-            vertices[iv + 3].t0 = t7
+            vertices[iv + 3].s0 = tc[6]
+            vertices[iv + 3].t0 = tc[7]
 
             ii = i * 6
             indices[ii] = iv
@@ -553,10 +423,9 @@ cdef class Point(VertexInstruction):
         list will recalculate and reupload the whole buffer into GPU.
         If you use add_point, it will only upload the changes.
         '''
-        cdef float t0, t1, t2, t3, t4, t5, t6, t7
         cdef float ps = self._pointsize
         cdef int iv, count = <int>(len(self._points) * 0.5)
-        cdef list tc = self._tex_coords
+        cdef float *tc = self._tex_coords
         cdef vertex_t vertices[4]
         cdef unsigned short indices[6]
 
@@ -566,23 +435,22 @@ cdef class Point(VertexInstruction):
         self._points.append(x)
         self._points.append(y)
 
-        t0, t1, t2, t3, t4, t5, t6, t7 = tc
         vertices[0].x = x - ps
         vertices[0].y = y - ps
-        vertices[0].s0 = t0
-        vertices[0].t0 = t1
+        vertices[0].s0 = tc[0]
+        vertices[0].t0 = tc[1]
         vertices[1].x = x + ps
         vertices[1].y = y - ps
-        vertices[1].s0 = t2
-        vertices[1].t0 = t3
+        vertices[1].s0 = tc[2]
+        vertices[1].t0 = tc[3]
         vertices[2].x = x + ps
         vertices[2].y = y + ps
-        vertices[2].s0 = t4
-        vertices[2].t0 = t5
+        vertices[2].s0 = tc[4]
+        vertices[2].t0 = tc[5]
         vertices[3].x = x - ps
         vertices[3].y = y + ps
-        vertices[3].s0 = t6
-        vertices[3].t0 = t7
+        vertices[3].s0 = tc[6]
+        vertices[3].t0 = tc[7]
 
         iv = count * 4
         indices[0] = iv
@@ -640,7 +508,8 @@ cdef class Triangle(VertexInstruction):
         self.points = v if v is not None else (0.0,0.0, 100.0,0.0, 50.0,100.0)
 
     cdef void build(self):
-        cdef list vc, tc
+        cdef list vc
+        cdef float *tc
         cdef vertex_t vertices[3]
         cdef unsigned short *indices = [0, 1, 2]
 
@@ -682,14 +551,15 @@ cdef class Quad(VertexInstruction):
     cdef list _points
 
     def __init__(self, **kwargs):
-        VertexInstruction.__init__(self)
+        VertexInstruction.__init__(self, **kwargs)
         v = kwargs.get('points')
         self.points = v if v is not None else \
                (  0.0,  50.0,   50.0,   0.0,
                 100.0,  50.0,   50.0, 100.0 )
 
     cdef void build(self):
-        cdef list vc, tc
+        cdef list vc
+        cdef float *tc
         cdef vertex_t vertices[4]
         cdef unsigned short *indices = [0, 1, 2, 2, 3, 0]
 
@@ -724,7 +594,7 @@ cdef class Quad(VertexInstruction):
             self._points = list(points)
             if len(self._points) != 8:
                 raise GraphicException(
-                    'Quad: invalid number of points (%d instead of 8' % len(
+                    'Quad: invalid number of points (%d instead of 8)' % len(
                     self._points))
             self.flag_update()
 
@@ -749,7 +619,7 @@ cdef class Rectangle(VertexInstruction):
 
     cdef void build(self):
         cdef float x, y, w, h
-        cdef list tc = self._tex_coords
+        cdef float *tc = self._tex_coords
         cdef vertex_t vertices[4]
         cdef unsigned short *indices = [0, 1, 2, 2, 3, 0]
 
@@ -835,7 +705,7 @@ cdef class BorderImage(Rectangle):
 
         # width and heigth of texture in pixels, and tex coord space
         cdef float tw, th, tcw, tch
-        cdef list tc = self._tex_coords
+        cdef float *tc = self._tex_coords
         cdef float tc0, tc1, tc2, tc7
         tc0 = tc[0]
         tc1 = tc[1]
@@ -903,7 +773,7 @@ cdef class BorderImage(Rectangle):
             hs[0], vs[1], ths[0], tvs[1], #v11
             hs[1], vs[1], ths[1], tvs[1], #v12
             hs[2], vs[1], ths[2], tvs[1], #v13
-            hs[2], vs[2], ths[2], tvs[2], #v14 
+            hs[2], vs[2], ths[2], tvs[2], #v14
             hs[1], vs[2], ths[1], tvs[2]] #v15
 
         cdef unsigned short *indices = [
@@ -956,7 +826,7 @@ cdef class Ellipse(Rectangle):
         self._angle_end = kwargs.get('angle_end') or 360
 
     cdef void build(self):
-        cdef list tc = self.tex_coords
+        cdef float *tc = self._tex_coords
         cdef int i, angle_dir
         cdef float angle_start, angle_end, angle_range
         cdef float x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
@@ -982,7 +852,7 @@ cdef class Ellipse(Rectangle):
             raise MemoryError('indices')
 
         # calculate the start/end angle in radians, and adapt the range
-        if self.angle_end > self.angle_start:
+        if self._angle_end > self._angle_start:
             angle_dir = 1
         else:
             angle_dir = -1

@@ -14,3 +14,4 @@ attribute vec2     vTexCoords0;
 uniform mat4       modelview_mat;
 uniform mat4       projection_mat;
 uniform vec4       color;
+uniform float      opacity;

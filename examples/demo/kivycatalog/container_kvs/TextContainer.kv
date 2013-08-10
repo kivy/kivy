@@ -1,0 +1,20 @@
+#:kivy 1.4
+
+BoxLayout:
+    orientation: "vertical"
+    TextInput:
+        text: "Single Line Input"
+        multiline: False
+    TextInput:
+        text: "Text Input, start typing here\nmultiline\nsupport"
+        background_color: .8, .8, 0, 1
+        size_hint: 1, 3
+    TextInput:
+        text: "Password (but you can't see it)"
+        password: True
+        multiline: False
+        on_text: viewer.text = self.text
+    TextInput:
+        id: viewer
+        readonly: True
+        text: "edit the password to see it here"

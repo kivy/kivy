@@ -1,0 +1,20 @@
+{ "name": "Kivy Language",
+  "scopeName": "source.python.kivy",
+  "fileTypes": ["kv"],
+  "patterns": [
+    { "match": "#:.*?$",
+      "name": "support.type.kivy" },
+    { "match": "#.*?$",
+      "name": "comment.kivy" },
+    { "match": "\\<.+\\>",
+      "name": "support.class.kivy" },
+    { "match": "[A-Za-z][A-Za-z0-9]+$",
+      "name": "support.function.kivy" },
+    { "match": ".*?:$",
+      "name": "support.function.kivy" },
+    { "name": "entity.name.section.kivy",
+      "match": "(.*?):" },
+    { "include": "source.python" }
+  ],
+  "uuid": "49cecc44-5094-48ec-a876-91f597e8bf81"
+}

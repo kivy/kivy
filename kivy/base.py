@@ -1,3 +1,4 @@
+# pylint: disable=W0611
 '''
 Event loop management
 =====================
@@ -14,10 +15,12 @@ __all__ = (
     'stopTouchApp',
 )
 
+import sys
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
+from kivy.lang import Builder
 
 # private vars
 EventLoop = None
@@ -25,11 +28,11 @@ EventLoop = None
 
 class ExceptionHandler:
     '''Base handler that catch exception in runTouchApp().
-    You can derivate and use it like this ::
+    You can derivate and use it like this::
 
         class E(ExceptionHandler):
             def handle_exception(self, inst):
-                Logger.exception(inst)
+                Logger.exception('Exception catched by ExceptionHandler')
                 return ExceptionManager.PASS
 
         ExceptionManager.add_handler(E())
@@ -82,6 +85,8 @@ class EventLoopBase(EventDispatcher):
     '''Main event loop. This loop handle update of input + dispatch event
     '''
 
+    __events__ = ('on_start', 'on_pause', 'on_stop')
+
     def __init__(self):
         super(EventLoopBase, self).__init__()
         self.quit = False
@@ -89,12 +94,10 @@ class EventLoopBase(EventDispatcher):
         self.postproc_modules = []
         self.status = 'idle'
         self.input_providers = []
+        self.input_providers_autoremove = []
         self.event_listeners = []
         self.window = None
         self.me_list = []
-        self.register_event_type('on_start')
-        self.register_event_type('on_pause')
-        self.register_event_type('on_stop')
 
     @property
     def touches(self):
@@ -105,18 +108,23 @@ class EventLoopBase(EventDispatcher):
     def ensure_window(self):
         '''Ensure that we have an window
         '''
-        __import__('kivy.core.window')
+        import kivy.core.window
+        if not self.window:
+            Logger.critical('App: Unable to get a Window, abort.')
+            sys.exit(1)
 
     def set_window(self, window):
         '''Set the window used for event loop
         '''
         self.window = window
 
-    def add_input_provider(self, provider):
+    def add_input_provider(self, provider, auto_remove=False):
         '''Add a new input provider to listen for touch event
         '''
-        if not provider in self.input_providers:
+        if provider not in self.input_providers:
             self.input_providers.append(provider)
+            if auto_remove:
+                self.input_providers_autoremove.append(provider)
 
     def remove_input_provider(self, provider):
         '''Remove an input provider
@@ -155,19 +163,28 @@ class EventLoopBase(EventDispatcher):
     def stop(self):
         '''Stop all input providers and call callbacks registered using
         EventLoop.add_stop_callback()'''
-        #stop in reverse order that we started them!! (liek push pop),
-        #very important becasue e.g. wm_touch and WM_PEN both store
-        #old window proc and teh restore, if order is messed big problem
-        #happens, crashing badly without error
-        for provider in reversed(self.input_providers):
+
+        # XXX stop in reverse order that we started them!! (like push pop), very
+        # important because e.g. wm_touch and WM_PEN both store old window proc
+        # and the restore, if order is messed big problem happens, crashing
+        # badly without error
+        for provider in reversed(self.input_providers[:]):
             provider.stop()
+            if provider in self.input_providers_autoremove:
+                self.input_providers_autoremove.remove(provider)
+                self.input_providers.remove(provider)
+
+        # ensure any restart will not break anything later.
+        self.input_events = []
 
         self.status = 'stopped'
         self.dispatch('on_stop')
 
     def add_postproc_module(self, mod):
-        '''Add a postproc input module (DoubleTap, RetainTouch are default)'''
-        self.postproc_modules.append(mod)
+        '''Add a postproc input module (DoubleTap, TripleTap, DeJitter
+        RetainTouch are default)'''
+        if mod not in self.postproc_modules:
+            self.postproc_modules.append(mod)
 
     def remove_postproc_module(self, mod):
         '''Remove a postproc module'''
@@ -260,10 +277,11 @@ class EventLoopBase(EventDispatcher):
             self.input_events = mod.process(events=self.input_events)
 
         # real dispatch input
-        for etype, me in self.input_events:
-            self.post_dispatch_input(etype, me)
-
-        self.input_events = []
+        input_events = self.input_events
+        pop = input_events.pop
+        post_dispatch_input = self.post_dispatch_input
+        while input_events:
+            post_dispatch_input(*pop(0))
 
     def idle(self):
         '''This function is called every frames. By default :
@@ -278,9 +296,17 @@ class EventLoopBase(EventDispatcher):
         # read and dispatch input from providers
         self.dispatch_input()
 
+        # flush all the canvas operation
+        Builder.sync()
+
+        # tick before draw
+        Clock.tick_draw()
+
+        # flush all the canvas operation
+        Builder.sync()
+
         window = self.window
         if window and window.canvas.needs_redraw:
-            Clock.tick_draw()
             window.dispatch('on_draw')
             window.dispatch('on_flip')
 
@@ -331,7 +357,7 @@ def _run_mainloop():
             EventLoop.run()
             stopTouchApp()
             break
-        except BaseException, inst:
+        except BaseException as inst:
             # use exception manager first
             r = ExceptionManager.handle_exception(inst)
             if r == ExceptionManager.RAISE:
@@ -391,15 +417,16 @@ def runTouchApp(widget=None, slave=False):
         # create provider
         p = provider(key, args)
         if p:
-            EventLoop.add_input_provider(p)
+            EventLoop.add_input_provider(p, True)
 
     # add postproc modules
-    for mod in kivy_postproc_modules.values():
+    for mod in list(kivy_postproc_modules.values()):
         EventLoop.add_postproc_module(mod)
 
     # add main widget
     if widget and EventLoop.window:
-        EventLoop.window.add_widget(widget)
+        if widget not in EventLoop.window.children:
+            EventLoop.window.add_widget(widget)
 
     # start event loop
     Logger.info('Base: Start application main loop')

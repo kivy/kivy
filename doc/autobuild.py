@@ -23,6 +23,7 @@ import kivy
 
 # force loading of kivy modules
 import kivy.app
+import kivy.metrics
 import kivy.atlas
 import kivy.core.audio
 import kivy.core.camera
@@ -43,14 +44,16 @@ import kivy.modules.monitor
 import kivy.modules.touchring
 import kivy.modules.inspector
 import kivy.modules.recorder
+import kivy.modules.screen
 import kivy.network.urlrequest
 import kivy.support
 import kivy.input.recorder
 import kivy.interactive
+import kivy.garden
 from kivy.factory import Factory
 
 # force loading of all classes from factory
-for x in Factory.classes:
+for x in list(Factory.classes.keys())[:]:
     getattr(Factory, x)
 
 
@@ -61,8 +64,13 @@ examples_framework_dir = os.path.join(base_dir, '..', 'examples', 'framework')
 
 def writefile(filename, data):
     global dest_dir
-    print 'write', filename
+    # avoid to rewrite the file if the content didn't change
     f = os.path.join(dest_dir, filename)
+    print('write', filename)
+    if os.path.exists(f):
+        with open(f) as fd:
+            if fd.read() == data:
+                return
     h = open(f, 'w')
     h.write(data)
     h.close()
@@ -80,9 +88,12 @@ l = [(x, sys.modules[x], os.path.basename(sys.modules[x].__file__).rsplit('.', 1
 # Extract packages from modules
 packages = []
 modules = {}
+api_modules = []
 for name, module, filename in l:
     if name in ignore_list:
         continue
+    if not any([name.startswith(x) for x in ignore_list]):
+        api_modules.append(name)
     if filename == '__init__':
         packages.append(name)
     else:
@@ -102,10 +113,11 @@ The API reference is a lexicographic list of all the different classes,
 methods and features that Kivy offers.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
 '''
-for package in [x for x in packages if len(x.split('.')) <= 2]:
+api_modules.sort()
+for package in api_modules:
     api_index += "    api-%s.rst\n" % package
 
 writefile('api-index.rst', api_index)
@@ -169,8 +181,8 @@ for package in packages:
         t += "    api-%s.rst\n" % subpackage
 
     # search modules
-    m = modules.keys()
-    m.sort()
+    m = list(modules.keys())
+    m.sort(key=lambda x: extract_summary_line(sys.modules[x].__doc__))
     for module in m:
         packagemodule = module.rsplit('.', 1)[0]
         if packagemodule != package:
@@ -181,7 +193,7 @@ for package in packages:
 
 
 # Create index for all module
-m = modules.keys()
+m = list(modules.keys())
 m.sort()
 refid = 0
 for module in m:
@@ -226,4 +238,4 @@ for module in m:
 
 
 # Generation finished
-print 'Generation finished, do make html'
+print('Generation finished, do make html')

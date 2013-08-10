@@ -66,10 +66,10 @@ class AnimatedButton(Label):
     def on_touch_down(self, touch):
         if not self.collide_point(touch.x, touch.y):
             return False
-        if self in touch.ud:
+        if repr(self) in touch.ud:
             return False
         touch.grab(self)
-        touch.ud[self] = True
+        touch.ud[repr(self)] = True
         _animdelay = self.img.anim_delay
         self.img.source = self.background_down
         self.img.anim_delay = _animdelay
@@ -78,12 +78,12 @@ class AnimatedButton(Label):
         return True
 
     def on_touch_move(self, touch):
-        return self in touch.ud
+        return repr(self) in touch.ud
 
     def on_touch_up(self, touch):
         if touch.grab_current is not self:
             return
-        assert(self in touch.ud)
+        assert(repr(self) in touch.ud)
         touch.ungrab(self)
         _animdelay = self.img._coreimage.anim_delay
         self.img.source = self.background_normal

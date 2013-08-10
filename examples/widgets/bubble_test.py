@@ -14,10 +14,8 @@ from kivy.uix.bubble import Bubble
 Builder.load_string('''
 <cut_copy_paste>
     size_hint: (None, None)
-    size: (150, 50)
+    size: (160, 120)
     pos_hint: {'center_x': .5, 'y': .6}
-    arrow_pos: 'bottom_mid'
-    orientation: 'horizontal'
     BubbleButton:
         text: 'Cut'
     BubbleButton:
@@ -56,5 +54,5 @@ class TestBubbleApp(App):
     def build(self):
         return BubbleShowcase()
 
-if __name__ in ('__main__', '__android__'):
+if __name__ == '__main__':
     TestBubbleApp().run()

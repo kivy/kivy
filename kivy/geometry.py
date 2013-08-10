@@ -31,12 +31,13 @@ def circumcircle(a, b, c):
     Q = Vector(b[0], b[1])
     R = Vector(c[0], c[1])
 
-    mPQ = (P+Q)*.5
-    mQR = (Q+R)*.5
+    mPQ = (P + Q) * .5
+    mQR = (Q + R) * .5
 
-    numer = -(-mPQ.y*R.y + mPQ.y*Q.y + mQR.y*R.y - mQR.y*Q.y \
-              -mPQ.x*R.x + mPQ.x*Q.x + mQR.x*R.x - mQR.x*Q.x)
-    denom = (-Q.x*R.y + P.x*R.y - P.x*Q.y + Q.y*R.x - P.y*R.x + P.y*Q.x)
+    numer = -(- mPQ.y * R.y + mPQ.y * Q.y + mQR.y * R.y - mQR.y * Q.y
+              - mPQ.x * R.x + mPQ.x * Q.x + mQR.x * R.x - mQR.x * Q.x)
+    denom = (-Q.x * R.y + P.x * R.y - P.x * Q.y +
+             Q.y * R.x - P.y * R.x + P.y * Q.x)
 
     t = numer / denom
 
@@ -76,13 +77,13 @@ def minimum_bounding_circle(points):
         return (p1 + p2) * .5, ((p1 - p2) * .5).length()
 
     # determine a point P with the smallest y value
-    P = min(points, key = lambda p: p.y)
+    P = min(points, key=lambda p: p.y)
 
     # find a point Q such that the angle of the line segment
     # PQ with the x axis is minimal
     def x_axis_angle(q):
         if q == P:
-            return 1e10 # max val if teh same, to skip
+            return 1e10  # max val if the same, to skip
         return abs((q - P).angle((1, 0)))
     Q = min(points, key=x_axis_angle)
 
@@ -90,29 +91,29 @@ def minimum_bounding_circle(points):
         # find R such that angle PRQ is minimal
         def angle_pq(r):
             if r in (P, Q):
-                return 1e10 # max val if teh same, to skip
+                return 1e10  # max val if the same, to skip
             return abs((r - P).angle(r - Q))
         R = min(points, key=angle_pq)
 
         # check for case 1 (angle PRQ is obtuse), the circle is determined
         # by two points, P and Q. radius = |(P-Q)/2|, center = (P+Q)/2
         if angle_pq(R) > 90.0:
-            return (P+Q)*.5, ((P-Q)*.5).length()
+            return (P + Q) * .5, ((P - Q) * .5).length()
 
         # if angle RPQ is obtuse, make P = R, and try again
-        if abs((R-P).angle(Q-P)) > 90:
+        if abs((R - P).angle(Q - P)) > 90:
             P = R
             continue
 
         # if angle PQR is obtuse, make Q = R, and try again
-        if abs((P-Q).angle(R-Q)) > 90:
+        if abs((P - Q).angle(R - Q)) > 90:
             Q = R
             continue
 
-        # all angles were acute..we just need teh circle through the
+        # all angles were acute..we just need the circle through the
         # two points furthest apart!
         break
 
-    # find teh circumcenter for triangle given by P,Q,R
+    # find the circumcenter for triangle given by P,Q,R
     return circumcircle(P, Q, R)
 

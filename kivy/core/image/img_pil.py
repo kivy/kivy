@@ -7,32 +7,36 @@ __all__ = ('ImageLoaderPIL', )
 try:
     from PIL import Image as PILImage
 except:
-    raise
+    import Image as PILImage
 
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
 
 class ImageLoaderPIL(ImageLoaderBase):
-    '''Image loader based on PIL library.
+    '''Image loader based on the PIL library.
 
     .. versionadded::
 
-        In 1.0.8, GIF animation have been supported.
+        In 1.0.8, support for GIF animation was added.
 
         Gif animation has a lot of issues(transparency/color depths... etc).
-        In order to keep it simple; what is implimented here is what is
-        natively supported by pil.
+        In order to keep it simple, what is implimented here is what is
+        natively supported by the PIL library.
 
         As a general rule, try to use gifs that have no transparency.
-        Gif's with transparency will work but be ready for some
-        artifacts for now.
+        Gif's with transparency will work but be prepared for some
+        artifacts until transparency support is improved.
 
     '''
 
     @staticmethod
+    def can_save():
+        return True
+
+    @staticmethod
     def extensions():
-        '''Return accepted extension for this loader'''
+        '''Return accepted extensions for this loader'''
         # See http://www.pythonware.com/library/pil/handbook/index.htm
         return ('bmp', 'bufr', 'cur', 'dcx', 'fits', 'fl', 'fpx', 'gbr',
                 'gd', 'gif', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
@@ -54,8 +58,6 @@ class ImageLoaderPIL(ImageLoaderBase):
                 raise
             _img_tmp = imc
 
-        # image are not in the good direction, flip !
-        _img_tmp = _img_tmp.transpose(PILImage.FLIP_TOP_BOTTOM)
         return _img_tmp
 
     def _img_read(self, im):
@@ -65,9 +67,16 @@ class ImageLoaderPIL(ImageLoaderBase):
 
         # Read all images inside
         try:
+            img_ol = None
             while True:
                 img_tmp = im
                 img_tmp = self._img_correct(img_tmp)
+                if img_ol:
+                    # paste new frame over old so as to handle
+                    # transparency properly
+                    img_ol.paste(img_tmp, (0, 0), img_tmp)
+                    img_tmp = img_ol
+                img_ol = img_tmp
                 yield ImageData(img_tmp.size[0], img_tmp.size[1],
                                 img_tmp.mode.lower(), img_tmp.tostring())
                 im.seek(im.tell() + 1)
@@ -84,6 +93,13 @@ class ImageLoaderPIL(ImageLoaderBase):
         self.filename = filename
         # returns an array of type ImageData len 1 if not a sequence image
         return list(self._img_read(im))
+
+    @staticmethod
+    def save(filename, width, height, fmt, pixels):
+        image = PILImage.fromstring(fmt.upper(), (width, height), pixels)
+        image.save(filename)
+        return True
+
 
 # register
 ImageLoader.register(ImageLoaderPIL)

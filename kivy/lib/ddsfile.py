@@ -263,7 +263,7 @@ class DDSFile(object):
         h = meta.height
         images = self.images
         images_size = self.images_size
-        for i in xrange(self.count):
+        for i in range(self.count):
             if dxt in (0, 1, 2, 3):
                 size = align_value(block * w, 4) * h
             else:
@@ -290,11 +290,11 @@ class DDSFile(object):
             raise DDSException('No images to save')
 
         fields = dict(DDSFile.fields)
-        fields_keys = fields.keys()
-        fields_index = fields.values()
+        fields_keys = list(fields.keys())
+        fields_index = list(fields.values())
         mget = self.meta.get
         header = []
-        for idx in xrange(31):
+        for idx in range(31):
             if idx in fields_index:
                 value = mget(fields_keys[fields_index.index(idx)], 0)
             else:
@@ -320,7 +320,7 @@ class DDSFile(object):
             assert(level == 0)
 
             # first image, set defaults !
-            for k in meta.iterkeys():
+            for k in meta.keys():
                 meta[k] = 0
 
             self._fmt = fmt
@@ -397,15 +397,15 @@ class DDSFile(object):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) == 1:
-        print 'Usage: python ddsfile.py <file1> <file2> ...'
+        print('Usage: python ddsfile.py <file1> <file2> ...')
         sys.exit(0)
     for filename in sys.argv[1:]:
-        print '=== Loading', filename
+        print('=== Loading', filename)
         try:
             dds = DDSFile(filename=filename)
-            print dds
+            print(dds)
             dds.save('bleh.dds')
-        except IOError, e:
-            print 'ERR>', e
-        except DDSException, e:
-            print 'DDS>', e
+        except IOError as e:
+            print('ERR>', e)
+        except DDSException as e:
+            print('DDS>', e)

@@ -2,8 +2,9 @@
 Graphics
 ========
 
-This package assemble all low level function to draw object. The whole graphics
-package is compatible OpenGL ES 2.0, and have a lot of rendering optimizations.
+This package assembles many low level functions used for drawing. The whole
+graphics package is compatible with OpenGL ES 2.0 and has many rendering
+optimizations.
 
 The basics
 ----------
@@ -13,8 +14,9 @@ For drawing on a screen, you will need :
     1. a :class:`~kivy.graphics.instructions.Canvas` object.
     2. :class:`~kivy.graphics.instructions.Instruction` objects.
 
-Each widget in Kivy already have by default their :class:`Canvas`. When you are
-creating a widget, you can create all the instructions needed for drawing. If
+Each :class:`~kivy.uix.widget.Widget`
+in Kivy already has a :class:`Canvas` by default. When you create
+a widget, you can create all the instructions needed for drawing. If
 `self` is your current widget, you can do::
 
     from kivy.graphics import *
@@ -26,7 +28,16 @@ creating a widget, you can create all the instructions needed for drawing. If
         Rectangle(pos=(10, 10), size=(500, 500))
 
 The instructions :class:`Color` and :class:`Rectangle` are automaticly added to
-the canvas object, and will be used when the window drawing will happen.
+the canvas object and will be used when the window is drawn.
+
+.. note::
+
+    Kivy drawing instructions are not automatically relative to the widgets
+    position or size. You therefore you need to consider these factors when
+    drawing. In order to make your drawing instructions relative to the widget,
+    the instructions need either to be
+    declared in the :mod:`KvLang <kivy.lang>` or bound to pos and size changes.
+    Please see :ref:`adding_widget_background` for more detail.
 
 GL Reloading mechanism
 ----------------------
@@ -75,14 +86,16 @@ You should cover theses cases yourself:
 
 from kivy.graphics.instructions import Callback, Canvas, CanvasBase, \
     ContextInstruction, Instruction, InstructionGroup, RenderContext, \
-    VertexInstruction # pyflakes.ignore
+    VertexInstruction
 from kivy.graphics.context_instructions import BindTexture, Color, \
-    MatrixInstruction, PopMatrix, PushMatrix, Rotate, Scale, \
-    Translate, gl_init_resources
+    PushState, ChangeState, PopState, MatrixInstruction, ApplyContextMatrix, \
+    PopMatrix, PushMatrix, Rotate, Scale, Translate, LoadIdentity, \
+    UpdateNormalMatrix, gl_init_resources
 from kivy.graphics.vertex_instructions import Bezier, BorderImage, Ellipse, \
     GraphicException, Line, Mesh, Point, Quad, Rectangle, Triangle
 from kivy.graphics.stencil_instructions import StencilPop, StencilPush, \
     StencilUse, StencilUnUse
+from kivy.graphics.gl_instructions import ClearColor, ClearBuffers
 from kivy.graphics.fbo import Fbo
 
 # very hacky way to avoid pyflakes warning...
@@ -96,5 +109,8 @@ __all__ = (Bezier.__name__, BindTexture.__name__, BorderImage.__name__,
     Rotate.__name__, Scale.__name__, StencilPop.__name__,
     StencilPush.__name__, StencilUse.__name__, StencilUnUse.__name__,
     Translate.__name__, Triangle.__name__, VertexInstruction.__name__,
-    gl_init_resources.__name__)
+    ClearColor.__name__, ClearBuffers.__name__,
+    gl_init_resources.__name__, PushState.__name__, ChangeState.__name__,
+    PopState.__name__, ApplyContextMatrix.__name__,
+    UpdateNormalMatrix.__name__, LoadIdentity.__name__)
 

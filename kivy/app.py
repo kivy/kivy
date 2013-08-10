@@ -151,22 +151,31 @@ However, you might want to know when a config value has been changed by the
 user, in order to adapt or reload your UI. You can overload the
 :meth:`on_config_change` method::
 
-    class TestApp(self):
+    class TestApp(App):
         # ...
         def on_config_change(self, config, section, key, value):
             if config is self.config:
                 token = (section, key)
                 if token == ('section1', 'key1'):
-                    print 'Our key1 have been changed to', value
+                    print('Our key1 have been changed to', value)
                 elif token == ('section1', 'key2'):
-                    print 'Our key2 have been changed to', value
+                    print('Our key2 have been changed to', value)
 
-One last note, the Kivy configuration panel is added by default in the settings
-instance. If you don't want it, you can declare your Application like this::
+One last note. The Kivy configuration panel is added by default to the settings
+instance. If you don't want this panel, you can declare your Application like
+this::
 
     class TestApp(App):
         use_kivy_settings = False
         # ...
+
+This only removes the Kivy panel, but does not stop the settings instance
+from appearing. If you want to prevent the settings instance from appearing
+altogether, you can do this::
+
+    class TestApp(App):
+        def open_settings(self, *largs):
+            pass
 
 
 Pause mode
@@ -201,6 +210,18 @@ The current implemented Pause mechanism is:
     #. If our app memory has been reclaimed by the OS, then nothing will be
        called.
 
+Here is a simple example of how on_pause() should be used::
+
+   class TestApp(App):
+
+      def on_pause(self):
+         # Here you can save data if needed
+         return True
+
+      def on_resume(self):
+         # Here you can check if any data needs replacing (usually nothing)
+         pass
+
 .. warning::
 
     Both `on_pause` and `on_stop` must save important data, because after
@@ -210,16 +231,20 @@ The current implemented Pause mechanism is:
 
 __all__ = ('App', )
 
+import os
 from inspect import getfile
-from os.path import dirname, join, exists
+from os.path import dirname, join, exists, sep, expanduser
 from kivy.config import ConfigParser
 from kivy.base import runTouchApp, stopTouchApp
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.resources import resource_find
-from kivy.utils import platform
+from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
+
+
+platform = core_platform()
 
 
 class App(EventDispatcher):
@@ -231,12 +256,24 @@ class App(EventDispatcher):
             :func:`~kivy.base.runTouchApp` call.
         `on_stop`:
             Fired when the application stops.
+        `on_pause`:
+            Fired when the application is paused by the OS.
+        `on_resume`:
+            Fired when the application is resumed from pause by the OS, beware,
+            you have no garantee that this event will be fired after the
+            on_pause event has been called.
 
     :Parameters:
         `kv_directory`: <path>, default to None
             If a kv_directory is set, it will be used to get the initial kv
             file. By default, the file is searched in the same directory as the
             current App definition file.
+        `kv_file`: <filename>, default to None
+            If a kv_file is set, it will be loaded when the application start.
+            The loading of the "default" kv will be avoided.
+
+    .. versionchanged:: 1.7.0
+        Parameter `kv_file` added.
     '''
 
     title = None
@@ -271,16 +308,15 @@ class App(EventDispatcher):
     # Return the current running App instance
     _running_app = None
 
+    __events__ = ('on_start', 'on_stop', 'on_pause', 'on_resume')
+
     def __init__(self, **kwargs):
+        App._running_app = self
         self._app_directory = None
         self._app_name = None
         self._app_settings = None
         self._app_window = None
-        super(App, self).__init__()
-        self.register_event_type('on_start')
-        self.register_event_type('on_stop')
-        self.register_event_type('on_pause')
-        self.register_event_type('on_resume')
+        super(App, self).__init__(**kwargs)
         self.built = False
 
         #: Options passed to the __init__ of the App
@@ -290,8 +326,8 @@ class App(EventDispatcher):
         #: configuration. Can be used to query some config token in the build()
         self.config = None
 
-        #: Root widget set by the :func:`build` method or by the
-        #: :func:`load_kv` method if the kv file contains a root widget.
+        #: Root widget set by the :meth:`build` method or by the
+        #: :meth:`load_kv` method if the kv file contains a root widget.
         self.root = None
 
     def build(self):
@@ -299,9 +335,11 @@ class App(EventDispatcher):
         If this method returns a widget (tree), it will be used as the root
         widget and added to the window.
 
-        :return: None or a root :class:`~kivy.uix.widget.Widget` instance
+        :return: None or a root :class:`~kivy.uix.widget.Widget` instance is no
+                 self.root exist.
         '''
-        return Widget()
+        if not self.root:
+            return Widget()
 
     def build_config(self, config):
         '''.. versionadded:: 1.0.7
@@ -328,7 +366,7 @@ class App(EventDispatcher):
         :type settings: :class:`~kivy.uix.settings.Settings`
         '''
 
-    def load_kv(self):
+    def load_kv(self, filename=None):
         '''This method is invoked the first time the app is being run if no
         widget tree has been constructed before for this app.
         This method then looks for a matching kv file in the same directory as
@@ -357,16 +395,26 @@ class App(EventDispatcher):
         kv file contains a root widget, it will be used as self.root, the root
         widget for the application.
         '''
-        try:
-            default_kv_directory = dirname(getfile(self.__class__))
-        except TypeError:
-            # if it's a builtin module.. use the current dir.
-            default_kv_directory = '.'
-        kv_directory = self.options.get('kv_directory', default_kv_directory)
-        clsname = self.__class__.__name__
-        if clsname.endswith('App'):
-            clsname = clsname[:-3]
-        filename = join(kv_directory, '%s.kv' % clsname.lower())
+        # Detect filename automatically if it was not specified.
+        if filename:
+            filename = resource_find(filename)
+        else:
+            try:
+                default_kv_directory = dirname(getfile(self.__class__))
+                if default_kv_directory == '':
+                    default_kv_directory = '.'
+            except TypeError:
+                # if it's a builtin module.. use the current dir.
+                default_kv_directory = '.'
+            kv_directory = self.options.get('kv_directory',
+                                            default_kv_directory)
+            clsname = self.__class__.__name__
+            if clsname.endswith('App'):
+                clsname = clsname[:-3]
+            filename = join(kv_directory, '%s.kv' % clsname.lower())
+
+        # Load KV file
+        Logger.debug('App: Loading kv <{0}>'.format(filename))
         if not exists(filename):
             Logger.debug('App: kv <%s> not found' % filename)
             return False
@@ -388,16 +436,52 @@ class App(EventDispatcher):
     def get_application_icon(self):
         '''Return the icon of the application.
         '''
-        if self.icon is not None:
+        if not resource_find(self.icon):
+            return ''
+        else:
             return resource_find(self.icon)
-        return None
 
-    def get_application_config(self):
+    def get_application_config(self, defaultpath='%(appdir)s/%(appname)s.ini'):
         '''.. versionadded:: 1.0.7
 
-        Return the filename of your application configuration
+        .. versionchanged:: 1.4.0
+            Customize the default path for iOS and Android platform. Add
+            defaultpath parameter for desktop computer (not applicatable for iOS
+            and Android.)
+
+        Return the filename of your application configuration. Depending the
+        platform, the application file will be stored at different places:
+
+            - on iOS: <appdir>/Documents/.<appname>.ini
+            - on Android: /sdcard/.<appname>.ini
+            - otherwise: <appdir>/<appname>.ini
+
+        When you are distributing your application on Desktop, please note than
+        if the application is meant to be installed system-wise, then the user
+        might not have any write-access to the application directory. You could
+        overload this method to change the default behavior, and save the
+        configuration file in the user directory by default::
+
+            class TestApp(App):
+                def get_application_config(self):
+                    return super(TestApp, self).get_application_config(
+                        '~/.%(appname)s.ini')
+
+        Some notes:
+
+        - The tilda '~' will be expanded to the user directory.
+        - %(appdir)s will be replaced with the application :data:`directory`
+        - %(appname)s will be replaced with the application :data:`name`
         '''
-        return join(self.directory, '%s.ini' % self.name)
+
+        if platform == 'android':
+            defaultpath = '/sdcard/.%(appname)s.ini'
+        elif platform == 'ios':
+            defaultpath = '~/Documents/%(appname)s.ini'
+        elif platform == 'win':
+            defaultpath = defaultpath.replace('/', sep)
+        return expanduser(defaultpath) % {
+            'appname': self.name, 'appdir': self.directory}
 
     def load_config(self):
         '''(internal) This function is used for returning a ConfigParser with
@@ -422,6 +506,7 @@ class App(EventDispatcher):
         filename = self.get_application_config()
         if filename is None:
             return config
+        Logger.debug('App: Loading configuration <{0}>'.format(filename))
         if exists(filename):
             try:
                 config.read(filename)
@@ -431,6 +516,8 @@ class App(EventDispatcher):
                 self.build_config(config)
                 pass
         else:
+            Logger.debug('App: First configuration, create <{0}>'.format(
+                filename))
             config.filename = filename
             config.write()
         return config
@@ -444,10 +531,52 @@ class App(EventDispatcher):
         if self._app_directory is None:
             try:
                 self._app_directory = dirname(getfile(self.__class__))
+                if self._app_directory == '':
+                    self._app_directory = '.'
             except TypeError:
                 # if it's a builtin module.. use the current dir.
                 self._app_directory = '.'
         return self._app_directory
+
+    @property
+    def user_data_dir(self):
+        '''
+        .. versionadded:: 1.7.0
+
+        Returns the path to a directory in the users files system, which the
+        application can use to store additional data.
+
+        Different platforms have different conventions for where to save user
+        data like preferences, saved games, and settings. This function
+        implements those conventions.
+
+        On iOS `~/Documents<app_name>` is returned (which is inside the
+        apps sandbox).
+
+        On Android `/sdcard/<app_name>` is returned.
+
+        On Windows `%APPDATA%/<app_name>` is returned.
+
+        On Mac OS X `~/Library/Application Support <app_name>` is returned.
+
+        On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
+        '''
+        data_dir = ""
+        if platform == 'ios':
+            data_dir = join('~/Documents', self.name)
+        elif platform == 'android':
+            data_dir = join('/sdcard', self.name)
+        elif platform == 'win':
+            data_dir = os.path.join(os.environ['APPDATA'], self.name)
+        elif platform == 'macosx':
+            data_dir = '~/Library/Application Support/{}'.format(self.name)
+        else:  # _platform == 'linux' or anything else...:
+            data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
+            data_dir = join(data_dir, self.name)
+        data_dir = expanduser(data_dir)
+        if not exists(data_dir):
+            os.mkdir(data_dir)
+        return data_dir
 
     @property
     def name(self):
@@ -467,7 +596,7 @@ class App(EventDispatcher):
         '''
         if not self.built:
             self.load_config()
-            self.load_kv()
+            self.load_kv(filename=self.options.get('kv_file'))
             root = self.build()
             if root:
                 self.root = root
@@ -485,11 +614,14 @@ class App(EventDispatcher):
             if icon:
                 window.set_icon(icon)
             self._install_settings_keys(window)
+        else:
+            Logger.critical("Application: No window is created."
+                " Terminating application run.")
+            return
 
-        App._running_app = self
         self.dispatch('on_start')
         runTouchApp()
-        self.dispatch('on_stop')
+        self.stop()
 
     def stop(self, *largs):
         '''Stop the application.
@@ -497,7 +629,12 @@ class App(EventDispatcher):
         If you use this method, the whole application will stop by issuing
         a call to :func:`~kivy.base.stopTouchApp`.
         '''
+        self.dispatch('on_stop')
         stopTouchApp()
+
+        # Clear the window children
+        for child in self._app_window.children:
+            self._app_window.remove_widget(child)
 
     def on_start(self):
         '''Event handler for the on_start event, which is fired after
@@ -608,7 +745,7 @@ class App(EventDispatcher):
         setting_key = 282  # F1
 
         # android hack, if settings key is pygame K_MENU
-        if platform() == 'android':
+        if platform == 'android':
             import pygame
             setting_key = pygame.K_MENU
 

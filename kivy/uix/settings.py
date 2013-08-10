@@ -29,23 +29,23 @@ Settings are also integrated with the :class:`~kivy.app.App` class. Use
 Create panel from JSON
 ----------------------
 
-To create a panel from a JSON-file, you need 2 things:
+To create a panel from a JSON-file, you need two things:
 
     * a :class:`~kivy.config.ConfigParser` instance with default values
     * a JSON file
 
 .. warning::
 
-    The :class:`kivy.config.ConfigParser` is required, you cannot use the
+    The :class:`kivy.config.ConfigParser` is required. You cannot use the
     default ConfigParser from Python libraries.
 
-It is your duty to create and handle the :class:`~kivy.config.ConfigParser`
-object yourself. SettingsPanel will read the values from the associated
+You must create and handle the :class:`~kivy.config.ConfigParser`
+object. SettingsPanel will read the values from the associated
 ConfigParser instance. Make sure you have default values for all sections/keys
 in your JSON file!
 
 The JSON file contains structured information to describe the available
-settings. It can look like this::
+settings. Here is an example::
 
     [
         {
@@ -80,11 +80,11 @@ properties of that class.
 
 In the JSON example above, the first element is of type "title". It will create
 a new instance of :class:`SettingTitle` and apply the rest of the key/value
-pairs to the properties of that class, ie "title": "Windows" sets the
+pairs to the properties of that class, i.e., "title": "Windows" sets the
 :data:`SettingTitle.title` property to "Windows".
 
 To load the JSON example to a :class:`Settings` instance, use the
-:data:`Settings.add_json_panel` method. It will automatically instantiate
+:meth:`Settings.add_json_panel` method. It will automatically instantiate
 :class:`SettingsPanel` and add it to :class:`Settings`::
 
     from kivy.config import ConfigParser
@@ -108,8 +108,10 @@ __all__ = ('Settings', 'SettingsPanel', 'SettingItem', 'SettingString',
 
 import json
 import os
+from kivy.metrics import dp
 from kivy.config import ConfigParser
 from kivy.animation import Animation
+from kivy.compat import string_types
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.filechooser import FileChooserListView
@@ -174,12 +176,13 @@ class SettingItem(FloatLayout):
     desc = StringProperty(None, allownone=True)
     '''Description of the setting, rendered on the line below title.
 
-    :data:`desc` is a :class:`~kivy.properties.StringProperty`, default to None.
+    :data:`desc` is a :class:`~kivy.properties.StringProperty`, default to
+    None.
     '''
 
     disabled = BooleanProperty(False)
-    '''Indicate if this setting is disabled. If True, all touches on the setting
-    item will be discarded.
+    '''Indicate if this setting is disabled. If True, all touches on the
+    setting item will be discarded.
 
     :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
@@ -213,7 +216,8 @@ class SettingItem(FloatLayout):
     '''(internal) Reference to the SettingsPanel with this setting. You don't
     need to use it.
 
-    :data:`panel` is a :class:`~kivy.properties.ObjectProperty`, default to None
+    :data:`panel` is a :class:`~kivy.properties.ObjectProperty`, default to
+    None
     '''
 
     content = ObjectProperty(None)
@@ -233,8 +237,9 @@ class SettingItem(FloatLayout):
     default to 0.
     '''
 
+    __events__ = ('on_release', )
+
     def __init__(self, **kwargs):
-        self.register_event_type('on_release')
         super(SettingItem, self).__init__(**kwargs)
         self.value = self.panel.get_value(self.section, self.key)
 
@@ -268,12 +273,14 @@ class SettingItem(FloatLayout):
             return
         # get current value in config
         panel = self.panel
-        panel.set_value(self.section, self.key, str(value))
+        if not isinstance(value, string_types):
+            value = str(value)
+        panel.set_value(self.section, self.key, value)
 
 
 class SettingBoolean(SettingItem):
-    '''Implementation of a boolean setting on top of :class:`SettingItem`. It's
-    visualized with a :class:`~kivy.uix.switch.Switch` widget. By default,
+    '''Implementation of a boolean setting on top of :class:`SettingItem`. It
+    is visualized with a :class:`~kivy.uix.switch.Switch` widget. By default,
     0 and 1 are used for values, you can change them by setting :data:`values`.
     '''
 
@@ -285,19 +292,20 @@ class SettingBoolean(SettingItem):
 
     .. warning::
 
-        You need a minimum of 2 values, the index 0 will be used as False, and
-        index 1 as True
+        You need a minimum of two values, the index 0 will be used as False,
+        and index 1 as True
 
-    :data:`values` is a :class:`~kivy.properties.ListProperty`, default to ['0',
-    '1']
+    :data:`values` is a :class:`~kivy.properties.ListProperty`, default to
+    ['0', '1']
     '''
 
 
 class SettingString(SettingItem):
     '''Implementation of a string setting on top of :class:`SettingItem`.
-    It's visualized with a :class:`~kivy.uix.label.Label` widget that, when
+    It is visualized with a :class:`~kivy.uix.label.Label` widget that, when
     clicked, will open a :class:`~kivy.uix.popup.Popup` with a
-    :class:`~kivy.uix.textinput.Textinput` so the user can enter a custom value.
+    :class:`~kivy.uix.textinput.Textinput` so the user can enter a custom
+    value.
     '''
 
     popup = ObjectProperty(None, allownone=True)
@@ -308,8 +316,8 @@ class SettingString(SettingItem):
     '''
 
     textinput = ObjectProperty(None)
-    '''(internal) Used to store the current textinput from the popup, and listen
-    for changes.
+    '''(internal) Used to store the current textinput from the popup, and
+    to listen for changes.
 
     :data:`popup` is a :class:`~kivy.properties.ObjectProperty`, default to
     None.
@@ -330,19 +338,17 @@ class SettingString(SettingItem):
     def _validate(self, instance):
         self._dismiss()
         value = self.textinput.text.strip()
-        if value == '':
-            return
         self.value = value
 
     def _create_popup(self, instance):
         # create popup layout
-        content = BoxLayout(orientation='vertical', spacing=5)
+        content = BoxLayout(orientation='vertical', spacing='5dp')
         self.popup = popup = Popup(title=self.title,
-            content=content, size_hint=(None, None), size=(400, 250))
+            content=content, size_hint=(None, None), size=('400dp', '250dp'))
 
         # create the textinput used for numeric input
-        self.textinput = textinput = TextInput(text=str(self.value),
-            font_size=24, multiline=False, size_hint_y=None, height=50)
+        self.textinput = textinput = TextInput(text=self.value,
+            font_size=24, multiline=False, size_hint_y=None, height='50dp')
         textinput.bind(on_text_validate=self._validate)
         self.textinput = textinput
 
@@ -353,7 +359,7 @@ class SettingString(SettingItem):
         content.add_widget(SettingSpacer())
 
         # 2 buttons are created for accept or cancel the current value
-        btnlayout = BoxLayout(size_hint_y=None, height=50, spacing=5)
+        btnlayout = BoxLayout(size_hint_y=None, height='50dp', spacing='5dp')
         btn = Button(text='Ok')
         btn.bind(on_release=self._validate)
         btnlayout.add_widget(btn)
@@ -368,7 +374,7 @@ class SettingString(SettingItem):
 
 class SettingPath(SettingItem):
     '''Implementation of a Path setting on top of :class:`SettingItem`.
-    It's visualized with a :class:`~kivy.uix.label.Label` widget that, when
+    It is visualized with a :class:`~kivy.uix.label.Label` widget that, when
     clicked, will open a :class:`~kivy.uix.popup.Popup` with a
     :class:`~kivy.uix.filechooser.FileChooserListView` so the user can enter
     a custom value.
@@ -377,15 +383,15 @@ class SettingPath(SettingItem):
     '''
 
     popup = ObjectProperty(None, allownone=True)
-    '''(internal) Used to store the current popup when it's shown
+    '''(internal) Used to store the current popup when it is shown.
 
     :data:`popup` is a :class:`~kivy.properties.ObjectProperty`, default to
     None.
     '''
 
     textinput = ObjectProperty(None)
-    '''(internal) Used to store the current textinput from the popup, and listen
-    for changes.
+    '''(internal) Used to store the current textinput from the popup, and
+    to listen for changes.
 
     :data:`popup` is a :class:`~kivy.properties.ObjectProperty`, default to
     None.
@@ -419,9 +425,8 @@ class SettingPath(SettingItem):
             content=content, size_hint=(None, None), size=(400, 400))
 
         # create the filechooser
-        self.textinput = textinput = FileChooserListView(path=str(self.value),
-                                                         size_hint=(1, 1),
-                                                         dirselect=True)
+        self.textinput = textinput = FileChooserListView(
+                path=self.value, size_hint=(1, 1), dirselect=True)
         textinput.bind(on_path=self._validate)
         self.textinput = textinput
 
@@ -430,7 +435,7 @@ class SettingPath(SettingItem):
         content.add_widget(SettingSpacer())
 
         # 2 buttons are created for accept or cancel the current value
-        btnlayout = BoxLayout(size_hint_y=None, height=50, spacing=5)
+        btnlayout = BoxLayout(size_hint_y=None, height='50dp', spacing='5dp')
         btn = Button(text='Ok')
         btn.bind(on_release=self._validate)
         btnlayout.add_widget(btn)
@@ -445,35 +450,42 @@ class SettingPath(SettingItem):
 
 class SettingNumeric(SettingString):
     '''Implementation of a numeric setting on top of :class:`SettingString`.
-    It's visualized with a :class:`~kivy.uix.label.Label` widget that, when
+    It is visualized with a :class:`~kivy.uix.label.Label` widget that, when
     clicked, will open a :class:`~kivy.uix.popup.Popup` with a
-    :class:`~kivy.uix.textinput.Textinput` so the user can enter a custom value.
+    :class:`~kivy.uix.textinput.Textinput` so the user can enter a custom
+    value.
     '''
 
     def _validate(self, instance):
+        # we know the type just by checking if there is a '.' in the original
+        # value
+        is_float = '.' in str(self.value)
         self._dismiss()
         try:
-            self.value = int(self.textinput.text)
+            if is_float:
+                self.value = unicode(float(self.textinput.text))
+            else:
+                self.value = unicode(int(self.textinput.text))
         except ValueError:
             return
 
 
 class SettingOptions(SettingItem):
     '''Implementation of an option list on top of :class:`SettingItem`.
-    It's visualized with a :class:`~kivy.uix.label.Label` widget that, when
+    It is visualized with a :class:`~kivy.uix.label.Label` widget that, when
     clicked, will open a :class:`~kivy.uix.popup.Popup` with a
-    list of options that the user can select from.
+    list of options from which the user can select.
     '''
 
     options = ListProperty([])
-    '''List of all availables options. This must be a list of "string",
-    otherwise, it will crash :)
+    '''List of all availables options. This must be a list of "string" items.
+    Otherwise, it will crash. :)
 
-    :data:`options` is a :class:`~kivy.properties.ListProperty`, default to []
+    :data:`options` is a :class:`~kivy.properties.ListProperty`, default to [].
     '''
 
     popup = ObjectProperty(None, allownone=True)
-    '''(internal) Used to store the current popup when it's shown
+    '''(internal) Used to store the current popup when it is shown.
 
     :data:`popup` is a :class:`~kivy.properties.ObjectProperty`, default to
     None.
@@ -490,10 +502,10 @@ class SettingOptions(SettingItem):
 
     def _create_popup(self, instance):
         # create the popup
-        content = BoxLayout(orientation='vertical', spacing=5)
+        content = BoxLayout(orientation='vertical', spacing='5dp')
         self.popup = popup = Popup(content=content,
-            title=self.title, size_hint=(None, None), size=(400, 400))
-        popup.height = len(self.options) * 55 + 150
+            title=self.title, size_hint=(None, None), size=('400dp', '400dp'))
+        popup.height = len(self.options) * dp(55) + dp(150)
 
         # add all the options
         content.add_widget(Widget(size_hint_y=None, height=1))
@@ -506,7 +518,7 @@ class SettingOptions(SettingItem):
 
         # finally, add a cancel button to return on the previous panel
         content.add_widget(SettingSpacer())
-        btn = Button(text='Cancel', size_hint_y=None, height=50)
+        btn = Button(text='Cancel', size_hint_y=None, height=dp(50))
         btn.bind(on_release=popup.dismiss)
         content.add_widget(btn)
 
@@ -558,7 +570,7 @@ class SettingsPanel(GridLayout):
         get the value for a given section/key.
 
         If you don't want to use a ConfigParser instance, you might want to
-        derivate this function.
+        adapt this function.
         '''
         config = self.config
         if not config:
@@ -611,12 +623,12 @@ class Settings(BoxLayout):
     None.
     '''
 
+    __events__ = ('on_close', 'on_config_change')
+
     def __init__(self, **kwargs):
         self._types = {}
         self._panels = {}
         self._initialized = False
-        self.register_event_type('on_close')
-        self.register_event_type('on_config_change')
         super(Settings, self).__init__(**kwargs)
         self.register_type('string', SettingString)
         self.register_type('bool', SettingBoolean)
@@ -640,19 +652,19 @@ class Settings(BoxLayout):
         pass
 
     def register_type(self, tp, cls):
-        '''Register a new type that can be used in the json definition.
+        '''Register a new type that can be used in the JSON definition.
         '''
         self._types[tp] = cls
 
-    def add_json_panel(self, title, config, filename=None, data=None):
-        '''Create and add a new :class:`SettingsPanel` using the configuration
-        `config`, with the JSON definition `filename`.
+    def create_json_panel(self, title, config, filename=None, data=None):
+        '''Create new :class:`SettingsPanel`.
 
-        Check the :ref:`settings_json` section in the documentation for more
-        information about JSON format, and the usage of this function.
+        .. versionadded:: 1.5.0
+
+        Check the documentation of :meth:`add_json_panel` for more information.
         '''
         if filename is None and data is None:
-            raise Exception('You must specify at least on of filename or data')
+            raise Exception('You must specify either the filename or data')
         if filename is not None:
             with open(filename, 'r') as fd:
                 data = json.loads(fd.read())
@@ -661,7 +673,6 @@ class Settings(BoxLayout):
         if type(data) != list:
             raise ValueError('The first element must be a list')
         panel = SettingsPanel(title=title, settings=self, config=config)
-        self.add_widget(panel)
 
         for setting in data:
             # determine the type and the class to use
@@ -676,7 +687,7 @@ class Settings(BoxLayout):
             # create a instance of the class, without the type attribute
             del setting['type']
             str_settings = {}
-            for key, item in setting.iteritems():
+            for key, item in setting.items():
                 str_settings[str(key)] = item
 
             instance = cls(panel=panel, **str_settings)
@@ -686,9 +697,20 @@ class Settings(BoxLayout):
 
         return panel
 
+    def add_json_panel(self, title, config, filename=None, data=None):
+        '''Create and add a new :class:`SettingsPanel` using the configuration
+        `config`, with the JSON definition `filename`.
+
+        Check the :ref:`settings_json` section in the documentation for more
+        information about JSON format, and the usage of this function.
+        '''
+        panel = self.create_json_panel(title, config, filename, data)
+        self.add_widget(panel)
+
     def add_kivy_panel(self):
-        '''Add a panel for configuring Kivy. This panel act directly on the kivy
-        configuration. Feel free to include or exclude it in your configuration.
+        '''Add a panel for configuring Kivy. This panel acts directly on the
+        kivy configuration. Feel free to include or exclude it in your
+        configuration.
         '''
         from kivy import kivy_data_dir
         from kivy.config import Config
@@ -711,15 +733,15 @@ class Settings(BoxLayout):
             return super(Settings, self).add_widget(widget, index)
 
     def get_panel_by_uid(self, uid):
-        '''Return the panel previously added from his UID. If it's not exist,
-        return None.
+        '''Return the panel previously added from his UID. If it does not
+        exist, return None.
         '''
         if uid not in self._panels:
             return
         return self._panels[uid][0]
 
     def unselect(self):
-        '''Unselect the current selection if exist.
+        '''Unselect the current selection if it exists.
         '''
         if not self.selection:
             return
@@ -732,7 +754,7 @@ class Settings(BoxLayout):
         '''
         # search the panel on the list
         found = False
-        for idx, (wid, label) in self._panels.iteritems():
+        for idx, (wid, label) in self._panels.items():
             if panel is wid:
                 found = True
                 break

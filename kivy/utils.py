@@ -1,19 +1,29 @@
+# pylint: disable=W0611
 '''
 Utils
 =====
 
+.. versionchanged:: 1.6.0
+    OrderedDict class has been removed. Use the collections.OrderedDict.
+
 '''
 
 __all__ = ('intersection', 'difference', 'strtotuple',
-           'get_color_from_hex', 'get_random_color',
+           'get_color_from_hex', 'get_hex_from_color', 'get_random_color',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
-           'interpolate', 'OrderedDict', 'QueryDict',
-           'platform', 'escape_markup')
+           'interpolate', 'QueryDict',
+           'platform', 'escape_markup', 'reify')
 
+from os import environ
 from sys import platform as _sys_platform
 from re import match, split
-from UserDict import DictMixin
+try:
+    from UserDict import UserDict
+    from UserDict import DictMixin
+except ImportError:
+    from collections import UserDict
+    from collections import MutableMapping as DictMixin
 
 _platform_android = None
 _platform_ios = None
@@ -26,17 +36,17 @@ def boundary(value, minvalue, maxvalue):
 
 def intersection(set1, set2):
     '''Return intersection between 2 list'''
-    return filter(lambda s: s in set2, set1)
+    return [s for s in set1 if s in set2]
 
 
 def difference(set1, set2):
     '''Return difference between 2 list'''
-    return filter(lambda s: s not in set2, set1)
+    return [s for s in set1 if s not in set2]
 
 
 def interpolate(value_from, value_to, step=10):
     '''Interpolate a value to another. Can be useful to smooth some transition.
-    For example ::
+    For example::
 
         # instead of setting directly
         self.pos = pos
@@ -60,7 +70,7 @@ def interpolate(value_from, value_to, step=10):
 def strtotuple(s):
     '''Convert a tuple string into tuple,
     with some security check. Designed to be used
-    with eval() function ::
+    with eval() function::
 
         a = (12, 54, 68)
         b = str(a)         # return '(12, 54, 68)'
@@ -86,10 +96,23 @@ def get_color_from_hex(s):
     if s.startswith('#'):
         return get_color_from_hex(s[1:])
 
-    value = [int(x, 16)/255. for x in split('([0-9a-f]{2})', s) if x != '']
+    value = [int(x, 16) / 255. for x in split('([0-9a-f]{2})', s) if x != '']
     if len(value) == 3:
         value.append(1)
     return value
+
+
+def get_hex_from_color(color):
+    '''Transform from kivy color to hex::
+
+        >>> get_hex_from_color((0, 1, 0))
+        '#00ff00'
+        >>> get_hex_from_color((.25, .77, .90, .5))
+        '#3fc4e57f'
+
+    .. versionadded:: 1.5.0
+    '''
+    return '#' + ''.join(['{0:02x}'.format(int(x * 255)) for x in color])
 
 
 def get_random_color(alpha=1.0):
@@ -134,13 +157,13 @@ def deprecated(func):
         if caller_id not in DEPRECATED_CALLERS:
             DEPRECATED_CALLERS.append(caller_id)
             warning = (
-                'Call to deprecated function %s in %s line %d.'
-                'Called from %s line %d'
-                ' by %s().') % (
-                func.__name__,
-                func.func_code.co_filename,
-                func.func_code.co_firstlineno + 1,
-                file, line, caller)
+                    'Call to deprecated function %s in %s line %d.'
+                    'Called from %s line %d'
+                    ' by %s().') % (
+                            func.__name__,
+                            func.__code__.co_filename,
+                            func.__code__.co_firstlineno + 1,
+                            file, line, caller)
             from kivy.logger import Logger
             Logger.warn(warning)
             if func.__doc__:
@@ -166,112 +189,12 @@ class SafeList(list):
         return iter(self)
 
 
-class OrderedDict(dict, DictMixin):
-
-    def __init__(self, *args, **kwds):
-        if len(args) > 1:
-            raise TypeError('expected at most 1 arguments, got %d' % len(args))
-        try:
-            self.__end
-        except AttributeError:
-            self.clear()
-        self.update(*args, **kwds)
-
-    def clear(self):
-        self.__end = end = []
-        end += [None, end, end]         # sentinel node for doubly linked list
-        self.__map = {}                 # key --> [key, prev, next]
-        dict.clear(self)
-
-    def __setitem__(self, key, value):
-        if key not in self:
-            end = self.__end
-            curr = end[1]
-            curr[2] = end[1] = self.__map[key] = [key, curr, end]
-        dict.__setitem__(self, key, value)
-
-    def __delitem__(self, key):
-        dict.__delitem__(self, key)
-        key, prev, next = self.__map.pop(key)
-        prev[2] = next
-        next[1] = prev
-
-    def __iter__(self):
-        end = self.__end
-        curr = end[2]
-        while curr is not end:
-            yield curr[0]
-            curr = curr[2]
-
-    def __reversed__(self):
-        end = self.__end
-        curr = end[1]
-        while curr is not end:
-            yield curr[0]
-            curr = curr[1]
-
-    def popitem(self, last=True):
-        if not self:
-            raise KeyError('dictionary is empty')
-        if last:
-            key = reversed(self).next()
-        else:
-            key = iter(self).next()
-        value = self.pop(key)
-        return key, value
-
-    def __reduce__(self):
-        items = [[k, self[k]] for k in self]
-        tmp = self.__map, self.__end
-        del self.__map, self.__end
-        inst_dict = vars(self).copy()
-        self.__map, self.__end = tmp
-        if inst_dict:
-            return (self.__class__, (items, ), inst_dict)
-        return self.__class__, (items, )
-
-    def keys(self):
-        return list(self)
-
-    setdefault = DictMixin.setdefault
-    update = DictMixin.update
-    pop = DictMixin.pop
-    values = DictMixin.values
-    items = DictMixin.items
-    iterkeys = DictMixin.iterkeys
-    itervalues = DictMixin.itervalues
-    iteritems = DictMixin.iteritems
-
-    def __repr__(self):
-        if not self:
-            return '%s()' % (self.__class__.__name__, )
-        return '%s(%r)' % (self.__class__.__name__, self.items())
-
-    def copy(self):
-        return self.__class__(self)
-
-    @classmethod
-    def fromkeys(cls, iterable, value=None):
-        d = cls()
-        for key in iterable:
-            d[key] = value
-        return d
-
-    def __eq__(self, other):
-        if isinstance(other, OrderedDict):
-            return len(self)==len(other) and self.items() == other.items()
-        return dict.__eq__(self, other)
-
-    def __ne__(self, other):
-        return not self == other
-
-
 class QueryDict(dict):
     '''QueryDict is a dict() that can be queried with dot.
 
     .. versionadded:: 1.0.4
 
-    ::
+  ::
 
         d = QueryDict()
         # create a key named toto, with the value 1
@@ -284,10 +207,7 @@ class QueryDict(dict):
         try:
             return self.__getitem__(attr)
         except KeyError:
-            try:
-                return super(QueryDict, self).__getattr__(attr)
-            except AttributeError:
-                raise KeyError(attr)
+            return super(QueryDict, self).__getattr__(attr)
 
     def __setattr__(self, attr, value):
         self.__setitem__(attr, value)
@@ -325,21 +245,16 @@ def platform():
     This will return one of: win, linux, android, macosx, ios, unknown
 
     .. versionadded:: 1.0.8
-
-    .. warning:: ios is not currently reported.
     '''
     global _platform_ios, _platform_android
 
     if _platform_android is None:
-        try:
-            __import__('android')
-            _platform_android = True
-        except ImportError:
-            _platform_android = False
+        # ANDROID_ARGUMENT and ANDROID_PRIVATE are 2 environment variables from
+        # python-for-android project
+        _platform_android = 'ANDROID_ARGUMENT' in environ
 
     if _platform_ios is None:
-        # TODO implement ios support here
-        _platform_ios = False
+        _platform_ios = (environ.get('KIVY_BUILD', '') == 'ios')
 
     # On android, _sys_platform return 'linux2', so prefer to check the import
     # of Android module than trying to rely on _sys_platform.
@@ -349,11 +264,12 @@ def platform():
         return 'ios'
     elif _sys_platform in ('win32', 'cygwin'):
         return 'win'
-    elif _sys_platform in ('darwin', ):
+    elif _sys_platform == 'darwin':
         return 'macosx'
-    elif _sys_platform in ('linux2', 'linux3'):
+    elif _sys_platform[:5] == 'linux':
         return 'linux'
     return 'unknown'
+
 
 def escape_markup(text):
     '''
@@ -367,4 +283,29 @@ def escape_markup(text):
     .. versionadded:: 1.3.0
     '''
     return text.replace('[', '&bl;').replace(']', '&br;').replace('&', '&amp;')
+
+
+class reify(object):
+    '''
+    Put the result of a method which uses this (non-data) descriptor decorator
+    in the instance dict after the first call, effectively replacing the
+    decorator with an instance variable.
+
+    It acts like @property, except that the function is only ever called once;
+    after that, the value is cached as a regular attribute. This gives you lazy
+    attribute creation on objects that are meant to be immutable.
+
+    Taken from Pyramid project.
+    '''
+
+    def __init__(self, func):
+        self.func = func
+        self.__doc__ = func.__doc__
+
+    def __get__(self, inst, cls):
+        if inst is None:
+            return self
+        retval = self.func(inst)
+        setattr(inst, self.func.__name__, retval)
+        return retval
 

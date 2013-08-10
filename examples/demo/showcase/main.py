@@ -1,20 +1,23 @@
 import kivy
 kivy.require('1.1.3')
 
-from kivy.properties import NumericProperty
+import random
+
 from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.floatlayout import FloatLayout
+from kivy.clock import Clock
+from kivy.metrics import Metrics
+from kivy.properties import NumericProperty
+from kivy.properties import StringProperty
 from kivy.uix.anchorlayout import AnchorLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.widget import Widget
-from kivy.uix.scatter import Scatter
-from kivy.uix.treeview import TreeView, TreeViewLabel
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-from kivy.properties import StringProperty
-from kivy.clock import Clock
-import random
+from kivy.uix.scatter import Scatter
+from kivy.uix.treeview import TreeView, TreeViewLabel
+from kivy.uix.widget import Widget
+
 
 class Showcase(FloatLayout):
     pass
@@ -60,6 +63,7 @@ class BoxLayoutShowcase(FloatLayout):
         super(BoxLayoutShowcase, self).__init__(**kwargs)
         self.buttons = 0
         self.txt = 'horizontal'
+        self.text_size = self.size
         Clock.schedule_once(self.add_button, 1)
 
     def add_button(self, *l):
@@ -71,7 +75,10 @@ class BoxLayoutShowcase(FloatLayout):
                 self.txt = self.blayout.orientation = 'horizontal'
             else:
                 self.txt = self.blayout.orientation = 'vertical'
-        self.blayout.add_widget(Button(text = self.txt))
+
+        btn = Button(text=self.txt, halign='center', valign='middle')
+        btn.bind(size=btn.setter('text_size'))
+        self.blayout.add_widget(btn)
         Clock.schedule_once(self.add_button, 1)
 
 
@@ -87,9 +94,9 @@ class FloatLayoutShowcase(FloatLayout):
         if self.buttons > 5:
             self.buttons = 0
             self.flayout.clear_widgets()
-        self.flayout.add_widget(Button(text = 'no restrictions\n what so ever',
-            size_hint = (None, None), size = (150, 40),
-            pos_hint = {'x':random.random(), 'y': random.random()}))
+        self.flayout.add_widget(Button(text='no restrictions\n what so ever',
+            size_hint=(None, None), size=(150, 40),
+            pos_hint={'x': random.random(), 'y': random.random()}))
         Clock.schedule_once(self.add_button, 1)
 
 
@@ -106,7 +113,7 @@ class GridLayoutShowcase(FloatLayout):
 
     def add_button(self, *l):
         self.buttons += 1
-        if self.buttons > 20:
+        if self.buttons > 10:
             self.buttons = 0
             self.glayout.clear_widgets()
             if self.txt == "rows = 3":
@@ -117,7 +124,7 @@ class GridLayoutShowcase(FloatLayout):
                 self.glayout.rows = 3
                 self.glayout.cols = 7
                 self.txt = "rows = 3"
-        self.glayout.add_widget(Button(text = self.txt))
+        self.glayout.add_widget(Button(text=self.txt))
         Clock.schedule_once(self.add_button, 1)
 
 
@@ -126,20 +133,31 @@ class StackLayoutShowcase(FloatLayout):
     def __init__(self, **kwargs):
         super(StackLayoutShowcase, self).__init__(**kwargs)
         self.buttons = 0
+        self.orientationit = 0
         self.txt = 'lr-tb'
         Clock.schedule_once(self.add_button, 1)
 
     def add_button(self, *l):
+        orientations = ('lr-tb', 'tb-lr',
+                        'rl-tb', 'tb-rl',
+                        'lr-bt', 'bt-lr',
+                        'rl-bt', 'bt-rl')
         self.buttons += 1
-        if self.buttons > 5:
+        if self.buttons > 11:
             self.buttons = 0
             self.slayout.clear_widgets()
-            if self.txt == "tb-lr":
-                self.txt = self.slayout.orientation = 'lr-tb'
-            else:
-                self.txt = self.slayout.orientation = 'tb-lr'
-        self.slayout.add_widget(Button(text = self.txt))
-        Clock.schedule_once(self.add_button, 1)
+            self.orientationit = (self.orientationit + 1) % len(orientations)
+            self.slayout.orientation = orientations[self.orientationit]
+            self.txt = self.slayout.orientation
+        self.slayout.add_widget(Button(
+            text=("%s %d" % (self.txt, self.buttons)),
+            size_hint=(.1 + self.buttons * 0.02, .1 + self.buttons * 0.01)))
+        Clock.schedule_once(self.add_button, .5)
+
+
+class RelativeLayoutShowcase(FloatLayout):
+    pass
+
 
 
 class StandardWidgets(FloatLayout):
@@ -157,8 +175,18 @@ class StandardWidgets(FloatLayout):
 class ComplexWidgets(FloatLayout):
     pass
 
+
+class ComplexWidgets2(FloatLayout):
+    pass
+
+
 class TreeViewWidgets(FloatLayout):
     pass
+
+
+class FontSizesWidgets(BoxLayout):
+    pass
+
 
 class ShowcaseApp(App):
 
@@ -171,8 +199,8 @@ class ShowcaseApp(App):
             w = getattr(self, 'show_%s' %
                         value.text.lower().replace(' ', '_'))()
             self.content.add_widget(w)
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
 
     def on_pause(self):
         return True
@@ -192,9 +220,11 @@ class ShowcaseApp(App):
         tree.bind(selected_node=self.on_select_node)
         n = create_tree('Widgets')
         attach_node('Standard widgets', n)
-        attach_node('Complex widgets', n)
+        attach_node('Complex widgets 1', n)
+        attach_node('Complex widgets 2', n)
         attach_node('Scatters', n)
         attach_node('Treeviews', n)
+        attach_node('Font Sizes', n)
         attach_node('Popup', n)
         n = create_tree('Layouts')
         attach_node('Anchor Layout', n)
@@ -202,6 +232,9 @@ class ShowcaseApp(App):
         attach_node('Float Layout', n)
         attach_node('Grid Layout', n)
         attach_node('Stack Layout', n)
+        attach_node('Relative Layout', n)
+
+
         root.add_widget(tree)
         self.content = content = BoxLayout()
         root.add_widget(content)
@@ -213,8 +246,11 @@ class ShowcaseApp(App):
     def show_standard_widgets(self):
         return StandardWidgets()
 
-    def show_complex_widgets(self):
+    def show_complex_widgets_1(self):
         return ComplexWidgets()
+
+    def show_complex_widgets_2(self):
+        return ComplexWidgets2()
 
     def show_anchor_layout(self):
         return AnchorLayoutShowcase()
@@ -231,6 +267,9 @@ class ShowcaseApp(App):
     def show_stack_layout(self):
         return StackLayoutShowcase()
 
+    def show_relative_layout(self):
+        return RelativeLayoutShowcase()
+
     def show_scatters(self):
         col = Widget()
         center = self.content.center_x - 150, self.content.center_y
@@ -243,17 +282,16 @@ class ShowcaseApp(App):
         return col
 
     def show_popup(self):
-        btnclose = Button(text='Close this popup', size_hint_y=None, height=50)
+        btnclose = Button(text='Close this popup', size_hint_y=None, height='50sp')
         content = BoxLayout(orientation='vertical')
         content.add_widget(Label(text='Hello world'))
         content.add_widget(btnclose)
         popup = Popup(content=content, title='Modal popup example',
-                      size_hint=(None, None), size=(300, 300),
-                      auto_dismiss=False)
+                      size_hint=(None, None), size=('300dp', '300dp'))
         btnclose.bind(on_release=popup.dismiss)
         button = Button(text='Open popup', size_hint=(None, None),
-                        size=(150, 70))
-        button.bind(on_release=popup.open)
+                        size=('150sp', '70dp'),
+                        on_release=popup.open)
         popup.open()
         col = AnchorLayout()
         col.add_widget(button)
@@ -265,17 +303,32 @@ class ShowcaseApp(App):
         self.populate_treeview(tv.treeview2)
         return tv
 
+    def show_font_sizes(self):
+        font_sizes = FontSizesWidgets()
+        metrics_values = {
+            'dpi': str(Metrics.dpi),
+            'dpi_rounded': str(Metrics.dpi_rounded),
+            'density': str(Metrics.density),
+            'fontscale': str(Metrics.fontscale),
+        }
+        label = font_sizes.children[1]
+        label.text = ('DPI: {dpi} | '
+                      'DPI Rounded: {dpi_rounded} | '
+                      'Density: {density} | '
+                      'Font Scale: {fontscale} ').format(**metrics_values)
+        return font_sizes
+
     def populate_treeview(self, tv):
         n = tv.add_node(TreeViewLabel(text='Item 1'))
-        for x in xrange(3):
+        for x in range(3):
             tv.add_node(TreeViewLabel(text='Subitem %d' % x), n)
         n = tv.add_node(TreeViewLabel(text='Item 2', is_open=True))
-        for x in xrange(3):
+        for x in range(3):
             tv.add_node(TreeViewLabel(text='Subitem %d' % x), n)
         n = tv.add_node(TreeViewLabel(text='Item 3'))
-        for x in xrange(3):
+        for x in range(3):
             tv.add_node(TreeViewLabel(text='Subitem %d' % x), n)
         return tv
 
-if __name__ in ('__main__', '__android__'):
+if __name__ == '__main__':
     ShowcaseApp().run()

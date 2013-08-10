@@ -4,15 +4,18 @@ Authors & Contributors of the Kivy Toolkit
 Authors & Maintainers
 ---------------------
 
- * Mathieu Virbel <tito __at__ bankiz.org>
- * Thomas Hansen (University of Iowa) <thomas.hansen __at__ gmail.com>
- * Christopher Denter <christopher __at__ kivy.org>
+ * Mathieu Virbel <mathieu __at__ kivy.org>
+ * Thomas Hansen (University of Iowa) <thomas__at__ kivy.org>
+ * Gabriel Pettier / tshirtman <gabriel__at__ kivy.org>
+ * Akshay Arora <akshay __at__ kivy.org>
+ * Brian Knapp <knapp __at__ kivy.org>
+ * Jeff Pittman <geogeff __at__ geogeff.org>
+ * Thomas-Karl Pietrowski <thopiekar __at__ gmail.com>
 
 
 Contributors
 ------------
 
- * Gabriel Pettier / tshirtman <gabriel.pettier __at__ gmail.com>
  * Ilya Cassina <ilya.cassina __at__ gmail.com>
  * Jay Bradley <j.bradley __at__ napier.ac.uk>
  * Nathanaël Lécaudé <lecaude __at__ gmail.com>
@@ -20,6 +23,14 @@ Contributors
  * Tommaso Piazza <tommaso.piazza __at__ gmail.com>
  * Trevor Lockley <thatsyouremail __at__ gmail.com>
  * bernt
+ * Terje Skjaeveland (bionoid)
+ * George Sebastian (georgs)
+ * Gabriel Ortega
+ * Arnaud Waels (triselectif)
+ * Thomas Hirsch
+ * Joakim Gebart
+ * Rosemary Sebastian
+ * Jonathan Schemoul
 
 
 Graphics
@@ -28,9 +39,11 @@ Graphics
  * Vincent Autin <autinvincent __at__ gmail.com>
 
 
-Old contributors
-----------------
+Special Thanks (ancient devs & special help)
+--------------------------------------------
 
+ * Christopher Denter <christopher __at__ kivy.org>
+ * Edwin Marshall <edwin __at__ kivy.org>
  * Alex Teiche <xelapond __at__ gmail.com>
  * Felipe Moura <felipe.celer __at__ gmail.com>
  * Riley Dutton <rileydutton __at__ gmail.com>

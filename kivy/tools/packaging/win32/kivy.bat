@@ -19,7 +19,7 @@ ECHO GST_PLUGIN_PATH:
 ECHO %GST_PLUGIN_PATH%
 ECHO ---------------
 
-set PATH=%kivy_portable_root%;%kivy_portable_root%Python;%kivy_portable_root%gstreamer\bin;%kivy_portable_root%MinGW\bin;%PATH%
+set PATH=%kivy_portable_root%;%kivy_portable_root%Python;%kivy_portable_root%Python\Scripts;%kivy_portable_root%gstreamer\bin;%kivy_portable_root%MinGW\bin;%PATH%
 ECHO PATH:
 ECHO %PATH%
 ECHO ----------------------------------

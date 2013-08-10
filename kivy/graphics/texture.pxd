@@ -2,6 +2,7 @@ from c_opengl cimport GLuint
 
 cdef class Texture:
     cdef object __weakref__
+    cdef unsigned int flags
 
     cdef object _source
     cdef float _tex_coords[8]
@@ -14,8 +15,8 @@ cdef class Texture:
     cdef str _min_filter
     cdef str _mag_filter
     cdef int _rectangle
-    cdef bytes _colorfmt
-    cdef bytes _bufferfmt
+    cdef str _colorfmt
+    cdef str _bufferfmt
     cdef float _uvx
     cdef float _uvy
     cdef float _uvw
@@ -23,12 +24,16 @@ cdef class Texture:
     cdef int _is_allocated
     cdef int _nofree
     cdef list observers
+    cdef object _proxyimage
+    cdef object _callback
 
     cdef void update_tex_coords(self)
     cdef void set_min_filter(self, str x)
     cdef void set_mag_filter(self, str x)
     cdef void set_wrap(self, str x)
     cdef void reload(self)
+    cdef void _reload_propagate(self, Texture texture)
+    cdef void allocate(self)
 
     cpdef flip_vertical(self)
     cpdef get_region(self, x, y, width, height)
@@ -39,3 +44,4 @@ cdef class TextureRegion(Texture):
     cdef int y
     cdef Texture owner
     cdef void reload(self)
+    cpdef bind(self)

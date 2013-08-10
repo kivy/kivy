@@ -25,12 +25,12 @@ def parse_filename(filename):
     filename = parse_string(filename)
     result = resource_find(filename)
     if result is None:
-        Logger.error('Resource: unable to found <%s>' % filename)
+        Logger.error('Resource: unable to find <%s>' % filename)
     return result or filename
 
 
 def color_error(text):
-    #show warning and return a sane value
+    # show warning and return a sane value
     Logger.warning(text)
     return (0, 0, 0, 1)
 
@@ -55,10 +55,12 @@ def parse_color(text):
                 if len(value) < 3:
                     #in case of invalid input like rgb()/rgb(r)/rgb(r, g)
                     raise ValueError
-            except ValueError, AttributeError:
-                return color_error('Color Parser:Invalid color for %r' % text)
+            except ValueError:
+                return color_error('ColorParser: Invalid color for %r' % text)
+            except AttributeError:
+                return color_error('ColorParser: Invalid color for %r' % text)
         else:
-            return color_error('Color Parser:Invalid color for %r' % text)
+            return color_error('ColorParser: Invalid color for %r' % text)
         if len(value) == 3:
             value.append(1.)
     elif len(text):
@@ -70,11 +72,13 @@ def parse_color(text):
             res = ''.join([x + x for x in res])
         elif lres != 6 and lres != 8:
             #raise ColorException('Invalid color format for %r' % text)
-            return color_error('Color Parser:Invalid color format for %r' %text)
+            return color_error(
+                    'ColorParser: Invalid color format for %r' % text)
         try:
-            value = [int(res[i:i+2], 16) / 255. for i in xrange(0, len(res), 2)]
+            value = [int(res[i:i + 2], 16) / 255.
+                     for i in range(0, len(res), 2)]
         except ValueError:
-            return color_error('Color Parser:Invalid color for %r' % text)
+            return color_error('ColorParser: Invalid color for %r' % text)
         if lres == 6:
             value.append(1.)
     return value
@@ -100,12 +104,12 @@ def parse_string(text):
 def parse_int2(text):
     '''Parse a string to a list of exactly 2 integers
 
-        >>> print parse_int2("12 54")
+        >>> print(parse_int2("12 54"))
         12, 54
 
     '''
     texts = [x for x in text.split(' ') if x.strip() != '']
-    value = map(parse_int, texts)
+    value = list(map(parse_int, texts))
     if len(value) < 1:
         raise Exception('Invalid int2 format: %s' % text)
     elif len(value) == 1:
@@ -123,11 +127,11 @@ def parse_float4(text):
 
     '''
     texts = [x for x in text.split(' ') if x.strip() != '']
-    value = map(parse_float, texts)
+    value = list(map(parse_float, texts))
     if len(value) < 1:
         raise Exception('Invalid float4 format: %s' % text)
     elif len(value) == 1:
-        return map(lambda x: value[0], range(4))
+        return [value[0] for x in range(4)]
     elif len(value) == 2:
         return [value[0], value[1], value[0], value[1]]
     elif len(value) == 3:

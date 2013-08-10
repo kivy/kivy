@@ -1,0 +1,40 @@
+#:kivy 1.4
+
+GridLayout:
+    cols: 1
+    Label:
+        text: "Label 1"
+        size_hint_y: .2
+    Label:
+        text: "Label with\nmultiple lines"
+        size_hint_y: .2
+    Label:
+        font_size: '62sp'
+        text: "Label [color=ff3333][sub]with[/sub][/color] [color=3333ff][b]mark[sup]up[/sup][/b][/color]"
+        markup: True
+    Button:
+        text: 'Label in a button'
+    GridLayout:
+        cols: 2
+        Button:
+            text: 'Left aligned at middle'
+            padding: -10, -10
+            halign: 'left'
+            valign: 'middle'
+            text_size: self.size
+        Button:
+            text: 'right aligned at top'
+            padding: -10, -10
+            halign: 'right'
+            valign: 'top'
+            text_size: self.size
+    Label:
+        text: "Label with [ref=reference]reference[/ref]"
+        markup: True
+        on_ref_press: self.text = "ref clicked"
+    Label:
+        text: "different font"
+        bold: True
+        font_name: "data/fonts/DroidSansMono.ttf"
+        font_size: 32
+        valign: "bottom"

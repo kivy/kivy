@@ -58,7 +58,7 @@ class ShaderViewer(FloatLayout):
         s = self.canvas
         s['projection_mat'] = Window.render_context['projection_mat']
         s['time'] = Clock.get_boottime()
-        s['resolution'] = map(float, self.size)
+        s['resolution'] = list(map(float, self.size))
         s.ask_update()
 
     def on_fs(self, instance, value):
@@ -94,19 +94,19 @@ void main (void) {
         self.bind(fs=self.trigger_compile, vs=self.trigger_compile)
 
     def compile_shaders(self, *largs):
-        print 'try compile'
+        print('try compile')
         if not self.viewer:
             return
         fs = fs_header + self.fs
         vs = vs_header + self.vs
-        print '-->', fs
+        print('-->', fs)
         self.viewer.fs = fs
-        print '-->', vs
+        print('-->', vs)
         self.viewer.vs = vs
 
 class ShaderEditorApp(App):
     def build(self):
         return ShaderEditor()
 
-if __name__ in ('__main__', '__android__'):
+if __name__ == '__main__':
     ShaderEditorApp().run()

@@ -2,7 +2,8 @@
 Motion Event Provider
 =====================
 
-Abstract class for a implement a :class:`~kivy.input.motionevent.MotionEvent`
+Abstract class for the implemention of a
+:class:`~kivy.input.motionevent.MotionEvent`
 provider. The implementation must support the
 :func:`~MotionEventProvider.start`, :func:`~MotionEventProvider.stop` and
 :func:`~MotionEventProvider.update` methods.
@@ -22,18 +23,18 @@ class MotionEventProvider(object):
 
     def start(self):
         '''Start the provider. This method is automatically called when the
-        application is started, and if the configuration use the current
+        application is started and if the configuration uses the current
         provider.
         '''
         pass
 
     def stop(self):
-        '''Stop the provider
+        '''Stop the provider.
         '''
         pass
 
     def update(self, dispatch_fn):
-        '''Update the provider, and dispatch all the new touch event though the
+        '''Update the provider and dispatch all the new touch events though the
         `dispatch_fn` argument.
         '''
         pass

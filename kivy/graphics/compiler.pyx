@@ -9,7 +9,7 @@ at rendering time.
 Reducing the context instructions
 ---------------------------------
 
-Imagine that you have a scheme like this ::
+Imagine that you have a scheme like this::
 
     Color(1, 1, 1)
     Rectangle(source='button.png', pos=(0, 0), size=(20, 20))
@@ -18,7 +18,7 @@ Imagine that you have a scheme like this ::
     Color(1, 1, 1)
     Rectangle(source='button.png', pos=(10, 20), size=(20, 20))
 
-The real instruction seen by the graphics canvas would be ::
+The real instruction seen by the graphics canvas would be::
 
     Color: change 'color' context to 1, 1, 1
     BindTexture: change 'texture0' to `button.png texture`
@@ -32,7 +32,7 @@ The real instruction seen by the graphics canvas would be ::
 
 Only the first :class:`~kivy.graphics.context_instructions.Color` and
 :class:`~kivy.graphics.context_instructions.BindTexture` are useful, and really
-change the context.  We can reduce them to ::
+change the context.  We can reduce them to::
 
     Color: change 'color' context to 1, 1, 1
     BindTexture: change 'texture0' to `button.png texture`
@@ -59,8 +59,8 @@ Note to any Kivy contributor / internal developer:
 
 include 'opcodes.pxi'
 
-from instructions cimport Instruction, RenderContext, ContextInstruction
-from context_instructions cimport BindTexture
+from kivy.graphics.instructions cimport Instruction, RenderContext, ContextInstruction
+from kivy.graphics.context_instructions cimport BindTexture
 
 cdef class GraphicsCompiler:
     cdef InstructionGroup compile(self, InstructionGroup group):
@@ -146,7 +146,5 @@ cdef class GraphicsCompiler:
             rc.flag_update(0)
 
         group.flags |= GI_NO_APPLY_ONCE
-
-        #if count: print 'Ignored', count
 
         return group

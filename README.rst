@@ -66,7 +66,7 @@ natural user interfaces.
 Licenses
 --------
 
-- Kivy is licensed under the terms of the LGPL 3, check the COPYING file.
+- Kivy is licensed under the terms of the MIT, check the LICENSE file.
 - The provided fonts DroidSans.ttf and DroidSansMono.ttf are licensed under
   the terms of the Apache 2.0 License. The license can be found at
   http://www.apache.org/licenses/LICENSE-2.0

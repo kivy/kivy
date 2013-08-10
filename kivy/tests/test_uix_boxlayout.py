@@ -6,7 +6,7 @@ Order matter.
 On the screen, most of example must have the red->blue->green order.
 '''
 
-from common import GraphicUnitTest
+from kivy.tests.common import GraphicUnitTest
 
 
 class UIXBoxLayoutTestcase(GraphicUnitTest):

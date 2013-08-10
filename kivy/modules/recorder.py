@@ -37,12 +37,12 @@ from functools import partial
 
 
 def on_recorder_key(recorder, window, key, *largs):
-    if key == 289: # F8
+    if key == 289:  # F8
         if recorder.play:
             Logger.error('Recorder: Cannot start recording while playing.')
             return
         recorder.record = not recorder.record
-    elif key == 288: # F7
+    elif key == 288:  # F7
         if recorder.record:
             Logger.error('Recorder: Cannot start playing while recording.')
             return

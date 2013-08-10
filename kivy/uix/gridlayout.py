@@ -15,8 +15,8 @@ Grid Layout
 .. versionadded:: 1.0.4
 
 :class:`GridLayout` arranges children in a matrix. It takes the available space
-and divides it in columns and rows, then adds widgets to the resulting "cells".
-
+and divides it into columns and rows, then adds widgets to the resulting
+"cells".
 
 .. versionadded:: 1.0.7
     The implementation has changed to use widget size_hint for calculating
@@ -30,20 +30,20 @@ Unlike many other toolkits, you cannot explicitly place a widget at a specific
 column/row. Each child is automatically assigned a position, depending on the
 layout configuration and the child's index in the children list.
 
-A GridLayout must always have at least one restriction: :data:`GridLayout.cols`
-or :data:`GridLayout.rows`. If you do not specify a restriction, the Layout
-will throw an exception.
+A GridLayout must always have at least one input constraint:
+:data:`GridLayout.cols` or :data:`GridLayout.rows`. If you do not specify cols
+or rows, the Layout will throw an exception.
 
-Column width and row height
+Column Width and Row Height
 ---------------------------
 
 The column width/row height are determined in 3 steps:
 
     - The initial size is given by the :data:`col_default_width` and
       :data:`row_default_height` properties. To customize the size of a single
-      column or row, use :data:`cols_minimum` or :data:`rows_minimum`
+      column or row, use :data:`cols_minimum` or :data:`rows_minimum`.
     - Then the `size_hint_x`/`size_hint_y` of the child are taken into account.
-      If no widgets have a size hint, the maximum size is used for all children
+      If no widgets have a size hint, the maximum size is used for all children.
     - You can force the default size by setting the :data:`col_force_default`
       or :data:`row_force_default` property. This will force the layout to
       ignore the `width` and `size_hint` properties of children and use the
@@ -53,7 +53,7 @@ Usage of GridLayout
 -------------------
 
 In the example below, all widgets will get an equal size. By default,
-`size_hint` is (1, 1) so a Widget will take the full size of the parent::
+`size_hint` is (1, 1), so a Widget will take the full size of the parent::
 
     layout = GridLayout(cols=2)
     layout.add_widget(Button(text='Hello 1'))
@@ -90,12 +90,20 @@ __all__ = ('GridLayout', 'GridLayoutException')
 from kivy.logger import Logger
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
-        BoundedNumericProperty, ReferenceListProperty
+        BoundedNumericProperty, ReferenceListProperty, VariableListProperty
 from math import ceil
 
 
+def nmax(*args):
+    '''(internal) Implementation of a max() function that support None.
+    '''
+    # merge into one list
+    args = [x for x in args if x is not None]
+    return max(args)
+
+
 class GridLayoutException(Exception):
-    '''Exception for errors in the grid layout manipulation
+    '''Exception for errors in the grid layout manipulation.
     '''
     pass
 
@@ -104,24 +112,35 @@ class GridLayout(Layout):
     '''Grid layout class. See module documentation for more information.
     '''
 
-    spacing = NumericProperty(0)
-    '''Spacing between widget box and children, in pixels.
+    spacing = VariableListProperty([0, 0], length=2)
+    '''Spacing between children: [spacing_horizontal, spacing_vertical].
 
-    :data:`spacing` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.
+    spacing also accepts a one argument form [spacing].
+
+    :data:`spacing` is a :class:`~kivy.properties.VariableListProperty`, default to
+    [0, 0].
     '''
 
-    padding = NumericProperty(0)
-    '''Padding between widget box and children, in pixels.
+    padding = VariableListProperty([0, 0, 0, 0])
+    '''Padding between layout box and children: [padding_left, padding_top,
+    padding_right, padding_bottom].
 
-    :data:`padding` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.
+    padding also accepts a two argument form [padding_horizontal,
+    padding_vertical] and a one argument form [padding].
+
+    .. versionchanged:: 1.7.0
+
+    Replaced NumericProperty with VariableListProperty.
+
+    :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default to
+    [0, 0, 0, 0].
     '''
 
     cols = BoundedNumericProperty(None, min=0, allow_none=True)
-    '''Number of columns in the grid
+    '''Number of columns in the grid.
 
     .. versionadded:: 1.0.8
+
         Change from NumericProperty to BoundedNumericProperty. You cannot set a
         negative value anymore.
 
@@ -129,9 +148,10 @@ class GridLayout(Layout):
     '''
 
     rows = BoundedNumericProperty(None, min=0, allow_none=True)
-    '''Number of rows in the grid
+    '''Number of rows in the grid.
 
     .. versionadded:: 1.0.8
+
         Change from NumericProperty to BoundedNumericProperty. You cannot set a
         negative value anymore.
 
@@ -139,7 +159,7 @@ class GridLayout(Layout):
     '''
 
     col_default_width = NumericProperty(0)
-    '''Default minimum size to use for column
+    '''Default minimum size to use for column.
 
     .. versionadded:: 1.0.7
 
@@ -148,7 +168,7 @@ class GridLayout(Layout):
     '''
 
     row_default_height = NumericProperty(0)
-    '''Default minimum size to use for row
+    '''Default minimum size to use for row.
 
     .. versionadded:: 1.0.7
 
@@ -195,7 +215,7 @@ class GridLayout(Layout):
     '''
 
     minimum_width = NumericProperty(0)
-    '''Minimum width needed to contain all childrens.
+    '''Minimum width needed to contain all children.
 
     .. versionadded:: 1.0.8
 
@@ -204,7 +224,7 @@ class GridLayout(Layout):
     '''
 
     minimum_height = NumericProperty(0)
-    '''Minimum height needed to contain all childrens.
+    '''Minimum height needed to contain all children.
 
     .. versionadded:: 1.0.8
 
@@ -213,7 +233,7 @@ class GridLayout(Layout):
     '''
 
     minimum_size = ReferenceListProperty(minimum_width, minimum_height)
-    '''Minimum size needed to contain all childrens.
+    '''Minimum size needed to contain all children.
 
     .. versionadded:: 1.0.8
 
@@ -226,30 +246,18 @@ class GridLayout(Layout):
         super(GridLayout, self).__init__(**kwargs)
 
         self.bind(
-            col_default_width = self._trigger_layout,
-            row_default_height = self._trigger_layout,
-            col_force_default = self._trigger_layout,
-            row_force_default = self._trigger_layout,
-            cols = self._trigger_layout,
-            rows = self._trigger_layout,
-            parent = self._trigger_layout,
-            spacing = self._trigger_layout,
-            padding = self._trigger_layout,
-            children = self._trigger_layout,
-            size = self._trigger_layout,
-            pos = self._trigger_layout)
-
-    def add_widget(self, widget, index=0):
-        widget.bind(
-            size = self._trigger_layout,
-            size_hint = self._trigger_layout)
-        return super(Layout, self).add_widget(widget, index)
-
-    def remove_widget(self, widget):
-        widget.unbind(
-            size = self._trigger_layout,
-            size_hint = self._trigger_layout)
-        return super(Layout, self).remove_widget(widget)
+            col_default_width=self._trigger_layout,
+            row_default_height=self._trigger_layout,
+            col_force_default=self._trigger_layout,
+            row_force_default=self._trigger_layout,
+            cols=self._trigger_layout,
+            rows=self._trigger_layout,
+            parent=self._trigger_layout,
+            spacing=self._trigger_layout,
+            padding=self._trigger_layout,
+            children=self._trigger_layout,
+            size=self._trigger_layout,
+            pos=self._trigger_layout)
 
     def get_max_widgets(self):
         if self.cols and not self.rows:
@@ -266,7 +274,7 @@ class GridLayout(Layout):
         smax = self.get_max_widgets()
         if smax and len(value) > smax:
             raise GridLayoutException(
-                    'Too much children in GridLayout. Increase your rows/cols!')
+                    'Too many children in GridLayout. Increase rows/cols!')
 
     def update_minimum_size(self, *largs):
         # the goal here is to calculate the minimum size of every cols/rows
@@ -280,7 +288,7 @@ class GridLayout(Layout):
         # the grid must be contrained at least on one side
         if not current_cols and not current_rows:
             Logger.warning('%r have no cols or rows set, '
-                'layout are not triggered.' % self)
+                'layout is not triggered.' % self)
             return None
         if current_cols is None:
             current_cols = int(ceil(len_children / float(current_rows)))
@@ -297,15 +305,15 @@ class GridLayout(Layout):
 
         # update minimum size from the dicts
         # FIXME index might be outside the bounds ?
-        for index, value in self.cols_minimum.iteritems():
+        for index, value in self.cols_minimum.items():
             cols[index] = value
-        for index, value in self.rows_minimum.iteritems():
+        for index, value in self.rows_minimum.items():
             rows[index] = value
 
         # calculate minimum size for each columns and rows
         i = len_children - 1
-        for row in xrange(current_rows):
-            for col in xrange(current_cols):
+        for row in range(current_rows):
+            for col in range(current_cols):
 
                 # don't go further is we don't have child left
                 if i < 0:
@@ -320,22 +328,23 @@ class GridLayout(Layout):
 
                 # compute minimum size / maximum stretch needed
                 if shw is None:
-                    cols[col] = max(cols[col], w)
+                    cols[col] = nmax(cols[col], w)
                 else:
-                    cols_sh[col] = max(cols_sh[col], shw)
+                    cols_sh[col] = nmax(cols_sh[col], shw)
                 if shh is None:
-                    rows[row] = max(rows[row], h)
+                    rows[row] = nmax(rows[row], h)
                 else:
-                    rows_sh[row] = max(rows_sh[row], shh)
+                    rows_sh[row] = nmax(rows_sh[row], shh)
 
                 # next child
                 i = i - 1
 
         # calculate minimum width/height needed, starting from padding + spacing
-        padding2 = self.padding * 2
-        spacing = self.spacing
-        width = padding2 + spacing * (current_cols - 1)
-        height = padding2 + spacing * (current_rows - 1)
+        padding_x = self.padding[0] + self.padding[2]
+        padding_y = self.padding[1] + self.padding[3]
+        spacing_x, spacing_y = self.spacing
+        width = padding_x + spacing_x * (current_cols - 1)
+        height = padding_y + spacing_y * (current_rows - 1)
         # then add the cell size
         width += sum(cols)
         height += sum(rows)
@@ -354,7 +363,7 @@ class GridLayout(Layout):
         if self._cols is None:
             return
         if self.cols is None and self.rows is None:
-            raise GridLayoutException('Need at least cols or rows restriction.')
+            raise GridLayoutException('Need at least cols or rows constraint.')
 
         children = self.children
         len_children = len(children)
@@ -362,8 +371,9 @@ class GridLayout(Layout):
             return
 
         # speedup
-        padding = self.padding
-        spacing = self.spacing
+        padding_left = self.padding[0]
+        padding_top = self.padding[1]
+        spacing_x, spacing_y = self.spacing
         selfx = self.x
         selfw = self.width
         selfh = self.height
@@ -371,14 +381,14 @@ class GridLayout(Layout):
         # resolve size for each column
         if self.col_force_default:
             cols = [self.col_default_width] * len(self._cols)
-            for index, value in self.cols_minimum.iteritems():
+            for index, value in self.cols_minimum.items():
                 cols[index] = value
         else:
             cols = self._cols[:]
             cols_sh = self._cols_sh
             cols_weigth = sum([x for x in cols_sh if x])
             strech_w = max(0, selfw - self.minimum_width)
-            for index in xrange(len(cols)):
+            for index in range(len(cols)):
                 # if the col don't have strech information, nothing to do
                 col_stretch = cols_sh[index]
                 if col_stretch is None:
@@ -392,14 +402,14 @@ class GridLayout(Layout):
         # same algo for rows
         if self.row_force_default:
             rows = [self.row_default_height] * len(self._rows)
-            for index, value in self.rows_minimum.iteritems():
+            for index, value in self.rows_minimum.items():
                 rows[index] = value
         else:
             rows = self._rows[:]
             rows_sh = self._rows_sh
             rows_weigth = sum([x for x in rows_sh if x])
             strech_h = max(0, selfh - self.minimum_height)
-            for index in xrange(len(rows)):
+            for index in range(len(rows)):
                 # if the row don't have strech information, nothing to do
                 row_stretch = rows_sh[index]
                 if row_stretch is None:
@@ -413,18 +423,18 @@ class GridLayout(Layout):
 
         # reposition every child
         i = len_children - 1
-        y = self.top - padding
-        reposition_child = self.reposition_child
+        y = self.top - padding_top
         for row_height in rows:
-            x = selfx + padding
+            x = selfx + padding_left
             for col_width in cols:
                 if i < 0:
                     break
                 c = children[i]
-                c_pos = x, y - row_height
-                c_size = (col_width, row_height)
-                reposition_child(c, pos=c_pos, size=c_size)
+                c.x = x
+                c.y = y - row_height
+                c.width = col_width
+                c.height = row_height
                 i = i - 1
-                x = x + col_width + spacing
-            y -= row_height + spacing
+                x = x + col_width + spacing_x
+            y -= row_height + spacing_y
 

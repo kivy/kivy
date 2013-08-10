@@ -46,7 +46,7 @@
 // In the webserver / unittest / buildbot case, we are compiling and running
 // kivy in an headless env, without proper GL support.
 // This is a hack to prevent to link with wrong symbol. :(
-#if __USE_MESAGL
+#if __USE_MESAGL == 1
 #	define glBlendEquationSeparate(x, y)
 #	define glDepthRangef glDepthRange
 #	define glClearDepthf glClearDepth
@@ -75,6 +75,7 @@ void glew_dynamic_binding() {
      */
     if (glGenFramebuffers == NULL) {
         printf("GL: glGenFramebuffers is NULL, try to detect an extension\n");
+        printf("GL: available extensions: %s\n", gl_extensions);
         if (strstr(gl_extensions, "ARB_framebuffer_object")) {
             printf("GL: ARB_framebuffer_object is supported\n");
 

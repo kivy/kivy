@@ -2,7 +2,7 @@
 Vector
 ======
 
-The :class:`Vector` represent a 2D vector (x, y).
+The :class:`Vector` represents a 2D vector (x, y).
 Our implementation is made in top of a Python list.
 
 Exemple for constructing a Vector::
@@ -34,25 +34,25 @@ Exemple for constructing a Vector::
 Optimized usage
 ---------------
 
-Most of time, you can use a list for arguments, instead of using a Vector. For
+Most of the time, you can use a list for arguments, instead of using a Vector. For
 example, if you want to have the distance between 2 points::
 
     a = (10, 10)
     b = (87, 34)
 
     # optimized method
-    print 'distance between a and b:', Vector(a).distance(b)
+    print('distance between a and b:', Vector(a).distance(b))
 
     # non-optimized method
     va = Vector(a)
     vb = Vector(b)
-    print 'distance between a and b:', va.distance(vb)
+    print('distance between a and b:', va.distance(vb))
 
 
 Vector operators
 ----------------
 
-The :class:`Vector` support some numeric operator like +, -, /::
+The :class:`Vector` supports some numeric operator like +, -, /::
 
     >>> Vector(1, 1) + Vector(9, 5)
     [10, 6]
@@ -139,7 +139,7 @@ class Vector(list):
             raise TypeError('vector::FAILURE in __getslice__')
 
     def __add__(self, val):
-        return Vector(map(lambda x, y: x + y, self, val))
+        return Vector(list(map(lambda x, y: x + y, self, val)))
 
     def __iadd__(self, val):
         if type(val) in (int, float):
@@ -151,10 +151,10 @@ class Vector(list):
         return self
 
     def __neg__(self):
-        return Vector(map(lambda x: -x, self))
+        return Vector([-x for x in self])
 
     def __sub__(self, val):
-        return Vector(map(lambda x, y: x - y, self, val))
+        return Vector(list(map(lambda x, y: x - y, self, val)))
 
     def __isub__(self, val):
         if type(val) in (int, float):
@@ -167,9 +167,9 @@ class Vector(list):
 
     def __mul__(self, val):
         try:
-            return Vector(map(lambda x, y: x * y, self, val))
+            return Vector(list(map(lambda x, y: x * y, self, val)))
         except Exception:
-            return Vector(map(lambda x: x * val, self))
+            return Vector([x * val for x in self])
 
     def __imul__(self, val):
         if type(val) in (int, float):
@@ -185,21 +185,21 @@ class Vector(list):
 
     def __truediv__(self, val):
         try:
-            return Vector(map(lambda x, y: x / y, self, val))
+            return Vector(list(map(lambda x, y: x / y, self, val)))
         except Exception:
-            return Vector(map(lambda x: x / val, self))
+            return Vector([x / val for x in self])
 
     def __div__(self, val):
         try:
-            return Vector(map(lambda x, y: x / y, self, val))
+            return Vector(list(map(lambda x, y: x / y, self, val)))
         except Exception:
-            return Vector(map(lambda x: x / val, self))
+            return Vector([x / val for x in self])
 
     def __rdiv__(self, val):
         try:
-            return Vector(map(lambda x, y: x / y, self, val))
+            return Vector(list(map(lambda x, y: x / y, self, val)))
         except Exception:
-            return Vector(map(lambda x: self / x, val))
+            return Vector([self / x for x in val])
 
     def __idiv__(self, val):
         if type(val) in (int, float):
@@ -290,7 +290,7 @@ class Vector(list):
         -157.7920283010705
 
         '''
-        angle = -(180/math.pi) * math.atan2(
+        angle = -(180 / math.pi) * math.atan2(
             self[0] * a[1] - self[1] * a[0],
             self[0] * a[0] + self[1] * a[1])
         return angle

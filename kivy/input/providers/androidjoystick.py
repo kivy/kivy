@@ -1,9 +1,10 @@
+# pylint: disable=W0611
 __all__ = ('AndroidMotionEventProvider', )
 
 import os
 
 try:
-    __import__('android')
+    import android
 except ImportError:
     if 'KIVY_DOC' not in os.environ:
         raise Exception('android lib not found.')
@@ -50,7 +51,7 @@ class AndroidMotionEventProvider(MotionEventProvider):
     def start(self):
         pygame.joystick.init()
         Logger.info('Android: found %d joystick' % pygame.joystick.get_count())
-        for i in xrange(pygame.joystick.get_count()):
+        for i in range(pygame.joystick.get_count()):
             self.create_joystick(i)
 
     def stop(self):
@@ -67,8 +68,10 @@ class AndroidMotionEventProvider(MotionEventProvider):
             pressed = joy.get_button(0)
             x = joy.get_axis(0) * 32768. / w
             y = 1. - (joy.get_axis(1) * 32768. / h)
-            pressure = joy.get_axis(2)
-            radius = joy.get_axis(3)
+
+            # python for android do * 1000.
+            pressure = joy.get_axis(2) / 1000.
+            radius = joy.get_axis(3) / 1000.
 
             # new touche ?
             if pressed and jid not in touches:
@@ -83,7 +86,6 @@ class AndroidMotionEventProvider(MotionEventProvider):
                 # avoid same touch position
                 if touch.sx == x and touch.sy == y \
                    and touch.pressure == pressure:
-                    #print 'avoid moving.', touch.uid, x, y, pressure, radius
                     continue
                 touch.move([x, y, pressure, radius])
                 dispatch_fn('update', touch)

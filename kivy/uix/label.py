@@ -3,7 +3,7 @@ Label
 =====
 
 The :class:`Label` widget is for rendering text. It supports ascii and unicode
-strings ::
+strings::
 
     # hello world text
     l = Label(text='Hello world')
@@ -15,7 +15,7 @@ strings ::
     l = Label(text='Multi\\nLine')
 
     # size
-    l = Label(text='Hello world', font_size=20)
+    l = Label(text='Hello world', font_size='20sp')
 
 Markup text
 -----------
@@ -38,7 +38,7 @@ If you need to escape the markup from the current text, use
     text = 'This is an important message [1]'
     l = Label(text='[b]' + escape_markup(text) + '[/b]', markup=True)
 
-The following tags are availables:
+The following tags are available:
 
 ``[b][/b]``
     Activate bold text
@@ -51,11 +51,15 @@ The following tags are availables:
 ``[color=#<color>][/color]``
     Change the text color
 ``[ref=<str>][/ref]``
-    Add an interactive zone. The reference + all the word box inside the
+    Add an interactive zone. The reference + bounding box inside the
     reference will be available in :data:`Label.refs`
 ``[anchor=<str>]``
     Put an anchor in the text. You can get the position of your anchor within
     the text with :data:`Label.anchors`
+``[sub][/sub]``
+    Display the text at a subscript position relative to the text before it.
+``[sup][/sup]``
+    Display the text at a superscript position relative to the text before it.
 
 If you want to render the markup text with a character [ or ] or &, you need to
 escape them. We created a simple syntax::
@@ -68,24 +72,25 @@ Then you can write::
 
     "[size=24]Hello &bl;World&bt;[/size]"
 
-Interactive zone in text
+Interactive Zone in Text
 ------------------------
 
 .. versionadded:: 1.1.0
 
-You can now have some kind of "links" using text markup. The idea is to be able
-to detect when the user click on a some part of the text, and react to it.
+You can now have definable "links" using text markup. The idea is to be able
+to detect when the user clicks on part of the text, and to react.
 The tag ``[ref=xxx]`` is used for that.
 
-In this example, we are creating a reference on the word "World". When click on
-it, the function ``print_it`` will be called with the name of the reference::
+In this example, we are creating a reference on the word "World". When a click
+happens on it, the function ``print_it`` will be called with the name of the
+reference::
 
     def print_it(instance, value):
-        print 'User click on', value
+        print('User clicked on', value)
     widget = Label(text='Hello [ref=world]World[/ref]', markup=True)
-    widget.on_ref_press(print_it)
+    widget.bind(on_ref_press=print_it)
 
-For a better rendering, you could put a color for the reference. Replace the
+For a better rendering, you could add a color for the reference. Replace the
 ``text=`` in the previous example with::
 
     'Hello [ref=world][color=0000ff]World[/color][/ref]'
@@ -102,6 +107,7 @@ from kivy.core.text.markup import MarkupLabel as CoreMarkupLabel
 from kivy.properties import StringProperty, OptionProperty, \
         NumericProperty, BooleanProperty, ReferenceListProperty, \
         ListProperty, ObjectProperty, DictProperty
+from kivy.utils import get_hex_from_color
 
 
 class Label(Widget):
@@ -109,13 +115,13 @@ class Label(Widget):
 
     :Events:
         `on_ref_press`
-            Fired when the user have clicked on a word referenced with a
+            Fired when the user clicks on a word referenced with a
             ``[ref]`` tag in a text markup.
     '''
 
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
         'halign', 'valign', 'padding_x', 'padding_y', 'text_size', 'shorten',
-        'mipmap', 'markup')
+        'mipmap', 'markup', 'line_height')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -146,7 +152,7 @@ class Label(Widget):
            (not markup and cls is not CoreLabel):
             # markup have change, we need to change our rendering method.
             d = Label._font_properties
-            dkw = dict(zip(d, [getattr(self, x) for x in d]))
+            dkw = dict(list(zip(d, [getattr(self, x) for x in d])))
             if markup:
                 self._label = CoreMarkupLabel(**dkw)
             else:
@@ -161,6 +167,8 @@ class Label(Widget):
                 self._label.text = value
             elif name == 'text_size':
                 self._label.usersize = value
+            elif name == 'font_size':
+                self._label.options[name] = value
             else:
                 self._label.options[name] = value
         self._trigger_texture()
@@ -168,17 +176,28 @@ class Label(Widget):
     def texture_update(self, *largs):
         '''Force texture recreation with the current Label properties.
 
-        After this function call, the :data:`texture` and :data`texture_size`
+        After this function call, the :data:`texture` and :data:`texture_size`
         will be updated in this order.
         '''
         self.texture = None
         if self._label.text.strip() == '':
             self.texture_size = (0, 0)
         else:
-            self._label.refresh()
-            if self._label.__class__ is CoreMarkupLabel:
+            mrkup = self._label.__class__ is CoreMarkupLabel
+            if mrkup:
+                text = self._label.text
+                self._label.text = ''.join(('[color=',
+                                            get_hex_from_color(self.color), ']',
+                                            text, '[/color]'))
+                self._label.refresh()
+                # force the rendering to get the references
+                if self._label.texture:
+                    self._label.texture.bind()
+                self._label.text = text
                 self.refs = self._label.refs
                 self.anchors = self._label.anchors
+            else:
+                self._label.refresh()
             texture = self._label.texture
             if texture is not None:
                 self.texture = self._label.texture
@@ -193,7 +212,7 @@ class Label(Widget):
         tx -= self.center_x - self.texture_size[0] / 2.
         ty -= self.center_y - self.texture_size[1] / 2.
         ty = self.texture_size[1] - ty
-        for uid, zones in self.refs.iteritems():
+        for uid, zones in self.refs.items():
             for zone in zones:
                 x, y, w, h = zone
                 if x <= tx <= w and y <= ty <= h:
@@ -207,14 +226,24 @@ class Label(Widget):
     #
     # Properties
     #
+
+    disabled_color = ListProperty([1, 1, 1, .3])
+    '''Text color, in the format (r, g, b, a)
+
+    .. versionadded:: 1.8.0
+
+    :data:`disabled_color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
+    1, .5].
+    '''
+
     text = StringProperty('')
     '''Text of the label.
 
-    Creation of a simple hello world ::
+    Creation of a simple hello world::
 
         widget = Label(text='Hello world')
 
-    If you want to create the widget with an unicode string, use ::
+    If you want to create the widget with an unicode string, use::
 
         widget = Label(text=u'My unicode string')
 
@@ -236,7 +265,7 @@ class Label(Widget):
 
         This text_size property is the same as
         :data:`~kivy.core.text.Label.usersize` property in
-        :class:`~kivy.core.text.Label` class. (Even if it's named size= in
+        :class:`~kivy.core.text.Label` class. (It is named size= in
         constructor.)
 
     :data:`text_size` is a :class:`~kivy.properties.ListProperty`,
@@ -244,7 +273,7 @@ class Label(Widget):
     '''
 
     font_name = StringProperty('DroidSans')
-    '''Filename of the font to use, the path can be absolute or relative.
+    '''Filename of the font to use. The path can be absolute or relative.
     Relative paths are resolved by the :func:`~kivy.resources.resource_find`
     function.
 
@@ -253,11 +282,11 @@ class Label(Widget):
         Depending of your text provider, the font file can be ignored. However,
         you can mostly use this without trouble.
 
-        If the font used lacks the glyphs for the perticular language/symbols
+        If the font used lacks the glyphs for the particular language/symbols
         you are using, you will see '[]' blank box characters instead of the
         actual glyphs. The solution is to use a font that has the glyphs you
-        need to display. For example to display |unicodechar|, use a font like
-        freesans.ttf that has the glyph.
+        need to display. For example, to display |unicodechar|, use a font such
+        as freesans.ttf that has the glyph.
 
         .. |unicodechar| image:: images/unicode-char.png
 
@@ -265,15 +294,25 @@ class Label(Widget):
     'DroidSans'.
     '''
 
-    font_size = NumericProperty(12)
+    font_size = NumericProperty('15sp')
     '''Font size of the text, in pixels.
 
     :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
-    12.
+    12dp.
+    '''
+
+    line_height = NumericProperty(1.0)
+    '''Line Height for the text. e.g. line_height = 2 will cause the spacing
+    between lines to be twice the size.
+
+    :data:`line_height` is a :class:`~kivy.properties.NumericProperty`, default
+    to 1.0.
+
+    .. versionadded:: 1.5.0
     '''
 
     bold = BooleanProperty(False)
-    '''Indicate if you want to use the bold version of your font.
+    '''Indicates use of the bold version of your font.
 
     .. note::
 
@@ -285,7 +324,7 @@ class Label(Widget):
     '''
 
     italic = BooleanProperty(False)
-    '''Indicate if you want to use the italic version of your font.
+    '''Indicates use of the italic version of your font.
 
     .. note::
 
@@ -297,37 +336,44 @@ class Label(Widget):
     '''
 
     padding_x = NumericProperty(0)
-    '''Horizontal padding of the text, inside the widget box.
+    '''Horizontal padding of the text inside the widget box.
 
     :data:`padding_x` is a :class:`~kivy.properties.NumericProperty`, default to
     0
     '''
 
     padding_y = NumericProperty(0)
-    '''Vertical padding of the text, inside the widget box.
+    '''Vertical padding of the text inside the widget box.
 
     :data:`padding_x` is a :class:`~kivy.properties.NumericProperty`, default to
     0
     '''
 
     padding = ReferenceListProperty(padding_x, padding_y)
-    '''Padding of the text, in the format (padding_x, padding_y)
+    '''Padding of the text in the format (padding_x, padding_y)
 
     :data:`padding` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`padding_x`, :data:`padding_y`) properties.
     '''
 
-    halign = OptionProperty('left', options=['left', 'center', 'right'])
+    halign = OptionProperty('left', options=['left', 'center', 'right',
+                            'justify'])
     '''Horizontal alignment of the text.
 
     :data:`halign` is a :class:`~kivy.properties.OptionProperty`, default to
-    'left'. Available options are : left, center and right.
+    'left'. Available options are : left, center, right and justified.
 
     .. warning::
 
-        this doesn't change the position of the text texture of the Label
-        (centered), only the position of the text in this texture, you probably
-        want to bind the size of the Label to the texture_size or set a text_size.
+        This doesn't change the position of the text texture of the Label
+        (centered), only the position of the text in this texture. You probably
+        want to bind the size of the Label to the :data:`texture_size` or set a
+        :data:`text_size`.
+
+    .. versionchanged:: 1.6.0
+
+        Starting version 1.6.0 a new option was added to :data:`halign`
+        namely `justify`
     '''
 
     valign = OptionProperty('bottom', options=['bottom', 'middle', 'top'])
@@ -338,9 +384,10 @@ class Label(Widget):
 
     .. warning::
 
-        this doesn't change the position of the text texture of the Label
-        (centered), only the position of the text in this texture, you probably
-        want to bind the size of the Label to the texture_size or set a text_size.
+        This doesn't change the position of the text texture of the Label
+        (centered), only the position of the text in this texture. You probably
+        want to bind the size of the Label to the :data:`texture_size` or set a
+        :data:`text_size`.
     '''
 
     color = ListProperty([1, 1, 1, 1])
@@ -352,8 +399,9 @@ class Label(Widget):
 
     texture = ObjectProperty(None, allownone=True)
     '''Texture object of the text.
-    The text is rendered automatically when a property changes, and stored in
-    this property. You can use this :data:`texture` for any graphics elements.
+    The text is rendered automatically when a property changes. The OpenGL
+    texture created in this operation is stored in this property. You can use
+    this :data:`texture` for any graphics elements.
 
     Depending on the texture creation, the value will be a
     :class:`~kivy.graphics.texture.Texture` or
@@ -363,13 +411,13 @@ class Label(Widget):
 
         The :data:`texture` update is scheduled for the next frame. If you need
         the texture immediately after changing a property, you have to call
-        the :func:`texture_update` function before acessing :data:`texture` ::
+        the :meth:`texture_update` method before accessing :data:`texture`::
 
             l = Label(text='Hello world')
             # l.texture is good
-            l.font_size = 50
+            l.font_size = '50sp'
             # l.texture is not updated yet
-            l.update_texture()
+            l.texture_update()
             # l.texture is good now.
 
     :data:`texture` is a :class:`~kivy.properties.ObjectProperty`, default to
@@ -381,13 +429,13 @@ class Label(Widget):
 
     .. warning::
 
-        The data:`texture_size` is set after the :data:`texture` property. If
+        The :data:`texture_size` is set after the :data:`texture` property. If
         you listen for changes to :data:`texture`, :data:`texture_size` will not
-        be up to date in your callback. Bind to data:`texture_size` instead.
+        be up-to-date in your callback. Bind to :data:`texture_size` instead.
     '''
 
     mipmap = BooleanProperty(False)
-    '''Indicate if you want OpenGL mipmapping applied to texture or not.
+    '''Indicates OpenGL mipmapping applied to texture or not.
     Read :ref:`mipmap` for more information.
 
     .. versionadded:: 1.0.7
@@ -398,9 +446,9 @@ class Label(Widget):
 
     shorten = BooleanProperty(False)
     '''
-    Indicate whether the label should attempt to shorten its textual contents as
-    much as possible if a `text_size` is given. Setting this to True without an
-    appropriately set `text_size` will lead to unexpected results.
+    Indicates whether the label should attempt to shorten its textual contents
+    as much as possible if a `text_size` is given. Setting this to True without
+    an appropriately set `text_size` will lead to unexpected results.
 
     :data:`shorten` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
@@ -413,7 +461,7 @@ class Label(Widget):
     If true, the text will be rendered with
     :class:`~kivy.core.text.markup.MarkupLabel`: you can change the style of the
     text using tags. Check :doc:`api-kivy.core.text.markup` documentation for
-    more information
+    more information.
 
     :data:`markup` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
@@ -423,7 +471,7 @@ class Label(Widget):
     '''
     .. versionadded:: 1.1.0
 
-    List of ``[ref=xxx]`` markup put into the text, with all the bounding box of
+    List of ``[ref=xxx]`` markup put into the text, with the bounding box of
     all the words contained in a ref, only after rendering.
 
     For example, if you wrote::
@@ -434,15 +482,15 @@ class Label(Widget):
 
         {'hello': ((64, 0, 78, 16), )}
 
-    You know that the reference "hello" have one bounding box set at (x1, y1,
-    x2, y2). The current Label implementation use theses references if existing
-    in your markup text, do automatically the collision with the touch, and
-    dispatch an ``on_ref_press`` event.
+    You know that the reference "hello" have a bounding box set at (x1, y1, x2,
+    y2). The current Label implementation uses these references if they exist in
+    your markup text, automatically doing the collision with the touch, and
+    dispatching an `on_ref_press` event.
 
     You can bind a ref event like this::
 
         def print_it(instance, value):
-            print 'User click on', value
+            print('User click on', value)
         widget = Label(text='Hello [ref=world]World[/ref]', markup=True)
         widget.on_ref_press(print_it)
 
@@ -458,15 +506,15 @@ class Label(Widget):
 
     Position of all the ``[anchor=xxx]`` markup put into the text.
 
-    You can put some anchors in your markup text::
+    You can put anchors in your markup text::
 
         text = """
             [anchor=title1][size=24]This is my Big title.[/size]
             [anchor=content]Hello world
         """
 
-    Then, all the ``[anchor=]`` will be removed, and you'll get all the anchors
-    positions in this property (only after rendering)::
+    Then, all the ``[anchor=]`` references will be removed, and you'll get all
+    the anchor positions in this property (only after rendering)::
 
         >>> widget = Label(text=text, markup=True)
         >>> widget.texture_update()
@@ -479,4 +527,3 @@ class Label(Widget):
         True.
 
     '''
-

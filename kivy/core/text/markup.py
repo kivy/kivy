@@ -30,6 +30,10 @@ The following tags are availables:
 ``[anchor=<str>]``
     Put an anchor in the text. You can get the position of your anchor within
     the text with :data:`MarkupLabel.anchors`
+``[sub][/sub]``
+    Display the text at a subscript position relative to the text before it.
+``[sup][/sup]``
+    Display the text at a superscript position relative to the text before it.
 
 If you need to escape the markup from the current text, use
 :func:`kivy.utils.escape_markup`.
@@ -37,13 +41,13 @@ If you need to escape the markup from the current text, use
 
 __all__ = ('MarkupLabel', )
 
-from kivy.graphics.texture import Texture
-from kivy.utils import platform
+import re
+from kivy.properties import dpi2px
 from kivy.parser import parse_color
 from kivy.logger import Logger
-import re
 from kivy.core.text import Label, LabelBase
 from copy import copy
+from math import ceil
 
 # We need to do this trick when documentation is generated
 MarkupLabelBase = Label
@@ -122,6 +126,7 @@ class MarkupLabel(MarkupLabelBase):
         spop = self._pop_style
         options = self.options
         options['_ref'] = None
+        options['script'] = 'normal'
         for item in self.markup:
             if item == '[b]':
                 spush('bold')
@@ -138,9 +143,14 @@ class MarkupLabel(MarkupLabelBase):
                 spop('italic')
                 self.resolve_font_name()
             elif item[:6] == '[size=':
+                item = item[6:-1]
                 try:
-                    size = int(item[6:-1])
+                    if item[-2:] in ('px', 'pt', 'in', 'cm', 'mm', 'dp', 'sp'):
+                        size = dpi2px(item[:-2], item[-2:])
+                    else:
+                        size = int(item)
                 except ValueError:
+                    raise
                     size = options['font_size']
                 spush('font_size')
                 options['font_size'] = size
@@ -160,6 +170,22 @@ class MarkupLabel(MarkupLabelBase):
             elif item == '[/font]':
                 spop('font_name')
                 self.resolve_font_name()
+            elif item[:5] == '[sub]':
+                spush('font_size')
+                spush('script')
+                options['font_size'] = options['font_size'] * .5
+                options['script'] = 'subscript'
+            elif item == '[/sub]':
+                spop('font_size')
+                spop('script')
+            elif item[:5] == '[sup]':
+                spush('font_size')
+                spush('script')
+                options['font_size'] = options['font_size'] * .5
+                options['script'] = 'superscript'
+            elif item == '[/sup]':
+                spop('font_size')
+                spop('script')
             elif item[:5] == '[ref=':
                 ref = item[5:-1]
                 spush('_ref')
@@ -180,15 +206,21 @@ class MarkupLabel(MarkupLabelBase):
 
         # calculate the texture size
         w, h = self.text_size
-        if h < 0:
+        if h is None or h < 0:
             h = None
-        if w < 0:
+        if w is None or w < 0:
             w = None
         if w is None:
-            w = max([line[0] for line in lines])
+            if not lines:
+                w = 1
+            else:
+                w = max([line[0] for line in lines])
         if h is None:
-            h = sum([line[1] for line in lines])
-        return w, h
+            if not lines:
+                h = 1
+            else:
+                h = sum([line[1] for line in lines])
+        return int(ceil(w)), int(ceil(h))
 
     def _pre_render_label(self, word, options, lines):
         # precalculate id/name
@@ -198,6 +230,7 @@ class MarkupLabel(MarkupLabelBase):
 
         # verify that each glyph have size
         glyphs = list(set(word))
+        glyphs.append(' ')
         get_extents = self.get_extents
         for glyph in glyphs:
             if not glyph in cache:
@@ -207,15 +240,16 @@ class MarkupLabel(MarkupLabelBase):
         if len(lines):
             line = lines[-1]
         else:
-            # line-> line width, line height, words
+            # line-> line width, line height, is_last_line, is_first_line, words
             # words -> (w, h, word)...
-            line = [0, 0, []]
+            line = [0, 0, 0, 1, []]
             lines.append(line)
 
         # extract user limitation
         uw, uh = self.text_size
 
         # split the word
+        default_line_height = get_extents(' ')[1] * self.options['line_height']
         for part in re.split(r'( |\n)', word):
 
             if part == '':
@@ -223,7 +257,11 @@ class MarkupLabel(MarkupLabelBase):
 
             if part == '\n':
                 # put a new line!
-                line = [0, 0, []]
+                line = [0, default_line_height, 0, 1, []]
+                # skip last line for justification.
+                if lines:
+                    lines[-1][2] = 1
+                    lines[-1]
                 lines.append(line)
                 continue
 
@@ -237,21 +275,23 @@ class MarkupLabel(MarkupLabelBase):
             pg = [cache[g] for g in part]
             pw = get_extents(part)[0]
             ph = max([g[1] for g in pg])
-
+            ph = ph * self.options['line_height']
             options = copy(options)
 
             # check if the part can be put in the line
             if uw is None or lw + pw < uw:
                 # no limitation or part can be contained in the line
                 # then append the part to the line
-                line[2].append((pw, ph, part, options))
+                line[4].append((pw, ph, part, options))
                 # and update the line size
                 line[0] += pw
                 line[1] = max(line[1], ph)
             else:
                 # part can't be put in the line, do a new one...
-                line = [pw, ph, [(pw, ph, part, options)]]
+                line = [pw, ph, 0, 0, [(pw, ph, part, options)]]
                 lines.append(line)
+        # set last_line to be skipped for justification
+        lines[-1][2] = 1
 
     def _real_render(self):
         # use the lines to do the rendering !
@@ -259,27 +299,96 @@ class MarkupLabel(MarkupLabelBase):
 
         r = self._render_text
 
-        # convert halign/valign to int, faster comparaison
-        #av = {'top': 0, 'middle': 1, 'bottom': 2}[self.options['valign']]
-        ah = {'left': 0, 'center': 1, 'right': 2}[self.options['halign']]
+        # convert halign/valign to int, faster comparison
+        av = {'top': 0, 'middle': 1, 'bottom': 2}[self.options['valign']]
+        ah = {'left': 0, 'center': 1, 'right': 2,
+                'justify': 3, }[self.options['halign']]
 
         y = 0
         w, h = self._size
         refs = self._refs
-        for line in self._lines:
+        _lines = self._lines
+        txt_height = sum(line[1] for line in _lines)
+
+        for line in _lines:
             lh = line[1]
+            lw = line[0]
+            last_line = line[2]
+            first_line = line[3]
 
             # horizontal alignement
-            if ah == 0:
+            if ah in (0, 3):
+                # left
                 x = 0
             elif ah == 1:
-                x = int((w - line[0]) / 2)
+                # center
+                x = int((w - lw) / 2)
             else:
-                x = w - line[0]
+                x = w - lw
 
-            for pw, ph, part, options in line[2]:
+            # vertical alignment
+            if y == 0:
+                if av == 1:
+                    # center
+                    y = int((h - txt_height) / 2)
+                elif av == 2:
+                    # bottom
+                    y = h - (txt_height)
+
+             # justification
+            just_space = 0
+            first_space = 0
+            if ah > 2:
+                # justified
+                if line[4] and not last_line:
+                    last_word = line[4][-1][2]
+
+                    x = first_space = last_space = space_width = _spaces = 0
+                    for pw, ph, word, options in line[4]:
+                        _spaces += 1 if word == ' ' else 0
+
+                    if word == ' ':
+                        last_space = 1
+                        space_width = pw
+                    if line[4][0][2][0] == ' ':
+                        first_space = 1
+                        space_width += pw
+                    _spaces -= last_space + first_space
+
+                    # divide left over space between `spaces`
+                    if _spaces:
+                        just_space = (((w - lw + space_width) * 1.)
+                                    / (_spaces * 1.))
+
+            # previous part height/pos = 0
+            psp = pph = 0
+            for pw, ph, part, options in line[4]:
                 self.options = options
-                r(part, x, y + (lh - ph) / 1.25)
+                if not first_line and first_space:
+                    first_line = 1
+                    continue
+                if part == ' ':
+                    x += just_space
+
+                # calculate sub/super script pos
+                if options['script'] == 'superscript':
+                    script_pos = max(0,
+                                    psp
+                                    if psp else
+                                    self.get_descent())
+                    psp = script_pos
+                    pph = ph
+                elif options['script'] == 'subscript':
+                    script_pos = min(lh - ph,
+                                    ((psp + pph) - ph)
+                                    if pph else
+                                    (lh - ph))
+                    pph = ph
+                    psp = script_pos
+                else:
+                    script_pos = (lh - ph) / 1.25
+                    psp = pph = 0
+                r(part, x, y + script_pos)
 
                 # should we record refs ?
                 ref = options['_ref']
@@ -288,7 +397,6 @@ class MarkupLabel(MarkupLabelBase):
                         refs[ref] = []
                     refs[ref].append((x, y, x + pw, y + ph))
 
-                #print 'render', repr(part), x, y, (lh, ph), options
                 x += pw
             y += line[1]
 
@@ -296,29 +404,9 @@ class MarkupLabel(MarkupLabelBase):
         data = self._render_end()
         assert(data)
 
-        # create texture is necessary
-        texture = self.texture
-        mipmap = self.options['mipmap']
-        if texture is None:
-            if data is None:
-                if platform() in ('android', 'ios'):
-                    colorfmt = 'rgba'
-                else:
-                    colorfmt = 'luminance_alpha'
-                texture = Texture.create(
-                        size=self.size, colorfmt=colorfmt,
-                        mipmap=mipmap)
-            else:
-                texture = Texture.create_from_data(data, mipmap=mipmap)
-            texture.flip_vertical()
-        elif self.width != texture.width or self.height != texture.height:
-            if data is None:
-                texture = Texture.create(size=self.size, mipmap=mipmap)
-            else:
-                texture = Texture.create_from_data(data, mipmap=mipmap)
-            texture.flip_vertical()
-
         # update texture
-        self.texture = texture
-        self.texture.blit_data(data)
+        # If the text is 1px width, usually, the data is black.
+        # Don't blit that kind of data, otherwise, you have a little black bar.
+        if data is not None and data.width > 1:
+            self.texture.blit_data(data)
 

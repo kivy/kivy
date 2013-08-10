@@ -39,7 +39,10 @@ class SoundGstreamer(Sound):
         t = message.type
         if t == gst.MESSAGE_EOS:
             self._data.set_state(gst.STATE_NULL)
-            self.stop()
+            if self.loop:
+                self.play()
+            else:
+                self.stop()
         elif t == gst.MESSAGE_ERROR:
             self._data.set_state(gst.STATE_NULL)
             err, debug = message.parse_error()
@@ -50,6 +53,7 @@ class SoundGstreamer(Sound):
     def play(self):
         if not self._data:
             return
+        self._data.set_property('volume', self.volume)
         self._data.set_state(gst.STATE_PLAYING)
         super(SoundGstreamer, self).play()
 
@@ -92,17 +96,21 @@ class SoundGstreamer(Sound):
         if self._data is None:
             return
         self._data.seek_simple(gst.FORMAT_TIME, gst.SEEK_FLAG_SKIP,
-                               position / 1000000000.)
+                               position * 1000000000.)
 
-    def _get_volume(self):
+    def get_pos(self):
         if self._data is not None:
-            self._volume = self._data.get_property('volume')
-        return super(SoundGstreamer, self)._get_volume()
+            if self._data.get_state()[1] == gst.STATE_PLAYING:
+                try:
+                    return self._data.query_position(gst.Format
+                        (gst.FORMAT_TIME))[0] / 1000000000.
+                except:
+                    pass
+        return 0
 
-    def _set_volume(self, volume):
+    def on_volume(self, instance, volume):
         if self._data is not None:
             self._data.set_property('volume', volume)
-        return super(SoundGstreamer, self)._set_volume(volume)
 
     def _get_length(self):
         if self._data is not None:
@@ -112,12 +120,14 @@ class SoundGstreamer(Sound):
                 self._data.set_state(gst.STATE_PLAYING)
                 try:
                     self._data.get_state()
-                    return self._data.query_duration(gst.Format(gst.FORMAT_TIME))[0] / 1000000000.
+                    return self._data.query_duration(gst.Format(
+                        gst.FORMAT_TIME))[0] / 1000000000.
                 finally:
                     self._data.set_state(gst.STATE_NULL)
                     self._data.set_property('volume', volume_before)
             else:
-                return self._data.query_duration(gst.Format(gst.FORMAT_TIME))[0] / 1000000000.
+                return self._data.query_duration(gst.Format
+                        (gst.FORMAT_TIME))[0] / 1000000000.
         return super(SoundGstreamer, self)._get_length()
 
 SoundLoader.register(SoundGstreamer)

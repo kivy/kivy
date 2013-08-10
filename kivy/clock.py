@@ -3,7 +3,7 @@ Clock object
 ============
 
 The :class:`Clock` object allows you to schedule a function call in the
-future; once or on interval. ::
+future; once or on interval::
 
     def my_callback(dt):
         pass
@@ -33,6 +33,34 @@ module::
 
     Clock.schedule_interval(partial(my_callback, 'my value', 'my key'), 0.5)
 
+.. important::
+
+    The callback is weak-referenced: you are responsible to keep a reference to
+    your original object/callback. If you don't keep a reference, the Clock will
+    never execute your callback. For example::
+
+        class Foo(object):
+            def start(self):
+                Clock.schedule_interval(self.callback)
+
+            def callback(self, dt):
+                print('In callback')
+
+        # a Foo object is created, the method start is called,
+        # and the instance of foo is deleted
+        # Because nobody keep a reference to the instance returned from Foo(),
+        # the object will be collected by Python Garbage Collector. And you're
+        # callback will be never called.
+        Foo().start()
+
+        # So you must do:
+        foo = Foo()
+        foo.start()
+
+        # and keep the instance of foo, until you don't need it anymore!
+
+.. _schedule-before-frame:
+
 Schedule before frame
 ---------------------
 
@@ -59,6 +87,8 @@ If you need to increase the limit, set the :data:`max_iteration` property::
     from kivy.clock import Clock
     Clock.max_iteration = 20
 
+.. _triggered-events:
+
 Triggered Events
 ----------------
 
@@ -67,7 +97,7 @@ Triggered Events
 A triggered event is a way to defer a callback exactly like schedule_once(),
 but with some added convenience. The callback will only be scheduled once per
 frame, even if you call the trigger twice (or more). This is not the case
-with :func:`Clock.schedule_once` ::
+with :func:`Clock.schedule_once`::
 
     # will run the callback twice before the next frame
     Clock.schedule_once(my_callback)
@@ -78,7 +108,7 @@ with :func:`Clock.schedule_once` ::
     t()
     t()
 
-Before triggered events, you may have used this approach in a widget ::
+Before triggered events, you may have used this approach in a widget::
 
     def trigger_callback(self, *largs):
         Clock.unschedule(self.callback)
@@ -86,7 +116,7 @@ Before triggered events, you may have used this approach in a widget ::
 
 As soon as you call `trigger_callback()`, it will correctly schedule the
 callback once in the next frame. It is more convenient to create and bind to
-the triggered event than using :func:`Clock.schedule_once` in a function ::
+the triggered event than using :func:`Clock.schedule_once` in a function::
 
     from kivy.clock import Clock
     from kivy.uix.widget import Widget
@@ -111,11 +141,58 @@ Even if x and y changes within one frame, the callback is only run once.
 
 __all__ = ('Clock', 'ClockBase', 'ClockEvent')
 
+from sys import platform
 from os import environ
-from time import time, sleep
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
 from kivy.logger import Logger
+import time
+
+try:
+    import ctypes
+    if platform in ('win32', 'cygwin'):
+        # Win32 Sleep function is only 10-millisecond resolution, so instead use
+        # a waitable timer object, which has up to 100-nanosecond resolution
+        # (hardware and implementation dependent, of course).
+
+        _kernel32 = ctypes.windll.kernel32
+
+        class _ClockBase(object):
+            def __init__(self):
+                self._timer = _kernel32.CreateWaitableTimerA(None, True, None)
+
+            def usleep(self, microseconds):
+                delay = ctypes.c_longlong(int(-microseconds * 10))
+                _kernel32.SetWaitableTimer(self._timer, ctypes.byref(delay),
+                    0, ctypes.c_void_p(), ctypes.c_void_p(), False)
+                _kernel32.WaitForSingleObject(self._timer, 0xffffffff)
+
+        _default_time = time.clock
+    else:
+        if platform == 'darwin':
+            _libc = ctypes.CDLL('libc.dylib')
+        else:
+            _libc = ctypes.CDLL('libc.so')
+        _libc.usleep.argtypes = [ctypes.c_ulong]
+        _libc_usleep = _libc.usleep
+
+        class _ClockBase(object):
+            def usleep(self, microseconds):
+                _libc_usleep(int(microseconds))
+
+        _default_time = time.time
+
+except (OSError, ImportError):
+    # ImportError: ctypes is not available on python-for-android.
+    # OSError: if the libc cannot be readed (like with buildbot: invalid ELF
+    # header)
+
+    _default_time = time.time
+    _default_sleep = time.sleep
+
+    class _ClockBase(object):
+        def usleep(self, microseconds):
+            _default_sleep(microseconds / 1000000.)
 
 
 def _hash(cb):
@@ -180,8 +257,9 @@ class ClockEvent(object):
         self.callback = None
 
     def tick(self, curtime):
-        # timeout happen ?
-        if curtime - self._last_dt < self.timeout:
+        # timeout happened ? (check also if we would miss from 5ms)
+        # this 5ms increase the accuracy if the timing of animation for example.
+        if curtime - self._last_dt < self.timeout - 0.005:
             return True
 
         # calculate current timediff for this event
@@ -217,16 +295,20 @@ class ClockEvent(object):
         return '<ClockEvent callback=%r>' % self.get_callback()
 
 
-class ClockBase(object):
+class ClockBase(_ClockBase):
     '''A clock object with event support
     '''
     __slots__ = ('_dt', '_last_fps_tick', '_last_tick', '_fps', '_rfps',
                  '_start_tick', '_fps_counter', '_rfps_counter', '_events',
                  '_max_fps', 'max_iteration')
 
+    MIN_SLEEP = 0.005
+    SLEEP_UNDERSHOOT = MIN_SLEEP - 0.001
+
     def __init__(self):
+        super(ClockBase, self).__init__()
         self._dt = 0.0001
-        self._start_tick = self._last_tick = time()
+        self._start_tick = self._last_tick = _default_time()
         self._fps = 0
         self._rfps = 0
         self._fps_counter = 0
@@ -257,13 +339,18 @@ class ClockBase(object):
 
         # do we need to sleep ?
         if self._max_fps > 0:
+            min_sleep = self.MIN_SLEEP
+            sleep_undershoot = self.SLEEP_UNDERSHOOT
             fps = self._max_fps
-            s = 1 / fps - (time() - self._last_tick)
-            if s > 0:
-                sleep(s)
+            usleep = self.usleep
+
+            sleeptime = 1 / fps - (_default_time() - self._last_tick)
+            while sleeptime - sleep_undershoot > min_sleep:
+                usleep(1000000 * (sleeptime - sleep_undershoot))
+                sleeptime = 1 / fps - (_default_time() - self._last_tick)
 
         # tick the current time
-        current = time()
+        current = _default_time()
         self._dt = current - self._last_tick
         self._fps_counter += 1
         self._last_tick = current
@@ -327,11 +414,12 @@ class ClockBase(object):
         '''Schedule an event in <timeout> seconds.
 
         .. versionchanged:: 1.0.5
-
             If the timeout is -1, the callback will be called before the next
             frame (at :func:`tick_draw`).
 
         '''
+        if not callable(callback):
+            raise ValueError('callback must be a callable, got %s' % callback)
         cid = _hash(callback)
         event = ClockEvent(self, False, callback, timeout, self._last_tick, cid)
         events = self._events
@@ -342,6 +430,8 @@ class ClockBase(object):
 
     def schedule_interval(self, callback, timeout):
         '''Schedule an event to be called every <timeout> seconds'''
+        if not callable(callback):
+            raise ValueError('callback must be a callable, got %s' % callback)
         cid = _hash(callback)
         event = ClockEvent(self, True, callback, timeout, self._last_tick, cid)
         events = self._events
@@ -374,19 +464,19 @@ class ClockBase(object):
         # call that function to release all the direct reference to any callback
         # and replace it with a weakref
         events = self._events
-        for cid in events.keys()[:]:
+        for cid in list(events.keys())[:]:
             [x.release() for x in events[cid] if x.callback is not None]
 
     def _remove_empty(self):
         # remove empty entry in the event list
         events = self._events
-        for cid in events.keys()[:]:
+        for cid in list(events.keys())[:]:
             if not events[cid]:
                 del events[cid]
 
     def _process_events(self):
         events = self._events
-        for cid in events.keys()[:]:
+        for cid in list(events.keys())[:]:
             for event in events[cid][:]:
                 if event.tick(self._last_tick) is False:
                     # event may be already removed by the callback
@@ -407,7 +497,7 @@ class ClockBase(object):
 
             # search event that have timeout = -1
             found = False
-            for cid in events.keys()[:]:
+            for cid in list(events.keys())[:]:
                 for event in events[cid][:]:
                     if event.timeout != -1:
                         continue
