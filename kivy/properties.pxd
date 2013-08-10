@@ -45,7 +45,7 @@ cdef class StringProperty(Property):
     pass
 
 cdef class ListProperty(Property):
-    pass
+    cdef object cls
 
 cdef class DictProperty(Property):
     cdef object cls
