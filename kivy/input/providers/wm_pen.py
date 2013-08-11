@@ -1,7 +1,7 @@
 '''
-Support of WM_PEN message (Window platform)
-===========================================
-'''
+Support for WM_PEN messages (Window platform)
+=============================================
+''' 
 
 __all__ = ('WM_PenProvider', 'WM_Pen')
 
@@ -15,7 +15,7 @@ from kivy.input.motionevent import MotionEvent
 
 
 class WM_Pen(MotionEvent):
-    '''MotionEvent representing the WM_Pen event. Support pos profile'''
+    '''MotionEvent representing the WM_Pen event. Supports the pos profile'''
 
     def depack(self, args):
         self.is_touch = True
