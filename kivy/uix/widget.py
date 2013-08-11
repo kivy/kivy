@@ -199,6 +199,9 @@ class Widget(WidgetBase):
             return False
         return self.proxy_ref is other.proxy_ref
 
+    def __hash__(self):
+        return id(self)
+
     @property
     def __self__(self):
         return self
