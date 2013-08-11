@@ -1263,46 +1263,27 @@ class ListView(AbstractView, EventDispatcher):
 
             if index == 0:
                 self._index = 0
-                self._wstart = self._index
-                self._wend = self._index + n_window
-                self.populate()
-
-                self._scroll_y = 1.0
+                self.scrollview.scroll_y = 1.0
+                self.scrollview.update_from_scroll()
 
             elif index == len(self.adapter.data) - 1:
 
                 self._index = max(0, index - n_window)
-                self._wstart = self._index
-                self._wend = None
-                self.populate()
-
-                # Update window-on-the-data values.
-                self._wstart = self._index
-                self._wend = min(self._index + n_window, len(self.adapter.data) -1)
-
-                self._scroll_y = -0.0
-
-                self.scrollview.scroll_y = 1.0
+                self.scrollview.scroll_y = -0.0
+                self.scrollview.update_from_scroll()
 
             else:
 
-                # TODO: Test this.
+                # TODO: Implement this.
                 index_adjustment = 0
                 if position_in_window:
                     index_adjustment = int(ceil(position_in_window * n_window))
                     index += index_adjustment
 
-                iend_downward = min(index + n_window, len(self.adapter.data) -1)
-
                 self._index = index
 
-                self._wstart = index
-                self._wend = iend_downward
-                self.populate()
-
-                self._scroll_y = 1.0 - (float(self._wstart + 1) / len(self.adapter.data))
-
-                self.scrollview.scroll_y = self._scroll_y
+                self.scrollview.scroll_y = 1.0 - (float(index + 1) / len(self.adapter.data))
+                self.scrollview.update_from_scroll()
 
             self.dispatch('on_scroll_complete')
 
