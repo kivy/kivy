@@ -9,7 +9,7 @@ from the multitouch provider.
 
 To avoid this behavior, you can activate the "disable_on_activity" token in
 the mouse configuration. Then, if there are any touches activated by another
-provider, the mouse event will be discarded. Put in in your configuration::
+provider, the mouse event will be discarded. Add this to your configuration::
 
     [input]
     mouse = mouse,disable_on_activity
@@ -19,7 +19,7 @@ Disabling multitouch interaction with the mouse
 
 .. versionadded:: 1.3.0
 
-By default, the middle and right mouse buttons ared used for multitouch
+By default, the middle and right mouse buttons are used for multitouch
 emulation.
 If you want to use them for other purposes, you can disable this behavior by
 activating the "disable_multitouch" token::
