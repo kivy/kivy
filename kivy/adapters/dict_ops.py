@@ -89,7 +89,7 @@ class AdapterDictOpHandler(DictOpHandler):
 
             self.handle_update_op(keys)
 
-        elif op in ['OOD_setitem_set', ]:
+        elif op == 'OOD_setitem_set':
 
             self.handle_setitem_set_op(keys[0])
 
