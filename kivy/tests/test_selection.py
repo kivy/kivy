@@ -512,9 +512,9 @@ class ListAdapterTestCase(unittest.TestCase):
 class DictAdapterTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.args_converter = lambda row_index, rec: {'text': rec['name'],
-                                                      'size_hint_y': None,
-                                                      'height': 25}
+        self.args_converter = lambda row_index, rec, key: {'text': rec['name'],
+                                                           'size_hint_y': None,
+                                                           'height': 25}
 
         self.fruits = sorted(fruit_data.keys())
 

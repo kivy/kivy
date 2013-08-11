@@ -92,11 +92,16 @@ class SimpleListAdapter(EventDispatcher):
     def get_data_item(self, index):
         if index < 0 or index >= len(self.data):
             return None
-        return self.data[index]
+        # The return is a tuple, with the data item first.
+        return self.data[index],
 
     # Returns a view instance for an item.
     def get_view(self, index):
-        item = self.get_data_item(index)
+        ret = self.get_data_item(index)
+        if ret is None:
+            return None
+
+        item, = ret
 
         if item is None:
             return None

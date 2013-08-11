@@ -194,11 +194,21 @@ class Adapter(EventDispatcher):
         whatever that means, for a given adapter. The result is used in view
         creation, where it is passed as the argument to the args_converter.
 
-        The default return, prior to Kivy version 1.8, was only the data
-        item. In newer Kivy, the return is a tuple with the data item in the
-        first position, along with additional items, per adapter.
+        The return is a tuple, with the data item as the first item, followed by
+        any additional optional items.
+
+        .. versionchanged:: 1.8
+
+            The default return, prior to Kivy version 1.8, was only the data
+            item. In newer Kivy, the return is a tuple with the data item in
+            the first position, along with additional items, per adapter.
         '''
         pass
+
+    def _is_a_lambda(self, v):
+        # http://stackoverflow.com/questions/3655842/
+        #                 how-to-test-whether-a-variable-holds-a-lambda
+        return isinstance(v, type(lambda: None)) and v.__name__ == '<lambda>'
 
     def create_view(self, index):
         '''This method returns the data_item at the index, and a view built
@@ -210,41 +220,17 @@ class Adapter(EventDispatcher):
 
         get_data_item_ret = self.get_data_item(index)
 
-        # Backwards compatibility: get_data_item() returns either the data item
-        # alone, prior to Kivy 1.8, or a tuple with the data item in the first
-        # position in later versions.
-        if not isinstance(get_data_item_ret, tuple):
-            data_item = get_data_item_ret
-        else:
-            data_item = get_data_item_ret[0]
+        if get_data_item_ret is None:
+            return None
+
+        data_item = get_data_item_ret[0]
 
         if data_item is None:
             return None
 
-        # get_data_item_ret could contain additional items needed by the
-        # converter, such as the dictionary key within sorted_keys of
-        # DictAdapter. The first argument is the index, and the second the data
-        # item, followed by any additional args.
-
-        # Inspect the args_converter, which could be a function, method, or a
-        # lambda, with a varying number of arguments, to make the call to the
-        # args_converter in a backwards-compatible way.
-        args_converter_spec = inspect.getargspec(self.args_converter)
-
-        num_args = len(args_converter_spec.args)
-
-        # functions or methods vs. lambdas
-        if args_converter_spec.args[0] == 'self':
-            num_args -= 1
-
-        # The else handles the post Kivy 1.8 allowance for additional args, for
-        # example, for DictAdapter.
-        if num_args <= 2:
-            item_args = self.args_converter(index, data_item)
-        else:
-            item_args = self.args_converter(index,
-                                            data_item,
-                                            *get_data_item_ret[1:])
+        item_args = self.args_converter(index,
+                                        data_item,
+                                        *get_data_item_ret[1:])
 
         item_args['index'] = index
 

@@ -345,7 +345,7 @@ class Test(App):
             return True
         return False
 
-    def dict_args_converter(self, row_index, rec):
+    def dict_args_converter(self, row_index, rec, key):
         return {"text": "{0} : {1}".format(rec['key'], rec['value']),
                 "key": rec['key'],
                 "size_hint_y": None,

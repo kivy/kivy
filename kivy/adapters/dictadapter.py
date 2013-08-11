@@ -237,6 +237,8 @@ class DictAdapter(Selection, Adapter):
 
         key = self.sorted_keys[index]
 
+        # Return requires the data item as the first argument, followed by any
+        # additional args, in this case, the key.
         return self.data[key], key
 
     def create_view(self, index):
