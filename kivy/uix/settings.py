@@ -111,7 +111,7 @@ import os
 from kivy.metrics import dp
 from kivy.config import ConfigParser
 from kivy.animation import Animation
-from kivy.compat import string_types
+from kivy.compat import string_types, text_type
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.filechooser import FileChooserListView
@@ -463,9 +463,9 @@ class SettingNumeric(SettingString):
         self._dismiss()
         try:
             if is_float:
-                self.value = unicode(float(self.textinput.text))
+                self.value = text_type(float(self.textinput.text))
             else:
-                self.value = unicode(int(self.textinput.text))
+                self.value = text_type(int(self.textinput.text))
         except ValueError:
             return
 
