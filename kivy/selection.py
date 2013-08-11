@@ -232,10 +232,15 @@ class Selection(EventDispatcher):
         '''
         return self.selection
 
-    def get_first_selected_item(self):
+    def get_first_selected(self):
         '''A convenience method.
         '''
         return self.selection[0] if self.selection else None
+
+    def get_last_selected(self):
+        '''A convenience method.
+        '''
+        return self.selection[-1] if self.selection else None
 
     def handle_selection(self, item, hold_dispatch=False, *args):
 

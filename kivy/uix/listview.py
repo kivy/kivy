@@ -1567,3 +1567,17 @@ class ListView(AbstractView, EventDispatcher):
             self.populate()
             self.dispatch('on_scroll_complete')
 
+    def get_selection(self):
+        '''A convenience method.
+        '''
+        return self.adapter.get_selection() if self.adapter else None
+
+    def get_first_selected(self):
+        '''A convenience method.
+        '''
+        return self.adapter.get_first_selected() if self.adapter else None
+
+    def get_last_selected(self):
+        '''A convenience method.
+        '''
+        return self.adapter.get_last_selected() if self.adapter else None
