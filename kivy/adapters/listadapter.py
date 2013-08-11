@@ -180,7 +180,8 @@ class ListAdapter(Selection, Adapter):
         return len(self.data)
 
     def get_data_item(self, index):
-        return self.data[index]
+        # Return a tuple, with first arg (only one here) as the data item.
+        return self.data[index],
 
     def on_data_change(self, *args):
         pass

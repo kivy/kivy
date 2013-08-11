@@ -160,9 +160,10 @@ class AdapterListOpHandler(ListOpHandler):
         self.adapter.check_for_empty_selection()
 
     def handle_add_op(self):
-        '''An item was added to the end of the list. This shouldn't affect
-        anything here, as cached_views items can be built as needed through
-        normal get_view() calls to build views for the added items.
+        '''An item was added to the end of the list, or the list was extended
+        by several items. This shouldn't affect anything here, as cached_views
+        items can be built as needed through normal get_view() calls to build
+        views for the added items.
         '''
         pass
 

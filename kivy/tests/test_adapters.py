@@ -336,7 +336,7 @@ class FruitAdaptersTestCase(unittest.TestCase):
         # rec['text'] will be set for it. Likewise, the fifth item has kwargs,
         # but it has no 'text' key/value, so should receive the same treatment.
         self.composite_args_converter = \
-            lambda row_index, rec: \
+            lambda row_index, rec, key: \
                 {'text': rec['text'],
                  'size_hint_y': None,
                  'height': 25,
@@ -506,8 +506,9 @@ class FruitAdaptersTestCase(unittest.TestCase):
         simple_list_adapter = SimpleListAdapter(data=['cat', 'dog'],
                                                 cls=Label)
         self.assertEqual(simple_list_adapter.get_count(), 2)
-        self.assertEqual(simple_list_adapter.get_data_item(0), 'cat')
-        self.assertEqual(simple_list_adapter.get_data_item(1), 'dog')
+        # get_data_item() returns a tuple, with data item as first item.
+        self.assertEqual(simple_list_adapter.get_data_item(0), ('cat',))
+        self.assertEqual(simple_list_adapter.get_data_item(1), ('dog',))
         self.assertIsNone(simple_list_adapter.get_data_item(-1))
         self.assertIsNone(simple_list_adapter.get_data_item(2))
 
@@ -533,7 +534,8 @@ class FruitAdaptersTestCase(unittest.TestCase):
         self.assertEqual(list_adapter.args_converter, str_args_converter)
         self.assertEqual(list_adapter.template, None)
 
-        cat_data_item = list_adapter.get_data_item(0)
+        # get_data_item() returns a tuple, with data item as first item.
+        cat_data_item, = list_adapter.get_data_item(0)
         self.assertEqual(cat_data_item, 'cat')
         self.assertTrue(isinstance(cat_data_item, string_types))
 
@@ -575,7 +577,7 @@ class FruitAdaptersTestCase(unittest.TestCase):
                          list_item_args_converter)
         self.assertEqual(list_adapter.template, None)
 
-        apple_data_item = list_adapter.get_data_item(0)
+        apple_data_item, = list_adapter.get_data_item(0)
         self.assertTrue(isinstance(apple_data_item, FruitItem))
         self.assertTrue(isinstance(apple_data_item, SelectableDataItem))
         self.assertTrue(apple_data_item.is_selected)
@@ -608,7 +610,7 @@ class FruitAdaptersTestCase(unittest.TestCase):
                          list_item_args_converter)
         self.assertEqual(list_adapter.template, None)
 
-        apple_data_item = list_adapter.get_data_item(0)
+        apple_data_item, = list_adapter.get_data_item(0)
         self.assertTrue(isinstance(apple_data_item, dict))
         self.assertTrue(apple_data_item['is_selected'])
 
@@ -639,7 +641,7 @@ class FruitAdaptersTestCase(unittest.TestCase):
                                    allow_empty_selection=False,
                                    cls=ListItemButton)
 
-        data_item = list_adapter.get_data_item(0)
+        data_item, = list_adapter.get_data_item(0)
         self.assertTrue(isinstance(data_item, DataItem))
         self.assertTrue(data_item.is_selected)
 
@@ -684,7 +686,7 @@ class FruitAdaptersTestCase(unittest.TestCase):
                          list_item_args_converter)
         self.assertEqual(list_adapter.template, None)
 
-        data_item = list_adapter.get_data_item(0)
+        data_item, = list_adapter.get_data_item(0)
         self.assertTrue(isinstance(data_item, DataItem))
         self.assertTrue(data_item.is_selected)
 
@@ -713,7 +715,8 @@ class FruitAdaptersTestCase(unittest.TestCase):
         self.assertIsNotNone(list_adapter.args_converter)
         self.assertEqual(list_adapter.template, None)
 
-        cat_data_item = list_adapter.get_data_item(0)
+        # get_data_item() returns a tuple, with data item as first item.
+        cat_data_item, = list_adapter.get_data_item(0)
         self.assertEqual(cat_data_item, 'cat')
         self.assertTrue(isinstance(cat_data_item, string_types))
 
@@ -751,7 +754,7 @@ class FruitAdaptersTestCase(unittest.TestCase):
         self.assertEqual(list_adapter.args_converter, list_item_args_converter)
         self.assertEqual(list_adapter.template, None)
 
-        apple_data_item = list_adapter.get_data_item(0)
+        apple_data_item, = list_adapter.get_data_item(0)
         self.assertTrue(isinstance(apple_data_item, FruitItem))
 
     def test_list_adapter_selection_mode_multiple_select_list(self):
@@ -816,7 +819,7 @@ class FruitAdaptersTestCase(unittest.TestCase):
         self.assertEqual(list_adapter.cls, ListItemButton)
         self.assertEqual(list_adapter.args_converter, args_converter)
 
-        data_item = list_adapter.get_data_item(0)
+        data_item, = list_adapter.get_data_item(0)
         self.assertTrue(type(data_item), dict)
 
         # Utility calls for coverage:
@@ -1150,9 +1153,9 @@ class FruitAdaptersTestCase(unittest.TestCase):
         pet_listener = PetListener(['cat'])
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['text'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['text'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         dict_adapter = DictAdapter(sorted_keys=['cat'],
                 data={'cat': {'text': 'cat', 'is_selected': False},
@@ -1182,9 +1185,9 @@ class FruitAdaptersTestCase(unittest.TestCase):
         pet_listener = PetListener('cat')
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['text'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['text'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         dict_adapter = DictAdapter(
                 sorted_keys=['cat'],
@@ -1219,9 +1222,9 @@ class FruitAdaptersTestCase(unittest.TestCase):
     def test_dict_adapter_selection_mode_single_without_propagation(self):
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['name'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['name'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         dict_adapter = DictAdapter(sorted_keys=sorted(fruit_data.keys()),
                                    data=fruit_data,
@@ -1240,9 +1243,9 @@ class FruitAdaptersTestCase(unittest.TestCase):
         self.assertEqual(dict_adapter.args_converter, list_item_args_converter)
         self.assertEqual(dict_adapter.template, None)
 
-        apple_data_ret = dict_adapter.get_data_item(0)
-        self.assertTrue(isinstance(apple_data_ret, tuple))
-        apple_data_item = apple_data_ret[0]
+        ret = dict_adapter.get_data_item(0)
+        self.assertTrue(isinstance(ret, tuple))
+        apple_data_item = ret[0]
         self.assertTrue(isinstance(apple_data_item, dict))
         self.assertEqual(apple_data_item['name'], 'Apple')
 
@@ -1256,9 +1259,9 @@ class FruitAdaptersTestCase(unittest.TestCase):
     def test_dict_adapter_selection_mode_single_with_propagation(self):
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['name'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['name'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         dict_adapter = DictAdapter(sorted_keys=sorted(fruit_data.keys()),
                                    data=fruit_data,
@@ -1278,9 +1281,9 @@ class FruitAdaptersTestCase(unittest.TestCase):
         self.assertEqual(dict_adapter.args_converter, list_item_args_converter)
         self.assertEqual(dict_adapter.template, None)
 
-        apple_data_ret = dict_adapter.get_data_item(0)
-        self.assertTrue(isinstance(apple_data_ret, tuple))
-        apple_data_item = apple_data_ret[0]
+        ret = dict_adapter.get_data_item(0)
+        self.assertTrue(isinstance(ret, tuple))
+        apple_data_item = ret[0]
         self.assertEqual(apple_data_item['name'], 'Apple')
 
         apple_view = dict_adapter.get_view(0)
@@ -1293,9 +1296,9 @@ class FruitAdaptersTestCase(unittest.TestCase):
     def test_dict_adapter_sorted_keys(self):
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['name'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['name'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         dict_adapter = DictAdapter(sorted_keys=sorted(fruit_data.keys()),
                                    data=fruit_data,
@@ -1346,9 +1349,9 @@ class FruitAdaptersTestCase(unittest.TestCase):
            {l: {'text': l, 'is_selected': False} for l in alphabet}
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['text'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['text'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         letters = [l for l in alphabet]
 
@@ -1535,7 +1538,7 @@ class OpObservableListOpsTestCase(unittest.TestCase):
 
 class OpObservableDictOpsTestCase(unittest.TestCase):
 
-    def dict_args_converter(self, row_index, rec):
+    def dict_args_converter(self, row_index, rec, key):
         return {"text": "{0} : {1}".format(rec['key'], rec['value']),
                 "key": rec['key'],
                 "size_hint_y": None,

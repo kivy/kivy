@@ -1258,14 +1258,17 @@ class ListView(AbstractView, EventDispatcher):
         '''
 
         if index < 0 or index > len(self.adapter.data) - 1:
+            print 'index bad, returning', index, len(self.adapter.data) - 1
             return
 
         # If this method is called while scrolling operations are happening, a
         # call recursion error can occur, hence the check to see that scrolling
         # is False before calling populate(). At the end, dispatch a
         # scrolling_complete event, which sets scrolling back to False.
+        print 'self.scrolling', self.scrolling
         if not self.scrolling:
             if not self.row_height:
+                print 'returning for row_height'
                 return
 
             self.scrolling = True
@@ -1281,9 +1284,13 @@ class ListView(AbstractView, EventDispatcher):
 
             elif index == len(self.adapter.data) - 1:
 
-                self._index = max(0, index - n_window)
+                print 'index is end'
+                #self._index = max(0, index - n_window)
+                self._index = index
+                print 'self._index', self._index
                 self.scrollview.scroll_y = -0.0
                 self.scrollview.update_from_scroll()
+                print 'updated_from scroll'
 
             else:
 
@@ -1295,7 +1302,9 @@ class ListView(AbstractView, EventDispatcher):
 
                 self._index = index
 
+                print 'index', index
                 self.scrollview.scroll_y = 1.0 - (float(index + 1) / len(self.adapter.data))
+                print 'self.scrollview.scroll_y', self.scrollview.scroll_y
                 self.scrollview.update_from_scroll()
 
             self.dispatch('on_scroll_complete')
@@ -1327,6 +1336,7 @@ class ListView(AbstractView, EventDispatcher):
         '''Call the scroll_to_last() method to scroll to the last item.
         '''
 
+        print 'calling scroll_to', len(self.adapter.data) - 1
         self.scroll_to(len(self.adapter.data) - 1)
 
     def scroll_item_to_wstart(self, index):
@@ -1535,6 +1545,7 @@ class ListView(AbstractView, EventDispatcher):
                     'OOD_setdefault',
                     'OOD_update']:
 
+            print 'scrolling to last'
             self.scroll_to_last()
 
             #self.scroll_after_add()
