@@ -172,9 +172,6 @@ class ListAdapter(Selection, Adapter):
         return self.data[index]
 
     def on_data_change(self, *args):
-        '''on_data_change() is the default handler for the
-        on_data_change event.
-        '''
         pass
 
     def create_view(self, index):

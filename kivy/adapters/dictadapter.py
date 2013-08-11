@@ -67,6 +67,11 @@ class DictAdapter(Selection, Adapter):
     responds to data changes by updating cached_views and selection, in support
     of the "collection" style view that uses this adapter.
 
+    :Events:
+
+        `on_data_change`: (view, view list )
+            Fired when data changes
+
     .. versionchanged:: 1.8.0
 
         New classes, OpObserverableList and OpObservableDict, were added to
@@ -185,8 +190,6 @@ class DictAdapter(Selection, Adapter):
         self.bind(data=func)
 
     def on_data_change(self, *args):
-        '''Default data handler for on_data_change event.
-        '''
         pass
 
     def insert(self, index, key, value):
