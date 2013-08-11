@@ -1,3 +1,23 @@
+'''
+dict_ops
+========
+
+.. versionadded:: 1.8
+
+.. warning::
+
+    This code is still experimental, and its API is subject to change in a
+    future version.
+
+An :class:`~kivy.adapters.dict_ops.DictOpHandler` and
+:class:`~kivy.adapters.dict_ops.DictOpInfo` are used in association with an
+adapter, controller, or other Kivy object that needs to manage its own
+DictProperty instances that use an OpObservableDict. A DictProperty of this
+type dispatches on a per-op basis, requiring the handling of individual op
+reactions.
+'''
+__all__ = ('DictOpHandler', 'DictOpInfo')
+
 from kivy.properties import DictOpHandler
 from kivy.properties import DictOpInfo
 
@@ -122,7 +142,7 @@ class AdapterDictOpHandler(DictOpHandler):
         # whose change will trigger a data changed callback.
         self.adapter.sorted_keys.append(key)
 
-    def handle_update_op(self, keys):
+    def handle_update_op(self, key):
 
         self.adapter.sorted_keys.extend(keys)
 
