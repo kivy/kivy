@@ -105,6 +105,8 @@ class ListAdapter(Selection, Adapter):
     addition, it adds the item view widget to its container and scrolls the
     list, and so on.
 
+    .. versionadded:: 1.5
+
     .. versionchanged:: 1.8.0
 
         A new class, OpObserverableList, was added to kivy/properties.pyx as an
@@ -134,6 +136,9 @@ class ListAdapter(Selection, Adapter):
 
     :data:`data` is a :class:`~kivy.properties.ListProperty` and defaults
     to [].
+
+    .. versionadded:: 1.6
+
     '''
 
     list_op_handler = ObjectProperty(None)
@@ -143,12 +148,18 @@ class ListAdapter(Selection, Adapter):
 
     :data:`list_op_handler` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to None. It is instantiated and set on init.
+
+    .. versionadded:: 1.8
+
     '''
 
     op_info = ObjectProperty(None)
     '''This is a copy of our data's op_info. We make a copy before dispatching
     the on_data_change event, so that observers can more conveniently access
     it.
+
+    .. versionadded:: 1.8
+
     '''
 
     __events__ = ('on_data_change', )

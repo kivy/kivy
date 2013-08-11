@@ -658,6 +658,9 @@ class SelectableView(ButtonBehavior):
     Depending on the need, on_release could be, among other possibilities,
     on_touch_up. SelectableView, the parent, mixes in ButtonBehavior, which has
     the trigger_action() method.
+
+    .. versionadded:: 1.5
+
     '''
 
     index = NumericProperty(-1)
@@ -719,10 +722,14 @@ class ListItemButton(SelectableView, Button):
     :class:`~kivy.uix.listview.SelectableView` with
     :class:`~kivy.uix.button.Button` to produce a button suitable for use in
     :class:`~kivy.uix.listview.ListView`.
+
+    .. versionadded:: 1.5
+
     '''
 
     selected_color = ListProperty([1., 0., 0., 1])
     '''
+
     :data:`selected_color` is a :class:`~kivy.properties.ListProperty`,
     default to [1., 0., 0., 1].
     '''
@@ -765,6 +772,9 @@ class CompositeListItem(SelectableView, BoxLayout):
     ''':class:`~kivy.uix.listview.CompositeListItem` mixes
     :class:`~kivy.uix.listview.SelectableView` with :class:`BoxLayout` for a
     generic container-style list item.
+
+    .. versionadded:: 1.5
+
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
@@ -904,6 +914,9 @@ class ListView(AbstractView, EventDispatcher):
     :Events:
         `on_scroll_complete`: (boolean, )
             Fired when scrolling completes.
+
+    .. versionadded:: 1.5
+
     '''
 
     divider = ObjectProperty(None)
