@@ -1,3 +1,24 @@
+'''
+list_ops
+========
+
+.. versionadded:: 1.8
+
+.. warning::
+
+    This code is still experimental, and its API is subject to change in a
+    future version.
+
+An :class:`~kivy.adapters.dict_ops.ListOpHandler` and
+:class:`~kivy.adapters.dict_ops.ListOpInfo` are used in association with an
+adapter, controller, or other Kivy object that needs to manage its own
+ListProperty instances that use an OpObservableList. A ListProperty of this
+type dispatches on a per-op basis, requiring the handling of individual op
+reactions.
+'''
+
+__all__ = ('ListOpHandler', 'ListOpInfo')
+
 from kivy.properties import ListOpHandler
 from kivy.properties import ListOpInfo
 
