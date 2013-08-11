@@ -51,6 +51,8 @@ class Adapter(EventDispatcher):
     an :class:`~kivy.uix.abstractview.AbstractView` or one of its subclasses,
     such as a :class:`~kivy.uix.listview.ListView`.
 
+    .. versionadded:: 1.5
+
     .. versionchanged:: 1.8.0
 
         Selection code was pulled out of ListAdapter and put separately as a
@@ -82,6 +84,9 @@ class Adapter(EventDispatcher):
 
     :data:`data` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
+
+    .. versionadded:: 1.5
+
     '''
 
     cls = ObjectProperty(None)
@@ -90,6 +95,9 @@ class Adapter(EventDispatcher):
 
     :data:`cls` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
+
+    .. versionadded:: 1.5
+
     '''
 
     template = ObjectProperty(None)
@@ -98,6 +106,9 @@ class Adapter(EventDispatcher):
 
     :data:`template` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
+
+    .. versionadded:: 1.5
+
     '''
 
     args_converter = ObjectProperty(None)
@@ -110,6 +121,9 @@ class Adapter(EventDispatcher):
 
     :data:`args_converter` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
+
+    .. versionadded:: 1.5
+
     '''
 
     cached_views = DictProperty({})
@@ -122,6 +136,9 @@ class Adapter(EventDispatcher):
 
     :data:`cached_views` is a :class:`~kivy.properties.DictProperty` and
     defaults to {}.
+
+    .. versionadded:: 1.5
+
     '''
 
     def __init__(self, **kwargs):

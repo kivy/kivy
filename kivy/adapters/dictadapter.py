@@ -72,6 +72,8 @@ class DictAdapter(Selection, Adapter):
         `on_data_change`: (view, view list )
             Fired when data changes
 
+    .. versionadded:: 1.5
+
     .. versionchanged:: 1.8.0
 
         New classes, OpObserverableList and OpObservableDict, were added to
@@ -128,16 +130,25 @@ class DictAdapter(Selection, Adapter):
 
     :data:`dict_op_handler` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to None. It is instantiated and set on init.
+
+    .. versionadded:: 1.8
+
     '''
 
     op_info = ObjectProperty(None)
     '''This is a copy of our data's op_info. We make a copy before dispatching
     the on_data_change event, so that observers can more conveniently access
     it.
+
+    .. versionadded:: 1.8
+
     '''
 
     additional_op_info = ObjectProperty(None)
     '''Some ops need to store additional info, start_index and end_index.
+
+    .. versionadded:: 1.8
+
     '''
 
     __events__ = ('on_data_change', )

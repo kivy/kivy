@@ -26,10 +26,6 @@ Elements that control selection behaviour:
             Fired when selection changes, more generally, as when selection is
             set entirely, or when any operation is performed, per the gross
             dispatching done via ObservableList.
-        `on_selection`: (selectable_item, selectable_item list, op_info)
-            This event works the same way, except that there is no actual
-            dispatching via calls in the code, but by the default ListProperty
-            (and its ObservableList) and normal data change events.
 
 .. versionchanged:: 1.8.0
 
@@ -96,6 +92,9 @@ class Selection(EventDispatcher):
 
     :data:`selection` is a :class:`~kivy.properties.ListProperty` and defaults
     to [].
+
+    .. versionadded:: 1.5
+
     '''
 
     selection_mode = OptionProperty('single',
@@ -116,10 +115,16 @@ class Selection(EventDispatcher):
 
     :data:`selection_mode` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'single'.
+
+    .. versionadded:: 1.5
+
     '''
 
     propagate_selection_to_data = BooleanProperty(False)
     '''
+
+    .. versionadded:: 1.5
+
     .. deprecated:: 1.8
 
          Use sync_with_model_data instead.
@@ -157,6 +162,8 @@ class Selection(EventDispatcher):
     operate on list selection, but having selection stored in the data
     ListProperty might prove convenient in some cases.
 
+    .. versionadded:: 1.8
+
     :data:`sync_with_model_data` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to False.
     '''
@@ -171,6 +178,9 @@ class Selection(EventDispatcher):
 
     :data:`allow_empty_selection` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to True.
+
+    .. versionadded:: 1.5
+
     '''
 
     selection_limit = NumericProperty(-1)
@@ -181,6 +191,9 @@ class Selection(EventDispatcher):
 
     :data:`selection_limit` is a :class:`~kivy.properties.NumericProperty` and
     defaults to -1 (no limit).
+
+    .. versionadded:: 1.5
+
     '''
 
     __events__ = ('on_selection_change', )
@@ -222,9 +235,6 @@ class Selection(EventDispatcher):
             self.check_for_empty_selection()
 
     def on_selection_change(self, *args):
-        '''on_selection_change() is the default handler for the
-        on_selection_change event.
-        '''
         pass
 
     def get_selection(self):
