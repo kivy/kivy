@@ -1,0 +1,33 @@
+ShowcaseScreen:
+	name: 'checkboxes'
+
+	GridLayout:
+
+		cols: 3
+		spacing: '8dp'
+		size_hint: .5, None
+		height: self.minimum_height
+
+		Label:
+			text: 'Checkbox'
+
+		CheckBox:
+			size_hint_y: None
+			height: '48dp'
+
+		CheckBox:
+			size_hint_y: None
+			height: '48dp'
+
+		Label:
+			text: 'CheckBox with group'
+
+		CheckBox:
+			size_hint_y: None
+			height: '48dp'
+			group: 'g2'
+
+		CheckBox:
+			size_hint_y: None
+			height: '48dp'
+			group: 'g2'

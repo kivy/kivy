@@ -1,0 +1,46 @@
+#:import Factory kivy.factory.Factory
+
+ShowcaseScreen:
+	name: 'screenmanager'
+	fullscreen: True
+
+	BoxLayout:
+		size_hint_y: None
+		height: '48dp'
+
+		Spinner:
+			text: 'Default transition'
+			values: ('SlideTransition', 'SwapTransition', 'FadeTransition', 'WipeTransition')
+			on_text: sm.transition = Factory.get(self.text)()
+
+	ScreenManager:
+		id: sm
+
+		Screen:
+			name: 'screen1'
+			canvas.before:
+				Color:
+					rgb: .8, .2, .2
+				Rectangle:
+					size: self.size
+				
+			AnchorLayout:
+				Button:
+					size_hint: None, None
+					size: '150dp', '48dp'
+					text: 'Go to screen 2'
+					on_release: sm.current = 'screen2'
+
+		Screen:
+			name: 'screen2'
+			canvas.before:
+				Color:
+					rgb: .2, .8, .2
+				Rectangle:
+					size: self.size
+			AnchorLayout:
+				Button:
+					size_hint: None, None
+					size: '150dp', '48dp'
+					text: 'Go to screen 1'
+					on_release: sm.current = 'screen1'
