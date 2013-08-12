@@ -253,11 +253,15 @@ class TransitionBase(EventDispatcher):
     to None.
     '''
 
-    duration = NumericProperty(.7)
+    duration = NumericProperty(.4)
     '''Duration in seconds of the transition.
 
     :class:`duration` is a :class:`~kivy.properties.NumericProperty`, default
-    to .7 (= 700ms)
+    to .4 (= 400ms)
+
+    .. versionchanged:: 1.8.0
+
+        Default duration has been changed from 700ms to 400ms.
     '''
 
     manager = ObjectProperty()
@@ -583,10 +587,10 @@ class ScreenManager(FloatLayout):
         sm.current = 'second'
     '''
 
-    transition = ObjectProperty(SwapTransition())
+    transition = ObjectProperty(SlideTransition())
     '''Transition object to use for animate the screen that will be hidden, and
     the screen that will be showed. By default, an instance of
-    :class:`SwapTransition` will be given.
+    :class:`SlideTransition` will be given.
 
     For example, if you want to change to a :class:`WipeTransition`::
 
@@ -599,6 +603,11 @@ class ScreenManager(FloatLayout):
 
         # by default, the first added screen will be showed. If you want to
         show another one, just set the current string: sm.current = 'second'
+
+    .. versionchanged:: 1.8.0
+
+        Default transition has been changed from :class:`SwapTransition` to
+        :class:`SlideTransition`.
     '''
 
     screens = ListProperty()
