@@ -359,6 +359,8 @@ class Animation(EventDispatcher):
 
 
 class Sequence(Animation):
+   '''repeat sequence animation option. See "Repeating Animation" in 
+   documentation for details. Added version 1.7.1'''
     repeat = False
     
     def __init__(self, anim1, anim2):
@@ -412,6 +414,7 @@ class Sequence(Animation):
         self.dispatch('on_progress', widget, progress / 2.)
 
     def on_anim2_complete(self, instance, widget):
+       '''Repeating logic used with boolean variable "repeat". Added version 1.7.1'''
         if self.repeat == True:
             self.anim1.start(widget)
         else:
