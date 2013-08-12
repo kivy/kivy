@@ -27,7 +27,8 @@ subclasses of :class:`ActionItem`. Some of predefined are
 __all__ = ('ActionBarException', 'ActionItem', 'ActionButton',
            'ActionToggleButton', 'ActionCheck', 'ActionSeparator',
            'ActionDropDown', 'ActionGroup', 'ActionOverflow',
-           'ActionView', 'ContextualActionView', 'ActionBar')
+           'ActionView', 'ContextualActionView', 'ActionPrevious',
+           'ActionBar')
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.dropdown import DropDown
@@ -175,7 +176,12 @@ class ActionPrevious(ActionButton):
 class ActionToggleButton(ActionItem, ToggleButton):
     '''ActionToggleButton class, see module documentation for more information.
     '''
-    pass
+
+    icon = StringProperty(None, allownone=True)
+    '''Source image to use when the Button is part of the ActionBar. If the
+    Button is in a group, the text will be preferred.
+    '''
+
 
 
 class ActionCheck(ActionItem, CheckBox):

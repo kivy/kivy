@@ -534,7 +534,7 @@
             size: self.width, self.height - sp(8)
             source: self.background_image
 
-<ActionButton>:
+<ActionButton,ActionToggleButton>:
     background_normal: 'atlas://data/images/defaulttheme/' + ('action_bar' if self.inside_group else 'action_item')
 	background_down: 'atlas://data/images/defaulttheme/action_item_down'
 	size_hint_x: None if not root.inside_group else 1
@@ -551,9 +551,6 @@
 <ActionGroup>:
 	size_hint_x: None
 	width: self.texture_size[0] + dp(32)
-
-<ActionToggleButton>:
-    background_normal: 'atlas://data/images/defaulttheme/action_bar' if self.inside_group else 'atlas://data/images/defaulttheme/action_item'
 
 <ActionCheck>:
     background_normal: 'atlas://data/images/defaulttheme/action_bar' if self.inside_group else 'atlas://data/images/defaulttheme/action_item'
