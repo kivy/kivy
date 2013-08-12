@@ -1253,17 +1253,14 @@ class ListView(AbstractView, EventDispatcher):
         '''
 
         if index < 0 or index > len(self.adapter.data) - 1:
-            print 'index bad, returning', index, len(self.adapter.data) - 1
             return
 
         # If this method is called while scrolling operations are happening, a
         # call recursion error can occur, hence the check to see that scrolling
         # is False before calling populate(). At the end, dispatch a
         # scrolling_complete event, which sets scrolling back to False.
-        print 'self.scrolling', self.scrolling
         if not self.scrolling:
             if not self.row_height:
-                print 'returning for row_height'
                 return
 
             self.scrolling = True
@@ -1279,13 +1276,15 @@ class ListView(AbstractView, EventDispatcher):
 
             elif index == len(self.adapter.data) - 1:
 
-                print 'index is end'
-                #self._index = max(0, index - n_window)
-                self._index = index
-                print 'self._index', self._index
+                self._index = max(0, index - n_window)
+                #self.scrollview.scroll_y = 1.0 - (float(self._index + 1) / len_data)
                 self.scrollview.scroll_y = -0.0
                 self.scrollview.update_from_scroll()
-                print 'updated_from scroll'
+
+                # TODO: This leaves the scrollview, for some reason, in a
+                #       wrong state, such that if you interactively scroll, the
+                #       scrollview thinks it is at the scroll_y = 1 position
+                #       (scrolled all the way up, not down, as it should be.)
 
             else:
 
@@ -1296,10 +1295,7 @@ class ListView(AbstractView, EventDispatcher):
                     index += index_adjustment
 
                 self._index = index
-
-                print 'index', index
-                self.scrollview.scroll_y = 1.0 - (float(index + 1) / len(self.adapter.data))
-                print 'self.scrollview.scroll_y', self.scrollview.scroll_y
+                self.scrollview.scroll_y = 1.0 - (float(self._index) / len_data)
                 self.scrollview.update_from_scroll()
 
             self.dispatch('on_scroll_complete')
@@ -1331,7 +1327,6 @@ class ListView(AbstractView, EventDispatcher):
         '''Call the scroll_to_last() method to scroll to the last item.
         '''
 
-        print 'calling scroll_to', len(self.adapter.data) - 1
         self.scroll_to(len(self.adapter.data) - 1)
 
     def scroll_item_to_wstart(self, index):
@@ -1390,26 +1385,6 @@ class ListView(AbstractView, EventDispatcher):
             first_sel_index = min(indices)
 
             self.scroll_to(first_sel_index)
-
-    def scroll_after_add(self):
-
-        if not self.scrolling:
-            available_height = self.height
-            index = self._index
-
-            while available_height > 0:
-                item_view = self.adapter.get_view(index)
-                if item_view is None:
-                    break
-                index += 1
-                available_height -= item_view.height
-
-            if available_height <= 0:
-                self._index += 1
-
-            self.scrolling = True
-            self.populate()
-            self.dispatch('on_scroll_complete')
 
     def on_scroll_complete(self, *args):
         self.scrolling = False
@@ -1540,14 +1515,13 @@ class ListView(AbstractView, EventDispatcher):
                     'OOD_setdefault',
                     'OOD_update']:
 
-            print 'scrolling to last'
-            self.scroll_to_last()
+            len_data = len(self.adapter.data)
+            n_window = int(ceil(self.height / self.row_height))
+            self._index = max(0, len_data - n_window)
 
-            #self.scroll_after_add()
-
-            #self.scrolling = True
-            #self.populate()
-            #self.dispatch('on_scroll_complete')
+            self.scrolling = True
+            self.populate()
+            self.dispatch('on_scroll_complete')
 
         elif op in ['OOL_delitem',
                     'OOL_delslice',
@@ -1573,7 +1547,6 @@ class ListView(AbstractView, EventDispatcher):
 
         elif op == 'OOL_insert':
 
-            #self.scroll_after_add()
             self.scrolling = True
             self.populate()
             self.dispatch('on_scroll_complete')
