@@ -1027,9 +1027,6 @@ class ListView(AbstractView, EventDispatcher):
                   pos=self._trigger_populate,
                   item_strings=self.item_strings_changed,
                   adapter=self.adapter_changed)
-                  #adapter=self._trigger_populate)
-
-        #self.adapter.bind(data=self.data_changed)
 
     def adapter_changed(self, *args):
 
@@ -1458,66 +1455,75 @@ class ListView(AbstractView, EventDispatcher):
 
     def data_changed(self, *args):
 
-        # list and dict change ops:
+        # This method is tied to list and/or dict ops handlers of the adapter,
+        # and to its own similar data_changed() method. The adapter dispatches
+        # data changed events from its delegated ops handler, and its
+        # data_changed(), which is observed and handled here.
         #
-        #      OOL == OpObservableList
+        # Possible list and dict change ops, for which reaction may be needed
+        # here, include:
         #
-        #            set ops:
+        #       OOL == OpObservableList
         #
-        #                OOL_setitem  - single item set
-        #                OOL_setslice - range of items
+        #             set ops:
         #
-        #            add ops:
+        #                 OOL_setitem  - single item set
+        #                 OOL_setslice - range of items
         #
-        #                OOL_iadd   - adds items to end
-        #                OOL_imul   - adds items to end
-        #                OOL_append - adds items to end
-        #                OOL_insert - insert
-        #                OOL_extend - adds items to end
+        #             add ops:
         #
-        #            delete ops:
+        #                 OOL_iadd   - adds items to end
+        #                 OOL_imul   - adds items to end
+        #                 OOL_append - adds items to end
+        #                 OOL_insert - insert
+        #                 OOL_extend - adds items to end
         #
-        #                OOL_delitem  - single item
-        #                OOL_delslice - multiple items
-        #                OOL_remove   - single item
-        #                OOL_pop      - single item
+        #             delete ops:
         #
-        #            sort ops:
+        #                 OOL_delitem  - single item
+        #                 OOL_delslice - multiple items
+        #                 OOL_remove   - single item
+        #                 OOL_pop      - single item
         #
-        #                OOL_sort
-        #                OOL_reverse
+        #             sort ops:
         #
-        #       OOD == OpObservableDict
+        #                 OOL_sort
+        #                 OOL_reverse
         #
-        #            set op:
+        #        OOD == OpObservableDict
         #
-        #                OOD_setattr     - single item set
-        #                    (We do not receive.)
-        #                OOD_setitem_set - single item set
-        #                    (We receive the OOD op directly.)
+        #             set op:
         #
-        #            add ops:
+        #                 OOD_setattr     - single item set
+        #                     (We do not receive.)
+        #                 OOD_setitem_set - single item set
+        #                     (We receive the OOD op directly.)
         #
-        #                OOD_setitem_add - single item
-        #                OOD_setdefault  - single item
-        #                OOD_update      - single or multiple items
+        #             add ops:
         #
-        #                    (We receive OOL ops, from changes to
-        #                     sorted_keys fired by these):
+        #                 OOD_setitem_add - single item
+        #                 OOD_setdefault  - single item
+        #                 OOD_update      - single or multiple items
         #
-        #            delete ops:
+        #                     (We receive OOL ops, from changes to
+        #                      sorted_keys fired by these):
         #
-        #                OOD_delitem     - single item
-        #                OOD_pop         - single item
-        #                OOD_popitem     - single item
-        #                  [NOTE: OOD_popitem is performed as OOL_delitem]
-        #                OOD_clear       - all items deleted
+        #             delete ops:
         #
-        #                    (We receive OOL ops, from changes to
-        #                     sorted_keys fired by these):
-
-        # Callbacks could come here from either OOL or OOD, and there could
-        # be differences in handling.
+        #                 OOD_delitem     - single item
+        #                 OOD_pop         - single item
+        #                 OOD_popitem     - single item
+        #                   [NOTE: OOD_popitem is performed as OOL_delitem]
+        #                 OOD_clear       - all items deleted
+        #
+        #                     (We receive OOL ops, from changes to
+        #                      sorted_keys fired by these):
+        #
+        # Callbacks could come here from either OOL or OOD, and there could be
+        # differences in handling. See the conditionals here, and also the
+        # conditionals and methods used in the adapter's ops handers to
+        # understand the grouping ops, e.g. for grouping insert, and append ops
+        # for lists.
 
         op_info = self.adapter.op_info
 
@@ -1627,16 +1633,28 @@ class ListView(AbstractView, EventDispatcher):
             self.dispatch('on_scroll_complete')
 
     def get_selection(self):
-        '''A convenience method.
+        '''A convenience method to call to the adapter for the all of the
+        selected items.
+
+        .. versionadded:: 1.8
+
         '''
         return self.adapter.get_selection() if self.adapter else None
 
     def get_first_selected(self):
-        '''A convenience method.
+        '''A convenience method to call to the adapter for the first selected
+        item.
+
+        .. versionadded:: 1.8
+
         '''
         return self.adapter.get_first_selected() if self.adapter else None
 
     def get_last_selected(self):
-        '''A convenience method.
+        '''A convenience method to call to the adapter for the last selected
+        item.
+
+        .. versionadded:: 1.8
+
         '''
         return self.adapter.get_last_selected() if self.adapter else None
