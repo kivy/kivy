@@ -284,7 +284,6 @@ class TextInput(Widget):
         self._hint_text_flags = []
         self._hint_text_labels = []
         self._hint_text_rects = []
-        self._line_spacing = 0
         self._label_cached = None
         self._line_options = None
         self._keyboard = None
@@ -316,7 +315,8 @@ class TextInput(Widget):
                   tab_width=self._update_text_options,
                   font_size=self._update_text_options,
                   font_name=self._update_text_options,
-                  size=self._update_text_options)
+                  size=self._update_text_options,
+                  password=self._update_text_options)
 
         self.bind(pos=self._trigger_update_graphics)
 
@@ -685,7 +685,7 @@ class TextInput(Widget):
         '''
         padding_top = self.padding[1]
         l = self._lines
-        dy = self.line_height + self._line_spacing
+        dy = self.line_height + self.line_spacing
         cx = x - self.x
         scrl_y = self.scroll_y
         scrl_y = scrl_y / dy if scrl_y > 0 else 0
@@ -936,7 +936,7 @@ class TextInput(Widget):
         win_size = win.size
         bubble.pos = (t_pos[0] - bubble_size[0] / 2., t_pos[1] + inch(.25))
         bubble_pos = bubble.pos
-        lh, ls = self.line_height, self._line_spacing
+        lh, ls = self.line_height, self.line_spacing
 
         # FIXME found a way to have that feature available for everybody
         if bubble_pos[0] < 0:
@@ -1202,7 +1202,7 @@ class TextInput(Widget):
         else:
             # with markup texture can be of height `1`
             self.line_height = max(line_label.height, min_line_ht)
-        self._line_spacing = 2
+        #self.line_spacing = 2
         # now, if the text change, maybe the cursor is not at the same place as
         # before. so, try to set the cursor on the good place
         row = self.cursor_row
@@ -1269,7 +1269,7 @@ class TextInput(Widget):
         add = self.canvas.add
 
         lh = self.line_height
-        dy = lh + self._line_spacing
+        dy = lh + self.line_spacing
 
         # adjust view if the cursor is going outside the bounds
         sx = self.scroll_x
@@ -1359,7 +1359,7 @@ class TextInput(Widget):
         if not self._selection:
             return
         self.canvas.remove_group('selection')
-        dy = self.line_height + self._line_spacing
+        dy = self.line_height + self.line_spacing
         rects = self._lines_rects
         padding_top = self.padding[1]
         padding_bottom = self.padding[3]
@@ -1432,7 +1432,7 @@ class TextInput(Widget):
 
     def _get_cursor_pos(self):
         # return the current cursor x/y from the row/col
-        dy = self.line_height + self._line_spacing
+        dy = self.line_height + self.line_spacing
         padding_left = self.padding[0]
         padding_top = self.padding[1]
         x = self.x + padding_left
@@ -1752,7 +1752,7 @@ class TextInput(Widget):
 
         # do the same for Y
         # this algo try to center the cursor as much as possible
-        dy = self.line_height + self._line_spacing
+        dy = self.line_height + self.line_spacing
         offsety = cr * dy
         sy = self.scroll_y
         padding_top = self.padding[1]
@@ -2127,6 +2127,30 @@ class TextInput(Widget):
     '''Automatically indent multiline text.
 
     .. versionadded:: 1.7.0
+    '''
+
+    def _get_min_height(self):
+        return (len(self._lines) * (self.line_height + self.line_spacing)
+                + self.padding[0] + self.padding[2])
+
+    minimum_height = AliasProperty(_get_min_height, None,
+                                   bind=('_lines', 'line_spacing', 'padding',
+                                         'font_size', 'font_name', 'password',
+                                         'hint_text'))
+    '''minimum height of the content inside the TextInput.
+
+    .. versionadded:: 1.8.0
+
+    :data:`minimum_height` is a readonly :class:`~kivy.properties.AliasProperty`
+    '''
+
+    line_spacing = NumericProperty(0)
+    '''Space taken up between the lines.
+
+    .. versionadded:: 1.8.0
+
+    :data:`line_spacing` is a :class:`~kivy.properties.NumericProperty`,
+    default to '0'
     '''
 
 

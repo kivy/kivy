@@ -65,4 +65,4 @@ BoxLayout:
 			size_hint_y: None
 			font_name: 'data/fonts/DroidSansMono.ttf'
 			font_size: '12sp'
-			height: [len(sourcecode.text.splitlines()) * (sp(2) + self.line_height), sourcecode.text][0] + sp(40)
+			height: self.minimum_height
