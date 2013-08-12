@@ -36,6 +36,14 @@ Builder.load_string('''
             on_release: root.list_view.scroll_by(-10)
 
         Button:
+            text: 'scroll_by(-1)'
+            on_release: root.list_view.scroll_by(-1)
+
+        Button:
+            text: 'scroll_by(1)'
+            on_release: root.list_view.scroll_by(1)
+
+        Button:
             text: 'scroll_by(10)'
             on_release: root.list_view.scroll_by(10)
 
@@ -46,6 +54,18 @@ Builder.load_string('''
         Button:
             text: 'scroll_to(500)'
             on_release: root.list_view.scroll_to(500)
+
+        Button:
+            text: 'scroll_to(500, position=10)'
+            on_release: root.list_view.scroll_to(500, position=10)
+
+        Button:
+            text: 'scroll_to(500, position_as_percent=0.1)'
+            on_release: root.list_view.scroll_to(500, position_as_percent=0.1)
+
+        Button:
+            text: 'scroll_to(500, position_as_percent=0.5)'
+            on_release: root.list_view.scroll_to(500, position_as_percent=0.5)
 
         Button:
             text: 'scroll_to_selection()'
@@ -76,7 +96,7 @@ class ScrollTestApp(App):
         super(ScrollTestApp, self).__init__(**kwargs)
 
         list_item_args_converter = \
-                lambda row_index, name: {'text': name,
+                lambda row_index, name: {'text': "{0} ({1})".format(name, row_index),
                                         'size_hint_y': None,
                                         'height': 25}
 

@@ -347,6 +347,16 @@ class ScrollView(StencilView):
         self._update_effect_x_bounds()
         self._update_effect_y_bounds()
 
+    def set_scroll_y(self, scroll_y):
+        '''Changing scroll_y programmatically requires recalculation of bounds
+        used in scrolling effects, for interactive scrolling to stay in sync.
+
+        .. versionadded:: 1.8
+
+        '''
+        self.scroll_y = scroll_y
+        self._update_effect_y_bounds()
+
     def on_effect_x(self, instance, value):
         if value:
             value.bind(scroll=self._update_effect_x)
