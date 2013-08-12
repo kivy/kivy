@@ -64,7 +64,7 @@
                         auto_indent: True
                         lexer: KivyLexer()
                         size_hint: 1, None
-                        height: max(kr_scroll.height, (len(self._lines)+1) * (self.line_height + self._line_spacing))
+                        height: max(kr_scroll.height, self.minimum_height)
                         font_name: "data/fonts/DroidSansMono.ttf"
                         valign: "top"
                         text: "This box will display the kivy language for whatever has been selected"
