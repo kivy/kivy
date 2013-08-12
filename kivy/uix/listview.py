@@ -1310,18 +1310,15 @@ class ListView(AbstractView, EventDispatcher):
 
             if index == 0:
                 self._index = 0
-                self.scrollview.set_scroll_y(1.0)
+                self.scrollview.scroll_y = 1.0
                 self.scrollview.update_from_scroll()
 
             elif index == len(self.adapter.data) - 1:
 
                 self._index = max(0, index - n_window)
 
-                self.scrollview.set_scroll_y(-0.0)
+                self.scrollview.scroll_y = -0.0
                 self.scrollview.update_from_scroll()
-
-                # TODO: The scrollview's scroll_y gets reset to .99 somehow,
-                #       which you see when you interactively scroll afterwards.
 
             else:
 
@@ -1348,11 +1345,8 @@ class ListView(AbstractView, EventDispatcher):
 
                 self._index = index
 
-                self.scrollview.set_scroll_y(1.0 - (float(index) / float(len_data)))
+                self.scrollview.scroll_y = 1.0 - (float(index) / float(len_data))
                 self.scrollview.update_from_scroll()
-
-                # TODO: The scrollview's scroll_y gets reset to .99 somehow,
-                #       which you see when you interactively scroll afterwards.
 
             self.dispatch('on_scroll_complete')
 
