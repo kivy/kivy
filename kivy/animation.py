@@ -60,15 +60,17 @@ the first half of size=(800, 800)::
 Repeating animation
 -------------------
 
-To set an animation to repeat simply set the 'repeat' value to equal 'True'. This value is 'False' by defualt. Note* this
-is currently only implemented for 'sequence' animations. The following example illustrates how this can be done with a 
-sequential animation:
+To set an animation to repeat simply set the 'repeat' value to equal 'True'. 
+This value is 'False' by default. Note* this is currently only implemented 
+for 'sequence' animations. The following example illustrates how this can be 
+done with a sequential animation:
 
    anim = Animation(value_of_first) + Animation(value_of_second)
    anim.repeat = True
    anim.start(widget)
    
-For flow control of animations such as stopping and cancelling use the methods already in place in the animation module.
+For flow control of animations such as stopping and cancelling use the methods 
+already in place in the animation module.
 '''
 
 __all__ = ('Animation', 'AnimationTransition')
