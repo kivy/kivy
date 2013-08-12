@@ -419,7 +419,7 @@ class ScrollView(StencilView):
             return
         if self.disabled:
             return True
-        if self._touch:
+        if self._touch or (not (self.do_scroll_x or self.do_scroll_y)):
             return super(ScrollView, self).on_touch_down(touch)
 
         # handle mouse scrolling, only if the viewport size is bigger than the
