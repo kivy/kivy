@@ -1247,14 +1247,56 @@ class ListView(AbstractView, EventDispatcher):
                 if self.row_height is None:
                     self.row_height = real_height / count
 
-    def scroll_to(self, index, position_in_window=None):
+    def scroll_to(self, index, position=None, position_as_percent=None):
         '''Call the scroll_to(i) method with a valid index for the data. If the
         index is out of bounds, nothing happens.
 
-        The position_in_window argument is measured from the top, so a value
-        of .20, with a count of items in the current view (the
-        window-on-the-data) of 30, the item it the index would appear about 6
-        rows down from the top.
+        If scroll_to() is called with scroll_to(99), then the view instance for
+        the 100th data item will appear in the middle of the scrollview.
+
+        We may use the term window-on-the-data to, literally, refer to the
+        count of items shown in the scrollview, given the combination of
+        row_height and layout controls of the scrollview container size.
+        Consider an example where there are 1000 data items, for which the
+        scrollview shows 30 at a time. the window-on-the-data is the current
+        view of the 30 items in the scrollview. Scrolling will march this
+        window-on-the-data along within the data.
+
+        The position and position_as_percent args are available as convenience
+        methods for placing the view_instance within the scrollview, within the
+        window-on-the-data, down from the default top position.
+
+        If integer values can be used effectively, when the math is understood
+        for row_height and container size and so on, the position may be
+        specified as an integer, position=x. The x value must not exceed the
+        count of the number of items presently shown in the scrollview (the
+        math about layout must be understood). For example, a call to
+        scroll_to(500, position=5) in the case described, would be the
+        equivalent of calling scroll_to(510).
+
+        More often, it is presumed, the position_as_percent will be more
+        useful, to ask that the given view_instance be positioned by some
+        percent of the number of items presently shown in the scrollview. For
+        example, if there are 1000 data items, and the call is scroll_to(500,
+        position_as_percent=.5, and row_height and the height of the container
+        are defined so that a count of 30 items are shown in the scrollview
+        (the window-on-the-data), this would be equivalent to calling the
+        default scroll_to(500), which puts the view_instance in the middle.
+        Adjust the percentage as desired.
+
+        The optional position argument is measured from the top, so a value of
+        10, with a count of items in the current view of 30, the item it the
+        index would appear about 10 rows down from the top.
+
+        The optional position_as_percent argument is measured from the top, so
+        a value of .20, with a count of items in the current view of 30, the
+        item it the index would appear about 6 rows down from the top.
+
+        If a position argument is used, pick one or the other. If both are
+        passed, the position_as_percent arg will be ignored.
+
+        .. versionadded:: 1.8
+
         '''
 
         if index < 0 or index > len(self.adapter.data) - 1:
@@ -1276,32 +1318,49 @@ class ListView(AbstractView, EventDispatcher):
 
             if index == 0:
                 self._index = 0
-                self.scrollview.scroll_y = 1.0
+                self.scrollview.set_scroll_y(1.0)
                 self.scrollview.update_from_scroll()
 
             elif index == len(self.adapter.data) - 1:
 
                 self._index = max(0, index - n_window)
-                #self.scrollview.scroll_y = 1.0 - (float(self._index + 1) / len_data)
-                self.scrollview.scroll_y = -0.0
+
+                self.scrollview.set_scroll_y(-0.0)
                 self.scrollview.update_from_scroll()
 
-                # TODO: This leaves the scrollview, for some reason, in a
-                #       wrong state, such that if you interactively scroll, the
-                #       scrollview thinks it is at the scroll_y = 1 position
-                #       (scrolled all the way up, not down, as it should be.)
+                # TODO: The scrollview's scroll_y gets reset to .99 somehow,
+                #       which you see when you interactively scroll afterwards.
 
             else:
 
-                # TODO: Implement this.
-                index_adjustment = 0
-                if position_in_window:
-                    index_adjustment = int(ceil(position_in_window * n_window))
-                    index += index_adjustment
+                if position and position <= n_window:
+
+                    # Adjust so that the item at index is at top.
+                    index += (int(ceil(float(n_window) * 0.5)))
+
+                    # Apply the add.
+                    index = index - position
+
+                if (position_as_percent
+                        and not position
+                        and 0.0 < position_as_percent <= 1.0):
+
+                    # Adjust so that the item at index is at top.
+                    index += (int(ceil(float(n_window) * 0.5)))
+
+                    # Apply the percent.
+                    index = index - int(ceil(position_as_percent * float(n_window)))
+
+                # Don't let index go out of bounds.
+                index = max(0, index)
 
                 self._index = index
-                self.scrollview.scroll_y = 1.0 - (float(self._index) / len_data)
+
+                self.scrollview.set_scroll_y(1.0 - (float(index) / float(len_data)))
                 self.scrollview.update_from_scroll()
+
+                # TODO: The scrollview's scroll_y gets reset to .99 somehow,
+                #       which you see when you interactively scroll afterwards.
 
             self.dispatch('on_scroll_complete')
 
@@ -1310,6 +1369,9 @@ class ListView(AbstractView, EventDispatcher):
         items, the count argument, forward or backward.
 
         Use a negative count to go backward.
+
+        .. versionadded:: 1.8
+
         '''
 
         if count == 0:
@@ -1324,25 +1386,21 @@ class ListView(AbstractView, EventDispatcher):
 
     def scroll_to_first(self):
         '''scroll_to_first() scrolls to the first item.
+
+        .. versionadded:: 1.8
+
         '''
 
         self.scroll_to(0)
 
     def scroll_to_last(self):
         '''Call the scroll_to_last() method to scroll to the last item.
+
+        .. versionadded:: 1.8
+
         '''
 
         self.scroll_to(len(self.adapter.data) - 1)
-
-    def scroll_item_to_wstart(self, index):
-        # Move the view instance at the index to the top of the present
-        # window-on-the-data.
-        pass
-
-    def scroll_item_to_wend(self, index):
-        # Move the view instance at the index to the bottom of the present
-        # window-on-the-data.
-        pass
 
     def scroll_to_selection(self):
         '''Call the scroll_to_selection() method to scroll to the middle of the
@@ -1351,6 +1409,9 @@ class ListView(AbstractView, EventDispatcher):
         also scroll_to_first_selected() and scroll_to_last_selected().
 
         If there is no selection, nothing happens.
+
+        .. versionadded:: 1.8
+
         '''
 
         if self.adapter.selection:
@@ -1370,6 +1431,9 @@ class ListView(AbstractView, EventDispatcher):
         beginning of the selected range.
 
         If there is no selection, nothing happens.
+
+        .. versionadded:: 1.8
+
         '''
 
         if self.adapter.selection:
@@ -1383,6 +1447,9 @@ class ListView(AbstractView, EventDispatcher):
         the selected range.
 
         If there is no selection, nothing happens.
+
+        .. versionadded:: 1.8
+
         '''
 
         if self.adapter.selection:
