@@ -22,24 +22,24 @@ vertical scrollable list. :class:`AbstractView` has one property, adapter.
 
 .. versionchanged:: 1.8.0
 
-    The underlying adapter and selection system changed in support of
+    The underlying adapter and selection system were changed in support of
     operations here, which needed to receive more detailed information about
     changes to data held in adapters, either in ListAdapter or DictAdapter. The
     data_changed() method replaces a call to bind_triggers_to_view(), now
-    deprecated. Previously, with limited information about data change, only
-    broad scroll and child handling reactions could be made. Now, in the new
+    removed. Previously, with limited information about data change, only broad
+    scrolling and child handling reactions could be made. Now, in the new
     data_changed() method, there is an opportunity to react to individual item
-    resets, to insertions, deletions, sort, etc. Sometimes it is necessary to
-    remove and force recreation of views, sometimes it is necessary to make a
-    specific scroll action, and so on.
+    resets, to insertions, deletions, sort, etc. For these reactions, sometimes
+    it is necessary to remove and force re-creation of views, sometimes it is
+    necessary to make a specific scroll action, and so on.
 
     Removed ListItemLabel.
 
     SelectableView now subclasses ButtonBehavior, and has a
     carry_selection_to_children property.
 
-    CompositeListItem now has a bind_selection_from_children property, and its
-    is_representing_cls is now deprecated.
+    CompositeListItem now has a bind_selection_from_children property. Also,
+    its is_representing_cls is now removed.
 
     For scrolling, added scroll_advance. Removed _count, which was unused.
 
@@ -65,7 +65,11 @@ simple to advanced:
     * kivy/examples/widgets/lists/list_cascade.py
     * kivy/examples/widgets/lists/list_cascade_dict.py
     * kivy/examples/widgets/lists/list_cascade_images.py
+    * kivy/examples/widgets/lists/list_scroll.py
     * kivy/examples/widgets/lists/list_ops.py
+    * kivy/examples/widgets/lists/list_reset_data.py
+    * kivy/examples/widgets/lists/list_data_changes.py
+    * kivy/examples/widgets/lists/list_of_carousels.py
 
 Many of the examples feature selection, some restricting selection to single
 selection, where only one item at at time can be selected, and others allowing
@@ -1247,16 +1251,16 @@ class ListView(AbstractView, EventDispatcher):
         the 100th data item will appear in the middle of the scrollview.
 
         We may use the term window-on-the-data to, literally, refer to the
-        count of items shown in the scrollview, given the combination of
+        items currently shown in the scrollview, given the combination of
         row_height and layout controls of the scrollview container size.
         Consider an example where there are 1000 data items, for which the
-        scrollview shows 30 at a time. the window-on-the-data is the current
-        view of the 30 items in the scrollview. Scrolling will march this
+        scrollview shows 30 view instances at a time. Scrolling will march this
         window-on-the-data along within the data.
 
-        The position and position_as_percent args are available as convenience
-        methods for placing the view_instance within the scrollview, within the
-        window-on-the-data, down from the default top position.
+        The position and position_as_percent args are available as conveniences
+        for placing the view instance for the index at a desired position
+        within the range of view instances currently shown, as measured down
+        from the default top position.
 
         If integer values can be used effectively, when the math is understood
         for row_height and container size and so on, the position may be
@@ -1268,21 +1272,21 @@ class ListView(AbstractView, EventDispatcher):
 
         More often, it is presumed, the position_as_percent will be more
         useful, to ask that the given view_instance be positioned by some
-        percent of the number of items presently shown in the scrollview. For
-        example, if there are 1000 data items, and the call is scroll_to(500,
-        position_as_percent=.5, and row_height and the height of the container
-        are defined so that a count of 30 items are shown in the scrollview
-        (the window-on-the-data), this would be equivalent to calling the
-        default scroll_to(500), which puts the view_instance in the middle.
-        Adjust the percentage as desired.
+        proportion of the space available for items presently shown in the
+        scrollview. For example, if there are 1000 data items, and the call is
+        scroll_to(500, position_as_percent=.5, and row_height and the height of
+        the container are defined so that a count of 30 items are shown in the
+        scrollview, this would be equivalent to calling the default
+        scroll_to(500), which puts the view_instance in the middle.  Adjust the
+        percentage as desired.
 
-        The optional position argument is measured from the top, so a value of
-        10, with a count of items in the current view of 30, the item it the
-        index would appear about 10 rows down from the top.
+        The optional position argument is measured from the top, so for a value
+        of 10, with a count of items in the current view of 30, the specified
+        item would appear about 10 rows down from the top.
 
         The optional position_as_percent argument is measured from the top, so
         a value of .20, with a count of items in the current view of 30, the
-        item it the index would appear about 6 rows down from the top.
+        specified item would appear about 6 rows down from the top.
 
         If a position argument is used, pick one or the other. If both are
         passed, the position_as_percent arg will be ignored.

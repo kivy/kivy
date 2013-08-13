@@ -24,18 +24,14 @@ class OpsDictAdapter(DictAdapter):
                     self.selection[i].text
 
         if self.listview_id is 0:
-            # Scroll to the most recently selected item.
+            # Scroll to the first selected item.
             if len(self.selection) > 0:
-                print('selection', self.selection)
-                self.owning_view.scroll_to(
-                    index=self.sorted_keys.index(self.selection[-1].text))
+                self.owning_view.scroll_to_first_selected()
 
         elif self.listview_id is 1:
-            # Scroll to the selected item that is the minimum of a sort.
+            # Scroll to the last selected item.
             if len(self.selection) > 0:
-                self.owning_view.scroll_to(
-                    index=self.sorted_keys.index(
-                        sorted([sel.text for sel in self.selection])[0]))
+                self.owning_view.scroll_to_last_selected()
 
         elif self.listview_id is 2:
             # Scroll to the selected item that is the maximum of a sort.
@@ -170,9 +166,9 @@ class OpsView(BoxLayout):
         grid_layout = GridLayout(cols=7)
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['text'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['text'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         letters = [l for l in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
 
@@ -185,13 +181,13 @@ class OpsView(BoxLayout):
         # Use OpsDictAdapter, from above, which will post selections to
         # the display in the top panel.
         #
-        listview_header_widgets = [Label(text="scroll_to rec",
+        listview_header_widgets = [Label(text="scroll first sel",
                                          size_hint_y=None,
                                          height=25),
-                                   Label(text="scroll_to min",
+                                   Label(text="scroll last sel",
                                          size_hint_y=None,
                                          height=25),
-                                   Label(text="scroll_to max",
+                                   Label(text="scroll max sort",
                                          size_hint_y=None,
                                          height=25),
                                    Button(text="trim_left_of_sel",

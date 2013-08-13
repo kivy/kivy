@@ -176,8 +176,6 @@ include "graphics/config.pxi"
 from weakref import ref
 
 from kivy.compat import string_types
-from kivy.logger import Logger
-
 
 cdef float g_dpi = -1
 cdef float g_density = -1
@@ -1099,18 +1097,12 @@ class OpObservableDict(dict):
         if len(largs):
             last = largs[0]
 
-        Logger.info('OOD: popitem, last = {0}'.format(last))
-
         if not self.keys():
             raise KeyError('dictionary is empty')
 
         key = next((self) if last else iter(self))
 
-        Logger.info('OOD: popitem, key = {0}'.format(key))
-
         value = self[key]
-
-        Logger.info('OOD: popitem, value = {0}'.format(value))
 
         # NOTE: We have no set to self.op_info for
         # OOD_popitem, because the following del self[key] will trigger a
