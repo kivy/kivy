@@ -142,7 +142,7 @@ class AdapterDictOpHandler(DictOpHandler):
         # whose change will trigger a data changed callback.
         self.adapter.sorted_keys.append(key)
 
-    def handle_update_op(self, key):
+    def handle_update_op(self, keys):
 
         self.adapter.sorted_keys.extend(keys)
 
