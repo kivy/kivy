@@ -560,6 +560,52 @@ class FadeTransition(ShaderTransition):
     fs = StringProperty(FADE_TRANSITION_FS)
 
 
+class 2DCardflipTransition(ShaderTransition):
+    '''2D Cardflip transition, based on a fragment Shader.
+    '''
+
+    CARDFLIP_FS = '''$HEADER$
+    uniform float t;
+    uniform sampler2D tex_in;
+    uniform sampler2D tex_out;
+
+    void main (void){
+        if(t >= 0.5){
+            gl_FragColor = vec4(texture2D(tex_in, vec2(1.0 - tex_coord0.s, tex_coord0.t))); 
+        }
+        else{
+            gl_FragColor = vec4(texture2D(tex_out, tex_coord0.st)); 
+        }
+    }'''
+
+    fs = StringProperty(CARDFLIP_FS)
+
+    CARDFLIP_VS = '''$HEADER$
+    uniform float t;
+    #define pi 3.141592653589793238462643383279
+    
+    void main (void) {
+      float th = t * pi;
+
+      /* Multiplying matrices in order is a way to superimpose several 
+      translations and rotations at once.  This matrix both rotates and 
+      tranlates back the screen depending on time.  Have fun! */
+      
+      float costh = cos(th);
+      float sinth = sin(th);
+      mat4 t_mat = mat4( costh,              0.0,  -sinth,       0.0,  // first column
+                         0.0,                1.0,  0.0,          0.0,  // second column
+                         sinth,              0.0,  costh,        0.0,  // third column... 
+                         0.5 - 0.5 * costh,  0.0,  1.0 * sinth,  1.0);
+
+      frag_color = color * vec4(1.0, 1.0, 1.0, opacity);
+      tex_coord0 = vTexCoords0;
+      gl_Position = projection_mat * t_mat * vec4(vPosition.xy, 0.0, 1.0);
+    }'''
+    vs = StringProperty(CARDFLIP_VS)
+
+
+
 class ScreenManager(FloatLayout):
     '''Screen manager. This is the main class that will control your
     :class:`Screen` stack, and memory.
