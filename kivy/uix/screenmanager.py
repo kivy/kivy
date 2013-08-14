@@ -133,10 +133,9 @@ from kivy.properties import StringProperty, ObjectProperty, AliasProperty, \
 from kivy.animation import Animation, AnimationTransition
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
-from kivy.graphics.transformation import Matrix
 from kivy.graphics import RenderContext, Rectangle, Fbo, \
-        ClearColor, ClearBuffers, BindTexture, Rotate
-from kivy.config import Config
+        ClearColor, ClearBuffers, BindTexture, PushMatrix, \
+        PopMatrix, Translate
 
 
 class ScreenManagerException(Exception):
@@ -392,6 +391,11 @@ class ShaderTransition(TransitionBase):
             ClearColor(0, 0, 0, 1)
             ClearBuffers()
         fbo.add(screen.canvas)
+        with fbo.before:
+            PushMatrix()
+            Translate(-screen.x, -screen.y, 0)
+        with fbo.after:
+            PopMatrix()
         return fbo
 
     def on_progress(self, progress):
@@ -411,23 +415,15 @@ class ShaderTransition(TransitionBase):
         self.manager.canvas.add(self.fbo_in)
         self.manager.canvas.add(self.fbo_out)
 
-        screen_rotation = Config.getfloat('graphics', 'rotation')
-        pos = (0, 1)
-        if screen_rotation == 90:
-            pos = (0, 0)
-        elif screen_rotation == 180:
-            pos = (-1, 0)
-        elif screen_rotation == 270:
-            pos = (-1, 1)
-
-        self.render_ctx = RenderContext(fs=self.fs, vs=self.vs)
+        self.render_ctx = RenderContext(fs=self.fs, vs=self.vs,
+                use_parent_modelview=True, use_parent_projection=True)
         with self.render_ctx:
             BindTexture(texture=self.fbo_out.texture, index=1)
             BindTexture(texture=self.fbo_in.texture, index=2)
-            Rotate(screen_rotation, 0, 0, 1)
-            Rectangle(size=(1, -1), pos=pos)
-        self.render_ctx['projection_mat'] = Matrix().\
-            view_clip(0, 1, 0, 1, 0, 1, 0)
+            x, y = self.screen_in.pos
+            w, h = self.fbo_in.texture.size
+            Rectangle(size=(w, h), pos=(x, y),
+                    tex_coords=self.fbo_in.texture.tex_coords)
         self.render_ctx['tex_out'] = 1
         self.render_ctx['tex_in'] = 2
         self.manager.canvas.add(self.render_ctx)
