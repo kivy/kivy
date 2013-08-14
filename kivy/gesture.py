@@ -37,9 +37,21 @@ import pickle
 import base64
 import zlib
 import math
-from io import StringIO
 
+from kivy.compat import PY2
 from kivy.vector import Vector
+
+# XXX we can't use io.StringIO in PY2 cause it require unicode
+# PY2 / StringIO ( str or unicode )
+# PY2 / cStringIO ( str )
+# PY3 / io.StringIO ( unicode )
+if PY2:
+    try:
+        from cStringIO import StringIO
+    except ImportError:
+        from StringIO import StringIO
+else:
+    from io import StringIO
 
 
 class GestureDatabase(object):
