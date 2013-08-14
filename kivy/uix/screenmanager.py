@@ -598,7 +598,7 @@ class ScreenManager(FloatLayout):
         sm.current = 'second'
     '''
 
-    transition = ObjectProperty(SlideTransition())
+    transition = ObjectProperty(SlideTransition(), baseclass=TransitionBase)
     '''Transition object to use for animate the screen that will be hidden, and
     the screen that will be showed. By default, an instance of
     :class:`SlideTransition` will be given.
