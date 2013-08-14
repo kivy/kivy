@@ -42,10 +42,7 @@ class ShowcaseApp(App):
         self.index = (self.index - 1) % len(self.available_screens)
         screen = self.load_screen(self.index)
         sm = self.root.ids.sm
-        if not sm.has_screen(screen.name):
-            sm.add_widget(screen)
-        sm.transition.direction = 'right'
-        sm.current = screen.name
+        sm.switch_to(screen, direction='right')
         self.current_title = screen.name
         self.update_sourcecode()
 
@@ -53,10 +50,7 @@ class ShowcaseApp(App):
         self.index = (self.index + 1) % len(self.available_screens)
         screen = self.load_screen(self.index)
         sm = self.root.ids.sm
-        if not sm.has_screen(screen.name):
-            sm.add_widget(screen)
-        sm.transition.direction = 'left'
-        sm.current = screen.name
+        sm.switch_to(screen, direction='left')
         self.current_title = screen.name
         self.update_sourcecode()
 
