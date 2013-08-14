@@ -81,7 +81,7 @@ like in the next frame, or in X seconds::
         print 'My callback is called !'
     Clock.schedule_once(my_callback, 1)
 
-This will call ``my_calback`` in one second. The second argument is the amount
+This will call ``my_callback`` in one second. The second argument is the amount
 of time to wait before calling the function, in seconds. However, you can
 achieve some other results with special values for the second argument:
 
