@@ -1,7 +1,7 @@
 .. _environment:
 
-Controling the environment
-==========================
+Controlling the environment
+===========================
 
 Many environment variables are available to control the initialization and
 behavior of Kivy.
