@@ -257,8 +257,9 @@ class ConfigParser(PythonConfigParser):
         Python, this one is able to read only one file at a time. The latest
         read file will be used for the :meth:`write` method.
         '''
-        if type(filename) not in (str, str):
-            raise Exception('Only one filename is accepted (str or unicode)')
+        if not isinstance(filename, string_types):
+            raise Exception('Only one filename is accepted ({})'.format(
+                string_types.__name__))
         self.filename = filename
         # If we try to open directly the configuration file in utf-8,
         # we correctly get the unicode value by default.
