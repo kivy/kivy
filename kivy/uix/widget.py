@@ -182,16 +182,16 @@ class Widget(WidgetBase):
 
         .. versionadded:: 1.7.2
         '''
-        try:
+        if hasattr(self, '_proxy_ref'):
             return self._proxy_ref
-        except AttributeError:
-            f = partial(_widget_destructor, self.uid)
-            self._proxy_ref = _proxy_ref = proxy(self, f)
-            # only f should be enough here, but it appears that is a very
-            # specific case, the proxy destructor is not called if both f and
-            # _proxy_ref are not together in a tuple
-            _widget_destructors[self.uid] = (f, _proxy_ref)
-            return _proxy_ref
+
+        f = partial(_widget_destructor, self.uid)
+        self._proxy_ref = _proxy_ref = proxy(self, f)
+        # only f should be enough here, but it appears that is a very
+        # specific case, the proxy destructor is not called if both f and
+        # _proxy_ref are not together in a tuple
+        _widget_destructors[self.uid] = (f, _proxy_ref)
+        return _proxy_ref
 
     def __eq__(self, other):
         if not isinstance(other, Widget):
