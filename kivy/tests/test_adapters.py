@@ -1351,7 +1351,7 @@ class FruitAdaptersTestCase(unittest.TestCase):
         def sorted_keys_ok(letters_dict_adapter):
             sorted_keys_ok = True
             for key in letters_dict_adapter.sorted_keys:
-                if not key in letters_dict_adapter.data:
+                if key not in letters_dict_adapter.data:
                     sorted_keys_ok = False
                     break
             return sorted_keys_ok
