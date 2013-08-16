@@ -1,6 +1,6 @@
 '''
 Selection
-=================
+=========
 
 .. versionadded:: 1.8
 
@@ -67,24 +67,126 @@ Elements that control selection behaviour:
     consists of primitives such as integers, floats, strings, or dicts with
     those, etc.
 
-    Deprecated propagate_selection_to_data, in favor of sync_with_model_data.
+    Removed propagate_selection_to_data, replacing it with a new system for
+    selection_scheme and selection_update_method.
 '''
 
-__all__ = ('Selection', )
+__all__ = ('Selection', 'SelectionTool', 'selection_update_methods',
+           'selection_schemes', )
 
-import inspect
 from kivy.event import EventDispatcher
-from kivy.adapters.models import SelectableDataItem
 from kivy.properties import BooleanProperty
 from kivy.properties import ListProperty
 from kivy.properties import NumericProperty
 from kivy.properties import OptionProperty
 
 
+class Enum(set):
+    def __getattr__(self, name):
+        if name in self:
+            return name
+        raise AttributeError
+
+
+class SelectionUpdateMethodsEnum(Enum):
+    def __init__(self):
+        super(SelectionUpdateMethodsEnum, self).__init__([
+            'NOTIFY', 'SET'])
+
+
+class SelectionSchemesEnum(Enum):
+    '''An enum used in the Selection class, with choices:
+
+        * VIEW_ON_DATA:
+
+            - selection state is loaded from data for view creation
+
+            - data selection IS NOT updated from selection on views
+
+        * VIEW_DRIVEN:
+
+            - selection state is loaded from data for view creation
+
+            - data selection IS updated from selection on views
+
+        * DATA_DRIVEN:
+
+            - selection state is loaded from data for view creation
+
+            - view selection is updated from selection on data
+
+            - view selection in the UI may be inactive, or may augment
+              selection driven by data
+
+        * DATA_VIEW_COUPLED:
+
+            - selection state is loaded from data for view creation
+
+            - view selection is updated from selection on data
+
+            - data selection is updated from selection on views
+
+        * OBJECT:
+
+            - selection for a single set of objects, which can be anything
+
+    .. versionadded:: 1.8
+
+    '''
+
+    def __init__(self):
+        super(SelectionSchemesEnum, self).__init__([
+            'VIEW_ON_DATA', 'VIEW_DRIVEN', 'DATA_DRIVEN',
+            'DATA_VIEW_COUPLED', 'OBJECT'])
+
+
+selection_update_methods = SelectionUpdateMethodsEnum()
+selection_schemes = SelectionSchemesEnum()
+
+_selection_ops = Enum(['SELECT', 'DESELECT', 'DESELECT_AND_CHECK'])
+
+
+class SelectionTool(EventDispatcher):
+    '''A SelectionTool is a wrapper on a BooleanProperty, with convenience
+    methods, supplanted with binding methods for binding with another ksel.
+
+    .. versionadded:: 1.8
+
+    '''
+
+    selected = BooleanProperty(False)
+
+    def __init__(self, value):
+        super(SelectionTool, self).__init__(**{'selected': value})
+
+    def select(self):
+        self.selected = True
+
+    def deselect(self):
+        self.selected = False
+
+    def is_selected(self):
+        return self.selected
+
+    def bind_to(self, func):
+        self.bind(selected=func)
+
+    def bind_to_ksel(self, ksel):
+        self.bind(selected=ksel.setter('selected'))
+
+    def bind_from_ksel(self, ksel):
+        ksel.bind(selected=self.setter('selected'))
+
+
 class Selection(EventDispatcher):
     '''
     A base class for adapters and controllers interfacing with lists,
     dictionaries or other collections.
+
+    .. versionchanged:: 1.8
+
+        A substantially new selection system was implemented.
+
     '''
 
     selection = ListProperty([])
@@ -120,54 +222,6 @@ class Selection(EventDispatcher):
 
     '''
 
-    propagate_selection_to_data = BooleanProperty(False)
-    '''
-
-    .. versionadded:: 1.5
-
-    .. deprecated:: 1.8
-
-         Use sync_with_model_data instead.
-    '''
-
-    sync_with_model_data = BooleanProperty(False)
-    '''Normally, model data items are not selected/deselected because the model
-    data items might not have an is_selected boolean property -- only the
-    selectable_item for a given model data item is selected/deselected as part
-    of the maintained selection list. However, if the model data items do have
-    an is_selected property, or if they mix in
-    :class:`~kivy.adapters.models.SelectableDataItem`, the selection machinery
-    can sync selection with model data items. This can be useful for storing
-    selection state in a local database or backend database for maintaining
-    state in game play or other similar scenarios. It is a convenience
-    function.
-
-    To sync selection or not?
-
-    Consider a shopping list application for shopping for fruits at the market.
-    The app allows for the selection of fruits to buy for each day of the week,
-    presenting seven lists: one for each day of the week. Each list is loaded
-    with all the available fruits, but the selection for each is a subset.
-    There is only one set of fruit model data shared between the lists, so it
-    would not make sense to sync selection with the model data because
-    selection in any of the seven lists would clash and mix with that of the
-    others.
-
-    However, consider a game that uses the same fruits model data for selecting
-    fruits available for fruit-tossing. A given round of play could have a full
-    fruits list, with fruits available for tossing shown selected. If the game
-    is saved and rerun, the full fruits list, with selection marked on each
-    item, would be reloaded correctly if selection is always synced to the
-    model data. You could accomplish the same functionality by writing code to
-    operate on list selection, but having selection stored in the data
-    ListProperty might prove convenient in some cases.
-
-    .. versionadded:: 1.8
-
-    :data:`sync_with_model_data` is a
-    :class:`~kivy.properties.BooleanProperty` and defaults to False.
-    '''
-
     allow_empty_selection = BooleanProperty(True)
     '''The allow_empty_selection may be used for cascading selection between
     several list views, or between a list view and an observing view. Such
@@ -176,10 +230,10 @@ class Selection(EventDispatcher):
     auto-initialized and always maintained, so any observing views
     may likewise be updated to stay in sync.
 
+    .. versionadded:: 1.5
+
     :data:`allow_empty_selection` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to True.
-
-    .. versionadded:: 1.5
 
     '''
 
@@ -189,38 +243,146 @@ class Selection(EventDispatcher):
     be set to 1, which is equivalent to single selection. If selection_limit is
     not set, the default value is -1, meaning that no limit will be enforced.
 
+    .. versionadded:: 1.5
+
     :data:`selection_limit` is a :class:`~kivy.properties.NumericProperty` and
     defaults to -1 (no limit).
 
-    .. versionadded:: 1.5
+    '''
+
+    selection_update_method = OptionProperty(
+            selection_update_methods.NOTIFY,
+            options=tuple(selection_update_methods))
+    '''
+    Selection update methods:
+
+        * *NOTIFY*, Use Kivy's events system to notify observers of selectable
+          items for changes,
+
+        * *SET*, When selection of either data or view item happens, propagate
+          to the associated item by direct call.
+
+    Consider a use of scheme = VIEW_DRIVEN, wherein anytime a view
+    item's selection changes, its associated data item is to be selected also.
+    In such a scheme, for a select, selection_update_method is either NOTIFY or
+    SET, for which one of the following would be done:
+
+        NOTIFY:
+
+            view_instance.ksel.select()
+            view_instance.dispatch('selection_changed')
+
+        SET:
+
+            view_instance.ksel.select()
+
+    So, set selection_update_method in combination with setting
+    scheme.
+
+    .. versionadded:: 1.8
+
+    :data:`selection_update_method` is an
+    :class:`~kivy.properties.OptionProperty` that defaults to NOTIFY.
 
     '''
 
+    selection_scheme = OptionProperty(
+            selection_schemes.VIEW_ON_DATA, options=tuple(selection_schemes))
+    '''
+    Selection schemes:
+
+        * *VIEW-ON-DATA*, in which selection is confined to views (data items
+          are read for parameter values used to create views for them, but they
+          are not selected, and their selection state is not read).
+
+        * *VIEW-DRIVEN*, a one-way arrangement, in which selection of view
+          items drives the selection of associated data items,
+
+        * *DATA-DRIVEN*, vice-versa, a one-way arrangement, in which
+          selection of data items drives the selection of associated view
+          items, in addition to UI selection of views,
+
+        * *DATA-VIEW-COUPLED*, a two-way arrangement, in which selection of
+          either will be reflected in the other,
+
+        * *OBJECT*, for use on a set of objects that can be anything, from list
+          items, dictionary values, objects, event to views, but views for
+          which no data items are associated.
+
+    The class that uses selection will always have data, but may or may not
+    have views based on that data.
+
+    Examples that use selection and have both views and data include:
+
+        * an adapter, a view-caching and view-creating system,
+
+        * a controller, which does not create views, but may manage them,
+
+        * a state of a statechart, which is most often functioning as a kind of
+          controller.
+
+    Examples that use selection on data only include:
+
+        * a list controller of shapes
+
+        * a list controller of searchable items
+
+    For VIEW-DRIVEN, DATA-DRIVEN, and DAVA-VIEW-COUPLED schemes, bindings are
+    set up in one or more directions between data items and the views that
+    represent them.
+
+    For the OBJECT selection scheme, no bindings are needed, and selection is
+    simply set.
+
+    The OBJECT selection scheme is used when there is only one set of items for
+    which selection is to be managed. These data can be anything, objects,
+    dicts, views, but they are not associated, at least in the context of
+    selection, with another set of data.
+
+    The VIEW_ON_DATA scheme is probably more common. Consider a shopping list
+    application for shopping for fruits at the market.  Using a ListView, with
+    its adapter and selection, the app allows for the selection of fruits to
+    buy for each day of the week, presenting seven lists: one for each day of
+    the week. Each list is loaded with all the available fruits, but the
+    selection for each is a subset.  There is only one set of fruit model data
+    shared between the lists, so it would not make sense to sync selection with
+    the model data because selection in any of the seven lists would clash and
+    mix with that of the others.
+
+    The VIEW_DRIVEN and DATA_VIEW_COUPLED schemes can be used for storing
+    selection state in a local database or backend database for maintaining
+    state in game play or other similar scenarios.  Consider a game that uses
+    the same fruits model data for selecting fruits available for
+    fruit-tossing. A given round of play could have a full fruits list, with
+    fruits available for tossing shown selected. If the game is saved and
+    rerun, the full fruits list, with selection marked on each item, would be
+    reloaded correctly if selection is always synced to the model data. You
+    could accomplish the same functionality by writing code to operate on list
+    selection, but having selection stored in the data might prove to be
+    convenient or more efficient.
+
+    The DATA_DRIVEN scheme is appropriate for situations where some external
+    source updates selection of the data, and the user interface is to reflect
+    that. This is similar to DATA_VIEW_COUPLED. For example, consider a user
+    interface tied to some piece of machinery that analyses available tools for
+    a task in an assembly plant, based on physical conditions and throughput
+    values that limit which tools are viable in realtime. An operator views a
+    screen to see what tools are currently available, and selects one for the
+    next task.
+
+    .. versionadded:: 1.8
+
+    :data:`selection_scheme` is an :class:`~kivy.properties.OptionProperty`
+    that defaults to VIEW_ON_DATA.
+    '''
+
+    # TODO: Now that selection works as it should as an observable property (in
+    #       1.8), the on_selection_change event is perhaps no longer needed?
     __events__ = ('on_selection_change', )
 
     def __init__(self, **kwargs):
 
-        # Cover propagate_selection_to_data deprecation.
-        if 'propagate_selection_to_data' in kwargs:
-            kwargs['sync_with_model_data'] = \
-                    kwargs['propagate_selection_to_data']
         super(Selection, self).__init__(**kwargs)
-
-        # Check for required methods:
-        if not hasattr(self, 'get_data_item'):
-            raise Exception(('Selection: mixing in Selection requires '
-                             'get_data_item().'))
-
-        if (not hasattr(self, 'get_view')
-                and not hasattr(self, 'get_selectable_item')):
-            raise Exception(('Selection: mixing in Selection requires '
-                             'get_view() or get_selectable_item().'))
-
-        if (hasattr(self, 'get_view')
-                and hasattr(self, 'get_selectable_item')):
-            raise Exception(('Selection: mixing in Selection requires '
-                             'choosing between get_view() and '
-                             'get_selectable_item().'))
 
         self.bind(selection_mode=self.selection_mode_changed,
                   allow_empty_selection=self.check_for_empty_selection)
@@ -254,102 +416,107 @@ class Selection(EventDispatcher):
 
     def handle_selection(self, item, hold_dispatch=False, *args):
 
+        additions = []
+        removals = []
+
         if item not in self.selection:
             if self.selection_mode in ['none', 'single'] and \
                     len(self.selection) > 0:
                 for selected in self.selection:
                     if hold_dispatch:
-                        return 'DESELECT'
+                        return _selection_ops.DESELECT
                     else:
-                        self.deselect_item(selected)
+                        self.deselect_item(selected,
+                                           remove_from_selection=False)
+                        removals.append(selected)
             if self.selection_mode != 'none':
                 if self.selection_mode == 'multiple':
                     if self.allow_empty_selection:
                         # If < 0, selection_limit is not active.
                         if self.selection_limit < 0:
                             if hold_dispatch:
-                                return 'SELECT'
+                                return _selection_ops.SELECT
                             else:
-                                self.select_item(item)
+                                self.select_item(item,
+                                                 add_to_selection=False)
+                                additions.append(item)
                         else:
                             if len(self.selection) < self.selection_limit:
                                 if hold_dispatch:
-                                    return 'SELECT'
+                                    return _selection_ops.SELECT
                                 else:
-                                    self.select_item(item)
+                                    self.select_item(item,
+                                                     add_to_selection=False)
+                                    additions.append(item)
                     else:
                         if hold_dispatch:
-                            return 'SELECT'
+                            return _selection_ops.SELECT
                         else:
-                            self.select_item(item)
+                            self.select_item(item,
+                                             add_to_selection=False)
+                            additions.append(item)
                 else:
                     if hold_dispatch:
-                        return 'SELECT'
+                        return _selection_ops.SELECT
                     else:
-                        self.select_item(item)
+                        self.select_item(item, add_to_selection=False)
+                        additions.append(item)
         else:
 
             if hold_dispatch:
-                return 'DESELECT-AND-CHECK'
+                return _selection_ops.DESELECT_AND_CHECK
             else:
-                self.deselect_item(item)
+                self.deselect_item(item, remove_from_selection=False)
+                removals.append(item)
 
-            if self.selection_mode != 'none':
-                self.check_for_empty_selection()
+        selection_copy = list(self.selection)
+
+        for r in removals:
+            selection_copy.remove(r)
+
+        for a in additions:
+            selection_copy.append(a)
+
+        self.selection = selection_copy
+
+        if self.selection_mode != 'none':
+            self.check_for_empty_selection()
 
         if not hold_dispatch:
             self.dispatch('on_selection_change')
 
-    def select_model_data_item(self, arg):
-        if isinstance(arg, tuple):
-            item = arg[0]
-        else:
-            item = arg
-        self.set_model_data_item_selection(item, True)
-
-    def deselect_model_data_item(self, arg):
-        if isinstance(arg, tuple):
-            item = arg[0]
-        else:
-            item = arg
-        self.set_model_data_item_selection(item, False)
-
-    def set_model_data_item_selection(self, item, value):
-        if isinstance(item, SelectableDataItem):
-            item.is_selected = value
-        elif type(item) == dict:
-            if 'is_selected' in item:
-                item['is_selected'] = value
-        elif hasattr(item, 'is_selected'):
-            if (inspect.isfunction(item.is_selected)
-                    or inspect.ismethod(item.is_selected)):
-                item.is_selected()
-            else:
-                item.is_selected = value
-
     def select_item(self, item, add_to_selection=True):
 
-        has_selection = False
+        ksel = None
 
-        # The select() method handles the cosmetic effects that happen as a
-        # result of selection change.
-        if hasattr(item, 'select'):
-            if (inspect.isfunction(item.select)
-                    or inspect.ismethod(item.select)):
-                item.select()
-                has_selection = True
-        elif hasattr(item, 'is_selected'):
-            item.is_selected = True
-            has_selection = True
+        if hasattr(item, 'ksel'):
+            ksel = item.ksel
 
-        if self.sync_with_model_data:
-            self.select_model_data_item(self.get_data_item(item.index))
+        if isinstance(item, dict) and 'ksel' in item:
+            ksel = item['ksel']
 
-        if has_selection and add_to_selection:
+        if ksel:
+
+            ksel.select()
+
+            if (self.selection_scheme in [selection_schemes.VIEW_DRIVEN,
+                                          selection_schemes.DATA_VIEW_COUPLED]
+                and
+                self.selection_update_method == selection_update_methods.SET):
+
+                data_item = self.get_data_item(item.index)
+
+                if hasattr(data_item, 'ksel'):
+                    data_item.ksel.select()
+                elif isinstance(data_item, dict) and 'ksel' in data_item:
+                    data_item['ksel'].select()
+
+        if add_to_selection:
             self.selection.append(item)
 
     def select_list(self, selectable_items, extend=True):
-        '''The select call is made for the items in the provided selectable_items.
+        '''The select call is made for the items in the provided
+        selectable_items.
 
         Arguments:
 
@@ -388,13 +555,13 @@ class Selection(EventDispatcher):
         sel_adds = []
         sel_deletes = []
         for op, item in zip(ops, selectable_items):
-            if op == 'SELECT':
+            if op == _selection_ops.SELECT:
                 self.select_item(item, add_to_selection=False)
                 sel_adds.append(item)
-            elif op == 'DESELECT':
+            elif op == _selection_ops.DESELECT:
                 self.deselect_item(item, remove_from_selection=False)
                 sel_deletes.append(item)
-            else:  # DESELECT-CHECK == deselect and check_for_empty_selection()
+            elif op == _selection_ops.DESELECT_AND_CHECK:
                 self.deselect_item(item, remove_from_selection=False)
                 sel_deletes.append(self.selection.index(item))
                 check_for_empty_selection = True
@@ -418,21 +585,31 @@ class Selection(EventDispatcher):
 
     def deselect_item(self, item, remove_from_selection=True):
 
-        # The deselect() method handles the cosmetic effects that happen as a
-        # result of selection change.
-        if hasattr(item, 'deselect'):
-            if (inspect.isfunction(item.deselect)
-                    or inspect.ismethod(item.deselect)):
-                item.deselect()
-                has_selection = True
-        elif hasattr(item, 'is_selected'):
-            item.is_selected = False
-            has_selection = True
+        ksel = None
 
-        if self.sync_with_model_data:
-            self.deselect_model_data_item(self.get_data_item(item.index))
+        if hasattr(item, 'ksel'):
+            ksel = item.ksel
 
-        if has_selection and remove_from_selection:
+        if isinstance(item, dict) and 'ksel' in item:
+            ksel = item['ksel']
+
+        if ksel:
+
+            ksel.deselect()
+
+            if (self.selection_scheme in [selection_schemes.VIEW_DRIVEN,
+                                          selection_schemes.DATA_VIEW_COUPLED]
+                and
+                self.selection_update_method == selection_update_methods.SET):
+
+                data_item = self.get_data_item(item.index)
+
+                if hasattr(data_item, 'ksel'):
+                    data_item.ksel.deselect()
+                elif isinstance(data_item, dict) and 'ksel' in data_item:
+                    data_item['ksel'].deselect()
+
+        if remove_from_selection:
             self.selection.remove(item)
 
     def initialize_selection(self, *args):

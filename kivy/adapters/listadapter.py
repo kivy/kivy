@@ -15,7 +15,7 @@ From :class:`~kivy.adapters.adapter.Adapter`, a
 :class:`~kivy.adapters.listadapter.ListAdapter` gets cls, template, and
 args_converter properties.
 
-From :class:`~kivy.adapters.selection.Selection` are properties that control
+From :class:`~kivy.selection.Selection` are properties that control
 selection behaviour:
 
 * *selection*, a list of selected items.
@@ -53,12 +53,10 @@ selection behaviour:
 
 __all__ = ('ListAdapter', )
 
-import inspect
-
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.list_ops import AdapterListOpHandler
 
-from kivy.models import SelectableDataItem
+from kivy.controllers.listcontroller import ListController
 
 from kivy.properties import OpObservableList
 from kivy.properties import ListProperty
@@ -165,7 +163,17 @@ class ListAdapter(Selection, Adapter):
     __events__ = ('on_data_change', )
 
     def __init__(self, **kwargs):
+
+        controller = None
+
+        if isinstance(kwargs['data'], ListController):
+            controller = kwargs['data']
+            kwargs['data'] = controller.data
+
         super(ListAdapter, self).__init__(**kwargs)
+
+        if controller:
+            controller.bind(data=self.setter('data'))
 
         self.list_op_handler = AdapterListOpHandler(
                 source_list=self.data, duplicates_allowed=True)
@@ -174,64 +182,17 @@ class ListAdapter(Selection, Adapter):
                   allow_empty_selection=self.check_for_empty_selection,
                   data=self.list_op_handler.data_changed)
 
-        self.initialize_selection()
-
     def get_count(self):
         return len(self.data)
 
     def get_data_item(self, index):
-        # Return a tuple, with first arg (only one here) as the data item.
-        return self.data[index],
+        return self.data[index]
+
+    def additional_args_converter_args(self, index):
+        return ()
 
     def on_data_change(self, *args):
         pass
-
-    def create_view(self, index):
-        '''This method first calls the Adapter superclass to get the data_item
-        and new view_instance created from it. Then bindings are created for
-        the view_instance and perhaps its children to self.handle_selection().
-        Selection of view instances is optionally kept in sync with the
-        selection of data items.
-        '''
-
-        if index < 0 or index > len(self.data) -1:
-            return None
-
-        data_item, view_instance = super(ListAdapter, self).create_view(index)
-
-        view_instance.bind(on_release=self.handle_selection)
-
-        # Should the view instance reflect the state of selection in the
-        # underlying data item?
-        if self.sync_with_model_data:
-
-            # The data item must be a subclass of SelectableDataItem, or must
-            # have an is_selected boolean or function, so it has is_selected
-            # available.  If is_selected is unavailable on the data item, an
-            # exception is raised.
-
-            if isinstance(data_item, SelectableDataItem):
-                if data_item.is_selected:
-                    self.handle_selection(view_instance)
-            elif type(data_item) == dict and 'is_selected' in data_item:
-                if data_item['is_selected']:
-                    self.handle_selection(view_instance)
-            elif hasattr(data_item, 'is_selected'):
-                if (inspect.isfunction(data_item.is_selected)
-                        or inspect.ismethod(data_item.is_selected)):
-                    if data_item.is_selected():
-                        self.handle_selection(view_instance)
-                else:
-                    if data_item.is_selected:
-                        self.handle_selection(view_instance)
-            else:
-                msg = "ListAdapter: unselectable data item for {0}"
-                raise Exception(msg.format(index))
-
-        return view_instance
-
-    # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,
-    #        scroll_to_sel_middle.
 
     def trim_left_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are less than the

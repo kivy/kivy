@@ -15,13 +15,9 @@ python dictionary of records.
 
 __all__ = ('DictAdapter', )
 
-import inspect
-
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.dict_ops import AdapterDictOpHandler
 from kivy.adapters.list_ops import AdapterListOpHandler
-
-from kivy.models import SelectableDataItem
 
 from kivy.properties import DictProperty
 from kivy.properties import ListProperty
@@ -161,8 +157,8 @@ class DictAdapter(Selection, Adapter):
                 raise Exception(msg)
             else:
                 self.sorted_keys = \
-                        self.sorted_keys_checked(kwargs.pop('sorted_keys'),
-                                                 kwargs['data'].keys())
+                    self.sorted_keys_checked(kwargs.pop('sorted_keys'),
+                                             kwargs['data'].keys())
         else:
             self.sorted_keys = sorted(kwargs['data'].keys())
 
@@ -221,72 +217,24 @@ class DictAdapter(Selection, Adapter):
         return len(self.sorted_keys)
 
     def get_data_item(self, index):
+        if index < 0 or index > len(self.sorted_keys) - 1:
+            return None
+        key = self.sorted_keys[index]
+        return self.data[key]
+
+    def additional_args_converter_args(self, index):
         '''args_converters for DictAdapter instances receive the index and the
         data value, along with the key at the index, as the last argument:
 
-            data item at sorted_keys[index],
-            the key (sorted_keys[index])
-
-        So, an args_converter for DictAdapter will now get three arguments:
+        So, an args_converter for DictAdapter gets three arguments:
 
             index, data_item, key
 
-        See the create_view() method of the Adapter base class, where argument
-        parsing is done.
+        The first two are already available to Adapter.create_view(), but we
+        must supply the third, the key for the index.
         '''
 
-        key = self.sorted_keys[index]
-
-        # Return requires the data item as the first argument, followed by any
-        # additional args, in this case, the key.
-        return self.data[key], key
-
-    def create_view(self, index):
-        '''This method first calls the Adapter superclass to get the data_item
-        and new view_instance created from it. Then bindings are created for
-        the view_instance and perhaps its children to self.handle_selection().
-        Selection of view instances is optionally kept in sync with the
-        selection of data items.
-        '''
-
-        if index < 0 or index > len(self.sorted_keys) -1:
-            return None
-
-        data_item, view_instance = super(DictAdapter, self).create_view(index)
-
-        view_instance.bind(on_release=self.handle_selection)
-
-        # Should the view instance reflect the state of selection in the
-        # underlying data item?
-        if self.sync_with_model_data:
-
-            # The data item must be a subclass of SelectableDataItem, or must
-            # have an is_selected boolean or function, so it has is_selected
-            # available.  If is_selected is unavailable on the data item, an
-            # exception is raised.
-
-            if isinstance(data_item, SelectableDataItem):
-                if data_item.is_selected:
-                    self.handle_selection(view_instance)
-            elif type(data_item) == dict and 'is_selected' in data_item:
-                if data_item['is_selected']:
-                    self.handle_selection(view_instance)
-            elif hasattr(data_item, 'is_selected'):
-                if (inspect.isfunction(data_item.is_selected)
-                        or inspect.ismethod(data_item.is_selected)):
-                    if data_item.is_selected():
-                        self.handle_selection(view_instance)
-                else:
-                    if data_item.is_selected:
-                        self.handle_selection(view_instance)
-            else:
-                msg = "ListAdapter: unselectable data item for {0}"
-                raise Exception(msg.format(index))
-
-        return view_instance
-
-    # TODO: Also make methods for scroll_to_sel_start, scroll_to_sel_end,
-    #       scroll_to_sel_middle.
+        return (self.sorted_keys[index], )
 
     def trim_left_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are less than the

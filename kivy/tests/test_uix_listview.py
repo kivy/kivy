@@ -64,7 +64,7 @@ class ListViewTestCase(unittest.TestCase):
 
         list_view = ListView(adapter=list_adapter)
 
-        list_adapter.bind_triggers_to_view(pet_listener.callback)
+        list_adapter.bind(data=pet_listener.callback)
 
         self.assertEqual(pet_listener.current_pet, 'cat')
         self.assertEqual(list_view.adapter.get_view(2).text, 'lizard')

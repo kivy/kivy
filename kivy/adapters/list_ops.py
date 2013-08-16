@@ -191,8 +191,7 @@ class AdapterListOpHandler(ListOpHandler):
         '''
 
         is_selected = False
-        if hasattr(self.adapter.cached_views[index], 'is_selected'):
-            is_selected = self.adapter.cached_views[index].is_selected
+        is_selected = self.adapter.cached_views[index].ksel.is_selected()
 
         del self.adapter.cached_views[index]
         item_view = self.adapter.get_view(index)
@@ -212,9 +211,8 @@ class AdapterListOpHandler(ListOpHandler):
         is_selected_indices = []
         for i in changed_indices:
             item_view = self.adapter.cached_views[i]
-            if hasattr(item_view, 'is_selected'):
-                if item_view.is_selected:
-                    is_selected_indices.append(i)
+            if item_view.ksel.is_selected():
+                is_selected_indices.append(i)
 
         for i in changed_indices:
             del self.adapter.cached_views[i]

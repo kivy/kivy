@@ -1,12 +1,18 @@
 from kivy.adapters.dictadapter import DictAdapter
-from kivy.properties import NumericProperty, ListProperty, \
-        BooleanProperty, AliasProperty, ObjectProperty
+from kivy.properties import NumericProperty
+from kivy.properties import ListProperty
+from kivy.properties import BooleanProperty
+from kivy.properties import AliasProperty
+from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.listview import ListView, ListItemButton
+from kivy.uix.listview import ListItemButton
+from kivy.uix.listview import ListView
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.widget import Widget
+
+from kivy.selection import SelectionTool
 
 
 class OpsDictAdapter(DictAdapter):
@@ -99,7 +105,8 @@ class SelectionMonitor(Widget):
 
 
 letters_dict = \
-    {l: {'text': l, 'is_selected': False} for l in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'}
+    {l: {'text': l, 'ksel': SelectionTool(False)}
+            for l in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'}
 
 listview_selection_buttons = {}
 

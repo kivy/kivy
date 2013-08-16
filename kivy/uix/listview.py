@@ -1,6 +1,6 @@
 '''
 List View
-===========
+=========
 
 .. versionadded:: 1.5
 
@@ -393,15 +393,13 @@ The data used in an adapter can be any of the normal Python types, such as
 strings, class instances, and dictionaries. It is up to the programmer to
 assure that the args_converter has appropriate functionality.
 
-Here we make a simple DataItem class that has the required text and
-is_selected properties::
+Here we make a simple DataItem class:
 
     from kivy.uix.listview import ListItemButton
 
-    class DataItem(object):
-        def __init__(self, text='', is_selected=False):
+    class DataItem(SelectableDataItem):
+        def __init__(self, text=''):
             self.text = text
-            self.is_selected = is_selected
 
     data_items = []
     data_items.append(DataItem(text='cat'))
@@ -604,8 +602,8 @@ __all__ = ('SelectableView', 'ListItemButton',
 
 from math import ceil, floor
 
-from kivy.adapters.dictadapter import DictAdapter
-from kivy.adapters.listadapter import ListAdapter
+from kivy.selection import SelectionTool
+
 from kivy.adapters.simplelistadapter import SimpleListAdapter
 
 from kivy.clock import Clock
@@ -654,33 +652,25 @@ class SelectableView(ButtonBehavior):
 
         on_release: self.parent.trigger_action(duration=0)
 
-    Depending on the need, on_release could be, among other possibilities,
-    on_touch_up. SelectableView, the parent, mixes in ButtonBehavior, which has
-    the trigger_action() method.
+    Depending on the need, on_release: could be, among other possibilities, an
+    on_touch_up: set. SelectableView, the parent, mixes in ButtonBehavior,
+    which has the trigger_action() method.
 
     .. versionadded:: 1.5
 
     '''
 
     index = NumericProperty(-1)
-    '''The index into the underlying data list or the data item this view
+    '''The index into the underlying data listm, to the data item this view
     represents.
 
     :data:`index` is a :class:`~kivy.properties.NumericProperty`, default
     to -1.
     '''
 
-    is_selected = BooleanProperty(False)
-    '''A SelectableView instance carries this property, which can be optionally
-    kept in sync with the equivalent property in the data item it represents.
-
-    :data:`is_selected` is a :class:`~kivy.properties.BooleanProperty`, default
-    to False.
-    '''
-
     carry_selection_to_children = BooleanProperty(True)
-    '''If true, select() and deselect() are called on children, if these
-    methods are defined.
+    '''If true, selection or deselection effects are called on children, if
+    these methods are defined.
 
     .. versionadded:: 1.8
 
@@ -690,30 +680,32 @@ class SelectableView(ButtonBehavior):
 
     def __init__(self, **kwargs):
         super(SelectableView, self).__init__(**kwargs)
+        self.ksel = SelectionTool(False)
+        self.ksel.bind_to(self.selection_changed)
 
-    def select(self, *args):
+    def selection_changed(self, *args):
+        if args[1]:
+            self.do_select_effects(args)
+        else:
+            self.do_deselect_effects(args)
+
+    def do_select_effects(self, *args):
         '''The list item is responsible for updating the display for being
-        selected, if desired. Subclasses should call super() to assure that
-        is_selected is updated.
+        selected, if desired.
         '''
-        self.is_selected = True
-
         if self.carry_selection_to_children:
             for c in self.children:
-                if hasattr(c, 'select'):
-                    c.select(args)
+                if hasattr(c, 'do_select_effects'):
+                    c.do_select_effects(args)
 
-    def deselect(self, *args):
+    def do_deselect_effects(self, *args):
         '''The list item is responsible for updating the display for being
-        deselected, if desired. Subclasses should call super() to assure that
-        is_selected is updated.
+        deselected, if desired.
         '''
-        self.is_selected = False
-
         if self.carry_selection_to_children:
             for c in self.children:
-                if hasattr(c, 'deselect'):
-                    c.deselect(args)
+                if hasattr(c, 'do_deselect_effects'):
+                    c.do_deselect_effects(args)
 
 
 class ListItemButton(SelectableView, Button):
@@ -745,23 +737,23 @@ class ListItemButton(SelectableView, Button):
         # Set Button bg color to be deselected_color.
         self.background_color = self.deselected_color
 
-    def select(self, *args):
+    def do_select_effects(self, *args):
         '''The default cosmetic reflection of selection state is the background
         color. To change, subclass ListItemButton and override this method,
         making sure to call super(), as shown, or make a new subclass of
         SelectableView.
         '''
+        super(ListItemButton, self).do_select_effects(args)
         self.background_color = self.selected_color
-        super(ListItemButton, self).select(args)
 
-    def deselect(self, *args):
+    def do_deselect_effects(self, *args):
         '''The default cosmetic reflection of selection state is the background
         color. To change, subclass ListItemButton and override this method,
         making sure to call super(), as shown, or make a new subclass of
         SelectableView.
         '''
+        super(ListItemButton, self).do_deselect_effects(args)
         self.background_color = self.deselected_color
-        super(ListItemButton, self).deselect(args)
 
     def __repr__(self):
         return '<%s text=%s>' % (self.__class__.__name__, self.text)
@@ -805,19 +797,6 @@ class CompositeListItem(SelectableView, BoxLayout):
 
     '''
 
-    representing_cls = ObjectProperty(None)
-    '''The component view class that should represent for the
-    composite list item in __repr__().
-
-    .. deprecated:: 1.8
-
-         Can be useful in debugging, but for this, use a debugger, the
-         inspector, or the Python inspect module.
-
-    :data:`representing_cls` is an :class:`~kivy.properties.ObjectProperty`,
-    default to None.
-    '''
-
     def __init__(self, **kwargs):
         super(CompositeListItem, self).__init__(**kwargs)
 
@@ -835,9 +814,6 @@ class CompositeListItem(SelectableView, BoxLayout):
 
                 if 'text' not in cls_kwargs:
                     cls_kwargs['text'] = kwargs['text']
-
-                if 'is_representing_cls' in cls_kwargs:
-                    self.representing_cls = cls
             else:
                 cls_kwargs = {}
                 cls_kwargs['index'] = index
@@ -854,23 +830,13 @@ class CompositeListItem(SelectableView, BoxLayout):
     def on_release_on_child(self, *args):
         self.trigger_action(duration=0)
 
-    def select(self, *args):
-        super(CompositeListItem, self).select(args)
+    def do_select_effects(self, *args):
+        super(CompositeListItem, self).do_select_effects(args)
         self.background_color = self.selected_color
 
-    def deselect(self, *args):
-        super(CompositeListItem, self).deselect(args)
+    def do_deselect_effects(self, *args):
+        super(CompositeListItem, self).do_deselect_effects(args)
         self.background_color = self.deselected_color
-
-    def __repr__(self):
-        # NOTE: This conditional, and the method itself, is kept here for
-        #       backwards compatibility, because representing_cls is
-        #       deprecated. When it is removed, remove this __repr__().
-        if self.representing_cls is not None:
-            return '<%r>, representing <%s>' % (
-                self.representing_cls, self.__class__.__name__)
-        else:
-            return '<%s>' % (self.__class__.__name__)
 
 
 Builder.load_string('''
@@ -968,12 +934,12 @@ class ListView(AbstractView, EventDispatcher):
     '''
 
     scroll_advance = NumericProperty(10)
-    '''For a kind of pre-fetching during scrolling, a "advance" of view instances
-    is requested when the scroll position is within some count of items, the
-    scroll_advance, difference from either the start or end of the scroll window.
-    View instances are either pulled from the adapter.view_cache or created
-    anew. Perhaps, for larger datasets, or for speed variances, this needs to
-    be changed from the default arbitrary 10.
+    '''For a kind of pre-fetching during scrolling, a "advance" of view
+    instances is requested when the scroll position is within some count of
+    items, the scroll_advance, difference from either the start or end of the
+    scroll window.  View instances are either pulled from the
+    adapter.view_cache or created anew. Perhaps, for larger datasets, or for
+    speed variances, this needs to be changed from the default arbitrary 10.
 
     .. versionadded:: 1.8
 
@@ -1141,8 +1107,9 @@ class ListView(AbstractView, EventDispatcher):
         if istart < self._wstart:
 
             # Populate backward, for view instances needed, to the istart
-            # position, and a bit farther back, as configured by scroll_advance.
-            # The max() call keeps the value from going negative.
+            # position, and a bit farther back, as configured by
+            # scroll_advance.  The max() call keeps the value from going
+            # negative.
             istart = max(0, istart - self.scroll_advance)
             self.populate(istart, iend)
 
@@ -1200,7 +1167,8 @@ class ListView(AbstractView, EventDispatcher):
             fh = 0
             for x in range(istart):
                 fh += sizes[x] if x in sizes else rh
-            container.add_widget(Widget(size_hint_y=None, height=fh, background_color=(0,1,0)))
+            container.add_widget(Widget(
+                size_hint_y=None, height=fh, background_color=(0, 1, 0)))
 
             # Now fill with real item view instances.
             index = istart
@@ -1342,14 +1310,16 @@ class ListView(AbstractView, EventDispatcher):
                     index += (int(ceil(float(n_window) * 0.5)))
 
                     # Apply the percent.
-                    index = index - int(ceil(position_as_percent * float(n_window)))
+                    index = index - int(ceil(
+                        position_as_percent * float(n_window)))
 
                 # Don't let index go out of bounds.
                 index = max(0, index)
 
                 self._index = index
 
-                self.scrollview.scroll_y = 1.0 - (float(index) / float(len_data))
+                self.scrollview.scroll_y = \
+                        1.0 - (float(index) / float(len_data))
                 self.scrollview.update_from_scroll()
 
             self.dispatch('on_scroll_complete')
@@ -1531,7 +1501,6 @@ class ListView(AbstractView, EventDispatcher):
             start_index = op_info.start_index
             end_index = op_info.end_index
         elif isinstance(op_info, DictOpInfo):
-            keys = op_info.keys
             start_index, end_index = self.adapter.additional_op_info
 
         # Otherwise, we may have item_views as children of self.container
@@ -1558,8 +1527,6 @@ class ListView(AbstractView, EventDispatcher):
             len_data = len(self.adapter.data)
 
             slice_indices = range(start_index, end_index + 1)
-
-            len_slice_indices = len(slice_indices)
 
             widget_indices = []
 
