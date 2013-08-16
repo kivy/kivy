@@ -418,7 +418,7 @@ class Sequence(Animation):
         self.dispatch('on_progress', widget, progress / 2.)
 
     def on_anim2_complete(self, instance, widget):
-       '''Repeating logic used with boolean variable "repeat". Added version 1.7.1'''
+        '''Repeating logic used with boolean variable "repeat". Added version 1.7.1'''
         if self.repeat == True:
             self.anim1.start(widget)
         else:

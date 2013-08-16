@@ -56,7 +56,7 @@ targets = []
 for target in proc.stdout:
     parts = [p.strip() for p in target.split()]
     if parts[0] != 'D':
-        targets.append(join(kivydir, target))
+        targets.append(join(kivydir, target.decode(encoding='UTF-8')))
 
 # Untested possibility: After making the changes above for removing deleted
 # files from targets, saw also where the git diff call could be:
@@ -72,7 +72,7 @@ call(['git', 'stash', 'pop', '--quiet'])
 
 if retval:
     # There are styleguide violations
-    print "Error:", retval, "styleguide violation(s) encountered!"
-    print "Your commit has been aborted. Please fix the violations and retry."
+    print("Error:", retval, "styleguide violation(s) encountered!")
+    print("Your commit has been aborted. Please fix the violations and retry.")
     sys.exit(retval)
 
