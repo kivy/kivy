@@ -148,7 +148,7 @@ class Adapter(EventDispatcher):
 
     def __init__(self, **kwargs):
 
-        if not 'data' in kwargs:
+        if 'data' not in kwargs:
             raise Exception('adapter: input must include data argument')
 
         if 'cls' in kwargs:
@@ -167,7 +167,7 @@ class Adapter(EventDispatcher):
 
         super(Adapter, self).__init__(**kwargs)
 
-        if not 'args_converter' in kwargs:
+        if 'args_converter' not in kwargs:
             self.args_converter = list_item_args_converter
 
     def get_view(self, index):

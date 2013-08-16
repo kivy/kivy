@@ -1111,7 +1111,7 @@ class OpObservableDict(dict):
         present_keys = self.keys()
         key = largs[0]
         op_info = None
-        if not key in present_keys:
+        if key not in present_keys:
             op_info = DictOpInfo('OOD_setdefault', (key, ))
         result = dict.setdefault(self, *largs)
         if op_info:

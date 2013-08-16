@@ -254,7 +254,7 @@ class AdapterListOpHandler(ListOpHandler):
 
         i = 0
         for k, v in self.adapter.cached_views.iteritems():
-            if not k in deleted_indices:
+            if k not in deleted_indices:
                 new_cached_views[i] = self.adapter.cached_views[k]
                 if k >= start_index:
                     new_cached_views[i].index = i
