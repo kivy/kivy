@@ -1,6 +1,6 @@
 '''
-SelectableDataItem
-==================
+Data Models
+===========
 
 .. versionadded:: 1.5
 
@@ -9,36 +9,30 @@ SelectableDataItem
     This code is still experimental, and its API is subject to change in a
     future version.
 
-Data Models
------------
+Data Model Classes
+------------------
 
-Kivy is open about the type of data used in applications built with
-the system. However, base classes are sometimes needed to ensure data conforms
-to the requirements of some parts of the system.
+Kivy is open about the type of data used in applications built with the system.
+However, base classes are needed for use with the selection system.
 
-A :class:`SelectableDataItem` is a basic Python data model class that can be
-used as a mixin to build data objects that are compatible with Kivy's
-:class:`~kivy.adapters.adapter.Adapter`
-and selection system, which works with views such as a
-:class:`~kivy.uix.listview.ListView`. The boolean
-property is_selected is a requirement.
+A :class:`SelectableDataItem` can be used as a mixin to build data objects that
+are compatible with Kivy's selection system, which works with adapters and
+similar classes, and with views such as a :class:`~kivy.uix.listview.ListView`.
+The ksel attribute is a requirement.
 
-The default operation of the selection system is to not propogate selection in
-views such as ListView to the underlying data -- selection is by default a
-view-only operation. However, in some cases, it is useful to propogate
-selection to the actual data items.
+The default operation of the selection system is to not propogate selection of
+view instances in views such as ListView to the underlying data -- selection is
+by default a view-only operation (VIEW_ON_DATA selection scheme). However, in
+some cases, it is useful to propogate selection to the actual data items, and
+vice versa. Learn about the classes here in combination with reading the docs
+for Selection, and selection schemes.
 
-You may, of course, build your own Python data model system as the backend for
-a Kivy application. For instance, to use the Google App Engine datamodeling
-system with Kivy, this class could be redefined as::
+You may build your own Python data model system as the backend for a Kivy
+application. Add a SelectionTool attr called ksel to implement selection.
 
-    from google.appengine.ext import db
-
-    class MySelectableDataItem(db.Model):
-        ... other properties
-        is_selected = db.BooleanProperty()
-
-It is easy to build such a class with plain Python.
+For selection schemes involving data items that completely drive selection
+(DATA_DRIVEN), or that are in a two-way coupling with views
+(DATA_VIEW_COUPLED).
 
 .. versionchanged:: 1.8
 
@@ -46,26 +40,26 @@ It is easy to build such a class with plain Python.
 
 '''
 
-__all__ = ('SelectableDataItem', )
+__all__ = ('SelectableDataItem',)
+
+from kivy.event import EventDispatcher
+from kivy.properties import ObjectProperty
+from kivy.selection import SelectionTool
 
 
-class SelectableDataItem(object):
+class SelectableDataItem(EventDispatcher):
+    '''A mixin class containing requirements for selection operations.
     '''
-    A mixin class containing requirements for selection operations.
 
-    This is the is_selected boolean property.
+    ksel = ObjectProperty(SelectionTool(False))
+    '''ksel stands for "Kivy selection" and is an instance of SelectionTool, a
+    class containing the selection state and helper methods.
+
+    .. versionadded:: 1.8
+
+    :data:`ksel` is a
+    :class:`~kivy.properties.ObjectProperty`, default to SelectionTool(False).
     '''
 
     def __init__(self, **kwargs):
-        super(SelectableDataItem, self).__init__()
-
-        self._is_selected = kwargs.get('is_selected', False)
-
-    @property
-    def is_selected(self):
-        """Is the data item selected"""
-        return self._is_selected
-
-    @is_selected.setter
-    def is_selected(self, value):
-        self._is_selected = value
+        super(SelectableDataItem, self).__init__(**kwargs)

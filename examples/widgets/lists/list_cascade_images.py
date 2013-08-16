@@ -1,5 +1,5 @@
 from kivy.adapters.dictadapter import DictAdapter
-from kivy.uix.selectableview import SelectableView
+from kivy.uix.listview import SelectableView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton
@@ -19,6 +19,8 @@ Factory.register('SelectableView', cls=SelectableView)
 Factory.register('ListItemButton', cls=ListItemButton)
 
 Builder.load_string('''
+#:import SelectionTool kivy.selection.SelectionTool
+
 [ThumbnailedListItem@SelectableView+BoxLayout]:
     index: ctx.index
     fruit_name: ctx.text

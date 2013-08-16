@@ -599,7 +599,7 @@ cdef class ListProperty(Property):
 
     .. versionchanged:: 1.8.0
 
-        The following change does not affect the API. It has to do with
+        The following change does not affect the default API. It has to do with
         internal event dispatching. It may be interesting to widget developers.
 
         A new class, OpObservableList, is defined in this module, complimenting

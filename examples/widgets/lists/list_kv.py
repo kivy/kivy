@@ -9,6 +9,8 @@ from kivy.factory import Factory
 
 from fixtures import integers_dict
 
+from kivy.selection import SelectionTool
+
 # [TODO] Will SelectableView be in the kivy/factory_registers.py,
 #        as a result of setup.py? ListItemButton? others?
 Factory.register('SelectableView', cls=SelectableView)

@@ -1,9 +1,12 @@
 from kivy.adapters.dictadapter import DictAdapter
+from kivy.selection import selection_schemes
+from kivy.selection import selection_update_methods
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.listview import ListView, ListItemButton
+from kivy.uix.listview import ListView
+from kivy.uix.listview import ListItemButton
 
-from fixtures import fruit_categories, fruit_categories, \
-        fruit_data
+from fixtures import fruit_categories
+from fixtures import fruit_data
 
 from fruit_detail_view import FruitDetailView
 

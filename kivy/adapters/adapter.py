@@ -32,18 +32,22 @@ Arguments:
   invocation. If no args_converter is provided, a default one, that
   assumes that the data items are strings, is used.
 
+.. versionchanged:: 1.8
+
+    Removed bind_triggers_to_view().
 
 '''
 
 __all__ = ('Adapter', )
 
-import inspect
-
 from kivy.adapters.args_converters import list_item_args_converter
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
+from kivy.models import SelectableDataItem
 from kivy.properties import DictProperty
 from kivy.properties import ObjectProperty
+from kivy.selection import selection_schemes
+from kivy.selection import selection_update_methods
 
 
 class Adapter(EventDispatcher):
@@ -59,8 +63,9 @@ class Adapter(EventDispatcher):
         mixin. Now adapters have to choose whether or not to mix it in. In a
         related move, cached_views and related code were moved from ListAdapter
         to this base class. This is what adapters do -- they create and cache
-        views in a kind of helper system for collection style views. In contrast,
-        traditional controllers do not perform this role, and are simpler.
+        views in a kind of helper system for collection style views. In
+        contrast, traditional controllers do not perform this role, and are
+        simpler.
 
         create_view() now handles additional arguments that may come from
         get_data_item(), specifically for the dictionary key added to the args
@@ -165,19 +170,8 @@ class Adapter(EventDispatcher):
         if not 'args_converter' in kwargs:
             self.args_converter = list_item_args_converter
 
-    def bind_triggers_to_view(self, func):
-        '''
-        .. deprecated:: 1.8
-
-             The data changed system was changed to use variants of
-             ObservableList/Dict that dispatch after individual operations,
-             passing information about what changed to a data_changed()
-             handler, which should be implemented by observers of adapters.
-        '''
-
-        self.bind(data=func)
-
     def get_view(self, index):
+
         if index in self.cached_views:
             return self.cached_views[index]
         item_view = self.create_view(index)
@@ -193,51 +187,77 @@ class Adapter(EventDispatcher):
         '''This method is responsible for returning a single data item,
         whatever that means, for a given adapter. The result is used in view
         creation, where it is passed as the argument to the args_converter.
-
-        The return is a tuple, with the data item as the first item, followed by
-        any additional optional items.
-
-        .. versionchanged:: 1.8
-
-            The default return, prior to Kivy version 1.8, was only the data
-            item. In newer Kivy, the return is a tuple with the data item in
-            the first position, along with additional items, per adapter.
         '''
         pass
 
-    def _is_a_lambda(self, v):
-        # http://stackoverflow.com/questions/3655842/
-        #                 how-to-test-whether-a-variable-holds-a-lambda
-        return isinstance(v, type(lambda: None)) and v.__name__ == '<lambda>'
+    def additional_args_converter_args(self, index):
+        '''An adapter subclass needs to implement this method to return any
+        additional args needed, in addition to the data item itself, which is
+        returned in a separate call to get_data_item().
+
+        .. versionadded:: 1.8
+
+        '''
+        pass
 
     def create_view(self, index):
-        '''This method returns the data_item at the index, and a view built
+        '''This method fetches the data_item at the index, and a builds a view
         from it. The view is is an instance of self.cls, made from arguments
         parpared by self.args_converter(). This method is used by
         :class:`kivy.adapters.listadapter.ListAdapter` and
         :class:`kivy.adapters.dictadapter.DictListAdapter`.
         '''
 
-        get_data_item_ret = self.get_data_item(index)
-
-        if get_data_item_ret is None:
+        if index < 0 or index > len(self.data) - 1:
             return None
 
-        data_item = get_data_item_ret[0]
+        data_item = self.get_data_item(index)
 
         if data_item is None:
             return None
 
-        item_args = self.args_converter(index,
-                                        data_item,
-                                        *get_data_item_ret[1:])
+        item_args = self.args_converter(
+                index, data_item, *self.additional_args_converter_args(index))
 
         item_args['index'] = index
 
-        # Finally, create the view with the prepared arguments.
         if self.cls:
             view_instance = self.cls(**item_args)
         else:
             view_instance = Builder.template(self.template, **item_args)
 
-        return data_item, view_instance
+        view_instance.bind(on_release=self.handle_selection)
+
+        ksel = None
+
+        if isinstance(data_item, SelectableDataItem):
+            ksel = data_item.ksel
+        elif hasattr(data_item, 'ksel'):
+            ksel = data_item.ksel
+        elif isinstance(data_item, dict) and 'ksel' in data_item:
+            ksel = data_item['ksel']
+
+        # Always load selection from data.
+        if ksel and ksel.is_selected():
+            self.handle_selection(view_instance)
+
+        if ksel:
+
+            if self.selection_update_method == selection_update_methods.NOTIFY:
+
+                if self.selection_scheme == selection_schemes.VIEW_ON_DATA:
+                    # One-way binding. To.
+                    ksel.bind_to_ksel(view_instance.ksel)
+                elif self.selection_scheme == selection_schemes.VIEW_DRIVEN:
+                    # One-way binding. From.
+                    ksel.bind_from_ksel(view_instance.ksel)
+                elif self.selection_scheme == selection_schemes.DATA_DRIVEN:
+                    # One-way binding. To.
+                    ksel.bind_to_ksel(view_instance.ksel)
+                elif (self.selection_scheme
+                        == selection_schemes.DATA_VIEW_COUPLED):
+                    # Two-way binding. Both.
+                    ksel.bind_to_ksel(view_instance.ksel)
+                    ksel.bind_from_ksel(view_instance.ksel)
+
+        return view_instance

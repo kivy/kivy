@@ -21,7 +21,6 @@ strings that do not require user interaction. It does not do selection.
 
 __all__ = ('SimpleListAdapter', )
 
-from kivy.adapters.adapter import Adapter
 from kivy.adapters.args_converters import list_item_args_converter
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty
@@ -93,15 +92,11 @@ class SimpleListAdapter(EventDispatcher):
         if index < 0 or index >= len(self.data):
             return None
         # The return is a tuple, with the data item first.
-        return self.data[index],
+        return self.data[index]
 
     # Returns a view instance for an item.
     def get_view(self, index):
-        ret = self.get_data_item(index)
-        if ret is None:
-            return None
-
-        item, = ret
+        item = self.get_data_item(index)
 
         if item is None:
             return None

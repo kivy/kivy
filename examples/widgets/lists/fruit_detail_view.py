@@ -1,8 +1,10 @@
+from kivy.controllers.objectcontroller import ObjectController
+from kivy.properties import ObjectProperty
+from kivy.properties import StringProperty
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
-from kivy.properties import StringProperty
 
 from fixtures import fruit_data_attributes
 from fixtures import fruit_data
@@ -46,35 +48,35 @@ class FruitDetailView(GridLayout):
 
 
 class FruitObserverDetailView(GridLayout):
-    fruit_name = StringProperty('')
+    name = StringProperty('')
 
     def __init__(self, **kwargs):
         kwargs['cols'] = 2
         super(FruitObserverDetailView, self).__init__(**kwargs)
-        self.bind(fruit_name=self.redraw)
+        self.bind(name=self.redraw)
 
     def redraw(self, *args):
         self.clear_widgets()
-        if self.fruit_name:
+        if self.name:
             self.add_widget(Label(text="Name:", halign='right'))
-            self.add_widget(Label(text=self.fruit_name))
+            self.add_widget(Label(text=self.name))
             for attribute in fruit_data_attributes:
                 self.add_widget(Label(text="{0}:".format(attribute),
                                       halign='right'))
-                if self.fruit_name == '':
+                if self.name == '':
                     self.add_widget(Label(text=''))
                 else:
                     self.add_widget(Label(
-                        text=str(fruit_data[self.fruit_name][attribute])))
+                        text=str(fruit_data[self.name][attribute])))
 
     def update(self, object_adapter, *args):
         if object_adapter.obj is None:
             return
 
         if type(object_adapter.obj) is str:
-            self.fruit_name = object_adapter.obj
+            self.name = object_adapter.obj
         else:
-            self.fruit_name = str(object_adapter.obj)
+            self.name = str(object_adapter.obj)
 
         self.redraw()
 
@@ -82,36 +84,36 @@ class FruitObserverDetailView(GridLayout):
 # Used in list_cascade_images.py example.
 #
 class FruitImageDetailView(BoxLayout):
-    fruit_name = StringProperty('', allownone=True)
+    name = StringProperty('', allownone=True)
 
     def __init__(self, **kwargs):
         kwargs['orientation'] = 'vertical'
-        self.fruit_name = kwargs.get('fruit_name', '')
+        self.name = kwargs.get('fruit_name', '')
         super(FruitImageDetailView, self).__init__(**kwargs)
-        if self.fruit_name:
+        if self.name:
             self.redraw()
 
     def redraw(self, *args):
         self.clear_widgets()
 
-        if self.fruit_name:
+        if self.name:
             self.add_widget(Image(
-                source="fruit_images/{0}.256.jpg".format(self.fruit_name),
+                source="fruit_images/{0}.256.jpg".format(self.name),
                 size=(256, 256)))
 
             container = GridLayout(cols=2)
             container.add_widget(Label(text="Name:", halign='right'))
-            container.add_widget(Label(text=self.fruit_name))
+            container.add_widget(Label(text=self.name))
             for attribute in fruit_data_attributes:
                 container.add_widget(Label(text="{0}:".format(attribute),
                                       halign='right'))
                 container.add_widget(
-                        Label(text=str(fruit_data[self.fruit_name][attribute])))
+                        Label(text=str(fruit_data[self.name][attribute])))
             self.add_widget(container)
 
     def fruit_changed(self, list_adapter, *args):
         if len(list_adapter.selection) == 0:
-            self.fruit_name = None
+            self.name = None
         else:
             selected_object = list_adapter.selection[0]
 
@@ -122,9 +124,9 @@ class FruitImageDetailView(BoxLayout):
             #
             # Or is it a ListItemButton?
             #
-            if hasattr(selected_object, 'fruit_name'):
-                self.fruit_name = selected_object.fruit_name
+            if hasattr(selected_object, 'name'):
+                self.name = selected_object.name
             else:
-                self.fruit_name = selected_object.text
+                self.name = selected_object.fruit_name
 
         self.redraw()
