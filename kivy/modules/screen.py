@@ -32,6 +32,7 @@ devices = {
     # device: (name, width, height, dpi, density)
     'onex': ('HTC One X', 1280, 720, 312, 2),
     's3': ('Galaxy SIII', 1280, 720, 306, 2),
+    'note2': ('Galaxy Note II', 1280, 720, 267, 2),
     'droid2': ('Motolora Droid 2', 854, 480, 240, 1.5),
     'xoom': ('Motolora Xoom', 1280, 800, 149, 1),
     'ipad': ('iPad (1 and 2)', 1024, 768, 132, 1),
@@ -56,10 +57,14 @@ def apply_device(device, scale, orientation):
     Logger.info('Screen: Apply screen settings for {0}'.format(name))
     Logger.info('Screen: size={0}x{1} dpi={2} density={3} '
         'orientation={4}'.format(width, height, dpi, density, orientation))
-    environ['KIVY_METRICS_DENSITY'] = str(density)
-    environ['KIVY_DPI'] = str(dpi)
-    Config.set('graphics', 'width', str(width))
-    Config.set('graphics', 'height', str(height))
+    try:
+        scale = float(scale)
+    except:
+        scale = 1
+    environ['KIVY_METRICS_DENSITY'] = str(density * scale)
+    environ['KIVY_DPI'] = str(dpi * scale)
+    Config.set('graphics', 'width', str(int(width * scale)))
+    Config.set('graphics', 'height', str(int(height * scale)))
     Config.set('graphics', 'fullscreen', '0')
     Config.set('graphics', 'show_mousecursor', '1')
 
