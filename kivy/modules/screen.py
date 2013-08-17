@@ -23,6 +23,8 @@ Simulate the iPad 2 screen::
 '''
 
 import sys
+import kivy
+
 from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
@@ -51,6 +53,8 @@ def stop(win, ctx):
 
 def apply_device(device, scale, orientation):
     name, width, height, dpi, density = devices[device]
+    host_dpi = int(environ.get('KIVY_DPI', 96))
+    host_dpi = float(host_dpi)
     if orientation == 'portrait':
         width, height = height, width
     Logger.info('Screen: Apply screen settings for {0}'.format(name))
@@ -58,6 +62,15 @@ def apply_device(device, scale, orientation):
         'orientation={4}'.format(width, height, dpi, density, orientation))
     environ['KIVY_METRICS_DENSITY'] = str(density)
     environ['KIVY_DPI'] = str(dpi)
+    kivy.kivy_options['window'] = ('emulation', )
+    Config.set('graphics', 'width', str(width))
+    Config.set('graphics', 'height', str(height))
+
+    Config.set('graphics', 'emulation_width', str(width))
+    Config.set('graphics', 'emulation_height', str(height))
+    
+    width = int((host_dpi / dpi) * width)
+    height = int((host_dpi / dpi) * height)
     Config.set('graphics', 'width', str(width))
     Config.set('graphics', 'height', str(height))
     Config.set('graphics', 'fullscreen', '0')
