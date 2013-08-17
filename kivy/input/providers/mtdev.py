@@ -1,14 +1,14 @@
 '''
-Native support of Multitouch device on Linux, using libmtdev.
-=============================================================
+Native support for Multitouch devices on Linux, using libmtdev.
+===============================================================
 
-Mtdev project is a part of Ubuntu Maverick multitouch architecture.
+The Mtdev project is a part of the Ubuntu Maverick multitouch architecture.
 You can read more on http://wiki.ubuntu.com/Multitouch
 
 To configure MTDev, it's preferable to use probesysfs providers.
 Check :py:class:`~kivy.input.providers.probesysfs` for more information.
 
-Otherwise, you can put in your configuration::
+Otherwise, add this to your configuration::
 
     [input]
     # devicename = hidinput,/dev/input/eventXX
@@ -17,9 +17,9 @@ Otherwise, you can put in your configuration::
 .. note::
     You must have read access to the input event.
 
-You have the possibility to use custom range for some X, Y and pressure value.
+You can use a custom range for the X, Y and pressure values.
 On some drivers, the range reported is invalid.
-To fix that, you can add one of theses options on the argument line :
+To fix that, you can add these options to the argument line:
 
 * invert_x : 1 to invert X axis
 * invert_y : 1 to invert Y axis

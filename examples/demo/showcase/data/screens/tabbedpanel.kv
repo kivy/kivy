@@ -1,0 +1,22 @@
+ShowcaseScreen:
+	name: 'tabbedpanel'
+	fullscreen: True
+
+	TabbedPanel:
+		do_default_tab: False
+
+		TabbedPanelItem:
+			text: 'First tab'
+			Label:
+				text: 'First tab content area'
+		TabbedPanelItem:
+			text: 'Second tab'
+			BoxLayout:
+				Label:
+					text: 'Second tab content area'
+				Button:
+					text: 'Button that does nothing'
+		TabbedPanelItem:
+			text: 'Third tab'
+			RstDocument:
+				text: '\n'.join(("Hello world", "-----------", "You are in the third tab."))

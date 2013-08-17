@@ -1,0 +1,15 @@
+ShowcaseScreen:
+	name: 'progressbar'
+
+	Label:
+		text: 'Progression: {}%'.format(int(pb.value))
+		size_hint_y: None
+		height: '48dp'
+
+	ProgressBar:
+		id: pb
+		size_hint_x: .5
+		size_hint_y: None
+		height: '48dp'
+		value: (app.time * 20) % 100.
+

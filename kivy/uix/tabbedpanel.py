@@ -564,7 +564,6 @@ class TabbedPanel(GridLayout):
         if not self._tab_layout:
             return
         self._tab_layout.border = value
-        print value
 
     def on_do_default_tab(self, instance, value):
         if not value:

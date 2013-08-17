@@ -203,15 +203,15 @@ class LabelBase(object):
 
     def shorten(self, text, margin=2):
         # Just a tiny shortcut
-        textwidth = lambda txt: self.get_extents(txt)[0]
+        textwidth = self.get_extents
         if self.text_size[0] is None:
             width = 0
         else:
             width = int(self.text_size[0])
 
-        letters = ' ... ' + text
-        while textwidth(letters) > width:
-            letters = letters[: letters.rfind(' ')]
+        letters = '_..._' + text
+        while textwidth(letters)[0] > width:
+            letters = letters[:letters.rfind(' ')]
 
         max_letters = len(letters) - 2
         segment = (max_letters // 2)

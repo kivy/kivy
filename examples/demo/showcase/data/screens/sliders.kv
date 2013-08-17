@@ -1,0 +1,55 @@
+ShowcaseScreen:
+	name: 'sliders'
+
+	BoxLayout:
+		size_hint_y: None
+		height: '48dp'
+
+		Label:
+			text: 'Default'
+
+		Slider:
+			id: s1
+
+		Label:
+			text: '{}'.format(s1.value)
+
+
+	BoxLayout:
+		size_hint_y: None
+		height: '48dp'
+
+		Label:
+			text: 'Stepped'
+
+		Slider:
+			id: s2
+			step: 20
+
+		Label:
+			text: '{}'.format(s2.value)
+
+	AnchorLayout:
+		size_hint_y: None
+		height: '100dp'
+
+		GridLayout:
+			cols: 2
+			spacing: '8dp'
+			size_hint_x: None
+			width: self.minimum_width
+
+			Slider:
+				size_hint_x: None
+				width: '48dp'
+				orientation: 'vertical'
+				value: s1.value
+				on_value: s1.value = self.value
+
+			Slider:
+				size_hint_x: None
+				width: '48dp'
+				orientation: 'vertical'
+				step: 20
+				value: s2.value
+				on_value: s2.value = self.value

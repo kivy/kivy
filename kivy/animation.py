@@ -55,7 +55,24 @@ the first half of size=(800, 800)::
     anim = Animation(pos=(80, 10))
     anim &= Animation(size=(800, 800), duration=2.)
     anim.start(widget)
+    
+Repeating animation
+-------------------
 
+.. versionadded:: 1.8.0
+
+.. note::
+    This is currently only implemented for 'Sequence' animations.
+
+To set an animation to repeat simply set the :data:`Sequence.repeat` property to
+`True`::
+
+    anim = Animation(...) + Animation(...)
+    anim.repeat = True
+    anim.start(widget)
+   
+For flow control of animations such as stopping and cancelling use the methods 
+already in place in the animation module.
 '''
 
 __all__ = ('Animation', 'AnimationTransition')
@@ -347,6 +364,11 @@ class Sequence(Animation):
 
     def __init__(self, anim1, anim2):
         super(Sequence, self).__init__()
+
+        #: Repeat the sequence. See 'Repeating animation' in the header
+        #: documentation.
+        self.repeat = False
+
         self.anim1 = anim1
         self.anim2 = anim2
 
@@ -396,7 +418,11 @@ class Sequence(Animation):
         self.dispatch('on_progress', widget, progress / 2.)
 
     def on_anim2_complete(self, instance, widget):
-        self.stop(widget)
+        '''Repeating logic used with boolean variable "repeat". Added version 1.7.1'''
+        if self.repeat == True:
+            self.anim1.start(widget)
+        else:
+            self.dispatch('on_complete', widget)
 
     def on_anim2_progress(self, instance, widget, progress):
         self.dispatch('on_progress', widget, .5 + progress / 2.)

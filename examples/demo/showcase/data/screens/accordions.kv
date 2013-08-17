@@ -1,0 +1,39 @@
+ShowcaseScreen:
+	name: 'accordions'
+
+	fullscreen: True
+
+	BoxLayout:
+		size_hint_y: None
+		height: '48dp'
+
+		ToggleButton:
+			id: tbh
+			text: 'Horizontal'
+			group: 'accordion'
+			state: 'down'
+
+		ToggleButton:
+			text: 'Vertical'
+			group: 'accordion'
+
+	Accordion:
+
+		orientation: 'horizontal' if tbh.state == 'down' else 'vertical'
+
+		AccordionItem:
+			title: 'Panel 1'
+			Label:
+				text: 'This is a label fit to the content view'
+				text_size: self.width, None
+
+		AccordionItem:
+			title: 'Panel 2'
+			Button:
+				text: 'A button, what else?'
+
+		AccordionItem:
+			title: 'Panel 3'
+			Label:
+				text: 'This is a label fit to the content view'
+				text_size: self.width, None

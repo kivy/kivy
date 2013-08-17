@@ -1,0 +1,23 @@
+ShowcaseScreen:
+	name: 'rstdocument'
+	fullscreen: True
+
+	GridLayout:
+		cols: 2
+		spacing: '8dp'
+
+		TextInput:
+			id: textinput
+			text:
+				('.. _top:\n'
+				'\n'
+				'Hello world\n'
+				'===========\n'
+				'\n'
+				'This is an **emphased text**, *italic text*, ``interpreted text``.\n'
+				'And this is a reference to top_::\n'
+				'\n'
+				'	$ print("Hello world")\n')
+
+		RstDocument:
+			text: textinput.text

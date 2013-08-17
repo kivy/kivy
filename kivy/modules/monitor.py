@@ -2,10 +2,11 @@
 Monitor module
 ==============
 
-Monitor module is a toolbar that show activity of your current application :
+The Monitor module is a toolbar that shows the activity of your current
+application :
 
 * FPS
-* Graph of input event
+* Graph of input events
 
 '''
 

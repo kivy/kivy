@@ -8,20 +8,21 @@ Inspector
 
     This module is highly experimental, use it with care.
 
-Inspector is a tool to lookup the widget tree by pointing widget on the screen.
-Some keyboard shortcut are activated:
+The Inspector is a tool for finding a widget in the widget tree by clicking or
+tapping on it.
+Some keyboard shortcuts are activated:
 
-    * "Ctrl + e": activate / deactivate inspector view
-    * "Escape": cancel widget inspect first, then hide inspector view
+    * "Ctrl + e": activate / deactivate the inspector view
+    * "Escape": cancel widget lookup first, then hide the inspector view
 
-Available inspect interactions:
+Available inspector interactions:
 
     * tap once on a widget to select it without leaving inspect mode
     * double tap on a widget to select and leave inspect mode (then you can
       manipulate the widget again)
 
-Some properties can be edited in live. However, this due to delayed usage of
-some properties, you might have crash if you didn't handle all the case.
+Some properties can be edited live. However, due to the delayed usage of
+some properties, it might crash if you don't handle all the cases.
 
 '''
 

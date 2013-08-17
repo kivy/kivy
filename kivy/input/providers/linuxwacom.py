@@ -2,7 +2,7 @@
 Native support of Wacom tablet from linuxwacom driver
 =====================================================
 
-To configure LinuxWacom, put in your configuration::
+To configure LinuxWacom, add this to your configuration::
 
     [input]
     pen = linuxwacom,/dev/input/event2,mode=pen
@@ -11,9 +11,9 @@ To configure LinuxWacom, put in your configuration::
 .. note::
     You must have read access to the input event.
 
-You have the possibility to use custom range for some X, Y and pressure value.
+You can use a custom range for the X, Y and pressure values.
 On some drivers, the range reported is invalid.
-To fix that, you can add one of theses options on the argument line :
+To fix that, you can add these options to the argument line:
 
 * invert_x : 1 to invert X axis
 * invert_y : 1 to invert Y axis

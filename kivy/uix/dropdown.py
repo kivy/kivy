@@ -157,8 +157,10 @@ class DropDown(ScrollView):
     def __init__(self, **kwargs):
         self._win = None
         super(DropDown, self).__init__(**kwargs)
-        self.container.bind(minimum_size=self._container_minimum_size)
         self.bind(size=self._reposition)
+
+    def on_container(self, instance, value):
+        self.container.bind(minimum_size=self._container_minimum_size)
 
     def open(self, widget):
         '''Open the dropdown list, and attach to a specific widget.

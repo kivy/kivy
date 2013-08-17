@@ -23,7 +23,7 @@ class InputPostprocDoubleTap(object):
         double_tap_time = 250
         double_tap_distance = 20
 
-    Distance parameter is in 0-1000, and time is in millisecond.
+    Distance parameter is in the range 0-1000 and time is in milliseconds.
     '''
 
     def __init__(self):
@@ -35,9 +35,9 @@ class InputPostprocDoubleTap(object):
 
     def find_double_tap(self, ref):
         '''Find a double tap touch within self.touches.
-        The touch must be not a previous double tap, and the distance
-        must be ok, also, the touch profile must be compared so the kind
-        of touch is the same
+        The touch must be not a previous double tap and the distance must be
+        within the specified threshold. Additionally, the touch profiles must be
+        the same kind of touch.
         '''
         ref_button = None
         if 'button' in ref.profile:

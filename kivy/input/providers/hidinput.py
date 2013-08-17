@@ -1,10 +1,10 @@
 '''
-Native support of HID input from linux kernel
-=============================================
+Native support for HID input from the linux kernel
+==================================================
 
-Support start from 2.6.32-ubuntu, or 2.6.34.
+Support starts from 2.6.32-ubuntu, or 2.6.34.
 
-To configure HIDInput, put in your configuration::
+To configure HIDInput, add this to your configuration::
 
     [input]
     # devicename = hidinput,/dev/input/eventXX
@@ -14,9 +14,9 @@ To configure HIDInput, put in your configuration::
 .. note::
     You must have read access to the input event.
 
-You have the possibility to use custom range for some X, Y and pressure value.
-On some drivers, the range reported is invalid.
-To fix that, you can add one of theses options on the argument line :
+You can use a custom range for the X, Y and pressure values.
+For some drivers, the range reported is invalid.
+To fix that, you can add these options to the argument line:
 
 * invert_x : 1 to invert X axis
 * invert_y : 1 to invert Y axis
@@ -27,9 +27,9 @@ To fix that, you can add one of theses options on the argument line :
 * min_pressure : pressure minimum
 * max_pressure : pressure maximum
 
-For example, on Asus T101M, the touchscreen report a range from 0-4095 for X and
-Y value, but real value are in a range from 0-32768. You can put it on
-configuration::
+For example, on the Asus T101M, the touchscreen reports a range from 0-4095 for
+the X and Y values, but the real values are in a range from 0-32768. To correct
+this, you can add the following to the configuration::
 
     [input]
     t101m = hidinput,/dev/input/event7,max_position_x=32768,max_position_y=32768
