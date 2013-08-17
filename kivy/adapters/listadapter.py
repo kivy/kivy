@@ -165,15 +165,24 @@ class ListAdapter(Selection, Adapter):
     def __init__(self, **kwargs):
 
         controller = None
+        list_property_owner = None
+        list_property_name = None
 
         if isinstance(kwargs['data'], ListController):
             controller = kwargs['data']
             kwargs['data'] = controller.data
 
+        if isinstance(kwargs['data'], tuple):
+            list_property_owner, list_property_name = kwargs['data']
+            kwargs['data'] = getattr(list_property_owner, list_property_name)
+
         super(ListAdapter, self).__init__(**kwargs)
 
         if controller:
             controller.bind(data=self.setter('data'))
+
+        if list_property_owner and list_property_name:
+            list_property_owner.bind(**{list_property_name: self.setter('data')})
 
         self.list_op_handler = AdapterListOpHandler(
                 source_list=self.data, duplicates_allowed=True)
