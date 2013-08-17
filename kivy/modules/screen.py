@@ -20,6 +20,14 @@ Simulate a high-density screen as HTC One X, in portrait::
 Simulate the iPad 2 screen::
 
     python main.py -m screen:ipad
+    
+If the generated window is too large, you can specify a scale::
+
+    python main.py -m screen:note2,portrait,scale=.75
+    
+Note that to display your contents correctly on a scaled window you must 
+consistently use units 'dp' and 'sp' throughout your app. See :mod:`~kiv.metrics`
+for more details.
 '''
 
 import sys
