@@ -9,8 +9,8 @@ Web Debugger
 
     This module is highly experimental, use it with care.
 
-This module will start a webserver and run in background. You can see how your
-application is evolving during the runtime, see internal cache etc.
+This module will start a webserver and run in the background. You can see how
+your application is evolving during runtime, examine the internal cache etc.
 
 Run with::
 
