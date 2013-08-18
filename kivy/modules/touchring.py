@@ -11,9 +11,9 @@ Configuration
 :Parameters:
     `image`: str, defaults to '<kivy>/data/images/ring.png'
         Filename of the image to use.
-    `scale`: float, default to 1.
+    `scale`: float, defaults to 1.
         Scale of the image.
-    `alpha`: float, default to 1.
+    `alpha`: float, defaults to 1.
         Opacity of the image.
 
 Example
