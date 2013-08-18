@@ -112,35 +112,35 @@ class TuioMotionEventProvider(MotionEventProvider):
 
     @staticmethod
     def register(oscpath, classname):
-        '''Register a new path to handle in tuio provider'''
+        '''Register a new path to handle in TUIO provider'''
         TuioMotionEventProvider.__handlers__[oscpath] = classname
 
     @staticmethod
     def unregister(oscpath, classname):
-        '''Unregister a path to stop handling it in the tuio provider'''
+        '''Unregister a path to stop handling it in the TUIO provider'''
         if oscpath in TuioMotionEventProvider.__handlers__:
             del TuioMotionEventProvider.__handlers__[oscpath]
 
     @staticmethod
     def create(oscpath, **kwargs):
-        '''Create a touch from a tuio path'''
+        '''Create a touch event from a TUIO path'''
         if oscpath not in TuioMotionEventProvider.__handlers__:
             raise Exception('Unknown %s touch path' % oscpath)
         return TuioMotionEventProvider.__handlers__[oscpath](**kwargs)
 
     def start(self):
-        '''Start the tuio provider'''
+        '''Start the TUIO provider'''
         self.oscid = osc.listen(self.ip, self.port)
         for oscpath in TuioMotionEventProvider.__handlers__:
             self.touches[oscpath] = {}
             osc.bind(self.oscid, self._osc_tuio_cb, oscpath)
 
     def stop(self):
-        '''Stop the tuio provider'''
+        '''Stop the TUIO provider'''
         osc.dontListen(self.oscid)
 
     def update(self, dispatch_fn):
-        '''Update the tuio provider (pop events from the queue)'''
+        '''Update the TUIO provider (pop events from the queue)'''
 
         # deque osc queue
         osc.readQueue(self.oscid)
@@ -202,7 +202,7 @@ class TuioMotionEvent(MotionEvent):
     '''Abstraction for TUIO touches/fiducials.
 
     Depending on the tracking software you use (e.g. Movid, CCV, etc.) and its
-    TUIO implementation, the TuioMotionEvent object will support multiple
+    TUIO implementation, the TuioMotionEvent object can support multiple
     profiles such as:
 
         * Fiducial ID: profile name 'markerid', attribute ``.fid``
