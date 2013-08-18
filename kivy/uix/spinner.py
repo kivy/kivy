@@ -104,10 +104,12 @@ class Spinner(Button):
     def _build_dropdown(self, *largs):
         if self._dropdown:
             self._dropdown.unbind(on_select=self._on_dropdown_select)
+            self._dropdown.unbind(on_dismiss=self._toggle_dropdown)
             self._dropdown.dismiss()
             self._dropdown = None
         self._dropdown = self.dropdown_cls()
         self._dropdown.bind(on_select=self._on_dropdown_select)
+        self._dropdown.bind(on_dismiss=self._toggle_dropdown)
         self._update_dropdown()
 
     def _update_dropdown(self, *largs):
@@ -130,5 +132,6 @@ class Spinner(Button):
         if value:
             self._dropdown.open(self)
         else:
-            self._dropdown.dismiss()
+            if self._dropdown.attach_to:
+                self._dropdown.dismiss()
 
