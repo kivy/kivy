@@ -293,7 +293,10 @@ class ClockEvent(object):
         return True
 
     def __repr__(self):
-        return '<ClockEvent callback=%r>' % self.get_callback()
+        return '<%s callback=%r>' % (str(type(self)), self.get_callback())
+
+class ClockSandboxEvent(ClockEvent):
+    pass
 
 
 class ClockBase(_ClockBase):
@@ -371,13 +374,89 @@ class ClockBase(_ClockBase):
         self._process_events()
 
         return self._dt
+    
+    def tick_sandbox(self):
+        '''Advance clock to the next step. Must be called every frame.
+        The default clock have the tick() function called by Kivy'''
+
+        self._release_references()
+        if self._fps_counter % 100 == 0:
+            self._remove_empty()
+
+        # do we need to sleep ?
+        if self._max_fps > 0:
+            min_sleep = self.MIN_SLEEP
+            sleep_undershoot = self.SLEEP_UNDERSHOOT
+            fps = self._max_fps
+            usleep = self.usleep
+
+            sleeptime = 1 / fps - (_default_time() - self._last_tick)
+            while sleeptime - sleep_undershoot > min_sleep:
+                usleep(1000000 * (sleeptime - sleep_undershoot))
+                sleeptime = 1 / fps - (_default_time() - self._last_tick)
+
+        # tick the current time
+        current = _default_time()
+        self._dt = current - self._last_tick
+        self._fps_counter += 1
+        self._last_tick = current
+
+        # calculate fps things
+        if self._last_fps_tick is None:
+            self._last_fps_tick = current
+        elif current - self._last_fps_tick > 1:
+            d = float(current - self._last_fps_tick)
+            self._fps = self._fps_counter / d
+            self._rfps = self._rfps_counter
+            self._last_fps_tick = current
+            self._fps_counter = 0
+            self._rfps_counter = 0
+
+        # process event
+        events = self._events
+        for cid in list(events.keys())[:]:
+            for event in events[cid][:]:
+                if not isinstance(event, ClockSandboxEvent) and event.tick(self._last_tick) is False:
+                    # event may be already removed by the callback
+                    if event in events[cid]:
+                        events[cid].remove(event)
+
+        return self._dt
 
     def tick_draw(self):
         '''Tick the drawing counter
         '''
         self._process_events_before_frame()
         self._rfps_counter += 1
+    
+    def tick_draw_sandbox(self):
+        found = True
+        count = self.max_iteration
+        events = self._events
 
+        while found:
+            count -= 1
+            if count == -1:
+                Logger.critical('Clock Tick Sandbox: Warning,CLOCK TICK')
+                break
+
+            # search event that have timeout = -1
+            found = False
+            for cid in list(events.keys())[:]:
+                for event in events[cid][:]:
+                    if event.timeout != -1:
+                        continue
+                    
+                    if not isinstance(event, ClockSandboxEvent):
+                        found = True
+
+                    if not isinstance(event, ClockSandboxEvent) and event.tick(self._last_tick) is False:
+                        # event may be already removed by the callback
+                        if event in events[cid]:
+                            events[cid].remove(event)
+
+        self._rfps_counter += 1
+        
     def get_fps(self):
         '''Get the current average FPS calculated by the clock
         '''
@@ -423,6 +502,17 @@ class ClockBase(_ClockBase):
             raise ValueError('callback must be a callable, got %s' % callback)
         cid = _hash(callback)
         event = ClockEvent(self, False, callback, timeout, self._last_tick, cid)
+        events = self._events
+        if not cid in events:
+            events[cid] = []
+        events[cid].append(event)
+        return event
+    
+    def schedule_interval_for_sandbox(self, callback, timeout):
+        if not callable(callback):
+            raise ValueError('callback must be a callable, got %s' % callback)
+        cid = _hash(callback)
+        event = ClockSandboxEvent(self, True, callback, timeout, self._last_tick, cid)
         events = self._events
         if not cid in events:
             events[cid] = []
@@ -488,6 +578,7 @@ class ClockBase(_ClockBase):
         found = True
         count = self.max_iteration
         events = self._events
+
         while found:
             count -= 1
             if count == -1:
@@ -502,7 +593,10 @@ class ClockBase(_ClockBase):
                 for event in events[cid][:]:
                     if event.timeout != -1:
                         continue
-                    found = True
+                        
+                    if not isinstance(event, ClockSandboxEvent):
+                        found = True
+
                     if event.tick(self._last_tick) is False:
                         # event may be already removed by the callback
                         if event in events[cid]:
@@ -537,6 +631,7 @@ if 'KIVY_DOC_INCLUDE' in environ:
     #: Instance of the ClockBase, available for everybody
     Clock = None
 else:
-    print 'register context'
+    print 'register clocks context'
     Clock = register_context('Clock', ClockBase)
+    #Clock = ClockBase() 
 
