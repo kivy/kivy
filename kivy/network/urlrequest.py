@@ -4,12 +4,12 @@ Url Request
 
 .. versionadded:: 1.0.8
 
-You can use the :class:`UrlRequest` to make asynchronous request on the web, and
-get the result when the request is completed. The spirit is the same as XHR
+You can use the :class:`UrlRequest` to make asynchronous requests on the web and
+get the result when the request is completed. The spirit is the same as the XHR
 object in Javascript.
 
-The content is also decoded, aka for now, if the Content-Type is
-application/json, the result will be automatically passed through json.loads.
+The content is also decoded if the Content-Type is
+application/json and the result automatically passed through json.loads.
 
 
 The syntax to create a request::
@@ -18,10 +18,10 @@ The syntax to create a request::
     req = UrlRequest(url, on_success, on_error, req_body, req_headers)
 
 
-Only the first argument is mandatory, all the rest is optional.
-By default, a "GET" request will be done. If :data:`UrlRequest.req_body` is not
-None, a "POST" request will be done. It's up to you to adjust
-:data:`UrlRequest.req_headers` if necessary.
+Only the first argument is mandatory: the rest are optional.
+By default, a "GET" request will be sent. If the :data:`UrlRequest.req_body` is
+not None, a "POST" request will be sent. It's up to you to adjust
+:data:`UrlRequest.req_headers` to suite your requirements.
 
 
 Example of fetching twitter trends::
@@ -87,7 +87,7 @@ g_requests = []
 
 
 class UrlRequest(Thread):
-    '''Url request. See module documentation for usage.
+    '''A UrlRequest. See module documentation for usage.
 
     .. versionchanged:: 1.5.1
         Add `debug` parameter
@@ -99,41 +99,42 @@ class UrlRequest(Thread):
         `url`: str
             Complete url string to call.
         `on_success`: callback(request, result)
-            Callback function to call when the result have been fetched
+            Callback function to call when the result has been fetched.
         `on_redirect`: callback(request, result)
-            Callback function to call if the server returns a Redirect
+            Callback function to call if the server returns a Redirect.
         `on_failure`: callback(request, result)
-            Callback function to call if the server returns a Client Error or Server Error
+            Callback function to call if the server returns a Client or
+            Server Error.
         `on_error`: callback(request, error)
-            Callback function to call when an error happen
+            Callback function to call if an error occurs.
         `on_progress`: callback(request, current_size, total_size)
             Callback function that will be called to report progression of the
-            download. `total_size` might be -1 if no Content-Length have been
+            download. `total_size` might be -1 if no Content-Length has been
             reported in the http response.
-            This callback will be called after each `chunk_size` read.
-        `req_body`: str, default to None
+            This callback will be called after each `chunk_size` is read.
+        `req_body`: str, defaults to None
             Data to sent in the request. If it's not None, a POST will be done
-            instead of a GET
-        `req_headers`: dict, default to None
-            Custom headers to add for the request
+            instead of a GET.
+        `req_headers`: dict, defaults to None
+            Custom headers to add to the request.
         `chunk_size`: int, default to 8192
             Size of each chunk to read, used only when `on_progress` callback
-            have been set. If you decrease it too much, a lot of on_progress
-            will be fired, and will slow down your download. If you want to have
-            the maximum download speed, increase chunk_size, or don't use
-            on_progress.
-        `timeout`: int, default to None
-            If set, blocking operations will timeout after that many seconds.
-        `method`: str, default to 'GET' (or 'POST' if body)
-            HTTP method to use
-        `decode`: bool, default to True
-            If False, skip decoding of response.
-        `debug`: bool, default to False
+            has been set. If you decrease it too much, a lot of on_progress
+            callbacks will be fired and will slow down your download. If you
+            want to have the maximum download speed, increase the chunk_size
+            or don't use ``on_progress``.
+        `timeout`: int, defaults to None
+            If set, blocking operations will timeout after this many seconds.
+        `method`: str, defaults to 'GET' (or 'POST' if ``body`` is specified)
+            The HTTP method to use.
+        `decode`: bool, defaults to True
+            If False, skip decoding of the response.
+        `debug`: bool, defaults to False
             If True, it will use the Logger.debug to print information about url
-            access/progression/error.
-        `file_path`: str, default to None
-            If set, the result of the UrlRequest will be written to this path instead
-            of in memory.
+            access/progression/errors.
+        `file_path`: str, defaults to None
+            If set, the result of the UrlRequest will be written to this path
+            instead of in memory.
 
     .. versionadded:: 1.8.0
         Parameter `decode` added.
@@ -311,8 +312,9 @@ class UrlRequest(Thread):
         return result, resp
 
     def get_connection_for_scheme(self, scheme):
-        '''Return the Connection class from a particular scheme.
-        This is an internal that can be expanded to support custom scheme.
+        '''Return the Connection class for a particular scheme.
+        This is an internal function that can be expanded to support custom
+        schemes.
 
         Actual supported schemes: http, https.
         '''
@@ -325,7 +327,7 @@ class UrlRequest(Thread):
 
     def decode_result(self, result, resp):
         '''Decode the result fetched from url according to his Content-Type.
-        Actually, only decode application/json.
+        Currently supports only application/json.
         '''
         # Entry to decode url from the content type.
         # For example, if the content type is a json, it will be automatically
@@ -416,7 +418,7 @@ class UrlRequest(Thread):
 
     @property
     def is_finished(self):
-        '''Return True if the request have finished, whatever is if it's a
+        '''Return True if the request has finished, whether it's a
         success or a failure.
         '''
         return self._is_finished
@@ -424,28 +426,28 @@ class UrlRequest(Thread):
     @property
     def result(self):
         '''Return the result of the request.
-        This value is not undeterminate until the request is finished.
+        This value is not determined until the request is finished.
         '''
         return self._result
 
     @property
     def resp_headers(self):
-        '''If the request have been done, return a dictionary containing the
-        headers of the response. Otherwise, it will return None
+        '''If the request has been completed, return a dictionary containing
+        the headers of the response. Otherwise, it will return None.
         '''
         return self._resp_headers
 
     @property
     def resp_status(self):
         '''Return the status code of the response if the request is complete,
-        otherwise return None
+        otherwise return None.
         '''
         return self._resp_status
 
     @property
     def error(self):
         '''Return the error of the request.
-        This value is not undeterminate until the request is finished.
+        This value is not determined until the request is completed.
         '''
         return self._error
 
@@ -455,16 +457,16 @@ class UrlRequest(Thread):
         on_progress callback is set.)
         '''
         return self._chunk_size
+        '''If you want a synchronous request, you can call the wait() method.
 
     def wait(self, delay=0.5):
-        '''If you want a sync request, you can call the wait() method. It will
         wait for the request to be finished (until :data:`resp_status` is not
         None)
 
         .. note::
             This method is intended to be used in the main thread, and the
             callback will be dispatched from the same thread as the thread
-            you're calling it.
+            from which you're calling.
 
         .. versionadded:: 1.1.0
         '''
