@@ -210,7 +210,7 @@ def _hash(cb):
 
 class ClockEvent(object):
 
-    def __init__(self, clock, loop, callback, timeout, starttime, cid, sandbox_event=False):
+    def __init__(self, clock, loop, callback, timeout, starttime, cid):
         self.clock = clock
         self.cid = cid
         self.loop = loop
@@ -220,7 +220,6 @@ class ClockEvent(object):
         self._is_triggered = False
         self._last_dt = starttime
         self._dt = 0.
-        self.sandbox_event = sandbox_event
 
     def __call__(self, *largs):
         # if the event is not yet triggered, do it !
@@ -331,7 +330,7 @@ class ClockBase(_ClockBase):
         '''
         return self._dt
 
-    def tick(self, from_sandbox=False):
+    def tick(self):
         '''Advance clock to the next step. Must be called every frame.
         The default clock have the tick() function called by Kivy'''
 
@@ -369,14 +368,14 @@ class ClockBase(_ClockBase):
             self._rfps_counter = 0
 
         # process event
-        self._process_events(from_sandbox=from_sandbox)
+        self._process_events()
 
         return self._dt
 
-    def tick_draw(self, from_sandbox=False):
+    def tick_draw(self):
         '''Tick the drawing counter
         '''
-        self._process_events_before_frame(from_sandbox=from_sandbox)
+        self._process_events_before_frame()
         self._rfps_counter += 1
 
     def get_fps(self):
@@ -430,13 +429,12 @@ class ClockBase(_ClockBase):
         events[cid].append(event)
         return event
 
-    def schedule_interval(self, callback, timeout, from_sandbox=False):
+    def schedule_interval(self, callback, timeout):
         '''Schedule an event to be called every <timeout> seconds'''
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
         cid = _hash(callback)
-        event = ClockEvent(self, True, callback, timeout, self._last_tick, cid, sandbox_event=from_sandbox)
-        print event, event.sandbox_event
+        event = ClockEvent(self, True, callback, timeout, self._last_tick, cid)
         events = self._events
         if not cid in events:
             events[cid] = []
@@ -477,17 +475,16 @@ class ClockBase(_ClockBase):
             if not events[cid]:
                 del events[cid]
 
-    def _process_events(self, from_sandbox=False):
+    def _process_events(self):
         events = self._events
         for cid in list(events.keys())[:]:
             for event in events[cid][:]:
-                is_valid = from_sandbox and event.sandbox_event                
-                if not is_valid and event.tick(self._last_tick) is False:
+                if event.tick(self._last_tick) is False:
                     # event may be already removed by the callback
                     if event in events[cid]:
                         events[cid].remove(event)
 
-    def _process_events_before_frame(self, from_sandbox=False):
+    def _process_events_before_frame(self):
         found = True
         count = self.max_iteration
         events = self._events
@@ -505,12 +502,8 @@ class ClockBase(_ClockBase):
                 for event in events[cid][:]:
                     if event.timeout != -1:
                         continue
-
-                    is_valid = from_sandbox and event.sandbox_event
-                    if not event.sandbox_event:
-                        found = True
-
-                    if not is_valid and event.tick(self._last_tick) is False:
+                    found = True
+                    if event.tick(self._last_tick) is False:
                         # event may be already removed by the callback
                         if event in events[cid]:
                             events[cid].remove(event)
