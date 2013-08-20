@@ -51,8 +51,8 @@ class Sandbox(FloatLayout):
         self._context.pop()
 
         # now force Clock scheduling
-        Clock.schedule_interval_for_sandbox(self._clock_sandbox, 0)
-        Clock.schedule_interval_for_sandbox(self._clock_sandbox_draw, -1)
+        Clock.schedule_interval(self._clock_sandbox, 0, from_sandbox=True)
+        Clock.schedule_interval(self._clock_sandbox_draw, -1, from_sandbox=True)
 
     def __enter__(self):
         #print 'ENTERING THE SANDBOX', self
@@ -107,12 +107,12 @@ class Sandbox(FloatLayout):
     @sandbox
     def _clock_sandbox(self, dt):
         #import pdb; pdb.set_trace()
-        Clock.tick_sandbox()
+        Clock.tick(from_sandbox=True)
         Builder.sync()
 
     @sandbox
     def _clock_sandbox_draw(self, dt):
-        Clock.tick_draw_sandbox()
+        Clock.tick_draw(from_sandbox=True)
         #print 'clock sandbox draw'
         Builder.sync()
 
@@ -140,7 +140,7 @@ if __name__ == '__main__':
             texture: self.texture
 
     # invalid... for testing.
-    #on_release: args()
+    #on_release: root.pos()
 ''')
         b = Button(text='Hello World')
         def f(*args):
