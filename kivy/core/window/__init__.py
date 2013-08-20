@@ -1012,5 +1012,6 @@ Window = core_select_lib('window', (
     ('egl_rpi', 'window_egl_rpi', 'WindowEglRpi'),
     ('pygame', 'window_pygame', 'WindowPygame'),
     ('sdl', 'window_sdl', 'WindowSDL'),
+    ('sdl2', 'window_sdl2', 'WindowSDL'),
     ('x11', 'window_x11', 'WindowX11'),
 ), True)
