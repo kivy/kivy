@@ -38,14 +38,18 @@ _default_context = None
 _context_stack = []
 
 class Context(dict):
+
     def __init__(self, init=False):
         dict.__init__(self)
         if not init:
             return
+
         for name in _contexts:
             context = _contexts[name]
             instance = context['cls'](*context['args'], **context['kwargs'])
             self[name] = instance
+        
+        print self
 
 
     def push(self):
@@ -70,7 +74,10 @@ def register_context(name, cls, *args, **kwargs):
     _default_context[name] = instance
     return proxy
 
+    
 def get_current_context():
+    if not _context_stack:
+        return _default_context
     return _context_stack[-1]
 
 _default_context = Context(init=False)
