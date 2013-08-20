@@ -50,6 +50,7 @@ Example of Posting data (adapted from httplib example)::
     req = UrlRequest('bugs.python.org', on_success=bug_posted, req_body=params,
             req_headers=headers)
 
+If you want a synchronous request, you can call the wait() method.
 
 '''
 
@@ -457,10 +458,9 @@ class UrlRequest(Thread):
         on_progress callback is set.)
         '''
         return self._chunk_size
-        '''If you want a synchronous request, you can call the wait() method.
 
     def wait(self, delay=0.5):
-        wait for the request to be finished (until :data:`resp_status` is not
+        '''Wait for the request to finish (until :data:`resp_status` is not
         None)
 
         .. note::
