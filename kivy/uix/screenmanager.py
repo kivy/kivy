@@ -100,6 +100,7 @@ You have multiple transition available by default, such as:
 
 - :class:`SlideTransition` - slide screen in/out, from any direction
 - :class:`SwapTransition` - implementation of the iOS swap transition
+- :class:`CardflipTransition` - shader to flip screen over
 - :class:`FadeTransition` - shader to fade in/out the screens
 - :class:`WipeTransition` - shader to wipe from right to left the screens
 
@@ -123,7 +124,7 @@ You can easily switch to a new transition by changing the
 
 __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
     'TransitionBase', 'ShaderTransition', 'SlideTransition', 'SwapTransition',
-    'FadeTransition', 'WipeTransition')
+    'Cardflip2DTransition', 'FadeTransition', 'WipeTransition')
 
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
@@ -560,8 +561,9 @@ class FadeTransition(ShaderTransition):
     fs = StringProperty(FADE_TRANSITION_FS)
 
 
-class 2DCardflipTransition(ShaderTransition):
-    '''2D Cardflip transition, based on a fragment Shader.
+class CardflipTransition(ShaderTransition):
+    '''Cardflip transition, based on a fragment Shader.  No perspective or 
+    selection of axis supported yet.
     '''
 
     CARDFLIP_FS = '''$HEADER$
