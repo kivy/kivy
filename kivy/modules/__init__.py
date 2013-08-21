@@ -3,13 +3,20 @@ Modules
 =======
 
 Modules are classes that can be loaded when a Kivy application is starting. The
-loading of modules is managed by the config file. For example, we have a few
-modules like:
+loading of modules is managed by the config file. Currently, we include:
 
-    * touchring: Draw a circle around each touch.
-    * monitor: Add a red topbar that indicates the FPS and a small graph
-      indicating input activity.
-    * keybinding: Bind some keys to actions, such as a screenshot.
+    * :class:`~kivy.modules.touchring`: Draw a circle around each touch.
+    * :class:`~kivy.modules.monitor`: Add a red topbar that indicates the FPS
+      and a small graph indicating input activity.
+    * :class:`~kivy.modules.keybinding`: Bind some keys to actions, such as a
+      screenshot.
+    * :class:`~kivy.modules.recorder`: Record and playback a sequence of events.
+    * :class:`~kivy.modules.screen`: Emulate the characteristics (dpi/density/
+      resolution) of different screens.
+    * :class:`~kivy.modules.inspector`: Examines your widget heirarchy and
+      widget properties.
+    * :class:`~kivy.modules.webdebugger`: Realtime examination of your app
+      internals via a web browser.
 
 Modules are automatically loaded from the Kivy path and User path:
 

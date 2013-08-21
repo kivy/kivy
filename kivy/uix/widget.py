@@ -149,8 +149,6 @@ class Widget(WidgetBase):
     __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
 
     def __init__(self, **kwargs):
-        self._proxy_ref = None
-
         # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
 
@@ -184,20 +182,24 @@ class Widget(WidgetBase):
 
         .. versionadded:: 1.7.2
         '''
-        _proxy_ref = self._proxy_ref
-        if _proxy_ref is None:
-            f = partial(_widget_destructor, self.uid)
-            self._proxy_ref = _proxy_ref = proxy(self, f)
-            # only f should be enough here, but it appears that is a very
-            # specific case, the proxy destructor is not called if both f and
-            # _proxy_ref are not together in a tuple
-            _widget_destructors[self.uid] = (f, _proxy_ref)
+        if hasattr(self, '_proxy_ref'):
+            return self._proxy_ref
+
+        f = partial(_widget_destructor, self.uid)
+        self._proxy_ref = _proxy_ref = proxy(self, f)
+        # only f should be enough here, but it appears that is a very
+        # specific case, the proxy destructor is not called if both f and
+        # _proxy_ref are not together in a tuple
+        _widget_destructors[self.uid] = (f, _proxy_ref)
         return _proxy_ref
 
     def __eq__(self, other):
         if not isinstance(other, Widget):
             return False
         return self.proxy_ref is other.proxy_ref
+
+    def __hash__(self):
+        return id(self)
 
     @property
     def __self__(self):

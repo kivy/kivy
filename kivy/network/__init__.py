@@ -2,6 +2,6 @@
 Network support
 ===============
 
-Kivy start to have some support for network request.
-Right now, check :class:`kivy.network.urlrequest.UrlRequest` !
+Kivy currently supports basic, asynchronous network requests.
+Please refer to :class:`kivy.network.urlrequest.UrlRequest`.
 '''

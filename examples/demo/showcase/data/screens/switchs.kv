@@ -1,0 +1,38 @@
+ShowcaseScreen:
+	name: 'switches'
+
+	BoxLayout:
+		size_hint_y: None
+		height: '48dp'
+
+		Label:
+			text: 'Switch normal'
+		Switch:
+
+	BoxLayout:
+		size_hint_y: None
+		height: '48dp'
+
+		Label:
+			text: 'Switch active'
+		Switch:
+			active: True
+
+	BoxLayout:
+		size_hint_y: None
+		height: '48dp'
+
+		Label:
+			text: 'Switch disabled'
+		Switch:
+			disabled: True
+
+	BoxLayout:
+		size_hint_y: None
+		height: '48dp'
+
+		Label:
+			text: 'Switch active & disabled'
+		Switch:
+			disabled: True
+			active: True

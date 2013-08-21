@@ -1,0 +1,39 @@
+ShowcaseScreen:
+	name: 'togglebutton'
+
+	GridLayout:
+
+		cols: 3
+		spacing: '8dp'
+		size_hint_y: None
+		height: self.minimum_height
+
+		Label:
+			text: 'Choice 1'
+
+		ToggleButton:
+			size_hint_y: None
+			height: '48dp'
+			text: 'A'
+			group: 'g1'
+
+		ToggleButton:
+			size_hint_y: None
+			height: '48dp'
+			text: 'B'
+			group: 'g1'
+
+		Label:
+			text: 'Choice 2'
+
+		ToggleButton:
+			size_hint_y: None
+			height: '48dp'
+			text: 'A'
+			group: 'g2'
+
+		ToggleButton:
+			size_hint_y: None
+			height: '48dp'
+			text: 'B'
+			group: 'g2'

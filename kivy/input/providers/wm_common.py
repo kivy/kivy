@@ -1,8 +1,8 @@
 '''
-Common definitions for Windows provider
-=======================================
+Common definitions for a Windows provider
+=========================================
 
-This file provides common definitions of constants used for WM_Touch / WM_Pen
+This file provides common definitions for constants used by WM_Touch / WM_Pen.
 '''
 
 WM_MOUSEFIRST = 512

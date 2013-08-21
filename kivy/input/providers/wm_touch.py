@@ -1,6 +1,6 @@
 '''
-Support of WM_TOUCH message (Window platform)
-=============================================
+Support for WM_TOUCH messages (Windows platform)
+================================================
 '''
 
 __all__ = ('WM_MotionEventProvider', 'WM_MotionEvent')

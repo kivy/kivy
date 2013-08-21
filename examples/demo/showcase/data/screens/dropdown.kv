@@ -1,0 +1,40 @@
+ShowcaseScreen:
+	fullscreen: True
+	name: 'dropdown'
+
+	# trick to not lost the Dropdown instance
+	# Dropdown itself is not really made to be used in kv.
+	__safe_id: [dropdown.__self__]
+
+	Button:
+		id: btn
+		text: '-'
+		on_release: dropdown.open(self)
+		size_hint_y: None
+		height: '48dp'
+
+	Widget
+
+	DropDown:
+
+		id: dropdown
+		on_parent: self.dismiss()
+		on_select: btn.text = 'Selected value: {}'.format(args[1])
+
+		Button:
+			text: 'Value A'
+			size_hint_y: None
+			height: '48dp'
+			on_release: dropdown.select('A')
+
+		Button:
+			text: 'Value B'
+			size_hint_y: None
+			height: '48dp'
+			on_release: dropdown.select('B')
+
+		Button:
+			text: 'Value C'
+			size_hint_y: None
+			height: '48dp'
+			on_release: dropdown.select('C')

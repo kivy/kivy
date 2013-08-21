@@ -40,6 +40,20 @@ screen, you absolutely need to give a name to it::
     # The transition will be automatically used.
     sm.current = 'Title 2'
 
+From 1.8.0, you can now switch dynamically to a new screen, change the
+transition options, and remove the previous one, using
+:meth:`ScreenManager.switch_to`::
+
+    sm = ScreenManager()
+    screens = [Screen(name='Title {}'.format(i)) for i in range(4)]
+
+    sm.switch_to(screens[0])
+    # later
+
+    # default :data:`ScreenManager.transition` is a :class:`SlideTransition`.
+    # options are `direction` and `duration`
+    sm.swith_to(screens[1], direction='right')
+
 
 Please note that by default, a :class:`Screen` display nothing, it's just a
 :class:`~kivy.uix.relativelayout.RelativeLayout`. You need to use that class as
@@ -126,6 +140,7 @@ __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
     'TransitionBase', 'ShaderTransition', 'SlideTransition', 'SwapTransition',
     'Cardflip2DTransition', 'FadeTransition', 'WipeTransition')
 
+from kivy.compat import iteritems
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.uix.floatlayout import FloatLayout
@@ -134,10 +149,9 @@ from kivy.properties import StringProperty, ObjectProperty, AliasProperty, \
 from kivy.animation import Animation, AnimationTransition
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
-from kivy.graphics.transformation import Matrix
 from kivy.graphics import RenderContext, Rectangle, Fbo, \
-        ClearColor, ClearBuffers, BindTexture, Rotate
-from kivy.config import Config
+        ClearColor, ClearBuffers, BindTexture, PushMatrix, \
+        PopMatrix, Translate
 
 
 class ScreenManagerException(Exception):
@@ -254,11 +268,15 @@ class TransitionBase(EventDispatcher):
     to None.
     '''
 
-    duration = NumericProperty(.7)
+    duration = NumericProperty(.4)
     '''Duration in seconds of the transition.
 
     :class:`duration` is a :class:`~kivy.properties.NumericProperty`, default
-    to .7 (= 700ms)
+    to .4 (= 400ms)
+
+    .. versionchanged:: 1.8.0
+
+        Default duration has been changed from 700ms to 400ms.
     '''
 
     manager = ObjectProperty()
@@ -389,6 +407,11 @@ class ShaderTransition(TransitionBase):
             ClearColor(0, 0, 0, 1)
             ClearBuffers()
         fbo.add(screen.canvas)
+        with fbo.before:
+            PushMatrix()
+            Translate(-screen.x, -screen.y, 0)
+        with fbo.after:
+            PopMatrix()
         return fbo
 
     def on_progress(self, progress):
@@ -408,23 +431,15 @@ class ShaderTransition(TransitionBase):
         self.manager.canvas.add(self.fbo_in)
         self.manager.canvas.add(self.fbo_out)
 
-        screen_rotation = Config.getfloat('graphics', 'rotation')
-        pos = (0, 1)
-        if screen_rotation == 90:
-            pos = (0, 0)
-        elif screen_rotation == 180:
-            pos = (-1, 0)
-        elif screen_rotation == 270:
-            pos = (-1, 1)
-
-        self.render_ctx = RenderContext(fs=self.fs, vs=self.vs)
+        self.render_ctx = RenderContext(fs=self.fs, vs=self.vs,
+                use_parent_modelview=True, use_parent_projection=True)
         with self.render_ctx:
             BindTexture(texture=self.fbo_out.texture, index=1)
             BindTexture(texture=self.fbo_in.texture, index=2)
-            Rotate(screen_rotation, 0, 0, 1)
-            Rectangle(size=(1, -1), pos=pos)
-        self.render_ctx['projection_mat'] = Matrix().\
-            view_clip(0, 1, 0, 1, 0, 1, 0)
+            x, y = self.screen_in.pos
+            w, h = self.fbo_in.texture.size
+            Rectangle(size=(w, h), pos=(x, y),
+                    tex_coords=self.fbo_in.texture.tex_coords)
         self.render_ctx['tex_out'] = 1
         self.render_ctx['tex_in'] = 2
         self.manager.canvas.add(self.render_ctx)
@@ -631,10 +646,10 @@ class ScreenManager(FloatLayout):
         sm.current = 'second'
     '''
 
-    transition = ObjectProperty(SwapTransition())
+    transition = ObjectProperty(SlideTransition(), baseclass=TransitionBase)
     '''Transition object to use for animate the screen that will be hidden, and
     the screen that will be showed. By default, an instance of
-    :class:`SwapTransition` will be given.
+    :class:`SlideTransition` will be given.
 
     For example, if you want to change to a :class:`WipeTransition`::
 
@@ -647,6 +662,11 @@ class ScreenManager(FloatLayout):
 
         # by default, the first added screen will be showed. If you want to
         show another one, just set the current string: sm.current = 'second'
+
+    .. versionchanged:: 1.8.0
+
+        Default transition has been changed from :class:`SwapTransition` to
+        :class:`SlideTransition`.
     '''
 
     screens = ListProperty()
@@ -733,10 +753,11 @@ class ScreenManager(FloatLayout):
         if screen == self.current_screen:
             return
 
+        self.transition.stop()
+
         previous_screen = self.current_screen
         self.current_screen = screen
         if previous_screen:
-            self.transition.stop()
             self.transition.screen_in = screen
             self.transition.screen_out = previous_screen
             self.transition.start(self)
@@ -777,7 +798,7 @@ class ScreenManager(FloatLayout):
             return screens[index].name
         except ValueError:
             return
-        
+
     def next(self):
         ''' Py2K backwards compatability without six or other lib'''
         return self.__next__()
@@ -794,6 +815,72 @@ class ScreenManager(FloatLayout):
             return screens[index].name
         except ValueError:
             return
+
+    def switch_to(self, screen, **options):
+        '''Add a new screen in the ScreenManager, and switch to it. The previous
+        screen will be removed from the children. `options` are the
+        :data:`transition` options that will be changed before the animation
+        happen.
+
+        If no previous screen were available, it will just be used as the main
+        one::
+
+            sm = ScreenManager()
+            sm.switch_to(screen1)
+            # later
+            sm.switch_to(screen2, direction='left')
+            # later
+            sm.switch_to(screen3, direction='right', duration=1.)
+
+        If any animation were going on, it will be stopped and replaced by this
+        one: you should avoid it, cause the animation will just look weird. Use
+        either :meth:`switch` or :data:`current`, but not both.
+
+        `screen` name will be changed if there is any conflict with the current
+        screen.
+
+        .. versionadded: 1.8.0
+        '''
+        assert(screen is not None)
+
+        if not isinstance(screen, Screen):
+            raise ScreenManagerException(
+                    'ScreenManager accept only Screen widget.')
+
+        # stop any transition that might be happening already
+        self.transition.stop()
+
+        # ensure the screen name will be unique
+        if screen not in self.children:
+            if self.has_screen(screen.name):
+                screen.name = self._generate_screen_name()
+
+        # change the transition options
+        for key, value in iteritems(options):
+            setattr(self.transition, key, value)
+
+        # add and leave if we are set as the current screen
+        self.add_widget(screen)
+        if self.current_screen is screen:
+            return
+
+        old_current = self.current_screen
+        def remove_old_screen(transition):
+            if old_current in self.children:
+                self.remove_widget(old_current)
+            transition.unbind(on_complete=remove_old_screen)
+        self.transition.bind(on_complete=remove_old_screen)
+
+        self.current = screen.name
+
+
+    def _generate_screen_name(self):
+        i = 0
+        while True:
+            name = '_screen{}'.format(i)
+            if not self.has_screen(name):
+                return name
+            i += 1
 
     def _update_pos(self, instance, value):
         for child in self.children:

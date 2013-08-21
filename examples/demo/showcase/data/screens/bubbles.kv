@@ -1,0 +1,28 @@
+ShowcaseScreen:
+	name: 'bubble'
+
+	Bubble:
+		size_hint_y: None
+		height: '48dp'
+
+		BubbleButton:
+			text: 'Cut'
+		BubbleButton:
+			text: 'Copy'
+		BubbleButton:
+			text: 'Paste'
+
+	Widget:
+		size_hint_y: None
+		height: '48dp'
+
+	BoxLayout:
+		size_hint_y: None
+		height: '48dp'
+		Label:
+			text: 'Hello'
+
+		Bubble:
+			arrow_pos: 'left_mid'
+			Label:
+				text: 'World'

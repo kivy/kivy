@@ -37,11 +37,11 @@ Kivy is fast. This applies to both *application development* and *application
 execution* speeds. We have optimized Kivy in many ways. We implement
 time-critical functionality on the *C level* to leverage the power of existing
 compilers. More importantly, we also use *intelligent algorithms* to minimize
-costly operations. Most importantly, we use the *GPU* wherever it makes sense
-in our context. The computational power of today's graphics cards surpasses
-that of today's CPUs by far for some tasks and algorithms, especially drawing.
-That's why we try to let the GPU do as much of the work as possible, thus
-increasing performance considerably.
+costly operations. We also use the *GPU* wherever it makes sense in our
+context. The computational power of today's graphics cards surpasses that of
+today's CPUs by far for some tasks and algorithms, especially drawing.  That's
+why we try to let the GPU do as much of the work as possible, thus increasing
+performance considerably.
 
 
 Flexible

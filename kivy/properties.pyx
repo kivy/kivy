@@ -721,9 +721,10 @@ cdef class ObjectProperty(Property):
         if Property.check(self, obj, value):
             return True
         if not isinstance(value, self.baseclass):
-            raise ValueError('%s.%s accept only Python object' % (
+            raise ValueError('{}.{} accept only object based on {}'.format(
                 obj.__class__.__name__,
-                self.name))
+                self.name,
+                self.baseclass.__name__))
 
 cdef class BooleanProperty(Property):
     '''Property that represents only a boolean value.

@@ -139,7 +139,7 @@ Even if x and y changes within one frame, the callback is only run once.
 
 '''
 
-__all__ = ('Clock', 'ClockBase', 'ClockEvent')
+__all__ = ('Clock', 'ClockBase', 'ClockEvent', 'mainthread')
 
 from sys import platform
 from os import environ
@@ -507,6 +507,30 @@ class ClockBase(_ClockBase):
                         if event in events[cid]:
                             events[cid].remove(event)
 
+
+def mainthread(func):
+    '''Decorator that will schedule the call of the function in the mainthread.
+    It can be useful when you use :class:`~kivy.network.urlrequest.UrlRequest`,
+    or when you do Thread programming: you cannot do any OpenGL-related work in
+    a thread.
+
+    Please note that this method will return directly, and no result can be
+    fetched::
+
+        @mainthread
+        def callback(self, *args):
+            print('The request succedded!'
+                  'This callback is call in the main thread')
+
+        self.req = UrlRequest(url='http://...', on_success=callback)
+
+    .. versionadded:: 1.8.0
+    '''
+    def delayed_func(*args):
+        def callback_func(dt):
+            func(*args)
+        Clock.schedule_once(callback_func, 0)
+    return delayed_func
 
 if 'KIVY_DOC_INCLUDE' in environ:
     #: Instance of the ClockBase, available for everybody

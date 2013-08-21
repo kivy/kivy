@@ -106,9 +106,10 @@ this child inside the rule:
             Button:
             Button:
 
-The example above defines that our root widget, an instance of `MyRootWidget`
-has a child; an instance of the :class:`~kivy.uix.boxlayout.BoxLayout` which
-has two children, instances of the :class:`~kivy.uix.button.Button` class.
+The example above defines that our root widget, an instance of `MyRootWidget`,
+which has a child that is an instance of the
+:class:`~kivy.uix.boxlayout.BoxLayout`.  That BoxLayout further has two
+children, instances of the :class:`~kivy.uix.button.Button` class.
 
 A python equivalent of this code could be:
 
@@ -120,10 +121,10 @@ A python equivalent of this code could be:
     box.add_widget(Button())
     root.add_widget(box)
 
-Which you way find maybe less nice, both to read and to write.
+Which you may find less nice, both to read and to write.
 
 Of course, in python, you can pass keyword arguments to your widgets at
-creation, to specify their behaviour, for example, to set the number of columns
+creation to specify their behaviour.  For example, to set the number of columns
 of a :mod:`~kivy.uix.gridlayout`, we would do::
 
     grid = GridLayout(cols=3)
@@ -176,8 +177,8 @@ More complex expressions can be used, like:
     pos: self.center_x - self.texture_size[0] / 2., self.center_y - self.texture_size[1] / 2.
 
 This expression listens for a change in ``center_x``, ``center_y``,
-and ``texture_size``. If one of them is changing, the expression will be
-re-evaluated, and update the ``pos`` field.
+and ``texture_size``. If one of them changes, the expression will be
+re-evaluated to update the ``pos`` field.
 
 You can also handle ``on_`` events inside your kv language.
 For example the TextInput class has a ``focus`` property whose auto-generated
@@ -192,7 +193,7 @@ For example the TextInput class has a ``focus`` property whose auto-generated
 Extend canvas
 -------------
 
-Kv lang can be used to define the canvas instructions of your widget too:
+Kv lang can be used to define the canvas instructions of your widget like this:
 
 .. code-block:: kv
 
@@ -203,7 +204,7 @@ Kv lang can be used to define the canvas instructions of your widget too:
             Line:
                 points: zip(self.data.x, self.data.y)
 
-And yes, they get updated too if properties values change.
+And they get updated when properties values change.
 
 Of course you can use `canvas.before` and `canvas.after`.
 
@@ -225,12 +226,12 @@ following:
 
     <MySecondWidget>:
         Button:
-            id:s_but
+            id: s_but
         TextInput:
             text: s_but.state
 
-id's are limited in scope to the rule they are declared in so, in the
-code above `s_but` can not be accessed outside the <MySecondWidget>
+An ``id`` is limited in scope to the rule it is declared in, so in the
+code above ``s_but`` can not be accessed outside the <MySecondWidget>
 rule.
 
 Accessing Widgets defined inside Kv lang in your python code
@@ -241,8 +242,8 @@ Consider the code below in my.kv:
 .. code-block:: kv
 
     <MyFirstWidget>:
-        # both these variable don't have to be the same name and this doesn't
-        # lead to a issue with uniqueness as id's are accessible only in kv.
+        # both these variables can be the same name and this doesn't lead to
+        # an issue with uniqueness as the id is only accessible in kv.
         txt_inpt: txt_inpt
         Button:
             id: f_but
@@ -419,8 +420,8 @@ One label and one button in a vertical ``BoxLayout``. Seems very simple. There
 are 3 things going on here:
 
     1. Using data from the ``Controller``. As soon as the ``info`` property is
-       changed in the controller, the expression ``text: 'My controller info is
-       : ' + root.info`` will automatically be re-evaluated, changing the text
+       changed in the controller, the expression ``text: 'My controller info
+       is: ' + root.info`` will automatically be re-evaluated, changing the text
        in the ``Button``.
 
     2. Giving data to the ``Controller``. The expression ``id: my_custom_label``

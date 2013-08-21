@@ -115,6 +115,11 @@ class DropDown(ScrollView):
             Fired when a selection is done, with the data of the selection as
             first argument. Data is what you pass in the :meth:`select` method
             as first argument.
+        `on_dismiss`:
+            .. versionadded:: 1.8.0
+
+            Fired when the DropDown is dismissed either on selection or on
+            touching outside the widget.
     '''
 
     auto_width = BooleanProperty(True)
@@ -152,13 +157,15 @@ class DropDown(ScrollView):
     list, which is a :class:`~kivy.uix.gridlayout.GridLayout` by default.
     '''
 
-    __events__ = ('on_select', )
+    __events__ = ('on_select', 'on_dismiss')
 
     def __init__(self, **kwargs):
         self._win = None
         super(DropDown, self).__init__(**kwargs)
-        self.container.bind(minimum_size=self._container_minimum_size)
         self.bind(size=self._reposition)
+
+    def on_container(self, instance, value):
+        self.container.bind(minimum_size=self._container_minimum_size)
 
     def open(self, widget):
         '''Open the dropdown list, and attach to a specific widget.
@@ -192,6 +199,10 @@ class DropDown(ScrollView):
         if self.attach_to:
             self.attach_to.unbind(pos=self._reposition, size=self._reposition)
             self.attach_to = None
+        self.dispatch('on_dismiss')
+
+    def on_dismiss(self):
+        pass
 
     def select(self, data):
         '''Call this method to trigger the `on_select` event, with the `data`

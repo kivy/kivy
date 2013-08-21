@@ -2,24 +2,24 @@
 Touchring
 =========
 
-Show ring around every touch on the table. You can use this module for checking
-if you don't have any calibration trouble with touches.
+Shows rings around every touch on the surface / screen. You can use this module
+to check that you don't have any calibration issues with touches.
 
 Configuration
 -------------
 
 :Parameters:
-    `image`: str, default to '<kivy>/data/images/ring.png'
+    `image`: str, defaults to '<kivy>/data/images/ring.png'
         Filename of the image to use.
-    `scale`: float, default to 1.
+    `scale`: float, defaults to 1.
         Scale of the image.
-    `alpha`: float, default to 1.
-        Opacity of the image
+    `alpha`: float, defaults to 1.
+        Opacity of the image.
 
 Example
 -------
 
-In your configuration (`~/.kivy/config.ini`), you can write something like
+In your configuration (`~/.kivy/config.ini`), you can add something like
 this::
 
     [modules]
