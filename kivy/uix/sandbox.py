@@ -40,11 +40,6 @@ class SandboxContent(RelativeLayout):
 class Sandbox(FloatLayout):
 
     def __init__(self, **kwargs):
-        #force SandboxClock's scheduling. Main Clock will schedule the
-        #operations of SandboxClock.
-        #Done here so that Main Clock will be used to schedule.
-        Clock.schedule_interval(self._clock_sandbox, 0)
-        Clock.schedule_interval(self._clock_sandbox_draw, -1)
         #Passed True to init because if False is passed then Builder and Clock
         #are not sandboxed.
         self._context = Context(init=True)
@@ -56,6 +51,10 @@ class Sandbox(FloatLayout):
         self._container = SandboxContent(size=self.size, pos=self.pos)
         super(Sandbox, self).add_widget(self._container)
         self._context.pop()
+        
+        #force SandboxClock's scheduling
+        Clock.schedule_interval(self._clock_sandbox, 0)
+        Clock.schedule_interval(self._clock_sandbox_draw, -1)
 
     def __enter__(self):
         #print 'ENTERING THE SANDBOX', self
@@ -121,6 +120,7 @@ class Sandbox(FloatLayout):
 from kivy.uix.button import Button
 
 class TestButton(Button):
+
     def d(self, *args):
         print 'fffffffffff'
 
@@ -156,5 +156,5 @@ if __name__ == '__main__':
         # this exception is within the "with" block, but will be ignored by
         # default because the sandbox on_exception will return True
         raise Exception('hello')
-        
+    print 'llljj', object.__getattribute__(Clock, '_obj')
     runTouchApp(s)

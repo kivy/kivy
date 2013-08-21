@@ -48,9 +48,6 @@ class Context(dict):
             context = _contexts[name]
             instance = context['cls'](*context['args'], **context['kwargs'])
             self[name] = instance
-        
-        print self
-
 
     def push(self):
         _context_stack.append(self)
@@ -58,10 +55,11 @@ class Context(dict):
             object.__setattr__(_contexts[name]['proxy'], '_obj', instance)
 
     def pop(self):
+        #After poping context from stack. Update proxy's _obj with
+        #instances in current context
         context = _context_stack.pop(-1)
-        for name, instance in context.items():
+        for name, instance in get_current_context().items():
             object.__setattr__(_contexts[name]['proxy'], '_obj', instance)
-
 
 def register_context(name, cls, *args, **kwargs):
     instance = cls(*args, **kwargs)
