@@ -13,8 +13,6 @@ TODO:
 
 '''
 
-include "../../../kivy/lib/sdl2.pxi"
-
 __all__ = ('WindowSDL2', )
 
 import sys
@@ -25,7 +23,7 @@ from kivy.clock import Clock
 from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from collections import deque
-
+from kivy.core.window._window_sdl2 import _WindowSDL2Storage
 
 class SDL2MotionEvent(MotionEvent):
     def depack(self, args):
@@ -64,163 +62,17 @@ class SDL2MotionEventProvider(MotionEventProvider):
             else:
                 dispatch_fn('update', me)
 
-cdef class _WindowSDLStorage:
-    cdef SDL_Window *win
-    cdef SDL_GLContext ctx
-    cdef SDL_Surface *surface
-    cdef int win_flags
-
-    def __cinit__(self):
-        self.win = NULL
-        self.ctx = NULL
-        self.surface = NULL
-        self.win_flags = 0
-
-    def die(self):
-        raise RuntimeError(<bytes> SDL_GetError())
-
-    def setup_window(self, width, height, use_fake, use_fullscreen):
-        self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
-        if use_fake:
-            self.win_flags |= SDL_WINDOW_BORDERLESS
-        if use_fullscreen:
-            self.win_flags |= SDL_WINDOW_FULLSCREEN
-
-        if SDL_Init(SDL_INIT_VIDEO) < 0:
-            self.die()
-
-        '''
-        # Set default orientation (force landscape for now)
-        cdef bytes orientations
-        orientations = <bytes>environ.get('KIVY_ORIENTATION',
-                'LandscapeLeft LandscapeRight');
-        SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations);
-        '''
-
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
-        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1)
-        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
-        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
-
-
-        self.win = SDL_CreateWindow(NULL, 0, 0, width, height, self.win_flags)
-        if not self.win:
-            self.die()
-
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-
-        self.ctx = SDL_GL_CreateContext(self.win)
-        if not self.ctx:
-            self.die()
-        cdef SDL_DisplayMode mode
-        SDL_GetWindowDisplayMode(self.win, &mode)
-        return mode.w, mode.h
-
-    def resize_window(self, w, h):
-        cdef SDL_DisplayMode mode
-        SDL_GetWindowDisplayMode(self.win, &mode)
-        mode.w = w
-        mode.h = h
-        SDL_SetWindowDisplayMode(self.win, &mode)
-        SDL_GetWindowDisplayMode(self.win, &mode)
-
-    def set_window_title(self, str title):
-        SDL_SetWindowTitle(self.win, <bytes>title.decode('utf-8'))
-
-    def teardown_window(self):
-        SDL_GL_DeleteContext(self.ctx)
-        SDL_DestroyWindow(self.win)
-        SDL_Quit()
-
-    def show_keyboard(self):
-        if not SDL_IsTextInputActive():
-            SDL_StartTextInput()
-
-    def hide_keyboard(self):
-        if SDL_IsTextInputActive():
-            SDL_StopTextInput()
-
-    def is_keyboard_shown(self):
-        return SDL_IsTextInputActive()
-
-    def poll(self):
-        cdef SDL_Event event
-
-        if SDL_PollEvent(&event) == 0:
-            return False
-
-        action = None
-        if event.type == SDL_QUIT:
-            return ('quit', )
-        elif event.type == SDL_MOUSEMOTION:
-            x = event.motion.x
-            y = event.motion.y
-            return ('mousemotion', x, y)
-        elif event.type == SDL_MOUSEBUTTONDOWN or event.type == SDL_MOUSEBUTTONUP:
-            x = event.button.x
-            y = event.button.y
-            button = event.button.button
-            action = 'mousebuttondown' if event.type == SDL_MOUSEBUTTONDOWN else 'mousebuttonup'
-            return (action, x, y, button)
-        elif event.type == SDL_FINGERMOTION:
-            fid = event.tfinger.fingerId
-            x = event.tfinger.x
-            y = event.tfinger.y
-            return ('fingermotion', fid, x, y)
-        elif event.type == SDL_FINGERDOWN or event.type == SDL_FINGERUP:
-            fid = event.tfinger.fingerId
-            x = event.tfinger.x
-            y = event.tfinger.y
-            action = 'fingerdown' if event.type == SDL_FINGERDOWN else 'fingerup'
-            return (action, fid, x, y)
-        elif event.type == SDL_WINDOWEVENT:
-            if event.window.event == SDL_WINDOWEVENT_EXPOSED:
-                action = ('windowexposed', )
-            elif event.window.event == SDL_WINDOWEVENT_RESIZED:
-                action = ('windowresized', event.window.data1, event.window.data2)
-            elif event.window.event == SDL_WINDOWEVENT_MINIMIZED:
-                action = ('windowminimized', )
-            elif event.window.event == SDL_WINDOWEVENT_RESTORED:
-                action = ('windowrestored', )
-            else:
-                if __debug__:
-                    print('receive unknown sdl window event', event.type)
-                pass
-            return action
-        elif event.type == SDL_KEYDOWN or event.type == SDL_KEYUP:
-            action = 'keydown' if event.type == SDL_KEYDOWN else 'keyup'
-            mod = event.key.keysym.mod
-            scancode = event.key.keysym.scancode
-            #unicode = event.key.keysym.unicode
-            key = event.key.keysym.sym
-            return (action, mod, key, scancode, None)
-        elif event.type == SDL_TEXTINPUT:
-            s = event.text.text.decode('utf-8')
-            return ('textinput', s)
-        else:
-            if __debug__:
-                print('receive unknown sdl event', event.type)
-            pass
-
-    def flip(self):
-        SDL_GL_SwapWindow(self.win)
-
-
 class WindowSDL(WindowBase):
 
     def __init__(self, **kwargs):
-        self._win = _WindowSDLStorage()
+        self._win = _WindowSDL2Storage()
         super(WindowSDL, self).__init__()
 
     def create_window(self):
         use_fake = self.fullscreen == 'fake'
-        use_fullscreen = self.fullscreen in ('auto', True)
+        use_fullscreen = False
+        if self.fullscreen in ('auto', True):
+            use_fullscreen = self.fullscreen
 
         # never stay with a None pos, application using w.center will be fired.
         self._pos = (0, 0)
@@ -312,11 +164,11 @@ class WindowSDL(WindowBase):
             elif action == 'windowresized':
                 self.canvas.ask_update()
 
+            elif action == 'windowrestored':
+                self.canvas.ask_update()
+
             elif action == 'windowminimized':
                 self.do_pause()
-
-            elif action == 'windowrestored':
-                pass
 
             elif action in ('keydown', 'keyup'):
                 mod, key, scancode, str = args

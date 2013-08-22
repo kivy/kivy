@@ -212,6 +212,7 @@ cdef extern from "SDL.h":
         SDL_WINDOW_INPUT_FOCUS = 0x00000200     #,        /**< window has input focus */
         SDL_WINDOW_MOUSE_FOCUS = 0x00000400     #,        /**< window has mouse focus */
         SDL_WINDOW_FOREIGN = 0x00000800         #            /**< window not created by SDL */
+        SDL_WINDOW_FULLSCREEN_DESKTOP
 
 
     cdef struct SDL_MouseMotionEvent:
