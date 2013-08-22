@@ -95,9 +95,6 @@ Known issues
 Currently, the project has a few known issues (we'll fix these in future
 versions):
 
-- Application configuration not writing: we are still learning how IOS manages its
-  filesystem.
-
 - You can't export your project outside the kivy-ios directory because the
   libraries included in the project are relative to it.
 
