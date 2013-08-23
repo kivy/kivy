@@ -1219,15 +1219,18 @@ cdef class AliasProperty(Property):
         self.use_cache = 0
         self.bind_objects = list()
 
-    def __init__(self, getter, setter, rebind=False, **kwargs):
+    def __init__(self, getter, setter=None, rebind=False, **kwargs):
         Property.__init__(self, None, **kwargs)
         self.getter = getter
-        self.setter = setter
+        self.setter = setter or self.__read_only
         self.rebind = rebind
         v = kwargs.get('bind')
         self.bind_objects = list(v) if v is not None else []
         if kwargs.get('cache'):
             self.use_cache = 1
+
+    def __read_only(self, _obj, _value):
+        raise AttributeError('property is read-only')
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
         Property.init_storage(self, obj, storage)
