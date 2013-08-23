@@ -402,7 +402,10 @@ cdef extern from "SDL.h":
     cdef int SDL_SetRenderTarget(SDL_Renderer *renderer, SDL_Texture *texture)
     cdef void SDL_DestroyTexture(SDL_Texture * texture)
     cdef void SDL_FreeSurface(SDL_Surface * surface) nogil
+    cdef int SDL_SetSurfaceBlendMode(SDL_Surface * surface, int blendMode)
+    cdef int SDL_SetSurfaceAlphaMod(SDL_Surface * surface, char alpha)
     cdef int SDL_UpperBlit (SDL_Surface * src, SDL_Rect * srcrect, SDL_Surface * dst, SDL_Rect * dstrect)
+    cdef int SDL_BlitSurface(SDL_Surface * src, SDL_Rect * srcrect, SDL_Surface * dst, SDL_Rect * dstrect)
     cdef int SDL_LockTexture(SDL_Texture * texture, SDL_Rect * rect, void **pixels, int *pitch)
     cdef void SDL_UnlockTexture(SDL_Texture * texture)
     cdef void SDL_GetWindowSize(SDL_Window * window, int *w, int *h)

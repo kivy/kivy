@@ -408,6 +408,8 @@ if c_options['use_sdl2']:
             base_flags, gl_flags, sdl2_flags)
         sources['core/image/_img_sdl2.pyx'] = merge(
             base_flags, gl_flags, sdl2_flags)
+        sources['core/text/_text_sdl2.pyx'] = merge(
+            base_flags, gl_flags, sdl2_flags)
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image
