@@ -24,10 +24,14 @@ Available inspector interactions:
 Some properties can be edited live. However, due to the delayed usage of
 some properties, it might crash if you don't handle all the cases.
 
-Example
--------
+Usage
+-----
 
-You can use the Inspector as follows::
+For normal module usage, please see the :mod:`~kivy.modules` documentation.
+
+The Inspector, however, can also be imported and used just like a normal 
+python module. This has the added advantage of being able to activate and
+deactivate the module programmatically::
 
     from kivy.core.window import Window
     from kivy.app import App
