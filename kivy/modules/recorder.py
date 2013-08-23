@@ -29,6 +29,11 @@ Configuration
 
         Name of the file to record / play with
 
+Usage
+-----
+
+For normal module usage, please see the :mod:`~kivy.modules` documentation.
+
 '''
 
 from kivy.input.recorder import Recorder
