@@ -34,6 +34,6 @@ kivy/core/window/window_x11.c
 kivy/lib/vidcore_lite/bcm.c
 kivy/lib/vidcore_lite/bcm.h
 kivy/lib/vidcore_lite/egl.c
-kivy/core/image/img_sdl2.c
-kivy/core/text/text_sdl2.c
-kivy/core/window/window_sdl2.c
+kivy/core/image/_img_sdl2.c
+kivy/core/text/_text_sdl2.c
+kivy/core/window/_window_sdl2.c
