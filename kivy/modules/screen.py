@@ -47,6 +47,8 @@ devices = {
     'ipad3': ('iPad 3', 2048, 1536, 264, 2),
     'iphone4': ('iPhone 4', 640, 960, 326, 2),
     'iphone5': ('iPhone 5', 640, 1136, 326, 2),
+    'nexus7': ('Nexus 7 (2012 version)', 1280, 800, 216, 1.325),
+    'nexus7.2': ('Nexus 7 (2013 version)', 1920, 1200, 323, 2),
 }
 
 
