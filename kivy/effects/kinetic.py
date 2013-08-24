@@ -84,14 +84,20 @@ class KineticEffect(EventDispatcher):
     :data:`max_history` is a :class:`~kivy.properties.NumericProperty`, default
     to 5.
     '''
+    min_distance = NumericProperty(.1)
+    '''the minimal distance for a movement to have nonzero velocity.'''
 
+    min_velocity = NumericProperty(.5)
+    '''velocity below this quantity is normalized to 0. In other words,
+    any motion whose velocity falls below this number is stopped.'''
+    
     def __init__(self, **kwargs):
         self.history = []
         self.trigger_velocity_update = Clock.create_trigger(self.update_velocity, 0)
         super(KineticEffect, self).__init__(**kwargs)
 
     def apply_distance(self, distance):
-        if abs(distance) < 0.1:
+        if abs(distance) < self.min_distance:
             self.velocity = 0
         self.value += distance
 
@@ -154,7 +160,7 @@ class KineticEffect(EventDispatcher):
         '''(internal) Update the velocity according to a frametime and the
         friction.
         '''
-        if abs(self.velocity) <= 0.5:
+        if abs(self.velocity) <= self.min_velocity:
             self.velocity = 0
             return
 
