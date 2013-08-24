@@ -24,9 +24,35 @@ Available inspector interactions:
 Some properties can be edited live. However, due to the delayed usage of
 some properties, it might crash if you don't handle all the cases.
 
+Usage
+-----
+
+For normal module usage, please see the :mod:`~kivy.modules` documentation.
+
+The Inspector, however, can also be imported and used just like a normal 
+python module. This has the added advantage of being able to activate and
+deactivate the module programmatically::
+
+    from kivy.core.window import Window
+    from kivy.app import App
+    from kivy.uix.button import Button
+    from kivy.modules import inspector
+
+    class Demo(App):
+        def build(self):
+            button = Button(text="Test")
+            inspector.create_inspector(Window, button)
+            return button
+
+    Demo().run()
+
+To remove the Inspector, you can do the following::
+
+    inspector.stop(Window, button)
+
 '''
 
-__all__ = ('start', 'stop')
+__all__ = ('start', 'stop', 'create_inspector')
 
 import kivy
 kivy.require('1.0.9')
@@ -291,9 +317,11 @@ class Inspector(FloatLayout):
         else:
             button.text = 'Move to Bottom'
             if self.widget_info:
-                Animation(top=self.height, t='out_quad', d=.3).start(self.layout)
+                Animation(top=self.height, t='out_quad', d=.3).start(
+                    self.layout)
             else:
-                Animation(y=self.height - 60, t='out_quad', d=.3).start(self.layout)
+                Animation(y=self.height - 60, t='out_quad', d=.3).start(
+                    self.layout)
 
             bottom_bar = self.layout.children[1]
             self.layout.remove_widget(bottom_bar)
@@ -330,7 +358,8 @@ class Inspector(FloatLayout):
             if self.at_bottom:
                 Animation(top=60, t='out_quad', d=.3).start(self.layout)
             else:
-                Animation(y=self.height - 60, t='out_quad', d=.3).start(self.layout)
+                Animation(y=self.height - 60, t='out_quad', d=.3).start(
+                    self.layout)
 
     def animation_close(self, instance, value):
         if self.activated is False:
@@ -353,7 +382,8 @@ class Inspector(FloatLayout):
             if self.at_bottom:
                 Animation(top=60, t='out_quad', d=.3).start(self.layout)
             else:
-                Animation(y=self.height - 60, t='out_quad', d=.3).start(self.layout)
+                Animation(y=self.height - 60, t='out_quad', d=.3).start(
+                    self.layout)
             self.widget_info = False
             return
         self.widget_info = True
@@ -518,6 +548,17 @@ class Inspector(FloatLayout):
 
 
 def create_inspector(win, ctx, *l):
+    '''Create an Inspector instance attached to the *ctx* and bound to the
+    Windows :py:func:`~kivy.core.window.WindowBase.on_keyboard` event for
+    capturing the keyboard shortcut.
+
+        :Parameters:
+            `win`: A :class:`Window <kivy.core.window.WindowBase>`
+                The application Window to bind to.
+            `ctx`: A :class:`~kivy.uix.widget.Widget` or subclass
+                The Widget to be inspected.
+
+    '''
     # Dunno why, but if we are creating inspector within the start(), no lang
     # rules are applied.
     ctx.inspector = Inspector(win=win)
@@ -530,5 +571,10 @@ def start(win, ctx):
 
 
 def stop(win, ctx):
-    win.remove_widget(ctx.inspector)
+    '''Stop and unload any active Inspectors for the given *ctx*.'''
+    if hasattr(ctx, 'inspector'):
+        win.unbind(children=ctx.inspector.on_window_children,
+                   on_keyboard=ctx.inspector.keyboard_shortcut)
+        win.remove_widget(ctx.inspector)
+        del ctx.inspector
 

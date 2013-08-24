@@ -2,22 +2,22 @@
 Screen
 ======
 
-This module change some environement and configuration to match the density /
-dpi / screensize of a specific devices.
+This module changes some environement and configuration variables
+to match the density / dpi / screensize of a specific device.
 
-To see a list of the available screenid, just run::
+To see a list of the available screenid's, just run::
 
     python main.py -m screen
 
-Simulate a medium-density screen as Motolora Droid 2::
+To simulate a medium-density screen such as the Motolora Droid 2::
 
     python main.py -m screen:droid2
 
-Simulate a high-density screen as HTC One X, in portrait::
+To simulate a high-density screen such as HTC One X, in portrait::
 
     python main.py -m screen:onex,portrait
 
-Simulate the iPad 2 screen::
+To simulate the iPad 2 screen::
 
     python main.py -m screen:ipad
     
@@ -47,6 +47,8 @@ devices = {
     'ipad3': ('iPad 3', 2048, 1536, 264, 2),
     'iphone4': ('iPhone 4', 640, 960, 326, 2),
     'iphone5': ('iPhone 5', 640, 1136, 326, 2),
+    'nexus7': ('Nexus 7 (2012 version)', 1280, 800, 216, 1.325),
+    'nexus7.2': ('Nexus 7 (2013 version)', 1920, 1200, 323, 2),
 }
 
 
@@ -79,7 +81,7 @@ def apply_device(device, scale, orientation):
 
 def usage(device=None):
     if device:
-        Logger.error('Screen: The specified device ({0}) is unknow.',
+        Logger.error('Screen: The specified device ({0}) is unknown.',
                 device)
     print('\nModule usage: python main.py -m screen,deviceid[,orientation]\n')
     print('Availables devices:\n')
@@ -89,9 +91,9 @@ def usage(device=None):
         print('{0:12} {1:<22} {2:<8} {3:<8} {4:<5} {5:<8}'.format(
             device, *info))
     print('\n')
-    print('Simulate a medium-density screen as Motolora Droid 2:\n')
+    print('Simulate a medium-density screen such as Motolora Droid 2:\n')
     print('    python main.py -m screen,droid2\n')
-    print('Simulate a high-density screen as HTC One X, in portrait:\n')
+    print('Simulate a high-density screen such as HTC One X, in portrait:\n')
     print('    python main.py -m screen,onex,portrait\n')
     print('Simulate the iPad 2 screen\n')
     print('    python main.py -m screen,ipad\n')

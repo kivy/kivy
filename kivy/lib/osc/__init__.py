@@ -2,8 +2,8 @@
 OSC
 ===
 
-This is an heavy modified version of PyOSC, that Kivy use internally for TUIO
-provider.
+This is an heavy modified version of PyOSC that Kivy uses internally for TUIO
+providers.
 '''
 
 __version__ = "0"
