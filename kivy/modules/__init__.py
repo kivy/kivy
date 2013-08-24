@@ -23,10 +23,15 @@ Modules are automatically loaded from the Kivy path and User path:
     * `PATH_TO_KIVY/kivy/modules`
     * `HOME/.kivy/mods`
 
-Activate a module in the config
--------------------------------
+Activating a module
+-------------------
 
-To activate a module, you can edit your configuration file (in your
+There are various ways in which you can activate a kivy module.
+
+Activate a module in the config
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To activate a module this way, you can edit your configuration file (in your
 `HOME/.kivy/config.ini`)::
 
     [modules]
@@ -39,7 +44,7 @@ Only the name of the module followed by "=" is sufficient to activate the
 module.
 
 Activate a module in Python
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Before starting your application, preferably at the start of your import, you
 can do something like this::
@@ -50,6 +55,18 @@ can do something like this::
     # Activate the touchring module
     from kivy.config import Config
     Config.set('modules', 'touchring', '')
+
+Activate a module via the commandline
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When starting your application from the commandline, you can add a
+*-m <modulename>* to the arguments. For example::
+
+    python main.py -m webdebugger
+
+.. note::
+    Some modules, such as the screen, may require additional parameters. They
+    will, however, list these parameters when launched without them.
 
 
 Create your own module
