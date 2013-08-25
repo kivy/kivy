@@ -756,7 +756,6 @@ class App(EventDispatcher):
         return False
 
     def close_settings(self, *largs):
-
         '''Close the previously opened settings panel.
 
         :return: True if the settings have been closed
