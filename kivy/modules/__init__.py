@@ -66,7 +66,8 @@ When starting your application from the commandline, you can add a
 
 .. note::
     Some modules, such as the screen, may require additional parameters. They
-    will, however, list these parameters when launched without them.
+    will, however, print these parameters to the console when launched without
+    them.
 
 
 Create your own module
