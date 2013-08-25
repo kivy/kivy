@@ -733,14 +733,17 @@ class App(EventDispatcher):
         return False
 
     def display_settings(self, settings):
-        '''Display the settings panel. By default, the panel is drawn directly
+        '''.. versionadded:: 1.8.0
+
+        Display the settings panel. By default, the panel is drawn directly
         on top of the window. You can define other behaviour by overriding
         this method, such as adding it to a ScreenManager or Popup.
 
         You should return True if the display is successful, otherwise False.
 
-        :param settings: A Settings instance. You should define
-        how to display it.
+        :param settings: A :class:`~kivy.uix.settings.Settings`
+                         instance. You should define how to display it.
+        :type config: :class:`~kivy.uix.settings.Settings`
 
         '''
         win = self._app_window
