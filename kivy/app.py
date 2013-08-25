@@ -722,17 +722,34 @@ class App(EventDispatcher):
 
         :return: True if the settings have been opened
         '''
+        settings = self._create_settings()
+        displayed = self.display_settings(settings)
+        if displayed:
+            return True
+        return False
+
+    def display_settings(self, settings):
+        '''Display the settings panel. By default, the panel is drawn directly
+        on top of the window. You can define other behaviour by overriding
+        this method, such as adding it to a ScreenManager or Popup.
+
+        You should return True if the display is successful, otherwise False.
+
+        :param settings: A Settings instance. You should define
+        how to display it.
+
+        '''
         win = self._app_window
         if not win:
             raise Exception('No windows are set on the application, you cannot'
                             ' open settings yet.')
-        settings = self._create_settings()
         if settings not in win.children:
             win.add_widget(settings)
             return True
         return False
 
     def close_settings(self, *largs):
+
         '''Close the previously opened settings panel.
 
         :return: True if the settings have been closed
