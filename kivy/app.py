@@ -770,9 +770,11 @@ class App(EventDispatcher):
         return False
 
     def get_settings_widget(self):
-        '''This method is called to return a Settings widget when building the
-        settings panel. Override with your own Settings subclass to
-        configure its behaviour.
+        '''This method is called to return a
+        :class:`~kivy.uix.settings.Settings` widget when building the
+        settings panel. Override with your own
+        :class:`~kivy.uix.settings.Settings` subclass to configure its
+        behaviour.
 
         '''
         from kivy.uix.settings import Settings
