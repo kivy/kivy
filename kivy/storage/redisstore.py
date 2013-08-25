@@ -11,7 +11,7 @@ Usage example::
     params = dict(host='localhost', port=6379, db=14)
     store = RedisStore(params)
 
-All the key/values will be stored with a prefix 'store' by default.
+All the key-value pairs will be stored with a prefix 'store' by default.
 You can instanciate the storage with another prefix like this::
 
 
@@ -20,7 +20,7 @@ You can instanciate the storage with another prefix like this::
     params = dict(host='localhost', port=6379, db=14)
     store = RedisStore(params, prefix='mystore2')
 
-The params dictionnary will be passed to redis.StrictRedis class.
+The params dictionary will be passed to the redis.StrictRedis class.
 
 See `redis-py <https://github.com/andymccurdy/redis-py>`_.
 '''
@@ -35,7 +35,7 @@ from kivy.storage import AbstractStore
 
 class RedisStore(AbstractStore):
     '''Store implementation using a Redis database.
-    See module documentation for more informations.
+    See the :mod:`kivy.storage` module documentation for more informations.
     '''
 
     prefix = StringProperty('store')

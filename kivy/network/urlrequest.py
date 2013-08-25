@@ -465,7 +465,7 @@ class UrlRequest(Thread):
 
         .. note::
             This method is intended to be used in the main thread, and the
-            callback will be dispatched from the same thread as the thread
+            callback will be dispatched from the same thread
             from which you're calling.
 
         .. versionadded:: 1.1.0
