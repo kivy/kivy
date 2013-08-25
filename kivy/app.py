@@ -746,10 +746,18 @@ class App(EventDispatcher):
             return True
         return False
 
-    def _create_settings(self):
+    def get_settings_widget(self):
+        '''This method is called to return a Settings widget when building the
+        settings panel. Override with your own Settings subclass to
+        configure its behaviour.
+
+        '''
         from kivy.uix.settings import Settings
+        return Settings()
+
+    def _create_settings(self):
         if self._app_settings is None:
-            self._app_settings = s = Settings()
+            self._app_settings = s = self.get_settings_widget()
             self.build_settings(s)
             if self.use_kivy_settings:
                 s.add_kivy_panel()
