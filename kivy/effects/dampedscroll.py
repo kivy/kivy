@@ -14,7 +14,7 @@ __all__ = ('DampedScrollEffect', )
 
 
 from kivy.effects.scroll import ScrollEffect
-from kivy.properties import NumericProperty
+from kivy.properties import NumericProperty, BooleanProperty
 from kivy.metrics import sp
 
 
@@ -36,11 +36,20 @@ class DampedScrollEffect(ScrollEffect):
     :data:`spring_constant` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 2.0
     '''
-
+    
+    round_value = BooleanProperty(True)
+    '''If True, when the motion stops, :attr:`value` is rounded to the nearest
+    integer. 
+    
+    :data:`round_value` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
+    '''
     def update_velocity(self, dt):
-        if abs(self.velocity) <= 0.5 and self.overscroll == 0:
+        if abs(self.velocity) <= self.min_velocity and self.overscroll == 0:
             self.velocity = 0
-            self.value = round(self.value)
+            # why does this need to be rounded? For now refactored it.
+            if self.round_value:
+                self.value = round(self.value)
             return
 
         total_force = self.velocity * self.friction
