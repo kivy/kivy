@@ -60,7 +60,7 @@ All the standard methods (:meth:`~AbstractStore.get`, :meth:`~AbstractStore.put`
 , :meth:`~AbstractStore.exists`, :meth:`~AbstractStore.delete`,
 :meth:`~AbstractStore.find`) have an asynchronous version.
 
-For example, the *get* method has a `callback` parameter. If set, the callback
+For example, the *get* method has a `callback` parameter. If set, the `callback`
 will be used
 to return the result to the user when available: the request will be
 asynchronous.  If the `callback` is None, then the request will be synchronous
@@ -72,7 +72,7 @@ Without callback (Synchronous API)::
     entry = mystore.get('tito')
     print('tito =', entry)
 
-With callback (Asynchronous API):
+With callback (Asynchronous API)::
 
     def my_callback(store, key, entry):
         print('the key', key, 'have', entry)
@@ -80,7 +80,7 @@ With callback (Asynchronous API):
 
 
 The callback signature is (for almost all methods) `callback(store, key,
-result)`:
+result)`::
 
 #. `store` is the `Store` instance currently used.
 #. `key` is the key to search for.
