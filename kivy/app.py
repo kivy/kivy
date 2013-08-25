@@ -717,10 +717,14 @@ class App(EventDispatcher):
 
     def open_settings(self, *largs):
         '''Open the application settings panel. It will be created the very
-        first time. Then the settings panel will be added to the Window attached
-        to your application (automatically done by :meth:`run`)
+        first time. The settings panel will be displayed with the
+        :meth:`display_settings` method, which by default adds the
+        settings panel to the Window attached to your application. You
+        should override that method if you want to display the
+        settings panel differently.
 
         :return: True if the settings have been opened
+
         '''
         settings = self._create_settings()
         displayed = self.display_settings(settings)
