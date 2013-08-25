@@ -671,7 +671,7 @@ cdef class Scale(Transform):
         if len(args) == 1:
             s = args[0]
             self.set_scale(s,s,s)
-        if len(args) == 3:
+        elif len(args) == 3:
             x, y, z = args
             self.set_scale(x, y, z)
         else:
