@@ -36,11 +36,13 @@ class DampedScrollEffect(ScrollEffect):
     :data:`spring_constant` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 2.0
     '''
-    
+
     round_value = BooleanProperty(True)
     '''If True, when the motion stops, :attr:`value` is rounded to the nearest
-    integer. 
-    
+    integer.
+
+    .. versionadded:: 1.8.0
+
     :data:`round_value` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
