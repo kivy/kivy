@@ -130,6 +130,12 @@ class Etc1Tool(Tool):
             self.etc1tool = fn
             return
 
+        if self.etc1tool is None:
+            print('Error: Unable to locate "etc1tool".\n'
+                  'Make sure that "etc1tool" is available in your PATH.\n'
+                  'Or export the path of your Android SDK to ANDROIDSDK')
+            exit(1)
+
     def compress(self):
         # 1. open the source image, and get the dimensions
         image = Image.open(self.source_fn)

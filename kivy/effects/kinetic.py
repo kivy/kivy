@@ -85,15 +85,28 @@ class KineticEffect(EventDispatcher):
     to 5.
     '''
     min_distance = NumericProperty(.1)
-    '''the minimal distance for a movement to have nonzero velocity.'''
+    '''The minimal distance for a movement to have nonzero velocity.
+
+    .. versionadded:: 1.8.0
+
+    :data:`min_distance` is :class:`~kivy.properties.NumericProperty`, default
+    to .1
+    '''
 
     min_velocity = NumericProperty(.5)
-    '''velocity below this quantity is normalized to 0. In other words,
-    any motion whose velocity falls below this number is stopped.'''
-    
+    '''Velocity below this quantity is normalized to 0. In other words,
+    any motion whose velocity falls below this number is stopped.
+
+    .. versionadded::1.8.0
+
+    :data:`min_velocity` is a :class:`~kivy.properties.NumericProperty`, default
+    to .5
+    '''
+
     def __init__(self, **kwargs):
         self.history = []
-        self.trigger_velocity_update = Clock.create_trigger(self.update_velocity, 0)
+        self.trigger_velocity_update = Clock.create_trigger(
+            self.update_velocity, 0)
         super(KineticEffect, self).__init__(**kwargs)
 
     def apply_distance(self, distance):
