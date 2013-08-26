@@ -45,6 +45,7 @@ import kivy.modules.touchring
 import kivy.modules.inspector
 import kivy.modules.recorder
 import kivy.modules.screen
+import kivy.modules.webdebugger
 import kivy.network.urlrequest
 import kivy.support
 import kivy.input.recorder
