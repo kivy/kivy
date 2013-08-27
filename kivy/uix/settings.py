@@ -573,17 +573,80 @@ class SettingsPanel(GridLayout):
 
 
 class ContentPanel(ScrollView):
+    '''The default Settings content class. It displays a single settings
+    panel at a time, taking up the full size and shape of the
+    ContentPanel.
+
+    See the individual properties and methods for information on what
+    is necessary in your own content classes.
+
+    '''
+
     panels = DictProperty({})
+    '''(internal) Stores a dictionary relating settings panels to their uids.
+
+    :data:`panels` is a :class:`~kivy.properties.DictProperty`,
+    defaulting to {}.
+
+    '''
+
     container = ObjectProperty()
+    '''(internal) A reference to the GridLayout that actually contains the
+    settings panel.
+
+    :data:`container` is an :class:`~kivy.properties.ObjectProperty`,
+    defaulting to None.
+
+    '''
+
     current_panel = ObjectProperty(None)
+    '''(internal) A reference to the current settings panel.
+
+    :data:`current_panel` is an :class:`~kivy.properties.ObjectProperty`,
+    defaulting to None.
+
+    '''
+
     current_panel_uid = NumericProperty(0)
+    '''(internal) A reference to the uid of the current settings panel.
+
+    :data:`current_panel_uid` is a
+    :class:`~kivy.properties.NumericProperty`, defaulting to 0.
+
+    '''
 
     def add_panel(self, panel, name, uid):
+        '''This method is used by Settings to add new panels for possible
+        display. Any replacement for ContentPanel *must* implement
+        this method.
+
+        :param panel: A :class:`SettingsPanel`. It should be stored,
+                      and displayed when requested via
+                      :meth:`ContentPanel.switch_to_panel`
+
+        :param name: The name of the panel, as a string. It
+                     may be used to represent the panel.
+
+        :param uid: A unique int identifying the panel. It should be
+                    stored, and will be used by
+                    :meth:`ContentPanel.switch_to_panel` to identify the panel
+                    to switch to.
+
+        '''
         self.panels[uid] = panel
         if not self.current_panel_uid:
             self.switch_to_panel(uid)
 
     def switch_to_panel(self, uid):
+        '''Show the panel whose uid is given. Any replacement for ContentPanel
+        *must* implement this method.
+
+        :param uid: A panel uid. It should be used to retrieve and
+                    display a settings panel that has previously been added with
+                    :meth:`add_panel`.
+
+        '''
+
         if uid in self.panels:
             if self.current_panel is not None:
                 self.remove_widget(self.current_panel)
@@ -605,9 +668,44 @@ class ContentPanel(ScrollView):
 
 
 class Settings(BoxLayout):
+
+    '''Settings UI. Check module documentation for more information on how
+    to use this class.
+
+    :Events:
+        `on_config_change`: ConfigParser instance, section, key, value
+            Fired when section/key/value of a ConfigParser changes.
+        `on_close`
+            Fired by the default panel when the Close button is pressed.
+
+        '''
+
     content = ObjectProperty(None)
+    '''(internal) Reference to the widget that will contain, organise and
+    display the panel configuration panel widgets.
+
+    :data:`content` is a :class:`~kivy.properties.ObjectProperty`, default to
+    None.
+
+    '''
+
     menu = ObjectProperty(None)
+    '''(internal) Reference to a widget that will provide a menu of
+    individual settings panels.
+
+    :data:`menu` is a :class:`~kivy.properties.ObjectProperty`, default to
+    None.
+
+    '''
+
     current_panel_uid = NumericProperty(0)
+    '''(internal) The uid of the current configuration panel to be
+    displayed. This is recorded when the panel is created, and passed to
+    both the menu and content widget in order to organise the panels
+    appropriately.
+
+    '''
+
     __events__ = ('on_close', 'on_config_change')
 
     def __init__(self, *args):
@@ -642,30 +740,128 @@ class Settings(BoxLayout):
         if self.content is not None:
             self.content.switch_to_panel(self.current_panel_uid)
 
-    def add_menu(self):
+    def get_menu(self):
+        '''Called during Settings init to construct a menu widget. By default,
+        it creates a sidebar menu and adds it to self.
+
+        This method can be overridden to create any kind of menu. For
+        instance, the class :class:`SettingsWithSpinner` creates and
+        initialises a :class:`MenuSpinner` instead, with the code
+
+            self.orientation = 'vertical'
+            menu = MenuSpinner()
+            menu.close_button.bind(on_press=lambda j: self.dispatch('on_close'))
+            return menu
+
+        See the documentation of :class:`MenuSidebar` for an
+        explanation of the properties and methods that a menu widget
+        *must* express. A brief summary is given below.
+
+        Any returned menu widget *must* have a NumericProperty `selected_uid`,
+        which should contain the uid of the currently selected
+        panel. :class:`Settings` binds to this property and uses it to
+        trigger changes in the configuration panel that self.content
+        is asked to display.
+
+        Any returned menu widget *must* have a method add_item which
+        receives the name and uid of a configuration panel. It is
+        expected to provide a way to switch between panel names,
+        storing the current panel uid in the NumericProperty
+        `selected_uid`.
+
+        This method should return a widget for use as the menu or, if
+        no menu is to be added, None. By default, it returns a
+        :class:`MenuSidebar`.
+
+        '''
+
         menu = MenuSidebar()
-        self.add_widget(menu)
         menu.close_button.bind(on_press=lambda j: self.dispatch('on_close'))
-        self.menu = menu
+        return menu
+
+    def add_menu(self):
+        '''(Internal) calls :method:`Settings.get_menu` for a widget to be
+        used to add and display a config panel switcher. If the widget is
+        not None, adds to self and sets self.menu.
+
+        '''
+        menu = self.get_menu()
+        if menu is not None:
+            self.menu = menu
+            self.add_widget(menu)
+
+    def get_content(self):
+        '''Called during Settings init to construct a content widget. This
+        widget will be given individual :class:`SettingsPanel`s and tasked
+        with displaying them.
+
+        By default, get_content creates a :class:`ContentPanel` and
+        adds it to self. If a widget is returned, it *must* have
+        If a menu has been set with add_menu, it *must*
+        have a NumericProperty current_panel_uid, which is
+        automatically bound to change the displayed panel in the
+        content widget.
+
+        This method can be overridden to create any kind of menu. For
+        instance, the class :class:`SettingsWithSpinner` creates and
+        initialises a :class:`MenuSpinner` instead, with the code
+
+            self.orientation = 'vertical'
+            menu = MenuSpinner()
+            self.add_widget(menu)
+            menu.close_button.bind(on_press=lambda j: self.dispatch('on_close'))
+            self.menu = menu
+
+        Any menu widget *must* have a NumericProperty `selected_uid`,
+        which should contain the uid of the currently selected
+        panel. :class:`Settings` binds to this property and uses it to
+        trigger changes in the configuration panel that self.content
+        is asked to display.
+
+        This method should return a widget for use as the menu or, if
+        no menu is to be added, None.
+
+        '''
+        content = ContentPanel()
+        return content
 
     def add_content(self):
-        content = ContentPanel()
-        self.add_widget(content)
-        self.content = content
+        '''(Internal) calls :method:`Settings.get_content` for a widget to be
+        used to add and display configuration panels. If the widget is
+        not None, adds to self and sets self.content.
+
+        '''
+        content = self.get_content()
+        if content is not None:
+            self.add_widget(content)
+            self.content = content
 
     def on_config_change(self, config, section, key, value):
         pass
 
     def add_json_panel(self, title, config, filename=None, data=None):
+        '''Create and add a new :class:`SettingsPanel` using the configuration
+        `config`, with the JSON definition `filename`.
+
+        Check the :ref:`settings_json` section in the documentation for more
+        information about JSON format, and the usage of this function.
+        '''
         panel = self.create_json_panel(title, config, filename, data)
         uid = panel.uid
-        self.content.add_panel(panel, title, uid)
+        if self.content is not None:
+            self.content.add_panel(panel, title, uid)
         if self.menu is not None:
+            self.menu.add_item(title, uid)
             if not self.menu.selected_uid:
                 self.menu.selected_uid = uid
-            self.menu.add_item(title, uid)
 
     def create_json_panel(self, title, config, filename=None, data=None):
+        '''Create new :class:`SettingsPanel`.
+
+        .. versionadded:: 1.5.0
+
+        Check the documentation of :meth:`add_json_panel` for more information.
+        '''
         if filename is None and data is None:
             raise Exception('You must specify either the filename or data')
         if filename is not None:
@@ -704,6 +900,10 @@ class Settings(BoxLayout):
         '''Add a panel for configuring Kivy. This panel acts directly on the
         kivy configuration. Feel free to include or exclude it in your
         configuration.
+
+        See :meth:`~kivy.app.App.use_kivy_settings` for information on
+        enabling/disabling the automatic kivy panel.
+
         '''
         from kivy import kivy_data_dir
         from kivy.config import Config
@@ -713,41 +913,103 @@ class Settings(BoxLayout):
 
 
 class SettingsWithSidebar(Settings):
-    pass
+    '''A settings widget that displays settings panels with a sidebar to
+    switch between them. This is the default behaviour of
+    :class:`Settings`, and so this widget is a trivial wrapper subclass.
+
+    '''
 
 
 class SettingsWithSpinner(Settings):
-    def add_menu(self):
+    '''A settings widget that displays a settings panel with a spinner at
+    the top to switch between panels.
+    '''
+
+    def get_menu(self):
+        '''Overrides :meth:`Settings.get_menu` to create and return a
+        :class:`MenuSpinner`. See :meth:`Settings.get_menu` for more
+        information.
+
+        '''
+
         self.orientation = 'vertical'
         menu = MenuSpinner()
-        self.add_widget(menu)
         menu.close_button.bind(on_press=lambda j: self.dispatch('on_close'))
-        self.menu = menu
+        return menu
 
 
 class SettingsWithTabbedPanel(Settings):
-    def add_menu(self):
-        pass
+    '''A settings widget that displays settings panels as pages in a
+    :class:`~kivy.uix.tabbedpanel.TabbedPanel`. It does not add a menu
+    widget, instead using :class:`~kivy.uix.tabbedpanel.TabbedPanel` as a
+    content widget that keeps its own menu (the tabs).
 
-    def add_content(self):
+    '''
+
+    def get_menu(self):
+        '''Overrides :meth:`Settings.get_menu` to return None. See
+        :meth:`Settings.get_menu` for more information.
+
+        '''
+
+        return None
+
+    def get_content(self):
+        '''Overrides :meth`Settings.get_content` to return a
+        :class:`ContentTabbedPanel`. See :meth:`Settings.get_content` for more
+        information.
+
+        '''
+
         content = ContentTabbedPanel()
-        self.add_widget(content)
-        self.content = content
-        self.content.close_button.bind(
+        content.close_button.bind(
             on_press=lambda j: self.dispatch('on_close'))
+        return content
 
 
 class SettingsWithNoMenu(Settings):
-    def add_menu(self):
-        pass
+    '''A settings widget that displays a single settings panel, with *no*
+    Close button. It will not accept more than one settings panel. It
+    is intended for use in programs with few enough settings that a
+    full panel switcher is not useful.
 
-    def add_content(self):
+    .. warning::
+        This Settings panel does *not* provide a Close
+        button, and so it is impossible to leave the settings screen
+        unless you also add other behaviour or override
+        :meth:`~kivy.app.App.display_settings` and
+        :meth:`~kivy.app.App.close_settings`.
+
+    '''
+
+    def get_menu(self):
+        '''Overrides :meth:`Settings.get_menu` to return None. See
+        :meth:`Settings.get_menu` for more information.
+
+        '''
+
+        return None
+
+    def get_content(self):
+        '''Overrides :meth`Settings.get_content` to return a
+        :class:`ContentNoMenu`. See :meth:`Settings.get_content` for more
+        information.
+
+        '''
+
         content = ContentNoMenu()
-        self.add_widget(content)
-        self.content = content
+        return content
 
 
 class ContentNoMenu(ContentPanel):
+    '''The content widget used by :class:`SettingsWithNoMenu`. It
+    stores and displays a single settings panel.
+
+    This widget is considered internal and is not documented. See
+    :class:`ContentPanel` for information on defining your own content
+    widget.
+
+    '''
     def add_widget(self, widget):
         if self.container is not None and len(self.container.children) > 0:
             raise Exception('ContentNoMenu cannot accept more than one settings'
@@ -756,6 +1018,14 @@ class ContentNoMenu(ContentPanel):
 
 
 class ContentTabbedPanel(FloatLayout):
+    '''The content widget used by :class:`SettingsWithTabbedPanel`. It
+    stores and displays settings panels in tabs of a TabbedPanel.
+
+    This widget is considered internal and is not documented. See
+    :class:`ContentPanel` for information on defining your own content
+    widget.
+
+    '''
     tabbedpanel = ObjectProperty()
     close_button = ObjectProperty()
 
@@ -766,6 +1036,14 @@ class ContentTabbedPanel(FloatLayout):
 
 
 class MenuSpinner(BoxLayout):
+    '''The menu class used by :class:`SettingsWithSpinner`. It provides a
+    sidebar with an entry for each settings panel.
+
+    This widget is considered internal and is not documented. See
+    :class:`MenuSidebar` for information on menus and creating your own menu
+    class.
+
+    '''
     selected_uid = NumericProperty(0)
     close_button = ObjectProperty(0)
     spinner = ObjectProperty()
@@ -791,11 +1069,56 @@ class MenuSpinner(BoxLayout):
 
 
 class MenuSidebar(FloatLayout):
+    '''The default Settings menu class. It provides a sidebar with an
+entry for each settings panel.
+
+    See the individual properties and methods for information on what
+    is necessary in your own menu classes.
+
+    '''
+
     selected_uid = NumericProperty(0)
+    '''The uid of the currently selected panel. This property *must* exist
+    if the widget is passed via :meth:`Settings.get_menu`. It is used
+    to switch between visible settings panels in the Settings content
+    widget.
+
+    :data:`selected_uid` is a
+    :class`~kivy.properties.NumericProperty`, default to 0.
+
+    '''
+
     buttons_layout = ObjectProperty(None)
+    '''(internal) Reference to the GridLayout that contains individual
+    settings panel menu buttons.
+
+    :data:`buttons_layout` is an
+    :class:`~kivy.properties.ObjectProperty`, default to None.
+
+    '''
+
     close_button = ObjectProperty(None)
+    '''(internal) Reference to the widget's Close button.
+
+    :data:`buttons_layout` is an
+    :class:`~kivy.properties.ObjectProperty`, default to None.
+
+    '''
 
     def add_item(self, name, uid):
+        '''This method is used to add new panels to the menu. Any replacement
+        for MenuSidebar *must* implement this method, it is used by the
+        Settings widget during the creation of new panels.
+
+        :param name: The name (a string) of the panel. It should be
+                     used to represent the panel in the menu.
+
+        :param uid: The name (an int) of the panel. It should be used
+                    internally to represent the panel, and used to set
+                    self.selected_uid when the panel is changed.
+
+        '''
+
         label = SettingSidebarLabel(text=name, uid=uid, menu=self)
         if len(self.buttons_layout.children) == 0:
             label.selected = True
@@ -803,6 +1126,10 @@ class MenuSidebar(FloatLayout):
             self.buttons_layout.add_widget(label)
 
     def on_selected_uid(self, *args):
+        '''(internal) unselects any currently selected menu buttons, unless
+        they represent the current panel.
+
+        '''
         for button in self.buttons_layout.children:
             if button.uid != self.selected_uid:
                 button.selected = False
