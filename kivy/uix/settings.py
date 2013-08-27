@@ -115,6 +115,7 @@ from kivy.compat import string_types, text_type
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.filechooser import FileChooserListView
+from kivy.uix.scrollview import ScrollView
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
@@ -123,33 +124,12 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty, ListProperty, \
-        BooleanProperty, NumericProperty
+        BooleanProperty, NumericProperty, DictProperty
 
 
 class SettingSpacer(Widget):
     # Internal class, not documented.
     pass
-
-
-class SettingSidebarLabel(Label):
-    # Internal class, not documented.
-
-    panel = ObjectProperty(None)
-
-    selected = BooleanProperty(False)
-
-    panel_uid = NumericProperty(-1)
-
-    def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            return
-        panel = self.panel
-        if not self.panel:
-            return
-        panel = panel.get_panel_by_uid(self.panel_uid)
-        if not panel:
-            return
-        self.panel.select(panel)
 
 
 class SettingItem(FloatLayout):
@@ -591,45 +571,49 @@ class SettingsPanel(GridLayout):
                               config, section, key, value)
 
 
+class ContentPanel(ScrollView):
+    panels = DictProperty({})
+    container = ObjectProperty()
+    current_panel = ObjectProperty(None)
+    current_panel_uid = NumericProperty(0)
+
+    def add_panel(self, panel, uid):
+        self.panels[uid] = panel
+        if not self.current_panel_uid:
+            self.switch_to_panel(uid)
+
+    def switch_to_panel(self, uid):
+        if uid in self.panels:
+            if self.current_panel is not None:
+                self.remove_widget(self.current_panel)
+            new_panel = self.panels[uid]
+            self.add_widget(new_panel)
+            self.current_panel_uid = uid
+            self.current_panel = new_panel
+            return True
+        return False  # New uid doesn't exist
+
+    def add_widget(self, widget):
+        if self.container is None:
+            super(ContentPanel, self).add_widget(widget)
+        else:
+            self.container.add_widget(widget)
+
+    def remove_widget(self, widget):
+        self.container.remove_widget(widget)
+
+
 class Settings(BoxLayout):
-    '''Settings UI. Check module documentation for more information on how to
-    use this class.
-
-    :Events:
-        `on_config_change`: ConfigParser instance, section, key, value
-            Fired when section/key/value of a ConfigParser changes
-        `on_close`
-            Fired when the Close-button is pressed.
-    '''
-
-    selection = ObjectProperty(None, allownone=True)
-    '''(internal) Reference to the selected label in the sidebar.
-
-    :data:`selection` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
-    '''
-
     content = ObjectProperty(None)
-    '''(internal) Reference to the widget that will contain the panel widget.
-
-    :data:`content` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
-    '''
-
     menu = ObjectProperty(None)
-    '''(internal) Reference to the widget that will contain the sidebar menu.
-
-    :data:`menu` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
-    '''
-
+    current_panel_uid = NumericProperty(0)
     __events__ = ('on_close', 'on_config_change')
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args):
         self._types = {}
-        self._panels = {}
-        self._initialized = False
-        super(Settings, self).__init__(**kwargs)
+        super(Settings, self).__init__(*args)
+        self.add_menu()
+        self.add_content()
         self.register_type('string', SettingString)
         self.register_type('bool', SettingBoolean)
         self.register_type('numeric', SettingNumeric)
@@ -637,32 +621,49 @@ class Settings(BoxLayout):
         self.register_type('title', SettingTitle)
         self.register_type('path', SettingPath)
 
-    def on_menu(self, instance, value):
-        if value and self.content:
-            self._initialized = True
-
-    def on_content(self, instance, value):
-        if value and self.menu:
-            self._initialized = True
-
-    def on_close(self):
-        pass
-
-    def on_config_change(self, config, section, key, value):
-        pass
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            super(Settings, self).on_touch_down(touch)
+            return True
 
     def register_type(self, tp, cls):
         '''Register a new type that can be used in the JSON definition.
         '''
         self._types[tp] = cls
 
+    def on_menu(self, *args):
+        self.menu.bind(selected_uid=self.setter('current_panel_uid'))
+
+    def on_close(self, *args):
+        pass
+
+    def on_current_panel_uid(self, *args):
+        if self.content is not None:
+            self.content.switch_to_panel(self.current_panel_uid)
+
+    def add_menu(self):
+        menu = MenuSidebar()
+        self.add_widget(menu)
+        menu.close_button.bind(on_press=lambda j: self.dispatch('on_close'))
+        self.menu = menu
+
+    def add_content(self):
+        content = ContentPanel()
+        self.add_widget(content)
+        self.content = content
+
+    def on_config_change(self, config, section, key, value):
+        pass
+
+    def add_json_panel(self, title, config, filename=None, data=None):
+        panel = self.create_json_panel(title, config, filename, data)
+        uid = panel.uid
+        self.content.add_panel(panel, uid)
+        if not self.menu.selected_uid:
+            self.menu.selected_uid = uid
+        self.menu.add_item(title, uid)
+
     def create_json_panel(self, title, config, filename=None, data=None):
-        '''Create new :class:`SettingsPanel`.
-
-        .. versionadded:: 1.5.0
-
-        Check the documentation of :meth:`add_json_panel` for more information.
-        '''
         if filename is None and data is None:
             raise Exception('You must specify either the filename or data')
         if filename is not None:
@@ -697,16 +698,6 @@ class Settings(BoxLayout):
 
         return panel
 
-    def add_json_panel(self, title, config, filename=None, data=None):
-        '''Create and add a new :class:`SettingsPanel` using the configuration
-        `config`, with the JSON definition `filename`.
-
-        Check the :ref:`settings_json` section in the documentation for more
-        information about JSON format, and the usage of this function.
-        '''
-        panel = self.create_json_panel(title, config, filename, data)
-        self.add_widget(panel)
-
     def add_kivy_panel(self):
         '''Add a panel for configuring Kivy. This panel acts directly on the
         kivy configuration. Feel free to include or exclude it in your
@@ -718,59 +709,37 @@ class Settings(BoxLayout):
         self.add_json_panel('Kivy', Config,
                 join(kivy_data_dir, 'settings_kivy.json'))
 
-    def add_widget(self, widget, index=0):
-        if self._initialized:
-            assert(isinstance(widget, SettingsPanel))
-            uid = widget.uid
-            label = SettingSidebarLabel(text=widget.title, panel=self,
-                                     panel_uid=uid)
-            self.menu.add_widget(label)
-            self._panels[uid] = (widget, label)
-            # select the first panel
-            if not self.selection:
-                self.select(widget)
-        else:
-            return super(Settings, self).add_widget(widget, index)
 
-    def get_panel_by_uid(self, uid):
-        '''Return the panel previously added from his UID. If it does not
-        exist, return None.
-        '''
-        if uid not in self._panels:
-            return
-        return self._panels[uid][0]
+class MenuSidebar(FloatLayout):
+    selected_uid = NumericProperty(0)
+    buttons_layout = ObjectProperty(None)
+    close_button = ObjectProperty(None)
 
-    def unselect(self):
-        '''Unselect the current selection if it exists.
-        '''
-        if not self.selection:
-            return
-        self.content.clear_widgets()
-        self.selection.selected = False
-        self.selection = None
+    def add_item(self, name, uid):
+        label = SettingSidebarLabel(text=name, uid=uid, menu=self)
+        if len(self.buttons_layout.children) == 0:
+            label.selected = True
+        if self.buttons_layout is not None:
+            self.buttons_layout.add_widget(label)
 
-    def select(self, panel):
-        '''Select a panel previously added on the widget.
-        '''
-        # search the panel on the list
-        found = False
-        for idx, (wid, label) in self._panels.items():
-            if panel is wid:
-                found = True
-                break
-        if not found:
-            return
-        # found a panel, use it.
-        if self.selection:
-            self.unselect()
-        self.selection = label
-        self.selection.selected = True
-        self.content.add_widget(panel)
+    def on_selected_uid(self, *args):
+        for button in self.buttons_layout.children:
+            if button.uid != self.selected_uid:
+                button.selected = False
+
+
+class SettingSidebarLabel(Label):
+    # Internal class, not documented.
+    selected = BooleanProperty(False)
+    uid = NumericProperty(0)
+    menu = ObjectProperty(None)
 
     def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            super(Settings, self).on_touch_down(touch)
-            return True
+        if not self.collide_point(*touch.pos):
+            return
+        self.selected = True
+        self.menu.selected_uid = self.uid
+
 
 if __name__ == '__main__':
     from kivy.app import App

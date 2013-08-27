@@ -348,7 +348,7 @@
 
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
     on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
-	size: '100dp', '100dp'
+    size: '100dp', '100dp'
 
     canvas:
         Color:
@@ -793,9 +793,7 @@
                 size: self.width, 1
 
 <Settings>:
-    content: content
-    menu: menu
-
+    orientation: 'horizontal'
     canvas:
         Color:
             rgb: 0, 0, 0
@@ -803,45 +801,42 @@
             pos: self.pos
             size: self.size
 
-    FloatLayout:
-        size_hint_x: None
-        width: '200dp'
-        GridLayout:
-            pos: root.pos
-            cols: 1
-            id: menu
-            orientation: 'vertical'
-            padding: 5
+<MenuSidebar>:
+    size_hint_x: None
+    width: '200dp'
+    buttons_layout: menu
+    close_button: button
+    GridLayout:
+        pos: root.pos
+        cols: 1
+        id: menu
+        orientation: 'vertical'
+        padding: 5
 
-            canvas.after:
-                Color:
-                    rgb: .2, .2, .2
-                Rectangle:
-                    pos: self.right - 1, self.y
-                    size: 1, self.height
+        canvas.after:
+            Color:
+                rgb: .2, .2, .2
+            Rectangle:
+                pos: self.right - 1, self.y
+                size: 1, self.height
 
-        Button:
-            text: 'Close'
-            size_hint: None, None
-            width: '180dp'
-            height: max(50, self.texture_size[1] + dp(20))
-            pos: root.x + dp(10), root.y + dp(10)
-            on_release: root.dispatch('on_close')
-            font_size: '15sp'
+    Button:
+        text: 'Close'
+        id: button
+        size_hint: None, None
+        width: root.width - dp(20)
+        height: max(50, self.texture_size[1] + dp(20))
+        pos: root.x + dp(10), root.y + dp(10)
+        font_size: '15sp'
 
-    ScrollView:
-        do_scroll_x: False
-        id: sv
-        Scatter:
-            size_hint: None, None
-            size: content.size
-            do_translation: False
-            do_rotation: False
-            do_scale: False
-            StackLayout:
-                id: content
-                height: self.minimum_height
-                width: sv.width
+<ContentPanel>:
+    do_scroll_x: False
+    container: content
+    GridLayout:
+        id: content
+        cols: 1
+        size_hint_y: None
+        height: self.minimum_height
 
 <ScrollView>:
     canvas.after:
