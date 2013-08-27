@@ -780,7 +780,7 @@ class Settings(BoxLayout):
         return menu
 
     def add_menu(self):
-        '''(Internal) calls :method:`Settings.get_menu` for a widget to be
+        '''(Internal) calls :meth:`Settings.get_menu` for a widget to be
         used to add and display a config panel switcher. If the widget is
         not None, adds to self and sets self.menu.
 
@@ -792,11 +792,13 @@ class Settings(BoxLayout):
 
     def get_content(self):
         '''Called during Settings init to construct a content widget. This
-        widget will be given individual :class:`SettingsPanel`s and tasked
+        widget will be given individual :class:`SettingsPanel` s and tasked
         with displaying them.
 
         By default, get_content creates a :class:`ContentPanel` and
-        adds it to self. If a widget is returned, it *must* have
+        adds it to self. See that widget's documentation for
+        information on essential properties and methods.
+
         If a menu has been set with add_menu, it *must*
         have a NumericProperty current_panel_uid, which is
         automatically bound to change the displayed panel in the
@@ -812,7 +814,7 @@ class Settings(BoxLayout):
             menu.close_button.bind(on_press=lambda j: self.dispatch('on_close'))
             self.menu = menu
 
-        Any menu widget *must* have a NumericProperty `selected_uid`,
+        Any menu widget *must* have a NumericProperty selected_uid,
         which should contain the uid of the currently selected
         panel. :class:`Settings` binds to this property and uses it to
         trigger changes in the configuration panel that self.content
@@ -826,7 +828,7 @@ class Settings(BoxLayout):
         return content
 
     def add_content(self):
-        '''(Internal) calls :method:`Settings.get_content` for a widget to be
+        '''(Internal) calls :meth:`Settings.get_content` for a widget to be
         used to add and display configuration panels. If the widget is
         not None, adds to self and sets self.content.
 
