@@ -113,6 +113,7 @@ from kivy.config import ConfigParser
 from kivy.animation import Animation
 from kivy.compat import string_types, text_type
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.tabbedpanel import TabbedPanelItem
 from kivy.uix.button import Button
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.scrollview import ScrollView
@@ -577,7 +578,7 @@ class ContentPanel(ScrollView):
     current_panel = ObjectProperty(None)
     current_panel_uid = NumericProperty(0)
 
-    def add_panel(self, panel, uid):
+    def add_panel(self, panel, name, uid):
         self.panels[uid] = panel
         if not self.current_panel_uid:
             self.switch_to_panel(uid)
@@ -658,10 +659,11 @@ class Settings(BoxLayout):
     def add_json_panel(self, title, config, filename=None, data=None):
         panel = self.create_json_panel(title, config, filename, data)
         uid = panel.uid
-        self.content.add_panel(panel, uid)
-        if not self.menu.selected_uid:
-            self.menu.selected_uid = uid
-        self.menu.add_item(title, uid)
+        self.content.add_panel(panel, title, uid)
+        if self.menu is not None:
+            if not self.menu.selected_uid:
+                self.menu.selected_uid = uid
+            self.menu.add_item(title, uid)
 
     def create_json_panel(self, title, config, filename=None, data=None):
         if filename is None and data is None:
@@ -708,6 +710,84 @@ class Settings(BoxLayout):
         from os.path import join
         self.add_json_panel('Kivy', Config,
                 join(kivy_data_dir, 'settings_kivy.json'))
+
+
+class SettingsWithSidebar(Settings):
+    pass
+
+
+class SettingsWithSpinner(Settings):
+    def add_menu(self):
+        self.orientation = 'vertical'
+        menu = MenuSpinner()
+        self.add_widget(menu)
+        menu.close_button.bind(on_press=lambda j: self.dispatch('on_close'))
+        self.menu = menu
+
+
+class SettingsWithTabbedPanel(Settings):
+    def add_menu(self):
+        pass
+
+    def add_content(self):
+        content = ContentTabbedPanel()
+        self.add_widget(content)
+        self.content = content
+        self.content.close_button.bind(
+            on_press=lambda j: self.dispatch('on_close'))
+
+
+class SettingsWithNoMenu(Settings):
+    def add_menu(self):
+        pass
+
+    def add_content(self):
+        content = ContentNoMenu()
+        self.add_widget(content)
+        self.content = content
+
+
+class ContentNoMenu(ContentPanel):
+    def add_widget(self, widget):
+        if self.container is not None and len(self.container.children) > 0:
+            raise Exception('ContentNoMenu cannot accept more than one settings'
+            'panel')
+        super(ContentNoMenu, self).add_widget(widget)
+
+
+class ContentTabbedPanel(FloatLayout):
+    tabbedpanel = ObjectProperty()
+    close_button = ObjectProperty()
+
+    def add_panel(self, panel, name, uid):
+        panelitem = TabbedPanelItem(text=name)
+        panelitem.add_widget(panel)
+        self.tabbedpanel.add_widget(panelitem)
+
+
+class MenuSpinner(BoxLayout):
+    selected_uid = NumericProperty(0)
+    close_button = ObjectProperty(0)
+    spinner = ObjectProperty()
+    panel_names = DictProperty({})
+    spinner_text = StringProperty()
+    close_button = ObjectProperty()
+
+    def add_item(self, name, uid):
+        values = self.spinner.values
+        if name in values:
+            i = 2
+            while name + ' {}'.format(i) in values:
+                i += 1
+            name = name + ' {}'.format(i)
+        self.panel_names[name] = uid
+        self.spinner.values.append(name)
+        if not self.spinner.text:
+            self.spinner.text = name
+
+    def on_spinner_text(self, *args):
+        text = self.spinner_text
+        self.selected_uid = self.panel_names[text]
 
 
 class MenuSidebar(FloatLayout):

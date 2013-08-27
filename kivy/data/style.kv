@@ -801,6 +801,23 @@
             pos: self.pos
             size: self.size
 
+<MenuSpinner>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: '50dp'
+    spinner: spinner
+    spinner_text: spinner.text
+    close_button: button
+    Spinner:
+        id: spinner
+    Button:
+        text: 'Close'
+        id: button
+        size_hint_x: None
+        width: min(dp(200), 0.4*root.width)
+        font_size: '15sp'
+    
+
 <MenuSidebar>:
     size_hint_x: None
     width: '200dp'
@@ -837,6 +854,25 @@
         cols: 1
         size_hint_y: None
         height: self.minimum_height
+
+<ContentTabbedPanel>:
+    tabbedpanel: tp
+    close_button: button
+    TabbedPanel:
+        id: tp
+        size: root.size
+        pos: root.pos
+        do_default_tab: False
+        background_color: (0,0,0,1)
+    Button:
+        id: button
+        text: 'Close'
+        size_hint: None, None
+        height: '40dp'
+        width: min(dp(200), 0.3*root.width)
+        x: root.x + root.width - self.width
+        y: root.y + root.height - self.height
+
 
 <ScrollView>:
     canvas.after:
