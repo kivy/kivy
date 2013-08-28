@@ -508,7 +508,6 @@ class ClockBase(_ClockBase):
                         if event in events[cid]:
                             events[cid].remove(event)
 
-
 def mainthread(func):
     '''Decorator that will schedule the call of the function in the mainthread.
     It can be useful when you use :class:`~kivy.network.urlrequest.UrlRequest`,

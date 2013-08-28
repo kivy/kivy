@@ -41,6 +41,7 @@ class Context(dict):
 
     def __init__(self, init=False):
         dict.__init__(self)
+        self.sandbox = None
         if not init:
             return
 
