@@ -252,7 +252,12 @@ class EventLoopBase(EventDispatcher):
                 # wid.dispatch('on_touch_down', touch)
                 pass
             elif etype == 'update':
-                wid.dispatch('on_touch_move', me)
+                if wid._context.sandbox:
+                    with wid._context.sandbox:
+                        wid.dispatch('on_touch_move', me)
+                else:
+                    wid.dispatch('on_touch_move', me)
+
             elif etype == 'end':
                 if wid._context.sandbox:
                     with wid._context.sandbox:
