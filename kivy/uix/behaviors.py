@@ -138,7 +138,7 @@ class ToggleButtonBehavior(ButtonBehavior):
         super(ToggleButtonBehavior, self).__init__(**kwargs)
 
     def on_group(self, *largs):
-        groups = ToggleButton.__groups
+        groups = ToggleButtonBehavior.__groups
         if self._previous_group:
             group = groups[self._previous_group]
             for item in group[:]:
@@ -199,7 +199,7 @@ class ToggleButtonBehavior(ButtonBehavior):
             flushing it. The return of this method is informative, you've been
             warned!
         '''
-        groups = ToggleButton.__groups
+        groups = ToggleButtonBehavior.__groups
         if groupname not in groups:
             return []
         return [x() for x in groups[groupname] if x()][:]
