@@ -59,7 +59,7 @@ class LangComplexTestCase(unittest.TestCase):
                 self.register_event_type('on_release')
                 super(TestWidget, self).__init__(**kwargs)
 
-            def on_release(self):
+            def on_release(self, *largs):
                 pass
 
         class MainWidget(Widget):

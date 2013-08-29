@@ -32,9 +32,10 @@ class ButtonBehavior(object):
     :Events:
         `on_press`
             Fired when the button is pressed.
-        `on_release`
-            Fired when the button is released (i.e. the touch/click that
-            pressed the button goes away).
+        `on_release`: touch
+            Fired when the button is released (i.e., the touch/click that
+            pressed the button goes away). The first argument, touch, is the
+            touch that caused the release.
     '''
 
     state = OptionProperty('normal', options=('normal', 'down'))
@@ -84,13 +85,13 @@ class ButtonBehavior(object):
         assert(self in touch.ud)
         touch.ungrab(self)
         self._do_release()
-        self.dispatch('on_release')
+        self.dispatch('on_release', touch)
         return True
 
     def on_press(self):
         pass
 
-    def on_release(self):
+    def on_release(self, *largs):
         pass
 
     def trigger_action(self, duration=0.1):
@@ -109,7 +110,7 @@ class ButtonBehavior(object):
 
         def trigger_release(dt):
             self._do_release()
-            self.dispatch('on_release')
+            self.dispatch('on_release', None)
         if not duration:
             trigger_release(0)
         else:

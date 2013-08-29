@@ -265,7 +265,7 @@ class SettingItem(FloatLayout):
             return True
         return super(SettingItem, self).on_touch_up(touch)
 
-    def on_release(self):
+    def on_release(self, *largs):
         pass
 
     def on_value(self, instance, value):

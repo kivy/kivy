@@ -247,7 +247,7 @@ class Splitter(BoxLayout):
         touch.ungrab(instance)
         self.dispatch('on_release')
 
-    def on_release(self):
+    def on_release(self, *largs):
         pass
 
 
