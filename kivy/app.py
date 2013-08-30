@@ -770,11 +770,27 @@ class App(EventDispatcher):
         return False
 
     def get_settings_widget(self):
-        '''This method is called to return a
-        :class:`~kivy.uix.settings.Settings` widget when building the
-        settings panel. Override with your own
-        :class:`~kivy.uix.settings.Settings` subclass to configure its
-        behaviour.
+        '''Called to return a :class:`~kivy.uix.settings.Settings` widget when
+        building the settings panel. You can override it with a
+        Settings subclass and configure its behaviour.
+
+        For instance, the default panel includes a sidebar with
+        buttons to switch to each config panel. You could change the
+        width of the sidebar with::
+
+            from kivy.uix.settings import Settings
+            s = Settings()
+            s.menu.width = 500
+            # Default is 200dp, this sidebar will be very wide!
+            return s
+
+        Alternatively, you could return one of the premade settings
+        panels, each with a different way to display the panels:
+
+        - :class:`~kivy.uix.settings.SettingsWithSidebar`
+        - :class:`~kivy.uix.settings.SettingsWithSpinner`
+        - :class:`~kivy.uix.settings.SettingsWithTabbedPanel`
+        - :class:`~kivy.uix.settings.SettingsWithNoMenu`
 
         '''
         from kivy.uix.settings import Settings
