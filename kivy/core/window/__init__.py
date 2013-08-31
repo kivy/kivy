@@ -1003,6 +1003,7 @@ class WindowBase(EventDispatcher):
             # this way will prevent possible recursion.
             callback = self._system_keyboard.callback
             self._system_keyboard.callback = None
+            self._system_keyboard.target = None
             callback()
             return True
 
