@@ -11,12 +11,12 @@ This tool is designed to compress images into:
 Usage
 -----
 
-For compressing a texture::
+In order to compress a texture::
 
     texturecompress.py [--dir <directory>] <format> <image.png>
 
-It will create a `image.tex` file with a json header that contain all the image
-information, and the compressed data.
+This will create a `image.tex` file with a json header that contains all the
+image information and the compressed data.
 
 TODO
 ----
