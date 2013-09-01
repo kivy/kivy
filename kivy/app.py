@@ -1,8 +1,6 @@
 '''Application
 ===========
 
-settings_widget = ObjectProperty(Settings)
-
 The :class:`App` class is the base for creating Kivy applications.
 Think of it as your main entry point into the Kivy run loop.  In most cases, you
 subclass this class and make your own app. You create an instance of your
@@ -320,6 +318,7 @@ from kivy.resources import resource_find
 from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
 from kivy.uix.settings import Settings
+from kivy.properties import ObjectProperty
 
 
 platform = core_platform()
@@ -383,12 +382,12 @@ class App(EventDispatcher):
     change this to False.
     '''
 
-    settings_widget = Settings
+    settings_widget = ObjectProperty(Settings)
     '''.. versionadded:: 1.8.0
 
     The class to use to construct the settings panel, used to
     construct the instance passed to :meth:`build_config`. You should
-    use either :class:`~kivy.uix.settings.Settings`, or one of the
+    use either :class:`~kivy.uix.settings.Settings`, or one of the provided
     subclasses with different layouts
     (:class:`~kivy.uix.settings.SettingsWithSidebar`,
     :class:`~kivy.uix.settings.SettingsWithSpinner`,
@@ -397,7 +396,8 @@ class App(EventDispatcher):
     Settings subclass. See the documentation
     of:mod:`kivy.uix.Settings` for more information.
 
-    Defaults to :class:`~kivy.uix.settings.Settings`, which displays
+    :attr:`~App.settings_widget` is an :class:`~kivy.properties.ObjectProperty`.
+    it defaults to :class:`~kivy.uix.settings.Settings`, which displays
     settings panels using a sidebar layout.
 
     '''
