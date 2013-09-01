@@ -391,3 +391,112 @@ class PropertiesTestCase(unittest.TestCase):
 
         bnp.set(wid, -10)
         self.assertEqual(bnp.get(wid), -5)
+
+    def test_transform(self):
+        from kivy.models import SelectableDataItem
+        from kivy.properties import TransformProperty
+        from kivy.properties import ListProperty
+        from kivy.properties import NumericProperty
+
+        class Indexed(SelectableDataItem):
+            index = NumericProperty()
+
+        wid.__class__.data = data = ListProperty(
+                [Indexed(index=i + 1) for i in range(100)])
+        data.link(wid, 'data')
+        data.link_deps(wid, 'data')
+
+        times_five = TransformProperty(lambda l: map(lambda x: x.index * 5, l))
+        times_five.link(wid, 'times_five')
+        times_five.link_deps(wid, 'times_five')
+
+        self.assertEqual(len(times_five.get(wid)), 100)
+
+        data.set(wid, [Indexed(index=i + 1) for i in range(30)])
+        self.assertEqual(len(times_five.get(wid)), 30)
+
+        # test observer
+        global observe_called
+        observe_called = 0
+
+        def observe(obj, value):
+            global observe_called
+            observe_called = 1
+        times_five.bind(wid, observe)
+
+        data.set(wid,
+                 [Indexed(index=i + 1) for i in range(10)])
+        self.assertEqual(observe_called, 1)
+
+    def test_filter(self):
+        from kivy.models import SelectableDataItem
+        from kivy.properties import FilterProperty
+        from kivy.properties import ListProperty
+        from kivy.properties import NumericProperty
+
+        class Indexed(SelectableDataItem):
+            index = NumericProperty()
+
+        wid.__class__.data = data = ListProperty(
+                [Indexed(index=i + 1) for i in range(100)])
+        data.link(wid, 'data')
+        data.link_deps(wid, 'data')
+
+        less_than_fifty = FilterProperty(lambda item: item.index < 50)
+        less_than_fifty.link(wid, 'less_than_fifty')
+        less_than_fifty.link_deps(wid, 'less_than_fifty')
+
+        self.assertEqual(len(less_than_fifty.get(wid)), 49)
+        data.set(wid,
+                [Indexed(index=i + 1) for i in range(30)])
+        self.assertEqual(len(less_than_fifty.get(wid)), 30)
+
+        # test observer
+        global observe_called
+        observe_called = 0
+
+        def observe(obj, value):
+            global observe_called
+            observe_called = 1
+        less_than_fifty.bind(wid, observe)
+
+        data.set(wid,
+                 [Indexed(index=i + 1) for i in range(10)])
+        self.assertEqual(observe_called, 1)
+
+    def test_map(self):
+        from kivy.models import SelectableDataItem
+        from kivy.properties import MapProperty
+        from kivy.properties import ListProperty
+        from kivy.properties import NumericProperty
+
+        class Indexed(SelectableDataItem):
+            index = NumericProperty()
+
+        wid.__class__.data = data = ListProperty(
+                [Indexed(index=i + 1) for i in range(3)])
+        data.link(wid, 'data')
+        data.link_deps(wid, 'data')
+
+        times_two = MapProperty(lambda item: item.index * 2)
+        times_two.link(wid, 'times_two')
+        times_two.link_deps(wid, 'times_two')
+
+        self.assertEqual(sum(times_two.get(wid)), 12)
+        data.set(wid,
+                 [Indexed(index=i + 1) for i in range(5)])
+        self.assertEqual(times_two.get(wid), [2, 4, 6, 8, 10])
+
+        # test observer
+        global observe_called
+        observe_called = 0
+
+        def observe(obj, value):
+            global observe_called
+            observe_called = 1
+        times_two.bind(wid, observe)
+
+        data.set(wid,
+                [Indexed(index=i + 1) for i in range(10)])
+        self.assertEqual(observe_called, 1)
+

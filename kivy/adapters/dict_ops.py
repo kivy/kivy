@@ -120,8 +120,8 @@ class AdapterDictOpHandler(DictOpHandler):
         index = self.adapter.sorted_keys.index(key)
 
         is_selected = False
-        if hasattr(self.adapter.cached_views[index], 'is_selected'):
-            is_selected = self.adapter.cached_views[index].is_selected
+        if hasattr(self.adapter.cached_views[index], 'ksel'):
+            is_selected = self.adapter.cached_views[index].ksel.is_selected()
 
         del self.adapter.cached_views[index]
 

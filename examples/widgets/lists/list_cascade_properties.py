@@ -1,19 +1,12 @@
 from kivy.app import App
 from kivy.adapters.listadapter import ListAdapter
-from kivy.adapters.models import SelectableDataItem
+from kivy.models import SelectableDataItem
+from kivy.binding import Binding
 from kivy.event import EventDispatcher
-from kivy.properties import BooleanProperty
 from kivy.properties import ListProperty
-from kivy.properties import NumericProperty
 from kivy.properties import ObjectProperty
-from kivy.properties import OptionProperty
 from kivy.properties import AliasProperty
-from kivy.properties import ObjectProperty
-from kivy.properties import StringProperty
-from kivy.selection import Selection
 from kivy.selection import SelectionTool
-from kivy.selection import selection_schemes
-from kivy.selection import selection_update_methods
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.listview import ListItemButton
@@ -43,6 +36,7 @@ from fixtures import fruit_data_list_of_dicts
 # individual data items perform selection operations.  It is not difficult to
 # make your own data items that provide this functionality. Define custom data
 # item classes that subclass SelectableDataItem:
+
 
 class CategoryItem(SelectableDataItem):
     def __init__(self, **kwargs):
@@ -74,6 +68,7 @@ list_item_args_converter = \
 
 ###########
 # VIEWS
+
 
 class FruitDetailView(GridLayout):
 
@@ -128,6 +123,7 @@ class Control(EventDispatcher):
         category_view = self.category_selection[0]
         category_item = self.fruit_categories[category_view.index]
         return [f for f in self.fruits if f.name in category_item.fruits]
+
     def set_current_fruits(self, value):
         self.current_fruits = value
     current_fruits = AliasProperty(get_current_fruits,
@@ -143,6 +139,7 @@ class Control(EventDispatcher):
             return ''
         fruit_view = self.fruit_selection[0]
         return fruit_view.text if fruit_view else ''
+
     def set_current_fruit_name(self, value):
         self.current_fruit_name = value
     current_fruit_name = AliasProperty(get_current_fruit_name,
@@ -154,7 +151,7 @@ class Control(EventDispatcher):
 
         self.fruit_categories_adapter = \
             ListAdapter(
-                    data=(self, 'fruit_categories'),
+                    data=Binding(source=self, prop='fruit_categories'),
                     args_converter=list_item_args_converter,
                     selection_mode='single',
                     allow_empty_selection=False,
@@ -164,7 +161,7 @@ class Control(EventDispatcher):
                 selection=self.setter('category_selection'))
 
         self.fruits_adapter = ListAdapter(
-                        data=(self, 'current_fruits'),
+                        data=Binding(source=self, prop='current_fruits'),
                         args_converter=list_item_args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,

@@ -6,20 +6,28 @@ Selection tests
 
 import unittest
 
-from kivy.selection import Selection
-from kivy.selection import SelectionTool
-from kivy.selection import selection_update_methods
-from kivy.selection import selection_schemes
-from kivy.uix.widget import Widget
-from kivy.uix.listview import ListView
-from kivy.uix.listview import ListItemButton
+from kivy.adapters.listadapter import ListAdapter
+from kivy.adapters.dictadapter import DictAdapter
+
+from kivy.controllers.listcontroller import ListController
+
+from kivy.event import EventDispatcher
+
+from kivy.models import SelectableDataItem
+
 from kivy.properties import OpObservableList
 from kivy.properties import ListProperty
 from kivy.properties import NumericProperty
 from kivy.properties import StringProperty
-from kivy.adapters.listadapter import ListAdapter
-from kivy.adapters.dictadapter import DictAdapter
-from kivy.models import SelectableDataItem
+
+from kivy.selection import Selection
+from kivy.selection import SelectionTool
+from kivy.selection import selection_update_methods
+from kivy.selection import selection_schemes
+
+from kivy.uix.widget import Widget
+from kivy.uix.listview import ListView
+from kivy.uix.listview import ListItemButton
 
 # The following integers_dict and fruit categories / fruit data dictionaries
 # are from kivy/examples/widgets/lists/fixtures.py, and the classes are from
@@ -241,88 +249,6 @@ class FruitsDictAdapter(DictAdapter):
         category = \
                 fruit_categories[str(fruit_categories_adapter.selection[0])]
         self.sorted_keys = category['fruits']
-
-
-class ListController(Selection):
-
-    content = ListProperty([], cls=OpObservableList)
-
-    def __init__(self, **kwargs):
-
-        super(ListController, self).__init__(**kwargs)
-
-        self.bind(content=self.data_changed)
-
-    def get_data_item(self, index):
-        pass
-
-    def get_selectable_item(self, index):
-        return self.content[index]
-
-    def data_changed(self, *args):
-
-        self.adapter = args[0]
-        # TODO: args[1] is the modified list -- can utilize?
-        if len(args) == 3:
-            op_info = args[2]
-        else:
-            op_info = ListOpInfo('OOL_set', 0, 0)
-
-        op = op_info.op_name
-        start_index = op_info.start_index
-        end_index = op_info.end_index
-
-        if op == 'OOL_sort_start':
-            return
-
-        if op == 'OOL_set':
-
-            pass
-
-        elif (len(self.source_list) == 1
-                and op in ['OOL_append',
-                           'OOL_insert',
-                           'OOL_extend']):
-
-            pass
-
-        else:
-
-            if op in ['OOL_iadd',
-                      'OOL_imul',
-                      'OOL_append',
-                      'OOL_extend']:
-
-                pass
-
-            elif op in ['OOL_setitem']:
-
-                pass
-
-            elif op in ['OOL_setslice']:
-
-                pass
-
-            elif op in ['OOL_insert']:
-
-                pass
-
-            elif op in ['OOL_delitem',
-                        'OOL_delslice',
-                        'OOL_remove',
-                        'OOL_pop']:
-
-                pass
-
-            elif op in ['OOL_sort',
-                        'OOL_reverse']:
-
-                pass
-
-            else:
-
-                Logger.debug(('Testing -- OOL data_changed callback, '
-                              'uncovered op ') + str(op))
 
 
 class ListAdapterTestCase(unittest.TestCase):
@@ -603,11 +529,11 @@ class ListControllerTestCase(unittest.TestCase):
         reset_to_defaults(fruit_data_items)
 
     def test_list_controller_selection_mode_none(self):
-        list_controller = ListController(content=fruit_data_items,
+        list_controller = ListController(data=fruit_data_items,
                                          selection_mode='none',
                                          allow_empty_selection=True)
 
-        self.assertEqual(sorted([obj.name for obj in list_controller.content]),
+        self.assertEqual(sorted([obj.name for obj in list_controller.data]),
             ['Apple', 'Avocado', 'Banana', 'Cantaloupe', 'Cherry', 'Grape',
              'Grapefruit', 'Honeydew', 'Kiwifruit', 'Lemon', 'Lime',
              'Nectarine', 'Orange', 'Peach', 'Pear', 'Pineapple', 'Plum',
@@ -623,6 +549,66 @@ class ListControllerTestCase(unittest.TestCase):
         self.assertEqual(len(list_controller.selection), 1)
 
         list_controller.selection_mode = 'multiple'
-        list_controller.select_list(list_controller.content)
+        list_controller.select_list(list_controller.data)
         self.assertEqual(len(list_controller.selection),
-                         len(list_controller.content))
+                         len(list_controller.data))
+
+    def test_list_controller_selection_external_changes(self):
+
+        class FruitController(ListController):
+            selection = ListProperty([fruit_data_items[3],
+                                      fruit_data_items[7],
+                                      fruit_data_items[11],
+                                      fruit_data_items[16]])
+
+        fruit_controller = FruitController()
+
+        list_controller = ListController(data=fruit_data_items,
+                                         selection=(fruit_controller, 'selection'),
+                                         selection_mode='multiple',
+                                         allow_empty_selection=True)
+
+        self.assertEqual(list_controller.selection,
+                [fruit_data_items[3],
+                 fruit_data_items[7],
+                 fruit_data_items[11],
+                 fruit_data_items[16]])
+
+        three_sel = [fruit_data_items[2],
+                     fruit_data_items[9],
+                     fruit_data_items[13]]
+
+        list_controller.selection = three_sel
+        self.assertEqual(list_controller.selection, three_sel)
+        self.assertEqual(
+            3, len([s for s in list_controller.selection if s.ksel.is_selected()]))
+
+        for sel in three_sel:
+            sel.ksel.deselect()
+        list_controller.selection = three_sel
+        self.assertEqual(list_controller.selection, three_sel)
+
+        for sel in three_sel:
+            sel.ksel.select()
+        list_controller.selection = three_sel
+        self.assertEqual(list_controller.selection, three_sel)
+
+        list_controller.selection.insert(1, fruit_data_items[8])
+        four_sel = list(three_sel)
+        four_sel.insert(1, fruit_data_items[8])
+        self.assertEqual(list_controller.selection, four_sel)
+
+        ten_sel = fruit_data_items[:10]
+        list_controller.selection = ten_sel
+        self.assertEqual(list_controller.selection, ten_sel)
+
+        nine_sel = list(ten_sel)
+        del nine_sel[5]
+        del list_controller.selection[5]
+        self.assertEqual(list_controller.selection, nine_sel)
+
+        list_controller.selection_limit = 5
+        list_controller.selection = ten_sel
+        self.assertEqual(5, len(list_controller.selection))
+
+

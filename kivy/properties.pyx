@@ -169,7 +169,8 @@ __all__ = ('Property',
            'NumericProperty', 'StringProperty', 'ListProperty',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
-           'DictProperty', 'VariableListProperty')
+           'FilterProperty', 'MapProperty', 'DictProperty',
+           'VariableListProperty')
 
 include "graphics/config.pxi"
 
@@ -257,7 +258,6 @@ cdef class Property:
         self.errorhandler = None
         self.errorvalue_set = 0
 
-
     def __init__(self, defaultvalue, **kw):
         self.defaultvalue = defaultvalue
         self.allownone = <int>kw.get('allownone', 0)
@@ -269,7 +269,6 @@ cdef class Property:
 
         if 'errorhandler' in kw and not callable(self.errorhandler):
             raise ValueError('errorhandler %s not callable' % self.errorhandler)
-
 
     property name:
         def __get__(self):
@@ -409,7 +408,6 @@ cdef class Property:
             value = ps.value
             for observer in ps.observers:
                 observer(obj, value)
-
 
     cpdef dispatch_with_op_info(self, EventDispatcher obj, op_info):
         '''Dispatch the value change to all observers.
@@ -606,7 +604,7 @@ cdef class ListProperty(Property):
         the original ObservableList.  Whereas the new OpObservableList
         dispatches change events on a per op basis, the original ObservableList
         does gross dispatching, so that there is no detailed change information
-        available to widgets.  
+        available to widgets.
 
         A new cls argument is checked, and if not defined, the original
         ObservableList is used. Otherwise, the OpObservableList is used.
@@ -674,13 +672,7 @@ class ObservableDict(dict):
         self.__setitem__(attr, value)
 
     def __setitem__(self, key, value):
-        if value is None:
-            # remove attribute if value is None
-            # is this really needed?
-            # NOTE: OpObservableDict allows None values.
-            self.__delitem__(key)
-        else:
-            dict.__setitem__(self, key, value)
+        dict.__setitem__(self, key, value)
         observable_dict_dispatch(self)
 
     def __delitem__(self, key):
@@ -725,7 +717,7 @@ cdef class DictProperty(Property):
         dispatches change events on a per op basis, the original ObservableDict
         does gross dispatching, so that there is no detailed change information
         available to widgets.
-        
+
         A new cls argument is checked, and if not defined, the original
         ObservableDict is used. Otherwise, the OpObservableDict is used.
 
@@ -936,6 +928,7 @@ class OpObservableList(list):
         op_observable_list_dispatch(self,
                 ListOpInfo('batch_delete', 0, len(self) - 1))
 
+
 class ListOpHandler(object):
     '''A :class:`ListOpHandler` reacts to the following operations that are
     possible for a OpObservableList (OOL) instance, categorized as
@@ -1024,8 +1017,6 @@ class OpObservableDict(dict):
         self.obj = largs[1]
 
         super(OpObservableDict, self).__init__(*largs[2:])
-
-        #self.data = largs[2]
 
         self.op_info = None
 
@@ -1449,13 +1440,15 @@ cdef class OptionProperty(Property):
         def __get__(self):
             return self.options
 
+
 class ObservableReferenceList(ObservableList):
     def __setitem__(self, key, value, update_properties=True):
         list.__setitem__(self, key, value)
         if update_properties:
             self.prop.setitem(self.obj(), key, value)
 
-    def __setslice__(self, start, stop, value, update_properties=True):  # Python 2 only method
+    def __setslice__(self, start, stop, value, update_properties=True):
+        # Python 2 only method
         list.__setslice__(self, start, stop, value)
         if update_properties:
             self.prop.setitem(self.obj(), slice(start, stop), value)
@@ -1658,6 +1651,276 @@ cdef class AliasProperty(Property):
             ps.value = self.get(obj)
             self.dispatch(obj)
 
+
+class TransformInitInfo(object):
+    '''Holds op and func for initializing a TransformProperty instance.
+    '''
+
+    def __init__(self, op, func):
+        self.op = op
+        self.func = func
+
+
+cdef class TransformProperty(Property):
+    '''
+    The TransformProperty class serves as a handy alternative to writing your
+    own AliasProperty, with associated getter and/or setter methods. It is
+    especially useful in ObjectController, where the data property is known and
+    can be easily modified. For example, consider that an ObjectController
+    stores a Fruit object in its data ObjectProperty. You really need the name
+    of the fruit, so instead of making an AliasProperty and methods, make a
+    simple:
+
+        name = TransformProperty(lambda fruit: fruit.name).
+
+    A binding will automatically be created so that when the data object
+    changes, the name is updated.
+
+    TransformProperty is useful in contexts other than controllers and
+    adapters, but more information needs to be passed.
+
+    If the transform is dependent on other properties, pass them in the bind
+    argument, as with AliasProperty. For example:
+
+        color = ListProperty([ ... ])
+
+        def fader(self):
+            ... color fading code ...
+            return transformed_color
+
+        faded_color = TransformProperty(fader, subject='color', bind=['color'])
+
+    :Parameters:
+       `subject`: string
+           Name of the property to which op/func is to be applied (Default:
+           'data' for controllers and list adapter, or 'sorted_keys' for
+           DictAdapter)
+       `func`: Python lambda or function
+           Applied to subject
+       `bind`: list
+           Names of properties that are dependencies for the transform.
+    '''
+
+    def __cinit__(self):
+        self.op = ''
+        self.func = None
+        self.subject = None
+        self.use_cache = 0
+        self.bind_objects = list()
+        self.owner = None
+
+    def __init__(self, func, **kwargs):
+        Property.__init__(self, None, **kwargs)
+
+        self.func = func
+
+        # op can be TRANSFORM (default), FILTER, or MAP. TransformProperty is
+        # the base class for FilterProperty and MapProperty, which pass op to
+        # differentiate.
+        self.op = kwargs.get('op', 'TRANSFORM')
+
+        if self.func is None:
+            self.func = lambda item: item
+
+        self.subject = kwargs.get('subject', None)
+
+        self.bind_objects = kwargs.get('bind', [])
+        self.bind_objects = list(self.bind_objects)
+        if self.subject and not isinstance(self.subject, tuple):
+            self.bind_objects.append(self.subject)
+
+        self.use_cache = 1 if kwargs.get('cache') else 0
+
+        self.owner = None
+
+    cpdef apply_transform(self, EventDispatcher obj):
+        cdef PropertyStorage ps = obj.__storage[self._name]
+
+        data = None
+
+        if self.subject is None:
+            if hasattr(obj, 'data'):
+                # NOTE: obj can be an external obj, or it can be self.
+                data = getattr(obj, 'data')
+            if data is None and hasattr(obj, 'sorted_keys'):
+                data = getattr(obj, 'sorted_keys')
+        else:
+            if isinstance(self.subject, tuple):
+                owner, prop_name = self.subject
+                if hasattr(owner, prop_name):
+                    data = getattr(owner, prop_name)
+            elif hasattr(obj, self.subject):
+                data = getattr(obj, self.subject)
+            else:
+                msg = 'TransformProperty: {0} not found in {1}'.format(
+                        self.subject, obj)
+                raise Exception(msg)
+
+        if data is not None:
+            if ps.op == 'TRANSFORM':
+                if self.func is None:
+                    return None
+                ret = ps.func(data)
+                return ret
+            elif ps.op == 'FILTER':
+                # NOTE: The use of list() is for compatibility with Python 3.
+                return list(filter(ps.func, data))
+            elif ps.op == 'MAP':
+                return list(map(ps.func, data))
+            else:
+                # TODO: reduce was removed in Python 3. People can use an
+                #       alternative approach with an AliasProperty? So, no on
+                #       this?
+                #
+                #           return reduce(self.func, data)
+                #
+                msg = 'TransformProperty: Unknown op, {0}'.format(ps.op)
+                raise Exception(msg)
+        else:
+            return [] if ps.op in ['FILTER', 'MAP'] else None
+
+    cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
+        Property.init_storage(self, obj, storage)
+        storage.func = self.func
+        storage.op = self.op
+        storage.subject = self.subject
+        storage.transform_initial = 1
+        storage.owner = obj
+
+    cpdef link_deps(self, EventDispatcher obj, str name):
+        cdef Property oprop
+
+        if self._name != 'data':
+            if (self.subject is None
+                    and 'data' not in self.bind_objects
+                    and hasattr(obj, 'data')):
+                self.bind_objects.append('data')
+
+        if self._name != 'sorted_keys':
+            if (self.subject is None
+                    and 'sorted_keys' not in self.bind_objects
+                    and hasattr(obj, 'sorted_keys')):
+                self.bind_objects.append('sorted_keys')
+
+        for prop in self.bind_objects:
+            if isinstance(prop, tuple):
+                external_obj = prop[0]
+                prop = prop[1]
+
+                # We now know that we could be receiving events to our
+                # trigger_change from at least one external_obj. We need access
+                # to our owning obj in these cases, to get to the owning obj's
+                # __storage by _name of this property. So, store it.
+                # TODO: Already set in init_storage?
+                if self.owner is None:
+                    self.owner = obj
+
+                oprop = getattr(external_obj.__class__, prop)
+                oprop.bind(external_obj, self.trigger_change)
+            else:
+                oprop = getattr(obj.__class__, prop)
+                oprop.bind(obj, self.trigger_change)
+
+    cpdef trigger_change(self, EventDispatcher obj, value):
+        if self._name not in obj.__storage:
+            obj = self.owner
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        ps.transform_initial = 1
+        dvalue = self.get(obj)
+        if ps.value != dvalue:
+            ps.value = dvalue
+            self.dispatch(obj)
+
+    cdef check(self, EventDispatcher obj, value):
+        return True
+
+    cpdef get(self, EventDispatcher obj):
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        if self.use_cache:
+            if ps.transform_initial:
+                ps.value = self.apply_transform(obj)
+                ps.transform_initial = 0
+            return ps.value
+        return self.apply_transform(obj)
+
+    cpdef set(self, EventDispatcher obj, value):
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        if isinstance(value, TransformInitInfo):
+            ps.op = value.op
+            ps.func = value.func
+        else:
+            ps.value = self.get(obj)
+            self.dispatch(obj)
+
+
+cdef class FilterProperty(TransformProperty):
+    '''Property that holds the result of applying a filter operation on a set
+    of data.
+
+    A main goal of this class and the MapProperty class is to provide a very
+    short syntax for these specialized operations, to avoid the tedium of
+    setting up getter and setter methods in these uses, where we know the data
+    on which to operate, and the set way the operations are always performed.
+    The class is generally useful, but is made for ListControllers,
+    ListAdapters, and DictAdapters. Frequently some subset of the complete data
+    held in such a collection is needed.
+
+    If the 'sequence' parameter is omitted to initialize FilterProperty, it is
+    set to 'data' or 'sorted_keys', depending on whether the owning class is a
+    ListController of ListAdapter, or a DictAdapter. For other needs, provide
+    the name of the ListProperty or sequence on which the op is to be
+    performed, as the 'sequence' parameter.
+
+    NOTE: reduce was removed in Python 3. Use an alternative approach with an
+          AliasProperty, and perhaps a list comprehension in the getter.
+
+    :Parameters:
+        `op`: string
+            Choice of operations (filter, reduce, map) (Default: 'FILTER')
+        `sequence`: string
+            Name of sequence to which op/func is applied (Default: 'data', or
+            'sorted_keys')
+        `func`: Python lambda or function
+            Applied to sequence
+    '''
+    def __init__(self, func, **kwargs):
+        kwargs['op'] = 'FILTER'
+        TransformProperty.__init__(self, func, **kwargs)
+        super(FilterProperty, self).__init__(func, **kwargs)
+
+cdef class MapProperty(TransformProperty):
+    '''Property that holds the result of applying a map operation on a set
+    of data.
+
+    A main goal of this class and the FilterProperty class is to provide a very
+    short syntax for these specialized operations, to avoid the tedium of
+    setting up getter and setter methods in these uses, where we know the data
+    on which to operate, and the set way the operations are always performed.
+    The class is generally useful, but is made for ListControllers,
+    ListAdapters, and DictAdapters. Subsets of the complete data held in such a
+    collection are frequently needed.
+
+    If the 'sequence' parameter is omitted to initialize FilterProperty, it is
+    set to 'data' or 'sorted_keys', depending on whether the owning class is a
+    ListController of ListAdapter, or a DictAdapter. For other needs, provide
+    the name of the ListProperty or sequence on which the map is to be
+    performed, as the 'sequence' parameter.
+
+    NOTE: reduce was removed in Python 3. Use an alternative approach with an
+          AliasProperty, and perhaps a list comprehension in the getter.
+
+    :Parameters:
+        `sequence`: string
+            Name of sequence to which op/func is applied (Default: 'data', or
+            'sorted_keys')
+        `func`: Python lambda or function
+            Applied to sequence
+    '''
+    def __init__(self, func, **kwargs):
+        kwargs['op'] = 'MAP'
+        TransformProperty.__init__(self, func, **kwargs)
+        super(MapProperty, self).__init__(func, **kwargs)
+
 cdef class VariableListProperty(Property):
     '''A ListProperty that mimics the css way of defining numeric values such
     as padding, margin, etc.
@@ -1667,7 +1930,7 @@ cdef class VariableListProperty(Property):
 
     - VariableListProperty([1]) represents [1, 1, 1, 1].
     - VariableListProperty([1, 2]) represents [1, 2, 1, 2].
-    - VariableListProperty(['1px', (2, 'px'), 3, 4.0]) represents [1, 2, 3, 4.0].
+    - VariableListProperty(['1px', (2, 'px'), 3, 4.0]) repr. [1, 2, 3, 4.0].
     - VariableListProperty(5) represents [5, 5, 5, 5].
     - VariableListProperty(3, length=2) represents [3, 3].
 
@@ -1776,4 +2039,3 @@ cdef class VariableListProperty(Property):
 
     cdef float parse_list(self, EventDispatcher obj, value, str ext):
         return dpi2px(value, ext)
-

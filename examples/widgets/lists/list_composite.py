@@ -47,7 +47,7 @@ class MainView(GridLayout):
                            right_button_args(rec, key)]}
 
         integers_dict = \
-            { str(i): {'x10': i * 10,
+            {str(i): {'x10': i * 10,
                        'x100_text': 'x100={0}'.format(i * 100),
                        'is_selected': False} for i in range(100)}
 

@@ -85,6 +85,12 @@ class SimpleListAdapter(EventDispatcher):
         if not 'args_converter' in kwargs:
             self.args_converter = list_item_args_converter
 
+    def update_data_from_first_item(self, *args):
+        # For data, we set as a list with the only item as the first item.
+        l = args[1]
+        if l:
+            self.data = [l[0]]
+
     def get_count(self):
         return len(self.data)
 

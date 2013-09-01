@@ -1,5 +1,5 @@
 from kivy.adapters.listadapter import ListAdapter
-from kivy.adapters.models import SelectableDataItem
+from kivy.models import SelectableDataItem
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton
 
@@ -131,7 +131,7 @@ class CascadingView(GridLayout):
         # instantiation of the fruit_list_adapter.
         #
         first_category_fruits = \
-            fruit_categories[list(fruit_categories.keys())[0]]['fruits']
+            fruit_categories['Citrus Fruits']['fruits']
 
         first_category_fruit_data_items = \
             [f for f in fruit_data_items if f.name in first_category_fruits]

@@ -40,10 +40,11 @@ Arguments:
 
 __all__ = ('Adapter', )
 
+import collections
+
 from kivy.adapters.args_converters import list_item_args_converter
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
-from kivy.models import SelectableDataItem
 from kivy.properties import DictProperty
 from kivy.properties import ObjectProperty
 from kivy.selection import selection_schemes
@@ -208,7 +209,10 @@ class Adapter(EventDispatcher):
         :class:`kivy.adapters.dictadapter.DictListAdapter`.
         '''
 
-        if index < 0 or index > len(self.data) - 1:
+        if not isinstance(self.data, collections.Iterable):
+            if index != 0:
+                return
+        elif index < 0 or index > len(self.data) - 1:
             return None
 
         data_item = self.get_data_item(index)
@@ -229,6 +233,8 @@ class Adapter(EventDispatcher):
         view_instance.bind(on_release=self.handle_selection)
 
         ksel = None
+
+        from kivy.models import SelectableDataItem
 
         if isinstance(data_item, SelectableDataItem):
             ksel = data_item.ksel
@@ -261,3 +267,8 @@ class Adapter(EventDispatcher):
                     ksel.bind_from_ksel(view_instance.ksel)
 
         return view_instance
+
+    def update_from_first_item(self, *args):
+        l = args[1]
+        if l:
+            self.data = l[0]

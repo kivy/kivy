@@ -245,7 +245,7 @@ class OpsView(BoxLayout):
         adapters[5].bind(selection=selection_monitor.update_sel_count_5)
         adapters[6].bind(selection=selection_monitor.update_sel_count_6)
 
-        # For the last three listviews, bind the header buttons to the trim
+        # For the last four listviews, bind the header buttons to the trim
         # op method in the associated dict adapter instance.
         button_3 = listview_header_widgets[3]
         button_4 = listview_header_widgets[4]

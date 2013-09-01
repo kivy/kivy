@@ -16,9 +16,70 @@ properties. Methods in list controllers can do filtering of the data for
 convenience and efficiency. Using such methods, an API for the list data can be
 constructed.
 
+As a convenience for setting up alias properties, use FilterProperty or
+MapProperty to hold code to filter or transform data:
+
+    FruitsController(ListController):
+
+        small_fruits = FilterProperty(lambda item: item.size() < 40)
+        medium_fruits = FilterProperty(lambda item: 40 <= item.size() < 80)
+        big_fruits = FilterProperty(lambda item: item.size() >= 80)
+
+With no arguments to a FilterProperty or MapProperty, the function, in these
+examples a lambda, is applied on controller.data, for which bindings are
+automatically set. (This is where the convenience, over making your own
+AliasProperty, comes in).
+
+You can also use filter and map properties as dependencies of other properties
+by setting data.
+
+    TreesController(ListController):
+
+        conifers = ListProperty(['Loblolly Pine',
+                                 'Norfolk Island Pine',
+                                 'Monterey Cypress'])
+
+        angiosperms = ListProperty(['White Oak',
+                                    'Live Oak',
+                                    'Buttercup Oak',
+                                    'Water Oak',
+                                    'Pin Oak',
+                                    'Geranium',
+                                    'Petunia'])
+
+        pines = FilterProperty(lambda item: 'Pine' in item, data='conifers')
+        oaks = FilterProperty(lambda item: 'Oak' in item, data='angiosperms')
+
+You can chain computed properties, as in:
+
+    FruitsController(ListController):
+
+        ...
+        tiny_fruits = FilterProperty(lambda item: item.size() < 10,
+                                     data='small_fruits')
+
+Additional dependencies for the function (as for the getter in an
+AliasProperty) can be specified in the bind argument:
+
+    VotesController(ListController):
+
+        # data, by default, is the main subject of the maps and filters
+
+        f1 = NumericProperty()
+        f2 = NumericProperty()
+        rankings = MapProperty(lambda item: __some ranking function__,
+                               bind=['f1', 'f2'])
+
+        trending = \
+            MapProperty(lambda item: self.rankings[item.index] / self.f1,
+                               bind=['rankings', 'f1'])
+
+For more specialized needs, add your own AliasProperty to the controller or
+adapter, along with needed getter and setting methods.
+
 List controllers can be used in combination, with bindings between their data
-properties. Another common use is to have an ObjectController hold the single
-selection from a ListController.
+and/or selection properties. Another common use is to have an ObjectController
+hold the single selection from a ListController.
 
 .. versionadded:: 1.8
 
@@ -30,6 +91,8 @@ from kivy.selection import Selection
 
 from kivy.controllers.controller import Controller
 from kivy.controllers.list_ops import ControllerListOpHandler
+from kivy.controllers.utils import parse_binding
+from kivy.controllers.utils import bind_binding
 
 __all__ = ('ListController', )
 
@@ -42,7 +105,15 @@ class ListController(Selection, Controller):
 
     def __init__(self, **kwargs):
 
+        data_binding, kwargs = parse_binding('data', kwargs)
+        selection_binding, kwargs = parse_binding('selection', kwargs)
+
         super(ListController, self).__init__(**kwargs)
+
+        if data_binding:
+            bind_binding(self, data_binding)
+        if selection_binding:
+            bind_binding(self, selection_binding)
 
         self.list_op_handler = \
                 ControllerListOpHandler(source_list=self.data,
@@ -50,8 +121,20 @@ class ListController(Selection, Controller):
 
         self.bind(data=self.list_op_handler.data_changed)
 
+    def update_data_from_first_item(self, *args):
+        # For data, we set as a list with the only item as the first item.
+        l = args[1]
+        if l:
+            self.data = [l[0]]
+
+    def update_selection_from_first_item(self, *args):
+        # For selection, we set as a list with the only item as the first item.
+        l = args[1]
+        if l:
+            self.selection = [l[0]]
+
     # TODO: See comment in ListAdapter about getting rid of this event, and
-    #       just relying on observing data.
+    # just relying on observing data.
     def on_data_change(self, *args):
         '''on_data_change() is the default handler for the on_data_change
         event.

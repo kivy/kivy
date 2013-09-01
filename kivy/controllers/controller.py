@@ -21,5 +21,5 @@ class Controller(EventDispatcher):
 
     data = ObjectProperty(None, allownone=True)
 
-    def update(self, *args):
-        pass
+    def __init__(self, **kwargs):
+        super(Controller, self).__init__(**kwargs)

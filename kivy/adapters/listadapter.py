@@ -56,7 +56,8 @@ __all__ = ('ListAdapter', )
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.list_ops import AdapterListOpHandler
 
-from kivy.controllers.listcontroller import ListController
+from kivy.controllers.utils import parse_binding
+from kivy.controllers.utils import bind_binding
 
 from kivy.properties import OpObservableList
 from kivy.properties import ListProperty
@@ -164,25 +165,15 @@ class ListAdapter(Selection, Adapter):
 
     def __init__(self, **kwargs):
 
-        controller = None
-        list_property_owner = None
-        list_property_name = None
-
-        if isinstance(kwargs['data'], ListController):
-            controller = kwargs['data']
-            kwargs['data'] = controller.data
-
-        if isinstance(kwargs['data'], tuple):
-            list_property_owner, list_property_name = kwargs['data']
-            kwargs['data'] = getattr(list_property_owner, list_property_name)
+        data_binding, kwargs = parse_binding('data', kwargs)
+        selection_binding, kwargs = parse_binding('selection', kwargs)
 
         super(ListAdapter, self).__init__(**kwargs)
 
-        if controller:
-            controller.bind(data=self.setter('data'))
-
-        if list_property_owner and list_property_name:
-            list_property_owner.bind(**{list_property_name: self.setter('data')})
+        if data_binding:
+            bind_binding(self, data_binding)
+        if selection_binding:
+            bind_binding(self, selection_binding)
 
         self.list_op_handler = AdapterListOpHandler(
                 source_list=self.data, duplicates_allowed=True)
@@ -190,6 +181,18 @@ class ListAdapter(Selection, Adapter):
         self.bind(selection_mode=self.selection_mode_changed,
                   allow_empty_selection=self.check_for_empty_selection,
                   data=self.list_op_handler.data_changed)
+
+    def update_data_from_first_item(self, *args):
+        # For data, we set as a list with the only item as the first item.
+        l = args[1]
+        if l:
+            self.data = [l[0]]
+
+    def update_selection_from_first_item(self, *args):
+        # For selection, we set as a list with the only item as the first item.
+        l = args[1]
+        if l:
+            self.selection = [l[0]]
 
     def get_count(self):
         return len(self.data)

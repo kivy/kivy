@@ -15,8 +15,6 @@ with the additional responsibility for managing cached_views.
 from kivy.properties import ListOpHandler
 from kivy.properties import ListOpInfo
 
-from kivy.logger import Logger
-
 
 class ControllerListOpHandler(ListOpHandler):
     '''This class is a helper class for
@@ -84,9 +82,6 @@ class ControllerListOpHandler(ListOpHandler):
         # observers.
         self.controller.op_info = op_info
 
-        Logger.info(('ListController: '
-                     'OOL data_changed callback ') + str(op_info))
-
         op = op_info.op_name
         start_index = op_info.start_index
         end_index = op_info.end_index
@@ -137,12 +132,6 @@ class ControllerListOpHandler(ListOpHandler):
                         'OOL_reverse']:
 
                 self.handle_sort_op()
-
-            else:
-
-                Logger.info(('ListOpHandler: '
-                             'OOL data_changed callback, uncovered op ')
-                                 + str(op))
 
         self.controller.dispatch('on_data_change')
 

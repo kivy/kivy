@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-from kivy.uix.listview import ListView
-from kivy.uix.floatlayout import FloatLayout
-from kivy.clock import Clock
-from kivy.adapters.listadapter import ListAdapter
-from kivy.adapters.models import SelectableDataItem
-
-from kivy.uix.listview import ListItemButton
-
 from random import choice
 from string import ascii_uppercase, digits
 
 import random
+
+from kivy.adapters.listadapter import ListAdapter
+from kivy.clock import Clock
+from kivy.enums import selection_schemes
+from kivy.models import SelectableDataItem
+
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.listview import ListItemButton
+from kivy.uix.listview import ListView
 
 
 class DataItem(SelectableDataItem):
@@ -40,7 +41,7 @@ class MainView(FloatLayout):
                 ListAdapter(data=data_items,
                             args_converter=list_item_args_converter,
                             selection_mode='single',
-                            propagate_selection_to_data=False,
+                            selection_scheme=selection_schemes.DATA_DRIVEN,
                             allow_empty_selection=False,
                             cls=ListItemButton)
 

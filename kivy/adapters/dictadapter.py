@@ -19,6 +19,9 @@ from kivy.adapters.adapter import Adapter
 from kivy.adapters.dict_ops import AdapterDictOpHandler
 from kivy.adapters.list_ops import AdapterListOpHandler
 
+from kivy.controllers.utils import parse_binding
+from kivy.controllers.utils import bind_binding
+
 from kivy.properties import DictProperty
 from kivy.properties import ListProperty
 from kivy.properties import ObjectProperty
@@ -156,13 +159,24 @@ class DictAdapter(Selection, Adapter):
                 msg = 'DictAdapter: sorted_keys must be tuple or list'
                 raise Exception(msg)
             else:
-                self.sorted_keys = \
-                    self.sorted_keys_checked(kwargs.pop('sorted_keys'),
+                kwargs['sorted_keys'] = \
+                    self.check_sorted_keys(kwargs.pop('sorted_keys'),
                                              kwargs['data'].keys())
         else:
-            self.sorted_keys = sorted(kwargs['data'].keys())
+            kwargs['sorted_keys'] = sorted(kwargs['data'].keys())
+
+        sorted_keys_binding, kwargs = parse_binding('sorted_keys', kwargs)
+        data_binding, kwargs = parse_binding('data', kwargs)
+        selection_binding, kwargs = parse_binding('selection', kwargs)
 
         super(DictAdapter, self).__init__(**kwargs)
+
+        if sorted_keys_binding:
+            bind_binding(self, sorted_keys_binding)
+        if data_binding:
+            bind_binding(self, data_binding)
+        if selection_binding:
+            bind_binding(self, selection_binding)
 
         # Delegate handling for sorted_keys changes to a ListOpHandler.
         self.list_op_handler = AdapterListOpHandler(
@@ -174,7 +188,26 @@ class DictAdapter(Selection, Adapter):
         self.bind(sorted_keys=self.list_op_handler.data_changed,
                   data=self.dict_op_handler.data_changed)
 
-    def sorted_keys_checked(self, sorted_keys, data_keys):
+    def update_data_from_first_item(self, *args):
+        # For data, we assume that the value coming in is a dict.
+        d = args[1]
+        if d:
+            self.data = d
+
+    def update_sorted_keys_from_first_item(self, *args):
+        # For sorted_keys, we set as a list with the only item as the first
+        # item.
+        l = args[1]
+        if l:
+            self.sorted_keys = [l[0]]
+
+    def update_selection_from_first_item(self, *args):
+        # For selection, we set as a list with the only item as the first item.
+        l = args[1]
+        if l:
+            self.selection = [l[0]]
+
+    def check_sorted_keys(self, sorted_keys, data_keys):
 
         # Remove any keys in sorted_keys that are not found in
         # self.data.keys(). This is the set intersection op (&).
@@ -182,19 +215,6 @@ class DictAdapter(Selection, Adapter):
 
         # Maintain sort order of incoming sorted_keys.
         return [k for k in sorted_keys if k in sorted_keys_checked]
-
-    def bind_triggers_to_view(self, func):
-        '''
-        .. deprecated:: 1.8
-
-             The data changed system was changed to use variants of
-             ObservableList/Dict that dispatch after individual operations,
-             passing information about what changed to a data_changed()
-             handler, which should be implemented by observers of adapters.
-        '''
-
-        self.bind(sorted_keys=func)
-        self.bind(data=func)
 
     def on_data_change(self, *args):
         pass
