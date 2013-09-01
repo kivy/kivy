@@ -478,7 +478,7 @@ else:
 
         def stop(self):
             self.running = False
-            self.tasks.join()
+            self.tasks = queue.Queue()
 
     class LoaderThreadPool(LoaderBase):
         def __init__(self):
