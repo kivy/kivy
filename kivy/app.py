@@ -2,6 +2,8 @@
 Application
 ===========
 
+settings_widget = ObjectProperty(Settings)
+
 The :class:`App` class is the base for creating Kivy applications.
 Think of it as your main entry point into the Kivy run loop.  In most cases, you
 subclass this class and make your own app. You create an instance of your
@@ -265,6 +267,7 @@ from kivy.lang import Builder
 from kivy.resources import resource_find
 from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
+from kivy.uix.settings import Settings
 
 
 platform = core_platform()
@@ -328,6 +331,25 @@ class App(EventDispatcher):
     change this to False.
     '''
 
+    settings_widget = Settings
+    '''.. versionadded:: 1.8.0
+
+    The class to use to construct the settings panel, used to
+    construct the instance passed to :meth:`build_config`. You should
+    use either :class:`~kivy.uix.settings.Settings`, or one of the
+    subclasses with different layouts
+    (:class:`~kivy.uix.settings.SettingsWithSidebar`,
+    :class:`~kivy.uix.settings.SettingsWithSpinner`,
+    :class:`~kivy.uix.settings.SettingsWithTabbedPanel`,
+    :class:`~kivy.uix.settings.SettingsWithNoMenu`), or your own
+    Settings subclass. See the documentation
+    of:mod:`kivy.uix.Settings` for more information.
+
+    Defaults to :class:`~kivy.uix.settings.Settings`, which displays
+    settings panels using a sidebar layout.
+
+    '''
+
     # Return the current running App instance
     _running_app = None
 
@@ -385,8 +407,13 @@ class App(EventDispatcher):
         application settings. This will be called only once, the first time when
         the user will show the settings.
 
+        You can use this method to add settings panels and to
+        customise the settings widget, e.g. by changing the sidebar
+        width. See the module documentation for full details.
+
         :param settings: Settings instance for adding panels
         :type settings: :class:`~kivy.uix.settings.Settings`
+
         '''
 
     def load_kv(self, filename=None):
@@ -769,36 +796,10 @@ class App(EventDispatcher):
             return True
         return False
 
-    def get_settings_widget(self):
-        '''Called to return a :class:`~kivy.uix.settings.Settings` widget when
-        building the settings panel. You can override it with a
-        Settings subclass and configure its behaviour.
-
-        For instance, the default panel includes a sidebar with
-        buttons to switch to each config panel. You could change the
-        width of the sidebar with::
-
-            from kivy.uix.settings import Settings
-            s = Settings()
-            s.menu.width = 500
-            # Default is 200dp, this sidebar will be very wide!
-            return s
-
-        Alternatively, you could return one of the premade settings
-        panels, each with a different way to display the panels:
-
-        - :class:`~kivy.uix.settings.SettingsWithSidebar`
-        - :class:`~kivy.uix.settings.SettingsWithSpinner`
-        - :class:`~kivy.uix.settings.SettingsWithTabbedPanel`
-        - :class:`~kivy.uix.settings.SettingsWithNoMenu`
-
-        '''
-        from kivy.uix.settings import Settings
-        return Settings()
-
     def _create_settings(self):
         if self._app_settings is None:
-            self._app_settings = s = self.get_settings_widget()
+            self._app_settings = s = self.settings_widget()
+            print 'APP SETTINGS', self.settings_widget, self._app_settings
             self.build_settings(s)
             if self.use_kivy_settings:
                 s.add_kivy_panel()
