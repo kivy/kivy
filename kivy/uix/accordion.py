@@ -326,16 +326,16 @@ class Accordion(Widget):
         'horizontal', 'vertical'))
     '''Orientation of the layout.
 
-    :data:`orientation` is an :class:`~kivy.properties.OptionProperty`, default
-    to 'horizontal'. Can take a value of 'vertical' or 'horizontal'.
+    :data:`orientation` is an :class:`~kivy.properties.OptionProperty` and
+	defaults to 'horizontal'. Can take a value of 'vertical' or 'horizontal'.
     '''
 
     anim_duration = NumericProperty(.25)
-    '''Duration of the animation in seconds, when a new accordion item is
+    '''Duration of the animation in seconds when a new accordion item is
     selected.
 
-    :data:`anim_duration` is a :class:`~kivy.properties.NumericProperty`,
-    default to .25 (250ms)
+    :data:`anim_duration` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to .25 (250ms).
     '''
 
     anim_func = ObjectProperty('out_expo')
@@ -343,17 +343,17 @@ class Accordion(Widget):
     :class:`kivy.animation.AnimationTransition` for more information about
     available animation functions.
 
-    :data:`anim_func` is a :class:`~kivy.properties.ObjectProperty`,
-    default to 'out_expo'. You can set a string or a function to use as an
+    :data:`anim_func` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to 'out_expo'. You can set a string or a function to use as an
     easing function.
     '''
 
     min_space = NumericProperty('44dp')
-    '''Minimum space to use for title of each item. This value is automatically
-    set on each children, each time the layout happens.
+    '''Minimum space to use for the title of each item. This value is
+	automatically set for each child every time the layout event occurs.
 
-    :data:`min_space` is a :class:`~kivy.properties.NumericProperty`, default to
-    44 (px).
+    :data:`min_space` is a :class:`~kivy.properties.NumericProperty` and
+	defaults to 44 (px).
     '''
 
     def __init__(self, **kwargs):
