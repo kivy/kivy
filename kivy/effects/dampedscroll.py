@@ -10,7 +10,7 @@ value, and slows going back to the upper or lower limit.
 
 '''
 
-__all__ = ('DampedScrollEffect', )
+__all__ = ('DampedScrollEffect',)
 
 
 from kivy.effects.scroll import ScrollEffect
@@ -37,6 +37,15 @@ class DampedScrollEffect(ScrollEffect):
     defaults to 2.0
     '''
 
+    min_overscroll = NumericProperty(.5)
+    '''An overscroll less than this amount will be normalized to 0.
+
+    .. versionadded:: 1.8.0
+
+    :data:`min_overscroll` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to .5.
+    '''
+
     round_value = BooleanProperty(True)
     '''If True, when the motion stops, :attr:`value` is rounded to the nearest
     integer.
@@ -55,7 +64,7 @@ class DampedScrollEffect(ScrollEffect):
             return
 
         total_force = self.velocity * self.friction
-        if abs(self.overscroll) > 0.5:
+        if abs(self.overscroll) > self.min_overscroll:
             total_force += self.velocity * self.edge_damping
             total_force += self.overscroll * self.spring_constant
         else:
