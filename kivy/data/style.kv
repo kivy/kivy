@@ -844,7 +844,19 @@
                 width: sv.width
 
 <ScrollView>:
+    canvas.before:
+        StencilPush
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilUse
+
     canvas.after:
+        StencilUnUse
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilPop
         Color:
             rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if (self.do_scroll_y and self.viewport_size[1]>self.height) else 0]
         Rectangle:

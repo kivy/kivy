@@ -92,7 +92,7 @@ from functools import partial
 from kivy.animation import Animation
 from kivy.config import Config
 from kivy.clock import Clock
-from kivy.uix.stencilview import StencilView
+from kivy.uix.widget import Widget
 from kivy.metrics import sp
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
@@ -106,7 +106,7 @@ if Config:
     _scroll_distance = sp(Config.getint('widgets', 'scroll_distance'))
 
 
-class ScrollView(StencilView):
+class ScrollView(Widget):
     '''ScrollView class. See module documentation for more information.
 
     .. versionchanged:: 1.7.0
