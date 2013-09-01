@@ -411,7 +411,8 @@ class FileChooserController(FloatLayout):
         filtered = []
         for filter in self.filters:
             if isinstance(filter, collections.Callable):
-                filtered.extend([fn for fn in files if list(filter(self.path, fn))])
+                filtered.extend([fn for fn in files if list(filter(self.path,
+                                                                   fn))])
             else:
                 filtered.extend([fn for fn in files if fnmatch(fn, filter)])
         if not self.filter_dirs:
@@ -530,7 +531,7 @@ class FileChooserController(FloatLayout):
         # Generator that will create all the files entries.
         # the generator is used via _update_files() and _create_files_entries()
         # don't use it directly.
-        is_root = True
+        is_root = False
         path = kwargs.get('path', self.path)
         have_parent = kwargs.get('parent', None) is not None
 
@@ -551,7 +552,6 @@ class FileChooserController(FloatLayout):
             else:
                 # Unknown fs, just always add the .. entry but also log
                 Logger.warning('Filechooser: Unsupported OS: %r' % platform)
-                is_root = False
         # generate an entries to go back to previous
         if not is_root and not have_parent:
             back = '..' + sep
