@@ -1,5 +1,4 @@
-'''
-Settings
+'''Settings
 ========
 
 .. versionadded:: 1.0.7
@@ -99,6 +98,68 @@ To load the JSON example to a :class:`Settings` instance, use the
     # then use the s as a widget...
 
 
+Different panel layouts
+-----------------------
+
+A kivy :class:`~kivy.app.App` can automatically create and display a
+:class:`Settings` instance. See the :class:`~kivy.app.App`
+documentation for details on how to set the settings class.
+
+Several pre-built settings widgets are available. All except
+:class:`SettingsWithNoMenu` include close buttons triggering the
+on_close event.
+
+- :class:`Settings`: Displays settings with a sidebar at the left to switch
+  between json panels. This is the default behaviour.
+- :class:`SettingsWithSidebar`: A trivial subclass of :class:`Settings`.
+- :class:`SettingsWithSpinner`: Displays settings with a spinner at
+  the top, which can be used to switch between json panels.
+- :class:`SettingsWithTabbedPanel`: Displays json panels as individual
+  tabs in a :class:`~kivy.uix.tabbedpanel.TabbedPanel`.
+- :class:`SettingsWithNoMenu`: Displays a single json panel, with no
+  way to switch to other panels and no close button. This makes it
+  impossible for the user to exit unless
+  :meth:`~kivy.app.App.close_settings` is overridden with a different
+  close trigger!
+
+You can construct your own settings panels with any layout you
+choose. You should subclass :class:`Settings`. When instantiated, a
+Settings instance retrieves a menu via
+:meth:`Settings.get_menu_widget` (this should be a widget that
+displays a menu with some way to switch between json panels) and a
+content panel via :meth`Settings.get_content_widget` (which should
+display a json panel or panels), then adds them to itself. You can
+subclass these methods to return any widget.
+
+Menu widgets *must* have a :class:`kivy.properties.NumericProperty`
+selected_uid containing the uid of the json panel tha is currently
+selected, see :attr:`MenuSidebar.selected_uid` for more
+information. They also *must* implement a method add_item (see
+:meth:`MenuSidebar.add_item` for more information) which receives
+panel names and their uids to add to the menu.
+
+Content widgets *must* implement a method add_panel that receives json
+panels, names and uids, with the intention that the panels are stored
+for display later. See :meth:`ContentPanel.add_panel` for more
+information. Content widgets *must* also implement a method
+switch_to_panel for switching to these stored panels, see
+:meth:`ContentPanel.switch_to_panel` for more information.
+
+For instance, :class:`SettingsWithSpinner` subclasses
+:class:`Settings` and overrides the single method
+:meth:`Settings.get_menu_widget` to return a spinner style menu
+instead of a sidebar. The replaced method looks like::
+
+    def get_menu_widget(self):
+        self.orientation = 'vertical' # Put spinner above, not to the left of,
+                                      # the content panel.
+        menu = MenuSpinner()
+        menu.close_button.bind(on_press=lambda j: self.dispatch('on_close'))
+        return menu
+
+The :class:`MenuSpinner` class implements the necessary methods to act
+as a menu, and so seamlessly replaces the sidebar that would have been
+returned by default.
 
 '''
 
@@ -740,7 +801,7 @@ class Settings(BoxLayout):
         if self.content is not None:
             self.content.switch_to_panel(self.current_panel_uid)
 
-    def get_menu(self):
+    def get_menu_widget(self):
         '''Called during Settings init to construct a menu widget. By default,
         it creates a sidebar menu and adds it to self.
 
@@ -780,22 +841,22 @@ class Settings(BoxLayout):
         return menu
 
     def add_menu(self):
-        '''(Internal) calls :meth:`Settings.get_menu` for a widget to be
+        '''(Internal) calls :meth:`Settings.get_menu_widget` for a widget to be
         used to add and display a config panel switcher. If the widget is
         not None, adds to self and sets self.menu.
 
         '''
-        menu = self.get_menu()
+        menu = self.get_menu_widget()
         if menu is not None:
             self.menu = menu
             self.add_widget(menu)
 
-    def get_content(self):
+    def get_content_widget(self):
         '''Called during Settings init to construct a content widget. This
         widget will be given individual :class:`SettingsPanel` s and tasked
         with displaying them.
 
-        By default, get_content creates a :class:`ContentPanel` and
+        By default, get_content_widget creates a :class:`ContentPanel` and
         adds it to self. See that widget's documentation for
         information on essential properties and methods.
 
@@ -828,12 +889,12 @@ class Settings(BoxLayout):
         return content
 
     def add_content(self):
-        '''(Internal) calls :meth:`Settings.get_content` for a widget to be
-        used to add and display configuration panels. If the widget is
-        not None, adds to self and sets self.content.
+        '''(Internal) calls :meth:`Settings.get_content_widget` for a widget
+        to be used to add and display configuration panels. If the
+        widget is not None, adds to self and sets self.content.
 
         '''
-        content = self.get_content()
+        content = self.get_content_widget()
         if content is not None:
             self.add_widget(content)
             self.content = content
@@ -927,9 +988,9 @@ class SettingsWithSpinner(Settings):
     the top to switch between panels.
     '''
 
-    def get_menu(self):
-        '''Overrides :meth:`Settings.get_menu` to create and return a
-        :class:`MenuSpinner`. See :meth:`Settings.get_menu` for more
+    def get_menu_widget(self):
+        '''Overrides :meth:`Settings.get_menu_widget` to create and return a
+        :class:`MenuSpinner`. See :meth:`Settings.get_menu_widget` for more
         information.
 
         '''
@@ -948,18 +1009,18 @@ class SettingsWithTabbedPanel(Settings):
 
     '''
 
-    def get_menu(self):
-        '''Overrides :meth:`Settings.get_menu` to return None. See
-        :meth:`Settings.get_menu` for more information.
+    def get_menu_widget(self):
+        '''Overrides :meth:`Settings.get_menu_widget` to return None. See
+        :meth:`Settings.get_menu_widget` for more information.
 
         '''
 
         return None
 
-    def get_content(self):
-        '''Overrides :meth`Settings.get_content` to return a
-        :class:`ContentTabbedPanel`. See :meth:`Settings.get_content` for more
-        information.
+    def get_content_widget(self):
+        '''Overrides :meth`Settings.get_content_widget` to return a
+        :class:`ContentTabbedPanel`. See
+        :meth:`Settings.get_content_widget` for more information.
 
         '''
 
@@ -984,17 +1045,17 @@ class SettingsWithNoMenu(Settings):
 
     '''
 
-    def get_menu(self):
-        '''Overrides :meth:`Settings.get_menu` to return None. See
-        :meth:`Settings.get_menu` for more information.
+    def get_menu_widget(self):
+        '''Overrides :meth:`Settings.get_menu_widget` to return None. See
+        :meth:`Settings.get_menu_widget` for more information.
 
         '''
 
         return None
 
-    def get_content(self):
-        '''Overrides :meth`Settings.get_content` to return a
-        :class:`ContentNoMenu`. See :meth:`Settings.get_content` for more
+    def get_content_widget(self):
+        '''Overrides :meth`Settings.get_content_widget` to return a
+        :class:`ContentNoMenu`. See :meth:`Settings.get_content_widget` for more
         information.
 
         '''
@@ -1081,7 +1142,7 @@ entry for each settings panel.
 
     selected_uid = NumericProperty(0)
     '''The uid of the currently selected panel. This property *must* exist
-    if the widget is passed via :meth:`Settings.get_menu`. It is used
+    if the widget is passed via :meth:`Settings.get_menu_widget`. It is used
     to switch between visible settings panels in the Settings content
     widget.
 

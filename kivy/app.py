@@ -1,5 +1,4 @@
-'''
-Application
+'''Application
 ===========
 
 settings_widget = ObjectProperty(Settings)
@@ -108,7 +107,15 @@ your config tokens. Here is an example done in the KinectViewer example
     .. image:: images/app-settings.jpg
         :align: center
 
-You can extend the default application settings with your own panel by extending
+You can choose different settings widget layouts by setting
+:attr:`App.settings_cls`. By default, this is 
+:class:`~kivy.uix.settings.Settings` which provides the pictured
+sidebar layout, but you could set it to any of the other layouts
+provided in :mod:`kivy.uix.settings` or create your own. See the
+module documentation for :mod:`kivy.uix.settings` for more
+information.
+
+You can add your own panels of settings by extending
 the :meth:`App.build_settings` method.
 Check the class:`~kivy.uix.settings.Settings` about how to create a panel,
 because you need a JSON file / data first.
