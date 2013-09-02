@@ -208,6 +208,20 @@ class ScrollView(Widget):
     the widget will scroll across the full content.
     '''
 
+    scroll_on_bar_only = BooleanProperty(bool(Config.get('kivy', 'desktop')))
+    '''Whether scrolling can be initiated only from on top of the scrollbar as
+    is typical in desktop environments.
+
+    .. versionadded:: 1.8.0
+
+    :data:`scroll_on_bar` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True if executed on a desktop (i.e. desktop is True in the kivy
+    config file). When True, scrolling will only occur if the scroll started
+    from on top of the scroll bar. In addition, if True, scrolling will only
+    occur in the direction of the scroll bar that was clicked. E.g. if a scroll
+    is started on the y bar, only y scrolling will occur for that touch session.
+    '''
+
     def _get_vbar(self):
         # must return (y, height) in %
         # calculate the viewport size / scrollview size %
@@ -464,7 +478,10 @@ class ScrollView(Widget):
             return
         if self.disabled:
             return True
-        if self._touch or (not (self.do_scroll_x or self.do_scroll_y)):
+        outside_bar = (touch.pos[0] <= self._view_width + self.x and
+                       touch.pos[1] >= self._view_y_offset + self.y)
+        if (self._touch or (not (self.do_scroll_x or self.do_scroll_y)) or
+            (self.scroll_on_bar_only and outside_bar)):
             return super(ScrollView, self).on_touch_down(touch)
 
         # handle mouse scrolling, only if the viewport size is bigger than the
@@ -500,18 +517,24 @@ class ScrollView(Widget):
         self._touch = touch
         uid = self._get_uid()
         touch.grab(self)
+        scroll_on_bar_only = self.scroll_on_bar_only
+        x_scrolling = (touch.pos[1] < self._view_y_offset + self.y or
+                       not scroll_on_bar_only)
+        y_scrolling = (touch.pos[0] > self._view_width + self.x or
+                       not scroll_on_bar_only)
         touch.ud[uid] = {
             'mode': 'unknown',
             'dx': 0,
             'dy': 0,
             'user_stopped': False,
-            'time': touch.time_start}
-        if self.do_scroll_x and self.effect_x:
+            'time': touch.time_start,
+            'y_scrolling': y_scrolling,
+            'x_scrolling': x_scrolling}
+        if self.do_scroll_x and self.effect_x and x_scrolling:
             self.effect_x.start(touch.x)
-        if self.do_scroll_y and self.effect_y:
+        if self.do_scroll_y and self.effect_y and y_scrolling:
             self.effect_y.start(touch.y)
-        if (touch.pos[0] <= self._view_width + self.x and
-            touch.pos[1] >= self._view_y_offset + self.y):
+        if outside_bar:
             Clock.schedule_once(self._change_touch_mode,
                                 self.scroll_timeout / 1000.)
         return True
@@ -528,12 +551,14 @@ class ScrollView(Widget):
         uid = self._get_uid()
         ud = touch.ud[uid]
         mode = ud['mode']
+        x_scrolling = ud['x_scrolling']
+        y_scrolling = ud['y_scrolling']
 
         # check if the minimum distance has been travelled
         if mode == 'unknown' or mode == 'scroll':
-            if self.do_scroll_x and self.effect_x:
+            if self.do_scroll_x and self.effect_x and x_scrolling:
                 self.effect_x.update(touch.x)
-            if self.do_scroll_y and self.effect_y:
+            if self.do_scroll_y and self.effect_y and y_scrolling:
                 self.effect_y.update(touch.y)
 
         if mode == 'unknown':
@@ -568,9 +593,11 @@ class ScrollView(Widget):
             self._touch = None
             uid = self._get_uid()
             ud = touch.ud[uid]
-            if self.do_scroll_x and self.effect_x:
+            x_scrolling = ud['x_scrolling']
+            y_scrolling = ud['y_scrolling']
+            if self.do_scroll_x and self.effect_x and x_scrolling:
                 self.effect_x.stop(touch.x)
-            if self.do_scroll_y and self.effect_y:
+            if self.do_scroll_y and self.effect_y and y_scrolling:
                 self.effect_y.stop(touch.y)
             if ud['mode'] == 'unknown':
                 # we must do the click at least..
@@ -660,9 +687,11 @@ class ScrollView(Widget):
         ud = touch.ud[uid]
         if ud['mode'] != 'unknown' or ud['user_stopped']:
             return
-        if self.do_scroll_x and self.effect_x:
+        x_scrolling = ud['x_scrolling']
+        y_scrolling = ud['y_scrolling']
+        if self.do_scroll_x and self.effect_x and x_scrolling:
             self.effect_x.cancel()
-        if self.do_scroll_y and self.effect_y:
+        if self.do_scroll_y and self.effect_y and y_scrolling:
             self.effect_y.cancel()
         # XXX the next line was in the condition. But this stop
         # the possibily to "drag" an object out of the scrollview in the
