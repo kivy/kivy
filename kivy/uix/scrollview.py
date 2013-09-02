@@ -194,6 +194,20 @@ class ScrollView(Widget):
     (:data:`do_scroll_x` + :data:`do_scroll_y`)
     '''
 
+    scroll_proportionate = BooleanProperty(bool(Config.get('kivy', 'desktop')))
+    '''Whether the scrolling is proportionate as is typical in desktop
+    environments.
+
+    .. versionadded:: 1.8.0
+
+    :data:`scroll_proportionate` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True if executed on a desktop (i.e. desktop is True in the kivy
+    config file). When True, a downward/rightward drag with the mouse will
+    scroll down/righ. When False, it behaves like a touch device where a drag
+    up/left scroll down/right. Also, when True, a single drag of the bar across
+    the widget will scroll across the full content.
+    '''
+
     def _get_vbar(self):
         # must return (y, height) in %
         # calculate the viewport size / scrollview size %
@@ -284,7 +298,7 @@ class ScrollView(Widget):
 
     :data:`bar_perm` is a :class:`~kivy.properties.BooleanProperty`,
     default to True if executed on a desktop (i.e. desktop is True in the kivy
-    confug file). When True, the scroll bar is permanently displayed and the
+    config file). When True, the scroll bar is permanently displayed and the
     viewing area is therefore reduced by the scroll bar width. Also, a touch
     initiated over a scroll bar will never time out.
     '''
@@ -389,16 +403,26 @@ class ScrollView(Widget):
     def _update_effect_x_bounds(self, *args):
         if not self._viewport or not self.effect_x:
             return
-        self.effect_x.min = -(self.viewport_size[0] - self._view_width)
-        self.effect_x.max = 0
-        self.effect_x.value = self.effect_x.min * self.scroll_x
+        if self.scroll_proportionate:
+            self.effect_x.min = 0
+            self.effect_x.max = self.viewport_size[0] - self._view_width
+            self.effect_x.value = self.effect_x.max * self.scroll_x
+        else:
+            self.effect_x.min = -(self.viewport_size[0] - self._view_width)
+            self.effect_x.max = 0
+            self.effect_x.value = self.effect_x.min * self.scroll_x
 
     def _update_effect_y_bounds(self, *args):
         if not self._viewport or not self.effect_y:
             return
-        self.effect_y.min = -(self.viewport_size[1] - self._view_height)
-        self.effect_y.max = 0
-        self.effect_y.value = self.effect_y.min * self.scroll_y
+        if self.scroll_proportionate:
+            self.effect_y.min = 0
+            self.effect_y.max = self.viewport_size[1] - self._view_height
+            self.effect_y.value = self.effect_y.max * self.scroll_y
+        else:
+            self.effect_y.min = -(self.viewport_size[1] - self._view_height)
+            self.effect_y.max = 0
+            self.effect_y.value = self.effect_y.min * self.scroll_y
 
     def _update_effect_bounds(self, *args):
         if not self._viewport:
@@ -416,7 +440,9 @@ class ScrollView(Widget):
         if sw < 1:
             return
         sx = self.effect_x.scroll / float(sw)
-        self.scroll_x = -sx
+        if not self.scroll_proportionate:
+            sx *= -1
+        self.scroll_x = sx
         self._trigger_update_from_scroll()
 
     def _update_effect_y(self, *args):
@@ -427,7 +453,9 @@ class ScrollView(Widget):
         if sh < 1:
             return
         sy = self.effect_y.scroll / float(sh)
-        self.scroll_y = -sy
+        if not self.scroll_proportionate:
+            sy *= -1
+        self.scroll_y = sy
         self._trigger_update_from_scroll()
 
     def on_touch_down(self, touch):
