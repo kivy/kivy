@@ -200,7 +200,7 @@ class ScrollView(Widget):
         if self._viewport is None:
             return 0, 1.
         vh = self._viewport.height
-        h = self.height
+        h = self._view_height
         if vh < h or vh == 0:
             return 0, 1.
         ph = max(0.01, h / float(vh))
@@ -227,7 +227,7 @@ class ScrollView(Widget):
         if self._viewport is None:
             return 0, 1.
         vw = self._viewport.width
-        w = self.width
+        w = self._view_width
         if vw < w or vw == 0:
             return 0, 1.
         pw = max(0.01, w / float(vw))
@@ -277,6 +277,18 @@ class ScrollView(Widget):
     to 0
     '''
 
+    bar_perm = BooleanProperty(bool(Config.get('kivy', 'desktop')))
+    '''Whether the scrolling bar is permanently displayed.
+
+    .. versionadded:: 1.8.0
+
+    :data:`bar_perm` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True if executed on a desktop (i.e. desktop is True in the kivy
+    confug file). When True, the scroll bar is permanently displayed and the
+    viewing area is therefore reduced by the scroll bar width. Also, a touch
+    initiated over a scroll bar will never time out.
+    '''
+
     effect_cls = ObjectProperty(DampedScrollEffect, allownone=True)
     '''Class effect to instanciate for X and Y axis.
 
@@ -314,6 +326,10 @@ class ScrollView(Widget):
     # private, for internal use only
 
     _viewport = ObjectProperty(None, allownone=True)
+    # holds the actual visible size, and y offset, in case bar_perm is True
+    _view_width = NumericProperty(0)
+    _view_height = NumericProperty(0)
+    _view_y_offset = NumericProperty(0)
     bar_alpha = NumericProperty(1.)
 
     def _set_viewport_size(self, instance, value):
@@ -334,8 +350,9 @@ class ScrollView(Widget):
         if self.effect_y is None and self.effect_cls is not None:
             self.effect_y = self.effect_cls(target_widget=self._viewport)
         self.bind(
-            width=self._update_effect_x_bounds,
-            height=self._update_effect_y_bounds,
+            _view_width=self._update_effect_x_bounds,
+            _view_height=self._update_effect_y_bounds,
+            _view_y_offset=self._update_effect_y_bounds,
             viewport_size=self._update_effect_bounds,
             _viewport=self._update_effect_widget,
             scroll_x=self._trigger_update_from_scroll,
@@ -372,14 +389,14 @@ class ScrollView(Widget):
     def _update_effect_x_bounds(self, *args):
         if not self._viewport or not self.effect_x:
             return
-        self.effect_x.min = -(self.viewport_size[0] - self.width)
+        self.effect_x.min = -(self.viewport_size[0] - self._view_width)
         self.effect_x.max = 0
         self.effect_x.value = self.effect_x.min * self.scroll_x
 
     def _update_effect_y_bounds(self, *args):
         if not self._viewport or not self.effect_y:
             return
-        self.effect_y.min = -(self.viewport_size[1] - self.height)
+        self.effect_y.min = -(self.viewport_size[1] - self._view_height)
         self.effect_y.max = 0
         self.effect_y.value = self.effect_y.min * self.scroll_y
 
@@ -395,7 +412,7 @@ class ScrollView(Widget):
         vp = self._viewport
         if not vp or not self.effect_x:
             return
-        sw = vp.width - self.width
+        sw = vp.width - self._view_width
         if sw < 1:
             return
         sx = self.effect_x.scroll / float(sw)
@@ -406,7 +423,7 @@ class ScrollView(Widget):
         vp = self._viewport
         if not vp or not self.effect_y:
             return
-        sh = vp.height - self.height
+        sh = vp.height - self._view_height
         if sh < 1:
             return
         sy = self.effect_y.scroll / float(sh)
@@ -431,12 +448,12 @@ class ScrollView(Widget):
             m = self.scroll_distance
             e = None
 
-            if (self.effect_x and self.do_scroll_y and vp.height > self.height
-                    and btn in ('scrolldown', 'scrollup')):
+            if (self.effect_x and self.do_scroll_y and vp.height >
+                self._view_height and btn in ('scrolldown', 'scrollup')):
                 e = self.effect_y
 
-            elif (self.effect_y and self.do_scroll_x and vp.width > self.width
-                    and btn in ('scrollleft', 'scrollright')):
+            elif (self.effect_y and self.do_scroll_x and vp.width >
+                  self._view_width and btn in ('scrollleft', 'scrollright')):
                 e = self.effect_x
 
             if e:
@@ -465,8 +482,10 @@ class ScrollView(Widget):
             self.effect_x.start(touch.x)
         if self.do_scroll_y and self.effect_y:
             self.effect_y.start(touch.y)
-        Clock.schedule_once(self._change_touch_mode,
-                            self.scroll_timeout / 1000.)
+        if (touch.pos[0] <= self._view_width + self.x and
+            touch.pos[1] >= self._view_y_offset + self.y):
+            Clock.schedule_once(self._change_touch_mode,
+                                self.scroll_timeout / 1000.)
         return True
 
     def on_touch_move(self, touch):
@@ -552,13 +571,15 @@ class ScrollView(Widget):
         if not self._viewport:
             return 0, 0
         vp = self._viewport
-        if vp.width > self.width:
-            sw = vp.width - self.width
+        width = self._view_width
+        if vp.width > width:
+            sw = vp.width - width
             sx = dx / float(sw)
         else:
             sx = 0
-        if vp.height > self.height:
-            sh = vp.height - self.height
+        height = self._view_height
+        if vp.height > height:
+            sh = vp.height - height
             sy = dy / float(sh)
         else:
             sy = 1
@@ -577,19 +598,21 @@ class ScrollView(Widget):
         vp = self._viewport
 
         # update from size_hint
+        width = self._view_width
+        height = self._view_height
         if vp.size_hint_x is not None:
-            vp.width = vp.size_hint_x * self.width
+            vp.width = vp.size_hint_x * width
         if vp.size_hint_y is not None:
-            vp.height = vp.size_hint_y * self.height
+            vp.height = vp.size_hint_y * height
 
-        if vp.width > self.width:
-            sw = vp.width - self.width
+        if vp.width > width:
+            sw = vp.width - width
             x = self.x - self.scroll_x * sw
         else:
             x = self.x
-        if vp.height > self.height:
-            sh = vp.height - self.height
-            y = self.y - self.scroll_y * sh
+        if vp.height > height:
+            sh = vp.height - height
+            y = self.y - self.scroll_y * sh + self._view_y_offset
         else:
             y = self.top - vp.height
         vp.pos = x, y
@@ -599,7 +622,8 @@ class ScrollView(Widget):
         self.bar_alpha = 1.
         Animation.stop_all(self, 'bar_alpha')
         Clock.unschedule(self._start_decrease_alpha)
-        Clock.schedule_once(self._start_decrease_alpha, .5)
+        if not self.bar_perm:
+            Clock.schedule_once(self._start_decrease_alpha, .5)
 
     def _start_decrease_alpha(self, *l):
         self.bar_alpha = 1.
