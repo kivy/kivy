@@ -589,30 +589,6 @@ class ScrollView(Widget):
 
         return self._get_uid() in touch.ud
 
-    def convert_distance_to_scroll(self, dx, dy):
-        '''Convert a distance in pixels to a scroll distance, depending on the
-        content size and the scrollview size.
-
-        The result will be a tuple of scroll distance that can be added to
-        :data:`scroll_x` and :data:`scroll_y`
-        '''
-        if not self._viewport:
-            return 0, 0
-        vp = self._viewport
-        width = self._view_width
-        if vp.width > width:
-            sw = vp.width - width
-            sx = dx / float(sw)
-        else:
-            sx = 0
-        height = self._view_height
-        if vp.height > height:
-            sh = vp.height - height
-            sy = dy / float(sh)
-        else:
-            sy = 1
-        return sx, sy
-
     def update_from_scroll(self, *largs):
         '''Force the reposition of the content, according to current value of
         :data:`scroll_x` and :data:`scroll_y`.
