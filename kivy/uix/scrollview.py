@@ -723,3 +723,40 @@ class ScrollView(Widget):
         touch.grab_current = None
 
 
+if __name__ == '__main__':
+    from kivy.app import App
+
+    from kivy.uix.gridlayout import GridLayout
+    from kivy.uix.button import Button
+
+    class ScrollViewApp(App):
+
+        def build(self):
+            layout1 = GridLayout(cols=4, spacing=10, size_hint=(None, None))
+            layout1.bind(minimum_height=layout1.setter('height'),
+                        minimum_width=layout1.setter('width'))
+            for i in range(40):
+                btn = Button(text=str(i), size_hint=(None, None),
+                             size=(200, 100))
+                layout1.add_widget(btn)
+            scrollview1 = ScrollView(bar_width='20dp', bar_perm=False,
+                                     scroll_proportionate=False,
+                                     scroll_on_bar_only=False)
+            scrollview1.add_widget(layout1)
+
+            layout2 = GridLayout(cols=4, spacing=10, size_hint=(None, None))
+            layout2.bind(minimum_height=layout2.setter('height'),
+                        minimum_width=layout2.setter('width'))
+            for i in range(40):
+                btn = Button(text=str(i), size_hint=(None, None),
+                             size=(200, 100))
+                layout2.add_widget(btn)
+            scrollview2 = ScrollView(bar_width='20dp')
+            scrollview2.add_widget(layout2)
+
+            root = GridLayout(cols=2)
+            root.add_widget(scrollview1)
+            root.add_widget(scrollview2)
+            return root
+
+    ScrollViewApp().run()
