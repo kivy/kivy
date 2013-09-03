@@ -24,7 +24,7 @@ from kivy.properties import ObjectProperty
 from kivy.properties import TransformInitInfo
 from kivy.properties import TransformProperty
 
-__all__ = ('ObjectController', )
+__all__ = ('TransformController', )
 
 
 class TransformController(Controller):

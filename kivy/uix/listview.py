@@ -604,7 +604,11 @@ from math import ceil, floor
 from kivy.adapters.args_converters import list_item_args_converter
 from kivy.adapters.listadapter import ListAdapter
 
+from kivy.binding import Binding
+
 from kivy.clock import Clock
+
+from kivy.controllers.transformcontroller import TransformController
 
 from kivy.enums import selection_schemes
 from kivy.enums import selection_update_methods
@@ -668,8 +672,8 @@ class SelectableView(ButtonBehavior):
     '''
 
     index = NumericProperty(-1)
-    '''The index into the underlying data list item, to the data item this view
-    represents.
+    '''The index into the underlying data list item, to the data item this
+    view represents.
 
     :data:`index` is a :class:`~kivy.properties.NumericProperty`, default
     to -1.
@@ -990,6 +994,9 @@ class ListView(AbstractView, EventDispatcher):
 
     __events__ = ('on_scroll_complete', )
 
+    data_transform_controller = ObjectProperty(None, allownone=True)
+    selection_transform_controller = ObjectProperty(None, allownone=True)
+
     def __init__(self, **kwargs):
 
         # Check for an adapter argument. If it doesn't exist, we check for
@@ -1005,6 +1012,26 @@ class ListView(AbstractView, EventDispatcher):
                     if 'data' not in kwargs:
                         raise Exception(('ListView: without adapter, '
                                          'must provide data arg.'))
+
+                    data_binding = None
+                    selection_binding = None
+
+                    if isinstance(kwargs['data'], Binding):
+                        data_binding = kwargs['data']
+                        if kwargs['data'].transform:
+                            kwargs['data_transform_controller'] = \
+                                TransformController(data=kwargs['data'])
+                            kwargs['data'] = \
+                                (kwargs['data_transform_controller'], 'data')
+
+                    if ('selection' in kwargs
+                            and isinstance(kwargs['selection'], Binding)):
+                        selection_binding = kwargs['selection']
+                        if kwargs['selection'].transform:
+                            kwargs['selection_transform_controller'] = \
+                                TransformController(data=kwargs['selection'])
+                            kwargs['selection'] = \
+                                (kwargs['selection_transform_controller'], 'data')
 
                     # TODO: Get these defaults from calls? for some, enums?
                     selection = kwargs.pop('selection', [])
@@ -1030,6 +1057,14 @@ class ListView(AbstractView, EventDispatcher):
                             selection_update_method=selection_update_method,
                             allow_empty_selection=allow_empty_selection,
                             cls=cls)
+
+                    if data_binding and data_binding.transform:
+                        kwargs['data_transform_controller'].bind(
+                               data=list_adapter.setter('data'))
+
+                    if selection_binding and selection_binding.transform:
+                        kwargs['selection_transform_controller'].bind(
+                               selection=list_adapter.setter('selection'))
             else:
 
                 data_items = [SelectableStringItem(text=item_string)

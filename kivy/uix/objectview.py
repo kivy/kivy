@@ -24,7 +24,9 @@ __all__ = ('ObjectView', )
 
 from kivy.adapters.args_converters import list_item_args_converter
 from kivy.adapters.objectadapter import ObjectAdapter
+from kivy.binding import Binding
 from kivy.clock import Clock
+from kivy.controllers.transformcontroller import TransformController
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 
@@ -71,6 +73,8 @@ class ObjectView(AbstractView, EventDispatcher):
     default to None.
     '''
 
+    data_transform_controller = ObjectProperty(None, allownone=True)
+
     def __init__(self, **kwargs):
 
         if 'adapter' not in kwargs:
@@ -83,9 +87,24 @@ class ObjectView(AbstractView, EventDispatcher):
             args_converter = \
                     kwargs.pop('args_converter', list_item_args_converter)
 
+            data_binding = None
+            selection_binding = None
+
+            if isinstance(kwargs['data'], Binding):
+                data_binding = kwargs['data']
+                if kwargs['data'].transform:
+                    kwargs['data_transform_controller'] = \
+                        TransformController(data=kwargs['data'])
+                    kwargs['data'] = \
+                        (kwargs['data_transform_controller'], 'data')
+
             object_adapter = ObjectAdapter(args_converter=args_converter,
                                            cls=cls,
                                            data=kwargs['data'])
+
+            if data_binding and data_binding.transform:
+                kwargs['data_transform_controller'].bind(
+                               data=object_adapter.setter('data'))
 
             kwargs['adapter'] = object_adapter
 

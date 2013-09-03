@@ -123,33 +123,15 @@ class CascadingView(GridLayout):
                 cls=ListItemButton,
                 size_hint=(.2, 1.0))
 
-        self.current_category_view = ObjectController(
-                data=Binding(source=self.fruit_categories_list_view.adapter,
-                             prop='selection',
-                             mode=binding_modes.FIRST_ITEM))
-
-        # NOTE: By declaring a function here, we have normal python coding,
-        #       with multiple lines as needed, conforming (or not) as you wish
-        #       to pep8. In contrast, we could avoid having to declare this
-        #       function if we used the lambda commented out below. However,
-        #       lambdas cannot be multiline, so they are limited in this
-        #       context to shorter expressions.
-        #
-        #       Conclusion: Use lambdas for short expressions. Make a function
-        #                   when the lambda line would be too long.
-        #
         def fruit_data_items_for_category_view(view):
             return [f for f in fruit_data_items
                     if f.name in category_data_items[view.index].fruits]
 
-        self.current_category_fruits = TransformController(
-                data=Binding(source=self.current_category_view,
-                             prop='data',
-                             transform=fruit_data_items_for_category_view))
-                             #transform=lambda v: [f for f in fruit_data_items if f.name in category_data_items[v.index].fruits]))
-
         self.fruits_list_view = ListView(
-                data=Binding(source=self.current_category_fruits),
+                data=Binding(source=self.fruit_categories_list_view.adapter,
+                             prop='selection',
+                             mode=binding_modes.FIRST_ITEM,
+                             transform=fruit_data_items_for_category_view),
                 args_converter=list_item_args_converter,
                 selection_mode='single',
                 allow_empty_selection=False,
