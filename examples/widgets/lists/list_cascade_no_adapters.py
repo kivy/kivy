@@ -138,6 +138,10 @@ class CascadingView(GridLayout):
         #       Conclusion: Use lambdas for short expressions. Make a function
         #                   when the lambda line would be too long.
         #
+        #       Functions such as these could be stored in a utils.py module,
+        #       for example, in a real app (larger with many files), with
+        #       attention given to the data storage and path references.
+        #
         def fruit_data_items_for_category_view(view):
             return [f for f in fruit_data_items
                     if f.name in category_data_items[view.index].fruits]

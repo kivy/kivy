@@ -65,6 +65,17 @@ fruit_data_items = \
 # defined below.
 
 
+# Utility functions, in this case we have one, a transform function for use in
+# binding together our two list views below. In a real app (bigger), perhaps
+# these would be stored in a utility module for clear code organization. Here
+# we have access to the two data lists as globals, but if used in a utils.py
+# module, for example, perhaps there would be path references such as
+# app.fruit_data_items.
+def fruit_data_items_for_category_view(view):
+    return [f for f in fruit_data_items
+            if f.name in category_data_items[view.index].fruits]
+
+
 class FruitDetailView(GridLayout, SelectableView):
 
     text = StringProperty('')
@@ -122,10 +133,6 @@ class CascadingView(GridLayout):
                 allow_empty_selection=False,
                 cls=ListItemButton,
                 size_hint=(.2, 1.0))
-
-        def fruit_data_items_for_category_view(view):
-            return [f for f in fruit_data_items
-                    if f.name in category_data_items[view.index].fruits]
 
         self.fruits_list_view = ListView(
                 data=Binding(source=self.fruit_categories_list_view.adapter,
