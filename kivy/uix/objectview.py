@@ -77,7 +77,11 @@ class ObjectView(AbstractView, EventDispatcher):
 
     def __init__(self, **kwargs):
 
-        if 'adapter' not in kwargs:
+        if '__no_builder' in kwargs:
+            # TODO: Why does this happen, from kv?
+            object_adapter = ObjectAdapter(data=['xxx'],
+                                           cls=ListItemLabel)
+        elif 'adapter' not in kwargs:
 
             if 'data' not in kwargs:
                 raise Exception(('ObjectView: without adapter, '

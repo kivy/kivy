@@ -1005,10 +1005,12 @@ class ListView(AbstractView, EventDispatcher):
 
             if 'item_strings' not in kwargs:
                 if '__no_builder' in kwargs:
+                    print '__no_builder'
                     # TODO: Why does this happen, from kv?
                     list_adapter = ListAdapter(data=[],
                                                cls=ListItemLabel)
                 else:
+                    print 'with builder'
                     if 'data' not in kwargs:
                         raise Exception(('ListView: without adapter, '
                                          'must provide data arg.'))
