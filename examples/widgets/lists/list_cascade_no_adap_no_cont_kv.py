@@ -82,7 +82,7 @@ list_item_args_converter = \
                                                'height': 25}
 
 
-class FruitDetailView(GridLayout, SelectableView):
+class FruitDetailViewInPython(GridLayout, SelectableView):
 
     text = StringProperty('')
 
@@ -115,9 +115,32 @@ class FruitDetailView(GridLayout, SelectableView):
 
 
 Builder.load_string("""
+#:import Binding kivy.binding.Binding
+#:import binding_modes kivy.enums.binding_modes
+#:import binding_transforms kivy.enums.binding_transforms
+
+<FruitDetailView@GridLayout, SelectableView>:
+    cols: 2
+    size_hint: 1, None
+    text: None
+
+    Label:
+        text: 'Name:'
+        size_hint_y: None
+        height: 50
+        halign: 'right'
+
+    Label:
+        text: root.text
+        size_hint_y: None
+        height: 50
 
 <CascadingView>:
     cols: 3
+    fruit_categories_list_view: fruit_categories_list_view
+    fruits_list_view: fruits_list_view
+    fruit_view: fruit_view
+
     ListView:
         id: fruit_categories_list_view
         data: category_data_items

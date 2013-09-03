@@ -79,8 +79,10 @@ class ObjectView(AbstractView, EventDispatcher):
 
         if '__no_builder' in kwargs:
             # TODO: Why does this happen, from kv?
-            object_adapter = ObjectAdapter(data=['xxx'],
+            object_adapter = ObjectAdapter(data=None,
                                            cls=ListItemLabel)
+
+            kwargs['adapter'] = object_adapter
         elif 'adapter' not in kwargs:
 
             if 'data' not in kwargs:
@@ -121,7 +123,8 @@ class ObjectView(AbstractView, EventDispatcher):
         self._trigger_reset_spopulate = \
             Clock.create_trigger(self._reset_spopulate, -1)
 
-        self.container.bind(minimum_height=self.container.setter('height'))
+        if self.container:
+            self.container.bind(minimum_height=self.container.setter('height'))
 
         self.bind(size=self._trigger_populate,
                   pos=self._trigger_populate,
