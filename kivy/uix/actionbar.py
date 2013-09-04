@@ -7,21 +7,22 @@ Action Bar
 .. image:: images/actionbar.png
     :align: right
 
-ActionBar widget is like Android's ActionBar, where items are stacked
+The ActionBar widget is like Android's ActionBar, where items are stacked
 horizontally.
 
 The :class:`ActionBar` will contain one :class:`ActionView` and many
-:class:`ContextualActionView`.
-:class:`ActionView` will contain :class:`ActionPrevious` having title,
-app_icon and previous_icon properties. :class:`ActionView` will contain
-subclasses of :class:`ActionItem`. Some of predefined are
-:class:`ActionButton`, :class:`ActionToggleButton`, :class:`ActionCheck`,
-:class:`ActionSeparator` and :class:`ActionGroup`.
-:class:`ActionGroup` is used to display :class:`ActionItem` in a Group.
-:class:`ActionView` will always display :class:`ActionGroup` after other
-:class:`ActionItem`s.
-:class:`ActionView` will contain :class:`ActionOverflow`.
-:class:`ContextualActionView` is a subclass of :class:`ActionView`.
+:class:`ContextualActionView`\s.
+An :class:`ActionView` will contain an :class:`ActionPrevious` having title,
+app_icon and previous_icon properties. An :class:`ActionView` will contain
+subclasses of :class:`ActionItem`\s. Some predefined ones inlcude an
+:class:`ActionButton`, an :class:`ActionToggleButton`, an :class:`ActionCheck`,
+an :class:`ActionSeparator` and an :class:`ActionGroup`.
+
+An :class:`ActionGroup` is used to display :class:`ActionItem`\s in a group.
+An :class:`ActionView` will always display an :class:`ActionGroup` after other
+:class:`ActionItem`\s.
+An :class:`ActionView` will contain an :class:`ActionOverflow`.
+A :class:`ContextualActionView` is a subclass of an :class:`ActionView`.
 '''
 
 __all__ = ('ActionBarException', 'ActionItem', 'ActionButton',
@@ -56,28 +57,28 @@ class ActionBarException(Exception):
 
 
 class ActionItem(object):
-    '''ActionItem class, an abstract class for all ActionVar widgets. To create
-       a custom widget for ActionBar, custom widget should inherit from this
-       class. See module documentation for more information
+    '''ActionItem class, an abstract class for all ActionBar widgets. To create
+       a custom widget for an ActionBar, inherit from this
+       class. See module documentation for more information.
     '''
 
     minimum_width = NumericProperty('90sp')
     '''Minimum Width required by an ActionItem.
 
-       :data:`minimum_width` is a :class:`~kivy.properties.NumericProperty`
-       default to '90sp'.
+       :data:`minimum_width` is a :class:`~kivy.properties.NumericProperty` and
+       defaults to '90sp'.
     '''
 
     important = BooleanProperty(False)
-    '''Determines if ActionItem is important or not.
+    '''Determines if an ActionItem is important or not.
 
-       :data:`important` is a :class:`~kivy.properties.BooleanProperty`
-       default to False.
+       :data:`important` is a :class:`~kivy.properties.BooleanProperty` and
+       defaults to False.
     '''
 
     inside_group = BooleanProperty(False)
-    '''(internal) Determines, if ActionItem is displayed inside
-       ActionGroup or not
+    '''(internal) Determines if an ActionItem is displayed inside an
+       ActionGroup or not.
 
        :data:`inside_group` is a :class:`~kivy.properties.BooleanProperty`
        default to False.
