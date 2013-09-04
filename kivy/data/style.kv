@@ -844,8 +844,8 @@
                 width: sv.width
 
 <ScrollView>:
-    _view_width: self.width - (self.bar_width if self.bar_perm and self.do_scroll_y else 0)
-    _view_height: self.height - (self.bar_width if self.bar_perm and self.do_scroll_x else 0)
+    _view_width: max(self.width - (self.bar_width if self.bar_perm and self.do_scroll_y else 0), 0)
+    _view_height: max(self.height - (self.bar_width if self.bar_perm and self.do_scroll_x else 0), 0)
     _view_y_offset: self.bar_width if self.bar_perm and self.do_scroll_x else 0
     canvas.before:
         StencilPush

@@ -204,8 +204,9 @@ class ScrollView(Widget):
     default to True if executed on a desktop (i.e. desktop is True in the kivy
     config file). When True, a downward/rightward drag with the mouse will
     scroll down/righ. When False, it behaves like a touch device where a drag
-    up/left scroll down/right. Also, when True, a single drag of the bar across
-    the widget will scroll across the full content.
+    up/left scroll down/right. Also, when True, a drag of the bar from one end
+    to the other will scroll through the full content
+    (top/right to bottom/left).
     '''
 
     scroll_on_bar_only = BooleanProperty(bool(Config.get('kivy', 'desktop')))
@@ -502,10 +503,16 @@ class ScrollView(Widget):
                 e = self.effect_x
 
             if e:
-                if btn in ('scrolldown', 'scrollleft'):
+                if self.scroll_proportionate:
+                    up = 'scrolldown'
+                    down = 'scrollup'
+                else:
+                    up = 'scrollup'
+                    down = 'scrolldown'
+                if btn in (down, 'scrollleft'):
                     e.value = max(e.value - m, e.min)
                     e.velocity = 0
-                elif btn in ('scrollup', 'scrollright'):
+                elif btn in (up, 'scrollright'):
                     e.value = min(e.value + m, e.max)
                     e.velocity = 0
                 touch.ud[self._get_uid('svavoid')] = True
@@ -522,17 +529,18 @@ class ScrollView(Widget):
                        not scroll_on_bar_only)
         y_scrolling = (touch.pos[0] > self._view_width + self.x or
                        not scroll_on_bar_only)
+        prop = self.scroll_proportionate  # if True, no effect
         touch.ud[uid] = {
             'mode': 'unknown',
             'dx': 0,
             'dy': 0,
             'user_stopped': False,
             'time': touch.time_start,
-            'y_scrolling': y_scrolling,
-            'x_scrolling': x_scrolling}
-        if self.do_scroll_x and self.effect_x and x_scrolling:
+            'y_scrolling': y_scrolling,  # whether the y is allowed to scroll
+            'x_scrolling': x_scrolling}  # whether the x is allowed to scroll
+        if self.do_scroll_x and self.effect_x and x_scrolling and not prop:
             self.effect_x.start(touch.x)
-        if self.do_scroll_y and self.effect_y and y_scrolling:
+        if self.do_scroll_y and self.effect_y and y_scrolling and not prop:
             self.effect_y.start(touch.y)
         if outside_bar:
             Clock.schedule_once(self._change_touch_mode,
@@ -553,13 +561,26 @@ class ScrollView(Widget):
         mode = ud['mode']
         x_scrolling = ud['x_scrolling']
         y_scrolling = ud['y_scrolling']
+        prop = self.scroll_proportionate
 
         # check if the minimum distance has been travelled
         if mode == 'unknown' or mode == 'scroll':
             if self.do_scroll_x and self.effect_x and x_scrolling:
-                self.effect_x.update(touch.x)
+                width = self._view_width
+                if prop and width:
+                    dx = touch.dx / float(width - width * self.hbar[1])
+                    self.scroll_x = min(max(self.scroll_x + dx, 0.), 1.)
+                    self._trigger_update_from_scroll()
+                else:
+                    self.effect_x.update(touch.x)
             if self.do_scroll_y and self.effect_y and y_scrolling:
-                self.effect_y.update(touch.y)
+                height = self._view_height
+                if prop and height:
+                    dy = touch.dy / float(height - height * self.vbar[1])
+                    self.scroll_y = min(max(self.scroll_y + dy, 0.), 1.)
+                    self._trigger_update_from_scroll()
+                else:
+                    self.effect_y.update(touch.y)
 
         if mode == 'unknown':
             ud['dx'] += abs(touch.dx)
@@ -595,9 +616,10 @@ class ScrollView(Widget):
             ud = touch.ud[uid]
             x_scrolling = ud['x_scrolling']
             y_scrolling = ud['y_scrolling']
-            if self.do_scroll_x and self.effect_x and x_scrolling:
+            prop = self.scroll_proportionate
+            if self.do_scroll_x and self.effect_x and x_scrolling and not prop:
                 self.effect_x.stop(touch.x)
-            if self.do_scroll_y and self.effect_y and y_scrolling:
+            if self.do_scroll_y and self.effect_y and y_scrolling and not prop:
                 self.effect_y.stop(touch.y)
             if ud['mode'] == 'unknown':
                 # we must do the click at least..
