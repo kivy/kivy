@@ -631,12 +631,7 @@ class ObservableDict(dict):
         self.__setitem__(attr, value)
 
     def __setitem__(self, key, value):
-        if value is None:
-            # remove attribute if value is None
-            # is this really needed?
-            self.__delitem__(key)
-        else:
-            dict.__setitem__(self, key, value)
+        dict.__setitem__(self, key, value)
         observable_dict_dispatch(self)
 
     def __delitem__(self, key):
