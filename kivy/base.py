@@ -99,7 +99,6 @@ class EventLoopBase(EventDispatcher):
         self.event_listeners = []
         self.window = None
         self.me_list = []
-        print 'llll'
 
     @property
     def touches(self):
@@ -198,6 +197,7 @@ class EventLoopBase(EventDispatcher):
         a input event. The event is dispatched into all listeners, and if
         grabbed, it's dispatched through grabbed widgets
         '''
+        print me
         # update available list
         if etype == 'begin':
             self.me_list.append(me)
