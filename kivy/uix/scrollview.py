@@ -482,7 +482,8 @@ class ScrollView(Widget):
         outside_bar = (touch.pos[0] <= self._view_width + self.x and
                        touch.pos[1] >= self._view_y_offset + self.y)
         if (self._touch or (not (self.do_scroll_x or self.do_scroll_y)) or
-            (self.scroll_on_bar_only and outside_bar)):
+            (self.scroll_on_bar_only and outside_bar and
+             not touch.button.startswith('scroll'))):
             return super(ScrollView, self).on_touch_down(touch)
 
         # handle mouse scrolling, only if the viewport size is bigger than the
