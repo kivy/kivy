@@ -773,7 +773,9 @@ if __name__ == '__main__':
                 btn = Button(text=str(i), size_hint=(None, None),
                              size=(200, 100))
                 layout2.add_widget(btn)
-            scrollview2 = ScrollView(bar_width='20dp')
+            scrollview2 = ScrollView(bar_width='20dp', bar_perm=True,
+                                     scroll_proportionate=True,
+                                     scroll_on_bar_only=True)
             scrollview2.add_widget(layout2)
 
             root = GridLayout(cols=2)
