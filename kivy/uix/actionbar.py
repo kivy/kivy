@@ -80,34 +80,34 @@ class ActionItem(object):
     '''(internal) Determines if an ActionItem is displayed inside an
        ActionGroup or not.
 
-       :data:`inside_group` is a :class:`~kivy.properties.BooleanProperty`
-       default to False.
+       :data:`inside_group` is a :class:`~kivy.properties.BooleanProperty` and
+       defaults to False.
     '''
 
     background_normal = StringProperty(
         'atlas://data/images/defaulttheme/action_item')
-    '''Background image of the ActionItem used for default graphical
-       representation, when ActionItem is not pressed.
+    '''Background image of the ActionItem used for the default graphical
+       representation when the ActionItem is not pressed.
 
-       :data:`background_normal` is a :class:`~kivy.properties.StringProperty`,
-       default to 'atlas://data/images/defaulttheme/action_item'.
+       :data:`background_normal` is a :class:`~kivy.properties.StringProperty`
+       and defaults to 'atlas://data/images/defaulttheme/action_item'.
     '''
 
     background_down = StringProperty(
         'atlas://data/images/defaulttheme/action_item_down')
     '''Background image of the ActionItem used for default graphical
-       representation, when ActionItem is pressed.
+       representation when an ActionItem is pressed.
 
-       :data:`background_down` is a :class:`~kivy.properties.StringProperty`,
-       default to 'atlas://data/images/defaulttheme/action_item_down'.
+       :data:`background_down` is a :class:`~kivy.properties.StringProperty`
+       and defaults to 'atlas://data/images/defaulttheme/action_item_down'.
     '''
 
     mipmap = BooleanProperty(True)
-    '''Defines whether the Image/icon dispayed on top of the button uses
+    '''Defines whether the image/icon dispayed on top of the button uses a
     mipmap or not.
 
-    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty` defaults
-    to `True`
+    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to `True`.
     '''
 
 
@@ -115,17 +115,18 @@ class ActionButton(Button, ActionItem):
     '''ActionButton class, see module documentation for more information.
 
     The text color, width and size_hint_x are set manually via the Kv language
-    file. It cover lot of cases: with/without icon, with/without a group, and
-    take care of the padding between elements.
+    file. It covers a lot of cases: with/without an icon, with/without a group
+    and takes care of the padding between elements.
 
-    You don't have the control on it, if you want to create your own button
-    representation, re-create a class that subclass an existing widget +
-    :class:`ActionItem`::
+    You don't have much control over these properties, so if you want to
+    customize it's appearance, we suggest you create you own button
+    representation. You can do this by creating a class that subclasses an
+    existing widget and an :class:`ActionItem`::
 
         class MyOwnActionButton(Button, ActionItem):
             pass
 
-    And create your own style with Kv language.
+    You can then create your own style using the Kv language.
     '''
 
     icon = StringProperty(None, allownone=True)
