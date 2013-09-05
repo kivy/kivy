@@ -214,39 +214,39 @@ class ActionDropDown(DropDown):
 
 
 class ActionGroup(ActionItem, Spinner):
-    '''ActionGroup class, , see module documentation for more information.
+    '''ActionGroup class, see module documentation for more information.
     '''
 
     use_separator = BooleanProperty(False)
-    '''Whether to use separator after before this group or not.
+    '''Specifies whether to use a separator after/before this group or not.
 
-       :data:`use_separator` is a :class:`~kivy.properties.BooleanProperty`,
-       default to False.
+       :data:`use_separator` is a :class:`~kivy.properties.BooleanProperty` and
+       defaults to False.
     '''
 
     separator_image = StringProperty(
         'atlas://data/images/defaulttheme/separator')
-    '''Background Image for ActionSeparator in ActionView.
+    '''Background Image for an ActionSeparator in an ActionView.
 
-       :data:`separator_image` is a :class:`~kivy.properties.StringProperty`,
-       default to 'separator'.
+       :data:`separator_image` is a :class:`~kivy.properties.StringProperty`
+       and defaults to 'atlas://data/images/defaulttheme/separator'.
     '''
 
     separator_width = NumericProperty(0)
-    '''Width of ActionSeparator in ActionView.
+    '''Width of the ActionSeparator in an ActionView.
 
-       :data:`separator_width` is a :class:`~kivy.properties.NumericProperty`,
-       default to 0.
+       :data:`separator_width` is a :class:`~kivy.properties.NumericProperty`
+       and defaults to 0.
     '''
 
     mode = OptionProperty('normal', options=('normal', 'spinner'))
-    '''Sets current mode of ActionGroup. If mode is 'normal' then ActionGroup
-       children will be displayed normally when there is enough space. If mode
-       is 'spinner', then AcionGroup will be displayed even if there is enough
-       space.
+    '''Sets the current mode of an ActionGroup. If mode is 'normal', the
+       ActionGroups children will be displayed normally if there is enough
+       space, otherwise they will be displayed in a spinner. If mode is
+       'spinner', then the children will always be displayed in a spinner.
 
-       :data:`mode` is a :class:`~kivy.properties.OptionProperty`,
-       default to 'normal'.
+       :data:`mode` is a :class:`~kivy.properties.OptionProperty` and
+       defaults to 'normal'.
     '''
 
     def __init__(self, **kwargs):
@@ -300,10 +300,10 @@ class ActionOverflow(ActionGroup):
 
     overflow_image = StringProperty(
         'atlas://data/images/defaulttheme/overflow')
-    '''Image to be used as Overflow Image.
+    '''Image to be used as an Overflow Image.
 
-      :data:`overflow_image` is an :class:`~kivy.properties.ObjectProperty`,
-       default to 'overflow'.
+      :data:`overflow_image` is an :class:`~kivy.properties.ObjectProperty` and
+       defaults to 'atlas://data/images/defaulttheme/overflow'.
     '''
 
     def add_widget(self, action_item, index=0):
@@ -335,39 +335,39 @@ class ActionView(BoxLayout):
     '''
 
     action_previous = ObjectProperty(None)
-    '''Previous button for ActionView.
+    '''Previous button for an ActionView.
 
-       :data:`action_previous` is an :class:`~kivy.properties.ObjectProperty`,
-        default to None.
+       :data:`action_previous` is an :class:`~kivy.properties.ObjectProperty`
+        and defaults to None.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
-    '''Background color, in the format (r, g, b, a).
+    '''Background color in the format (r, g, b, a).
 
-       :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
-        default to [1, 1, 1, 1].
+       :data:`background_color` is a :class:`~kivy.properties.ListProperty` and
+        defaults to [1, 1, 1, 1].
     '''
 
     background_image = StringProperty(
         'atlas://data/images/defaulttheme/action_view')
-    '''Background image of ActionView for default graphical represenation.
+    '''Background image of an ActionViews default graphical represenation.
 
-      :data:`background_image` is an :class:`~kivy.properties.StringProperty`,
-      default to 'action_view'
+      :data:`background_image` is an :class:`~kivy.properties.StringProperty`
+      and defaults to 'atlas://data/images/defaulttheme/action_view'.
     '''
 
     use_separator = BooleanProperty(False)
-    '''Whether to use separator before every ActionGroup or not.
+    '''Specify whether to use a separator before every ActionGroup or not.
 
-       :data:`use_separator` is an :class:`~kivy.properties.OptionProperty`,
-       default to False.
+       :data:`use_separator` is a :class:`~kivy.properties.BooleanProperty` and
+       defaults to False.
     '''
 
     overflow_group = ObjectProperty(None)
-    '''Widget to be used for overflow.
+    '''Widget to be used for the overflow.
 
-       :data:`overflow_group` is an :class:`~kivy.properties.ObjectProperty`,
-       default to an instance of ActionOverflow.
+       :data:`overflow_group` is an :class:`~kivy.properties.ObjectProperty`
+       and defaults to an instance of :class:`ActionOverflow`.
     '''
 
     def __init__(self, **kwargs):
