@@ -140,33 +140,35 @@ class ActionPrevious(ActionButton):
     '''
 
     with_previous = BooleanProperty(True)
-    '''Specifies, if upon clicking ActionPrevious previous screen will be loaded
-       or not. If its True then previous_icon will be shown otherwise not.
+    '''Specifies whether clicking on ActionPrevious will load the previous
+       screen or not. If True, the previous_icon will be shown otherwise it
+       will not.
 
-       :data:`with_previous` is a :class:`~kivy.properties.BooleanProperty`,
-       default to True.
+       :data:`with_previous` is a :class:`~kivy.properties.BooleanProperty` and
+       defaults to True.
     '''
 
     app_icon = StringProperty(window_icon)
     '''Application icon for the ActionView.
 
-       :data:`app_icon` is a :class:`~kivy.properties.StringProperty`,
-       default to window icon if set otherwise 'data/logo/kivy-icon-32.png'.
+       :data:`app_icon` is a :class:`~kivy.properties.StringProperty`
+       and defaults to the window icon if set, otherwise
+       'data/logo/kivy-icon-32.png'.
     '''
 
     previous_image = StringProperty(
         'atlas://data/images/defaulttheme/previous_normal')
-    '''Image for 'previous' ActionButton for default graphical representation.
+    '''Image for the 'previous' ActionButtons default graphical representation.
 
-       :data:`previous_image` is a :class:`~kivy.properties.StringProperty`,
-       default to 'previous_normal'.
+       :data:`previous_image` is a :class:`~kivy.properties.StringProperty` and
+       defaults to 'atlas://data/images/defaulttheme/previous_normal'.
     '''
 
     title = StringProperty('')
     '''Title for ActionView.
 
-       :data:`title` is a :class:`~kivy.properties.StringProperty`,
-       default to ''.
+       :data:`title` is a :class:`~kivy.properties.StringProperty` and
+       defaults to ''.
     '''
 
     def __init__(self, **kwargs):
@@ -198,10 +200,10 @@ class ActionSeparator(ActionItem, Widget):
 
     background_image = StringProperty(
         'atlas://data/images/defaulttheme/separator')
-    '''Background image of separator for default graphical representation.
+    '''Background image for the separators default graphical representation.
 
-       :data:`background_image` is a :class:`~kivy.properties.StringProperty`,
-       default to 'separator'.
+       :data:`background_image` is a :class:`~kivy.properties.StringProperty`
+       and defaults to 'atlas://data/images/defaulttheme/separator'.
     '''
 
 
