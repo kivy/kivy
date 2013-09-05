@@ -242,6 +242,8 @@ if 'sphinx-build' in sys.argv[0]:
     environ['KIVY_DOC_INCLUDE'] = '1'
 if any('nosetests' in arg for arg in sys.argv):
     environ['KIVY_UNITTEST'] = '1'
+if any('pyinstaller' in arg for arg in sys.argv):
+    environ['KIVY_PACKAGING'] = '1'
 
 if not environ.get('KIVY_DOC_INCLUDE'):
     # Configuration management
@@ -278,8 +280,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Logger.setLevel(level=LOG_LEVELS.get('debug'))
 
     # Can be overrided in command line
-    if 'KIVY_UNITTEST' not in environ:
-
+    if 'KIVY_UNITTEST' not in environ and 'KIVY_PACKAGING' not in environ:
         # save sys argv, otherwize, gstreamer use it and display help..
         sys_argv = sys.argv
         sys.argv = sys.argv[:1]
