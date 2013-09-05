@@ -20,6 +20,8 @@ all major platforms (Linux, OSX, Windows, Android).
 
 /!\ The main resource for information is the website: http://kivy.org
 
+This branch aims to create an EGL backend for kivy
+
 
 Installation, Documentation, Examples
 -------------------------------------
