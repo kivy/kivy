@@ -45,6 +45,10 @@ import kivy.modules.touchring
 import kivy.modules.inspector
 import kivy.modules.recorder
 import kivy.modules.screen
+import kivy.storage
+import kivy.storage.dictstore
+import kivy.storage.jsonstore
+import kivy.storage.redisstore
 import kivy.network.urlrequest
 import kivy.support
 import kivy.input.recorder
