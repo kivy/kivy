@@ -50,6 +50,7 @@ import kivy.storage.dictstore
 import kivy.storage.jsonstore
 import kivy.storage.redisstore
 import kivy.network.urlrequest
+import kivy.modules.webdebugger
 import kivy.support
 import kivy.input.recorder
 import kivy.interactive
