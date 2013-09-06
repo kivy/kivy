@@ -183,7 +183,7 @@ Profiling with on_start and on_stop
 It is often useful to profile python code in order to discover locations to
 optimise. The standard library profilers
 (http://docs.python.org/2/library/profile.html) provide multiple options for
-profiling code. Unfortunately, for profiling the entire program, the natural
+profiling code. For profiling the entire program, the natural
 approaches of using profile as a module or profile's run method do not work
 with Kivy. It is however possible to use :meth:`App.on_start` and
 :meth:`App.on_stop` methods::
