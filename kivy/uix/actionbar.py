@@ -350,7 +350,7 @@ class ActionView(BoxLayout):
 
     background_image = StringProperty(
         'atlas://data/images/defaulttheme/action_view')
-    '''Background image of an ActionViews default graphical represenation.
+    '''Background image of an ActionViews default graphical representation.
 
       :data:`background_image` is an :class:`~kivy.properties.StringProperty`
       and defaults to 'atlas://data/images/defaulttheme/action_view'.
@@ -558,14 +558,14 @@ class ActionView(BoxLayout):
 
 
 class ContextualActionView(ActionView):
-    '''ContextualActionView class, see module documentation
+    '''ContextualActionView class, see the module documentation
        for more information.
     '''
     pass
 
 
 class ActionBar(BoxLayout):
-    '''ActionBar, see module documentation for more information.
+    '''ActionBar, see the module documentation for more information.
 
     :Events:
         `on_previous`
@@ -575,28 +575,28 @@ class ActionBar(BoxLayout):
     action_view = ObjectProperty(None)
     '''action_view of ActionBar.
 
-       :data:`action_view` is an :class:`~kivy.properties.ObjectProperty`,
-       default to an instance of ActionView.
+       :data:`action_view` is an :class:`~kivy.properties.ObjectProperty` and
+       defaults to an instance of ActionView.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a).
 
-       :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
-        default to [1, 1, 1, 1].
+       :data:`background_color` is a :class:`~kivy.properties.ListProperty` and
+        defaults to [1, 1, 1, 1].
     '''
 
     background_image = StringProperty(
         'atlas://data/images/defaulttheme/action_bar')
 
-    '''Background image of ActionBar for default graphical represenation.
+    '''Background image of the ActionBars default graphical representation.
 
-      :data:`background_image` is an :class:`~kivy.properties.StringProperty`,
-      default to 'action_bar'
+      :data:`background_image` is an :class:`~kivy.properties.StringProperty`
+      and defaults to 'atlas://data/images/defaulttheme/action_bar'.
     '''
 
     border = ListProperty([2, 2, 2, 2])
-    ''':data:`border` to be applied to the :data:`background_image`
+    ''':data:`border` to be applied to the :data:`background_image`.
     '''
 
     __events__ = ('on_previous',)
@@ -628,7 +628,7 @@ class ActionBar(BoxLayout):
 
     def _pop_contextual_action_view(self):
         '''Remove the current ContextualActionView and display either the
-           previous one or the ActionView
+           previous one or the ActionView.
         '''
         self._stack_cont_action_view.pop()
         self.clear_widgets()
