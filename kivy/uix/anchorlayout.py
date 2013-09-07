@@ -12,7 +12,7 @@ Anchor Layout
     .. image:: images/anchorlayout.png
         :align: right
 
-:class:`AnchorLayout` aligns children to a border (top, bottom, left, right)
+The :class:`AnchorLayout` aligns children to a border (top, bottom, left, right)
 or center.
 
 
@@ -32,30 +32,30 @@ from kivy.properties import NumericProperty, OptionProperty
 
 
 class AnchorLayout(Layout):
-    '''Anchor layout class. See module documentation for more information.
+    '''Anchor layout class. See the module documentation for more information.
     '''
 
     padding = NumericProperty(0)
-    '''Padding between widget box and children, in pixels.
+    '''Padding between the widget box and it's children, in pixels.
 
-    :data:`padding` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.
+    :data:`padding` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to 0.
     '''
 
     anchor_x = OptionProperty('center', options=(
         'left', 'center', 'right'))
     '''Horizontal anchor.
 
-    :data:`anchor_x` is an :class:`~kivy.properties.OptionProperty`, default
-    to 'center'. Can take a value of 'left', 'center' or 'right'.
+    :data:`anchor_x` is an :class:`~kivy.properties.OptionProperty` and defaults
+    to 'center'. It accepts values of 'left', 'center' or 'right'.
     '''
 
     anchor_y = OptionProperty('center', options=(
         'top', 'center', 'bottom'))
     '''Vertical anchor.
 
-    :data:`anchor_y` is an :class:`~kivy.properties.OptionProperty`, default
-    to 'center'. Can take a value of 'top', 'center' or 'bottom'.
+    :data:`anchor_y` is an :class:`~kivy.properties.OptionProperty` and defaults
+    to 'center'. It accepts values of 'top', 'center' or 'bottom'.
     '''
 
     def __init__(self, **kwargs):
