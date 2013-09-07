@@ -55,13 +55,12 @@ class LeapFingerEventProvider(MotionEventProvider):
         events = []
         touches = self.touches
         available_uid = []
-        for hand in frame.hands():
-            for finger in hand.fingers():
+        for hand in frame.hands:
+            for finger in hand.fingers:
                 #print hand.id(), finger.id(), finger.tip()
-                uid = '{0}:{1}'.format(hand.id(), finger.id())
+                uid = '{0}:{1}'.format(hand.id, finger.id)
                 available_uid.append(uid)
-                tip = finger.tip()
-                args = (tip.position.x, tip.position.y, tip.position.z)
+                args = (finger.tip_position.x, finger.tip_position.y, finger.tip_position.z)
                 if uid not in touches:
                     touch = LeapFingerEvent(self.device, uid, args)
                     events.append(('begin', touch))
@@ -79,16 +78,16 @@ class LeapFingerEventProvider(MotionEventProvider):
 
 class LeapMotionListener(Leap.Listener):
 
-    def onInit(self, controller):
+    def on_init(self, controller):
         Logger.info("leapmotion: Initialized")
 
-    def onConnect(self, controller):
+    def on_connect(self, controller):
         Logger.info("leapmotion: Connected")
 
-    def onDisconnect(self, controller):
+    def on_disconnect(self, controller):
         Logger.info("leapmotion: Disconnected")
 
-    def onFrame(self, controller):
+    def on_frame(self, controller):
         #Logger.debug("leapmotion: OnFrame")
         frame = controller.frame()
         _LEAP_QUEUE.append(frame)
