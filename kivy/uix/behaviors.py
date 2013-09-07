@@ -4,7 +4,7 @@ Behaviors
 
 .. versionadded:: 1.8.0
 
-This module implement behaviors that can be mixed with existing base widget.
+This module implements behaviors that can be mixed with existing base widgets.
 For example, if you want to add a "button" capability to an `Image`, you could
 do::
 
@@ -14,8 +14,8 @@ do::
 
 .. note::
 
-    The behavior class must always be _before_ the widget class. If you don't,
-    the behavior will not work.
+    The behavior class must always be _before_ the widget class. If you don't
+    specify the inheritance in this order, the behavior will not work.
 
 '''
 
@@ -32,7 +32,7 @@ class ButtonBehavior(object):
         `on_press`
             Fired when the button is pressed.
         `on_release`
-            Fired when the button is released (i.e., the touch/click that
+            Fired when the button is released (i.e. the touch/click that
             pressed the button goes away).
     '''
 
