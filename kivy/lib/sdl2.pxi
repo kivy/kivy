@@ -14,7 +14,7 @@ cdef extern from "SDL.h":
     ctypedef unsigned short Uint16
     ctypedef void *SDL_GLContext
     ctypedef Uint32 SDL_Keycode
-     
+
     ctypedef enum:
         SDL_PIXELFORMAT_ARGB8888
         SDL_PIXELFORMAT_RGBA8888
@@ -60,7 +60,7 @@ cdef extern from "SDL.h":
         SDL_RENDERER_SOFTWARE = 0x00000001
         SDL_RENDERER_ACCELERATED = 0x00000002
         SDL_RENDERER_PRESENTVSYNC = 0x00000004
-        
+
     ctypedef enum SDL_bool:
         SDL_FALSE = 0
         SDL_TRUE = 1
@@ -253,6 +253,7 @@ cdef extern from "SDL.h":
         Sint16 dy
         Uint16 pressure
 
+
     cdef struct SDL_Keysym:
         SDL_Scancode scancode       # SDL physical key code - see ::SDL_Scancode for details */
         SDL_Keycode sym             # SDL virtual key code - see ::SDL_Keycode for details */
@@ -288,7 +289,7 @@ cdef extern from "SDL.h":
         Uint32 windowID
         int x
         int y
-        
+
     cdef struct SDL_JoyAxisEvent:
         pass
     cdef struct SDL_JoyBallEvent:
@@ -454,6 +455,9 @@ cdef extern from "SDL.h":
     cdef int SDL_RenderReadPixels(SDL_Renderer * renderer, SDL_Rect * rect, Uint32 format, void *pixels, int pitch) nogil
     cdef int SDL_PushEvent(SDL_Event * event) nogil
 
+    cdef void SDL_SetClipboardText(char * text)
+    cdef const char * SDL_GetClipboardText()
+    cdef SDL_bool SDL_HasClipboardText()
     cdef int SDL_GetNumVideoDrivers()
     cdef const char *SDL_GetVideoDriver(int index)
     cdef int SDL_VideoInit(const char *driver_name)

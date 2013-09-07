@@ -49,6 +49,7 @@ class ClipboardBase(object):
 
 # load clipboard implementation
 Clipboard = core_select_lib('clipboard', (
+    ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'),
     ('pygame', 'clipboard_pygame', 'ClipboardPygame'),
     ('dummy', 'clipboard_dummy', 'ClipboardDummy')), True)
 

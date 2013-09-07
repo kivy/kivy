@@ -158,6 +158,7 @@ if platform == 'ios':
 # -----------------------------------------------------------------------------
 # declare flags
 
+
 def get_modulename_from_file(filename):
     filename = filename.replace(sep, '/')
     pyx = '.'.join(filename.split('.')[:-1])
@@ -194,6 +195,7 @@ def merge(d1, *args):
                 d1[key] = value
     return d1
 
+
 def determine_base_flags():
     flags = {
         'libraries': ['m'],
@@ -210,12 +212,16 @@ def determine_base_flags():
     elif platform == 'darwin':
         v = os.uname()
         if v[2] == '13.0.0':
-    	    sysroot = '/Applications/Xcode5-DP.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/System/Library/Frameworks'
+            sysroot = '/Applications/Xcode5-DP.app/Contents/Developer/' +\
+                'Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/' +\
+                'System/Library/Frameworks'
         else:
-            sysroot = '/System/Library/Frameworks/ApplicationServices.framework/Frameworks'
+            sysroot = '/System/Library/Frameworks/ApplicationServices' +\
+                '.framework/Frameworks'
         flags['extra_compile_args'] += ['-F%s' % sysroot]
         flags['extra_link_args'] += ['-F%s' % sysroot]
     return flags
+
 
 def determine_gl_flags():
     flags = {'libraries': []}
@@ -253,6 +259,7 @@ def determine_gl_flags():
         else:
             flags['libraries'] += ['GLEW']
     return flags
+
 
 def determine_sdl():
     flags = {}
@@ -299,6 +306,7 @@ def determine_sdl():
             '-framework', 'ApplicationServices']
     return flags
 
+
 def determine_sdl2():
     flags = {}
     if not c_options['use_sdl2']:
@@ -331,6 +339,7 @@ def determine_sdl2():
         return {}
 
     return flags
+
 
 def determine_graphics_pxd():
     flags = {'depends': [join(dirname(__file__), 'kivy', x) for x in [
@@ -409,6 +418,8 @@ if c_options['use_sdl2']:
         sources['core/image/_img_sdl2.pyx'] = merge(
             base_flags, gl_flags, sdl2_flags)
         sources['core/text/_text_sdl2.pyx'] = merge(
+            base_flags, gl_flags, sdl2_flags)
+        sources['core/clipboard/_clipboard_sdl2.pyx'] = merge(
             base_flags, gl_flags, sdl2_flags)
 
 if platform in ('darwin', 'ios'):
