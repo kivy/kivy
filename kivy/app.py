@@ -382,7 +382,7 @@ class App(EventDispatcher):
     change this to False.
     '''
 
-    settings_widget = ObjectProperty(Settings)
+    settings_cls = ObjectProperty(Settings)
     '''.. versionadded:: 1.8.0
 
     The class to use to construct the settings panel, used to
@@ -394,9 +394,9 @@ class App(EventDispatcher):
     :class:`~kivy.uix.settings.SettingsWithTabbedPanel`,
     :class:`~kivy.uix.settings.SettingsWithNoMenu`), or your own
     Settings subclass. See the documentation
-    of:mod:`kivy.uix.Settings` for more information.
+    of :mod:`kivy.uix.Settings` for more information.
 
-    :attr:`~App.settings_widget` is an :class:`~kivy.properties.ObjectProperty`.
+    :attr:`~App.settings_cls` is an :class:`~kivy.properties.ObjectProperty`.
     it defaults to :class:`~kivy.uix.settings.Settings`, which displays
     settings panels using a sidebar layout.
 
@@ -850,7 +850,7 @@ class App(EventDispatcher):
 
     def _create_settings(self):
         if self._app_settings is None:
-            self._app_settings = s = self.settings_widget()
+            self._app_settings = s = self.settings_cls()
             self.build_settings(s)
             if self.use_kivy_settings:
                 s.add_kivy_panel()

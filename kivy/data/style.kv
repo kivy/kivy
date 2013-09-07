@@ -801,6 +801,26 @@
             pos: self.pos
             size: self.size
 
+<InterfaceWithSidebar>:
+    orientation: 'horizontal'
+    menu: menu
+    content: content
+    MenuSidebar:
+        id: menu
+    ContentPanel:
+        id: content
+        current_uid: menu.selected_uid
+
+<InterfaceWithSpinner>:
+    orientation: 'vertical'
+    menu: menu
+    content: content
+    MenuSpinner:
+        id: menu
+    ContentPanel:
+        id: content
+        current_uid: menu.selected_uid
+
 <MenuSpinner>:
     orientation: 'horizontal'
     size_hint_y: None
@@ -855,7 +875,7 @@
         size_hint_y: None
         height: self.minimum_height
 
-<ContentTabbedPanel>:
+<InterfaceWithTabbedPanel>:
     tabbedpanel: tp
     close_button: button
     TabbedPanel:
