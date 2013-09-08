@@ -92,6 +92,9 @@ class LeapMotionListener(Leap.Listener):
         frame = controller.frame()
         _LEAP_QUEUE.append(frame)
 
+    def on_exit(self, controller):
+        pass
+
 
 # registers
 MotionEventFactory.register('leapfinger', LeapFingerEventProvider)
