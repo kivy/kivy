@@ -27,10 +27,14 @@ See `redis-py <https://github.com/andymccurdy/redis-py>`_.
 
 __all__ = ('RedisStore', )
 
-import redis
+import os
 from json import loads, dumps
 from kivy.properties import StringProperty
 from kivy.storage import AbstractStore
+
+# don't import redis during the documentation generation
+if 'KIVY_DOC' not in os.environ:
+    import redis
 
 
 class RedisStore(AbstractStore):
