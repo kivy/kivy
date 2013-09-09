@@ -12,12 +12,14 @@ from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory
 from kivy.input.motionevent import MotionEvent
 import Leap
+from Leap import InteractionBox
 
 _LEAP_QUEUE = deque()
 
 
 def normalize(value, a, b):
     return (value - a) / float(b - a)
+
 
 class LeapFingerEvent(MotionEvent):
 
@@ -29,6 +31,7 @@ class LeapFingerEvent(MotionEvent):
         x, y, z = args
         self.sx = normalize(x, -150, 150)
         self.sy = normalize(y, 40, 460)
+        self.sz = normalize(z, -350, 350)
         self.z = z
         self.is_touch = True
 
@@ -61,7 +64,8 @@ class LeapFingerEventProvider(MotionEventProvider):
                 #print hand.id(), finger.id(), finger.tip()
                 uid = '{0}:{1}'.format(hand.id, finger.id)
                 available_uid.append(uid)
-                args = (finger.tip_position.x, finger.tip_position.y, finger.tip_position.z)
+                position = finger.tip_position
+                args = (position.x, position.y, position.z)
                 if uid not in touches:
                     touch = LeapFingerEvent(self.device, uid, args)
                     events.append(('begin', touch))
