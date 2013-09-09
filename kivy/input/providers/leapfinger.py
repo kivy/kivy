@@ -25,10 +25,11 @@ class LeapFingerEvent(MotionEvent):
         super(LeapFingerEvent, self).depack(args)
         if args[0] is None:
             return
-        self.profile = ('pos', )
+        self.profile = ('pos', 'pos3d', )
         x, y, z = args
         self.sx = normalize(x, -150, 150)
         self.sy = normalize(y, 40, 460)
+        self.z = z
         self.is_touch = True
 
 
