@@ -159,7 +159,7 @@ the settings panel. For instance, the default panel has a sidebar for
 switching between json panels, whose width defaults to 200dp. If you'd
 prefer this to be narrower, you could add::
 
-    settings.menu.width = dp(100)
+    settings.interface.menu.width = dp(100)
 
 to your :meth:`build_settings` method.
 
