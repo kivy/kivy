@@ -148,7 +148,9 @@ on_close event.
 
 __all__ = ('Settings', 'SettingsPanel', 'SettingItem', 'SettingString',
            'SettingPath', 'SettingBoolean', 'SettingNumeric',
-           'SettingOptions')
+           'SettingOptions', 'SettingsWithSidebar', 'SettingsWithSpinner',
+           'SettingsWithTabbedPanel', 'SettingsWithNoMenu',
+           'InterfaceWithSidebar', 'ContentPanel')
 
 import json
 import os
@@ -157,7 +159,7 @@ from kivy.config import ConfigParser
 from kivy.animation import Animation
 from kivy.compat import string_types, text_type
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.tabbedpanel import TabbedPanelItem
+from kivy.uix.tabbedpanel import TabbedPanelHeader
 from kivy.uix.button import Button
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.scrollview import ScrollView
@@ -618,8 +620,8 @@ class SettingsPanel(GridLayout):
 
 class InterfaceWithSidebar(BoxLayout):
     '''The default Settings interface class. It displays a sidebar menu
-    with names of available panels, which may be used to switch the panel
-    that is currently displayed.
+    with names of available settings panels, which may be used to switch
+    which one is currently displayed.
 
     See :meth:`~InterfaceWithSidebar.add_panel` for information on the
     method you must implement if creating your own interface.
@@ -665,8 +667,8 @@ class InterfaceWithSidebar(BoxLayout):
                       between panels.
 
         :param name: The name of the panel, as a string. It
-                     may be used to represent the panel, but may not
-                     be unique.
+                     may be used to represent the panel, but isn't necessarily
+                     unique.
 
         :param uid: A unique int identifying the panel. It should be
                     used to identify and switch between panels.
@@ -684,7 +686,7 @@ class InterfaceWithSpinner(BoxLayout):
     switching between panels.
 
     This workings of this class are considered internal and are not
-    documented.  See :meth:`~InterfaceWithSidebar` for
+    documented.  See :meth:`InterfaceWithSidebar` for
     information on implementing your own interface class.
 
     '''
@@ -729,8 +731,8 @@ class InterfaceWithSpinner(BoxLayout):
                     used to identify and switch between panels.
 
         '''
-        self.menu.add_item(name, uid)
         self.content.add_panel(panel, name, uid)
+        self.menu.add_item(name, uid)
 
     def on_close(self, *args):
         pass
@@ -885,7 +887,7 @@ class Settings(BoxLayout):
 
     def add_interface(self):
         '''(Internal) creates an instance of :attr:`Settings.interface_cls`,
-        and sets it to self.:attr:`~Settings.interface`. When json panels are
+        and sets it to :attr:`~Settings.interface`. When json panels are
         created, they will be added to this interface, which will display them
         to the user.
         '''
@@ -969,14 +971,15 @@ class Settings(BoxLayout):
 class SettingsWithSidebar(Settings):
     '''A settings widget that displays settings panels with a sidebar to
     switch between them. This is the default behaviour of
-    :class:`Settings`, and so this widget is a trivial wrapper subclass.
+    :class:`Settings`, and this widget is a trivial wrapper subclass.
 
     '''
 
 
 class SettingsWithSpinner(Settings):
-    '''A settings widget that displays a settings panel with a spinner at
-    the top to switch between panels.
+    '''A settings widget that displays one settings panel at a time with a
+    spinner at the top to switch between them.
+
     '''
     def __init__(self, *args, **kwargs):
         self.interface_cls = InterfaceWithSpinner
@@ -985,10 +988,7 @@ class SettingsWithSpinner(Settings):
 
 class SettingsWithTabbedPanel(Settings):
     '''A settings widget that displays settings panels as pages in a
-    :class:`~kivy.uix.tabbedpanel.TabbedPanel`. It does not add a menu
-    widget, instead using :class:`~kivy.uix.tabbedpanel.TabbedPanel` as a
-    content widget that keeps its own menu (the tabs).
-
+    :class:`~kivy.uix.tabbedpanel.TabbedPanel`.
     '''
 
     __events__ = ('on_close', )
@@ -1055,9 +1055,13 @@ class InterfaceWithTabbedPanel(FloatLayout):
         self.close_button.bind(on_release=lambda j: self.dispatch('on_close'))
 
     def add_panel(self, panel, name, uid):
-        panelitem = TabbedPanelItem(text=name)
-        panelitem.add_widget(panel)
+        scrollview = ScrollView()
+        scrollview.add_widget(panel)
+        panelitem = TabbedPanelHeader(text=name, content=scrollview)
         self.tabbedpanel.add_widget(panelitem)
+        print self.tabbedpanel.current_tab, self.tabbedpanel.current_tab.content
+        self.tabbedpanel.switch_to(panelitem)
+        print self.tabbedpanel.current_tab, self.tabbedpanel.current_tab.content
 
     def on_close(self, *args):
         pass
