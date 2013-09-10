@@ -1059,9 +1059,6 @@ class InterfaceWithTabbedPanel(FloatLayout):
         scrollview.add_widget(panel)
         panelitem = TabbedPanelHeader(text=name, content=scrollview)
         self.tabbedpanel.add_widget(panelitem)
-        print self.tabbedpanel.current_tab, self.tabbedpanel.current_tab.content
-        self.tabbedpanel.switch_to(panelitem)
-        print self.tabbedpanel.current_tab, self.tabbedpanel.current_tab.content
 
     def on_close(self, *args):
         pass
