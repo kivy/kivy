@@ -105,14 +105,6 @@ your config tokens. Here is an example done in the KinectViewer example
     .. image:: images/app-settings.jpg
         :align: center
 
-You can choose different settings widget layouts by setting
-:attr:`App.settings_cls`. By default, this is 
-:class:`~kivy.uix.settings.Settings` which provides the pictured
-sidebar layout, but you could set it to any of the other layouts
-provided in :mod:`kivy.uix.settings` or create your own. See the
-module documentation for :mod:`kivy.uix.settings` for more
-information.
-
 You can add your own panels of settings by extending
 the :meth:`App.build_settings` method.
 Check the class:`~kivy.uix.settings.Settings` about how to create a panel,
@@ -163,7 +155,7 @@ prefer this to be narrower, you could add::
 
 to your :meth:`build_settings` method.
 
-However, you might want to know when a config value has been changed by the
+You might want to know when a config value has been changed by the
 user, in order to adapt or reload your UI. You can overload the
 :meth:`on_config_change` method::
 
@@ -217,9 +209,19 @@ with Kivy. It is however possible to use :meth:`App.on_start` and
 
 This will create a file called `myapp.profile` when you exit your app.
 
+Customising layout
+------------------
 
-You can further customise the display of the settings panel by
-modifying :meth:`App.display_settings`. This method is called to
+You can choose different settings widget layouts by setting
+:attr:`App.settings_cls`. By default, this is
+:class:`~kivy.uix.settings.Settings` which provides the pictured
+sidebar layout, but you could set it to any of the other layouts
+provided in :mod:`kivy.uix.settings` or create your own. See the
+module documentation for :mod:`kivy.uix.settings` for more
+information.
+
+You can customise how the settings panel is actually displayed by
+overriding :meth:`App.display_settings`, which is called to
 actually display the settings panel on the screen. By default it
 simply draws the panel on top of the window, but you could modify it
 to (for instance) show the settings in a
