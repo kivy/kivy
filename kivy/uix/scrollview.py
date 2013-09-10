@@ -483,6 +483,7 @@ class ScrollView(Widget):
                        touch.pos[1] >= self._view_y_offset + self.y)
         if (self._touch or (not (self.do_scroll_x or self.do_scroll_y)) or
             (self.scroll_on_bar_only and outside_bar and
+             'button' in touch.profile and
              not touch.button.startswith('scroll'))):
             return super(ScrollView, self).on_touch_down(touch)
 
