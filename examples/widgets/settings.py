@@ -21,13 +21,13 @@ class SettingsApp(App):
         paneltype = Label(text='What kind of settings panel to use?')
 
         sidebar_button = Button(text='Sidebar')
-        sidebar_button.bind(on_press=lambda j: self.set_settings_widget(
+        sidebar_button.bind(on_press=lambda j: self.set_settings_cls(
             SettingsWithSidebar))
         spinner_button = Button(text='Spinner')
-        spinner_button.bind(on_press=lambda j: self.set_settings_widget(
+        spinner_button.bind(on_press=lambda j: self.set_settings_cls(
             SettingsWithSpinner))
         tabbed_button = Button(text='TabbedPanel')
-        tabbed_button.bind(on_press=lambda j: self.set_settings_widget(
+        tabbed_button.bind(on_press=lambda j: self.set_settings_cls(
             SettingsWithTabbedPanel))
 
         buttons = BoxLayout(orientation='horizontal')
@@ -44,6 +44,7 @@ class SettingsApp(App):
         display_buttons.add_widget(onwin_button)
         display_buttons.add_widget(popup_button)
 
+        instruction = Label(text='Click to open the settings panel:')
         settings_button = Button(text='Open settings')
         settings_button.bind(on_press=self.open_settings)
 
@@ -52,17 +53,19 @@ class SettingsApp(App):
         layout.add_widget(buttons)
         layout.add_widget(displaytype)
         layout.add_widget(display_buttons)
+        layout.add_widget(instruction)
         layout.add_widget(settings_button)
 
         return layout
 
-    def on_settings_widget(self, *args):
+    def on_settings_cls(self, *args):
         self.destroy_settings()
 
-    def set_settings_widget(self, panel_type):
-        self.settings_widget = panel_type
+    def set_settings_cls(self, panel_type):
+        self.settings_cls = panel_type
 
     def set_display_type(self, display_type):
+        self.destroy_settings()
         self.display_type = display_type
 
     def display_settings(self, settings):
