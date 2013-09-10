@@ -286,14 +286,16 @@ class ScrollView(Widget):
     [.7, .7, .7, .9].
     '''
 
-    bar_width = NumericProperty('2dp')
+    bar_width = NumericProperty('16dp' if bool(Config.get('kivy', 'desktop'))
+                                else '2dp')
     '''Width of the horizontal / vertical scroll bar. The width is interpreted
     as a height for the horizontal bar.
 
     .. versionadded:: 1.2.0
 
-    :data:`bar_width` is a :class:`~kivy.properties.NumericProperty`, default
-    to 2
+    :data:`bar_width` is a :class:`~kivy.properties.NumericProperty`, defaults
+    to 16dp if executed on a desktop (i.e. desktop is True in the kivy
+    config file), otherwise to 2dp.
     '''
 
     bar_margin = NumericProperty(0)
