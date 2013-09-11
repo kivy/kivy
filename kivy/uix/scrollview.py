@@ -496,31 +496,35 @@ class ScrollView(Widget):
             touch.button.startswith('scroll'):
             btn = touch.button
             m = self.scroll_distance
-            e = None
+            prop = self.scroll_proportionate
 
-            if (self.effect_x and self.do_scroll_y and vp.height >
-                self._view_height and btn in ('scrolldown', 'scrollup')):
-                e = self.effect_y
-
-            elif (self.effect_y and self.do_scroll_x and vp.width >
-                  self._view_width and btn in ('scrollleft', 'scrollright')):
-                e = self.effect_x
-
-            if e:
-                if self.scroll_proportionate:
-                    up = 'scrolldown'
-                    down = 'scrollup'
+            if (self.do_scroll_x and vp.width >
+                self._view_width and btn in ('scrollleft', 'scrollright')):
+                width = self._view_width
+                if prop:
+                    dx = m / float(width - width * self.hbar[1])
                 else:
-                    up = 'scrollup'
-                    down = 'scrolldown'
-                if btn in (down, 'scrollleft'):
-                    e.value = max(e.value - m, e.min)
-                    e.velocity = 0
-                elif btn in (up, 'scrollright'):
-                    e.value = min(e.value + m, e.max)
-                    e.velocity = 0
+                    dx = m / float(width)
+                if btn == 'scrollleft':
+                    dx *= -1
+                self.scroll_x = min(max(self.scroll_x + dx, 0.), 1.)
+                self._trigger_update_from_scroll()
                 touch.ud[self._get_uid('svavoid')] = True
-                e.trigger_velocity_update()
+                return True
+            elif (self.do_scroll_y and vp.height >
+                self._view_height and btn in ('scrolldown', 'scrollup')):
+                height = self._view_height
+                if prop:
+                    dy = m / float(height - height * self.vbar[1])
+                    if btn == 'scrollup':
+                        dy *= -1
+                else:
+                    dy = m / float(height)
+                    if btn == 'scrolldown':
+                        dy *= -1
+                self.scroll_y = min(max(self.scroll_y + dy, 0.), 1.)
+                self._trigger_update_from_scroll()
+                touch.ud[self._get_uid('svavoid')] = True
                 return True
 
         # no mouse scrolling, so the user is going to drag the scrollview with
