@@ -844,21 +844,21 @@
                 width: sv.width
 
 <ScrollView>:
-    _view_width: self.width - (self.bar_width if self.bar_perm and self.do_scroll_y and self.viewport_size[0] > self.width and self.width > self.bar_width else 0)
-    _view_height: self.height - (self.bar_width if self.bar_perm and self.do_scroll_x and self.viewport_size[1] > self.height and self.height > self.bar_width else 0)
+    _view_width: self.width - (self.bar_width if self.bar_perm and self.do_scroll_y and self.viewport_size[1] > self.height and self.width > self.bar_width else 0)
+    _view_height: self.height - (self.bar_width if self.bar_perm and self.do_scroll_x and self.viewport_size[0] > self.width and self.height > self.bar_width else 0)
     _view_y_offset: self.bar_width if self._view_height != self.height else 0
     canvas.before:
         StencilPush
         Rectangle:
             pos: (self.x, self.y + self._view_y_offset)
-            size: (self.width - (self.bar_width if self.bar_perm and self.do_scroll_y else 0), self.height - self._view_y_offset)
+            size: (self._view_width, self.height - self._view_y_offset)
         StencilUse
 
     canvas.after:
         StencilUnUse
         Rectangle:
             pos: (self.x, self.y + self._view_y_offset)
-            size: (self.width - (self.bar_width if self.bar_perm and self.do_scroll_y else 0), self.height - self._view_y_offset)
+            size: (self._view_width, self.height - self._view_y_offset)
         StencilPop
         Color:
             rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if (self.do_scroll_y and self.viewport_size[1]>self.height) else 0]
