@@ -197,7 +197,6 @@ class EventLoopBase(EventDispatcher):
         a input event. The event is dispatched into all listeners, and if
         grabbed, it's dispatched through grabbed widgets
         '''
-        print me
         # update available list
         if etype == 'begin':
             self.me_list.append(me)

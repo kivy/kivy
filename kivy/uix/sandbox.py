@@ -77,9 +77,9 @@ class Sandbox(FloatLayout):
         # override this method in order to deal with exceptions
         # return True = don't reraise the exception
         # return False = raise to the parent
-        #print 'on_exception() {!r} {!r}'.format(exception, _traceback)
+        print 'on_exception() {!r} {!r}'.format(exception, _traceback)
         import traceback
-        #traceback.print_tb(_traceback)
+        traceback.print_tb(_traceback)
         return True
 
     on_touch_down = sandbox(Widget.on_touch_down)
