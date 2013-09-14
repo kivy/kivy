@@ -284,8 +284,8 @@ class ActionGroup(ActionItem, Spinner):
         self.is_open = not self.is_open
         ddn = self._dropdown
         ddn.size_hint_x = None
-        children = ddn.children[0].children
-        ddn.width = max([self.width, children[0].minimum_width])
+        ddn.width = max([self.width, 
+                        self.list_action_item[0].minimum_width])
         for item in children:
             item.size_hint_y = None
             item.height = max([self.height, '48sp'])
