@@ -844,32 +844,32 @@
                 width: sv.width
 
 <ScrollView>:
-    _view_width: self.width - (self.bar_width if self.bar_perm and self.do_scroll_y and self.viewport_size[1] > self.height and self.width > self.bar_width else 0)
-    _view_height: self.height - (self.bar_width if self.bar_perm and self.do_scroll_x and self.viewport_size[0] > self.width and self.height > self.bar_width else 0)
-    _view_y_offset: self.bar_width if self._view_height != self.height else 0
+    view_width: self.width - (self.bar_width if self.bar_perm and self.do_scroll_y and self.viewport_size[1] > self.height and self.width > self.bar_width else 0)
+    view_height: self.height - (self.bar_width if self.bar_perm and self.do_scroll_x and self.viewport_size[0] > self.width and self.height > self.bar_width else 0)
+    view_y: self.bar_width if self.view_height != self.height else 0
     canvas.before:
         StencilPush
         Rectangle:
-            pos: (self.x, self.y + self._view_y_offset)
-            size: (self._view_width, self.height - self._view_y_offset)
+            pos: (self.x, self.y + self.view_y)
+            size: (self.view_width, self.height - self.view_y)
         StencilUse
 
     canvas.after:
         StencilUnUse
         Rectangle:
-            pos: (self.x, self.y + self._view_y_offset)
-            size: (self._view_width, self.height - self._view_y_offset)
+            pos: (self.x, self.y + self.view_y)
+            size: (self.view_width, self.height - self.view_y)
         StencilPop
         Color:
             rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if (self.do_scroll_y and self.viewport_size[1]>self.height) else 0]
         Rectangle:
-            pos: self.right - self.bar_width - self.bar_margin, self.y + self._view_height * self.vbar[0] + self._view_y_offset
-            size: self.bar_width, self._view_height * self.vbar[1]
+            pos: self.right - self.bar_width - self.bar_margin, self.y + self.view_height * self.vbar[0] + self.view_y
+            size: self.bar_width, self.view_height * self.vbar[1]
         Color:
             rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if (self.do_scroll_x and self.viewport_size[0] > self.width) else 0]
         Rectangle:
-            pos: self.x + self._view_width * self.hbar[0], self.y + self.bar_margin
-            size: self._view_width * self.hbar[1], self.bar_width
+            pos: self.x + self.view_width * self.hbar[0], self.y + self.bar_margin
+            size: self.view_width * self.hbar[1], self.bar_width
 
 
 # =============================================================================

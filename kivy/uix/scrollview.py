@@ -229,7 +229,7 @@ class ScrollView(Widget):
         if self._viewport is None:
             return 0, 1.
         vh = self._viewport.height
-        h = self._view_height
+        h = self.view_height
         if vh < h or vh == 0:
             return 0, 1.
         ph = max(0.01, h / float(vh))
@@ -256,7 +256,7 @@ class ScrollView(Widget):
         if self._viewport is None:
             return 0, 1.
         vw = self._viewport.width
-        w = self._view_width
+        w = self.view_width
         if vw < w or vw == 0:
             return 0, 1.
         pw = max(0.01, w / float(vw))
@@ -296,6 +296,10 @@ class ScrollView(Widget):
     :data:`bar_width` is a :class:`~kivy.properties.NumericProperty`, defaults
     to 16dp if executed on a desktop (i.e. desktop is True in the kivy
     config file), otherwise to 2dp.
+
+    .. versionchanged:: 1.8.0
+        Default value changed from 2dp to 16dp when executed on a desktop
+        (i.e. desktop is True in the kivy config file).
     '''
 
     bar_margin = NumericProperty(0)
@@ -349,6 +353,45 @@ class ScrollView(Widget):
     None, read-only.
     '''
 
+    view_width = NumericProperty(0)
+    '''The width of the observable content. Read Only. Typically, this is the
+    same as self.width. However, if the y bar is permanently displayed, and
+    there's y content to scroll, and the y bar is enabled; the effective view
+    will be smaller than self.width by :data:`bar_width`.
+    :data:`view_width` will reflect the effective width.
+
+    .. versionadded:: 1.8.0
+
+    :data:`view_width` is a :class:`~kivy.properties.NumericProperty`, default
+    to 0
+    '''
+
+    view_height = NumericProperty(0)
+    '''The height of the observable content. Read Only. Typically, this is the
+    same as self.height. However, if the x bar is permanently displayed, and
+    there's x content to scroll, and the x bar is enabled; the effective view
+    will be smaller than self.height by :data:`bar_width`.
+    :data:`view_height` will reflect the effective height.
+
+    .. versionadded:: 1.8.0
+
+    :data:`view_height` is a :class:`~kivy.properties.NumericProperty`, default
+    to 0
+    '''
+
+    view_y = NumericProperty(0)
+    '''The amount by which the content is displaced in the y direction relative
+    to self.y. Read Only. Typically, this is the same as self.y. However, if
+    the x bar is permanently displayed, and there's x content to scroll, and
+    the x bar is enabled; the content will be displaced by :data:`bar_width`.
+    :data:`view_y` will reflect the effective y relative to self.y.
+
+    .. versionadded:: 1.8.0
+
+    :data:`view_y` is a :class:`~kivy.properties.NumericProperty`, default
+    to 0
+    '''
+
     viewport_size = ListProperty([0, 0])
     '''(internal) Size of the internal viewport. This is the size of your only
     child in the scrollview.
@@ -357,10 +400,6 @@ class ScrollView(Widget):
     # private, for internal use only
 
     _viewport = ObjectProperty(None, allownone=True)
-    # holds the actual visible size, and y offset, in case bar_perm is True
-    _view_width = NumericProperty(0)
-    _view_height = NumericProperty(0)
-    _view_y_offset = NumericProperty(0)
     bar_alpha = NumericProperty(1.)
 
     def _set_viewport_size(self, instance, value):
@@ -381,9 +420,9 @@ class ScrollView(Widget):
         if self.effect_y is None and self.effect_cls is not None:
             self.effect_y = self.effect_cls(target_widget=self._viewport)
         self.bind(
-            _view_width=self._update_effect_x_bounds,
-            _view_height=self._update_effect_y_bounds,
-            _view_y_offset=self._update_effect_y_bounds,
+            view_width=self._update_effect_x_bounds,
+            view_height=self._update_effect_y_bounds,
+            view_y=self._update_effect_y_bounds,
             viewport_size=self._update_effect_bounds,
             _viewport=self._update_effect_widget,
             scroll_x=self._trigger_update_from_scroll,
@@ -422,10 +461,10 @@ class ScrollView(Widget):
             return
         if self.scroll_proportionate:
             self.effect_x.min = 0
-            self.effect_x.max = self.viewport_size[0] - self._view_width
+            self.effect_x.max = self.viewport_size[0] - self.view_width
             self.effect_x.value = self.effect_x.max * self.scroll_x
         else:
-            self.effect_x.min = -(self.viewport_size[0] - self._view_width)
+            self.effect_x.min = -(self.viewport_size[0] - self.view_width)
             self.effect_x.max = 0
             self.effect_x.value = self.effect_x.min * self.scroll_x
 
@@ -434,10 +473,10 @@ class ScrollView(Widget):
             return
         if self.scroll_proportionate:
             self.effect_y.min = 0
-            self.effect_y.max = self.viewport_size[1] - self._view_height
+            self.effect_y.max = self.viewport_size[1] - self.view_height
             self.effect_y.value = self.effect_y.max * self.scroll_y
         else:
-            self.effect_y.min = -(self.viewport_size[1] - self._view_height)
+            self.effect_y.min = -(self.viewport_size[1] - self.view_height)
             self.effect_y.max = 0
             self.effect_y.value = self.effect_y.min * self.scroll_y
 
@@ -453,7 +492,7 @@ class ScrollView(Widget):
         vp = self._viewport
         if not vp or not self.effect_x:
             return
-        sw = vp.width - self._view_width
+        sw = vp.width - self.view_width
         if sw < 1:
             return
         sx = self.effect_x.scroll / float(sw)
@@ -466,7 +505,7 @@ class ScrollView(Widget):
         vp = self._viewport
         if not vp or not self.effect_y:
             return
-        sh = vp.height - self._view_height
+        sh = vp.height - self.view_height
         if sh < 1:
             return
         sy = self.effect_y.scroll / float(sh)
@@ -481,8 +520,8 @@ class ScrollView(Widget):
             return
         if self.disabled:
             return True
-        outside_bar = (touch.pos[0] <= self._view_width + self.x and
-                       touch.pos[1] >= self._view_y_offset + self.y)
+        outside_bar = (touch.pos[0] <= self.view_width + self.x and
+                       touch.pos[1] >= self.view_y + self.y)
         if (self._touch or (not (self.do_scroll_x or self.do_scroll_y)) or
             (self.scroll_on_bar_only and outside_bar and
              'button' in touch.profile and
@@ -499,8 +538,8 @@ class ScrollView(Widget):
             prop = self.scroll_proportionate
 
             if (self.do_scroll_x and vp.width >
-                self._view_width and btn in ('scrollleft', 'scrollright')):
-                width = self._view_width
+                self.view_width and btn in ('scrollleft', 'scrollright')):
+                width = self.view_width
                 if prop:
                     dx = m / float(width - width * self.hbar[1])
                 else:
@@ -512,8 +551,8 @@ class ScrollView(Widget):
                 touch.ud[self._get_uid('svavoid')] = True
                 return True
             elif (self.do_scroll_y and vp.height >
-                self._view_height and btn in ('scrolldown', 'scrollup')):
-                height = self._view_height
+                self.view_height and btn in ('scrolldown', 'scrollup')):
+                height = self.view_height
                 if prop:
                     dy = m / float(height - height * self.vbar[1])
                     if btn == 'scrollup':
@@ -533,9 +572,9 @@ class ScrollView(Widget):
         uid = self._get_uid()
         touch.grab(self)
         scroll_on_bar_only = self.scroll_on_bar_only
-        x_scrolling = (touch.pos[1] < self._view_y_offset + self.y or
+        x_scrolling = (touch.pos[1] < self.view_y + self.y or
                        not scroll_on_bar_only)
-        y_scrolling = (touch.pos[0] > self._view_width + self.x or
+        y_scrolling = (touch.pos[0] > self.view_width + self.x or
                        not scroll_on_bar_only)
         prop = self.scroll_proportionate  # if True, no effect
         touch.ud[uid] = {
@@ -574,7 +613,7 @@ class ScrollView(Widget):
         # check if the minimum distance has been travelled
         if mode == 'unknown' or mode == 'scroll':
             if self.do_scroll_x and self.effect_x and x_scrolling:
-                width = self._view_width
+                width = self.view_width
                 if prop and width:
                     dx = touch.dx / float(width - width * self.hbar[1])
                     self.scroll_x = min(max(self.scroll_x + dx, 0.), 1.)
@@ -582,7 +621,7 @@ class ScrollView(Widget):
                 else:
                     self.effect_x.update(touch.x)
             if self.do_scroll_y and self.effect_y and y_scrolling:
-                height = self._view_height
+                height = self.view_height
                 if prop and height:
                     dy = touch.dy / float(height - height * self.vbar[1])
                     self.scroll_y = min(max(self.scroll_y + dy, 0.), 1.)
@@ -659,8 +698,8 @@ class ScrollView(Widget):
         vp = self._viewport
 
         # update from size_hint
-        width = self._view_width
-        height = self._view_height
+        width = self.view_width
+        height = self.view_height
         if vp.size_hint_x is not None:
             vp.width = vp.size_hint_x * width
         if vp.size_hint_y is not None:
@@ -673,7 +712,7 @@ class ScrollView(Widget):
             x = self.x
         if vp.height > height:
             sh = vp.height - height
-            y = self.y - self.scroll_y * sh + self._view_y_offset
+            y = self.y - self.scroll_y * sh + self.view_y
         else:
             y = self.top - vp.height
         vp.pos = x, y
