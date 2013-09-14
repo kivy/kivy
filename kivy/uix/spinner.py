@@ -118,7 +118,7 @@ class Spinner(Button):
         dp.clear_widgets()
         for value in self.values:
             item = cls(text=value)
-            item.bind(on_release=lambda option: dp.select(option.text))
+            item.bind(on_release=lambda option, *largs: dp.select(option.text))
             dp.add_widget(item)
 
     def _toggle_dropdown(self, *largs):

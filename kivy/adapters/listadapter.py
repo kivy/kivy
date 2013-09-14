@@ -57,6 +57,7 @@ from kivy.properties import BooleanProperty
 from kivy.properties import OptionProperty
 from kivy.properties import NumericProperty
 from kivy.lang import Builder
+from functools import partial
 
 
 class ListAdapter(Adapter, EventDispatcher):
@@ -255,10 +256,12 @@ class ListAdapter(Adapter, EventDispatcher):
                 msg = "ListAdapter: unselectable data item for {0}"
                 raise Exception(msg.format(index))
 
-        view_instance.bind(on_release=self.handle_selection)
+        view_instance.bind(on_release=partial(self.handle_selection,
+                                              hold_dispatch=False))
 
         for child in view_instance.children:
-            child.bind(on_release=self.handle_selection)
+            child.bind(on_release=partial(self.handle_selection,
+                                          hold_dispatch=False))
 
         return view_instance
 
