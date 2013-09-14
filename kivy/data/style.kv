@@ -243,8 +243,9 @@
         size_hint: None, None
         orientation: 'vertical'
         BoxLayout:
-            size_hint_y: None
+            size_hint: None, None
             height: 30
+            width: scrollview.view_width
             orientation: 'horizontal'
             Widget:
                 # Just for spacing
@@ -280,7 +281,7 @@
                     id: treeview
                     hide_root: True
                     size_hint_y: None
-                    width: scrollview.width
+                    width: scrollview.view_width
                     height: self.minimum_height
                     on_node_expand: root.entry_subselect(args[1])
                     on_node_collapse: root.close_subselection(args[1])
