@@ -42,18 +42,19 @@ class CheckBox(Widget):
     active = BooleanProperty(False)
     '''Indicates if the switch is active or inactive.
 
-    :data:`active` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :data:`active` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     __groups = {}
 
     group = ObjectProperty(None, allownone=True)
     '''Group of the checkbox. If None, no group will be used (the checkbox is
-    independent). If specified, :data:`group` must be a hashable object, like
-    a string. Only one checkbox in a group can be active.
+    independent). If specified, the :data:`group` must be a hashable object
+    such as a string. Only one checkbox in a group can be active.
 
-    :data:`group` is a :class:`~kivy.properties.ObjectProperty`
+    :data:`group` is an :class:`~kivy.properties.ObjectProperty` and defaults to
+    None.
     '''
 
     def __init__(self, **kwargs):
