@@ -40,6 +40,8 @@ class DampedScrollEffect(ScrollEffect):
     min_overscroll = NumericProperty(.5)
     '''An overscroll less than this amount will be normalized to 0.
 
+    .. versionadded:: 1.8.0
+
     :data:`min_overscroll` is a :class:`~kivy.properties.NumericProperty` and
     defaults to .5.
     '''
