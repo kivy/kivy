@@ -297,7 +297,6 @@ class DragBehavior(object):
         if self._drag_touch or ('button' in touch.profile and
                                 touch.button.startswith('scroll')) or\
                 not ((xx < x <= xx + w) and (yy < y <= yy + h)):
-            touch.ud[self._get_uid('svavoid')] = True
             return super(DragBehavior, self).on_touch_down(touch)
 
         # no mouse scrolling, so the user is going to drag with this touch.
