@@ -77,6 +77,7 @@ __all__ = ('Popup', 'PopupException')
 from kivy.uix.modalview import ModalView
 from kivy.properties import (StringProperty, ObjectProperty,
     NumericProperty, ListProperty)
+from kivy.uix.behaviors import DragBehavior
 
 
 class PopupException(Exception):
@@ -86,7 +87,7 @@ class PopupException(Exception):
     '''
 
 
-class Popup(ModalView):
+class Popup(DragBehavior, ModalView):
     '''Popup class. See module documentation for more information.
 
     :Events:

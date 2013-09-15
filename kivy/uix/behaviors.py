@@ -243,7 +243,7 @@ class DragBehavior(object):
 
     drag_rect_x = NumericProperty(0)
     '''X position of the axis aligned bounding rectangle where dragging
-    is allowed. Relative to the x position of the widget.
+    is allowed. In window coordinates.
 
     :data:`drag_rect_x` is a :class:`~kivy.properties.NumericProperty`,
     defaults to 0.
@@ -251,7 +251,7 @@ class DragBehavior(object):
 
     drag_rect_y = NumericProperty(0)
     '''Y position of the axis aligned bounding rectangle where dragging
-    is allowed. Relative to the y position of the widget.
+    is allowed. In window coordinates.
 
     :data:`drag_rect_Y` is a :class:`~kivy.properties.NumericProperty`,
     defaults to 0.
@@ -290,8 +290,6 @@ class DragBehavior(object):
 
     def on_touch_down(self, touch):
         xx, yy, w, h = self.drag_rectangle
-        xx += self.x
-        yy += self.y
         x, y = touch.pos
         if (not self.collide_point(x, y)) or\
             not ((xx < x <= xx + w) and (yy < y <= yy + h)):

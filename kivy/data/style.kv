@@ -456,6 +456,9 @@
 # Popup widget
 <Popup>:
     _container: container
+    drag_rectangle: self.x, sep_bar.y, self.width, self.height + self.y - sep_bar.y
+    drag_timeout: 10000000
+    drag_distance: 0
     GridLayout:
         padding: 12
         cols: 1
@@ -472,6 +475,7 @@
             font_size: root.title_size
 
         Widget:
+            id: sep_bar
             size_hint_y: None
             height: 4
             canvas:
