@@ -18,12 +18,15 @@ Usage::
 
     clr_picker = ColorPicker()
     parent.add_widget(clr_picker)
-    # print currently selected color in rgba format
-    print(clr_picker.color)
-    # print currently selected color in hsv format
-    print(clr_picker.hsv)
-    # print currently selected color in hex format
-    print(clr_picker.hex_color)
+
+    # To monitor changes, we can bind to color property changes
+    def on_color(instance, value):
+        print "RGBA = ", str(value)  #  or instance.color
+        print "HSV = ", str(instance.hsv)
+        print "HEX = ", str(instance.hex_color)
+
+    clr_picker.bind(color=on_color)
+
 '''
 
 __all__ = ('ColorPicker', 'ColorWheel')
