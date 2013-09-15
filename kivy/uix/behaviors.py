@@ -19,11 +19,15 @@ do::
 
 '''
 
-__all__ = ('ButtonBehavior', 'ToggleButtonBehavior')
+__all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior')
 
 from kivy.clock import Clock
-from kivy.properties import OptionProperty, ObjectProperty
+from kivy.properties import OptionProperty, ObjectProperty,\
+    NumericProperty, ReferenceListProperty
 from weakref import ref
+from kivy.config import Config
+from kivy.metrics import sp
+from functools import partial
 
 
 class ButtonBehavior(object):
@@ -203,4 +207,181 @@ class ToggleButtonBehavior(ButtonBehavior):
         if groupname not in groups:
             return []
         return [x() for x in groups[groupname] if x()][:]
+
+
+class DragBehavior(object):
+    '''Drag behavior. When combined with a widget, dragging in the rectangle
+    defined by :data:`drag_rectangle` will drag the widget. An example is
+    dragging on a Popup title.
+
+    .. versionadded:: 1.8.0
+    '''
+
+    drag_distance = NumericProperty(sp(Config.getint('widgets',
+                                                     'scroll_distance')))
+    '''Distance to move before dragging the :class:`DragBehavior`, in pixels.
+    As soon as the distance has been traveled, the :class:`DragBehavior` will
+    start to drag, and no touch event will go to children.
+    It is advisable that you base this value on the dpi of your target device's
+    screen.
+
+    :data:`drag_distance` is a :class:`~kivy.properties.NumericProperty`,
+    default to 20 (pixels), according to the default value of scroll_distance
+    in user configuration.
+    '''
+
+    drag_timeout = NumericProperty(Config.getint('widgets',
+                                                 'scroll_timeout'))
+    '''Timeout allowed to trigger the :data:`drag_distance`, in milliseconds.
+    If the user has not moved :data:`drag_distance` within the timeout,
+    dragging will be disabled, and the touch event will go to the children.
+
+    :data:`drag_timeout` is a :class:`~kivy.properties.NumericProperty`,
+    default to 55 (milliseconds), according to the default value of
+    scroll_timeout in user configuration.
+    '''
+
+    drag_rect_x = NumericProperty(0)
+    '''X position of the axis aligned bounding rectangle where dragging
+    is allowed. Relative to the x position of the widget.
+
+    :data:`drag_rect_x` is a :class:`~kivy.properties.NumericProperty`,
+    defaults to 0.
+    '''
+
+    drag_rect_y = NumericProperty(0)
+    '''Y position of the axis aligned bounding rectangle where dragging
+    is allowed. Relative to the y position of the widget.
+
+    :data:`drag_rect_Y` is a :class:`~kivy.properties.NumericProperty`,
+    defaults to 0.
+    '''
+
+    drag_rect_width = NumericProperty(100)
+    '''Width of the axis aligned bounding rectangle where dragging is allowed.
+
+    :data:`drag_rect_width` is a :class:`~kivy.properties.NumericProperty`,
+    defaults to 100.
+    '''
+
+    drag_rect_height = NumericProperty(100)
+    '''Height of the axis aligned bounding rectangle where dragging is allowed.
+
+    :data:`drag_rect_height` is a :class:`~kivy.properties.NumericProperty`,
+    defaults to 100.
+    '''
+
+    drag_rectangle = ReferenceListProperty(drag_rect_x, drag_rect_y,
+                                           drag_rect_width, drag_rect_height)
+    '''Position and size of the axis aligned bounding rectangle where dragging
+    is allowed.
+
+    :data:`drag_rectangle` is a :class:`~kivy.properties.ReferenceListProperty`
+    of (:data:`drag_rect_x`, :data:`drag_rect_y`, :data:`drag_rect_width`,
+    :data:`drag_rect_height`) properties.
+    '''
+
+    def __init__(self, **kwargs):
+        self._drag_touch = None
+        super(DragBehavior, self).__init__(**kwargs)
+
+    def _get_uid(self, prefix='sv'):
+        return '{0}.{1}'.format(prefix, self.uid)
+
+    def on_touch_down(self, touch):
+        xx, yy, w, h = self.drag_rectangle
+        xx += self.x
+        yy += self.y
+        x, y = touch.pos
+        if (not self.collide_point(x, y)) or\
+            not ((xx < x <= xx + w) and (yy < y <= yy + h)):
+            touch.ud[self._get_uid('svavoid')] = True
+            return
+        if self._drag_touch or ('button' in touch.profile and
+                                touch.button.startswith('scroll')):
+            return super(DragBehavior, self).on_touch_down(touch)
+
+        # no mouse scrolling, so the user is going to drag with this touch.
+        self._drag_touch = touch
+        uid = self._get_uid()
+        touch.grab(self)
+        touch.ud[uid] = {
+            'mode': 'unknown',
+            'dx': 0,
+            'dy': 0}
+        Clock.schedule_once(self._change_touch_mode,
+                            self.drag_timeout / 1000.)
+        return True
+
+    def on_touch_move(self, touch):
+        if self._get_uid('svavoid') in touch.ud:
+            return
+        if self._drag_touch is not touch:
+            super(DragBehavior, self).on_touch_move(touch)
+            return self._get_uid() in touch.ud
+        if touch.grab_current is not self:
+            return True
+
+        uid = self._get_uid()
+        ud = touch.ud[uid]
+        mode = ud['mode']
+        if mode == 'unknown':
+            ud['dx'] += abs(touch.dx)
+            ud['dy'] += abs(touch.dy)
+            if ud['dx'] > self.drag_distance:
+                mode = 'drag'
+            if ud['dy'] > self.drag_distance:
+                mode = 'drag'
+            ud['mode'] = mode
+        if mode == 'drag':
+            self.x += touch.dx
+            self.y += touch.dy
+        return True
+
+    def on_touch_up(self, touch):
+        if self._get_uid('svavoid') in touch.ud:
+            return
+
+        if self in [x() for x in touch.grab_list]:
+            touch.ungrab(self)
+            self._drag_touch = None
+            ud = touch.ud[self._get_uid()]
+            if ud['mode'] == 'unknown':
+                super(DragBehavior, self).on_touch_down(touch)
+                Clock.schedule_once(partial(self._do_touch_up, touch), .1)
+        else:
+            if self._drag_touch is not touch:
+                super(DragBehavior, self).on_touch_up(touch)
+        return self._get_uid() in touch.ud
+
+    def _do_touch_up(self, touch, *largs):
+        super(DragBehavior, self).on_touch_up(touch)
+        # don't forget about grab event!
+        for x in touch.grab_list[:]:
+            touch.grab_list.remove(x)
+            x = x()
+            if not x:
+                continue
+            touch.grab_current = x
+            super(DragBehavior, self).on_touch_up(touch)
+        touch.grab_current = None
+
+    def _change_touch_mode(self, *largs):
+        if not self._drag_touch:
+            return
+        uid = self._get_uid()
+        touch = self._drag_touch
+        ud = touch.ud[uid]
+        if ud['mode'] != 'unknown':
+            return
+        touch.ungrab(self)
+        self._drag_touch = None
+        # correctly calculate the position of the touch inside the
+        # DragBehavior
+        touch.push()
+        touch.apply_transform_2d(self.to_widget)
+        touch.apply_transform_2d(self.to_parent)
+        super(DragBehavior, self).on_touch_down(touch)
+        touch.pop()
+        return
 
