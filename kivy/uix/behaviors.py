@@ -291,12 +291,13 @@ class DragBehavior(object):
     def on_touch_down(self, touch):
         xx, yy, w, h = self.drag_rectangle
         x, y = touch.pos
-        if (not self.collide_point(x, y)) or\
-            not ((xx < x <= xx + w) and (yy < y <= yy + h)):
+        if not self.collide_point(x, y):
             touch.ud[self._get_uid('svavoid')] = True
             return
         if self._drag_touch or ('button' in touch.profile and
-                                touch.button.startswith('scroll')):
+                                touch.button.startswith('scroll')) or\
+                not ((xx < x <= xx + w) and (yy < y <= yy + h)):
+            touch.ud[self._get_uid('svavoid')] = True
             return super(DragBehavior, self).on_touch_down(touch)
 
         # no mouse scrolling, so the user is going to drag with this touch.
