@@ -177,6 +177,29 @@ altogether, you can do this::
         def open_settings(self, *largs):
             pass
 
+Profiling with on_start and on_stop
+-----------------------------------
+
+It is often useful to profile python code in order to discover locations to
+optimise. The standard library profilers
+(http://docs.python.org/2/library/profile.html) provide multiple options for
+profiling code. For profiling the entire program, the natural
+approaches of using profile as a module or profile's run method do not work
+with Kivy. It is however possible to use :meth:`App.on_start` and
+:meth:`App.on_stop` methods::
+
+    import cProfile
+
+    class MyApp(App):
+        def on_start(self):
+            self.profile = cProfile.Profile()
+            self.profile.enable()
+
+        def on_stop(self):
+            self.profile.disable()
+            self.profile.dump_stats('myapp.profile')
+
+This will create a file called `myapp.profile` when you exit your app.
 
 Pause mode
 ----------

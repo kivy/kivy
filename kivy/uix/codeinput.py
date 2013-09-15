@@ -7,13 +7,13 @@ Code Input
 .. image:: images/codeinput.jpg
 
 
-The :class:`CodeInput` provides a box of editable highlited text, like the ones
+The :class:`CodeInput` provides a box of editable highlited text like the one
 shown in the image.
 
-It supports all the features supported by the :class:`~kivy.uix.textinput` and
-Code highliting for `languages supported by pygments
-<http://pygments.org/docs/lexers/>`_ along with `KivyLexer` for `KV Language`
-highliting.
+It supports all the features provided by the :class:`~kivy.uix.textinput` as
+well as code highliting for `languages supported by pygments
+<http://pygments.org/docs/lexers/>`_ along with `KivyLexer` for
+:mod:`kivy.lang` highliting.
 
 Usage example
 -------------
@@ -55,11 +55,11 @@ class CodeInput(TextInput):
     '''
 
     lexer = ObjectProperty(None)
-    '''This holds the selected Lexer used by pygments to highlight the code
+    '''This holds the selected Lexer used by pygments to highlight the code.
 
 
-    :data:`lexer` is a :class:`~kivy.properties.ObjectProperty` defaults to
-    `PythonLexer`
+    :data:`lexer` is an :class:`~kivy.properties.ObjectProperty` and defaults to
+    `PythonLexer`.
     '''
 
     def __init__(self, **kwargs):
