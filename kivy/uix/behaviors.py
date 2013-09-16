@@ -307,7 +307,7 @@ class DragBehavior(object):
         x, y = touch.pos
         if not self.collide_point(x, y):
             touch.ud[self._get_uid('svavoid')] = True
-            return
+            return super(DragBehavior, self).on_touch_down(touch)
         if self._drag_touch or ('button' in touch.profile and
                                 touch.button.startswith('scroll')) or\
                 not ((xx < x <= xx + w) and (yy < y <= yy + h)):
@@ -326,11 +326,10 @@ class DragBehavior(object):
         return True
 
     def on_touch_move(self, touch):
-        if self._get_uid('svavoid') in touch.ud:
-            return
-        if self._drag_touch is not touch:
-            super(DragBehavior, self).on_touch_move(touch)
-            return self._get_uid() in touch.ud
+        if self._get_uid('svavoid') in touch.ud or\
+            self._drag_touch is not touch:
+            return super(DragBehavior, self).on_touch_move(touch) or\
+                self._get_uid() in touch.ud
         if touch.grab_current is not self:
             return True
 
@@ -352,7 +351,7 @@ class DragBehavior(object):
 
     def on_touch_up(self, touch):
         if self._get_uid('svavoid') in touch.ud:
-            return
+            return super(DragBehavior, self).on_touch_up(touch)
 
         if self in [x() for x in touch.grab_list]:
             touch.ungrab(self)
