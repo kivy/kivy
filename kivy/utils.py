@@ -252,10 +252,13 @@ class Platform(object):
         return other == self._get_platform()
 
     def __repr__(self):
-        return 'platform name: \'{platform}\' \nfrom {instance}'.format(
+        return 'platform name: \'{platform}\' from: \n{instance}'.format(
             platform=self._get_platform(), 
             instance=super(Platform, self).__repr__()
         )
+
+    def __hash__(self):
+        return self._get_platform().__hash__()
 
     def _get_platform(self):
         if self._platform is not None:
@@ -288,7 +291,7 @@ platform = Platform()
 '''
 .. versionadded:: 1.3.0
 
-Deprecated since 1.8.0:  Use platform as variable instaed of calling platform()
+Deprecated since 1.8.0:  Use platform as variable instaed of a function.\n
 Calling platform() will return one of: *win*, *linux*, *android*, *macosx*, *ios*, or 
 *unknown*.
 
@@ -301,6 +304,8 @@ Calling platform() will return one of: *win*, *linux*, *android*, *macosx*, *ios
         do_linux_things()
     if platform() == 'linux': # triggers deprecation warning
         do_more_linux_things()
+    foo = {'linux' : do_linux_things}
+    foo[platform]() # calls do_linux_things
     p = platform # assigns to a module object
     if p is 'android':
         do_android_things()
