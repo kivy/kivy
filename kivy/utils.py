@@ -239,6 +239,7 @@ def format_bytes_to_human(size, precision=2):
             return fmt % (size, unit)
         size /= 1024.0
 
+
 class Platform(object):
     # refactored to class to allow module function to be replaced
     # with module variable
@@ -247,13 +248,13 @@ class Platform(object):
     @deprecated
     def __call__(self):
         return self._get_platform()
-        
+
     def __eq__(self, other):
         return other == self._get_platform()
 
     def __repr__(self):
         return 'platform name: \'{platform}\' from: \n{instance}'.format(
-            platform=self._get_platform(), 
+            platform=self._get_platform(),
             instance=super(Platform, self).__repr__()
         )
 
@@ -266,15 +267,15 @@ class Platform(object):
         global _platform_ios, _platform_android
 
         if _platform_android is None:
-            # ANDROID_ARGUMENT and ANDROID_PRIVATE are 2 environment variables from
-            # python-for-android project
+            # ANDROID_ARGUMENT and ANDROID_PRIVATE are 2 environment variables
+            # from python-for-android project
             _platform_android = 'ANDROID_ARGUMENT' in environ
 
         if _platform_ios is None:
             _platform_ios = (environ.get('KIVY_BUILD', '') == 'ios')
 
-        # On android, _sys_platform return 'linux2', so prefer to check the import
-        # of Android module than trying to rely on _sys_platform.
+        # On android, _sys_platform return 'linux2', so prefer to check the
+        # import of Android module than trying to rely on _sys_platform.
         if _platform_android is True:
             return 'android'
         elif _platform_ios is True:
@@ -287,13 +288,14 @@ class Platform(object):
             return 'linux'
         return 'unknown'
 
+
 platform = Platform()
 '''
 .. versionadded:: 1.3.0
 
 Deprecated since 1.8.0:  Use platform as variable instaed of a function.\n
-Calling platform() will return one of: *win*, *linux*, *android*, *macosx*, *ios*, or 
-*unknown*.
+Calling platform() will return one of: *win*, *linux*, *android*, *macosx*,
+*ios*, or *unknown*.
 
 .. versionchanged:: 1.8.0
 
@@ -312,6 +314,7 @@ Calling platform() will return one of: *win*, *linux*, *android*, *macosx*, *ios
     p += 'some string' # error!
 
 '''
+
 
 def escape_markup(text):
     '''
