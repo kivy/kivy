@@ -244,7 +244,7 @@ class Platform():
     # refactor to potentially deprecate method into module attribute
     _platform = None
 
-    #@deprecated
+    @deprecated
     def __call__(self):
         if self._platform is None:
             self._platform = self._get_platform()
