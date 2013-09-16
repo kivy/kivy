@@ -482,6 +482,7 @@ setup(
         'kivy.lib.vidcore_lite',
         'kivy.modules',
         'kivy.network',
+        'kivy.storage',
         'kivy.tools',
         'kivy.tools.packaging',
         'kivy.tools.packaging.pyinstaller_hooks',
