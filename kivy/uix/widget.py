@@ -74,6 +74,21 @@ widget moves, you can bind your own callback function like this::
 
 Read more about the :doc:`/api-kivy.properties`.
 
+
+
+remove_widgets method
+---------------------
+
+This method was added so multiple child widgets could be removed at once.
+Usage:
+
+    parent.remove_widgets(parent.children[index_number:])
+                           or
+    parent.remove_widgets(parent.children[:index_number])
+                           or
+    parent.remove_widgets([widget1,widget2,widget3])
+                           or
+    parent.remove_widgets(custom_widget_list_variable)
 '''
 
 __all__ = ('Widget', 'WidgetException')
@@ -377,6 +392,14 @@ class Widget(WidgetBase):
         self.canvas.remove(widget.canvas)
         widget.parent = None
 
+    '''remove_widget method added version 1.7.1'''
+    def remove_widgets(self,child_list):
+        '''Remove all widgets contained in child_list.
+        '''
+        remove_widget = self.remove_widget
+        for child in child_list:
+            remove_widget(child)
+    
     def clear_widgets(self):
         '''Remove all widgets added to this widget.
         '''
