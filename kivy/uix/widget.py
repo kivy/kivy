@@ -377,11 +377,20 @@ class Widget(WidgetBase):
         self.canvas.remove(widget.canvas)
         widget.parent = None
 
-    def clear_widgets(self):
+    def clear_widgets(self, children=None):
         '''Remove all widgets added to this widget.
+
+        .. versionchanged:: 1.8.0
+
+            `children` argument can be used to select the children we want to
+            remove. It should be a children list (or filtered list) of the
+            current widget.
         '''
+
+        if not children:
+            children = self.children
         remove_widget = self.remove_widget
-        for child in self.children[:]:
+        for child in children[:]:
             remove_widget(child)
 
     def get_root_window(self):
