@@ -158,9 +158,8 @@ class Video(Image):
             self.texture = None
         else:
             filename = self.source
-            # FIXME make it extensible.
-            if filename.split(':')[0] not in (
-                    'http', 'https', 'file', 'udp', 'rtp', 'rtsp'):
+            # Check if filename is not url
+            if not '://' in filename:
                 filename = resource_find(filename)
             self._video = CoreVideo(filename=filename, **self.options)
             self._video.volume = self.volume
