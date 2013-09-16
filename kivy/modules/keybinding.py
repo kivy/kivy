@@ -50,7 +50,7 @@ def _on_keyboard_handler(instance, key, scancode, codepoint, modifiers):
     elif key == 292 and modifiers == []:  # F11
         instance.rotation += 90
     elif key == 292 and modifiers == ['shift']:  # Shift + F11
-        if platform() in ('win', 'linux', 'macosx'):
+        if platform in ('win', 'linux', 'macosx'):
             instance.rotation = 0
             w, h = instance.size
             w, h = h, w

@@ -182,7 +182,7 @@ class Sound(EventDispatcher):
 # seem to have lot of crackle or something...
 # XXX test in macosx
 audio_libs = []
-if platform() != 'win':
+if platform != 'win':
     audio_libs += [('gstreamer', 'audio_gstreamer')]
 audio_libs += [('sdl', 'audio_sdl')]
 audio_libs += [('pygame', 'audio_pygame')]

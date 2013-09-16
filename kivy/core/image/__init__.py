@@ -783,7 +783,7 @@ def load(filename):
 
 # load image loaders
 image_libs = []
-if platform() in ('macosx', 'ios'):
+if platform in ('macosx', 'ios'):
     image_libs += [('imageio', 'img_imageio')]
 image_libs += [
     ('tex', 'img_tex'),

@@ -21,7 +21,7 @@ from kivy.utils import platform
 
 try:
     android = None
-    if platform() == 'android':
+    if platform == 'android':
         import android
 except ImportError:
     pass
@@ -49,7 +49,7 @@ class WindowPygame(WindowBase):
         # right now, activate resizable window only on linux.
         # on window / macosx, the opengl context is lost, and we need to
         # reconstruct everything. Check #168 for a state of the work.
-        if platform() in ('linux', 'macosx', 'win') and \
+        if platform in ('linux', 'macosx', 'win') and \
             Config.getint('graphics', 'resizable'):
             self.flags |= pygame.RESIZABLE
 
@@ -105,7 +105,7 @@ class WindowPygame(WindowBase):
             #filename_icon = Config.get('kivy', 'window_icon')
             filename_icon = self.icon or Config.get('kivy', 'window_icon')
             if filename_icon == '':
-                logo_size = 512 if platform() == 'macosx' else 32
+                logo_size = 512 if platform == 'macosx' else 32
                 filename_icon = join(kivy_home_dir, 'icon', 'kivy-icon-%d.png' %
                         logo_size)
             self.set_icon(filename_icon)
@@ -139,7 +139,7 @@ class WindowPygame(WindowBase):
         Logger.debug('Window: Display driver ' + pygame.display.get_driver())
         Logger.debug('Window: Actual window size: %dx%d',
                 info.current_w, info.current_h)
-        if platform() != 'android':
+        if platform != 'android':
             # unsupported platform, such as android that doesn't support
             # gl_get_attribute.
             Logger.debug('Window: Actual color bits r%d g%d b%d a%d',
@@ -212,7 +212,7 @@ class WindowPygame(WindowBase):
         codepoint = codepoint or kwargs.get('unicode')
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = platform() == 'darwin'
+        is_osx = platform == 'darwin'
         if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
             stopTouchApp()
             self.close()  # not sure what to do here

@@ -239,27 +239,27 @@ def format_bytes_to_human(size, precision=2):
             return fmt % (size, unit)
         size /= 1024.0
 
-
 class Platform():
-    # refactor to potentially deprecate method into module attribute
+    # refactored to class to allow module function to be replaced
+    # with module variable
     _platform = None
 
     @deprecated
     def __call__(self):
-        if self._platform is None:
-            self._platform = self._get_platform()
-        return self._platform
+        return self._get_platform()
         
     def __eq__(self, other):
-        return other == self()
+        return other == self._get_platform()
 
     def __str__(self):
-        return self()
+        return self._get_platform()
         
     def __repr__(self):
-        return self().__repr__()
+        return self._get_platform().__repr__()
 
     def _get_platform(self):
+        if self._platform is not None:
+            return self._platform
         global _platform_ios, _platform_android
 
         if _platform_android is None:
@@ -298,6 +298,8 @@ Calling platform() will return one of: *win*, *linux*, *android*, *macosx*, *ios
     from kivy import platform
     if platform == 'linux':
         do_linux_things()
+    if platform() == 'linux':
+        do_more_linux_things()
     p = platform # assigns to a module object
     if p is 'android':
         do_android_things()

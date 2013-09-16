@@ -8,7 +8,7 @@ from kivy.clock import Clock
 from kivy.utils import platform
 from kivy.core.audio import Sound, SoundLoader
 
-_platform = platform()
+_platform = platform
 try:
     if _platform == 'android':
         try:

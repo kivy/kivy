@@ -201,7 +201,7 @@ class WindowX11(WindowBase):
         codepoint = codepoint or kwargs.get('unicode')
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = platform() == 'darwin'
+        is_osx = platform == 'darwin'
         if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
             stopTouchApp()
             self.close()  # not sure what to do here
