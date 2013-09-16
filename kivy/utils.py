@@ -252,6 +252,12 @@ class Platform(object):
     def __eq__(self, other):
         return other == self._get_platform()
 
+    def __ne__(self, other):
+        return other != self._get_platform()
+
+    def __str__(self):
+        return self._get_platform()
+
     def __repr__(self):
         return 'platform name: \'{platform}\' from: \n{instance}'.format(
             platform=self._get_platform(),
