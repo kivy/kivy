@@ -9,6 +9,7 @@ Builder.load_string('''
 #:import SwapTransition kivy.uix.screenmanager.SwapTransition
 #:import WipeTransition kivy.uix.screenmanager.WipeTransition
 #:import FadeTransition kivy.uix.screenmanager.FadeTransition
+#:import CardflipTransition kivy.uix.screenmanager.CardflipTransition
 <CustomScreen>:
     hue: random()
     canvas:
@@ -67,6 +68,10 @@ Builder.load_string('''
         Button:
             text: 'Use FadeTransition'
             on_release: root.manager.transition = FadeTransition()
+
+        Button:
+            text: 'Use CardflipTransition'
+            on_release: root.manager.transition = CardflipTransition()
 ''')
 
 class CustomScreen(Screen):
