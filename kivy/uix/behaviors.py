@@ -211,8 +211,22 @@ class ToggleButtonBehavior(ButtonBehavior):
 
 class DragBehavior(object):
     '''Drag behavior. When combined with a widget, dragging in the rectangle
-    defined by :data:`drag_rectangle` will drag the widget. An example is
-    dragging on a Popup title.
+    defined by :data:`drag_rectangle` will drag the widget.
+
+    For example, to make a popup which is draggable by its title do::
+
+        from kivy.uix.behaviors import DragBehavior
+        from kivy.uix.popup import Popup
+
+        class DragPopup(DragBehavior, Popup):
+            pass
+
+    And in .kv do::
+        <DragPopup>:
+            drag_rectangle: self.x, self.y+self._container.height, self.width,\
+            self.height - self._container.height
+            drag_timeout: 10000000
+            drag_distance: 0
 
     .. versionadded:: 1.8.0
     '''
