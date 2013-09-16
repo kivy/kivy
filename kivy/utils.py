@@ -240,36 +240,70 @@ def format_bytes_to_human(size, precision=2):
         size /= 1024.0
 
 
-def platform():
-    '''Return the version of the current platform.
-    This will return one of: win, linux, android, macosx, ios, unknown
+class Platform():
+    # refactor to potentially deprecate method into module attribute
+    _platform = None
 
-    .. versionadded:: 1.0.8
-    '''
-    global _platform_ios, _platform_android
+    #@deprecated
+    def __call__(self):
+        if self._platform is None:
+            self._platform = self._get_platform()
+        return self._platform
+        
+    def __eq__(self, other):
+        return other == self()
 
-    if _platform_android is None:
-        # ANDROID_ARGUMENT and ANDROID_PRIVATE are 2 environment variables from
-        # python-for-android project
-        _platform_android = 'ANDROID_ARGUMENT' in environ
+    def __str__(self):
+        return self()
+        
+    def __repr__(self):
+        return self().__repr__()
 
-    if _platform_ios is None:
-        _platform_ios = (environ.get('KIVY_BUILD', '') == 'ios')
+    def _get_platform(self):
+        global _platform_ios, _platform_android
 
-    # On android, _sys_platform return 'linux2', so prefer to check the import
-    # of Android module than trying to rely on _sys_platform.
-    if _platform_android is True:
-        return 'android'
-    elif _platform_ios is True:
-        return 'ios'
-    elif _sys_platform in ('win32', 'cygwin'):
-        return 'win'
-    elif _sys_platform == 'darwin':
-        return 'macosx'
-    elif _sys_platform[:5] == 'linux':
-        return 'linux'
-    return 'unknown'
+        if _platform_android is None:
+            # ANDROID_ARGUMENT and ANDROID_PRIVATE are 2 environment variables from
+            # python-for-android project
+            _platform_android = 'ANDROID_ARGUMENT' in environ
 
+        if _platform_ios is None:
+            _platform_ios = (environ.get('KIVY_BUILD', '') == 'ios')
+
+        # On android, _sys_platform return 'linux2', so prefer to check the import
+        # of Android module than trying to rely on _sys_platform.
+        if _platform_android is True:
+            return 'android'
+        elif _platform_ios is True:
+            return 'ios'
+        elif _sys_platform in ('win32', 'cygwin'):
+            return 'win'
+        elif _sys_platform == 'darwin':
+            return 'macosx'
+        elif _sys_platform[:5] == 'linux':
+            return 'linux'
+        return 'unknown'
+
+platform = Platform()
+'''
+.. versionadded:: 1.3.0
+
+Calling platform() will return one of: *win*, *linux*, *android*, *macosx*, *ios*, or 
+*unknown*.
+
+.. versionchanged:: 1.8.0
+
+`platform` also behaves like a regular variable in comparisons like so::
+
+    from kivy import platform
+    if platform == 'linux':
+        do_linux_things()
+    p = platform # assigns to a module object
+    if p is 'android':
+        do_android_things()
+    p += 'some string' # error!
+
+'''
 
 def escape_markup(text):
     '''
