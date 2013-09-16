@@ -288,6 +288,7 @@ platform = Platform()
 '''
 .. versionadded:: 1.3.0
 
+Deprecated since 1.8.0:  Use platform as variable instaed of calling platform()
 Calling platform() will return one of: *win*, *linux*, *android*, *macosx*, *ios*, or 
 *unknown*.
 
@@ -298,7 +299,7 @@ Calling platform() will return one of: *win*, *linux*, *android*, *macosx*, *ios
     from kivy import platform
     if platform == 'linux':
         do_linux_things()
-    if platform() == 'linux':
+    if platform() == 'linux': # triggers deprecation warning
         do_more_linux_things()
     p = platform # assigns to a module object
     if p is 'android':
