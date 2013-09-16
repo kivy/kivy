@@ -239,7 +239,7 @@ def format_bytes_to_human(size, precision=2):
             return fmt % (size, unit)
         size /= 1024.0
 
-class Platform():
+class Platform(object):
     # refactored to class to allow module function to be replaced
     # with module variable
     _platform = None
@@ -251,11 +251,11 @@ class Platform():
     def __eq__(self, other):
         return other == self._get_platform()
 
-    def __str__(self):
-        return self._get_platform()
-        
     def __repr__(self):
-        return self._get_platform().__repr__()
+        return 'platform name: \'{platform}\' \nfrom {instance}'.format(
+            platform=self._get_platform(), 
+            instance=super(Platform, self).__repr__()
+        )
 
     def _get_platform(self):
         if self._platform is not None:
