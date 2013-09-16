@@ -187,7 +187,6 @@ class ActionToggleButton(ActionItem, ToggleButton):
     '''
 
 
-
 class ActionCheck(ActionItem, CheckBox):
     '''ActionCheck class, see module documentation for more information.
     '''
@@ -284,8 +283,9 @@ class ActionGroup(ActionItem, Spinner):
         self.is_open = not self.is_open
         ddn = self._dropdown
         ddn.size_hint_x = None
-        ddn.width = max([self.width, 
-                        self.list_action_item[0].minimum_width])
+        children = self.list_action_item
+        ddn.width = max([self.width,
+                        children[0].minimum_width])
         for item in children:
             item.size_hint_y = None
             item.height = max([self.height, '48sp'])
