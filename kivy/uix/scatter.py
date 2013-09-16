@@ -426,8 +426,10 @@ class Scatter(Widget):
         if self.do_scale:
             scale = new_line.length() / old_line.length()
             new_scale = scale * self.scale
-            if new_scale < self.scale_min or new_scale > self.scale_max:
-                scale = 1.0
+            if new_scale < self.scale_min:
+                scale = self.scale_min / self.scale
+            elif new_scale > self.scale_max:
+                scale = self.scale_max / self.scale
             self.apply_transform(Matrix().scale(scale, scale, scale),
                                  anchor=anchor)
             changed = True
