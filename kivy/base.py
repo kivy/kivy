@@ -251,9 +251,18 @@ class EventLoopBase(EventDispatcher):
                 # wid.dispatch('on_touch_down', touch)
                 pass
             elif etype == 'update':
-                wid.dispatch('on_touch_move', me)
+                if wid._context.sandbox:
+                    with wid._context.sandbox:
+                        wid.dispatch('on_touch_move', me)
+                else:
+                    wid.dispatch('on_touch_move', me)
+
             elif etype == 'end':
-                wid.dispatch('on_touch_up', me)
+                if wid._context.sandbox:
+                    with wid._context.sandbox:
+                        wid.dispatch('on_touch_up', me)
+                else:
+                    wid.dispatch('on_touch_up', me)
 
             wid._context.pop()
 
@@ -273,6 +282,7 @@ class EventLoopBase(EventDispatcher):
         '''Called by idle() to read events from input providers, pass event to
         postproc, and dispatch final events.
         '''
+
         # first, aquire input events
         for provider in self.input_providers:
             provider.update(dispatch_fn=self._dispatch_input)

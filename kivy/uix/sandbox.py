@@ -5,7 +5,7 @@ Sandbox
 '''
 
 from kivy.context import Context
-from kivy.base import ExceptionManagerBase
+from kivy.base import ExceptionManagerBase, EventLoop
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
@@ -40,18 +40,23 @@ class SandboxContent(RelativeLayout):
 class Sandbox(FloatLayout):
 
     def __init__(self, **kwargs):
-        self._context = Context()
+        #Passed True to init because if False is passed then Builder and Clock
+        #are not sandboxed.
+        self._context = Context(init=True)
         self._context['ExceptionManager'] = SandboxExceptionManager(self)
+        self._context.sandbox = self
         self._context.push()
         self.on_context_created()
         self._container = None
         super(Sandbox, self).__init__(**kwargs)
         self._container = SandboxContent(size=self.size, pos=self.pos)
+        super(Sandbox, self).add_widget(self._container)
         self._context.pop()
-
-        # now force Clock scheduling
+        
+        #force SandboxClock's scheduling
         Clock.schedule_interval(self._clock_sandbox, 0)
-        Clock.schedule_interval(self._clock_sandbox_draw, -1)
+        Clock.schedule_once(self._clock_sandbox_draw, -1)
+        self.main_clock = object.__getattribute__(Clock, '_obj')
 
     def __enter__(self):
         #print 'ENTERING THE SANDBOX', self
@@ -79,8 +84,8 @@ class Sandbox(FloatLayout):
 
     on_touch_down = sandbox(Widget.on_touch_down)
     on_touch_move = sandbox(Widget.on_touch_move)
-    on_touch_up = sandbox(Widget.on_touch_move)
-
+    on_touch_up = sandbox(Widget.on_touch_up)
+        
     @sandbox
     def add_widget(self, *args, **kwargs):
         self._container.add_widget(*args, **kwargs)
@@ -113,16 +118,31 @@ class Sandbox(FloatLayout):
     def _clock_sandbox_draw(self, dt):
         Clock.tick_draw()
         Builder.sync()
+        self.main_clock.schedule_once(self._call_draw, 0)
 
+    def _call_draw(self, dt):
+        self.main_clock.schedule_once(self._clock_sandbox_draw, -1)
+
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+
+class TestButton(Button):
+
+    def on_touch_up(self, touch):
+        #raise Exception('fdfdfdfdfdfdfd')
+        return super(TestButton, self).on_touch_up(touch)
+
+    def on_touch_down(self, touch):
+        #raise Exception('')
+        return super(TestButton, self).on_touch_down(touch)
 
 if __name__ == '__main__':
-    from kivy.uix.button import Button
     from kivy.base import runTouchApp
     from kivy.lang import Builder
     s = Sandbox()
     with s:
         Builder.load_string('''
-<Button>:
+<TestButton>:
     canvas:
         Color:
             rgb: (.3, .2, 0) if self.state == 'normal' else (.7, .7, 0)
@@ -137,13 +157,16 @@ if __name__ == '__main__':
             texture: self.texture
 
     # invalid... for testing.
-    on_release: args()
+    #on_touch_up: root.d()
+    #on_touch_down: root.f()
+    on_release: root.args()
+    #on_press: root.args()
 ''')
-
-        s.add_widget(Button(text='Hello World'))
+        b = TestButton(text='Hello World')
+        s.add_widget(b)
 
         # this exception is within the "with" block, but will be ignored by
         # default because the sandbox on_exception will return True
         raise Exception('hello')
-
+    #print object.__getattribute__(Clock, '_obj')
     runTouchApp(s)
