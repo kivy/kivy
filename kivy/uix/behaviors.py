@@ -353,7 +353,7 @@ class DragBehavior(object):
         if self._get_uid('svavoid') in touch.ud:
             return super(DragBehavior, self).on_touch_up(touch)
 
-        if self in [x() for x in touch.grab_list]:
+        if self._drag_touch and self in [x() for x in touch.grab_list]:
             touch.ungrab(self)
             self._drag_touch = None
             ud = touch.ud[self._get_uid()]
