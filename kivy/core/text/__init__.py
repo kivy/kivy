@@ -422,7 +422,6 @@ class LabelBase(object):
 
         # if no text are rendered, return nothing.
         width, height = self._size
-        print width, height
         if width <= 1 or height <= 1:
             self.texture = self.texture_1px
             return
