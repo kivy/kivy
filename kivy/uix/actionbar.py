@@ -37,12 +37,12 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.checkbox import CheckBox
+from kivy.config import Config
 from kivy.properties import ObjectProperty, NumericProperty, \
     BooleanProperty, StringProperty, ListProperty, OptionProperty
 from kivy.uix.spinner import Spinner
 from kivy.lang import Builder
 from functools import partial
-from kivy.config import Config
 
 
 window_icon = ''
@@ -283,7 +283,9 @@ class ActionGroup(ActionItem, Spinner):
         self.is_open = not self.is_open
         ddn = self._dropdown
         ddn.size_hint_x = None
-        children = self.list_action_item
+        if not ddn.container:
+            return
+        children = ddn.container.children
         ddn.width = max([self.width,
                         children[0].minimum_width])
         for item in children:
