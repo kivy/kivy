@@ -74,7 +74,9 @@ def apply_device(device, scale, orientation):
     environ['KIVY_METRICS_DENSITY'] = str(density * scale)
     environ['KIVY_DPI'] = str(dpi * scale)
     Config.set('graphics', 'width', str(int(width * scale)))
-    Config.set('graphics', 'height', str(int(height * scale)))
+    # simulate with the android bar
+    # FIXME should be configurable
+    Config.set('graphics', 'height', str(int(height * scale - 25 * density)))
     Config.set('graphics', 'fullscreen', '0')
     Config.set('graphics', 'show_mousecursor', '1')
 

@@ -710,11 +710,18 @@ def glDrawArrays(GLenum mode, GLint first, GLsizei count):
     '''
     c_opengl.glDrawArrays(mode, first, count)
 
-def glDrawElements(GLenum mode, GLsizei count, GLenum type, bytes indices):
+def glDrawElements(GLenum mode, GLsizei count, GLenum type, indices):
     '''See: `glDrawElements() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDrawElements.xml>`_
     '''
-    c_opengl.glDrawElements(mode, count, type, <GLvoid *>(<char *>indices))
+    cdef void *ptr = NULL
+    if isinstance(indices, bytes):
+        ptr = <void *>(<char *>(<bytes>indices))
+    elif isinstance(indices, (long, int)):
+        ptr = <void *>(<long>indices)
+    else:
+        raise TypeError("Argument 'indices' has incorrect type (expected bytes or int).")
+    c_opengl.glDrawElements(mode, count, type, ptr)
 
 def glEnable(GLenum cap):
     '''See: `glEnable() on Kronos website
@@ -1548,12 +1555,19 @@ def glVertexAttrib4fv(GLuint indx, list values):
     #c_opengl.glVertexAttrib4fv(indx, values)
     raise NotImplemented()
 
-def glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, bytes data):
+def glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, data):
     '''See: `glVertexAttribPointer() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glVertexAttribPointer.xml>`_
 
     '''
-    c_opengl.glVertexAttribPointer(index, size, type, normalized, stride, <GLvoid *>(<char *>data))
+    cdef void *ptr = NULL
+    if isinstance(data, bytes):
+        ptr = <void *>(<char *>(<bytes>data))
+    elif isinstance(data, (long, int)):
+        ptr = <void *>(<long>data)
+    else:
+        raise TypeError("Argument 'data' has incorrect type (expected bytes or int).")
+    c_opengl.glVertexAttribPointer(index, size, type, normalized, stride, ptr)
 
 def glViewport(GLint x, GLint y, GLsizei width, GLsizei height):
     '''See: `glViewport() on Kronos website

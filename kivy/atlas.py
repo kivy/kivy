@@ -367,15 +367,24 @@ if __name__ == '__main__':
     import sys
     argv = sys.argv[1:]
     if len(argv) < 3:
-        print('Usage: python -m kivy.atlas [use_path] <outname>' +
-            ' <size> <img1.png> [<img2.png>, ...]')
+        print('Usage: python -m kivy.atlas [--use-path] '
+              '[--padding=2] <outname> '
+              '<size> <img1.png> [<img2.png>, ...]')
         sys.exit(1)
 
-    if argv[0] == 'use_path':
+    options = {'use_path': False}
+    while True:
+        option = argv[0]
+        if option == '--use-path':
+            options['use_path'] = True
+        elif option.startswith('--padding='):
+            options['padding'] = int(option.split('=', 1)[-1])
+        elif option[:2] == '--':
+            print('Unknow option {}'.format(option))
+            sys.exit(1)
+        else:
+            break
         argv = argv[1:]
-        use_path = True
-    else:
-        use_path = False
 
     outname = argv[0]
     try:
@@ -385,7 +394,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     filenames = argv[2:]
-    ret = Atlas.create(outname, filenames, size, use_path=use_path)
+    ret = Atlas.create(outname, filenames, size, **options)
     if not ret:
         print('Error while creating atlas!')
         sys.exit(1)

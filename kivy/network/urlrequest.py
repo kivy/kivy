@@ -248,6 +248,8 @@ class UrlRequest(Thread):
 
         # reconstruct path to pass on the request
         path = parse.path
+        if parse.params:
+            path += ';' + parse.params
         if parse.query:
             path += '?' + parse.query
         if parse.fragment:
