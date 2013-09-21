@@ -10,7 +10,7 @@ FileChooser
     is present.
 
 .. versionchanged:: 1.2.0
-    In chooser template, the `controller` is not a direct reference anymore,
+    In the chooser template, the `controller` is not a direct reference anymore
     but a weak-reference.
     You must update all the notation `root.controller.xxx` to
     `root.controller().xxx`.
@@ -80,9 +80,9 @@ def is_hidden_win(fn):
     try:
         return GetFileAttributesEx(fn)[0] & FILE_ATTRIBUTE_HIDDEN
     except error:
-        # This error can occured when a file is already accessed by someone
-        # else. So don't return to True, because we have lot of chances to not
-        # being able to do anything with it.
+        # This error can occur when a file is already being accessed by someone
+        # else. Return True because it's likely we will not be
+        # able to do anything with it.
         Logger.exception('unable to access to <%s>' % fn)
         return True
 
@@ -98,7 +98,7 @@ class ForceUnicodeError(Exception):
 
 class FileChooserProgressBase(FloatLayout):
     '''Base for implementing a progress view. This view is used when too many
-    entries need to be created, and are delayed over multiple frames.
+    entries need to be created and are delayed over multiple frames.
 
     .. versionadded:: 1.2.0
     '''
@@ -142,8 +142,8 @@ class FileChooserProgress(FileChooserProgressBase):
 
 
 class FileChooserController(FloatLayout):
-    '''Base for implementing a FileChooser. Don't use that class directly,
-    preferring to use an implementation like :class:`FileChooserListView` or
+    '''Base for implementing a FileChooser. Don't use this class directly, but
+    prefer using an implementation such as the :class:`FileChooserListView` or
     :class:`FileChooserIconView`.
 
     :Events:
