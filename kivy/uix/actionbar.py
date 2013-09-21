@@ -272,9 +272,11 @@ class ActionGroup(ActionItem, Spinner):
 
     def _build_dropdown(self, *largs):
         if self._dropdown:
+            self._dropdown.unbind(on_dismiss=self._toggle_dropdown)
             self._dropdown.dismiss()
             self._dropdown = None
         self._dropdown = self.dropdown_cls()
+        self._dropdown.bind(on_dismiss=self._toggle_dropdown)
 
     def _update_dropdown(self, *largs):
         pass
