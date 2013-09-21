@@ -150,12 +150,12 @@ class FileChooserController(FloatLayout):
         `on_entry_added`: entry, parent
             Fired when a root-level entry is added to the file list.
         `on_entries_cleared`
-            Fired when the the entries list is cleared. Usally when the
+            Fired when the the entries list is cleared, usually when the
             root is refreshed.
         `on_subentry_to_entry`: entry, parent
             Fired when a sub-entry is added to an existing entry.
         `on_remove_subentry`: entry, parent
-            Fired when entries are removed from an entry. Usually when
+            Fired when entries are removed from an entry, usually when
             a node is closed.
         `on_submit`: selection, touch
             Fired when a file has been selected with a double-tap.
@@ -164,36 +164,46 @@ class FileChooserController(FloatLayout):
 
     path = StringProperty('/')
     '''
-    :class:`~kivy.properties.StringProperty`, defaults to current working
-    directory as unicode string. Specifies the path on the filesystem that
+    :class:`~kivy.properties.StringProperty`, defaults to the current working
+    directory as a unicode string. It specifies the path on the filesystem that
     this controller should refer to.
     '''
 
     filters = ListProperty([])
     ''':class:`~kivy.properties.ListProperty`, defaults to [], equal to '\*'.
-    The filters to be applied to the files in the directory.
+    Specifies the filters to be applied to the files in the directory.
 
     The filters are not reset when the path changes. You need to do that
     yourself if desired.
 
-    There are two kinds of filters :
+    There are two kinds of filters: patterns and callbacks.
 
-    filename patterns : e.g. ['\*.png'].
-    You can use the following patterns:
+    #. Patterns
 
-        ========== =================================
-        Pattern     Meaning
-        ========== =================================
-        \*         matches everything
-        ?          matches any single character
-        [seq]      matches any character in seq
-        [!seq]     matches any character not in seq
-        ========== =================================
+        e.g. ['\*.png'].
+        You can use the following patterns:
+
+            ========== =================================
+            Pattern     Meaning
+            ========== =================================
+            \*         matches everything
+            ?          matches any single character
+            [seq]      matches any character in seq
+            [!seq]     matches any character not in seq
+            ========== =================================
+    
+    #. Callbacks
+        
+        You can specify a function that will be called for each file. The
+        callback will be passed the folder and file name as the first and second
+        parameters respectively. It should return True to indicate a match and
+        False otherwise.
 
     .. versionchanged:: 1.4.0
-        if the filter is a callable (function or method). It will be called
-        with the path and the file name as arguments for each file in dir. The
-        callable should returns True to indicate a match and False overwise.
+        If the filter is a callable (function or method), it will be called
+        with the path and the file name as arguments for each file in the
+        directory.
+        The callable should returns True to indicate a match and False overwise.
     '''
 
     filter_dirs = BooleanProperty(False)
@@ -206,7 +216,7 @@ class FileChooserController(FloatLayout):
     '''
     :class:`~kivy.properties.ObjectProperty`.
     Provides a function to be called with a list of filenames as the only
-    argument.  Returns a list of filenames sorted for display in the view.
+    argument. Returns a list of filenames sorted for display in the view.
     '''
 
     files = ListProperty([])
@@ -225,29 +235,29 @@ class FileChooserController(FloatLayout):
     selection = ListProperty([])
     '''
     Read-only :class:`~kivy.properties.ListProperty`.
-    The list of files that are currently selected.
+    Contains the list of files that are currently selected.
     '''
 
     multiselect = BooleanProperty(False)
     '''
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
-    Determines whether user is able to select multiple files.
+    Determines whether the user is able to select multiple files or not.
     '''
 
     dirselect = BooleanProperty(False)
     '''
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
-    Determines whether directories are valid selections.
+    Determines whether directories are valid selections or not.
 
     .. versionadded:: 1.1.0
     '''
 
     rootpath = StringProperty(None, allownone=True)
     '''
-    Root path to use, instead of the system root path. If set, it will not show
-    a ".." directory to go upper the root path. For example, if you set
-    rootpath to /Users/foo, the user will be unable to go to /Users, or to any
-    other directory not starting with /Users/foo.
+    Root path to use instead of the system root path. If set, it will not show
+    a ".." directory to go up to the root path. For example, if you set
+    rootpath to /users/foo, the user will be unable to go to /users or to any
+    other directory not starting with /users/foo.
 
     .. versionadded:: 1.2.0
 
@@ -255,12 +265,12 @@ class FileChooserController(FloatLayout):
     '''
 
     progress_cls = ObjectProperty(FileChooserProgress)
-    '''Class to use for displaying a progress indicator for filechooser loading
+    '''Class to use for displaying a progress indicator for filechooser loading.
 
     .. versionadded:: 1.2.0
 
     :class:`~kivy.properties.ObjectProperty`, defaults to
-    :class:`FileChooserProgress`
+    :class:`FileChooserProgress`.
     '''
 
     file_encodings = ListProperty(['utf-8', 'latin1', 'cp1252'])
