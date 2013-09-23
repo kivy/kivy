@@ -785,8 +785,8 @@ class ScreenManager(FloatLayout):
             sm.switch_to(screen3, direction='right', duration=1.)
 
         If any animation is in progress, it will be stopped and replaced by
-        this one: you should avoid it, because the animation will just look weird.
-        Use either :meth:`switch` or :data:`current`, but not both.
+        this one: you should avoid it, because the animation will just look
+        weird. Use either :meth:`switch` or :data:`current`, but not both.
 
         `screen` name will be changed if there is any conflict with the current
         screen.
