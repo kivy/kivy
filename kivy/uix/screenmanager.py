@@ -65,8 +65,8 @@ Here is an example with a 'Menu Screen', and a 'Settings Screen'::
     from kivy.lang import Builder
     from kivy.uix.screenmanager import ScreenManager, Screen
 
-    # Create both screens. Please note the root.manager.current: this is how you
-    # can control the ScreenManager from kv. Each screen has by default a
+    # Create both screens. Please note the root.manager.current: this is how
+    # you can control the ScreenManager from kv. Each screen has by default a
     # property manager that gives you the instance of the ScreenManager used.
     Builder.load_string("""
     <MenuScreen>:
@@ -197,12 +197,12 @@ class Screen(RelativeLayout):
     '''
 
     transition_progress = NumericProperty(0.)
-    '''Value that represents the completion of the current transition, if any is
-    occuring.
+    '''Value that represents the completion of the current transition, if any
+    is occuring.
 
-    If a transition is in progress, whatever is the mode, the value will change from
-    0 to 1. If you want to know if it's an entering or leaving animation, check
-    the :data:`transition_state`
+    If a transition is in progress, whatever is the mode, the value will change
+    from 0 to 1. If you want to know if it's an entering or leaving animation,
+    check the :data:`transition_state`
 
     :data:`transition_progress` is a :class:`~kivy.properties.NumericProperty`,
     default to 0.
@@ -241,8 +241,8 @@ class Screen(RelativeLayout):
 
 class TransitionBase(EventDispatcher):
     '''Transition class is used to animate 2 screens within the
-    :class:`ScreenManager`. This class acts as a base for other implementations,
-    like :class:`SlideTransition`, :class:`SwapTransition`.
+    :class:`ScreenManager`. This class acts as a base for other
+    implementations, like :class:`SlideTransition`, :class:`SwapTransition`.
 
     :Events:
         `on_progress`: Transition object, progression float
@@ -299,8 +299,8 @@ class TransitionBase(EventDispatcher):
     __events__ = ('on_progress', 'on_complete')
 
     def start(self, manager):
-        '''(internal) Starts the transition. This is automatically called by the
-        :class:`ScreenManager`.
+        '''(internal) Starts the transition. This is automatically called by
+        the :class:`ScreenManager`.
         '''
         if self.is_active:
             raise ScreenManagerException('start() is called twice!')
@@ -495,8 +495,8 @@ class SlideTransition(TransitionBase):
 
 
 class SwapTransition(TransitionBase):
-    '''Swap transition, that looks like iOS transition, when a new window appears
-    on the screen.
+    '''Swap transition, that looks like iOS transition, when a new window
+    appears on the screen.
     '''
 
     def add_screen(self, screen):
@@ -599,8 +599,8 @@ class ScreenManager(FloatLayout):
     '''
 
     transition = ObjectProperty(SlideTransition(), baseclass=TransitionBase)
-    '''Transition object to use for animating the screen that will be hidden, and
-    the screen that will be shown. By default, an instance of
+    '''Transition object to use for animating the screen that will be hidden
+    and the screen that will be shown. By default, an instance of
     :class:`SlideTransition` will be given.
 
     For example, if you want to change to a :class:`WipeTransition`::
@@ -630,8 +630,8 @@ class ScreenManager(FloatLayout):
     '''
 
     current_screen = ObjectProperty(None)
-    '''Contains the currently displayed screen. You must not change this property
-    manually, use :data:`current` instead.
+    '''Contains the currently displayed screen. You must not change this
+    property manually, use :data:`current` instead.
 
     :data:`current_screen` is an :class:`~kivy.properties.ObjectProperty`,
     default to None, read-only.
@@ -784,9 +784,9 @@ class ScreenManager(FloatLayout):
             # later
             sm.switch_to(screen3, direction='right', duration=1.)
 
-        If any animation is in progress, it will be stopped and replaced by this
-        one: you should avoid it, because the animation will just look weird. Use
-        either :meth:`switch` or :data:`current`, but not both.
+        If any animation is in progress, it will be stopped and replaced by
+        this one: you should avoid it, because the animation will just look weird.
+        Use either :meth:`switch` or :data:`current`, but not both.
 
         `screen` name will be changed if there is any conflict with the current
         screen.
