@@ -5,8 +5,8 @@ Drop-Down List
 .. versionadded:: 1.4.0
 
 A versatile drop-down list that can be used with custom widgets. It allows you
-to display a list of widgets under a displayed widget. Unlike others toolkits,
-the list of widgets can can contain any type of widget: simple buttons,
+to display a list of widgets under a displayed widget. Unlike other toolkits,
+the list of widgets can contain any type of widget: simple buttons,
 images etc.
 
 The positioning of the drop-down list is fully automatic: we will always try to
@@ -15,7 +15,7 @@ place the dropdown list in a way that the user can select an item in the list.
 Basic example
 -------------
 
-A button with a dropdown list of 10 possibles values. All the buttons within the
+A button with a dropdown list of 10 possible values. All the buttons within the
 dropdown list will trigger the dropdown :meth:`DropDown.select` method. After
 being called, the main button text will display the selection of the 
 dropdown. ::
@@ -254,7 +254,7 @@ class DropDown(ScrollView):
 
     def _reposition(self, *largs):
         # calculate the coordinate of the attached widget in the window
-        # coordinate sysem
+        # coordinate system
         win = self._win
         widget = self.attach_to
         if not widget or not win:
