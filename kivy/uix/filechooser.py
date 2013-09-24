@@ -10,7 +10,7 @@ FileChooser
     is present.
 
 .. versionchanged:: 1.2.0
-    In chooser template, the `controller` is not a direct reference anymore,
+    In the chooser template, the `controller` is not a direct reference anymore
     but a weak-reference.
     You must update all the notation `root.controller.xxx` to
     `root.controller().xxx`.
@@ -80,9 +80,9 @@ def is_hidden_win(fn):
     try:
         return GetFileAttributesEx(fn)[0] & FILE_ATTRIBUTE_HIDDEN
     except error:
-        # This error can occured when a file is already accessed by someone
-        # else. So don't return to True, because we have lot of chances to not
-        # being able to do anything with it.
+        # This error can occur when a file is already being accessed by someone
+        # else. Return True because it's likely we will not be
+        # able to do anything with it.
         Logger.exception('unable to access to <%s>' % fn)
         return True
 
@@ -98,7 +98,7 @@ class ForceUnicodeError(Exception):
 
 class FileChooserProgressBase(FloatLayout):
     '''Base for implementing a progress view. This view is used when too many
-    entries need to be created, and are delayed over multiple frames.
+    entries need to be created and are delayed over multiple frames.
 
     .. versionadded:: 1.2.0
     '''
@@ -142,20 +142,20 @@ class FileChooserProgress(FileChooserProgressBase):
 
 
 class FileChooserController(FloatLayout):
-    '''Base for implementing a FileChooser. Don't use that class directly,
-    preferring to use an implementation like :class:`FileChooserListView` or
+    '''Base for implementing a FileChooser. Don't use this class directly, but
+    prefer using an implementation such as the :class:`FileChooserListView` or
     :class:`FileChooserIconView`.
 
     :Events:
         `on_entry_added`: entry, parent
             Fired when a root-level entry is added to the file list.
         `on_entries_cleared`
-            Fired when the the entries list is cleared. Usally when the
+            Fired when the the entries list is cleared, usually when the
             root is refreshed.
         `on_subentry_to_entry`: entry, parent
             Fired when a sub-entry is added to an existing entry.
         `on_remove_subentry`: entry, parent
-            Fired when entries are removed from an entry. Usually when
+            Fired when entries are removed from an entry, usually when
             a node is closed.
         `on_submit`: selection, touch
             Fired when a file has been selected with a double-tap.
@@ -164,36 +164,46 @@ class FileChooserController(FloatLayout):
 
     path = StringProperty('/')
     '''
-    :class:`~kivy.properties.StringProperty`, defaults to current working
-    directory as unicode string. Specifies the path on the filesystem that
+    :class:`~kivy.properties.StringProperty`, defaults to the current working
+    directory as a unicode string. It specifies the path on the filesystem that
     this controller should refer to.
     '''
 
     filters = ListProperty([])
     ''':class:`~kivy.properties.ListProperty`, defaults to [], equal to '\*'.
-    The filters to be applied to the files in the directory.
+    Specifies the filters to be applied to the files in the directory.
 
     The filters are not reset when the path changes. You need to do that
     yourself if desired.
 
-    There are two kinds of filters :
+    There are two kinds of filters: patterns and callbacks.
 
-    filename patterns : e.g. ['\*.png'].
-    You can use the following patterns:
+    #. Patterns
 
-        ========== =================================
-        Pattern     Meaning
-        ========== =================================
-        \*         matches everything
-        ?          matches any single character
-        [seq]      matches any character in seq
-        [!seq]     matches any character not in seq
-        ========== =================================
+        e.g. ['\*.png'].
+        You can use the following patterns:
+
+            ========== =================================
+            Pattern     Meaning
+            ========== =================================
+            \*         matches everything
+            ?          matches any single character
+            [seq]      matches any character in seq
+            [!seq]     matches any character not in seq
+            ========== =================================
+    
+    #. Callbacks
+        
+        You can specify a function that will be called for each file. The
+        callback will be passed the folder and file name as the first and second
+        parameters respectively. It should return True to indicate a match and
+        False otherwise.
 
     .. versionchanged:: 1.4.0
-        if the filter is a callable (function or method). It will be called
-        with the path and the file name as arguments for each file in dir. The
-        callable should returns True to indicate a match and False overwise.
+        If the filter is a callable (function or method), it will be called
+        with the path and the file name as arguments for each file in the
+        directory.
+        The callable should returns True to indicate a match and False overwise.
     '''
 
     filter_dirs = BooleanProperty(False)
@@ -206,7 +216,7 @@ class FileChooserController(FloatLayout):
     '''
     :class:`~kivy.properties.ObjectProperty`.
     Provides a function to be called with a list of filenames as the only
-    argument.  Returns a list of filenames sorted for display in the view.
+    argument. Returns a list of filenames sorted for display in the view.
     '''
 
     files = ListProperty([])
@@ -225,29 +235,29 @@ class FileChooserController(FloatLayout):
     selection = ListProperty([])
     '''
     Read-only :class:`~kivy.properties.ListProperty`.
-    The list of files that are currently selected.
+    Contains the list of files that are currently selected.
     '''
 
     multiselect = BooleanProperty(False)
     '''
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
-    Determines whether user is able to select multiple files.
+    Determines whether the user is able to select multiple files or not.
     '''
 
     dirselect = BooleanProperty(False)
     '''
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
-    Determines whether directories are valid selections.
+    Determines whether directories are valid selections or not.
 
     .. versionadded:: 1.1.0
     '''
 
     rootpath = StringProperty(None, allownone=True)
     '''
-    Root path to use, instead of the system root path. If set, it will not show
-    a ".." directory to go upper the root path. For example, if you set
-    rootpath to /Users/foo, the user will be unable to go to /Users, or to any
-    other directory not starting with /Users/foo.
+    Root path to use instead of the system root path. If set, it will not show
+    a ".." directory to go up to the root path. For example, if you set
+    rootpath to /users/foo, the user will be unable to go to /users or to any
+    other directory not starting with /users/foo.
 
     .. versionadded:: 1.2.0
 
@@ -255,12 +265,12 @@ class FileChooserController(FloatLayout):
     '''
 
     progress_cls = ObjectProperty(FileChooserProgress)
-    '''Class to use for displaying a progress indicator for filechooser loading
+    '''Class to use for displaying a progress indicator for filechooser loading.
 
     .. versionadded:: 1.2.0
 
     :class:`~kivy.properties.ObjectProperty`, defaults to
-    :class:`FileChooserProgress`
+    :class:`FileChooserProgress`.
     '''
 
     file_encodings = ListProperty(['utf-8', 'latin1', 'cp1252'])
