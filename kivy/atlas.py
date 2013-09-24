@@ -392,7 +392,6 @@ if __name__ == '__main__':
     outname = argv[0]
     try:
         if 'x' in argv[1]:
-            print argv
             size = map(int, argv[1].split('x', 1))
         else:
             size = int(argv[1])
