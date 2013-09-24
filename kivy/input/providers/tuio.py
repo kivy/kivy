@@ -298,7 +298,33 @@ class Tuio2dObjMotionEvent(TuioMotionEvent):
         super(Tuio2dObjMotionEvent, self).depack(args)
 
 
+class Tuio2dBlbMotionEvent(TuioMotionEvent):
+    '''A 2dBlb TUIO object.
+    # FIXME 3d shape are not supported
+    /tuio/2Dobj set s i x y a       X Y A m r
+    /tuio/2Dblb set s   x y a w h f X Y A m r
+    '''
+
+    def __init__(self, device, id, args):
+        super(Tuio2dBlbMotionEvent, self).__init__(device, id, args)
+
+    def depack(self, args):
+        self.is_touch = True
+        self.sx, self.sy, self.a, self.X, self.Y, sw, sh, sd, \
+            self.A, self.m, self.r = args
+        self.Y = -self.Y
+        self.profile = ('pos', 'angle', 'mov', 'rot', 'rotacc',
+                        'acc', 'shape')
+        if self.shape is None:
+            self.shape = ShapeRect()
+            self.shape.width = sw
+            self.shape.height = sh
+        self.sy = 1 - self.sy
+        super(Tuio2dBlbMotionEvent, self).depack(args)
+
+
 # registers
 TuioMotionEventProvider.register('/tuio/2Dcur', Tuio2dCurMotionEvent)
 TuioMotionEventProvider.register('/tuio/2Dobj', Tuio2dObjMotionEvent)
+TuioMotionEventProvider.register('/tuio/2Dblb', Tuio2dBlbMotionEvent)
 MotionEventFactory.register('tuio', TuioMotionEventProvider)
