@@ -9,7 +9,7 @@ Spinner
 
 Spinner is a widget that provides a quick way to select one value from a set.
 In the default state, a spinner shows its currently selected value. Touching the
-spinner displays a dropdown menu with all other available values. from which the
+spinner displays a dropdown menu with all other available values from which the
 user can select a new one.
 
 Example::
@@ -65,7 +65,7 @@ class Spinner(Button):
     under the Spinner. The `text` property in the class will represent the
     value.
 
-    The option class require at least:
+    The option class requires at least:
 
     - one `text` property where the value will be put
     - one `on_release` event that you need to trigger when the option is
