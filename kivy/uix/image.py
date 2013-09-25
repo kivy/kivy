@@ -57,7 +57,7 @@ class Image(Widget):
     source = StringProperty(None)
     '''Filename / source of your image.
 
-    :data:`source` is a :class:`~kivy.properties.StringProperty`, default to
+    :data:`source` is a :class:`~kivy.properties.StringProperty`, defaults to
     None.
     '''
 
@@ -68,7 +68,7 @@ class Image(Widget):
     :class:`~kivy.graphics.texture.Texture` or
     :class:`~kivy.graphics.texture.TextureRegion` object.
 
-    :data:`texture` is a :class:`~kivy.properties.ObjectProperty`, default to
+    :data:`texture` is a :class:`~kivy.properties.ObjectProperty`, defaults to
     None.
     '''
 
@@ -93,7 +93,7 @@ class Image(Widget):
 
     .. versionadded:: 1.0.7
 
-    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty`, default to
+    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty`, defaults to
     False.
     '''
 
@@ -111,8 +111,8 @@ class Image(Widget):
 
     .. versionadded:: 1.0.6
 
-    :data:`color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
-    1, 1].
+    :data:`color` is a :class:`~kivy.properties.ListProperty`, defaults to
+    [1, 1, 1, 1].
     '''
 
     allow_stretch = BooleanProperty(False)
@@ -136,16 +136,16 @@ class Image(Widget):
     .. versionadded:: 1.0.8
 
     :data:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True
+    defaults to True
     '''
 
     keep_data = BooleanProperty(False)
     '''If true the underlaying _coreimage have to keep the raw image data.
-    Useful to perform pixel based collision detection
+    Useful to perform pixel based collision detection.
 
     .. versionadded:: 1.3.0
 
-    :data:`keep_data` is a :class:`~kivy.properties.BooleanProperty`, default
+    :data:`keep_data` is a :class:`~kivy.properties.BooleanProperty`, defaults
     to False
     '''
 
@@ -155,18 +155,18 @@ class Image(Widget):
 
     .. versionadded:: 1.0.8
 
-    :data:`anim_delay` is a :class:`~kivy.properties.NumericProperty`, default
+    :data:`anim_delay` is a :class:`~kivy.properties.NumericProperty`, defaults
     to .25 (4 FPS)
     '''
 
     nocache = BooleanProperty(False)
-    '''If this property is set True, the image will not be added to the
+    '''If this property is set to True, the image will not be added to the
     internal cache anymore. (the cache will simply ignore any calls trying to
     append the core image)
 
     .. versionadded:: 1.6.0
 
-    :data:`nocache` is a :class:`~kivy.properties.BooleanProperty`, default
+    :data:`nocache` is a :class:`~kivy.properties.BooleanProperty`, defaults
     to False
     '''
 

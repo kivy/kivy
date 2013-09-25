@@ -162,7 +162,7 @@ class Bubble(GridLayout):
     '''
 
     limit_to = ObjectProperty(None, allow_none=True)
-    '''Specifies the widget to which the bubbles position is restricted.
+    '''Specifies the widget to which the bubble's position is restricted.
 
     .. versionadded:: 1.6.0
 

@@ -6,8 +6,8 @@ Carousel
 
 The :class:`Carousel` widget provides the classic mobile-friendly carousel view
 where you can swipe between slides.
-You can add any content to the carousel and use it horizontally or verticaly.
-The carousel can display pages in loop or not.
+You can add any content to the carousel and use it horizontally or vertically.
+The carousel can display pages in a loop or not.
 
 Example::
 
@@ -82,7 +82,7 @@ class Carousel(StencilView):
     min_move = NumericProperty(0.2)
     '''Defines the minimal distance from the edge where the movement is
     considered a swipe gesture and the Carousel will change its content.
-    This is a percentage of the Carousel width.
+    This is a percentage of the Carousel's width.
     If the movement doesn't reach this minimal value, then the movement is
     cancelled and the content is restored to its original position.
 
@@ -99,7 +99,7 @@ class Carousel(StencilView):
 
     anim_cancel_duration = NumericProperty(0.3)
     '''Defines the duration of the animation when a swipe movement is not
-    accepted. This is generally when the user doesnt swipe enough.
+    accepted. This is generally when the user doesn't swipe enough.
     See :data:`min_move`.
 
     :data:`anim_cancel_duration` is a :class:`~kivy.properties.NumericProperty`
@@ -168,7 +168,7 @@ class Carousel(StencilView):
     .. versionchanged:: 1.5.0
 
         The property doesn't expose the container used for storing the slide.
-        It returns widget you have added.
+        It returns the widget you have added.
     '''
 
     def _next_slide(self):
@@ -399,7 +399,7 @@ class Carousel(StencilView):
         elif self._offset > self.min_move * extent:
             new_offset = extent
 
-        # if new_offset is 0, it wasnt enough to go next/prev
+        # if new_offset is 0, it wasn't enough to go next/prev
         dur = self.anim_move_duration
         if new_offset == 0:
             dur = self.anim_cancel_duration

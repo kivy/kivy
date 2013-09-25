@@ -57,7 +57,7 @@ filesize_units = ('B', 'KB', 'MB', 'GB', 'TB')
 
 _have_win32file = False
 if platform == 'win':
-    # Import that module here as it's not available on non-windows machines.
+    # Import that module here as it's not available on non-Windows machines.
     # See http://bit.ly/i9klJE except that the attributes are defined in
     # win32file not win32com (bug on page).
     # Note: For some reason this doesn't work after a os.chdir(), no matter to
@@ -67,7 +67,7 @@ if platform == 'win':
         _have_win32file = True
     except ImportError:
         Logger.error('filechooser: win32file module is missing')
-        Logger.error('filechooser: we cant check if a file is hidden or not')
+        Logger.error('filechooser: we can\'t check if a file is hidden or not')
 
 
 def is_hidden_unix(fn):
@@ -203,7 +203,7 @@ class FileChooserController(FloatLayout):
         If the filter is a callable (function or method), it will be called
         with the path and the file name as arguments for each file in the
         directory.
-        The callable should returns True to indicate a match and False overwise.
+        The callable should return True to indicate a match and False overwise.
     '''
 
     filter_dirs = BooleanProperty(False)
@@ -275,7 +275,7 @@ class FileChooserController(FloatLayout):
 
     file_encodings = ListProperty(['utf-8', 'latin1', 'cp1252'])
     '''Possible encodings for decoding a filename to unicode. In the case that
-    the user has a weird filename, undecodable without knowing it's
+    the user has a weird filename, undecodable without knowing its
     initial encoding, we have no other choice than to guess it.
 
     Please note that if you encounter an issue because of a missing encoding
@@ -313,7 +313,7 @@ class FileChooserController(FloatLayout):
         self._trigger_update()
 
     def on_touch_down(self, touch):
-        # don't respond to touchs outside self
+        # don't respond to touches outside self
         if not self.collide_point(*touch.pos):
             return
         if self.disabled:
@@ -321,7 +321,7 @@ class FileChooserController(FloatLayout):
         return super(FileChooserController, self).on_touch_down(touch)
 
     def on_touch_up(self, touch):
-        # don't respond to touchs outside self
+        # don't respond to touches outside self
         if not self.collide_point(*touch.pos):
             return True
         if self.disabled:

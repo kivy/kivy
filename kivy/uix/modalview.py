@@ -8,9 +8,9 @@ The :class:`ModalView` widget is used to create modal views. By default, the
 view will cover the whole "parent" window.
 
 Remember that the default size of a Widget is size_hint=(1, 1). If you don't
-want your view to be fullscreen, either use lower than 1 size hints (for
-instance size_hint=(.8, .8)) or deactivate the size_hint and use fixed size
-attributes.
+want your view to cover the whole "parent" window, either use lower than 1 size
+hints (for instance size_hint=(.8, .8)) or deactivate the size_hint and use
+fixed size attributes.
 
 Examples
 --------
@@ -103,7 +103,7 @@ class ModalView(AnchorLayout):
     parent window of the widget. If none is found, it will attach to the
     main/global Window.
 
-    :data:`attach_to` is a :class:`~kivy.properties.ObjectProperty`, default to
+    :data:`attach_to` is a :class:`~kivy.properties.ObjectProperty`, defaults to
     None.
     '''
 
@@ -111,7 +111,7 @@ class ModalView(AnchorLayout):
     '''Background color, in the format (r, g, b, a).
 
     :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [0, 0, 0, .7].
+    defaults to [0, 0, 0, .7].
     '''
 
     background = StringProperty(
@@ -130,11 +130,11 @@ class ModalView(AnchorLayout):
     It must be a list of four values: (top, right, bottom, left). Read the
     BorderImage instructions for more information about how to use it.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (16,
-    16, 16, 16)
+    :data:`border` is a :class:`~kivy.properties.ListProperty`, defaults to
+    (16, 16, 16, 16)
     '''
 
-    # Internals properties used for graphical representation.
+    # Internal properties used for graphical representation.
 
     _anim_alpha = NumericProperty(0)
 
@@ -188,7 +188,7 @@ class ModalView(AnchorLayout):
     def _update_center(self, *args):
         if not self._window:
             return
-        # XXX HACK DONT REMOVE OR FOUND AND FIX THE ISSUE
+        # XXX HACK DON'T REMOVE OR FIND AND FIX THE ISSUE
         # It seems that if we don't access to the center before assigning a new
         # value, no dispatch will be done >_>
         a = self.center
