@@ -9,7 +9,7 @@ Abstract View
 
 The :class:`~kivy.uix.abstractview.AbstractView` widget has an adapter property
 for an adapter that mediates to data. The adapter manages an
-item_view_instances dict property that holds views for each data item,
+item_view_instance's dict property that holds views for each data item,
 operating as a cache.
 
 '''
@@ -27,7 +27,7 @@ class AbstractView(FloatLayout):
 
     adapter = ObjectProperty(None)
     '''The adapter can be one of several kinds of
-    :class:`adapters <kivy.adapters.adapter.Adapter>`. The most
-    common example is the :class:`~kivy.adapters.listadapter.ListAdapter` used
-    for managing data items in a list.
+    :class:`adapters <kivy.adapters.adapter.Adapter>`. The most common example
+    is the :class:`~kivy.adapters.listadapter.ListAdapter` used for managing
+    data items in a list.
     '''

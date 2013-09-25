@@ -94,7 +94,7 @@ class ButtonBehavior(object):
         pass
 
     def trigger_action(self, duration=0.1):
-        '''Trigger whatever action(s) have been bound to the button by calling
+        '''Trigger all actions that have been bound to the button by calling
         both the on_press and on_release callbacks.
 
         This simulates a quick button press without using any touch events.
@@ -181,7 +181,7 @@ class ToggleButtonBehavior(ButtonBehavior):
 
     @staticmethod
     def get_widgets(groupname):
-        '''Return the widgets contained in a specific group. If the group
+        '''Return the widgets that are in a specific group. If the group
         doesn't exist, an empty list will be returned.
 
         .. important::
