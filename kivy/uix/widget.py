@@ -90,14 +90,14 @@ from weakref import proxy
 from functools import partial
 
 
-# references to all the destructors widgets (partial method with widget uid as
+# References to all the destructors widgets (partial method with widget uid as
 # key.)
 _widget_destructors = {}
 
 
 def _widget_destructor(uid, r):
-    # internal method called when a widget is deleted from memory. the only
-    # thing we remember about it is its uid. Clear all the associated callback
+    # Internal method called when a widget is deleted from memory. The only
+    # thing we remember about it is its uid. Clear all the associated callbacks
     # created in kv language.
     del _widget_destructors[uid]
     Builder.unbind_widget(uid)
@@ -120,7 +120,7 @@ class WidgetMetaclass(type):
         Factory.register(name, cls=mcs)
 
 
-#: Base class used for widget, that inherit from :class:`EventDispatcher`
+#: Base class used for widget, that inherits from :class:`EventDispatcher`
 WidgetBase = WidgetMetaclass('WidgetBase', (EventDispatcher, ), {})
 
 
@@ -149,12 +149,12 @@ class Widget(WidgetBase):
     __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
 
     def __init__(self, **kwargs):
-        # Before doing anything, ensure the windows exist.
+        # Before doing anything, ensure the window exists.
         EventLoop.ensure_window()
 
         super(Widget, self).__init__(**kwargs)
 
-        # Create the default canvas if not exist
+        # Create the default canvas if it does not exist
         if self.canvas is None:
             self.canvas = Canvas(opacity=self.opacity)
 
@@ -646,12 +646,12 @@ class Widget(WidgetBase):
 
     .. versionadded:: 1.7.0
 
-    :data:`ids` is a :class:`~kivy.properties.DictProperty`, defaults to a empty
-    dict {}.
+    :data:`ids` is a :class:`~kivy.properties.DictProperty`, defaults to an
+    empty dict {}.
     '''
 
     opacity = NumericProperty(1.0)
-    '''Opacity of the widget and all the children.
+    '''Opacity of the widget and all its children.
 
     .. versionadded:: 1.4.1
 
@@ -667,7 +667,7 @@ class Widget(WidgetBase):
 
         frag_color = color * vec4(1.0, 1.0, 1.0, opacity);
 
-    :data:`opacity` is a :class:`~kivy.properties.NumericProperty`, default to
+    :data:`opacity` is a :class:`~kivy.properties.NumericProperty`, defaults to
     1.0.
     '''
 
@@ -703,5 +703,5 @@ class Widget(WidgetBase):
     .. versionadded:: 1.8.0
 
     :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
-    default to False.
+    defaults to False.
     '''
