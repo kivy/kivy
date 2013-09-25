@@ -41,7 +41,7 @@ If you want to create a button that will always be the size of layout minus
 
 .. note::
 
-    This layout can be used for an application. Most of time, you will
+    This layout can be used for an application. Most of the time, you will
     use the size of Window.
 
 .. warning::

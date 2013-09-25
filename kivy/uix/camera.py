@@ -64,10 +64,10 @@ class Camera(Image):
     '''Preferred resolution to use when invoking the camera. If you are using
     [-1, -1], the resolution will be the default one::
 
-        # create a camera object with the best image available
+        # create a camera object with the best resolution available
         cam = Camera()
 
-        # create a camera object with an image of 320x240 if possible
+        # create a camera object with a resolution of 320x240 if possible
         cam = Camera(resolution=(320, 240))
 
     .. warning::
