@@ -257,6 +257,8 @@ class DropDown(ScrollView):
     def on_touch_up(self, touch):
         if super(DropDown, self).on_touch_up(touch):
             return True
+        if 'button' in touch.profile and touch.button.startswith('scroll'):
+            return
         self.dismiss()
 
     def _reposition(self, *largs):
