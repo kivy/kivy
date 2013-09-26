@@ -117,8 +117,8 @@ class GridLayout(Layout):
 
     spacing also accepts a one argument form [spacing].
 
-    :data:`spacing` is a :class:`~kivy.properties.VariableListProperty`, default to
-    [0, 0].
+    :data:`spacing` is a :class:`~kivy.properties.VariableListProperty`, default
+    to [0, 0].
     '''
 
     padding = VariableListProperty([0, 0, 0, 0])
@@ -132,11 +132,11 @@ class GridLayout(Layout):
 
     Replaced NumericProperty with VariableListProperty.
 
-    :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default to
-    [0, 0, 0, 0].
+    :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default
+    to [0, 0, 0, 0].
     '''
 
-    cols = BoundedNumericProperty(None, min=0, allow_none=True)
+    cols = BoundedNumericProperty(None, min=0, allownone=True)
     '''Number of columns in the grid.
 
     .. versionadded:: 1.0.8
@@ -144,10 +144,11 @@ class GridLayout(Layout):
         Change from NumericProperty to BoundedNumericProperty. You cannot set a
         negative value anymore.
 
-    :data:`cols` is a :class:`~kivy.properties.NumericProperty`, default to 0.
+    :data:`cols` is a :class:`~kivy.properties.NumericProperty`, default to
+    None.
     '''
 
-    rows = BoundedNumericProperty(None, min=0, allow_none=True)
+    rows = BoundedNumericProperty(None, min=0, allownone=True)
     '''Number of rows in the grid.
 
     .. versionadded:: 1.0.8
@@ -155,7 +156,8 @@ class GridLayout(Layout):
         Change from NumericProperty to BoundedNumericProperty. You cannot set a
         negative value anymore.
 
-    :data:`rows` is a :class:`~kivy.properties.NumericProperty`, default to 0.
+    :data:`rows` is a :class:`~kivy.properties.NumericProperty`, default to
+    None.
     '''
 
     col_default_width = NumericProperty(0)
