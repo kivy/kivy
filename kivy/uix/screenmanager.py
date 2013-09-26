@@ -403,7 +403,7 @@ class ShaderTransition(TransitionBase):
     def make_screen_fbo(self, screen):
         fbo = Fbo(size=screen.size)
         with fbo:
-            ClearColor(0, 0, 0, 0)
+            ClearColor(0, 0, 0, 1)
             ClearBuffers()
         fbo.add(screen.canvas)
         with fbo.before:
