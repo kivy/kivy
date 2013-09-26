@@ -12,9 +12,9 @@ will cover the whole "parent" window. When you are creating a popup, you must at
 a minimum set a :data:`Popup.title` and a :data:`Popup.content` widget.
 
 Remember that the default size of a Widget is size_hint=(1, 1). If you don't
-want your popup to be fullscreen, either use lower than 1 size hints (for
-instance size_hint=(.8, .8)) or deactivate the size_hint and use fixed size
-attributes.
+want your popup to cover the whole "parent" window, either use lower than 1
+size hints (for instance size_hint=(.8, .8)) or deactivate the size_hint and
+use fixed size attributes.
 
 
 .. versionchanged:: 1.4.0
@@ -100,7 +100,7 @@ class Popup(ModalView):
     title = StringProperty('No title')
     '''String that represents the title of the popup.
 
-    :data:`title` is a :class:`~kivy.properties.StringProperty`, default to 'No
+    :data:`title` is a :class:`~kivy.properties.StringProperty`, defaults to 'No
     title'.
     '''
 
@@ -109,14 +109,14 @@ class Popup(ModalView):
 
     .. versionadded:: 1.6.0
 
-    :data:`title_size` is a :class:`~kivy.properties.NumericProperty`, default
+    :data:`title_size` is a :class:`~kivy.properties.NumericProperty`, defaults
     to '14sp'.
     '''
 
     content = ObjectProperty(None)
     '''Content of the popup that is displayed just under the title.
 
-    :data:`content` is a :class:`~kivy.properties.ObjectProperty`, default to
+    :data:`content` is a :class:`~kivy.properties.ObjectProperty`, defaults to
     None.
     '''
 
@@ -126,7 +126,7 @@ class Popup(ModalView):
     .. versionadded:: 1.8.0
 
     :data:`title_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [1, 1, 1, 1]
+    defaults to [1, 1, 1, 1]
     '''
 
     separator_color = ListProperty([47 / 255., 167 / 255., 212 / 255., 1.])
@@ -135,7 +135,7 @@ class Popup(ModalView):
     .. versionadded:: 1.1.0
 
     :data:`separator_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [47 / 255., 167 / 255., 212 / 255., 1.]
+    defaults to [47 / 255., 167 / 255., 212 / 255., 1.]
     '''
 
     separator_height = NumericProperty('2dp')
@@ -144,10 +144,10 @@ class Popup(ModalView):
     .. versionadded:: 1.1.0
 
     :data:`separator_height` is a :class:`~kivy.properties.NumericProperty`,
-    default to 2dp.
+    defaults to 2dp.
     '''
 
-    # Internals properties used for graphical representation.
+    # Internal properties used for graphical representation.
 
     _container = ObjectProperty(None)
 

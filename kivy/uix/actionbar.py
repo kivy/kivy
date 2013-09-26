@@ -58,8 +58,8 @@ class ActionBarException(Exception):
 
 class ActionItem(object):
     '''ActionItem class, an abstract class for all ActionBar widgets. To create
-       a custom widget for an ActionBar, inherit from this
-       class. See module documentation for more information.
+       a custom widget for an ActionBar, inherit from this class.
+       See module documentation for more information.
     '''
 
     minimum_width = NumericProperty('90sp')
@@ -119,7 +119,7 @@ class ActionButton(Button, ActionItem):
     and takes care of the padding between elements.
 
     You don't have much control over these properties, so if you want to
-    customize it's appearance, we suggest you create you own button
+    customize its appearance, you should create your own button
     representation. You can do this by creating a class that subclasses an
     existing widget and an :class:`ActionItem`::
 
@@ -158,7 +158,7 @@ class ActionPrevious(ActionButton):
 
     previous_image = StringProperty(
         'atlas://data/images/defaulttheme/previous_normal')
-    '''Image for the 'previous' ActionButtons default graphical representation.
+    '''Image for the 'previous' ActionButton's default graphical representation.
 
        :data:`previous_image` is a :class:`~kivy.properties.StringProperty` and
        defaults to 'atlas://data/images/defaulttheme/previous_normal'.
@@ -354,7 +354,7 @@ class ActionView(BoxLayout):
 
     background_image = StringProperty(
         'atlas://data/images/defaulttheme/action_view')
-    '''Background image of an ActionViews default graphical representation.
+    '''Background image of an ActionView's default graphical representation.
 
       :data:`background_image` is an :class:`~kivy.properties.StringProperty`
       and defaults to 'atlas://data/images/defaulttheme/action_view'.
@@ -513,7 +513,7 @@ class ActionView(BoxLayout):
                     child.inside_group = False
                     hidden_items.remove(child)
 
-        # for all the remaining ActionItems and ActionItems with in
+        # for all the remaining ActionItems and ActionItems within
         # ActionGroups, Display them inside overflow_group
         extend_hidden = hidden_items.extend
         for group in hidden_groups:
@@ -593,7 +593,7 @@ class ActionBar(BoxLayout):
     background_image = StringProperty(
         'atlas://data/images/defaulttheme/action_bar')
 
-    '''Background image of the ActionBars default graphical representation.
+    '''Background image of the ActionBar's default graphical representation.
 
       :data:`background_image` is an :class:`~kivy.properties.StringProperty`
       and defaults to 'atlas://data/images/defaulttheme/action_bar'.

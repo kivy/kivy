@@ -232,8 +232,8 @@ class Label(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`disabled_color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
-    1, .5].
+    :data:`disabled_color` is a :class:`~kivy.properties.ListProperty`, defaults
+    to [1, 1, 1, .5].
     '''
 
     text = StringProperty('')
@@ -269,7 +269,7 @@ class Label(Widget):
         constructor.)
 
     :data:`text_size` is a :class:`~kivy.properties.ListProperty`,
-    default to (None, None), meaning no size restriction by default.
+    defaults to (None, None), meaning no size restriction by default.
     '''
 
     font_name = StringProperty('DroidSans')
@@ -279,7 +279,7 @@ class Label(Widget):
 
     .. warning::
 
-        Depending of your text provider, the font file can be ignored. However,
+        Depending on your text provider, the font file can be ignored. However,
         you can mostly use this without trouble.
 
         If the font used lacks the glyphs for the particular language/symbols
@@ -290,22 +290,22 @@ class Label(Widget):
 
         .. |unicodechar| image:: images/unicode-char.png
 
-    :data:`font_name` is a :class:`~kivy.properties.StringProperty`, default to
+    :data:`font_name` is a :class:`~kivy.properties.StringProperty`, defaults to
     'DroidSans'.
     '''
 
     font_size = NumericProperty('15sp')
     '''Font size of the text, in pixels.
 
-    :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
-    12dp.
+    :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, defaults
+    to 12dp.
     '''
 
     line_height = NumericProperty(1.0)
-    '''Line Height for the text. e.g. line_height = 2 will cause the spacing
+    '''Line Height of the text. e.g. line_height = 2 will cause the spacing
     between lines to be twice the size.
 
-    :data:`line_height` is a :class:`~kivy.properties.NumericProperty`, default
+    :data:`line_height` is a :class:`~kivy.properties.NumericProperty`, defaults
     to 1.0.
 
     .. versionadded:: 1.5.0
@@ -316,10 +316,10 @@ class Label(Widget):
 
     .. note::
 
-        Depending of your font, the bold attribute may have no impact on your
+        Depending on your font, the bold attribute may have no impact on your
         text rendering.
 
-    :data:`bold` is a :class:`~kivy.properties.BooleanProperty`, default to
+    :data:`bold` is a :class:`~kivy.properties.BooleanProperty`, defaults to
     False
     '''
 
@@ -328,25 +328,25 @@ class Label(Widget):
 
     .. note::
 
-        Depending of your font, the italic attribute may have no impact on your
+        Depending on your font, the italic attribute may have no impact on your
         text rendering.
 
-    :data:`italic` is a :class:`~kivy.properties.BooleanProperty`, default to
+    :data:`italic` is a :class:`~kivy.properties.BooleanProperty`, defaults to
     False
     '''
 
     padding_x = NumericProperty(0)
     '''Horizontal padding of the text inside the widget box.
 
-    :data:`padding_x` is a :class:`~kivy.properties.NumericProperty`, default to
-    0
+    :data:`padding_x` is a :class:`~kivy.properties.NumericProperty`, defaults
+    to 0
     '''
 
     padding_y = NumericProperty(0)
     '''Vertical padding of the text inside the widget box.
 
-    :data:`padding_x` is a :class:`~kivy.properties.NumericProperty`, default to
-    0
+    :data:`padding_x` is a :class:`~kivy.properties.NumericProperty`, defaults
+    to 0
     '''
 
     padding = ReferenceListProperty(padding_x, padding_y)
@@ -360,7 +360,7 @@ class Label(Widget):
                             'justify'])
     '''Horizontal alignment of the text.
 
-    :data:`halign` is a :class:`~kivy.properties.OptionProperty`, default to
+    :data:`halign` is a :class:`~kivy.properties.OptionProperty`, defaults to
     'left'. Available options are : left, center, right and justified.
 
     .. warning::
@@ -379,7 +379,7 @@ class Label(Widget):
     valign = OptionProperty('bottom', options=['bottom', 'middle', 'top'])
     '''Vertical alignment of the text.
 
-    :data:`valign` is a :class:`~kivy.properties.OptionProperty`, default to
+    :data:`valign` is a :class:`~kivy.properties.OptionProperty`, defaults to
     'bottom'. Available options are : bottom, middle and top.
 
     .. warning::
@@ -393,8 +393,8 @@ class Label(Widget):
     color = ListProperty([1, 1, 1, 1])
     '''Text color, in the format (r, g, b, a)
 
-    :data:`color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
-    1, 1].
+    :data:`color` is a :class:`~kivy.properties.ListProperty`, defaults to
+    [1, 1, 1, 1].
     '''
 
     texture = ObjectProperty(None, allownone=True)
@@ -420,7 +420,7 @@ class Label(Widget):
             l.texture_update()
             # l.texture is good now.
 
-    :data:`texture` is a :class:`~kivy.properties.ObjectProperty`, default to
+    :data:`texture` is a :class:`~kivy.properties.ObjectProperty`, defaults to
     None.
     '''
 
@@ -440,7 +440,7 @@ class Label(Widget):
 
     .. versionadded:: 1.0.7
 
-    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty`, default to
+    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty`, defaults to
     False.
     '''
 
@@ -450,7 +450,7 @@ class Label(Widget):
     as much as possible if a `text_size` is given. Setting this to True without
     an appropriately set `text_size` will lead to unexpected results.
 
-    :data:`shorten` is a :class:`~kivy.properties.BooleanProperty`, default to
+    :data:`shorten` is a :class:`~kivy.properties.BooleanProperty`, defaults to
     False.
     '''
 
@@ -463,7 +463,7 @@ class Label(Widget):
     text using tags. Check :doc:`api-kivy.core.text.markup` documentation for
     more information.
 
-    :data:`markup` is a :class:`~kivy.properties.BooleanProperty`, default to
+    :data:`markup` is a :class:`~kivy.properties.BooleanProperty`, defaults to
     False.
     '''
 

@@ -49,7 +49,7 @@ to customize the design of the title bar.
 
 .. warning::
 
-    If you see message like::
+    If you see a message like::
 
         [WARNING] [Accordion] not have enough space for displaying all children
         [WARNING] [Accordion] need 440px, got 100px
@@ -369,7 +369,7 @@ class Accordion(Widget):
 
     def add_widget(self, widget, *largs):
         if not isinstance(widget, AccordionItem):
-            raise AccordionException('Accordion accept only AccordionItem')
+            raise AccordionException('Accordion accepts only AccordionItem')
 
         widget.accordion = self
         ret = super(Accordion, self).add_widget(widget, *largs)

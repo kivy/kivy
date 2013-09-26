@@ -45,9 +45,9 @@ simple to advanced:
     * kivy/examples/widgets/lists/list_ops.py
 
 Many of the examples feature selection, some restricting selection to single
-selection, where only one item at at time can be selected, and others allowing
+selection, where only one item at a time can be selected, and others allowing
 multiple item selection. Many of the examples illustrate how selection in one
-list can be connected to action and selection in another view or another list.
+list can be connected to an action and selection in another view or another list.
 
 Find your own way of reading the documentation here, examining the source code
 for the example apps, and running the examples. Some may prefer to read the
@@ -79,7 +79,7 @@ In its simplest form, we make a listview with 100 items::
         from kivy.base import runTouchApp
         runTouchApp(MainView(width=800))
 
-Or, we could declare the listview in using the kv language::
+Or, we could declare the listview by using the kv language::
 
     from kivy.uix.modalview import ModalView
     from kivy.uix.listview import ListView
@@ -140,7 +140,7 @@ do::
     list_view = ListView(adapter=simple_list_adapter)
 
 The instance of :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` has
-a required data argument, which contains data items to use for instantiating
+a required data argument, which contains data items to be used for instantiating
 Label views for the list view (Note the cls=Label argument). The data items are
 strings.  Each item string is set by
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` as the *text*

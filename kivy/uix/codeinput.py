@@ -7,24 +7,24 @@ Code Input
 .. image:: images/codeinput.jpg
 
 
-The :class:`CodeInput` provides a box of editable highlited text like the one
+The :class:`CodeInput` provides a box of editable highlighted text like the one
 shown in the image.
 
 It supports all the features provided by the :class:`~kivy.uix.textinput` as
-well as code highliting for `languages supported by pygments
+well as code highlighting for `languages supported by pygments
 <http://pygments.org/docs/lexers/>`_ along with `KivyLexer` for
-:mod:`kivy.lang` highliting.
+:mod:`kivy.lang` highlighting.
 
 Usage example
 -------------
 
-To create a CodeInput with highliting for `KV language`::
+To create a CodeInput with highlighting for `KV language`::
 
     from kivy.uix.codeinput import CodeInput
     from kivy.extras.highlight import KivyLexer
     codeinput = CodeInput(lexer=KivyLexer())
 
-To create a CodeInput with highliting for `Cython`::
+To create a CodeInput with highlighting for `Cython`::
 
     from kivy.uix.codeinput import CodeInput
     from pygments.lexers import CythonLexer
@@ -95,7 +95,7 @@ class CodeInput(TextInput):
         texture = Cache_get('textinput.label', cid)
 
         if not texture:
-            # FIXME right now, we can't render very long line...
+            # FIXME right now, we can't render very long lines...
             # if we move on "VBO" version as fallback, we won't need to do this.
             # try to found the maximum text we can handle
             label = Label(text=ntext, **kw)
@@ -138,7 +138,7 @@ class CodeInput(TextInput):
         try:
             ntext[0]
             # replace brackets with special chars that aren't highlighted
-            # by pygment. can't use &bl; ... cause & is highlighted
+            # by pygment. can't use &bl; ... because & is highlighted
             ntext = ntext.replace(u'[', u'\x01;').replace(u']', u'\x02;')
             ntext = highlight(ntext, self.lexer, self.formatter)
             ntext = ntext.replace(u'\x01;', u'&bl;').replace(u'\x02;', u'&br;')
@@ -150,7 +150,7 @@ class CodeInput(TextInput):
         except IndexError:
             return ''
 
-    # overriden to prevent cursor position off screen
+    # overridden to prevent cursor position off screen
     def _cursor_offset(self):
         '''Get the cursor x offset on the current line
         '''

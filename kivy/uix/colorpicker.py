@@ -110,7 +110,7 @@ class ColorWheel(Widget):
     '''
 
     color = ReferenceListProperty(r, g, b, a)
-    '''The holds the color currently selected.
+    '''This holds the color currently selected.
 
     :data:`color` is a :class:`~kivy.properties.ReferenceListProperty` and
     contains a list of `r`, `g`, `b`, `a` values.

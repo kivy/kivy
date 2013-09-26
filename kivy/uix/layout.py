@@ -16,7 +16,7 @@ Understanding `size_hint` Property in `Widget`
 ----------------------------------------------
 
 The :data:`~kivy.uix.Widget.size_hint` is a tupple of values used by
-layouts to manage the size of their children. It indicate the size
+layouts to manage the size of their children. It indicates the size
 relatively to the layout size, instead of absolutely (in
 pixels/points/cm/etc). The format is::
 

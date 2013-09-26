@@ -36,7 +36,7 @@ from kivy.properties import BooleanProperty, ObjectProperty
 
 
 class CheckBox(Widget):
-    '''CheckXox class, see module documentation for more information.
+    '''CheckBox class, see module documentation for more information.
     '''
 
     active = BooleanProperty(False)
@@ -101,7 +101,7 @@ class CheckBox(Widget):
 
     @staticmethod
     def _clear_groups(wk):
-        # auto flush the element when the weak reference have been deleted
+        # auto flush the element when the weak reference has been deleted
         groups = CheckBox.__groups
         for group in list(groups.values()):
             if wk in group:
