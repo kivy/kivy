@@ -1,9 +1,20 @@
-from kivy.adapters.dictadapter import DictAdapter
+from kivy.binding import DataBinding
+from kivy.controllers.listcontroller import ListController
+from kivy.models import SelectableDataItem
 from kivy.uix.label import Label
 from kivy.uix.listview import ListItemButton
 from kivy.uix.listview import CompositeListItem
+from kivy.uix.listview import ListItemLabel
 from kivy.uix.listview import ListView
 from kivy.uix.gridlayout import GridLayout
+
+
+class IntegerDataItem(SelectableDataItem):
+    def __init__(self, **kwargs):
+        super(IntegerDataItem, self).__init__(**kwargs)
+        self.x1 = kwargs.get('x1', 1)
+        self.x10 = kwargs.get('x1', 10)
+        self.x100_text = kwargs.get('x1', '100')
 
 
 class MainView(GridLayout):
@@ -23,47 +34,42 @@ class MainView(GridLayout):
         # arguments for CompositeListItem. The cls_dicts list contains argument
         # sets for each of the member widgets for this composite:
         # ListItemButton and Label.
-        def left_button_args(rec, key):
-            return {'cls': ListItemButton, 'kwargs': {'text': key}}
-
-        def middle_label_args(rec, key):
+        def left_button_args(data_item):
             return {
-                'cls': Label,
-                'kwargs': {'text': "x10={0}".format(rec['x10'])}}
+                'component_class': ListItemButton,
+                'component_kwargs': {'text': str(data_item.x1)}}
 
-        def right_button_args(rec, key):
+        def middle_label_args(data_item):
             return {
-                'cls': ListItemButton,
-                'kwargs': {'text': str(rec['x100_text'])}}
+                'component_class': Label,
+                'component_kwargs': {'text': "x10={0}".format(data_item.x10)}}
 
-        args_converter = lambda index, rec, key: \
-            {'text': key,
+        def right_button_args(data_item):
+            return {
+                'component_class': ListItemButton,
+                'component_kwargs': {'text': str(data_item.x100_text)}}
+
+        args_converter = lambda index, data_item: \
+            {'text': str(index),
              'size_hint_y': None,
              'height': 25,
-             'carry_selection_to_children': True,
              'bind_selection_from_children': True,
-             'cls_dicts': [left_button_args(rec, key),
-                           middle_label_args(rec, key),
-                           right_button_args(rec, key)]}
+             'component_args': [left_button_args(data_item),
+                                middle_label_args(data_item),
+                                right_button_args(data_item)]}
 
-        integers_dict = \
-            {str(i): {'x10': i * 10,
-                       'x100_text': 'x100={0}'.format(i * 100),
-                       'is_selected': False} for i in range(100)}
+        i_mult_data = \
+            [IntegerDataItem(
+                x1=i, x10=i * 10, x100_text= 'x100={0}'.format(i * 100))
+                    for i in range(100)]
 
-        item_strings = ["{0}".format(index) for index in range(100)]
+        controller = ListController(data=i_mult_data,
+                                    selection_mode='single',
+                                    allow_empty_selection=False)
 
-        dict_adapter = DictAdapter(sorted_keys=item_strings,
-                                   data=integers_dict,
-                                   args_converter=args_converter,
-                                   selection_mode='single',
-                                   allow_empty_selection=False,
-                                   cls=CompositeListItem)
-
-        # Use the adapter in our ListView:
-        list_view = ListView(adapter=dict_adapter)
-
-        self.add_widget(list_view)
+        self.add_widget(ListView(data_binding=DataBinding(source=controller),
+                                 args_converter=args_converter,
+                                 list_item_class=CompositeListItem))
 
 
 if __name__ == '__main__':

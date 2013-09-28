@@ -22,4 +22,5 @@ class Controller(EventDispatcher):
     data = ObjectProperty(None, allownone=True)
 
     def __init__(self, **kwargs):
+
         super(Controller, self).__init__(**kwargs)

@@ -166,6 +166,7 @@ If you created the class yourself, you can use the 'on_<propname>' callback::
 '''
 
 __all__ = ('Property',
+           'Binding',
            'NumericProperty', 'StringProperty', 'ListProperty',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
@@ -257,12 +258,14 @@ cdef class Property:
         self.errorvalue = None
         self.errorhandler = None
         self.errorvalue_set = 0
+        self.op_change_info = None
 
     def __init__(self, defaultvalue, **kw):
         self.defaultvalue = defaultvalue
         self.allownone = <int>kw.get('allownone', 0)
         self.errorvalue = kw.get('errorvalue', None)
         self.errorhandler = kw.get('errorhandler', None)
+        self.op_change_info = kw.get('op_change_info', None)
 
         if 'errorvalue' in kw:
             self.errorvalue_set = 1
@@ -408,18 +411,6 @@ cdef class Property:
             value = ps.value
             for observer in ps.observers:
                 observer(obj, value)
-
-    cpdef dispatch_with_op_info(self, EventDispatcher obj, op_info):
-        '''Dispatch the value change to all observers.
-
-        .. versionadded:: 1.8
-
-        '''
-        cdef PropertyStorage ps = obj.__storage[self._name]
-        if len(ps.observers):
-            value = ps.value
-            for observer in ps.observers:
-                observer(obj, value, op_info)
 
 
 cdef class NumericProperty(Property):
@@ -805,13 +796,13 @@ class OpObservableList(list):
 
     def __setitem__(self, key, value):
         list.__setitem__(self, key, value)
-        op_observable_list_dispatch(self,
-               ListOpInfo('OOL_setitem', key, key))
+        self.op_change_info = ListOpInfo('OOL_setitem', key, key)
+        observable_list_dispatch(self)
 
     def __delitem__(self, key):
         list.__delitem__(self, key)
-        op_observable_list_dispatch(self,
-               ListOpInfo('OOL_delitem', key, key))
+        self.op_change_info = ListOpInfo('OOL_delitem', key, key)
+        observable_list_dispatch(self)
 
     def __setslice__(self, *largs):
         #
@@ -827,8 +818,8 @@ class OpObservableList(list):
         start_index = largs[0]
         end_index = largs[1] - 1
         list.__setslice__(self, *largs)
-        op_observable_list_dispatch(self,
-                ListOpInfo('OOL_setslice', start_index, end_index))
+        self.op_change_info = ListOpInfo('OOL_setslice', start_index, end_index)
+        observable_list_dispatch(self)
 
     def __delslice__(self, *largs):
         # Delete the slice of a from index b to index c-1. del a[b:c],
@@ -837,41 +828,41 @@ class OpObservableList(list):
         start_index = largs[0]
         end_index = largs[1] - 1
         list.__delslice__(self, *largs)
-        op_observable_list_dispatch(self,
-                ListOpInfo('OOL_delslice', start_index, end_index))
+        self.op_change_info = ListOpInfo('OOL_delslice', start_index, end_index)
+        observable_list_dispatch(self)
 
     def __iadd__(self, *largs):
         start_index = len(self)
         end_index = start_index + len(largs) - 1
         list.__iadd__(self, *largs)
-        op_observable_list_dispatch(self,
-                ListOpInfo('OOL_iadd', start_index, end_index))
+        self.op_change_info = ListOpInfo('OOL_iadd', start_index, end_index)
+        observable_list_dispatch(self)
 
     def __imul__(self, *largs):
         num = largs[0]
         start_index = len(self)
         end_index = start_index + (len(self) * num)
         list.__imul__(self, *largs)
-        op_observable_list_dispatch(self,
-                ListOpInfo('OOL_imul', start_index, end_index))
+        self.op_change_info = ListOpInfo('OOL_imul', start_index, end_index)
+        observable_list_dispatch(self)
 
     def append(self, *largs):
         index = len(self)
         list.append(self, *largs)
-        op_observable_list_dispatch(self,
-                ListOpInfo('OOL_append', index, index))
+        self.op_change_info = ListOpInfo('OOL_append', index, index)
+        observable_list_dispatch(self)
 
     def remove(self, *largs):
         index = self.index(largs[0])
         list.remove(self, *largs)
-        op_observable_list_dispatch(self,
-                ListOpInfo('OOL_remove', index, index))
+        self.op_change_info = ListOpInfo('OOL_remove', index, index)
+        observable_list_dispatch(self)
 
     def insert(self, *largs):
         index = largs[0]
         list.insert(self, *largs)
-        op_observable_list_dispatch(self,
-                ListOpInfo('OOL_insert', index, index))
+        self.op_change_info = ListOpInfo('OOL_insert', index, index)
+        observable_list_dispatch(self)
 
     def pop(self, *largs):
         if largs:
@@ -879,16 +870,16 @@ class OpObservableList(list):
         else:
             index = len(self) - 1
         result = list.pop(self, *largs)
-        op_observable_list_dispatch(self,
-                ListOpInfo('OOL_pop', index, index))
+        self.op_change_info = ListOpInfo('OOL_pop', index, index)
+        observable_list_dispatch(self)
         return result
 
     def extend(self, *largs):
         start_index = len(self)
         end_index = start_index + len(largs[0]) - 1
         list.extend(self, *largs)
-        op_observable_list_dispatch(self,
-                ListOpInfo('OOL_extend', start_index, end_index))
+        self.op_change_info = ListOpInfo('OOL_extend', start_index, end_index)
+        observable_list_dispatch(self)
 
     def start_sort_op(self, op, *largs, **kwds):
         self.sort_largs = largs
@@ -897,8 +888,8 @@ class OpObservableList(list):
 
         # Trigger the "sort is starting" callback to the adapter, so it can do
         # pre-sort writing of the current arrangement of indices and data.
-        op_observable_list_dispatch(self,
-                ListOpInfo('OOL_sort_start', 0, 0))
+        self.op_change_info = ListOpInfo('OOL_sort_start', 0, 0)
+        observable_list_dispatch(self)
 
     def finish_sort_op(self):
         largs = self.sort_largs
@@ -913,8 +904,8 @@ class OpObservableList(list):
 
         # Finalize. Will go back to adapter for handling cached_views,
         # selection, and prep for triggering data_changed on ListView.
-        op_observable_list_dispatch(self,
-                ListOpInfo(sort_op, 0, len(self) - 1))
+        self.op_change_info = ListOpInfo(sort_op, 0, len(self) - 1)
+        observable_list_dispatch(self)
 
     def sort(self, *largs, **kwds):
         self.start_sort_op('OOL_sort', *largs, **kwds)
@@ -925,8 +916,8 @@ class OpObservableList(list):
     def batch_delete(self, indices):
         for index in indices:
             list.__delitem__(self, index)
-        op_observable_list_dispatch(self,
-                ListOpInfo('batch_delete', 0, len(self) - 1))
+        self.op_change_info = ListOpInfo('batch_delete', 0, len(self) - 1)
+        observable_list_dispatch(self)
 
 
 class ListOpHandler(object):
@@ -980,12 +971,6 @@ class DictOpInfo(object):
         self.keys = keys
 
 
-cdef inline void op_observable_dict_dispatch(object self,
-                                             object op_info):
-    cdef Property prop = self.prop
-    prop.dispatch_with_op_info(self.obj, op_info)
-
-
 class OpObservableDict(dict):
     '''This class is used as a cls argument to
     :class:`~kivy.properties.DictProperty` as an alternative to the default
@@ -996,7 +981,7 @@ class OpObservableDict(dict):
     :class:`~kivy.properties.ObservableDict` instance, which dispatches grossly
     for any change, but with no info about the change.
 
-    Range-observing and granular (per op) data is stored in op_info for use by
+    Range-observing and granular (per op) data is stored in op_change_info for use by
     an observer.
 
     .. versionchanged:: 1.8.0
@@ -1018,8 +1003,6 @@ class OpObservableDict(dict):
 
         super(OpObservableDict, self).__init__(*largs[2:])
 
-        self.op_info = None
-
     def _weak_return(self, item):
         if isinstance(item, ref):
             return item()
@@ -1036,7 +1019,7 @@ class OpObservableDict(dict):
                 raise KeyError(attr)
 
     def __setattr__(self, attr, value):
-        if attr in ('prop', 'obj', 'op_info'):
+        if attr in ('prop', 'obj', 'op_change_info'):
             super(OpObservableDict, self).__setattr__(attr, value)
             return
         self.__setitem__(attr, value)
@@ -1044,16 +1027,16 @@ class OpObservableDict(dict):
     def __setitem__(self, key, value):
 
         if key in self.keys():
-            op_info = DictOpInfo('OOD_setitem_set', (key, ))
+            self.op_change_info = DictOpInfo('OOD_setitem_set', (key, ))
         else:
-            op_info = DictOpInfo('OOD_setitem_add', (key, ))
+            self.op_change_info = DictOpInfo('OOD_setitem_add', (key, ))
         dict.__setitem__(self, key, value)
-        op_observable_dict_dispatch(self, op_info)
+        observable_dict_dispatch(self)
 
     def __delitem__(self, key):
         dict.__delitem__(self, key)
-        op_observable_dict_dispatch(self,
-                DictOpInfo('OOD_delitem', (key, )))
+        self.op_change_info = DictOpInfo('OOD_delitem', (key, ))
+        observable_dict_dispatch(self)
 
     def clear(self, *largs):
         # Store a local copy of self, because the clear() will
@@ -1061,8 +1044,8 @@ class OpObservableDict(dict):
         recorder = self
         dict.clear(self, *largs)
         self = recorder
-        op_observable_dict_dispatch(self,
-                DictOpInfo('OOD_clear', (None, )))
+        self.op_change_info = DictOpInfo('OOD_clear', (None, ))
+        observable_dict_dispatch(self)
 
     def pop(self, *largs):
         key = largs[0]
@@ -1072,8 +1055,8 @@ class OpObservableDict(dict):
         # raised. But the key is always largs[0], so store that.
         # s.pop([i]) is same as x = s[i]; del s[i]; return x
         result = dict.pop(self, *largs)
-        op_observable_dict_dispatch(self,
-                DictOpInfo('OOD_pop', (key, )))
+        self.op_change_info = DictOpInfo('OOD_pop', (key, ))
+        observable_dict_dispatch(self)
         return result
 
     def popitem(self, *largs):
@@ -1095,11 +1078,11 @@ class OpObservableDict(dict):
 
         value = self[key]
 
-        # NOTE: We have no set to self.op_info for
+        # NOTE: We have no set to self.op_change_info for
         # OOD_popitem, because the following del self[key] will trigger a
         # OOD_delitem, which should suffice for the owning collection view
         # (e.g., ListView) to react as it would for OOD_popitem. If we set
-        # self.op_info with OOD_popitem here, we get a
+        # self.op_change_info with OOD_popitem here, we get a
         # double-callback.
         del self[key]
         return key, value
@@ -1107,27 +1090,27 @@ class OpObservableDict(dict):
     def setdefault(self, *largs):
         present_keys = self.keys()
         key = largs[0]
-        op_info = None
+        self.op_change_info = None
         if key not in present_keys:
-            op_info = DictOpInfo('OOD_setdefault', (key, ))
+            self.op_change_info = DictOpInfo('OOD_setdefault', (key, ))
         result = dict.setdefault(self, *largs)
-        if op_info:
-            op_observable_dict_dispatch(self, op_info)
+        if self.op_change_info:
+            observable_dict_dispatch(self)
         return result
 
     def update(self, *largs):
-        op_info = None
+        self.op_change_info = None
         present_keys = self.keys()
         if present_keys:
-            op_info = DictOpInfo(
+            self.op_change_info = DictOpInfo(
                     'OOD_update',
                     list(set(largs[0].keys()) - set(present_keys)))
         dict.update(self, *largs)
-        if op_info:
-            op_observable_dict_dispatch(self, op_info)
+        if self.op_change_info:
+            observable_dict_dispatch(self)
 
     def setitem_for_insert(self, key, value):
-        # Do not dispatch. The adapter will do an insert to sorted_keys, which
+        # Do not dispatch. The adapter will do an insert to data, which
         # will trigger a change event.
         dict.__setitem__(self, key, value)
 
@@ -1693,8 +1676,7 @@ cdef class TransformProperty(Property):
     :Parameters:
        `subject`: string
            Name of the property to which op/func is to be applied (Default:
-           'data' for controllers and list adapter, or 'sorted_keys' for
-           DictAdapter)
+           'data' for controllers)
        `func`: Python lambda or function
            Applied to subject
        `bind`: list
@@ -1742,8 +1724,6 @@ cdef class TransformProperty(Property):
             if hasattr(obj, 'data'):
                 # NOTE: obj can be an external obj, or it can be self.
                 data = getattr(obj, 'data')
-            if data is None and hasattr(obj, 'sorted_keys'):
-                data = getattr(obj, 'sorted_keys')
         else:
             if isinstance(self.subject, tuple):
                 owner, prop_name = self.subject
@@ -1795,12 +1775,6 @@ cdef class TransformProperty(Property):
                     and 'data' not in self.bind_objects
                     and hasattr(obj, 'data')):
                 self.bind_objects.append('data')
-
-        if self._name != 'sorted_keys':
-            if (self.subject is None
-                    and 'sorted_keys' not in self.bind_objects
-                    and hasattr(obj, 'sorted_keys')):
-                self.bind_objects.append('sorted_keys')
 
         for prop in self.bind_objects:
             if isinstance(prop, tuple):
@@ -1866,22 +1840,16 @@ cdef class FilterProperty(TransformProperty):
     held in such a collection is needed.
 
     If the 'sequence' parameter is omitted to initialize FilterProperty, it is
-    set to 'data' or 'sorted_keys', depending on whether the owning class is a
-    ListController of ListAdapter, or a DictAdapter. For other needs, provide
-    the name of the ListProperty or sequence on which the op is to be
-    performed, as the 'sequence' parameter.
+    set to 'data' of controllers.  For other needs, provide the name of the
+    ListProperty or sequence on which the op is to be performed, as the
+    'subject' parameter.
 
     NOTE: reduce was removed in Python 3. Use an alternative approach with an
           AliasProperty, and perhaps a list comprehension in the getter.
 
     :Parameters:
-        `op`: string
-            Choice of operations (filter, reduce, map) (Default: 'FILTER')
-        `sequence`: string
-            Name of sequence to which op/func is applied (Default: 'data', or
-            'sorted_keys')
         `func`: Python lambda or function
-            Applied to sequence
+            Applied to subject
     '''
     def __init__(self, func, **kwargs):
         kwargs['op'] = 'FILTER'
@@ -1901,20 +1869,16 @@ cdef class MapProperty(TransformProperty):
     collection are frequently needed.
 
     If the 'sequence' parameter is omitted to initialize FilterProperty, it is
-    set to 'data' or 'sorted_keys', depending on whether the owning class is a
-    ListController of ListAdapter, or a DictAdapter. For other needs, provide
-    the name of the ListProperty or sequence on which the map is to be
-    performed, as the 'sequence' parameter.
+    set to 'data' of controllers.  For other needs, provide the name of the
+    ListProperty or sequence on which the map is to be performed, as the
+    'subject' parameter.
 
     NOTE: reduce was removed in Python 3. Use an alternative approach with an
           AliasProperty, and perhaps a list comprehension in the getter.
 
     :Parameters:
-        `sequence`: string
-            Name of sequence to which op/func is applied (Default: 'data', or
-            'sorted_keys')
         `func`: Python lambda or function
-            Applied to sequence
+            Applied to subject
     '''
     def __init__(self, func, **kwargs):
         kwargs['op'] = 'MAP'

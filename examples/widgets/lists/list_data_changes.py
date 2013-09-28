@@ -8,26 +8,17 @@ from kivy.lang import Builder
 from kivy.logger import Logger
 from random import sample
 
+from kivy.binding import Binding
+from kivy.controllers.listcontroller import ListController
+from kivy.controllers.dictcontroller import DictController
 from kivy.models import SelectableDataItem
-from kivy.adapters.listadapter import ListAdapter
-from kivy.adapters.dictadapter import DictAdapter
-
+from kivy.properties import DictProperty
 from kivy.properties import ListProperty
 from kivy.properties import StringProperty
-
 from kivy.selection import SelectionTool
-
 from kivy.uix.listview import ListItemButton
 from kivy.uix.screenmanager import Screen
 from kivy.uix.screenmanager import ScreenManager
-
-
-class KeyedListItemButton(ListItemButton):
-
-    key = StringProperty('')
-
-    def __init__(self, **kwargs):
-        super(KeyedListItemButton, self).__init__(**kwargs)
 
 
 class CustomDataItem(SelectableDataItem):
@@ -40,6 +31,9 @@ class CustomDataItem(SelectableDataItem):
 Builder.load_string('''
 #:import choice random.choice
 #:import sample random.sample
+#:import binding_modes kivy.enums.binding_modes
+#:import DataBinding kivy.binding.DataBinding
+#:import ListItemButton kivy.uix.listview.ListItemButton
 #:import Logger kivy.logger.Logger
 
 <ItemsScreen>:
@@ -63,14 +57,16 @@ Builder.load_string('''
                 text: 'TEST OpObservableList'
 
             ListView:
-                adapter: app.list_adapter
-
                 canvas:
                     Color:
                         rgba: .4, .4, .4, .4
                     Rectangle:
                         pos: self.pos
                         size: self.size
+                args_converter: app.args_converter
+                list_item_class: 'ListItemButton'
+                DataBinding:
+                    source: app.list_controller
 
             GridLayout:
                 size_hint: .3, None
@@ -114,7 +110,7 @@ Builder.load_string('''
     #                width:80
     #                height: 30
     #                text: 'iadd'
-    #                on_release: app.list_adapter.data += \
+    #                on_release: app.list_controller.data += \
     #                        [choice(app.nato_alphabet_words)] * 3
     #
     #            Button:
@@ -122,7 +118,7 @@ Builder.load_string('''
     #                width:80
     #                height: 30
     #                text: 'imul'
-    #                on_release: app.list_adapter.data *= 2
+    #                on_release: app.list_controller.data *= 2
     #
                 Label:
                     size_hint: None, None
@@ -205,14 +201,16 @@ Builder.load_string('''
                 text: 'TEST OpObservableDict'
 
             ListView:
-                adapter: app.dict_adapter
-
                 canvas:
                     Color:
                         rgba: .4, .4, .4, .4
                     Rectangle:
                         pos: self.pos
                         size: self.size
+                args_converter: app.args_converter
+                list_item_class: 'ListItemButton'
+                DataBinding:
+                    source: app.dict_controller
 
             GridLayout:
                 size_hint: .3, None
@@ -304,7 +302,8 @@ class Test(App):
         'Oscar', 'Papa', 'Quebec', 'Romeo', 'Sierra', 'Tango', 'Uniform',
         'Victor', 'Whiskey', 'X-ray', 'Yankee', 'Zulu'])
 
-    object_data = ListProperty([])
+    data_items = ListProperty([])
+    data_dict = DictProperty([])
 
     def create_list_item_obj(self):
         return CustomDataItem(text=choice(self.nato_alphabet_words))
@@ -312,45 +311,34 @@ class Test(App):
     def create_list_item_obj_list(self, n):
         return [CustomDataItem(text=choice(self.nato_alphabet_words))] * n
 
-    def objects_args_converter(self, row_index, obj):
+    def args_converter(self, row_index, obj):
         return {"text": obj.text,
                 "size_hint_y": None,
                 "height": 25}
 
-    def dict_args_converter(self, row_index, rec, key):
-        return {"text": "{0} : {1}".format(rec['key'], rec['value']),
-                "key": rec['key'],
-                "size_hint_y": None,
-                "height": 25}
-
     def insert_into_dict(self, index):
-        key = self.random_10()
-        self.dict_adapter.insert(index, key, {'key': key, 'value': key})
+        key = CustomDataItem(text=self.random_10())
+        self.dict_controller.insert(index, key, CustomDataItem(text=self.random_10()))
 
     def random_10(self):
         return ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
 
-    def alphabet_dict(self):
-        return {k: {'key': k, 'value': k, 'ksel': SelectionTool(False)} for k in self.nato_alphabet_words}
-
     def build(self):
 
         for word in self.nato_alphabet_words:
-            self.object_data.append(CustomDataItem(text=word))
+            self.data_items.append(CustomDataItem(text=word))
+            self.data_dict[CustomDataItem(text=word)] = CustomDataItem(text=word)
 
-        self.list_adapter = ListAdapter(
-                data=self.object_data,
-                cls=ListItemButton,
+        self.list_controller = ListController(
+                data=self.data_items,
                 selection_mode='single',
-                allow_empty_selection=False,
-                args_converter=self.objects_args_converter)
+                allow_empty_selection=False)
 
-        self.dict_adapter = DictAdapter(
-                data=self.alphabet_dict(),
-                cls=KeyedListItemButton,
+        self.dict_controller = DictController(
+                data=sorted(self.data_dict.keys()),
+                data_dict=self.data_dict,
                 selection_mode='single',
-                allow_empty_selection=False,
-                args_converter=self.dict_args_converter)
+                allow_empty_selection=False)
 
         self._screen_manager = ScreenManager()
 
@@ -365,113 +353,115 @@ class Test(App):
         return self.create_list_item_obj_list(how_many)
 
     def list_setitem(self):
-        sel_index = self.list_adapter.selection[0].index
+        sel_index = self.list_controller.data.index(self.list_controller.selection[0])
 
-        self.list_adapter.data[sel_index] = self.new_item()
+        self.list_controller.data[sel_index] = self.new_item()
 
     def list_delitem(self):
-        del self.list_adapter.data[self.list_adapter.selection[0].index]
+        sel_index = self.list_controller.data.index(self.list_controller.selection[0])
+        del self.list_controller.data[sel_index]
 
     def list_setslice(self):
-        sel_index = self.list_adapter.selection[0].index
+        sel_index = self.list_controller.data.index(self.list_controller.selection[0])
 
-        self.list_adapter.data[sel_index:sel_index + 3] = self.new_data(3)
+        self.list_controller.data[sel_index:sel_index + 3] = self.new_data(3)
 
     def list_delslice(self):
-        sel_index = self.list_adapter.selection[0].index
+        sel_index = self.list_controller.data.index(self.list_controller.selection[0])
 
-        del self.list_adapter.data[sel_index:sel_index + 3]
+        del self.list_controller.data[sel_index:sel_index + 3]
 
     def list_append(self):
-        self.list_adapter.data.append(self.new_item())
+        self.list_controller.data.append(self.new_item())
 
     def list_remove(self):
-        sel_index = self.list_adapter.selection[0].index
+        sel_index = self.list_controller.data.index(self.list_controller.selection[0])
 
-        item = self.list_adapter.data[sel_index]
+        item = self.list_controller.data[sel_index]
 
-        self.list_adapter.data.remove(item)
+        self.list_controller.data.remove(item)
 
     def list_insert(self):
-        sel_index = self.list_adapter.selection[0].index
+        sel_index = self.list_controller.data.index(self.list_controller.selection[0])
 
-        self.list_adapter.data.insert(sel_index, self.new_item())
+        self.list_controller.data.insert(sel_index, self.new_item())
 
     def list_pop(self):
-        self.list_adapter.data.pop()
+        self.list_controller.data.pop()
 
     def list_pop_i(self):
-        sel_index = self.list_adapter.selection[0].index
+        sel_index = self.list_controller.data.index(self.list_controller.selection[0])
 
-        self.list_adapter.data.pop(sel_index)
+        self.list_controller.data.pop(sel_index)
 
     def list_extend(self):
-        self.list_adapter.data.extend(self.new_data(3))
+        self.list_controller.data.extend(self.new_data(3))
 
     def list_sort(self):
-        self.list_adapter.data.sort(key=lambda obj: obj.text)
+        self.list_controller.data.sort(key=lambda obj: obj.text)
 
     def list_reverse(self):
-        self.list_adapter.data.reverse()
+        self.list_controller.data.reverse()
 
     def dict_setitem_set(self):
-        sel_key = self.dict_adapter.selection[0].key
+        sel_key = self.dict_controller.selection[0]
 
-        if self.dict_adapter.selection:
-            new_item = {'key': sel_key, 'value': self.random_10(), 'ksel': SelectionTool(False)}
-            self.dict_adapter.data[sel_key] = new_item
+        if self.dict_controller.selection:
+            self.dict_controller.data_dict[sel_key] = CustomDataItem(text=self.random_10())
         else:
             Logger.info('Testing: No selection. Cannot setitem set.')
 
     def dict_setitem_add(self):
-        k = self.random_10()
-        self.dict_adapter.data[k] = {'key': k, 'value': k, 'ksel': SelectionTool(False)}
+        k = CustomDataItem(text=self.random_10())
+        self.dict_controller.data_dict[k] = CustomDataItem(text=k)
 
     def dict_delitem(self):
-        sel_index = self.dict_adapter.selection[0].index
+        sel_index = self.dict_controller.data.index(self.dict_controller.selection[0])
 
-        sel_key = self.dict_adapter.sorted_keys[sel_index]
+        sel_key = self.dict_controller.data[sel_index]
 
-        del self.dict_adapter.data[sel_key]
+        del self.dict_controller.data_dict[sel_key]
 
     def dict_clear(self):
-        self.dict_adapter.data.clear()
+        self.dict_controller.data_dict.clear()
 
     def dict_pop(self):
-        sel_index = self.dict_adapter.selection[0].index
+        sel_index = self.dict_controller.data.index(self.dict_controller.selection[0])
 
-        sel_key = self.dict_adapter.sorted_keys[sel_index]
+        sel_key = self.dict_controller.data[sel_index]
 
-        if self.dict_adapter.data.keys():
-            self.dict_adapter.data.pop(sel_key)
+        if self.dict_controller.data_dict.keys():
+            self.dict_controller.data_dict.pop(sel_key)
         else:
             Logger.info('Testing: Data is empty. Cannot pop.')
 
     def dict_popitem(self):
-        if self.dict_adapter.data.keys():
-            self.dict_adapter.data.popitem()
+        if self.dict_controller.data_dict.keys():
+            self.dict_controller.data_dict.popitem()
         else:
             Logger.info('Testing: Data is empty. Cannot popitem.')
 
     def dict_setdefault(self):
-        k = self.random_10()
-        self.dict_adapter.data.setdefault(k, {'key': k, 'value': k, 'ksel': SelectionTool(False)})
+        k = CustomDataItem(text=self.random_10())
+        self.dict_controller.data_dict.setdefault(k, CustomDataItem(text=k))
 
     def dict_update(self):
-        k1 = self.random_10()
-        k2 = self.random_10()
-        k3 = self.random_10()
+        k1 = CustomDataItem(text=self.random_10())
+        k2 = CustomDataItem(text=self.random_10())
+        k3 = CustomDataItem(text=self.random_10())
 
-        self.dict_adapter.data.update(
-                {k1: {'key': k1, 'value': k1, 'ksel': SelectionTool(False)},
-                 k2: {'key': k2, 'value': k2, 'ksel': SelectionTool(False)},
-                 k3: {'key': k3, 'value': k3, 'ksel': SelectionTool(False)}})
+        self.dict_controller.data_dict.update(
+                {k1: CustomDataItem(text=k1),
+                 k2: CustomDataItem(text=k2),
+                 k3: CustomDataItem(text=k3)})
 
     def dict_insert(self):
-        self.insert_into_dict(self.dict_adapter.selection[0].index)
+        sel_index = self.dict_controller.data.index(self.dict_controller.selection[0])
+        self.insert_into_dict(sel_index)
 
     def dict_sort(self):
-        self.dict_adapter.sorted_keys.sort(key=lambda k: k.lower())
+        self.dict_controller.data.sort(key=lambda k: k.text.lower())
 
 if __name__ == '__main__':
     Test().run()
+

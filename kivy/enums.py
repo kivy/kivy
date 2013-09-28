@@ -1,6 +1,4 @@
-__all__ = ('selection_update_methods',
-           'selection_schemes',
-           'binding_modes',
+__all__ = ('binding_modes',
            'binding_transforms', )
 
 
@@ -13,75 +11,6 @@ class Enum(set):
         if name in self:
             return name
         raise AttributeError
-
-
-class SelectionUpdateMethodsEnum(Enum):
-    '''An enum used in the Selection class, to configure how updating of model
-    data items is to be done:
-
-        * NOTIFY:
-
-            - Use Kivy's events system to notify observers of selectable
-              items for changes (Set initial value, but after that, update via
-              bindings).
-
-        * SET:
-
-            - When selection of view item happens, propagate to the associated
-              item by direct call.
-
-    Set selection_update_method in combination with setting selection_scheme.
-    See the SelectionSchemesEnum class here, and the Selection class.
-    '''
-    def __init__(self):
-        super(SelectionUpdateMethodsEnum, self).__init__([
-            'NOTIFY', 'SET'])
-
-
-class SelectionSchemesEnum(Enum):
-    '''An enum used in the Selection class, with choices:
-
-        * VIEW_ON_DATA:
-
-            - selection state is loaded from data for view creation
-
-            - data selection IS NOT updated from selection on views
-
-        * VIEW_DRIVEN:
-
-            - selection state is loaded from data for view creation
-
-            - data selection IS updated from selection on views
-
-        * DATA_DRIVEN:
-
-            - selection state is loaded from data for view creation
-
-            - view selection is updated from selection on data
-
-            - view selection in the UI may be inactive, or may augment
-              selection driven by data
-
-        * DATA_VIEW_COUPLED:
-
-            - selection state is loaded from data for view creation
-
-            - view selection is updated from selection on data
-
-            - data selection is updated from selection on views
-
-        * OBJECT:
-
-            - selection for a single set of objects, which can be anything
-
-    .. versionadded:: 1.8
-
-    '''
-
-    def __init__(self):
-        super(SelectionSchemesEnum, self).__init__([
-            'VIEW_ON_DATA', 'VIEW_DRIVEN', 'DATA_DRIVEN',
-            'DATA_VIEW_COUPLED', 'OBJECT'])
 
 
 class BindingModeEnum(Enum):
@@ -106,14 +35,16 @@ class BindingModeEnum(Enum):
     #       treatment seems good: ('http://msdn.microsoft.com/en-us/library/'
     #                              'system.windows.data.bindingmode.aspx.')
     #
-    # Their OneWayToSource, seems the equivalent of REVERSE, but why couldn't
+    # Their OneWayToSource, seems the equivalent of a reverse, but why couldn't
     # another binding be done instead?
     #
-    # Do we need a ONE_TIME like theirs?
+    # Do we need a ONE_TIME like theirs? SproutCore has something like this,
+    # for when you want to have something happen once. Kivy has something
+    # already for schedule...
     #
     def __init__(self):
         super(BindingModeEnum, self).__init__([
-            'ONE_WAY', 'FIRST_ITEM', 'TWO-WAY'])
+            'ONE_WAY', 'FIRST_ITEM', 'TWO_WAY'])
 
 
 class BindingTransformsEnum(Enum):
@@ -136,7 +67,5 @@ class BindingTransformsEnum(Enum):
             'TRANSFORM', 'FILTER', 'MAP'])
 
 
-selection_update_methods = SelectionUpdateMethodsEnum()
-selection_schemes = SelectionSchemesEnum()
 binding_modes = BindingModeEnum()
 binding_transforms = BindingTransformsEnum()

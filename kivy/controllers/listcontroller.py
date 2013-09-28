@@ -85,56 +85,55 @@ hold the single selection from a ListController.
 
 '''
 
+from kivy.binding import Binding
+from kivy.binding import DataBinding
+from kivy.controllers.controller import Controller
+from kivy.controllers.utils import handle_initial_value
+from kivy.controllers.utils import bind_binding
+from kivy.event import EventDispatcher
+from kivy.properties import ObjectProperty
 from kivy.properties import OpObservableList
+from kivy.properties import ListOpHandler
+from kivy.properties import ListOpInfo
 from kivy.properties import ListProperty
 from kivy.selection import Selection
-
-from kivy.controllers.controller import Controller
-from kivy.controllers.list_ops import ControllerListOpHandler
-from kivy.controllers.utils import parse_binding
-from kivy.controllers.utils import bind_binding
+from kivy.uix.listview import ListItemLabel
 
 __all__ = ('ListController', )
 
 
-class ListController(Selection, Controller):
+class ListController(Selection, EventDispatcher):
 
     data = ListProperty([], cls=OpObservableList)
+
+    data_binding = ObjectProperty(None, allownone=True)
+
+    # TODO: Add arranged_data, as a proxy to data that honors the sort rules
+    #       given in an order_by func that sorts on chosen properties and
+    #       orders. Perhaps this can be:
+    #
+    #           order_by = ObjectProperty(None)
+    #
+    #           arranged_data = TransformProperty(
+    #                   subject='data',
+    #                   op=binding_transforms.TRANSFORM,
+    #                   transform=order_by)
+    #
 
     __events__ = ('on_data_change', )
 
     def __init__(self, **kwargs):
 
-        data_binding, kwargs = parse_binding('data', kwargs)
-        selection_binding, kwargs = parse_binding('selection', kwargs)
+        if 'data_binding' not in kwargs:
+            kwargs['data_binding'] = DataBinding()
 
         super(ListController, self).__init__(**kwargs)
 
-        if data_binding:
-            bind_binding(self, data_binding)
-        if selection_binding:
-            bind_binding(self, selection_binding)
-
-        self.list_op_handler = \
-                ControllerListOpHandler(source_list=self.data,
-                                        duplicates_allowed=True)
-
-        self.bind(data=self.list_op_handler.data_changed)
-
-    def update_data_from_first_item(self, *args):
-        # For data, we set as a list with the only item as the first item.
-        l = args[1]
-        if l:
-            self.data = [l[0]]
-
-    def update_selection_from_first_item(self, *args):
-        # For selection, we set as a list with the only item as the first item.
-        l = args[1]
-        if l:
-            self.selection = [l[0]]
+        self.data_binding.bind_to(self, 'data')
+        self.bind(data=self.data_changed)
 
     # TODO: See comment in ListAdapter about getting rid of this event, and
-    # just relying on observing data.
+    #       just relying on observing data.
     def on_data_change(self, *args):
         '''on_data_change() is the default handler for the on_data_change
         event.
@@ -145,6 +144,9 @@ class ListController(Selection, Controller):
         return len(self.data)
 
     def get_selectable_item(self, index):
+
+        if not self.data:
+            return None
 
         if index < 0 or index > len(self.data) - 1:
             return None
@@ -185,7 +187,7 @@ class ListController(Selection, Controller):
         self.data.append(item)
 
     def delete(self, item):
-            self.data.remove(item)
+        self.data.remove(item)
 
     def sorted(self):
         return sorted(self.data)
@@ -199,18 +201,20 @@ class ListController(Selection, Controller):
         '''Cut list items with indices in sorted_keys that are less than the
         index of the first selected item if there is a selection.
         '''
-        if len(self.selection) > 0:
+        selection = self.selection
+        if len(selection) > 0:
             first_sel_index = \
-                    min([self.data.index(sel) for sel in self.selection])
+                    min([self.data.index(sel) for sel in selection])
             self.data = self.data[first_sel_index:]
 
     def trim_right_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are greater than
         the index of the last selected item if there is a selection.
         '''
-        if len(self.selection) > 0:
+        selection = self.selection
+        if len(selection) > 0:
             last_sel_index = \
-                    max([self.data.index(sel) for sel in self.selection])
+                    max([self.data.index(sel) for sel in selection])
             self.data = self.data[:last_sel_index + 1]
 
     def trim_to_sel(self, *args):
@@ -219,8 +223,9 @@ class ListController(Selection, Controller):
         selection. This preserves intervening list items within the selected
         range.
         '''
-        if len(self.selection) > 0:
-            sel_indices = [self.data.index(sel) for sel in self.selection]
+        selection = self.selection
+        if len(selection) > 0:
+            sel_indices = [self.data.index(sel) for sel in selection]
             first_sel_index = min(sel_indices)
             last_sel_index = max(sel_indices)
             self.data = self.data[first_sel_index:last_sel_index + 1]
@@ -229,5 +234,239 @@ class ListController(Selection, Controller):
         '''Same as trim_to_sel, but intervening list items within the selected
         range are also cut, leaving only list items that are selected.
         '''
-        if len(self.selection) > 0:
-            self.data = self.selection
+        selection = self.selection
+        if len(selection) > 0:
+            self.data = selection
+
+    def data_changed(self, *args):
+        '''This method reacts following operations that are possible for an
+        OpObservableList (OOL) instance in a controller:
+
+            handle_add_first_item_op()
+
+                OOL_append
+                OOL_extend
+                OOL_insert
+
+            handle_add_op()
+
+                OOL_append
+                OOL_extend
+                OOL_iadd
+                OOL_imul
+
+            handle_insert_op()
+
+                OOL_insert
+
+            handle_setitem_op()
+
+                OOL_setitem
+
+            handle_setslice_op()
+
+                OOL_setslice
+
+            handle_delete_op()
+
+                OOL_delitem
+                OOL_delslice
+                OOL_remove
+                OOL_pop
+
+            handle_sort_op()
+
+                OOL_sort
+                OOL_reverse
+
+            These methods adjust selection for the controller.
+        '''
+
+        if not hasattr(self.data, 'op_change_info'):
+            op_info = ListOpInfo('OOL_set', 0, 0)
+        else:
+            op_info = self.data.op_change_info
+
+            if not op_info:
+                op_info = ListOpInfo('OOL_set', 0, 0)
+
+        # Make a copy in the controller for more convenient access by
+        # observers.
+        self.data_op_info = op_info
+
+        op = op_info.op_name
+        start_index = op_info.start_index
+        end_index = op_info.end_index
+
+        print 'ListController op', op
+
+        if op == 'OOL_sort_start':
+
+            self.sort_started(*args)
+
+        if op == 'OOL_set':
+
+            self.handle_set()
+
+        elif (len(self.data) == 1
+                and op in ['OOL_append',
+                           'OOL_insert',
+                           'OOL_extend']):
+
+            self.handle_add_first_item_op()
+
+        else:
+
+            if op in ['OOL_iadd',
+                      'OOL_imul',
+                      'OOL_append',
+                      'OOL_extend']:
+
+                self.handle_add_op()
+
+            elif op in ['OOL_setitem']:
+
+                self.handle_setitem_op(start_index)
+
+            elif op in ['OOL_setslice']:
+
+                self.handle_setslice_op(start_index, end_index)
+
+            elif op in ['OOL_insert']:
+
+                self.handle_insert_op(start_index)
+
+            elif op in ['OOL_delitem',
+                        'OOL_delslice',
+                        'OOL_remove',
+                        'OOL_pop']:
+
+                self.handle_delete_op(start_index, end_index)
+
+            elif op in ['OOL_sort',
+                        'OOL_reverse']:
+
+                self.handle_sort_op()
+
+        self.dispatch('on_data_change')
+
+    def handle_set(self):
+
+        if not self.selection_binding:
+            self.initialize_selection()
+
+    def handle_add_first_item_op(self):
+        '''Special case: deletion resulted in no data, leading up to the
+        present op, which adds one or more items.  Call
+        check_for_empty_selection() to re-establish selection if needed.
+        '''
+
+        if not self.selection_binding:
+            self.check_for_empty_selection()
+
+    def handle_add_op(self):
+        '''An item was added to the end of the list. This shouldn't affect
+        anything here.
+        '''
+        pass
+
+    def handle_insert_op(self, index):
+        '''An item was added at index. No effect anticipated.
+        '''
+        pass
+
+    def handle_setitem_op(self, index):
+        '''If the item view was selected before, maintain the
+        selection.
+        '''
+
+        self.check_for_empty_selection(initialize_selection=True)
+
+    def handle_setslice_op(self, start_index, end_index):
+        '''Although it is hard to guess what might be preferred, a "positional"
+        priority for selection is observed here, where the indices of selected
+        item views is maintained. We so something similar to
+        check_for_empty_selection() if no selection remains after the op.
+        '''
+
+        if not self.selection_binding:
+            changed_indices = range(start_index, end_index + 1)
+
+            sel_indices_for_removal = []
+            for index, sel in enumerate(self.selection):
+                if sel not in self.data:
+                    sel_indices_for_removal.append(index)
+            self.selection.batch_delete(reversed(sel_indices_for_removal))
+
+            # Do a check_for_empty_selection type step, if data remains.
+            data = self.data
+            if (len(data) > 0
+                    and not self.selection
+                    and not self.allow_empty_selection):
+                # Find a good index to select, if the deletion results in
+                # no selection, which is common, as the selected item is
+                # often the one deleted.
+                if start_index < len(data):
+                    new_sel_index = start_index
+                else:
+                    new_sel_index = start_index - 1
+                item = self.get_selectable_item(new_sel_index)
+                if item is not None:
+                    self.handle_selection(item)
+
+    def handle_delete_op(self, start_index, end_index):
+        '''An item has been deleted. Reset selection.
+        '''
+
+        if not self.selection_binding:
+            deleted_indices = range(start_index, end_index + 1)
+
+            sel_indices_for_removal = []
+            for index, sel in enumerate(self.selection):
+                if sel not in self.data:
+                    sel_indices_for_removal.append(index)
+            self.selection.batch_delete(reversed(sel_indices_for_removal))
+
+            self.check_for_empty_selection()
+#            # Do a check_for_empty_selection type step, if data remains.
+#            if (len(self.data) > 0
+#                    and not self.selection
+#                    and not self.allow_empty_selection):
+#                # Find a good index to select, if the deletion results in
+#                # no selection, which is common, as the selected item is
+#                # often the one deleted.
+#                if start_index < len(self.data):
+#                    new_sel_index = start_index
+#                else:
+#                    new_sel_index = start_index - 1
+#                item = self.get_selectable_item(new_sel_index)
+#                if item is not None:
+#                    self.handle_selection(item)
+
+    def sort_started(self, *args):
+        pass
+
+        # Save a pre-sort order, and position detail, if there are duplicates
+        # of strings.
+#        self.presort_indices_and_items = {}
+
+        # Not yet implemented. See adapters/list_ops.py for inspiration.
+
+#        self.data.finish_sort_op()
+
+    def handle_sort_op(self):
+        '''Data has been sorted or reversed. Use the pre-sort information about
+        previous ordering, stored in the associated op_info instance.
+        '''
+        pass
+
+#        presort_indices_and_items = self.presort_indices_and_items
+
+        # We have an association of presort indices with data items.
+        # Where is each data item after sort? Change the index of the
+        # item to match present position.
+
+        # Not yet implemented. See adapters/list_ops.py for inspiration.
+
+        # Clear temporary storage.
+#        self.presort_indices_and_items.clear()

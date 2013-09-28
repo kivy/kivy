@@ -7,9 +7,6 @@ import unittest
 from random import sample
 from random import choice
 
-from kivy.adapters.listadapter import ListAdapter
-from kivy.adapters.objectadapter import ObjectAdapter
-
 from kivy.binding import Binding
 
 from kivy.controllers.controller import Controller
@@ -24,6 +21,7 @@ from kivy.event import EventDispatcher
 from kivy.factory import Factory
 from kivy.lang import Builder
 from kivy.models import SelectableDataItem
+from kivy.models import SelectableStringItem
 
 from kivy.properties import AliasProperty
 from kivy.properties import BooleanProperty
@@ -36,8 +34,6 @@ from kivy.properties import StringProperty
 from kivy.properties import TransformProperty
 
 from kivy.selection import SelectionTool
-from kivy.selection import selection_update_methods
-from kivy.selection import selection_schemes
 
 from kivy.uix.label import Label
 from kivy.uix.listview import SelectableView
@@ -678,8 +674,8 @@ class OpObservableListOpsTestCase(unittest.TestCase):
         after = self.list_controller.get_selectable_item(sel_index)
         # The item should be a new object.
         self.assertNotEqual(before, after)
-        # The new item should not be selected.
-        self.assertFalse(after.ksel.is_selected())
+        # The new item should be selected.
+        self.assertTrue(after.ksel.is_selected())
 
     def test_OOL_delitem_op(self):
         sel_index = self.list_controller.data.index(self.list_controller.selection[0])
@@ -757,73 +753,3 @@ class ListControllerInteroperabilityTestCase(unittest.TestCase):
         self.fruits_controller.selection = self.fruits_controller.large_fruits
         self.assertEqual(self.fruits_controller.selection,
                          self.fruits_controller.large_fruits)
-
-    def test_list_controller_interoperating_with_adapters(self):
-
-        list_item_args_converter = \
-                lambda row_index, selectable: {'text': selectable.name,
-                                               'size_hint_y': None,
-                                               'height': 25}
-
-        self.fruits = ListController(
-                data=fruit_data_items,
-                allow_empty_selection=False)
-
-        self.fruit_categories = ListController(
-                data=category_data_items,
-                allow_empty_selection=False)
-
-        self.fruit_categories_list_adapter = ListAdapter(
-                data=Binding(source=self.fruit_categories, prop='data'),
-                args_converter=list_item_args_converter,
-                selection_mode='single',
-                allow_empty_selection=False,
-                cls=ListItemButton)
-
-        self.current_category_view = ObjectController(
-                data=Binding(source=self.fruit_categories_list_adapter,
-                             prop='selection',
-                             mode=binding_modes.FIRST_ITEM))
-
-        self.current_category = TransformController(
-                data=Binding(source=self.current_category_view,
-                             prop='data',
-                             transform=lambda v: category_data_items[v.index]))
-
-        def fruits_for_category(category):
-            # TODO: The lambda commented out below has the reference to
-            #       App.app().current_category.data.fruits inside a list
-            #       comprehension, which results in repeated calls. Here we do
-            #       the call once, and use the result in the comprehension.
-            #       Also tried the lambda with a generator.
-            cat_fruits = self.current_category.data.fruits
-            return [f for f in fruit_data_items if f.name in cat_fruits]
-
-        self.category_fruits = TransformController(
-                data=Binding(source=self.current_category,
-                             prop='data',
-                             transform=(binding_transforms.TRANSFORM, fruits_for_category)))
-                                 #lambda fruits: [f for f in App.app().fruits.data if f.name in App.app().current_category.data.fruits])))
-
-        self.current_fruits_adapter = ListAdapter(
-                data=Binding(source=self.category_fruits, prop='data'),
-                args_converter=list_item_args_converter,
-                selection_mode='single',
-                allow_empty_selection=False,
-                cls=ListItemButton)
-
-        self.current_fruit = TransformController(
-                data=Binding(source=self.current_fruits_adapter,
-                             prop='selection',
-                             mode=binding_modes.FIRST_ITEM,
-                             transform=(binding_transforms.TRANSFORM,
-                                        lambda v: self.current_fruits_adapter.data[v.index])))
-
-        self.current_fruit_adapter = ObjectAdapter(
-                data=Binding(source=self.current_fruit,
-                             prop='data'),
-                args_converter=lambda row_index, fruit: {'text': fruit.name},
-                cls=ListItemLabel)
-
-        grapefruit_view_item = self.current_fruit_adapter.get_view(0)
-        self.assertEqual(grapefruit_view_item.text, 'Grapefruit')

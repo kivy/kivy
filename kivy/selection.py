@@ -83,17 +83,15 @@ Elements that control selection behaviour:
 __all__ = ('Selection', 'SelectionTool', )
 
 from kivy.enums import Enum
-from kivy.enums import selection_update_methods
-from kivy.enums import selection_schemes
 from kivy.event import EventDispatcher
 from kivy.properties import BooleanProperty
-from kivy.properties import ListOpHandler
 from kivy.properties import ListOpInfo
 from kivy.properties import ListProperty
 from kivy.properties import NumericProperty
 from kivy.properties import ObjectProperty
 from kivy.properties import OpObservableList
 from kivy.properties import OptionProperty
+from kivy.uix.widget import Widget
 
 
 _selection_ops = Enum(['SELECT', 'DESELECT', 'DESELECT_AND_CHECK'])
@@ -207,173 +205,42 @@ class Selection(EventDispatcher):
 
     '''
 
-    selection_update_method = OptionProperty(
-            selection_update_methods.NOTIFY,
-            options=tuple(selection_update_methods))
-    '''
-    Selection update methods:
-
-        * *NOTIFY*, Use Kivy's events system to notify observers of selectable
-          items for changes,
-
-        * *SET*, When selection of either data or view item happens, propagate
-          to the associated item by direct call.
-
-    Consider a use of scheme = VIEW_DRIVEN, wherein anytime a view
-    item's selection changes, its associated data item is to be selected also.
-    In such a scheme, for a select, selection_update_method is either NOTIFY or
-    SET, for which one of the following would be done:
-
-        NOTIFY:
-
-            view_instance.ksel.select()
-            view_instance.dispatch('selection_changed')
-
-        SET:
-
-            view_instance.ksel.select()
-
-    So, set selection_update_method in combination with setting
-    scheme.
-
-    .. versionadded:: 1.8
-
-    :data:`selection_update_method` is an
-    :class:`~kivy.properties.OptionProperty` that defaults to NOTIFY.
-
-    '''
-
-    selection_scheme = OptionProperty(
-            selection_schemes.VIEW_ON_DATA, options=tuple(selection_schemes))
-    '''
-    Selection schemes:
-
-        * *VIEW-ON-DATA*, in which selection is confined to views (data items
-          are read for parameter values used to create views for them, but they
-          are not selected, and their selection state is not read).
-
-        * *VIEW-DRIVEN*, a one-way arrangement, in which selection of view
-          items drives the selection of associated data items,
-
-        * *DATA-DRIVEN*, vice-versa, a one-way arrangement, in which
-          selection of data items drives the selection of associated view
-          items, in addition to UI selection of views,
-
-        * *DATA-VIEW-COUPLED*, a two-way arrangement, in which selection of
-          either will be reflected in the other,
-
-        * *OBJECT*, for use on a set of objects that can be anything, from list
-          items, dictionary values, objects, event to views, but views for
-          which no data items are associated.
-
-    The class that uses selection will always have data, but may or may not
-    have views based on that data.
-
-    Examples that use selection and have both views and data include:
-
-        * an adapter, a view-caching and view-creating system,
-
-        * a controller, which does not create views, but may manage them,
-
-        * a state of a statechart, which is most often functioning as a kind of
-          controller.
-
-    Examples that use selection on data only include:
-
-        * a list controller of shapes
-
-        * a list controller of searchable items
-
-    For VIEW-DRIVEN, DATA-DRIVEN, and DAVA-VIEW-COUPLED schemes, bindings are
-    set up in one or more directions between data items and the views that
-    represent them.
-
-    For the OBJECT selection scheme, no bindings are needed, and selection is
-    simply set.
-
-    The OBJECT selection scheme is used when there is only one set of items for
-    which selection is to be managed. These data can be anything, objects,
-    dicts, views, but they are not associated, at least in the context of
-    selection, with another set of data.
-
-    The VIEW_ON_DATA scheme is probably more common. Consider a shopping list
-    application for shopping for fruits at the market.  Using a ListView, with
-    its adapter and selection, the app allows for the selection of fruits to
-    buy for each day of the week, presenting seven lists: one for each day of
-    the week. Each list is loaded with all the available fruits, but the
-    selection for each is a subset.  There is only one set of fruit model data
-    shared between the lists, so it would not make sense to sync selection with
-    the model data because selection in any of the seven lists would clash and
-    mix with that of the others.
-
-    The VIEW_DRIVEN and DATA_VIEW_COUPLED schemes can be used for storing
-    selection state in a local database or backend database for maintaining
-    state in game play or other similar scenarios.  Consider a game that uses
-    the same fruits model data for selecting fruits available for
-    fruit-tossing. A given round of play could have a full fruits list, with
-    fruits available for tossing shown selected. If the game is saved and
-    rerun, the full fruits list, with selection marked on each item, would be
-    reloaded correctly if selection is always synced to the model data. You
-    could accomplish the same functionality by writing code to operate on list
-    selection, but having selection stored in the data might prove to be
-    convenient or more efficient.
-
-    The DATA_DRIVEN scheme is appropriate for situations where some external
-    source updates selection of the data, and the user interface is to reflect
-    that. This is similar to DATA_VIEW_COUPLED. For example, consider a user
-    interface tied to some piece of machinery that analyses available tools for
-    a task in an assembly plant, based on physical conditions and throughput
-    values that limit which tools are viable in realtime. An operator views a
-    screen to see what tools are currently available, and selects one for the
-    next task.
-
-    .. versionadded:: 1.8
-
-    :data:`selection_scheme` is an :class:`~kivy.properties.OptionProperty`
-    that defaults to VIEW_ON_DATA.
-    '''
-
     _is_handling_selection = BooleanProperty(False)
+    selection_binding = ObjectProperty(None, allownone=True)
+    remove_on_deselect = BooleanProperty(False)
 
-    _selection_source_list = ObjectProperty(None)
-    _selection_source_dict = ObjectProperty(None)
-
-    # TODO: Now that selection works as it should as an observable property (in
-    #       1.8), the on_selection_change event is perhaps no longer needed?
     __events__ = ('on_selection_change', )
 
     def __init__(self, **kwargs):
 
         super(Selection, self).__init__(**kwargs)
 
-        # Selection is used in three different classes. Set the source list
-        # based on this info. Compare how the source_list works in
-        # ListOpHandler and DictOpHandler.
-        # TODO: This deferred import is OK?
-        from kivy.adapters.dictadapter import DictAdapter
-
-        if isinstance(self, DictAdapter):
-            self._selection_source_list = self.sorted_keys
-            self._selection_source_dict = self.data
-        else:
-            self._selection_source_list = self.data
-
         self.bind(selection=self.selection_changed)
 
         self.bind(selection_mode=self.selection_mode_changed,
-                  allow_empty_selection=self.check_for_empty_selection)
+                  allow_empty_selection=self.initialize_selection)
 
-        # NOTE: We do not call initialize_selection here, as once occurred,
-        #       because as of 1.8 selection can be passed in on creation, and
-        #       it may be modified externally. We do need to check if an empty
-        #       selection list was provided, but that selection is not allowed
-        #       to be empty.
-        self.check_for_empty_selection()
+        # NOTE: If selection is bound to an external controller or property,
+        #       we do not initialize selection, but we do check it for
+        #       agreement with allow_empty_selection and
+        #       allow_multiple_selection.
+        #
+        #       Also, we do not call initialize_selection here if selection was
+        #       passed in, but we do need to check_for_empty_selection() in
+        #       this case. Otherwise, initialize_selection(), which calls
+        #       check_for_empty_selection().
+        if self.selection_binding:
+            self.selection_binding.bind_to(self, 'selection')
+            self.selection = getattr(self.selection_binding.source,
+                                     self.selection_binding.prop)
+        elif 'selection' in kwargs:
+            self.check_for_empty_selection()
+        else:
+            self.initialize_selection()
 
     def selection_mode_changed(self, *args):
         if self.selection_mode == 'none':
-            for selected in self.selection:
-                self.deselect_item(selected)
+            self.deselect_list(self.selection)
         else:
             self.check_for_empty_selection()
 
@@ -395,70 +262,82 @@ class Selection(EventDispatcher):
         '''
         return self.selection[-1] if self.selection else None
 
-    def handle_selection(self, item, hold_dispatch=False, *args):
-        return_op = None
+    def handle_selection(
+            self, item, process_for_batch=False, initialize_selection=False):
+        op_for_batch = None
 
         additions = []
         removals = []
 
+        if isinstance(item, Widget):
+            item = self.data[item.index]
+
         if item not in self.selection:
-            if self.selection_mode in ['none', 'single'] and \
-                    len(self.selection) > 0:
+            if (self.selection_mode in ['none', 'single']
+                    and len(self.selection) > 0):
                 for selected in self.selection:
-                    if hold_dispatch:
-                        return_op = _selection_ops.DESELECT
+                    if process_for_batch:
+                        op_for_batch = _selection_ops.DESELECT
                     else:
                         self.deselect_item(selected,
                                            remove_from_selection=False)
-                        removals.append(selected)
+                        if not initialize_selection:
+                            removals.append(selected)
+            if initialize_selection:
+                len_selection = 0
+            else:
+                len_selection = len(self.selection)
             if self.selection_mode != 'none':
                 if self.selection_mode == 'multiple':
                     if self.allow_empty_selection:
                         # If None, selection_limit is not active.
                         if self.selection_limit is None:
-                            if hold_dispatch:
-                                return_op = _selection_ops.SELECT
+                            if process_for_batch:
+                                op_for_batch = _selection_ops.SELECT
                             else:
                                 self.select_item(item,
                                                  add_to_selection=False)
                                 additions.append(item)
                         else:
-                            if len(self.selection) < self.selection_limit:
-                                if hold_dispatch:
-                                    return_op = _selection_ops.SELECT
+                            if len_selection < self.selection_limit:
+                                if process_for_batch:
+                                    op_for_batch = _selection_ops.SELECT
                                 else:
                                     self.select_item(item,
                                                      add_to_selection=False)
                                     additions.append(item)
                     else:
-                        if hold_dispatch:
-                            return_op = _selection_ops.SELECT
+                        if process_for_batch:
+                            op_for_batch = _selection_ops.SELECT
                         else:
                             self.select_item(item,
                                              add_to_selection=False)
                             additions.append(item)
                 else:
-                    if hold_dispatch:
-                        return_op = _selection_ops.SELECT
+                    if process_for_batch:
+                        op_for_batch = _selection_ops.SELECT
                     else:
                         self.select_item(item, add_to_selection=False)
                         additions.append(item)
         else:
 
-            if hold_dispatch:
-                return_op = _selection_ops.DESELECT_AND_CHECK
+            if process_for_batch:
+                op_for_batch = _selection_ops.DESELECT_AND_CHECK
             else:
                 self.deselect_item(item, remove_from_selection=False)
                 removals.append(item)
 
-        if return_op is not None:
+        if op_for_batch is not None:
             self._is_handling_selection = False
-            return return_op
+            return op_for_batch
 
-        selection_copy = list(self.selection)
+        if initialize_selection:
+            selection_copy = []
+        else:
+            selection_copy = list(self.selection)
 
-        for r in removals:
-            selection_copy.remove(r)
+            for r in removals:
+                selection_copy.remove(r)
 
         for a in additions:
             selection_copy.append(a)
@@ -467,11 +346,18 @@ class Selection(EventDispatcher):
         self.selection = selection_copy
         self._is_handling_selection = False
 
+        # If the selection just done is a deselection, and
+        # allow_empty_selection is False, then an item must be selected in a
+        # second call.
         if self.selection_mode != 'none':
             self.check_for_empty_selection()
 
-        if not hold_dispatch:
-            self.dispatch('on_selection_change')
+        if self.remove_on_deselect:
+            indices_for_deletion = []
+            for item in removals:
+                indices_for_deletion.append(self.data.index(item))
+            for index in reversed(indices_for_deletion):
+                del self.data[index]
 
     def select_item(self, item, add_to_selection=True):
 
@@ -483,20 +369,7 @@ class Selection(EventDispatcher):
             ksel = item.ksel
 
         if ksel:
-
             ksel.select()
-
-            if (self.selection_scheme in [selection_schemes.VIEW_DRIVEN,
-                                          selection_schemes.DATA_VIEW_COUPLED]
-                and
-                self.selection_update_method == selection_update_methods.SET):
-
-                data_item = self.get_data_item(item.index)
-
-                if isinstance(data_item, dict) and 'ksel' in data_item:
-                    data_item['ksel'].select()
-                elif hasattr(data_item, 'ksel'):
-                    data_item.ksel.select()
 
         if add_to_selection:
             self.selection.append(item)
@@ -533,15 +406,16 @@ class Selection(EventDispatcher):
         self._handle_batch(selectable_items)
 
     def _handle_batch(self, selectable_items):
-        # Use hold_dispatch to keep handle_selection() from calling select or
-        # deselect methods, which avoids changing selection. Collect the select
-        # and deselect ops that handle_selection() reports are needed (this way
-        # we use the same logic there), and then do the ops in a quick loop,
-        # followed by a batch call for the actual selection list changes.
+        # Use process_for_batch to keep handle_selection() from calling select
+        # or deselect methods, which avoids changing selection. Collect the
+        # select and deselect ops that handle_selection() reports are needed
+        # (this way we use the same logic there), and then do the ops in a
+        # quick loop, followed by a batch call for the actual selection list
+        # changes.
 
         ops = []
         for item in selectable_items:
-            ops.append(self.handle_selection(item, hold_dispatch=True))
+            ops.append(self.handle_selection(item))
 
         check_for_empty_selection = False
 
@@ -571,8 +445,8 @@ class Selection(EventDispatcher):
             self.is_handling_selection = False
         elif sel_deletes:
             self.is_handling_selection = True
-            # sel_deletes contains indices.
-            self.selection.batch_delete(reversed(sel_deletes))
+            self.selection.batch_delete(
+                    reversed([self.data.index(sd) for sd in sel_deletes]))
             self.is_handling_selection = False
 
         # Also, see the logic in handle_selection(), which includes calling
@@ -583,7 +457,7 @@ class Selection(EventDispatcher):
             if self.selection_mode != 'none':
                 self.check_for_empty_selection()
 
-        self.dispatch('on_selection_change')
+#        self.dispatch('on_selection_change')
 
     def deselect_item(self, item, remove_from_selection=True):
 
@@ -598,52 +472,36 @@ class Selection(EventDispatcher):
 
             ksel.deselect()
 
-            if (self.selection_scheme in [selection_schemes.VIEW_DRIVEN,
-                                          selection_schemes.DATA_VIEW_COUPLED]
-                and
-                self.selection_update_method == selection_update_methods.SET):
-
-                data_item = self.get_data_item(item.index)
-
-                if isinstance(data_item, dict) and 'ksel' in data_item:
-                    data_item['ksel'].deselect()
-                elif hasattr(data_item, 'ksel'):
-                    data_item.ksel.deselect()
-
         if remove_from_selection:
             self.selection.remove(item)
 
     def initialize_selection(self, *args):
-        if len(self.selection) > 0:
-            self._is_handling_selection = True
-            self.selection = []
-            self._is_handling_selection = False
-            self.dispatch('on_selection_change')
 
-        self.check_for_empty_selection()
+        self.check_for_empty_selection(initialize_selection=True)
 
-    def check_for_empty_selection(self, *args):
+    def check_for_empty_selection(self, initialize_selection=False):
+
         if not self.allow_empty_selection:
-            if len(self.selection) == 0:
+            if len(self.selection) == 0 or initialize_selection:
                 # Select the first item if we have it.
-                if hasattr(self, 'get_view'):
-                    view = self.get_view(0)
-                    if view is not None:
-                        self.handle_selection(view)
+                if hasattr(self, 'get_data_item'):
+                    item = self.get_data_item(0)
+                    if item is not None:
+                        self.handle_selection(
+                            item, initialize_selection=initialize_selection)
                 elif hasattr(self, 'get_selectable_item'):
                     item = self.get_selectable_item(0)
-                    self.handle_selection(item)
+                    if item is not None:
+                        self.handle_selection(
+                            item, initialize_selection=initialize_selection)
 
     def selection_changed(self, *args):
+
+        if self.selection is None:
+            return
+
         '''This method handles adjustments after operations on the selection
         list happen.
-
-        Compare to code in ControllerListOpHandler and AdapterListOpHandler,
-        which perform a similar role, except those have to manage cached_views.
-
-        A main difference here is that the primary function is to channel selection
-        changes through the system, not to adjust associated values, and to assure
-        that selection items conform to the current selection parameters.
 
         .. versionadded 1.8
 
@@ -686,7 +544,6 @@ class Selection(EventDispatcher):
 
                 OOL_sort
                 OOL_reverse
-
         '''
 
         if self._is_handling_selection:
@@ -697,6 +554,10 @@ class Selection(EventDispatcher):
             op_info = args[2]
         else:
             op_info = ListOpInfo('OOL_set', 0, 0)
+
+        # Make a copy in the controller for more convenient access by
+        # observers.
+        self.selection_op_info = op_info
 
         # NOTE: At this point in the op handlers for list controller and
         #       adapters, there is a set that here would be:
@@ -768,43 +629,28 @@ class Selection(EventDispatcher):
 
                 self.handle_sort_op()
 
-    # NOTE: We do not dispatch here, because handle_selection does dispatching.
+        self.dispatch('on_selection_change')
 
     def do_ksel_op(self, op, items):
-        # We could be servicing selection for a DictAdapter, in which case
-        # items are keys in sorted_keys, with which we must look up the
-        # selectable item in the self.data dict. Otherwise, the items are
-        # selectables.
-        if self._selection_source_dict:
-            if op == 'select':
-                for key in items:
-                    sel = self._selection_source_dict[key]
-                    if not sel['ksel'].is_selected():
-                        sel['ksel'].select()
+
+        if not items:
+            return
+
+        for item in items:
+            if isinstance(item, dict):
+                ksel = item['ksel']
             else:
-                for key in items:
-                    sel = self._selection_source_dict[key]
-                    if sel['ksel'].is_selected():
-                        sel['ksel'].deselect()
-        else:
-            for item in items:
-                if isinstance(item, dict):
-                    ksel = item['ksel']
-                else:
-                    ksel = item.ksel
-                if op == 'select':
-                    if not ksel.is_selected():
-                        ksel.select()
-                else:
-                    if ksel.is_selected():
-                        ksel.deselect()
+                ksel = item.ksel
+            if op == 'select':
+                if not ksel.is_selected():
+                    ksel.select()
+            else:
+                if ksel.is_selected():
+                    ksel.deselect()
 
     def handle_set(self):
 
-        # Selection has been set externally, so the items in the
-        # _selection_source_list which were previously part of selection are
-        # still selected. Find them and unselect them.
-        self.do_ksel_op('deselect', self._selection_source_list)
+        self.do_ksel_op('deselect', self.selection)
 
         # Now we can treat it as an add op.
         self.handle_add_op()
@@ -840,7 +686,7 @@ class Selection(EventDispatcher):
     def handle_setitem_op(self, index):
 
         # Find the item formerly at that index in selection and deselect it.
-        self.do_ksel_op('deselect', self._selection_source_list)
+        self.do_ksel_op('deselect', self.selection)
 
         sel = self.selection[index]
         if isinstance(sel, dict):
@@ -853,7 +699,7 @@ class Selection(EventDispatcher):
 
         # Find the items formerly at these indices in selection, within the
         # source list, and deselect them.
-        self.do_ksel_op('deselect', self._selection_source_list)
+        self.do_ksel_op('deselect', self.selection)
 
         changed_indices = range(start_index, end_index + 1)
 
@@ -865,7 +711,7 @@ class Selection(EventDispatcher):
 
         # Find the items formerly at these indices in selection, within the
         # source list, and deselect them.
-        self.do_ksel_op('deselect', self._selection_source_list)
+        self.do_ksel_op('deselect', self.selection)
 
     def sort_started(self, *args):
 
@@ -882,8 +728,6 @@ class Selection(EventDispatcher):
     def handle_sort_op(self):
 
         # TODO: We don't care about a sort, but go through the motions?
-
-        presort_indices_and_items = self.presort_indices_and_items
 
         # We have an association of presort indices with data items.
         # Where is each data item after sort? Change the index of the

@@ -123,7 +123,6 @@ cdef class EventDispatcher(ObjectWithUid):
         for event in events:
             self.__event_stack[event] = []
 
-
     def __init__(self, **kwargs):
         cdef str func, name, key
         cdef dict properties

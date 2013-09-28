@@ -4,7 +4,8 @@ from string import ascii_uppercase, digits
 
 import random
 
-from kivy.adapters.listadapter import ListAdapter
+from kivy.binding import DataBinding
+from kivy.controllers.listcontroller import ListController
 from kivy.clock import Clock
 from kivy.enums import selection_schemes
 from kivy.models import SelectableDataItem
@@ -21,9 +22,6 @@ class DataItem(SelectableDataItem):
 
 
 class MainView(FloatLayout):
-    """
-    Implementation of a ListView using the kv language.
-    """
 
     def __init__(self, **kwargs):
         super(MainView, self).__init__(**kwargs)
@@ -33,19 +31,19 @@ class MainView(FloatLayout):
         data_items.append(DataItem())
         data_items.append(DataItem())
 
-        list_item_args_converter = lambda row_index, obj: {'text': obj.name,
+        list_item_class_args = lambda row_index, obj: {'text': obj.name,
                                                            'size_hint_y': None,
                                                            'height': 25}
 
-        self.list_adapter = \
-                ListAdapter(data=data_items,
-                            args_converter=list_item_args_converter,
-                            selection_mode='single',
-                            selection_scheme=selection_schemes.DATA_DRIVEN,
-                            allow_empty_selection=False,
-                            cls=ListItemButton)
+        self.list_controller = ListController(
+                data=data_items,
+                selection_mode='single',
+                allow_empty_selection=False)
 
-        self.list_view = ListView(adapter=self.list_adapter)
+        self.list_view = ListView(
+                data_binding=DataBinding(source=self.list_controller),
+                args_converter=list_item_class_args,
+                list_item_class=ListItemButton)
 
         self.add_widget(self.list_view)
 
@@ -54,7 +52,7 @@ class MainView(FloatLayout):
         Clock.schedule_interval(self.update_list_data, 1)
 
     def update_list_data(self, dt):
-        items = self.list_adapter.data
+        items = self.list_controller.data
         if self.toggle == 'adding':
             item = DataItem(name='New ' * random.randint(1, 2))
             items.append(item)

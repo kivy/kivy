@@ -42,40 +42,113 @@ vertical scrollable list. :class:`AbstractView` has one property, adapter.
 
     For scrolling, added scroll_advance. Removed _count, which was unused.
 
+    With the removal of adapters/, only kivy.adapter.py remains, which is the
+    base class for ListView. There were many modifications to make the code
+    formerly in ListAdapter and its ListOpHandler work in ListView directly,
+    and in the new ListController, which takes over some of the functionality
+    of ListAdapter. One important change is the use of binding classes,
+    DataBinding and SelectionBinding, in the connection to ListController, and
+    as used in ListController for binding to data sources.
+
 Introduction
 ------------
 
-Lists are central parts of many software projects. Kivy's approach to lists
-includes providing solutions for simple lists, along with a substantial
-framework for building lists of moderate to advanced complexity. For the new
-user of the system, it can be difficult to ramp up from simple to advanced. For
-this reason, Kivy provides an extensive set of examples that you may wish to
-run first, to get a taste of the range of functionality offered. You can tell
-from the names of the examples that they illustrate the "ramping up" from
-simple to advanced:
+Lists are central parts of many software projects. Kivy's approach to lists,
+from Kivy 1.5 to 1.8, started with an emphasis on adapters, an influence from
+the Android platform.  This approach was replaced in Kivy 1.8 with a
+controller-based system that has similarities to Cocoa and SproutCore. Much of
+the code in the former ListAdapter and DictAdapter was reused in ListController
+and DictController, and there is still a lone Adapter base class for ListView.
+If you are familiar with the former adapter-based approach, you will want to
+study the examples and controller code for differences.
 
-    * kivy/examples/widgets/lists/list_simple.py
-    * kivy/examples/widgets/lists/list_simple_in_kv.py
-    * kivy/examples/widgets/lists/list_simple_in_kv_2.py
-    * kivy/examples/widgets/lists/list_master_detail.py
-    * kivy/examples/widgets/lists/list_two_up.py
-    * kivy/examples/widgets/lists/list_kv.py
-    * kivy/examples/widgets/lists/list_composite.py
+There is more to the change than a different set of names; the use of
+controllers allows a better separation of the "middle" logic code layer of a
+typical application from the "top" layer of views.
+
+Narrative discussion is provided below for using controllers, properties, and
+other constructs with ListView and related widgets, but you can learn a lot by
+running and perusing the code for the following examples:
+
+    * kivy/examples/widgets/lists/list_basic.py
     * kivy/examples/widgets/lists/list_cascade.py
-    * kivy/examples/widgets/lists/list_cascade_controllers.py
-    * kivy/examples/widgets/lists/list_cascade_dict.py
-    * kivy/examples/widgets/lists/list_cascade_images.py
-    * kivy/examples/widgets/lists/list_cascade_properties.py
-    * kivy/examples/widgets/lists/list_scroll.py
-    * kivy/examples/widgets/lists/list_ops.py
-    * kivy/examples/widgets/lists/list_reset_data.py
+    * kivy/examples/widgets/lists/list_composite.py
     * kivy/examples/widgets/lists/list_data_changes.py
+    * kivy/examples/widgets/lists/list_data_dynamic.py
+    * kivy/examples/widgets/lists/list_master_detail.py
     * kivy/examples/widgets/lists/list_of_carousels.py
+    * kivy/examples/widgets/lists/list_scroll.py
+    * kivy/examples/widgets/lists/list_selection_binding.py
 
-Many of the examples feature selection, some restricting selection to single
-selection, where only one item at at time can be selected, and others allowing
-multiple item selection. Many of the examples illustrate how selection in one
-list can be connected to action and selection in another view or another list.
+These examples have a common procedure for setting up listviews:
+
+    1) Make the controllers needed and set bindings to connect them.
+
+    2) Connect listviews to their controllers.
+
+    3) If data has not yet been set when controllers were created, set data in
+       the controllers when appropriate to make the listviews populate and
+       appear on the screen.
+
+This fits the traditional model-view-controller paradigm:
+
+    * Views such as ListView are on the top.
+
+    * Controllers, such as ListController, are in the middle, forming the
+      all-important bridge between data and views.
+
+    * Data, using the SelectableDataItem model class for each data item, are on
+      the bottom.
+
+Many of the examples feature selection. Selection is important for several
+reasons:
+
+    * controls how selection operates within a given list controller, and in
+      the listview that uses it:
+
+        - selection_mode can be 'single' or 'multiple'; if 'single', only one
+          item is allowed to be selected at a time
+
+        - selection can be automatic or not (allow_empty_selection can be
+          False, which means that if ever selection is empty, especially on the
+          initial load of data, the first item is selected automatically)
+
+    * offers a powerful way, along with appropriate bindings, for connecting
+      controllers, from one list controller to another, and for the very common
+      need to bind the first selected item in a list to an object controller.
+
+      For example, a list controller called fruits_controller would have
+      selection enabled, and an object controller, current_fruit_controller,
+      would be bound to the first selected item in fruits_controller. A
+      listview using fruits_controller and a view using
+      current_fruit_controller would automatically reflect any changes in fruit
+      selection.
+
+The examples are short one-file apps, which is convenient for learning, but do
+not illustrate a larger app's layout, which might be::
+
+    project/
+
+        __init__.py
+        main.py
+
+        controllers/
+            __init__.py
+            this_controller.py
+            that_controller.py
+
+        views/
+            __init__.py
+            this_view.py
+            that_view.py
+
+The project/ directory would contain the main.py and other principle files. The
+project/ directory and the two subdirectories would be set up for proper Python
+imports by use of the empty __init__.py file in each, an odd but faithful
+Python idiom. The controllers/ directory would contain multiple files, one for
+each controller in the app. The views/ directory would contain listviews and
+other widgets used in the app. Keep this example structure in mind when moving
+from the simple one-file examples to a real app.
 
 Find your own way of reading the documentation here, examining the source code
 for the example apps, and running the examples. Some may prefer to read the
@@ -85,8 +158,13 @@ code. No matter what you do, going back and forth will likely be needed.
 Basic Example
 -------------
 
-In its simplest form, we make a listview with 100 items::
+Here's how to make a listview with 100 items::
 
+    # Actual file is kivy/examples/widgets/lists/list_basic.py.
+    from kivy.binding import DataBinding
+    from kivy.controllers.listcontroller import ListController
+    from kivy.models import SelectableStringItem
+    from kivy.uix.listview import ListItemButton
     from kivy.uix.listview import ListView
     from kivy.uix.gridlayout import GridLayout
 
@@ -94,464 +172,161 @@ In its simplest form, we make a listview with 100 items::
     class MainView(GridLayout):
 
         def __init__(self, **kwargs):
-            kwargs['cols'] = 2
+            kwargs['cols'] = 1
             super(MainView, self).__init__(**kwargs)
 
+            def list_item_class_args(index, data_item):
+                return {'text': data_item.text,
+                        'size_hint_y': None,
+                        'height': 25}
+
+            list_controller = ListController(
+                data=[SelectableStringItem(text=str(index))
+                          for index in range(100)],
+                selection_mode='single',
+                allow_empty_selection=False)
+
             list_view = ListView(
-                item_strings=[str(index) for index in range(100)])
+                data_binding=DataBinding(
+                    source=list_controller),
+                args_converter=list_item_class_args,
+                list_item_class=ListItemButton)
 
             self.add_widget(list_view)
 
-
     if __name__ == '__main__':
         from kivy.base import runTouchApp
         runTouchApp(MainView(width=800))
 
-Or, we could declare the listview in using the kv language::
+This is about as short as we can make an app with a listview. There are three
+components added to the MainView:
 
-    from kivy.uix.modalview import ModalView
-    from kivy.uix.listview import ListView
-    from kivy.uix.gridlayout import GridLayout
+    - a helper args converter function to convert each data item into arguments
+      to pass for each list item creation, which you see in the ListView
+      declaration is ListItemButton,
+
+    - a list controller to hold the data and selection, which you see is
+      configured for single, automatic selection,
+
+    - a list view widget, which uses the list controller and the args converter
+      function.
+
+We can make the exact same app, declaring the listview using the kv language::
+
+    # Actual file is kivy/examples/widgets/lists/list_basic.py.
+    from kivy.app import App
+    from kivy.binding import DataBinding
+    from kivy.controllers.listcontroller import ListController
     from kivy.lang import Builder
+    from kivy.models import SelectableStringItem
+    from kivy.uix.gridlayout import GridLayout
 
     Builder.load_string("""
-    <ListViewModal>:
-        size_hint: None, None
-        size: 400, 400
+    #:import DataBinding kivy.binding.DataBinding
+    #:import binding_modes kivy.enums.binding_modes
+    #:import ListItemButton kivy.uix.listview.ListItemButton
+
+    <MainView>:
+        cols: 1
+
         ListView:
-            size_hint: .8, .8
-            item_strings: [str(index) for index in range(100)]
+            list_item_class: 'ListItemButton'
+            args_converter: app.list_item_class_args
+            DataBinding:
+                source: app.list_controller
     """)
-
-
-    class ListViewModal(ModalView):
-        def __init__(self, **kwargs):
-            super(ListViewModal, self).__init__(**kwargs)
 
 
     class MainView(GridLayout):
+        pass
+
+
+    class BasicApp(App):
 
         def __init__(self, **kwargs):
-            kwargs['cols'] = 1
-            super(MainView, self).__init__(**kwargs)
+            super(BasicApp, self).__init__(**kwargs)
 
-            listview_modal = ListViewModal()
+            self.list_controller = ListController(
+                data=[SelectableStringItem(text=str(index))
+                          for index in range(100)],
+                selection_mode='single',
+                allow_empty_selection=False)
 
-            self.add_widget(listview_modal)
+        def list_item_class_args(self, index, data_item):
+            return {'text': data_item.text,
+                    'size_hint_y': None,
+                    'height': 25}
 
+        def build(self):
+            return MainView(width=800)
 
     if __name__ == '__main__':
-        from kivy.base import runTouchApp
-        runTouchApp(MainView(width=800))
+        BasicApp().run()
 
-Using an Adapter
--------------------
+Some differences to note, compared to the first, non-kv version:
 
-You can declare a ListView with an adapter in a kv file, with special attention
-given to the way longer python blocks are indented::
+    - We need to declare an App class, so that we can use it for a convenient
+      global storage location, to which we use the handy app.attribute
+      references in kv.
 
-    from kivy.uix.modalview import ModalView
-    from kivy.uix.listview import ListView
-    from kivy.uix.gridlayout import GridLayout
-    from kivy.lang import Builder
-    from kivy.factory import Factory
+    - The MainView widget is declared in kv, and there is a matching class
+      defined in Python, in this case just the bare declaration with pass.
 
-    # Note the special nature of indentation in the adapter declaration, where
-    # the adapter: is on one line, then the value side must be given at one
-    # level of indentation.
+    - We added a build() method to return the MainView instance.
 
-    Builder.load_string("""
-    #:import Label kivy.uix.label.Label
-    #:import ListAdapter kivy.adapters.listadapter.ListAdapter
+    - In the ListView kv declaration, we used the kv syntax and indentation for
+      list_item_class, args_converter, and DataBinding.
 
-    <ListViewModal>:
-        size_hint: None, None
-        size: 400, 400
-        ListView:
-            size_hint: .8, .8
-            adapter:
-                ListAdapter(
-                data=["Item #{0}".format(i) for i in range(100)],
-                cls=Label)
-    """)
+Using Dynamic Classes as List Item Classes
+------------------------------------------
 
-
-    class ListViewModal(ModalView):
-        def __init__(self, **kwargs):
-            super(ListViewModal, self).__init__(**kwargs)
-
-
-    class MainView(GridLayout):
-
-        def __init__(self, **kwargs):
-            kwargs['cols'] = 1
-            super(MainView, self).__init__(**kwargs)
-
-            listview_modal = ListViewModal()
-
-            self.add_widget(listview_modal)
-
-
-    if __name__ == '__main__':
-        from kivy.base import runTouchApp
-        runTouchApp(MainView(width=800))
-
-ListAdapter and DictAdapter
----------------------------
-
-For many uses of a list, the data is more than a simple list of strings.
-:class:`~kivy.adapters.listadapter.ListAdapter` and
-:class:`~kivy.adapters.dictadapter.DictAdapter` cover these more elaborate
-needs.
-
-:class:`~kivy.adapters.listadapter.ListAdapter` is simpler than
-:class:`~kivy.adapters.dictadapter.DictAdapter`, so we can start with it.
-
-See the :class:`~kivy.adapters.listadapter.ListAdapter` docs for details, but
-here are synopses of its arguments:
-
-* *data*: class instances, dicts, etc. that form the basis data
-  for instantiating views. Items must be subclasses of SelectableDataItem, or
-  mix it in, or provide equivalent attributes.
-
-* *cls*: a Kivy view that is to be instantiated for each list item. There
-  are several built-in types available, including ListItemButton, or you can
-  make your own class that mixes in the required
-  `~kivy.uix.listview.SelectableView`, or build a custom class based in it.
-
-* *template*: the name of a Kivy language (kv) template that defines the
-  Kivy view for each list item.
-
-.. note::
-
-    Pick only one, cls or template, to provide as an argument.
-
-* *args_converter*: a function that takes a data item object as input, and
-  uses it to build and return an args dict, ready
-  to be used in a call to instantiate item views using the item view cls
-  or template. In the case of cls, the args dict acts as a
-  kwargs object. For a template, it is treated as a context
-  (ctx), but is essentially similar in form to kwargs usage.
-
-* *selection_mode*: a string for: 'single', 'multiple' or others.
-
-* *selection_scheme*: an enum for a choice of:
-
-    - selection_schemes.VIEW_ON_DATA (default), for which data items are
-      loaded, their selection state checked, and view items built to reflect
-      this; Selection of views in the UI is not carried back down to data.
-
-    - selection_schemes.VIEW_DRIVEN, same as VIEW_ON_DATA, but selection of
-      views IS carried back down to data items.
-
-    - selection_schemes.DATA_DRIVEN, same as VIEW_ON_DATA, but selection is not
-      active in the UI, but controlled by external changes to data item
-      selection.
-
-    - selection_schemes.DATA_VIEW_COUPLED, selection state is read from data
-      initially and view items contructed, and afterwards any changes to
-      selction of view items in the UI is carried back down to data, and any
-      external changes to data item selection is carried up to view items.
-
-    - selection_schemes.OBJECT, there is no concept of data items and view
-      items, there are just selectable items of any type.
-
-* *selection_update_method*: an enum for a choice of:
-
-    - selection_update_methods.NOTIFY (default), bindings are constructed for
-      carrying selection from view items to data items, and vice versa, as
-      needed.
-
-    - selection_update_methods.SET, when selection needs to be carried to data
-      from view items, or vice versa, make direct calls to the item selection
-      methods.
-
-* *allow_empty_selection*: a boolean, which if False, the default, forces
-  there to always be a selection, if there is data
-  available. If True, selection happens only as a
-  result of user action.
-
-In narrative, we can summarize with:
-
-    A listview's adapter takes data items and uses an args_converter
-    function to transform them into arguments for making list item view
-    instances, using either a cls or a kv template.
-
-In a graphic, a summary of the relationship between a listview and its
-list adapter, looks like this::
-
-    -                    ------------ ListAdapter or DictAdapter ------------
-    -                    |                                                  |
-    -                    | <list item views> (cls or template) <data items> |
-    -   ListView   -->   |                           [args_converter]       |
-    -                    |                                                  |
-    -                    |           <<< selection handling >>>             |
-    -                    |                                                  |
-    -                    ----------------------------------------------------
-
-:class:`~kivy.adapters.dictadapter.DictAdapter` has the same arguments and
-requirements as :class:`~kivy.adapters.listadapter.ListAdapter`, except:
-
-1) There is an additional argument, sorted_keys, which must meet the
-   requirements of normal python dictionary keys.
-
-2) The data argument is, as you would expect, a dict. Keys in the dict
-   must include the keys in the sorted_keys argument, but they may form a
-   superset of the keys in sorted_keys. Values may be strings, class
-   instances, dicts, etc. (The args_converter uses it, accordingly).
-
-3) The args_converter receives an additional arg, the dict key. For
-   ListAdapter, the calling signature for an args_converter is:
-
-       args_converter(index, data_item)
-
-   but for DictAdapter, it is:
-
-       args_converter(index, data_item, key)
-
-Using an Args Converter
------------------------
-
-:class:`~kivy.uix.listview.ListView` allows use of built-in list item views,
-such as :class:`~kivy.uix.listview.ListItemButton`, your own custom item view
-class, or a custom kv template. Whichever type of list item view is used, an
-args_converter function is needed to prepare, per list data item, args for
-either a cls or template.
-
-.. note::
-
-    ListItemLabel and ListItemButton, or custom classes like them, and not the
-    bare Label nor Button classes, are to be used.
-
-Here is an args_converter for ListAdapter, for use with the built-in
-:class:`~kivy.uix.listview.ListItemButton`, specified as a normal Python
-function::
-
-    def args_converter(index, an_obj):
-        return {'text': an_obj.some_prop,
-                'size_hint_y': None,
-                'height': 25}
-
-and as a lambda:
-
-    args_converter = lambda index, an_obj: {'text': an_obj.some_prop,
-                                            'size_hint_y': None,
-                                            'height': 25}
-
-In the args converter example above, the data item is assumed to be an object
-(class instance), hence the reference an_obj.some_prop.
-
-Here is an example of an args converter that works with list data items that
-are dicts::
-
-    args_converter = \
-            lambda index, obj, key: {'text': key + '-' + obj.some_prop,
-                                     'size_hint_y': None,
-                                     'height': 25}
-
-So, it is the responsibility of the developer to code the args_converter
-according to the data at hand. The index argument can be useful in some
-cases, such as when custom labels are needed.
-
-An Example ListView Coded with a ListAdapter
---------------------------------------------
-
-Now, to some example code::
-
-    from kivy.adapters.listadapter import ListAdapter
-    from kivy.uix.listview import ListItemButton, ListView
-
-    data = [{'text': str(i), 'is_selected': False} for i in range(100)]
-
-    args_converter = lambda index, rec: {'text': rec['text'],
-                                         'size_hint_y': None,
-                                         'height': 25}
-
-    list_adapter = ListAdapter(data=data,
-                               args_converter=args_converter,
-                               cls=ListItemButton,
-                               selection_mode='single',
-                               allow_empty_selection=False)
-
-    list_view = ListView(adapter=list_adapter)
-
-This listview will show 100 buttons with 0..100 labels. The args converter
-function works on dict items (rec, for record) in the data. ListItemButton
-views will be instantiated from the args converted by args_converter for each
-data item. The listview will only allow single selection -- additional touches
-will be ignored. When the listview is first shown, the first item will already
-be selected, because allow_empty_selection is False.
-
-:class:`~kivy.uix.listview.ListItemLabel` works much the same way as
-:class:`~kivy.uix.listview.ListItemButton`.
-
-Using a Custom Item View Class
-------------------------------
-
-The data used in an adapter can be any of the normal Python types, such as
-strings, class instances, and dictionaries. It is up to the programmer to
-assure that the args_converter has appropriate functionality.
-
-Here we make a simple DataItem class:
-
-    from kivy.uix.listview import ListItemButton
-
-    class DataItem(SelectableDataItem):
-        def __init__(self, text=''):
-            self.text = text
-
-    data_items = []
-    data_items.append(DataItem(text='cat'))
-    data_items.append(DataItem(text='dog'))
-    data_items.append(DataItem(text='frog'))
-
-    list_item_args_converter = lambda index, obj: {'text': obj.text,
-                                                   'size_hint_y': None,
-                                                   'height': 25}
-
-    list_adapter = ListAdapter(data=data_items,
-                               args_converter=list_item_args_converter,
-                               selection_mode='single',
-                               sync_with_model_data=True,
-                               allow_empty_selection=False,
-                               cls=ListItemButton)
-
-    list_view = ListView(adapter=list_adapter)
-
-The data is set in a :class:`~kivy.adapters.listadapter.ListAdapter` along with
-a list item args_converter function above (a lambda) and arguments concerning
-selection: only single selection is allowed, and selection in the listview will
-sync with the data items. The sync setting means that the is_selected property
-for each data item will be set and kept in sync with the list item views. By
-having allow_empty_selection=False, when the listview first appears, the first
-item, 'cat', will already be selected. The list adapter will instantiate a
-:class:`~kivy.uix.listview.ListItemButton` instance for each data item, using
-the assigned args_converter.
-
-The list_vew would be added to a view with add_widget() after the last line,
-where it is created. See the basic example at the top of this documentation for
-an example of add_widget() in the context of a sample app.
-
-You may also use the provided :class:`SelectableDataItem` mixin to make a
-custom class. Instead of the manually-constructed DataItem class above,
-we could do::
-
-    from kivy.adapters.models import SelectableDataItem
-
-    class DataItem(SelectableDataItem):
-        # Add properties here.
-
-:class:`SelectableDataItem` is a simple mixin class that has an is_selected
-property.
-
-Using an Item View Template
----------------------------
-
-:class:`~kivy.uix.listview.SelectableView` is another simple mixin class that
-has required properties for a list item: text, and is_selected. To make your
-own template, mix it in as follows::
-
-    from kivy.uix.listview import ListItemButton
-    from kivy.uix.listview import SelectableView
-
-    Builder.load_string("""
-    [CustomListItem@SelectableView+BoxLayout]:
-        size_hint_y: ctx.size_hint_y
-        height: ctx.height
-        ListItemButton:
-            text: ctx.text
-            is_selected: ctx.is_selected
-    """)
-
-A class called CustomListItem will be instantiated for each list item. Note
-that it is a layout, BoxLayout, and is thus a kind of container. It contains a
-:class:`~kivy.uix.listview.ListItemButton` instance.
-
-Using the power of the Kivy language (kv), you can easily build composite list
-items. In addition to ListItemButton, you could have a ListItemLabel, or a
-custom class you have defined and registered with the system.
-
-An args_converter needs to be constructed that goes along with such a kv
-template. For example, to use the kv template above::
-
-    list_item_args_converter = \
-            lambda index, rec, key: {'text': key,
-                                     'is_selected': rec['is_selected'],
-                                     'size_hint_y': None,
-                                     'height': 25}
-    integers_dict = {str(i): {'is_selected': False} for i in range(100)}
-
-    dict_adapter = DictAdapter(sorted_keys=[str(i) for i in range(100)],
-                               data=integers_dict,
-                               args_converter=list_item_args_converter,
-                               template='CustomListItem')
-
-    list_view = ListView(adapter=dict_adapter)
-
-A dict adapter is created with 1..100 integer strings as sorted_keys, and an
-integers_dict as data, a dict with str(i) keys and simple dict as values.
-integers_dict has the integer strings as keys and dicts with text and
-is_selected properties. The CustomListItem defined above in the
-Builder.load_string() call is set as the kv template for the list item views.
-The list_item_args_converter lambda function will take each dict in
-integers_dict and will return an args dict, ready for passing as the context
-(ctx) for the template.
-
-The list_vew would be added to a view with add_widget() after the last line,
-where it is created. Again, see the basic example above for add_widget() use.
+See the list_cascade.py example.
 
 Using CompositeListItem
 -----------------------
 
-The class :class:`~kivy.uix.listview.CompositeListItem` is another option for
-building advanced composite list items. The kv language approach has its
-advantages, but here we build a composite list view using a straight Kivy
-widget method::
+See the list_composite example.
 
-    args_converter = lambda index, rec, key: \
-            {'text': key,
-             'size_hint_y': None,
-             'height': 25,
-             'cls_dicts': [{'cls': ListItemButton,
-                            'kwargs': {'text': key}},
-                           {'cls': ListItemLabel,
-                            'kwargs': {'text': "x10={0}".format(rec['x10'])}},
-                           {'cls': ListItemButton,
-                            'kwargs': {'text': str(rec['x100_text'])}}]}
+Changing Data On the Fly
+------------------------
 
-    item_strings = ["{0}".format(index) for index in range(100)]
+ListController uses a special version of ListProperty, that under the hood uses
+a class called OpObservableList. The standard ListProperty uses a class called
+ObservableList (without the Op prefix). The difference is that the standard
+ListProperty dispatches data change events when anything changes, but without
+providing any means to determine what changed. The enhanced ListProperty using
+OpObservableList dispatches for each possible 'op' that could happen, including
+wholesale set (data=[new data]), insert (data[5] = 'cow'), delete
+(del data[3]), and all the others that are possible for a Python list.
 
-    integers_dict = \
-        { str(i): {'x10': i * 10,
-                   'x100_text': 'x100={0}'.format(i * 100),
-                   'is_selected': False} for i in range(100)}
+DictController uses a similar enhanced version of DictProperty, which uses an
+OpObservableDict internally.
 
-    dict_adapter = DictAdapter(sorted_keys=item_strings,
-                               data=integers_dict,
-                               args_converter=args_converter,
-                               selection_mode='single',
-                               allow_empty_selection=False,
-                               cls=CompositeListItem)
+These detailed dispatches with op change info allow making appropriate updates
+to the user interface when data changes.
 
-    list_view = ListView(adapter=dict_adapter)
+So, let your app change data, and see the user interface update.
 
-The args_converter is somewhat complicated, so we should go through the
-details. Observe in the :class:`~kivy.adapters.dictadapter.DictAdapter`
-instantiation that :class:`~kivy.uix.listview.CompositeListItem` instance is
-set as the cls to be instantiated for each list item. The args_converter will
-make args dicts for this cls.  In the args_converter, the first three items,
-text, size_hint_y, and height, are arguments for CompositeListItem itself.
-After that you see a cls_dicts list that contains argument sets for each of the
-member widgets for this composite: :class:`~kivy.uix.listview.ListItemButton`
-and :class:`~kivy.uix.listview.ListItemLabel`. This is a similar approach to
-using a kv template described above.
+See the list_data_changes.py and list_data_dynamic.py examples.
 
-The sorted_keys and data arguments for the dict adapter are the same as in the
-previous code example.
+If you take on the somewhat advanced task of making your own widgets, study how
+ListController, and its data_changed() method, and ListView, and its op handler
+and data_changed() method, and UI updating methods, react to the individual op
+change events.
 
-For details on how :class:`~kivy.uix.listview.CompositeListItem` works,
-examine the code, looking for how parsing of the cls_dicts list and kwargs
-processing is done.
+List Scrolling
+--------------
+
+See the list_scroll.py example for examples of using the scroll_to() and
+related API.
+
+Using ListView with other Kivy Widgets
+--------------------------------------
+
+Your mileage may vary on this, but experiment with using widgets for the
+list_item_class.
+
+See the list_of_carousels.py example for one attempt.
 
 Uses for Selection
 ------------------
@@ -559,16 +334,11 @@ Uses for Selection
 What can we do with selection? Combining selection with the system of bindings
 in Kivy, we can build a wide range of user interface designs.
 
-We could make data items that contain the names of dog breeds, and connect
-the selection of dog breed to the display of details in another view, which
-would update automatically on selection. This is done via a binding to
-selection::
-
-    list_adapter.bind(selection=callback_function)
-
-where callback_function() does whatever is needed for the update. See the
-example called list_master_detail.py, and imagine that the list one the left
-would be a list of dog breeds, and the detail view on the right would show
+We could make data items that contain the names of dog breeds, and connect the
+selection of dog breed to the display of details in another view, which would
+update automatically on selection. This is done via a binding to selection.
+See the example called list_master_detail.py, and imagine that the list on the
+left would be a list of dog breeds, and the detail view on the right would show
 details for a selected dog breed.
 
 In another example, we could set the selection_mode of a listview to
@@ -576,24 +346,19 @@ In another example, we could set the selection_mode of a listview to
 The question could have several correct answers. A color swatch view could be
 bound to selection change, as above, so that it turns green as soon as the
 correct choices are made, unless the number of touches exeeds a limit, when the
-answer session would be terminated. See the examples that feature thumbnail
-images to get some ideas, e.g., list_cascade_dict.py.
+answer session would be terminated. See the list_cascade.py example, which
+features a thumbnail image, to get some ideas. See the
+list_selection_binding.py example for how to connect the selection of one
+controller to the data of another.
 
-In a more involved example, we could chain together three listviews, where
-selection in the first controls the items shown in the second, and selection in
-the second controls the items shown in the third. If allow_empty_selection were
-set to False for these listviews, a dynamic system of selection "cascading"
-from one list to the next, would result.
+In the list_cascade.py example, we chain together two listviews and an object
+view.  Selection in the first list controls the items shown in the second, and
+selection in the second list controls the item shown in the object view.
+allow_empty_selection is set to False for these listviews, so there is always
+an automatic selection in them.
 
 There are so many ways that listviews and Kivy bindings functionality can be
-used, that we have only scratched the surface here. For on-disk examples, see
-these::
-
-    kivy/examples/widgets/lists/list_*.py
-
-Several examples show the "cascading" behavior described above. Others
-demonstrate the use of kv templates and composite list views.
-
+used, that we have only scratched the surface here.
 '''
 
 __all__ = ('SelectableView', 'SelectableStringItem', 'ListItemLabel',
@@ -601,22 +366,13 @@ __all__ = ('SelectableView', 'SelectableStringItem', 'ListItemLabel',
 
 from math import ceil, floor
 
-from kivy.adapters.args_converters import list_item_args_converter
-from kivy.adapters.listadapter import ListAdapter
-
-from kivy.binding import Binding
-
+from kivy.adapter import Adapter
+from kivy.binding import DataBinding
+from kivy.binding import SelectionBinding
 from kivy.clock import Clock
-
-from kivy.controllers.transformcontroller import TransformController
-
-from kivy.enums import selection_schemes
-from kivy.enums import selection_update_methods
 
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
-
-from kivy.models import SelectableStringItem
 
 from kivy.properties import BooleanProperty
 from kivy.properties import DictProperty
@@ -626,6 +382,7 @@ from kivy.properties import ObjectProperty
 from kivy.properties import StringProperty
 
 from kivy.properties import DictOpInfo
+from kivy.properties import ListOpHandler
 from kivy.properties import ListOpInfo
 
 from kivy.selection import SelectionTool
@@ -640,16 +397,12 @@ from kivy.uix.widget import Widget
 
 class SelectableView(ButtonBehavior):
     '''The :class:`~kivy.uix.listview.SelectableView` mixin is used to design
-    list item and other classes that are to be instantiated by an adapter to be
-    used in a listview.  The :class:`~kivy.adapters.listadapter.ListAdapter`
-    and :class:`~kivy.adapters.dictadapter.DictAdapter` adapters are
-    selection-enabled. select() and deselect() are to be overridden with
-    display code to mark items as selected or not, if desired.
+    list item and other classes.
 
     For children, there are two directions for selection, from parent to
     children, and from a child up to parent. The default for
     carry_selection_to_children is True, so selection of children will follow
-    that of the parent. This can be handy is the SelectableView is treated as a
+    that of the parent. This can be handy if the SelectableView is treated as a
     container, without its own cosmetic selection effects, and the UI
     reflection of selection is done by the children (if the SelectableView
     contains a combination of ListItemButtons and Labels for a listview
@@ -679,16 +432,6 @@ class SelectableView(ButtonBehavior):
     to -1.
     '''
 
-    carry_selection_to_children = BooleanProperty(True)
-    '''If true, selection or deselection effects are called on children, if
-    these methods are defined.
-
-    .. versionadded:: 1.8
-
-    :data:`carry_selection_to_children` is a
-    :class:`~kivy.properties.BooleanProperty`, default to True.
-    '''
-
     ksel = ObjectProperty(None)
     '''The selection tool for the view item.
 
@@ -713,20 +456,22 @@ class SelectableView(ButtonBehavior):
     def do_select_effects(self, *args):
         '''The list item is responsible for updating the display for being
         selected, if desired.
+
+        .. versionadded:: 1.8
         '''
-        if self.carry_selection_to_children:
-            for c in self.children:
-                if hasattr(c, 'do_select_effects'):
-                    c.do_select_effects(args)
+        for c in self.children:
+            if hasattr(c, 'do_select_effects'):
+                c.do_select_effects(args)
 
     def do_deselect_effects(self, *args):
         '''The list item is responsible for updating the display for being
         deselected, if desired.
+
+        .. versionadded:: 1.8
         '''
-        if self.carry_selection_to_children:
-            for c in self.children:
-                if hasattr(c, 'do_deselect_effects'):
-                    c.do_deselect_effects(args)
+        for c in self.children:
+            if hasattr(c, 'do_deselect_effects'):
+                c.do_deselect_effects(args)
 
 
 class ListItemButton(SelectableView, Button):
@@ -763,6 +508,8 @@ class ListItemButton(SelectableView, Button):
         color. To change, subclass ListItemButton and override this method,
         making sure to call super(), as shown, or make a new subclass of
         SelectableView.
+
+        .. versionadded:: 1.8
         '''
         super(ListItemButton, self).do_select_effects(args)
         self.background_color = self.selected_color
@@ -772,6 +519,8 @@ class ListItemButton(SelectableView, Button):
         color. To change, subclass ListItemButton and override this method,
         making sure to call super(), as shown, or make a new subclass of
         SelectableView.
+
+        .. versionadded:: 1.8
         '''
         super(ListItemButton, self).do_deselect_effects(args)
         self.background_color = self.deselected_color
@@ -815,7 +564,17 @@ class CompositeListItem(SelectableView, BoxLayout):
     so that bindings are created on instantiation of the children.
 
     .. versionadded:: 1.8
+    '''
 
+    component_args = ListProperty([])
+    '''component_args is a list of dictionaries. Each component of the
+    composite needs to be instantiated for each data item, so there must be
+    individual sets of arguments for each component.
+
+    :data:`component_args` is a :class:`~kivy.properties.ListProperty`,
+    with default [].
+
+    .. versionadded:: 1.8
     '''
 
     def __init__(self, **kwargs):
@@ -826,29 +585,36 @@ class CompositeListItem(SelectableView, BoxLayout):
         # loop below.
         index = kwargs['index']
 
-        for cls_dict in kwargs['cls_dicts']:
-            cls = cls_dict['cls']
-            cls_kwargs = cls_dict.get('kwargs', None)
+        for component_args_dict in self.component_args:
+            cls = component_args_dict['component_class']
+            component_kwargs = \
+                    component_args_dict.get('component_kwargs', None)
 
-            if cls_kwargs:
-                cls_kwargs['index'] = index
+            if component_kwargs:
+                component_kwargs['index'] = index
 
-                if 'text' not in cls_kwargs:
-                    cls_kwargs['text'] = kwargs['text']
+                if 'text' not in component_kwargs:
+                    component_kwargs['text'] = kwargs['text']
             else:
-                cls_kwargs = {}
-                cls_kwargs['index'] = index
+                component_kwargs = {}
+                component_kwargs['index'] = index
                 if 'text' in kwargs:
-                    cls_kwargs['text'] = kwargs['text']
+                    component_kwargs['text'] = kwargs['text']
 
-            child = cls(**cls_kwargs)
-
-            if self.bind_selection_from_children:
-                child.bind(on_release=self.on_release_on_child)
+            child = cls(**component_kwargs)
 
             self.add_widget(child)
 
-    def on_release_on_child(self, *args):
+    def bind_composite(self, callback):
+
+        self.bind(on_release=callback)
+
+        if self.bind_selection_from_children:
+            for child in self.children:
+                if hasattr(child, 'ksel'):
+                    child.bind(on_release=self.call_trigger_action)
+
+    def call_trigger_action(self, *args):
         self.trigger_action(duration=0)
 
     def do_select_effects(self, *args):
@@ -866,10 +632,395 @@ class ListItemLabel(SelectableView, Label):
     def __init__(self, **kwargs):
         super(ListItemLabel, self).__init__(**kwargs)
 
+list_item_class_args = lambda row_index, x: {'text': x,
+                                             'size_hint_y': None,
+                                             'height': 25}
+'''
+List item args converters
 
-selectable_string_args_converter = lambda row_index, x: {'text': x.text,
-                                                        'size_hint_y': None,
-                                                        'height': 25}
+The default list item args converter for list adapters is a function (shown
+below) that takes a row index and a string. It returns a dict with the string
+as the *text* item, along with two properties suited for simple text items with
+a height of 25.
+
+Argument converters may be normal functions or, as in the case of the default
+args converter, lambdas::
+
+    list_item_class_args = lambda row_index, x: {'text': x,
+                                                     'size_hint_y': None,
+                                                     'height': 25}
+.. versionadded:: 1.5
+
+.. versionchanged:: 1.8
+
+    list_item_class_args absorbed from kivy.adapters.
+
+'''
+
+
+class DataOpHandler(ListOpHandler):
+    ''':class:`~kivy.adapters.list_ops.DataOpHandler` is a helper class
+    that reacts to the following operations that are possible for a data
+    OpObservableList (OOL) instance:
+
+        handle_add_first_item_op()
+
+            OOL_append
+            OOL_extend
+            OOL_insert
+
+        handle_add_op()
+
+            OOL_append
+            OOL_extend
+            OOL_iadd
+            OOL_imul
+
+        handle_insert_op()
+
+            OOL_insert
+
+        handle_setitem_op()
+
+            OOL_setitem
+
+        handle_setslice_op()
+
+            OOL_setslice
+
+        handle_delete_op()
+
+            OOL_delitem
+            OOL_delslice
+            OOL_remove
+            OOL_pop
+
+        handle_sort_op()
+
+            OOL_sort
+            OOL_reverse
+
+        These methods adjust cached_views and selection.
+
+    .. versionadded:: 1.8
+
+        Modified from adapters system.
+    '''
+
+    def __init__(self, listview, duplicates_allowed):
+
+        self.listview = listview
+        self.duplicates_allowed = duplicates_allowed
+
+        super(DataOpHandler, self).__init__()
+
+    def data_changed(self, *args):
+
+        if not args:
+            return
+
+        if not self.listview.data_binding:
+            return
+
+        # NOTE: args[1] is the modified list.
+
+        data = self.listview.data_binding.source.data
+
+        if not hasattr(data, 'op_change_info'):
+            op_info = ListOpInfo('OOL_set', 0, 0)
+        else:
+            op_info = data.op_change_info
+
+            if not op_info:
+                op_info = ListOpInfo('OOL_set', 0, 0)
+
+        # Make a copy in the listview for more convenient access.
+        self.listview.data_op_info = op_info
+
+        op = op_info.op_name
+        start_index = op_info.start_index
+        end_index = op_info.end_index
+
+        print 'ListView data_changed, op is', op
+        if op == 'OOL_sort_start':
+            self.sort_started(*args)
+            return
+
+        if op == 'OOL_set':
+
+            self.handle_set()
+
+        elif (len(data) == 1
+                and op in ['OOL_append',
+                           'OOL_insert',
+                           'OOL_extend']):
+
+            self.handle_add_first_item_op()
+
+        else:
+
+            if op in ['OOL_iadd',
+                      'OOL_imul',
+                      'OOL_append',
+                      'OOL_extend']:
+
+                self.handle_add_op()
+
+            elif op in ['OOL_setitem']:
+
+                self.handle_setitem_op(start_index)
+
+            elif op in ['OOL_setslice']:
+
+                self.handle_setslice_op(start_index, end_index)
+
+            elif op in ['OOL_insert']:
+
+                self.handle_insert_op(start_index)
+
+            elif op in ['OOL_delitem',
+                        'OOL_delslice',
+                        'OOL_remove',
+                        'OOL_pop']:
+
+                self.handle_delete_op(start_index, end_index)
+
+            elif op in ['OOL_sort',
+                        'OOL_reverse']:
+
+                self.handle_sort_op()
+
+    def handle_set(self):
+
+        self.listview.cached_views.clear()
+        self.listview.update_ui_for_data_changes()
+        self.listview.update_ui_for_selection_change()
+        #self.listview.initialize_selection()
+
+    def handle_add_first_item_op(self):
+        '''Special case: deletion resulted in no data, leading up to the
+        present op, which adds one or more items. Cached views should
+        have already been treated.  Call check_for_empty_selection()
+        to re-establish selection if needed.
+        '''
+        self.listview.update_ui_for_selection_change()
+        #self.listview.check_for_empty_selection()
+
+    def handle_add_op(self):
+        '''An item was added to the end of the list, or the list was extended
+        by several items. This shouldn't affect anything here, as cached_views
+        items can be built as needed through normal get_view() calls to build
+        views for the added items.
+        '''
+        self.listview.update_ui_for_data_changes()
+
+    def handle_insert_op(self, index):
+        '''An item was added at index. Adjust the indices of any cached_view
+        items affected.
+        '''
+
+        new_cached_views = {}
+
+        for k, v in self.listview.cached_views.iteritems():
+
+            if k < index:
+                new_cached_views[k] = self.listview.cached_views[k]
+            else:
+                new_cached_views[k + 1] = self.listview.cached_views[k]
+                new_cached_views[k + 1].index += 1
+
+        self.listview.cached_views = new_cached_views
+        self.listview.update_ui_for_data_changes()
+
+    def handle_setitem_op(self, index):
+        '''Force a rebuild of the item view for which the associated data item
+        has changed.  If the item view was selected before, maintain the
+        selection.
+        '''
+
+        del self.listview.cached_views[index]
+        #item_view = self.listview.get_view(index)
+        #if item_view and is_selected:
+            #self.listview.handle_selection(item_view)
+        self.listview.update_ui_for_data_changes()
+        #self.listview.update_ui_for_selection_change()
+
+    def handle_setslice_op(self, start_index, end_index):
+        '''Force a rebuild of item views for which data items have changed.
+        Although it is hard to guess what might be preferred, a "positional"
+        priority for selection is observed here, where the indices of selected
+        item views is maintained. We call check_for_empty_selection() if no
+        selection remains after the op.
+        '''
+
+        changed_indices = range(start_index, end_index + 1)
+
+        is_selected_indices = []
+        for i in changed_indices:
+            item_view = self.listview.cached_views[i]
+            if item_view.ksel.is_selected():
+                is_selected_indices.append(i)
+
+        for i in reversed(changed_indices):
+            del self.listview.cached_views[i]
+
+#        for i in changed_indices:
+#            item_view = self.listview.get_view(i)
+#            if item_view and item_view.index in is_selected_indices:
+#                self.listview.handle_selection(item_view)
+
+        # Remove deleted views from selection.
+        #for selected_index in [item.index for item in self.selection]:
+#        for sel in self.listview.selection:
+#            if sel.index in changed_indices:
+#                self.listview.selection.remove(sel)
+
+        # Do a check_for_empty_selection type step, if data remains.
+#        if (len(data) > 0
+#                and not self.listview.selection
+#                and not self.listview.allow_empty_selection):
+#            # Find a good index to select, if the deletion results in
+#            # no selection, which is common, as the selected item is
+#            # often the one deleted.
+#            if start_index < len(data):
+#                new_sel_index = start_index
+#            else:
+#                new_sel_index = start_index - 1
+#            v = self.listview.get_view(new_sel_index)
+#            if v is not None:
+#                self.listview.handle_selection(v)
+        self.listview.update_ui_for_data_changes()
+        self.listview.update_ui_for_selection_change()
+
+    def handle_delete_op(self, start_index, end_index):
+        '''An item has been deleted. Reset the index for item views affected.
+        '''
+
+        deleted_indices = range(start_index, end_index + 1)
+
+#        for index in reversed(deleted_indices):
+#            del self.listview.cached_views[index]
+
+        # Delete views from cache.
+        new_cached_views = {}
+
+        i = 0
+        for k, v in self.listview.cached_views.iteritems():
+            if k not in deleted_indices:
+                new_cached_views[i] = self.listview.cached_views[k]
+                if k >= start_index:
+                    new_cached_views[i].index = i
+                i += 1
+
+        self.listview.cached_views = new_cached_views
+
+        # Remove deleted views from selection.
+        #for selected_index in [item.index for item in self.selection]:
+#        for sel in self.listview.selection:
+#            if sel.index in deleted_indices:
+#                self.listview.selection.remove(sel)
+
+        # Do a check_for_empty_selection type step, if data remains.
+#        if (len(data) > 0
+#                and not self.listview.selection
+#                and not self.listview.allow_empty_selection):
+#            # Find a good index to select, if the deletion results in
+#            # no selection, which is common, as the selected item is
+#            # often the one deleted.
+#            if start_index < len(data):
+#                new_sel_index = start_index
+#            else:
+#                new_sel_index = start_index - 1
+#            v = self.listview.get_view(new_sel_index)
+#            if v is not None:
+#                self.listview.handle_selection(v)
+        self.listview.update_ui_for_data_changes()
+        #self.listview.update_ui_for_selection_change()
+
+    def sort_started(self, *args):
+
+        # This temporary association has keys as the indices of the adapter's
+        # cached_views and the adapter's data items, for use in post-sort
+        # widget reordering.
+
+        presort_indices_and_items = {}
+
+        data = self.listview.data_binding.source.data
+
+        if self.duplicates_allowed:
+            for i in self.listview.cached_views:
+                data_item = data[i]
+                if isinstance(data_item, str):
+                    duplicates = \
+                            sorted([j for j, s in enumerate(data)
+                                                 if s == data_item])
+                    pos_in_instances = duplicates.index(i)
+                else:
+                    pos_in_instances = 0
+
+                presort_indices_and_items[i] = \
+                            {'data_item': data_item,
+                             'pos_in_instances': pos_in_instances}
+        else:
+            for i in self.listview.cached_views:
+                data_item = data[i]
+                pos_in_instances = 0
+                presort_indices_and_items[i] = \
+                            {'data_item': data_item,
+                             'pos_in_instances': pos_in_instances}
+
+        self.presort_indices_and_items = presort_indices_and_items
+
+        data.finish_sort_op()
+
+    def handle_sort_op(self):
+        '''Data has been sorted or reversed. Use the pre-sort information about
+        previous ordering, stored in the associated ChangeMonitor instance, to
+        reset the index of each cached item view, instead of deleting
+        cached_views entirely.
+        '''
+
+        presort_indices_and_items = self.presort_indices_and_items
+
+        data = self.listview.data_binding.source.data
+
+        # We have an association of presort indices with data items.
+        # Where is each data item after sort? Change the index of the
+        # item_view to match present position.
+        new_cached_views = {}
+
+        if self.duplicates_allowed:
+            for i in self.listview.cached_views:
+                item_view = self.listview.cached_views[i]
+                old_i = item_view.index
+                data_item = presort_indices_and_items[old_i]['data_item']
+                if isinstance(data_item, str):
+                    duplicates = sorted(
+                        [j for j, s in enumerate(data)
+                                if s == data_item])
+                    pos_in_instances = \
+                        presort_indices_and_items[old_i]['pos_in_instances']
+                    postsort_index = duplicates[pos_in_instances]
+                else:
+                    postsort_index = data.index(data_item)
+                item_view.index = postsort_index
+                new_cached_views[postsort_index] = item_view
+        else:
+            for i in self.listview.cached_views:
+                item_view = self.listview.cached_views[i]
+                old_i = item_view.index
+                data_item = presort_indices_and_items[old_i]['data_item']
+                postsort_index = data.index(data_item)
+                item_view.index = postsort_index
+                new_cached_views[postsort_index] = item_view
+
+        self.listview.cached_views = new_cached_views
+
+        # Clear temporary storage.
+        self.presort_indices_and_items.clear()
+
+        self.listview.update_ui_for_data_changes()
+        self.listview.update_ui_for_selection_change()
 
 Builder.load_string('''
 <ListView>:
@@ -887,7 +1038,7 @@ Builder.load_string('''
 ''')
 
 
-class ListView(AbstractView, EventDispatcher):
+class ListView(Adapter, AbstractView, EventDispatcher):
     ''':class:`~kivy.uix.listview.ListView` is a primary high-level widget,
     handling the common task of presenting items in a scrolling list.
     Flexibility is afforded by use of a variety of adapters to interface with
@@ -914,6 +1065,23 @@ class ListView(AbstractView, EventDispatcher):
 
     .. versionadded:: 1.5
 
+    .. versionchanged:: 1.8
+
+        Removed item_strings, after having first removed SimpleListAdapter,
+        because with the new controller system, it is easier to describe for
+        new developers how to make a controller with a list of strings.
+        Although originally intended as a way to make simple use easier, it
+        added more complication really. Part of this relates to the way list
+        items must now conform by having a ksel object (which can be had by
+        subclassing SelectableDataItem).
+
+        Added update methods for responding to data and selection changes.
+
+        Added bindings system for data and selection, including initialization
+        for bindings from Python init and from a special init function from kv.
+
+        Improved scrolling and documentation. Added a scroll_to() related API.
+
     '''
 
     divider = ObjectProperty(None)
@@ -923,6 +1091,21 @@ class ListView(AbstractView, EventDispatcher):
     divider_height = NumericProperty(2)
     '''[TODO] Not used.
     '''
+
+    data_op_handler = ObjectProperty(None)
+    '''An instance of :class:`~kivy.properties.ListOpHandler`,
+    containing methods that perform steps needed after the data has changed.
+    The methods are responsible for updating cached_views and selection.
+
+    :data:`data_op_handler` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to None. It is instantiated and set on init.
+
+    .. versionadded:: 1.8
+
+    '''
+
+    data_op_info = ObjectProperty(None)
+    selection_op_info = ObjectProperty(None)
 
     container = ObjectProperty(None)
     '''The container is a :class:`~kivy.uix.gridlayout.GridLayout` widget held
@@ -946,15 +1129,6 @@ class ListView(AbstractView, EventDispatcher):
     default to None.
     '''
 
-    item_strings = ListProperty([])
-    '''If item_strings is provided, create an instance of
-    :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` with this list
-    of strings, and use it to manage a no-selection list.
-
-    :data:`item_strings` is a :class:`~kivy.properties.ListProperty`,
-    default to [].
-    '''
-
     scrolling = BooleanProperty(False)
     '''If the scroll_to() method is called while scrolling operations are
     happening, a call recursion error can occur. scroll_to() checks to see that
@@ -966,7 +1140,7 @@ class ListView(AbstractView, EventDispatcher):
     '''
 
     scroll_advance = NumericProperty(10)
-    '''For a kind of pre-fetching during scrolling, a "advance" of view
+    '''For a kind of pre-fetching during scrolling, an "advance" of view
     instances is requested when the scroll position is within some count of
     items, the scroll_advance, difference from either the start or end of the
     scroll window.  View instances are either pulled from the
@@ -994,131 +1168,130 @@ class ListView(AbstractView, EventDispatcher):
 
     __events__ = ('on_scroll_complete', )
 
-    data_transform_controller = ObjectProperty(None, allownone=True)
-    selection_transform_controller = ObjectProperty(None, allownone=True)
+    empty_data = ListProperty([])
+    data_binding = ObjectProperty(None, allownone=True)
+    selection_binding = ObjectProperty(None, allownone=True)
 
     def __init__(self, **kwargs):
 
-        # Check for an adapter argument. If it doesn't exist, we check for
-        # item_strings, for which we build data items.
-        if 'adapter' not in kwargs:
-
-            if 'item_strings' not in kwargs:
-                if '__no_builder' in kwargs:
-                    print '__no_builder'
-                    # TODO: Why does this happen, from kv?
-                    list_adapter = ListAdapter(data=[],
-                                               cls=ListItemLabel)
-                else:
-                    print 'with builder'
-                    if 'data' not in kwargs:
-                        raise Exception(('ListView: without adapter, '
-                                         'must provide data arg.'))
-
-                    data_binding = None
-                    selection_binding = None
-
-                    if isinstance(kwargs['data'], Binding):
-                        data_binding = kwargs['data']
-                        if kwargs['data'].transform:
-                            kwargs['data_transform_controller'] = \
-                                TransformController(data=kwargs['data'])
-                            kwargs['data'] = \
-                                (kwargs['data_transform_controller'], 'data')
-
-                    if ('selection' in kwargs
-                            and isinstance(kwargs['selection'], Binding)):
-                        selection_binding = kwargs['selection']
-                        if kwargs['selection'].transform:
-                            kwargs['selection_transform_controller'] = \
-                                TransformController(data=kwargs['selection'])
-                            kwargs['selection'] = \
-                                (kwargs['selection_transform_controller'], 'data')
-
-                    # TODO: Get these defaults from calls? for some, enums?
-                    selection = kwargs.pop('selection', [])
-                    selection_scheme = \
-                            kwargs.pop('selection_scheme',
-                                       selection_schemes.VIEW_ON_DATA)
-                    selection_update_method = kwargs.pop(
-                            'selection_update_method',
-                            selection_update_methods.SET)
-                    cls = kwargs.pop('cls', ListItemLabel)
-                    args_converter = \
-                            kwargs.pop('args_converter',
-                                       list_item_args_converter)
-                    allow_empty_selection = \
-                            kwargs.pop('allow_empty_selection',
-                                       False)
-
-                    list_adapter = ListAdapter(
-                            data=kwargs['data'],
-                            args_converter=args_converter,
-                            selection=selection,
-                            selection_scheme=selection_scheme,
-                            selection_update_method=selection_update_method,
-                            allow_empty_selection=allow_empty_selection,
-                            cls=cls)
-
-                    if data_binding and data_binding.transform:
-                        kwargs['data_transform_controller'].bind(
-                               data=list_adapter.setter('data'))
-
-                    if selection_binding and selection_binding.transform:
-                        kwargs['selection_transform_controller'].bind(
-                               selection=list_adapter.setter('selection'))
-            else:
-
-                data_items = [SelectableStringItem(text=item_string)
-                              for item_string in kwargs['item_strings']]
-
-                selection = kwargs.pop('selection', [])
-                selection_scheme = kwargs.pop('selection_scheme',
-                                              selection_schemes.VIEW_ON_DATA)
-                selection_update_method = kwargs.pop(
-                        'selection_update_method',
-                        selection_update_methods.SET)
-                cls = kwargs.pop('cls', ListItemLabel)
-                allow_empty_selection = kwargs.pop('allow_empty_selection',
-                                                   False)
-
-                list_adapter = ListAdapter(
-                        data=data_items,
-                        selection=selection,
-                        selection_scheme=selection_scheme,
-                        selection_update_method=selection_update_method,
-                        allow_empty_selection=allow_empty_selection,
-                        args_converter=selectable_string_args_converter,
-                        cls=ListItemLabel)
-
-            kwargs['adapter'] = list_adapter
-
         super(ListView, self).__init__(**kwargs)
 
-        if self.adapter:
+        self._trigger_populate = Clock.create_trigger(
+                self._spopulate, -1)
+        self._trigger_reset_spopulate = Clock.create_trigger(
+                self._reset_spopulate, -1)
 
-            self.adapter.bind(on_data_change=self.data_changed)
-
-        self._trigger_populate = Clock.create_trigger(self._spopulate, -1)
-        self._trigger_reset_spopulate = \
-            Clock.create_trigger(self._reset_spopulate, -1)
+        self.data_op_handler = DataOpHandler(self, True)
 
         self.bind(size=self._trigger_populate,
-                  pos=self._trigger_populate,
-                  item_strings=self.item_strings_changed,
-                  adapter=self.adapter_changed)
+                  pos=self._trigger_populate)
 
-    def adapter_changed(self, *args):
+        if self.data_binding:
+            if self.data_binding.prop == 'data':
+                self.data_binding.source.bind(
+                    on_data_change=self.data_op_handler.data_changed)
 
-        if self.adapter:
-            self.adapter.bind(on_data_change=self.data_changed)
+            if self.data_binding.prop == 'selection':
+                self.data_binding.source.bind(
+                    on_selection_change=self.data_op_handler.data_changed)
 
-            self._trigger_populate()
+        if self.selection_binding:
+            if self.selection_binding.prop == 'data':
+                self.selection_binding.source.bind(
+                    on_data_change=self.update_ui_for_selection_change)
 
-    # Reset data when item_strings is set in a kv template, or when if
-    # item_strings is changed generally.
-    def item_strings_changed(self, *args):
-        self.adapter.data = self.item_strings
+            if self.selection_binding.prop == 'selection':
+                self.selection_binding.source.bind(
+                    on_selection_change=self.update_ui_for_selection_change)
+
+    def init_kv_bindings(self, bindings):
+
+        binding = bindings[0]
+
+        if isinstance(binding, DataBinding):
+            self.data_binding = binding
+        elif isinstance(binding, SelectionBinding):
+            self.selection_binding = binding
+
+        binding.source.bind(**{binding.prop: binding.setter('value')})
+        if binding.prop == 'data':
+            binding.source.bind(
+                    on_data_change=self.data_op_handler.data_changed)
+        if binding.prop == 'selection':
+            binding.source.bind(
+                    on_selection_change=self.update_ui_for_selection_change)
+
+    def get_count(self):
+        return len(self.data_binding.source.data)
+
+    def get_data_item(self, index):
+        data = self.data_binding.source.data
+
+        if not data:
+            return None
+
+        return data[index]
+
+    def additional_args_converter_args(self, index):
+        return ()
+
+    def trim_left_of_sel(self, *args):
+        '''Cut list items with indices in sorted_keys that are less than the
+        index of the first selected item if there is a selection.
+
+        versionchanged:: 1.8
+
+            Absorbed from ListAdapter.
+        '''
+        selection = self.selection_binding.source.selection
+        if len(selection) > 0:
+            first_sel_index = min([sel.index for sel in selection])
+            data = self.data_binding.source.data
+            data = data[first_sel_index:]
+
+    def trim_right_of_sel(self, *args):
+        '''Cut list items with indices in sorted_keys that are greater than
+        the index of the last selected item if there is a selection.
+
+        versionchanged:: 1.8
+
+            Absorbed from ListAdapter.
+        '''
+        selection = self.selection_binding.source.selection
+        if len(selection) > 0:
+            last_sel_index = max([sel.index for sel in selection])
+            data = self.data_binding.source.data
+            data = data[:last_sel_index + 1]
+
+    def trim_to_sel(self, *args):
+        '''Cut list items with indices in sorted_keys that are les than or
+        greater than the index of the last selected item if there is a
+        selection. This preserves intervening list items within the selected
+        range.
+
+        versionchanged:: 1.8
+
+            Absorbed from ListAdapter.
+        '''
+        selection = self.selection_binding.source.selection
+        if len(selection) > 0:
+            sel_indices = [sel.index for sel in selection]
+            first_sel_index = min(sel_indices)
+            last_sel_index = max(sel_indices)
+            data = self.data_binding.source.data
+            data = data[first_sel_index:last_sel_index + 1]
+
+    def cut_to_sel(self, *args):
+        '''Same as trim_to_sel, but intervening list items within the selected
+        range are also cut, leaving only list items that are selected.
+
+        versionchanged:: 1.8
+
+            Absorbed from ListAdapter.
+        '''
+        selection = self.selection_binding.source.selection
+        if len(selection) > 0:
+            self.data_binding.source.data = selection
 
     def _scroll(self, scroll_y):
 
@@ -1283,10 +1456,10 @@ class ListView(AbstractView, EventDispatcher):
             # Now fill with real item view instances.
             index = istart
             while index <= iend:
-                item_view = self.adapter.get_view(index)
-                index += 1
+                item_view = self.get_view(index)
                 if item_view is None:
                     continue
+                index += 1
                 sizes[index] = item_view.height
                 container.add_widget(item_view)
 
@@ -1298,7 +1471,7 @@ class ListView(AbstractView, EventDispatcher):
             count = 0
 
             while available_height > 0:
-                item_view = self.adapter.get_view(index)
+                item_view = self.get_view(index)
                 if item_view is None:
                     break
                 sizes[index] = item_view.height
@@ -1313,11 +1486,11 @@ class ListView(AbstractView, EventDispatcher):
             #
             # TODO: self._count was removed in 1.8, because it was not used,
             #       but this could be a regression, in that the call to
-            #       self.adapter.get_count() is made unnecessarily often.
+            #       self.get_count() is made unnecessarily often.
             #
             if count:
                 container.height = \
-                    (real_height / count) * self.adapter.get_count()
+                    (real_height / count) * self.get_count()
                 if self.row_height is None:
                     self.row_height = real_height / count
 
@@ -1373,7 +1546,9 @@ class ListView(AbstractView, EventDispatcher):
 
         '''
 
-        if index < 0 or index > len(self.adapter.data) - 1:
+        data = self.data_binding.source.data
+
+        if index < 0 or index > len(data) - 1:
             return
 
         # If this method is called while scrolling operations are happening, a
@@ -1386,7 +1561,7 @@ class ListView(AbstractView, EventDispatcher):
 
             self.scrolling = True
 
-            len_data = len(self.adapter.data) - 1
+            len_data = len(data) - 1
 
             n_window = int(ceil(self.height / self.row_height))
 
@@ -1395,11 +1570,15 @@ class ListView(AbstractView, EventDispatcher):
                 self.scrollview.scroll_y = 1.0
                 self.scrollview.update_from_scroll()
 
-            elif index == len(self.adapter.data) - 1:
+            elif index == len(data) - 1:
 
                 self._index = max(0, index - n_window)
 
-                self.scrollview.scroll_y = -0.0
+                # TODO: Hack to keep scrolling to end from locking up. This
+                #       scrolls to near the end, but not quite far enough. This
+                #       used to work, and the value before the hack was -0.0,
+                #       which is an odd duck, no doubt.
+                self.scrollview.scroll_y = 0.01
                 self.scrollview.update_from_scroll()
 
             else:
@@ -1447,8 +1626,10 @@ class ListView(AbstractView, EventDispatcher):
         if count == 0:
             return
 
+        data = self.data_binding.source.data
+
         if count > 0:
-            if self._index < len(self.adapter.data) - count - 1:
+            if self._index < len(data) - count - 1:
                 self.scroll_to(self._index + count)
         else:
             if self._index >= abs(count):
@@ -1470,7 +1651,8 @@ class ListView(AbstractView, EventDispatcher):
 
         '''
 
-        self.scroll_to(len(self.adapter.data) - 1)
+        data = self.data_binding.source.data
+        self.scroll_to(len(data) - 1)
 
     def scroll_to_selection(self):
         '''Call the scroll_to_selection() method to scroll to the middle of the
@@ -1484,8 +1666,10 @@ class ListView(AbstractView, EventDispatcher):
 
         '''
 
-        if self.adapter.selection:
-            indices = [v.index for v in self.adapter.selection]
+        data = self.data_binding.source.data
+        selection = self.data_binding.source.selection
+        if selection:
+            indices = [data.index(item) for item in selection]
             first_sel_index = min(indices)
             last_sel_index = max(indices)
             spread = last_sel_index - first_sel_index
@@ -1506,8 +1690,10 @@ class ListView(AbstractView, EventDispatcher):
 
         '''
 
-        if self.adapter.selection:
-            indices = [v.index for v in self.adapter.selection]
+        data = self.data_binding.source.data
+        selection = self.data_binding.source.selection
+        if selection:
+            indices = [data.index(item) for item in selection]
             first_sel_index = min(indices)
 
             self.scroll_to(first_sel_index)
@@ -1522,8 +1708,10 @@ class ListView(AbstractView, EventDispatcher):
 
         '''
 
-        if self.adapter.selection:
-            indices = [v.index for v in self.adapter.selection]
+        data = self.data_binding.source.data
+        selection = self.data_binding.source.selection
+        if selection:
+            indices = [data.index(item) for item in selection]
             last_sel_index = max(indices)
 
             self.scroll_to(last_sel_index)
@@ -1531,7 +1719,22 @@ class ListView(AbstractView, EventDispatcher):
     def on_scroll_complete(self, *args):
         self.scrolling = False
 
-    def data_changed(self, *args):
+    def update_ui_for_selection_change(self):
+        # TODO: Don't repeat, for data vs. selection change. How to force them
+        #       to be in proper sequence?
+        #data_op_info = self.data_binding.source.data_op_info
+        # TODO: Use a selection_op_info to more efficiently update selection.
+        #       This is brute-force.
+        self.container.clear_widgets()
+
+        self.scrolling = True
+        self.populate()
+        self.dispatch('on_scroll_complete')
+
+    def update_ui_for_data_changes(self):
+
+        #if len(args) < 2:
+            #return
 
         # This method is tied to list and/or dict ops handlers of the adapter,
         # and to its own similar data_changed() method. The adapter dispatches
@@ -1603,7 +1806,7 @@ class ListView(AbstractView, EventDispatcher):
         # understand the grouping ops, e.g. for grouping insert, and append ops
         # for lists.
 
-        op_info = self.adapter.op_info
+        op_info = self.data_op_info
 
         op = op_info.op_name
 
@@ -1611,10 +1814,14 @@ class ListView(AbstractView, EventDispatcher):
             start_index = op_info.start_index
             end_index = op_info.end_index
         elif isinstance(op_info, DictOpInfo):
-            start_index, end_index = self.adapter.additional_op_info
+            start_index, end_index = self.additional_op_info
 
         # Otherwise, we may have item_views as children of self.container
         # that should be removed.
+
+        data = self.data_binding.source.data
+        #data = self.data_binding.value
+        #data = getattr(self.data_binding.source, self.data_binding.prop)
 
         if op in ['OOL_setitem', 'OOD_setitem_set', ]:
 
@@ -1629,12 +1836,13 @@ class ListView(AbstractView, EventDispatcher):
                 widget = self.container.children[widget_index]
                 self.container.remove_widget(widget)
 
-                item_view = self.adapter.get_view(start_index)
-                self.container.add_widget(item_view, widget_index)
+                item_view = self.get_view(start_index)
+                if item_view:
+                    self.container.add_widget(item_view, widget_index)
 
         elif op in ['OOL_setslice', ]:
 
-            len_data = len(self.adapter.data)
+            len_data = len(data)
 
             slice_indices = range(start_index, end_index + 1)
 
@@ -1654,8 +1862,9 @@ class ListView(AbstractView, EventDispatcher):
                 add_index = min(widget_indices)
 
                 for slice_index in slice_indices:
-                    item_view = self.adapter.get_view(slice_index)
-                    self.container.add_widget(item_view, add_index)
+                    item_view = self.get_view(slice_index)
+                    if item_view:
+                        self.container.add_widget(item_view, add_index)
             else:
 
                 self._index = min(slice_indices)
@@ -1670,7 +1879,7 @@ class ListView(AbstractView, EventDispatcher):
                     'OOD_setdefault',
                     'OOD_update']:
 
-            len_data = len(self.adapter.data)
+            len_data = len(data)
             n_window = int(ceil(self.height / self.row_height))
             self._index = max(0, len_data - n_window)
 
@@ -1689,13 +1898,16 @@ class ListView(AbstractView, EventDispatcher):
             # NOTE: There is no OOD_popitem here, because it is performed as
             #       a OOD_delitem.
 
-            deleted_indices = range(start_index, end_index + 1)
-
-            for item_view in self.container.children:
-                if (hasattr(item_view, 'index')
-                        and item_view.index in deleted_indices):
-                    self.container.remove_widget(item_view)
-
+#            deleted_indices = range(start_index, end_index + 1)
+#
+#            print 'deleted_indices', deleted_indices
+#
+#            for item_view in self.container.children:
+#                if (hasattr(item_view, 'index')
+#                        and item_view.index in deleted_indices):
+#                    print 'removing', item_view
+#                    self.container.remove_widget(item_view)
+#
             self.scrolling = True
             self.populate()
             self.dispatch('on_scroll_complete')
@@ -1721,7 +1933,7 @@ class ListView(AbstractView, EventDispatcher):
         .. versionadded:: 1.8
 
         '''
-        return self.adapter.get_selection() if self.adapter else None
+        return self.get_selection() if self else None
 
     def get_first_selected(self):
         '''A convenience method to call to the adapter for the first selected
@@ -1730,7 +1942,7 @@ class ListView(AbstractView, EventDispatcher):
         .. versionadded:: 1.8
 
         '''
-        return self.adapter.get_first_selected() if self.adapter else None
+        return self.get_first_selected() if self else None
 
     def get_last_selected(self):
         '''A convenience method to call to the adapter for the last selected
@@ -1739,4 +1951,4 @@ class ListView(AbstractView, EventDispatcher):
         .. versionadded:: 1.8
 
         '''
-        return self.adapter.get_last_selected() if self.adapter else None
+        return self.get_last_selected() if self else None

@@ -1,5 +1,6 @@
-from kivy.adapters.listadapter import ListAdapter
 from kivy.base import runTouchApp
+from kivy.binding import DataBinding
+from kivy.controllers.listcontroller import ListController
 from kivy.lang import Builder
 from kivy.models import SelectableDataItem
 from kivy.properties import ObjectProperty
@@ -76,22 +77,18 @@ data = [CarouselDataItem(
 converter = lambda x, d: dict(text=d.text,
                               size_hint_y=None,
                               height=75,
-                              organisms=d.organisms,
-                              )
+                              organisms=d.organisms)
 
-adapter = ListAdapter(data=data,
-                      args_converter=converter,
-                      cls=OrganismGroupListItem,
-                      selection_mode='single',
-                      )
+controller = ListController(data=data,
+                            selection_mode='single')
 
 
 def selection_changed(*args):
     print 'selection changed', args
 
-adapter.bind(selection=selection_changed)
-
-list_view = ListView(adapter=adapter)
+list_view = ListView(data_binding=DataBinding(source=controller),
+                     args_converter=converter,
+                     list_item_class=OrganismGroupListItem,)
 
 if __name__ == '__main__':
     runTouchApp(list_view)

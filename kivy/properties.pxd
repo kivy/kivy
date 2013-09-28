@@ -27,6 +27,7 @@ cdef class Property:
     cdef int allownone
     cdef object errorvalue
     cdef object errorhandler
+    cdef public object op_change_info
     cdef int errorvalue_set
     cdef public object defaultvalue
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage)
@@ -40,7 +41,6 @@ cdef class Property:
     cdef check(self, EventDispatcher obj, x)
     cdef convert(self, EventDispatcher obj, x)
     cpdef dispatch(self, EventDispatcher obj)
-    cpdef dispatch_with_op_info(self, EventDispatcher obj, op_info)
 
 cdef class NumericProperty(Property):
     cdef float parse_str(self, EventDispatcher obj, value)
@@ -52,7 +52,13 @@ cdef class StringProperty(Property):
 cdef class ListProperty(Property):
     cdef object cls
 
+cdef class OpObservableListProperty(Property):
+    cdef object cls
+
 cdef class DictProperty(Property):
+    cdef object cls
+
+cdef class OpObservableDictProperty(Property):
     cdef object cls
 
 cdef class ObjectProperty(Property):
@@ -106,3 +112,10 @@ cdef class VariableListProperty(Property):
     cdef float parse_str(self, EventDispatcher obj, value)
     cdef float parse_list(self, EventDispatcher obj, value, str ext)
 
+cdef class Binding(Property):
+    cdef object target
+    cdef str target_prop
+    cdef object source
+    cdef str prop
+    cdef str mode
+    cdef object transform

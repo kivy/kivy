@@ -1,56 +1,21 @@
+from collections import Iterable
+
 from kivy.enums import binding_modes
-from kivy.event import EventDispatcher
+#from kivy.event import EventDispatcher
+from kivy.properties import AliasProperty
 from kivy.properties import ObjectProperty
 from kivy.properties import StringProperty
+from kivy.uix.widget import Widget
 
 __all__ = ('Binding', )
 
 
-class Binding(EventDispatcher):
+#class Binding(EventDispatcher):
+# TODO: Changed to Widget for kv. Change kv?
+class Binding(Widget):
     '''The Binding class is used in constructing arguments to controllers,
     adapters, widgets, and other containers of properties, for which bindings
     need to be done between properties.
-
-    In Kivy versions < 1.8, you would instantiate the container, then set up
-    bindings. Use of the Binding class is a different way of accomplishing the
-    same thing.
-
-    Prior to Kivy 1.8, you might do:
-
-        list_adapter_one = ListAdapter(data=[ some data ],
-                                       allow_empty_selection=False,
-                                       selection_mode='multiple',
-                                       other params, ...)
-
-        list_adapter_two = ListAdapter(data=[],
-                                       other params, ...)
-
-        list_adapter_one.bind(selection=list_adapter_two.setter('data')
-
-    With Kivy 1.8, you can do this instead:
-
-        list_adapter_one = ListAdapter(data=[ some data ],
-                                       allow_empty_selection=False,
-                                       selection_mode='multiple',
-                                       other params, ...)
-
-        list_adapter_two = ListAdapter(data=Binding(source=list_adapter_one,
-                                                    prop='selection')
-                                       other params, ...)
-
-    That is only one line difference, but it changes the mental model a little
-    bit, and opens up other possibilities, and there can be more line savings.
-
-    There is a transform param for Binding for a function that is to be applied
-    to the bound property before it is set on the target. For example, if we
-    want to bind to list_adapter_one's selection, but filter the items for,
-    say, their bool value for something:
-
-        list_adapter_two = ListAdapter(
-                data=Binding(source=list_adapter_one,
-                             prop='selection',
-                             transform=FilterProperty(lamda d: d.bool))
-                other params, ...)
 
     The transform param can be one of:
 
@@ -75,55 +40,62 @@ class Binding(EventDispatcher):
                     - the calling signature for the map func is func(item), for
                       each item in the source/prop list
 
-    For short functions, as above, lambda works well. A normal function can
-    also be used:
-
-        def my_big_filter(item):
-            app = App.app()
-            return item.bool and (item.factor1 * item_factor2) > app.threshold
-
-        list_adapter_two = ListAdapter(
-                data=Binding(source=list_adapter_one,
-                             prop='selection',
-                             transform=FilterProperty(my_big_filter))
-                other params, ...)
-
-    In even more advanced use, if the filter function needs to make
-    calculations from dependencies, specify those dependencies in the
-    FilterProperty as (owner, prop_name) tuples:
-
-        app = App.app()
-
-        def my_bigger_filter(item):
-            if (item.bool
-                    and (item.factor1 * item_factor2) > app.threshold
-                    and item.rate > app.monitor.minimum_rate
-                    and item.rate < app.monitor.system_limit):
-                return True
-            return False
-
-        list_adapter_two = ListAdapter(
-            data=Binding(
-                source=list_adapter_one,
-                prop='selection',
-                transform=FilterProperty(my_bigger_filter,
-                                         bind=[(app, 'threshold'),
-                                               (app.monitor, 'minimum_rate',
-                                               (app.monitor, 'system_limit')))
-                other params, ...)
-
-    Now the data will be filtered by my_bigger_filter(), which will be
-    re-applied whenever app.threshold, or app.monitor.minimum_rate or
-    app.monitor.system_limit change.
-
-    The Binding class is also useful in situations where bindings need to be
-    stored, and reconnected, reapplied. For this reason, there are target and
-    target_prop attributes.
     '''
 
     target = ObjectProperty(None)
-    target_prop = StringProperty('')
+    target_prop = StringProperty('data')
     source = ObjectProperty(None)
-    prop = StringProperty('')
+    prop = StringProperty('data')
     mode = StringProperty(binding_modes.ONE_WAY)
     transform = ObjectProperty(None, allownone=True)
+
+    _value = ObjectProperty(None, allownone=True)
+
+    def get_value(self):
+        return self._value
+
+    def set_value(self, value):
+        if not hasattr(self.source, self.prop):
+            self._value = None
+        if isinstance(value, Binding):
+            self._value = value.get_value()
+        else:
+            v = value
+            if self.mode == binding_modes.FIRST_ITEM:
+                if v and isinstance(value, Iterable):
+                    v = value[0]
+                else:
+                    v = None
+            self._value = self.transform(v) if self.transform else v
+
+    value = AliasProperty(get_value, set_value)
+
+    def __init__(self, **kwargs):
+
+        super(Binding, self).__init__(**kwargs)
+
+        if not self.source or not self.prop:
+            return
+
+        print 'Binding', self.source, self.prop
+        self.source.bind(**{self.prop: self.setter('value')})
+
+    def bind_to(self, target, target_prop):
+        self.bind(_value=target.setter(target_prop))
+
+    def bind_callback(self, callback):
+        self.bind(_value=callback)
+
+
+class DataBinding(Binding):
+
+    def __init__(self, **kwargs):
+        kwargs['target_prop'] = 'data'
+        super(DataBinding, self).__init__(**kwargs)
+
+
+class SelectionBinding(Binding):
+
+    def __init__(self, **kwargs):
+        kwargs['target_prop'] = 'selection'
+        super(SelectionBinding, self).__init__(**kwargs)

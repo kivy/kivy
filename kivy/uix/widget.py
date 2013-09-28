@@ -164,7 +164,24 @@ class Widget(WidgetBase):
         if '__no_builder' not in kwargs:
             #current_root = Builder.idmap.get('root')
             #Builder.idmap['root'] = self
-            Builder.apply(self)
+            bindings = []
+
+            Builder.apply(self, bindings)
+
+            if bindings:
+
+                targets_and_bindings = {}
+
+                for binding in bindings:
+
+                    if binding.target in targets_and_bindings:
+                        targets_and_bindings[binding.target].append(binding)
+                    else:
+                        targets_and_bindings[binding.target] = [binding]
+
+                for target in targets_and_bindings:
+                    target.init_kv_bindings(targets_and_bindings[target])
+
             #if current_root is not None:
             #    Builder.idmap['root'] = current_root
             #else:

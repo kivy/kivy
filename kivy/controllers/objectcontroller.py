@@ -16,43 +16,37 @@ to build an API for it.
 '''
 import collections
 
-from kivy.controllers.controller import Controller
-from kivy.controllers.utils import parse_binding
+from kivy.binding import DataBinding
+from kivy.controllers.utils import handle_initial_value
 from kivy.controllers.utils import bind_binding
+from kivy.event import EventDispatcher
+from kivy.properties import ObjectProperty
 
 __all__ = ('ObjectController', )
 
 
-class ObjectController(Controller):
-    '''
-    data, which is defined as an ObjectProperty in the Controller superclass,
-    can be any Controller, including a list, a dict, etc. transform is a
-    TransformProperty, which by default will operated on a sibling property
-    called data.  The transform TransformProperty has a default func as a
-    lambda that simply sets the item, with no transform applied. Set
-    transform.func if a transform should be applied.
-    '''
-    # data is an ObjectProperty, defined in Controller
+class ObjectController(EventDispatcher):
+
+    data = ObjectProperty(None, allownone=True)
+    data_binding = ObjectProperty(None, allownone=True)
+
+    __events__ = ('on_data_change', )
 
     def __init__(self, **kwargs):
 
-        data_binding, kwargs = parse_binding('data', kwargs)
+        if 'data_binding' not in kwargs:
+            kwargs['data_binding'] = DataBinding()
 
         super(ObjectController, self).__init__(**kwargs)
 
-        if data_binding:
-            bind_binding(self, data_binding)
+        self.data_binding.bind_to(self, 'data')
+        self.bind(data=self.data_changed)
 
-    def update_subject_from_first_item(self, *args):
-        # Set data as the first item.
-        d = args[1]
-        if isinstance(d, collections.Iterable):
-            if d:
-                self.subject = d[0]
+    def on_data_change(self, *args):
+        '''on_data_change() is the default handler for the on_data_change
+        event.
+        '''
+        pass
 
-    def update_data_from_first_item(self, *args):
-        # Set data as the first item.
-        d = args[1]
-        if isinstance(d, collections.Iterable):
-            if d:
-                self.data = d[0]
+    def data_changed(self, *args):
+        self.dispatch('on_data_change')

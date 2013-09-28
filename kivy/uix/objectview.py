@@ -22,18 +22,15 @@ vertical scrollable list. :class:`AbstractView` has one property, adapter.
 
 __all__ = ('ObjectView', )
 
-from kivy.adapters.args_converters import list_item_args_converter
-from kivy.adapters.objectadapter import ObjectAdapter
-from kivy.binding import Binding
+from kivy.adapter import Adapter
+from kivy.binding import DataBinding
 from kivy.clock import Clock
-from kivy.controllers.transformcontroller import TransformController
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 
 from kivy.properties import ObjectProperty
 
 from kivy.uix.abstractview import AbstractView
-from kivy.uix.listview import ListItemLabel
 
 
 Builder.load_string('''
@@ -50,7 +47,7 @@ Builder.load_string('''
 ''')
 
 
-class ObjectView(AbstractView, EventDispatcher):
+class ObjectView(Adapter, AbstractView, EventDispatcher):
     ''':class:`~kivy.uix.listview.ObjectView` is a primary high-level widget,
     handling the common task of presenting an item in a scrolling list.
 
@@ -73,75 +70,58 @@ class ObjectView(AbstractView, EventDispatcher):
     default to None.
     '''
 
-    data_transform_controller = ObjectProperty(None, allownone=True)
+    data_binding = ObjectProperty(None, allownone=True)
 
     def __init__(self, **kwargs):
 
-        if '__no_builder' in kwargs:
-            # TODO: Why does this happen, from kv?
-            object_adapter = ObjectAdapter(data=None,
-                                           cls=ListItemLabel)
-
-            kwargs['adapter'] = object_adapter
-        elif 'adapter' not in kwargs:
-
-            if 'data' not in kwargs:
-                raise Exception(('ObjectView: without adapter, '
-                                 'must provide data arg.'))
-
-            cls = kwargs.pop('cls', ListItemLabel)
-            args_converter = \
-                    kwargs.pop('args_converter', list_item_args_converter)
-
-            data_binding = None
-            selection_binding = None
-
-            if isinstance(kwargs['data'], Binding):
-                data_binding = kwargs['data']
-                if kwargs['data'].transform:
-                    kwargs['data_transform_controller'] = \
-                        TransformController(data=kwargs['data'])
-                    kwargs['data'] = \
-                        (kwargs['data_transform_controller'], 'data')
-
-            object_adapter = ObjectAdapter(args_converter=args_converter,
-                                           cls=cls,
-                                           data=kwargs['data'])
-
-            if data_binding and data_binding.transform:
-                kwargs['data_transform_controller'].bind(
-                               data=object_adapter.setter('data'))
-
-            kwargs['adapter'] = object_adapter
+        if 'data_binding' not in kwargs:
+            kwargs['data_binding'] = DataBinding()
 
         super(ObjectView, self).__init__(**kwargs)
-
-        if self.adapter:
-            self.adapter.bind(on_data_change=self.data_changed)
 
         self._trigger_populate = Clock.create_trigger(self._spopulate, -1)
         self._trigger_reset_spopulate = \
             Clock.create_trigger(self._reset_spopulate, -1)
 
+        if self.data_binding.source and self.data_binding.source != self:
+            self.data_binding.source.bind(
+                **{self.data_binding.prop: self.data_binding.setter('value')})
+            self.data_binding.bind_callback(self.update_ui_for_data_change)
+            #self.data_binding.source.bind(
+                    #on_data_change=self.update_ui_for_data_change)
+            self.data = getattr(
+                    self.data_binding.source, self.data_binding.prop)
+#            if self.data_binding.prop == 'data':
+#                self.data_binding.source.bind(
+#                        on_data_change=self.update_ui_for_data_change)
+#            if self.data_binding.prop == 'selection':
+#                self.data_binding.source.bind(
+#                    on_selection_change=self.update_ui_for_selection_change)
+
         if self.container:
             self.container.bind(minimum_height=self.container.setter('height'))
 
         self.bind(size=self._trigger_populate,
-                  pos=self._trigger_populate,
-                  adapter=self.adapter_changed)
+                  pos=self._trigger_populate)
 
-    def adapter_changed(self, *args):
+    def init_kv_bindings(self, bindings):
 
-        if self.adapter:
-            self.adapter.bind(on_data_change=self.data_changed)
-
-            self._trigger_populate()
+        print 'ObjectView, init_kv_bindings', bindings
+        self.data_binding = db = bindings[0]
+        db.source.bind(**{db.prop: db.setter('value')})
+        db.bind_callback(self.update_ui_for_data_change)
 
     def _spopulate(self, *args):
         self.populate()
 
     def _reset_spopulate(self, *args):
         self.populate()
+
+    def additional_args_converter_args(self, index):
+        return ()
+
+    def get_data_item(self, index):
+        return self.data_binding._value
 
     def populate(self):
 
@@ -150,10 +130,19 @@ class ObjectView(AbstractView, EventDispatcher):
         # Clear the view.
         container.clear_widgets()
 
-        item_view = self.adapter.get_view(0)
-        container.add_widget(item_view)
+        item_view = self.create_view(0)
+        print 'populate, item_view is', item_view
+        if item_view:
+            container.add_widget(item_view)
 
-    def data_changed(self, *args):
+    def update_ui_for_data_change(self, *args):
+        print 'ObjectView: update_ui_for_data_change', args
+        # TODO: brute force here.
+        self.populate()
+
+    def update_ui_for_selection_change(self, *args):
+        print 'ObjectView: update_ui_for_selection_change', args
+        # TODO: brute force here.
         self.populate()
 
     def get_selection(self):
@@ -163,7 +152,7 @@ class ObjectView(AbstractView, EventDispatcher):
         .. versionadded:: 1.8
 
         '''
-        return self.adapter.get_selection() if self.adapter else None
+        return self.get_selection() if self else None
 
     def get_first_selected(self):
         '''A convenience method to call to the adapter for the first selected
@@ -172,7 +161,7 @@ class ObjectView(AbstractView, EventDispatcher):
         .. versionadded:: 1.8
 
         '''
-        return self.adapter.get_first_selected() if self.adapter else None
+        return self.get_first_selected() if self else None
 
     def get_last_selected(self):
         '''A convenience method to call to the adapter for the last selected
@@ -181,4 +170,4 @@ class ObjectView(AbstractView, EventDispatcher):
         .. versionadded:: 1.8
 
         '''
-        return self.adapter.get_last_selected() if self.adapter else None
+        return self.get_last_selected() if self else None
