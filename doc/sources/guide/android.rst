@@ -64,6 +64,7 @@ Phones
 - HTC Desire Z
 - HTC Desire SV (Kivy apps run, but there are issues running some apps via the
   Kivy Launcher)
+- LG (Google) Nexus 4
 - LG Optimus S
 - LG Optimus V
 - Motorola Droid 1
@@ -84,6 +85,7 @@ Tablets
 ~~~~~~~
 
 - Asus EeePad Transformer
+- Asus (Google) Nexus 7 2013
 - Motorola Xoom
 - Samsung Galaxy Note 8.0” (N5100)
 - Samsung Galaxy Note 10.1 (N8000) (Kivy Launcher does not install)
