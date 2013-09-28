@@ -62,6 +62,7 @@ Phones
 
 - HTC Desire
 - HTC Desire Z
+- HTC Desire HD (works with no issues when upgraded to 4.x roms, has random bugs with 2.3)
 - HTC Desire SV (Kivy apps run, but there are issues running some apps via the
   Kivy Launcher)
 - LG (Google) Nexus 4
@@ -69,6 +70,7 @@ Phones
 - LG Optimus V
 - Motorola Droid 1
 - Motorola Droid 2
+- Micromax Canvas 2
 - Samsung Galaxy S (mostly works, seems to have some weird OpenGL behaviour,
   most notably the kivy splash screen doesn't work)
 - Samsumg Galaxy Pocket S5300
