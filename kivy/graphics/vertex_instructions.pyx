@@ -864,7 +864,7 @@ cdef class Ellipse(Rectangle):
         # rad = deg * (pi / 180), where pi / 180 = 0.0174...
         angle_start = self._angle_start * 0.017453292519943295
         angle_end = self._angle_end * 0.017453292519943295
-        angle_range = abs(angle_end - angle_start) / self._segments
+        angle_range = -1 * (angle_end - angle_start) / self._segments
 
         # add start vertice in the middle
         x = self.x + rx
@@ -877,8 +877,7 @@ cdef class Ellipse(Rectangle):
         vertices[0].t0 = tty
         indices[0] = 0
 
-
-        if rx == ry and self.angle_start == 0 and self.angle_end == 360:
+        if rx == ry:
             # super fast version
             # credits goes to: http://slabode.exofire.net/circle_draw.shtml
             # there is few issues with angle, so until fixed, allow this to work
@@ -907,6 +906,8 @@ cdef class Ellipse(Rectangle):
                 y *= radial_factor
 
         else:
+
+            angle_range = abs(angle_range)
 
             for i in xrange(1, count + 2):
                 angle = angle_start + (angle_dir * (i - 1) * angle_range)
