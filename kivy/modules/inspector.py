@@ -29,7 +29,7 @@ Usage
 
 For normal module usage, please see the :mod:`~kivy.modules` documentation.
 
-The Inspector, however, can also be imported and used just like a normal 
+The Inspector, however, can also be imported and used just like a normal
 python module. This has the added advantage of being able to activate and
 deactivate the module programmatically::
 

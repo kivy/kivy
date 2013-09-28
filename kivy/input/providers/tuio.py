@@ -250,7 +250,8 @@ class Tuio2dCurMotionEvent(TuioMotionEvent):
             self.sx, self.sy = list(map(float, args[0:2]))
             self.profile = ('pos', )
         elif len(args) == 5:
-            self.sx, self.sy, self.X, self.Y, self.m = list(map(float, args[0:5]))
+            self.sx, self.sy, self.X, self.Y, self.m = list(map(float,
+                                                                args[0:5]))
             self.Y = -self.Y
             self.profile = ('pos', 'mov', 'motacc')
         else:

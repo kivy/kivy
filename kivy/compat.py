@@ -3,7 +3,8 @@ Compatibility module for Python 2.7 and > 3.3
 =============================================
 '''
 
-__all__ = ('PY2', 'string_types', 'queue', 'iterkeys', 'itervalues', 'iteritems')
+__all__ = ('PY2', 'string_types', 'queue', 'iterkeys',
+           'itervalues', 'iteritems')
 
 import sys
 try:

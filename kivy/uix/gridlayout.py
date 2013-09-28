@@ -118,8 +118,14 @@ class GridLayout(Layout):
 
     spacing also accepts a one argument form [spacing].
 
+<<<<<<< HEAD
     :data:`spacing` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [0, 0].
+=======
+    :data:`spacing` is a
+    :class:`~kivy.properties.VariableListProperty`, default to [0, 0].
+
+>>>>>>> pep8 fixes
     '''
 
     padding = VariableListProperty([0, 0, 0, 0])
@@ -133,8 +139,15 @@ class GridLayout(Layout):
 
     Replaced NumericProperty with VariableListProperty.
 
+<<<<<<< HEAD
     :data:`padding` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [0, 0, 0, 0].
+=======
+    :data:`padding` is a
+    :class:`~kivy.properties.VariableListProperty`, default to [0, 0,
+    0, 0].
+
+>>>>>>> pep8 fixes
     '''
 
     cols = BoundedNumericProperty(None, min=0, allow_none=True)
