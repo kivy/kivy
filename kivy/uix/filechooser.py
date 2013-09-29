@@ -191,9 +191,9 @@ class FileChooserController(FloatLayout):
             [seq]      matches any character in seq
             [!seq]     matches any character not in seq
             ========== =================================
-    
+
     #. Callbacks
-        
+
         You can specify a function that will be called for each file. The
         callback will be passed the folder and file name as the first and second
         parameters respectively. It should return True to indicate a match and
