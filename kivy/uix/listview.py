@@ -57,7 +57,7 @@ code. No matter what you do, going back and forth will likely be needed.
 Basic Example
 -------------
 
-In its simplest form, we make a listview with 100 items::
+In its simplest form, we make a vertical listview with 100 items::
 
     from kivy.uix.listview import ListView
     from kivy.uix.gridlayout import GridLayout
@@ -79,6 +79,12 @@ In its simplest form, we make a listview with 100 items::
         from kivy.base import runTouchApp
         runTouchApp(MainView(width=800))
 
+To make it horizontal, we can specify ``orientation='horizontal'``::
+
+    list_view = ListView(
+        item_strings=[str(index) for index in range(100)],
+        orientation='horizontal')
+
 Or, we could declare the listview in using the kv language::
 
     from kivy.uix.modalview import ModalView
@@ -93,6 +99,7 @@ Or, we could declare the listview in using the kv language::
         ListView:
             size_hint: .8, .8
             item_strings: [str(index) for index in range(100)]
+            orientation: 'horizontal'
     """)
 
 
