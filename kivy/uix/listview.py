@@ -328,11 +328,133 @@ list_item_class.
 
 See the list_of_carousels.py example for one attempt.
 
-Uses for Selection
-------------------
+The Importance of Controllers and Selection
+-------------------------------------------
 
-What can we do with selection? Combining selection with the system of bindings
-in Kivy, we can build a wide range of user interface designs.
+Controllers provide a basis for creativity in the main structure of an app.
+Bridging data to views, controllers form the logical structure, which in
+general terms can be imagined as a tree, or graph. Controllers, in Kivy speak,
+are EventDispatcher containers of properties that occupy nodes of the logic
+tree or graph. The data and selection properties are special and wired-in to
+list controllers.  Other properties used in a controller, include basic Python
+primitives and Kivy properties such as ListProperty, DictProperty,
+ObjectProperty, AliasProperty, and NumericProperty. These properties are used
+to complete the body of the controller, centered around data and/or selection,
+along with specialized methods needed for the particular app.
+
+Bindings connect controllers. Two bindings are cater-made for controllers,
+DataBinding and SelectionBinding. In the examples you will see data for fruits
+used, where we have fruit categories (tree fruits, citrus fruits, etc.) and
+indivdual fruits that fit into these categories (Apple, Peach, Kiwi, etc.).
+Let's go through the process of writing the small fruits app in
+list_cascade.py. If you haven't done so already, open that file in your editor,
+and run the app. Click around to see how it behaves.
+
+It isn't hard to see what controllers are needed for the basic data here.  We
+need a fruits controller to contain the indidual fruits data. We have a notion
+of fruit categories, so we need a fruit categories controller. How do we get a
+list of the fruits in a given category? Some of this depends on the way the
+base data is structured, but we see that in this case, luckily, the base data
+is stored in Python dictionaries (You should structure your base data with
+controllers in mind, if you have that luxury). We learn that if we can have a
+category, we can get the fruits for it by using the category as a key in to the
+base data dictionary. We make a new controller called
+current_fruits_controller, to which we add a helper filter function called
+get_current_fruits(). We use a binding to link this helper function to the data
+property of the controller. But how to we link this current_fruits_controller
+to the category, which is in the categories_controller? With another binding,
+in this case with a binding to the selection property of the
+category_controller, along with the very handy setting of the binding mode to
+FIRST_ITEM. So far, we have::
+
+     categories_controller      categories           current_fruits_controller
+       (ListController)         selection                 (ListController)
+    -----------------------  ---------------        ---------------------------
+    Citrus Fruits << sel     [Citrus Fruits]     /  Grapefruit << sel
+    Melons                         ^             |  Lemon
+    Tree Fruits                    --------------|  Lime
+    Other Fruits              FIRST_ITEM    data |  Orange
+                                                 \  Tangerine
+
+    (single selection in effect)                   (single selection in effect)
+    (auto selection in effect)                     (auto selection in effect)
+
+Some points::
+
+    * Selection is always a list, so even if we know there will only be one
+      item allowed, as with single selection, in accessing it, we must use the
+      FIRST_ITEM binding mode. In other uses, as illustrated in the example
+      called list_selection_binding.py, we may want to bind to the entire
+      selection.
+
+    * Selection is a key mechanism provided by the controller -- without
+      selection, a list is just a boring list. Get selection on the brain and
+      keep it there, for lists at least.
+
+    * We haven't connected these controllers to list views. We can imagine a
+      user interface, but mainly now we are still thinking in "controller
+      mode," where we are concerned with data and logic structure. Of course,
+      we need to go back and forth, to also think about the user interface
+      components and what data is needed, but you will get the hang of the way
+      controllers are constructed in the "headless" realm of pure programming.
+
+    * A good rule of thumb to follow is to create new controllers at the first
+      notion of subsetting data. Although it is not apparent from an example
+      with just two controllers, generally you should create several small
+      controllers, instead of a few monolithic controllers.
+
+    * The phrase "auto selection" refers to the result of setting
+      allow_empty_selection to False -- the system will never let selection be
+      empty, which makes the connections between controllers work, at those
+      that are bound together via selection, which is most common in
+      programming.
+
+It is now easy to make list views for categories and current fruits. We bind
+the catetories_controller to the categories list view, and we bind the
+current_fruits_controller to current fruits list view. Done. (the main work was
+in setting up the controllers).
+
+The list_cascade.py example illustrates another important concept for
+controllers and selection. The third user interface component, to the right of
+the two lists described above, is a detail view for the selected fruit within
+the current fruits list::
+
+     current_fruits_controller    current fruits      current_fruit_controller
+          (ListController)          selection           (ObjectController)
+    --------------------------- -----------------    --------------------------
+    Grapefruit << sel            [Grapefruit]      / Name: Grapefruit
+    Lemon                             ^            | Calories: 160
+    Lime                              -------------| Calories from fat: 60
+    Orange                       FIRST_ITEM   data | Total fat: 2
+    Tangerine                                      | Sodium: 0
+
+    (single selection in effect)
+
+More points::
+
+    * We use the same binding approach as above: bind to the selection of a
+      list controller, using binding mode FIRST_ITEM.
+
+    * The controller on the right is an ObjectController, for containing a
+      single object as its single data item. The object can be anything (even a
+      listor dict), but in this case it is the selected current fruit,
+      Grapefruit.
+
+    * Object controllers are the linchpin for the wheel for controllers in
+      general, serving to link list controllers to one another.
+
+    * When you examine the code, you see that a widget called ObjectView is
+      bound to the current fruit ObjectController. This is a handy generic view
+      for a single item, sort of like ListView without the list -- in fact, the
+      code for ObjectView was adapted from ListView, so you will see welcome
+      similarities.
+
+Other Examples
+--------------
+
+What can we do with controllers and selection? Combining selection with the
+system of bindings in Kivy, we can build a wide range of user interface
+designs.
 
 We could make data items that contain the names of dog breeds, and connect the
 selection of dog breed to the display of details in another view, which would
@@ -350,12 +472,6 @@ answer session would be terminated. See the list_cascade.py example, which
 features a thumbnail image, to get some ideas. See the
 list_selection_binding.py example for how to connect the selection of one
 controller to the data of another.
-
-In the list_cascade.py example, we chain together two listviews and an object
-view.  Selection in the first list controls the items shown in the second, and
-selection in the second list controls the item shown in the object view.
-allow_empty_selection is set to False for these listviews, so there is always
-an automatic selection in them.
 
 There are so many ways that listviews and Kivy bindings functionality can be
 used, that we have only scratched the surface here.
