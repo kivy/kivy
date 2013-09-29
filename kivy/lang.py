@@ -285,7 +285,7 @@ subclasses.
 The syntax look like:
 
 .. code-block:: kv
-     
+
     # Simple inheritance
     <NewWidget@Button>:
         ...
@@ -294,7 +294,7 @@ The syntax look like:
     <NewWidget@Label,ButtonBehavior>:
         ...
 
-The `@` character is used to seperate the name from the classes you want to
+The `@` character is used to separate the name from the classes you want to
 subclass. The Python equivalent would have been:
 
 .. code-block:: python
@@ -481,7 +481,7 @@ When you are creating a context:
     #. you cannot use references other than "root":
 
     .. code-block:: kv
-    
+
         <MyRule>:
             Widget:
                 id: mywidget
@@ -492,7 +492,7 @@ When you are creating a context:
     #. all the dynamic part will be not understood:
 
     .. code-block:: kv
-    
+
         <MyRule>:
             Template:
                 ctxkey: 'value 1' if root.prop1 else 'value2' # << even if
@@ -651,7 +651,7 @@ _delayed_calls = []
 # widget is deleted
 _handlers = {}
 
-    
+
 class ProxyApp(object):
     # proxy app object
     # taken from http://code.activestate.com/recipes/496741-object-proxying/
@@ -1436,7 +1436,8 @@ class BuilderBase(object):
 
             if parser.root:
                 widget = Factory.get(parser.root.name)()
-                self._apply_rule(widget, parser.root, parser.root)
+                bindings = []
+                self._apply_rule(widget, parser.root, parser.root, bindings)
                 return widget
         finally:
             self._current_filename = None
@@ -1468,10 +1469,10 @@ class BuilderBase(object):
         # preventing widgets in it from be collected by the GC. This was
         # especially relevant to AccordionItem's title_template.
         proxy_ctx = {k: get_proxy(v) for k, v in ctx.items()}
-        self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
+        self._apply_rule(widget, rule, rule, [], template_ctx=proxy_ctx)
         return widget
 
-    def apply(self, widget):
+    def apply(self, widget, bindings):
         '''Search all the rules that match the widget, and apply them.
         '''
         rules = self.match(widget)
@@ -1480,12 +1481,12 @@ class BuilderBase(object):
         if not rules:
             return
         for rule in rules:
-            self._apply_rule(widget, rule, rule)
+            self._apply_rule(widget, rule, rule, bindings)
 
     def _clear_matchcache(self):
         BuilderBase._match_cache = {}
 
-    def _apply_rule(self, widget, rule, rootrule, template_ctx=None):
+    def _apply_rule(self, widget, rule, rootrule, bindings, template_ctx=None):
         # widget: the current instanciated widget
         # rule: the current rule
         # rootrule: the current root rule (for children of a rule)
@@ -1585,8 +1586,11 @@ class BuilderBase(object):
                 # apply(), and so, we could use "self.parent".
                 child = cls(__no_builder=True)
                 widget.add_widget(child)
-                self.apply(child)
-                self._apply_rule(child, crule, rootrule)
+                self.apply(child, bindings)
+                self._apply_rule(child, crule, rootrule, bindings)
+                if child.__class__.__name__.endswith('Binding'):
+                    child.target = widget
+                    bindings.append(child)
 
         # append the properties and handlers to our final resolution task
         if rule.properties:

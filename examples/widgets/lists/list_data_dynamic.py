@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
-from kivy.uix.listview import ListView
-from kivy.uix.floatlayout import FloatLayout
-from kivy.clock import Clock
-from kivy.adapters.listadapter import ListAdapter
-from kivy.adapters.models import SelectableDataItem
-
-from kivy.uix.listview import ListItemButton
-
 from random import choice
 from string import ascii_uppercase, digits
 
 import random
+
+from kivy.binding import DataBinding
+from kivy.controllers.listcontroller import ListController
+from kivy.clock import Clock
+from kivy.enums import selection_schemes
+from kivy.models import SelectableDataItem
+
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.listview import ListItemButton
+from kivy.uix.listview import ListView
 
 
 class DataItem(SelectableDataItem):
@@ -20,9 +22,6 @@ class DataItem(SelectableDataItem):
 
 
 class MainView(FloatLayout):
-    """
-    Implementation of a ListView using the kv language.
-    """
 
     def __init__(self, **kwargs):
         super(MainView, self).__init__(**kwargs)
@@ -32,19 +31,19 @@ class MainView(FloatLayout):
         data_items.append(DataItem())
         data_items.append(DataItem())
 
-        list_item_args_converter = lambda row_index, obj: {'text': obj.name,
+        list_item_class_args = lambda row_index, obj: {'text': obj.name,
                                                            'size_hint_y': None,
                                                            'height': 25}
 
-        self.list_adapter = \
-                ListAdapter(data=data_items,
-                            args_converter=list_item_args_converter,
-                            selection_mode='single',
-                            propagate_selection_to_data=False,
-                            allow_empty_selection=False,
-                            cls=ListItemButton)
+        self.list_controller = ListController(
+                data=data_items,
+                selection_mode='single',
+                allow_empty_selection=False)
 
-        self.list_view = ListView(adapter=self.list_adapter)
+        self.list_view = ListView(
+                data_binding=DataBinding(source=self.list_controller),
+                args_converter=list_item_class_args,
+                list_item_class=ListItemButton)
 
         self.add_widget(self.list_view)
 
@@ -53,7 +52,7 @@ class MainView(FloatLayout):
         Clock.schedule_interval(self.update_list_data, 1)
 
     def update_list_data(self, dt):
-        items = self.list_adapter.data
+        items = self.list_controller.data
         if self.toggle == 'adding':
             item = DataItem(name='New ' * random.randint(1, 2))
             items.append(item)

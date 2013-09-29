@@ -77,14 +77,16 @@ class LangTestCase(unittest.TestCase):
         Builder = self.import_builder()
         Builder.load_string('<TestClass>:\n\tobj: (.5, .5, .5)')
         wid = TestClass()
-        Builder.apply(wid)
+        bindings = []
+        Builder.apply(wid, bindings)
         self.assertEqual(wid.obj, (0.5, 0.5, 0.5))
 
     def test_parser_numeric_2(self):
         Builder = self.import_builder()
         Builder.load_string('<TestClass>:\n\tobj: (0.5, 0.5, 0.5)')
         wid = TestClass()
-        Builder.apply(wid)
+        bindings = []
+        Builder.apply(wid, bindings)
         self.assertEqual(wid.obj, (0.5, 0.5, 0.5))
 
     def test_references(self):
@@ -96,7 +98,8 @@ class LangTestCase(unittest.TestCase):
         id: textinput
         ''')
         wid = TestClass()
-        Builder.apply(wid)
+        bindings = []
+        Builder.apply(wid, bindings)
 
         self.assertTrue(hasattr(wid, 'textinput'))
         self.assertTrue(getattr(wid, 'textinput') is not None)
@@ -114,7 +117,8 @@ class LangTestCase(unittest.TestCase):
         id: textinput
         ''')
         wid = TestClass()
-        Builder.apply(wid)
+        bindings = []
+        Builder.apply(wid, bindings)
 
         self.assertTrue(hasattr(wid, 'textinput'))
         self.assertTrue(getattr(wid, 'textinput') is not None)
@@ -132,7 +136,8 @@ class LangTestCase(unittest.TestCase):
             title: 'bleh'
         ''')
         wid = TestClass()
-        Builder.apply(wid)
+        bindings = []
+        Builder.apply(wid, bindings)
 
         self.assertTrue(hasattr(wid, 'textinput'))
         self.assertTrue(getattr(wid, 'textinput') is not None)
@@ -152,7 +157,8 @@ class LangTestCase(unittest.TestCase):
                 id: textinput
         ''')
         wid = TestClass()
-        Builder.apply(wid)
+        bindings = []
+        Builder.apply(wid, bindings)
 
         self.assertTrue(hasattr(wid, 'textinput'))
         self.assertTrue(getattr(wid, 'textinput') is not None)
@@ -167,7 +173,8 @@ class LangTestCase(unittest.TestCase):
         self.a = 1
 ''')
         wid = TestClass()
-        Builder.apply(wid)
+        bindings = []
+        Builder.apply(wid, bindings)
         wid.a = 0
 
         self.assertTrue('on_press' in wid.binded_func)
@@ -184,7 +191,8 @@ class LangTestCase(unittest.TestCase):
                 self.a = 1
 ''')
         wid = TestClass()
-        Builder.apply(wid)
+        bindings = []
+        Builder.apply(wid, bindings)
         wid.a = 0
 
         self.assertTrue('on_press' in wid.binded_func)
@@ -201,7 +209,8 @@ class LangTestCase(unittest.TestCase):
   self.a = 1
 ''')
         wid = TestClass()
-        Builder.apply(wid)
+        bindings = []
+        Builder.apply(wid, bindings)
         wid.a = 0
 
         self.assertTrue('on_press' in wid.binded_func)
@@ -218,7 +227,8 @@ class LangTestCase(unittest.TestCase):
     self.a = 1
 ''')
         wid = TestClass()
-        Builder.apply(wid)
+        bindings = []
+        Builder.apply(wid, bindings)
         wid.a = 0
 
         self.assertTrue('on_press' in wid.binded_func)

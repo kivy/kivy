@@ -709,6 +709,14 @@ class App(EventDispatcher):
         '''
         return App._running_app
 
+    @staticmethod
+    def app():
+        '''Return the current runned application instance, short version.
+
+        .. versionadded:: 1.8
+        '''
+        return App._running_app
+
     def on_config_change(self, config, section, key, value):
         '''Event handler fired when one configuration token have been changed by
         the settings page.

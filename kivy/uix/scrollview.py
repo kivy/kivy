@@ -572,6 +572,13 @@ class ScrollView(StencilView):
         :data:`scroll_y`, :data:`pos` or :data:`size` properties change, or
         if the size of the content changes.
         '''
+
+        # Added to set bounds in case of a programmatic change to scroll_y.
+        # This keeps scrolling parameters in sync between interactive scroll
+        # moves and programmatic changes to scroll values, e.g. scroll_y from
+        # ListView.scroll_to(index).
+        self._update_effect_bounds()
+
         if not self._viewport:
             return
         vp = self._viewport
