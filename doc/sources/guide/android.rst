@@ -65,6 +65,7 @@ Phones
 - HTC Desire HD (works with no issues when upgraded to 4.x roms, has random bugs with 2.3)
 - HTC Desire SV (Kivy apps run, but there are issues running some apps via the
   Kivy Launcher)
+- LG (Google) Nexus 4
 - LG Optimus S
 - LG Optimus V
 - Motorola Droid 1
@@ -80,12 +81,10 @@ Phones
 - Samsung Galaxy Note (N7000)
 - Samsung Galaxy Note II (N7100)
 - Xperia 10 (custom ROM 2.1 + GLES 2.0 support)
-
-
 Tablets
 ~~~~~~~
-
 - Asus EeePad Transformer
+- Asus (Google) Nexus 7 2013
 - Motorola Xoom
 - Samsung Galaxy Note 8.0” (N5100)
 - Samsung Galaxy Note 10.1 (N8000) (Kivy Launcher does not install)
