@@ -41,8 +41,9 @@ class StackLayout(Layout):
 
     spacing also accepts a one argument form [spacing].
 
-    :data:`spacing` is a :class:`~kivy.properties.VariableListProperty`, default to
-    [0, 0].
+    :data:`spacing` is a
+    :class:`~kivy.properties.VariableListProperty`, default to [0, 0].
+
     '''
 
     padding = VariableListProperty([0, 0, 0, 0])
@@ -56,8 +57,10 @@ class StackLayout(Layout):
 
     Replaced NumericProperty with VariableListProperty.
 
-    :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default to
-    [0, 0, 0, 0].
+    :data:`padding` is a
+    :class:`~kivy.properties.VariableListProperty`, default to [0, 0,
+    0, 0].
+
     '''
 
     orientation = OptionProperty('lr-tb', options=(

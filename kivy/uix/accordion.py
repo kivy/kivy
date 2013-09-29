@@ -326,8 +326,10 @@ class Accordion(Widget):
         'horizontal', 'vertical'))
     '''Orientation of the layout.
 
-    :data:`orientation` is an :class:`~kivy.properties.OptionProperty` and
-	defaults to 'horizontal'. Can take a value of 'vertical' or 'horizontal'.
+    :data:`orientation` is an :class:`~kivy.properties.OptionProperty`
+    and defaults to 'horizontal'. Can take a value of 'vertical' or
+    'horizontal'.
+
     '''
 
     anim_duration = NumericProperty(.25)
@@ -350,10 +352,10 @@ class Accordion(Widget):
 
     min_space = NumericProperty('44dp')
     '''Minimum space to use for the title of each item. This value is
-	automatically set for each child every time the layout event occurs.
+    automatically set for each child every time the layout event occurs.
 
     :data:`min_space` is a :class:`~kivy.properties.NumericProperty` and
-	defaults to 44 (px).
+    defaults to 44 (px).
     '''
 
     def __init__(self, **kwargs):
@@ -365,7 +367,6 @@ class Accordion(Widget):
             size=self._trigger_layout,
             pos=self._trigger_layout,
             min_space=self._trigger_layout)
-
 
     def add_widget(self, widget, *largs):
         if not isinstance(widget, AccordionItem):

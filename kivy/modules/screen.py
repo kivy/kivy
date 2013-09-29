@@ -1,5 +1,4 @@
-'''
-Screen
+'''Screen
 ======
 
 This module changes some environement and configuration variables
@@ -20,14 +19,15 @@ To simulate a high-density screen such as HTC One X, in portrait::
 To simulate the iPad 2 screen::
 
     python main.py -m screen:ipad
-    
+
 If the generated window is too large, you can specify a scale::
 
     python main.py -m screen:note2,portrait,scale=.75
-    
-Note that to display your contents correctly on a scaled window you must 
-consistently use units 'dp' and 'sp' throughout your app. See :mod:`~kiv.metrics`
-for more details.
+
+Note that to display your contents correctly on a scaled window you
+must consistently use units 'dp' and 'sp' throughout your app. See
+:mod:`~kiv.metrics` for more details.
+
 '''
 
 import sys
@@ -74,7 +74,9 @@ def apply_device(device, scale, orientation):
     environ['KIVY_METRICS_DENSITY'] = str(density * scale)
     environ['KIVY_DPI'] = str(dpi * scale)
     Config.set('graphics', 'width', str(int(width * scale)))
-    Config.set('graphics', 'height', str(int(height * scale)))
+    # simulate with the android bar
+    # FIXME should be configurable
+    Config.set('graphics', 'height', str(int(height * scale - 25 * density)))
     Config.set('graphics', 'fullscreen', '0')
     Config.set('graphics', 'show_mousecursor', '1')
 
