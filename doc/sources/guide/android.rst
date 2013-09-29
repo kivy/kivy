@@ -81,6 +81,8 @@ Phones
 - Samsung Galaxy Note (N7000)
 - Samsung Galaxy Note II (N7100)
 - Xperia 10 (custom ROM 2.1 + GLES 2.0 support)
+
+
 Tablets
 ~~~~~~~
 - Asus EeePad Transformer
