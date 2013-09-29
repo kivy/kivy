@@ -11,26 +11,23 @@ DictController
     This code is still experimental, and its API is subject to change in a
     future version.
 
-A :class:`~kivy.controllers.dictcontroller.DictController` is an controller around a
-python dictionary of records.
+A :class:`~kivy.controllers.dictcontroller.DictController` is an controller
+around a python dictionary of records.
 '''
 
 __all__ = ('DictController', )
 
 from kivy.controllers.listcontroller import ListController
-
 from kivy.properties import DictProperty
-from kivy.properties import ListProperty
-from kivy.properties import ObjectProperty
-
-from kivy.properties import OpObservableList
+from kivy.properties import DictOpInfo
 from kivy.properties import OpObservableDict
 
 
 class DictController(ListController):
-    '''A :class:`~kivy.controllers.dictcontroller.DictController` is an controller around a
-    python dictionary of records. It is an alternative to the list capabilities
-    of :class:`~kivy.controllers.listcontroller.ListController`.
+    '''A :class:`~kivy.controllers.dictcontroller.DictController` is an
+    controller around a python dictionary of records. It is an alternative to
+    the list capabilities of
+    :class:`~kivy.controllers.listcontroller.ListController`.
 
     This class supports a "collection" style view such as
     :class:`~kivy.uix.listview.ListView`.
@@ -123,8 +120,9 @@ class DictController(ListController):
 #        return self.data_dict[key_item]
 
     def additional_args_converter_args(self, index):
-        '''args_converters for DictController instances receive the index and the
-        data value, along with the key_item at the index, as the last argument:
+        '''args_converters for DictController instances receive the index and
+        the data value, along with the key_item at the index, as the last
+        argument:
 
         So, an args_converter for DictController gets three arguments:
 
@@ -144,7 +142,9 @@ class DictController(ListController):
             selected_key_items = [sel.text for sel in self.selection]
             first_sel_index = self.data.index(selected_key_items[0])
             desired_key_items = self.data[first_sel_index:]
-            self.data_dict = dict([(key_item, self.data_dict[key_item]) for key_item in desired_key_items])
+            self.data_dict = \
+                    dict([(key_item, self.data_dict[key_item])
+                                  for key_item in desired_key_items])
 
     def trim_right_of_sel(self, *args):
         '''Cut list items with indices in data that are greater than
@@ -154,7 +154,9 @@ class DictController(ListController):
             selected_key_items = [sel.text for sel in self.selection]
             last_sel_index = self.data.index(selected_key_items[-1])
             desired_key_items = self.data[:last_sel_index + 1]
-            self.data_dict = dict([(key_item, self.data_dict[key_item]) for key_item in desired_key_items])
+            self.data_dict = \
+                    dict([(key_item, self.data_dict[key_item])
+                                  for key_item in desired_key_items])
 
     def trim_to_sel(self, *args):
         '''Cut list items with indices in data that are les than or
@@ -167,7 +169,9 @@ class DictController(ListController):
             first_sel_index = self.data.index(selected_key_items[0])
             last_sel_index = self.data.index(selected_key_items[-1])
             desired_key_items = self.data[first_sel_index:last_sel_index + 1]
-            self.data_dict = dict([(key_item, self.data_dict[key_item]) for key_item in desired_key_items])
+            self.data_dict = \
+                    dict([(key_item, self.data_dict[key_item])
+                                  for key_item in desired_key_items])
 
     def cut_to_sel(self, *args):
         '''Same as trim_to_sel, but intervening list items within the selected
@@ -175,14 +179,17 @@ class DictController(ListController):
         '''
         if len(self.selection) > 0:
             selected_key_items = [sel.text for sel in self.selection]
-            self.data_dict = dict([(key_item, self.data_dict[key_item]) for key_item in selected_key_items])
+            self.data_dict = \
+                    dict([(key_item, self.data_dict[key_item])
+                                   for key_item in selected_key_items])
 
     def data_dict_changed(self, *args):
         '''
-        data_changed() reacts to the operations listed below that are possible for
-        a OpObservableDict (OOD).
+        data_changed() reacts to the operations listed below that are possible
+        for a OpObservableDict (OOD).
 
-        The following methods here react to some of the dict operations possible:
+        The following methods here react to some of the dict operations
+        possible:
 
             handle_dict_set()
 

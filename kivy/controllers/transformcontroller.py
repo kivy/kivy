@@ -23,7 +23,6 @@ from kivy.enums import binding_transforms
 from kivy.properties import ObjectProperty
 from kivy.properties import TransformInitInfo
 from kivy.properties import TransformProperty
-from kivy.selection import Selection
 
 __all__ = ('TransformController, TransformListController', )
 
@@ -79,8 +78,8 @@ class TransformController(Controller):
                 binding = kwargs[arg_name]
                 binding.target_prop = arg_name
 
-                # If the property name was not provided, assume it is 'data', which
-                # is the main property name in controllers.
+                # If the property name was not provided, assume it is 'data',
+                # which is the main property name in controllers.
                 if not binding.prop:
                     binding.prop = 'data'
 
@@ -107,9 +106,10 @@ class TransformController(Controller):
 
             else:
                 if not isinstance(val, list):
-                    raise Exception(('Argument {} was not provided with a list, an '
-                                     '(owner, prop) tuple value nor a Binding with '
-                                     'source, prop, other args.').format(arg_name))
+                    raise Exception(('Argument {} was not provided with a '
+                                     'list, an (owner, prop) tuple value nor '
+                                     'a Binding with source, prop, other '
+                                     'args.').format(arg_name))
 
         return binding, kwargs
 

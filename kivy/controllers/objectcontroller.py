@@ -14,11 +14,7 @@ to build an API for it.
 .. versionadded:: 1.8
 
 '''
-import collections
-
 from kivy.binding import DataBinding
-from kivy.controllers.utils import handle_initial_value
-from kivy.controllers.utils import bind_binding
 from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty
 

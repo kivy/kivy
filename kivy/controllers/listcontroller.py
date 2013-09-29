@@ -85,19 +85,13 @@ hold the single selection from a ListController.
 
 '''
 
-from kivy.binding import Binding
 from kivy.binding import DataBinding
-from kivy.controllers.controller import Controller
-from kivy.controllers.utils import handle_initial_value
-from kivy.controllers.utils import bind_binding
 from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty
 from kivy.properties import OpObservableList
-from kivy.properties import ListOpHandler
 from kivy.properties import ListOpInfo
 from kivy.properties import ListProperty
 from kivy.selection import Selection
-from kivy.uix.listview import ListItemLabel
 
 __all__ = ('ListController', )
 
@@ -390,7 +384,7 @@ class ListController(Selection, EventDispatcher):
         '''
 
         if not self.selection_binding:
-            changed_indices = range(start_index, end_index + 1)
+            #changed_indices = range(start_index, end_index + 1)
 
             sel_indices_for_removal = []
             for index, sel in enumerate(self.selection):
@@ -419,7 +413,7 @@ class ListController(Selection, EventDispatcher):
         '''
 
         if not self.selection_binding:
-            deleted_indices = range(start_index, end_index + 1)
+            #deleted_indices = range(start_index, end_index + 1)
 
             sel_indices_for_removal = []
             for index, sel in enumerate(self.selection):
