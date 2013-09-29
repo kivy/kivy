@@ -1069,6 +1069,21 @@ class ListView(AbstractView, EventDispatcher):
     '''
 
     fetch_size = NumericProperty(10)
+    '''Listview works by generating views of data that are visible or
+    almost visible. When the user scrolls the view to the edge of the
+    reservoir of views, the listview fetches views for the next batch of data.
+    :data:`fetch_size` determines the size of this batch. The bigger it is,
+    the less often views need to be generated (fetched), but more memory is
+    required to store these views. Conversely, the smaller it is, the less
+    memory consumed but if the user scrolls often, there may be persistent
+    lags.
+
+    :data:`fetch_size` is a :class:`~kivy.properties.NumericProperty`, and
+    defaults to 10.
+
+    .. versionadded:: 1.8.0
+    '''
+
     _index = NumericProperty(0)
     _sizes = DictProperty({})
     _count = NumericProperty(0)
