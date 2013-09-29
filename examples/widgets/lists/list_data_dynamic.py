@@ -15,11 +15,25 @@ from kivy.uix.listview import ListItemButton
 from kivy.uix.listview import ListView
 
 
+##############
+#  Data
+
 class DataItem(SelectableDataItem):
     def __init__(self, **kwargs):
         super(DataItem, self).__init__(**kwargs)
         self.name = ''.join(choice(ascii_uppercase + digits) for x in range(6))
 
+# Quote from ListView docs about data items: "They MUST be subclasses of
+# SelectableDataItem, or the equivalent, because each data item needs an all
+# important "Kivy selection" object, abbreviated **ksel** in internal coding.
+# Without a ksel, a list item will not respond to user action, and will appear
+# just as a dumb list item, along for the ride."
+
+#####################
+#  The Main Widget
+
+# In this example, we are taking a pure-python approach for everything. See
+# other examples for use of the kv language.
 
 class MainView(FloatLayout):
 

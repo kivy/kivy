@@ -9,6 +9,9 @@ from kivy.uix.listview import ListView
 from kivy.uix.gridlayout import GridLayout
 
 
+############
+#  Data
+
 class IntegerDataItem(SelectableDataItem):
     def __init__(self, **kwargs):
         super(IntegerDataItem, self).__init__(**kwargs)
@@ -16,6 +19,18 @@ class IntegerDataItem(SelectableDataItem):
         self.x10 = kwargs.get('x1', 10)
         self.x100_text = kwargs.get('x1', '100')
 
+# Quote from ListView docs about data items: "They MUST be subclasses of
+# SelectableDataItem, or the equivalent, because each data item needs an all
+# important "Kivy selection" object, abbreviated **ksel** in internal coding.
+# Without a ksel, a list item will not respond to user action, and will appear
+# just as a dumb list item, along for the ride."
+
+
+############################
+#  The Main Widget
+
+# In this app we are taking a pure-python approach for everything. See other
+# examples for use of the kv language.
 
 class MainView(GridLayout):
     '''Uses :class:`CompositeListItem` for list item views comprised by two
@@ -30,10 +45,12 @@ class MainView(GridLayout):
 
         # This is quite an involved args_converter, so we should go through the
         # details. A CompositeListItem instance is made with the args returned
-        # by this converter. The first three, text, size_hint_y, height are
-        # arguments for CompositeListItem. The cls_dicts list contains argument
-        # sets for each of the member widgets for this composite:
-        # ListItemButton and Label.
+        # by an args_converter. The first three arguments in the args_converter
+        # below, text, size_hint_y, height are arguments for CompositeListItem.
+        # The compontent_args list contains argument sets for each of the
+        # member widgets for this composite, which are provided by the three
+        # functions, left_button_args(), middle_button_args(0, and
+        # right_button_args().
         def left_button_args(data_item):
             return {
                 'component_class': ListItemButton,

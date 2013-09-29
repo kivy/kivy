@@ -21,12 +21,23 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.screenmanager import ScreenManager
 
 
+###############
+#  Data
+
 class CustomDataItem(SelectableDataItem):
 
     def __init__(self, **kwargs):
         super(CustomDataItem, self).__init__(**kwargs)
         self.text = kwargs.get('text', '')
 
+# Quote from ListView docs about data items: "They MUST be subclasses of
+# SelectableDataItem, or the equivalent, because each data item needs an all
+# important "Kivy selection" object, abbreviated **ksel** in internal coding.
+# Without a ksel, a list item will not respond to user action, and will appear
+# just as a dumb list item, along for the ride."
+
+#######################
+#  The Main Widget
 
 Builder.load_string('''
 #:import choice random.choice
