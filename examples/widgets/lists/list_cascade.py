@@ -10,12 +10,14 @@ from kivy.uix.gridlayout import GridLayout
 from fixtures import fruit_categories
 from fixtures import fruit_data_list_of_dicts
 
-# This is an expansion on the "master-detail" example to illustrate cascading
-# from the selection of one list view to another. In this example the lists are
-# restricted to single selection. The list on the left is a simple list. The
-# list in the middle is specialized for observing the selection in the first,
-# and using that item in a transform method to get the current fruit items. The
-# view on the right is the same as the DetailView in the master-detail example.
+# This example illustrates a cascading connection from the selection of one
+# list view to another. In this example the lists are restricted to single
+# selection. The list on the left is a simple list view using a simple list
+# controller. The list in the middle has a special list controller which
+# observes the selection in the first list and uses that selected item in a
+# transform filter method to get the current fruit items.  The view on the
+# right is an ObjectView that uses an ObjectController tied to the selection of
+# the middle list.
 
 # It is not difficult to make your own data items, because you can define
 # custom data item classes that subclass SelectableDataItem:
@@ -35,6 +37,11 @@ class FruitItem(SelectableDataItem):
         self.serving_size = kwargs.get('Serving Size', '')
         self.data = kwargs.get('data', [])
 
+# Quote from ListView docs about data items: "They MUST be subclasses of
+# SelectableDataItem, or the equivalent, because each data item needs an all
+# important "Kivy selection" object, abbreviated **ksel** in internal coding.
+# Without a ksel, a list item will not respond to user action, and will appear
+# just as a dumb list item, along for the ride."
 
 ##############################################################################
 #
@@ -42,17 +49,18 @@ class FruitItem(SelectableDataItem):
 #
 #        In a real app, a good practice is to put views in their own
 #        directory, views/, using subdirectories as desired, with each view
-#        defined in a .py file with the kv part as a Builder.load_string()
-#        like this, along with the python definition of associated classes.
+#        defined in a .py file with the kv part as a Builder.load_string(),
+#        as shown below, along with the python definition of associated classes.
 #        This way you can import a given view where you need it in your app,
 #        e.g., from views.screens.loading_screen import LoadingScreen (Don't
 #        forget to put an empty __init__.py file in each directory).
 #
-#        NOTE the use of a dynamic class for ThumbnailedListItem, which in
-#        Kivy versions prior to 1.8 would have been defined as a template.
+#        NOTE the use of a dynamic classes for ThumbnailedListItem,
+#        FruitDetailView, and a couple of others, which in Kivy versions prior
+#        to 1.8 would have been defined as templates, now removed.
 #
-#        NOTE also the declaration of the controllers used in the list views,
-#        by use of a declarative style of defining bindings.
+#        NOTE also the declaration of bindings to the controllers used by the
+#        list views, in a declarative style of defining bindings.
 
 Builder.load_string("""
 #:import DataBinding kivy.binding.DataBinding
@@ -60,6 +68,7 @@ Builder.load_string("""
 #:import ListItemButton kivy.uix.listview.ListItemButton
 #:import fruit_data fixtures.fruit_data
 
+# This is a dynamic class.
 <ThumbnailedListItem@SelectableView+BoxLayout>:
     index: self.index
     text: self.text
@@ -72,15 +81,18 @@ Builder.load_string("""
         text: root.text if root.text else ''
         on_release: self.parent.trigger_action(duration=0)
 
+# This is a dynamic class.
 <AttributeLabel@Label>:
     size_hint_y: None
     height: 50
     halign: 'right'
 
+# This is a dynamic class.
 <AttributeValue@Label>:
     size_hint_y: None
     height: 50
 
+# This is a dynamic class.
 <FruitDetailView@GridLayout+SelectableView>:
     cols: 2
     size_hint: 1, None
@@ -158,6 +170,7 @@ Builder.load_string("""
     AttributeValue:
         text: str(fruit_data[root.text]['Iron']) if root.text else ''
 
+# The main view for the app.
 <CascadingView>:
     cols: 3
     fruit_categories_list_view: fruit_categories_list_view
@@ -212,18 +225,21 @@ class CascadingView(GridLayout):
 #        typically shared by different parts of a larger application.
 
 class FruitsController(ListController):
+
     def __init__(self, **kwargs):
         kwargs['allow_empty_selection'] = False
         super(FruitsController, self).__init__(**kwargs)
 
 
 class CategoriesController(ListController):
+
     def __init__(self, **kwargs):
         kwargs['allow_empty_selection'] = False
         super(CategoriesController, self).__init__(**kwargs)
 
 
 class CurrentCategoryController(ObjectController):
+
     def __init__(self, **kwargs):
         kwargs['data_binding'] = DataBinding(
                 source=App.app().categories_controller,
@@ -235,7 +251,6 @@ class CurrentCategoryController(ObjectController):
 class CurrentFruitsController(ListController):
 
     def get_current_fruits(self, category):
-        print 'ccc, category', category
         if not category:
             return []
         all_fruits = App.app().fruits_controller.all()
@@ -253,6 +268,7 @@ class CurrentFruitsController(ListController):
 
 
 class CurrentFruitController(ObjectController):
+
     def __init__(self, **kwargs):
         kwargs['data_binding'] = DataBinding(
                 source=App.app().current_fruits_controller,
@@ -291,8 +307,6 @@ class CascadeApp(App):
         # fruit_data_list_of_dicts is a list of dicts, already sorted.
         self.fruits_controller.data = \
             [FruitItem(**fruit_dict) for fruit_dict in fruit_data_list_of_dicts]
-
-        print 'FRUITS', self.fruits_controller.data
 
         # fruit_categories is a dict of dicts.
         self.categories_controller.data = \

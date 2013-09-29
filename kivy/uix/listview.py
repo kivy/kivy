@@ -343,12 +343,25 @@ to complete the body of the controller, centered around data and/or selection,
 along with specialized methods needed for the particular app.
 
 Bindings connect controllers. Two bindings are cater-made for controllers,
-DataBinding and SelectionBinding. In the examples you will see data for fruits
-used, where we have fruit categories (tree fruits, citrus fruits, etc.) and
-indivdual fruits that fit into these categories (Apple, Peach, Kiwi, etc.).
-Let's go through the process of writing the small fruits app in
-list_cascade.py. If you haven't done so already, open that file in your editor,
-and run the app. Click around to see how it behaves.
+DataBinding and SelectionBinding. For a given controller, for example, a
+DataBinding will bind a source and property, most often in as another
+controller and property, to the data property of the given controller.
+SelectionBinding works the same way, for cases where you need to control
+selection of a list from an external source. More often, for a list controller,
+you will simply set DataBinding, and let selection for the list happen by user
+action.
+
+In the examples you will see data for fruits used, where we have fruit
+categories (tree fruits, citrus fruits, etc.) and indivdual fruits that fit
+into these categories (Apple, Peach, Kiwi, etc.).  Let's go through the process
+of writing the small fruits app in list_cascade.py. If you haven't done so
+already, open that file in your editor and peruse the code, and run the app.
+Click around to see how it behaves.
+
+We will develop the view part of this fruits app using the kv language (we
+could also do the view in pure python) and we will code the controllers
+in python. See other list examples for using all-python or kv-with-python for
+views.  Coding controllers, by nature, is a better fit for pure python.
 
 It isn't hard to see what controllers are needed for the basic data here.  We
 need a fruits controller to contain the indidual fruits data. We have a notion
@@ -356,16 +369,23 @@ of fruit categories, so we need a fruit categories controller. How do we get a
 list of the fruits in a given category? Some of this depends on the way the
 base data is structured, but we see that in this case, luckily, the base data
 is stored in Python dictionaries (You should structure your base data with
-controllers in mind, if you have that luxury). We learn that if we can have a
-category, we can get the fruits for it by using the category as a key in to the
-base data dictionary. We make a new controller called
-current_fruits_controller, to which we add a helper filter function called
-get_current_fruits(). We use a binding to link this helper function to the data
-property of the controller. But how to we link this current_fruits_controller
-to the category, which is in the categories_controller? With another binding,
-in this case with a binding to the selection property of the
-category_controller, along with the very handy setting of the binding mode to
-FIRST_ITEM. So far, we have::
+controllers in mind, if you have that luxury).
+
+A word about data items: They MUST be subclasses of SelectableDataItem, or the
+equivalent, because each data item needs an all important "Kivy selection"
+object, abbreviated **ksel** in internal coding. Without a ksel, a list item
+will not respond to user action, and will appear just as a dumb list item,
+along for the ride.
+
+We learn that if we can have a category, we can get the fruits for it by using
+the category as a key in to the base data dictionary. We make a new controller
+called current_fruits_controller, to which we add a helper filter function
+called get_current_fruits(). We use a binding to link this helper function to
+the data property of the controller. But how to we link this
+current_fruits_controller to the category, which is in the
+categories_controller? With another binding, in this case with a binding to the
+selection property of the category_controller, along with the very handy
+setting of the binding mode to FIRST_ITEM. So far, we have::
 
      categories_controller      categories           current_fruits_controller
        (ListController)         selection                 (ListController)
