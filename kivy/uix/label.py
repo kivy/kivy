@@ -232,8 +232,8 @@ class Label(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`disabled_color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
-    1, .5].
+    :data:`disabled_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [1, 1, 1, .5].
     '''
 
     text = StringProperty('')

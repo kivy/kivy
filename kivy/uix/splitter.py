@@ -142,7 +142,7 @@ class Splitter(BoxLayout):
             _strp.unbind(on_touch_down=instance.strip_down)
             _strp.unbind(on_touch_move=instance.strip_move)
             _strp.unbind(on_touch_up=instance.strip_up)
-            self.unbind(disabled = _strp.setter('disabled'))
+            self.unbind(disabled=_strp.setter('disabled'))
 
             sup.remove_widget(instance._strip)
         else:

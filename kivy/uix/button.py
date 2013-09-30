@@ -39,6 +39,7 @@ from kivy.uix.label import Label
 from kivy.properties import StringProperty, ListProperty
 from kivy.uix.behaviors import ButtonBehavior
 
+
 class Button(ButtonBehavior, Label):
     '''Button class, see module documentation for more information.
 

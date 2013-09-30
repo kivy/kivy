@@ -403,7 +403,7 @@ class ShaderTransition(TransitionBase):
     def make_screen_fbo(self, screen):
         fbo = Fbo(size=screen.size)
         with fbo:
-            ClearColor(0, 0, 0, 0)
+            ClearColor(0, 0, 0, 1)
             ClearBuffers()
         fbo.add(screen.canvas)
         with fbo.before:
@@ -817,6 +817,7 @@ class ScreenManager(FloatLayout):
             return
 
         old_current = self.current_screen
+
         def remove_old_screen(transition):
             if old_current in self.children:
                 self.remove_widget(old_current)
@@ -824,7 +825,6 @@ class ScreenManager(FloatLayout):
         self.transition.bind(on_complete=remove_old_screen)
 
         self.current = screen.name
-
 
     def _generate_screen_name(self):
         i = 0
