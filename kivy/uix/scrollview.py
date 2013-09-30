@@ -101,9 +101,11 @@ from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
 
 # When we are generating documentation, Config doesn't exist
 _scroll_timeout = _scroll_distance = 0
+_desktop = False
 if Config:
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
     _scroll_distance = sp(Config.getint('widgets', 'scroll_distance'))
+    _desktop = Config.getboolean('kivy', 'desktop')
 
 
 class ScrollView(Widget):
@@ -194,7 +196,7 @@ class ScrollView(Widget):
     (:data:`do_scroll_x` + :data:`do_scroll_y`)
     '''
 
-    scroll_proportionate = BooleanProperty(bool(Config.get('kivy', 'desktop')))
+    scroll_proportionate = BooleanProperty(_desktop)
     '''Whether the scrolling is proportionate as is typical in desktop
     environments.
 
@@ -209,7 +211,7 @@ class ScrollView(Widget):
     (top/right to bottom/left).
     '''
 
-    scroll_on_bar_only = BooleanProperty(bool(Config.get('kivy', 'desktop')))
+    scroll_on_bar_only = BooleanProperty(_desktop)
     '''Whether scrolling can be initiated only from on top of the scrollbar as
     is typical in desktop environments.
 
@@ -286,8 +288,7 @@ class ScrollView(Widget):
     [.7, .7, .7, .9].
     '''
 
-    bar_width = NumericProperty('16dp' if bool(Config.get('kivy', 'desktop'))
-                                else '2dp')
+    bar_width = NumericProperty('16dp' if _desktop else '2dp')
     '''Width of the horizontal / vertical scroll bar. The width is interpreted
     as a height for the horizontal bar.
 
@@ -312,7 +313,7 @@ class ScrollView(Widget):
     to 0
     '''
 
-    bar_perm = BooleanProperty(bool(Config.get('kivy', 'desktop')))
+    bar_perm = BooleanProperty(_desktop)
     '''Whether the scrolling bar is permanently displayed.
 
     .. versionadded:: 1.8.0
