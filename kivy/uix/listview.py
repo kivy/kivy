@@ -199,7 +199,7 @@ Here's how to make a listview with 100 items::
         runTouchApp(MainView(width=800))
 
 This is about as short as we can make an app with a listview. There are three
-components added to the MainView:
+components added to the MainView init method:
 
     - a helper args converter function to convert each data item into arguments
       to pass for each list item creation, which you see in the ListView
@@ -265,7 +265,7 @@ We can make the exact same app, declaring the listview using the kv language::
 
 Some differences to note, compared to the first, non-kv version:
 
-    - We need to declare an App class, so that we can use it for a convenient
+    - We declare an App class, so that we can use it for a convenient
       global storage location, to which we use the handy app.attribute
       references in kv.
 
@@ -332,15 +332,43 @@ The Importance of Controllers and Selection
 -------------------------------------------
 
 Controllers provide a basis for creativity in the main structure of an app.
-Bridging data to views, controllers form the logical structure, which in
-general terms can be imagined as a tree, or graph. Controllers, in Kivy speak,
-are EventDispatcher containers of properties that occupy nodes of the logic
-tree or graph. The data and selection properties are special and wired-in to
-list controllers.  Other properties used in a controller, include basic Python
-primitives and Kivy properties such as ListProperty, DictProperty,
-ObjectProperty, AliasProperty, and NumericProperty. These properties are used
-to complete the body of the controller, centered around data and/or selection,
-along with specialized methods needed for the particular app.
+Bridging data to views, controllers form the logical structure. The data and
+selection properties are special and wired-in to list controllers.  Other
+properties used in a controller, include basic Python primitives and Kivy
+properties such as ListProperty, DictProperty, ObjectProperty, AliasProperty,
+and NumericProperty. These properties are used to complete the body of the
+controller, centered around data and/or selection, along with specialized
+methods needed for the particular app. So, the structure of a default list
+controller is::
+
+    ListController
+
+        data -- ListProperty that uses ObObservableList to dispatch change
+                detail. The data property is set with data items that conform
+                to the system by subclassing SelectableDataItem, or its
+                equivalent.
+
+        selection -- ListProperty with the same construction as data, and
+                     containing all or a subset of the data items in data. As
+                     user action selects or deselect items in an associated
+                     listview, the selection property is continuously updated.
+
+        And built-in convenience methods for the data property:
+
+            all()
+            sorted()
+            reversed()
+            first()
+            last()
+            add()
+            delete()
+
+A custom list controller adds app-specific Kivy properties and methods to
+augment these. The power of Kivy properties can be realized here.
+
+The arrangement of controllers in an app can be visualized as a tree, or graph.
+Controllers, in Kivy speak, are EventDispatcher containers of properties that
+occupy nodes of the logic tree or graph.
 
 Bindings connect controllers. Two bindings are cater-made for controllers,
 DataBinding and SelectionBinding. For a given controller, for example, a
@@ -394,7 +422,8 @@ setting of the binding mode to FIRST_ITEM. So far, we have::
     Melons                         ^             |  Lemon
     Tree Fruits                    --------------|  Lime
     Other Fruits              FIRST_ITEM    data |  Orange
-                                                 \  Tangerine
+                                   ^             \  Tangerine
+                             get_current_fruits()
 
     (single selection in effect)                   (single selection in effect)
     (auto selection in effect)                     (auto selection in effect)
@@ -425,14 +454,31 @@ Some points::
 
     * The phrase "auto selection" refers to the result of setting
       allow_empty_selection to False -- the system will never let selection be
-      empty, which makes the connections between controllers work, at those
+      empty, which makes the connections between controllers work, for those
       that are bound together via selection, which is most common in
-      programming.
+      programming. The app comes alive automatically and responds automatically
+      to user action. A user clicks or touches to select an item in a list,
+      perhaps triggering a crescendo of user interface changes in widgets
+      connected directly or in series to that selection.
 
-It is now easy to make list views for categories and current fruits. We bind
-the catetories_controller to the categories list view, and we bind the
-current_fruits_controller to current fruits list view. Done. (the main work was
-in setting up the controllers).
+Now that the controllers are done, it is easy to make list views for categories
+and current fruits. We bind the catetories_controller to the categories list
+view, and we bind the current_fruits_controller to current fruits list view.
+Done. (the main work was in setting up the controllers). For example, the
+category list view would look something like this, in python::
+
+    app = App.app()
+    categories_list_view = ListView(
+            data_binding=DataBinding(source=app.categories_controller),
+            ...
+
+and this, using the kv language::
+
+    ListView:
+        id: 'categories_list'
+        ...
+        DataBinding:
+            source: app.categories_controller
 
 The list_cascade.py example illustrates another important concept for
 controllers and selection. The third user interface component, to the right of
@@ -441,16 +487,16 @@ the current fruits list::
 
      current_fruits_controller    current fruits      current_fruit_controller
           (ListController)          selection           (ObjectController)
-    --------------------------- -----------------    --------------------------
-    Grapefruit << sel            [Grapefruit]      / Name: Grapefruit
-    Lemon                             ^            | Calories: 160
-    Lime                              -------------| Calories from fat: 60
-    Orange                       FIRST_ITEM   data | Total fat: 2
-    Tangerine                                      | Sodium: 0
+    --------------------------- -----------------   --------------------------
+    Grapefruit << sel           [Grapefruit]       / Name: Grapefruit
+    Lemon                            ^             | Calories: 160
+    Lime                             --------------| Calories from fat: 60
+    Orange                      FIRST_ITEM   data  | Total fat: 2
+    Tangerine                                      \ Sodium: 0
 
     (single selection in effect)
 
-More points::
+More points:
 
     * We use the same binding approach as above: bind to the selection of a
       list controller, using binding mode FIRST_ITEM.
@@ -458,10 +504,14 @@ More points::
     * The controller on the right is an ObjectController, for containing a
       single object as its single data item. The object can be anything (even a
       listor dict), but in this case it is the selected current fruit,
-      Grapefruit.
+      Grapefruit.  Note that for the binding this time, to FIRST_ITEM in the
+      current fruits selection, we do not need a helper method (we used
+      get_current_fruits() above), because the first selected item is all
+      we need for the current fruit.
 
-    * Object controllers are the linchpin for the wheel for controllers in
-      general, serving to link list controllers to one another.
+    * Object controllers are the linchpin of the wheel for controllers in
+      general, serving to link list controllers to one another, often in
+      series.
 
     * When you examine the code, you see that a widget called ObjectView is
       bound to the current fruit ObjectController. This is a handy generic view
