@@ -314,7 +314,8 @@ class Atlas(EventDispatcher):
 
         # now that we've figured out where everything goes, make the output
         # images and blit the source images to the approriate locations
-        Logger.info('Atlas: create an {0}x{1} rgba image'.format(size_w, size_h))
+        Logger.info('Atlas: create an {0}x{1} rgba image'.format(size_w,
+                                                                 size_h))
         outimages = [Image.new('RGBA', (size_w, size_h))
                 for i in range(0, int(numoutimages))]
         for fb in fullboxes:

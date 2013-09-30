@@ -17,7 +17,7 @@ Basic example
 
 A button with a dropdown list of 10 possible values. All the buttons within the
 dropdown list will trigger the dropdown :meth:`DropDown.select` method. After
-being called, the main button text will display the selection of the 
+being called, the main button text will display the selection of the
 dropdown. ::
 
     from kivy.uix.dropdown import DropDown
@@ -87,6 +87,7 @@ __all__ = ('DropDown', )
 
 from kivy.uix.scrollview import ScrollView
 from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
+from kivy.core.window import Window
 from kivy.lang import Builder
 
 Builder.load_string('''
@@ -164,7 +165,13 @@ class DropDown(ScrollView):
     def __init__(self, **kwargs):
         self._win = None
         super(DropDown, self).__init__(**kwargs)
+        Window.bind(on_key_down=self.on_key_down)
         self.bind(size=self._reposition)
+
+    def on_key_down(self, instance, key, scancode, codepoint, modifiers):
+        if key == 27 and self.get_parent_window():
+            self.dismiss()
+            return True
 
     def on_container(self, instance, value):
         self.container.bind(minimum_size=self._container_minimum_size)
@@ -250,6 +257,8 @@ class DropDown(ScrollView):
     def on_touch_up(self, touch):
         if super(DropDown, self).on_touch_up(touch):
             return True
+        if 'button' in touch.profile and touch.button.startswith('scroll'):
+            return
         self.dismiss()
 
     def _reposition(self, *largs):

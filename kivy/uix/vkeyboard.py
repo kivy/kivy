@@ -232,8 +232,10 @@ class VKeyboard(Scatter):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled` a :class:`~kivy.properties.StringProperty`, default to
+    :data:`background_disabled` a
+    :class:`~kivy.properties.StringProperty`, default to
     :file:`atlas://data/images/defaulttheme/vkeyboard__disabled_background`.
+
     '''
 
     key_background_color = ListProperty([1, 1, 1, 1])
@@ -260,8 +262,10 @@ class VKeyboard(Scatter):
 
     ..versionadded:: 1.8.0
 
-    :data:`key_disabled_background_normal` a :class:`~kivy.properties.StringProperty`,
-    default to :file:`atlas://data/images/defaulttheme/vkeyboard_disabled_key_normal`.
+    :data:`key_disabled_background_normal` a
+    :class:`~kivy.properties.StringProperty`, default to
+    :file:`atlas://data/images/defaulttheme/vkeyboard_disabled_key_normal`.
+
     '''
 
     key_background_down = StringProperty(

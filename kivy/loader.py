@@ -377,7 +377,7 @@ class LoaderBase(object):
     def image(self, filename, load_callback=None, post_callback=None, **kwargs):
         '''Load a image using the Loader. A ProxyImage is returned with a
         loading image. You can use it as follows::
-            
+
             from kivy.app import App
             from kivy.uix.image import Image
             from kivy.loader import Loader
@@ -478,7 +478,7 @@ else:
 
         def stop(self):
             self.running = False
-            self.tasks.join() 
+            self.tasks.join()
 
     class LoaderThreadPool(LoaderBase):
         def __init__(self):

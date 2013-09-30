@@ -1,5 +1,4 @@
-'''
-Vector
+'''Vector
 ======
 
 The :class:`Vector` represents a 2D vector (x, y).
@@ -34,8 +33,9 @@ Exemple for constructing a Vector::
 Optimized usage
 ---------------
 
-Most of the time, you can use a list for arguments, instead of using a Vector. For
-example, if you want to have the distance between 2 points::
+Most of the time, you can use a list for arguments, instead of using a
+Vector. For example, if you want to have the distance between 2
+points::
 
     a = (10, 10)
     b = (87, 34)

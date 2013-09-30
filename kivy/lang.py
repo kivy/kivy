@@ -285,7 +285,7 @@ subclasses.
 The syntax look like:
 
 .. code-block:: kv
-     
+
     # Simple inheritance
     <NewWidget@Button>:
         ...
@@ -481,7 +481,7 @@ When you are creating a context:
     #. you cannot use references other than "root":
 
     .. code-block:: kv
-    
+
         <MyRule>:
             Widget:
                 id: mywidget
@@ -492,7 +492,7 @@ When you are creating a context:
     #. all the dynamic part will be not understood:
 
     .. code-block:: kv
-    
+
         <MyRule>:
             Template:
                 ctxkey: 'value 1' if root.prop1 else 'value2' # << even if
@@ -651,7 +651,7 @@ _delayed_calls = []
 # widget is deleted
 _handlers = {}
 
-    
+
 class ProxyApp(object):
     # proxy app object
     # taken from http://code.activestate.com/recipes/496741-object-proxying/
@@ -1225,15 +1225,18 @@ class Parser(object):
 
         return objects, []
 
+
 def get_proxy(widget):
     try:
         return widget.proxy_ref
     except AttributeError:
         return widget
 
+
 def custom_callback(__kvlang__, idmap, *largs, **kwargs):
     idmap['args'] = largs
     exec(__kvlang__.co_value, idmap)
+
 
 def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     locals()['__kvlang__'] = rule
@@ -1590,7 +1593,8 @@ class BuilderBase(object):
 
         # append the properties and handlers to our final resolution task
         if rule.properties:
-            rctx['set'].append((widget.proxy_ref, list(rule.properties.values())))
+            rctx['set'].append((widget.proxy_ref,
+                                list(rule.properties.values())))
         if rule.handlers:
             rctx['hdl'].append((widget.proxy_ref, rule.handlers))
 
