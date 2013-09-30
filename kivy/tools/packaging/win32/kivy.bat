@@ -1,5 +1,5 @@
 @ECHO off
-
+setlocal
 set kivy_portable_root=%~dp0
 ECHO botstrapping Kivy @ %kivy_portable_root%
 
@@ -48,5 +48,6 @@ ECHO - Running a shell, you can browse kivyexamples and launch apps with: -
 ECHO - python app.py -
 ECHO -----------------------------------------------------------------------
 ECHO.
-cmd
+cmd /K PROMPT $P$Q
 :END
+endlocal
