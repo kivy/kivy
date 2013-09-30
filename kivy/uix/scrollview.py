@@ -809,7 +809,7 @@ if __name__ == '__main__':
                 btn = Button(text=str(i), size_hint=(None, None),
                              size=(200, 100))
                 layout1.add_widget(btn)
-            scrollview1 = ScrollView(bar_width='20dp', bar_perm=False,
+            scrollview1 = ScrollView(bar_width='2dp', bar_perm=False,
                                      scroll_proportionate=False,
                                      scroll_on_bar_only=False)
             scrollview1.add_widget(layout1)
@@ -821,7 +821,7 @@ if __name__ == '__main__':
                 btn = Button(text=str(i), size_hint=(None, None),
                              size=(200, 100))
                 layout2.add_widget(btn)
-            scrollview2 = ScrollView(bar_width='20dp', bar_perm=True,
+            scrollview2 = ScrollView(bar_width='16dp', bar_perm=True,
                                      scroll_proportionate=True,
                                      scroll_on_bar_only=True)
             scrollview2.add_widget(layout2)
