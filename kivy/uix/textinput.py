@@ -105,6 +105,7 @@ Control + r     redo
 
 __all__ = ('TextInput', )
 
+
 import re
 import sys
 from functools import partial
@@ -139,6 +140,86 @@ Cache_register('textinput.label', timeout=60.)
 Cache_register('textinput.width', timeout=60.)
 
 FL_IS_NEWLINE = 0x01
+# Flags for input_type, for requesting a particular type of keyboard
+TYPE_CLASS_DATETIME = 4
+# Class for dates and times
+TYPE_DATETIME_VARIATION_DATE = 16
+# Default variation of TYPE_CLASS_DATETIME: allows entering only a date
+TYPE_DATETIME_VARIATION_NORMAL = 0
+# Default variation of TYPE_CLASS_DATETIME: allows entering both a date and time
+TYPE_DATETIME_VARIATION_TIME = 32
+# Default variation of TYPE_CLASS_DATETIME: allows entering only a time.
+TYPE_NULL = 0
+# Special content type for when no explicit type has been specified.
+TYPE_CLASS_NUMBER = 2
+# Class for numeric text.
+TYPE_NUMBER_FLAG_DECIMAL = 8192
+# Flag of TYPE_CLASS_NUMBER: the number is decimal, allowing a decimal
+# point to provide fractional values.
+TYPE_NUMBER_FLAG_SIGNED = 4096
+# Flag of TYPE_CLASS_NUMBER: the number is signed, allowing a positive or
+# negative sign at the start.
+TYPE_NUMBER_VARIATION_NORMAL = 0
+# Default variation of TYPE_CLASS_NUMBER: plain normal numeric text.
+TYPE_NUMBER_VARIATION_PASSWORD = 16
+# Variation of TYPE_CLASS_NUMBER: entering a numeric password.
+TYPE_CLASS_TEXT = 1
+# Class for normal text.
+TYPE_TEXT_FLAG_AUTO_COMPLETE = 65536
+# Flag for TYPE_CLASS_TEXT: the text editor is performing auto-completion of
+# the text being entered based on its own semantics, which it will present
+# to the user as they type.
+TYPE_TEXT_FLAG_AUTO_CORRECT = 32768
+# Flag for TYPE_CLASS_TEXT: the user is entering free-form text that should
+#have auto-correction applied to it.
+TYPE_TEXT_FLAG_CAP_CHARACTERS = 4096
+# Flag for TYPE_CLASS_TEXT: capitalize all characters.
+TYPE_TEXT_FLAG_CAP_SENTENCES = 16384
+# Flag for TYPE_CLASS_TEXT: capitalize first character of each sentence.
+TYPE_TEXT_FLAG_CAP_WORDS = 8192
+# Flag for TYPE_CLASS_TEXT: capitalize first character of all words.
+TYPE_TEXT_FLAG_MULTI_LINE = 131072
+# Flag for TYPE_CLASS_TEXT: multiple lines of text can be entered
+# into the field.
+TYPE_TEXT_FLAG_NO_SUGGESTIONS = 524288
+# Flag for TYPE_CLASS_TEXT: the input method does not need to display any
+# dictionary-based candidates.
+TYPE_TEXT_VARIATION_EMAIL_ADDRESS = 32
+# Variation of TYPE_CLASS_TEXT: entering an e-mail address.
+TYPE_TEXT_VARIATION_EMAIL_SUBJECT = 48
+# Variation of TYPE_CLASS_TEXT: entering the subject line of an e-mail.
+TYPE_TEXT_VARIATION_FILTER = 176
+# Variation of TYPE_CLASS_TEXT: entering text to filter contents of a list etc.
+TYPE_TEXT_VARIATION_LONG_MESSAGE = 80
+# Variation of TYPE_CLASS_TEXT: entering the content of a long, possibly formal
+# message such as the body of an e-mail.
+TYPE_TEXT_VARIATION_NORMAL = 0
+# Default variation of TYPE_CLASS_TEXT: plain old normal text.
+TYPE_TEXT_VARIATION_PASSWORD = 128
+# Variation of TYPE_CLASS_TEXT: entering a password.
+TYPE_TEXT_VARIATION_PERSON_NAME = 96
+# Variation of TYPE_CLASS_TEXT: entering the name of a person.
+TYPE_TEXT_VARIATION_PHONETIC = 192
+# Variation of TYPE_CLASS_TEXT: entering text for phonetic pronunciation, such
+# as a phonetic name field in contacts.
+TYPE_TEXT_VARIATION_POSTAL_ADDRESS = 112
+# Variation of TYPE_CLASS_TEXT: entering a postal mailing address.
+TYPE_TEXT_VARIATION_SHORT_MESSAGE = 64
+# Variation of TYPE_CLASS_TEXT: entering a short, possibly informal message
+# such as an instant message or a text message.
+TYPE_TEXT_VARIATION_URI = 16
+# Variation of TYPE_CLASS_TEXT: entering a URI.
+TYPE_TEXT_VARIATION_VISIBLE_PASSWORD = 144
+# Variation of TYPE_CLASS_TEXT: entering a password, which should be visible
+# to the user.
+TYPE_TEXT_VARIATION_WEB_EDIT_TEXT = 160
+# Variation of TYPE_CLASS_TEXT: entering text inside of a web form.
+TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS = 208
+# Variation of TYPE_CLASS_TEXT: entering e-mail address inside of a web form.
+TYPE_TEXT_VARIATION_WEB_PASSWORD = 224
+# Variation of TYPE_CLASS_TEXT: entering password inside of a web form.
+TYPE_CLASS_PHONE = 3
+# Class for a phone number.
 
 # late binding
 Clipboard = None
@@ -690,7 +771,7 @@ class TextInput(Widget):
         scrl_y = self.scroll_y
         scrl_y = scrl_y / dy if scrl_y > 0 else 0
         cy = (self.top - padding_top + scrl_y * dy) - y
-        cy = int(boundary(round(cy / dy-0.5), 0, len(l) - 1))
+        cy = int(boundary(round(cy / dy - 0.5), 0, len(l) - 1))
         dcx = 0
         _get_text_width = self._get_text_width
         _tab_width = self.tab_width
@@ -1711,6 +1792,15 @@ class TextInput(Widget):
     False
     '''
 
+    def on_password(self, instance, value):
+        if value:
+            _input_type = self.input_type
+            if _input_type == TYPE_CLASS_TEXT:
+                self.input_type |= TYPE_TEXT_VARIATION_PASSWORD
+                return _input_type
+            elif _input_type == TYPE_CLASS_NUMBER:
+                self.input_type |= TYPE_NUMBER_VARIATION_PASSWORD
+
     cursor_blink = BooleanProperty(False)
     '''This property is used to blink the cursor graphics. The value of
     :data:`cursor_blink` is automatically computed. Setting a value on it will
@@ -2147,10 +2237,25 @@ class TextInput(Widget):
     line_spacing = NumericProperty(0)
     '''Space taken up between the lines.
 
-    .. versionadded:: 1.8.0
+    .. versionadded:: 1.0.8
 
     :data:`line_spacing` is a :class:`~kivy.properties.NumericProperty`,
     default to '0'
+    '''
+    input_type = NumericProperty(TYPE_CLASS_TEXT)
+
+    def on_input_type(self, instance, value):
+        Logger.debug("TextInput: input_type: {}".format(value))
+
+    '''The kind of keyboard/input hardware to request
+
+    .. versionadded:: 1.8.0
+
+    :data:`input_type` is a :class:`~kivy.properties.NumericProperty`,
+    default to 'TYPE_CLASS_TEXT'. Look at
+    android: http://developer.android.com/reference/android/text/InputType.html
+    ios: NOT IMPLEMENTED YET
+    for a list of available FLAGS
     '''
 
 
