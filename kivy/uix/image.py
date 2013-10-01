@@ -17,16 +17,16 @@ the :class:`AsyncImage` subclass::
 Alignment
 ---------
 
-By default, the image is centered and fit inside the widget bounding box.
+By default, the image is centered and fits inside the widget bounding box.
 If you don't want that, you can inherit from Image and create your own style.
 
-For example, if you want your image to take the same size of your widget, you
-can do::
+For example, if you want your image to be the same size as your widget, you
+could do::
 
     class FullImage(Image):
         pass
 
-And in your kivy language file, you can do::
+And in your kivy language file::
 
     <FullImage>:
         canvas:
@@ -57,7 +57,7 @@ class Image(Widget):
     source = StringProperty(None)
     '''Filename / source of your image.
 
-    :data:`source` is a :class:`~kivy.properties.StringProperty`, default to
+    :data:`source` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
     '''
 
@@ -65,11 +65,11 @@ class Image(Widget):
     '''Texture object of the image.
 
     Depending of the texture creation, the value will be a
-    :class:`~kivy.graphics.texture.Texture` or
+    :class:`~kivy.graphics.texture.Texture` or a
     :class:`~kivy.graphics.texture.TextureRegion` object.
 
-    :data:`texture` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
+    :data:`texture` is a :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
     '''
 
     texture_size = ListProperty([0, 0])
@@ -77,8 +77,8 @@ class Image(Widget):
 
     .. warning::
 
-        The texture size is set after the texture property. So if you listen on
-        the change to :data:`texture`, the property texture_size will not be
+        The texture size is set after the texture property. So if you listen to
+        the change on :data:`texture`, the property texture_size will not be
         up-to-date. Use self.texture.size instead.
     '''
 
@@ -88,31 +88,31 @@ class Image(Widget):
         return 1.
 
     mipmap = BooleanProperty(False)
-    '''Indicate if you want OpenGL mipmapping to be applied on the texture.
+    '''Indicate if you want OpenGL mipmapping to be applied to the texture.
     Read :ref:`mipmap` for more information.
 
     .. versionadded:: 1.0.7
 
-    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     image_ratio = AliasProperty(get_image_ratio, None, bind=('texture', ))
     '''Ratio of the image (width / float(height).
 
-    :data:`image_ratio` is a :class:`~kivy.properties.AliasProperty`, and is
+    :data:`image_ratio` is a :class:`~kivy.properties.AliasProperty` and is
     read-only.
     '''
 
     color = ListProperty([1, 1, 1, 1])
     '''Image color, in the format (r, g, b, a). This attribute can be used to
-    'tint' an image. Be careful, if the source image is not gray/white, the
+    'tint' an image. Be careful: if the source image is not gray/white, the
     color will not really work as expected.
 
     .. versionadded:: 1.0.6
 
-    :data:`color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
-    1, 1].
+    :data:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
+    [1, 1, 1, 1].
     '''
 
     allow_stretch = BooleanProperty(False)
@@ -122,52 +122,52 @@ class Image(Widget):
 
     .. versionadded:: 1.0.7
 
-    :data:`allow_stretch` is a :class:`~kivy.properties.BooleanProperty`,
-    default to False
+    :data:`allow_stretch` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     keep_ratio = BooleanProperty(True)
     '''If False along with allow_stretch being True, the normalized image
-    size will be maximized to fit in the image box, disregarding the aspect
+    size will be maximized to fit in the image box and ignores the aspect
     ratio of the image.
     Otherwise, if the box is too tall, the image will not be stretched more
     than 1:1 pixels.
 
     .. versionadded:: 1.0.8
 
-    :data:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True
+    :data:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     keep_data = BooleanProperty(False)
-    '''If true the underlaying _coreimage have to keep the raw image data.
-    Useful to perform pixel based collision detection
+    '''If True, the underlaying _coreimage will store the raw image data. 
+    This is useful when performing pixel based collision detection.
 
     .. versionadded:: 1.3.0
 
-    :data:`keep_data` is a :class:`~kivy.properties.BooleanProperty`, default
-    to False
+    :data:`keep_data` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     anim_delay = NumericProperty(.25)
-    '''Delay of animation if the image is sequenced (like an animated gif).
-    If the anim_delay is set to -1, the animation will be stopped.
+    '''Delay the animation if the image is sequenced (like an animated gif).
+    If anim_delay is set to -1, the animation will be stopped.
 
     .. versionadded:: 1.0.8
 
-    :data:`anim_delay` is a :class:`~kivy.properties.NumericProperty`, default
-    to .25 (4 FPS)
+    :data:`anim_delay` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.25 (4 FPS).
     '''
 
     nocache = BooleanProperty(False)
     '''If this property is set True, the image will not be added to the
-    internal cache anymore. (the cache will simply ignore any calls trying to
-    append the core image)
+    internal cache. The cache will simply ignore any calls trying to
+    append the core image.
 
     .. versionadded:: 1.6.0
 
-    :data:`nocache` is a :class:`~kivy.properties.BooleanProperty`, default
-    to False
+    :data:`nocache` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     def get_norm_image_size(self):
@@ -201,10 +201,10 @@ class Image(Widget):
         'texture', 'size', 'image_ratio', 'allow_stretch'))
     '''Normalized image size within the widget box.
 
-    This size will always be fit to the widget size, and will preserve the image
+    This size will always fit the widget size and will preserve the image
     ratio.
 
-    :data:`norm_image_size` is a :class:`~kivy.properties.AliasProperty`, and is
+    :data:`norm_image_size` is a :class:`~kivy.properties.AliasProperty` and is
     read-only.
     '''
 
@@ -250,7 +250,7 @@ class Image(Widget):
 
     def reload(self):
         '''Reload image from disk. This facilitates re-loading of
-        image from disk in case contents change.
+        images from disk in case the image content changes.
 
         .. versionadded:: 1.3.0
 

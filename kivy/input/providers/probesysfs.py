@@ -121,7 +121,7 @@ else:
             self.provider = 'mtdev'
             self.match = None
             self.input_path = '/sys/class/input'
-            self.select_all = True if _is_rpi else False 
+            self.select_all = True if _is_rpi else False
             self.use_regex = False
             self.args = []
 

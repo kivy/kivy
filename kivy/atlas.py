@@ -210,7 +210,7 @@ class Atlas(EventDispatcher):
                 associated images.
             `filenames`: list
                 List of filename to put in the atlas
-            `size`: int
+            `size`: int or list (width, height)
                 Size of an atlas image
             `padding`: int, default to 2
                 Padding to put around each image.
@@ -244,7 +244,10 @@ class Atlas(EventDispatcher):
             Logger.critical('Atlas: Imaging/PIL are missing')
             raise
 
-        size = int(size)
+        if isinstance(size, (tuple, list)):
+            size_w, size_h = map(int, size)
+        else:
+            size_w = size_h = int(size)
 
         # open all of the images
         ims = [(f, Image.open(f)) for f in filenames]
@@ -255,7 +258,7 @@ class Atlas(EventDispatcher):
 
         # free boxes are empty space in our output image set
         # the freebox tuple format is: outidx, x, y, w, h
-        freeboxes = [(0, 0, 0, size, size)]
+        freeboxes = [(0, 0, 0, size_w, size_h)]
         numoutimages = 1
 
         # full boxes are areas where we have placed images in the atlas
@@ -269,7 +272,7 @@ class Atlas(EventDispatcher):
             imw, imh = im.size
             imw += padding
             imh += padding
-            if imw > size or imh > size:
+            if imw > size_w or imh > size_h:
                 Logger.error('Atlas: image %s is larger than the atlas size!' %
                     imageinfo[0])
                 return
@@ -306,13 +309,14 @@ class Atlas(EventDispatcher):
                 if not inserted:
                     # oh crap - there isn't room in any of our free boxes, so we
                     # have to add a new output image
-                    freeboxes.append((numoutimages, 0, 0, size, size))
+                    freeboxes.append((numoutimages, 0, 0, size_w, size_h))
                     numoutimages += 1
 
         # now that we've figured out where everything goes, make the output
         # images and blit the source images to the approriate locations
-        Logger.info('Atlas: create an {0}x{0} rgba image'.format(size))
-        outimages = [Image.new('RGBA', (size, size))
+        Logger.info('Atlas: create an {0}x{1} rgba image'.format(size_w,
+                                                                 size_h))
+        outimages = [Image.new('RGBA', (size_w, size_h))
                 for i in range(0, int(numoutimages))]
         for fb in fullboxes:
             x, y = fb[2], fb[3]
@@ -354,7 +358,7 @@ class Atlas(EventDispatcher):
                 uid = splitext(basename(fb[6]))[0]
 
             x, y, w, h = fb[2:6]
-            d[uid] = x, size - y - h, w, h
+            d[uid] = x, size_h - y - h, w, h
 
         outfn = '%s.atlas' % outname
         with open(outfn, 'w') as fd:
@@ -369,7 +373,7 @@ if __name__ == '__main__':
     if len(argv) < 3:
         print('Usage: python -m kivy.atlas [--use-path] '
               '[--padding=2] <outname> '
-              '<size> <img1.png> [<img2.png>, ...]')
+              '<size|512x256> <img1.png> [<img2.png>, ...]')
         sys.exit(1)
 
     options = {'use_path': False}
@@ -388,7 +392,10 @@ if __name__ == '__main__':
 
     outname = argv[0]
     try:
-        size = int(argv[1])
+        if 'x' in argv[1]:
+            size = map(int, argv[1].split('x', 1))
+        else:
+            size = int(argv[1])
     except ValueError:
         print('Error: size must be an integer')
         sys.exit(1)

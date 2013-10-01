@@ -1,7 +1,7 @@
 '''
 Support for WM_PEN messages (Windows platform)
 ==============================================
-''' 
+'''
 
 __all__ = ('WM_PenProvider', 'WM_Pen')
 

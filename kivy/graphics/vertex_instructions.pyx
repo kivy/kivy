@@ -830,9 +830,13 @@ cdef class Ellipse(Rectangle):
         cdef int i, angle_dir
         cdef float angle_start, angle_end, angle_range
         cdef float x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
+        cdef float cx, cy, tangetial_factor, radial_factor, fx, fy
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef int count = self._segments
+
+        if self.w == 0 or self.h == 0:
+            return
 
         tx = tc[0]
         ty = tc[1]
@@ -856,7 +860,8 @@ cdef class Ellipse(Rectangle):
             angle_dir = 1
         else:
             angle_dir = -1
-        # rad = deg * (pi / 180), where pi/180 = 0.0174...
+
+        # rad = deg * (pi / 180), where pi / 180 = 0.0174...
         angle_start = self._angle_start * 0.017453292519943295
         angle_end = self._angle_end * 0.017453292519943295
         angle_range = abs(angle_end - angle_start) / self._segments
@@ -872,17 +877,48 @@ cdef class Ellipse(Rectangle):
         vertices[0].t0 = tty
         indices[0] = 0
 
-        for i in xrange(1, count + 2):
-            angle = angle_start + (angle_dir * (i - 1) * angle_range)
-            x = (self.x+rx)+ (rx*sin(angle))
-            y = (self.y+ry)+ (ry*cos(angle))
-            ttx = ((x-self.x)/self.w)*tw + tx
-            tty = ((y-self.y)/self.h)*th + ty
-            vertices[i].x = x
-            vertices[i].y = y
-            vertices[i].s0 = ttx
-            vertices[i].t0 = tty
-            indices[i] = i
+
+        if rx == ry and self.angle_start == 0 and self.angle_end == 360:
+            # super fast version
+            # credits goes to: http://slabode.exofire.net/circle_draw.shtml
+            # there is few issues with angle, so until fixed, allow this to work
+            # only on "default" ellipse
+            tangetial_factor = tan(angle_range)
+            radial_factor = cos(angle_range)
+            cx = self.x + rx
+            cy = self.y + ry
+            x = rx * sin(angle_start)
+            y = rx * cos(angle_start)
+
+            for i in xrange(1, count + 2):
+                ttx = ((rx + x) / self.w) * tw + tx
+                tty = ((ry + y) / self.h) * th + ty
+                vertices[i].x = cx + x
+                vertices[i].y = cy + y
+                vertices[i].s0 = ttx
+                vertices[i].t0 = tty
+                indices[i] = i
+
+                fx = -y
+                fy = x
+                x += fx * tangetial_factor
+                y += fy * tangetial_factor
+                x *= radial_factor
+                y *= radial_factor
+
+        else:
+
+            for i in xrange(1, count + 2):
+                angle = angle_start + (angle_dir * (i - 1) * angle_range)
+                x = (self.x + rx) + (rx * sin(angle))
+                y = (self.y + ry) + (ry * cos(angle))
+                ttx = ((x - self.x) / self.w) * tw + tx
+                tty = ((y - self.y) / self.h) * th + ty
+                vertices[i].x = x
+                vertices[i].y = y
+                vertices[i].s0 = ttx
+                vertices[i].t0 = tty
+                indices[i] = i
 
         self.batch.set_data(vertices, count + 2, indices, count + 2)
 
