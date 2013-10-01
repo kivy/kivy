@@ -690,7 +690,7 @@ class TextInput(Widget):
         scrl_y = self.scroll_y
         scrl_y = scrl_y / dy if scrl_y > 0 else 0
         cy = (self.top - padding_top + scrl_y * dy) - y
-        cy = int(boundary(round(cy / dy), 0, len(l) - 1))
+        cy = int(boundary(round(cy / dy-0.5), 0, len(l) - 1))
         dcx = 0
         _get_text_width = self._get_text_width
         _tab_width = self.tab_width

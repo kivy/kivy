@@ -268,7 +268,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         if not exists(icon_dir):
             try:
                 shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
-            except shutil.Error as e:
+            except:
                 Logger.exception('Error when copying logo directory')
 
     # configuration
