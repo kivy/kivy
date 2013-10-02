@@ -211,8 +211,8 @@ class Gif(object):
         print(" " * 6, "Color resolution: %d" % self.color_resolution)
         print(" " * 6, "Sort flag: %r" % self.sort_flag)
         print(" " * 6, "Global color table flag: %r" % self.color_table_flag)
-        print(" " * 22, "...size: %d (%d bytes)" % \
-            (self.global_color_table_size, self.global_color_table_size * 3))
+        print(" " * 22, "...size: %d (%d bytes)" %
+              (self.global_color_table_size, self.global_color_table_size * 3))
         print("Background color: %d" % self.background_color)
         print("Aspect ratio info: %d" % self.aspect_ratio)
 

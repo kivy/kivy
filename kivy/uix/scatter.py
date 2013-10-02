@@ -97,7 +97,7 @@ from kivy.graphics.transformation import Matrix
 
 class Scatter(Widget):
     '''Scatter class. See module documentation for more information.
-    
+
     :Events:
         `on_transform_with_touch`:
             Fired when the scatter has been transformed by user touch
@@ -397,7 +397,7 @@ class Scatter(Widget):
             dy = dy / self.translation_touches
             self.apply_transform(Matrix().translate(dx, dy, 0))
             changed = True
-        
+
         if len(self._touches) == 1:
             return changed
 
@@ -499,7 +499,7 @@ class Scatter(Widget):
         # stop propagating if its within our bounds
         if self.collide_point(x, y):
             return True
-    
+
     def on_transform_with_touch(self, touch):
         '''
         Called when a touch event has transformed the scatter widget.

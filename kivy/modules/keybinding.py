@@ -1,5 +1,4 @@
-'''
-Keybinding
+'''Keybinding
 ==========
 
 This module forces the mapping of some keys to functions:
@@ -15,9 +14,9 @@ Usage
 
 For normal module usage, please see the :mod:`~kivy.modules` documentation.
 
-The Keybinding module, however, can also be imported and used just like a normal 
-python module. This has the added advantage of being able to activate and
-deactivate the module programmatically::
+The Keybinding module, however, can also be imported and used just
+like a normal python module. This has the added advantage of being
+able to activate and deactivate the module programmatically::
 
     from kivy.app import App
     from kivy.uix.button import Button
@@ -25,7 +24,7 @@ deactivate the module programmatically::
     from kivy.core.window import Window
 
     class Demo(App):
-                
+
         def build(self):
             button = Button(text="Hello")
             keybinding.start(Window, button)

@@ -817,6 +817,7 @@ class ScreenManager(FloatLayout):
             return
 
         old_current = self.current_screen
+
         def remove_old_screen(transition):
             if old_current in self.children:
                 self.remove_widget(old_current)
@@ -824,7 +825,6 @@ class ScreenManager(FloatLayout):
         self.transition.bind(on_complete=remove_old_screen)
 
         self.current = screen.name
-
 
     def _generate_screen_name(self):
         i = 0
