@@ -70,7 +70,7 @@ property, here is a possible implementation in Python::
         def _set_a(self, value):
             if value < self.a_min or value > self.a_max:
                 raise ValueError('a out of bounds')
-            self._a = a
+            self._a = value
         a = property(_get_a, _set_a)
 
 The disadvantage is you have to do that work yourself. And it becomes
