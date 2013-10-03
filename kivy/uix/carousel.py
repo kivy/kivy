@@ -234,6 +234,20 @@ class Carousel(StencilView):
                 self._position_visible_slides, -1)
         super(Carousel, self).__init__(**kwargs)
 
+    def load_slide(self, slide):
+        '''Animate to the slide that is passed as the argument.
+
+        .. versionchanged:: 1.8.0
+        '''
+        slides = self.slides
+        start, stop = slides.index(self.current_slide), slides.index(slide)
+        if stop > start:
+            self.index = stop - 1
+            self.load_next()
+        else:
+            self.index = stop + 1
+            self.load_previous()
+
     def load_previous(self):
         '''Animate to the previous slide.
 
