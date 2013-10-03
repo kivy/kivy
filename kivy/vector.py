@@ -342,9 +342,10 @@ class Vector(list):
 
         return Vector(px, py)
 
+    @staticmethod
     def segment_intersection(v1, v2, v3, v4):
         '''
-        Finds the intersection point between the segments (1)v1->v2 and (2)v3->v4
+        Finds the intersection point between segments (1)v1->v2 and (2)v3->v4
         and returns it as a vector object.
 
         >>> a = (98, 28)
