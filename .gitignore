@@ -3,6 +3,7 @@ Kivy.egg-info
 *.so
 *.pyc
 *.pyo
+*.py#
 *~
 *.swp
 *.DS_Store
