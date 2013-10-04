@@ -342,7 +342,6 @@ class Vector(list):
 
         return Vector(px, py)
 
-    @staticmethod
     def segment_intersection(v1, v2, v3, v4):
         '''
         Finds the intersection point between segments (1)v1->v2 and (2)v3->v4
@@ -361,10 +360,6 @@ class Vector(list):
         >>> d = (10, 0)
         >>> Vector.line_intersection(a, b, c, d)
         [5, 5]
-
-        .. warning::
-
-        This is a segment intersection :D
         '''
         #Yaaay! I love linear algebra applied within the realms of geometry.
         x1, x2, x3, x4 = float(v1[0]), float(v2[0]), float(v3[0]), float(v4[0])
