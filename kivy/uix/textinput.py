@@ -223,6 +223,7 @@ TYPE_CLASS_PHONE = 3
 
 # late binding
 Clipboard = None
+_platform = platform
 
 # for reloading, we need to keep a list of textinput to retrigger the rendering
 _textinput_list = []
@@ -269,6 +270,10 @@ class TextInputCutCopyPaste(Bubble):
         self.mode = 'normal'
         super(TextInputCutCopyPaste, self).__init__(**kwargs)
         Clock.schedule_interval(self._check_parent, .5)
+
+    def on_textinput(self, instance, value):
+        if value and not Clipboard and _platform == 'android':
+            value._ensure_clipboard()
 
     def _check_parent(self, dt):
         # this is a prevention to get the Bubble staying on the screen, if the
@@ -319,8 +324,7 @@ class TextInputCutCopyPaste(Bubble):
             textinput.select_all()
             self.mode = ''
             anim = Animation(opacity=0, d=.333)
-            anim.bind(
-                        on_complete=lambda *args:
+            anim.bind(on_complete=lambda *args:
                                         self.on_parent(self, self.parent))
             anim.start(self.but_selectall)
 
@@ -867,10 +871,9 @@ class TextInput(Widget):
     #
     def long_touch(self, dt):
         if self._selection_to == self._selection_from:
-            self._show_cut_copy_paste(
-                                        self._long_touch_pos,
-                                        self._win,
-                                        mode='paste')
+            self._show_cut_copy_paste(self._long_touch_pos,
+                                    self._win,
+                                    mode='paste')
 
     def on_double_tap(self):
         '''This event is dispatched when a double tap happens
@@ -903,7 +906,7 @@ class TextInput(Widget):
                                 self.select_text(ci - cc, ci + (len_line - cc)))
 
     def on_quad_touch(self):
-        '''This event is dispatched when a four fingers are touching
+        '''This event is dispatched when four fingers are touching
         inside TextInput. The default behavior is to select all text.
         Override this to provide a separate functionality. Alternatively
         you can bind to this event to provide additional functionality.
@@ -1121,7 +1124,7 @@ class TextInput(Widget):
             return
         if Clipboard is None:
             from kivy.core.clipboard import Clipboard
-        _platform = platform
+
         if _platform == 'win':
             self._clip_mime_type = 'text/plain;charset=utf-8'
             # windows clipboard uses a utf-16 encoding
@@ -1697,7 +1700,6 @@ class TextInput(Widget):
                 self._update_selection(True)
 
     def _keyboard_on_key_down(self, window, keycode, text, modifiers):
-        self._hide_cut_copy_paste()
         # Keycodes on OSX:
         ctrl, cmd = 64, 1024
         key, key_str = keycode
@@ -1717,6 +1719,7 @@ class TextInput(Widget):
             return True
 
         if text and not is_interesting_key:
+            self._hide_cut_copy_paste()
             if is_shortcut:
                 if key == ord('x'):  # cut selection
                     self._cut(self.selection_text)
