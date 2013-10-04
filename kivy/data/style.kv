@@ -165,10 +165,10 @@
             rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text and not self.focus else self.foreground_color)
 
 <TextInputCutCopyPaste>:
-    but_cut: cut
-    but_copy: copy
-    but_paste: paste
-    but_selectall: selectall
+    but_cut: cut.__self__
+    but_copy: copy.__self__
+    but_paste: paste.__self__
+    but_selectall: selectall.__self__
 
     size_hint: None, None
     size: '150sp', '50sp'
