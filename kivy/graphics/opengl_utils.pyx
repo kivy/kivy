@@ -28,7 +28,7 @@ cdef tuple _gl_texture_fmts = (
     'pvrtc_rgb4', 'pvrtc_rgb2', 'pvrtc_rgba4', 'pvrtc_rgba2')
 cdef int _gl_version_major = -1
 cdef int _gl_version_minor = -1
-cdef str _platform = core_platform()
+cdef str _platform = core_platform._get_platform()
 
 
 cpdef list gl_get_extensions():

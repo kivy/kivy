@@ -999,7 +999,7 @@ class TextInput(Widget):
             return
 
         editable = (not (self.readonly or self.disabled) or
-                    (platform() in ('win', 'linux', 'macosx') and
+                    (platform in ('win', 'linux', 'macosx') and
                     self._keyboard_mode == 'system'))
 
         if value and editable:
@@ -1032,7 +1032,7 @@ class TextInput(Widget):
             return
         if Clipboard is None:
             from kivy.core.clipboard import Clipboard
-        _platform = platform()
+        _platform = platform
         if _platform == 'win':
             self._clip_mime_type = 'text/plain;charset=utf-8'
             # windows clipboard uses a utf-16 encoding

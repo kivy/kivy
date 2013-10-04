@@ -52,7 +52,7 @@ from os.path import (
 from fnmatch import fnmatch
 import collections
 
-platform = core_platform()
+platform = core_platform
 filesize_units = ('B', 'KB', 'MB', 'GB', 'TB')
 
 _have_win32file = False
