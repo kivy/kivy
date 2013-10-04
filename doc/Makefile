@@ -2,10 +2,10 @@
 #
 
 # You can set these variables from the command line.
-PYTHON		  = python
+PYTHON		  = python2
 SPHINXOPTS    = -W
 #SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build
+SPHINXBUILD   = sphinx-build2
 PAPER         =
 
 # Internal variables.

@@ -1,5 +1,4 @@
-'''
-Application
+'''Application
 ===========
 
 The :class:`App` class is the base for creating Kivy applications.
@@ -106,7 +105,7 @@ your config tokens. Here is an example done in the KinectViewer example
     .. image:: images/app-settings.jpg
         :align: center
 
-You can extend the default application settings with your own panel by extending
+You can add your own panels of settings by extending
 the :meth:`App.build_settings` method.
 Check the class:`~kivy.uix.settings.Settings` about how to create a panel,
 because you need a JSON file / data first.
@@ -147,7 +146,16 @@ panel, or press the "settings" key on your android device. You can manually call
 :meth:`App.open_settings` and :meth:`App.close_settings` if you want. Every
 change in the panel is automatically saved in the config file.
 
-However, you might want to know when a config value has been changed by the
+You can also use :meth:`App.build_settings` to modify properties of
+the settings panel. For instance, the default panel has a sidebar for
+switching between json panels, whose width defaults to 200dp. If you'd
+prefer this to be narrower, you could add::
+
+    settings.interface.menu.width = dp(100)
+
+to your :meth:`build_settings` method.
+
+You might want to know when a config value has been changed by the
 user, in order to adapt or reload your UI. You can overload the
 :meth:`on_config_change` method::
 
@@ -161,7 +169,7 @@ user, in order to adapt or reload your UI. You can overload the
                 elif token == ('section1', 'key2'):
                     print('Our key2 have been changed to', value)
 
-One last note. The Kivy configuration panel is added by default to the settings
+The Kivy configuration panel is added by default to the settings
 instance. If you don't want this panel, you can declare your Application like
 this::
 
@@ -200,6 +208,52 @@ with Kivy. It is however possible to use :meth:`App.on_start` and
             self.profile.dump_stats('myapp.profile')
 
 This will create a file called `myapp.profile` when you exit your app.
+
+Customising layout
+------------------
+
+You can choose different settings widget layouts by setting
+:attr:`App.settings_cls`. By default, this is
+:class:`~kivy.uix.settings.Settings` which provides the pictured
+sidebar layout, but you could set it to any of the other layouts
+provided in :mod:`kivy.uix.settings` or create your own. See the
+module documentation for :mod:`kivy.uix.settings` for more
+information.
+
+You can customise how the settings panel is actually displayed by
+overriding :meth:`App.display_settings`, which is called to
+actually display the settings panel on the screen. By default it
+simply draws the panel on top of the window, but you could modify it
+to (for instance) show the settings in a
+:class:`~kivy.uix.popup.Popup` or add them to your app's
+:class:`~kivy.uix.screenmanager.ScreenManager` if you are using
+one. If you do so, you should also modify :meth:`App.close_settings`
+to exit the panel appropriately. For instance, to have the settings
+panel appear in a popup you can do::
+
+    def display_settings(self, settings):
+        try:
+            p = self.settings_popup
+        except AttributeError:
+            self.settings_popup = Popup(content=settings,
+                                        title='Settings',
+                                        size_hint=(0.8, 0.8))
+            p = self.settings_popup
+        if p.content is not settings:
+            p.content = settings
+        p.open()
+    def close_settings(self, *args):
+        try:
+            p = self.settings_popup
+            p.dismiss()
+        except AttributeError:
+            pass # Settings popup doesn't exist
+
+Finally, if you want to replace the current settings panel widget, you
+can remove the internal references to it using
+:meth:`App.destroy_settings`. If you have modified
+:meth:`App.display_settings`, you should be careful to detect if the
+settings panel has been replaced.
 
 Pause mode
 ----------
@@ -265,6 +319,8 @@ from kivy.lang import Builder
 from kivy.resources import resource_find
 from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
+from kivy.uix.settings import Settings
+from kivy.properties import ObjectProperty
 
 
 platform = core_platform()
@@ -328,6 +384,26 @@ class App(EventDispatcher):
     change this to False.
     '''
 
+    settings_cls = ObjectProperty(Settings)
+    '''.. versionadded:: 1.8.0
+
+    The class to use to construct the settings panel, used to
+    construct the instance passed to :meth:`build_config`. You should
+    use either :class:`~kivy.uix.settings.Settings`, or one of the provided
+    subclasses with different layouts
+    (:class:`~kivy.uix.settings.SettingsWithSidebar`,
+    :class:`~kivy.uix.settings.SettingsWithSpinner`,
+    :class:`~kivy.uix.settings.SettingsWithTabbedPanel`,
+    :class:`~kivy.uix.settings.SettingsWithNoMenu`), or your own
+    Settings subclass. See the documentation
+    of :mod:`kivy.uix.Settings` for more information.
+
+    :attr:`~App.settings_cls` is an :class:`~kivy.properties.ObjectProperty`.
+    it defaults to :class:`~kivy.uix.settings.Settings`, which displays
+    settings panels using a sidebar layout.
+
+    '''
+
     # Return the current running App instance
     _running_app = None
 
@@ -385,8 +461,13 @@ class App(EventDispatcher):
         application settings. This will be called only once, the first time when
         the user will show the settings.
 
+        You can use this method to add settings panels and to
+        customise the settings widget, e.g. by changing the sidebar
+        width. See the module documentation for full details.
+
         :param settings: Settings instance for adding panels
         :type settings: :class:`~kivy.uix.settings.Settings`
+
         '''
 
     def load_kv(self, filename=None):
@@ -717,16 +798,39 @@ class App(EventDispatcher):
 
     def open_settings(self, *largs):
         '''Open the application settings panel. It will be created the very
-        first time. Then the settings panel will be added to the Window attached
-        to your application (automatically done by :meth:`run`)
+        first time. The settings panel will be displayed with the
+        :meth:`display_settings` method, which by default adds the
+        settings panel to the Window attached to your application. You
+        should override that method if you want to display the
+        settings panel differently.
 
         :return: True if the settings have been opened
+
+        '''
+        settings = self._create_settings()
+        displayed = self.display_settings(settings)
+        if displayed:
+            return True
+        return False
+
+    def display_settings(self, settings):
+        '''.. versionadded:: 1.8.0
+
+        Display the settings panel. By default, the panel is drawn directly
+        on top of the window. You can define other behaviour by overriding
+        this method, such as adding it to a ScreenManager or Popup.
+
+        You should return True if the display is successful, otherwise False.
+
+        :param settings: A :class:`~kivy.uix.settings.Settings`
+                         instance. You should define how to display it.
+        :type config: :class:`~kivy.uix.settings.Settings`
+
         '''
         win = self._app_window
         if not win:
             raise Exception('No windows are set on the application, you cannot'
                             ' open settings yet.')
-        settings = self._create_settings()
         if settings not in win.children:
             win.add_widget(settings)
             return True
@@ -747,15 +851,34 @@ class App(EventDispatcher):
         return False
 
     def _create_settings(self):
-        from kivy.uix.settings import Settings
         if self._app_settings is None:
-            self._app_settings = s = Settings()
+            self._app_settings = s = self.settings_cls()
             self.build_settings(s)
             if self.use_kivy_settings:
                 s.add_kivy_panel()
             s.bind(on_close=self.close_settings,
                    on_config_change=self._on_config_change)
         return self._app_settings
+
+    def destroy_settings(self):
+        '''..versionadded:: 1.8.0
+
+        Dereferences the current settings panel, if one
+        exists. This means that when :meth:`App.open_settings` is next
+        run, a new panel will be created and displayed. It doesn't
+        affect any of the contents of the panel, but lets you (for
+        instance) refresh the settings panel layout if you have
+        changed the settings widget in response to a screen size
+        change.
+
+        If you have modified :meth:`~App.open_settings` or
+        :meth:`~App.display_settings`, you should be careful to
+        correctly detect if the previous settings widget has been
+        destroyed.
+
+        '''
+        if self._app_settings is not None:
+            self._app_settings = None
 
     def _on_config_change(self, *largs):
         self.on_config_change(*largs[1:])
