@@ -32,6 +32,43 @@ class IntegerDataItem(SelectableDataItem):
 # In this app we are taking a pure-python approach for everything. See other
 # examples for use of the kv language.
 
+class TripleCompositeListItem(CompositeListItem):
+    # This is quite an involved args_converter, so we should go through the
+    # details. A CompositeListItem instance is made with the args returned
+    # by an args_converter. The first three arguments in the args_converter
+    # below, text, size_hint_y, height are arguments for CompositeListItem.
+    # The compontent_args list contains argument sets for each of the
+    # member widgets for this composite, which are provided by the three
+    # functions, left_button_args(), middle_button_args(0, and
+    # right_button_args().
+    def args_converter(self, index, data_item):
+        return {'text': str(index),
+                'size_hint_y': None,
+                'height': 25,
+                'bind_selection_from_children': True,
+                'component_args': [arg_func(data_item)
+                                   for arg_func in self.component_args_funcs]}
+
+    def left_button_args(data_item):
+        return {
+            'component_class': ListItemButton,
+            'component_kwargs': {'text': str(data_item.x1)}}
+
+    def middle_label_args(data_item):
+        return {
+            'component_class': Label,
+            'component_kwargs': {'text': "x10={0}".format(data_item.x10)}}
+
+    def right_button_args(data_item):
+        return {
+            'component_class': ListItemButton,
+            'component_kwargs': {'text': str(data_item.x100_text)}}
+
+    component_args_funcs = [left_button_args,
+                            middle_label_args,
+                            right_button_args]
+
+
 class MainView(GridLayout):
     '''Uses :class:`CompositeListItem` for list item views comprised by two
     :class:`ListItemButton`s and one :class:`ListItemLabel`. Illustrates how
@@ -43,38 +80,6 @@ class MainView(GridLayout):
         kwargs['cols'] = 2
         super(MainView, self).__init__(**kwargs)
 
-        # This is quite an involved args_converter, so we should go through the
-        # details. A CompositeListItem instance is made with the args returned
-        # by an args_converter. The first three arguments in the args_converter
-        # below, text, size_hint_y, height are arguments for CompositeListItem.
-        # The compontent_args list contains argument sets for each of the
-        # member widgets for this composite, which are provided by the three
-        # functions, left_button_args(), middle_button_args(0, and
-        # right_button_args().
-        def left_button_args(data_item):
-            return {
-                'component_class': ListItemButton,
-                'component_kwargs': {'text': str(data_item.x1)}}
-
-        def middle_label_args(data_item):
-            return {
-                'component_class': Label,
-                'component_kwargs': {'text': "x10={0}".format(data_item.x10)}}
-
-        def right_button_args(data_item):
-            return {
-                'component_class': ListItemButton,
-                'component_kwargs': {'text': str(data_item.x100_text)}}
-
-        args_converter = lambda index, data_item: \
-            {'text': str(index),
-             'size_hint_y': None,
-             'height': 25,
-             'bind_selection_from_children': True,
-             'component_args': [left_button_args(data_item),
-                                middle_label_args(data_item),
-                                right_button_args(data_item)]}
-
         i_mult_data = \
             [IntegerDataItem(
                 x1=i, x10=i * 10, x100_text= 'x100={0}'.format(i * 100))
@@ -85,8 +90,7 @@ class MainView(GridLayout):
                                     allow_empty_selection=False)
 
         self.add_widget(ListView(data_binding=DataBinding(source=controller),
-                                 args_converter=args_converter,
-                                 list_item_class=CompositeListItem))
+                                 list_item_class=TripleCompositeListItem))
 
 
 if __name__ == '__main__':

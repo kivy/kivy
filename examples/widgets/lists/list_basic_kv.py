@@ -15,7 +15,6 @@ Builder.load_string("""
 
     ListView:
         list_item_class: 'ListItemButton'
-        args_converter: app.list_item_class_args
         DataBinding:
             source: app.list_controller
 """)
@@ -36,22 +35,8 @@ class BasicApp(App):
             selection_mode='single',
             allow_empty_selection=False)
 
-    def list_item_class_args(self, index, data_item):
-        return {'text': data_item.text,
-                'size_hint_y': None,
-                'height': 25}
-
     def build(self):
         return MainView(width=800)
 
 if __name__ == '__main__':
     BasicApp().run()
-
-##############################################################################
-# You can use a function for the args_converter, as shown above, or you can
-# use a Python lambda, which also is a function, but some prefer it:
-#
-#        list_item_class_args = \
-#                lambda index, data_item: {'text': data_item.text,
-#                                          'size_hint_y': None,
-#                                          'height': 25}

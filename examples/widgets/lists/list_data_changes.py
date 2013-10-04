@@ -74,7 +74,6 @@ Builder.load_string('''
                     Rectangle:
                         pos: self.pos
                         size: self.size
-                args_converter: app.args_converter
                 list_item_class: 'ListItemButton'
                 DataBinding:
                     source: app.list_controller
@@ -218,7 +217,6 @@ Builder.load_string('''
                     Rectangle:
                         pos: self.pos
                         size: self.size
-                args_converter: app.args_converter
                 list_item_class: 'ListItemButton'
                 DataBinding:
                     source: app.dict_controller
@@ -321,11 +319,6 @@ class Test(App):
 
     def create_list_item_obj_list(self, n):
         return [CustomDataItem(text=choice(self.nato_alphabet_words))] * n
-
-    def args_converter(self, row_index, obj):
-        return {"text": obj.text,
-                "size_hint_y": None,
-                "height": 25}
 
     def insert_into_dict(self, index):
         key = CustomDataItem(text=self.random_10())

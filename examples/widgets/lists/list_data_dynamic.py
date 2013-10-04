@@ -7,7 +7,6 @@ import random
 from kivy.binding import DataBinding
 from kivy.controllers.listcontroller import ListController
 from kivy.clock import Clock
-from kivy.enums import selection_schemes
 from kivy.models import SelectableDataItem
 
 from kivy.uix.floatlayout import FloatLayout
@@ -21,7 +20,7 @@ from kivy.uix.listview import ListView
 class DataItem(SelectableDataItem):
     def __init__(self, **kwargs):
         super(DataItem, self).__init__(**kwargs)
-        self.name = ''.join(choice(ascii_uppercase + digits) for x in range(6))
+        self.text = ''.join(choice(ascii_uppercase + digits) for x in range(6))
 
 # Quote from ListView docs about data items: "They MUST be subclasses of
 # SelectableDataItem, or the equivalent, because each data item needs an all
@@ -45,10 +44,6 @@ class MainView(FloatLayout):
         data_items.append(DataItem())
         data_items.append(DataItem())
 
-        list_item_class_args = lambda row_index, obj: {'text': obj.name,
-                                                           'size_hint_y': None,
-                                                           'height': 25}
-
         self.list_controller = ListController(
                 data=data_items,
                 selection_mode='single',
@@ -56,7 +51,6 @@ class MainView(FloatLayout):
 
         self.list_view = ListView(
                 data_binding=DataBinding(source=self.list_controller),
-                args_converter=list_item_class_args,
                 list_item_class=ListItemButton)
 
         self.add_widget(self.list_view)
@@ -71,14 +65,14 @@ class MainView(FloatLayout):
             item = DataItem(name='New ' * random.randint(1, 2))
             items.append(item)
             self.toggle = 'changing'
-            print('added ' + item.name)
+            print('added ' + item.text)
         else:
             random_index = random.randint(0, len(items) - 1)
             item = items[random_index]
             items[random_index] = DataItem()
             self.toggle = 'adding'
-            print('changed {0} to {1}'.format(item.name,
-                                              items[random_index].name))
+            print('changed {0} to {1}'.format(item.text,
+                                              items[random_index].text))
 
 
 if __name__ == '__main__':

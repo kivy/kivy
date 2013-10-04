@@ -13,25 +13,18 @@ Data Model Classes
 ------------------
 
 Kivy is open about the type of data used in applications built with the system.
-However, base classes are needed for use with the selection system.
+However, base classes for data are needed for use with the selection system.
 
 A :class:`SelectableDataItem` can be used as a mixin to build data objects that
-are compatible with Kivy's selection system, which works with controllers,
-adapters and similar classes, and with views such as a
+are compatible with Kivy's selection system, which works with controllers
+and similar classes, and with views such as a
 :class:`~kivy.uix.listview.ListView`.  The ksel attribute is a requirement.
 
-The default operation of the selection system is to not propogate selection of
-view instances in views such as ListView to the underlying data -- selection is
-by default a view-only operation (VIEW_ON_DATA selection scheme). However, in
-some cases, it is useful to propogate selection to the actual data items, and
-vice versa. See the docs for Selection, and selection schemes.
+A :class:`SelectableStringItem` is a wrapper for a simple string, useful for
+simple lists. It contains a text StringProperty.
 
-You may build your own Python data model system as the backend for a Kivy
-application. Add a SelectionTool attr called ksel to implement selection.
-
-For selection schemes involving data items that completely drive selection
-(DATA_DRIVEN), or that are in a two-way coupling with views
-(DATA_VIEW_COUPLED).
+You may wish to adapt data, in whatever form, by adding a 'ksel' instance to
+each item, which is an instance of :class:`kivy.selection.SelectionTool`.
 
 .. versionchanged:: 1.8
 
@@ -39,6 +32,8 @@ For selection schemes involving data items that completely drive selection
 
     Added ksel. ksel stands for "Kivy selection" and is an instance of
     SelectionTool, a class containing the selection state and helper methods.
+
+    Added the SelectableStringItem class.
 '''
 
 __all__ = ('SelectableDataItem',)

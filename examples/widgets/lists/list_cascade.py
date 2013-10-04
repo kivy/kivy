@@ -69,13 +69,20 @@ Builder.load_string("""
 #:import fruit_data fixtures.fruit_data
 
 # This is a dynamic class.
-<ThumbnailedListItem@SelectableView+BoxLayout>:
+<FruitCategoryListItemButton@ListItemButton>:
+    size_hint_y: None
+    height: 25
+    args_converter: lambda index, data_item: {'text': data_item.name}
+
+# This is a dynamic class.
+<FruitListItem@SelectableView+BoxLayout>:
     index: self.index
     text: self.text
-    size_hint_y: self.size_hint_y
-    height: self.height
+    size_hint_y: None
+    height: 25
+    args_converter: lambda index, data_item: {'text': data_item.name}
     Image
-        source: "fruit_images/{0}.32.jpg".format(root.text)
+        source: "fruit_images/{0}.32.jpg".format(root.text) if root.text else ''
     ListItemButton:
         index: root.index
         text: root.text if root.text else ''
@@ -97,6 +104,7 @@ Builder.load_string("""
     cols: 2
     size_hint: 1, None
     text: root.text if root.text else ''
+    args_converter: lambda index, data_item: {'text': data_item.name}
 
     AttributeLabel:
         text: 'Name:'
@@ -179,25 +187,22 @@ Builder.load_string("""
 
     ListView:
         id: fruit_categories_list_view
-        args_converter: app.list_item_class_args
-        list_item_class: 'ListItemButton'
         size_hint: .2, 1.0
+        list_item_class: 'FruitCategoryListItemButton'
         DataBinding:
             source: app.categories_controller
             prop: 'data'
 
     ListView:
         id: fruits_list_view
-        args_converter: app.list_item_class_args
         size_hint: .2, 1.0
-        list_item_class: 'ThumbnailedListItem'
+        list_item_class: 'FruitListItem'
         DataBinding:
             source: app.current_fruits_controller
             prop: 'data'
 
     ObjectView:
         id: fruit_view
-        args_converter: lambda row_index, fruit: {'text': fruit.name}
         size_hint: .6, 1.0
         list_item_class: 'FruitDetailView'
         DataBinding:

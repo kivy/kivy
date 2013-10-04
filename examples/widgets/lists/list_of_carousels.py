@@ -65,14 +65,14 @@ class OrganismGroupListItem(SelectableView, BoxLayout):
 
     carousel = ObjectProperty(None)
 
-    def __init__(self, **kw):
-        super(OrganismGroupListItem, self).__init__(**kw)
+    def __init__(self, **kwargs):
+        super(OrganismGroupListItem, self).__init__(**kwargs)
 
-        self.add_widget(Label(text=kw['text']))
+        self.add_widget(Label(text=self.text))
 
         self.carousel = Carousel()
 
-        for organism in kw['organisms']:
+        for organism in self.organisms:
             self.carousel.add_widget(CarouselItem(list_item=self, text=organism))
 
         self.add_widget(self.carousel)
@@ -84,6 +84,11 @@ class OrganismGroupListItem(SelectableView, BoxLayout):
     def carousel_item_touched(self, touch):
         super(OrganismGroupListItem, self).dispatch('on_release')
 
+    def args_converter(self, index, data_item):
+        return dict(text=data_item.text,
+                    size_hint_y=None,
+                    height=75,
+                    organisms=data_item.organisms)
 
 #######################
 # The ListController
@@ -94,15 +99,8 @@ controller = ListController(data=data,
 
 #########################
 #  The ListView Widget
-
-converter = lambda x, d: dict(text=d.text,
-                              size_hint_y=None,
-                              height=75,
-                              organisms=d.organisms)
-
 list_view = ListView(data_binding=DataBinding(source=controller),
-                     args_converter=converter,
-                     list_item_class=OrganismGroupListItem,)
+                     list_item_class=OrganismGroupListItem)
 
 if __name__ == '__main__':
     runTouchApp(list_view)

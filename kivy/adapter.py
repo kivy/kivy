@@ -155,10 +155,10 @@ class Adapter(EventDispatcher):
 
         super(Adapter, self).__init__(**kwargs)
 
-        if 'args_converter' not in kwargs:
-            self.args_converter = lambda row_index, x: {'text': x,
-                                                        'size_hint_y': None,
-                                                        'height': 25}
+#        if 'args_converter' not in kwargs:
+#            self.args_converter = lambda row_index, x: {'text': x,
+#                                                        'size_hint_y': None,
+#                                                        'height': 25}
 
     def get_view_from_item(self, item):
 
@@ -218,10 +218,7 @@ class Adapter(EventDispatcher):
         if data_item is None:
             return None
 
-        item_args = self.args_converter(
-                index, data_item, *self.additional_args_converter_args(index))
-
-        item_args['index'] = index
+        item_args = {}
 
         if isinstance(self.list_item_class, str):
             self.list_item_class = Factory.get(self.list_item_class)
@@ -230,10 +227,16 @@ class Adapter(EventDispatcher):
                                  'with the name of a class in scope for the '
                                  'reference in the kv definition, or a class '
                                  'reference in Python.'))
-        if self.list_item_class:
-            view_instance = self.list_item_class(**item_args)
+
+        item_args['data_item'] = data_item
+        item_args['additional_args'] = self.additional_args_converter_args(index)
+
+        item_args['index'] = index
+
+        if hasattr(self.list_item_class, 'args_converter'):
+            view_instance = self.list_item_class(item_args=item_args)
         else:
-            view_instance = Builder.template(self.template, **item_args)
+            raise Exception('An args_converter method is required.')
 
         if hasattr(self.data_binding.source, 'handle_selection'):
             if hasattr(view_instance, 'bind_composite'):

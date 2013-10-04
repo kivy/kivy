@@ -71,11 +71,17 @@ class ObjectView(Adapter, AbstractView, EventDispatcher):
     '''
 
     data_binding = ObjectProperty(None, allownone=True)
+    object_class = ObjectProperty(None, allownone=True)
 
     def __init__(self, **kwargs):
 
         if 'data_binding' not in kwargs:
             kwargs['data_binding'] = DataBinding()
+
+        # TODO: Make the name of the class in Adapter more generic so it will
+        #       also work with ObjectView. For now, this hack:
+        if 'object_class' in kwargs:
+            kwargs['list_item_class'] = kwargs['object_class']
 
         super(ObjectView, self).__init__(**kwargs)
 
@@ -106,7 +112,6 @@ class ObjectView(Adapter, AbstractView, EventDispatcher):
 
     def init_kv_bindings(self, bindings):
 
-        print 'ObjectView, init_kv_bindings', bindings
         self.data_binding = db = bindings[0]
         db.source.bind(**{db.prop: db.setter('value')})
         db.bind_callback(self.update_ui_for_data_change)
@@ -131,17 +136,14 @@ class ObjectView(Adapter, AbstractView, EventDispatcher):
         container.clear_widgets()
 
         item_view = self.create_view(0)
-        print 'populate, item_view is', item_view
         if item_view:
             container.add_widget(item_view)
 
     def update_ui_for_data_change(self, *args):
-        print 'ObjectView: update_ui_for_data_change', args
         # TODO: brute force here.
         self.populate()
 
     def update_ui_for_selection_change(self, *args):
-        print 'ObjectView: update_ui_for_selection_change', args
         # TODO: brute force here.
         self.populate()
 

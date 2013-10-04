@@ -24,7 +24,7 @@ from fixtures import fruit_data_list_of_dicts
 class FruitItem(SelectableDataItem):
     def __init__(self, **kwargs):
         super(FruitItem, self).__init__(**kwargs)
-        self.name = kwargs.get('name', '')
+        self.text = kwargs.get('name', '')
         self.serving_size = kwargs.get('Serving Size', '')
         self.data = kwargs.get('data', [])
 
@@ -51,15 +51,9 @@ class SelectionBindingView(GridLayout):
 
         app = App.app()
 
-        list_item_class_args = \
-                lambda row_index, fruit: {'text': fruit.name,
-                                          'size_hint_y': None,
-                                          'height': 25}
-
         self.add_widget(ListView(
                 data_binding=DataBinding(
                     source=app.fruits_controller),
-                args_converter=list_item_class_args,
                 list_item_class=ListItemButton,
                 size_hint=(.5, 1.0)))
 
@@ -69,7 +63,6 @@ class SelectionBindingView(GridLayout):
         self.add_widget(ListView(
                 data_binding=DataBinding(
                     source=app.selected_fruits_controller),
-                args_converter=list_item_class_args,
                 list_item_class=ListItemButton,
                 size_hint=(.5, 1.0)))
 

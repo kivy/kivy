@@ -175,11 +175,6 @@ Here's how to make a listview with 100 items::
             kwargs['cols'] = 1
             super(MainView, self).__init__(**kwargs)
 
-            def list_item_class_args(index, data_item):
-                return {'text': data_item.text,
-                        'size_hint_y': None,
-                        'height': 25}
-
             list_controller = ListController(
                 data=[SelectableStringItem(text=str(index))
                           for index in range(100)],
@@ -189,7 +184,6 @@ Here's how to make a listview with 100 items::
             list_view = ListView(
                 data_binding=DataBinding(
                     source=list_controller),
-                args_converter=list_item_class_args,
                 list_item_class=ListItemButton)
 
             self.add_widget(list_view)
@@ -198,18 +192,14 @@ Here's how to make a listview with 100 items::
         from kivy.base import runTouchApp
         runTouchApp(MainView(width=800))
 
-This is about as short as we can make an app with a listview. There are three
+This is about as short as we can make an app with a listview. There are two
 components added to the MainView init method:
 
-    - a helper args converter function to convert each data item into arguments
-      to pass for each list item creation, which you see in the ListView
-      declaration is ListItemButton,
+    - a list controller to hold the data and selection, which is configured for
+      single, automatic selection,
 
-    - a list controller to hold the data and selection, which you see is
-      configured for single, automatic selection,
-
-    - a list view widget, which uses the list controller and the args converter
-      function.
+    - a list view widget, which uses the list controller for its data and as
+      the hub for selection.
 
 We can make the exact same app, declaring the listview using the kv language::
 
@@ -231,7 +221,6 @@ We can make the exact same app, declaring the listview using the kv language::
 
         ListView:
             list_item_class: 'ListItemButton'
-            args_converter: app.list_item_class_args
             DataBinding:
                 source: app.list_controller
     """)
@@ -252,11 +241,6 @@ We can make the exact same app, declaring the listview using the kv language::
                 selection_mode='single',
                 allow_empty_selection=False)
 
-        def list_item_class_args(self, index, data_item):
-            return {'text': data_item.text,
-                    'size_hint_y': None,
-                    'height': 25}
-
         def build(self):
             return MainView(width=800)
 
@@ -275,7 +259,7 @@ Some differences to note, compared to the first, non-kv version:
     - We added a build() method to return the MainView instance.
 
     - In the ListView kv declaration, we used the kv syntax and indentation for
-      list_item_class, args_converter, and DataBinding.
+      list_item_class and DataBinding.
 
 Using Dynamic Classes as List Item Classes
 ------------------------------------------
@@ -336,10 +320,10 @@ Bridging data to views, controllers form the logical structure. The data and
 selection properties are special and wired-in to list controllers.  Other
 properties used in a controller, include basic Python primitives and Kivy
 properties such as ListProperty, DictProperty, ObjectProperty, AliasProperty,
-and NumericProperty. These properties are used to complete the body of the
-controller, centered around data and/or selection, along with specialized
-methods needed for the particular app. So, the structure of a default list
-controller is::
+NumericProperty, and the rest. These properties are used to complete the body
+of the controller, centered around data and/or selection, along with
+specialized methods needed for the particular app. So, the structure of a
+default list controller is::
 
     ListController
 
@@ -548,7 +532,8 @@ used, that we have only scratched the surface here.
 '''
 
 __all__ = ('SelectableView', 'SelectableStringItem', 'ListItemLabel',
-           'ListItemButton', 'CompositeListItem', 'ListView', )
+           'BaseListItemView', 'ListItemButton', 'CompositeListItem',
+           'ListView', )
 
 from math import ceil, floor
 
@@ -581,11 +566,15 @@ from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 
 
-class SelectableView(ButtonBehavior):
+class SelectableView(ButtonBehavior, Widget):
     '''The :class:`~kivy.uix.listview.SelectableView` mixin is used to design
-    list item and other classes.
+    list item and other classes used for collection-style widgets, consisting
+    of a collection of other widgets for which selection is enabled.
 
-    For children, there are two directions for selection, from parent to
+    The class has an args_converter() method, used in lieu of passing a general
+    args_converter function to the collection-style view.
+
+    There are two directions for selection of children, from parent to
     children, and from a child up to parent. The default for
     carry_selection_to_children is True, so selection of children will follow
     that of the parent. This can be handy if the SelectableView is treated as a
@@ -628,10 +617,58 @@ class SelectableView(ButtonBehavior):
     '''
 
     def __init__(self, **kwargs):
+        if 'item_args' in kwargs:
+            kwargs['index'] = kwargs['item_args']['index']
         super(SelectableView, self).__init__(**kwargs)
+
         if 'ksel' not in kwargs:
             self.ksel = SelectionTool(False)
         self.ksel.bind_to(self.selection_changed)
+
+        if 'item_args' in kwargs:
+            item_args = kwargs['item_args']
+            kwargs = self.args_converter(
+                        item_args['index'],
+                        item_args['data_item'],
+                        *item_args['additional_args'])
+            for arg in kwargs:
+                'setting', arg, kwargs[arg]
+                setattr(self, arg, kwargs[arg])
+
+    def args_converter(self, index, data_item):
+        '''Override this method to convert a data_item and its data into args
+        for the list item class.
+
+        Overriding is simple enough, with something like this::
+
+            def args_converter(self, index, data_item):
+                return {'this_arg': this_value,
+                        'that_arg': that_value}
+
+        where the values can be expressions, function calls, etc., whatever is
+        needed to get the value appropriate from a given data_item attribute.
+
+        The ksel attribut is skipped over in the default method.
+        '''
+
+        # By default, we assume that data_item has all the attributes of the
+        # list item view, by the same names, and we simply do a one-to-one set
+        # here. As you might guess from the name of this method, a principal
+        # use is for converting for differences between the data_item and the
+        # list item view attributes, and for making need calculations before
+        # setting attributes on the list item view. So, overrride this method
+        # as needed.
+
+        args = {}
+
+        for property_name in self.properties():
+            if property_name not in ['ksel']:
+                if hasattr(data_item, property_name):
+                    args[property_name] = getattr(data_item, property_name)
+
+        return args
+
+
 
     def selection_changed(self, *args):
         if args[1]:
@@ -714,6 +751,10 @@ class ListItemButton(SelectableView, Button):
     def __repr__(self):
         return '<%s text=%s>' % (self.__class__.__name__, self.text)
 
+    def args_converter(self, index, data_item):
+        return {'text': data_item.text,
+                'size_hint_y': None,
+                'height': 25}
 
 class CompositeListItem(SelectableView, BoxLayout):
     ''':class:`~kivy.uix.listview.CompositeListItem` mixes
@@ -766,24 +807,19 @@ class CompositeListItem(SelectableView, BoxLayout):
     def __init__(self, **kwargs):
         super(CompositeListItem, self).__init__(**kwargs)
 
-        # There is an index to the data item this composite list item view
-        # represents. Get it from kwargs and pass it along to children in the
-        # loop below.
-        index = kwargs['index']
-
         for component_args_dict in self.component_args:
             cls = component_args_dict['component_class']
             component_kwargs = \
                     component_args_dict.get('component_kwargs', None)
 
             if component_kwargs:
-                component_kwargs['index'] = index
+                component_kwargs['index'] = self.index
 
                 if 'text' not in component_kwargs:
                     component_kwargs['text'] = kwargs['text']
             else:
                 component_kwargs = {}
-                component_kwargs['index'] = index
+                component_kwargs['index'] = self.index
                 if 'text' in kwargs:
                     component_kwargs['text'] = kwargs['text']
 
@@ -811,12 +847,19 @@ class CompositeListItem(SelectableView, BoxLayout):
         super(CompositeListItem, self).do_deselect_effects(args)
         self.background_color = self.deselected_color
 
+    def args_converter(self, index, data_item):
+        pass
 
 class ListItemLabel(SelectableView, Label):
     text = StringProperty('')
 
     def __init__(self, **kwargs):
         super(ListItemLabel, self).__init__(**kwargs)
+
+    def args_converter(self, index, data_item):
+        return {'text': data_item.text,
+                'size_hint_y': None,
+                'height': 25}
 
 list_item_class_args = lambda row_index, x: {'text': x,
                                              'size_hint_y': None,
@@ -927,7 +970,6 @@ class DataOpHandler(ListOpHandler):
         start_index = op_info.start_index
         end_index = op_info.end_index
 
-        print 'ListView data_changed, op is', op
         if op == 'OOL_sort_start':
             self.sort_started(*args)
             return

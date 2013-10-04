@@ -10,6 +10,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.listview import ListView
 from kivy.uix.listview import ListItemButton
+from kivy.uix.listview import SelectableView
 from kivy.uix.objectview import ObjectView
 
 from fixtures import fruit_data
@@ -33,7 +34,7 @@ from fixtures import fruit_data_list_of_dicts
 class FruitItem(SelectableDataItem):
     def __init__(self, **kwargs):
         super(FruitItem, self).__init__(**kwargs)
-        self.name = kwargs.get('name', '')
+        self.text = kwargs.get('name', '')
         self.serving_size = kwargs.get('Serving Size', '')
         self.data = kwargs.get('data', [])
 
@@ -64,7 +65,7 @@ class FruitsController(ListController):
     # used instead of the lambda (func=self.some_filter_function).
     names = TransformProperty(subject='data',
                               op=binding_transforms.TRANSFORM,
-                              func=lambda data: [item.name for item in data])
+                              func=lambda data: [item.text for item in data])
 
     def __init__(self, **kwargs):
         kwargs['selection_mode'] = 'single'
@@ -74,7 +75,7 @@ class FruitsController(ListController):
 # In this example, we are building a python-only view system. See other
 # examples for using the kv language.
 
-class FruitDetailView(GridLayout):
+class FruitDetailView(SelectableView, GridLayout):
     fruit_name = StringProperty('', allownone=True)
 
     def __init__(self, **kwargs):
@@ -102,6 +103,8 @@ class FruitDetailView(GridLayout):
                     size_hint_y=None,
                     height=25))
 
+    def args_converter(self, index, data_item):
+        return {'fruit_name': data_item.text}
 
 class MasterDetailView(GridLayout):
     '''Implementation of an master-detail view with a vertical scrollable list
@@ -116,15 +119,9 @@ class MasterDetailView(GridLayout):
 
         app = App.app()
 
-        list_item_class_args = \
-                lambda row_index, fruit: {'text': fruit.name,
-                                          'size_hint_y': None,
-                                          'height': 25}
-
         self.add_widget(ListView(
                 data_binding=DataBinding(
                     source=app.fruits_controller),
-                args_converter=list_item_class_args,
                 list_item_class=ListItemButton,
                 size_hint=(.3, 1.0)))
 
@@ -133,8 +130,7 @@ class MasterDetailView(GridLayout):
                     source=app.fruits_controller,
                     prop='selection',
                     mode=binding_modes.FIRST_ITEM),
-                args_converter=lambda row_index, fruit: {'fruit_name': fruit.name},
-                list_item_class=FruitDetailView,
+                object_class=FruitDetailView,
                 size_hint=(.7, 1.0)))
 
 

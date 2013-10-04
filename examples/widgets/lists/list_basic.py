@@ -12,11 +12,6 @@ class MainView(GridLayout):
         kwargs['cols'] = 1
         super(MainView, self).__init__(**kwargs)
 
-        def list_item_class_args(index, data_item):
-            return {'text': data_item.text,
-                    'size_hint_y': None,
-                    'height': 25}
-
         list_controller = ListController(
             data=[SelectableStringItem(text=str(index))
                       for index in range(100)],
@@ -26,7 +21,6 @@ class MainView(GridLayout):
         list_view = ListView(
             data_binding=DataBinding(
                 source=list_controller),
-            args_converter=list_item_class_args,
             list_item_class=ListItemButton)
 
         self.add_widget(list_view)
@@ -34,12 +28,3 @@ class MainView(GridLayout):
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     runTouchApp(MainView(width=800))
-
-##############################################################################
-# You can use a function for the args_converter, as shown above, or you can
-# use a Python lambda, which also is a function, but some prefer it:
-#
-#        list_item_class_args = \
-#                lambda index, data_item: {'text': data_item.text,
-#                                          'size_hint_y': None,
-#                                          'height': 25}
