@@ -9,7 +9,10 @@ from copy import deepcopy
 import os
 from os.path import join, dirname, sep, exists
 from os import walk, environ
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 from distutils.extension import Extension
 
 if sys.version > '3':
@@ -457,7 +460,6 @@ setup(
         'hardware-accelerated multitouch applications.'),
     ext_modules=ext_modules,
     cmdclass=cmdclass,
-    scripts=['kivy/tools/garden'],
     packages=[
         'kivy',
         'kivy.adapters',
@@ -542,5 +544,8 @@ setup(
         'Topic :: Scientific/Engineering :: Human Machine Interfaces',
         'Topic :: Scientific/Engineering :: Visualization',
         'Topic :: Software Development :: Libraries :: Application Frameworks',
-        'Topic :: Software Development :: User Interfaces'])
+        'Topic :: Software Development :: User Interfaces'],
+    dependency_links=['git+https://github.com/kivy-garden/garden.git@0.1#egg=garden-0.1'],
+    install_requires=['garden==0.1'],
+    )
 
