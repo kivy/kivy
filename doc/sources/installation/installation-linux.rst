@@ -265,3 +265,6 @@ Then, inside each main.py, add a new first line::
 
     #!/usr/bin/kivy
 
+NOTE: Beware of Python files stored with Windows-style line endings (CR-LF). Linux will not ignore the <CR>
+and will try to use it as part of the file name. This makes confusing error messages. Convert to Unix line endings.
+

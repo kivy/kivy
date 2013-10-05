@@ -152,6 +152,7 @@ Programs beginning with ``#!/usr/bin/python3`` will launch Python 3.
 
 The ``/usr/bin`` part will be ignored by the Windows launcher, we add it so that Linux users will also be able to
 pick a specific Python version. (On my Linux workstation, ``/usr/bin/kivy`` is soft-linked to a virtualenv.)
+NOTE: In order to work correctly on Linux, your Python file must be saved with Unix-style (LF-only) line endings.
 
 Full documentation can be found at:
 `Python3.3 docs <http://docs.python.org/3.3/using/windows.html#launcher>`_ and 
