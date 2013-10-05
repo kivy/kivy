@@ -120,7 +120,8 @@ Also, all other scripts and binaries are available, such as:
 Start from the Command-line or Double-click (using Python launcher for Windows)
 -------------------------------------------------------------------------------
 
-The Python launcher for Windows is available as a separate download `pylauncher <https://bitbucket.org/vinay.sajip/pylauncher>`_,
+The Python launcher for Windows is available as a separate download
+from `pylauncher <https://bitbucket.org/vinay.sajip/pylauncher>`_,
 but is most conveniently installed by simply installing Python 3.3 (or later).
 Don't worry, this installation is designed to cause minimum disruption, it will run your latest Python 2 by default.
 
