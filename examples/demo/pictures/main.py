@@ -1,3 +1,4 @@
+#!/usr/bin/kivy
 '''
 Pictures demo
 =============
