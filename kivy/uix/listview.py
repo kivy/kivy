@@ -57,7 +57,7 @@ code. No matter what you do, going back and forth will likely be needed.
 Basic Example
 -------------
 
-In its simplest form, we make a listview with 100 items::
+In its simplest form, we make a vertical listview with 100 items::
 
     from kivy.uix.listview import ListView
     from kivy.uix.gridlayout import GridLayout
@@ -79,6 +79,12 @@ In its simplest form, we make a listview with 100 items::
         from kivy.base import runTouchApp
         runTouchApp(MainView(width=800))
 
+To make it horizontal, we can specify ``orientation='horizontal'``::
+
+    list_view = ListView(
+        item_strings=[str(index) for index in range(100)],
+        orientation='horizontal')
+
 Or, we could declare the listview in using the kv language::
 
     from kivy.uix.modalview import ModalView
@@ -93,6 +99,7 @@ Or, we could declare the listview in using the kv language::
         ListView:
             size_hint: .8, .8
             item_strings: [str(index) for index in range(100)]
+            orientation: 'horizontal'
     """)
 
 
@@ -575,12 +582,14 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.uix.abstractview import AbstractView
 from kivy.properties import ObjectProperty, DictProperty, \
-        NumericProperty, ListProperty, BooleanProperty
+    NumericProperty, ListProperty, BooleanProperty, OptionProperty, \
+    AliasProperty
 from kivy.lang import Builder
 from math import ceil, floor
 
 
 class SelectableView(object):
+
     '''The :class:`~kivy.uix.listview.SelectableView` mixin is used to design
     list item and other classes that are to be instantiated by an adapter to be
     used in a listview.  The :class:`~kivy.adapters.listadapter.ListAdapter`
@@ -622,6 +631,7 @@ class SelectableView(object):
 
 
 class ListItemButton(SelectableView, Button):
+
     ''':class:`~kivy.uix.listview.ListItemButton` mixes
     :class:`~kivy.uix.listview.SelectableView` with
     :class:`~kivy.uix.button.Button` to produce a button suitable for use in
@@ -648,12 +658,12 @@ class ListItemButton(SelectableView, Button):
 
     def select(self, *args):
         self.background_color = self.selected_color
-        if type(self.parent) is CompositeListItem:
+        if isinstance(self.parent, CompositeListItem):
             self.parent.select_from_child(self, *args)
 
     def deselect(self, *args):
         self.background_color = self.deselected_color
-        if type(self.parent) is CompositeListItem:
+        if isinstance(self.parent, CompositeListItem):
             self.parent.deselect_from_child(self, *args)
 
     def select_from_composite(self, *args):
@@ -670,6 +680,7 @@ class ListItemButton(SelectableView, Button):
 #        button, which is redundant.
 
 class ListItemLabel(SelectableView, Label):
+
     ''':class:`~kivy.uix.listview.ListItemLabel` mixes
     :class:`~kivy.uix.listview.SelectableView` with
     :class:`~kivy.uix.label.Label` to produce a label suitable for use in
@@ -681,12 +692,12 @@ class ListItemLabel(SelectableView, Label):
 
     def select(self, *args):
         self.bold = True
-        if type(self.parent) is CompositeListItem:
+        if isinstance(self.parent, CompositeListItem):
             self.parent.select_from_child(self, *args)
 
     def deselect(self, *args):
         self.bold = False
-        if type(self.parent) is CompositeListItem:
+        if isinstance(self.parent, CompositeListItem):
             self.parent.deselect_from_child(self, *args)
 
     def select_from_composite(self, *args):
@@ -700,6 +711,7 @@ class ListItemLabel(SelectableView, Label):
 
 
 class CompositeListItem(SelectableView, BoxLayout):
+
     ''':class:`~kivy.uix.listview.CompositeListItem` mixes
     :class:`~kivy.uix.listview.SelectableView` with :class:`BoxLayout` for a
     generic container-style list item, to be used in
@@ -805,16 +817,17 @@ Builder.load_string('''
     container: container
     ScrollView:
         pos: root.pos
-        on_scroll_y: root._scroll(args[1])
-        do_scroll_x: False
+        do_scroll_y: root.is_vertical
+        do_scroll_x: not root.is_vertical
+        on_scroll_y: if root.is_vertical: root._scroll(args[1])
+        on_scroll_x: if not root.is_vertical: root._scroll(args[1])
         GridLayout:
-            cols: 1
             id: container
-            size_hint_y: None
 ''')
 
 
 class ListView(AbstractView, EventDispatcher):
+
     ''':class:`~kivy.uix.listview.ListView` is a primary high-level widget,
     handling the common task of presenting items in a scrolling list.
     Flexibility is afforded by use of a variety of adapters to interface with
@@ -864,10 +877,22 @@ class ListView(AbstractView, EventDispatcher):
 
     row_height = NumericProperty(None)
     '''The row_height property is calculated on the basis of the height of the
-    container and the count of items.
+    container and the count of items. It is used only when the
+    :data:`orientation` is 'vertical'.
 
     :data:`row_height` is a :class:`~kivy.properties.NumericProperty`,
     default to None.
+    '''
+
+    column_width = NumericProperty(None)
+    '''The column_width property is calculated on the basis of the
+    width of the container and the count of items. It is used only
+    when the :data:`orientation` is 'horizontal'.
+
+    :data:`column_width` is a :class:`~kivy.properties.NumericProperty`,
+    default to None.
+
+    .. versionadded:: 1.8.0
     '''
 
     item_strings = ListProperty([])
@@ -889,6 +914,176 @@ class ListView(AbstractView, EventDispatcher):
     default to False.
     '''
 
+    orientation = OptionProperty('vertical', options=['vertical',
+                                                      'horizontal'])
+    '''Specifies whether the listview is vertical or horizontal.
+
+    :data:`orientation` is a :class:`~kivy.properties.OptionProperty`,
+    default to 'vertical'.
+
+    Valid orientations are 'vertical' and 'horizontal'.
+
+    .. versionadded:: 1.8.0
+    '''
+
+    def get_is_vertical(self, *args):
+        return self.orientation == 'vertical'
+
+    def set_is_vertical(self, val):
+        if val:
+            self.orientation = 'vertical'
+        else:
+            self.orientation = 'horizontal'
+    is_vertical = AliasProperty(get_is_vertical, set_is_vertical,
+                                bind=['orientation'])
+    '''convenience attribute for checking whether the listview is vertical.
+
+    :data:`is_vertical` is a :class:`~kivy.properties.AliasProperty`.
+
+    .. versionadded:: 1.8.0
+    '''
+
+    def get_length(self):
+        if self.is_vertical:
+            return self.height
+        else:
+            return self.width
+
+    def set_length(self, val):
+        if self.is_vertical:
+            self.height = val
+        else:
+            self.width = val
+    length = AliasProperty(get_length, set_length, bind=['orientation',
+                                                         'height', 'width'])
+    '''When the :data:`orientation` is 'vertical', specifies the height of
+    the listview; when the :data:`orientation` is 'horizontal`, specifies
+    the width of the listview. :data:`length` can be set to change the
+    corresponding dimension.
+
+    :data:`length` is a :class:`~kivy.properties.AliasProperty`.
+
+    .. versionadded:: 1.8.0
+    '''
+
+    def get_girth(self):
+        if self.is_vertical:
+            return self.width
+        else:
+            return self.height
+
+    def set_girth(self, val):
+        if self.is_vertical:
+            self.width = val
+        else:
+            self.height = val
+    girth = AliasProperty(get_girth, set_girth, bind=['orientation',
+                                                      'height', 'width'])
+    '''The opposite of :data:`length`. When the :data:`orientation` is
+    'vertical', specifies the *width* of the listview. Otherwise, specifies
+    the *length* of the listview. :data:`girth` can also be set to
+    change the corresponding dimension.
+
+    :data:`girth` is a :class:`~kivy.properties.AliasProperty`.
+
+    .. versionadded:: 1.8.0
+    '''
+
+    def get_container_length(self):
+        if not self.container:
+            return None
+        if self.is_vertical:
+            return self.container.height
+        else:
+            return self.container.width
+
+    def set_container_length(self, val):
+        if not self.container:
+            return
+        if self.is_vertical:
+            self.container.height = val
+        else:
+            self.container.width = val
+    container_length = AliasProperty(
+        get_container_length, set_container_length,
+        bind=['orientation', 'container'])
+    '''When the :data:`orientation` is 'vertical', specifies the height of
+    the container; when the :data:`orientation` is 'horizontal`, specifies
+    the width of the container. :data:`container_length` can be set to change
+    the corresponding dimension.
+
+    :data:`container_length` is a :class:`~kivy.properties.AliasProperty`.
+
+    .. versionadded:: 1.8.0
+    '''
+
+    def get_container_girth(self):
+        if not self.container:
+            return None
+        if self.is_vertical:
+            return self.container.height
+        else:
+            return self.container.width
+
+    def set_container_girth(self, val):
+        if not self.container:
+            return
+        if self.is_vertical:
+            self.container.height = val
+        else:
+            self.container.width = val
+    container_girth = AliasProperty(get_container_girth, set_container_girth,
+                                    bind=['orientation', 'container'])
+    '''The opposite of :data:`container_length`. When the :data:`orientation` is
+    'vertical', specifies the *width* of the container. Otherwise, specifies
+    the *length* of the container. :data:`container_girth` can also be set to
+    change the corresponding dimension.
+
+    :data:`container_girth` is a :class:`~kivy.properties.AliasProperty`.
+
+    .. versionadded:: 1.8.0
+    '''
+
+    def get_item_length(self):
+        if self.is_vertical:
+            return self.row_height
+        else:
+            return self.column_width
+
+    def set_item_length(self, val):
+        if self.is_vertical:
+            self.row_height = val
+        else:
+            self.column_width = val
+    item_length = AliasProperty(get_item_length, set_item_length,
+                                bind=['orientation', 'row_height',
+                                      'column_width'])
+    '''When the :data:`orientation` is 'vertical', specifies the
+    :data:`row_height`; when the :data:`orientation` is 'horizontal`, specifies
+    the :data:`column_width`. :data:`item_length` can be set to change
+    the corresponding attribute.
+
+    :data:`item_length` is a :class:`~kivy.properties.AliasProperty`.
+
+    .. versionadded:: 1.8.0
+    '''
+
+    fetch_size = NumericProperty(10)
+    '''Listview works by generating views of data that are visible or
+    almost visible. When the user scrolls the view to the edge of the
+    reservoir of views, the listview fetches views for the next batch of data.
+    :data:`fetch_size` determines the size of this batch. The bigger it is,
+    the less often views need to be generated (fetched), but more memory is
+    required to store these views. Conversely, the smaller it is, the less
+    memory consumed but if the user scrolls often, there may be persistent
+    lags.
+
+    :data:`fetch_size` is a :class:`~kivy.properties.NumericProperty`, and
+    defaults to 10.
+
+    .. versionadded:: 1.8.0
+    '''
+
     _index = NumericProperty(0)
     _sizes = DictProperty({})
     _count = NumericProperty(0)
@@ -902,6 +1097,7 @@ class ListView(AbstractView, EventDispatcher):
         # Check for an adapter argument. If it doesn't exist, we
         # check for item_strings in use with SimpleListAdapter
         # to make a simple list.
+        from functools import partial
         if 'adapter' not in kwargs:
             if 'item_strings' not in kwargs:
                 # Could be missing, or it could be that the ListView is
@@ -912,10 +1108,14 @@ class ListView(AbstractView, EventDispatcher):
                 # item_strings_changed() handling the eventual set of the
                 # item_strings property from the application of kv rules.
                 list_adapter = SimpleListAdapter(data=[],
-                                                 cls=Label)
+                                                 cls=partial(Label,
+                                                             size_hint=(None,
+                                                                        None)))
             else:
                 list_adapter = SimpleListAdapter(data=kwargs['item_strings'],
-                                                 cls=Label)
+                                                 cls=partial(Label,
+                                                             size_hint=(None,
+                                                                        None)))
             kwargs['adapter'] = list_adapter
 
         super(ListView, self).__init__(**kwargs)
@@ -927,7 +1127,8 @@ class ListView(AbstractView, EventDispatcher):
         self.bind(size=self._trigger_populate,
                   pos=self._trigger_populate,
                   item_strings=self.item_strings_changed,
-                  adapter=self._trigger_populate)
+                  adapter=self._trigger_populate,
+                  orientation=self._trigger_populate)
 
         # The bindings setup above sets self._trigger_populate() to fire
         # when the adapter changes, but we also need this binding for when
@@ -936,37 +1137,73 @@ class ListView(AbstractView, EventDispatcher):
         # bindings back to the view updating function here.
         self.adapter.bind_triggers_to_view(self._trigger_reset_populate)
 
+    def adjust_container_orientation(self, *args):
+        container = self.container
+        if not container:
+            return
+        if self.is_vertical:
+            container.cols = 1
+            container.rows = None
+            container.size_hint_y = None
+        else:
+            container.rows = 1
+            container.cols = None
+            container.size_hint_x = None
+
+    def on_orientation(self, *args):
+        self.adjust_container_orientation()
+
+    def on_container(self, *args):
+        self.adjust_container_orientation()
+
     # Added to set data when item_strings is set in a kv template, but it will
     # be good to have also if item_strings is reset generally.
     def item_strings_changed(self, *args):
         self.adapter.data = self.item_strings
 
-    def _scroll(self, scroll_y):
-        if self.row_height is None:
+    # _scroll_y is put here as a property for compatibility, in case
+    # people accessed the internals here. We can take it off if this is
+    # not necessary
+    @property
+    def _scroll_y(self):
+        try:
+            return self._scroll_val
+        except:
+            return None
+
+    @_scroll_y.setter
+    def set_scroll_y(self, val):
+        if hasattr(self, '_scroll_val'):
+            self._scroll_val = val
+
+    def _scroll(self, scroll_val):
+        if self.item_length is None:
             return
-        self._scroll_y = scroll_y
-        scroll_y = 1 - min(1, max(scroll_y, 0))
-        container = self.container
-        mstart = (container.height - self.height) * scroll_y
-        mend = mstart + self.height
+        self._scroll_val = scroll_val
+        scroll_val = min(1, max(scroll_val, 0))
+        if self.is_vertical:
+            scroll_val = 1 - scroll_val
+        mstart = (self.container_length - self.length) * scroll_val
+        mend = mstart + self.length
 
         # convert distance to index
-        rh = self.row_height
-        istart = int(ceil(mstart / rh))
-        iend = int(floor(mend / rh))
+        il = self.item_length
+        istart = int(floor(mstart / il))
+        iend = int(floor(mend / il))
 
         istart = max(0, istart - 1)
         iend = max(0, iend - 1)
 
+        fetch_size = self.fetch_size
         if istart < self._wstart:
-            rstart = max(0, istart - 10)
+            rstart = max(0, istart - fetch_size)
             self.populate(rstart, iend)
             self._wstart = rstart
             self._wend = iend
         elif iend > self._wend:
-            self.populate(istart, iend + 10)
+            self.populate(istart, iend + fetch_size)
             self._wstart = istart
-            self._wend = iend + 10
+            self._wend = iend + fetch_size
 
     def _spopulate(self, *args):
         self.populate()
@@ -977,13 +1214,13 @@ class ListView(AbstractView, EventDispatcher):
         # simulate the scroll again, only if we already scrolled before
         # the position might not be the same, mostly because we don't know the
         # size of the new item.
-        if hasattr(self, '_scroll_y'):
-            self._scroll(self._scroll_y)
+        if hasattr(self, '_scroll_val'):
+            self._scroll(self._scroll_val)
 
     def populate(self, istart=None, iend=None):
         container = self.container
         sizes = self._sizes
-        rh = self.row_height
+        il = self.item_length
 
         # ensure we know what we want to show
         if istart is None:
@@ -999,8 +1236,15 @@ class ListView(AbstractView, EventDispatcher):
             # fill with a "padding"
             fh = 0
             for x in range(istart):
-                fh += sizes[x] if x in sizes else rh
-            container.add_widget(Widget(size_hint_y=None, height=fh))
+                fh += sizes[x] if x in sizes else il
+            kw = {}
+            if self.is_vertical:
+                kw['height'] = fh
+                kw['size_hint_y'] = None
+            else:
+                kw['width'] = fh
+                kw['size_hint_x'] = None
+            container.add_widget(Widget(**kw))
 
             # now fill with real item_view
             index = istart
@@ -1009,33 +1253,37 @@ class ListView(AbstractView, EventDispatcher):
                 index += 1
                 if item_view is None:
                     continue
-                sizes[index] = item_view.height
+                sizes[index] = \
+                    item_view.height if self.is_vertical else item_view.width
                 container.add_widget(item_view)
+                [(c, c.pos) for c in container.children]
         else:
-            available_height = self.height
-            real_height = 0
+            available_length = self.length
+            real_length = 0
             index = self._index
             count = 0
-            while available_height > 0:
+            while available_length > 0:
                 item_view = self.adapter.get_view(index)
                 if item_view is None:
                     break
-                sizes[index] = item_view.height
+                sizes[index] = item_length = \
+                    item_view.height if self.is_vertical else item_view.width
                 index += 1
                 count += 1
                 container.add_widget(item_view)
-                available_height -= item_view.height
-                real_height += item_view.height
+                available_length -= item_length
+                real_length += item_length
 
             self._count = count
 
             # extrapolate the full size of the container from the size
             # of view instances in the adapter
             if count:
-                container.height = \
-                    real_height / count * self.adapter.get_count()
-                if self.row_height is None:
-                    self.row_height = real_height / count
+                self.container_length = \
+                    real_length / count * self.adapter.get_count()
+                if self.item_length is None:
+                    self.item_length = real_length / count
+                [(c, c.pos) for c in container.children]
 
     def scroll_to(self, index=0):
         if not self.scrolling:
