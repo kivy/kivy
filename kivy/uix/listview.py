@@ -10,14 +10,15 @@ List View
     future version.
 
 The :class:`~kivy.uix.listview.ListView` widget provides a scrollable/pannable
-viewport that is clipped at the scrollview's bounding box, which contains
+viewport that is clipped to the scrollview's bounding box which contains
 list item view instances.
 
-:class:`~kivy.uix.listview.ListView` implements :class:`AbstractView` as a
-vertical scrollable list. :class:`AbstractView` has one property, adapter.
-:class:`~kivy.uix.listview.ListView` sets adapter to one of:
+The :class:`~kivy.uix.listview.ListView` implements an :class:`AbstractView` as
+a vertical scrollable list. The :class:`AbstractView` has one property:
+:class:`~kivy.adapters.adapter`.
+The :class:`~kivy.uix.listview.ListView` sets an adapter to one of a
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`,
-:class:`~kivy.adapters.listadapter.ListAdapter`, or
+:class:`~kivy.adapters.listadapter.ListAdapter` or a
 :class:`~kivy.adapters.dictadapter.DictAdapter`.
 
 Introduction
