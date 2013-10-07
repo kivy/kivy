@@ -48,10 +48,10 @@ simple to advanced:
 Many of the examples feature selection, some restricting selection to single
 selection, where only one item at at time can be selected, and others allowing
 multiple item selection. Many of the examples illustrate how selection in one
-list can be connected to action and selection in another view or another list.
+list can be connected to actions and selections in another view or another list.
 
 Find your own way of reading the documentation here, examining the source code
-for the example apps, and running the examples. Some may prefer to read the
+for the example apps and running the examples. Some may prefer to read the
 documentation through first, others may want to run the examples and view their
 code. No matter what you do, going back and forth will likely be needed.
 
@@ -80,7 +80,7 @@ In its simplest form, we make a listview with 100 items::
         from kivy.base import runTouchApp
         runTouchApp(MainView(width=800))
 
-Or, we could declare the listview in using the kv language::
+Or, we could declare the listview using the kv language::
 
     from kivy.uix.modalview import ModalView
     from kivy.uix.listview import ListView
@@ -120,10 +120,11 @@ Or, we could declare the listview in using the kv language::
 Using an Adapter
 -------------------
 
-Behind the scenes, the basic example above uses
-:class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`.  When the
-constructor for :class:`~kivy.uix.listview.ListView` sees that only a list of
-strings is provided as an argument, called item_strings, it creates an instance
+Behind the scenes, the basic example above uses the
+:class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`. When the
+constructor for the :class:`~kivy.uix.listview.ListView` sees that only a list
+of
+strings is provided as an argument (called item_strings), it creates an instance
 of :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` using the list
 of strings.
 
@@ -131,7 +132,7 @@ Simple in :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` means:
 *without selection support*. It is a scrollable list of items that do not
 respond to touch events.
 
-To use :class:`SimpleListAdaper` explicitly in creating a ListView instance,
+To use a :class:`SimpleListAdaper` explicitly when creating a ListView instance,
 do::
 
     simple_list_adapter = SimpleListAdapter(
@@ -141,13 +142,13 @@ do::
     list_view = ListView(adapter=simple_list_adapter)
 
 The instance of :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` has
-a required data argument, which contains data items to use for instantiating
+a required data argument which contains data items to use for instantiating
 Label views for the list view (Note the cls=Label argument). The data items are
-strings.  Each item string is set by
+strings. Each item string is set by the
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` as the *text*
 argument for each Label instantiation.
 
-You can declare a ListView with an adapter in a kv file, with special attention
+You can declare a ListView with an adapter in a kv file with special attention
 given to the way longer python blocks are indented::
 
     from kivy.uix.modalview import ModalView
