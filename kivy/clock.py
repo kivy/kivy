@@ -33,6 +33,16 @@ module::
 
     Clock.schedule_interval(partial(my_callback, 'my value', 'my key'), 0.5)
 
+Conversely, if you want to schedule a function that doesn't accept the dt 
+argument, you can use `lambda
+<http://docs.python.org/2/reference/expressions.html#lambda>`_ expression 
+to write a short function that does accept dt.  For Example::
+
+    def no_args_func():
+        print("I accept no arguments, so don't schedule me in the clock")
+    
+    Clock.schedule_once(lambda dt: no_args_func(), 0.5)
+
 .. important::
 
     The callback is weak-referenced: you are responsible to keep a reference to
