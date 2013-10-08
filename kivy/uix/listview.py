@@ -227,14 +227,16 @@ here are synopses of its arguments:
 
     Pick only one, cls or template, to provide as an argument.
 
-* *args_converter*: a function that takes a data item object as input, and
+* *args_converter*: a function that takes a data item object as input and
   uses it to build and return an args dict, ready
-  to be used in a call to instantiate item views useing the item view cls
+  to be used in a call to instantiate item views using the item view cls
   or template. In the case of cls, the args dict acts as a
   kwargs object. For a template, it is treated as a context
-  (ctx), but is essentially similar in form to kwargs usage.
+  (ctx) but is essentially similar in form to the kwargs usage.
 
-* *selection_mode*: a string for: 'single', 'multiple' or others (See docs).
+* *selection_mode*: a string with the value 'single', 'multiple' or others
+  (See :attr:`~kivy.adapters.listadapter.ListAdapter.selection_mode` for
+  details).
 
 * *allow_empty_selection*: a boolean, which if False, the default, forces
   there to always be a selection, if there is data
