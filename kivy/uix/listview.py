@@ -14,7 +14,7 @@ viewport that is clipped to the scrollview's bounding box which contains
 list item view instances.
 
 The :class:`~kivy.uix.listview.ListView` implements an :class:`AbstractView` as
-a vertical scrollable list. The :class:`AbstractView` has one property:
+a vertical, scrollable list. The :class:`AbstractView` has one property:
 :class:`~kivy.adapters.adapter`.
 The :class:`~kivy.uix.listview.ListView` sets an adapter to one of a
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`,
@@ -26,8 +26,8 @@ Introduction
 
 Lists are central parts of many software projects. Kivy's approach to lists
 includes providing solutions for simple lists, along with a substantial
-framework for building lists of moderate to advanced complexity. For the new
-user of the system, it can be difficult to ramp up from simple to advanced. For
+framework for building lists of moderate to advanced complexity. For a new
+user, it can be difficult to ramp up from simple to advanced. For
 this reason, Kivy provides an extensive set of examples that you may wish to
 run first, to get a taste of the range of functionality offered. You can tell
 from the names of the examples that they illustrate the "ramping up" from
@@ -125,11 +125,11 @@ Behind the scenes, the basic example above uses the
 constructor for the :class:`~kivy.uix.listview.ListView` sees that only a list
 of
 strings is provided as an argument (called item_strings), it creates an instance
-of :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` using the list
-of strings.
+of :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` using the
+list of strings.
 
 Simple in :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` means:
-*without selection support*. It is a scrollable list of items that do not
+*without selection support*. It is a scrollable list of items that does not
 respond to touch events.
 
 To use a :class:`SimpleListAdaper` explicitly when creating a ListView instance,
@@ -143,7 +143,7 @@ do::
 
 The instance of :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` has
 a required data argument which contains data items to use for instantiating
-Label views for the list view (Note the cls=Label argument). The data items are
+Label views for the list view (note the cls=Label argument). The data items are
 strings. Each item string is set by the
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` as the *text*
 argument for each Label instantiation.
@@ -202,11 +202,11 @@ ListAdapter and DictAdapter
 
 For many uses of a list, the data is more than a simple list of strings.
 Selection functionality is also often needed.
-:class:`~kivy.adapters.listadapter.ListAdapter` and
+The :class:`~kivy.adapters.listadapter.ListAdapter` and
 :class:`~kivy.adapters.dictadapter.DictAdapter` cover these more elaborate
 needs.
 
-:class:`~kivy.adapters.listadapter.ListAdapter` is the base class for
+The :class:`~kivy.adapters.listadapter.ListAdapter` is the base class for
 :class:`~kivy.adapters.dictadapter.DictAdapter`, so we can start with it.
 
 See the :class:`~kivy.adapters.listadapter.ListAdapter` docs for details, but
@@ -218,7 +218,7 @@ here are synopses of its arguments:
 * *cls*: a Kivy view that is to be instantiated for each list item. There
   are several built-in types available, including ListItemLabel and
   ListItemButton, or you can make your own class that mixes in the
-  required `~kivy.uix.listview.SelectableView`.
+  required :class:`~kivy.uix.listview.SelectableView`.
 
 * *template*: the name of a Kivy language (kv) template that defines the
   Kivy view for each list item.
