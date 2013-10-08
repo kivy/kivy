@@ -238,12 +238,12 @@ here are synopses of its arguments:
   (See :attr:`~kivy.adapters.listadapter.ListAdapter.selection_mode` for
   details).
 
-* *allow_empty_selection*: a boolean, which if False, the default, forces
-  there to always be a selection, if there is data
+* *allow_empty_selection*: a boolean, which if False (the default), forces
+  there to always be a selection if there is data
   available. If True, selection happens only as a
   result of user action.
 
-In narrative, we can summarize with:
+In narrative, we can summarize as follows:
 
     A listview's adapter takes data items and uses an args_converter
     function to transform them into arguments for making list item view
@@ -261,8 +261,8 @@ list adapter, looks like this::
     -                    |                                                  |
     -                    ----------------------------------------------------
 
-:class:`~kivy.adapters.dictadapter.DictAdapter` has the same arguments and
-requirements as :class:`~kivy.adapters.listadapter.ListAdapter`, except for two
+A :class:`~kivy.adapters.dictadapter.DictAdapter` has the same arguments and
+requirements as :class:`~kivy.adapters.listadapter.ListAdapter` except for two
 things:
 
 1) There is an additional argument, sorted_keys, which must meet the
@@ -271,21 +271,22 @@ things:
 2) The data argument is, as you would expect, a dict. Keys in the dict
    must include the keys in the sorted_keys argument, but they may form a
    superset of the keys in sorted_keys. Values may be strings, class
-   instances, dicts, etc. (The args_converter uses it, accordingly).
+   instances, dicts, etc. (The args_converter uses it accordingly).
 
 Using an Args Converter
 -----------------------
 
-:class:`~kivy.uix.listview.ListView` allows use of built-in list item views,
+A :class:`~kivy.uix.listview.ListView` allows use of built-in list item views,
 such as :class:`~kivy.uix.listview.ListItemButton`, your own custom item view
-class, or a custom kv template. Whichever type of list item view is used, an
+class or a custom kv template. Whichever type of list item view is used, an
 args_converter function is needed to prepare, per list data item, args for
-either a cls or template.
+the cls or template.
 
 .. note::
 
-    ListItemLabel and ListItemButton, or custom classes like them, and not the
-    bare Label nor Button classes, are to be used in the listview system.
+    Only the ListItemLabel, ListItemButton or custom classes like them, and
+    neither the bare Label nor Button classes, are to be used in the listview
+    system.
 
 .. warning::
 
@@ -294,7 +295,7 @@ either a cls or template.
     `deselected_color` are not represented faithfully by default.
 
 Here is an args_converter for use with the built-in
-:class:`~kivy.uix.listview.ListItemButton`, specified as a normal Python
+:class:`~kivy.uix.listview.ListItemButton` specified as a normal Python
 function::
 
     def args_converter(row_index, an_obj):
@@ -320,7 +321,7 @@ are dicts::
 
 So, it is the responsibility of the developer to code the args_converter
 according to the data at hand. The row_index argument can be useful in some
-cases, such as when custome labels are needed.
+cases, such as when custom labels are needed.
 
 An Example ListView
 -------------------
