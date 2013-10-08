@@ -345,22 +345,23 @@ Now, to some example code::
 
     list_view = ListView(adapter=list_adapter)
 
-This listview will show 100 buttons with 0..100 labels. The args converter
+This listview will show 100 buttons with text of 0 to 100. The args converter
 function works on dict items in the data. ListItemButton views will be
-intantiated from the args converted by args_converter for each data item. The
-listview will only allow single selection -- additional touches will be
+instantiated from the args converted by args_converter for each data item. The
+listview will only allow single selection: additional touches will be
 ignored. When the listview is first shown, the first item will already be
-selected, because allow_empty_selection is False.
+selected because allow_empty_selection is False.
 
-:class:`~kivy.uix.listview.ListItemLabel` works much the same way as
+The :class:`~kivy.uix.listview.ListItemLabel` works in much the same way as the
 :class:`~kivy.uix.listview.ListItemButton`.
 
 Using a Custom Item View Class
 ------------------------------
 
 The data used in an adapter can be any of the normal Python types, such as
-strings, class instances, and dictionaries. It is up to the programmer to
-assure that the args_converter has appropriate functionality.
+strings, class instances and dictionaries. They can also be custom classes, as 
+shown below. It is up to the programmer to
+assure that the args_converter performs the appropriate conversions.
 
 Here we make a simple DataItem class that has the required text and
 is_selected properties::
