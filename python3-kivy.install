@@ -13,3 +13,6 @@ usr/lib/python3/dist-packages/kivy/lib
 usr/lib/python3/dist-packages/kivy/modules
 usr/lib/python3/dist-packages/kivy/network
 usr/lib/python3/dist-packages/kivy/uix
+
+usr/lib/python3/dist-packages/kivy/storage/*
+usr/lib/python3/dist-packages/kivy/storage/__pycache__/*

@@ -12,3 +12,5 @@ usr/lib/python2.7/dist-packages/kivy/lib
 usr/lib/python2.7/dist-packages/kivy/modules
 usr/lib/python2.7/dist-packages/kivy/network
 usr/lib/python2.7/dist-packages/kivy/uix
+
+usr/lib/python2.7/dist-packages/kivy/storage
