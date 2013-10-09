@@ -51,8 +51,8 @@ on_press ::
 ModalView Events
 ----------------
 
-There are two events available: `on_open`, which is raised when the view is
-opening, and `on_dismiss`, which is raised when the view is closed.
+There are two events available: `on_open` which is raised when the view is
+opening, and `on_dismiss` which is raised when the view is closed.
 For `on_dismiss`, you can prevent the view from closing by explictly returning
 True from your callback. ::
 
