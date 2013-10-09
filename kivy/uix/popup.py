@@ -9,17 +9,17 @@ Popup
 
 The :class:`Popup` widget is used to create modal popups. By default, the popup
 will cover the whole "parent" window. When you are creating a popup, you must at
-a minimum set a :data:`Popup.title` and a :data:`Popup.content` widget.
+least set a :data:`Popup.title` and :data:`Popup.content`.
 
 Remember that the default size of a Widget is size_hint=(1, 1). If you don't
-want your popup to be fullscreen, either use lower than 1 size hints (for
-instance size_hint=(.8, .8)) or deactivate the size_hint and use fixed size
+want your popup to be fullscreen, either use size hints with values less than 1
+(for instance size_hint=(.8, .8)) or deactivate the size_hint and use fixed size
 attributes.
 
 
 .. versionchanged:: 1.4.0
     The :class:`Popup` class now inherits from
-    :class:`~kivy.uix.modalview.ModalView`.  The :class:`Popup` offers a default
+    :class:`~kivy.uix.modalview.ModalView`. The :class:`Popup` offers a default
     layout with a title and a separation bar.
 
 Examples
@@ -32,20 +32,23 @@ Example of a simple 400x400 Hello world popup::
         size_hint=(None, None), size=(400, 400))
 
 By default, any click outside the popup will dismiss it. If you don't
-want that, you can set :data:`Popup.auto_dismiss` to False::
+want that, you can set
+:attr:`~kivy.uix.modalview.ModalView.auto_dismiss` to False::
 
     popup = Popup(title='Test popup', content=Label(text='Hello world'),
                   auto_dismiss=False)
     popup.open()
 
-To manually dismiss/close the popup, use :meth:`Popup.dismiss`::
+To manually dismiss/close the popup, use
+:attr:`~kivy.uix.modalview.ModalView.dismiss`::
 
     popup.dismiss()
 
-The :meth:`Popup.open` and :meth:`Popup.dismiss` are bindable. That means you
-can directly bind the function to an action, e.g., to a button's on_press::
+Both :meth:`~kivy.uix.modalview.ModalView.open` and
+:meth:`~kivy.uix.modalview.ModalView.dismiss` are bindable. That means you
+can directly bind the function to an action, e.g. to a button's on_press::
 
-    # create content and assign to the popup
+    # create content and add to the popup
     content = Button(text='Close me!')
     popup = Popup(content=content, auto_dismiss=False)
 
@@ -59,12 +62,13 @@ can directly bind the function to an action, e.g., to a button's on_press::
 Popup Events
 ------------
 
-There are two events available: `on_open` when the popup is opening, and
-`on_dismiss` when it is closed. For `on_dismiss`, you can prevent the
+There are two events available: `on_open` which is raised when the popup is
+opening, and `on_dismiss` which is raised when the popup is closed.
+For `on_dismiss`, you can prevent the
 popup from closing by explictly returning True from your callback::
 
     def my_callback(instance):
-        print('Popup', instance, 'is being dismissed, but is prevented!')
+        print('Popup', instance, 'is being dismissed but is prevented!')
         return True
     popup = Popup(content=Label(text='Hello world'))
     popup.bind(on_dismiss=my_callback)
@@ -80,7 +84,8 @@ from kivy.properties import (StringProperty, ObjectProperty,
 
 
 class PopupException(Exception):
-    '''Popup exception, fired when multiple content are added to the popup.
+    '''Popup exception, fired when multiple content widgets are added to the
+    popup.
 
     .. versionadded:: 1.4.0
     '''
@@ -91,7 +96,7 @@ class Popup(ModalView):
 
     :Events:
         `on_open`:
-            Fired when the Popup is opened
+            Fired when the Popup is opened.
         `on_dismiss`:
             Fired when the Popup is closed. If the callback returns True, the
             dismiss will be canceled.
@@ -100,8 +105,8 @@ class Popup(ModalView):
     title = StringProperty('No title')
     '''String that represents the title of the popup.
 
-    :data:`title` is a :class:`~kivy.properties.StringProperty`, default to 'No
-    title'.
+    :data:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
+    'No title'.
     '''
 
     title_size = NumericProperty('14sp')
@@ -109,24 +114,24 @@ class Popup(ModalView):
 
     .. versionadded:: 1.6.0
 
-    :data:`title_size` is a :class:`~kivy.properties.NumericProperty`, default
-    to '14sp'.
+    :data:`title_size` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to '14sp'.
     '''
 
     content = ObjectProperty(None)
     '''Content of the popup that is displayed just under the title.
 
-    :data:`content` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
+    :data:`content` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
     '''
 
     title_color = ListProperty([1, 1, 1, 1])
-    '''Color used by the Title
+    '''Color used by the Title.
 
     .. versionadded:: 1.8.0
 
-    :data:`title_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [1, 1, 1, 1]
+    :data:`title_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [1, 1, 1, 1].
     '''
 
     separator_color = ListProperty([47 / 255., 167 / 255., 212 / 255., 1.])
@@ -134,8 +139,8 @@ class Popup(ModalView):
 
     .. versionadded:: 1.1.0
 
-    :data:`separator_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [47 / 255., 167 / 255., 212 / 255., 1.]
+    :data:`separator_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [47 / 255., 167 / 255., 212 / 255., 1.]
     '''
 
     separator_height = NumericProperty('2dp')
@@ -143,8 +148,8 @@ class Popup(ModalView):
 
     .. versionadded:: 1.1.0
 
-    :data:`separator_height` is a :class:`~kivy.properties.NumericProperty`,
-    default to 2dp.
+    :data:`separator_height` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 2dp.
     '''
 
     # Internals properties used for graphical representation.
