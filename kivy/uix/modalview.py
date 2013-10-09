@@ -8,9 +8,9 @@ The :class:`ModalView` widget is used to create modal views. By default, the
 view will cover the whole "parent" window.
 
 Remember that the default size of a Widget is size_hint=(1, 1). If you don't
-want your view to be fullscreen, either use lower than 1 size hints (for
-instance size_hint=(.8, .8)) or deactivate the size_hint and use fixed size
-attributes.
+want your view to be fullscreen, either use size hints with values lower than
+1 (for instance size_hint=(.8, .8)) or deactivate the size_hint and use fixed
+size attributes.
 
 Examples
 --------
@@ -27,15 +27,16 @@ want that, you can set :data:`ModalView.auto_dismiss` to False::
     view.add_widget(Label(text='Hello world'))
     view.open()
 
-To manually dismiss/close the view, use :meth:`ModalView.dismiss`::
+To manually dismiss/close the view, use the :meth:`ModalView.dismiss` method of
+the ModalView instance::
 
-    ModalView.dismiss()
+    view.dismiss()
 
-The :meth:`ModalView.open` and :meth:`ModalView.dismiss` are bindable. That
-means you can directly bind the function to an action, e.g., to a button's
+Both :meth:`ModalView.open` and :meth:`ModalView.dismiss` are bindable. That
+means you can directly bind the function to an action, e.g. to a button's
 on_press ::
 
-    # create content and assign to the view
+    # create content and add it to the view
     content = Button(text='Close me!')
     view = ModalView(auto_dismiss=False)
     view.add_widget(content)
@@ -50,9 +51,10 @@ on_press ::
 ModalView Events
 ----------------
 
-There are two events available: `on_open` when the view is opening, and
-`on_dismiss` when it is closed. For `on_dismiss`, you can prevent the
-view from closing by explictly returning True from your callback ::
+There are two events available: `on_open`, which is raised when the view is
+opening, and `on_dismiss`, which is raised when the view is closed.
+For `on_dismiss`, you can prevent the view from closing by explictly returning
+True from your callback. ::
 
     def my_callback(instance):
         print('ModalView', instance, 'is being dismissed, but is prevented!')
@@ -65,8 +67,8 @@ view from closing by explictly returning True from your callback ::
 
 .. versionchanged:: 1.5.0
 
-    The ModalView can be closed by hitting escape key on the keyboard, if the
-    :data:`ModalView.auto_dismiss` is allowed.
+    The ModalView can be closed by hitting the escape key on the keyboard if the
+    :data:`ModalView.auto_dismiss` property is True (the default).
 
 '''
 
@@ -84,18 +86,18 @@ class ModalView(AnchorLayout):
 
     :Events:
         `on_open`:
-            Fired when the ModalView is opened
+            Fired when the ModalView is opened.
         `on_dismiss`:
             Fired when the ModalView is closed. If the callback returns True,
             the dismiss will be canceled.
     '''
 
     auto_dismiss = BooleanProperty(True)
-    '''Default to True, this property determines if the view is automatically
+    '''This property determines if the view is automatically
     dismissed when the user clicks outside it.
 
-    :data:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True.
+    :data:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     attach_to = ObjectProperty(None)
@@ -103,35 +105,36 @@ class ModalView(AnchorLayout):
     parent window of the widget. If none is found, it will attach to the
     main/global Window.
 
-    :data:`attach_to` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
+    :data:`attach_to` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     background_color = ListProperty([0, 0, 0, .7])
-    '''Background color, in the format (r, g, b, a).
+    '''Background color in the format (r, g, b, a).
 
-    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [0, 0, 0, .7].
+    :data:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [0, 0, 0, .7].
     '''
 
     background = StringProperty(
         'atlas://data/images/defaulttheme/modalview-background')
     '''Background image of the view used for the view background.
 
-    :data:`background` is an :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/modalview-background'
+    :data:`background` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'atlas://data/images/defaulttheme/modalview-background'.
     '''
 
     border = ListProperty([16, 16, 16, 16])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
-    graphics instruction. Used for :data:`background_normal` and
-    :data:`background_down`. Can be used when using custom background.
+    graphics instruction. Used for the :data:`background_normal` and the
+    :data:`background_down` properties. Can be used when using custom
+    backgrounds.
 
     It must be a list of four values: (top, right, bottom, left). Read the
     BorderImage instructions for more information about how to use it.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (16,
-    16, 16, 16)
+    :data:`border` is a :class:`~kivy.properties.ListProperty` and defaults to
+    (16, 16, 16, 16).
     '''
 
     # Internals properties used for graphical representation.
@@ -196,16 +199,17 @@ class ModalView(AnchorLayout):
 
     def dismiss(self, *largs, **kwargs):
         '''Close the view if it is open. If you really want to close the
-        view, whatever the on_dismiss event returns, you can do this:
+        view, whatever the on_dismiss event returns, you can use the *force*
+        argument:
         ::
 
             view = ModalView(...)
             view.dismiss(force=True)
 
-            When the view is dismissed, it will be faded out, before
-            removal from the parent. If you don't want animation, use:
+        When the view is dismissed, it will be faded out before being
+        removed from the parent. If you don't want animation, use::
 
-                view.dismiss(animation=False)
+            view.dismiss(animation=False)
 
         '''
         if self._window is None:
