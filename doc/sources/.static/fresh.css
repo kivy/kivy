@@ -110,6 +110,11 @@ a:hover {
 	color: #ffffff;
 }
 
+#topmenu ul.navigation .nav-wiki {
+    background-color: #ff1188;
+    color: #ffffff;
+}
+
 #topmenu ul.navigation a.nav-garden:hover {
 	background-color: #99cc00;
 }
@@ -126,6 +131,9 @@ a:hover {
 	background-color: #ffbb33;
 }
 
+#topmenu ul.navigation a.nav-wiki:hover {
+    background-color: #ff33bb;
+}
 
 
 div.sphinxsidebar {
