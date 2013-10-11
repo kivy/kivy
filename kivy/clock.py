@@ -161,6 +161,7 @@ __all__ = ('Clock', 'ClockBase', 'ClockEvent', 'mainthread')
 
 from sys import platform
 from os import environ
+from kivy.context import register_context
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
 from kivy.logger import Logger
@@ -525,7 +526,6 @@ class ClockBase(_ClockBase):
                         if event in events[cid]:
                             events[cid].remove(event)
 
-
 def mainthread(func):
     '''Decorator that will schedule the call of the function in the mainthread.
     It can be useful when you use :class:`~kivy.network.urlrequest.UrlRequest`,
@@ -554,5 +554,6 @@ if 'KIVY_DOC_INCLUDE' in environ:
     #: Instance of the ClockBase, available for everybody
     Clock = None
 else:
-    Clock = ClockBase()
+    print 'register context'
+    Clock = register_context('Clock', ClockBase)
 

@@ -86,6 +86,7 @@ from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
 from kivy.graphics import Canvas
 from kivy.base import EventLoop
 from kivy.lang import Builder
+from kivy.context import get_current_context
 from weakref import proxy
 from functools import partial
 
@@ -151,6 +152,10 @@ class Widget(WidgetBase):
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
+
+        # assign the default context of the widget creation
+        if not hasattr(self, '_context'):
+            self._context = get_current_context()
 
         super(Widget, self).__init__(**kwargs)
 
