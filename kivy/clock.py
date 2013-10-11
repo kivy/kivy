@@ -554,6 +554,5 @@ if 'KIVY_DOC_INCLUDE' in environ:
     #: Instance of the ClockBase, available for everybody
     Clock = None
 else:
-    print 'register context'
     Clock = register_context('Clock', ClockBase)
 

@@ -2,12 +2,29 @@
 Context
 =======
 
-Kivy have few "global" instance that is used directly by many piece of the
+.. versionadded:: 1.8.0
+
+.. warning::
+
+    This is experimental and subject to change as long as this warning notice
+    is present.
+
+Kivy have few "global" instances that is used directly by many piece of the
 framework: `Cache`, `Builder`, `Clock`.
+
+TODO: document this module.
 
 '''
 
+__all__ = ('Context', 'ProxyContext', 'register_context', 'get_current_context')
+
+_contexts = {}
+_default_context = None
+_context_stack = []
+
+
 class ProxyContext(object):
+
     __slots__ = ['_obj']
 
     def __init__(self, obj):
@@ -33,10 +50,6 @@ class ProxyContext(object):
         return repr(object.__getattribute__(self, '_obj'))
 
 
-_contexts = {}
-_default_context = None
-_context_stack = []
-
 class Context(dict):
 
     def __init__(self, init=False):
@@ -56,13 +69,16 @@ class Context(dict):
             object.__setattr__(_contexts[name]['proxy'], '_obj', instance)
 
     def pop(self):
-        #After poping context from stack. Update proxy's _obj with
-        #instances in current context
-        context = _context_stack.pop(-1)
+        # After poping context from stack. Update proxy's _obj with
+        # instances in current context
+        _context_stack.pop(-1)
         for name, instance in get_current_context().items():
             object.__setattr__(_contexts[name]['proxy'], '_obj', instance)
 
+
 def register_context(name, cls, *args, **kwargs):
+    '''Register a new context
+    '''
     instance = cls(*args, **kwargs)
     proxy = ProxyContext(instance)
     _contexts[name] = {
@@ -75,6 +91,8 @@ def register_context(name, cls, *args, **kwargs):
 
     
 def get_current_context():
+    '''Return the current context
+    '''
     if not _context_stack:
         return _default_context
     return _context_stack[-1]
