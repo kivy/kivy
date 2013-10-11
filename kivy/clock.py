@@ -42,6 +42,14 @@ to write a short function that does accept dt.  For Example::
         print("I accept no arguments, so don't schedule me in the clock")
     
     Clock.schedule_once(lambda dt: no_args_func(), 0.5)
+    
+.. note::
+
+    You cannot unschedule an anonymous function unless you keep a reference to 
+    it.  It's better to add *args to your function definition so that it can be
+    called with or without the clock.
+    
+    
 
 .. important::
 
