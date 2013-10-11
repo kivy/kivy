@@ -1,15 +1,9 @@
 '''
-ObjectController
-----------------
+TransformController
+-------------------
 
-The ObjectController class holds a single Controller in the data property. This
-Controller can be anything, including a collection.
-
-The default update() method for setting data will set any single Controllers to
-data, and will set the first item of a list to data.
-
-Methods in an Controller controller can transform the data item in various ways
-to build an API for it.
+The TransformController class holds a subject property set to some other
+property, and a data property that is a transform of the subject object.
 
 .. versionadded:: 1.8
 
@@ -30,11 +24,10 @@ __all__ = ('TransformController, TransformListController', )
 class TransformController(Controller):
     '''
     data, which is defined as an ObjectProperty in the Controller superclass,
-    can be any Controller, including a list, a dict, etc. transform is a
-    TransformProperty, which by default will operated on a sibling property
-    called data.  transform has a default func as a lambda that simply sets the
-    item, with no transform applied. Set transform.func if a transform should
-    be applied.
+    can be any object, including a list, a dict, etc. The data property is a
+    TransformProperty, which by default will operate on a sibling property
+    called subject. The transform property has a default func as a lambda that
+    simply sets the item, with no transform applied.
     '''
     subject = ObjectProperty(None, allownone=True)
     data = TransformProperty(subject='subject',

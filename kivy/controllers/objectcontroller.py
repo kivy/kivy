@@ -2,14 +2,8 @@
 ObjectController
 ----------------
 
-The ObjectController class holds a single Controller in the data property. This
-Controller can be anything, including a collection.
-
-The default update() method for setting data will set any single Controllers to
-data, and will set the first item of a list to data.
-
-Methods in an Controller controller can transform the data item in various ways
-to build an API for it.
+The ObjectController class holds a single object in the data property. This
+object can be anything, including a collection.
 
 .. versionadded:: 1.8
 

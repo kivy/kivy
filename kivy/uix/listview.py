@@ -627,12 +627,13 @@ class SelectableView(ButtonBehavior, Widget):
 
         if 'item_args' in kwargs:
             item_args = kwargs['item_args']
+            #import pdb; pdb.set_trace()
+            print kwargs
             kwargs = self.args_converter(
                         item_args['index'],
-                        item_args['data_item'],
-                        *item_args['additional_args'])
+                        item_args['data_item'])
             for arg in kwargs:
-                'setting', arg, kwargs[arg]
+                print 'setting', arg, kwargs[arg]
                 setattr(self, arg, kwargs[arg])
 
     def args_converter(self, index, data_item):
@@ -1459,9 +1460,6 @@ class ListView(Adapter, AbstractView, EventDispatcher):
             return None
 
         return data[index]
-
-    def additional_args_converter_args(self, index):
-        return ()
 
     def trim_left_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are less than the

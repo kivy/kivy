@@ -10,6 +10,10 @@ from kivy.uix.gridlayout import GridLayout
 from fixtures import fruit_categories
 from fixtures import fruit_data_list_of_dicts
 
+# See the fruits_app/ directory for this app broken out into multiple files,
+# illustrating how one might structure a larger app. Here we have everything in
+# a single file, for easy reference as an example.
+
 # This example illustrates a cascading connection from the selection of one
 # list view to another. In this example the lists are restricted to single
 # selection. The list on the left is a simple list view using a simple list
@@ -95,7 +99,7 @@ Builder.load_string("""
     halign: 'right'
 
 # This is a dynamic class.
-<AttributeValue@Label>:
+<AttributeValueLabel@Label>:
     size_hint_y: None
     height: 50
 
@@ -115,67 +119,67 @@ Builder.load_string("""
 
     AttributeLabel:
         text: 'Calories:'
-    AttributeValue:
+    AttributeValueLabel:
         text: str(fruit_data[root.text]['Calories']) if root.text else ''
 
     AttributeLabel:
         text: 'Calories from Fat:'
-    AttributeValue:
+    AttributeValueLabel:
         text: str(fruit_data[root.text]['Calories from Fat']) if root.text else ''
 
     AttributeLabel:
         text: 'Total Fat:'
-    AttributeValue:
+    AttributeValueLabel:
         text: str(fruit_data[root.text]['Total Fat']) if root.text else ''
 
     AttributeLabel:
         text: 'Sodium:'
-    AttributeValue:
+    AttributeValueLabel:
         text: str(fruit_data[root.text]['Sodium']) if root.text else ''
 
     AttributeLabel:
         text: 'Potassium:'
-    AttributeValue:
+    AttributeValueLabel:
         text: str(fruit_data[root.text]['Potassium']) if root.text else ''
 
     AttributeLabel:
         text: 'Total Carbo-hydrate:'
-    AttributeValue:
+    AttributeValueLabel:
         text: str(fruit_data[root.text]['Total Carbo-hydrate']) if root.text else ''
 
     AttributeLabel:
         text: 'Dietary Fiber:'
-    AttributeValue:
+    AttributeValueLabel:
         text: str(fruit_data[root.text]['Dietary Fiber']) if root.text else ''
 
     AttributeLabel:
         text: 'Sugars:'
-    AttributeValue:
+    AttributeValueLabel:
         text: str(fruit_data[root.text]['Sugars']) if root.text else ''
 
     AttributeLabel:
         text: 'Protein:'
-    AttributeValue:
+    AttributeValueLabel:
         text: str(fruit_data[root.text]['Protein']) if root.text else ''
 
     AttributeLabel:
         text: 'Vitamin A:'
-    AttributeValue:
+    AttributeValueLabel:
         text: str(fruit_data[root.text]['Vitamin A']) if root.text else ''
 
     AttributeLabel:
         text: 'Vitamin C:'
-    AttributeValue:
+    AttributeValueLabel:
         text: str(fruit_data[root.text]['Vitamin C']) if root.text else ''
 
     AttributeLabel:
         text: 'Calcium:'
-    AttributeValue:
+    AttributeValueLabel:
         text: str(fruit_data[root.text]['Calcium']) if root.text else ''
 
     AttributeLabel:
         text: 'Iron:'
-    AttributeValue:
+    AttributeValueLabel:
         text: str(fruit_data[root.text]['Iron']) if root.text else ''
 
 # The main view for the app.

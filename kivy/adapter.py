@@ -45,6 +45,7 @@ __all__ = ('Adapter', )
 import collections
 from inspect import isclass
 
+from kivy.app import App
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
 from kivy.lang import Builder
@@ -187,16 +188,6 @@ class Adapter(EventDispatcher):
         '''
         pass
 
-    def additional_args_converter_args(self, index):
-        '''An adapter subclass needs to implement this method to return any
-        additional args needed, in addition to the data item itself, which is
-        returned in a separate call to get_data_item().
-
-        .. versionadded:: 1.8
-
-        '''
-        pass
-
     def create_view(self, index):
         '''This method fetches the data_item at the index, and a builds a view
         from it. The view is is an instance of self.list_item_class, made from
@@ -229,12 +220,12 @@ class Adapter(EventDispatcher):
                                  'reference in Python.'))
 
         item_args['data_item'] = data_item
-        item_args['additional_args'] = self.additional_args_converter_args(index)
 
         item_args['index'] = index
 
         if hasattr(self.list_item_class, 'args_converter'):
             view_instance = self.list_item_class(item_args=item_args)
+            print 'view_instance', view_instance
         else:
             raise Exception('An args_converter method is required.')
 

@@ -122,9 +122,6 @@ class ObjectView(Adapter, AbstractView, EventDispatcher):
     def _reset_spopulate(self, *args):
         self.populate()
 
-    def additional_args_converter_args(self, index):
-        return ()
-
     def get_data_item(self, index):
         return self.data_binding._value
 
