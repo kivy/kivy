@@ -46,7 +46,7 @@ to write a short function that does accept dt.  For Example::
 .. note::
 
     You cannot unschedule an anonymous function unless you keep a reference to 
-    it.  It's better to add *args to your function definition so that it can be
+    it.  It's better to add \*args to your function definition so that it can be
     called with or without the clock.
     
     
