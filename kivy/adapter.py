@@ -196,7 +196,8 @@ class Adapter(EventDispatcher):
         :class:`kivy.adapters.dictadapter.DictListAdapter`.
         '''
 
-        data = self.data_binding.source.data
+        data = getattr(self.data_binding.source, self.data_binding.prop)
+
         if not isinstance(data, collections.Iterable):
             if index != 0:
                 return None

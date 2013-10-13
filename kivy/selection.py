@@ -269,7 +269,7 @@ class Selection(EventDispatcher):
         additions = []
         removals = []
 
-        if isinstance(item, Widget):
+        if isinstance(item, Widget) and hasattr(item, 'index'):
             item = self.data[item.index]
 
         if item not in self.selection:
