@@ -9,13 +9,13 @@ Screen Manager
     This widget is still experimental, and its API is subject to change in a
     future version.
 
-The screen manager is a widget dedicated to manage multiple screens on your
+The screen manager is a widget dedicated to managing multiple screens for your
 application. The default :class:`ScreenManager` displays only one
-:class:`Screen` at a time, and use a :class:`TransitionBase` to switch from one
-to another Screen.
+:class:`Screen` at a time and uses a :class:`TransitionBase` to switch from one
+Screen to another.
 
-Multiple transitions are supported, based on moving the screen coordinate /
-scale, or even do fancy animation using custom shaders.
+Multiple transitions are supported based on changing the screen coordinates /
+scale or even performing fancy animation using custom shaders.
 
 Basic Usage
 -----------
@@ -34,14 +34,14 @@ a screen, you absolutely need to give a name to it::
         sm.add_widget(screen)
 
     # By default, the first screen added into the ScreenManager will be
-    # displayed. Then, you can change to another screen:
+    # displayed. You can then change to another screen.
 
     # Let's display the screen named 'Title 2'
-    # The transition will be automatically used.
+    # A transition will automatically be used.
     sm.current = 'Title 2'
 
 From 1.8.0, you can now switch dynamically to a new screen, change the
-transition options, and remove the previous one, using
+transition options and remove the previous one by using
 :meth:`ScreenManager.switch_to`::
 
     sm = ScreenManager()
@@ -49,17 +49,17 @@ transition options, and remove the previous one, using
 
     sm.switch_to(screens[0])
     # later
-
-    # default :data:`ScreenManager.transition` is a :class:`SlideTransition`.
-    # options are `direction` and `duration`
     sm.swith_to(screens[1], direction='right')
 
+The default :data:`ScreenManager.transition` is a :class:`SlideTransition` with
+options :data:`~SlideTransition.direction` and
+:data:`~TransitionBase.duration`.
 
-Please note that by default, a :class:`Screen` displays nothing, it's just a
+Please note that by default, a :class:`Screen` displays nothing: it's just a
 :class:`~kivy.uix.relativelayout.RelativeLayout`. You need to use that class as
-a root widget for your own screen. Best way is to subclass.
+a root widget for your own screen, the best way being to subclass.
 
-Here is an example with a 'Menu Screen', and a 'Settings Screen'::
+Here is an example with a 'Menu Screen' and a 'Settings Screen'::
 
     from kivy.app import App
     from kivy.lang import Builder
@@ -107,30 +107,31 @@ Here is an example with a 'Menu Screen', and a 'Settings Screen'::
         TestApp().run()
 
 
-Changing transition
--------------------
+Changing transitions
+--------------------
 
 You have multiple transitions available by default, such as:
 
-- :class:`SlideTransition` - slide screen in/out, from any direction
+- :class:`SlideTransition` - slide the screen in/out, from any direction
 - :class:`SwapTransition` - implementation of the iOS swap transition
-- :class:`FadeTransition` - shader to fade in/out the screens
-- :class:`WipeTransition` - shader to wipe from right to left the screens
+- :class:`FadeTransition` - shader to fade the screen in/out
+- :class:`WipeTransition` - shader to wipe the screens from right to left
 
-You can easily switch to a new transition by changing the
+You can easily switch transitions by changing the
 :data:`ScreenManager.transition` property::
 
     sm = ScreenManager(transition=FadeTransition())
 
 .. note::
 
-    Currently, all Shader based Transition doesn't have any anti-aliasing. This
-    is because we are using FBO, and don't have any logic to do supersampling
-    on them. This is a known issue, and we are working to have a transparent
-    implementation that will give the same result as it would be rendered on
-    the screen.
+    Currently, none of Shader based Transitions use anti-aliasing. This
+    is because they use the FBO which doesn't have any logic to handle
+    supersampling.
+    This is a known issue and we are working on a transparent
+    implementation that will give the same results as if it had been rendered on
+    screen.
 
-    To be more concrete, if you see sharped-text during the animation, it's
+    To be more concrete, if you see sharp edged text during the animation, it's
     normal.
 
 '''
