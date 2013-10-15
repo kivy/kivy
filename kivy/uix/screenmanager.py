@@ -155,13 +155,13 @@ from kivy.graphics import RenderContext, Rectangle, Fbo, \
 
 
 class ScreenManagerException(Exception):
-    '''Exception of the :class:`ScreenManager`
+    '''Exception for the :class:`ScreenManager`.
     '''
     pass
 
 
 class Screen(RelativeLayout):
-    '''Screen is an element intended to be used within :class:`ScreenManager`.
+    '''Screen is an element intended to be used with a :class:`ScreenManager`.
     Check module documentation for more information.
 
     :Events:
@@ -179,34 +179,36 @@ class Screen(RelativeLayout):
             finished.
 
     .. versionchanged:: 1.6.0
-        Events `on_pre_enter`, `on_enter`, `on_pre_leave`, `on_leave` is added.
+        Events `on_pre_enter`, `on_enter`, `on_pre_leave` and `on_leave` were
+        added.
     '''
 
     name = StringProperty('')
     '''
-    Name of the screen, must be unique within a :class:`ScreenManager`. This is
-    the name used for :data:`ScreenManager.current`
+    Name of the screen which must be unique within a :class:`ScreenManager`.
+    This is the name used for :data:`ScreenManager.current`.
 
-    :data:`name` is a :class:`~kivy.properties.StringProperty`, default to ''
+    :data:`name` is a :class:`~kivy.properties.StringProperty` and defaults to
+    ''.
     '''
 
     manager = ObjectProperty(None, allownone=True)
-    '''Screen manager object, set when the screen is added within a manager.
+    ''':class:`ScreenManager` object, set when the screen is added to a manager.
 
-    :data:`manager` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None, read-only.
+    :data:`manager` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None, read-only.
     '''
 
     transition_progress = NumericProperty(0.)
     '''Value that represents the completion of the current transition, if any
     is occuring.
 
-    If a transition is in progress, whatever is the mode, the value will change
+    If a transition is in progress, whatever the mode, the value will change
     from 0 to 1. If you want to know if it's an entering or leaving animation,
-    check the :data:`transition_state`
+    check the :data:`transition_state`.
 
-    :data:`transition_progress` is a :class:`~kivy.properties.NumericProperty`,
-    default to 0.
+    :data:`transition_progress` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 0.
     '''
 
     transition_state = OptionProperty('out', options=('in', 'out'))
@@ -215,11 +217,11 @@ class Screen(RelativeLayout):
     - 'in' if the transition is going to show your screen
     - 'out' if the transition is going to hide your screen
 
-    After the transition is done, the state will stay on the last one (in or
-    out).
+    After the transition is complete, the state will retain it's last value (in
+    or out).
 
-    :data:`transition_state` is an :class:`~kivy.properties.OptionProperty`,
-    default to 'out'.
+    :data:`transition_state` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'out'.
     '''
 
     __events__ = ('on_pre_enter', 'on_enter', 'on_pre_leave', 'on_leave')
@@ -241,13 +243,14 @@ class Screen(RelativeLayout):
 
 
 class TransitionBase(EventDispatcher):
-    '''Transition class is used to animate 2 screens within the
+    '''TransitionBase is used to animate 2 screens within the
     :class:`ScreenManager`. This class acts as a base for other
-    implementations, like :class:`SlideTransition`, :class:`SwapTransition`.
+    implementations like the :class:`SlideTransition` and
+    :class:`SwapTransition`.
 
     :Events:
         `on_progress`: Transition object, progression float
-            Fired during the animation of the transition
+            Fired during the animation of the transition.
         `on_complete`: Transition object
             Fired when the transition is fininshed.
     '''
@@ -256,23 +259,23 @@ class TransitionBase(EventDispatcher):
     '''Property that contains the screen to hide.
     Automatically set by the :class:`ScreenManager`.
 
-    :class:`screen_out` is a :class:`~kivy.properties.ObjectProperty`, default
-    to None.
+    :class:`screen_out` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     screen_in = ObjectProperty()
     '''Property that contains the screen to show.
     Automatically set by the :class:`ScreenManager`.
 
-    :class:`screen_in` is a :class:`~kivy.properties.ObjectProperty`, default
-    to None.
+    :class:`screen_in` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     duration = NumericProperty(.4)
     '''Duration in seconds of the transition.
 
-    :class:`duration` is a :class:`~kivy.properties.NumericProperty`, default
-    to .4 (= 400ms)
+    :class:`duration` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to .4 (= 400ms).
 
     .. versionchanged:: 1.8.0
 
@@ -280,17 +283,17 @@ class TransitionBase(EventDispatcher):
     '''
 
     manager = ObjectProperty()
-    '''Screen manager object, set when the screen is added within a manager.
+    ''':class:`ScreenManager` object, set when the screen is added to a manager.
 
-    :data:`manager` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None, read-only.
+    :data:`manager` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None, read-only.
     '''
 
     is_active = BooleanProperty(False)
-    '''Indicate if the transition is currently active
+    '''Indicate whether the transition is currently active or not.
 
-    :data:`is_active` is a :class:`~kivy.properties.BooleanProperty`, default
-    to False, read-only.
+    :data:`is_active` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False, read-only.
     '''
 
     # privates
@@ -333,12 +336,12 @@ class TransitionBase(EventDispatcher):
         self.is_active = False
 
     def add_screen(self, screen):
-        '''(internal) Used to add a screen into the :class:`ScreenManager`
+        '''(internal) Used to add a screen to the :class:`ScreenManager`.
         '''
         self.manager.real_add_widget(screen)
 
     def remove_screen(self, screen):
-        '''(internal) Used to remove a screen into the :class:`ScreenManager`
+        '''(internal) Used to remove a screen from the :class:`ScreenManager`.
         '''
         self.manager.real_remove_widget(screen)
 
