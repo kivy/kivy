@@ -3,18 +3,18 @@ Leap Motion - finger only
 =========================
 '''
 
-__all__ = ('LeapFingerEventProvider', )
+__all__ = ('LeapFingerEventProvider', 'LeapFingerEvent')
 
-#from kivy.base import EventLoop
+import os
 from collections import deque
 from kivy.logger import Logger
 from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory
 from kivy.input.motionevent import MotionEvent
-import Leap
-from Leap import InteractionBox
 
 _LEAP_QUEUE = deque()
+
+Leap = InteractionBox = None
 
 
 def normalize(value, a, b):
@@ -37,9 +37,34 @@ class LeapFingerEvent(MotionEvent):
 
 
 class LeapFingerEventProvider(MotionEventProvider):
+
     __handlers__ = {}
 
     def start(self):
+        # don't do the import at start, or teh error will be always displayed
+        # for user who don't have Leap
+        global Leap, InteractionBox
+        import Leap
+        from Leap import InteractionBox
+
+        class LeapMotionListener(Leap.Listener):
+
+            def on_init(self, controller):
+                Logger.info('leapmotion: Initialized')
+
+            def on_connect(self, controller):
+                Logger.info('leapmotion: Connected')
+
+            def on_disconnect(self, controller):
+                Logger.info('leapmotion: Disconnected')
+
+            def on_frame(self, controller):
+                frame = controller.frame()
+                _LEAP_QUEUE.append(frame)
+
+            def on_exit(self, controller):
+                pass
+
         self.uid = 0
         self.touches = {}
         self.listener = LeapMotionListener()
@@ -79,26 +104,6 @@ class LeapFingerEventProvider(MotionEventProvider):
                 events.append(('end', touches[key]))
                 del touches[key]
         return events
-
-
-class LeapMotionListener(Leap.Listener):
-
-    def on_init(self, controller):
-        Logger.info("leapmotion: Initialized")
-
-    def on_connect(self, controller):
-        Logger.info("leapmotion: Connected")
-
-    def on_disconnect(self, controller):
-        Logger.info("leapmotion: Disconnected")
-
-    def on_frame(self, controller):
-        #Logger.debug("leapmotion: OnFrame")
-        frame = controller.frame()
-        _LEAP_QUEUE.append(frame)
-
-    def on_exit(self, controller):
-        pass
 
 
 # registers
