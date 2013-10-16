@@ -427,10 +427,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             # activate native input provider in configuration
             # from 1.0.9, don't activate mactouch by default, or app are
             # unusable.
-            if platform() == 'win':
+            if platform == 'win':
                 Config.setdefault('input', 'wm_touch', 'wm_touch')
                 Config.setdefault('input', 'wm_pen', 'wm_pen')
-            elif platform() == 'linux':
+            elif platform == 'linux':
                 probesysfs = 'probesysfs'
                 if _is_rpi:
                     probesysfs += ',provider=hidinput'
@@ -492,7 +492,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 7:
             # desktop bool indicating whether to use desktop specific features
-            is_desktop = int(platform() in ('win', 'macosx', 'linux'))
+            is_desktop = int(platform in ('win', 'macosx', 'linux'))
             Config.setdefault('kivy', 'desktop', is_desktop)
             Config.setdefault('postproc', 'triple_tap_distance', '20')
             Config.setdefault('postproc', 'triple_tap_time', '375')

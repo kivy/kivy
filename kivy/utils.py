@@ -240,35 +240,86 @@ def format_bytes_to_human(size, precision=2):
         size /= 1024.0
 
 
-def platform():
-    '''Return the version of the current platform.
-    This will return one of: win, linux, android, macosx, ios, unknown
+class Platform(object):
+    # refactored to class to allow module function to be replaced
+    # with module variable
+    _platform = None
 
-    .. versionadded:: 1.0.8
-    '''
-    global _platform_ios, _platform_android
+    @deprecated
+    def __call__(self):
+        return self._get_platform()
 
-    if _platform_android is None:
-        # ANDROID_ARGUMENT and ANDROID_PRIVATE are 2 environment variables from
-        # python-for-android project
-        _platform_android = 'ANDROID_ARGUMENT' in environ
+    def __eq__(self, other):
+        return other == self._get_platform()
 
-    if _platform_ios is None:
-        _platform_ios = (environ.get('KIVY_BUILD', '') == 'ios')
+    def __ne__(self, other):
+        return other != self._get_platform()
 
-    # On android, _sys_platform return 'linux2', so prefer to check the import
-    # of Android module than trying to rely on _sys_platform.
-    if _platform_android is True:
-        return 'android'
-    elif _platform_ios is True:
-        return 'ios'
-    elif _sys_platform in ('win32', 'cygwin'):
-        return 'win'
-    elif _sys_platform == 'darwin':
-        return 'macosx'
-    elif _sys_platform[:5] == 'linux':
-        return 'linux'
-    return 'unknown'
+    def __str__(self):
+        return self._get_platform()
+
+    def __repr__(self):
+        return 'platform name: \'{platform}\' from: \n{instance}'.format(
+            platform=self._get_platform(),
+            instance=super(Platform, self).__repr__()
+        )
+
+    def __hash__(self):
+        return self._get_platform().__hash__()
+
+    def _get_platform(self):
+        if self._platform is not None:
+            return self._platform
+        global _platform_ios, _platform_android
+
+        if _platform_android is None:
+            # ANDROID_ARGUMENT and ANDROID_PRIVATE are 2 environment variables
+            # from python-for-android project
+            _platform_android = 'ANDROID_ARGUMENT' in environ
+
+        if _platform_ios is None:
+            _platform_ios = (environ.get('KIVY_BUILD', '') == 'ios')
+
+        # On android, _sys_platform return 'linux2', so prefer to check the
+        # import of Android module than trying to rely on _sys_platform.
+        if _platform_android is True:
+            return 'android'
+        elif _platform_ios is True:
+            return 'ios'
+        elif _sys_platform in ('win32', 'cygwin'):
+            return 'win'
+        elif _sys_platform == 'darwin':
+            return 'macosx'
+        elif _sys_platform[:5] == 'linux':
+            return 'linux'
+        return 'unknown'
+
+
+platform = Platform()
+'''
+.. versionadded:: 1.3.0
+
+Deprecated since 1.8.0:  Use platform as variable instaed of a function.\n
+Calling platform() will return one of: *win*, *linux*, *android*, *macosx*,
+*ios*, or *unknown*.
+
+.. versionchanged:: 1.8.0
+
+`platform` also behaves like a regular variable in comparisons like so::
+
+    from kivy import platform
+    if platform == 'linux':
+        do_linux_things()
+    if platform() == 'linux': # triggers deprecation warning
+        do_more_linux_things()
+    foo = {'linux' : do_linux_things}
+    foo[platform]() # calls do_linux_things
+    p = platform # assigns to a module object
+    if p is 'android':
+        do_android_things()
+    p += 'some string' # error!
+
+'''
 
 
 def escape_markup(text):

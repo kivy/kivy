@@ -267,7 +267,7 @@ from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
 
 
-platform = core_platform()
+platform = core_platform
 
 
 class App(EventDispatcher):

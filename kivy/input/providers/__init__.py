@@ -13,7 +13,7 @@ from kivy.logger import Logger
 import kivy.input.providers.tuio
 import kivy.input.providers.mouse
 
-platform = core_platform()
+platform = core_platform
 
 if platform == 'win' or 'KIVY_DOC' in os.environ:
     try:
