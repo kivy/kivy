@@ -29,6 +29,12 @@ from kivy.config import Config
 from kivy.metrics import sp
 from functools import partial
 
+# When we are generating documentation, Config doesn't exist
+_scroll_timeout = _scroll_distance = 0
+if Config:
+    _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
+    _scroll_distance = sp(Config.getint('widgets', 'scroll_distance'))
+
 
 class ButtonBehavior(object):
     '''Button behavior.
@@ -244,8 +250,7 @@ class DragBehavior(object):
     .. versionadded:: 1.8.0
     '''
 
-    drag_distance = NumericProperty(sp(Config.getint('widgets',
-                                                     'scroll_distance')))
+    drag_distance = NumericProperty(_scroll_distance)
     '''Distance to move before dragging the :class:`DragBehavior`, in pixels.
     As soon as the distance has been traveled, the :class:`DragBehavior` will
     start to drag, and no touch event will go to children.
@@ -257,8 +262,7 @@ class DragBehavior(object):
     in user configuration.
     '''
 
-    drag_timeout = NumericProperty(Config.getint('widgets',
-                                                 'scroll_timeout'))
+    drag_timeout = NumericProperty(_scroll_timeout)
     '''Timeout allowed to trigger the :data:`drag_distance`, in milliseconds.
     If the user has not moved :data:`drag_distance` within the timeout,
     dragging will be disabled, and the touch event will go to the children.
