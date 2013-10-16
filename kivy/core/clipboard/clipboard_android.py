@@ -1,5 +1,8 @@
 '''
-Clipboard Android:
+Clipboard Android
+=================
+
+Android implementation of Clipboard provider, using Pyjnius.
 '''
 
 __all__ = ('ClipboardAndroid', )
