@@ -140,7 +140,7 @@ class Image(Widget):
     '''
 
     keep_data = BooleanProperty(False)
-    '''If True, the underlaying _coreimage will store the raw image data. 
+    '''If True, the underlaying _coreimage will store the raw image data.
     This is useful when performing pixel based collision detection.
 
     .. versionadded:: 1.3.0
@@ -227,11 +227,16 @@ class Image(Widget):
             mipmap = self.mipmap
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
-            self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
-                    anim_delay=self.anim_delay, keep_data=self.keep_data,
-                    nocache=self.nocache)
-            ci.bind(on_texture=self._on_tex_change)
-            self.texture = ci.texture
+            try:
+                self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
+                        anim_delay=self.anim_delay, keep_data=self.keep_data,
+                        nocache=self.nocache)
+            except:
+                self._coreimage = ci = None
+
+            if ci:
+                ci.bind(on_texture=self._on_tex_change)
+                self.texture = ci.texture
 
     def on_anim_delay(self, instance, value):
         if self._coreimage is None:
