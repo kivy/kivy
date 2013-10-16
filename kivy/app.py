@@ -256,7 +256,7 @@ __all__ = ('App', )
 
 import os
 from inspect import getfile
-from os.path import dirname, join, exists, sep, expanduser
+from os.path import dirname, join, exists, sep, expanduser, isfile
 from kivy.config import ConfigParser
 from kivy.base import runTouchApp, stopTouchApp
 from kivy.logger import Logger
@@ -431,10 +431,10 @@ class App(EventDispatcher):
                 default_kv_directory = '.'
             kv_directory = self.options.get('kv_directory',
                                             default_kv_directory)
-            clsname = self.__class__.__name__
-            if clsname.endswith('App'):
+            clsname = self.__class__.__name__.lower()
+            if clsname.endswith('app') and not isfile(join(kv_directory, '%s.kv' % clsname)):
                 clsname = clsname[:-3]
-            filename = join(kv_directory, '%s.kv' % clsname.lower())
+            filename = join(kv_directory, '%s.kv' % clsname)
 
         # Load KV file
         Logger.debug('App: Loading kv <{0}>'.format(filename))
