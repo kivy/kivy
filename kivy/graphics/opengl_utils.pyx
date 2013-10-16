@@ -16,7 +16,7 @@ __all__ = ('gl_get_extensions', 'gl_has_extension',
 include "opengl_utils_def.pxi"
 cimport c_opengl
 from kivy.logger import Logger
-from kivy.utils import platform as core_platform
+from kivy.utils import platform
 from kivy.graphics.opengl import _GL_GET_SIZE
 
 
@@ -28,7 +28,7 @@ cdef tuple _gl_texture_fmts = (
     'pvrtc_rgb4', 'pvrtc_rgb2', 'pvrtc_rgba4', 'pvrtc_rgba2')
 cdef int _gl_version_major = -1
 cdef int _gl_version_minor = -1
-cdef str _platform = core_platform._get_platform()
+cdef str _platform = str(platform)
 
 
 cpdef list gl_get_extensions():
