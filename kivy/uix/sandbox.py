@@ -9,15 +9,16 @@ Sandbox
     This is experimental and subject to change as long as this warning notice
     is present.
 
-This is a widget that run itself and all its children into a Sandbox. It means
-if a child raise an Exception, it will be catched. The Sandbox itself run its
-own Clock, Cache, etc.
+This is a widget that runs itself and all of its children in a Sandbox. That
+means if a child raises an Exception, it will be caught. The Sandbox itself runs
+its own Clock, Cache, etc.
 
-The SandBox widget is still an experimentation, necessary for the Kivy designer.
-When the user design its own widget, if he do something wrong (wrong size value,
-wrong python code), it will be catched correctly, without breaking the whole
-Designer application. Because it has been designed that way, we are still
-enhancing this widget, and the :mod:`kivy.context` module.
+The SandBox widget is still experimental and required for the Kivy designer.
+When the user designs their own widget, if they do something wrong (wrong size
+value,
+invalid python code), it will be caught correctly without breaking the whole
+application. Because it has been designed that way, we are still
+enhancing this widget and the :mod:`kivy.context` module.
 Don't use it unless you know what you are doing :)
 
 '''
@@ -59,8 +60,8 @@ class SandboxContent(RelativeLayout):
 
 
 class Sandbox(FloatLayout):
-    '''Sandbox widget, used to get back all the exceptions raised in a child
-    into the Sandbox itself.
+    '''Sandbox widget, used to trap all the exceptions raised by child
+    widgets.
     '''
 
     def __init__(self, **kwargs):
@@ -89,8 +90,8 @@ class Sandbox(FloatLayout):
             return self.on_exception(value, _traceback=traceback)
 
     def on_context_created(self):
-        '''Override this method in order to load kv, or anything you need with
-        the new created context.
+        '''Override this method in order to load your kv file or do anything
+        else with the newly created context.
         '''
         pass
 
