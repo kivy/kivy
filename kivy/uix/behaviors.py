@@ -69,6 +69,7 @@ class ButtonBehavior(object):
         touch.ud[self] = True
         self._do_press()
         self.dispatch('on_press')
+        self.last_touch = touch
         return True
 
     def on_touch_move(self, touch):

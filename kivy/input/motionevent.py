@@ -126,6 +126,14 @@ class MotionEvent(MotionEventBase):
         `args` : list
             list of parameters, passed to the depack() function
     '''
+
+    last_motion_event = None
+    '''Contains the last MotionEvent that was created. This class variable
+    defaults to None.
+
+    .. versionadded:: 1.8.0
+    '''
+
     __uniq_id = 0
     __attrs__ = \
         ('device', 'push_attrs', 'push_attrs_stack',
@@ -155,6 +163,7 @@ class MotionEvent(MotionEventBase):
         if self.__class__ == MotionEvent:
             raise NotImplementedError('class MotionEvent is abstract')
         MotionEvent.__uniq_id += 1
+        MotionEvent.last_motion_event = self
 
         #: True if the Motion Event is a Touch. Can be also verified is `pos` is
         #: :attr:`profile`.
