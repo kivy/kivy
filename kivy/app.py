@@ -319,7 +319,7 @@ from kivy.lang import Builder
 from kivy.resources import resource_find
 from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
-from kivy.uix.settings import Settings
+from kivy.uix.settings import SettingsWithSpinner
 from kivy.properties import ObjectProperty
 
 
@@ -384,7 +384,7 @@ class App(EventDispatcher):
     change this to False.
     '''
 
-    settings_cls = ObjectProperty(Settings)
+    settings_cls = ObjectProperty(SettingsWithSpinner)
     '''.. versionadded:: 1.8.0
 
     The class to use to construct the settings panel, used to
@@ -399,8 +399,8 @@ class App(EventDispatcher):
     of :mod:`kivy.uix.Settings` for more information.
 
     :attr:`~App.settings_cls` is an :class:`~kivy.properties.ObjectProperty`.
-    it defaults to :class:`~kivy.uix.settings.Settings`, which displays
-    settings panels using a sidebar layout.
+    it defaults to :class:`~kivy.uix.settings.SettingsWithSpinner`, which
+    displays settings panels using a sidebar layout.
 
     '''
 
@@ -513,7 +513,8 @@ class App(EventDispatcher):
             kv_directory = self.options.get('kv_directory',
                                             default_kv_directory)
             clsname = self.__class__.__name__.lower()
-            if clsname.endswith('app') and not isfile(join(kv_directory, '%s.kv' % clsname)):
+            if clsname.endswith('app') and \
+                not isfile(join(kv_directory, '%s.kv' % clsname)):
                 clsname = clsname[:-3]
             filename = join(kv_directory, '%s.kv' % clsname)
 
@@ -807,8 +808,9 @@ class App(EventDispatcher):
         :return: True if the settings have been opened
 
         '''
-        settings = self._create_settings()
-        displayed = self.display_settings(settings)
+        if self._app_settings is None:
+            self._app_settings = self.create_settings()
+        displayed = self.display_settings(self._app_settings)
         if displayed:
             return True
         return False
@@ -850,18 +852,30 @@ class App(EventDispatcher):
             return True
         return False
 
-    def _create_settings(self):
-        if self._app_settings is None:
-            self._app_settings = s = self.settings_cls()
-            self.build_settings(s)
-            if self.use_kivy_settings:
-                s.add_kivy_panel()
-            s.bind(on_close=self.close_settings,
-                   on_config_change=self._on_config_change)
-        return self._app_settings
+    def create_settings(self):
+        '''Create the settings panel. This method is called only one time per
+        application life-time, and the result is cached internally.
+
+        By default, it will build a setting panel according to
+        :data:`settings_cls`, call :meth:`build_settings`, add the Kivy panel if
+        :data:`use_kivy_settings` is True, and bind to
+        on_close/on_config_change.
+
+        If you want to plug your own way of doing settings, without Kivy panel
+        or close/config change events, this is the method you want to overload.
+
+        .. versionadded:: 1.8.0
+        '''
+        s = self.settings_cls()
+        self.build_settings(s)
+        if self.use_kivy_settings:
+            s.add_kivy_panel()
+        s.bind(on_close=self.close_settings,
+               on_config_change=self._on_config_change)
+        return s
 
     def destroy_settings(self):
-        '''..versionadded:: 1.8.0
+        '''.. versionadded:: 1.8.0
 
         Dereferences the current settings panel, if one
         exists. This means that when :meth:`App.open_settings` is next
