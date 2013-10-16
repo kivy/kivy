@@ -193,7 +193,7 @@ kivy_options = {
     'image': ('tex', 'imageio', 'dds', 'gif', 'pil', 'pygame'),
     'camera': ('opencv', 'gstreamer', 'videocapture'),
     'spelling': ('enchant', 'osxappkit', ),
-    'clipboard': ('pygame', 'dummy'), }
+    'clipboard': ('android', 'pygame', 'dummy'), }
 
 # Read environment
 for option in kivy_options:
