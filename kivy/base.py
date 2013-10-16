@@ -21,6 +21,7 @@ from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
+from kivy.context import register_context
 
 # private vars
 EventLoop = None
@@ -78,7 +79,7 @@ class ExceptionManagerBase:
         return ret
 
 #: Kivy Exception Manager instance
-ExceptionManager = ExceptionManagerBase()
+ExceptionManager = register_context('ExceptionManager', ExceptionManagerBase)
 
 
 class EventLoopBase(EventDispatcher):
@@ -242,15 +243,28 @@ class EventLoopBase(EventDispatcher):
 
             me.grab_current = wid
 
+            wid._context.push()
+
             if etype == 'begin':
                 # don't dispatch again touch in on_touch_down
                 # a down event are nearly uniq here.
                 # wid.dispatch('on_touch_down', touch)
                 pass
             elif etype == 'update':
-                wid.dispatch('on_touch_move', me)
+                if wid._context.sandbox:
+                    with wid._context.sandbox:
+                        wid.dispatch('on_touch_move', me)
+                else:
+                    wid.dispatch('on_touch_move', me)
+
             elif etype == 'end':
-                wid.dispatch('on_touch_up', me)
+                if wid._context.sandbox:
+                    with wid._context.sandbox:
+                        wid.dispatch('on_touch_up', me)
+                else:
+                    wid.dispatch('on_touch_up', me)
+
+            wid._context.pop()
 
             me.grab_current = None
 
@@ -268,6 +282,7 @@ class EventLoopBase(EventDispatcher):
         '''Called by idle() to read events from input providers, pass event to
         postproc, and dispatch final events.
         '''
+
         # first, aquire input events
         for provider in self.input_providers:
             provider.update(dispatch_fn=self._dispatch_input)

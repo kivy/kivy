@@ -110,22 +110,30 @@ a:hover {
 	color: #ffffff;
 }
 
+#topmenu ul.navigation .nav-wiki {
+    background-color: #30757E;
+    color: #ffffff;
+}
+
 #topmenu ul.navigation a.nav-garden:hover {
-	background-color: #99cc00;
+    background-color: #99cc00;
 }
 
 #topmenu ul.navigation a.nav-guides:hover {
-	background-color: #33b5e5;
+    background-color: #33b5e5;
 }
 
 #topmenu ul.navigation a.nav-api:hover {
-	background-color: #ff4444;
+    background-color: #ff4444;
 }
 
 #topmenu ul.navigation a.nav-pdf:hover {
-	background-color: #ffbb33;
+    background-color: #ffbb33;
 }
 
+#topmenu ul.navigation a.nav-wiki:hover {
+    background-color: #50C8D7;
+}
 
 
 div.sphinxsidebar {

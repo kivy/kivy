@@ -5,28 +5,29 @@ Relative Layout
 .. versionadded:: 1.4.0
 
 
-This layout allows you to set relative coordinate for children. If you want
-absolute positioning, check :class:`~kivy.uix.floatlayout.FloatLayout`.
+This layout allows you to set relative coordinates for children. If you want
+absolute positioning, use the :class:`~kivy.uix.floatlayout.FloatLayout`.
 
 The :class:`RelativeLayout` class behaves just like the regular
-:class:`FloatLayout`, except that its child widgets are positioned relative to
+:class:`FloatLayout` except that its child widgets are positioned relative to
 the layout.
 
-For example, if you create a RelativeLayout, add a widgets with position =
-(0,0), the child widget will also move, when you change the position of the
-RelativeLayout.  The child widgets coordiantes remain (0,0), i.e. they are
-relative to the containing layout.
+For example, if you create a RelativeLayout, add a widget with position =
+(0,0), the child widget will also move when you change the position of the
+RelativeLayout.  The child widgets coordiantes remain (0,0) i.e. they are
+always relative to the containing layout.
 
 
 .. versionchanged:: 1.7.0
 
-    Prior to version 1.7.0 The :class:`RelativeLayout` was implemented as a
+    Prior to version 1.7.0, the :class:`RelativeLayout` was implemented as a
     :class`FloatLayout` inside a :class:`Scatter`.  This behaviour/widget has
     been renamed to `ScatterLayout`.  The :class:`RelativeLayout` now only
-    supports relative position (and can't be rotated, scaled or translated on
-    a multitouch system using two or more fingers), so that the implementation
-    can be optimized and avoid the heavier calculations from :class:`Scatter`
-    (e.g. inverse matrix, recaculating multiple properties,etc)
+    supports relative positions (and can't be rotated, scaled or translated on
+    a multitouch system using two or more fingers). This was done so that the
+    implementation could be optimized and avoid the heavier calculations of
+    :class:`Scatter` (e.g. inverse matrix, recaculating multiple properties
+    etc.)
 
 '''
 

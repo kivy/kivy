@@ -4,7 +4,8 @@ Layout
 
 Layouts are used to calculate and assign widget positions.
 
-The :class:`Layout` class itself cannot be used directly. You must use one of:
+The :class:`Layout` class itself cannot be used directly. You should use one of
+the concrete layout classes:
 
 - Anchor layout : :class:`kivy.uix.anchorlayout.AnchorLayout`
 - Box layout : :class:`kivy.uix.boxlayout.BoxLayout`
@@ -12,12 +13,12 @@ The :class:`Layout` class itself cannot be used directly. You must use one of:
 - Grid layout : :class:`kivy.uix.gridlayout.GridLayout`
 - Stack layout : :class:`kivy.uix.stacklayout.StackLayout`
 
-Understanding `size_hint` Property in `Widget`
-----------------------------------------------
+Understanding the `size_hint` Property in `Widget`
+--------------------------------------------------
 
-The :data:`~kivy.uix.Widget.size_hint` is a tupple of values used by
-layouts to manage the size of their children. It indicate the size
-relatively to the layout size, instead of absolutely (in
+The :data:`~kivy.uix.Widget.size_hint` is a tuple of values used by
+layouts to manage the sizes of their children. It indicates the size
+relative to the layout's size instead of an absolute size (in
 pixels/points/cm/etc). The format is::
 
     widget.size_hint = (width_percent, height_percent)
@@ -26,11 +27,12 @@ The percent is specified as a floating point number in the range 0-1. For
 example, 0.5 is 50%, 1 is 100%.
 
 If you want a widget's width to be half of the parent's width and the
-height to be identical to parent's height, you would do::
+height to be identical to the parent's height, you would do::
 
     widget.size_hint = (0.5, 1.0)
 
-If you don't want to use size_hint for one of width or height, set the value to
+If you don't want to use a size_hint for either the width or height, set the
+value to
 None. For example, to make a widget that is 250px wide and 30% of the parent's
 height, do::
 
@@ -38,7 +40,7 @@ height, do::
     widget.width = 250
 
 .. versionchanged:: 1.4.1
-    `reposition_child` internal method (made public by mistake) have
+    The `reposition_child` internal method (made public by mistake) has
     been removed.
 
 '''
@@ -61,9 +63,9 @@ class Layout(Widget):
         super(Layout, self).__init__(**kwargs)
 
     def do_layout(self, *largs):
-        '''This function is called when a layout is needed, by a trigger.
+        '''This function is called when a layout is needed by a trigger.
         If you are writing a new Layout subclass, don't call this function
-        directly, use :meth:`_trigger_layout` instead.
+        directly but use :meth:`_trigger_layout` instead.
 
         .. versionadded:: 1.0.8
         '''

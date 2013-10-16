@@ -88,8 +88,8 @@ of Python that Kivy ships with.
    If you do encounter unexpected problems, please :ref:`contact`.
 
 
-Start from the Command-line
----------------------------
+Start from the Command-line (using bash)
+----------------------------------------
 
 If you just want to use or develop with the latest stable Kivy version, this can
 be achieved using the console. You will need a minimalist GNU system installed.
@@ -117,6 +117,46 @@ Also, all other scripts and binaries are available, such as:
     * easy_install
     * gst-inspect-0.10
 
+Start from the Command-line or Double-click (using Python launcher for Windows)
+-------------------------------------------------------------------------------
+
+The Python launcher for Windows is available as a separate download
+from `pylauncher <https://bitbucket.org/vinay.sajip/pylauncher>`_,
+but is most conveniently installed by simply installing Python 3.3 (or later).
+Don't worry, this installation is designed to cause minimum disruption, it will run your latest Python 2 by default.
+
+The launcher defines a ``PY`` command which can launch scripts for any version of Python installed on the workstation.
+It also connects itself as the default processor for all files with a .py extension.
+It scans the Python file to see if the first line starts with the string "#!" and, if it does, uses that string to
+select the appropriate version of Python to run. We will define a customized command so that we can tell it to
+start the correct version of python for Kivy.
+
+Create a file named ``py.ini`` and place it either in your users ``application data`` directory, or in ``C:\Windows``.
+It will contain the path used to start Kivy.  I put my Kivy installation at ``C:\utils\kivy`` so my copy says::
+
+    [commands]
+    kivy="c:\utils\kivy\kivy.bat"
+
+(You could also add commands to start other script interpreters, such as jython or IronPython.)
+
+Now add a new first line to your ``main.py`` specifying your Python of choice::
+
+    #!/usr/bin/kivy
+
+You can now launch your Kivy (or any other Python script) either by double-clicking or typing::
+
+    py <filename.py>
+
+Programs without a ``#!`` first line will continue to be run be the default Python version 2 interpreter.
+Programs beginning with ``#!/usr/bin/python3`` will launch Python 3.
+
+The ``/usr/bin`` part will be ignored by the Windows launcher, we add it so that Linux users will also be able to
+pick a specific Python version. (On my Linux workstation, ``/usr/bin/kivy`` is soft-linked to a virtualenv.)
+NOTE: In order to work correctly on Linux, your Python file must be saved with Unix-style (LF-only) line endings.
+
+Full documentation can be found at:
+`Python3.3 docs <http://docs.python.org/3.3/using/windows.html#launcher>`_ and 
+`PEP 397 <http://www.python.org/dev/peps/pep-0397/>`_.
 
 Use development Kivy
 --------------------
