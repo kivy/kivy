@@ -149,7 +149,9 @@ Builder.load_string('''
 <RstTitle>:
     markup: True
     valign: 'top'
-    font_size: sp(self.root.base_font_size - self.section * (self.root.base_font_size / 31.0 * 2))
+    font_size:
+        sp(self.document.base_font_size - self.section * (
+        self.document.base_font_size / 31.0 * 2))
     size_hint_y: None
     height: self.texture_size[1] + dp(20)
     text_size: self.width, None
@@ -169,7 +171,7 @@ Builder.load_string('''
     size_hint_y: None
     height: self.texture_size[1] + self.my
     text_size: self.width - self.mx, None
-    font_size: sp(self.root.base_font_size / 2.0)
+    font_size: sp(self.document.base_font_size / 2.0)
 <RstTerm>:
     size_hint: None, None
     height: label.height
@@ -290,13 +292,13 @@ Builder.load_string('''
     cols: 1
     size_hint_y: None
     height: self.minimum_height
-    font_size: sp(self.root.base_font_size / 2.0)
+    font_size: sp(self.document.base_font_size / 2.0)
 
 <RstDefinition>:
     cols: 2
     size_hint_y: None
     height: self.minimum_height
-    font_size: sp(self.root.base_font_size / 2.0)
+    font_size: sp(self.document.base_font_size / 2.0)
 
 <RstFieldList>:
     cols: 2
@@ -311,7 +313,7 @@ Builder.load_string('''
     bold: True
     text_size: self.width-10, self.height - 10
     valign: 'top'
-    font_size: sp(self.root.base_font_size / 2.0)
+    font_size: sp(self.document.base_font_size / 2.0)
 
 <RstFieldBody>:
     cols: 1
@@ -358,7 +360,7 @@ Builder.load_string('''
     size_hint_x: None
     width: self.texture_size[0] + dp(10)
     text_size: None, self.height - dp(10)
-    font_size: sp(self.root.base_font_size / 2.0)
+    font_size: sp(self.document.base_font_size / 2.0)
 
 <RstEmptySpace>:
     size_hint: 0.01, 0.01
@@ -366,7 +368,7 @@ Builder.load_string('''
 <RstDefinitionSpace>:
     size_hint: None, 0.1
     width: 50
-    font_size: sp(self.root.base_font_size / 2.0)
+    font_size: sp(self.document.base_font_size / 2.0)
 
 <RstVideoPlayer>:
     options: {'allow_stretch': True}
@@ -421,7 +423,7 @@ class RstDocument(ScrollView):
     '''RST markup text of the document.
 
     :data:`text` is a :class:`~kivy.properties.StringProperty` and defaults to
-	None.
+    None.
     '''
 
     document_root = StringProperty(None)
@@ -429,18 +431,21 @@ class RstDocument(ScrollView):
     given, it will use the directory of the first loaded source file.
 
     :data:`document_root` is a :class:`~kivy.properties.StringProperty` and
-	defaults to None.
+    defaults to None.
     '''
 
     base_font_size = NumericProperty(31)
-    '''Font size for the biggest title, 31 by default. All other font sizes are derived from this.
+    '''Font size for the biggest title, 31 by default. All other font sizes are
+    derived from this.
+
+    .. versionadded:: 1.8.0
     '''
 
     show_errors = BooleanProperty(False)
     '''Indicate whether RST parsers errors should be shown on the screen or not.
 
     :data:`show_errors` is a :class:`~kivy.properties.BooleanProperty` and
-	defaults to False.
+    defaults to False.
     '''
 
     def _get_bgc(self):
@@ -656,7 +661,7 @@ class RstTitle(Label):
 
     section = NumericProperty(0)
 
-    root = ObjectProperty(None)
+    document = ObjectProperty(None)
 
 
 class RstParagraph(Label):
@@ -665,13 +670,14 @@ class RstParagraph(Label):
 
     my = NumericProperty(10)
 
-    root = ObjectProperty(None)
+    document = ObjectProperty(None)
+
 
 class RstTerm(AnchorLayout):
 
     text = StringProperty('')
 
-    root = ObjectProperty(None)
+    document = ObjectProperty(None)
 
 
 class RstBlockQuote(GridLayout):
@@ -692,7 +698,7 @@ class RstListItem(GridLayout):
 
 class RstListBullet(Label):
 
-    root = ObjectProperty(None)
+    document = ObjectProperty(None)
 
 
 class RstSystemMessage(GridLayout):
@@ -717,12 +723,12 @@ class RstAsyncImage(AsyncImage):
 
 class RstDefinitionList(GridLayout):
 
-    root = ObjectProperty(None)
+    document = ObjectProperty(None)
 
 
 class RstDefinition(GridLayout):
 
-    root = ObjectProperty(None)
+    document = ObjectProperty(None)
 
 
 class RstFieldList(GridLayout):
@@ -731,7 +737,7 @@ class RstFieldList(GridLayout):
 
 class RstFieldName(Label):
 
-    root = ObjectProperty(None)
+    document = ObjectProperty(None)
 
 
 class RstFieldBody(GridLayout):
@@ -760,7 +766,7 @@ class RstEmptySpace(Widget):
 
 class RstDefinitionSpace(Widget):
 
-    root = ObjectProperty(None)
+    document = ObjectProperty(None)
 
 
 class _ToctreeVisitor(nodes.NodeVisitor):
@@ -834,7 +840,7 @@ class _Visitor(nodes.NodeVisitor):
             self.section += 1
 
         elif cls is nodes.title:
-            label = RstTitle(section=self.section, root=self.root)
+            label = RstTitle(section=self.section, document=self.root)
             self.current.add_widget(label)
             self.push(label)
             #assert(self.text == '')
@@ -855,7 +861,7 @@ class _Visitor(nodes.NodeVisitor):
 
         elif cls is nodes.paragraph:
             self.do_strip_text = True
-            label = RstParagraph(root=self.root)
+            label = RstParagraph(document=self.root)
             if isinstance(self.current, RstEntry):
                 label.mx = 10
             self.current.add_widget(label)
@@ -900,7 +906,8 @@ class _Visitor(nodes.NodeVisitor):
                 bullet = '%d.' % self.idx_list
             bullet = self.colorize(bullet, 'bullet')
             item = RstListItem()
-            self.current.add_widget(RstListBullet(text=bullet, root=self.root))
+            self.current.add_widget(RstListBullet(
+                text=bullet, document=self.root))
             self.current.add_widget(item)
             self.push(item)
 
@@ -938,20 +945,20 @@ class _Visitor(nodes.NodeVisitor):
             self.current.add_widget(root)
 
         elif cls is nodes.definition_list:
-            lst = RstDefinitionList(root=self.root)
+            lst = RstDefinitionList(document=self.root)
             self.current.add_widget(lst)
             self.push(lst)
 
         elif cls is nodes.term:
             assert(isinstance(self.current, RstDefinitionList))
-            term = RstTerm(root=self.root)
+            term = RstTerm(document=self.root)
             self.current.add_widget(term)
             self.push(term)
 
         elif cls is nodes.definition:
             assert(isinstance(self.current, RstDefinitionList))
-            definition = RstDefinition(root=self.root)
-            definition.add_widget(RstDefinitionSpace(root=self.root))
+            definition = RstDefinition(document=self.root)
+            definition.add_widget(RstDefinitionSpace(document=self.root))
             self.current.add_widget(definition)
             self.push(definition)
 
@@ -961,7 +968,7 @@ class _Visitor(nodes.NodeVisitor):
             self.push(fieldlist)
 
         elif cls is nodes.field_name:
-            name = RstFieldName(root=self.root)
+            name = RstFieldName(document=self.root)
             self.current.add_widget(name)
             self.push(name)
 
