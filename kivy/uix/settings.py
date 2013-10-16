@@ -265,7 +265,7 @@ class SettingItem(FloatLayout):
             return True
         return super(SettingItem, self).on_touch_up(touch)
 
-    def on_release(self):
+    def on_release(self, *largs):
         pass
 
     def on_value(self, instance, value):
@@ -335,12 +335,12 @@ class SettingString(SettingItem):
             self.popup.dismiss()
         self.popup = None
 
-    def _validate(self, instance):
+    def _validate(self, instance, *largs):
         self._dismiss()
         value = self.textinput.text.strip()
         self.value = value
 
-    def _create_popup(self, instance):
+    def _create_popup(self, instance, *largs):
         # create popup layout
         content = BoxLayout(orientation='vertical', spacing='5dp')
         self.popup = popup = Popup(title=self.title,
@@ -409,7 +409,7 @@ class SettingPath(SettingItem):
             self.popup.dismiss()
         self.popup = None
 
-    def _validate(self, instance):
+    def _validate(self, instance, *largs):
         self._dismiss()
         value = self.textinput.selection
 
@@ -418,7 +418,7 @@ class SettingPath(SettingItem):
 
         self.value = os.path.realpath(value[0])
 
-    def _create_popup(self, instance):
+    def _create_popup(self, instance, *largs):
         # create popup layout
         content = BoxLayout(orientation='vertical', spacing=5)
         self.popup = popup = Popup(title=self.title,
@@ -456,7 +456,7 @@ class SettingNumeric(SettingString):
     value.
     '''
 
-    def _validate(self, instance):
+    def _validate(self, instance, *largs):
         # we know the type just by checking if there is a '.' in the original
         # value
         is_float = '.' in str(self.value)
@@ -496,11 +496,11 @@ class SettingOptions(SettingItem):
             return
         self.bind(on_release=self._create_popup)
 
-    def _set_option(self, instance):
+    def _set_option(self, instance, *largs):
         self.value = instance.text
         self.popup.dismiss()
 
-    def _create_popup(self, instance):
+    def _create_popup(self, instance, *largs):
         # create the popup
         content = BoxLayout(orientation='vertical', spacing='5dp')
         self.popup = popup = Popup(content=content,

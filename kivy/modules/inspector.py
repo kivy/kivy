@@ -496,7 +496,8 @@ class Inspector(FloatLayout):
         elif isinstance(prop, ObjectProperty):
             if isinstance(value, Widget):
                 content = Button(text=repr(value))
-                content.bind(on_release=partial(self.highlight_widget, value))
+                content.bind(on_release=partial(self.highlight_widget, value,
+                                                True))
             elif isinstance(value, Texture):
                 content = Image(texture=value)
             else:
@@ -530,7 +531,7 @@ class Inspector(FloatLayout):
         except:
             pass
 
-    def save_property_boolean(self, widget, key, index, instance, ):
+    def save_property_boolean(self, widget, key, index, instance, *l):
         try:
             value = instance.state == 'down'
             if index >= 0:

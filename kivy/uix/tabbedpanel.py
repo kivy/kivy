@@ -536,7 +536,7 @@ class TabbedPanel(GridLayout):
                 self_tabs.width -= widget.width
                 self_tabs.remove_widget(widget)
                 if widget.state == 'down' and self.do_default_tab:
-                    self._default_tab.on_release()
+                    self._default_tab.on_release(None)
                 self._reposition_tabs()
             else:
                 Logger.info('TabbedPanel: default tab! can\'t be removed.\n' +

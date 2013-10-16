@@ -31,7 +31,7 @@ dropdown. ::
         # for each button, attach a callback that will call the select() method
         # on the dropdown. We'll pass the text of the button as the data of the
         # selection.
-        btn.bind(on_release=lambda btn: dropdown.select(btn.text))
+        btn.bind(on_release=lambda btn, *args: dropdown.select(btn.text))
 
         # then add the button inside the dropdown
         dropdown.add_widget(btn)
@@ -43,7 +43,7 @@ dropdown. ::
     # note: all the bind() calls pass the instance of the caller (here, the
     # mainbutton instance) as the first argument of the callback (here,
     # dropdown.open.).
-    mainbutton.bind(on_release=dropdown.open)
+    mainbutton.bind(on_release=lambda btn, *args: dropdown.open(btn))
 
     # one last thing, listen for the selection in the dropdown list and
     # assign the data to the button text.
@@ -79,7 +79,7 @@ And then, create the associated python class and use it::
 
     dropdown = CustomDropDown()
     mainbutton = Button(text='Hello', size_hint=(None, None))
-    mainbutton.bind(on_release=dropdown.open)
+    mainbutton.bind(on_release=lambda btn, *args: dropdown.open(btn))
     dropdown.bind(on_select=lambda instance, x: setattr(mainbutton, 'text', x))
 '''
 
@@ -312,7 +312,7 @@ if __name__ == '__main__':
         dp.bind(on_select=lambda instance, x: setattr(button, 'text', x))
         for i in range(10):
             item = Button(text='hello %d' % i, size_hint_y=None, height=44)
-            item.bind(on_release=lambda btn: dp.select(btn.text))
+            item.bind(on_release=lambda btn, *args: dp.select(btn.text))
             dp.add_widget(item)
         dp.open(button)
 
