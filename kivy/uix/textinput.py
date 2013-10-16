@@ -146,6 +146,9 @@ Clipboard = None
 # for reloading, we need to keep a list of textinput to retrigger the rendering
 _textinput_list = []
 
+# cache the result
+_is_osx = sys.platform == 'darwin'
+
 # When we are generating documentation, Config doesn't exist
 _is_desktop = False
 if Config:
@@ -690,7 +693,7 @@ class TextInput(Widget):
         scrl_y = self.scroll_y
         scrl_y = scrl_y / dy if scrl_y > 0 else 0
         cy = (self.top - padding_top + scrl_y * dy) - y
-        cy = int(boundary(round(cy / dy-0.5), 0, len(l) - 1))
+        cy = int(boundary(round(cy / dy - 0.5), 0, len(l) - 1))
         dcx = 0
         _get_text_width = self._get_text_width
         _tab_width = self.tab_width
@@ -998,17 +1001,22 @@ class TextInput(Widget):
                 Clock.schedule_once(partial(self.on_focus, self, value), 0)
             return
 
-        editable = (not (self.readonly or self.disabled) or
+        self._editable = editable = (not (self.readonly or self.disabled) or
                     (platform in ('win', 'linux', 'macosx') and
                     self._keyboard_mode == 'system'))
 
-        if value and editable:
+        if value:
             keyboard = win.request_keyboard(self._keyboard_released, self)
             self._keyboard = keyboard
-            keyboard.bind(
-                on_key_down=self._keyboard_on_key_down,
-                on_key_up=self._keyboard_on_key_up)
-            Clock.schedule_interval(self._do_blink_cursor, 1 / 2.)
+            if editable:
+                keyboard.bind(
+                    on_key_down=self._keyboard_on_key_down,
+                    on_key_up=self._keyboard_on_key_up)
+                Clock.schedule_interval(self._do_blink_cursor, 1 / 2.)
+            else:
+                # in non-editable mode, we still want shortcut (as copy)
+                keyboard.bind(
+                    on_key_down=self._keyboard_on_key_down)
         else:
             if self._keyboard:
                 keyboard = self._keyboard
@@ -1609,14 +1617,26 @@ class TextInput(Widget):
 
     def _keyboard_on_key_down(self, window, keycode, text, modifiers):
         self._hide_cut_copy_paste()
-        is_osx = sys.platform == 'darwin'
         # Keycodes on OSX:
         ctrl, cmd = 64, 1024
         key, key_str = keycode
 
-        if text and not key in (list(self.interesting_keys.keys()) + [27]):
-            # This allows *either* ctrl *or* cmd, but not both.
-            if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
+        # This allows *either* ctrl *or* cmd, but not both.
+        is_shortcut = (modifiers == ['ctrl'] or (
+            _is_osx and modifiers == ['meta']))
+        is_interesting_key = key in (list(self.interesting_keys.keys()) + [27])
+
+        if not self._editable:
+            # duplicated but faster testing for non-editable keys
+            if text and not is_interesting_key:
+                if is_shortcut and key == ord('c'):
+                    self._copy(self.selection_text)
+            elif key == 27:
+                self.focus = False
+            return True
+
+        if text and not is_interesting_key:
+            if is_shortcut:
                 if key == ord('x'):  # cut selection
                     self._cut(self.selection_text)
                 elif key == ord('c'):  # copy selection
@@ -1684,6 +1704,7 @@ class TextInput(Widget):
 
     _lines = ListProperty([])
     _hint_text_lines = ListProperty([])
+    _editable = BooleanProperty(True)
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
