@@ -218,8 +218,8 @@ class WindowPygame(WindowBase):
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
         is_osx = platform == 'darwin'
-        if _exit_on_escape or (is_osx and key in (113, 119)
-                               and modifier == 1024):
+        if _exit_on_escape and (key == 27 or
+                (is_osx and key in (113, 119) and modifier == 1024)):
             stopTouchApp()
             self.close()  # not sure what to do here
             return True
