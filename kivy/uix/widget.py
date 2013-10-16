@@ -710,22 +710,3 @@ class Widget(WidgetBase):
     :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
     default to False.
     '''
-
-    last_touch = ObjectProperty(None)
-    '''Contains the last relevant touch received by the widget.
-
-    Each widget determines what is considered a meaningful touch and saves
-    them accordingly. For example, a ButtonBehavior might only record the last
-    touch which resulted in a change of the button's state. Overall, if the
-    widget used the touch (i.e. it returned True in on_touch_down), it should
-    save it here.
-
-    .. Note::
-        To access the absolute last motion event created, use
-        :attr:`~kivy.input.motionevent.MotionEvent.last_motion_event`.
-
-    .. versionadded:: 1.8.0
-
-    :data:`last_touch` is a :class:`~kivy.properties.ObjectProperty`,
-    default to None.
-    '''

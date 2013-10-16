@@ -45,6 +45,17 @@ class ButtonBehavior(object):
     :data:`state` is an :class:`~kivy.properties.OptionProperty`.
     '''
 
+    last_touch = ObjectProperty(None)
+    '''Contains the last relevant touch received by the Button. This can be used
+    in `on_press` or `on_release` in order to know which touch dispatched the
+    event.
+
+    .. versionadded:: 1.8.0
+
+    :data:`last_touch` is a :class:`~kivy.properties.ObjectProperty`,
+    default to None.
+    '''
+
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
@@ -67,9 +78,9 @@ class ButtonBehavior(object):
             return False
         touch.grab(self)
         touch.ud[self] = True
+        self.last_touch = touch
         self._do_press()
         self.dispatch('on_press')
-        self.last_touch = touch
         return True
 
     def on_touch_move(self, touch):
@@ -84,6 +95,7 @@ class ButtonBehavior(object):
             return super(ButtonBehavior, self).on_touch_up(touch)
         assert(self in touch.ud)
         touch.ungrab(self)
+        self.last_touch = touch
         self._do_release()
         self.dispatch('on_release')
         return True
