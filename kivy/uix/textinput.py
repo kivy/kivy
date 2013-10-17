@@ -127,10 +127,12 @@ from kivy.graphics import Color, Rectangle
 
 from kivy.uix.widget import Widget
 from kivy.uix.bubble import Bubble
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.image import Image
 
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
-        ListProperty, ObjectProperty, VariableListProperty
+        ListProperty, ObjectProperty, VariableListProperty, OptionProperty
 
 Cache_register = Cache.register
 Cache_append = Cache.append
@@ -141,85 +143,21 @@ Cache_register('textinput.width', timeout=60.)
 
 FL_IS_NEWLINE = 0x01
 # Flags for input_type, for requesting a particular type of keyboard
+#android FLAGS
 TYPE_CLASS_DATETIME = 4
-# Class for dates and times
-TYPE_DATETIME_VARIATION_DATE = 16
-# Default variation of TYPE_CLASS_DATETIME: allows entering only a date
-TYPE_DATETIME_VARIATION_NORMAL = 0
-# Default variation of TYPE_CLASS_DATETIME: allows entering both a date and time
-TYPE_DATETIME_VARIATION_TIME = 32
-# Default variation of TYPE_CLASS_DATETIME: allows entering only a time.
-TYPE_NULL = 0
-# Special content type for when no explicit type has been specified.
 TYPE_CLASS_NUMBER = 2
-# Class for numeric text.
-TYPE_NUMBER_FLAG_DECIMAL = 8192
-# Flag of TYPE_CLASS_NUMBER: the number is decimal, allowing a decimal
-# point to provide fractional values.
-TYPE_NUMBER_FLAG_SIGNED = 4096
-# Flag of TYPE_CLASS_NUMBER: the number is signed, allowing a positive or
-# negative sign at the start.
 TYPE_NUMBER_VARIATION_NORMAL = 0
-# Default variation of TYPE_CLASS_NUMBER: plain normal numeric text.
 TYPE_NUMBER_VARIATION_PASSWORD = 16
-# Variation of TYPE_CLASS_NUMBER: entering a numeric password.
 TYPE_CLASS_TEXT = 1
-# Class for normal text.
 TYPE_TEXT_FLAG_AUTO_COMPLETE = 65536
-# Flag for TYPE_CLASS_TEXT: the text editor is performing auto-completion of
-# the text being entered based on its own semantics, which it will present
-# to the user as they type.
 TYPE_TEXT_FLAG_AUTO_CORRECT = 32768
-# Flag for TYPE_CLASS_TEXT: the user is entering free-form text that should
-#have auto-correction applied to it.
-TYPE_TEXT_FLAG_CAP_CHARACTERS = 4096
-# Flag for TYPE_CLASS_TEXT: capitalize all characters.
-TYPE_TEXT_FLAG_CAP_SENTENCES = 16384
-# Flag for TYPE_CLASS_TEXT: capitalize first character of each sentence.
-TYPE_TEXT_FLAG_CAP_WORDS = 8192
-# Flag for TYPE_CLASS_TEXT: capitalize first character of all words.
-TYPE_TEXT_FLAG_MULTI_LINE = 131072
-# Flag for TYPE_CLASS_TEXT: multiple lines of text can be entered
-# into the field.
 TYPE_TEXT_FLAG_NO_SUGGESTIONS = 524288
-# Flag for TYPE_CLASS_TEXT: the input method does not need to display any
-# dictionary-based candidates.
 TYPE_TEXT_VARIATION_EMAIL_ADDRESS = 32
-# Variation of TYPE_CLASS_TEXT: entering an e-mail address.
-TYPE_TEXT_VARIATION_EMAIL_SUBJECT = 48
-# Variation of TYPE_CLASS_TEXT: entering the subject line of an e-mail.
-TYPE_TEXT_VARIATION_FILTER = 176
-# Variation of TYPE_CLASS_TEXT: entering text to filter contents of a list etc.
-TYPE_TEXT_VARIATION_LONG_MESSAGE = 80
-# Variation of TYPE_CLASS_TEXT: entering the content of a long, possibly formal
-# message such as the body of an e-mail.
 TYPE_TEXT_VARIATION_NORMAL = 0
-# Default variation of TYPE_CLASS_TEXT: plain old normal text.
 TYPE_TEXT_VARIATION_PASSWORD = 128
-# Variation of TYPE_CLASS_TEXT: entering a password.
-TYPE_TEXT_VARIATION_PERSON_NAME = 96
-# Variation of TYPE_CLASS_TEXT: entering the name of a person.
-TYPE_TEXT_VARIATION_PHONETIC = 192
-# Variation of TYPE_CLASS_TEXT: entering text for phonetic pronunciation, such
-# as a phonetic name field in contacts.
 TYPE_TEXT_VARIATION_POSTAL_ADDRESS = 112
-# Variation of TYPE_CLASS_TEXT: entering a postal mailing address.
-TYPE_TEXT_VARIATION_SHORT_MESSAGE = 64
-# Variation of TYPE_CLASS_TEXT: entering a short, possibly informal message
-# such as an instant message or a text message.
 TYPE_TEXT_VARIATION_URI = 16
-# Variation of TYPE_CLASS_TEXT: entering a URI.
-TYPE_TEXT_VARIATION_VISIBLE_PASSWORD = 144
-# Variation of TYPE_CLASS_TEXT: entering a password, which should be visible
-# to the user.
-TYPE_TEXT_VARIATION_WEB_EDIT_TEXT = 160
-# Variation of TYPE_CLASS_TEXT: entering text inside of a web form.
-TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS = 208
-# Variation of TYPE_CLASS_TEXT: entering e-mail address inside of a web form.
-TYPE_TEXT_VARIATION_WEB_PASSWORD = 224
-# Variation of TYPE_CLASS_TEXT: entering password inside of a web form.
 TYPE_CLASS_PHONE = 3
-# Class for a phone number.
 
 # late binding
 Clipboard = None
@@ -248,6 +186,12 @@ if 'KIVY_DOC' not in environ:
 
     from kivy.graphics.context import get_context
     get_context().add_reload_observer(_textinput_clear_cache, True)
+
+
+class Selector(ButtonBehavior, Image):
+    '''
+    '''
+    pass
 
 
 class TextInputCutCopyPaste(Bubble):
@@ -362,6 +306,8 @@ class TextInput(Widget):
         self.selection_text = u''
         self._selection_from = None
         self._selection_to = None
+        self._handle_left = None
+        self._handle_right = None
         self._bubble = None
         self._lines_flags = []
         self._lines_labels = []
@@ -418,15 +364,17 @@ class TextInput(Widget):
     def on_text_validate(self):
         pass
 
-    def cursor_index(self):
+    def cursor_index(self, cursor=None):
         '''Return the cursor index in the text/value.
         '''
+        if not cursor:
+            cursor = self.cursor
         try:
             l = self._lines
             if len(l) == 0:
                 return 0
             lf = self._lines_flags
-            index, cr = self.cursor
+            index, cr = cursor
             for row in range(cr):
                 if row >= len(l):
                     continue
@@ -987,7 +935,48 @@ class TextInput(Widget):
                 self._show_cut_copy_paste(touch.pos, win)
             return True
 
-    def _hide_cut_copy_paste(self, win=None):
+    def _handle_pressed(self, instance):
+        self._hide_cut_copy_paste(retain_handles=True)
+
+    def _handle_released(self, instance):
+        pass
+
+    def _handle_move(self, instance, touch):
+        get_cursor = self.get_cursor_from_xy
+        handle_right = self._handle_right
+        handle_left = self._handle_left
+
+        if instance == handle_left and touch.grab_current == handle_left:
+            cursor = get_cursor(touch.x, touch.y + (handle_left.height / 2))
+            self._selection_from = self.cursor_index(cursor=cursor)
+            self._position_handles('left')
+        elif instance == handle_right and touch.grab_current == handle_right:
+            # handle right
+            cursor = get_cursor(touch.x, touch.y + (handle_right.height / 2))
+            self._selection_to = self.cursor_index(cursor=cursor)
+            self._position_handles('right')
+        self._trigger_update_graphics()
+
+    def _position_handles(self, mode='both'):
+        group = self.canvas.get_group('selection')
+        lh = self.line_height
+
+        if mode[0] in ('b', 'l'):
+            handle_left = self._handle_left
+            hp_left = group[2].pos
+            handle_left.pos = self.to_window(*hp_left)
+            handle_left.x -= handle_left.width
+            handle_left.y -= lh
+
+        if mode[0] in ('b', 'r'):
+            handle_right = self._handle_right
+            last_rect = group[-1]
+            hp_right = last_rect.pos[0], last_rect.pos[1]
+            handle_right.pos = self.to_window(*hp_right)
+            handle_right.x += last_rect.size[0]
+            handle_right.y -= lh
+
+    def _hide_cut_copy_paste(self, win=None, retain_handles=False):
         win = win or self._win
         if win is None:
             return
@@ -996,11 +985,39 @@ class TextInput(Widget):
             anim = Animation(opacity=0, d=.225)
             anim.bind(on_complete=lambda *args: win.remove_widget(bubble))
             anim.start(bubble)
+            if retain_handles:
+                return
+            self._win.remove_widget(self._handle_right)
+            self._win.remove_widget(self._handle_left)
 
     def _show_cut_copy_paste(self, pos, win, parent_changed=False, mode='', *l):
         # Show a bubble with cut copy and paste buttons
         if not self.use_bubble:
             return
+
+        handle_right = self._handle_right
+        handle_left = self._handle_left
+        if self._handle_left is None:
+            self._handle_left = handle_left = Selector(
+                source=self.handle_image_left,
+                size_hint=(None, None),
+                size=('32dp', '32dp'))
+            handle_left.bind(on_press=self._handle_pressed,
+                             on_touch_move=self._handle_move,
+                             on_release=self._handle_released)
+            self._handle_right = handle_right = Selector(
+                source=self.handle_image_right,
+                size_hint=(None, None),
+                size=('32dp', '32dp'))
+            handle_right.bind(on_press=self._handle_pressed,
+                             on_touch_move=self._handle_move,
+                             on_release=self._handle_released)
+        else:
+            win.remove_widget(self._handle_left)
+            win.remove_widget(self._handle_right)
+            if not self.parent:
+                return
+
         bubble = self._bubble
         if bubble is None:
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
@@ -1014,15 +1031,17 @@ class TextInput(Widget):
             return
 
         # Search the position from the touch to the window
+        lh, ls = self.line_height, self.line_spacing
+
+        self._position_handles()
+
         x, y = pos
         t_pos = self.to_window(x, y)
         bubble_size = bubble.size
         win_size = win.size
         bubble.pos = (t_pos[0] - bubble_size[0] / 2., t_pos[1] + inch(.25))
         bubble_pos = bubble.pos
-        lh, ls = self.line_height, self.line_spacing
 
-        # FIXME found a way to have that feature available for everybody
         if bubble_pos[0] < 0:
             # bubble beyond left of window
             if bubble.pos[1] > (win_size[1] - bubble_size[1]):
@@ -1055,6 +1074,8 @@ class TextInput(Widget):
         Animation.cancel_all(bubble)
         bubble.opacity = 0
         win.add_widget(bubble)
+        win.add_widget(self._handle_left)
+        win.add_widget(self._handle_right)
         Animation(opacity=1, d=.225).start(bubble)
 
     #
@@ -1796,12 +1817,38 @@ class TextInput(Widget):
 
     def on_password(self, instance, value):
         if value:
-            _input_type = self.input_type
+            _input_type = self._input_type
             if _input_type == TYPE_CLASS_TEXT:
-                self.input_type |= TYPE_TEXT_VARIATION_PASSWORD
-                return _input_type
+                self._input_type |= TYPE_TEXT_VARIATION_PASSWORD
             elif _input_type == TYPE_CLASS_NUMBER:
-                self.input_type |= TYPE_NUMBER_VARIATION_PASSWORD
+                self._input_type |= TYPE_NUMBER_VARIATION_PASSWORD
+        else:
+            _input_type = self._input_type
+            if _input_type == TYPE_CLASS_TEXT | TYPE_TEXT_VARIATION_PASSWORD:
+                self._input_type = TYPE_CLASS_TEXT
+            elif _input_type == TYPE_CLASS_NUMBER | \
+                TYPE_TEXT_VARIATION_PASSWORD:
+                self._input_type = TYPE_CLASS_NUMBER
+
+    keyboard_suggestions = BooleanProperty(True)
+    '''If True provides auto suggestions on top of keyboard.
+    This will only work if :data:`input_type` is set to `text`.
+
+     .. versionadded:: 1.8.0
+
+     :data:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
+     defaults to True.
+    '''
+
+    def on_keyboard_suggestions(self, instance, value):
+        _input_type = self._input_type
+        if value:
+            if _input_type == TYPE_CLASS_TEXT | TYPE_TEXT_FLAG_NO_SUGGESTIONS:
+                self._input_type = TYPE_CLASS_TEXT
+        else:
+            if _input_type == TYPE_CLASS_TEXT:
+                self._input_type = TYPE_CLASS_TEXT | \
+                    TYPE_TEXT_FLAG_NO_SUGGESTIONS
 
     cursor_blink = BooleanProperty(False)
     '''This property is used to blink the cursor graphics. The value of
@@ -2244,20 +2291,80 @@ class TextInput(Widget):
     :data:`line_spacing` is a :class:`~kivy.properties.NumericProperty`,
     default to '0'
     '''
-    input_type = NumericProperty(TYPE_CLASS_TEXT)
 
-    def on_input_type(self, instance, value):
-        Logger.debug("TextInput: input_type: {}".format(value))
-
-    '''The kind of keyboard/input hardware to request
+    overlay = BooleanProperty(True)
+    ''' Indicates whether there is a overlay replicating the texture of
+    textinput displayed on top of the keyboard if textinput is obscured
+    by keyboard
 
     .. versionadded:: 1.8.0
 
-    :data:`input_type` is a :class:`~kivy.properties.NumericProperty`,
-    default to 'TYPE_CLASS_TEXT'. Look at
-    android: http://developer.android.com/reference/android/text/InputType.html
-    ios: NOT IMPLEMENTED YET
-    for a list of available FLAGS
+    :data:`overlay` is a :class:`~kivy.properties.BooleanProperty`
+    defaults to False for desktop and true on mobile
+    '''
+
+    _input_type = NumericProperty(TYPE_CLASS_TEXT)
+    ''' Internal use only property for managing the type of keyboard requested
+    on android/ios. Defaults to TYPE_CLASS_TEXT.
+
+    ..versionadded:: 1.8.0
+
+    '''
+    input_type = OptionProperty('text', options=('text', 'number', 'url',
+                                                  'mail', 'datetime', 'tel',
+                                                  'address'))
+    '''The kind of input, keyboard to request
+
+    .. versionadded:: 1.8.0
+
+    :data:`input_type` is a :class:`~kivy.properties.OptionsProperty`,
+    default to 'text'. Can be one of 'text', 'number', 'url', 'mail',
+    'datetime', 'tel', 'address'.
+    '''
+
+    def on_input_type(self, instance, value):
+        if _platform == 'android':
+            if value == 'text':
+                self._input_type = TYPE_CLASS_TEXT
+            elif value == 'number':
+                self._input_type = TYPE_CLASS_NUMBER
+            elif value == 'url':
+                self._input_type = \
+                    TYPE_CLASS_TEXT | TYPE_TEXT_VARIATION_URI
+            elif value == 'mail':
+                self._input_type = \
+                    TYPE_CLASS_TEXT | TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+            elif value == 'datetime':
+                self._input_type = TYPE_CLASS_DATETIME
+            elif value == 'tel':
+                self._input_type = TYPE_CLASS_PHONE
+            elif value == 'address':
+                self._input_type = TYPE_TEXT_VARIATION_POSTAL_ADDRESS
+
+            self.on_password(self, self.password)
+            self.on_keyboard_suggestions(self, self.keyboard_suggestions)
+        else:
+            # iOs
+            pass
+
+    handle_image_left = StringProperty(
+        'atlas://data/images/defaulttheme/selector_left')
+    '''Image used to display the Left handle on the TextInput for selection.
+
+    .. versionadded:: 1.8.0
+
+    :data:`handle_image_left` is a :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/selector_left'
+    '''
+
+    handle_image_right = StringProperty(
+        'atlas://data/images/defaulttheme/selector_right')
+    '''Image used to display the Right handle on the TextInput for selection.
+
+    .. versionadded:: 1.8.0
+
+    :data:`handle_image_right` is a :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/selector_right'
     '''
 
 
@@ -2269,7 +2376,7 @@ if __name__ == '__main__':
 
         def build(self):
             root = BoxLayout(orientation='vertical')
-            textinput = TextInput(multiline=True)
+            textinput = TextInput(multiline=True, use_bubble=True)
             textinput.text = __doc__
             root.add_widget(textinput)
             textinput2 = TextInput(text='monoline textinput',
