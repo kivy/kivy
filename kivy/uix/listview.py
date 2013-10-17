@@ -1419,9 +1419,9 @@ class ListView(AbstractView, EventDispatcher):
 
         if self.adapter.selection:
             indices = [v.index for v in self.adapter.selection]
-            first_sel_index = min(indices)
+            last_sel_index = max(indices)
 
-            self.scroll_to(first_sel_index)
+            self.scroll_to(last_sel_index)
 
     def on_scroll_complete(self, *args):
         self.scrolling = False
