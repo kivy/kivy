@@ -33,6 +33,24 @@ module::
 
     Clock.schedule_interval(partial(my_callback, 'my value', 'my key'), 0.5)
 
+Conversely, if you want to schedule a function that doesn't accept the dt 
+argument, you can use `lambda
+<http://docs.python.org/2/reference/expressions.html#lambda>`_ expression 
+to write a short function that does accept dt.  For Example::
+
+    def no_args_func():
+        print("I accept no arguments, so don't schedule me in the clock")
+    
+    Clock.schedule_once(lambda dt: no_args_func(), 0.5)
+    
+.. note::
+
+    You cannot unschedule an anonymous function unless you keep a reference to 
+    it.  It's better to add \*args to your function definition so that it can be
+    called with or without the clock.
+    
+    
+
 .. important::
 
     The callback is weak-referenced: you are responsible to keep a reference to
@@ -143,6 +161,7 @@ __all__ = ('Clock', 'ClockBase', 'ClockEvent', 'mainthread')
 
 from sys import platform
 from os import environ
+from kivy.context import register_context
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
 from kivy.logger import Logger
@@ -507,7 +526,6 @@ class ClockBase(_ClockBase):
                         if event in events[cid]:
                             events[cid].remove(event)
 
-
 def mainthread(func):
     '''Decorator that will schedule the call of the function in the mainthread.
     It can be useful when you use :class:`~kivy.network.urlrequest.UrlRequest`,
@@ -536,5 +554,5 @@ if 'KIVY_DOC_INCLUDE' in environ:
     #: Instance of the ClockBase, available for everybody
     Clock = None
 else:
-    Clock = ClockBase()
+    Clock = register_context('Clock', ClockBase)
 

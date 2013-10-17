@@ -39,7 +39,7 @@ The rendering will output:
 Usage with Source
 -----------------
 
-You can also render a rst file by using :data:`RstDocument.source`::
+You can also render a rst file using the :data:`RstDocument.source` property::
 
     document = RstDocument(source='index.rst')
 
@@ -48,8 +48,7 @@ document ``index.rst`` you can write::
 
     Go to my next document: :doc:`moreinfo.rst`
 
-It will generate a link that, when clicked, the document ``moreinfo.rst``
-will be loaded.
+It will generate a link that, when clicked, opens the ``moreinfo.rst`` document.
 
 '''
 
@@ -387,50 +386,51 @@ class RstDocument(ScrollView):
     source = StringProperty(None)
     '''Filename of the RST document.
 
-    :data:`source` is a :class:`~kivy.properties.StringProperty`, default to
+    :data:`source` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
     '''
 
     source_encoding = StringProperty('utf-8')
-    '''encoding to be used for the :data:`source` file.
+    '''Encoding to be used for the :data:`source` file.
 
-    :data:`source_encoding` is a :class:`~kivy.properties.StringProperty`,
-    default to `utf-8`.
+    :data:`source_encoding` is a :class:`~kivy.properties.StringProperty` and
+    defaults to `utf-8`.
 
     .. Note::
-        it's your responsibility to ensure that the value provided is a
+        It is your responsibility to ensure that the value provided is a
         valid codec supported by python.
     '''
 
     source_error = OptionProperty('strict',
                                   options=('strict', 'ignore', 'replace',
                                     'xmlcharrefreplace', 'backslashreplac'))
-    '''error handling to be used while encoding the :data:`source` file.
+    '''Error handling to be used while encoding the :data:`source` file.
 
-    :data:`source_eerror` is a :class:`~kivy.properties.OptionProperty`,
-    default to `strict`. Can be one of 'strict', 'ignore', 'replace',
-    'xmlcharrefreplace', 'backslashreplac'
+    :data:`source_error` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to `strict`. Can be one of 'strict', 'ignore', 'replace',
+    'xmlcharrefreplace' or 'backslashreplac'.
     '''
 
     text = StringProperty(None)
     '''RST markup text of the document.
 
-    :data:`text` is a :class:`~kivy.properties.StringProperty`, default to None.
+    :data:`text` is a :class:`~kivy.properties.StringProperty` and defaults to
+	None.
     '''
 
     document_root = StringProperty(None)
-    '''Root path where :doc: will search any rst document. If no path is
-    given, then it will use the directory of the first loaded source.
+    '''Root path where :doc: will search for rst documents. If no path is
+    given, it will use the directory of the first loaded source file.
 
-    :data:`document_root` is a :class:`~kivy.properties.StringProperty`, default
-    to None.
+    :data:`document_root` is a :class:`~kivy.properties.StringProperty` and
+	defaults to None.
     '''
 
     show_errors = BooleanProperty(False)
-    '''Indicate if RST parsers errors must be shown on the screen or not.
+    '''Indicate whether RST parsers errors should be shown on the screen or not.
 
-    :data:`show_errors` is a :class:`~kivy.properties.BooleanProperty`, default
-    to False
+    :data:`show_errors` is a :class:`~kivy.properties.BooleanProperty` and
+	defaults to False.
     '''
 
     def _get_bgc(self):
@@ -440,12 +440,12 @@ class RstDocument(ScrollView):
         self.colors.background = get_hex_from_color(value)[1:]
 
     background_color = AliasProperty(_get_bgc, _set_bgc, bind=('colors',))
-    '''Indicates the background_color to be used for the RstDocument
+    '''Specifies the background_color to be used for the RstDocument.
 
     .. versionadded:: 1.8.0
 
-    :data:`background_color` is a :class:`~kivy.properties.AliasProeprty`.
-    This is a alias for colors['background']
+    :data:`background_color` is an :class:`~kivy.properties.AliasProperty`
+    for colors['background'].
     '''
 
     colors = DictProperty({
@@ -467,19 +467,20 @@ class RstDocument(ScrollView):
     title = StringProperty('')
     '''Title of the current document.
 
-    :data:`title` is a :class:`~kivy.properties.StringProperty`, default to ''
-    in read-only.
+    :data:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
+    ''. It is read-only.
     '''
 
     toctrees = DictProperty({})
     '''Toctree of all loaded or preloaded documents. This dictionary is filled
-    when a rst document is explicitly loaded, or where :meth:`preload` has been
+    when a rst document is explicitly loaded or where :meth:`preload` has been
     called.
 
-    If the document has no filename, e.g., when the document is loaded from a
+    If the document has no filename, e.g. when the document is loaded from a
     text file, the key will be ''.
 
-    :data:`toctrees` is a :class:`~kivy.properties.DictProperty`, default to {}.
+    :data:`toctrees` is a :class:`~kivy.properties.DictProperty` and defaults
+    to {}.
     '''
 
     # internals.
@@ -511,14 +512,14 @@ class RstDocument(ScrollView):
 
     def resolve_path(self, filename):
         '''Get the path for this filename. If the filename doesn't exist,
-        it return the document_root + filename.
+        it returns the document_root + filename.
         '''
         if exists(filename):
             return filename
         return join(self.document_root, filename)
 
     def preload(self, filename, encoding='utf-8', errors='strict'):
-        '''Preload a rst file to get its toctree, and its title.
+        '''Preload a rst file to get its toctree and its title.
 
         The result will be stored in :data:`toctrees` with the ``filename`` as
         key.
@@ -590,11 +591,12 @@ class RstDocument(ScrollView):
         .. note::
 
             It is preferable to delay the call of the goto if you just loaded
-            the document, because the layout might not be finished, or if the
-            size of the RstDocument is not fixed yet, then the calculation of
-            the scrolling would be wrong.
+            the document because the layout might not be finished or the
+            size of the RstDocument has not yet been determined. In either case,
+            the calculation of the scrolling would be wrong.
 
-            However, you can do a direct call if the document is already loaded.
+            You can, however, do a direct call if the document is already
+            loaded.
 
         .. versionadded:: 1.3.0
         '''

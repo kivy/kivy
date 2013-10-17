@@ -8,6 +8,7 @@ from kivy.logger import Logger
 from kivy.core.window import WindowBase
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.clock import Clock
+from kivy.config import Config
 import sys
 
 try:
@@ -20,6 +21,11 @@ except:
 from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from collections import deque
+
+# When we are generating documentation, Config doesn't exist
+_exit_on_escape = True
+if Config:
+    _exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
 
 
 class SDLMotionEvent(MotionEvent):
@@ -284,7 +290,8 @@ class WindowSDL(WindowBase):
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
         is_osx = sys.platform == 'darwin'
-        if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
+        if _exit_on_escape and (key == 27 or (is_osx and key in (113, 119) and
+                                              modifier == 1024)):
             stopTouchApp()
             self.close()  # not sure what to do here
             return True

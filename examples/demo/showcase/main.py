@@ -1,3 +1,4 @@
+#!/usr/bin/kivy
 from time import time
 from kivy.app import App
 from os.path import dirname, join

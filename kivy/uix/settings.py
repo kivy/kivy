@@ -348,7 +348,7 @@ class SettingString(SettingItem):
 
         # create the textinput used for numeric input
         self.textinput = textinput = TextInput(text=self.value,
-            font_size=24, multiline=False, size_hint_y=None, height='50dp')
+            font_size='24sp', multiline=False, size_hint_y=None, height='42sp')
         textinput.bind(on_text_validate=self._validate)
         self.textinput = textinput
 

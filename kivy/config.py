@@ -35,6 +35,8 @@ Available configuration tokens
         Enable/disable specific features if True/False. For example enabling
         drag-able scroll-bar in scroll views, disabling of bubbles in
         TextInput...  True etc.
+    `exit_on_escape`: (0, 1)
+        Enable/disable exiting kivy when escape is hit if True/False.
     `log_level`: (debug, info, warning, error, critical)
         Set the minimum log level to use
     `log_dir`: string
@@ -177,7 +179,8 @@ Available configuration tokens
 
 .. versionchanged:: 1.8.0
     `systemanddock` and `systemandmulti` has been added as possible value for
-    `keyboard_mode` in kivy section.
+    `keyboard_mode` in kivy section. `exit_on_escape` has been added in the
+    kivy section.
 
 .. versionchanged:: 1.2.0
     `resizable` has been added to graphics section
@@ -212,7 +215,7 @@ from kivy.compat import PY2, string_types
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 9
+KIVY_CONFIG_VERSION = 10
 
 #: Kivy configuration object
 Config = None
@@ -497,6 +500,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif version == 8:
             if Config.getint('widgets', 'scroll_timeout') == 55:
                 Config.set('widgets', 'scroll_timeout', '250')
+
+        elif version == 9:
+            Config.setdefault('kivy', 'exit_on_escape', '1')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
