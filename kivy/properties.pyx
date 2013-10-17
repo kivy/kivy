@@ -674,13 +674,7 @@ class ObservableDict(dict):
         self.__setitem__(attr, value)
 
     def __setitem__(self, key, value):
-        if value is None:
-            # remove attribute if value is None
-            # is this really needed?
-            # NOTE: OpObservableDict allows None values.
-            self.__delitem__(key)
-        else:
-            dict.__setitem__(self, key, value)
+        dict.__setitem__(self, key, value)
         observable_dict_dispatch(self)
 
     def __delitem__(self, key):
@@ -935,6 +929,7 @@ class OpObservableList(list):
             list.__delitem__(self, index)
         op_observable_list_dispatch(self,
                 ListOpInfo('batch_delete', 0, len(self) - 1))
+
 
 class ListOpHandler(object):
     '''A :class:`ListOpHandler` reacts to the following operations that are
@@ -1455,7 +1450,8 @@ class ObservableReferenceList(ObservableList):
         if update_properties:
             self.prop.setitem(self.obj(), key, value)
 
-    def __setslice__(self, start, stop, value, update_properties=True):  # Python 2 only method
+    def __setslice__(self, start, stop, value, update_properties=True):
+        # Python 2 only method
         list.__setslice__(self, start, stop, value)
         if update_properties:
             self.prop.setitem(self.obj(), slice(start, stop), value)
@@ -1667,7 +1663,7 @@ cdef class VariableListProperty(Property):
 
     - VariableListProperty([1]) represents [1, 1, 1, 1].
     - VariableListProperty([1, 2]) represents [1, 2, 1, 2].
-    - VariableListProperty(['1px', (2, 'px'), 3, 4.0]) represents [1, 2, 3, 4.0].
+    - VariableListProperty(['1px', (2, 'px'), 3, 4.0]) repr. [1, 2, 3, 4.0].
     - VariableListProperty(5) represents [5, 5, 5, 5].
     - VariableListProperty(3, length=2) represents [3, 3].
 

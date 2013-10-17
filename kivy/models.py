@@ -24,8 +24,7 @@ The default operation of the selection system is to not propogate selection of
 view instances in views such as ListView to the underlying data -- selection is
 by default a view-only operation (VIEW_ON_DATA selection scheme). However, in
 some cases, it is useful to propogate selection to the actual data items, and
-vice versa. Learn about the classes here in combination with reading the docs
-for Selection, and selection schemes.
+vice versa. See the docs for Selection.
 
 You may build your own Python data model system as the backend for a Kivy
 application. Add a SelectionTool attr called ksel to implement selection.
@@ -38,12 +37,16 @@ For selection schemes involving data items that completely drive selection
 
     Moved to kivy/, because models are not specific to adapters.
 
+    Added ksel. ksel stands for "Kivy selection" and is an instance of
+    SelectionTool, a class containing the selection state and helper methods.
+
 '''
 
 __all__ = ('SelectableDataItem',)
 
 from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty
+from kivy.properties import StringProperty
 from kivy.selection import SelectionTool
 
 
@@ -63,3 +66,12 @@ class SelectableDataItem(EventDispatcher):
 
     def __init__(self, **kwargs):
         super(SelectableDataItem, self).__init__(**kwargs)
+        if 'ksel' not in kwargs:
+            self.ksel = SelectionTool(False)
+
+
+class SelectableStringItem(SelectableDataItem):
+    text = StringProperty('')
+
+    def __init__(self, **kwargs):
+        super(SelectableStringItem, self).__init__(**kwargs)
