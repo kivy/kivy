@@ -194,7 +194,7 @@ class VideoGStreamer(VideoBase):
     def stop(self):
         '''.. versionchanged:: 1.4.0'''
         self._state = ''
-        self._playbin.set_state(gst.STATE_READY)
+        self._playbin.set_state(gst.STATE_PAUSED)
 
     def pause(self):
         '''.. versionadded:: 1.4.0'''
