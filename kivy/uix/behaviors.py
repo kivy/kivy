@@ -33,7 +33,7 @@ from functools import partial
 _scroll_timeout = _scroll_distance = 0
 if Config:
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
-    _scroll_distance = sp(Config.getint('widgets', 'scroll_distance'))
+    _scroll_distance = Config.getint('widgets', 'scroll_distance')
 
 
 class ButtonBehavior(object):
@@ -356,9 +356,9 @@ class DragBehavior(object):
         if mode == 'unknown':
             ud['dx'] += abs(touch.dx)
             ud['dy'] += abs(touch.dy)
-            if ud['dx'] > self.drag_distance:
+            if ud['dx'] > sp(self.drag_distance):
                 mode = 'drag'
-            if ud['dy'] > self.drag_distance:
+            if ud['dy'] > sp(self.drag_distance):
                 mode = 'drag'
             ud['mode'] = mode
         if mode == 'drag':
