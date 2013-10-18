@@ -400,7 +400,7 @@ class App(EventDispatcher):
 
     :attr:`~App.settings_cls` is an :class:`~kivy.properties.ObjectProperty`.
     it defaults to :class:`~kivy.uix.settings.SettingsWithSpinner`, which
-    displays settings panels using a sidebar layout.
+    displays settings panels with a spinner to switch between them.
 
     '''
 
