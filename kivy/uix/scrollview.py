@@ -486,7 +486,6 @@ class ScrollView(StencilView):
                     self.effect_y.start(touch.y)
 
         if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
-            Animation(bar_alpha=.9, d=.5, t='out_quart').start(self)
             return
         if scroll_type == 'bars':
             self._change_touch_mode()
@@ -574,8 +573,6 @@ class ScrollView(StencilView):
                 # only send the click if it was not a click to stop
                 # autoscrolling
                 if not ud['user_stopped']:
-                    #super(ScrollView, self).on_touch_down(touch)
-                    self._start_decrease_alpha()
                     Clock.schedule_once(lambda dt: super(ScrollView, self)
                         .on_touch_down(touch), .1)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .2)
