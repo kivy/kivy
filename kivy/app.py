@@ -107,7 +107,7 @@ your config tokens. Here is an example done in the KinectViewer example
 
 You can add your own panels of settings by extending
 the :meth:`App.build_settings` method.
-Check the class:`~kivy.uix.settings.Settings` about how to create a panel,
+Check the :class:`~kivy.uix.settings.Settings` about how to create a panel,
 because you need a JSON file / data first.
 
 Let's take as an example the previous snippet of TestApp with custom config. We
