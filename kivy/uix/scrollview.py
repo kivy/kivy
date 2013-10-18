@@ -459,31 +459,39 @@ class ScrollView(StencilView):
                 e.trigger_velocity_update()
                 return True
 
+        scroll_type = self.scroll_type
         # no mouse scrolling, so the user is going to drag the scrollview with
         # this touch.
         self._touch = touch
         uid = self._get_uid()
         touch.grab(self)
-        touch.ud[uid] = {
+        ud = touch.ud
+        ud[uid] = {
             'mode': 'unknown',
             'dx': 0,
             'dy': 0,
             'user_stopped': False,
             'time': touch.time_start}
-        scroll_type = self.scroll_type
         if self.do_scroll_x and self.effect_x:
             if scroll_type[0] == 'b' and touch.y < self.bar_width:
-                touch.ud['in_bar_x'] = True
+                ud['in_bar_x'] = True
             else:
                 if scroll_type != 'bars':
                     self.effect_x.start(touch.x)
         if self.do_scroll_y and self.effect_y:
             if scroll_type[0] == 'b' and touch.x > self.right - self.bar_width:
-                touch.ud['in_bar_y'] = True
+                ud['in_bar_y'] = True
             else:
                 if scroll_type != 'bars':
                     self.effect_y.start(touch.y)
-        Clock.schedule_once(self._change_touch_mode,
+
+        if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
+            Animation(bar_alpha=.9, d=.5, t='out_quart').start(self)
+            return
+        if scroll_type == 'bars':
+            self._change_touch_mode()
+        else:
+            Clock.schedule_once(self._change_touch_mode,
                             self.scroll_timeout / 1000.)
         return True
 
@@ -567,6 +575,7 @@ class ScrollView(StencilView):
                 # autoscrolling
                 if not ud['user_stopped']:
                     #super(ScrollView, self).on_touch_down(touch)
+                    self._start_decrease_alpha()
                     Clock.schedule_once(lambda dt: super(ScrollView, self)
                         .on_touch_down(touch), .1)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .2)
@@ -579,28 +588,6 @@ class ScrollView(StencilView):
             return True
 
         return self._get_uid() in touch.ud
-
-    def convert_distance_to_scroll(self, dx, dy):
-        '''Convert a distance in pixels to a scroll distance, depending on the
-        content size and the scrollview size.
-
-        The result will be a tuple of scroll distance that can be added to
-        :data:`scroll_x` and :data:`scroll_y`
-        '''
-        if not self._viewport:
-            return 0, 0
-        vp = self._viewport
-        if vp.width > self.width:
-            sw = vp.width - self.width
-            sx = dx / float(sw)
-        else:
-            sx = 0
-        if vp.height > self.height:
-            sh = vp.height - self.height
-            sy = dy / float(sh)
-        else:
-            sy = 1
-        return sx, sy
 
     def update_from_scroll(self, *largs):
         '''Force the reposition of the content, according to current value of
@@ -732,7 +719,7 @@ if __name__ == '__main__':
                 btn = Button(text=str(i), size_hint=(None, None),
                              size=(200, 100))
                 layout2.add_widget(btn)
-            scrollview2 = ScrollView(bar_width='9dp', scroll_type='both')
+            scrollview2 = ScrollView(bar_width='9dp', scroll_type='bars')
             scrollview2.add_widget(layout2)
 
             root = GridLayout(cols=2)
