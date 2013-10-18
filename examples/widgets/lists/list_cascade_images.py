@@ -1,5 +1,5 @@
 from kivy.adapters.dictadapter import DictAdapter
-from kivy.uix.selectableview import SelectableView
+from kivy.uix.listview import SelectableView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton
@@ -18,22 +18,21 @@ from fruit_detail_view import FruitImageDetailView
 Factory.register('SelectableView', cls=SelectableView)
 Factory.register('ListItemButton', cls=ListItemButton)
 
-# [TODO] Problem: Had to add index here, to get it from ctx. Might need a
-#                 "selection_template" to do this for the dev? Or is this
-#                 the task of the dev to know and follow this need to
-#                 code for index?
-
 Builder.load_string('''
+#:import SelectionTool kivy.selection.SelectionTool
+
 [ThumbnailedListItem@SelectableView+BoxLayout]:
     index: ctx.index
     fruit_name: ctx.text
     size_hint_y: ctx.size_hint_y
     height: ctx.height
+    carry_selection_to_children: True
     Image
         source: "fruit_images/{0}.32.jpg".format(ctx.text)
     ListItemButton:
         index: ctx.index
         text: ctx.text
+        on_release: self.parent.trigger_action(duration=0)
 ''')
 
 
@@ -42,14 +41,16 @@ Builder.load_string('''
 #
 class FruitsDictAdapter(DictAdapter):
 
-    def fruit_category_changed(self, fruit_categories_adapter, *args):
-        if len(fruit_categories_adapter.selection) == 0:
-            self.data = {}
-            return
+    def fruit_category_changed(self, *args):
 
-        category = \
-                fruit_categories[fruit_categories_adapter.selection[0].text]
-        self.sorted_keys = category['fruits']
+        fruit_categories_adapter = args[0]
+
+        if fruit_categories_adapter.selection:
+            key = fruit_categories_adapter.selection[0].text
+
+            category = fruit_categories[key]
+
+            self.sorted_keys = category['fruits']
 
 
 class CascadingView(GridLayout):
@@ -66,9 +67,9 @@ class CascadingView(GridLayout):
         super(CascadingView, self).__init__(**kwargs)
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['name'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': key,
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         # Fruit categories list on the left:
         #
@@ -89,9 +90,9 @@ class CascadingView(GridLayout):
         # Fruits, for a given category, in the middle:
         #
         image_list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['name'],
-                                        'size_hint_y': None,
-                                        'height': 32}
+                lambda row_index, rec, key: {'text': key,
+                                             'size_hint_y': None,
+                                             'height': 32}
         fruits_list_adapter = \
                 FruitsDictAdapter(
                     sorted_keys=fruit_categories[categories[0]]['fruits'],
@@ -105,7 +106,7 @@ class CascadingView(GridLayout):
                     size_hint=(.2, 1.0))
 
         fruit_categories_list_adapter.bind(
-                on_selection_change=fruits_list_adapter.fruit_category_changed)
+                selection=fruits_list_adapter.fruit_category_changed)
 
         self.add_widget(fruits_list_view)
 
@@ -116,7 +117,7 @@ class CascadingView(GridLayout):
                 size_hint=(.6, 1.0))
 
         fruits_list_adapter.bind(
-                on_selection_change=detail_view.fruit_changed)
+                selection=detail_view.fruit_changed)
         self.add_widget(detail_view)
 
 

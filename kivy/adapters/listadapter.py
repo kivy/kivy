@@ -11,10 +11,12 @@ ListAdapter
 
 A :class:`ListAdapter` is an adapter around a python list.
 
-Selection operations are a main concern for the class.
+From :class:`~kivy.adapters.adapter.Adapter`, a
+:class:`~kivy.adapters.listadapter.ListAdapter` gets cls, template, and
+args_converter properties.
 
-From an :class:`Adapter`, a :class:`ListAdapter` gets cls, template, and
-args_converter properties and adds others that control selection behaviour:
+From :class:`~kivy.selection.Selection` are properties that control
+selection behaviour:
 
 * *selection*, a list of selected items.
 
@@ -24,16 +26,10 @@ args_converter properties and adds others that control selection behaviour:
   True, and only user or programmatic action will change selection, it can
   be empty.
 
-If you wish to have a bare-bones list adapter, without selection, use a
-:class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`.
-
-A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
-:class:`~kivy.adapters.listadapter.ListAdapter`. They both dispatch the
-*on_selection_change* event.
-
     :Events:
-        `on_selection_change`: (view, view list )
-            Fired when selection changes
+
+        `on_data_change`: (view, view list )
+            Fired when data changes
 
 .. versionchanged:: 1.6.0
 
@@ -43,365 +39,160 @@ A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
     an ObjectProperty, so we need to reset it here to ListProperty). See also
     DictAdapter and its set of data = DictProperty().
 
+.. versionchanged:: 1.8.0
+
+    A new class, OpObservableList is passed to ListProperty to replace its
+    internal use of ObservableList. OpObservableList dispatches change events
+    on a per op basis, as compared to the gross dispatching done by
+    ObservableList. This new functionality is paired with changeds in ListView,
+    which now reacts in a more fine-grained way to data changes. See its new
+    data_changed() method. See also new adapter modules, list_ops.py and
+    dict_ops.py which contain code for the more detailed dispatching logic.
+
 '''
 
 __all__ = ('ListAdapter', )
 
-import inspect
-from kivy.event import EventDispatcher
 from kivy.adapters.adapter import Adapter
-from kivy.adapters.models import SelectableDataItem
+from kivy.adapters.list_ops import AdapterListOpHandler
+
+from kivy.controllers.listcontroller import ListController
+
+from kivy.properties import OpObservableList
 from kivy.properties import ListProperty
-from kivy.properties import DictProperty
-from kivy.properties import BooleanProperty
-from kivy.properties import OptionProperty
-from kivy.properties import NumericProperty
-from kivy.lang import Builder
+from kivy.properties import ObjectProperty
+
+from kivy.selection import Selection
 
 
-class ListAdapter(Adapter, EventDispatcher):
+class ListAdapter(Selection, Adapter):
+    '''A :class:`~kivy.adapters.listadapter.ListAdapter` is an adapter around a
+    python list of items. It is an alternative to the dict capabilities of
+    :class:`~kivy.adapters.dictadapter.DictAdapter`.
+
+    :class:`~kivy.adapters.dictadapter.ListAdapter` and
+    :class:`~kivy.adapters.listadapter.DictAdapter` use special
+    :class:`~kivy.properties.ListProperty` and
+    :class:`~kivy.properties.DictProperty` variants,
+    :class:`~kivy.properties.OpObservableList` and
+    :class:`~kivy.properties.OpObservableDict`, which record
+    op_info for use in the adapter system.
+
+    The data property of :class:`~kivy.adapters.listadapter.ListAdapter` is a
+    :class:`~kivy.properties.OpObservableList`.
+
+    This system endeavors to allow normal Python programming of the contained
+    data list object. When normal operations such as append, insert, pop,
+    sort, are performed on the data list, and the system will notice those
+    changes and react accordingly, adjusting its cached_views and selection in
+    support of the "collection" style view that uses the adapter (e.g.,
+    :class:`~kivy.uix.listview.ListView`).
+
+    This adapter supports collection-style widgets such as
+    :class:`~kivy.uix.widgets.ListView`. When something happens in an
+    application to change the data list, the name of the data operation that
+    occurred, along with start_index, end_index of the item(s) affected are
+    stored.  The adapter, via its instance of a
+    :class:`~kivy.properties.ListOpHandler`, has callbacks that handle specific
+    operations, and make needed changes to the internal cached_views,
+    selection, and related properties, in preparation for sending, in turn, a
+    data-changed event to the collection-style widget that uses the adapter.
+    For example, :class:`~kivy.uix.widgets.ListView` observes its adapter for
+    data-changed events and updates the user interface. When an item is
+    deleted, it removes the item view widget from its container, or for an
+    addition, it adds the item view widget to its container and scrolls the
+    list, and so on.
+
+    .. versionadded:: 1.5
+
+    .. versionchanged:: 1.8.0
+
+        A new class, OpObserverableList, was added to kivy/properties.pyx as an
+        alternative to ObservableList, which only dispatches when data is
+        set, or when any change occurs. The new ObObservableList dispatches on
+        a fine-grained basis, after any individual op is performed.
+
+        This new class is used in the ListProperty for data.
+
+        ListAdapter must react to the events that come for a change to data.
+        It delegates handling of these events to a ListOpHandler
+        instance, defined in a new module, adapters/list_ops.py. This handling
+        mainly involves adjusting cached_views and selection, in support of
+        collection type widgets, such as ListView, that use ListAdapter.
+
+        The data_changed() method of the delegate ListOpHandler and methods
+        called there do what is needed to cached_views and selection, then they
+        dispatch, in turn, up to the owning collection type view, such as
+        ListView. The collection type view then reacts with changes to its
+        children and other parts of the user interface as needed.
     '''
-    A base class for adapters interfacing with lists, dictionaries or other
-    collection type data, adding selection, view creation and management
-    functonality.
-    '''
 
-    data = ListProperty([])
-    '''The data list property is redefined here, overriding its definition as
-    an ObjectProperty in the Adapter class. We bind to data so that any
-    changes will trigger updates. See also how the
-    :class:`~kivy.adapters.DictAdapter` redefines data as a
-    :class:`~kivy.properties.DictProperty`.
+    data = ListProperty([], cls=OpObservableList)
+    '''A Python list that uses
+    :class:`~kivy.properties.OpObservableList` for storage, as a
+    "change-aware" wrapper that records change info for list ops.
 
     :data:`data` is a :class:`~kivy.properties.ListProperty` and defaults
     to [].
+
+    .. versionadded:: 1.6
+
     '''
 
-    selection = ListProperty([])
-    '''The selection list property is the container for selected items.
+    list_op_handler = ObjectProperty(None)
+    '''An instance of :class:`~kivy.adapters.list_ops.AdapterListOpHandler`,
+    containing methods that perform steps needed after the data has changed.
+    The methods are responsible for updating cached_views and selection.
 
-    :data:`selection` is a :class:`~kivy.properties.ListProperty` and defaults
-    to [].
+    :data:`list_op_handler` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to None. It is instantiated and set on init.
+
+    .. versionadded:: 1.8
+
     '''
 
-    selection_mode = OptionProperty('single',
-            options=('none', 'single', 'multiple'))
-    '''Selection modes:
+    op_info = ObjectProperty(None)
+    '''This is a copy of our data's op_info. We make a copy before dispatching
+    the on_data_change event, so that observers can more conveniently access
+    it.
 
-       * *none*, use the list as a simple list (no select action). This option
-         is here so that selection can be turned off, momentarily or
-         permanently, for an existing list adapter.
-         A :class:`~kivy.adapters.listadapter.ListAdapter` is not meant to be
-         used as a primary no-selection list adapter.  Use a
-         :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` for that.
+    .. versionadded:: 1.8
 
-       * *single*, multi-touch/click ignored. Single item selection only.
-
-       * *multiple*, multi-touch / incremental addition to selection allowed;
-         may be limited to a count by selection_limit
-
-    :data:`selection_mode` is an :class:`~kivy.properties.OptionProperty` and
-    defaults to 'single'.
     '''
 
-    propagate_selection_to_data = BooleanProperty(False)
-    '''Normally, data items are not selected/deselected because the data items
-    might not have an is_selected boolean property -- only the item view for a
-    given data item is selected/deselected as part of the maintained selection
-    list. However, if the data items do have an is_selected property, or if
-    they mix in :class:`~kivy.adapters.models.SelectableDataItem`, the
-    selection machinery can propagate selection to data items. This can be
-    useful for storing selection state in a local database or backend database
-    for maintaining state in game play or other similar scenarios. It is a
-    convenience function.
-
-    To propagate selection or not?
-
-    Consider a shopping list application for shopping for fruits at the
-    market. The app allows for the selection of fruits to buy for each day of
-    the week, presenting seven lists: one for each day of the week. Each list is
-    loaded with all the available fruits, but the selection for each is a
-    subset. There is only one set of fruit data shared between the lists, so
-    it would not make sense to propagate selection to the data because
-    selection in any of the seven lists would clash and mix with that of the
-    others.
-
-    However, consider a game that uses the same fruits data for selecting
-    fruits available for fruit-tossing. A given round of play could have a
-    full fruits list, with fruits available for tossing shown selected. If the
-    game is saved and rerun, the full fruits list, with selection marked on
-    each item, would be reloaded correctly if selection is always propagated to
-    the data. You could accomplish the same functionality by writing code to
-    operate on list selection, but having selection stored in the data
-    ListProperty might prove convenient in some cases.
-
-    :data:`propagate_selection_to_data` is a
-    :class:`~kivy.properties.BooleanProperty` and defaults to False.
-    '''
-
-    allow_empty_selection = BooleanProperty(True)
-    '''The allow_empty_selection may be used for cascading selection between
-    several list views, or between a list view and an observing view. Such
-    automatic maintenance of the selection is important for all but simple
-    list displays. Set allow_empty_selection to False and the selection is
-    auto-initialized and always maintained, so any observing views
-    may likewise be updated to stay in sync.
-
-    :data:`allow_empty_selection` is a
-    :class:`~kivy.properties.BooleanProperty` and defaults to True.
-    '''
-
-    selection_limit = NumericProperty(-1)
-    '''When the selection_mode is multiple and the selection_limit is
-    non-negative, this number will limit the number of selected items. It can
-    be set to 1, which is equivalent to single selection. If selection_limit is
-    not set, the default value is -1, meaning that no limit will be enforced.
-
-    :data:`selection_limit` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to -1 (no limit).
-    '''
-
-    cached_views = DictProperty({})
-    '''View instances for data items are instantiated and managed by the
-    adapter. Here we maintain a dictionary containing the view
-    instances keyed to the indices in the data.
-
-    This dictionary works as a cache. get_view() only asks for a view from
-    the adapter if one is not already stored for the requested index.
-
-    :data:`cached_views` is a :class:`~kivy.properties.DictProperty` and
-    defaults to {}.
-    '''
-
-    __events__ = ('on_selection_change', )
+    __events__ = ('on_data_change', )
 
     def __init__(self, **kwargs):
+
+        controller = None
+
+        if isinstance(kwargs['data'], ListController):
+            controller = kwargs['data']
+            kwargs['data'] = controller.data
+
         super(ListAdapter, self).__init__(**kwargs)
+
+        if controller:
+            controller.bind(data=self.setter('data'))
+
+        self.list_op_handler = AdapterListOpHandler(
+                source_list=self.data, duplicates_allowed=True)
 
         self.bind(selection_mode=self.selection_mode_changed,
                   allow_empty_selection=self.check_for_empty_selection,
-                  data=self.update_for_new_data)
-
-        self.update_for_new_data()
-
-    def delete_cache(self, *args):
-        self.cached_views = {}
+                  data=self.list_op_handler.data_changed)
 
     def get_count(self):
         return len(self.data)
 
     def get_data_item(self, index):
-        if index < 0 or index >= len(self.data):
-            return None
         return self.data[index]
 
-    def selection_mode_changed(self, *args):
-        if self.selection_mode == 'none':
-            for selected_view in self.selection:
-                self.deselect_item_view(selected_view)
-        else:
-            self.check_for_empty_selection()
+    def additional_args_converter_args(self, index):
+        return ()
 
-    def get_view(self, index):
-        if index in self.cached_views:
-            return self.cached_views[index]
-        item_view = self.create_view(index)
-        if item_view:
-            self.cached_views[index] = item_view
-        return item_view
-
-    def create_view(self, index):
-        '''This method is more complicated than the one in
-        :class:`kivy.adapters.adapter.Adapter` and
-        :class:`kivy.adapters.simplelistadapter.SimpleListAdapter`, because
-        here we create bindings for the data item and its children back to
-        self.handle_selection(), and do other selection-related tasks to keep
-        item views in sync with the data.
-        '''
-        item = self.get_data_item(index)
-        if item is None:
-            return None
-
-        item_args = self.args_converter(index, item)
-
-        item_args['index'] = index
-
-        if self.cls:
-            view_instance = self.cls(**item_args)
-        else:
-            view_instance = Builder.template(self.template, **item_args)
-
-        if self.propagate_selection_to_data:
-            # The data item must be a subclass of SelectableDataItem, or must
-            # have an is_selected boolean or function, so it has is_selected
-            # available.  If is_selected is unavailable on the data item, an
-            # exception is raised.
-            #
-            if isinstance(item, SelectableDataItem):
-                if item.is_selected:
-                    self.handle_selection(view_instance)
-            elif type(item) == dict and 'is_selected' in item:
-                if item['is_selected']:
-                    self.handle_selection(view_instance)
-            elif hasattr(item, 'is_selected'):
-                if (inspect.isfunction(item.is_selected)
-                        or inspect.ismethod(item.is_selected)):
-                    if item.is_selected():
-                        self.handle_selection(view_instance)
-                else:
-                    if item.is_selected:
-                        self.handle_selection(view_instance)
-            else:
-                msg = "ListAdapter: unselectable data item for {0}"
-                raise Exception(msg.format(index))
-
-        view_instance.bind(on_release=self.handle_selection)
-
-        for child in view_instance.children:
-            child.bind(on_release=self.handle_selection)
-
-        return view_instance
-
-    def on_selection_change(self, *args):
-        '''on_selection_change() is the default handler for the
-        on_selection_change event.
-        '''
+    def on_data_change(self, *args):
         pass
-
-    def handle_selection(self, view, hold_dispatch=False, *args):
-        if view not in self.selection:
-            if self.selection_mode in ['none', 'single'] and \
-                    len(self.selection) > 0:
-                for selected_view in self.selection:
-                    self.deselect_item_view(selected_view)
-            if self.selection_mode != 'none':
-                if self.selection_mode == 'multiple':
-                    if self.allow_empty_selection:
-                        # If < 0, selection_limit is not active.
-                        if self.selection_limit < 0:
-                            self.select_item_view(view)
-                        else:
-                            if len(self.selection) < self.selection_limit:
-                                self.select_item_view(view)
-                    else:
-                        self.select_item_view(view)
-                else:
-                    self.select_item_view(view)
-        else:
-            self.deselect_item_view(view)
-            if self.selection_mode != 'none':
-                # If the deselection makes selection empty, the following call
-                # will check allows_empty_selection, and if False, will
-                # select the first item. If view happens to be the first item,
-                # this will be a reselection, and the user will notice no
-                # change, except perhaps a flicker.
-                #
-                self.check_for_empty_selection()
-
-        if not hold_dispatch:
-            self.dispatch('on_selection_change')
-
-    def select_data_item(self, item):
-        self.set_data_item_selection(item, True)
-
-    def deselect_data_item(self, item):
-        self.set_data_item_selection(item, False)
-
-    def set_data_item_selection(self, item, value):
-        if isinstance(item, SelectableDataItem):
-            item.is_selected = value
-        elif type(item) == dict:
-            item['is_selected'] = value
-        elif hasattr(item, 'is_selected'):
-            if (inspect.isfunction(item.is_selected)
-                    or inspect.ismethod(item.is_selected)):
-                item.is_selected()
-            else:
-                item.is_selected = value
-
-    def select_item_view(self, view):
-        view.select()
-        view.is_selected = True
-        self.selection.append(view)
-
-        # [TODO] sibling selection for composite items
-        #        Needed? Or handled from parent?
-        #        (avoid circular, redundant selection)
-        #if hasattr(view, 'parent') and hasattr(view.parent, 'children'):
-         #siblings = [child for child in view.parent.children if child != view]
-         #for sibling in siblings:
-             #if hasattr(sibling, 'select'):
-                 #sibling.select()
-
-        if self.propagate_selection_to_data:
-            data_item = self.get_data_item(view.index)
-            self.select_data_item(data_item)
-
-    def select_list(self, view_list, extend=True):
-        '''The select call is made for the items in the provided view_list.
-
-        Arguments:
-
-            view_list: the list of item views to become the new selection, or
-            to add to the existing selection
-
-            extend: boolean for whether or not to extend the existing list
-        '''
-        if not extend:
-            self.selection = []
-
-        for view in view_list:
-            self.handle_selection(view, hold_dispatch=True)
-
-        self.dispatch('on_selection_change')
-
-    def deselect_item_view(self, view):
-        view.deselect()
-        view.is_selected = False
-        self.selection.remove(view)
-
-        # [TODO] sibling deselection for composite items
-        #        Needed? Or handled from parent?
-        #        (avoid circular, redundant selection)
-        #if hasattr(view, 'parent') and hasattr(view.parent, 'children'):
-         #siblings = [child for child in view.parent.children if child != view]
-         #for sibling in siblings:
-             #if hasattr(sibling, 'deselect'):
-                 #sibling.deselect()
-
-        if self.propagate_selection_to_data:
-            item = self.get_data_item(view.index)
-            self.deselect_data_item(item)
-
-    def deselect_list(self, l):
-        for view in l:
-            self.handle_selection(view, hold_dispatch=True)
-
-        self.dispatch('on_selection_change')
-
-    # [TODO] Could easily add select_all() and deselect_all().
-
-    def update_for_new_data(self, *args):
-        self.delete_cache()
-        self.initialize_selection()
-
-    def initialize_selection(self, *args):
-        if len(self.selection) > 0:
-            self.selection = []
-            self.dispatch('on_selection_change')
-
-        self.check_for_empty_selection()
-
-    def check_for_empty_selection(self, *args):
-        if not self.allow_empty_selection:
-            if len(self.selection) == 0:
-                # Select the first item if we have it.
-                v = self.get_view(0)
-                if v is not None:
-                    self.handle_selection(v)
-
-    # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,
-    #        scroll_to_sel_middle.
 
     def trim_left_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are less than the
@@ -417,7 +208,6 @@ class ListAdapter(Adapter, EventDispatcher):
         '''
         if len(self.selection) > 0:
             last_sel_index = max([sel.index for sel in self.selection])
-            print('last_sel_index', last_sel_index)
             self.data = self.data[:last_sel_index + 1]
 
     def trim_to_sel(self, *args):

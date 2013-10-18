@@ -22,6 +22,7 @@ from fruit_detail_view import FruitDetailView
 class FruitsListAdapter(ListAdapter):
 
     def fruit_category_changed(self, fruit_categories_adapter, *args):
+
         if len(fruit_categories_adapter.selection) == 0:
             self.data = []
             return
@@ -40,12 +41,12 @@ class FruitsListAdapter(ListAdapter):
         # Also, see the examples that use dict records.
 
 
-# FruitsListAdapter subclasses ListAdapter, which has SelectionSupport mixed
-# in. SelectionSupport requires that data items handle selection operations.
-# This means that we can't have simple strings as data items, nor can we have
-# items that don't comply with SelectionSupport needs. It is not difficult to
-# make your own data items, however, because you can define custom data item
-# classes that subclass SelectableDataItem:
+# FruitsListAdapter subclasses ListAdapter, which has Selection mixed in.
+# Selection requires that data items handle selection operations.  This means
+# that we can't have simple strings as data items, nor can we have items that
+# don't comply with Selection needs. It is not difficult to make your own data
+# items, however, because you can define custom data item classes that subclass
+# SelectableDataItem:
 #
 class CategoryItem(SelectableDataItem):
     def __init__(self, **kwargs):
@@ -143,7 +144,7 @@ class CascadingView(GridLayout):
                                   cls=ListItemButton)
 
         fruit_categories_list_adapter.bind(
-            on_selection_change=fruits_list_adapter.fruit_category_changed)
+            selection=fruits_list_adapter.fruit_category_changed)
 
         fruits_list_view = \
                 ListView(adapter=fruits_list_adapter, size_hint=(.2, 1.0))
@@ -157,7 +158,7 @@ class CascadingView(GridLayout):
                 size_hint=(.6, 1.0))
 
         fruits_list_adapter.bind(
-                on_selection_change=detail_view.fruit_changed)
+                selection=detail_view.fruit_changed)
         self.add_widget(detail_view)
 
 

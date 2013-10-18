@@ -174,6 +174,7 @@ __all__ = ('Property',
 include "graphics/config.pxi"
 
 from weakref import ref
+
 from kivy.compat import string_types
 
 cdef float g_dpi = -1
@@ -410,6 +411,19 @@ cdef class Property:
                 observer(obj, value)
 
 
+    cpdef dispatch_with_op_info(self, EventDispatcher obj, op_info):
+        '''Dispatch the value change to all observers.
+
+        .. versionadded:: 1.8
+
+        '''
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        if len(ps.observers):
+            value = ps.value
+            for observer in ps.observers:
+                observer(obj, value, op_info)
+
+
 cdef class NumericProperty(Property):
     '''Property that represents a numeric value.
 
@@ -561,12 +575,20 @@ class ObservableList(list):
         list.extend(self, *largs)
         observable_list_dispatch(self)
 
-    def sort(self, *largs):
-        list.sort(self, *largs)
+    def sort(self, *largs, **kwds):
+        '''NOTE: Added **kwds because of complaining when key=lambda... was
+                 passed.
+        '''
+        list.sort(self, *largs, **kwds)
         observable_list_dispatch(self)
 
     def reverse(self, *largs):
         list.reverse(self, *largs)
+        observable_list_dispatch(self)
+
+    def batch_delete(self, indices):
+        for index in indices:
+            list.__delitem__(self, index)
         observable_list_dispatch(self)
 
 
@@ -574,27 +596,48 @@ cdef class ListProperty(Property):
     '''Property that represents a list.
 
     Only lists are allowed. Tuple or any other classes are forbidden.
+
+    .. versionchanged:: 1.8.0
+
+        The following change does not affect the default API. It has to do with
+        internal event dispatching. It may be interesting to widget developers.
+
+        A new class, OpObservableList, is defined in this module, complimenting
+        the original ObservableList.  Whereas the new OpObservableList
+        dispatches change events on a per op basis, the original ObservableList
+        does gross dispatching, so that there is no detailed change information
+        available to widgets.  
+
+        A new cls argument is checked, and if not defined, the original
+        ObservableList is used. Otherwise, the OpObservableList is used.
+
+        The default behavior remains the same: an observer sees a change event
+        when either the list is reset or when it changes in some way. The new
+        more detailed change info is not available, but is not always needed.
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or []
+
+        self.cls = kw.get('cls', ObservableList)
 
         super(ListProperty, self).__init__(defaultvalue, **kw)
 
     cpdef link(self, EventDispatcher obj, str name):
         Property.link(self, obj, name)
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.value = ObservableList(self, obj, ps.value)
+        ps.value = self.cls(self, obj, ps.value)
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
-        if type(value) is not ObservableList:
-            raise ValueError('%s.%s accept only ObservableList' % (
+        if type(value) is not self.cls:
+            raise ValueError('{}.{} accept only {}'.format(
                 obj.__class__.__name__,
-                self.name))
+                self.name,
+                self.cls.__name__))
 
     cpdef set(self, EventDispatcher obj, value):
-        value = ObservableList(self, obj, value)
+        value = self.cls(self, obj, value)
         Property.set(self, obj, value)
 
 cdef inline void observable_dict_dispatch(object self):
@@ -642,10 +685,6 @@ class ObservableDict(dict):
         dict.clear(self, *largs)
         observable_dict_dispatch(self)
 
-    def remove(self, *largs):
-        dict.remove(self, *largs)
-        observable_dict_dispatch(self)
-
     def pop(self, *largs):
         cdef object result = dict.pop(self, *largs)
         observable_dict_dispatch(self)
@@ -669,28 +708,461 @@ cdef class DictProperty(Property):
     '''Property that represents a dict.
 
     Only dict are allowed. Any other classes are forbidden.
+
+    .. versionchanged:: 1.8.0
+
+        The following change does not affect the API. It has to do with
+        internal event dispatching. It may be interesting to widget developers.
+
+        A new class, OpObservableDict, is defined in this module, complimenting
+        the original ObservableDict.  Whereas the new OpObservableDict
+        dispatches change events on a per op basis, the original ObservableDict
+        does gross dispatching, so that there is no detailed change information
+        available to widgets.
+        
+        A new cls argument is checked, and if not defined, the original
+        ObservableDict is used. Otherwise, the OpObservableDict is used.
+
+        The default behavior remains the same: an observer sees a change event
+        when either the dict is reset or when it changes in some way. The new
+        more detailed change info is not available, but is not always needed.
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or {}
+
+        self.cls = kw.get('cls', ObservableDict)
 
         super(DictProperty, self).__init__(defaultvalue, **kw)
 
     cpdef link(self, EventDispatcher obj, str name):
         Property.link(self, obj, name)
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.value = ObservableDict(self, obj, ps.value)
+        ps.value = self.cls(self, obj, ps.value)
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
-        if type(value) is not ObservableDict:
-            raise ValueError('%s.%s accept only ObservableDict' % (
+        if type(value) is not self.cls:
+            raise ValueError('{}.{} accept only {}'.format(
                 obj.__class__.__name__,
-                self.name))
+                self.name,
+                self.cls.__name__))
 
     cpdef set(self, EventDispatcher obj, value):
-        value = ObservableDict(self, obj, value)
+        value = self.cls(self, obj, value)
         Property.set(self, obj, value)
+
+
+class ListOpInfo(object):
+    '''Holds change info about an OpObservableList instance.
+    '''
+
+    def __init__(self, op_name, start_index, end_index):
+        self.op_name = op_name
+        self.start_index = start_index
+        self.end_index = end_index
+
+
+cdef inline void op_observable_list_dispatch(object self, object op_info):
+    cdef Property prop = self.prop
+    obj = self.obj()
+    if obj is not None:
+        prop.dispatch_with_op_info(obj, op_info)
+
+
+class OpObservableList(list):
+    '''This class is used as a cls argument to
+    :class:`~kivy.properties.ListProperty` as an alternative to the default
+    :class:`~kivy.properties.ObservableList`.
+
+    :class:`~kivy.properties.OpObservableList` is used to record
+    change info about a list instance in a more detailed, per-op manner than a
+    :class:`~kivy.properties.ObservableList` instance, which dispatches grossly
+    for any change, but with no info about the change.
+
+    Range-observing and granular (per op) data is stored in op_info and
+    sort_op_info for use by an observer.
+
+    .. versionchanged:: 1.8.0
+
+        Added, along with modifications to ListProperty to allow its use.
+        ListOpInfo and ListOpHander were also added.
+
+    '''
+
+    def __init__(self, *largs):
+        # largs are:
+        #
+        #     ListProperty instance
+        #     Owner instance (e.g., an adapter)
+        #     value
+        #
+        self.prop = largs[0]
+        self.obj = ref(largs[1])
+
+        super(OpObservableList, self).__init__(*largs[2:])
+
+    # TODO: setitem and delitem are supposed to handle slices, instead of the
+    #       deprecated setslice() and delslice() methods.
+
+    def __setitem__(self, key, value):
+        list.__setitem__(self, key, value)
+        op_observable_list_dispatch(self,
+               ListOpInfo('OOL_setitem', key, key))
+
+    def __delitem__(self, key):
+        list.__delitem__(self, key)
+        op_observable_list_dispatch(self,
+               ListOpInfo('OOL_delitem', key, key))
+
+    def __setslice__(self, *largs):
+        #
+        # Python docs:
+        #
+        #     operator.__setslice__(a, b, c, v)
+        #
+        #     Set the slice of a from index b to index c-1 to the sequence v.
+        #
+        #     Deprecated since version 2.6: This function is removed in Python
+        #     3.x. Use setitem() with a slice index.
+        #
+        start_index = largs[0]
+        end_index = largs[1] - 1
+        list.__setslice__(self, *largs)
+        op_observable_list_dispatch(self,
+                ListOpInfo('OOL_setslice', start_index, end_index))
+
+    def __delslice__(self, *largs):
+        # Delete the slice of a from index b to index c-1. del a[b:c],
+        # where the args here are b and c.
+        # Also deprecated.
+        start_index = largs[0]
+        end_index = largs[1] - 1
+        list.__delslice__(self, *largs)
+        op_observable_list_dispatch(self,
+                ListOpInfo('OOL_delslice', start_index, end_index))
+
+    def __iadd__(self, *largs):
+        start_index = len(self)
+        end_index = start_index + len(largs) - 1
+        list.__iadd__(self, *largs)
+        op_observable_list_dispatch(self,
+                ListOpInfo('OOL_iadd', start_index, end_index))
+
+    def __imul__(self, *largs):
+        num = largs[0]
+        start_index = len(self)
+        end_index = start_index + (len(self) * num)
+        list.__imul__(self, *largs)
+        op_observable_list_dispatch(self,
+                ListOpInfo('OOL_imul', start_index, end_index))
+
+    def append(self, *largs):
+        index = len(self)
+        list.append(self, *largs)
+        op_observable_list_dispatch(self,
+                ListOpInfo('OOL_append', index, index))
+
+    def remove(self, *largs):
+        index = self.index(largs[0])
+        list.remove(self, *largs)
+        op_observable_list_dispatch(self,
+                ListOpInfo('OOL_remove', index, index))
+
+    def insert(self, *largs):
+        index = largs[0]
+        list.insert(self, *largs)
+        op_observable_list_dispatch(self,
+                ListOpInfo('OOL_insert', index, index))
+
+    def pop(self, *largs):
+        if largs:
+            index = largs[0]
+        else:
+            index = len(self) - 1
+        result = list.pop(self, *largs)
+        op_observable_list_dispatch(self,
+                ListOpInfo('OOL_pop', index, index))
+        return result
+
+    def extend(self, *largs):
+        start_index = len(self)
+        end_index = start_index + len(largs[0]) - 1
+        list.extend(self, *largs)
+        op_observable_list_dispatch(self,
+                ListOpInfo('OOL_extend', start_index, end_index))
+
+    def start_sort_op(self, op, *largs, **kwds):
+        self.sort_largs = largs
+        self.sort_kwds = kwds
+        self.sort_op = op
+
+        # Trigger the "sort is starting" callback to the adapter, so it can do
+        # pre-sort writing of the current arrangement of indices and data.
+        op_observable_list_dispatch(self,
+                ListOpInfo('OOL_sort_start', 0, 0))
+
+    def finish_sort_op(self):
+        largs = self.sort_largs
+        kwds = self.sort_kwds
+        sort_op = self.sort_op
+
+        # Perform the sort.
+        if sort_op == 'OOL_sort':
+            list.sort(self, *largs, **kwds)
+        else:
+            list.reverse(self, *largs)
+
+        # Finalize. Will go back to adapter for handling cached_views,
+        # selection, and prep for triggering data_changed on ListView.
+        op_observable_list_dispatch(self,
+                ListOpInfo(sort_op, 0, len(self) - 1))
+
+    def sort(self, *largs, **kwds):
+        self.start_sort_op('OOL_sort', *largs, **kwds)
+
+    def reverse(self, *largs):
+        self.start_sort_op('OOL_reverse', *largs)
+
+    def batch_delete(self, indices):
+        for index in indices:
+            list.__delitem__(self, index)
+        op_observable_list_dispatch(self,
+                ListOpInfo('batch_delete', 0, len(self) - 1))
+
+class ListOpHandler(object):
+    '''A :class:`ListOpHandler` reacts to the following operations that are
+    possible for a OpObservableList (OOL) instance, categorized as
+    follows:
+
+        Adding and inserting:
+
+            OOL_append
+            OOL_extend
+            OOL_insert
+
+        Applying operator:
+
+            OOL_iadd
+            OOL_imul
+
+        Setting:
+
+            OOL_setitem
+            OOL_setslice
+
+        Deleting:
+
+            OOL_delitem
+            OOL_delslice
+            OOL_remove
+            OOL_pop
+
+        Sorting:
+
+            OOL_sort
+            OOL_reverse
+    '''
+
+    def data_changed(self, *args):
+        '''This method receives the callback for a data change to
+        self.source_list, and calls the appropriate methods, reacting to
+        cover the possible operation events listed above.
+        '''
+        pass
+
+
+class DictOpInfo(object):
+    '''Holds change info about an OpObservableDict instance.
+    '''
+
+    def __init__(self, op_name, keys):
+        self.op_name = op_name
+        self.keys = keys
+
+
+cdef inline void op_observable_dict_dispatch(object self,
+                                             object op_info):
+    cdef Property prop = self.prop
+    prop.dispatch_with_op_info(self.obj, op_info)
+
+
+class OpObservableDict(dict):
+    '''This class is used as a cls argument to
+    :class:`~kivy.properties.DictProperty` as an alternative to the default
+    :class:`~kivy.properties.ObservableDict`.
+
+    :class:`~kivy.properties.OpObservableDict` is used to record
+    change info about a dict instance in a more detailed, per-op manner than a
+    :class:`~kivy.properties.ObservableDict` instance, which dispatches grossly
+    for any change, but with no info about the change.
+
+    Range-observing and granular (per op) data is stored in op_info for use by
+    an observer.
+
+    .. versionchanged:: 1.8.0
+
+        Added, along with modifications to DictProperty to allow its use.
+        DictOpInfo and DictOpHander were also added.
+
+    '''
+
+    def __init__(self, *largs):
+        # largs are:
+        #
+        #     DictProperty instance
+        #     Owner instance (e.g., an adapter)
+        #     value
+        #
+        self.prop = largs[0]
+        self.obj = largs[1]
+
+        super(OpObservableDict, self).__init__(*largs[2:])
+
+        #self.data = largs[2]
+
+        self.op_info = None
+
+    def _weak_return(self, item):
+        if isinstance(item, ref):
+            return item()
+        return item
+
+    def __getattr__(self, attr):
+        try:
+            return self._weak_return(self.__getitem__(attr))
+        except KeyError:
+            try:
+                return self._weak_return(
+                    super(OpObservableDict, self).__getattr__(attr))
+            except AttributeError:
+                raise KeyError(attr)
+
+    def __setattr__(self, attr, value):
+        if attr in ('prop', 'obj', 'op_info'):
+            super(OpObservableDict, self).__setattr__(attr, value)
+            return
+        self.__setitem__(attr, value)
+
+    def __setitem__(self, key, value):
+
+        if key in self.keys():
+            op_info = DictOpInfo('OOD_setitem_set', (key, ))
+        else:
+            op_info = DictOpInfo('OOD_setitem_add', (key, ))
+        dict.__setitem__(self, key, value)
+        op_observable_dict_dispatch(self, op_info)
+
+    def __delitem__(self, key):
+        dict.__delitem__(self, key)
+        op_observable_dict_dispatch(self,
+                DictOpInfo('OOD_delitem', (key, )))
+
+    def clear(self, *largs):
+        # Store a local copy of self, because the clear() will
+        # remove everything, including it. Restore it after the clear.
+        recorder = self
+        dict.clear(self, *largs)
+        self = recorder
+        op_observable_dict_dispatch(self,
+                DictOpInfo('OOD_clear', (None, )))
+
+    def pop(self, *largs):
+        key = largs[0]
+
+        # This is pop on a specific key. If that key is absent, the second arg
+        # is returned. If there is no second arg in that case, a key error is
+        # raised. But the key is always largs[0], so store that.
+        # s.pop([i]) is same as x = s[i]; del s[i]; return x
+        result = dict.pop(self, *largs)
+        op_observable_dict_dispatch(self,
+                DictOpInfo('OOD_pop', (key, )))
+        return result
+
+    def popitem(self, *largs):
+        # From python docs, "Remove and return an arbitrary (key, value) pair
+        # from the dictionary." From other reading, arbitrary here effectively
+        # means "random" in the loose sense, of removing on the basis of how
+        # items are stored internally as links -- for truely random ops, use
+        # the proper random module. Nevertheless, the item is deleted and
+        # returned.  If the dict is empty, a key error is raised.
+
+        last = None
+        if len(largs):
+            last = largs[0]
+
+        if not self.keys():
+            raise KeyError('dictionary is empty')
+
+        key = next((self) if last else iter(self))
+
+        value = self[key]
+
+        # NOTE: We have no set to self.op_info for
+        # OOD_popitem, because the following del self[key] will trigger a
+        # OOD_delitem, which should suffice for the owning collection view
+        # (e.g., ListView) to react as it would for OOD_popitem. If we set
+        # self.op_info with OOD_popitem here, we get a
+        # double-callback.
+        del self[key]
+        return key, value
+
+    def setdefault(self, *largs):
+        present_keys = self.keys()
+        key = largs[0]
+        op_info = None
+        if key not in present_keys:
+            op_info = DictOpInfo('OOD_setdefault', (key, ))
+        result = dict.setdefault(self, *largs)
+        if op_info:
+            op_observable_dict_dispatch(self, op_info)
+        return result
+
+    def update(self, *largs):
+        op_info = None
+        present_keys = self.keys()
+        if present_keys:
+            op_info = DictOpInfo(
+                    'OOD_update',
+                    list(set(largs[0].keys()) - set(present_keys)))
+        dict.update(self, *largs)
+        if op_info:
+            op_observable_dict_dispatch(self, op_info)
+
+    def setitem_for_insert(self, key, value):
+        # Do not dispatch. The adapter will do an insert to sorted_keys, which
+        # will trigger a change event.
+        dict.__setitem__(self, key, value)
+
+
+class DictOpHandler(object):
+    '''A :class:`DictOpHandler` may react to the following operations that are
+    possible for a OpObservableDict instance:
+
+        Adding:
+
+            OOD_setitem_add
+            OOD_setdefault
+            OOD_update
+
+        Setting:
+
+            OOD_setitem_set
+
+        Deleting:
+
+            OOD_delitem
+            OOD_pop
+            OOD_popitem
+            OOD_clear
+    '''
+
+    def data_changed(self, *args):
+        '''This method receives the callback for a data change to
+        self.source_dict, and calls the appropriate methods, reacting to
+        cover the possible operation events listed above.
+        '''
+        pass
 
 
 cdef class ObjectProperty(Property):
@@ -716,10 +1188,9 @@ cdef class ObjectProperty(Property):
         if Property.check(self, obj, value):
             return True
         if not isinstance(value, self.baseclass):
-            raise ValueError('{}.{} accept only object based on {}'.format(
+            raise ValueError('%s.%s accept only Python object' % (
                 obj.__class__.__name__,
-                self.name,
-                self.baseclass.__name__))
+                self.name))
 
 cdef class BooleanProperty(Property):
     '''Property that represents only a boolean value.

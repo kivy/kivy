@@ -1,12 +1,18 @@
 from kivy.adapters.dictadapter import DictAdapter
-from kivy.properties import NumericProperty, ListProperty, \
-        BooleanProperty, AliasProperty, ObjectProperty
+from kivy.properties import NumericProperty
+from kivy.properties import ListProperty
+from kivy.properties import BooleanProperty
+from kivy.properties import AliasProperty
+from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.listview import ListView, ListItemButton
+from kivy.uix.listview import ListItemButton
+from kivy.uix.listview import ListView
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.widget import Widget
+
+from kivy.selection import SelectionTool
 
 
 class OpsDictAdapter(DictAdapter):
@@ -18,24 +24,20 @@ class OpsDictAdapter(DictAdapter):
         self.listview_id = kwargs['listview_id']
         super(OpsDictAdapter, self).__init__(**kwargs)
 
-    def on_selection_change(self, *args):
+    def on_selection(self, *args):
         for i in range(len(self.selection)):
             listview_selection_buttons[self.listview_id][i].text = \
                     self.selection[i].text
 
         if self.listview_id is 0:
-            # Scroll to the most recently selected item.
+            # Scroll to the first selected item.
             if len(self.selection) > 0:
-                print('selection', self.selection)
-                self.owning_view.scroll_to(
-                    index=self.sorted_keys.index(self.selection[-1].text))
+                self.owning_view.scroll_to_first_selected()
 
         elif self.listview_id is 1:
-            # Scroll to the selected item that is the minimum of a sort.
+            # Scroll to the last selected item.
             if len(self.selection) > 0:
-                self.owning_view.scroll_to(
-                    index=self.sorted_keys.index(
-                        sorted([sel.text for sel in self.selection])[0]))
+                self.owning_view.scroll_to_last_selected()
 
         elif self.listview_id is 2:
             # Scroll to the selected item that is the maximum of a sort.
@@ -103,7 +105,8 @@ class SelectionMonitor(Widget):
 
 
 letters_dict = \
-    {l: {'text': l, 'is_selected': False} for l in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'}
+    {l: {'text': l, 'ksel': SelectionTool(False)}
+            for l in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'}
 
 listview_selection_buttons = {}
 
@@ -170,9 +173,9 @@ class OpsView(BoxLayout):
         grid_layout = GridLayout(cols=7)
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['text'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['text'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         letters = [l for l in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
 
@@ -185,13 +188,13 @@ class OpsView(BoxLayout):
         # Use OpsDictAdapter, from above, which will post selections to
         # the display in the top panel.
         #
-        listview_header_widgets = [Label(text="scroll_to rec",
+        listview_header_widgets = [Label(text="scroll first sel",
                                          size_hint_y=None,
                                          height=25),
-                                   Label(text="scroll_to min",
+                                   Label(text="scroll last sel",
                                          size_hint_y=None,
                                          height=25),
-                                   Label(text="scroll_to max",
+                                   Label(text="scroll max sort",
                                          size_hint_y=None,
                                          height=25),
                                    Button(text="trim_left_of_sel",

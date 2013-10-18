@@ -4,21 +4,27 @@ Adapter tests
 '''
 
 import unittest
+from random import sample
+from random import choice
 
+from kivy.uix.label import Label
 from kivy.uix.listview import SelectableView
 from kivy.uix.listview import ListItemButton
-from kivy.uix.listview import ListItemLabel
 from kivy.uix.listview import CompositeListItem
-from kivy.uix.label import Label
 
-from kivy.adapters.models import SelectableDataItem
+from kivy.models import SelectableDataItem
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.dictadapter import DictAdapter
 
 from kivy.properties import BooleanProperty
+from kivy.properties import ListProperty
 from kivy.properties import StringProperty
+
+from kivy.selection import SelectionTool
+from kivy.selection import selection_update_methods
+from kivy.selection import selection_schemes
 
 from kivy.factory import Factory
 from kivy.lang import Builder
@@ -27,15 +33,18 @@ from kivy.compat import string_types
 from nose.tools import raises
 
 
+#########################
+#  Fruits Example Code
+
 # The following integers_dict and fruit categories / fruit data dictionaries
 # are from kivy/examples/widgets/lists/fixtures.py, and the classes are from
 # examples there.
 
 # ----------------------------------------------------------------------------
-# A dictionary of dicts, with only the minimum required is_selected attribute,
+# A dictionary of dicts, with only the minimum required ksel attribute,
 # for use with examples using a simple list of integers in a list view.
 integers_dict = \
-        {str(i): {'text': str(i), 'is_selected': False} for i in range(100)}
+        {str(i): {'text': str(i), 'ksel': SelectionTool(False)} for i in range(100)}
 
 
 # ----------------------------------------------------------------------------
@@ -57,102 +66,102 @@ integers_dict = \
 fruit_categories = \
         {'Melons': {'name': 'Melons',
                     'fruits': ['Cantaloupe', 'Honeydew', 'Watermelon'],
-                    'is_selected': False},
+                    'ksel': SelectionTool(False)},
          'Tree Fruits': {'name': 'Tree Fruits',
                          'fruits': ['Apple', 'Avocado', 'Banana', 'Nectarine',
                                     'Peach', 'Pear', 'Pineapple', 'Plum',
                                     'Cherry'],
-                         'is_selected': False},
+                         'ksel': SelectionTool(False)},
          'Citrus Fruits': {'name': 'Citrus Fruits',
                            'fruits': ['Grapefruit', 'Lemon', 'Lime', 'Orange',
                                       'Tangerine'],
-                           'is_selected': False},
+                           'ksel': SelectionTool(False)},
          'Other Fruits': {'name': 'Other Fruits',
                           'fruits': ['Grape', 'Kiwifruit',
                                      'Strawberry'],
-                          'is_selected': False}}
+                          'ksel': SelectionTool(False)}}
 
 fruit_data_list_of_dicts = \
     [{'name':'Apple',
       'Serving Size': '1 large (242 g/8 oz)',
       'data': [130, 0, 0, 0, 0, 0, 260, 7, 34, 11, 5, 20, 25, 1, 2, 8, 2, 2],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Avocado',
       'Serving Size': '1/5 medium (30 g/1.1 oz)',
       'data': [50, 35, 4.5, 7, 0, 0, 140, 4, 3, 1, 1, 4, 0, 1, 0, 4, 0, 2],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Banana',
       'Serving Size': '1 medium (126 g/4.5 oz)',
       'data': [110, 0, 0, 0, 0, 0, 450, 13, 30, 10, 3, 12, 19, 1, 2, 15, 0, 2],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Cantaloupe',
       'Serving Size': '1/4 medium (134 g/4.8 oz)',
       'data': [50, 0, 0, 0, 20, 1, 240, 7, 12, 4, 1, 4, 11, 1, 120, 80, 2, 2],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Grapefruit',
       'Serving Size': '1/2 medium (154 g/5.5 oz)',
       'data': [60, 0, 0, 0, 0, 0, 160, 5, 15, 5, 2, 8, 11, 1, 35, 100, 4, 0],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Grape',
       'Serving Size': '3/4 cup (126 g/4.5 oz)',
       'data': [90, 0, 0, 0, 15, 1, 240, 7, 23, 8, 1, 4, 20, 0, 0, 2, 2, 0],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Honeydew',
       'Serving Size': '1/10 medium melon (134 g/4.8 oz)',
       'data': [50, 0, 0, 0, 30, 1, 210, 6, 12, 4, 1, 4, 11, 1, 2, 45, 2, 2],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Kiwifruit',
       'Serving Size': '2 medium (148 g/5.3 oz)',
       'data': [90, 10, 1, 2, 0, 0, 450, 13, 20, 7, 4, 16, 13, 1, 2, 240, 4, 2],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Lemon',
       'Serving Size': '1 medium (58 g/2.1 oz)',
       'data': [15, 0, 0, 0, 0, 0, 75, 2, 5, 2, 2, 8, 2, 0, 0, 40, 2, 0],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Lime',
       'Serving Size': '1 medium (67 g/2.4 oz)',
       'data': [20, 0, 0, 0, 0, 0, 75, 2, 7, 2, 2, 8, 0, 0, 0, 35, 0, 0],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Nectarine',
       'Serving Size': '1 medium (140 g/5.0 oz)',
       'data': [60, 5, 0.5, 1, 0, 0, 250, 7, 15, 5, 2, 8, 11, 1, 8, 15, 0, 2],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Orange',
       'Serving Size': '1 medium (154 g/5.5 oz)',
       'data': [80, 0, 0, 0, 0, 0, 250, 7, 19, 6, 3, 12, 14, 1, 2, 130, 6, 0],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Peach',
       'Serving Size': '1 medium (147 g/5.3 oz)',
       'data': [60, 0, 0.5, 1, 0, 0, 230, 7, 15, 5, 2, 8, 13, 1, 6, 15, 0, 2],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Pear',
       'Serving Size': '1 medium (166 g/5.9 oz)',
       'data': [100, 0, 0, 0, 0, 0, 190, 5, 26, 9, 6, 24, 16, 1, 0, 10, 2, 0],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Pineapple',
       'Serving Size': '2 slices, 3" diameter, 3/4" thick (112 g/4 oz)',
       'data': [50, 0, 0, 0, 10, 0, 120, 3, 13, 4, 1, 4, 10, 1, 2, 50, 2, 2],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Plum',
       'Serving Size': '2 medium (151 g/5.4 oz)',
       'data': [70, 0, 0, 0, 0, 0, 230, 7, 19, 6, 2, 8, 16, 1, 8, 10, 0, 2],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Strawberry',
       'Serving Size': '8 medium (147 g/5.3 oz)',
       'data': [50, 0, 0, 0, 0, 0, 170, 5, 11, 4, 2, 8, 8, 1, 0, 160, 2, 2],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Cherry',
       'Serving Size': '21 cherries; 1 cup (140 g/5.0 oz)',
       'data': [100, 0, 0, 0, 0, 0, 350, 10, 26, 9, 1, 4, 16, 1, 2, 15, 2, 2],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Tangerine',
       'Serving Size': '1 medium (109 g/3.9 oz)',
       'data': [50, 0, 0, 0, 0, 0, 160, 5, 13, 4, 2, 8, 9, 1, 6, 45, 4, 0],
-      'is_selected': False},
+      'ksel': SelectionTool(False)},
      {'name':'Watermelon',
       'Serving Size': '1/18 medium melon; 2 cups diced pieces (280 g/10.0 oz)',
       'data': [80, 0, 0, 0, 0, 0, 270, 8, 21, 7, 1, 4, 20, 1, 30, 25, 2, 4],
-      'is_selected': False}]
+      'ksel': SelectionTool(False)}]
 
 
 fruit_data_attributes = ['(gram weight/ ounce weight)',
@@ -196,7 +205,7 @@ for fruit_record in fruit_data_list_of_dicts:
     fruit_data[fruit_record['name']] = \
             dict({'name': fruit_record['name'],
                   'Serving Size': fruit_record['Serving Size'],
-                  'is_selected': fruit_record['is_selected']},
+                  'ksel': SelectionTool(False)},
             **dict(list(zip(list(attributes_and_units.keys()),
                             fruit_record['data']))))
 
@@ -206,7 +215,6 @@ class CategoryItem(SelectableDataItem):
         super(CategoryItem, self).__init__(**kwargs)
         self.name = kwargs.get('name', '')
         self.fruits = kwargs.get('fruits', [])
-        self.is_selected = kwargs.get('is_selected', False)
 
 
 class FruitItem(SelectableDataItem):
@@ -215,12 +223,11 @@ class FruitItem(SelectableDataItem):
         self.name = kwargs.get('name', '')
         self.serving_size = kwargs.get('Serving Size', '')
         self.data = kwargs.get('data', [])
-        self.is_selected = kwargs.get('is_selected', False)
 
 
 def reset_to_defaults(db_dict):
     for key in db_dict:
-        db_dict[key]['is_selected'] = False
+        db_dict[key]['ksel'].deselect()
 
 category_data_items = \
     [CategoryItem(**fruit_categories[c]) for c in sorted(fruit_categories)]
@@ -259,11 +266,9 @@ Builder.load_string('''
     index: ctx.index
     size_hint_y: ctx.size_hint_y
     height: ctx.height
-    is_selected: ctx.is_selected
     ListItemButton:
         index: ctx.index
         text: ctx.text
-        is_selected: ctx.is_selected
 ''')
 
 Builder.load_string('''
@@ -274,8 +279,50 @@ Builder.load_string('''
         text: ctx.text
 ''')
 
+##################################
+#  Phonetic Alphabet Example Code
 
-class AdaptersTestCase(unittest.TestCase):
+
+class KeyedListItemButton(ListItemButton):
+
+    key = StringProperty('')
+
+    def __init__(self, **kwargs):
+        super(KeyedListItemButton, self).__init__(**kwargs)
+
+
+class CustomDataItem(SelectableDataItem):
+
+    def __init__(self, **kwargs):
+        super(CustomDataItem, self).__init__(**kwargs)
+        self.text = kwargs.get('text', '')
+
+
+# NATO alphabet words
+phonetic_string_data = [
+    'Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf',
+    'Hotel', 'India', 'Juliet', 'Kilo', 'Lima', 'Mike', 'November',
+    'Oscar', 'Papa', 'Quebec', 'Romeo', 'Sierra', 'Tango', 'Uniform',
+    'Victor', 'Whiskey', 'X-ray', 'Yankee', 'Zulu']
+
+phonetic_string_data_subset = [
+    'Delta', 'Oscar', 'Golf', 'Sierra',
+    'Alpha', 'November', 'Delta',
+    'Charlie', 'Alpha', 'Tango', 'Sierra']
+
+
+class PhoneticAlphabetAdapter(ListAdapter):
+
+    object_data = ListProperty([])
+
+    def create_list_item_obj(self):
+        return CustomDataItem(text=choice(self.nato_alphabet_words))
+
+    def create_list_item_obj_list(self, n):
+        return [CustomDataItem(text=choice(self.nato_alphabet_words))] * n
+
+
+class FruitAdaptersTestCase(unittest.TestCase):
 
     def setUp(self):
         self.args_converter = lambda row_index, rec: {'text': rec['name'],
@@ -283,21 +330,20 @@ class AdaptersTestCase(unittest.TestCase):
                                                       'height': 25}
 
         self.integers_dict = \
-         {str(i): {'text': str(i), 'is_selected': False} for i in range(100)}
+         {str(i): {'text': str(i), 'ksel': SelectionTool(False)} for i in range(100)}
 
         # The third of the four cls_dict items has no kwargs nor text, so
         # rec['text'] will be set for it. Likewise, the fifth item has kwargs,
         # but it has no 'text' key/value, so should receive the same treatment.
         self.composite_args_converter = \
-            lambda row_index, rec: \
+            lambda row_index, rec, key: \
                 {'text': rec['text'],
                  'size_hint_y': None,
                  'height': 25,
                  'cls_dicts': [{'cls': ListItemButton,
                                 'kwargs': {'text': rec['text']}},
-                               {'cls': ListItemLabel,
-                                'kwargs': {'text': "#-{0}".format(rec['text']),
-                                           'is_representing_cls': True}},
+                               {'cls': Label,
+                                'kwargs': {'text': "#-{0}".format(rec['text'])}},
                                {'cls': ListItemButton},
                                {'cls': ListItemButton,
                                 'kwargs': {'some key': 'some value'}},
@@ -306,15 +352,8 @@ class AdaptersTestCase(unittest.TestCase):
 
         reset_to_defaults(fruit_data)
 
-    @raises(Exception)
-    def test_instantiating_an_adapter_with_neither_cls_nor_template(self):
-        def dummy_converter():
-            pass
-
-        fruit_categories_list_adapter = \
-            Adapter(data='cat',
-                    args_converter=dummy_converter)
-
+    # Use this when the test function itself is expected to raise an exception.
+    #@raises(Exception)
     def test_instantiating_an_adapter_with_neither_cls_nor_template(self):
         def dummy_converter():
             pass
@@ -352,6 +391,8 @@ class AdaptersTestCase(unittest.TestCase):
                         cls=None,
                         template=None)
 
+            self.assertIsNotNone(fruit_categories_list_adapter)
+
         msg = 'adapter: cannot use cls and template at the same time'
         self.assertEqual(str(cm.exception), msg)
 
@@ -359,6 +400,8 @@ class AdaptersTestCase(unittest.TestCase):
         # with no data
         with self.assertRaises(Exception) as cm:
             adapter = Adapter()
+
+            self.assertIsNotNone(adapter)
 
         msg = 'adapter: input must include data argument'
         self.assertEqual(str(cm.exception), msg)
@@ -371,6 +414,8 @@ class AdaptersTestCase(unittest.TestCase):
                               args_converter=list_item_args_converter,
                               template='CustomListItem',
                               cls=ListItemButton)
+
+            self.assertIsNotNone(adapter)
 
         msg = 'adapter: cannot use cls and template at the same time'
         self.assertEqual(str(cm.exception), msg)
@@ -404,29 +449,6 @@ class AdaptersTestCase(unittest.TestCase):
         adapter_2 = Adapter(**kwargs_2)
         self.assertEqual(adapter_2.args_converter, list_item_args_converter)
 
-        adapter = Adapter(data='cat', cls=Label)
-        self.assertEqual(adapter.get_data_item(), 'cat')
-
-        adapter = Adapter(data=None, cls=Label)
-        self.assertEqual(adapter.get_data_item(), None)
-
-    def test_instantiating_adapter_bind_triggers_to_view(self):
-        class PetListener(object):
-            def __init__(self, pet):
-                self.current_pet = pet
-
-            def callback(self, *args):
-                self.current_pet = args[1]
-
-        pet_listener = PetListener('cat')
-
-        adapter = Adapter(data='cat', cls=Label)
-        adapter.bind_triggers_to_view(pet_listener.callback)
-
-        self.assertEqual(pet_listener.current_pet, 'cat')
-        adapter.data = 'dog'
-        self.assertEqual(pet_listener.current_pet, 'dog')
-
     def test_simple_list_adapter_for_exceptions(self):
         # with no data
         with self.assertRaises(Exception) as cm:
@@ -438,6 +460,8 @@ class AdaptersTestCase(unittest.TestCase):
         # with data of wrong type
         with self.assertRaises(Exception) as cm:
             simple_list_adapter = SimpleListAdapter(data=dict)
+
+            self.assertIsNotNone(simple_list_adapter)
 
         msg = 'list adapter: data must be a tuple or list'
         self.assertEqual(str(cm.exception), msg)
@@ -452,6 +476,8 @@ class AdaptersTestCase(unittest.TestCase):
                 SimpleListAdapter(data=['cat', 'dog'],
                                   args_converter=list_item_args_converter,
                                   template='CustomSimpleListItem')
+
+        self.assertIsNotNone(simple_list_adapter)
 
         view = simple_list_adapter.get_view(0)
         self.assertEqual(view.__class__.__name__, 'CustomSimpleListItem')
@@ -507,7 +533,7 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertIsNone(view)
 
     def test_list_adapter_selection_mode_single(self):
-        fruit_data_items[0].is_selected = True
+        fruit_data_items[0].ksel.select()
 
         list_item_args_converter = \
                 lambda row_index, selectable: {'text': selectable.name,
@@ -517,7 +543,8 @@ class AdaptersTestCase(unittest.TestCase):
         list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=list_item_args_converter,
                                    selection_mode='single',
-                                   propagate_selection_to_data=True,
+                                   selection_scheme=selection_schemes.VIEW_DRIVEN,
+                                   selection_update_method=selection_update_methods.SET,
                                    allow_empty_selection=False,
                                    cls=ListItemButton)
 
@@ -535,19 +562,19 @@ class AdaptersTestCase(unittest.TestCase):
         apple_data_item = list_adapter.get_data_item(0)
         self.assertTrue(isinstance(apple_data_item, FruitItem))
         self.assertTrue(isinstance(apple_data_item, SelectableDataItem))
-        self.assertTrue(apple_data_item.is_selected)
+        self.assertTrue(apple_data_item.ksel.is_selected())
 
         view = list_adapter.get_view(0)
         self.assertTrue(isinstance(view, ListItemButton))
-        self.assertTrue(view.is_selected)
+        self.assertTrue(view.ksel.is_selected())
 
     def test_list_adapter_with_dict_data(self):
         alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
         letters_dicts = \
-           [{'text': l, 'is_selected': False} for l in alphabet]
+           [{'text': l, 'ksel': SelectionTool(False)} for l in alphabet]
 
-        letters_dicts[0]['is_selected'] = True
+        letters_dicts[0]['ksel'].select()
 
         list_item_args_converter = lambda row_index, rec: {'text': rec['text'],
                                                            'size_hint_y': None,
@@ -556,7 +583,8 @@ class AdaptersTestCase(unittest.TestCase):
         list_adapter = ListAdapter(data=letters_dicts,
                                    args_converter=list_item_args_converter,
                                    selection_mode='single',
-                                   propagate_selection_to_data=True,
+                                   selection_scheme=selection_schemes.VIEW_DRIVEN,
+                                   selection_update_method=selection_update_methods.SET,
                                    allow_empty_selection=False,
                                    cls=ListItemButton)
 
@@ -567,18 +595,18 @@ class AdaptersTestCase(unittest.TestCase):
 
         apple_data_item = list_adapter.get_data_item(0)
         self.assertTrue(isinstance(apple_data_item, dict))
-        self.assertTrue(apple_data_item['is_selected'])
+        self.assertTrue(apple_data_item['ksel'].is_selected())
 
         view = list_adapter.get_view(0)
         self.assertTrue(isinstance(view, ListItemButton))
-        self.assertTrue(view.is_selected)
+        self.assertTrue(view.ksel.is_selected())
 
     def test_list_adapter_with_custom_data_item_class(self):
 
         class DataItem(object):
-            def __init__(self, text='', is_selected=False):
+            def __init__(self, text=''):
                 self.text = text
-                self.is_selected = is_selected
+                self.ksel = SelectionTool(False)
 
         data_items = []
         data_items.append(DataItem(text='cat'))
@@ -592,38 +620,44 @@ class AdaptersTestCase(unittest.TestCase):
         list_adapter = ListAdapter(data=data_items,
                                    args_converter=list_item_args_converter,
                                    selection_mode='single',
-                                   propagate_selection_to_data=True,
+                                   selection_scheme=selection_schemes.VIEW_DRIVEN,
+                                   selection_update_method=selection_update_methods.SET,
                                    allow_empty_selection=False,
                                    cls=ListItemButton)
 
         data_item = list_adapter.get_data_item(0)
         self.assertTrue(isinstance(data_item, DataItem))
-        self.assertTrue(data_item.is_selected)
+        self.assertTrue(data_item.ksel.is_selected())
 
         view = list_adapter.get_view(0)
         self.assertTrue(isinstance(view, ListItemButton))
-        self.assertTrue(view.is_selected)
+        self.assertTrue(view.ksel.is_selected())
 
     def test_list_adapter_with_widget_as_data_item_class(self):
 
         # Use a widget as data item.
         class DataItem(Label):
-            is_selected = BooleanProperty(True)
             text = StringProperty('')
 
+            def __init__(self, text):
+                self.text = text
+                self.ksel = SelectionTool(False)
+
         class DataItemWithMethod(DataItem):
-            _is_selected = BooleanProperty(True)
+
+            def __init__(self, text):
+                self.text = text
 
             def is_selected(self):
-                return self._is_selected
+                return self.ksel.is_selected()
 
-        class BadDataItem(Label):
+        class PlainDataItem(Label):
             text = StringProperty('')
 
         data_items = []
         data_items.append(DataItem(text='cat'))
         data_items.append(DataItemWithMethod(text='dog'))
-        data_items.append(BadDataItem(text='frog'))
+        data_items.append(PlainDataItem(text='frog'))
 
         list_item_args_converter = lambda row_index, obj: {'text': obj.text,
                                                            'size_hint_y': None,
@@ -632,8 +666,9 @@ class AdaptersTestCase(unittest.TestCase):
         list_adapter = ListAdapter(data=data_items,
                                    args_converter=list_item_args_converter,
                                    selection_mode='single',
-                                   propagate_selection_to_data=True,
-                                   allow_empty_selection=False,
+                                   selection_scheme=selection_schemes.VIEW_DRIVEN,
+                                   selection_update_method=selection_update_methods.SET,
+                                   allow_empty_selection=True,
                                    cls=ListItemButton)
 
         self.assertEqual(list_adapter.cls, ListItemButton)
@@ -643,21 +678,23 @@ class AdaptersTestCase(unittest.TestCase):
 
         data_item = list_adapter.get_data_item(0)
         self.assertTrue(isinstance(data_item, DataItem))
-        self.assertTrue(data_item.is_selected)
+        self.assertFalse(data_item.ksel.is_selected())
 
         view = list_adapter.get_view(0)
         self.assertTrue(isinstance(view, ListItemButton))
-        self.assertTrue(view.is_selected)
+        self.assertFalse(view.ksel.is_selected())
+
+        data_item = list_adapter.get_data_item(1)
+        self.assertTrue(isinstance(data_item, DataItemWithMethod))
+        self.assertFalse(view.ksel.is_selected())
 
         view = list_adapter.get_view(1)
         self.assertTrue(isinstance(view, ListItemButton))
-        self.assertTrue(view.is_selected)
+        self.assertFalse(view.ksel.is_selected())
 
-        with self.assertRaises(Exception) as cm:
-            view = list_adapter.get_view(2)
-
-        msg = "ListAdapter: unselectable data item for 2"
-        self.assertEqual(str(cm.exception), msg)
+        view = list_adapter.get_view(2)
+        self.assertTrue(isinstance(view, ListItemButton))
+        self.assertTrue(view.text == 'frog')
 
     def test_instantiating_list_adapter_no_args_converter(self):
         list_adapter = \
@@ -755,7 +792,7 @@ class AdaptersTestCase(unittest.TestCase):
 
     def test_list_adapter_with_dicts_as_data(self):
         bare_minimum_dicts = \
-            [{'text': str(i), 'is_selected': False} for i in range(100)]
+            [{'text': str(i), 'ksel': SelectionTool(False)} for i in range(100)]
 
         args_converter = lambda row_index, rec: {'text': rec['text'],
                                                  'size_hint_y': None,
@@ -780,13 +817,9 @@ class AdaptersTestCase(unittest.TestCase):
 
         self.assertEqual(list_adapter.get_count(), 100)
 
-        # Bad index:
-        self.assertIsNone(list_adapter.get_data_item(-1))
-        self.assertIsNone(list_adapter.get_data_item(101))
-
     def test_list_adapter_with_dicts_as_data_multiple_selection(self):
         bare_minimum_dicts = \
-            [{'text': str(i), 'is_selected': False} for i in range(100)]
+            [{'text': str(i), 'ksel': SelectionTool(False)} for i in range(100)]
 
         args_converter = lambda row_index, rec: {'text': rec['text'],
                                                  'size_hint_y': None,
@@ -848,7 +881,7 @@ class AdaptersTestCase(unittest.TestCase):
     def test_instantiating_list_adapters_with_both_cls_and_template(self):
         list_item_args_converter = \
                 lambda row_index, rec: {'text': rec['text'],
-                                        'is_selected': rec['is_selected'],
+                                        'ksel': SelectionTool(rec['ksel'].is_selected()),
                                         'size_hint_y': None,
                                         'height': 25}
 
@@ -872,6 +905,8 @@ class AdaptersTestCase(unittest.TestCase):
                             allow_empty_selection=False,
                             template='CustomListItem',
                             cls=ListItemButton)
+
+            self.assertIsNotNone(fruit_categories_list_adapter)
 
         msg = 'adapter: cannot use cls and template at the same time'
         self.assertEqual(str(cm.exception), msg)
@@ -897,7 +932,7 @@ class AdaptersTestCase(unittest.TestCase):
         # Now with a template.
         list_item_args_converter = \
             lambda row_index, item: {'text': item.name,
-                                     'is_selected': item.is_selected,
+                                     'ksel': SelectionTool(item.ksel.is_selected()),
                                      'size_hint_y': None,
                                      'height': 25}
 
@@ -938,7 +973,7 @@ class AdaptersTestCase(unittest.TestCase):
 
         alphabet_adapter.handle_selection(a_view)
         self.assertEqual(len(alphabet_adapter.selection), 1)
-        self.assertTrue(a_view.is_selected)
+        self.assertTrue(a_view.ksel.is_selected())
 
         alphabet_adapter.trim_right_of_sel()
         self.assertEqual(len(alphabet_adapter.data), 1)
@@ -958,7 +993,7 @@ class AdaptersTestCase(unittest.TestCase):
 
         alphabet_adapter.handle_selection(z_view)
         self.assertEqual(len(alphabet_adapter.selection), 1)
-        self.assertTrue(z_view.is_selected)
+        self.assertTrue(z_view.ksel.is_selected())
 
         alphabet_adapter.trim_left_of_sel()
         self.assertEqual(len(alphabet_adapter.data), 1)
@@ -1029,7 +1064,7 @@ class AdaptersTestCase(unittest.TestCase):
                         allow_empty_selection=True,
                         cls=ListItemButton)
 
-        list_adapter.bind_triggers_to_view(pet_listener.callback)
+        list_adapter.bind(data=pet_listener.callback)
 
         self.assertEqual(pet_listener.current_pet, 'cat')
         dog_data = ['dog']
@@ -1046,16 +1081,17 @@ class AdaptersTestCase(unittest.TestCase):
         item_strings = ["{0}".format(index) for index in range(100)]
 
         # And now the list adapter, constructed with the item_strings as
-        # the data, a dict to add the required is_selected boolean onto
+        # the data, a dict to add the required ksel onto
         # data records, and the args_converter above that will operate one
         # each item in the data to produce list item view instances from the
         # CompositeListItem class.
-        dict_adapter = DictAdapter(sorted_keys=item_strings,
-                                   data=self.integers_dict,
-                                   args_converter=self.composite_args_converter,
-                                   selection_mode='single',
-                                   allow_empty_selection=False,
-                                   cls=CompositeListItem)
+        dict_adapter = DictAdapter(
+                sorted_keys=item_strings,
+                data=self.integers_dict,
+                args_converter=self.composite_args_converter,
+                selection_mode='single',
+                allow_empty_selection=False,
+                cls=CompositeListItem)
 
         self.assertEqual(len(dict_adapter.selection), 1)
 
@@ -1066,11 +1102,12 @@ class AdaptersTestCase(unittest.TestCase):
 
     # test that sorted_keys is built, if not provided.
     def test_dict_adapter_no_sorted_keys(self):
-        dict_adapter = DictAdapter(data=self.integers_dict,
-                                   args_converter=self.composite_args_converter,
-                                   selection_mode='single',
-                                   allow_empty_selection=False,
-                                   cls=CompositeListItem)
+        dict_adapter = DictAdapter(
+                data=self.integers_dict,
+                args_converter=self.composite_args_converter,
+                selection_mode='single',
+                allow_empty_selection=False,
+                cls=CompositeListItem)
 
         self.assertEqual(len(dict_adapter.sorted_keys), 100)
 
@@ -1091,10 +1128,12 @@ class AdaptersTestCase(unittest.TestCase):
                     allow_empty_selection=False,
                     cls=CompositeListItem)
 
+            self.assertIsNotNone(dict_adapter)
+
         msg = 'DictAdapter: sorted_keys must be tuple or list'
         self.assertEqual(str(cm.exception), msg)
 
-    def test_instantiating_dict_adapter_bind_triggers_to_view(self):
+    def test_instantiating_dict_adapter_bind(self):
         class PetListener(object):
             def __init__(self, pets):
                 self.current_pets = pets
@@ -1105,20 +1144,22 @@ class AdaptersTestCase(unittest.TestCase):
         pet_listener = PetListener(['cat'])
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['text'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['text'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         dict_adapter = DictAdapter(sorted_keys=['cat'],
-                data={'cat': {'text': 'cat', 'is_selected': False},
-                      'dog': {'text': 'dog', 'is_selected': False}},
+                data={'cat': {'text': 'cat', 'ksel': SelectionTool(False)},
+                      'dog': {'text': 'dog', 'ksel': SelectionTool(False)}},
                 args_converter=list_item_args_converter,
-                propagate_selection_to_data=True,
+                selection_scheme=selection_schemes.VIEW_DRIVEN,
+                selection_update_method=selection_update_methods.SET,
                 selection_mode='single',
                 allow_empty_selection=False,
                 cls=ListItemButton)
 
-        dict_adapter.bind_triggers_to_view(pet_listener.callback)
+        dict_adapter.bind(data=pet_listener.callback)
+        dict_adapter.bind(sorted_keys=pet_listener.callback)
 
         self.assertEqual(pet_listener.current_pets, ['cat'])
         dict_adapter.sorted_keys = ['dog']
@@ -1137,31 +1178,34 @@ class AdaptersTestCase(unittest.TestCase):
         pet_listener = PetListener('cat')
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['text'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['text'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         dict_adapter = DictAdapter(
                 sorted_keys=['cat'],
-                data={'cat': {'text': 'cat', 'is_selected': False}},
+                data={'cat': {'text': 'cat', 'ksel': SelectionTool(False)}},
                 args_converter=list_item_args_converter,
-                propagate_selection_to_data=True,
+                selection_scheme=selection_schemes.VIEW_DRIVEN,
+                selection_update_method=selection_update_methods.SET,
                 selection_mode='single',
                 allow_empty_selection=False,
                 cls=ListItemButton)
 
-        dict_adapter.bind_triggers_to_view(pet_listener.callback)
+        dict_adapter.bind(data=pet_listener.callback)
+        dict_adapter.bind(sorted_keys=pet_listener.callback)
 
         self.assertEqual(pet_listener.current_pet, 'cat')
-        dog_data = {'dog': {'text': 'dog', 'is_selected': False}}
+        dog_data = {'dog': {'text': 'dog', 'ksel': SelectionTool(False)}}
         dict_adapter.data = dog_data
         self.assertEqual(dict_adapter.sorted_keys, ['dog'])
         self.assertEqual(pet_listener.current_pet, dog_data)
-        cat_dog_data = {'cat': {'text': 'cat', 'is_selected': False},
-                        'dog': {'text': 'dog', 'is_selected': False}}
+        cat_dog_data = {'cat': {'text': 'cat', 'ksel': SelectionTool(False)},
+                        'dog': {'text': 'dog', 'ksel': SelectionTool(False)}}
         dict_adapter.data = cat_dog_data
-        # sorted_keys should remain ['dog'], as it still matches data.
-        self.assertEqual(dict_adapter.sorted_keys, ['dog'])
+        # sorted_keys should be reset to data.keys.
+        self.assertTrue('cat' in dict_adapter.sorted_keys)
+        self.assertTrue('dog' in dict_adapter.sorted_keys)
         dict_adapter.sorted_keys = ['cat']
         self.assertEqual(pet_listener.current_pet, ['cat'])
 
@@ -1170,16 +1214,12 @@ class AdaptersTestCase(unittest.TestCase):
         # 1, because get_count() does len(self.sorted_keys).
         self.assertEqual(dict_adapter.get_count(), 1)
 
-        # Bad index:
-        self.assertIsNone(dict_adapter.get_data_item(-1))
-        self.assertIsNone(dict_adapter.get_data_item(2))
-
     def test_dict_adapter_selection_mode_single_without_propagation(self):
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['name'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['name'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         dict_adapter = DictAdapter(sorted_keys=sorted(fruit_data.keys()),
                                    data=fruit_data,
@@ -1206,20 +1246,21 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertTrue(isinstance(apple_view, ListItemButton))
 
         self.assertEqual(len(dict_adapter.selection), 1)
-        self.assertTrue(apple_view.is_selected)
-        self.assertFalse(apple_data_item['is_selected'])
+        self.assertTrue(apple_view.ksel.is_selected())
+        self.assertFalse(apple_data_item['ksel'].is_selected())
 
     def test_dict_adapter_selection_mode_single_with_propagation(self):
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['name'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['name'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         dict_adapter = DictAdapter(sorted_keys=sorted(fruit_data.keys()),
                                    data=fruit_data,
                                    args_converter=list_item_args_converter,
-                                   propagate_selection_to_data=True,
+                                   selection_scheme=selection_schemes.VIEW_DRIVEN,
+                                   selection_update_method=selection_update_methods.SET,
                                    selection_mode='single',
                                    allow_empty_selection=False,
                                    cls=ListItemButton)
@@ -1235,27 +1276,27 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertEqual(dict_adapter.template, None)
 
         apple_data_item = dict_adapter.get_data_item(0)
-        self.assertTrue(isinstance(apple_data_item, dict))
         self.assertEqual(apple_data_item['name'], 'Apple')
 
         apple_view = dict_adapter.get_view(0)
         self.assertTrue(isinstance(apple_view, ListItemButton))
 
         self.assertEqual(len(dict_adapter.selection), 1)
-        self.assertTrue(apple_view.is_selected)
-        self.assertTrue(apple_data_item['is_selected'])
+        self.assertTrue(apple_view.ksel.is_selected())
+        self.assertTrue(apple_data_item['ksel'].is_selected())
 
     def test_dict_adapter_sorted_keys(self):
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['name'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['name'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         dict_adapter = DictAdapter(sorted_keys=sorted(fruit_data.keys()),
                                    data=fruit_data,
                                    args_converter=list_item_args_converter,
-                                   propagate_selection_to_data=True,
+                                   selection_scheme=selection_schemes.VIEW_DRIVEN,
+                                   selection_update_method=selection_update_methods.SET,
                                    selection_mode='single',
                                    allow_empty_selection=False,
                                    cls=ListItemButton)
@@ -1298,19 +1339,19 @@ class AdaptersTestCase(unittest.TestCase):
         alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
         letters_dict = \
-           {l: {'text': l, 'is_selected': False} for l in alphabet}
+           {l: {'text': l, 'ksel': SelectionTool(False)} for l in alphabet}
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['text'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['text'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         letters = [l for l in alphabet]
 
         def sorted_keys_ok(letters_dict_adapter):
             sorted_keys_ok = True
             for key in letters_dict_adapter.sorted_keys:
-                if not key in letters_dict_adapter.data:
+                if key not in letters_dict_adapter.data:
                     sorted_keys_ok = False
                     break
             return sorted_keys_ok
@@ -1331,7 +1372,7 @@ class AdaptersTestCase(unittest.TestCase):
 
         letters_dict_adapter.handle_selection(a_view)
         self.assertEqual(len(letters_dict_adapter.selection), 1)
-        self.assertTrue(a_view.is_selected)
+        self.assertTrue(a_view.ksel.is_selected())
 
         letters_dict_adapter.trim_right_of_sel()
         self.assertEqual(len(letters_dict_adapter.data), 1)
@@ -1354,7 +1395,7 @@ class AdaptersTestCase(unittest.TestCase):
 
         letters_dict_adapter.handle_selection(z_view)
         self.assertEqual(len(letters_dict_adapter.selection), 1)
-        self.assertTrue(z_view.is_selected)
+        self.assertTrue(z_view.ksel.is_selected())
 
         letters_dict_adapter.trim_left_of_sel()
         self.assertEqual(len(letters_dict_adapter.data), 1)
@@ -1408,3 +1449,153 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertEqual(len(letters_dict_adapter.data), 2)
 
         self.assertTrue(sorted_keys_ok(letters_dict_adapter))
+
+
+class OpObservableListOpsTestCase(unittest.TestCase):
+
+    def strings_args_converter(self, row_index, value):
+        return {"text": str(value),
+                "size_hint_y": None,
+                "height": 25}
+
+    def objects_args_converter(self, row_index, obj):
+        return {"text": obj.text,
+                "size_hint_y": None,
+                "height": 25}
+
+    def setUp(self):
+
+        self.list_adapter = ListAdapter(
+                data=phonetic_string_data_subset,
+                cls=ListItemButton,
+                selection_mode='single',
+                allow_empty_selection=False,
+                args_converter=self.strings_args_converter)
+
+    def test_OOL_setitem_op(self):
+        sel_index = self.list_adapter.selection[0].index
+        before_cached_item_view = self.list_adapter.get_view(sel_index)
+        self.list_adapter.data[sel_index] = \
+                choice(phonetic_string_data)
+        after_cached_item_view = self.list_adapter.get_view(sel_index)
+        # The cached_item_view should be a new object.
+        self.assertNotEqual(before_cached_item_view,
+                            after_cached_item_view)
+        # The item should still be selected.
+        self.assertTrue(after_cached_item_view.ksel.is_selected())
+
+    def test_OOL_delitem_op(self):
+        sel_index = self.list_adapter.selection[0].index
+        del self.list_adapter.data[sel_index]
+
+    def test_OOL_setslice_op(self):
+        sel_index = self.list_adapter.selection[0].index
+        self.list_adapter.data[sel_index:sel_index + 3] = \
+                [choice(phonetic_string_data)] * 3
+
+    def test_OOL_delslice_op(self):
+        sel_index = self.list_adapter.selection[0].index
+        del self.list_adapter.data[sel_index:sel_index + 3]
+
+    def test_OOL_append_op(self):
+        self.list_adapter.data.append(
+                choice(phonetic_string_data))
+
+    def test_OOL_remove_op(self):
+        sel_index = self.list_adapter.selection[0].index
+        sel_obj = self.list_adapter.data[sel_index]
+        self.list_adapter.data.remove(sel_obj)
+
+    def test_OOL_insert_op(self):
+        self.list_adapter.data.insert(
+                self.list_adapter.selection[0].index,
+                choice(phonetic_string_data))
+
+    def test_OOL_pop_op(self):
+        self.list_adapter.data.pop()
+
+    def test_OOL_pop_i_op(self):
+        sel_index = self.list_adapter.selection[0].index
+        self.list_adapter.data.pop(sel_index)
+
+    def test_OOL_extend_op(self):
+        self.list_adapter.data.extend(
+                [choice(phonetic_string_data)] * 3)
+
+    def test_OOL_sort_op(self):
+        self.list_adapter.data.sort()
+
+    def test_OOL_reverse_op(self):
+        self.list_adapter.data.reverse()
+
+
+class OpObservableDictOpsTestCase(unittest.TestCase):
+
+    def dict_args_converter(self, row_index, rec, key):
+        return {"text": "{0} : {1}".format(rec['key'], rec['value']),
+                "key": rec['key'],
+                "size_hint_y": None,
+                "height": 25}
+
+    def setUp(self):
+        data = {k: {'key': k, 'value': k} for k in phonetic_string_data}
+
+        self.dict_adapter = DictAdapter(
+                data=data,
+                cls=KeyedListItemButton,
+                selection_mode='single',
+                allow_empty_selection=False,
+                args_converter=self.dict_args_converter)
+
+    def test_OOD_setitem_set_op(self):
+        sel_key = self.dict_adapter.selection[0].key
+        new_value = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+        self.dict_adapter.data[sel_key] = {'key': sel_key,
+                                           'value': new_value}
+
+    def test_OOD_setitem_add_op(self):
+        k = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+        self.dict_adapter.data[k] = {'key': k, 'value': k}
+
+    def test_OOD_setitem_del_op(self):
+        sel_index = self.dict_adapter.selection[0].index
+        sel_key = self.dict_adapter.sorted_keys[sel_index]
+        self.dict_adapter.data[sel_key] = None
+
+    def test_OOD_delitem_op(self):
+        sel_index = self.dict_adapter.selection[0].index
+        sel_key = self.dict_adapter.sorted_keys[sel_index]
+        del self.dict_adapter.data[sel_key]
+
+    def test_OOD_clear_del_op(self):
+        self.dict_adapter.data.clear()
+
+    def test_OOD_pop_op(self):
+        sel_index = self.dict_adapter.selection[0].index
+        sel_key = self.dict_adapter.sorted_keys[sel_index]
+        self.dict_adapter.data.pop(sel_key)
+
+    def test_OOD_popitem_op(self):
+        self.dict_adapter.data.popitem()
+
+    def test_OOD_setdefault_op(self):
+        k = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+        self.dict_adapter.data.setdefault(k, {'key': k, 'value': k})
+
+    def test_OOD_update_op(self):
+        k1 = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+        k2 = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+        k3 = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+
+        self.dict_adapter.data.update(
+                {k1: {'key': k1, 'value': k1},
+                 k2: {'key': k2, 'value': k2},
+                 k3: {'key': k3, 'value': k3}})
+
+    def test_dict_adapter_insert_op(self):
+        sel_index = self.dict_adapter.selection[0].index
+        key = ''.join(sample('abcdefghijklmnopqrstuvwxyz', 10))
+        self.dict_adapter.insert(sel_index, key, {'key': key, 'value': key})
+
+    def test_OOD_sort_op(self):
+        self.dict_adapter.sorted_keys.sort(key=lambda k: k.lower())

@@ -19,9 +19,9 @@ class MasterDetailView(GridLayout):
         super(MasterDetailView, self).__init__(**kwargs)
 
         list_item_args_converter = \
-                lambda row_index, rec: {'text': rec['name'],
-                                        'size_hint_y': None,
-                                        'height': 25}
+                lambda row_index, rec, key: {'text': rec['name'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
         dict_adapter = DictAdapter(sorted_keys=sorted(fruit_data.keys()),
                                    data=fruit_data,
@@ -39,7 +39,7 @@ class MasterDetailView(GridLayout):
                 fruit_name=dict_adapter.selection[0].text,
                 size_hint=(.7, 1.0))
 
-        dict_adapter.bind(on_selection_change=detail_view.fruit_changed)
+        dict_adapter.bind(selection=detail_view.fruit_changed)
         self.add_widget(detail_view)
 
 

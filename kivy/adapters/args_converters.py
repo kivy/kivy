@@ -6,8 +6,8 @@ List Item View Argument Converters
 
 
 The default list item args converter for list adapters is a function (shown
-below) that takes a row index and a string. It returns a dict with the string as
-the *text* item, along with two properties suited for simple text items with
+below) that takes a row index and a string. It returns a dict with the string
+as the *text* item, along with two properties suited for simple text items with
 a height of 25.
 
 Argument converters may be normal functions or, as in the case of the default
