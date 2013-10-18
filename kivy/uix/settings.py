@@ -3,11 +3,14 @@
 
 .. versionadded:: 1.0.7
 
-This module is a complete and extensible framework for building a Settings
-interface in your application. The interface consists of a sidebar with a list
-of panels (on the left) and the selected panel (right).
+This module is a complete and extensible framework for building a
+Settings interface in your application. By default the interface uses
+a :class:`SettingsWithSpinner`, which consists of a
+:class:`~kivy.uix.spinner.Spinner` (top) to switch between individual
+settings panels (bottom). See :ref:`differentlayouts` for some
+alternatives.
 
-.. image:: images/settings_kivy.jpg
+.. image:: images/settingswithspinner_kivy.jpg
     :align: center
 
 :class:`SettingsPanel` represents a group of configurable options. The
@@ -98,12 +101,15 @@ To load the JSON example to a :class:`Settings` instance, use the
     # then use the s as a widget...
 
 
+.. _differentlayouts:
+
 Different panel layouts
 -----------------------
 
 A kivy :class:`~kivy.app.App` can automatically create and display a
-:class:`Settings` instance. See the :class:`~kivy.app.App`
-documentation for details on how to set the settings class.
+:class:`Settings` instance. See the :attr:`~kivy.app.App.settings_cls`
+documentation for details on how to choose which settings class to
+display.
 
 Several pre-built settings widgets are available. All except
 :class:`SettingsWithNoMenu` include close buttons triggering the
