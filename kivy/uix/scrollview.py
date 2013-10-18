@@ -320,6 +320,10 @@ class ScrollView(StencilView):
     to content.
     '''
 
+    def on_scroll_type(self, instance, value):
+        self.bar_width = max('9dp', self.bar_width)\
+            if value[0] == 'b' else self.bar_width
+
     # private, for internal use only
 
     _viewport = ObjectProperty(None, allownone=True)
@@ -716,7 +720,7 @@ if __name__ == '__main__':
                 btn = Button(text=str(i), size_hint=(None, None),
                              size=(200, 100))
                 layout2.add_widget(btn)
-            scrollview2 = ScrollView(bar_width='9dp', scroll_type='bars')
+            scrollview2 = ScrollView(scroll_type='bars')
             scrollview2.add_widget(layout2)
 
             root = GridLayout(cols=2)
