@@ -98,6 +98,16 @@ virtual keyboard directly, but prefer to use the best method available on
 the platform. Check the :meth:`~kivy.core.window.WindowBase.request_keyboard`
 method in the :doc:`api-kivy.core.window`.
 
+If you want a specific layout with your request keyboard, you must write
+something like this (from 1.8.0, numeric.json is in the same directory as your
+main.py)::
+
+    keyboard = Window.request_keyboard(
+        self._keyboard_close, self)
+    if keyboard.widget:
+        vkeyboard = self._keyboard.widget
+        vkeyboard.layout = 'numeric.json'
+
 '''
 
 __all__ = ('VKeyboard', )
@@ -115,7 +125,7 @@ from kivy.core.image import Image
 from kivy.resources import resource_find
 from kivy.clock import Clock
 
-from os.path import join, splitext
+from os.path import join, splitext, basename
 from os import listdir
 from json import loads
 
@@ -156,6 +166,11 @@ class VKeyboard(Scatter):
     layout = StringProperty(None)
     '''Layout to use for the VKeyboard. By default, it will be the layout set in
     the configuration, according to the `keyboard_layout` in `[kivy]` section.
+
+    .. versionchanged:: 1.8.0
+
+        If layout is a .json filename, it will loaded and added to the
+        available_layouts.
 
     :data:`layout` is a :class:`~kivy.properties.StringProperty`, default to
     None.
@@ -366,10 +381,22 @@ class VKeyboard(Scatter):
             self.refresh(False)
 
     def _load_layout(self, *largs):
+        # ensure new layouts are loaded first
+        if self._trigger_load_layouts.is_triggered:
+            self._load_layouts()
+            self._trigger_load_layouts.cancel()
+
+        value = self.layout
         available_layouts = self.available_layouts
+
+        # it's a filename, try to load it directly
+        if self.layout[-5:] == '.json':
+            if value not in available_layouts:
+                fn = resource_find(self.layout)
+                self._load_layout_fn(fn, self.layout)
+
         if not available_layouts:
             return
-        value = self.layout
         if value not in available_layouts and value != 'qwerty':
             Logger.error(
                 'Vkeyboard: <%s> keyboard layout mentioned in '
@@ -381,17 +408,19 @@ class VKeyboard(Scatter):
     def _load_layouts(self, *largs):
         # first load available layouts from json files
         # XXX fix to be able to reload layout when path is changing
-        available_layouts = self.available_layouts
         value = self.layout_path
-        for fname in listdir(value):
-            basename, extension = splitext(fname)
-            if extension != '.json':
-                continue
-            filename = join(value, fname)
-            with open(filename, 'r') as fd:
-                json_content = fd.read()
-                layout = loads(json_content)
-            available_layouts[basename] = layout
+        for fn in listdir(value):
+            self._load_layout_fn(join(value, fn),
+                    basename(splitext(fn)[0]))
+
+    def _load_layout_fn(self, fn, name):
+        available_layouts = self.available_layouts
+        if fn[-5:] != '.json':
+            return
+        with open(fn, 'r') as fd:
+            json_content = fd.read()
+            layout = loads(json_content)
+        available_layouts[name] = layout
 
     def setup_mode(self, *largs):
         '''Call this method when you want to readjust the keyboard according to
