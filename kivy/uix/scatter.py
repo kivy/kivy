@@ -254,7 +254,18 @@ class Scatter(Widget):
         p1 = Vector(*self.to_parent(0, 0))
         p2 = Vector(*self.to_parent(1, 0))
         scale = p1.distance(p2)
-        return float(scale)
+
+        # XXX float calculation are not accurate, and then, scale can be throwed
+        # again even with only the position change. So to prevent anything wrong
+        # with scale, just avoid to dispatch it if the scale "visually" didn't
+        # change. #947
+        # Remove this ugly hack when we'll be Python 3 only.
+        if hasattr(self, '_scale_p'):
+            if str(scale) == str(self._scale_p):
+                return self._scale_p
+
+        self._scale_p = scale
+        return scale
 
     def _set_scale(self, scale):
         rescale = scale * 1.0 / self.scale
