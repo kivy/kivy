@@ -359,14 +359,15 @@ Using a Custom Item View Class
 ------------------------------
 
 The data used in an adapter can be any of the normal Python types, such as
-strings, class instances and dictionaries. They can also be custom classes, as 
-shown below. It is up to the programmer to
-assure that the args_converter performs the appropriate conversions.
+strings, class instances and dictionaries. They can also be custom classes, as
+shown below. It is up to the programmer to assure that the args_converter
+performs the appropriate conversions.
 
 Here we make a simple DataItem class that has the required text and
 is_selected properties::
 
     from kivy.uix.listview import ListItemButton
+    from kivy.adapters.listadapter import ListAdapter
 
     class DataItem(object):
         def __init__(self, text='', is_selected=False):
