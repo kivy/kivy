@@ -33,23 +33,21 @@ module::
 
     Clock.schedule_interval(partial(my_callback, 'my value', 'my key'), 0.5)
 
-Conversely, if you want to schedule a function that doesn't accept the dt 
+Conversely, if you want to schedule a function that doesn't accept the dt
 argument, you can use `lambda
-<http://docs.python.org/2/reference/expressions.html#lambda>`_ expression 
+<http://docs.python.org/2/reference/expressions.html#lambda>`_ expression
 to write a short function that does accept dt.  For Example::
 
     def no_args_func():
         print("I accept no arguments, so don't schedule me in the clock")
-    
+
     Clock.schedule_once(lambda dt: no_args_func(), 0.5)
-    
+
 .. note::
 
-    You cannot unschedule an anonymous function unless you keep a reference to 
+    You cannot unschedule an anonymous function unless you keep a reference to
     it.  It's better to add \*args to your function definition so that it can be
     called with or without the clock.
-    
-    
 
 .. important::
 
@@ -245,7 +243,7 @@ class ClockEvent(object):
             self._is_triggered = True
             events = self.clock._events
             cid = self.cid
-            if not cid in events:
+            if cid not in events:
                 events[cid] = []
             events[cid].append(self)
             # update starttime
@@ -264,6 +262,14 @@ class ClockEvent(object):
     @property
     def is_triggered(self):
         return self._is_triggered
+
+    def cancel(self):
+        if self._is_triggered:
+            events = self.clock._events
+            cid = self.cid
+            if cid in events and self in events[cid]:
+                events[cid].remove(self)
+        self._is_triggered = False
 
     def do(self, dt):
         callback = self.get_callback()
@@ -525,6 +531,7 @@ class ClockBase(_ClockBase):
                         # event may be already removed by the callback
                         if event in events[cid]:
                             events[cid].remove(event)
+
 
 def mainthread(func):
     '''Decorator that will schedule the call of the function in the mainthread.
