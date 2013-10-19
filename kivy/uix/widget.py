@@ -477,6 +477,11 @@ class Widget(WidgetBase):
 
     :data:`width` is a :class:`~kivy.properties.NumericProperty`, default
     to 100.
+    
+    .. warning::
+        Keep in mind that the `width` property is subject to layout logic, and
+        that this has not happened yet at the time of the widget's `__init__`
+        method.
     '''
 
     height = NumericProperty(100)
@@ -484,6 +489,11 @@ class Widget(WidgetBase):
 
     :data:`height` is a :class:`~kivy.properties.NumericProperty`, default
     to 100.
+
+    .. warning::
+        Keep in mind that the `height` property is subject to layout logic, and
+        that this has not happened yet at the time of the widget's `__init__`
+        method.
     '''
 
     pos = ReferenceListProperty(x, y)
