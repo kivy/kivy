@@ -3,7 +3,10 @@ Texture
 =======
 
 .. versionchanged:: 1.6.0
-    Added support for paletted texture on OES: 'palette4_rgb8', 'palette4_rgba8', 'palette4_r5_g6_b5', 'palette4_rgba4', 'palette4_rgb5_a1', 'palette8_rgb8', 'palette8_rgba8', 'palette8_r5_g6_b5', 'palette8_rgba4', 'palette8_rgb5_a1'
+    Added support for paletted texture on OES: 'palette4_rgb8',
+    'palette4_rgba8', 'palette4_r5_g6_b5', 'palette4_rgba4', 'palette4_rgb5_a1',
+    'palette8_rgb8', 'palette8_rgba8', 'palette8_r5_g6_b5', 'palette8_rgba4',
+    'palette8_rgb5_a1'
 
 :class:`Texture` is a class to handle OpenGL texture. Depending of the hardware,
 some OpenGL capabilities might not be available (BGRA support, NPOT support,
@@ -289,7 +292,7 @@ cdef inline int _is_pow2(int v):
     return (v & (v - 1)) == 0
 
 
-cdef inline int _color_fmt_to_gl(str x):
+cdef inline int _color_fmt_to_gl(x):
     '''Return the GL numeric value from a color string format
     '''
     x = x.lower()
@@ -299,7 +302,7 @@ cdef inline int _color_fmt_to_gl(str x):
         raise Exception('Unknown <%s> color format' % x)
 
 
-cdef inline int _is_compressed_fmt(str x):
+cdef inline int _is_compressed_fmt(x):
     '''Return 1 if the color string format is a compressed one
     '''
     if x.startswith('palette'):
@@ -311,7 +314,7 @@ cdef inline int _is_compressed_fmt(str x):
     return x.startswith('s3tc_dxt')
 
 
-cdef inline int _buffer_fmt_to_gl(str x):
+cdef inline int _buffer_fmt_to_gl(x):
     '''Return the GL numeric value from a buffer string format
     '''
     x = x.lower()
@@ -321,7 +324,7 @@ cdef inline int _buffer_fmt_to_gl(str x):
         raise Exception('Unknown <%s> buffer format' % x)
 
 
-cdef inline int _buffer_type_to_gl_size(str x):
+cdef inline int _buffer_type_to_gl_size(x):
     '''Return the size of a buffer string format in str
     '''
     x = x.lower()
@@ -331,7 +334,7 @@ cdef inline int _buffer_type_to_gl_size(str x):
         raise Exception('Unknown <%s> format' % x)
 
 
-cdef inline GLuint _str_to_gl_texture_min_filter(str x):
+cdef inline GLuint _str_to_gl_texture_min_filter(x):
     '''Return the GL numeric value from a texture min filter string
     '''
     x = x.lower()
@@ -341,7 +344,7 @@ cdef inline GLuint _str_to_gl_texture_min_filter(str x):
         raise Exception('Unknown <%s> texture min filter' % x)
 
 
-cdef inline GLuint _str_to_gl_texture_mag_filter(str x):
+cdef inline GLuint _str_to_gl_texture_mag_filter(x):
     '''Return the GL numeric value from a texture mag filter string
     '''
     x = x.lower()
@@ -352,7 +355,7 @@ cdef inline GLuint _str_to_gl_texture_mag_filter(str x):
     raise Exception('Unknown <%s> texture mag filter' % x)
 
 
-cdef inline GLuint _str_to_gl_texture_wrap(str x):
+cdef inline GLuint _str_to_gl_texture_wrap(x):
     '''Return the GL numeric value from a texture wrap string
     '''
     if x == 'clamp_to_edge':
@@ -381,7 +384,7 @@ cdef inline int _gl_format_size(GLuint x):
     raise Exception('Unsupported format size <%s>' % str(format))
 
 
-cdef inline int _is_gl_format_supported(str x):
+cdef inline int _is_gl_format_supported(x):
     if x in ('bgr', 'bgra'):
         return gl_has_capability(GLCAP_BGRA)
     elif x == 's3tc_dxt1':
@@ -393,7 +396,7 @@ cdef inline int _is_gl_format_supported(str x):
     return 1
 
 
-cdef inline str _convert_gl_format(str x):
+cdef inline str _convert_gl_format(x):
     if x == 'bgr':
         return 'rgb'
     elif x == 'bgra':
@@ -401,7 +404,7 @@ cdef inline str _convert_gl_format(str x):
     return x
 
 
-cdef inline _convert_buffer(bytes data, str fmt):
+cdef inline _convert_buffer(bytes data, fmt):
     cdef bytes ret_buffer
     cdef str ret_format
 
@@ -450,7 +453,7 @@ cdef inline void _gl_prepare_pixels_upload(int width) nogil:
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
 
-cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
+cdef Texture _texture_create(int width, int height, colorfmt, bufferfmt,
                      int mipmap, int allocate, object callback):
     '''Create the OpenGL texture.
     '''
@@ -760,17 +763,17 @@ cdef class Texture:
             glTexParameteri(self._target, GL_TEXTURE_WRAP_S, value)
             glTexParameteri(self._target, GL_TEXTURE_WRAP_T, value)
 
-    cdef void set_min_filter(self, str x):
+    cdef void set_min_filter(self, x):
         if self._min_filter != x:
             self._min_filter = x
             self.flags |= TI_MIN_FILTER
 
-    cdef void set_mag_filter(self, str x):
+    cdef void set_mag_filter(self, x):
         if self._mag_filter != x:
             self._mag_filter = x
             self.flags |= TI_MAG_FILTER
 
-    cdef void set_wrap(self, str x):
+    cdef void set_wrap(self, x):
         if self._wrap != x:
             self._wrap = x
             self.flags |= TI_WRAP
@@ -1035,7 +1038,7 @@ cdef class Texture:
         '''
         def __get__(self):
             return self._min_filter
-        def __set__(self, str x):
+        def __set__(self, x):
             self.set_min_filter(x)
 
     property mag_filter:
@@ -1049,7 +1052,7 @@ cdef class Texture:
         '''
         def __get__(self):
             return self._mag_filter
-        def __set__(self, str x):
+        def __set__(self, x):
             self.set_mag_filter(x)
 
     property wrap:
@@ -1064,7 +1067,7 @@ cdef class Texture:
         '''
         def __get__(self):
             return self._wrap
-        def __set__(self, str wrap):
+        def __set__(self, wrap):
             self.set_wrap(wrap)
 
     property pixels:
