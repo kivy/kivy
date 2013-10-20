@@ -17,7 +17,10 @@ pygame_cache = {}
 pygame_cache_order = []
 
 # init pygame font
-pygame.font.init()
+try:
+    pygame.ftfont.init()
+except:
+    pygame.font.init()
 
 
 class LabelPygame(LabelBase):
