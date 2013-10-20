@@ -551,9 +551,9 @@ def mainthread(func):
 
     .. versionadded:: 1.8.0
     '''
-    def delayed_func(*args):
+    def delayed_func(*args, **kwargs):
         def callback_func(dt):
-            func(*args)
+            func(*args, **kwargs)
         Clock.schedule_once(callback_func, 0)
     return delayed_func
 
