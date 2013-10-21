@@ -905,16 +905,18 @@ cdef class Texture:
         self._reload_propagate(texture)
 
     cdef void _reload_propagate(self, Texture texture):
+        # set the same parameters as our current texture
+        texture.set_wrap(self.wrap)
+        texture.set_min_filter(self.min_filter)
+        texture.set_mag_filter(self.mag_filter)
+        texture.flags |= TI_MIN_FILTER | TI_MAG_FILTER | TI_WRAP
+        texture.uvpos = self.uvpos
+        texture.uvsize = self.uvsize
 
         # ensure the new opengl ID will not get through GC
         texture.bind()
         self._id = texture.id
         texture._nofree = 1
-
-        # set the same parameters as our current texture
-        texture.set_wrap(self.wrap)
-        texture.set_min_filter(self.min_filter)
-        texture.set_mag_filter(self.mag_filter)
 
         # then update content again
         for callback in self.observers[:]:
