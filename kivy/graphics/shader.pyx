@@ -228,6 +228,8 @@ cdef class Shader:
         cdef float f1, f2, f3, f4
         cdef tuple tuple_value
         cdef list list_value
+        cdef float *float_list
+        cdef int   *int_list
         val_type = type(value)
         loc = self.uniform_locations.get(name, -1)
         if loc == -1:
@@ -259,6 +261,15 @@ cdef class Shader:
                 elif vec_size == 4:
                     f1, f2, f3, f4 = list_value
                     glUniform4f(loc, f1, f2, f3, f4)
+                else:
+                    list_size = len(value)
+                    float_list = <float *>malloc(list_size*sizeof(float))
+                    if float_list is NULL:
+                        raise MemoryError()
+                    for x in xrange(list_size):
+                        float_list[x] = <GLfloat>list_value[x]
+                    glUniform1fv(loc,list_size,float_list)
+                    free(float_list)
             elif val_type is int:
                 if vec_size == 2:
                     i1, i2 = list_value
@@ -269,6 +280,47 @@ cdef class Shader:
                 elif vec_size == 4:
                     i1, i2, i3, i4 = list_value
                     glUniform4i(loc, i1, i2, i3, i4)
+                else:
+                    list_size = len(value)
+                    int_list = <int *>malloc(list_size*sizeof(int))
+                    if int_list is NULL:
+                        raise MemoryError()
+                    for x in xrange(list_size):
+                        int_list[x] = <GLint>list_value[x]
+                    glUniform1iv(loc,list_size,int_list)
+                    free(int_list)
+            elif val_type is list:
+                list_size = len(value)
+                vec_size = len(value[0])
+                val_type = type(value[0][0])
+                if val_type is float:
+                    float_list = <float *>malloc(list_size*vec_size*sizeof(float))
+                    if float_list is NULL:
+                        raise MemoryError()
+                    for x in xrange(list_size):
+                        for y in xrange(vec_size):
+                            float_list[3*x+y] = <GLfloat>value[x][y]
+                    if vec_size == 2:
+                        glUniform2fv(loc,list_size,float_list)
+                    elif vec_size == 3:
+                        glUniform3fv(loc,list_size,float_list)
+                    elif vec_size == 4:
+                        glUniform4fv(loc,list_size,float_list)
+                    free(float_list)
+                if val_type is int:
+                    int_list = <int *>malloc(list_size*vec_size*sizeof(int))
+                    if int_list is NULL:
+                        raise MemoryError()
+                    for x in xrange(list_size):
+                        for y in xrange(vec_size):
+                            int_list[3*x+y] = value[x][y]
+                    if vec_size == 2:
+                        glUniform2iv(loc,list_size,int_list)
+                    elif vec_size == 3:
+                        glUniform3iv(loc,list_size,int_list)
+                    elif vec_size == 4:
+                        glUniform4iv(loc,list_size,int_list)
+                    free(int_list)
         elif val_type is tuple:
             tuple_value = value
             val_type = type(tuple_value[0])
