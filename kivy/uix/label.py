@@ -122,7 +122,7 @@ class Label(Widget):
 
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
         'halign', 'valign', 'padding_x', 'padding_y', 'text_size', 'shorten',
-        'mipmap', 'markup', 'line_height')
+        'mipmap', 'markup', 'line_height', 'max_lines')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -527,3 +527,16 @@ class Label(Widget):
         True.
 
     '''
+
+    max_lines = NumericProperty(0)
+    '''Maximum number of lines to use, defaults to 0, which means unlimited.
+    Please note that :data:`shorten` take over this property. (with shorten, the
+    text is always one line.)
+
+    .. versionadded:: 1.8.0
+
+    :data:`max_lines` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
+    '''
+
+
