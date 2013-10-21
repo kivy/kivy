@@ -4,8 +4,8 @@ cdef class PropertyStorage:
     cdef object value
     cdef list observers
     cdef str numeric_fmt
-    cdef int bnum_min
-    cdef int bnum_max
+    cdef long bnum_min
+    cdef long bnum_max
     cdef float bnum_f_min
     cdef float bnum_f_max
     cdef int bnum_use_min

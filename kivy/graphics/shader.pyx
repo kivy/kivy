@@ -223,8 +223,8 @@ cdef class Shader:
     cdef void upload_uniform(self, str name, value):
         '''Pass a uniform variable to the shader
         '''
-        cdef int vec_size, loc
-        cdef int i1, i2, i3, i4
+        cdef long vec_size
+        cdef int loc, i1, i2, i3, i4
         cdef float f1, f2, f3, f4
         cdef tuple tuple_value
         cdef list list_value
@@ -386,7 +386,9 @@ cdef class Shader:
     cdef int is_linked(self):
         cdef GLint result = 0
         glGetProgramiv(self.program, GL_LINK_STATUS, &result)
-        return 1 if result == GL_TRUE else 0
+        if result == GL_TRUE:
+            return 1
+        return 0
 
     cdef ShaderSource compile_shader(self, str source, int shadertype):
         cdef ShaderSource shader

@@ -99,7 +99,7 @@ cdef class VBO:
             if attr.per_vertex == 0:
                 continue
             glVertexAttribPointer(attr.index, attr.size, attr.type,
-                    GL_FALSE, self.format_size, <GLvoid*><long>offset)
+                    GL_FALSE, <GLsizei>self.format_size, <GLvoid*><long>offset)
             offset += attr.bytesize
 
     cdef void unbind(self):

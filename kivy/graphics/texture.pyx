@@ -841,7 +841,7 @@ cdef class Texture:
         # prepare nogil
         cdef int iglfmt = _color_fmt_to_gl(self._colorfmt)
         cdef int glfmt = _color_fmt_to_gl(colorfmt)
-        cdef int datasize = len(pbuffer)
+        cdef long datasize = len(pbuffer)
         cdef int x = pos[0]
         cdef int y = pos[1]
         cdef int w = size[0]
@@ -856,7 +856,8 @@ cdef class Texture:
         with nogil:
             if is_compressed:
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-                glCompressedTexImage2D(target, _mipmap_level, glfmt, w, h, 0, datasize, cdata)
+                glCompressedTexImage2D(target, _mipmap_level, glfmt, w, h, 0,
+                        <GLsizei>datasize, cdata)
             elif is_allocated:
                 _gl_prepare_pixels_upload(w)
                 glTexSubImage2D(target, _mipmap_level, x, y, w, h, glfmt, glbufferfmt, cdata)

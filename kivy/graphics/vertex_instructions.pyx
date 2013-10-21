@@ -266,8 +266,9 @@ cdef class Mesh(VertexInstruction):
         self.mode = kwargs.get('mode') or 'points'
 
     cdef void build(self):
-        cdef int i, vcount = len(self._vertices)
-        cdef int icount = len(self._indices)
+        cdef int i
+        cdef long vcount = len(self._vertices)
+        cdef long icount = len(self._indices)
         cdef float *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef list lvertices = self._vertices
@@ -292,7 +293,7 @@ cdef class Mesh(VertexInstruction):
         for i in xrange(icount):
             indices[i] = lindices[i]
 
-        self.batch.set_data(vertices, vcount / vsize, indices, icount)
+        self.batch.set_data(vertices, <int>(vcount / vsize), indices, <int>icount)
 
         free(vertices)
         free(indices)
@@ -410,7 +411,8 @@ cdef class Point(VertexInstruction):
             indices[ii + 4] = iv + 3
             indices[ii + 5] = iv
 
-        self.batch.set_data(vertices, count * 4, indices, count * 6)
+        self.batch.set_data(vertices, <int>(count * 4),
+                            indices, <int>(count * 6))
 
         free(vertices)
         free(indices)

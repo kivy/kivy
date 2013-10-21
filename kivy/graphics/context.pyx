@@ -273,23 +273,23 @@ cdef class Context:
         if len(self.lr_vbo):
             Logger.trace('Context: releasing %d vbos' % len(self.lr_vbo))
             arr = self.lr_vbo
-            glDeleteBuffers(len(self.lr_vbo), arr.data.as_uints)
+            glDeleteBuffers(<GLsizei>len(self.lr_vbo), arr.data.as_uints)
             del self.lr_vbo[:]
         if len(self.lr_texture):
             Logger.trace('Context: releasing %d textures: %r' % (
                 len(self.lr_texture), self.lr_texture))
             arr = self.lr_texture
-            glDeleteTextures(len(self.lr_texture), arr.data.as_uints)
+            glDeleteTextures(<GLsizei>len(self.lr_texture), arr.data.as_uints)
             del self.lr_texture[:]
         if len(self.lr_fbo_fb):
             Logger.trace('Context: releasing %d framebuffer fbos' % len(self.lr_fbo_fb))
             arr = self.lr_fbo_fb
-            glDeleteFramebuffers(len(self.lr_fbo_fb), arr.data.as_uints)
+            glDeleteFramebuffers(<GLsizei>len(self.lr_fbo_fb), arr.data.as_uints)
             del self.lr_fbo_fb[:]
         if len(self.lr_fbo_rb):
             Logger.trace('Context: releasing %d renderbuffer fbos' % len(self.lr_fbo_fb))
             arr = self.lr_fbo_rb
-            glDeleteRenderbuffers(len(self.lr_fbo_rb), arr.data.as_uints)
+            glDeleteRenderbuffers(<GLsizei>len(self.lr_fbo_rb), arr.data.as_uints)
             del self.lr_fbo_rb[:]
 
 

@@ -1133,7 +1133,8 @@ cdef class AliasProperty(Property):
         self.setter = setter
         v = kwargs.get('bind')
         self.bind_objects = list(v) if v is not None else []
-        self.use_cache = 1 if kwargs.get('cache') else 0
+        if kwargs.get('cache'):
+            self.use_cache = 1
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
         Property.init_storage(self, obj, storage)

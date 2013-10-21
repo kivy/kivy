@@ -1191,10 +1191,14 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
     assert(type == GL_UNSIGNED_BYTE)
 
     cdef object py_pixels = None
-    cdef int size
+    cdef long size
     cdef char *data
 
-    size = (3 if format == GL_RGB else 4) * width * height * sizeof(GLubyte)
+    size = width * height * sizeof(GLubyte)
+    if format == GL_RGB:
+        size *= 3
+    else:
+        size *= 4
     data = <char *>malloc(size)
     if data == NULL:
         raise MemoryError('glReadPixels()')

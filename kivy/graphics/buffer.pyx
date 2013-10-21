@@ -20,16 +20,17 @@ cdef class Buffer:
         if self.l_free != NULL:
             free(self.l_free)
 
-    def __init__(self, int block_size):
+    def __init__(self, long block_size):
         self.block_size = block_size
 
-    cdef void grow(self, int block_count):
+    cdef void grow(self, long block_count):
         '''Automaticly realloc the memory if they are no enough block.
         Work only for "grow" operation, not the inverse.
         '''
         cdef void *newptr = NULL
-        cdef int i
+        cdef long i
         cdef int l_free_tmp
+        cdef long diff
 
         # set block_count to the nearest 8 block
         diff = block_count % 8
@@ -55,7 +56,7 @@ cdef class Buffer:
 
         # Initialize the list with index of free block
         for i in xrange(self.block_count, block_count):
-            self.l_free[i] = i
+            self.l_free[i] = <int>i
 
         # Update how many block are allocated
         self.block_count = block_count
@@ -63,8 +64,9 @@ cdef class Buffer:
     cdef void clear(self):
         '''Clear the whole buffer, and mark all blocks as available.
         '''
+        cdef long i
         for i in xrange(self.block_count):
-            self.l_free[i] = i
+            self.l_free[i] = <int>i
         self.i_free = 0
 
     cdef void add(self, void *blocks, unsigned short *indices, int count):
@@ -112,7 +114,7 @@ cdef class Buffer:
         '''
         return self.i_free
 
-    cdef int size(self):
+    cdef long size(self):
         '''Return the size of the allocated buffer
         '''
         return self.block_size * self.block_count
