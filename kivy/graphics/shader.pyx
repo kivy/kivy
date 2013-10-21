@@ -223,13 +223,13 @@ cdef class Shader:
     cdef void upload_uniform(self, str name, value):
         '''Pass a uniform variable to the shader
         '''
-        cdef long vec_size
+        cdef long vec_size, list_size, index, x, y
         cdef int loc, i1, i2, i3, i4
         cdef float f1, f2, f3, f4
         cdef tuple tuple_value
         cdef list list_value
-        cdef float *float_list
-        cdef int   *int_list
+        cdef GLfloat *float_list
+        cdef GLint *int_list
         val_type = type(value)
         loc = self.uniform_locations.get(name, -1)
         if loc == -1:
@@ -262,13 +262,12 @@ cdef class Shader:
                     f1, f2, f3, f4 = list_value
                     glUniform4f(loc, f1, f2, f3, f4)
                 else:
-                    list_size = len(value)
-                    float_list = <float *>malloc(list_size*sizeof(float))
+                    float_list = <GLfloat *>malloc(vec_size * sizeof(GLfloat))
                     if float_list is NULL:
                         raise MemoryError()
-                    for x in xrange(list_size):
-                        float_list[x] = <GLfloat>list_value[x]
-                    glUniform1fv(loc,list_size,float_list)
+                    for index in xrange(vec_size):
+                        float_list[index] = <GLfloat>list_value[index]
+                    glUniform1fv(loc, <GLint>vec_size, float_list)
                     free(float_list)
             elif val_type is int:
                 if vec_size == 2:
@@ -281,45 +280,54 @@ cdef class Shader:
                     i1, i2, i3, i4 = list_value
                     glUniform4i(loc, i1, i2, i3, i4)
                 else:
-                    list_size = len(value)
-                    int_list = <int *>malloc(list_size*sizeof(int))
+                    int_list = <int *>malloc(vec_size * sizeof(GLint))
                     if int_list is NULL:
                         raise MemoryError()
-                    for x in xrange(list_size):
-                        int_list[x] = <GLint>list_value[x]
-                    glUniform1iv(loc,list_size,int_list)
+                    for index in xrange(vec_size):
+                        int_list[index] = <GLint>list_value[index]
+                    glUniform1iv(loc, <GLint>vec_size, int_list)
                     free(int_list)
             elif val_type is list:
                 list_size = len(value)
                 vec_size = len(value[0])
                 val_type = type(value[0][0])
                 if val_type is float:
-                    float_list = <float *>malloc(list_size*vec_size*sizeof(float))
+                    float_list = <GLfloat *>malloc(
+                            list_size * vec_size * sizeof(GLfloat))
                     if float_list is NULL:
                         raise MemoryError()
                     for x in xrange(list_size):
                         for y in xrange(vec_size):
-                            float_list[3*x+y] = <GLfloat>value[x][y]
+                            float_list[vec_size * x + y] = <GLfloat>value[x][y]
                     if vec_size == 2:
-                        glUniform2fv(loc,list_size,float_list)
+                        glUniform2fv(loc, list_size, float_list)
                     elif vec_size == 3:
-                        glUniform3fv(loc,list_size,float_list)
+                        glUniform3fv(loc, list_size, float_list)
                     elif vec_size == 4:
-                        glUniform4fv(loc,list_size,float_list)
+                        glUniform4fv(loc, list_size, float_list)
+                    else:
+                        Logger.debug(
+                            'Shader: unsupported {}x{} float array'.format(
+                            list_size, vec_size))
                     free(float_list)
-                if val_type is int:
-                    int_list = <int *>malloc(list_size*vec_size*sizeof(int))
+                elif val_type is int:
+                    int_list = <GLint *>malloc(
+                            list_size * vec_size * sizeof(GLint))
                     if int_list is NULL:
                         raise MemoryError()
                     for x in xrange(list_size):
                         for y in xrange(vec_size):
-                            int_list[3*x+y] = value[x][y]
+                            int_list[vec_size * x + y] = <GLint>value[x][y]
                     if vec_size == 2:
-                        glUniform2iv(loc,list_size,int_list)
+                        glUniform2iv(loc, list_size, int_list)
                     elif vec_size == 3:
-                        glUniform3iv(loc,list_size,int_list)
+                        glUniform3iv(loc, list_size, int_list)
                     elif vec_size == 4:
-                        glUniform4iv(loc,list_size,int_list)
+                        glUniform4iv(loc, list_size, int_list)
+                    else:
+                        Logger.debug(
+                            'Shader: unsupported {}x{} int array'.format(
+                            list_size, vec_size))
                     free(int_list)
         elif val_type is tuple:
             tuple_value = value
@@ -345,6 +353,48 @@ cdef class Shader:
                 elif vec_size == 4:
                     i1, i2, i3, i4 = tuple_value
                     glUniform4i(loc, i1, i2, i3, i4)
+            elif val_type is list:
+                list_size = len(value)
+                vec_size = len(value[0])
+                val_type = type(value[0][0])
+                if val_type is float:
+                    float_list = <GLfloat *>malloc(
+                            list_size * vec_size * sizeof(GLfloat))
+                    if float_list is NULL:
+                        raise MemoryError()
+                    for x in xrange(list_size):
+                        for y in xrange(vec_size):
+                            float_list[vec_size * x + y] = <GLfloat>value[x][y]
+                    if vec_size == 2:
+                        glUniform2fv(loc, list_size, float_list)
+                    elif vec_size == 3:
+                        glUniform3fv(loc, list_size, float_list)
+                    elif vec_size == 4:
+                        glUniform4fv(loc, list_size, float_list)
+                    else:
+                        Logger.debug(
+                            'Shader: unsupported {}x{} float array'.format(
+                            list_size, vec_size))
+                    free(float_list)
+                elif val_type is int:
+                    int_list = <GLint *>malloc(
+                            list_size * vec_size * sizeof(GLint))
+                    if int_list is NULL:
+                        raise MemoryError()
+                    for x in xrange(list_size):
+                        for y in xrange(vec_size):
+                            int_list[vec_size * x + y] = <GLint>value[x][y]
+                    if vec_size == 2:
+                        glUniform2iv(loc, list_size, int_list)
+                    elif vec_size == 3:
+                        glUniform3iv(loc, list_size, int_list)
+                    elif vec_size == 4:
+                        glUniform4iv(loc, list_size, int_list)
+                    else:
+                        Logger.debug(
+                            'Shader: unsupported {}x{} int array'.format(
+                            list_size, vec_size))
+                    free(int_list)
         else:
             raise Exception('for <%s>, type not handled <%s>' % (name, val_type))
 
