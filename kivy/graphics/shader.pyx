@@ -223,7 +223,8 @@ cdef class Shader:
     cdef void upload_uniform(self, str name, value):
         '''Pass a uniform variable to the shader
         '''
-        cdef long vec_size, list_size, index, x, y
+        cdef long vec_size, index, x, y
+        cdef int list_size
         cdef int loc, i1, i2, i3, i4
         cdef float f1, f2, f3, f4
         cdef tuple tuple_value
@@ -288,7 +289,7 @@ cdef class Shader:
                     glUniform1iv(loc, <GLint>vec_size, int_list)
                     free(int_list)
             elif val_type is list:
-                list_size = len(value)
+                list_size = <int>len(value)
                 vec_size = len(value[0])
                 val_type = type(value[0][0])
                 if val_type is float:
@@ -354,7 +355,7 @@ cdef class Shader:
                     i1, i2, i3, i4 = tuple_value
                     glUniform4i(loc, i1, i2, i3, i4)
             elif val_type is list:
-                list_size = len(value)
+                list_size = <int>len(value)
                 vec_size = len(value[0])
                 val_type = type(value[0][0])
                 if val_type is float:
