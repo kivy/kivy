@@ -331,7 +331,7 @@ class ActionOverflow(ActionGroup):
         if self._list_overflow_items == []:
             return
         self.show_group()
-        super(parent.__class__, parent).add_widget(self)
+        super(ActionView, parent).add_widget(self)
 
 
 class ActionView(BoxLayout):
