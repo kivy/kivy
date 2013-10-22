@@ -577,8 +577,7 @@ class ScrollView(StencilView):
                 # only send the click if it was not a click to stop
                 # autoscrolling
                 if not ud['user_stopped']:
-                    Clock.schedule_once(lambda dt: super(ScrollView, self)
-                        .on_touch_down(touch), .1)
+                    super(ScrollView, self).on_touch_down(touch)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .2)
         else:
             if self._touch is not touch and self.uid not in touch.ud:
