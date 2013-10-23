@@ -292,7 +292,7 @@ There is a simpler way to access the ids as defined in the kv language for examp
           text: 'press gently'
           on_release: root.polite_smack()
         Button:
-          id: masochist
+          id: enthusiast
           text: 'make it red'
           on_release: root.smack_hard()
 
@@ -302,11 +302,11 @@ In your python code::
     
         def polite_smack(self):
             self.ids.gentle_pats_are_good.text = 'I like!, be gentle.'
-            self.ids.masochist.text = 'Is that all you've got? Make it red!'
+            self.ids.enthusiast.text = 'Is that all you've got? Make it red!'
     
         def smack_hard(self):
             self.ids.gentle_pats_are_good.text = 'OUCH!, be gentle.'
-            self.ids.masochist.text = 'Now that's more like it. Make it red!'
+            self.ids.enthusiast.text = 'Now that's more like it. Make it red!'
 
 
 Templates
