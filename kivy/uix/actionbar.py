@@ -379,7 +379,9 @@ class ActionView(BoxLayout):
         self._list_action_group = []
         super(ActionView, self).__init__(**kwargs)
         self._state = ''
-        self.overflow_group = ActionOverflow(use_separator=self.use_separator)
+        if not self.overflow_group:
+            self.overflow_group = ActionOverflow(
+                use_separator=self.use_separator)
 
     def on_action_previous(self, instance, value):
         self._list_action_items.insert(0, value)
