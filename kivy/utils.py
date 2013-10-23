@@ -96,7 +96,8 @@ def get_color_from_hex(s):
     if s.startswith('#'):
         return get_color_from_hex(s[1:])
 
-    value = [int(x, 16) / 255. for x in split('([0-9a-f]{2})', s) if x != '']
+    value = [int(x, 16) / 255.
+             for x in split('([0-9a-f]{2})', s.lower()) if x != '']
     if len(value) == 3:
         value.append(1)
     return value
