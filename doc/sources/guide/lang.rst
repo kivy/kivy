@@ -298,7 +298,7 @@ There is a simpler way to access the ids as defined in the kv language for examp
 
 In your python code::
 
-    class MyButtHurts(BoxLayout):
+    class MyBumHurts(BoxLayout):
     
         def polite_smack(self):
             self.ids.gentle_pats_are_good.text = 'I like!, be gentle.'
