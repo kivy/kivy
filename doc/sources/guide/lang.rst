@@ -111,7 +111,7 @@ which has a child that is an instance of the
 :class:`~kivy.uix.boxlayout.BoxLayout`.  That BoxLayout further has two
 children, instances of the :class:`~kivy.uix.button.Button` class.
 
-A python equivalent of this code caould be:
+A python equivalent of this code could be:
 
 .. code-block:: python
 
