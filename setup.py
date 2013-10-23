@@ -75,7 +75,6 @@ else:
 if not have_cython:
     from distutils.command.build_ext import build_ext
 
-
 # -----------------------------------------------------------------------------
 # Setup classes
 
@@ -99,6 +98,12 @@ class KivyBuildExt(build_ext):
             for k, v in c_options.items():
                 fd.write('DEF {0} = {1}\n'.format(k.upper(), int(v)))
             fd.write('DEF PY3 = {0}\n'.format(int(PY3)))
+
+        c = self.compiler.compiler_type
+        print('Detected compiler is {}'.format(c))
+        if c != 'msvc':
+            for e in self.extensions:
+                e.extra_link_args += ['-lm']
 
         build_ext.build_extensions(self)
 
@@ -198,7 +203,7 @@ def merge(d1, *args):
 
 def determine_base_flags():
     flags = {
-        'libraries': ['m'],
+        'libraries': [],
         'include_dirs': [],
         'extra_link_args': [],
         'extra_compile_args': []}
@@ -399,7 +404,7 @@ if c_options['use_x11']:
         base_flags, gl_flags, graphics_flags, {
             'depends': [join(dirname(__file__),
                 'kivy/core/window/window_x11_core.c')],
-            'libraries': ['Xrender', 'X11', 'm']
+            'libraries': ['Xrender', 'X11']
         })
 
 
