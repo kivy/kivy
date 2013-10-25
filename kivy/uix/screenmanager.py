@@ -368,8 +368,8 @@ class TransitionBase(EventDispatcher):
 class ShaderTransition(TransitionBase):
     '''Transition class that uses a Shader for animating the transition between
     2 screens. By default, this class doesn't assign any fragment/vertex
-    shader. If you want to create your own fragment shader for transition, you
-    need to declare the header yourself, and include the "t", "tex_in" and
+    shader. If you want to create your own fragment shader for the transition,
+    you need to declare the header yourself and include the "t", "tex_in" and
     "tex_out" uniform::
 
         # Create your own transition. This shader implements a "fading"
@@ -395,14 +395,14 @@ class ShaderTransition(TransitionBase):
     fs = StringProperty(None)
     '''Fragment shader to use.
 
-    :data:`fs` is a :class:`~kivy.properties.StringProperty`, default to None.
-    '''
+    :data:`fs` is a :class:`~kivy.properties.StringProperty` and defaults to
+    None.'''
 
     vs = StringProperty(None)
     '''Vertex shader to use.
 
-    :data:`vs` is a :class:`~kivy.properties.StringProperty`, default to None.
-    '''
+    :data:`vs` is a :class:`~kivy.properties.StringProperty` and defaults to
+    None.'''
 
     def make_screen_fbo(self, screen):
         fbo = Fbo(size=screen.size)
@@ -462,8 +462,8 @@ class SlideTransition(TransitionBase):
     direction = OptionProperty('left', options=('left', 'right', 'up', 'down'))
     '''Direction of the transition.
 
-    :data:`direction` is an :class:`~kivy.properties.OptionProperty`, default
-    to left. Can be one of 'left', 'right', 'up' or 'down'.
+    :data:`direction` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'left'. Can be one of 'left', 'right', 'up' or 'down'.
     '''
 
     def on_progress(self, progression):
@@ -499,7 +499,7 @@ class SlideTransition(TransitionBase):
 
 
 class SwapTransition(TransitionBase):
-    '''Swap transition, that looks like iOS transition, when a new window
+    '''Swap transition that looks like iOS transition when a new window
     appears on the screen.
     '''
 
@@ -581,7 +581,7 @@ class FadeTransition(ShaderTransition):
 
 class ScreenManager(FloatLayout):
     '''Screen manager. This is the main class that will control your
-    :class:`Screen` stack, and memory.
+    :class:`Screen` stack and memory.
 
     By default, the manager will show only one screen at a time.
     '''
@@ -597,8 +597,8 @@ class ScreenManager(FloatLayout):
         sm.add_widget(Screen(name='first'))
         sm.add_widget(Screen(name='second'))
 
-        # by default, the first added screen will be shown. If you want to
-        show # another one, just set the current string:
+        # By default, the first added screen will be shown. If you want to
+        # show another one, just set the 'current' property. 
         sm.current = 'second'
     '''
 
@@ -617,7 +617,8 @@ class ScreenManager(FloatLayout):
         sm.add_widget(Screen(name='second'))
 
         # by default, the first added screen will be shown. If you want to
-        show another one, just set the current string: sm.current = 'second'
+        # show another one, just set the 'current' property.
+        sm.current = 'second'
 
     .. versionchanged:: 1.8.0
 
@@ -629,16 +630,16 @@ class ScreenManager(FloatLayout):
     '''List of all the :class:`Screen` widgets added. You must not change the
     list manually. Use :meth:`Screen.add_widget` instead.
 
-    :data:`screens` is a :class:`~kivy.properties.ListProperty`, default to [],
-    read-only.
+    :data:`screens` is a :class:`~kivy.properties.ListProperty` and defaults to
+    [], read-only.
     '''
 
     current_screen = ObjectProperty(None)
     '''Contains the currently displayed screen. You must not change this
     property manually, use :data:`current` instead.
 
-    :data:`current_screen` is an :class:`~kivy.properties.ObjectProperty`,
-    default to None, read-only.
+    :data:`current_screen` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None, read-only.
     '''
 
     def _get_screen_names(self):
@@ -649,8 +650,8 @@ class ScreenManager(FloatLayout):
     '''List of the names of all the :class:`Screen` widgets added. The list
     is read only.
 
-    :data:`screens_names` is a :class:`~kivy.properties.AliasProperty`,
-    it is read-only and updated if the screen list changes, or the name
+    :data:`screens_names` is an :class:`~kivy.properties.AliasProperty` and
+    is read-only. It is updated if the screen list changes or the name
     of a screen changes.
     '''
 
@@ -724,7 +725,7 @@ class ScreenManager(FloatLayout):
             screen.dispatch('on_enter')
 
     def get_screen(self, name):
-        '''Return the screen widget associated to the name, or raise a
+        '''Return the screen widget associated with the name or raise a
         :class:`ScreenManagerException` if not found.
         '''
         matches = [s for s in self.screens if s.name == name]
@@ -773,13 +774,13 @@ class ScreenManager(FloatLayout):
             return
 
     def switch_to(self, screen, **options):
-        '''Add a new screen in the ScreenManager, and switch to it. The previous
+        '''Add a new screen to the ScreenManager and switch to it. The previous
         screen will be removed from the children. `options` are the
         :data:`transition` options that will be changed before the animation
         happens.
 
-        If no previous screens are available, it will just be used as the main
-        one::
+        If no previous screens are available, the screen will be used as the
+        main one::
 
             sm = ScreenManager()
             sm.switch_to(screen1)
@@ -789,11 +790,11 @@ class ScreenManager(FloatLayout):
             sm.switch_to(screen3, direction='right', duration=1.)
 
         If any animation is in progress, it will be stopped and replaced by
-        this one: you should avoid it, because the animation will just look
-        weird. Use either :meth:`switch` or :data:`current`, but not both.
+        this one: you should avoid this because the animation will just look
+        weird. Use either :meth:`switch` or :data:`current` but not both.
 
-        `screen` name will be changed if there is any conflict with the current
-        screen.
+        The `screen` name will be changed if there is any conflict with the
+        current screen.
 
         .. versionadded: 1.8.0
         '''
