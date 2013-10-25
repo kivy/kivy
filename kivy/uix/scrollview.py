@@ -15,12 +15,12 @@ The ScrollView accepts only one child and applies a viewport/window to it
 according to the :data:`scroll_x` and :data:`scroll_y` properties. Touches are
 analyzed to determine if the user wants to scroll or control the child in some
 other manner - you cannot do both at the same time. To determine if interaction
-is a scrolling gesture, these properties are used: 
+is a scrolling gesture, these properties are used:
 
     - :data:`ScrollView.scroll_distance`: the minimum distance to travel,
-    defaults to 20 pixels.
+         defaults to 20 pixels.
     - :data:`ScrollView.scroll_timeout`: the maximum time period, defaults
-    to 250 milliseconds.
+         to 250 milliseconds.
 
 If a touch travels :data:`~ScrollView.scroll_distance` pixels within the
 :data:`~ScrollView.scroll_timeout` period, it is recognized as a scrolling
