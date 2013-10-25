@@ -11,23 +11,23 @@ clipped at the scrollview's bounding box.
 Scrolling Behavior
 ------------------
 
-ScrollView accepts only one child, and applies a viewport/window to it
+The ScrollView accepts only one child and applies a viewport/window to it
 according to the :data:`scroll_x` and :data:`scroll_y` properties. Touches are
 analyzed to determine if the user wants to scroll or control the child in some
 other manner - you cannot do both at the same time. To determine if interaction
-is a scrolling gesture, these properties are used:
+is a scrolling gesture, these properties are used: 
 
-    - :data:`ScrollView.scroll_distance` a minimum distance to travel, default
-      to 20 pixels.
-    - :data:`ScrollView.scroll_timeout` a maximum time period, default to 250
-      milliseconds.
+    - :data:`ScrollView.scroll_distance`: the minimum distance to travel,
+    defaults to 20 pixels.
+    - :data:`ScrollView.scroll_timeout`: the maximum time period, defaults
+    to 250 milliseconds.
 
 If a touch travels :data:`~ScrollView.scroll_distance` pixels within the
 :data:`~ScrollView.scroll_timeout` period, it is recognized as a scrolling
-gesture and translatation (scroll/pan) will begin. If the timeout occurs, the
+gesture and translation (scroll/pan) will begin. If the timeout occurs, the
 touch down event is dispatched to the child instead (no translation).
 
-The default value for thoses settings can be changed in the configuration file::
+The default value for those settings can be changed in the configuration file::
 
     [widgets]
     scroll_timeout = 250
@@ -35,13 +35,13 @@ The default value for thoses settings can be changed in the configuration file::
 
 .. versionadded:: 1.1.1
 
-    Scrollview now animates scrolling in Y when a mousewheel is used.
+    ScrollView now animates scrolling in Y when a mousewheel is used.
 
 
-Limiting to X or Y Axis
------------------------
+Limiting to the X or Y Axis
+---------------------------
 
-By default, ScrollView allows scrolling in both the X and Y axes. You can
+By default, the ScrollView allows scrolling in both the X and Y axes. You can
 explicitly disable scrolling on an axis by setting
 :data:`ScrollView.do_scroll_x` or :data:`ScrollView.do_scroll_y` to False.
 
