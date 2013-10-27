@@ -52,9 +52,15 @@ Debian
         :stable builds:
             deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
 
-#. Add the GPG key to your apt keyring by
+#. Add the GPG key to your apt keyring by executing
 
-    $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6
+    as user:
+    
+    ``sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6``
+    
+    as root:
+    
+    ``apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6``
 
 #. Refresh your package list and install **python-kivy** and optionally the examples
    found in **python-kivy-examples**
