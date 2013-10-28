@@ -3,8 +3,8 @@
 
 .. versionadded:: 1.0.7
 
-This module is a complete and extensible framework for building a
-Settings interface in your application. By default the interface uses
+This module is a complete and extensible framework for adding a
+Settings interface to your application. By default, the interface uses
 a :class:`SettingsWithSpinner`, which consists of a
 :class:`~kivy.uix.spinner.Spinner` (top) to switch between individual
 settings panels (bottom). See :ref:`differentlayouts` for some
@@ -13,7 +13,7 @@ alternatives.
 .. image:: images/settingswithspinner_kivy.jpg
     :align: center
 
-:class:`SettingsPanel` represents a group of configurable options. The
+A :class:`SettingsPanel` represents a group of configurable options. The
 :data:`SettingsPanel.title` property is used by :class:`Settings` when a panel
 is added - it determines the name of the sidebar button. SettingsPanel controls
 a :class:`~kivy.config.ConfigParser` instance.
@@ -28,8 +28,8 @@ Settings are also integrated with the :class:`~kivy.app.App` class. Use
 
 .. _settings_json:
 
-Create panel from JSON
-----------------------
+Create a panel from JSON
+------------------------
 
 To create a panel from a JSON-file, you need two things:
 
@@ -82,11 +82,11 @@ properties of that class.
 
 In the JSON example above, the first element is of type "title". It will create
 a new instance of :class:`SettingTitle` and apply the rest of the key/value
-pairs to the properties of that class, i.e., "title": "Windows" sets the
+pairs to the properties of that class, i.e. "title": "Windows" sets the
 :data:`SettingTitle.title` property to "Windows".
 
 To load the JSON example to a :class:`Settings` instance, use the
-:meth:`Settings.add_json_panel` method. It will automatically instantiate
+:meth:`Settings.add_json_panel` method. It will automatically instantiate a
 :class:`SettingsPanel` and add it to :class:`Settings`::
 
     from kivy.config import ConfigParser
@@ -147,7 +147,7 @@ add_panel that recieves newly created json settings panels for the
 interface to display. See the documentation for
 :class:`InterfaceWithSidebar` for more information. They may
 optionally dispatch an on_close event, for instance if a close button
-is clicked, which is used by :class:`Settings` to trigger its own
+is clicked. This event is used by :class:`Settings` to trigger its own
 on_close event.
 
 '''
