@@ -5,7 +5,7 @@ class SelectableView(object):
     '''The :class:`SelectableView` mixin is used with list items and other
     classes that are to be instantiated in a list view or other classes
     which use a selection-enabled adapter such as ListAdapter. select() and
-    deselect() can to be overridden with display code to mark items as
+    deselect() can be overridden with display code to mark items as
     selected or not, if desired.
     '''
 
@@ -15,7 +15,7 @@ class SelectableView(object):
     '''
 
     is_selected = BooleanProperty(False)
-    '''A SelectableView instance carries this property, which should be kept
+    '''A SelectableView instance carries this property which should be kept
     in sync with the equivalent property the data item represents.
     '''
 
@@ -23,13 +23,13 @@ class SelectableView(object):
         super(SelectableView, self).__init__(**kwargs)
 
     def select(self, *args):
-        '''The list item is responsible for updating the display for
+        '''The list item is responsible for updating the display when
         being selected, if desired.
         '''
         self.is_selected = True
 
     def deselect(self, *args):
-        '''The list item is responsible for updating the display for
+        '''The list item is responsible for updating the display when
         being unselected, if desired.
         '''
         self.is_selected = False
