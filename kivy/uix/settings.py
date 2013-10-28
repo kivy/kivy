@@ -314,14 +314,14 @@ class SettingItem(FloatLayout):
 
 
 class SettingBoolean(SettingItem):
-    '''Implementation of a boolean setting on top of :class:`SettingItem`. It
+    '''Implementation of a boolean setting on top of a :class:`SettingItem`. It
     is visualized with a :class:`~kivy.uix.switch.Switch` widget. By default,
-    0 and 1 are used for values, you can change them by setting :data:`values`.
+    0 and 1 are used for values: you can change them by setting :data:`values`.
     '''
 
     values = ListProperty(['0', '1'])
-    '''Values used to represent the state of the setting. If you use "yes" and
-    "no" in your ConfigParser instance::
+    '''Values used to represent the state of the setting. If you want to use
+    "yes" and "no" in your ConfigParser instance::
 
         SettingBoolean(..., values=['no', 'yes'])
 
@@ -330,13 +330,13 @@ class SettingBoolean(SettingItem):
         You need a minimum of two values, the index 0 will be used as False,
         and index 1 as True
 
-    :data:`values` is a :class:`~kivy.properties.ListProperty`, default to
+    :data:`values` is a :class:`~kivy.properties.ListProperty` and defaults to
     ['0', '1']
     '''
 
 
 class SettingString(SettingItem):
-    '''Implementation of a string setting on top of :class:`SettingItem`.
+    '''Implementation of a string setting on top of a :class:`SettingItem`.
     It is visualized with a :class:`~kivy.uix.label.Label` widget that, when
     clicked, will open a :class:`~kivy.uix.popup.Popup` with a
     :class:`~kivy.uix.textinput.Textinput` so the user can enter a custom
@@ -344,18 +344,18 @@ class SettingString(SettingItem):
     '''
 
     popup = ObjectProperty(None, allownone=True)
-    '''(internal) Used to store the current popup when it's shown
+    '''(internal) Used to store the current popup when it's shown.
 
-    :data:`popup` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
+    :data:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
     '''
 
     textinput = ObjectProperty(None)
-    '''(internal) Used to store the current textinput from the popup, and
+    '''(internal) Used to store the current textinput from the popup and
     to listen for changes.
 
-    :data:`popup` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
+    :data:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
     '''
 
     def on_panel(self, instance, value):
@@ -408,7 +408,7 @@ class SettingString(SettingItem):
 
 
 class SettingPath(SettingItem):
-    '''Implementation of a Path setting on top of :class:`SettingItem`.
+    '''Implementation of a Path setting on top of a :class:`SettingItem`.
     It is visualized with a :class:`~kivy.uix.label.Label` widget that, when
     clicked, will open a :class:`~kivy.uix.popup.Popup` with a
     :class:`~kivy.uix.filechooser.FileChooserListView` so the user can enter
@@ -420,16 +420,16 @@ class SettingPath(SettingItem):
     popup = ObjectProperty(None, allownone=True)
     '''(internal) Used to store the current popup when it is shown.
 
-    :data:`popup` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
+    :data:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
     '''
 
     textinput = ObjectProperty(None)
-    '''(internal) Used to store the current textinput from the popup, and
+    '''(internal) Used to store the current textinput from the popup and
     to listen for changes.
 
-    :data:`popup` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
+    :data:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
     '''
 
     def on_panel(self, instance, value):
@@ -484,7 +484,7 @@ class SettingPath(SettingItem):
 
 
 class SettingNumeric(SettingString):
-    '''Implementation of a numeric setting on top of :class:`SettingString`.
+    '''Implementation of a numeric setting on top of a :class:`SettingString`.
     It is visualized with a :class:`~kivy.uix.label.Label` widget that, when
     clicked, will open a :class:`~kivy.uix.popup.Popup` with a
     :class:`~kivy.uix.textinput.Textinput` so the user can enter a custom
@@ -506,7 +506,7 @@ class SettingNumeric(SettingString):
 
 
 class SettingOptions(SettingItem):
-    '''Implementation of an option list on top of :class:`SettingItem`.
+    '''Implementation of an option list on top of a :class:`SettingItem`.
     It is visualized with a :class:`~kivy.uix.label.Label` widget that, when
     clicked, will open a :class:`~kivy.uix.popup.Popup` with a
     list of options from which the user can select.
@@ -516,14 +516,15 @@ class SettingOptions(SettingItem):
     '''List of all availables options. This must be a list of "string" items.
     Otherwise, it will crash. :)
 
-    :data:`options` is a :class:`~kivy.properties.ListProperty`, default to [].
+    :data:`options` is a :class:`~kivy.properties.ListProperty` and defaults
+    to [].
     '''
 
     popup = ObjectProperty(None, allownone=True)
     '''(internal) Used to store the current popup when it is shown.
 
-    :data:`popup` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
+    :data:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
     '''
 
     def on_panel(self, instance, value):
@@ -605,7 +606,7 @@ class SettingsPanel(GridLayout):
         get the value for a given section/key.
 
         If you don't want to use a ConfigParser instance, you might want to
-        adapt this function.
+        override this function.
         '''
         config = self.config
         if not config:
