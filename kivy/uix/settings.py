@@ -188,28 +188,29 @@ class SettingSpacer(Widget):
 class SettingItem(FloatLayout):
     '''Base class for individual settings (within a panel). This class cannot
     be used directly; it is used for implementing the other setting classes.
-    It builds a row with title/description (left) and setting control (right).
+    It builds a row with a title/description (left) and a setting control
+    (right).
 
     Look at :class:`SettingBoolean`, :class:`SettingNumeric` and
-    :class:`SettingOptions` for usage example.
+    :class:`SettingOptions` for usage examples.
 
     :Events:
         `on_release`
-            Fired when the item is touched then released
+            Fired when the item is touched and then released.
 
     '''
 
     title = StringProperty('<No title set>')
-    '''Title of the setting, default to '<No title set>'.
+    '''Title of the setting, defaults to '<No title set>'.
 
-    :data:`title` is a :class:`~kivy.properties.StringProperty`, default to
+    :data:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
     '<No title set>'.
     '''
 
     desc = StringProperty(None, allownone=True)
-    '''Description of the setting, rendered on the line below title.
+    '''Description of the setting, rendered on the line below the title.
 
-    :data:`desc` is a :class:`~kivy.properties.StringProperty`, default to
+    :data:`desc` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
     '''
 
@@ -217,40 +218,41 @@ class SettingItem(FloatLayout):
     '''Indicate if this setting is disabled. If True, all touches on the
     setting item will be discarded.
 
-    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     section = StringProperty(None)
     '''Section of the token inside the :class:`~kivy.config.ConfigParser`
     instance.
 
-    :data:`section` is a :class:`~kivy.properties.StringProperty`, default to
-    None.
+    :data:`section` is a :class:`~kivy.properties.StringProperty` and defaults
+    to None.
     '''
 
     key = StringProperty(None)
     '''Key of the token inside the :data:`section` in the
     :class:`~kivy.config.ConfigParser` instance.
 
-    :data:`key` is a :class:`~kivy.properties.StringProperty`, default to None.
-    '''
-
-    value = ObjectProperty(None)
-    '''Value of the token, according to the :class:`~kivy.config.ConfigParser`
-    instance. Any change to the value will trigger a
-    :meth:`Settings.on_config_change` event.
-
-    :data:`value` is a :class:`~kivy.properties.ObjectProperty`, default to
+    :data:`key` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
     '''
 
+    value = ObjectProperty(None)
+    '''Value of the token according to the :class:`~kivy.config.ConfigParser`
+    instance. Any change to this value will trigger a
+    :meth:`Settings.on_config_change` event.
+
+    :data:`value` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
+    '''
+
     panel = ObjectProperty(None)
-    '''(internal) Reference to the SettingsPanel with this setting. You don't
+    '''(internal) Reference to the SettingsPanel for this setting. You don't
     need to use it.
 
-    :data:`panel` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None
+    :data:`panel` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
     '''
 
     content = ObjectProperty(None)
@@ -258,16 +260,16 @@ class SettingItem(FloatLayout):
     As soon as the content object is set, any further call to add_widget will
     call the content.add_widget. This is automatically set.
 
-    :data:`content` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
+    :data:`content` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
     '''
 
     selected_alpha = NumericProperty(0)
     '''(internal) Float value from 0 to 1, used to animate the background when
     the user touches the item.
 
-    :data:`selected_alpha` is a :class:`~kivy.properties.NumericProperty`,
-    default to 0.
+    :data:`selected_alpha` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     __events__ = ('on_release', )
