@@ -550,7 +550,7 @@ setup(
         'Topic :: Scientific/Engineering :: Visualization',
         'Topic :: Software Development :: Libraries :: Application Frameworks',
         'Topic :: Software Development :: User Interfaces'],
-    dependency_links=['git+https://github.com/kivy-garden/garden.git@0.1#egg=garden-0.1'],
-    install_requires=['garden==0.1'],
+    dependency_links=['https://github.com/kivy-garden/garden/archive/0.1.1.zip#egg=Kivy-Garden-0.1.1'],
+    install_requires=['Kivy-Garden==0.1.1'],
     )
 
