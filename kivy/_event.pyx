@@ -220,15 +220,22 @@ cdef class EventDispatcher(ObjectWithUid):
             # With event
             self.bind(on_press=self.my_press_callback)
 
+        Most callbacks are called with the arguments 'obj' and 'value', however
+        some such as on_press only provide one argument, 'obj'
+
         Usage in a class::
 
             class MyClass(BoxLayout):
-                def __init__(self):
-                    super(MyClass, self).__init__()
+                def __init__(self, **kwargs):
+                    super(MyClass, self).__init__(**kwargs)
                     btn = Button(text='click me')
                     # Bind event to callback
-                    btn.bind(on_press=self.my_callback)
+                    btn.bind(on_press=self.my_callback, 
+                        state=self.state_callback)
                     self.add_widget(btn)
+
+                def state_callback(self, obj, value):
+                    print obj, value
 
                 def my_callback(self, obj):
                     print('press on button', obj)
@@ -318,14 +325,30 @@ cdef class EventDispatcher(ObjectWithUid):
         return prop.get(dstinstance)
 
     def setter(self, name):
-        '''Return the setter of a property. Useful if you want to directly bind
-        a property to another.
+        '''Return the setter of a property. Use: instance.setter('name')
+        The setter is a convenient callback function useful if you want 
+        to directly bind a property to another. 
+        It returns a partial function that will accept
+        (obj, value) args and result in property 'name' of instance 
+        being set to value.
 
         .. versionadded:: 1.0.9
 
-        For example, if you want to position one widget next to you::
+        For example, to bind number2 to number1 in python you would do:
 
-            self.bind(right=nextchild.setter('x'))
+        class ExampleWidget(Widget):
+            number1 = NumericProperty(None)
+            number2 = NumericProperty(None)
+
+            def __init__(self, **kwargs):
+                super(ExampleWidget, self).__init__(**kwargs)
+                self.bind(number1=self.setter('number2'))
+
+        This is equivalent to kv binding:
+        
+        <ExampleWidget>:
+            number2: self.number1
+
         '''
         return partial(self.__proxy_setter, self, name)
 
