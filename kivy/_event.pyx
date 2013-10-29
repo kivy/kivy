@@ -334,20 +334,20 @@ cdef class EventDispatcher(ObjectWithUid):
 
         .. versionadded:: 1.0.9
 
-        For example, to bind number2 to number1 in python you would do:
+        For example, to bind number2 to number1 in python you would do::
 
-        class ExampleWidget(Widget):
-            number1 = NumericProperty(None)
-            number2 = NumericProperty(None)
+            class ExampleWidget(Widget):
+                number1 = NumericProperty(None)
+                number2 = NumericProperty(None)
 
-            def __init__(self, **kwargs):
-                super(ExampleWidget, self).__init__(**kwargs)
-                self.bind(number1=self.setter('number2'))
+                def __init__(self, **kwargs):
+                    super(ExampleWidget, self).__init__(**kwargs)
+                    self.bind(number1=self.setter('number2'))
 
-        This is equivalent to kv binding:
+        This is equivalent to kv binding::
         
-        <ExampleWidget>:
-            number2: self.number1
+            <ExampleWidget>:
+                number2: self.number1
 
         '''
         return partial(self.__proxy_setter, self, name)
