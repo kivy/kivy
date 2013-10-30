@@ -147,6 +147,7 @@ class Carousel(StencilView):
             return slides[-1]
         if index > 0:
             return slides[index - 1]
+
     previous_slide = AliasProperty(_prev_slide, None, bind=('slides', 'index'))
     '''The previous slide in the Carousel. It is None if the current slide is
     the first slide in the Carousel. If :data:`orientation` is 'horizontal',
@@ -354,7 +355,7 @@ class Carousel(StencilView):
             elif _loop and _prev and index == no_of_slides:
                 if ((_offset < 0 and direction[0] == 'r') or
                     (_offset > 0 and direction[0] == 'l')):
-                    first_slide.pos = (x_next[direction], y)
+                    first_slide.pos = (x_next[direction[0]], y)
         if direction[0] in ['t', 'b']:
             yoff = y + _offset
             y_prev = {'t': yoff - height, 'b': yoff + height}
@@ -408,14 +409,14 @@ class Carousel(StencilView):
 
         if direction[0] == 'r':
             if _offset <= -width:
-                self.index += 1
+                index += 1
             if _offset >= width:
-                self.index -= 1
+                index -= 1
         if direction[0] == 'l':
             if _offset <= -width:
-                self.index -= 1
+                index -= 1
             if _offset >= width:
-                self.index += 1
+                index += 1
         if direction[0] == 't':
             if _offset <= - height:
                 index += 1
@@ -426,6 +427,7 @@ class Carousel(StencilView):
                 index -= 1
             if _offset >= height:
                 index += 1
+        self.index = index
 
     def _start_animation(self, *args):
         # compute target offset for ease back, next or prev
@@ -505,9 +507,9 @@ class Carousel(StencilView):
                 Clock.unschedule(self._change_touch_mode)
                 ud['mode'] = 'scroll'
         else:
-            if direction in ('right', 'left'):
+            if direction[0] in ('r', 'l'):
                 self._offset += touch.dx
-            if direction in ('top', 'bottom'):
+            if direction[0] in ('t', 'b'):
                 self._offset += touch.dy
         return True
 
@@ -591,9 +593,9 @@ if __name__ == '__main__':
     class Example1(App):
 
         def build(self):
-            carousel = Carousel(direction='left',
+            carousel = Carousel(direction='top',
                                 loop=True)
-            for i in range(2):
+            for i in range(4):
                 src = "http://placehold.it/480x270.png&text=slide-%d&.png" % i
                 image = Factory.AsyncImage(source=src, allow_stretch=True)
                 carousel.add_widget(image)
