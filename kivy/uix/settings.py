@@ -851,18 +851,18 @@ class Settings(BoxLayout):
     '''(internal) Reference to the widget that will contain, organise and
     display the panel configuration panel widgets.
 
-    :data:`interface` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
+    :data:`interface` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
 
     '''
 
     interface_cls = ObjectProperty(InterfaceWithSidebar)
     '''The widget class that will be used to display the graphical
-    interface for the settings panel. By default, it displays one settings
+    interface for the settings panel. By default, it displays one Settings
     panel at a time with a sidebar to switch between them.
 
-    :data:`interface_cls` is a
-    :class:`~kivy.properties.ObjectProperty`, default to
+    :data:`interface_cls` is an
+    :class:`~kivy.properties.ObjectProperty` and defaults to
     :class`InterfaceWithSidebar`.
 
     '''
@@ -896,7 +896,7 @@ class Settings(BoxLayout):
     def add_interface(self):
         '''(Internal) creates an instance of :attr:`Settings.interface_cls`,
         and sets it to :attr:`~Settings.interface`. When json panels are
-        created, they will be added to this interface, which will display them
+        created, they will be added to this interface which will display them
         to the user.
         '''
         interface = self.interface_cls()
@@ -909,10 +909,10 @@ class Settings(BoxLayout):
 
     def add_json_panel(self, title, config, filename=None, data=None):
         '''Create and add a new :class:`SettingsPanel` using the configuration
-        `config`, with the JSON definition `filename`.
+        `config` with the JSON definition `filename`.
 
         Check the :ref:`settings_json` section in the documentation for more
-        information about JSON format, and the usage of this function.
+        information about JSON format and the usage of this function.
         '''
         panel = self.create_json_panel(title, config, filename, data)
         uid = panel.uid
@@ -1010,8 +1010,8 @@ class SettingsWithTabbedPanel(Settings):
 
 
 class SettingsWithNoMenu(Settings):
-    '''A settings widget that displays a single settings panel, with *no*
-    Close button. It will not accept more than one settings panel. It
+    '''A settings widget that displays a single settings panel with *no*
+    Close button. It will not accept more than one Settings panel. It
     is intended for use in programs with few enough settings that a
     full panel switcher is not useful.
 
@@ -1032,7 +1032,7 @@ class InterfaceWithNoMenu(ContentPanel):
     '''The interface widget used by :class:`SettingsWithNoMenu`. It
     stores and displays a single settings panel.
 
-    This widget is considered internal and is not documented. See
+    This widget is considered internal and is not documented. See the
     :class:`ContentPanel` for information on defining your own content
     widget.
 
@@ -1046,7 +1046,7 @@ class InterfaceWithNoMenu(ContentPanel):
 
 class InterfaceWithTabbedPanel(FloatLayout):
     '''The content widget used by :class:`SettingsWithTabbedPanel`. It
-    stores and displays settings panels in tabs of a TabbedPanel.
+    stores and displays Settings panels in tabs of a TabbedPanel.
 
     This widget is considered internal and is not documented. See
     :class:`InterfaceWithSidebar` for information on defining your own
@@ -1118,7 +1118,7 @@ class MenuSidebar(FloatLayout):
     :data:`~ContentPanel.current_uid` of a :class:`ContentPanel`.
 
     :data:`selected_uid` is a
-    :class`~kivy.properties.NumericProperty`, default to 0.
+    :class`~kivy.properties.NumericProperty` and defaults to 0.
 
     '''
 
@@ -1127,7 +1127,7 @@ class MenuSidebar(FloatLayout):
     settings panel menu buttons.
 
     :data:`buttons_layout` is an
-    :class:`~kivy.properties.ObjectProperty`, default to None.
+    :class:`~kivy.properties.ObjectProperty` and defaults to None.
 
     '''
 
@@ -1135,7 +1135,7 @@ class MenuSidebar(FloatLayout):
     '''(internal) Reference to the widget's Close button.
 
     :data:`buttons_layout` is an
-    :class:`~kivy.properties.ObjectProperty`, default to None.
+    :class:`~kivy.properties.ObjectProperty` and defaults to None.
 
     '''
 
@@ -1146,7 +1146,7 @@ class MenuSidebar(FloatLayout):
                      used to represent the panel in the menu.
 
         :param uid: The name (an int) of the panel. It should be used
-                    internally to represent the panel, and used to set
+                    internally to represent the panel and used to set
                     self.selected_uid when the panel is changed.
 
         '''
