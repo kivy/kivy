@@ -949,14 +949,17 @@ class TextInput(Widget):
 
         cursor = get_cursor(touch.x, touch.y + (instance.height / 2))
 
-        if instance == handle_middle == touch.grab_current:
+        if instance != touch.grab_current:
+            return
+
+        if instance == handle_middle:
             self.cursor = cursor
             self._position_handles('middle')
             return
-        if instance == handle_left == touch.grab_current:
+        if instance == handle_left:
             self._selection_from = self.cursor_index(cursor=cursor)
             self._position_handles('left')
-        elif instance == handle_right == touch.grab_current:
+        elif instance == handle_right:
             # handle right
             self._selection_to = self.cursor_index(cursor=cursor)
             self._position_handles('right')
@@ -2298,19 +2301,12 @@ class TextInput(Widget):
     line_spacing = NumericProperty(0)
     '''Space taken up between the lines.
 
-    .. versionadded:: 1.0.8
+    .. versionadded:: 1.8.0
 
     :data:`line_spacing` is a :class:`~kivy.properties.NumericProperty`,
     default to '0'
     '''
 
-    _input_type = NumericProperty('text')
-    ''' Internal use only property for managing the type of keyboard requested
-    on android/ios. Defaults to TYPE_CLASS_TEXT.
-
-    ..versionadded:: 1.8.0
-
-    '''
     input_type = OptionProperty('text', options=('text', 'number', 'url',
                                                   'mail', 'datetime', 'tel',
                                                   'address'))
