@@ -865,7 +865,7 @@ class WindowBase(EventDispatcher):
             if keyboard:
                 keyboard.release()
 
-    def request_keyboard(self, callback, target):
+    def request_keyboard(self, callback, target, input_type='text'):
         '''.. versionadded:: 1.0.4
 
         Internal method for widget, to request the keyboard. This method is
