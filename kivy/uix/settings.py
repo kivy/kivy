@@ -637,25 +637,25 @@ class InterfaceWithSidebar(BoxLayout):
 
     This class also dispatches an event 'on_close', which is triggered
     when the sidebar menu's close button is released. If creating your
-    own interface widget, it should also dispatch such an event, which
+    own interface widget, it should also dispatch such an event which
     will automatically be caught by :class:`Settings` and used to
-    trigger its own on_close event.
+    trigger its own 'on_close' event.
 
     '''
 
     menu = ObjectProperty()
     '''(internal) A reference to the sidebar menu widget.
 
-    :data:`menu` is an :class:`~kivy.properties.ObjectProperty`
-    defaulting to None.
+    :data:`menu` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     content = ObjectProperty()
     '''(internal) A reference to the panel display widget (a
     :class:`ContentPanel`).
 
-    :data:`menu` is an :class:`~kivy.properties.ObjectProperty`
-    defaulting to None.
+    :data:`menu` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
 
     '''
 
@@ -671,17 +671,16 @@ class InterfaceWithSidebar(BoxLayout):
         display. Any replacement for ContentPanel *must* implement
         this method.
 
-        :param panel: A :class:`SettingsPanel`. It should be stored,
+        :param panel: A :class:`SettingsPanel`. It should be stored
                       and the interface should provide a way to switch
                       between panels.
 
-        :param name: The name of the panel, as a string. It
-                     may be used to represent the panel, but isn't necessarily
+        :param name: The name of the panel as a string. It
+                     may be used to represent the panel but isn't necessarily
                      unique.
 
         :param uid: A unique int identifying the panel. It should be
                     used to identify and switch between panels.
-
         '''
         self.menu.add_item(name, uid)
         self.content.add_panel(panel, name, uid)
@@ -694,8 +693,8 @@ class InterfaceWithSpinner(BoxLayout):
     '''A settings interface that displays a spinner at the top for
     switching between panels.
 
-    This workings of this class are considered internal and are not
-    documented.  See :meth:`InterfaceWithSidebar` for
+    The workings of this class are considered internal and are not
+    documented. See :meth:`InterfaceWithSidebar` for
     information on implementing your own interface class.
 
     '''
@@ -705,16 +704,16 @@ class InterfaceWithSpinner(BoxLayout):
     menu = ObjectProperty()
     '''(internal) A reference to the sidebar menu widget.
 
-    :data:`menu` is an :class:`~kivy.properties.ObjectProperty`
-    defaulting to None.
+    :data:`menu` is an :class:`~kivy.properties.ObjectProperty` and
+    defauls to None.
     '''
 
     content = ObjectProperty()
     '''(internal) A reference to the panel display widget (a
     :class:`ContentPanel`).
 
-    :data:`menu` is an :class:`~kivy.properties.ObjectProperty`
-    defaulting to None.
+    :data:`menu` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
 
     '''
 
@@ -728,12 +727,12 @@ class InterfaceWithSpinner(BoxLayout):
         display. Any replacement for ContentPanel *must* implement
         this method.
 
-        :param panel: A :class:`SettingsPanel`. It should be stored,
+        :param panel: A :class:`SettingsPanel`. It should be stored
                       and the interface should provide a way to switch
                       between panels.
 
-        :param name: The name of the panel, as a string. It
-                     may be used to represent the panel, but may not
+        :param name: The name of the panel as a string. It
+                     may be used to represent the panel but may not
                      be unique.
 
         :param uid: A unique int identifying the panel. It should be
@@ -756,27 +755,27 @@ class ContentPanel(ScrollView):
     '''
 
     panels = DictProperty({})
-    '''(internal) Stores a dictionary relating settings panels to their uids.
+    '''(internal) Stores a dictionary mapping settings panels to their uids.
 
-    :data:`panels` is a :class:`~kivy.properties.DictProperty`,
-    defaulting to {}.
+    :data:`panels` is a :class:`~kivy.properties.DictProperty` and
+    defaults to {}.
 
     '''
 
     container = ObjectProperty()
-    '''(internal) A reference to the GridLayout that actually contains the
+    '''(internal) A reference to the GridLayout that contains the
     settings panel.
 
-    :data:`container` is an :class:`~kivy.properties.ObjectProperty`,
-    defaulting to None.
+    :data:`container` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
 
     '''
 
     current_panel = ObjectProperty(None)
     '''(internal) A reference to the current settings panel.
 
-    :data:`current_panel` is an :class:`~kivy.properties.ObjectProperty`,
-    defaulting to None.
+    :data:`current_panel` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
 
     '''
 
@@ -784,7 +783,7 @@ class ContentPanel(ScrollView):
     '''(internal) A reference to the uid of the current settings panel.
 
     :data:`current_uid` is a
-    :class:`~kivy.properties.NumericProperty`, defaulting to 0.
+    :class:`~kivy.properties.NumericProperty` and defaults to 0.
 
     '''
 
@@ -793,10 +792,10 @@ class ContentPanel(ScrollView):
         display. Any replacement for ContentPanel *must* implement
         this method.
 
-        :param panel: A :class:`SettingsPanel`. It should be stored,
+        :param panel: A :class:`SettingsPanel`. It should be stored
                       and displayed when requested.
 
-        :param name: The name of the panel, as a string. It
+        :param name: The name of the panel as a string. It
                      may be used to represent the panel.
 
         :param uid: A unique int identifying the panel. It should be
