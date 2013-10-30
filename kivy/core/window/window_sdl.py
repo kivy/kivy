@@ -297,8 +297,9 @@ class WindowSDL(WindowBase):
             return True
         super(WindowSDL, self).on_keyboard(key, scancode, str, modifier)
 
-    def request_keyboard(self, *largs):
-        self._sdl_keyboard = super(WindowSDL, self).request_keyboard(*largs)
+    def request_keyboard(self, callback, target, input_type='text'):
+        self._sdl_keyboard = super(WindowSDL, self).request_keyboard(
+            callback, target, input_type)
         sdl.show_keyboard()
         Clock.schedule_interval(self._check_keyboard_shown, 1 / 5.)
         return self._sdl_keyboard

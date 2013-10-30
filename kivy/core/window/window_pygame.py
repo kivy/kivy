@@ -372,10 +372,11 @@ class WindowPygame(WindowBase):
         if mods & (pygame.KMOD_META | pygame.KMOD_LMETA):
             self._modifiers.append('meta')
 
-    def request_keyboard(self, *largs):
-        keyboard = super(WindowPygame, self).request_keyboard(*largs)
+    def request_keyboard(self, callback, target, input_type='text'):
+        keyboard = super(WindowPygame, self).request_keyboard(
+            callback, target, input_type)
         if android and not self.allow_vkeyboard:
-            android.show_keyboard(largs[1]._input_type)
+            android.show_keyboard(target, input_type)
         return keyboard
 
     def release_keyboard(self, *largs):

@@ -142,22 +142,6 @@ Cache_register('textinput.label', timeout=60.)
 Cache_register('textinput.width', timeout=60.)
 
 FL_IS_NEWLINE = 0x01
-# Flags for input_type, for requesting a particular type of keyboard
-#android FLAGS
-TYPE_CLASS_DATETIME = 4
-TYPE_CLASS_NUMBER = 2
-TYPE_NUMBER_VARIATION_NORMAL = 0
-TYPE_NUMBER_VARIATION_PASSWORD = 16
-TYPE_CLASS_TEXT = 1
-TYPE_TEXT_FLAG_AUTO_COMPLETE = 65536
-TYPE_TEXT_FLAG_AUTO_CORRECT = 32768
-TYPE_TEXT_FLAG_NO_SUGGESTIONS = 524288
-TYPE_TEXT_VARIATION_EMAIL_ADDRESS = 32
-TYPE_TEXT_VARIATION_NORMAL = 0
-TYPE_TEXT_VARIATION_PASSWORD = 128
-TYPE_TEXT_VARIATION_POSTAL_ADDRESS = 112
-TYPE_TEXT_VARIATION_URI = 16
-TYPE_CLASS_PHONE = 3
 
 # late binding
 Clipboard = None
@@ -192,8 +176,7 @@ if 'KIVY_DOC' not in environ:
 
 
 class Selector(ButtonBehavior, Image):
-    '''
-    '''
+    # Internal class for managing the selection Handles.
     pass
 
 
@@ -311,6 +294,7 @@ class TextInput(Widget):
         self._selection_to = None
         self._handle_left = None
         self._handle_right = None
+        self._handle_middle = None
         self._bubble = None
         self._lines_flags = []
         self._lines_labels = []
@@ -936,6 +920,19 @@ class TextInput(Widget):
             win = self._win
             if self._selection_to != self._selection_from:
                 self._show_cut_copy_paste(touch.pos, win)
+            elif self.use_bubble:
+                handle_middle = self._handle_middle
+                if handle_middle is None:
+                    self._handle_middle = handle_middle = Selector(
+                        source=self.handle_image_middle,
+                        size_hint=(None, None),
+                        size=('32dp', '32dp'))
+                    handle_middle.bind(on_press=self._handle_pressed,
+                        on_touch_move=self._handle_move,
+                        on_release=self._handle_released)
+                self._win.remove_widget(handle_middle)
+                self._win.add_widget(handle_middle)
+                self._position_handles('middle')
             return True
 
     def _handle_pressed(self, instance):
@@ -948,14 +945,19 @@ class TextInput(Widget):
         get_cursor = self.get_cursor_from_xy
         handle_right = self._handle_right
         handle_left = self._handle_left
+        handle_middle = self._handle_middle
 
-        if instance == handle_left and touch.grab_current == handle_left:
-            cursor = get_cursor(touch.x, touch.y + (handle_left.height / 2))
+        cursor = get_cursor(touch.x, touch.y + (instance.height / 2))
+
+        if instance == handle_middle == touch.grab_current:
+            self.cursor = cursor
+            self._position_handles('middle')
+            return
+        if instance == handle_left == touch.grab_current:
             self._selection_from = self.cursor_index(cursor=cursor)
             self._position_handles('left')
-        elif instance == handle_right and touch.grab_current == handle_right:
+        elif instance == handle_right == touch.grab_current:
             # handle right
-            cursor = get_cursor(touch.x, touch.y + (handle_right.height / 2))
             self._selection_to = self.cursor_index(cursor=cursor)
             self._position_handles('right')
         self._trigger_update_graphics()
@@ -963,6 +965,16 @@ class TextInput(Widget):
     def _position_handles(self, mode='both'):
         group = self.canvas.get_group('selection')
         lh = self.line_height
+
+        if mode[0] == 'm':
+            handle_middle = self._handle_middle
+            hp_mid = self.cursor_pos
+            pos = self.to_window(*hp_mid)
+            handle_middle.x = pos[0] - handle_middle.width / 2
+            handle_middle.top = pos[1] - lh
+            return
+
+        self._win.remove_widget(self._handle_middle)
 
         if mode[0] in ('b', 'l'):
             handle_left = self._handle_left
@@ -1077,8 +1089,9 @@ class TextInput(Widget):
         Animation.cancel_all(bubble)
         bubble.opacity = 0
         win.add_widget(bubble)
-        win.add_widget(self._handle_left)
-        win.add_widget(self._handle_right)
+        if self.selection_from != self.selection_to:
+            win.add_widget(self._handle_left)
+            win.add_widget(self._handle_right)
         Animation(opacity=1, d=.225).start(bubble)
 
     #
@@ -1111,7 +1124,8 @@ class TextInput(Widget):
                     self._keyboard_mode == 'system'))
 
         if value:
-            keyboard = win.request_keyboard(self._keyboard_released, self)
+            keyboard = win.request_keyboard(
+                self._keyboard_released, self, input_type=self.input_type)
             self._keyboard = keyboard
             if editable:
                 keyboard.bind(
@@ -1741,6 +1755,7 @@ class TextInput(Widget):
 
         if text and not is_interesting_key:
             self._hide_cut_copy_paste()
+            self._win.remove_widget(self._handle_middle)
             if is_shortcut:
                 if key == ord('x'):  # cut selection
                     self._cut(self.selection_text)
@@ -1837,21 +1852,6 @@ class TextInput(Widget):
     False
     '''
 
-    def on_password(self, instance, value):
-        if value:
-            _input_type = self._input_type
-            if _input_type == TYPE_CLASS_TEXT:
-                self._input_type |= TYPE_TEXT_VARIATION_PASSWORD
-            elif _input_type == TYPE_CLASS_NUMBER:
-                self._input_type |= TYPE_NUMBER_VARIATION_PASSWORD
-        else:
-            _input_type = self._input_type
-            if _input_type == TYPE_CLASS_TEXT | TYPE_TEXT_VARIATION_PASSWORD:
-                self._input_type = TYPE_CLASS_TEXT
-            elif _input_type == TYPE_CLASS_NUMBER | \
-                TYPE_TEXT_VARIATION_PASSWORD:
-                self._input_type = TYPE_CLASS_NUMBER
-
     keyboard_suggestions = BooleanProperty(True)
     '''If True provides auto suggestions on top of keyboard.
     This will only work if :data:`input_type` is set to `text`.
@@ -1861,16 +1861,6 @@ class TextInput(Widget):
      :data:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
      defaults to True.
     '''
-
-    def on_keyboard_suggestions(self, instance, value):
-        _input_type = self._input_type
-        if value:
-            if _input_type == TYPE_CLASS_TEXT | TYPE_TEXT_FLAG_NO_SUGGESTIONS:
-                self._input_type = TYPE_CLASS_TEXT
-        else:
-            if _input_type == TYPE_CLASS_TEXT:
-                self._input_type = TYPE_CLASS_TEXT | \
-                    TYPE_TEXT_FLAG_NO_SUGGESTIONS
 
     cursor_blink = BooleanProperty(False)
     '''This property is used to blink the cursor graphics. The value of
@@ -2314,18 +2304,7 @@ class TextInput(Widget):
     default to '0'
     '''
 
-    overlay = BooleanProperty(True)
-    ''' Indicates whether there is a overlay replicating the texture of
-    textinput displayed on top of the keyboard if textinput is obscured
-    by keyboard
-
-    .. versionadded:: 1.8.0
-
-    :data:`overlay` is a :class:`~kivy.properties.BooleanProperty`
-    defaults to False for desktop and true on mobile
-    '''
-
-    _input_type = NumericProperty(TYPE_CLASS_TEXT)
+    _input_type = NumericProperty('text')
     ''' Internal use only property for managing the type of keyboard requested
     on android/ios. Defaults to TYPE_CLASS_TEXT.
 
@@ -2344,30 +2323,20 @@ class TextInput(Widget):
     'datetime', 'tel', 'address'.
     '''
 
-    def on_input_type(self, instance, value):
-        if _platform == 'android':
-            if value == 'text':
-                self._input_type = TYPE_CLASS_TEXT
-            elif value == 'number':
-                self._input_type = TYPE_CLASS_NUMBER
-            elif value == 'url':
-                self._input_type = \
-                    TYPE_CLASS_TEXT | TYPE_TEXT_VARIATION_URI
-            elif value == 'mail':
-                self._input_type = \
-                    TYPE_CLASS_TEXT | TYPE_TEXT_VARIATION_EMAIL_ADDRESS
-            elif value == 'datetime':
-                self._input_type = TYPE_CLASS_DATETIME
-            elif value == 'tel':
-                self._input_type = TYPE_CLASS_PHONE
-            elif value == 'address':
-                self._input_type = TYPE_TEXT_VARIATION_POSTAL_ADDRESS
+    handle_image_middle = StringProperty(
+        'atlas://data/images/defaulttheme/selector_middle')
+    '''Image used to display the middle handle on the TextInput for cursor
+    positioning.
 
-            self.on_password(self, self.password)
-            self.on_keyboard_suggestions(self, self.keyboard_suggestions)
-        else:
-            # iOs
-            pass
+    .. versionadded:: 1.8.0
+
+    :data:`handle_image_middle` is a :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/selector_middle'
+    '''
+
+    def on_handle_image_middle(self, instance, value):
+        if self._handle_middle:
+            self._handle_middle.source = value
 
     handle_image_left = StringProperty(
         'atlas://data/images/defaulttheme/selector_left')
@@ -2379,6 +2348,10 @@ class TextInput(Widget):
     default to 'atlas://data/images/defaulttheme/selector_left'
     '''
 
+    def on_handle_image_left(self, instance, value):
+        if self._handle_left:
+            self._handle_left.source = value
+
     handle_image_right = StringProperty(
         'atlas://data/images/defaulttheme/selector_right')
     '''Image used to display the Right handle on the TextInput for selection.
@@ -2389,6 +2362,9 @@ class TextInput(Widget):
     default to 'atlas://data/images/defaulttheme/selector_right'
     '''
 
+    def on_handle_image_right(self, instance, value):
+        if self._handle_right:
+            self._handle_right.source = value
 
 if __name__ == '__main__':
     from kivy.app import App
