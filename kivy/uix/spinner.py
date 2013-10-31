@@ -9,7 +9,7 @@ Spinner
 
 Spinner is a widget that provide a quick way to select one value from a set. In
 the default state, a spinner show its currently selected value. Touching the
-spinner displays a dropdown menu with all other available values. from which the
+spinner displays a dropdown menu with all other available values from which the
 user can select a new one.
 
 Example::
@@ -51,42 +51,42 @@ class SpinnerOption(Button):
 
 
 class Spinner(Button):
-    '''Spinner class, see module documentation for more information
+    '''Spinner class, see module documentation for more information.
     '''
 
     values = ListProperty()
     '''Values that can be selected by the user. It must be a list of strings.
 
-    :data:`values` is a :class:`~kivy.properties.ListProperty`, default to [].
+    :data:`values` is a :class:`~kivy.properties.ListProperty` and defaults to
+    [].
     '''
 
     option_cls = ObjectProperty(SpinnerOption)
     '''Class used to display the options within the dropdown list displayed
-    under the Spinner. The `text` property in the class will represent the
-    value.
+    under the Spinner. The `text` property of the class will be used to
+    represent the value.
 
-    The option class require at least:
+    The option class requires at least:
 
-    - one `text` property where the value will be put
-    - one `on_release` event that you need to trigger when the option is
-      touched.
+    - a `text` property, used to display the value.
+    - an `on_release` event, used to trigger the option when pressed/touched.
 
-    :data:`option_cls` is a :class:`~kivy.properties.ObjectProperty`, default
-    to :class:`SpinnerOption`.
+    :data:`option_cls` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to :class:`SpinnerOption`.
     '''
 
     dropdown_cls = ObjectProperty(DropDown)
     '''Class used to display the dropdown list when the Spinner is pressed.
 
-    :data:`dropdown_cls` is a :class:`~kivy.properties.ObjectProperty`, default
-    to :class:`~kivy.uix.dropdown.DropDown`.
+    :data:`dropdown_cls` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to :class:`~kivy.uix.dropdown.DropDown`.
     '''
 
     is_open = BooleanProperty(False)
-    '''By default, the spinner is not open. Set to true to open it.
+    '''By default, the spinner is not open. Set to True to open it.
 
-    :data:`is_open` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :data:`is_open` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
 
     .. versionadded:: 1.4.0
     '''
