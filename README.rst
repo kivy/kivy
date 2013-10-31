@@ -4,6 +4,11 @@ Kivy
 Innovative User Interfaces Made Easy
 http://kivy.org/
 
+
+.. image:: https://coveralls.io/repos/kivy/kivy/badge.png?branch=master
+  :target: https://coveralls.io/r/kivy/kivy?branch=master
+
+
 Introduction
 ------------
 
