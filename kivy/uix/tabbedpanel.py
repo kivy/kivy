@@ -13,7 +13,8 @@ TabbedPanel
     future version.
 
 The `TabbedPanel` widget manages different widgets in tabs, with a header area
-for the actual tab buttons and a content area for showing current tab content.
+for the actual tab buttons and a content area for showing the current tab
+content.
 
 The :class:`TabbedPanel` provides one default tab.
 
@@ -25,41 +26,41 @@ Simple example
 
 .. note::
 
-    A new Class :class:`TabbedPanelItem` has been introduced in 1.5.0 for
-    conveniance. So now one can simply add a :class:`TabbedPanelItem` to a
-    :class:`TabbedPanel` and the `content` to the :class:`TabbedPanelItem`
-    like in the example provided above.
+    A new class :class:`TabbedPanelItem` has been introduced in 1.5.0 for
+    convenience. So now one can simply add a :class:`TabbedPanelItem` to a
+    :class:`TabbedPanel` and `content` to the :class:`TabbedPanelItem`
+    as in the example provided above.
 
 Customize the Tabbed Panel
 --------------------------
 
-You can choose the direction the tabs are displayed::
+You can choose the direction in which the tabs are displayed::
 
     tab_pos = 'top_mid'
 
 An individual tab is called a TabbedPanelHeader. It is a special button
-containing a content property. You add the TabbedPanelHeader first, and set its
-content separately::
+containing a `content` property. You add the TabbedPanelHeader first, and set
+its `content` property separately::
 
     tp = TabbedPanel()
     th = TabbedPanelHeader(text='Tab2')
     tp.add_widget(th)
 
 An individual tab, represented by a TabbedPanelHeader, needs its content set.
-This content can be any of the widget choices. It could be a layout with a deep
-hierarchy of widget, or it could be an indivual widget, such as a label or
+This content can be any widget. It could be a layout with a deep
+hierarchy of widgets, or it could be an individual widget, such as a label or a
 button::
 
     th.content = your_content_instance
 
-There is one "shared" main content area, active at a given time, for all
-the tabs. Your app is responsible for adding the content of individual tabs,
-and for managing it, but not for doing the content switching. The tabbed panel
-handles switching of the main content object, per user action.
+There is one "shared" main content area, active at any given time, for all
+the tabs. Your app is responsible for adding the content of individual tabs
+and for managing them, but it's not responsible for content switching. The
+tabbed panel handles switching of the main content object, as per user action.
 
 .. note::
-    The default_tab functionality is turned off by default since 1.5.0 to
-    turn it back on set `do_default_tab` = True.
+    The default_tab functionality is turned off by default since 1.5.0. To
+    turn it back on, set `do_default_tab` = True.
 
 There is a default tab added when the tabbed panel is instantiated.
 Tabs that you add individually as above, are added in addition to the default
@@ -74,11 +75,11 @@ Accordingly, an `on_default_tab` event is provided for associating a callback::
 
     tp.bind(default_tab = my_default_tab_callback)
 
-It's important to note that as by default :data:`default_tab_cls` is of type
-:class:`TabbedPanelHeader` it has the same properties as other tabs.
+It's important to note that by default, :data:`default_tab_cls` is of type
+:class:`TabbedPanelHeader` and thus has the same properties as other tabs.
 
-Since 1.5.0 it is now possible to disable the creation of the
-:data:`default_tab` by setting :data:`do_default_tab` to False
+Since 1.5.0, it is now possible to disable the creation of the
+:data:`default_tab` by setting :data:`do_default_tab` to False.
 
 Tabs and content can be removed in several ways::
 
@@ -363,7 +364,7 @@ class TabbedPanel(GridLayout):
     '''
 
     do_default_tab = BooleanProperty(True)
-    '''Specifies weather a default_tab head is provided.
+    '''Specifies wether a default_tab head is provided.
 
     .. versionadded:: 1.5.0
 
