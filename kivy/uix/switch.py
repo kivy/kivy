@@ -15,7 +15,7 @@ switch. The user can swipe to the left/right to activate/deactivate it::
 
     switch = Switch(active=True)
 
-To attach a callback that listens to activation state::
+To attach a callback that listens to the activation state::
 
     def callback(instance, value):
         print('the switch', instance, 'is', value)
@@ -32,8 +32,8 @@ swipe over the widget's bounding box, it will work.
 
 .. note::
 
-    If you want to control the state with a single touch instead of swipe,
-    use :class:`ToggleButton` instead.
+    If you want to control the state with a single touch instead of a swipe,
+    use the :class:`ToggleButton` instead.
 '''
 
 
@@ -46,34 +46,34 @@ class Switch(Widget):
     '''Switch class. See module documentation for more information.
     '''
     active = BooleanProperty(False)
-    '''Indicate if the switch is active or inactive.
+    '''Indicate whether the switch is active or inactive.
 
-    :data:`active` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :data:`active` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     touch_control = ObjectProperty(None, allownone=True)
     '''(internal) Contains the touch that currently interacts with the switch.
 
-    :data:`touch_control` is a :class:`~kivy.properties.ObjectProperty`, default
-    to None.
+    :data:`touch_control` is an :class:`~kivy.properties.ObjectProperty`
+    and defaults to None.
     '''
 
     touch_distance = NumericProperty(0)
     '''(internal) Contains the distance between the initial position of the
-    touch and the current position to determine if the swipe is from left or
-    right.
+    touch and the current position to determine if the swipe is from the left
+    or right.
 
-    :data:`touch_distance` is a :class:`~kivy.properties.NumericProperty`,
-    default to 0.
+    :data:`touch_distance` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 0.
     '''
 
     active_norm_pos = NumericProperty(0)
     '''(internal) Contains the normalized position of the movable element
     inside the switch, in the 0-1 range.
 
-    :data:`active_norm_pos` is a :class:`~kivy.properties.NumericProperty`,
-    default to 0.
+    :data:`active_norm_pos` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 0.
     '''
 
     def on_touch_down(self, touch):
