@@ -31,6 +31,8 @@ must consistently use units 'dp' and 'sp' throughout your app. See
 '''
 
 import sys
+import kivy
+
 from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
@@ -66,6 +68,7 @@ def stop(win, ctx):
 
 def apply_device(device, scale, orientation):
     name, width, height, dpi, density = devices[device]
+    host_dpi = float(environ.get('KIVY_DPI', 96))
     if orientation == 'portrait':
         width, height = height, width
     Logger.info('Screen: Apply screen settings for {0}'.format(name))
@@ -77,6 +80,16 @@ def apply_device(device, scale, orientation):
         scale = 1
     environ['KIVY_METRICS_DENSITY'] = str(density * scale)
     environ['KIVY_DPI'] = str(dpi * scale)
+    
+    # set emulation window as window provider
+    kivy.kivy_options['window'] = ('emulation', )
+    Config.set('graphics', 'emulation_width', str(width))
+    Config.set('graphics', 'emulation_height', str(height))
+    width = int((host_dpi / dpi) * width)
+    # for some reasons real Window height is less for 50px than value in
+    # config, so just add this value to height
+    height = int((host_dpi / dpi) * height) + 50
+    
     Config.set('graphics', 'width', str(int(width * scale)))
     # simulate with the android bar
     # FIXME should be configurable
