@@ -78,7 +78,8 @@ def apply_device(device, scale, orientation):
         scale = float(scale)
     except:
         scale = 1
-    
+    environ['KIVY_METRICS_DENSITY'] = str(density)
+    environ['KIVY_DPI'] = str(dpi)
     # set emulation window as window provider
     kivy.kivy_options['window'] = ('emulation', )
     Config.set('graphics', 'emulation_width', str(width))
