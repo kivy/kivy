@@ -78,22 +78,15 @@ def apply_device(device, scale, orientation):
         scale = float(scale)
     except:
         scale = 1
-    environ['KIVY_METRICS_DENSITY'] = str(density * scale)
-    environ['KIVY_DPI'] = str(dpi * scale)
     
     # set emulation window as window provider
     kivy.kivy_options['window'] = ('emulation', )
     Config.set('graphics', 'emulation_width', str(width))
     Config.set('graphics', 'emulation_height', str(height))
-    width = int((host_dpi / dpi) * width)
-    # for some reasons real Window height is less for 50px than value in
-    # config, so just add this value to height
-    height = int((host_dpi / dpi) * height) + 50
+    scale *= host_dpi / dpi
     
     Config.set('graphics', 'width', str(int(width * scale)))
-    # simulate with the android bar
-    # FIXME should be configurable
-    Config.set('graphics', 'height', str(int(height * scale - 25 * density)))
+    Config.set('graphics', 'height', str(int(height * scale)))
     Config.set('graphics', 'fullscreen', '0')
     Config.set('graphics', 'show_mousecursor', '1')
 
