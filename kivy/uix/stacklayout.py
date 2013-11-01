@@ -14,14 +14,14 @@ Stack Layout
 
 .. versionadded:: 1.0.5
 
-:class:`StackLayout` arranges children vertically or horizontally, as many
+The :class:`StackLayout` arranges children vertically or horizontally, as many
 as the layout can fit.
 
 
 .. warning:
 
-    This is experimental and subject to change as long as this warning notice is
-    present.
+    This widget is experimental and subject to change as long as this warning
+    notice is present.
 
 '''
 
@@ -39,27 +39,27 @@ class StackLayout(Layout):
     spacing = VariableListProperty([0, 0], length=2)
     '''Spacing between children: [spacing_horizontal, spacing_vertical].
 
-    spacing also accepts a one argument form [spacing].
+    spacing also accepts a single argument form [spacing].
 
     :data:`spacing` is a
-    :class:`~kivy.properties.VariableListProperty`, default to [0, 0].
+    :class:`~kivy.properties.VariableListProperty` and defaults to [0, 0].
 
     '''
 
     padding = VariableListProperty([0, 0, 0, 0])
-    '''Padding between layout box and children: [padding_left, padding_top,
-    padding_right, padding_bottom].
+    '''Padding between the layout box and it's children: [padding_left,
+    padding_top, padding_right, padding_bottom].
 
     padding also accepts a two argument form [padding_horizontal,
-    padding_vertical] and a one argument form [padding].
+    padding_vertical] and a single argument form [padding].
 
     .. versionchanged:: 1.7.0
 
-    Replaced NumericProperty with VariableListProperty.
+        Replaced the NumericProperty with a VariableListProperty.
 
     :data:`padding` is a
-    :class:`~kivy.properties.VariableListProperty`, default to [0, 0,
-    0, 0].
+    :class:`~kivy.properties.VariableListProperty` and defaults to
+    [0, 0, 0, 0].
 
     '''
 
@@ -67,11 +67,11 @@ class StackLayout(Layout):
         'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt', 'bt-lr', 'rl-bt', 'bt-rl'))
     '''Orientation of the layout.
 
-    :data:`orientation` is an :class:`~kivy.properties.OptionProperty`, default
-    to 'lr-tb'.
+    :data:`orientation` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'lr-tb'.
 
-    Valid orientations are: 'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt',
-    'bt-lr', 'rl-bt', 'bt-rl'
+    Valid orientations are 'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt',
+    'bt-lr', 'rl-bt' and 'bt-rl'.
 
     .. versionchanged:: 1.5.0
 
@@ -83,10 +83,10 @@ class StackLayout(Layout):
 
     .. note::
 
-        lr mean Left to Right.
-        rl mean Right to Left.
-        tb mean Top to Bottom.
-        bt mean Bottom to Top.
+        'lr' means Left to Right.
+        'rl' means Right to Left.
+        'tb' means Top to Bottom.
+        'bt' means Bottom to Top.
     '''
 
     minimum_width = NumericProperty(0)
@@ -94,8 +94,8 @@ class StackLayout(Layout):
 
     .. versionadded:: 1.0.8
 
-    :data:`minimum_width` is a :class:`kivy.properties.NumericProperty`, default
-    to 0.
+    :data:`minimum_width` is a :class:`kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     minimum_height = NumericProperty(0)
@@ -103,8 +103,8 @@ class StackLayout(Layout):
 
     .. versionadded:: 1.0.8
 
-    :data:`minimum_height` is a :class:`kivy.properties.NumericProperty`,
-    default to 0.
+    :data:`minimum_height` is a :class:`kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     minimum_size = ReferenceListProperty(minimum_width, minimum_height)
