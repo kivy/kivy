@@ -1573,7 +1573,7 @@ class BuilderBase(object):
 
             if Factory_is_template(cname):
                 # we got a template, so extract all the properties and
-                # handlers, and push them in a "ctx" dictionnary.
+                # handlers, and push them in a "ctx" dictionary.
                 ctx = {}
                 idmap = copy(global_idmap)
                 idmap.update({'root': rctx['ids']['root']})

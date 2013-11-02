@@ -372,7 +372,7 @@ cdef class EventDispatcher(ObjectWithUid):
         return self.__properties[name]
 
     cpdef dict properties(EventDispatcher self):
-        '''Return all the properties in that class in a dictionnary of
+        '''Return all the properties in that class in a dictionary of
         key/property class. Can be used for introspection.
 
         .. versionadded:: 1.0.9

@@ -89,13 +89,13 @@ from time import time
 from kivy.vector import Vector
 
 
-class EnhancedDictionnary(dict):
+class EnhancedDictionary(dict):
 
     def __getattr__(self, attr):
         try:
             return self.__getitem__(attr)
         except KeyError:
-            return super(EnhancedDictionnary, self).__getattr__(attr)
+            return super(EnhancedDictionary, self).__getattr__(attr)
 
     def __setattr__(self, attr, value):
         self.__setitem__(attr, value)
@@ -273,9 +273,9 @@ class MotionEvent(MotionEventBase):
         #: .. versionadded:: 1.7.0
         self.triple_tap_time = 0
 
-        #: User data dictionnary. Use this dictionnary to save your own data on
+        #: User data dictionary. Use this dictionary to save your own data on
         #: the touch.
-        self.ud = EnhancedDictionnary()
+        self.ud = EnhancedDictionary()
 
         self.depack(args)
 
