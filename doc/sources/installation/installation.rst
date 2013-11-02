@@ -86,7 +86,7 @@ For other versions of Ubuntu, this one should work::
 
     $ sudo apt-get install python-setuptools python-pygame python-opengl \
       python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
-      build-essential libgl1-mesa-dev libgles2-mesa-dev python-pip
+      build-essential libgl1-mesa-dev libgles2-mesa-dev zlib1g-dev python-pip
 
 Kivy requires a recent version of Cython, so it's better to use the last
 version published on pypi::
