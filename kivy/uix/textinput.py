@@ -17,8 +17,8 @@ are supported.
 
     Two different coordinate systems are used with TextInput:
 
-        - (x, y) Coordinates in pixels, mostly used for rendering on screen
-        - (row, col) Cursor index in characters / lines, used for selection
+        - (x, y) - coordinates in pixels, mostly used for rendering on screen.
+        - (row, col) - cursor index in characters / lines, used for selection
           and cursor movement.
 
 
@@ -30,7 +30,7 @@ To create a multiline textinput ('enter' key adds a new line)::
     from kivy.uix.textinput import TextInput
     textinput = TextInput(text='Hello world')
 
-To create a monoline textinput, set the multiline property to false ('enter'
+To create a singleline textinput, set the multiline property to False ('enter'
 key will defocus the textinput and emit on_text_validate event)::
 
     def on_enter(instance, value):
@@ -48,7 +48,7 @@ callback when the text changes::
     textinput = TextInput()
     textinput.bind(text=on_text)
 
-You can 'focus' a textinput, meaning that the input box will be highlighted,
+You can 'focus' a textinput, meaning that the input box will be highlighted
 and keyboard focus will be requested::
 
     textinput = TextInput(focus=True)
@@ -176,7 +176,7 @@ class TextInputCutCopyPaste(Bubble):
     # copy/cut/paste happen.
 
     textinput = ObjectProperty(None)
-    ''' Holds the ref to the TextInput this Bubble belongs to.
+    ''' Holds a reference to the TextInput this Bubble belongs to.
     '''
 
     but_cut = ObjectProperty(None)
@@ -249,19 +249,19 @@ class TextInput(Widget):
 
     :Events:
         `on_text_validate`
-            Fired only in multiline=False mode, when the user hits 'enter'.
+            Fired only in multiline=False mode when the user hits 'enter'.
             This will also unfocus the textinput.
         `on_double_tap`
-            Fired when a double tap happen in the text input. The default
-            behavior select the text around the cursor position. More info at
+            Fired when a double tap happens in the text input. The default
+            behavior selects the text around the cursor position. More info at
             :meth:`on_double_tap`.
         `on_triple_tap`
-            Fired when a triple tap happen in the text input. The default
-            behavior select the line around the cursor position. More info at
+            Fired when a triple tap happens in the text input. The default
+            behavior selects the line around the cursor position. More info at
             :meth:`on_triple_tap`.
         `on_quad_touch`
             Fired when four fingers are touching the text input. The default
-            behavior select the whole text. More info at :meth:`on_quad_touch`
+            behavior selects the whole text. More info at :meth:`on_quad_touch`.
 
     .. versionchanged:: 1.7.0
         `on_double_tap`, `on_triple_tap` and `on_quad_touch` events added.
@@ -390,7 +390,7 @@ class TextInput(Widget):
         return index, row
 
     def select_text(self, start, end):
-        ''' Select portion of text displayed in this TextInput.
+        ''' Select a portion of text displayed in this TextInput.
 
         .. versionadded:: 1.4.0
 
@@ -411,7 +411,7 @@ class TextInput(Widget):
         self._update_graphics_selection()
 
     def select_all(self):
-        ''' Select all of the text displayed in this TextInput
+        ''' Select all of the text displayed in this TextInput.
 
         .. versionadded:: 1.4.0
         '''
@@ -431,8 +431,8 @@ class TextInput(Widget):
         return substring
 
     def insert_text(self, substring, from_undo=False):
-        '''Insert new text on the current cursor position. Override this
-        function in order to pre-process text for input validation
+        '''Insert new text at the current cursor position. Override this
+        function in order to pre-process text for input validation.
         '''
         if self.readonly:
             return
@@ -507,12 +507,12 @@ class TextInput(Widget):
         self._redo = self._undo = []
 
     def do_redo(self):
-        '''Do redo operation
+        '''Do redo operation.
 
         .. versionadded:: 1.3.0
 
         This action re-does any command that has been un-done by do_undo/ctrl+z.
-        This function is automaticlly called when `ctrl+r` keys are pressed.
+        This function is automatically called when `ctrl+r` keys are pressed.
         '''
         try:
             x_item = self._redo.pop()
@@ -540,7 +540,7 @@ class TextInput(Widget):
             pass
 
     def do_undo(self):
-        '''Do undo operation
+        '''Do undo operation.
 
         .. versionadded:: 1.3.0
 
@@ -575,8 +575,8 @@ class TextInput(Widget):
         '''Do backspace operation from the current cursor position.
         This action might do several things:
 
-            - removing the current selection if available
-            - removing the previous char, and back the cursor
+            - removing the current selection if available.
+            - removing the previous char and move the cursor back.
             - do nothing, if we are at the start.
 
         '''
@@ -794,8 +794,8 @@ class TextInput(Widget):
     def on_double_tap(self):
         '''This event is dispatched when a double tap happens
         inside TextInput. The default behavior is to select the
-        word around current cursor position. Override this to provide
-        a separate functionality. Alternatively you can bind to this
+        word around the current cursor position. Override this to provide
+        different behavior. Alternatively, you can bind to this
         event to provide additional functionality.
         '''
         ci = self.cursor_index()
@@ -811,7 +811,7 @@ class TextInput(Widget):
         '''This event is dispatched when a triple tap happens
         inside TextInput. The default behavior is to select the
         line around current cursor position. Override this to provide
-        a separate functionality. Alternatively you can bind to this
+        different behavior. Alternatively, you can bind to this
         event to provide additional functionality.
         '''
         ci = self.cursor_index()
@@ -824,7 +824,7 @@ class TextInput(Widget):
     def on_quad_touch(self):
         '''This event is dispatched when a four fingers are touching
         inside TextInput. The default behavior is to select all text.
-        Override this to provide a separate functionality. Alternatively
+        Override this to provide different behavior. Alternatively,
         you can bind to this event to provide additional functionality.
         '''
         Clock.schedule_once(lambda dt: self.select_all())
