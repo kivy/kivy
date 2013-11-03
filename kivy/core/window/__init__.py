@@ -919,7 +919,7 @@ class WindowBase(EventDispatcher):
                 Attach the keyboard to the specified target. Ensure you have a
                 target attached if you're using the keyboard in a multi user
                 mode.
-             `input_type`: string
+            `input_type`: string
                 Choose the type of soft keyboard to request. Can be one of 'text',
                 'number', 'url', 'mail', 'datetime', 'tel', 'address'.
                 
