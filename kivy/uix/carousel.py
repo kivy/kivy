@@ -244,6 +244,7 @@ class Carousel(StencilView):
         self._trigger_position_visible_slides = Clock.create_trigger(
                 self._position_visible_slides, -1)
         super(Carousel, self).__init__(**kwargs)
+        self._skip_slide = None
 
     def load_slide(self, slide):
         '''Animate to the slide that is passed as the argument.
@@ -252,11 +253,15 @@ class Carousel(StencilView):
         '''
         slides = self.slides
         start, stop = slides.index(self.current_slide), slides.index(slide)
+        if start == stop:
+            return
+
+        self._skip_slide = stop
         if stop > start:
-            self.index = stop - 1
+            self._insert_visible_slides(_next_slide=slide)
             self.load_next()
         else:
-            self.index = stop + 1
+            self._insert_visible_slides(_prev_slide=slide)
             self.load_previous()
 
     def load_previous(self):
@@ -286,10 +291,10 @@ class Carousel(StencilView):
     def get_slide_container(self, slide):
         return slide.parent
 
-    def _insert_visible_slides(self):
+    def _insert_visible_slides(self, _next_slide=None, _prev_slide=None):
         get_slide_container = self.get_slide_container
 
-        previous_slide = self.previous_slide
+        previous_slide = _prev_slide if _prev_slide else self.previous_slide
         if previous_slide:
             self._prev = get_slide_container(previous_slide)
         else:
@@ -301,7 +306,7 @@ class Carousel(StencilView):
         else:
             self._current = None
 
-        next_slide = self.next_slide
+        next_slide = _next_slide if _next_slide else self.next_slide
         if next_slide:
             self._next = get_slide_container(next_slide)
         else:
@@ -406,6 +411,8 @@ class Carousel(StencilView):
         width = self.width
         height = self.height
         index = self.index
+        if self._skip_slide is not None:
+            return
 
         if direction[0] == 'r':
             if _offset <= -width:
@@ -464,6 +471,13 @@ class Carousel(StencilView):
 
         anim = Animation(_offset=new_offset, d=dur, t=self.anim_type)
         anim.cancel_all(self)
+
+        def _cmp(*l):
+            if self._skip_slide is not None:
+                self.index = self._skip_slide
+                self._skip_slide = None
+
+        anim.bind(on_complete=_cmp)
         anim.start(self)
 
     def _get_uid(self, prefix='sv'):
@@ -589,11 +603,12 @@ class Carousel(StencilView):
 
 if __name__ == '__main__':
     from kivy.app import App
+    from kivy.uix.button import Button
 
     class Example1(App):
 
         def build(self):
-            carousel = Carousel(direction='top',
+            carousel = Carousel(direction='left',
                                 loop=True)
             for i in range(4):
                 src = "http://placehold.it/480x270.png&text=slide-%d&.png" % i
