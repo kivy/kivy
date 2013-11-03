@@ -6,11 +6,11 @@ Tree View
 
 .. warning::
 
-    This widget is still experimental, and his API is subject to change in a
+    This widget is still experimental, and the API is subject to change in a
     future version.
 
-:class:`TreeView` is a widget to represent a tree structure. It is currently
-very basic, supporting a minimal feature set.
+:class:`TreeView` is a widget used to represent a tree structure. It is
+currently very basic, supporting a minimal feature set.
 
 Introduction
 ------------
@@ -18,18 +18,18 @@ Introduction
 A :class:`TreeView` is populated with :class:`TreeViewNode` instances, but you
 cannot use a :class:`TreeViewNode` directly. You must combine it with another
 widget, such as :class:`~kivy.uix.label.Label`,
-:class:`~kivy.uix.button.Button`... or even your own widget. The TreeView
+:class:`~kivy.uix.button.Button` or even your own widget. The TreeView
 always creates a default root node, based on :class:`TreeViewLabel`.
 
 :class:`TreeViewNode` is a class object containing needed properties for
-serving as a tree node. Extend TreeViewNode to create custom a custom node
-type for use with :class:`TreeView`.
+serving as a tree node. Extend TreeViewNode to create custom node
+types for use with a :class:`TreeView`.
 
-For constructing your own subclass, follow the pattern of TreeViewLabel, which
-combines Label and TreeViewNode, producing :class:`TreeViewLabel` for direct
-use in a TreeView instance.
+For constructing your own subclass, follow the pattern of TreeViewLabel which
+combines a Label and a TreeViewNode, producing a :class:`TreeViewLabel` for
+direct use in a TreeView instance.
 
-To use the TreeViewLabel class, you could create two nodes, directly attached
+To use the TreeViewLabel class, you could create two nodes directly attached
 to root::
 
     tv = TreeView()
@@ -44,7 +44,7 @@ Or, create two nodes attached to a first::
     tv.add_node(TreeViewLabel(text='SubItem 2'), n1)
 
 If you have a large tree structure, perhaps you would need a utility function
-to populate the tree view, as with::
+to populate the tree view::
 
     def populate_tree_view(tree_view, parent, node):
         if parent is None:
@@ -83,8 +83,9 @@ to populate the tree view, as with::
 
             self.add_widget(tv)
 
-The root widget in the tree view is opened by default, and has a text set as
-'Root'. If you want to change that, you can use :data:`TreeView.root_options`
+The root widget in the tree view is opened by default and has text set as
+'Root'. If you want to change that, you can use the
+:data:`TreeView.root_options`
 property. This will pass options to the root widget::
 
     tv = TreeView(root_options=dict(text='My root label'))
@@ -93,8 +94,8 @@ property. This will pass options to the root widget::
 Creating Your Own Node Widget
 -----------------------------
 
-For a button node type, combine :class:`~kivy.uix.button.Button` +
-:class:`TreeViewNode` like this::
+For a button node type, combine a :class:`~kivy.uix.button.Button` and a
+:class:`TreeViewNode` as follows::
 
     class TreeViewButton(Button, TreeViewNode):
         pass
@@ -134,24 +135,24 @@ class TreeViewNode(object):
         super(TreeViewNode, self).__init__(**kwargs)
 
     is_leaf = BooleanProperty(True)
-    '''Boolean to indicate if this node is a leaf or not. Used to adjust
+    '''Boolean to indicate if this node is a leaf or not. Used to adjust the
     graphical representation.
 
-    :data:`is_leaf` is a :class:`~kivy.properties.BooleanProperty`, defaults to
-    True, and automatically set to False when child is added.
+    :data:`is_leaf` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to True. It is automatically set to False when child is added.
     '''
 
     is_open = BooleanProperty(False)
-    '''Boolean to indicate if this node is opened or not, in case if there are
-    child nodes. This is used to adjust graphical representation.
+    '''Boolean to indicate if this node is opened or not, in case there are
+    child nodes. This is used to adjust the graphical representation.
 
     .. warning::
 
         This property is automatically set by the :class:`TreeView`. You can
         read but not write it.
 
-    :data:`is_open` is a :class:`~kivy.properties.BooleanProperty`, defaults to
-    False.
+    :data:`is_open` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     is_loaded = BooleanProperty(False)
