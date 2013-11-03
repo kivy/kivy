@@ -1851,7 +1851,7 @@ class TextInput(Widget):
     defaults to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
-        Use :data:`padding` instead
+        Use :data:`padding` instead.
     '''
 
     def on_padding_x(self, instance, value):
@@ -1867,7 +1867,7 @@ class TextInput(Widget):
     defaults to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
-        Use :data:`padding` instead
+        Use :data:`padding` instead.
     '''
 
     def on_padding_y(self, instance, value):
@@ -1915,7 +1915,7 @@ class TextInput(Widget):
         since the selection is drawn after the text.
 
     :data:`selection_color` is a :class:`~kivy.properties.ListProperty` and
-    defaults to [0.1843, 0.6549, 0.8313, .5]
+    defaults to [0.1843, 0.6549, 0.8313, .5].
     '''
 
     border = ListProperty([16, 16, 16, 16])
@@ -1928,40 +1928,40 @@ class TextInput(Widget):
     It must be a list of four values: (top, right, bottom, left). Read the
     BorderImage instruction for more information about how to use it.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (16,
-    16, 16, 16)
+    :data:`border` is a :class:`~kivy.properties.ListProperty` and defaults
+    to (16, 16, 16, 16).
     '''
 
     background_normal = StringProperty(
         'atlas://data/images/defaulttheme/textinput')
-    '''Background image of the TextInput when it's not in focus'.
+    '''Background image of the TextInput when it's not in focus.
 
     .. versionadded:: 1.4.1
 
-    :data:`background_normal` is a :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/textinput'
+    :data:`background_normal` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'atlas://data/images/defaulttheme/textinput'.
     '''
 
     background_disabled_normal = StringProperty(
         'atlas://data/images/defaulttheme/textinput_disabled')
-    '''Background image of the TextInput when disabled'.
+    '''Background image of the TextInput when disabled.
 
     .. versionadded:: 1.8.0
 
     :data:`background_disabled_normal` is a
-    :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/textinput_disabled'
+    :class:`~kivy.properties.StringProperty` and
+    defaults to 'atlas://data/images/defaulttheme/textinput_disabled'.
     '''
 
     background_active = StringProperty(
         'atlas://data/images/defaulttheme/textinput_active')
-    '''Background image of the TextInput when it's in focus'.
+    '''Background image of the TextInput when it's in focus.
 
     .. versionadded:: 1.4.1
 
     :data:`background_active` is a
-    :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/textinput_active'
+    :class:`~kivy.properties.StringProperty` and
+    defaults to 'atlas://data/images/defaulttheme/textinput_active'.
     '''
 
     background_disabled_active = StringProperty(
@@ -1971,8 +1971,8 @@ class TextInput(Widget):
     .. versionadded:: 1.8.0
 
     :data:`background_disabled_active` is a
-    :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/textinput_disabled_active'
+    :class:`~kivy.properties.StringProperty` and
+    defaults to 'atlas://data/images/defaulttheme/textinput_disabled_active'.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
@@ -1980,8 +1980,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.2.0
 
-    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [1, 1, 1, 1] #White
+    :data:`background_color` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [1, 1, 1, 1] (white).
     '''
 
     foreground_color = ListProperty([0, 0, 0, 1])
@@ -1989,68 +1989,68 @@ class TextInput(Widget):
 
     .. versionadded:: 1.2.0
 
-    :data:`foreground_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [0, 0, 0, 1] #Black
+    :data:`foreground_color` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [0, 0, 0, 1] (black).
     '''
 
     disabled_foreground_color = ListProperty([0, 0, 0, .5])
-    '''Current color of the foreground, in (r, g, b, a) format when disabled.
+    '''Current color of the foreground when disabled, in (r, g, b, a) format.
 
     .. versionadded:: 1.8.0
 
     :data:`disabled_foreground_color` is a
-    :class:`~kivy.properties.ListProperty`,
-    default to [0, 0, 0, 5] # 50% translucent Black
+    :class:`~kivy.properties.ListProperty` and
+    defaults to [0, 0, 0, 5] (50% transparent black).
     '''
 
     use_bubble = BooleanProperty(not _is_desktop)
-    '''Indicates whether the cut copy paste bubble is used
+    '''Indicates whether the cut/copy/paste bubble is used.
 
     .. versionadded:: 1.7.0
 
-    :data:`use_bubble` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True, and deactivated by default on "desktop".
+    :data:`use_bubble` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True on mobile OS's, False on desktop OS's.
     '''
 
     def get_sel_from(self):
         return self._selection_from
 
     selection_from = AliasProperty(get_sel_from, None)
-    '''If a selection is happening, or finished, this property will represent
+    '''If a selection is in progress or complete, this property will represent
     the cursor index where the selection started.
 
     .. versionchanged:: 1.4.0
 
-    :data:`selection_from` is a :class:`~kivy.properties.AliasProperty`,
-    default to None, readonly.
+    :data:`selection_from` is an :class:`~kivy.properties.AliasProperty` and
+    defaults to None, readonly.
     '''
 
     def get_sel_to(self):
         return self._selection_to
 
     selection_to = AliasProperty(get_sel_to, None)
-    '''If a selection is happening, or finished, this property will represent
+    '''If a selection is in progress or complete, this property will represent
     the cursor index where the selection started.
 
     .. versionchanged:: 1.4.0
 
-    :data:`selection_to` is a :class:`~kivy.properties.AliasProperty`,
-    default to None, readonly.
+    :data:`selection_to` is an :class:`~kivy.properties.AliasProperty` and
+    defaults to None, readonly.
     '''
 
     selection_text = StringProperty(u'')
     '''Current content selection.
 
-    :data:`selection_text` is a :class:`~kivy.properties.StringProperty`,
-    default to '', readonly.
+    :data:`selection_text` is a :class:`~kivy.properties.StringProperty`
+    and defaults to '', readonly.
     '''
 
     focus = BooleanProperty(False)
-    '''If focus is True, the keyboard will be requested, and you can start to
-    write on the textinput.
+    '''If focus is True, the keyboard will be requested and you can start
+    entering text into the textinput.
 
-    :data:`focus` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False
+    :data:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
 
     .. Note::
             Selection is cancelled when TextInput is focused. If you need to
@@ -2104,8 +2104,8 @@ class TextInput(Widget):
 
     .. warning::
 
-        Depending on your text provider, the font file can be ignored. However,
-        you can mostly use this without trouble.
+        Depending on your text provider, the font file may be ignored. However,
+        you can mostly use this without problems.
 
         If the font used lacks the glyphs for the particular language/symbols
         you are using, you will see '[]' blank box characters instead of the
@@ -2115,15 +2115,15 @@ class TextInput(Widget):
 
         .. |unicodechar| image:: images/unicode-char.png
 
-    :data:`font_name` is a :class:`~kivy.properties.StringProperty`, default to
-    'DroidSans'.
+    :data:`font_name` is a :class:`~kivy.properties.StringProperty` and defaults
+    to 'DroidSans'.
     '''
 
     font_size = NumericProperty('15sp')
-    '''Font size of the text, in pixels.
+    '''Font size of the text in pixels.
 
-    :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
-    10.
+    :data:`font_size` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 10.
     '''
 
     hint_text = StringProperty('')
@@ -2133,7 +2133,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.6.0
 
-    :data:`hint_text` a :class:`~kivy.properties.StringProperty`.
+    :data:`hint_text` a :class:`~kivy.properties.StringProperty` and defaults
+    to ''.
     '''
 
     hint_text_color = ListProperty([0.5, 0.5, 0.5, 1.0])
@@ -2141,14 +2142,18 @@ class TextInput(Widget):
 
     .. versionadded:: 1.6.0
 
-    :data:`hint_text_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [0.5, 0.5, 0.5, 1.0] #Grey
+    :data:`hint_text_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [0.5, 0.5, 0.5, 1.0] (grey).
     '''
 
     auto_indent = BooleanProperty(False)
     '''Automatically indent multiline text.
 
     .. versionadded:: 1.7.0
+
+    :data:`auto_indent` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
+
     '''
 
     def _get_min_height(self):
@@ -2159,11 +2164,12 @@ class TextInput(Widget):
                                    bind=('_lines', 'line_spacing', 'padding',
                                          'font_size', 'font_name', 'password',
                                          'hint_text'))
-    '''minimum height of the content inside the TextInput.
+    '''Minimum height of the content inside the TextInput.
 
     .. versionadded:: 1.8.0
 
-    :data:`minimum_height` is a readonly :class:`~kivy.properties.AliasProperty`
+    :data:`minimum_height` is a readonly
+    :class:`~kivy.properties.AliasProperty`.
     '''
 
     line_spacing = NumericProperty(0)
@@ -2171,8 +2177,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`line_spacing` is a :class:`~kivy.properties.NumericProperty`,
-    default to '0'
+    :data:`line_spacing` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
 
