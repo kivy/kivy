@@ -233,7 +233,7 @@ class TreeViewNode(object):
     odd_color = ListProperty([1., 1., 1., .0])
     '''Background color of odd nodes when the node is not selected.
 
-    :data:`odd_color` is a :class:`~kivy.properties.ListProperty` ans defaults
+    :data:`odd_color` is a :class:`~kivy.properties.ListProperty` and defaults
     to [1., 1., 1., 0.].
     '''
 
