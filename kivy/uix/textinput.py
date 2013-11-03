@@ -1711,16 +1711,17 @@ class TextInput(Widget):
 
     .. versionadded:: 1.3.0
 
-    :data:`readonly` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False
+    :data:`readonly` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     multiline = BooleanProperty(True)
     '''If True, the widget will be able show multiple lines of text. If False,
-    "enter" action will defocus the textinput instead of adding a new line.
+    the "enter" keypress will defocus the textinput instead of adding a new
+    line.
 
-    :data:`multiline` is a :class:`~kivy.properties.BooleanProperty`, default to
-    True
+    :data:`multiline` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     password = BooleanProperty(False)
@@ -1728,17 +1729,17 @@ class TextInput(Widget):
 
     .. versionadded:: 1.2.0
 
-    :data:`password` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False
+    :data:`password` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     cursor_blink = BooleanProperty(False)
-    '''This property is used to blink the cursor graphics. The value of
+    '''This property is used to blink the cursor graphic. The value of
     :data:`cursor_blink` is automatically computed. Setting a value on it will
     have no impact.
 
-    :data:`cursor_blink` is a :class:`~kivy.properties.BooleanProperty`, default
-    to False
+    :data:`cursor_blink` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     def _get_cursor(self):
@@ -1788,12 +1789,12 @@ class TextInput(Widget):
         return True
 
     cursor = AliasProperty(_get_cursor, _set_cursor)
-    '''Tuple of (row, col) of the current cursor position.
+    '''Tuple of (row, col) values indicating the current cursor position.
     You can set a new (row, col) if you want to move the cursor. The scrolling
-    area will be automatically updated to ensure that the cursor will be
+    area will be automatically updated to ensure that the cursor is
     visible inside the viewport.
 
-    :data:`cursor` is a :class:`~kivy.properties.AliasProperty`.
+    :data:`cursor` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_cursor_col(self):
@@ -1802,7 +1803,7 @@ class TextInput(Widget):
     cursor_col = AliasProperty(_get_cursor_col, None, bind=('cursor', ))
     '''Current column of the cursor.
 
-    :data:`cursor_col` is a :class:`~kivy.properties.AliasProperty` to
+    :data:`cursor_col` is an :class:`~kivy.properties.AliasProperty` to
     cursor[0], read-only.
     '''
 
@@ -1812,7 +1813,7 @@ class TextInput(Widget):
     cursor_row = AliasProperty(_get_cursor_row, None, bind=('cursor', ))
     '''Current row of the cursor.
 
-    :data:`cursor_row` is a :class:`~kivy.properties.AliasProperty` to
+    :data:`cursor_row` is an :class:`~kivy.properties.AliasProperty` to
     cursor[1], read-only.
     '''
 
@@ -1821,7 +1822,7 @@ class TextInput(Widget):
         'scroll_x', 'scroll_y'))
     '''Current position of the cursor, in (x, y).
 
-    :data:`cursor_pos` is a :class:`~kivy.properties.AliasProperty`, read-only.
+    :data:`cursor_pos` is an :class:`~kivy.properties.AliasProperty`, read-only.
     '''
 
     line_height = NumericProperty(1)
@@ -1837,8 +1838,8 @@ class TextInput(Widget):
     '''By default, each tab will be replaced by four spaces on the text
     input widget. You can set a lower or higher value.
 
-    :data:`tab_width` is a :class:`~kivy.properties.NumericProperty`, default to
-    4.
+    :data:`tab_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 4.
     '''
 
     padding_x = VariableListProperty([0, 0], length=2)
@@ -1846,8 +1847,8 @@ class TextInput(Widget):
 
     padding_x also accepts a one argument form [padding_horizontal].
 
-    :data:`padding_x` is a :class:`~kivy.properties.VariableListProperty`,
-    default to [0, 0]. This might be changed by the current theme.
+    :data:`padding_x` is a :class:`~kivy.properties.VariableListProperty` and
+    defaults to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
         Use :data:`padding` instead
@@ -1862,8 +1863,8 @@ class TextInput(Widget):
 
     padding_y also accepts a one argument form [padding_vertical].
 
-    :data:`padding_y` is a :class:`~kivy.properties.VariableListProperty`,
-    default to [0, 0]. This might be changed by the current theme.
+    :data:`padding_y` is a :class:`~kivy.properties.VariableListProperty` and
+    defaults to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
         Use :data:`padding` instead
@@ -1884,25 +1885,25 @@ class TextInput(Widget):
 
     Replaced AliasProperty with VariableListProperty.
 
-    :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default
-    to [6, 6, 6, 6].
+    :data:`padding` is a :class:`~kivy.properties.VariableListProperty` and
+    defaults to [6, 6, 6, 6].
     '''
 
     scroll_x = NumericProperty(0)
     '''X scrolling value of the viewport. The scrolling is automatically updated
-    when the cursor is moving or text is changing. If there is no action, the
+    when the cursor is moved or text changed. If there is no user input, the
     scroll_x and scroll_y properties may be changed.
 
-    :data:`scroll_x` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.
+    :data:`scroll_x` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to 0.
     '''
 
     scroll_y = NumericProperty(0)
     '''Y scrolling value of the viewport. See :data:`scroll_x` for more
     information.
 
-    :data:`scroll_y` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.
+    :data:`scroll_y` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     selection_color = ListProperty([0.1843, 0.6549, 0.8313, .5])
@@ -1910,11 +1911,11 @@ class TextInput(Widget):
 
     .. warning::
 
-        The color should always have "alpha" component different from 1, since
-        the selection is drawn after the text.
+        The color should always have an "alpha" component less than 1
+        since the selection is drawn after the text.
 
-    :data:`selection_color` is a :class:`~kivy.properties.ListProperty`, default
-    to [0.1843, 0.6549, 0.8313, .5]
+    :data:`selection_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [0.1843, 0.6549, 0.8313, .5]
     '''
 
     border = ListProperty([16, 16, 16, 16])
