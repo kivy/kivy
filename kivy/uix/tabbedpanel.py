@@ -126,8 +126,8 @@ tabbed panel's background_image and background_color.
 '''
 
 __all__ = ('TabbedPanel', 'TabbedPanelContent', 'TabbedPanelHeader',
-           'TabbedPanelItem', 'TabbedPanelStrip', 'TabbedPanelException',
-           'StripLayout')
+           'TabbedPanelItem', 'TabbedPanelStrip', 'StripLayout',
+           'TabbedPanelException')
 
 from functools import partial
 from kivy.clock import Clock
