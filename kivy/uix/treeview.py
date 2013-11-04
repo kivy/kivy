@@ -246,7 +246,7 @@ class TreeViewNode(object):
 
 
 class TreeViewLabel(Label, TreeViewNode):
-    '''Combines :class:`~kivy.uix.label.Label` and :class:`TreeViewNode` to
+    '''Combines a :class:`~kivy.uix.label.Label` and a :class:`TreeViewNode` to
     create a :class:`TreeViewLabel` that can be used as a text node in the
     tree.
 
@@ -357,7 +357,7 @@ class TreeView(Widget):
         self._trigger_layout()
 
     def get_node_at_pos(self, pos):
-        '''Get a node at the position (x, y).
+        '''Get the node at the position (x, y).
         '''
         x, y = pos
         for node in self.iterate_open_nodes(self.root):
