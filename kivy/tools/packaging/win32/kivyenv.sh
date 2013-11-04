@@ -11,6 +11,9 @@
 #
 
 # Get root directory of portable installation
+if [ ! $BASH_SOURCE ]; then
+	BASH_SOURCE=$0  # Zsh uses $0 instead of $BASH_SOURCE
+fi
 tmp=$(dirname $BASH_SOURCE)
 export KIVY_PORTABLE_ROOT=$(cd $tmp; pwd)
 
@@ -40,7 +43,7 @@ echo PATH is $PATH
 echo ----------------------------------
 
 echo 'Convert to windows path:' $KIVY_PORTABLE_ROOT
-KIVY_PORTABLE_ROOT_PY=$(python -c 'import os, sys; print os.path.realpath(sys.argv[1])' $KIVY_PORTABLE_ROOT/kivy)
+KIVY_PORTABLE_ROOT_PY=$(python -c 'import os, sys; print os.path.realpath(sys.argv[1])' $(echo $KIVY_PORTABLE_ROOT/kivy | sed -e "s@/cygdrive/*.@@"))
 export PYTHONPATH=$KIVY_PORTABLE_ROOT_PY\;$PYTHONPATH
 echo PYTHONPATH is $PYTHONPATH
 
