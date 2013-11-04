@@ -5,7 +5,16 @@ Clipboard OsX: implementation of clipboard using Appkit
 __all__ = ('ClipboardAppkit', )
 
 from kivy.core.clipboard import ClipboardBase
-from AppKit import NSPasteboard
+from kivy.utils import platform
+try:
+    from AppKit import NSPasteboard
+except ImportError:
+    raise SystemError(
+        'required package Appkit not installed,' +
+        ' run `pip install appkit` from your console')
+
+if platform != 'mac':
+    raise SystemError('unsupported platform for appkit clipboard')
 
 
 class ClipboardAppkit(ClipboardBase):
@@ -16,8 +25,7 @@ class ClipboardAppkit(ClipboardBase):
 
     def get(self, mimetype='text/plain'):
         pb = self._clipboard
-        pb.stringForType_(NSStringPboardType)
-        return self._data.get(mimetype, None)
+        return pb.stringForType_(NSStringPboardType)
 
     def put(self, data, mimetype='text/plain'):
         pb = self._clipboard
@@ -25,5 +33,4 @@ class ClipboardAppkit(ClipboardBase):
         pb.writeObjects((data,))
 
     def get_types(self):
-        return list(self._data.keys())
-
+        return list('text/plain',)
