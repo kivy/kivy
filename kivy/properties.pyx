@@ -2,7 +2,7 @@
 Properties
 ==========
 
-The *Properties* classes are used when you create a
+The *Properties* classes are used when you create an
 :class:`~kivy.event.EventDispatcher`.
 
 .. warning::
@@ -54,7 +54,7 @@ With Kivy, you can do::
 Value checking
 ~~~~~~~~~~~~~~
 
-If you wanted to add a check such a minimum / maximum value allowed for a
+If you wanted to add a check for a minimum / maximum value allowed for a
 property, here is a possible implementation in Python::
 
     class MyClass(object):
@@ -75,7 +75,7 @@ property, here is a possible implementation in Python::
 
 The disadvantage is you have to do that work yourself. And it becomes
 laborious and complex if you have many properties.
-With Kivy, you can simplify like this::
+With Kivy, you can simplify the process::
 
     class MyClass(EventDispatcher):
         a = BoundedNumericProperty(1, min=0, max=100)
@@ -118,12 +118,12 @@ As we said in the beginning, Kivy's Properties implement the `Observer pattern
 :meth:`~kivy.event.EventDispatcher.bind` to a property and have your own
 function called when the value changes.
 
-Multiple ways are available to observe the changes.
+There are multiple ways to observe the changes.
 
 Observe using bind()
 ~~~~~~~~~~~~~~~~~~~~
 
-You can observe a property change by using the bind() method, outside the
+You can observe a property change by using the bind() method outside of the
 class::
 
     class MyClass(EventDispatcher):
@@ -155,13 +155,8 @@ If you created the class yourself, you can use the 'on_<propname>' callback::
 .. warning::
 
     Be careful with 'on_<propname>'. If you are creating such a callback on a
-    property you are inherit, you must not forget to call the subclass
+    property you are inheriting, you must not forget to call the superclass
     function too.
-
-
-
-
-
 
 '''
 
@@ -220,7 +215,7 @@ cdef class Property:
             hello = Property('Hello world')
 
     The default value must be a value that agrees with the Property type. For
-    example, you can't set a list to a :class:`StringProperty`, because the
+    example, you can't set a list to a :class:`StringProperty` because the
     StringProperty will check the default value.
 
     None is a special case: you can set the default value of a Property to
@@ -237,12 +232,16 @@ cdef class Property:
         a.hello = None # working too, because allownone is True.
 
     :Parameters:
-        `errorhandler`: callable
-            If set, must take a single argument and return a valid substitute
-            value
-        `errorvalue`: object
-            If set, will replace an invalid property value (overrides
-            errorhandler)
+        `default`: 
+            Specifies the default value for the property.
+        `\*\*kwargs`:
+            If the parameters include `errorhandler`, this should be a callable
+            which must take a single argument and return a valid substitute
+            value.
+
+            If the parameters include `errorvalue`, this should be an object.
+            If set, it will replace an invalid property value (overrides
+            errorhandler).
 
     .. versionchanged:: 1.4.2
         Parameters errorhandler and errorvalue added
@@ -367,8 +366,8 @@ cdef class Property:
     #
 
     cdef check(self, EventDispatcher obj, x):
-        '''Check if the value is correct or not, depending on the settings of
-        the property class.
+        '''Check whether the value is correct or not, depending on the settings
+        of the property class.
 
         :Returns:
             bool, True if the value correctly validates.
@@ -413,7 +412,9 @@ cdef class Property:
 cdef class NumericProperty(Property):
     '''Property that represents a numeric value.
 
-    The NumericProperty accepts only int or float.
+    :Parameters:
+        `default`: int or float, defaults to 0
+            Specifies the default value of the property.
 
     >>> wid = Widget()
     >>> wid.x = 42
@@ -488,7 +489,10 @@ cdef class NumericProperty(Property):
 cdef class StringProperty(Property):
     '''Property that represents a string value.
 
-    Only a string or unicode is accepted.
+    :Parameters:
+        `default`: string, defaults to ''
+            Specifies the default value of the property.
+
     '''
 
     def __init__(self, defaultvalue='', **kw):
@@ -573,7 +577,10 @@ class ObservableList(list):
 cdef class ListProperty(Property):
     '''Property that represents a list.
 
-    Only lists are allowed. Tuple or any other classes are forbidden.
+    :Parameters:
+        `default`: list, defaults to []
+            Specifies the default value of the property.
+
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or []
@@ -668,7 +675,10 @@ class ObservableDict(dict):
 cdef class DictProperty(Property):
     '''Property that represents a dict.
 
-    Only dict are allowed. Any other classes are forbidden.
+    :Parameters:
+        `default`: dict, defaults to None
+            Specifies the default value of the property.
+
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or {}
@@ -697,8 +707,11 @@ cdef class ObjectProperty(Property):
     '''Property that represents a Python object.
 
     :Parameters:
-        `baseclass`: object
-            This will be used for: `isinstance(value, baseclass)`.
+        `default`: object type
+            Specifies the default value of the property.
+        `\*\*kwargs`: a list of keyword arguments
+            If kwargs includes a `baseclass` argument, this value will
+            be used for validation: `isinstance(value, kwargs['baseclass'])`.
 
     .. warning::
 
@@ -723,6 +736,10 @@ cdef class ObjectProperty(Property):
 
 cdef class BooleanProperty(Property):
     '''Property that represents only a boolean value.
+
+    :Parameters:
+        `default`: boolean
+            Specifies the default value of the property.
     '''
 
     def __init__(self, defaultvalue=True, **kw):
@@ -741,10 +758,13 @@ cdef class BoundedNumericProperty(Property):
     maximum bound -- within a numeric range.
 
     :Parameters:
-        `min`: numeric
-            If set, minimum bound will be used, with the value of min
-        `max`: numeric
-            If set, maximum bound will be used, with the value of max
+        `default`: numeric
+            Specifies the default value of the property.
+        `\*\*kwargs`: a list of keyword arguments
+            If a `min` parameter is included, this specifies the minimum
+            numeric value that will be accepted.
+            If a `max` parameter is included, this specifies the maximum
+            numeric value that will be accepted.
     '''
     def __cinit__(self):
         self.use_min = 0
@@ -930,8 +950,11 @@ cdef class OptionProperty(Property):
     (passed at property creation time), a ValueError exception will be raised.
 
     :Parameters:
-        `options`: list (not tuple.)
-            List of valid options
+        `default`: any valid type in the list of options
+            Specifies the default value of the property.
+        `\*\*kwargs`: a list of keyword arguments
+            Should include an `options` parameter specifying a list (not tuple)
+            of valid options.
     '''
     def __cinit__(self):
         self.options = []
@@ -976,9 +999,9 @@ class ObservableReferenceList(ObservableList):
             self.prop.setitem(self.obj(), slice(start, stop), value)
 
 cdef class ReferenceListProperty(Property):
-    '''Property that allows the creaton of a tuple of other properties.
+    '''Property that allows the creation of a tuple of other properties.
 
-    For example, if `x` and `y` are :class:`NumericProperty`s, we can create a
+    For example, if `x` and `y` are :class:`NumericProperty`\s, we can create a
     :class:`ReferenceListProperty` for the `pos`. If you change the value of
     `pos`, it will automatically change the values of `x` and `y` accordingly.
     If you read the value of `pos`, it will return a tuple with the values of
