@@ -48,8 +48,8 @@ class Video(Image):
         # and later
         video.state = 'play'
 
-    :data:`state` is a :class:`~kivy.properties.OptionProperty`, default to
-    'play'.
+    :data:`state` is an :class:`~kivy.properties.OptionProperty` and defaults
+    to 'play'.
     '''
 
     play = BooleanProperty(False)
@@ -57,7 +57,7 @@ class Video(Image):
     .. deprecated:: 1.4.0
         Use :data:`state` instead.
 
-    Boolean, indicates if the video is playing.
+    Boolean, indicates whether the video is playing or not.
     You can start/stop the video by setting this property::
 
         # start playing the video at creation
@@ -68,7 +68,7 @@ class Video(Image):
         # and later
         video.play = True
 
-    :data:`play` is a :class:`~kivy.properties.BooleanProperty`, default to
+    :data:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
 
     .. deprecated:: 1.4.0
@@ -76,42 +76,44 @@ class Video(Image):
     '''
 
     eos = BooleanProperty(False)
-    '''Boolean, indicates if the video is done playing (reached end of stream).
+    '''Boolean, indicates whether the video has finished playing or not
+    (reached the end of the stream).
 
-    :data:`eos` is a :class:`~kivy.properties.BooleanProperty`, default to
+    :data:`eos` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
     '''
 
     loaded = BooleanProperty(False)
-    '''Boolean, indicates if the video is loaded and ready for playback.
+    '''Boolean, indicates whether the video is loaded and ready for playback
+    or not.
 
     .. versionadded:: 1.6.0
 
-    :data:`loaded` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :data:`loaded` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     position = NumericProperty(-1)
     '''Position of the video between 0 and :data:`duration`. The position
-    defaults to -1, and is set to a real position when the video is loaded.
+    defaults to -1 and is set to a real position when the video is loaded.
 
-    :data:`position` is a :class:`~kivy.properties.NumericProperty`, default to
-    -1.
+    :data:`position` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to -1.
     '''
 
     duration = NumericProperty(-1)
     '''Duration of the video. The duration defaults to -1, and is set to a real
     duration when the video is loaded.
 
-    :data:`duration` is a :class:`~kivy.properties.NumericProperty`, default to
-    -1.
+    :data:`duration` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to -1.
     '''
 
     volume = NumericProperty(1.)
     '''Volume of the video, in the range 0-1. 1 means full volume, 0 means mute.
 
-    :data:`volume` is a :class:`~kivy.properties.NumericProperty`, default to
-    1.
+    :data:`volume` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to 1.
     '''
 
     options = ObjectProperty({})
@@ -119,7 +121,8 @@ class Video(Image):
 
     .. versionadded:: 1.0.4
 
-    :data:`options` is a :class:`kivy.properties.ObjectProperty`, default to {}.
+    :data:`options` is an :class:`kivy.properties.ObjectProperty` and defaults
+    to {}.
     '''
 
     def __init__(self, **kwargs):
@@ -136,7 +139,7 @@ class Video(Image):
 
         .. warning::
 
-            Calling seek() before video is loaded has no impact.
+            Calling seek() before the video is loaded has no impact.
 
         .. versionadded:: 1.2.0
         '''
