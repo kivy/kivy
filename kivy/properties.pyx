@@ -1217,8 +1217,8 @@ cdef class VariableListProperty(Property):
             Not currently used.
     
     
-    Keeping in mind that the `default` list is expanded a list of length 4, here
-    are some examples of how VariabelListProperty's are handled.
+    Keeping in mind that the `default` list is expanded to a list of length 4,
+    here are some examples of how VariabelListProperty's are handled.
 
     - VariableListProperty([1]) represents [1, 1, 1, 1].
     - VariableListProperty([1, 2]) represents [1, 2, 1, 2].
