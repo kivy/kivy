@@ -22,16 +22,17 @@ Modes
 This virtual keyboard has a docked and free mode:
 
 * docked mode (:data:`VKeyboard.docked` = True)
-  Generally used when only one person is using the computer, like tablet,
+  Generally used when only one person is using the computer, like a tablet or
   personal computer etc.
 * free mode: (:data:`VKeyboard.docked` = False)
   Mostly for multitouch table. This mode allows more than one virtual
   keyboard on the screen.
 
 If the docked mode changes, you need to manually call
-:meth:`VKeyboard.setup_mode`. Otherwise the change will have no impact.
-During that call, the VKeyboard, implemented in top of scatter, will change the
-behavior of the scatter, and position the keyboard near the target (if target
+:meth:`VKeyboard.setup_mode`, otherwise the change will have no impact.
+During that call, the VKeyboard, implemented on top of a
+:class:`~kivy.uix.scatter.Scatter`, will change the
+behavior of the scatter and position the keyboard near the target (if target
 and docked mode is set).
 
 
@@ -39,8 +40,8 @@ Layouts
 -------
 
 The virtual keyboard is able to load a custom layout. If you create a new
-layout, put the JSON in :file:`<kivy_data_dir>/keyboards/<layoutid>.json`.
-Load it by setting :data:`VKeyboard.layout` to your layoutid.
+layout and put the JSON in :file:`<kivy_data_dir>/keyboards/<layoutid>.json`,
+you can load it by setting :data:`VKeyboard.layout` to your layoutid.
 
 The JSON must be structured like this::
 
