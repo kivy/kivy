@@ -1216,7 +1216,6 @@ cdef class VariableListProperty(Property):
         `\*\*kwargs`: a list of keyword arguments
             Not currently used.
     
-    
     Keeping in mind that the `default` list is expanded to a list of length 4,
     here are some examples of how VariabelListProperty's are handled.
 
