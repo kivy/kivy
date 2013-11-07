@@ -1198,21 +1198,33 @@ cdef class AliasProperty(Property):
             self.dispatch(obj)
 
 cdef class VariableListProperty(Property):
-    '''A ListProperty that mimics the css way of defining numeric values such
-    as padding, margin, etc.
+    '''A ListProperty that allows you to work with a variable amount of
+    list items and to expand them to the desired list size.
+    
+    For example, GridLayout's padding used to just accept one numeric value
+    which was applied equally to the left, top, right and bottom of the
+    GridLayout. Now padding can be given one, two or four values, which are
+    expanded into a length four list [left, top, right, bottom] and stored
+    in the property.    
 
-    Accepts a list of 1 or 2 (or 4 when length=4) Numeric arguments or a single
-    Numeric argument.
+    :Parameters:
+        `default`: a default list of values
+            Specifies the default values for the list.
+        `length`: int, one of 2 or 4.
+            Specifies the length of the final list. The `default` list will
+            be expanded to match a list of this length.
+        `\*\*kwargs`: a list of keyword arguments
+            Not currently used.
+    
+    
+    Keeping in mind that the `default` list is expanded a list of length 4, here
+    are some examples of how VariabelListProperty's are handled.
 
     - VariableListProperty([1]) represents [1, 1, 1, 1].
     - VariableListProperty([1, 2]) represents [1, 2, 1, 2].
     - VariableListProperty(['1px', (2, 'px'), 3, 4.0]) represents [1, 2, 3, 4.0].
     - VariableListProperty(5) represents [5, 5, 5, 5].
     - VariableListProperty(3, length=2) represents [3, 3].
-
-    :Parameters:
-        `length`: int
-            The length of the list, can be 2 or 4.
 
     .. versionadded:: 1.7.0
     '''
