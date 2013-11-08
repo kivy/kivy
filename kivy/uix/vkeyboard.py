@@ -25,11 +25,11 @@ This virtual keyboard has a docked and free mode:
   Generally used when only one person is using the computer, like a tablet or
   personal computer etc.
 * free mode: (:data:`VKeyboard.docked` = False)
-  Mostly for multitouch table. This mode allows more than one virtual
-  keyboard on the screen.
+  Mostly for multitouch surfaces. This mode allows multiple virtual
+  keyboards to be used on the screen.
 
 If the docked mode changes, you need to manually call
-:meth:`VKeyboard.setup_mode`, otherwise the change will have no impact.
+:meth:`VKeyboard.setup_mode` otherwise the change will have no impact.
 During that call, the VKeyboard, implemented on top of a
 :class:`~kivy.uix.scatter.Scatter`, will change the
 behavior of the scatter and position the keyboard near the target (if target
@@ -54,7 +54,7 @@ The JSON must be structured like this::
         ...
     }
 
-Then, you need to describe keys in each row, for either a "normal" mode or a
+Then, you need to describe the keys in each row, for either a "normal" mode or a
 "shift" mode. Keys for this row data must be named `normal_<row>` and
 `shift_<row>`. Replace `row` with the row number.
 Inside each row, you will describe the key. A key is a 4 element list in the
@@ -99,9 +99,9 @@ virtual keyboard directly, but prefer to use the best method available on
 the platform. Check the :meth:`~kivy.core.window.WindowBase.request_keyboard`
 method in the :doc:`api-kivy.core.window`.
 
-If you want a specific layout with your request keyboard, you must write
-something like this (from 1.8.0, numeric.json is in the same directory as your
-main.py)::
+If you want a specific layout when you request the keyboard, you should write
+something like this (from 1.8.0, numeric.json can be in the same directory as
+your main.py)::
 
     keyboard = Window.request_keyboard(
         self._keyboard_close, self)
@@ -148,20 +148,20 @@ class VKeyboard(Scatter):
     '''
 
     target = ObjectProperty(None, allownone=True)
-    '''Target widget associated to VKeyboard. If set, it will be used to send
-    keyboard events, and if the VKeyboard mode is "free", it will also be used
+    '''Target widget associated with the VKeyboard. If set, it will be used to
+    send keyboard events. If the VKeyboard mode is "free", it will also be used
     to set the initial position.
 
-    :data:`target` is a :class:`~kivy.properties.ObjectProperty` instance,
-    default to None.
+    :data:`target` is an :class:`~kivy.properties.ObjectProperty` instance and
+    defaults to None.
     '''
 
     callback = ObjectProperty(None, allownone=True)
     '''Callback can be set to a function that will be called if the VKeyboard is
     closed by the user.
 
-    :data:`target` is a :class:`~kivy.properties.ObjectProperty` instance,
-    default to None.
+    :data:`target` is an :class:`~kivy.properties.ObjectProperty` instance and
+    defaults to None.
     '''
 
     layout = StringProperty(None)
@@ -173,34 +173,34 @@ class VKeyboard(Scatter):
         If layout is a .json filename, it will loaded and added to the
         available_layouts.
 
-    :data:`layout` is a :class:`~kivy.properties.StringProperty`, default to
-    None.
+    :data:`layout` is a :class:`~kivy.properties.StringProperty` and defaults
+    to None.
     '''
 
     layout_path = StringProperty(default_layout_path)
     '''Path from which layouts are read.
 
-    :data:`layout` is a :class:`~kivy.properties.StringProperty`, default to
+    :data:`layout` is a :class:`~kivy.properties.StringProperty` and defaults to
     :file:`<kivy_data_dir>/keyboards/`
     '''
 
     available_layouts = DictProperty({})
     '''Dictionary of all available layouts. Keys are the layout ID, and the
-    value is the JSON (translated in Python object).
+    value is the JSON (translated into a Python object).
 
-    :data:`available_layouts` is a :class:`~kivy.properties.DictProperty`,
-    default to {}
+    :data:`available_layouts` is a :class:`~kivy.properties.DictProperty` and
+    defaults to {}.
     '''
 
     docked = BooleanProperty(False)
-    '''Indicate if the VKeyboard is docked on the screen or not. If you change
-    it, you must manually call :meth:`setup_mode`. Otherwise, it will have no
-    impact. If the VKeyboard is created by the Window, the docked mode will be
-    automatically set by the configuration, with `keyboard_mode` token in
-    `[kivy]` section.
+    '''Indicate whether the VKeyboard is docked on the screen or not. If you
+    change it, you must manually call :meth:`setup_mode` otherwise it will have
+    no impact. If the VKeyboard is created by the Window, the docked mode will
+    be automatically set by the configuration, using the `keyboard_mode` token
+    in `[kivy]` section.
 
-    :data:`docked` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :data:`docked` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     margin_hint = ListProperty([.05, .06, .05, .06])
@@ -212,8 +212,8 @@ class VKeyboard(Scatter):
     The margin hints will be multiplied by width and height, according to their
     position.
 
-    :data:`margin_hint` is a :class:`~kivy.properties.ListProperty`, default to
-    [.05, .06, .05, .06]
+    :data:`margin_hint` is a :class:`~kivy.properties.ListProperty` and defaults
+    to [.05, .06, .05, .06]
     '''
 
     key_margin = ListProperty([2, 2, 2, 2])
@@ -222,8 +222,8 @@ class VKeyboard(Scatter):
 
         key_margin = [top, right, bottom, left]
 
-    :data:`key_margin` is a :class:`~kivy.properties.ListProperty`, default to
-    [2, 2, 2, 2]
+    :data:`key_margin` is a :class:`~kivy.properties.ListProperty` and defaults
+    to [2, 2, 2, 2]
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
