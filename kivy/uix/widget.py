@@ -58,14 +58,14 @@ Using Properties
 
 When you read the documentation, all properties are described in the format::
 
-    <name> is a <property class>, defaults to <default value>
+    <name> is a <property class> and defaults to <default value>.
 
-For example::
+e.g.
 
-    :data:`Widget.pos` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`Widget.x`, :data:`Widget.y`) properties.
+    :data:`~kivy.uix.label.Label.text` is a
+    :class:`~kivy.properties.StringProperty` and defaults to ''.
 
-If you want to be notified when the pos attribute changes, i.e., when the
+If you want to be notified when the pos attribute changes, i.e. when the
 widget moves, you can bind your own callback function like this::
 
     def callback_pos(instance, value):

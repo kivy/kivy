@@ -248,7 +248,8 @@ class Label(Widget):
 
         widget = Label(text=u'My unicode string')
 
-    :data:`text` is a :class:`~kivy.properties.StringProperty`.
+    :data:`text` is a :class:`~kivy.properties.StringProperty` and defaults to
+    ''.
     '''
 
     text_size = ListProperty([None, None])
