@@ -230,15 +230,15 @@ class VKeyboard(Scatter):
     '''Background color, in the format (r, g, b, a). If a background is set, the
     color will be combined with the background texture.
 
-    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [1, 1, 1, 1].
+    :data:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [1, 1, 1, 1].
     '''
 
     background = StringProperty(
         'atlas://data/images/defaulttheme/vkeyboard_background')
     '''Filename of the background image.
 
-    :data:`background` a :class:`~kivy.properties.StringProperty`, default to
+    :data:`background` a :class:`~kivy.properties.StringProperty` and defaults to
     :file:`atlas://data/images/defaulttheme/vkeyboard_background`.
     '''
 
@@ -248,8 +248,8 @@ class VKeyboard(Scatter):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled` a
-    :class:`~kivy.properties.StringProperty`, default to
+    :data:`background_disabled` is a
+    :class:`~kivy.properties.StringProperty` and defaults to
     :file:`atlas://data/images/defaulttheme/vkeyboard__disabled_background`.
 
     '''
@@ -258,8 +258,8 @@ class VKeyboard(Scatter):
     '''Key background color, in the format (r, g, b, a). If a key background is
     set, the color will be combined with the key background texture.
 
-    :data:`key_background_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [1, 1, 1, 1].
+    :data:`key_background_color` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [1, 1, 1, 1].
     '''
 
     key_background_normal = StringProperty(
@@ -267,8 +267,9 @@ class VKeyboard(Scatter):
     '''Filename of the key background image for use when no touches are active
     on the widget.
 
-    :data:`key_background_normal` a :class:`~kivy.properties.StringProperty`,
-    default to :file:`atlas://data/images/defaulttheme/vkeyboard_key_normal`.
+    :data:`key_background_normal` a :class:`~kivy.properties.StringProperty`
+    and defaults to
+    :file:`atlas://data/images/defaulttheme/vkeyboard_key_normal`.
     '''
 
     key_disabled_background_normal = StringProperty(
@@ -279,7 +280,7 @@ class VKeyboard(Scatter):
     ..versionadded:: 1.8.0
 
     :data:`key_disabled_background_normal` a
-    :class:`~kivy.properties.StringProperty`, default to
+    :class:`~kivy.properties.StringProperty` and defaults to
     :file:`atlas://data/images/defaulttheme/vkeyboard_disabled_key_normal`.
 
     '''
@@ -289,8 +290,9 @@ class VKeyboard(Scatter):
     '''Filename of the key background image for use when a touch is active
     on the widget.
 
-    :data:`key_background_down` a :class:`~kivy.properties.StringProperty`,
-    default to :file:`atlas://data/images/defaulttheme/vkeyboard_key_down`.
+    :data:`key_background_down` a :class:`~kivy.properties.StringProperty`
+    and defaults to
+    :file:`atlas://data/images/defaulttheme/vkeyboard_key_down`.
     '''
 
     background_border = ListProperty([16, 16, 16, 16])
@@ -298,8 +300,8 @@ class VKeyboard(Scatter):
     :data:`~kivy.graphics.vertex_instructions.BorderImage.border` property of
     the background.
 
-    :data:`background_border` is a :class:`~kivy.properties.ListProperty`,
-    default to [16, 16, 16, 16]
+    :data:`background_border` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [16, 16, 16, 16]
     '''
 
     key_border = ListProperty([8, 8, 8, 8])
@@ -307,8 +309,8 @@ class VKeyboard(Scatter):
     :data:`~kivy.graphics.vertex_instructions.BorderImage.border` property of
     the key.
 
-    :data:`key_border` is a :class:`~kivy.properties.ListProperty`,
-    default to [16, 16, 16, 16]
+    :data:`key_border` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [16, 16, 16, 16]
     '''
 
     # XXX internal variables
@@ -430,7 +432,7 @@ class VKeyboard(Scatter):
         * If :data:`docked` is True, it will call :meth:`setup_mode_dock`
         * If :data:`docked` is False, it will call :meth:`setup_mode_free`
 
-        Feel free to overload theses methods to create a new
+        Feel free to overload these methods to create new
         positioning behavior.
         '''
         if self.docked:
@@ -443,7 +445,7 @@ class VKeyboard(Scatter):
 
         Dock mode will reset the rotation, disable translation, rotation and
         scale. Scale and position will be automatically adjusted to attach the
-        keyboard in the bottom of the screen.
+        keyboard to the bottom of the screen.
 
         .. note::
             Don't call this method directly, use :meth:`setup_mode` instead.
