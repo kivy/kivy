@@ -3,7 +3,7 @@ Widget class
 ============
 
 The :class:`Widget` class is the base class required to create a Widget.
-Our widget class is designed with a couple of principles in mind:
+This widget class is designed with a couple of principles in mind:
 
     Event Driven
         The widget interaction is built on top of events that occur.
@@ -34,15 +34,17 @@ Our widget class is designed with a couple of principles in mind:
         :meth:`Widget.collide_widget`.
 
 
-We also have some defaults that you should be aware of:
+We also have some default values and behaviors that you should be aware of:
 
-* A :class:`Widget` is not a :class:`Layout`: it will not change the position
-  nor the size of its children. If you want a better positionning / sizing, use
-  a :class:`Layout`.
+* A :class:`Widget` is not a :class:`~kivy.uix.layout.Layout`: it will not
+  change the position or the size of its children. If you want control over
+  positioning or sizing, use a :class:`~kivy.uix.layout.Layout`.
 
-* The default size is (100, 100), if the parent is not a :class:`Layout`. For
-  example, adding a widget inside a :class:`Button`, :class:`Label`, will not
-  inherit from the parent size or pos.
+* The default size of a widget is (100, 100). This is only changed if the
+  parent is a :class:`~kivy.uix.layout.Layout`.
+  For example, if you add a :class:`Label` inside a
+  :class:`Button`, the label will not inherit the buttons size or position
+  because the button is not a *Layout*: it's just another *Widget*.
 
 * The default size_hint is (1, 1). If the parent is a :class:`Layout`, then the
   widget size will be the parent/layout size.
