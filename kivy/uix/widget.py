@@ -132,16 +132,16 @@ class Widget(WidgetBase):
 
     :Events:
         `on_touch_down`:
-            Fired when a new touch happens
+            Fired when a new touch event occurs
         `on_touch_move`:
-            Fired when an existing touch is moved
+            Fired when an existing touch moves
         `on_touch_up`:
             Fired when an existing touch disappears
 
     .. versionchanged:: 1.0.9
-        Everything related to event properties has been moved to
+        Everything related to event properties has been moved to the
         :class:`~kivy.event.EventDispatcher`. Event properties can now be used
-        in contructing a simple class, without subclassing :class:`Widget`.
+        when contructing a simple class without subclassing :class:`Widget`.
 
     .. versionchanged:: 1.5.0
         Constructor now accept on_* arguments to automatically bind callbacks to
@@ -182,10 +182,10 @@ class Widget(WidgetBase):
 
     @property
     def proxy_ref(self):
-        '''Return a proxy reference to the widget, ie, without taking a
-        reference of the widget. See `weakref.proxy
+        '''Return a proxy reference to the widget, i.e. without creating a
+        reference to the widget. See `weakref.proxy
         <http://docs.python.org/2/library/weakref.html?highlight\
-        =proxy#weakref.proxy>`_ for more information about it.
+        =proxy#weakref.proxy>`_ for more information.
 
         .. versionadded:: 1.7.2
         '''
@@ -273,7 +273,7 @@ class Widget(WidgetBase):
                 Touch received
 
         :Returns:
-            bool. If True, the dispatching of the touch will stop.
+            bool. If True, the dispatching of the touch event will stop.
         '''
         if self.disabled and self.collide_point(*touch.pos):
             return True
@@ -316,8 +316,8 @@ class Widget(WidgetBase):
         :Parameters:
             `widget`: :class:`Widget`
                 Widget to add to our list of children.
-            `index`: int, default to 0
-                *(this attribute have been added in 1.0.5)*
+            `index`: int, defaults to 0
+                *(this attribute was added in 1.0.5)*
                 Index to insert the widget in the list
 
         >>> root = Widget()
@@ -390,7 +390,7 @@ class Widget(WidgetBase):
         .. versionchanged:: 1.8.0
 
             `children` argument can be used to select the children we want to
-            remove. It should be a children list (or filtered list) of the
+            remove. It should be a list of children (or filtered list) of the
             current widget.
         '''
 
@@ -404,9 +404,9 @@ class Widget(WidgetBase):
         '''Return the root window.
 
         :Returns:
-            Instance of the root window. Can be
+            Instance of the root window. Can be a
             :class:`~kivy.core.window.WindowBase` or
-            :class:`Widget`
+            :class:`Widget`.
         '''
         if self.parent:
             return self.parent.get_root_window()
@@ -415,9 +415,9 @@ class Widget(WidgetBase):
         '''Return the parent window.
 
         :Returns:
-            Instance of the parent window. Can be
+            Instance of the parent window. Can be a
             :class:`~kivy.core.window.WindowBase` or
-            :class:`Widget`
+            :class:`Widget`.
         '''
         if self.parent:
             return self.parent.get_parent_window()
@@ -442,9 +442,9 @@ class Widget(WidgetBase):
         '''Transform local coordinates to parent coordinates.
 
         :Parameters:
-            `relative`: bool, default to False
+            `relative`: bool, defaults to False
                 Change to True if you want to translate relative positions from
-                widget to its parent.
+                a widget to its parent coordinates.
         '''
         if relative:
             return (x + self.x, y + self.y)
@@ -454,7 +454,7 @@ class Widget(WidgetBase):
         '''Transform parent coordinates to local coordinates.
 
         :Parameters:
-            `relative`: bool, default to False
+            `relative`: bool, defaults to False
                 Change to True if you want to translate coordinates to
                 relative widget coordinates.
         '''
@@ -465,19 +465,19 @@ class Widget(WidgetBase):
     x = NumericProperty(0)
     '''X position of the widget.
 
-    :data:`x` is a :class:`~kivy.properties.NumericProperty`, default to 0.
+    :data:`x` is a :class:`~kivy.properties.NumericProperty` and defaults to 0.
     '''
 
     y = NumericProperty(0)
     '''Y position of the widget.
 
-    :data:`y` is a :class:`~kivy.properties.NumericProperty`, default to 0.
+    :data:`y` is a :class:`~kivy.properties.NumericProperty` and defaults to 0.
     '''
 
     width = NumericProperty(100)
     '''Width of the widget.
 
-    :data:`width` is a :class:`~kivy.properties.NumericProperty`, default
+    :data:`width` is a :class:`~kivy.properties.NumericProperty` ans defaults
     to 100.
     
     .. warning::
@@ -576,7 +576,8 @@ class Widget(WidgetBase):
     id = StringProperty(None, allownone=True)
     '''Unique identifier of the widget in the tree.
 
-    :data:`id` is a :class:`~kivy.properties.StringProperty`, default to None.
+    :data:`id` is a :class:`~kivy.properties.StringProperty` and defaults to
+    None.
 
     .. warning::
 
@@ -587,8 +588,8 @@ class Widget(WidgetBase):
     children = ListProperty([])
     '''List of children of this widget.
 
-    :data:`children` is a :class:`~kivy.properties.ListProperty` instance,
-    default to an empty list.
+    :data:`children` is a :class:`~kivy.properties.ListProperty` instance and
+    defaults to an empty list.
 
     Use :meth:`add_widget` and :meth:`remove_widget` for manipulating the
     children list. Don't manipulate the children list directly until you know
@@ -598,8 +599,8 @@ class Widget(WidgetBase):
     parent = ObjectProperty(None, allownone=True)
     '''Parent of this widget.
 
-    :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance,
-    default to None.
+    :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance and
+    defaults to None.
 
     The parent of a widget is set when the widget is added to another one, and
     unset when the widget is removed from its parent.
@@ -684,8 +685,8 @@ class Widget(WidgetBase):
 
         frag_color = color * vec4(1.0, 1.0, 1.0, opacity);
 
-    :data:`opacity` is a :class:`~kivy.properties.NumericProperty`, default to
-    1.0.
+    :data:`opacity` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to 1.0.
     '''
 
     def on_opacity(self, instance, value):
@@ -719,6 +720,6 @@ class Widget(WidgetBase):
 
     .. versionadded:: 1.8.0
 
-    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
-    default to False.
+    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
