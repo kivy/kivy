@@ -664,8 +664,8 @@ class Widget(WidgetBase):
 
     .. versionadded:: 1.7.0
 
-    :data:`ids` is a :class:`~kivy.properties.DictProperty`, defaults to a empty
-    dict {}.
+    :data:`ids` is a :class:`~kivy.properties.DictProperty` and defaults to a
+    empty dict {}.
     '''
 
     opacity = NumericProperty(1.0)
@@ -674,14 +674,14 @@ class Widget(WidgetBase):
     .. versionadded:: 1.4.1
 
     The opacity attribute controls the opacity of the widget and its children.
-    Be careful, it's a cumulative attribute: the value is multiplied to the
-    current global opacity, and the result is applied to the current context
+    Be careful, it's a cumulative attribute: the value is multiplied by the
+    current global opacity and the result is applied to the current context
     color.
 
-    For example: if your parent have an opacity of 0.5, and one children have an
-    opacity of 0.2, the real opacity of the children will be 0.5 * 0.2 = 0.1.
+    For example, if the parent has an opacity of 0.5 and a child has an
+    opacity of 0.2, the real opacity of the child will be 0.5 * 0.2 = 0.1.
 
-    Then, the opacity is applied on the shader as::
+    Then, the opacity is applied by the shader as::
 
         frag_color = color * vec4(1.0, 1.0, 1.0, opacity);
 
@@ -702,7 +702,7 @@ class Widget(WidgetBase):
 
     There are no general properties for the Widget class, such as background
     color, to keep the design simple and lean. Some derived classes, such as
-    Button, do add such convenience properties, but generally the developer is
+    Button, do add such convenience properties but generally the developer is
     responsible for implementing the graphics representation for a custom
     widget from the ground up. See the derived widget classes for patterns to
     follow and extend.
@@ -714,8 +714,8 @@ class Widget(WidgetBase):
     '''Indicates whether this widget can interact with input or not.
 
     .. Note::
-        1. Child Widgets when added onto a disabled widget will be disabled
-        automatically
+        1. Child Widgets, when added to a disabled widget, will be disabled
+        automatically,
         2. Disabling/enabling a parent disables/enables all it's children.
 
     .. versionadded:: 1.8.0
