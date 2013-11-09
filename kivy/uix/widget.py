@@ -284,7 +284,7 @@ class Widget(WidgetBase):
     def on_touch_move(self, touch):
         '''Receive a touch move event.
 
-        See :meth:`on_touch_down` for more information
+        See :meth:`on_touch_down` for more information.
         '''
         if self.disabled:
             return
@@ -295,7 +295,7 @@ class Widget(WidgetBase):
     def on_touch_up(self, touch):
         '''Receive a touch up event.
 
-        See :meth:`on_touch_down` for more information
+        See :meth:`on_touch_down` for more information.
         '''
         if self.disabled:
             return
@@ -481,20 +481,20 @@ class Widget(WidgetBase):
     to 100.
     
     .. warning::
-        Keep in mind that the `width` property is subject to layout logic, and
-        that this has not happened yet at the time of the widget's `__init__`
+        Keep in mind that the `width` property is subject to layout logic and
+        that this has not yet happened at the time of the widget's `__init__`
         method.
     '''
 
     height = NumericProperty(100)
     '''Height of the widget.
 
-    :data:`height` is a :class:`~kivy.properties.NumericProperty`, default
+    :data:`height` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 100.
 
     .. warning::
-        Keep in mind that the `height` property is subject to layout logic, and
-        that this has not happened yet at the time of the widget's `__init__`
+        Keep in mind that the `height` property is subject to layout logic and
+        that this has not yet happened at the time of the widget's `__init__`
         method.
     '''
 
@@ -521,8 +521,8 @@ class Widget(WidgetBase):
     right = AliasProperty(get_right, set_right, bind=('x', 'width'))
     '''Right position of the widget.
 
-    :data:`right` is a :class:`~kivy.properties.AliasProperty` of
-    (:data:`x` + :data:`width`)
+    :data:`right` is an :class:`~kivy.properties.AliasProperty` of
+    (:data:`x` + :data:`width`),
     '''
 
     def get_top(self):
@@ -534,8 +534,8 @@ class Widget(WidgetBase):
     top = AliasProperty(get_top, set_top, bind=('y', 'height'))
     '''Top position of the widget.
 
-    :data:`top` is a :class:`~kivy.properties.AliasProperty` of
-    (:data:`y` + :data:`height`)
+    :data:`top` is an :class:`~kivy.properties.AliasProperty` of
+    (:data:`y` + :data:`height`),
     '''
 
     def get_center_x(self):
@@ -546,8 +546,8 @@ class Widget(WidgetBase):
     center_x = AliasProperty(get_center_x, set_center_x, bind=('x', 'width'))
     '''X center position of the widget.
 
-    :data:`center_x` is a :class:`~kivy.properties.AliasProperty` of
-    (:data:`x` + :data:`width` / 2.)
+    :data:`center_x` is an :class:`~kivy.properties.AliasProperty` of
+    (:data:`x` + :data:`width` / 2.),
     '''
 
     def get_center_y(self):
@@ -558,7 +558,7 @@ class Widget(WidgetBase):
     center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'height'))
     '''Y center position of the widget.
 
-    :data:`center_y` is a :class:`~kivy.properties.AliasProperty` of
+    :data:`center_y` is an :class:`~kivy.properties.AliasProperty` of
     (:data:`y` + :data:`height` / 2.)
     '''
 
@@ -588,42 +588,42 @@ class Widget(WidgetBase):
     children = ListProperty([])
     '''List of children of this widget.
 
-    :data:`children` is a :class:`~kivy.properties.ListProperty` instance and
+    :data:`children` is a :class:`~kivy.properties.ListProperty` and
     defaults to an empty list.
 
     Use :meth:`add_widget` and :meth:`remove_widget` for manipulating the
-    children list. Don't manipulate the children list directly until you know
+    children list. Don't manipulate the children list directly unless you know
     what you are doing.
     '''
 
     parent = ObjectProperty(None, allownone=True)
     '''Parent of this widget.
 
-    :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance and
+    :data:`parent` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
 
-    The parent of a widget is set when the widget is added to another one, and
-    unset when the widget is removed from its parent.
+    The parent of a widget is set when the widget is added to another widget
+    and unset when the widget is removed from its parent.
     '''
 
     size_hint_x = NumericProperty(1, allownone=True)
     '''X size hint. Represents how much space the widget should use in the
-    direction of the X axis, relative to its parent's width.
-    Only :class:`~kivy.uix.layout.Layout` and
-    :class:`~kivy.core.window.Window` make use of the hint.
+    direction of the X axis relative to its parent's width.
+    Only the :class:`~kivy.uix.layout.Layout` and
+    :class:`~kivy.core.window.Window` classes make use of the hint.
 
     The value is in percent as a float from 0. to 1., where 1. means the full
     size of his parent. 0.5 represents 50%.
 
-    :data:`size_hint_x` is a :class:`~kivy.properties.NumericProperty`, default
-    to 1.
+    :data:`size_hint_x` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 1.
     '''
 
     size_hint_y = NumericProperty(1, allownone=True)
     '''Y size hint.
 
-    :data:`size_hint_y` is a :class:`~kivy.properties.NumericProperty`, default
-    to 1.
+    :data:`size_hint_y` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 1.
 
     See :data:`size_hint_x` for more information
     '''
@@ -632,7 +632,7 @@ class Widget(WidgetBase):
     '''Size hint.
 
     :data:`size_hint` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`size_hint_x`, :data:`size_hint_y`)
+    (:data:`size_hint_x`, :data:`size_hint_y`).
 
     See :data:`size_hint_x` for more information
     '''
@@ -646,15 +646,15 @@ class Widget(WidgetBase):
 
         widget = Widget(pos_hint={'top': 0.9})
 
-    The keys 'x', 'right', 'center_x', will use the parent width.
-    The keys 'y', 'top', 'center_y', will use the parent height.
+    The keys 'x', 'right' and 'center_x' will use the parent width.
+    The keys 'y', 'top' and 'center_y' will use the parent height.
 
     See :doc:`api-kivy.uix.floatlayout` for further reference.
 
-    Position hint is only used in :class:`~kivy.uix.floatlayout.FloatLayout` and
-    :class:`~kivy.core.window.Window`.
+    Position hint is only used by the :class:`~kivy.uix.floatlayout.FloatLayout`
+    and :class:`~kivy.core.window.Window`.
 
-    :data:`pos_hint` is a :class:`~kivy.properties.ObjectProperty` containing a
+    :data:`pos_hint` is an :class:`~kivy.properties.ObjectProperty` containing a
     dict.
     '''
 
