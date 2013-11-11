@@ -132,8 +132,8 @@ could create a JSON like this::
           "key": "key2" }
     ]
 
-Then, we can create a panel using this JSON to create automatically all the
-options, and link them to our :data:`App.config` ConfigParser instance::
+Then, we can create a panel using this JSON to automatically create all the
+options and link them to our :data:`App.config` ConfigParser instance::
 
     class TestApp(App):
         # ...
@@ -142,14 +142,15 @@ options, and link them to our :data:`App.config` ConfigParser instance::
             settings.add_json_panel('Test application',
                 self.config, data=jsondata)
 
-That's all ! Now you can press F1 (default keystroke) to toggle the settings
-panel, or press the "settings" key on your android device. You can manually call
-:meth:`App.open_settings` and :meth:`App.close_settings` if you want. Every
+That's all! Now you can press F1 (default keystroke) to toggle the settings
+panel or press the "settings" key on your android device. You can manually call
+:meth:`App.open_settings` and :meth:`App.close_settings` if you want to handle
+this manually. Every
 change in the panel is automatically saved in the config file.
 
 You can also use :meth:`App.build_settings` to modify properties of
 the settings panel. For instance, the default panel has a sidebar for
-switching between json panels, whose width defaults to 200dp. If you'd
+switching between json panels whose width defaults to 200dp. If you'd
 prefer this to be narrower, you could add::
 
     settings.interface.menu.width = dp(100)
@@ -157,7 +158,7 @@ prefer this to be narrower, you could add::
 to your :meth:`build_settings` method.
 
 You might want to know when a config value has been changed by the
-user, in order to adapt or reload your UI. You can overload the
+user in order to adapt or reload your UI. You can then overload the
 :meth:`on_config_change` method::
 
     class TestApp(App):
@@ -171,14 +172,14 @@ user, in order to adapt or reload your UI. You can overload the
                     print('Our key2 have been changed to', value)
 
 The Kivy configuration panel is added by default to the settings
-instance. If you don't want this panel, you can declare your Application like
-this::
+instance. If you don't want this panel, you can declare your Application as
+follows::
 
     class TestApp(App):
         use_kivy_settings = False
         # ...
 
-This only removes the Kivy panel, but does not stop the settings instance
+This only removes the Kivy panel but does not stop the settings instance
 from appearing. If you want to prevent the settings instance from appearing
 altogether, you can do this::
 
