@@ -26,7 +26,7 @@ Multiple properties and transitions
 -----------------------------------
 
 You can animate multiple properties and use built-in or custom transition
-functions using :data:`transition` (or `t=` shortcut). For example,
+functions using :data:`transition` (or the `t=` shortcut). For example,
 to animate the position and size using the 'in_quad' transition::
 
     anim = Animation(x=50, size=(80, 80), t='in_quad')
@@ -418,8 +418,10 @@ class Sequence(Animation):
         self.dispatch('on_progress', widget, progress / 2.)
 
     def on_anim2_complete(self, instance, widget):
-        '''Repeating logic used with boolean variable "repeat". Added version
-        1.7.1'''
+        '''Repeating logic used with boolean variable "repeat".
+        
+        .. versionadded:: 1.7.1
+        '''
         if self.repeat:
             self.anim1.start(widget)
         else:
@@ -478,11 +480,11 @@ class Parallel(Animation):
 
 
 class AnimationTransition(object):
-    '''Collection of animation function, to be used with Animation object.
-    Easing Functions ported into Kivy from Clutter Project
+    '''Collection of animation functions to be used with the Animation object.
+    Easing Functions ported to Kivy from the Clutter Project
     http://www.clutter-project.org/docs/clutter/stable/ClutterAlpha.html
 
-    `progress` parameter in each animation functions is between 0-1 range.
+    The `progress` parameter in each animation function is in the range 0-1.
     '''
 
     @staticmethod
