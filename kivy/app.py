@@ -1,4 +1,5 @@
-'''Application
+'''
+Application
 ===========
 
 The :class:`App` class is the base for creating Kivy applications.
@@ -14,8 +15,8 @@ Creating an Application
 Method using build() override
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To initialize your app with a widget tree, override the build() method in
-your app class and return the widget tree you constructed.
+To initialize your app with a widget tree, override the :func:`~App.build`
+method in your app class and return the widget tree you constructed.
 
 Here's an example of a very simple application that just shows a button:
 
@@ -62,7 +63,7 @@ Use the configuration file
 Your application might want to have its own configuration file. The
 :class:`App` is able to handle an INI file automatically. You add your
 section/key/value in the :meth:`App.build_config` method by using the `config`
-parameters (instance of :class:`~kivy.config.ConfigParser`::
+parameter (which is an instance of :class:`~kivy.config.ConfigParser`)::
 
     class TestApp(App):
         def build_config(self, config):
@@ -72,14 +73,14 @@ parameters (instance of :class:`~kivy.config.ConfigParser`::
             })
 
 As soon as you add one section in the config, a file is created on the disk, and
-named from the mangled name of your class:. "TestApp" will give a config
+named from the mangled name of your class. "TestApp" will give a config
 file-name "test.ini" with the content::
 
     [section1]
     key1 = value1
     key2 = 42
 
-The "test.ini" will be automatically loaded at runtime, and you can access the
+The "test.ini" will be automatically loaded at runtime and you can access the
 configuration in your :meth:`App.build` method::
 
     class TestApp(App):
