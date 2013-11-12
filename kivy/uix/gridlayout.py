@@ -137,7 +137,7 @@ class GridLayout(Layout):
     defaults to [0, 0, 0, 0].
     '''
 
-    cols = BoundedNumericProperty(None, min=0, allow_none=True)
+    cols = BoundedNumericProperty(None, min=0, allownone=True)
     '''Number of columns in the grid.
 
     .. versionadded:: 1.0.8
@@ -149,7 +149,7 @@ class GridLayout(Layout):
     0.
     '''
 
-    rows = BoundedNumericProperty(None, min=0, allow_none=True)
+    rows = BoundedNumericProperty(None, min=0, allownone=True)
     '''Number of rows in the grid.
 
     .. versionadded:: 1.0.8
