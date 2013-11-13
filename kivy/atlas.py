@@ -4,15 +4,15 @@ Atlas
 
 .. versionadded:: 1.1.0
 
-Atlas is a class for managing textures atlases: packing multiple texture into
-one. With it, you are reducing the number of image to load and speedup the
+Atlas is a class for managing texture atlases: packing multiple textures into
+one. With it, you reduce the number of images loaded and speedup the
 application loading.
 
 An Atlas is composed of:
 
-    - a json file (.atlas) that contain all the information about the image
+    - a json file (.atlas) that contains all the information about the images
       contained inside the atlas.
-    - one or multiple atlas image associated to the atlas definition.
+    - one or multiple atlas images associated with the atlas definition.
 
 Definition of .atlas
 --------------------
@@ -45,16 +45,16 @@ How to create an atlas
 
 .. warning::
 
-    The atlas creation require Imaging/PIL. This will be removed in the future
-    when Kivy core Image will be able to support loading / blitting / save
-    operation.
+    The atlas creation requires Imaging/PIL. This will be removed in the future
+    when the Kivy core Image is able to support loading / blitting / saving
+    operations.
 
-You can directly use this module to create atlas file with this command::
+You can directly use this module to create atlas files with this command::
 
     $ python -m kivy.atlas <basename> <size> <list of images...>
 
-Let's say you have a list of image that you want to put into an Atlas. The
-directory is named ``images`` with lot of png::
+Let's say you have a list of images that you want to put into an Atlas. The
+directory is named ``images`` with lots of png files inside::
 
     $ ls
     images
@@ -62,7 +62,7 @@ directory is named ``images`` with lot of png::
     $ ls
     bubble.png bubble-red.png button.png button-down.png
 
-You can combine all the png into one, and generate the atlas file with::
+You can combine all the png's into one and generate the atlas file with::
 
     $ python -m kivy.atlas myatlas 256 *.png
     Atlas created at myatlas.atlas
@@ -71,16 +71,16 @@ You can combine all the png into one, and generate the atlas file with::
     bubble.png bubble-red.png button.png button-down.png myatlas.atlas
     myatlas-0.png
 
-As you can see, we got 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
+As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
 
 .. note::
 
-    When using this script, the ids referenced in the atlas is the base name of
-    the image, without the extension. So if you are going to give a file name
+    When using this script, the ids referenced in the atlas are the base names
+    of the images without the extension. So, if you are going to name a file
     ``../images/button.png``, the id for this image will be ``button``.
 
-    If you need path information included, you must include ``use_path`` like
-    this::
+    If you need path information included, you should include ``use_path`` as
+    follows::
 
         $ python -m kivy.atlas use_path myatlas 256 *.png
 
