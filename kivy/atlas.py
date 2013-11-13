@@ -90,25 +90,25 @@ As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
 How to use an atlas
 -------------------
 
-Usually, you are doing something like this::
+Usually, you would use the atlas as follows::
 
     a = Button(background_normal='images/button.png',
                background_down='images/button_down.png')
 
-In our previous example, we have created the atlas containing both of them, and
-put it in ``images/myatlas.atlas``. You can use the url notation to reference
+In our previous example, we have created the atlas containing both images and
+put them in ``images/myatlas.atlas``. You can use url notation to reference
 them::
 
     atlas://path/to/myatlas/id
-    # will search for the ``path/to/myatlas.atlas``, and get the image ``id``
+    # will search for the ``path/to/myatlas.atlas`` and get the image ``id``
 
-In our case, it will be::
+In our case, it would be::
 
     atlas://images/myatlas/button
 
 .. note::
 
-    In the atlas url, their is no need to put the ``.atlas`` extension, it will
+    In the atlas url, there is no need to add the ``.atlas`` extension, it will
     be automatically append to the filename.
 
 Manual usage of the Atlas
