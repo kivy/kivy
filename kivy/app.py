@@ -72,7 +72,7 @@ parameter (which is an instance of :class:`~kivy.config.ConfigParser`)::
                 'key2': '42'
             })
 
-As soon as you add one section in the config, a file is created on the disk, and
+As soon as you add one section in the config, a file is created on the disk and
 named from the mangled name of your class. "TestApp" will give a config
 file-name "test.ini" with the content::
 
@@ -192,10 +192,10 @@ Profiling with on_start and on_stop
 
 It is often useful to profile python code in order to discover locations to
 optimise. The standard library profilers
-(http://docs.python.org/2/library/profile.html) provide multiple options for
+(http://docs.python.org/2/library/profile.html) provides multiple options for
 profiling code. For profiling the entire program, the natural
-approaches of using profile as a module or profile's run method do not work
-with Kivy. It is however possible to use :meth:`App.on_start` and
+approaches of using profile as a module or profile's run method does not work
+with Kivy. It is however, possible to use :meth:`App.on_start` and
 :meth:`App.on_stop` methods::
 
     import cProfile
@@ -215,19 +215,19 @@ Customising layout
 ------------------
 
 You can choose different settings widget layouts by setting
-:attr:`App.settings_cls`. By default, this is
-:class:`~kivy.uix.settings.Settings` which provides the pictured
+:attr:`App.settings_cls`. By default, this is a
+:class:`~kivy.uix.settings.Settings` class which provides the pictured
 sidebar layout, but you could set it to any of the other layouts
 provided in :mod:`kivy.uix.settings` or create your own. See the
 module documentation for :mod:`kivy.uix.settings` for more
 information.
 
-You can customise how the settings panel is actually displayed by
-overriding :meth:`App.display_settings`, which is called to
-actually display the settings panel on the screen. By default it
+You can customise how the settings panel is displayed by
+overriding :meth:`App.display_settings` which is called before
+displaying the settings panel on the screen. By default, it
 simply draws the panel on top of the window, but you could modify it
 to (for instance) show the settings in a
-:class:`~kivy.uix.popup.Popup` or add them to your app's
+:class:`~kivy.uix.popup.Popup` or add it to your app's
 :class:`~kivy.uix.screenmanager.ScreenManager` if you are using
 one. If you do so, you should also modify :meth:`App.close_settings`
 to exit the panel appropriately. For instance, to have the settings
@@ -244,6 +244,7 @@ panel appear in a popup you can do::
         if p.content is not settings:
             p.content = settings
         p.open()
+
     def close_settings(self, *args):
         try:
             p = self.settings_popup
@@ -268,24 +269,25 @@ Pause mode
     cases where your application could crash on resume.
 
 On tablets and phones, the user can switch at any moment to another application.
-By default, your application will reach :func:`App.on_stop` behavior.
+By default, your application will close and the :func:`App.on_stop` event will be
+fired.
 
-You can support the Pause mode: when switching to another application, the
-application goes into Pause mode and waits infinitely until the user
+If you support Pause mode, when switching to another application, your
+application will wait indefinitely until the user
 switches back to your application. There is an issue with OpenGL on Android
-devices: you're not ensured that the OpenGL ES Context is restored when your app
-resumes. The mechanism for restoring all the OpenGL data is not yet implemented
-into Kivy(we are looking for device with this behavior).
+devices: it is not guaranteed that the OpenGL ES Context will be restored when
+your app resumes. The mechanism for restoring all the OpenGL data is not yet
+implemented in Kivy.
 
-The current implemented Pause mechanism is:
+The currently implemented Pause mechanism is:
 
-    #. Kivy checks every frame, if Pause mode is activated by the Operating
-       System, due to user switching to another application, phone shutdown or
-       any other reason.
+    #. Kivy checks every frame if Pause mode is activated by the Operating
+       System due to the user switching to another application, a phone shutdown
+       or any other reason.
     #. :func:`App.on_pause` is called:
     #. If False is returned (default case), then :func:`App.on_stop` is called.
-    #. Otherwise the application will sleep until the OS will resume our App
-    #. We got a `resume`, :func:`App.on_resume` is called.
+    #. Otherwise the application will sleep until the OS resumes our App
+    #. When the app is resumed, :func:`App.on_resume` is called.
     #. If our app memory has been reclaimed by the OS, then nothing will be
        called.
 
@@ -303,8 +305,8 @@ Here is a simple example of how on_pause() should be used::
 
 .. warning::
 
-    Both `on_pause` and `on_stop` must save important data, because after
-    `on_pause` call, on_resume may not be called at all.
+    Both `on_pause` and `on_stop` must save important data because after
+    `on_pause` is called, `on_resume` may not be called at all.
 
 '''
 
