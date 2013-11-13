@@ -108,7 +108,7 @@ In our case, it would be::
 
 .. note::
 
-    In the atlas url, there is no need to add the ``.atlas`` extension, it will
+    In the atlas url, there is no need to add the ``.atlas`` extension. It will
     be automatically append to the filename.
 
 Manual usage of the Atlas
@@ -145,17 +145,18 @@ class Atlas(EventDispatcher):
     textures = DictProperty({})
     '''List of available textures within the atlas.
 
-    :data:`textures` is a :class:`~kivy.properties.DictProperty`, default to {}
+    :data:`textures` is a :class:`~kivy.properties.DictProperty` and defaults
+    to {}.
     '''
 
     def _get_filename(self):
         return self._filename
 
     filename = AliasProperty(_get_filename, None)
-    '''Filename of the current Atlas
+    '''Filename of the current Atlas.
 
-    :data:`filename` is a :class:`~kivy.properties.AliasProperty`, default to
-    None
+    :data:`filename` is an :class:`~kivy.properties.AliasProperty` and defaults
+    to None.
     '''
 
     def __init__(self, filename):
@@ -201,7 +202,7 @@ class Atlas(EventDispatcher):
 
     @staticmethod
     def create(outname, filenames, size, padding=2, use_path=False):
-        '''This method can be used to create manually an atlas from a set of
+        '''This method can be used to create an atlas manually from a set of
         images.
 
         :Parameters:
@@ -209,28 +210,30 @@ class Atlas(EventDispatcher):
                 Basename to use for ``.atlas`` creation and ``-<idx>.png``
                 associated images.
             `filenames`: list
-                List of filename to put in the atlas
+                List of filenames to put in the atlas.
             `size`: int or list (width, height)
-                Size of an atlas image
+                Size of an atlas image.
             `padding`: int, default to 2
                 Padding to put around each image.
 
                 Be careful. If you're using a padding < 2, you might get issues
-                with border of the images. Because of the OpenGL linearization,
-                it might take the pixels of the adjacent image.
+                with the borders of the images. Because of the OpenGL
+                linearization, it might use the pixels of the adjacent image.
 
                 If you're using a padding >= 2, we'll automatically generate a
-                "border" of 1px of your image, around the image. If you look at
-                the result, don't be scared if the image inside it are not
+                "border" of 1px for your image, around your image. If you look
+                at
+                the result, don't be scared if the image inside is not
                 exactly the same as yours :).
-            `use_path`: bool, if true, the relative path of the source png
-                file names will be included in their atlas ids, rather
-                that just the file name. Leading dots and slashes will be
+            `use_path`: bool, if True, the relative path of the source png
+                file names will be included in the atlas ids rather
+                that just in the file names. Leading dots and slashes will be
                 excluded and all other slashes in the path will be replaced
-                with underscores, so for example, if the path and file name is
-                ``../data/tiles/green_grass.png`` then the id will be
-                ``green_grass`` if use_path is False, and it will be
-                ``data_tiles_green_grass`` if use_path is True
+                with underscores. For example, if the `use_path` is False
+                (the default) and the file name is
+                ``../data/tiles/green_grass.png``, the id will be
+                ``green_grass``. If `use_path` is True, it will be
+                ``data_tiles_green_grass``.
 
             .. versionchanged:: 1.8.0
                 Parameter use_path added
