@@ -49,6 +49,7 @@ class ClipboardBase(object):
 
 # load clipboard implementation
 Clipboard = core_select_lib('clipboard', (
+    ('dbusklipper', 'clipboard_dbusclipper', 'ClipboardDbusKlipper'),
     ('pygame', 'clipboard_pygame', 'ClipboardPygame'),
     ('appkit', 'clipboard_appkit', 'ClipboardAppkit'),
     ('winctypes', 'clipboard_winctypes', 'ClipboardWindows'),
