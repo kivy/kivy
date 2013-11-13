@@ -747,28 +747,29 @@ class App(EventDispatcher):
             self._app_window.remove_widget(child)
 
     def on_start(self):
-        '''Event handler for the on_start event, which is fired after
-        initialization (after build() has been called), and before the
-        application is being run.
+        '''Event handler for the `on_start` event which is fired after
+        initialization (after build() has been called) but before the
+        application has started running.
         '''
         pass
 
     def on_stop(self):
-        '''Event handler for the on_stop event, which is fired when the
-        application has finished running (e.g. the window is about to be
+        '''Event handler for the `on_stop` event which is fired when the
+        application has finished running (i.e. the window is about to be
         closed).
         '''
         pass
 
     def on_pause(self):
-        '''Event handler called when pause mode is asked. You must return True
-        if you can go to the Pause mode. Otherwise, return False, and your
-        application will be stopped.
+        '''Event handler called when Pause mode is requested. You should
+        return True if your app can go into Pause mode, otherwise
+        return False and your application will be stopped (the default).
 
-        You cannot control when the application is going to this mode. It's
-        mostly used for embed devices (android/ios), and for resizing.
+        You cannot control when the application is going to go into this mode.
+        It's determined by the Operating System and mostly used for mobile
+        devices (android/ios) and for resizing.
 
-        Default is False.
+        The default return value is False.
 
         .. versionadded:: 1.1.0
         '''
@@ -782,22 +783,22 @@ class App(EventDispatcher):
 
         .. warning::
 
-            When resuming, OpenGL Context might have been damaged / freed. This
-            is where you should reconstruct some of your OpenGL state, like FBO
-            content.
+            When resuming, the OpenGL Context might have been damaged / freed.
+            This is where you can reconstruct some of your OpenGL state
+            e.g. FBO content.
         '''
         pass
 
     @staticmethod
     def get_running_app():
-        '''Return the current runned application instance.
+        '''Return the currently running application instance.
 
         .. versionadded:: 1.1.0
         '''
         return App._running_app
 
     def on_config_change(self, config, section, key, value):
-        '''Event handler fired when one configuration token have been changed by
+        '''Event handler fired when a configuration token has been changed by
         the settings page.
         '''
         pass
@@ -810,7 +811,7 @@ class App(EventDispatcher):
         should override that method if you want to display the
         settings panel differently.
 
-        :return: True if the settings have been opened
+        :return: True if the settings has been opened.
 
         '''
         if self._app_settings is None:
@@ -846,7 +847,7 @@ class App(EventDispatcher):
     def close_settings(self, *largs):
         '''Close the previously opened settings panel.
 
-        :return: True if the settings have been closed
+        :return: True if the settings has been closed.
         '''
         win = self._app_window
         settings = self._app_settings
@@ -859,15 +860,16 @@ class App(EventDispatcher):
 
     def create_settings(self):
         '''Create the settings panel. This method is called only one time per
-        application life-time, and the result is cached internally.
+        application life-time and the result is cached internally.
 
-        By default, it will build a setting panel according to
-        :data:`settings_cls`, call :meth:`build_settings`, add the Kivy panel if
+        By default, it will build a settings panel according to
+        :data:`settings_cls`, call :meth:`build_settings`, add a Kivy panel if
         :data:`use_kivy_settings` is True, and bind to
         on_close/on_config_change.
 
-        If you want to plug your own way of doing settings, without Kivy panel
-        or close/config change events, this is the method you want to overload.
+        If you want to plug your own way of doing settings, without the Kivy
+        panel or close/config change events, this is the method you want to
+        overload.
 
         .. versionadded:: 1.8.0
         '''
@@ -882,7 +884,7 @@ class App(EventDispatcher):
     def destroy_settings(self):
         '''.. versionadded:: 1.8.0
 
-        Dereferences the current settings panel, if one
+        Dereferences the current settings panel if one
         exists. This means that when :meth:`App.open_settings` is next
         run, a new panel will be created and displayed. It doesn't
         affect any of the contents of the panel, but lets you (for
