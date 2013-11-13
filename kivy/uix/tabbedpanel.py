@@ -125,8 +125,8 @@ tabbed panel's background_image and background_color.
 
 '''
 
-__all__ = ('TabbedPanel', 'TabbedPanelContent', 'TabbedPanelHeader',
-           'TabbedPanelItem', 'TabbedPanelStrip', 'StripLayout',
+__all__ = ('StripLayout', 'TabbedPanel', 'TabbedPanelContent',
+           'TabbedPanelHeader','TabbedPanelItem', 'TabbedPanelStrip',
            'TabbedPanelException')
 
 from functools import partial
