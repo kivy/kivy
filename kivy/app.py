@@ -480,7 +480,7 @@ class App(EventDispatcher):
         This method then looks for a matching kv file in the same directory as
         the file that contains the application class.
 
-        For example, if you have a file named main.py that contains::
+        For example, say you have a file named main.py that contains::
 
             class ShowcaseApp(App):
                 pass
@@ -554,22 +554,23 @@ class App(EventDispatcher):
         '''.. versionadded:: 1.0.7
 
         .. versionchanged:: 1.4.0
-            Customize the default path for iOS and Android platform. Add
-            defaultpath parameter for desktop computer (not applicatable for iOS
+            Customized the default path for iOS and Android platforms. Added a
+            defaultpath parameter for desktop OS's (not applicable to iOS
             and Android.)
 
-        Return the filename of your application configuration. Depending the
-        platform, the application file will be stored at different places:
+        Return the filename of your application configuration. Depending on the
+        platform, the application file will be stored in different locations:
 
             - on iOS: <appdir>/Documents/.<appname>.ini
             - on Android: /sdcard/.<appname>.ini
             - otherwise: <appdir>/<appname>.ini
 
-        When you are distributing your application on Desktop, please note than
-        if the application is meant to be installed system-wise, then the user
-        might not have any write-access to the application directory. You could
-        overload this method to change the default behavior, and save the
-        configuration file in the user directory by default::
+        When you are distributing your application on Desktops, please note that
+        if the application is meant to be installed system-wide, the user
+        might not have write-access to the application directory. If you
+        want to store user settings, you should
+        overload this method and change the default behavior to save the
+        configuration file in the user directory.::
 
             class TestApp(App):
                 def get_application_config(self):
@@ -596,11 +597,11 @@ class App(EventDispatcher):
         '''(internal) This function is used for returning a ConfigParser with
         the application configuration. It's doing 3 things:
 
-            #. Create an instance of a ConfigParser
-            #. Load the default configuration by calling
+            #. Creating an instance of a ConfigParser
+            #. Loading the default configuration by calling
                :meth:`build_config`, then
-            #. If exist, load the application configuration file, or create it
-               if it's not existing.
+            #. If it exists, it loads the application configuration file, otherwise
+               it creates one.
 
         :return: ConfigParser instance
         '''
@@ -635,7 +636,7 @@ class App(EventDispatcher):
     def directory(self):
         '''.. versionadded:: 1.0.7
 
-        Return the directory where the application live
+        Return the directory where the application lives.
         '''
         if self._app_directory is None:
             try:
@@ -652,21 +653,21 @@ class App(EventDispatcher):
         '''
         .. versionadded:: 1.7.0
 
-        Returns the path to a directory in the users files system, which the
+        Returns the path to the directory in the users file system which the
         application can use to store additional data.
 
-        Different platforms have different conventions for where to save user
-        data like preferences, saved games, and settings. This function
-        implements those conventions.
+        Different platforms have different conventions with regards to where
+        the user can store data such as preferences, saved games and settings.
+        This function implements these conventions.
 
-        On iOS `~/Documents<app_name>` is returned (which is inside the
+        On iOS, `~/Documents<app_name>` is returned (which is inside the
         apps sandbox).
 
-        On Android `/sdcard/<app_name>` is returned.
+        On Android, `/sdcard/<app_name>` is returned.
 
-        On Windows `%APPDATA%/<app_name>` is returned.
+        On Windows, `%APPDATA%/<app_name>` is returned.
 
-        On Mac OS X `~/Library/Application Support <app_name>` is returned.
+        On Mac OSX, `~/Library/Application Support <app_name>` is returned.
 
         On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
         '''
@@ -691,7 +692,7 @@ class App(EventDispatcher):
     def name(self):
         '''.. versionadded:: 1.0.7
 
-        Return the name of the application, based on the class name
+        Return the name of the application based on the class name.
         '''
         if self._app_name is None:
             clsname = self.__class__.__name__
