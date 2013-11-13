@@ -342,18 +342,18 @@ class App(EventDispatcher):
         `on_pause`:
             Fired when the application is paused by the OS.
         `on_resume`:
-            Fired when the application is resumed from pause by the OS, beware,
-            you have no garantee that this event will be fired after the
-            on_pause event has been called.
+            Fired when the application is resumed from pause by the OS. Beware:
+            you have no guarantee that this event will be fired after the
+            `on_pause` event has been called.
 
     :Parameters:
-        `kv_directory`: <path>, default to None
+        `kv_directory`: <path>, defaults to None
             If a kv_directory is set, it will be used to get the initial kv
-            file. By default, the file is searched in the same directory as the
-            current App definition file.
-        `kv_file`: <filename>, default to None
-            If a kv_file is set, it will be loaded when the application start.
-            The loading of the "default" kv will be avoided.
+            file. By default, the file is assumed to be in the same directory
+            as the current App definition file.
+        `kv_file`: <filename>, defaults to None
+            If a kv_file is set, it will be loaded when the application starts.
+            The loading of the "default" kv file will be prevented.
 
     .. versionchanged:: 1.7.0
         Parameter `kv_file` added.
@@ -362,7 +362,7 @@ class App(EventDispatcher):
     title = None
     '''.. versionadded:: 1.0.5
 
-    Title of your application. You can set by doing::
+    Title of your application. You can set this as follows::
 
         class MyApp(App):
             title = 'Custom title'
@@ -372,7 +372,7 @@ class App(EventDispatcher):
     icon = None
     '''.. versionadded:: 1.0.5
 
-    Icon of your application. You can set by doing::
+    Icon of your application. You can set this as follows::
 
         class MyApp(App):
             icon = 'customicon.png'
@@ -383,7 +383,7 @@ class App(EventDispatcher):
     use_kivy_settings = True
     '''.. versionadded:: 1.0.7
 
-    If True, the application settings will include also the Kivy settings. If
+    If True, the application settings will also include the Kivy settings. If
     you don't want the user to change any kivy settings from your settings UI,
     change this to False.
     '''
@@ -391,19 +391,19 @@ class App(EventDispatcher):
     settings_cls = ObjectProperty(SettingsWithSpinner)
     '''.. versionadded:: 1.8.0
 
-    The class to use to construct the settings panel, used to
-    construct the instance passed to :meth:`build_config`. You should
-    use either :class:`~kivy.uix.settings.Settings`, or one of the provided
+    The class to used to construct the settings panel and
+    the instance passed to :meth:`build_config`. You should
+    use either :class:`~kivy.uix.settings.Settings` or one of the provided
     subclasses with different layouts
     (:class:`~kivy.uix.settings.SettingsWithSidebar`,
     :class:`~kivy.uix.settings.SettingsWithSpinner`,
     :class:`~kivy.uix.settings.SettingsWithTabbedPanel`,
-    :class:`~kivy.uix.settings.SettingsWithNoMenu`), or your own
-    Settings subclass. See the documentation
-    of :mod:`kivy.uix.Settings` for more information.
+    :class:`~kivy.uix.settings.SettingsWithNoMenu`). You can also create your
+    own Settings subclass. See the documentation
+    of :mod:`~kivy.uix.settings.Settings` for more information.
 
-    :attr:`~App.settings_cls` is an :class:`~kivy.properties.ObjectProperty`.
-    it defaults to :class:`~kivy.uix.settings.SettingsWithSpinner`, which
+    :attr:`~App.settings_cls` is an :class:`~kivy.properties.ObjectProperty`
+    and defaults to :class:`~kivy.uix.settings.SettingsWithSpinner` which
     displays settings panels with a spinner to switch between them.
 
     '''
@@ -438,8 +438,8 @@ class App(EventDispatcher):
         If this method returns a widget (tree), it will be used as the root
         widget and added to the window.
 
-        :return: None or a root :class:`~kivy.uix.widget.Widget` instance is no
-                 self.root exist.
+        :return: None or a root :class:`~kivy.uix.widget.Widget` instance if no
+            self.root exists.
         '''
         if not self.root:
             return Widget()
@@ -453,7 +453,7 @@ class App(EventDispatcher):
         set, the configuration will be automatically saved in the file returned
         by :meth:`get_application_config`.
 
-        :param config: Use this to add defaults section / key / value
+        :param config: Use this to add defaults section / key / value items
         :type config: :class:`~kivy.config.ConfigParser`
 
         '''
@@ -462,11 +462,11 @@ class App(EventDispatcher):
         '''.. versionadded:: 1.0.7
 
         This method is called when the user (or you) want to show the
-        application settings. This will be called only once, the first time when
-        the user will show the settings.
+        application settings. This will be called only once when the user
+        first requests the application to display the settings.
 
         You can use this method to add settings panels and to
-        customise the settings widget, e.g. by changing the sidebar
+        customise the settings widget e.g. by changing the sidebar
         width. See the module documentation for full details.
 
         :param settings: Settings instance for adding panels
