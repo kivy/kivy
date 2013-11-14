@@ -28,8 +28,8 @@ EventLoop = None
 
 
 class ExceptionHandler:
-    '''Base handler that catch exception in runTouchApp().
-    You can derivate and use it like this::
+    '''Base handler that catches exceptions in :func:`runTouchApp`.
+    You can subclass and extend it as follows::
 
         class E(ExceptionHandler):
             def handle_exception(self, inst):
@@ -38,19 +38,19 @@ class ExceptionHandler:
 
         ExceptionManager.add_handler(E())
 
-    All exceptions will be set to PASS, and logged to console !
+    All exceptions will be set to PASS, and logged to the console!
     '''
 
     def __init__(self):
         pass
 
     def handle_exception(self, exception):
-        '''Handle one exception, default return ExceptionManager.STOP'''
+        '''Handle one exception, defaults to returning ExceptionManager.STOP.'''
         return ExceptionManager.RAISE
 
 
 class ExceptionManagerBase:
-    '''ExceptionManager manage exceptions handlers.'''
+    '''ExceptionManager manages exceptions handlers.'''
 
     RAISE = 0
     PASS = 1
@@ -60,17 +60,17 @@ class ExceptionManagerBase:
         self.policy = ExceptionManagerBase.RAISE
 
     def add_handler(self, cls):
-        '''Add a new exception handler in the stack'''
+        '''Add a new exception handler to the stack.'''
         if not cls in self.handlers:
             self.handlers.append(cls)
 
     def remove_handler(self, cls):
-        '''Remove a exception handler from the stack'''
+        '''Remove a exception handler from the stack.'''
         if cls in self.handlers:
             self.handlers.remove(cls)
 
     def handle_exception(self, inst):
-        '''Called when an exception happend in runTouchApp() main loop'''
+        '''Called when an exception occured in the runTouchApp() main loop.'''
         ret = self.policy
         for handler in self.handlers:
             r = handler.handle_exception(inst)
@@ -83,7 +83,8 @@ ExceptionManager = register_context('ExceptionManager', ExceptionManagerBase)
 
 
 class EventLoopBase(EventDispatcher):
-    '''Main event loop. This loop handle update of input + dispatch event
+    '''Main event loop. This loop handles the updating of input 
+    and dispatching events.
     '''
 
     __events__ = ('on_start', 'on_pause', 'on_stop')
@@ -102,12 +103,12 @@ class EventLoopBase(EventDispatcher):
 
     @property
     def touches(self):
-        '''Return the list of all touches currently in down or move state
+        '''Return the list of all touches currently in down or move states.
         '''
         return self.me_list
 
     def ensure_window(self):
-        '''Ensure that we have an window
+        '''Ensure that we have a window.
         '''
         import kivy.core.window
         if not self.window:
@@ -115,12 +116,12 @@ class EventLoopBase(EventDispatcher):
             sys.exit(1)
 
     def set_window(self, window):
-        '''Set the window used for event loop
+        '''Set the window used for the event loop.
         '''
         self.window = window
 
     def add_input_provider(self, provider, auto_remove=False):
-        '''Add a new input provider to listen for touch event
+        '''Add a new input provider to listen for touch events.
         '''
         if provider not in self.input_providers:
             self.input_providers.append(provider)
@@ -128,26 +129,26 @@ class EventLoopBase(EventDispatcher):
                 self.input_providers_autoremove.append(provider)
 
     def remove_input_provider(self, provider):
-        '''Remove an input provider
+        '''Remove an input provider.
         '''
         if provider in self.input_providers:
             self.input_providers.remove(provider)
 
     def add_event_listener(self, listener):
-        '''Add a new event listener for getting touch event
+        '''Add a new event listener for getting touch events.
         '''
         if not listener in self.event_listeners:
             self.event_listeners.append(listener)
 
     def remove_event_listener(self, listener):
-        '''Remove a event listener from the list
+        '''Remove an event listener from the list.
         '''
         if listener in self.event_listeners:
             self.event_listeners.remove(listener)
 
     def start(self):
-        '''Must be call only one time before run().
-        This start all configured input providers.'''
+        '''Must be called only once before run().
+        This starts all configured input providers.'''
         self.status = 'started'
         self.quit = False
         for provider in self.input_providers:
@@ -155,7 +156,7 @@ class EventLoopBase(EventDispatcher):
         self.dispatch('on_start')
 
     def close(self):
-        '''Exit from the main loop, and stop all configured
+        '''Exit from the main loop and stop all configured
         input providers.'''
         self.quit = True
         self.stop()
@@ -163,7 +164,7 @@ class EventLoopBase(EventDispatcher):
 
     def stop(self):
         '''Stop all input providers and call callbacks registered using
-        EventLoop.add_stop_callback()'''
+        EventLoop.add_stop_callback().'''
 
         # XXX stop in reverse order that we started them!! (like push pop), very
         # important because e.g. wm_touch and WM_PEN both store old window proc
@@ -183,19 +184,19 @@ class EventLoopBase(EventDispatcher):
 
     def add_postproc_module(self, mod):
         '''Add a postproc input module (DoubleTap, TripleTap, DeJitter
-        RetainTouch are default)'''
+        RetainTouch are defaults).'''
         if mod not in self.postproc_modules:
             self.postproc_modules.append(mod)
 
     def remove_postproc_module(self, mod):
-        '''Remove a postproc module'''
+        '''Remove a postproc module.'''
         if mod in self.postproc_modules:
             self.postproc_modules.remove(mod)
 
     def post_dispatch_input(self, etype, me):
         '''This function is called by dispatch_input() when we want to dispatch
-        a input event. The event is dispatched into all listeners, and if
-        grabbed, it's dispatched through grabbed widgets
+        an input event. The event is dispatched to all listeners and if
+        grabbed, it's dispatched to grabbed widgets.
         '''
         # update available list
         if etype == 'begin':
@@ -279,7 +280,7 @@ class EventLoopBase(EventDispatcher):
         self.input_events.append(ev)
 
     def dispatch_input(self):
-        '''Called by idle() to read events from input providers, pass event to
+        '''Called by idle() to read events from input providers, pass events to
         postproc, and dispatch final events.
         '''
 
