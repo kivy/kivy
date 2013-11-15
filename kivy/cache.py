@@ -219,7 +219,7 @@ class Cache(object):
 
     @staticmethod
     def print_usage():
-        '''Print the cache usage on the console'''
+        '''Print the cache usage to the console.'''
         print('Cache usage :')
         for category in Cache._categories:
             print(' * %s : %d / %s, timeout=%s' % (
