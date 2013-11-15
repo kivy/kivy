@@ -655,12 +655,12 @@ class ListItemButton(SelectableView, Button):
 
     def select(self, *args):
         self.background_color = self.selected_color
-        if type(self.parent) is CompositeListItem:
+        if isinstance(self.parent, CompositeListItem):
             self.parent.select_from_child(self, *args)
 
     def deselect(self, *args):
         self.background_color = self.deselected_color
-        if type(self.parent) is CompositeListItem:
+        if isinstance(self.parent, CompositeListItem):
             self.parent.deselect_from_child(self, *args)
 
     def select_from_composite(self, *args):
@@ -688,12 +688,12 @@ class ListItemLabel(SelectableView, Label):
 
     def select(self, *args):
         self.bold = True
-        if type(self.parent) is CompositeListItem:
+        if isinstance(self.parent, CompositeListItem):
             self.parent.select_from_child(self, *args)
 
     def deselect(self, *args):
         self.bold = False
-        if type(self.parent) is CompositeListItem:
+        if isinstance(self.parent, CompositeListItem):
             self.parent.deselect_from_child(self, *args)
 
     def select_from_composite(self, *args):
