@@ -300,10 +300,12 @@ class EventLoopBase(EventDispatcher):
             post_dispatch_input(*pop(0))
 
     def idle(self):
-        '''This function is called every frames. By default :
-        * it "tick" the clock to the next frame
-        * read all input and dispatch event
-        * dispatch on_update + on_draw + on_flip on window
+        '''This function is called after every frame. By default:
+        
+           * it "ticks" the clock to the next frame.
+           * it reads all input and dispatches events.
+           * it dispatches `on_update`, `on_draw` and `on_flip` events to the
+             window.
         '''
 
         # update dt
@@ -342,23 +344,23 @@ class EventLoopBase(EventDispatcher):
         self.exit()
 
     def exit(self):
-        '''Close the main loop, and close the window'''
+        '''Close the main loop and close the window.'''
         self.close()
         if self.window:
             self.window.close()
 
     def on_stop(self):
-        '''Event handler for on_stop, will be fired right
+        '''Event handler for `on_stop` events which will be fired right
         after all input providers have been stopped.'''
         pass
 
     def on_pause(self):
-        '''Event handler for on_pause, will be fired when
+        '''Event handler for `on_pause` which will be fired when
         the event loop is paused.'''
         pass
 
     def on_start(self):
-        '''Event handler for on_start, will be fired right
+        '''Event handler for `on_start` which will be fired right
         after all input providers have been started.'''
         pass
 
@@ -367,7 +369,7 @@ EventLoop = EventLoopBase()
 
 
 def _run_mainloop():
-    '''If user haven't create a window, this is the executed mainloop'''
+    '''If no window has been created, this will be the executed mainloop.'''
     while True:
         try:
             EventLoop.run()
@@ -385,7 +387,7 @@ def _run_mainloop():
 
 def runTouchApp(widget=None, slave=False):
     '''Static main function that starts the application loop.
-    You got some magic things, if you are using argument like this :
+    You can access some magic via the following arguments:
 
     :Parameters:
         `<empty>`
@@ -394,17 +396,17 @@ def runTouchApp(widget=None, slave=False):
             (MTWindow act as an input listener)
 
         `widget`
-            If you pass only a widget, a MTWindow will be created,
-            and your widget will be added on the window as the root
+            If you pass only a widget, a MTWindow will be created
+            and your widget will be added to the window as the root
             widget.
 
         `slave`
-            No event dispatching are done. This will be your job.
+            No event dispatching is done. This will be your job.
 
         `widget + slave`
-            No event dispatching are done. This will be your job, but
-            we are trying to get the window (must be created by you before),
-            and add the widget on it. Very usefull for embedding Kivy
+            No event dispatching is done. This will be your job but
+            we try to get the window (must be created by you beforehand)
+            and add the widget to it. Very usefull for embedding Kivy
             in another toolkit. (like Qt, check kivy-designed)
 
     '''
