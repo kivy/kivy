@@ -2,8 +2,8 @@
 Cache manager
 =============
 
-The cache manager can be used to store python object attached to an uniq key.
-The cache can be controlled in different manner, with a object limit or a
+The cache manager can be used to store python objects attached to a unique
+key. The cache can be controlled in two ways: with a object limit or a
 timeout.
 
 For example, we can create a new cache with a limit of 10 objects and a timeout
@@ -20,8 +20,8 @@ of 5 seconds::
     # retrieve the cached object
     instance = Cache.get('mycache', label)
 
-If the instance is NULL, the cache may have trash it, because you've
-not used the label since 5 seconds, and you've reach the limit.
+If the instance is NULL, the cache may have trashed it because you've
+not used the label for 5 seconds and you've reach the limit.
 '''
 
 __all__ = ('Cache', )
@@ -40,17 +40,17 @@ class Cache(object):
 
     @staticmethod
     def register(category, limit=None, timeout=None):
-        '''Register a new category in cache, with limit
+        '''Register a new category in the cache with the specified limit.
 
         :Parameters:
             `category` : str
-                Identifier of the category
-            `limit` : int (optionnal)
-                Maximum number of object in the cache.
+                Identifier of the category.
+            `limit` : int (optional)
+                Maximum number of objects allowed in the cache.
                 If None, no limit is applied.
-            `timeout` : double (optionnal)
-                Time to delete the object when it's not used.
-                if None, no timeout is applied.
+            `timeout` : double (optional)
+                Time after which to delete the object if it has not been used.
+                If None, no timeout is applied.
         '''
         Cache._categories[category] = {
             'limit': limit,
@@ -61,17 +61,18 @@ class Cache(object):
 
     @staticmethod
     def append(category, key, obj, timeout=None):
-        '''Add a new object in the cache.
+        '''Add a new object to the cache.
 
         :Parameters:
             `category` : str
-                Identifier of the category
+                Identifier of the category.
             `key` : str
-                Uniq identifier of the object to store
+                Unique identifier of the object to store.
             `obj` : object
-                Object to store in cache
-            `timeout` : double (optionnal)
-                Custom time to delete the object if it's not used.
+                Object to store in cache.
+            `timeout` : double (optional)
+                Time after which to delete the object if it has not been used.
+                If None, no timeout is applied.
         '''
         #check whether obj should not be cached first
         if getattr(obj, '_no_cache', False):
@@ -94,15 +95,15 @@ class Cache(object):
 
     @staticmethod
     def get(category, key, default=None):
-        '''Get a object in cache.
+        '''Get a object from the cache.
 
         :Parameters:
             `category` : str
-                Identifier of the category
+                Identifier of the category.
             `key` : str
-                Uniq identifier of the object to store
-            `default` : anything, default to None
-                Default value to be returned if key is not found
+                Unique identifier of the object in the store.
+            `default` : anything, defaults to None
+                Default value to be returned if the key is not found.
         '''
         try:
             Cache._objects[category][key]['lastaccess'] = Clock.get_time()
@@ -112,15 +113,15 @@ class Cache(object):
 
     @staticmethod
     def get_timestamp(category, key, default=None):
-        '''Get the object timestamp in cache.
+        '''Get the object timestamp in the cache.
 
         :Parameters:
             `category` : str
-                Identifier of the category
+                Identifier of the category.
             `key` : str
-                Uniq identifier of the object to store
-            `default` : anything, default to None
-                Default value to be returned if key is not found
+                Unique identifier of the object in the store.
+            `default` : anything, defaults to None
+                Default value to be returned if key is not found.
         '''
         try:
             return Cache._objects[category][key]['timestamp']
@@ -129,15 +130,15 @@ class Cache(object):
 
     @staticmethod
     def get_lastaccess(category, key, default=None):
-        '''Get the object last access time in cache.
+        '''Get the objects last access time in the cache.
 
         :Parameters:
             `category` : str
-                Identifier of the category
+                Identifier of the category.
             `key` : str
-                Uniq identifier of the object to store
+                Unique identifier of the object in the store.
             `default` : anything, default to None
-                Default value to be returned if key is not found
+                Default value to be returned if the key is not found.
         '''
         try:
             return Cache._objects[category][key]['lastaccess']
@@ -146,13 +147,13 @@ class Cache(object):
 
     @staticmethod
     def remove(category, key=None):
-        '''Purge the cache
+        '''Purge the cache.
 
         :Parameters:
             `category` : str (optionnal)
-                Identifier of the category
+                Identifier of the category.
             `key` : str (optionnal)
-                Uniq identifier of the object to store
+                Unique identifier of the object in the store.
         '''
         try:
             if key is not None:
