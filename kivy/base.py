@@ -78,7 +78,7 @@ class ExceptionManagerBase:
                 ret = r
         return ret
 
-#: Kivy Exception Manager instance
+#: Instance of a :class:`ExceptionManagerBase` implementation.
 ExceptionManager = register_context('ExceptionManager', ExceptionManagerBase)
 
 
