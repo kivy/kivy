@@ -4,10 +4,7 @@
 Kivy on Android
 ===============
 
-Kivy runs on Android, but you need a phone with:
-
-* SD Card
-* OpenGL ES 2.0 (Android 2.2 minimum)
+Kivy runs on Android, but you need a phone with OpenGL ES 2.0 (Android 2.2 minimum). This is standard on modern devices.
 
 Requirements for an Android application
 ---------------------------------------
