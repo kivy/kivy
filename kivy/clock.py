@@ -57,7 +57,7 @@ to write a short function that does accept dt. For Example::
 
         class Foo(object):
             def start(self):
-                Clock.schedule_interval(self.callback)
+                Clock.schedule_interval(self.callback, 0.5)
 
             def callback(self, dt):
                 print('In callback')
@@ -437,7 +437,8 @@ class ClockBase(_ClockBase):
         return ev
 
     def schedule_once(self, callback, timeout=0):
-        '''Schedule an event in <timeout> seconds.
+        '''Schedule an event in <timeout> seconds. If <timeout> is unspecified
+        or 0, the callback will be called after the next frame is rendered.
 
         .. versionchanged:: 1.0.5
             If the timeout is -1, the callback will be called before the next
