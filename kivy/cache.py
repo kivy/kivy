@@ -121,7 +121,7 @@ class Cache(object):
             `key` : str
                 Unique identifier of the object in the store.
             `default` : anything, defaults to None
-                Default value to be returned if key is not found.
+                Default value to be returned if the key is not found.
         '''
         try:
             return Cache._objects[category][key]['timestamp']
@@ -137,7 +137,7 @@ class Cache(object):
                 Identifier of the category.
             `key` : str
                 Unique identifier of the object in the store.
-            `default` : anything, default to None
+            `default` : anything, defaults to None
                 Default value to be returned if the key is not found.
         '''
         try:
@@ -150,10 +150,11 @@ class Cache(object):
         '''Purge the cache.
 
         :Parameters:
-            `category` : str (optionnal)
+            `category` : str
                 Identifier of the category.
-            `key` : str (optionnal)
-                Unique identifier of the object in the store.
+            `key` : str (optional)
+                Unique identifier of the object in the store. If this arguement
+                is not supplied, the entire category will be purged.
         '''
         try:
             if key is not None:
