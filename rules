@@ -31,5 +31,7 @@ override_dh_installdocs:
 	cd doc && PYTHONPATH=.. make html
 	cd doc && PYTHONPATH=.. make latex
 	cd doc/build/latex && make all-pdf || eval "echo 'WARNING: PDF build returnd exit code $?. The *.pdf-file might be missing!'"
-	#ls doc/pdf
+	
+	ls doc/build/latex
+		
 	dh_installdocs
