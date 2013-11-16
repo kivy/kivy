@@ -313,10 +313,11 @@ class ScrollView(StencilView):
 
     scroll_type = OptionProperty('content', options=('content', 'bars', 'both'))
     '''Sets the type of scrolling to use for the content of the scrollview.
+    Available options are: content, bars, both.
 
     .. versionadded:: 1.8.0
 
-    :data:`scroll_type` is a :class:`~kivy.properties.OptionProperty`, default
+    :data:`scroll_type` is a :class:`~kivy.properties.OptionProperty`, defaults
     to content.
     '''
 
