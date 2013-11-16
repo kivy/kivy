@@ -667,7 +667,7 @@ class App(EventDispatcher):
 
         On Windows, `%APPDATA%/<app_name>` is returned.
 
-        On Mac OSX, `~/Library/Application Support <app_name>` is returned.
+        On Mac OSX, `~/Library/Application Support/<app_name>` is returned.
 
         On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
         '''
