@@ -115,6 +115,10 @@ You have multiple transitions available by default, such as:
 - :class:`SwapTransition` - implementation of the iOS swap transition
 - :class:`FadeTransition` - shader to fade the screen in/out
 - :class:`WipeTransition` - shader to wipe the screens from right to left
+- :class:`FallOutTransition` - shader where the old screen 'falls' and
+  becomes transparent, revealing the new one behind it.
+- :class:`RiseInTransition` - shader where the new screen rises from the
+  screen centre while fading from transparent to opaque.
 
 You can easily switch transitions by changing the
 :data:`ScreenManager.transition` property::
@@ -136,7 +140,8 @@ You can easily switch transitions by changing the
 
 __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
            'TransitionBase', 'ShaderTransition', 'SlideTransition',
-           'SwapTransition', 'FadeTransition', 'WipeTransition')
+           'SwapTransition', 'FadeTransition', 'WipeTransition',
+           'FallOutTransition', 'RiseInTransition')
 
 from kivy.compat import iteritems
 from kivy.logger import Logger
@@ -601,9 +606,7 @@ class FallOutTransition(ShaderTransition):
     defaults to .15 (= 150ms).
     '''
 
-    FALLOUT_TRANSITION_FS =
-
-    '''$HEADER$
+    FALLOUT_TRANSITION_FS = '''$HEADER$
     uniform float t;
     uniform sampler2D tex_in;
     uniform sampler2D tex_out;
