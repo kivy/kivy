@@ -2,14 +2,14 @@
 Configuration object
 ====================
 
-:class:`Config` object is an instance of a modified Python ConfigParser.
+The :class:`Config` object is an instance of a modified Python ConfigParser.
 See `ConfigParser documentation
 <http://docs.python.org/library/configparser.html>`_ for more information.
 
-Usage of Config object
-----------------------
+Usage of the Config object
+--------------------------
 
-Read a configuration token from a particular section::
+To read a configuration token from a particular section::
 
     >>> from kivy.config import Config
     >>> Config.getint('kivy', 'show_fps')
@@ -34,27 +34,27 @@ Available configuration tokens
     `desktop`: (0, 1)
         Enable/disable specific features if True/False. For example enabling
         drag-able scroll-bar in scroll views, disabling of bubbles in
-        TextInput...  True etc.
+        TextInput etc.
     `exit_on_escape`: (0, 1)
-        Enable/disable exiting kivy when escape is hit if True/False.
+        Enable/disable exiting kivy when escape is pressed.
     `log_level`: (debug, info, warning, error, critical)
-        Set the minimum log level to use
+        Set the minimum log level to use.
     `log_dir`: string
-        Path of log directory
+        Path of log directory.
     `log_name`: string
-        Format string to use for the filename of log file
+        Format string to use for the filename of log file.
     `log_enable`: (0, 1)
-        Activate file logging
+        Activate file logging.
     `keyboard_mode`: ('', 'system', 'dock', 'multi', 'systemanddock',
         'systemandmulti')
-        Keyboard mode to use. If empty, Kivy will decide for you what is the
-        best for your current platform. Otherwise, you can set one of 'system'
+        Keyboard mode to use. If empty, Kivy will choose the best option
+        for your current platform. Otherwise, you can set one of 'system'
         (real keyboard), 'dock' (one virtual keyboard docked in a screen side),
         'multi' (one virtual keyboard everytime a widget ask for),
         'systemanddock' (virtual docked keyboard plus input from real keyboard)
-        'systemandmulti' (analogous)
+        'systemandmulti' (analogous).
     `keyboard_layout`: string
-        Identifier of the layout to use
+        Identifier of the layout to use.
     `window_icon`: string
         Path of the window icon. Use this if you want to replace the default
         pygame icon.
