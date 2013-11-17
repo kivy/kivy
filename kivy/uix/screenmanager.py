@@ -584,10 +584,25 @@ class FadeTransition(ShaderTransition):
 
 
 class FallOutTransition(ShaderTransition):
+    '''Transition where the new screen 'falls' from the screen centre,
+    becoming smaller and more transparent until it disappears. Mimics
+    the popular/standard Android transition.
+
+    .. versionadded:: 1.8.0
+
+    '''
 
     duration = NumericProperty(0.15)
+    '''Duration in seconds of the transition, replacing the default of
+    :class:`TransitionBase`.
 
-    FALLOUT_TRANSITION_FS = '''$HEADER$
+    :class:`duration` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to .15 (= 150ms).
+    '''
+
+    FALLOUT_TRANSITION_FS =
+
+    '''$HEADER$
     uniform float t;
     uniform sampler2D tex_in;
     uniform sampler2D tex_out;
@@ -627,8 +642,20 @@ class FallOutTransition(ShaderTransition):
 
 
 class RiseInTransition(ShaderTransition):
+    '''Transition where the new screen rises from the screen centre,
+    becoming larger and changing from transparent to opaque until it
+    fills the screen. Mimics the popular/standard Android transition.
+
+    .. versionadded:: 1.8.0
+    '''
 
     duration = NumericProperty(0.2)
+    '''Duration in seconds of the transition, replacing the default of
+    :class:`TransitionBase`.
+
+    :class:`duration` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to .2 (= 200ms).
+    '''
 
     RISEIN_TRANSITION_FS = '''$HEADER$
     uniform float t;
