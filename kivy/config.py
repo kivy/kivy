@@ -3,8 +3,12 @@ Configuration object
 ====================
 
 The :class:`Config` object is an instance of a modified Python ConfigParser.
-See `ConfigParser documentation
+See the `ConfigParser documentation
 <http://docs.python.org/library/configparser.html>`_ for more information.
+
+Kivy has a configuration file which determines the default settings. In order to
+change these settings, you can alter this file manually or use the Config
+object. Please see the :ref:`Configure Kivy` section for more information.
 
 Usage of the Config object
 --------------------------
@@ -29,22 +33,25 @@ Change the configuration and save it::
 Available configuration tokens
 ------------------------------
 
+.. |log_levels| replace:: 'debug', 'info', 'warning', 'error' or 'critical'
+
 :kivy:
 
-    `desktop`: (0, 1)
-        Enable/disable specific features if True/False. For example enabling
+    `desktop`: int, 0 or 1
+        This option controls desktop OS specific features, such as enabling
         drag-able scroll-bar in scroll views, disabling of bubbles in
-        TextInput etc.
-    `exit_on_escape`: (0, 1)
-        Enable/disable exiting kivy when escape is pressed.
-    `log_level`: (debug, info, warning, error, critical)
+        TextInput etc. 0 is disabled, 1 is enabled.
+    `exit_on_escape`: int, 0 or 1
+        Enables exiting kivy when escape is pressed.
+        0 is disabled, 1 is enabled.
+    `log_level`: string, one of |log_levels|
         Set the minimum log level to use.
     `log_dir`: string
         Path of log directory.
     `log_name`: string
         Format string to use for the filename of log file.
-    `log_enable`: (0, 1)
-        Activate file logging.
+    `log_enable`: int, 0 or 1
+        Activate file logging. 0 is disabled, 1 is enabled.
     `keyboard_mode`: string
         Specifies the keyboard mode to use. If can be one of the following:
 
@@ -81,7 +88,7 @@ Available configuration tokens
     `jitter_distance`: int
         Maximum distance for jitter detection, normalized inside the range 0
         - 1000.
-    `jitter_ignore_devices`: string, seperated with comma
+    `jitter_ignore_devices`: string, separated with commas
         List of devices to ignore from jitter detection.
     `ignore`: list of tuples
         List of regions where new touches are ignored.
@@ -96,7 +103,7 @@ Available configuration tokens
 
     `maxfps`: int, defaults to 60
         Maximum FPS allowed.
-    `fullscreen`: (0, 1, fake, auto)
+    `fullscreen`: int or string, one of 0, 1, 'fake' or 'auto'
         Activate fullscreen. If set to `1`, a resolution of `width`
         times `height` pixels will be used.
         If set to `auto`, your current display's resolution will be
@@ -109,20 +116,20 @@ Available configuration tokens
     `height`: int
         Height of the :class:`~kivy.core.window.Window`, not used if
         `fullscreen` is set to `auto`.
-    `fbo`: (hardware, software, force-hardware)
-        Select the FBO backend to use.
-    `show_cursor`: (0, 1)
+    `fbo`: string, one of 'hardware', 'software' or 'force-hardware'
+        Selects the FBO backend to use.
+    `show_cursor`: int, one of 0 or 1
         Show the cursor on the screen.
-    `position`: (auto, custom)
+    `position`: string, one of 'auto' or 'custom'
         Position of the window on your display. If `auto` is used, you have no
         control of the initial position: `top` and `left` are ignored.
     `top`: int
         Top position of the :class:`~kivy.core.window.Window`.
     `left`: int
         Left position of the :class:`~kivy.core.window.Window`.
-    `rotation`: (0, 90, 180, 270)
+    `rotation`: int, one of 0, 90, 180 or 270
         Rotation of the :class:`~kivy.core.window.Window`.
-    `resizable`: (0, 1)
+    `resizable`: int, one of 0 or 1
         If 0, the window will have a fixed size. If 1, the window will be
         resizable.
 
