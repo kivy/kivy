@@ -585,8 +585,9 @@ class FadeTransition(ShaderTransition):
 
 class FallOutTransition(ShaderTransition):
     '''Transition where the new screen 'falls' from the screen centre,
-    becoming smaller and more transparent until it disappears. Mimics
-    the popular/standard Android transition.
+    becoming smaller and more transparent until it disappears, and
+    revealing the new screen behind it. Mimics the popular/standard
+    Android transition.
 
     .. versionadded:: 1.8.0
 
