@@ -293,7 +293,7 @@ The syntax look like:
         ...
 
     # Multiple inheritance
-    <NewWidget@Label,ButtonBehavior>:
+    <NewWidget@ButtonBehavior+Label>:
         ...
 
 The `@` character is used to seperate the name from the classes you want to
@@ -306,7 +306,7 @@ subclass. The Python equivalent would have been:
         pass
 
     # Multiple inheritance
-    class NewWidget(Label, ButtonBehavior):
+    class NewWidget(ButtonBehavior, Label):
         pass
 
 Any new properties, usually added in python code, should be declared first.
