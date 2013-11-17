@@ -45,14 +45,16 @@ Available configuration tokens
         Format string to use for the filename of log file.
     `log_enable`: (0, 1)
         Activate file logging.
-    `keyboard_mode`: ('', 'system', 'dock', 'multi', 'systemanddock',
-        'systemandmulti')
-        Keyboard mode to use. If empty, Kivy will choose the best option
-        for your current platform. Otherwise, you can set one of 'system'
-        (real keyboard), 'dock' (one virtual keyboard docked in a screen side),
-        'multi' (one virtual keyboard everytime a widget ask for),
-        'systemanddock' (virtual docked keyboard plus input from real keyboard)
-        'systemandmulti' (analogous).
+    `keyboard_mode`: string
+        Specifies the keyboard mode to use. If can be one of the following:
+
+        * '' - Let Kivy choose the best option for your current platform.
+        * 'system' - real keyboard.
+        * 'dock' - one virtual keyboard docked to a screen side.
+        * 'multi' - one virtual keyboard for every widget request.
+        * 'systemanddock' - virtual docked keyboard plus input from real
+          keyboard.
+        * 'systemandmulti' - analogous.
     `keyboard_layout`: string
         Identifier of the layout to use.
     `window_icon`: string
@@ -62,25 +64,25 @@ Available configuration tokens
 :postproc:
 
     `double_tap_time`: int
-        Time allowed for the detection of double tap, in milliseconds
+        Time allowed for the detection of double tap, in milliseconds.
     `double_tap_distance`: float
         Maximum distance allowed for a double tap, normalized inside the range
-        0 - 1000
+        0 - 1000.
     `triple_tap_time`: int
-        Time allowed for the detection of triple tap, in milliseconds
+        Time allowed for the detection of triple tap, in milliseconds.
     `triple_tap_distance`: float
         Maximum distance allowed for a triple tap, normalized inside the range
-        0 - 1000
+        0 - 1000.
     `retain_time`: int
-        Time allowed for a retain touch, in milliseconds
+        Time allowed for a retain touch, in milliseconds.
     `retain_distance`: int
         If the touch moves more than is indicated by retain_distance, it will
         not be retained. Argument should be an int between 0 and 1000.
     `jitter_distance`: int
         Maximum distance for jitter detection, normalized inside the range 0
-        - 1000
+        - 1000.
     `jitter_ignore_devices`: string, seperated with comma
-        List of devices to ignore from jitter detection
+        List of devices to ignore from jitter detection.
     `ignore`: list of tuples
         List of regions where new touches are ignored.
         This configuration token can be used to resolve hotspot problems
@@ -88,11 +90,11 @@ Available configuration tokens
 
             ignore = [(xmin, ymin, xmax, ymax), ...]
 
-        All the values must be inside 0 - 1 range.
+        All the values must be inside the range 0 - 1.
 
 :graphics:
 
-    `maxfps`: int, default to 60
+    `maxfps`: int, defaults to 60
         Maximum FPS allowed.
     `fullscreen`: (0, 1, fake, auto)
         Activate fullscreen. If set to `1`, a resolution of `width`
@@ -102,32 +104,31 @@ Available configuration tokens
         If you want to place the window in another display,
         use `fake` and adjust `width`, `height`, `top` and `left`.
     `width`: int
-        Width of the :class:`~kivy.core.window.Window`, not used if in `auto
-        fullscreen`
+        Width of the :class:`~kivy.core.window.Window`, not used if
+        `fullscreen` is set to `auto`.
     `height`: int
-        Height of the :class:`~kivy.core.window.Window`, not used if in `auto
-        fullscreen`
+        Height of the :class:`~kivy.core.window.Window`, not used if
+        `fullscreen` is set to `auto`.
     `fbo`: (hardware, software, force-hardware)
         Select the FBO backend to use.
     `show_cursor`: (0, 1)
-        Show the cursor on the screen
+        Show the cursor on the screen.
     `position`: (auto, custom)
         Position of the window on your display. If `auto` is used, you have no
         control of the initial position: `top` and `left` are ignored.
     `top`: int
-        Top position of the :class:`~kivy.core.window.Window`
+        Top position of the :class:`~kivy.core.window.Window`.
     `left`: int
-        Left position of the :class:`~kivy.core.window.Window`
+        Left position of the :class:`~kivy.core.window.Window`.
     `rotation`: (0, 90, 180, 270)
-        Rotation of the :class:`~kivy.core.window.Window`
+        Rotation of the :class:`~kivy.core.window.Window`.
     `resizable`: (0, 1)
         If 0, the window will have a fixed size. If 1, the window will be
         resizable.
 
 :input:
 
-    Input section is particular. You can create new input device with this
-    syntax::
+    You can create new input devices using this syntax::
 
         # example of input provider instance
         yourid = providerid,parameters
@@ -138,7 +139,7 @@ Available configuration tokens
 
     .. seealso::
 
-        Check all the providers in kivy.input.providers for the syntax to use
+        Check the providers in kivy.input.providers for the syntax to use
         inside the configuration file.
 
 :widgets:
