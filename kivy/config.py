@@ -192,24 +192,24 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted arguments.
 
 .. versionchanged:: 1.8.0
-    `systemanddock` and `systemandmulti` has been added as possible value for
-    `keyboard_mode` in kivy section. `exit_on_escape` has been added in the
+    `systemanddock` and `systemandmulti` has been added as possible values for
+    `keyboard_mode` in the kivy section. `exit_on_escape` has been added to the
     kivy section.
 
 .. versionchanged:: 1.2.0
-    `resizable` has been added to graphics section
+    `resizable` has been added to graphics section.
 
 .. versionchanged:: 1.1.0
-    tuio is not listening by default anymore. windows icons are not copied to
-    user directory anymore. You can still set a new window icon by using
+    tuio is not listening by default anymore. Window icons are not copied to
+    user directory anymore. You can still set a new window icon by using the
     ``window_icon`` config setting.
 
 .. versionchanged:: 1.0.8
     `scroll_timeout`, `scroll_distance` and `scroll_friction` have been added.
     `list_friction`, `list_trigger_distance` and `list_friction_bound` have been
     removed. `keyboard_type` and `keyboard_layout` have been removed from
-    widget.  `keyboard_mode` and `keyboard_layout` have been added to kivy
-    section.
+    the widget. `keyboard_mode` and `keyboard_layout` have been added to the
+    kivy section.
 '''
 
 __all__ = ('Config', 'ConfigParser')
@@ -236,7 +236,7 @@ Config = None
 
 
 class ConfigParser(PythonConfigParser):
-    '''Enhanced ConfigParser class, that supports addition of default
+    '''Enhanced ConfigParser class that supports the addition of default
     sections and default values.
 
     .. versionadded:: 1.0.7
@@ -251,7 +251,7 @@ class ConfigParser(PythonConfigParser):
     def add_callback(self, callback, section=None, key=None):
         '''Add a callback to be called when a specific section/key changed. If
         you don't specify a section or a key, it will call the callback for all
-        section/keys.
+        section/keys changes.
 
         Callbacks will receive 3 arguments: the section, key and value.
 
@@ -271,7 +271,7 @@ class ConfigParser(PythonConfigParser):
 
     def read(self, filename):
         '''Read only one filename. In contrast to the original ConfigParser of
-        Python, this one is able to read only one file at a time. The latest
+        Python, this one is able to read only one file at a time. The last
         read file will be used for the :meth:`write` method.
         '''
         if not isinstance(filename, string_types):
@@ -313,21 +313,21 @@ class ConfigParser(PythonConfigParser):
         return value
 
     def setdefaults(self, section, keyvalues):
-        '''Set a lot of keys/values in one section at the same time
+        '''Set a lot of keys/values in one section at the same time.
         '''
         self.adddefaultsection(section)
         for key, value in keyvalues.items():
             self.setdefault(section, key, value)
 
     def setdefault(self, section, option, value):
-        '''Set the default value of a particular option
+        '''Set the default value of a particular option.
         '''
         if self.has_option(section, option):
             return
         self.set(section, option, value)
 
     def getdefault(self, section, option, defaultvalue):
-        '''Get an option. If not found, it will return the default value
+        '''Get an option. If not found, it will return the default value.
         '''
         if not self.has_section(section):
             return defaultvalue
@@ -351,8 +351,8 @@ class ConfigParser(PythonConfigParser):
         self.add_section(section)
 
     def write(self):
-        '''Write the configuration to the latest file opened with :meth:`read`
-        method.
+        '''Write the configuration to the last file opened using the
+         :meth:`read` method.
 
         Return True if the write finished successfully.
         '''
