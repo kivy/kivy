@@ -100,7 +100,7 @@ class LabelBase(object):
     def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
                  bold=False, italic=False, halign='left', valign='bottom',
                  shorten=False, text_size=None, mipmap=False, color=None,
-                 line_height=1.0, **kwargs):
+                 line_height=1.0, right_to_left=False, **kwargs):
 
         options = {'text': text, 'font_size': font_size,
             'font_name': font_name, 'bold': bold, 'italic': italic,
@@ -130,6 +130,8 @@ class LabelBase(object):
 
         self._text = options['text']
         self._internal_height = 0
+
+        self._right_to_left = right_to_left
 
         self.options = options
         self.texture = None
@@ -312,7 +314,11 @@ class LabelBase(object):
             glyphs = []
             lines = []
             lw = lh = 0
-            for word in re.split(r'( |\n)', text):
+            words = re.split(r'( |\n)', text)
+            if self._right_to_left:
+                words = words[::-1]
+
+            for word in words:
 
                 # calculate the word width
                 ww, wh = 0, 0
@@ -339,6 +345,8 @@ class LabelBase(object):
                     # no, push actuals glyph
                     # lw, lh), is_last_line, glyphs)
                     last_line = 1 if word == '\n' else 0
+                    if self._right_to_left:
+                        glyphs = glyphs[::-1]
                     lines.append(((lw, lh), last_line, glyphs))
                     glyphs = []
 
@@ -353,10 +361,15 @@ class LabelBase(object):
                 lw += ww
                 x += ww
                 lh = max(wh, lh)
-                glyphs += list(word)
+                if self._right_to_left:
+                    glyphs += list(word)[::-1]
+                else:
+                    glyphs += list(word)
 
             # got some char left ?
             if lw != 0:
+                if self._right_to_left:
+                    glyphs = glyphs[::-1]
                 lines.append(((lw, lh), 1, glyphs))
 
             # ensure the number of lines is not more than the user asked
