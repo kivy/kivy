@@ -145,29 +145,42 @@ Available configuration tokens
 :widgets:
 
     `scroll_distance`: int
-        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_distance`
-        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Default value of the
+        :data:`~kivy.uix.scrollview.ScrollView.scroll_distance`
+        property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
     `scroll_friction`: float
-        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_friction`
-        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Default value of the
+        :data:`~kivy.uix.scrollview.ScrollView.scroll_friction`
+        property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
     `scroll_timeout`: int
-        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_timeout`
-        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Default value of the
+        :data:`~kivy.uix.scrollview.ScrollView.scroll_timeout`
+        property used by the  :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
     `scroll_stoptime`: int
-        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_stoptime`
-        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Default value of the
+        :data:`~kivy.uix.scrollview.ScrollView.scroll_stoptime`
+        property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
+        .. warning::
+            This setting was deprecated in version 1.7.0. Please use
+            :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
+
     `scroll_moves`: int
-        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_moves`
-        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Default value of the
+        :data:`~kivy.uix.scrollview.ScrollView.scroll_moves`
+        property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
+
+        .. warning::
+            This setting was deprecated in version 1.7.0. Please use
+            :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
 
 :modules:
 
