@@ -168,8 +168,8 @@ Available configuration tokens
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
-        .. warning::
-            This setting was deprecated in version 1.7.0. Please use
+        .. deprecated:: 1.7.0
+            Please use
             :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
 
     `scroll_moves`: int
@@ -178,8 +178,8 @@ Available configuration tokens
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
-        .. warning::
-            This setting was deprecated in version 1.7.0. Please use
+        .. deprecated:: 1.7.0
+            Please use
             :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
 
 :modules:

@@ -1016,6 +1016,7 @@ class SettingsWithNoMenu(Settings):
     full panel switcher is not useful.
 
     .. warning::
+
         This Settings panel does *not* provide a Close
         button, and so it is impossible to leave the settings screen
         unless you also add other behaviour or override
