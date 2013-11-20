@@ -105,6 +105,7 @@ Control + r     redo
 
 __all__ = ('TextInput', )
 
+
 import re
 import sys
 from functools import partial
@@ -126,10 +127,12 @@ from kivy.graphics import Color, Rectangle
 
 from kivy.uix.widget import Widget
 from kivy.uix.bubble import Bubble
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.image import Image
 
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
-        ListProperty, ObjectProperty, VariableListProperty
+        ListProperty, ObjectProperty, VariableListProperty, OptionProperty
 
 Cache_register = Cache.register
 Cache_append = Cache.append
@@ -142,6 +145,7 @@ FL_IS_NEWLINE = 0x01
 
 # late binding
 Clipboard = None
+_platform = platform
 
 # for reloading, we need to keep a list of textinput to retrigger the rendering
 _textinput_list = []
@@ -171,6 +175,11 @@ if 'KIVY_DOC' not in environ:
     get_context().add_reload_observer(_textinput_clear_cache, True)
 
 
+class Selector(ButtonBehavior, Image):
+    # Internal class for managing the selection Handles.
+    pass
+
+
 class TextInputCutCopyPaste(Bubble):
     # Internal class used for showing the little bubble popup when
     # copy/cut/paste happen.
@@ -188,6 +197,10 @@ class TextInputCutCopyPaste(Bubble):
         self.mode = 'normal'
         super(TextInputCutCopyPaste, self).__init__(**kwargs)
         Clock.schedule_interval(self._check_parent, .5)
+
+    def on_textinput(self, instance, value):
+        if value and not Clipboard and _platform == 'android':
+            value._ensure_clipboard()
 
     def _check_parent(self, dt):
         # this is a prevention to get the Bubble staying on the screen, if the
@@ -238,8 +251,7 @@ class TextInputCutCopyPaste(Bubble):
             textinput.select_all()
             self.mode = ''
             anim = Animation(opacity=0, d=.333)
-            anim.bind(
-                        on_complete=lambda *args:
+            anim.bind(on_complete=lambda *args:
                                         self.on_parent(self, self.parent))
             anim.start(self.but_selectall)
 
@@ -280,6 +292,9 @@ class TextInput(Widget):
         self.selection_text = u''
         self._selection_from = None
         self._selection_to = None
+        self._handle_left = None
+        self._handle_right = None
+        self._handle_middle = None
         self._bubble = None
         self._lines_flags = []
         self._lines_labels = []
@@ -336,15 +351,17 @@ class TextInput(Widget):
     def on_text_validate(self):
         pass
 
-    def cursor_index(self):
+    def cursor_index(self, cursor=None):
         '''Return the cursor index in the text/value.
         '''
+        if not cursor:
+            cursor = self.cursor
         try:
             l = self._lines
             if len(l) == 0:
                 return 0
             lf = self._lines_flags
-            index, cr = self.cursor
+            index, cr = cursor
             for row in range(cr):
                 if row >= len(l):
                     continue
@@ -786,10 +803,9 @@ class TextInput(Widget):
     #
     def long_touch(self, dt):
         if self._selection_to == self._selection_from:
-            self._show_cut_copy_paste(
-                                        self._long_touch_pos,
-                                        self._win,
-                                        mode='paste')
+            self._show_cut_copy_paste(self._long_touch_pos,
+                                    self._win,
+                                    mode='paste')
 
     def on_double_tap(self):
         '''This event is dispatched when a double tap happens
@@ -822,7 +838,7 @@ class TextInput(Widget):
                                 self.select_text(ci - cc, ci + (len_line - cc)))
 
     def on_quad_touch(self):
-        '''This event is dispatched when a four fingers are touching
+        '''This event is dispatched when four fingers are touching
         inside TextInput. The default behavior is to select all text.
         Override this to provide different behavior. Alternatively,
         you can bind to this event to provide additional functionality.
@@ -904,9 +920,81 @@ class TextInput(Widget):
             win = self._win
             if self._selection_to != self._selection_from:
                 self._show_cut_copy_paste(touch.pos, win)
+            elif self.use_bubble:
+                handle_middle = self._handle_middle
+                if handle_middle is None:
+                    self._handle_middle = handle_middle = Selector(
+                        source=self.handle_image_middle,
+                        size_hint=(None, None),
+                        size=('32dp', '32dp'))
+                    handle_middle.bind(on_press=self._handle_pressed,
+                        on_touch_move=self._handle_move,
+                        on_release=self._handle_released)
+                self._win.remove_widget(handle_middle)
+                self._win.add_widget(handle_middle)
+                self._position_handles('middle')
             return True
 
-    def _hide_cut_copy_paste(self, win=None):
+    def _handle_pressed(self, instance):
+        self._hide_cut_copy_paste(retain_handles=True)
+
+    def _handle_released(self, instance):
+        pass
+
+    def _handle_move(self, instance, touch):
+        get_cursor = self.get_cursor_from_xy
+        handle_right = self._handle_right
+        handle_left = self._handle_left
+        handle_middle = self._handle_middle
+
+        cursor = get_cursor(touch.x, touch.y + (instance.height / 2))
+
+        if instance != touch.grab_current:
+            return
+
+        if instance == handle_middle:
+            self.cursor = cursor
+            self._position_handles('middle')
+            return
+        if instance == handle_left:
+            self._selection_from = self.cursor_index(cursor=cursor)
+            self._position_handles('left')
+        elif instance == handle_right:
+            # handle right
+            self._selection_to = self.cursor_index(cursor=cursor)
+            self._position_handles('right')
+        self._trigger_update_graphics()
+
+    def _position_handles(self, mode='both'):
+        group = self.canvas.get_group('selection')
+        lh = self.line_height
+
+        if mode[0] == 'm':
+            handle_middle = self._handle_middle
+            hp_mid = self.cursor_pos
+            pos = self.to_window(*hp_mid)
+            handle_middle.x = pos[0] - handle_middle.width / 2
+            handle_middle.top = pos[1] - lh
+            return
+
+        self._win.remove_widget(self._handle_middle)
+
+        if mode[0] in ('b', 'l'):
+            handle_left = self._handle_left
+            hp_left = group[2].pos
+            handle_left.pos = self.to_window(*hp_left)
+            handle_left.x -= handle_left.width
+            handle_left.y -= lh
+
+        if mode[0] in ('b', 'r'):
+            handle_right = self._handle_right
+            last_rect = group[-1]
+            hp_right = last_rect.pos[0], last_rect.pos[1]
+            handle_right.pos = self.to_window(*hp_right)
+            handle_right.x += last_rect.size[0]
+            handle_right.y -= lh
+
+    def _hide_cut_copy_paste(self, win=None, retain_handles=False):
         win = win or self._win
         if win is None:
             return
@@ -915,11 +1003,39 @@ class TextInput(Widget):
             anim = Animation(opacity=0, d=.225)
             anim.bind(on_complete=lambda *args: win.remove_widget(bubble))
             anim.start(bubble)
+            if retain_handles:
+                return
+            self._win.remove_widget(self._handle_right)
+            self._win.remove_widget(self._handle_left)
 
     def _show_cut_copy_paste(self, pos, win, parent_changed=False, mode='', *l):
         # Show a bubble with cut copy and paste buttons
         if not self.use_bubble:
             return
+
+        handle_right = self._handle_right
+        handle_left = self._handle_left
+        if self._handle_left is None:
+            self._handle_left = handle_left = Selector(
+                source=self.handle_image_left,
+                size_hint=(None, None),
+                size=('32dp', '32dp'))
+            handle_left.bind(on_press=self._handle_pressed,
+                             on_touch_move=self._handle_move,
+                             on_release=self._handle_released)
+            self._handle_right = handle_right = Selector(
+                source=self.handle_image_right,
+                size_hint=(None, None),
+                size=('32dp', '32dp'))
+            handle_right.bind(on_press=self._handle_pressed,
+                             on_touch_move=self._handle_move,
+                             on_release=self._handle_released)
+        else:
+            win.remove_widget(self._handle_left)
+            win.remove_widget(self._handle_right)
+            if not self.parent:
+                return
+
         bubble = self._bubble
         if bubble is None:
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
@@ -933,15 +1049,17 @@ class TextInput(Widget):
             return
 
         # Search the position from the touch to the window
+        lh, ls = self.line_height, self.line_spacing
+
+        self._position_handles()
+
         x, y = pos
         t_pos = self.to_window(x, y)
         bubble_size = bubble.size
         win_size = win.size
         bubble.pos = (t_pos[0] - bubble_size[0] / 2., t_pos[1] + inch(.25))
         bubble_pos = bubble.pos
-        lh, ls = self.line_height, self.line_spacing
 
-        # FIXME found a way to have that feature available for everybody
         if bubble_pos[0] < 0:
             # bubble beyond left of window
             if bubble.pos[1] > (win_size[1] - bubble_size[1]):
@@ -974,6 +1092,9 @@ class TextInput(Widget):
         Animation.cancel_all(bubble)
         bubble.opacity = 0
         win.add_widget(bubble)
+        if self.selection_from != self.selection_to:
+            win.add_widget(self._handle_left)
+            win.add_widget(self._handle_right)
         Animation(opacity=1, d=.225).start(bubble)
 
     #
@@ -1006,7 +1127,8 @@ class TextInput(Widget):
                     self._keyboard_mode == 'system'))
 
         if value:
-            keyboard = win.request_keyboard(self._keyboard_released, self)
+            keyboard = win.request_keyboard(
+                self._keyboard_released, self, input_type=self.input_type)
             self._keyboard = keyboard
             if editable:
                 keyboard.bind(
@@ -1040,7 +1162,7 @@ class TextInput(Widget):
             return
         if Clipboard is None:
             from kivy.core.clipboard import Clipboard
-        _platform = platform
+
         if _platform == 'win':
             self._clip_mime_type = 'text/plain;charset=utf-8'
             # windows clipboard uses a utf-16 encoding
@@ -1616,7 +1738,6 @@ class TextInput(Widget):
                 self._update_selection(True)
 
     def _keyboard_on_key_down(self, window, keycode, text, modifiers):
-        self._hide_cut_copy_paste()
         # Keycodes on OSX:
         ctrl, cmd = 64, 1024
         key, key_str = keycode
@@ -1636,6 +1757,8 @@ class TextInput(Widget):
             return True
 
         if text and not is_interesting_key:
+            self._hide_cut_copy_paste()
+            self._win.remove_widget(self._handle_middle)
             if is_shortcut:
                 if key == ord('x'):  # cut selection
                     self._cut(self.selection_text)
@@ -1731,6 +1854,16 @@ class TextInput(Widget):
 
     :data:`password` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
+    '''
+
+    keyboard_suggestions = BooleanProperty(True)
+    '''If True provides auto suggestions on top of keyboard.
+    This will only work if :data:`input_type` is set to `text`.
+
+     .. versionadded:: 1.8.0
+
+     :data:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
+     defaults to True.
     '''
 
     cursor_blink = BooleanProperty(False)
@@ -2181,6 +2314,60 @@ class TextInput(Widget):
     defaults to 0.
     '''
 
+    input_type = OptionProperty('text', options=('text', 'number', 'url',
+                                                  'mail', 'datetime', 'tel',
+                                                  'address'))
+    '''The kind of input, keyboard to request
+
+    .. versionadded:: 1.8.0
+
+    :data:`input_type` is a :class:`~kivy.properties.OptionsProperty`,
+    default to 'text'. Can be one of 'text', 'number', 'url', 'mail',
+    'datetime', 'tel', 'address'.
+    '''
+
+    handle_image_middle = StringProperty(
+        'atlas://data/images/defaulttheme/selector_middle')
+    '''Image used to display the middle handle on the TextInput for cursor
+    positioning.
+
+    .. versionadded:: 1.8.0
+
+    :data:`handle_image_middle` is a :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/selector_middle'
+    '''
+
+    def on_handle_image_middle(self, instance, value):
+        if self._handle_middle:
+            self._handle_middle.source = value
+
+    handle_image_left = StringProperty(
+        'atlas://data/images/defaulttheme/selector_left')
+    '''Image used to display the Left handle on the TextInput for selection.
+
+    .. versionadded:: 1.8.0
+
+    :data:`handle_image_left` is a :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/selector_left'
+    '''
+
+    def on_handle_image_left(self, instance, value):
+        if self._handle_left:
+            self._handle_left.source = value
+
+    handle_image_right = StringProperty(
+        'atlas://data/images/defaulttheme/selector_right')
+    '''Image used to display the Right handle on the TextInput for selection.
+
+    .. versionadded:: 1.8.0
+
+    :data:`handle_image_right` is a :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/selector_right'
+    '''
+
+    def on_handle_image_right(self, instance, value):
+        if self._handle_right:
+            self._handle_right.source = value
 
 if __name__ == '__main__':
     from kivy.app import App
@@ -2190,7 +2377,7 @@ if __name__ == '__main__':
 
         def build(self):
             root = BoxLayout(orientation='vertical')
-            textinput = TextInput(multiline=True)
+            textinput = TextInput(multiline=True, use_bubble=True)
             textinput.text = __doc__
             root.add_widget(textinput)
             textinput2 = TextInput(text='monoline textinput',
