@@ -597,7 +597,7 @@ class ScrollView(StencilView):
                     super(ScrollView, self).on_touch_down(touch)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .2)
             Clock.unschedule(self._update_effect_bounds)
-            Clock.schedule_once(self._update_effect_bounds, 1)
+            Clock.schedule_once(self._update_effect_bounds)
         else:
             if self._touch is not touch and self.uid not in touch.ud:
                 super(ScrollView, self).on_touch_up(touch)
