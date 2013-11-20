@@ -11,12 +11,20 @@
 #
 
 # Get root directory of portable installation
-tmp=$(dirname $BASH_SOURCE)
+if [ $BASH_SOURCE ]; then
+    tmp_src=$BASH_SOURCE  # Bash
+elif [ $0 ]; then
+    tmp_src=$0  # Zsh
+else
+    echo "Only bash and zsh are supported at the moment."
+    exit 1
+fi
+tmp=$(dirname $tmp_src)
 export KIVY_PORTABLE_ROOT=$(cd $tmp; pwd)
 
 if [ ! -d $KIVY_PORTABLE_ROOT ]; then
-	echo "Usage: source /path/to/kivyenv.sh"
-	exit 1
+    echo "Usage: source /path/to/kivyenv.sh"
+    exit 1
 fi
 
 # bootstrapping
@@ -40,7 +48,7 @@ echo PATH is $PATH
 echo ----------------------------------
 
 echo 'Convert to windows path:' $KIVY_PORTABLE_ROOT
-KIVY_PORTABLE_ROOT_PY=$(python -c 'import os, sys; print os.path.realpath(sys.argv[1])' $KIVY_PORTABLE_ROOT/kivy)
+KIVY_PORTABLE_ROOT_PY=$(python -c 'import os, sys; sys.stdout.write(os.path.realpath(sys.argv[1]))' $(echo $KIVY_PORTABLE_ROOT/kivy | sed -e "s@/cygdrive/*.@@"))
 export PYTHONPATH=$KIVY_PORTABLE_ROOT_PY\;$PYTHONPATH
 echo PYTHONPATH is $PYTHONPATH
 
