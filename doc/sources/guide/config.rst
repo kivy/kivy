@@ -1,3 +1,5 @@
+.. _configure kivy:
+
 Configure Kivy
 ==============
 
