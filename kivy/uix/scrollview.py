@@ -473,7 +473,7 @@ class ScrollView(StencilView):
 
             elif (self.effect_y and self.do_scroll_x and vp.width > self.width
                     and btn in ('scrollleft', 'scrollright')):
-                e = self.effect_y if ud['in_bar_y'] else self.effect_x
+                e = self.effect_x if ud['in_bar_y'] else self.effect_y
 
             if e:
                 if btn in ('scrolldown', 'scrollleft'):
