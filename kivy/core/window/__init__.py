@@ -870,7 +870,7 @@ class WindowBase(EventDispatcher):
             if keyboard:
                 keyboard.release()
 
-    def request_keyboard(self, callback, target):
+    def request_keyboard(self, callback, target, input_type='text'):
         '''.. versionadded:: 1.0.4
 
         Internal method for widget, to request the keyboard. This method is
@@ -890,6 +890,11 @@ class WindowBase(EventDispatcher):
                 Attach the keyboard to the specified target. Ensure you have a
                 target attached if you're using the keyboard in a multi users
                 mode.
+            `input_type`: string
+                Choose the type of soft keyboard to request. Can be one of 'text',
+                'number', 'url', 'mail', 'datetime', 'tel', 'address'.
+                
+                .. versionadded:: 1.8.0
 
         :Return:
             An instance of :class:`Keyboard`, containing the callback, target,

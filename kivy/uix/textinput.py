@@ -126,7 +126,7 @@ from kivy.metrics import inch
 from kivy.animation import Animation
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
-        ListProperty, ObjectProperty, VariableListProperty
+        ListProperty, ObjectProperty, VariableListProperty, OptionProperty
 
 Cache_register = Cache.register
 Cache_append = Cache.append
@@ -991,7 +991,8 @@ class TextInput(Widget):
                     self._keyboard_mode == 'system'))
 
         if value and editable:
-            keyboard = win.request_keyboard(self._keyboard_released, self)
+            keyboard = win.request_keyboard(
+                self._keyboard_released, self, input_type=self.input_type)
             self._keyboard = keyboard
             keyboard.bind(
                 on_key_down=self._keyboard_on_key_down,
@@ -1675,6 +1676,18 @@ class TextInput(Widget):
     False
     '''
 
+    keyboard_suggestions = BooleanProperty(True)
+
+    '''If True provides auto suggestions on top of keyboard.
+
+    This will only work if :data:`input_type` is set to `text`.
+
+     .. versionadded:: 1.8.0
+
+     :data:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
+     defaults to True.
+    '''
+
     multiline = BooleanProperty(True)
     '''If True, the widget will be able show multiple lines of text. If False,
     "enter" action will defocus the textinput instead of adding a new line.
@@ -2064,6 +2077,18 @@ class TextInput(Widget):
     '''Automatically indent multiline text.
 
     .. versionadded:: 1.7.0
+    '''
+
+    input_type = OptionProperty('text', options=('text', 'number', 'url',
+                                                  'mail', 'datetime', 'tel',
+                                                  'address'))
+    '''The kind of input, keyboard to request
+
+    .. versionadded:: 1.8.0
+
+    :data:`input_type` is a :class:`~kivy.properties.OptionsProperty`,
+    default to 'text'. Can be one of 'text', 'number', 'url', 'mail',
+    'datetime', 'tel', 'address'.
     '''
 
 if __name__ == '__main__':
