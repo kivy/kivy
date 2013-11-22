@@ -5,7 +5,7 @@ Widgets
 A widget is an element of a graphical user interface.
 The `kivy.uix` module contains classes for creating and managing Widgets.
 
-Read first: :doc:`api-kivy.uix.widget`
+First read: :doc:`api-kivy.uix.widget`
 
 - **UX widgets**: Classical user interface widgets, perfect and ready to be
   assembled to create more complex widgets.
@@ -17,15 +17,16 @@ Read first: :doc:`api-kivy.uix.widget`
     :doc:`api-kivy.uix.togglebutton`, :doc:`api-kivy.uix.switch`,
     :doc:`api-kivy.uix.video`
 
-- **Layouts**: A layout widget has no rendering, just a trigger
-  that will arrange its children in a specific way. Read more on
-  :doc:`api-kivy.uix.layout`
+- **Layouts**: A layout widget does no rendering but just acts as a trigger
+  that arranges its children in a specific way. Read more on
+  :doc:`api-kivy.uix.layout`.
 
     :doc:`api-kivy.uix.gridlayout`, :doc:`api-kivy.uix.boxlayout`,
     :doc:`api-kivy.uix.anchorlayout`, :doc:`api-kivy.uix.stacklayout`
 
-- **Complex UX widgets**: Non-atomic widgets, result of classic widget
-  combinations. We call them complex because the assembly and usages are not as
+- **Complex UX widgets**: Non-atomic widgets that are the result of
+  combining multiple classic widgets.
+  We call them complex because their assembly and usage are not as
   generic as the classicals widgets.
 
     :doc:`api-kivy.uix.bubble`, :doc:`api-kivy.uix.dropdown`,
@@ -35,12 +36,12 @@ Read first: :doc:`api-kivy.uix.widget`
     :doc:`api-kivy.uix.tabbedpanel`, :doc:`api-kivy.uix.videoplayer`,
     :doc:`api-kivy.uix.vkeyboard`,
 
-- **Behaviors widgets**: Theses widgets have no rendering, but act on the
-  graphics part, or even on the interaction (touch) part.
+- **Behaviors widgets**: Theses widgets do no rendering but act on the
+  graphics instructions or interaction (touch) behavior.
 
     :doc:`api-kivy.uix.scatter`, :doc:`api-kivy.uix.stencilview`
 
-- **Screen manager**: Manage screens, and transition when switching from one to
+- **Screen manager**: Manages screens and transitions when switching from one to
   another.
 
     :doc:`api-kivy.uix.screenmanager`

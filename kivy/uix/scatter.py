@@ -6,22 +6,23 @@ Scatter
 rotated and scaled with two or more fingers on a multitouch system.
 
 Scatter has its own matrix transformation: the modelview matrix is changed
-before the child is drawn, and the previous matrix is restored when the
-drawing is finished. That makes possible the rotation / scale / translation of
-the entire children tree, without changing them.
+before the children are drawn and the previous matrix is restored when the
+drawing is finished. That makes it possible to perform rotation, scaling and
+translation over the entire children tree without changing any widget
+properties.
 
-That specific behavior makes the scatter unique, and there are some advantages /
+That specific behavior makes the scatter unique, but there are some advantages /
 constraints that you should consider:
 
 #. The children are positionned relative to 0, 0. The scatter position has
    no impact of the position of children. This applies to the size too.
 #. If you want to resize the scatter, use scale, not size. (read #1.)
-#. The scatter is not a layout. You must take care of size of children
+#. The scatter is not a layout. You must manage the size of the children
    yourself.
 
 For touch events, the scatter converts from the parent matrix to the scatter
 matrix automatically in on_touch_down/move/up events. If you are doing things
-manually, you will need to use :meth:`~kivy.uix.widget.Widget.to_parent`,
+manually, you will need to use :meth:`~kivy.uix.widget.Widget.to_parent` and
 :meth:`~kivy.uix.widget.Widget.to_local`.
 
 Usage
@@ -68,7 +69,7 @@ Scale Limitation
 ----------------
 
 We are using a 32-bit matrix in double representation. That means we have
-a limit for scaling. You cannot do infinite scale down/up with our
+a limit for scaling. You cannot do infinite scaling down/up with our
 implementation. Generally, you don't hit the minimum scale (because you don't
 see it on the screen), but the maximum scale is 9.99506983235e+19 (2^66).
 
@@ -80,8 +81,8 @@ Behaviors
 ---------
 
 .. versionchanged:: 1.1.0
-    If no control interactions are enabled, then touch handler will never return
-    True.
+    If no control interactions are enabled, then the touch handler will never
+    return True.
 
 '''
 
@@ -97,11 +98,11 @@ from kivy.graphics.transformation import Matrix
 
 class Scatter(Widget):
     '''Scatter class. See module documentation for more information.
-    
+
     :Events:
         `on_transform_with_touch`:
             Fired when the scatter has been transformed by user touch
-            or multitouch such as panning or zooming
+            or multitouch, such as panning or zooming.
 
     .. versionchanged:: 1.8.0
         Event `on_transform_with_touch` added.
@@ -113,22 +114,22 @@ class Scatter(Widget):
     '''If True, the widget will be automatically pushed on the top of parent
     widget list for drawing.
 
-    :data:`auto_bring_to_front` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True.
+    :data:`auto_bring_to_front` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True.
     '''
 
     do_translation_x = BooleanProperty(True)
-    '''Allow translation on X axis
+    '''Allow translation on the X axis.
 
-    :data:`do_translation_x` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True.
+    :data:`do_translation_x` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     do_translation_y = BooleanProperty(True)
     '''Allow translation on Y axis.
 
-    :data:`do_translation_y` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True.
+    :data:`do_translation_y` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     def _get_do_translation(self):
@@ -141,18 +142,18 @@ class Scatter(Widget):
             self.do_translation_x = self.do_translation_y = bool(value)
     do_translation = AliasProperty(_get_do_translation, _set_do_translation,
                                 bind=('do_translation_x', 'do_translation_y'))
-    '''Allow translation on X or Y axis.
+    '''Allow translation on the X or Y axis.
 
-    :data:`do_translation` is a :class:`~kivy.properties.AliasProperty` of
+    :data:`do_translation` is an :class:`~kivy.properties.AliasProperty` of
     (:data:`do_translation_x` + :data:`do_translation_y`)
     '''
 
     translation_touches = BoundedNumericProperty(1, min=1)
-    '''Change whether translation is triggered by a single or multiple touch.
-    This only matters when :data:`do_translation` = True
+    '''Determine whether translation is triggered by a single or multiple
+    touches. This only has effect when :data:`do_translation` = True.
 
-    :data:`translation_touches` is a :class:`~kivy.properties.NumericProperty`,
-    default to 1.
+    :data:`translation_touches` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 1.
 
     .. versionadded:: 1.7.0
     '''
@@ -160,22 +161,22 @@ class Scatter(Widget):
     do_rotation = BooleanProperty(True)
     '''Allow rotation.
 
-    :data:`do_rotation` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True.
+    :data:`do_rotation` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     do_scale = BooleanProperty(True)
     '''Allow scaling.
 
-    :data:`do_scale` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True.
+    :data:`do_scale` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     do_collide_after_children = BooleanProperty(False)
     '''If True, the collision detection for limiting the touch inside the
     scatter will be done after dispaching the touch to the children.
-    You can put children outside the bounding box of the scatter, and be able to
-    touch them.
+    You can put children outside the bounding box of the scatter and still be
+    able to touch them.
 
     .. versionadded:: 1.3.0
     '''
@@ -183,29 +184,29 @@ class Scatter(Widget):
     scale_min = NumericProperty(0.01)
     '''Minimum scaling factor allowed.
 
-    :data:`scale_min` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.01
+    :data:`scale_min` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.01.
     '''
 
     scale_max = NumericProperty(1e20)
     '''Maximum scaling factor allowed.
 
-    :data:`scale_max` is a :class:`~kivy.properties.NumericProperty`, default to
-    1e20
+    :data:`scale_max` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 1e20.
     '''
 
     transform = ObjectProperty(Matrix())
     '''Transformation matrix.
 
-    :data:`transform` is a :class:`~kivy.properties.ObjectProperty`, default to
-    the identity matrix.
+    :data:`transform` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to the identity matrix.
     '''
 
     transform_inv = ObjectProperty(Matrix())
     '''Inverse of the transformation matrix.
 
-    :data:`transform_inv` is a :class:`~kivy.properties.ObjectProperty`, default
-    to the identity matrix.
+    :data:`transform_inv` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to the identity matrix.
     '''
 
     def _get_bbox(self):
@@ -228,7 +229,7 @@ class Scatter(Widget):
         ((x, y), (w, h))
         # x, y = lower left corner
 
-    :data:`bbox` is a :class:`~kivy.properties.AliasProperty`.
+    :data:`bbox` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_rotation(self):
@@ -246,14 +247,25 @@ class Scatter(Widget):
         'x', 'y', 'transform'))
     '''Rotation value of the scatter.
 
-    :data:`rotation` is a :class:`~kivy.properties.AliasProperty`.
+    :data:`rotation` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_scale(self):
         p1 = Vector(*self.to_parent(0, 0))
         p2 = Vector(*self.to_parent(1, 0))
         scale = p1.distance(p2)
-        return float(scale)
+
+        # XXX float calculation are not accurate, and then, scale can be throwed
+        # again even with only the position change. So to prevent anything wrong
+        # with scale, just avoid to dispatch it if the scale "visually" didn't
+        # change. #947
+        # Remove this ugly hack when we'll be Python 3 only.
+        if hasattr(self, '_scale_p'):
+            if str(scale) == str(self._scale_p):
+                return self._scale_p
+
+        self._scale_p = scale
+        return scale
 
     def _set_scale(self, scale):
         rescale = scale * 1.0 / self.scale
@@ -262,7 +274,7 @@ class Scatter(Widget):
     scale = AliasProperty(_get_scale, _set_scale, bind=('x', 'y', 'transform'))
     '''Scale value of the scatter.
 
-    :data:`scale` is a :class:`~kivy.properties.AliasProperty`.
+    :data:`scale` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_center(self):
@@ -361,18 +373,18 @@ class Scatter(Widget):
 
     def apply_transform(self, trans, post_multiply=False, anchor=(0, 0)):
         '''
-        Transforms scatter by trans (on top of its current transformation
+        Transforms the scatter by trans (on top of its current transformation
         state).
 
         :Parameters:
             `trans`: transformation matrix from transformation lib.
-                Transformation to be applied to the scatter widget
-            `anchor`: tuple, default to (0, 0)
+                Transformation to be applied to the scatter widget.
+            `anchor`: tuple, defaults to (0, 0).
                 The point to use as the origin of the transformation
-                (uses local widget space)
-            `post_multiply`: bool, default to False
-                If true the transform matrix is post multiplied
-                (as if applied before the current transform)
+                (uses local widget space).
+            `post_multiply`: bool, defaults to False.
+                If True, the transform matrix is post multiplied
+                (as if applied before the current transform).
         '''
         t = Matrix().translate(anchor[0], anchor[1], 0)
         t = t.multiply(trans)
@@ -397,7 +409,7 @@ class Scatter(Widget):
             dy = dy / self.translation_touches
             self.apply_transform(Matrix().translate(dx, dy, 0))
             changed = True
-        
+
         if len(self._touches) == 1:
             return changed
 
@@ -426,8 +438,10 @@ class Scatter(Widget):
         if self.do_scale:
             scale = new_line.length() / old_line.length()
             new_scale = scale * self.scale
-            if new_scale < self.scale_min or new_scale > self.scale_max:
-                scale = 1.0
+            if new_scale < self.scale_min:
+                scale = self.scale_min / self.scale
+            elif new_scale > self.scale_max:
+                scale = self.scale_max / self.scale
             self.apply_transform(Matrix().scale(scale, scale, scale),
                                  anchor=anchor)
             changed = True
@@ -497,7 +511,7 @@ class Scatter(Widget):
         # stop propagating if its within our bounds
         if self.collide_point(x, y):
             return True
-    
+
     def on_transform_with_touch(self, touch):
         '''
         Called when a touch event has transformed the scatter widget.
@@ -506,7 +520,7 @@ class Scatter(Widget):
         input.
 
         :Parameters:
-            `touch`: the touch object which triggered the transformation
+            `touch`: the touch object which triggered the transformation.
 
         .. versionadded:: 1.8.0
         '''
@@ -535,8 +549,8 @@ class Scatter(Widget):
 
 
 class ScatterPlane(Scatter):
-    '''This is essentially an unbounded Scatter widget, convenience
-       class to make easier the writting of infinite planes
+    '''This is essentially an unbounded Scatter widget: it's a convenience
+       class to make it easier to handle infinite planes.
     '''
 
     def __init__(self, **kwargs):

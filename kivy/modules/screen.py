@@ -1,5 +1,4 @@
-'''
-Screen
+'''Screen
 ======
 
 This module changes some environement and configuration variables
@@ -20,14 +19,15 @@ To simulate a high-density screen such as HTC One X, in portrait::
 To simulate the iPad 2 screen::
 
     python main.py -m screen:ipad
-    
+
 If the generated window is too large, you can specify a scale::
 
     python main.py -m screen:note2,portrait,scale=.75
-    
-Note that to display your contents correctly on a scaled window you must 
-consistently use units 'dp' and 'sp' throughout your app. See :mod:`~kiv.metrics`
-for more details.
+
+Note that to display your contents correctly on a scaled window you
+must consistently use units 'dp' and 'sp' throughout your app. See
+:mod:`~kiv.metrics` for more details.
+
 '''
 
 import sys
@@ -39,6 +39,8 @@ from kivy.logger import Logger
 devices = {
     # device: (name, width, height, dpi, density)
     'onex': ('HTC One X', 1280, 720, 312, 2),
+    'one': ('HTC One', 1920, 1080, 468, 3),
+    'onesv': ('HTC One SV', 480, 800, 216, 1.5),
     's3': ('Galaxy SIII', 1280, 720, 306, 2),
     'note2': ('Galaxy Note II', 1280, 720, 267, 2),
     'droid2': ('Motolora Droid 2', 854, 480, 240, 1.5),
@@ -47,6 +49,8 @@ devices = {
     'ipad3': ('iPad 3', 2048, 1536, 264, 2),
     'iphone4': ('iPhone 4', 640, 960, 326, 2),
     'iphone5': ('iPhone 5', 640, 1136, 326, 2),
+    'xperiae': ('Xperia E', 320, 480, 166, 1),
+    'nexus4': ('Nexus 4', 1280, 768, 320, 2),
     'nexus7': ('Nexus 7 (2012 version)', 1280, 800, 216, 1.325),
     'nexus7.2': ('Nexus 7 (2013 version)', 1920, 1200, 323, 2),
 }
@@ -74,7 +78,9 @@ def apply_device(device, scale, orientation):
     environ['KIVY_METRICS_DENSITY'] = str(density * scale)
     environ['KIVY_DPI'] = str(dpi * scale)
     Config.set('graphics', 'width', str(int(width * scale)))
-    Config.set('graphics', 'height', str(int(height * scale)))
+    # simulate with the android bar
+    # FIXME should be configurable
+    Config.set('graphics', 'height', str(int(height * scale - 25 * density)))
     Config.set('graphics', 'fullscreen', '0')
     Config.set('graphics', 'show_mousecursor', '1')
 

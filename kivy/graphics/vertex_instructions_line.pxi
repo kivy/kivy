@@ -188,7 +188,8 @@ cdef class Line(VertexInstruction):
             VertexInstruction.apply(self)
 
     cdef void build_legacy(self):
-        cdef int i, count = len(self.points) / 2
+        cdef int i
+        cdef long count = len(self.points) / 2
         cdef list p = self.points
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
@@ -250,13 +251,14 @@ cdef class Line(VertexInstruction):
             vertices[i].y = p[i * 2 + 1]
             indices[i] = i
 
-        self.batch.set_data(vertices, count, indices, count)
+        self.batch.set_data(vertices, <int>count, indices, <int>count)
 
         free(vertices)
         free(indices)
 
     cdef void build_extended(self):
-        cdef int i, j, count = len(self.points) / 2
+        cdef int i, j
+        cdef long count = len(self.points) / 2
         cdef list p = self.points
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
@@ -281,8 +283,8 @@ cdef class Line(VertexInstruction):
             cap = LINE_CAP_NONE
 
         self.batch.set_mode('triangles')
-        cdef unsigned int vertices_count = (count - 1) * 4
-        cdef unsigned int indices_count = (count - 1) * 6
+        cdef unsigned long vertices_count = (count - 1) * 4
+        cdef unsigned long indices_count = (count - 1) * 6
         cdef unsigned int iv = 0, ii = 0
 
         if self._joint == LINE_JOINT_BEVEL:
@@ -640,7 +642,8 @@ cdef class Line(VertexInstruction):
             if vertices[i].y > self._bymax:
                 self._bymax = vertices[i].y
 
-        self.batch.set_data(vertices, vertices_count, indices, indices_count)
+        self.batch.set_data(vertices, <int>vertices_count,
+		                   indices, <int>indices_count)
 
         free(vertices)
         free(indices)

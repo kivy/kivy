@@ -154,10 +154,10 @@ class MetricsBase(object):
         if custom_dpi:
             return float(custom_dpi)
 
-        if platform() == 'android':
+        if platform == 'android':
             import android
             return android.get_dpi()
-        elif platform() == 'ios':
+        elif platform == 'ios':
             import ios
             return ios.get_dpi()
 
@@ -189,11 +189,11 @@ class MetricsBase(object):
         if custom_density:
             return float(custom_density)
 
-        if platform() == 'android':
+        if platform == 'android':
             import jnius
             Hardware = jnius.autoclass('org.renpy.android.Hardware')
             return Hardware.metrics.scaledDensity
-        elif platform() == 'ios':
+        elif platform == 'ios':
             # 0.75 is for mapping the same density as android tablet
             import ios
             return ios.get_scale() * 0.75
@@ -209,7 +209,7 @@ class MetricsBase(object):
         if custom_fontscale:
             return float(custom_fontscale)
 
-        if platform() == 'android':
+        if platform == 'android':
             import jnius
             PythonActivity = jnius.autoclass('org.renpy.android.PythonActivity')
             config = PythonActivity.mActivity.getResources().getConfiguration()

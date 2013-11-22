@@ -1,8 +1,8 @@
 '''
-Dictionnary store
+Dictionary store
 =================
 
-Use a Python dictionnary as a store.
+Use a Python dictionary as a store.
 '''
 
 __all__ = ('DictStore', )

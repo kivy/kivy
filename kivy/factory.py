@@ -89,7 +89,7 @@ class FactoryBase(object):
         '''Unregisters the classnames previously registered via the
         register method. This allows the same classnames to be re-used in
         different contexts.
-        
+
         .. versionadded:: 1.7.1
         '''
         for classname in classnames:

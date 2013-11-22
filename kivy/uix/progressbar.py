@@ -7,17 +7,18 @@ Progress Bar
 .. image:: images/progressbar.jpg
     :align: right
 
-The :class:`ProgressBar` widget is used to visualize progress of some task.
-Only horizontal mode is supported, vertical mode is not available yet.
+The :class:`ProgressBar` widget is used to visualize the progress of some task.
+Only the horizontal mode is currently supported: the vertical mode is not
+yet available.
 
-The progress bar has no interactive elements, It is a display-only widget.
+The progress bar has no interactive elements and is a display-only widget.
 
 To use it, simply assign a value to indicate the current progress::
 
     from kivy.uix.progressbar import ProgressBar
     pb = ProgressBar(max=1000)
 
-    # this will update the graphics automatically (75% done):
+    # this will update the graphics automatically (75% done)
     pb.value = 750
 
 '''
@@ -50,12 +51,12 @@ class ProgressBar(Widget):
     value = AliasProperty(_get_value, _set_value)
     '''Current value used for the slider.
 
-    :data:`value` is a :class:`~kivy.properties.AliasProperty`, than returns the
+    :data:`value` is an :class:`~kivy.properties.AliasProperty` than returns the
     value of the progressbar. If the value is < 0 or > :data:`max`, it will be
     normalized to thoses boundaries.
 
     .. versionchanged:: 1.6.0
-        The value is now limited between 0 to :data:`max`
+        The value is now limited to between 0 and :data:`max`.
     '''
 
     def get_norm_value(self):
@@ -69,7 +70,7 @@ class ProgressBar(Widget):
 
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
                                      bind=('value', 'max'))
-    '''Normalized value inside the 0-max to 0-1 range::
+    '''Normalized value inside the range 0-1::
 
         >>> pb = ProgressBar(value=50, max=100)
         >>> pb.value
@@ -83,7 +84,8 @@ class ProgressBar(Widget):
     max = NumericProperty(100.)
     '''Maximum value allowed for :data:`value`.
 
-    :data:`max` is a :class:`~kivy.properties.NumericProperty`, default to 100.
+    :data:`max` is a :class:`~kivy.properties.NumericProperty` and defaults to
+    100.
     '''
 
 

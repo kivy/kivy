@@ -56,7 +56,7 @@ if 'KIVY_DOC' not in environ:
             Logger.critical(msg)
             msgbox(msg)
 
-        if platform() != 'android':
+        if platform != 'android':
             # XXX in the android emulator (latest version at 22 march 2013),
             # this call was segfaulting the gl stack.
             Logger.info('GL: Shading version <{0}>'.format(

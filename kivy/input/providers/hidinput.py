@@ -222,7 +222,8 @@ else:
             invert_x = int(bool(drs('invert_x', 0)))
             invert_y = int(bool(drs('invert_y', 0)))
 
-            def process_as_multitouch(tv_sec, tv_usec, ev_type, ev_code, ev_value):
+            def process_as_multitouch(tv_sec, tv_usec, ev_type,
+                                      ev_code, ev_value):
                 # sync event
                 if ev_type == EV_SYN:
                     if ev_code == SYN_MT_REPORT:
@@ -272,11 +273,13 @@ else:
                         process([point])
 
                 elif ev_type == EV_REL:
-                    
+
                     if ev_code == 0:
-                        point['x'] = min(1., max(0., point['x'] + ev_value / 1000.))
+                        point['x'] = min(1., max(0.,
+                                                 point['x'] + ev_value / 1000.))
                     elif ev_code == 1:
-                        point['y'] = min(1., max(0., point['y'] - ev_value / 1000.))
+                        point['y'] = min(1., max(0.,
+                                                 point['y'] - ev_value / 1000.))
 
                 elif ev_type == EV_KEY:
                     buttons = {
@@ -303,7 +306,9 @@ else:
                                 point['_avoid'] = True
 
             def process(points):
-                actives = [args['id'] for args in points if 'id' in args and not '_avoid' in args]
+                actives = [args['id']
+                           for args in points
+                           if 'id' in args and not '_avoid' in args]
                 for args in points:
                     tid = args['id']
                     try:

@@ -52,9 +52,15 @@ Debian
         :stable builds:
             deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
 
-#. Add the GPG key to your apt keyring by
+#. Add the GPG key to your apt keyring by executing
 
-    $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6
+    as user:
+    
+    ``sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6``
+    
+    as root:
+    
+    ``apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6``
 
 #. Refresh your package list and install **python-kivy** and optionally the examples
    found in **python-kivy-examples**
@@ -251,3 +257,20 @@ for easier access. For example:
 #. Then, you can access to kivy-examples directly in your home directory::
 
     $ cd ~/kivy-examples
+
+If you wish to start your Kivy programs as scripts (by typing `./main.py`) or by double-clicking them,
+you will want to define the correct version of Python by linking to it. Something like::
+
+    $ sudo ln -s /usr/bin/python2.7 /usr/bin/kivy
+
+Or, if you are running Kivy inside a virtualenv, link to the Python interpreter for it, like::
+
+    $ sudo ln -s /home/your_username/Envs/kivy/bin/python2.7 /usr/bin/kivy
+
+Then, inside each main.py, add a new first line::
+
+    #!/usr/bin/kivy
+
+NOTE: Beware of Python files stored with Windows-style line endings (CR-LF). Linux will not ignore the <CR>
+and will try to use it as part of the file name. This makes confusing error messages. Convert to Unix line endings.
+

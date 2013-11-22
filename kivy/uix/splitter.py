@@ -9,13 +9,14 @@ Splitter
 
 .. warning::
 
-    This widget is still experimental, and its API is subject to change in
+    This widget is still experimental and its API is subject to change in
     a future version.
 
-The :class:`Splitter` is a widget that helps you re-size it's child \
-widget/layout by letting the user control the size of it's child  by \
-dragging the boundary. This widget like :class:`~kivy.uix.scrollview.Scrollview`
-allows only one child widget.
+The :class:`Splitter` is a widget that helps you re-size it's child
+widget/layout by letting you re-size it via
+dragging the boundary. This widget is similar to the
+:class:`~kivy.uix.scrollview.ScrollView` in that it allows only one child
+widget.
 
 Usage::
 
@@ -24,16 +25,16 @@ Usage::
     splitter.min_size = 100
     splitter.max_size = 250
 
-Change size of the strip/border used to resize::
+To change the size of the strip/border used for resizing::
 
     splitter.strip_size = '10pt'
 
-Change appearance::
+To change it's appearance::
 
     splitter.strip_cls = your_custom_class
 
-You could also change the appearance of the `strip_cls` which defaults to
-:class:`SplitterStrip` by overriding the `kv` rule for like so in your app::
+You can also change the appearance of the `strip_cls`, which defaults to
+:class:`SplitterStrip`, by overriding the `kv` rule in your app::
 
     <SplitterStrip>:
         horizontal: True if self.parent and self.parent.sizable_from[0] \
@@ -55,8 +56,8 @@ from kivy.uix.boxlayout import BoxLayout
 
 
 class SplitterStrip(Button):
-    '''Class used for graphical representation of \
-    :class:`kivy.uix.splitter.SplitterStripe`
+    '''Class used for tbe graphical representation of a
+    :class:`kivy.uix.splitter.SplitterStripe`.
     '''
     pass
 
@@ -66,41 +67,43 @@ class Splitter(BoxLayout):
 
     :Events:
         `on_press`:
-            Fired when the splitter is pressed
+            Fired when the splitter is pressed.
         `on_release`:
-            Fired when the splitter is released
+            Fired when the splitter is released.
 
     .. versionchanged:: 1.6.0
-        Added `on_press` and `on_release` events
+        Added `on_press` and `on_release` events.
 
     '''
 
     border = ListProperty([4, 4, 4, 4])
-    '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
+    '''Border used for the
+    :class:`~kivy.graphics.vertex_instructions.BorderImage`
     graphics instruction.
 
-    It must be a list of four values: (top, right, bottom, left). Read the
-    BorderImage instruction for more information about how to use it.
+    This must be a list of four values: (top, right, bottom, left).
+    Read the BorderImage instructions for more information about how
+    to use it.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty`, \
-    default to (4, 4, 4, 4)
+    :data:`border` is a :class:`~kivy.properties.ListProperty` and
+    defaults to (4, 4, 4, 4).
     '''
 
     strip_cls = ObjectProperty(SplitterStrip)
-    '''Specifies the class of the resize Strip
+    '''Specifies the class of the resize Strip.
 
-    :data:`strip_cls` is a :class:`kivy.properties.ObjectProperty`
-    defaults to :class:`~kivy.uix.splitter.SplitterStrip` which is of type\
-    :class:`~kivy.uix.button.Button`
+    :data:`strip_cls` is an :class:`kivy.properties.ObjectProperty` and
+    defaults to :class:`~kivy.uix.splitter.SplitterStrip`, which is of type
+    :class:`~kivy.uix.button.Button`.
     '''
 
     sizable_from = OptionProperty('left',
         options=('left', 'right', 'top', 'bottom'))
-    '''Specifies wether the widget is resizable from ::
+    '''Specifies whether the widget is resizable. Options are::
         `left`, `right`, `top` or `bottom`
 
-    :data:`sizable_from` is a :class:`~kivy.properties.OptionProperty`
-    defaults to `left`
+    :data:`sizable_from` is an :class:`~kivy.properties.OptionProperty`
+    and defaults to `left`.
     '''
 
     strip_size = NumericProperty('10pt')
@@ -111,17 +114,17 @@ class Splitter(BoxLayout):
     '''
 
     min_size = NumericProperty('100pt')
-    '''Specifies the minimum size beyond which the widget is not resizable
+    '''Specifies the minimum size beyond which the widget is not resizable.
 
-    :data:`min_size` is a :class:`~kivy.properties.NumericProperty`
-    defaults to `100pt`
+    :data:`min_size` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to `100pt`.
     '''
 
     max_size = NumericProperty('500pt')
-    '''Specifies the maximum size beyond which the widget is not resizable
+    '''Specifies the maximum size beyond which the widget is not resizable.
 
     :data:`max_size` is a :class:`~kivy.properties.NumericProperty`
-    defaults to `500pt`
+    and defaults to `500pt`.
     '''
 
     __events__ = ('on_press', 'on_release')
@@ -142,7 +145,7 @@ class Splitter(BoxLayout):
             _strp.unbind(on_touch_down=instance.strip_down)
             _strp.unbind(on_touch_move=instance.strip_move)
             _strp.unbind(on_touch_up=instance.strip_up)
-            self.unbind(disabled = _strp.setter('disabled'))
+            self.unbind(disabled=_strp.setter('disabled'))
 
             sup.remove_widget(instance._strip)
         else:

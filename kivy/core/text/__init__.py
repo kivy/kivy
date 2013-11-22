@@ -38,14 +38,6 @@ class LabelBase(object):
     .. warning::
         The core text label can't be changed at runtime. You must recreate one.
 
-    .. versionadded::
-        In 1.0.7, the valign is now respected. This wasn't the case previously
-        so you might have an issue in your application if you have not
-        considered this.
-
-    .. versionadded::
-        In 1.0.8, `size` have been deprecated and replaced with `text_size`.
-
     :Parameters:
         `font_size`: int, defaults to 12
             Font size of the text
@@ -73,8 +65,26 @@ class LabelBase(object):
             contents as much as possible if a `size` is given.
             Setting this to True without an appropriately set size will lead to
             unexpected results.
+        `max_lines`: int, default to 0 (unlimited)
+            If set, this indicate how maximum line are allowed to render the
+            text. Works only if a limitation on text_size is set.
         `mipmap` : bool, default to False
             Create a mipmap for the texture
+
+    .. versionchanged:: 1.8.0
+
+        `max_lines` parameters has been added.
+
+    .. versionchanged:: 1.0.8
+
+        `size` have been deprecated and replaced with `text_size`.
+
+    .. versionchanged:: 1.0.7
+
+        The `valign` is now respected. This wasn't the case previously
+        so you might have an issue in your application if you have not
+        considered this.
+
     '''
 
     __slots__ = ('options', 'texture', '_label', '_text_size')
@@ -238,6 +248,7 @@ class LabelBase(object):
         render_text = self._render_text
         get_extents = self.get_extents
         uw, uh = self.text_size
+        max_lines = int(options.get('max_lines', 0))
         w, h = 0, 0
         x, y = 0, 0
         if real:
@@ -253,7 +264,11 @@ class LabelBase(object):
 
         # no width specified, faster method
         if uw is None:
+            index = 0
             for line in self.text.split('\n'):
+                index += 1
+                if max_lines > 0 and index > max_lines:
+                    break
                 lw, lh = get_extents(line)
                 lh = lh * options['line_height']
                 if real:
@@ -313,6 +328,8 @@ class LabelBase(object):
                 if ww > uw:
                     lines.append(((ww, wh), 0, word))
                     lw = lh = x = 0
+                    if max_lines > 0 and len(lines) >= max_lines:
+                        break
                     continue
 
                 # get the maximum height for this line
@@ -341,6 +358,10 @@ class LabelBase(object):
             # got some char left ?
             if lw != 0:
                 lines.append(((lw, lh), 1, glyphs))
+
+            # ensure the number of lines is not more than the user asked
+            if max_lines > 0:
+                lines = lines[:max_lines]
 
             if not real:
                 self._internal_height = sum([size[1] for size, last_line,

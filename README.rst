@@ -4,6 +4,11 @@ Kivy
 Innovative User Interfaces Made Easy
 http://kivy.org/
 
+
+.. image:: https://coveralls.io/repos/kivy/kivy/badge.png?branch=master
+  :target: https://coveralls.io/r/kivy/kivy?branch=master
+
+
 Introduction
 ------------
 
@@ -72,3 +77,9 @@ Licenses
   http://www.apache.org/licenses/LICENSE-2.0
 - The current UI design has been adapted from Moblintouch theme's SVGs, licensed
   under the terms of the LGPL 2.1.
+
+
+.. image:: https://d2weczhvl823v0.cloudfront.net/kivy/kivy/trend.png
+   :alt: Bitdeli badge
+   :target: https://bitdeli.com/free
+

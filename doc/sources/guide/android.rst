@@ -4,10 +4,7 @@
 Kivy on Android
 ===============
 
-Kivy runs on Android, but you need a phone with:
-
-* SD Card
-* OpenGL ES 2.0 (Android 2.2 minimum)
+Kivy runs on Android, but you need a phone with OpenGL ES 2.0 (Android 2.2 minimum). This is standard on modern devices.
 
 Requirements for an Android application
 ---------------------------------------
@@ -59,15 +56,18 @@ to support at least OpenGL 2.0 ES.
 
 Phones
 ~~~~~~
-
+- HTC HD2 with NexusHD2-ICS-CM9-HWA Rom (CyanogenMod 9.1.0 -stable-leo) Android 4.0.4
 - HTC Desire
 - HTC Desire Z
+- HTC Desire HD (works with no issues when upgraded to 4.x roms, has random bugs with 2.3)
 - HTC Desire SV (Kivy apps run, but there are issues running some apps via the
   Kivy Launcher)
+- LG (Google) Nexus 4
 - LG Optimus S
 - LG Optimus V
 - Motorola Droid 1
 - Motorola Droid 2
+- Micromax Canvas 2
 - Samsung Galaxy S (mostly works, seems to have some weird OpenGL behaviour,
   most notably the kivy splash screen doesn't work)
 - Samsumg Galaxy Pocket S5300
@@ -82,8 +82,8 @@ Phones
 
 Tablets
 ~~~~~~~
-
 - Asus EeePad Transformer
+- Asus (Google) Nexus 7 2013
 - Motorola Xoom
 - Samsung Galaxy Note 8.0” (N5100)
 - Samsung Galaxy Note 10.1 (N8000) (Kivy Launcher does not install)

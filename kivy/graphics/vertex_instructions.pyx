@@ -266,8 +266,9 @@ cdef class Mesh(VertexInstruction):
         self.mode = kwargs.get('mode') or 'points'
 
     cdef void build(self):
-        cdef int i, vcount = len(self._vertices)
-        cdef int icount = len(self._indices)
+        cdef int i
+        cdef long vcount = len(self._vertices)
+        cdef long icount = len(self._indices)
         cdef float *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef list lvertices = self._vertices
@@ -292,7 +293,7 @@ cdef class Mesh(VertexInstruction):
         for i in xrange(icount):
             indices[i] = lindices[i]
 
-        self.batch.set_data(vertices, vcount / vsize, indices, icount)
+        self.batch.set_data(vertices, <int>(vcount / vsize), indices, <int>icount)
 
         free(vertices)
         free(indices)
@@ -410,7 +411,8 @@ cdef class Point(VertexInstruction):
             indices[ii + 4] = iv + 3
             indices[ii + 5] = iv
 
-        self.batch.set_data(vertices, count * 4, indices, count * 6)
+        self.batch.set_data(vertices, <int>(count * 4),
+                            indices, <int>(count * 6))
 
         free(vertices)
         free(indices)
@@ -830,9 +832,13 @@ cdef class Ellipse(Rectangle):
         cdef int i, angle_dir
         cdef float angle_start, angle_end, angle_range
         cdef float x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
+        cdef float cx, cy, tangetial_factor, radial_factor, fx, fy
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef int count = self._segments
+
+        if self.w == 0 or self.h == 0:
+            return
 
         tx = tc[0]
         ty = tc[1]
@@ -856,12 +862,13 @@ cdef class Ellipse(Rectangle):
             angle_dir = 1
         else:
             angle_dir = -1
-        # rad = deg * (pi / 180), where pi/180 = 0.0174...
+
+        # rad = deg * (pi / 180), where pi / 180 = 0.0174...
         angle_start = self._angle_start * 0.017453292519943295
         angle_end = self._angle_end * 0.017453292519943295
-        angle_range = abs(angle_end - angle_start) / self._segments
+        angle_range = -1 * (angle_end - angle_start) / self._segments
 
-        # add start vertice in the middle
+        # add start vertex in the middle
         x = self.x + rx
         y = self.y + ry
         ttx = ((x - self.x) / self.w) * tw + tx
@@ -872,17 +879,36 @@ cdef class Ellipse(Rectangle):
         vertices[0].t0 = tty
         indices[0] = 0
 
+        # super fast ellipse drawing
+        # credit goes to: http://slabode.exofire.net/circle_draw.shtml
+        tangetial_factor = tan(angle_range)
+        radial_factor = cos(angle_range)
+
+        # Calculate the coordinates for a circle with radius 0.5 about
+        # the point (0.5, 0.5). Only stretch to an ellipse later.
+        cx = 0.5
+        cy = 0.5
+        r = 0.5
+        x = r * sin(angle_start)
+        y = r * cos(angle_start)
+
         for i in xrange(1, count + 2):
-            angle = angle_start + (angle_dir * (i - 1) * angle_range)
-            x = (self.x+rx)+ (rx*sin(angle))
-            y = (self.y+ry)+ (ry*cos(angle))
-            ttx = ((x-self.x)/self.w)*tw + tx
-            tty = ((y-self.y)/self.h)*th + ty
-            vertices[i].x = x
-            vertices[i].y = y
+            ttx = (cx + x) * tw + tx
+            tty = (cy + y) * th + ty
+            real_x = self.x + (cx + x) * self.w
+            real_y = self.y + (cy + y) * self.h
+            vertices[i].x = real_x
+            vertices[i].y = real_y
             vertices[i].s0 = ttx
             vertices[i].t0 = tty
             indices[i] = i
+
+            fx = -y
+            fy = x
+            x += fx * tangetial_factor
+            y += fy * tangetial_factor
+            x *= radial_factor
+            y *= radial_factor
 
         self.batch.set_data(vertices, count + 2, indices, count + 2)
 
@@ -915,4 +941,6 @@ cdef class Ellipse(Rectangle):
         def __set__(self, value):
             self._angle_end = value
             self.flag_update()
+
+    
 

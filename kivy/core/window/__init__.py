@@ -22,6 +22,7 @@ from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
         NumericProperty, OptionProperty, StringProperty
 from kivy.utils import platform, reify
+from kivy.context import get_current_context
 
 # late import
 VKeyboard = None
@@ -481,6 +482,10 @@ class WindowBase(EventDispatcher):
         # manage keyboard(s)
         self.configure_keyboards()
 
+        # assign the default context of the widget creation
+        if not hasattr(self, '_context'):
+            self._context = get_current_context()
+
         # mark as initialized
         self.initialized = True
 
@@ -528,7 +533,7 @@ class WindowBase(EventDispatcher):
             # if we get initialized more than once, then reload opengl state
             # after the second time.
             # XXX check how it's working on embed platform.
-            if platform() == 'linux':
+            if platform == 'linux':
                 # on linux, it's safe for just sending a resize.
                 self.dispatch('on_resize', *self.system_size)
 
@@ -894,7 +899,7 @@ class WindowBase(EventDispatcher):
             if keyboard:
                 keyboard.release()
 
-    def request_keyboard(self, callback, target):
+    def request_keyboard(self, callback, target, input_type='text'):
         '''.. versionadded:: 1.0.4
 
         Internal widget method to request the keyboard. This method is
@@ -914,6 +919,11 @@ class WindowBase(EventDispatcher):
                 Attach the keyboard to the specified target. Ensure you have a
                 target attached if you're using the keyboard in a multi user
                 mode.
+            `input_type`: string
+                Choose the type of soft keyboard to request. Can be one of 'text',
+                'number', 'url', 'mail', 'datetime', 'tel', 'address'.
+                
+                .. versionadded:: 1.8.0
 
         :Return:
             An instance of :class:`Keyboard` containing the callback, target,

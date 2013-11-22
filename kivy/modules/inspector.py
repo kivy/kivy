@@ -29,7 +29,7 @@ Usage
 
 For normal module usage, please see the :mod:`~kivy.modules` documentation.
 
-The Inspector, however, can also be imported and used just like a normal 
+The Inspector, however, can also be imported and used just like a normal
 python module. This has the added advantage of being able to activate and
 deactivate the module programmatically::
 
@@ -260,7 +260,7 @@ class Inspector(FloatLayout):
     def highlight_at(self, x, y):
         widget = None
         # reverse the loop - look at children on top first
-        for child in self.win.children:
+        for child in reversed(self.win.children):
             if child is self:
                 continue
             widget = self.pick(child, x, y)
@@ -337,7 +337,7 @@ class Inspector(FloatLayout):
             ret = widget
             x2, y2 = widget.to_local(x, y)
             # reverse the loop - look at children on top first
-            for child in widget.children:
+            for child in reversed(widget.children):
                 ret = self.pick(child, x2, y2) or ret
         return ret
 

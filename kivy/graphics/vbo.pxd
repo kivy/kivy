@@ -11,11 +11,11 @@ cdef class VBO:
     cdef int usage
     cdef int target
     cdef vertex_attr_t *format
-    cdef int format_count
-    cdef int format_size
+    cdef long format_count
+    cdef long format_size
     cdef Buffer data
     cdef short flags
-    cdef int vbo_size
+    cdef long vbo_size
     cdef VertexFormat vertex_format
 
     cdef void update_buffer(self)
@@ -39,7 +39,7 @@ cdef class VertexBatch:
     cdef GLuint id
     cdef int usage
     cdef short flags
-    cdef int elements_size
+    cdef long elements_size
 
     cdef void clear_data(self)
     cdef void set_data(self, void *vertices, int vertices_count,

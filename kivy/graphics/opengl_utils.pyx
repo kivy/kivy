@@ -16,7 +16,7 @@ __all__ = ('gl_get_extensions', 'gl_has_extension',
 include "opengl_utils_def.pxi"
 cimport c_opengl
 from kivy.logger import Logger
-from kivy.utils import platform as core_platform
+from kivy.utils import platform
 from kivy.graphics.opengl import _GL_GET_SIZE
 
 
@@ -28,7 +28,7 @@ cdef tuple _gl_texture_fmts = (
     'pvrtc_rgb4', 'pvrtc_rgb2', 'pvrtc_rgba4', 'pvrtc_rgba2')
 cdef int _gl_version_major = -1
 cdef int _gl_version_minor = -1
-cdef str _platform = core_platform()
+cdef str _platform = str(platform)
 
 
 cpdef list gl_get_extensions():
@@ -49,7 +49,7 @@ cpdef list gl_get_extensions():
     return _gl_extensions
 
 
-cpdef int gl_has_extension(str name):
+cpdef int gl_has_extension(name):
     '''Check if an OpenGL extension is available. If the name start with `GL_`,
     it will be stripped for the test, and converted to lowercase.
 
@@ -172,7 +172,7 @@ cpdef tuple gl_get_texture_formats():
     return _gl_texture_fmts
 
 
-cpdef int gl_has_texture_native_format(str fmt):
+cpdef int gl_has_texture_native_format(fmt):
     '''Return 1 if the texture format is handled natively.
 
     >>> gl_has_texture_format('azdmok')
@@ -202,13 +202,13 @@ cpdef int gl_has_texture_native_format(str fmt):
     return 0
 
 
-cpdef int gl_has_texture_conversion(str fmt):
+cpdef int gl_has_texture_conversion(fmt):
     '''Return 1 if the texture can be converted to a native format
     '''
     return fmt in ('bgr', 'bgra')
 
 
-cpdef int gl_has_texture_format(str fmt):
+cpdef int gl_has_texture_format(fmt):
     '''Return if a texture format is supported by your system, natively or by
     conversion. For example, if your card doesn't support 'bgra', we are able to
     convert to 'rgba', but in software mode.

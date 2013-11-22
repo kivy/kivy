@@ -17,7 +17,10 @@ pygame_cache = {}
 pygame_cache_order = []
 
 # init pygame font
-pygame.font.init()
+try:
+    pygame.ftfont.init()
+except:
+    pygame.font.init()
 
 
 class LabelPygame(LabelBase):
@@ -26,7 +29,8 @@ class LabelPygame(LabelBase):
         if PY2:
             try:
                 return '|'.join([unicode(self.options[x]) for x in
-                                 ('font_size', 'font_name_r', 'bold', 'italic')])
+                                 ('font_size', 'font_name_r',
+                                  'bold', 'italic')])
             except UnicodeDecodeError:
                 pass
         return '|'.join([str(self.options[x]) for x in

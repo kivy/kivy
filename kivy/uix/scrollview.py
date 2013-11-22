@@ -11,23 +11,23 @@ clipped at the scrollview's bounding box.
 Scrolling Behavior
 ------------------
 
-ScrollView accepts only one child, and applies a viewport/window to it
+The ScrollView accepts only one child and applies a viewport/window to it
 according to the :data:`scroll_x` and :data:`scroll_y` properties. Touches are
 analyzed to determine if the user wants to scroll or control the child in some
 other manner - you cannot do both at the same time. To determine if interaction
 is a scrolling gesture, these properties are used:
 
-    - :data:`ScrollView.scroll_distance` a minimum distance to travel, default
-      to 20 pixels.
-    - :data:`ScrollView.scroll_timeout` a maximum time period, default to 250
-      milliseconds.
+    - :data:`ScrollView.scroll_distance`: the minimum distance to travel,
+         defaults to 20 pixels.
+    - :data:`ScrollView.scroll_timeout`: the maximum time period, defaults
+         to 250 milliseconds.
 
 If a touch travels :data:`~ScrollView.scroll_distance` pixels within the
 :data:`~ScrollView.scroll_timeout` period, it is recognized as a scrolling
-gesture and translatation (scroll/pan) will begin. If the timeout occurs, the
+gesture and translation (scroll/pan) will begin. If the timeout occurs, the
 touch down event is dispatched to the child instead (no translation).
 
-The default value for thoses settings can be changed in the configuration file::
+The default value for those settings can be changed in the configuration file::
 
     [widgets]
     scroll_timeout = 250
@@ -35,13 +35,13 @@ The default value for thoses settings can be changed in the configuration file::
 
 .. versionadded:: 1.1.1
 
-    Scrollview now animates scrolling in Y when a mousewheel is used.
+    ScrollView now animates scrolling in Y when a mousewheel is used.
 
 
-Limiting to X or Y Axis
------------------------
+Limiting to the X or Y Axis
+---------------------------
 
-By default, ScrollView allows scrolling in both the X and Y axes. You can
+By default, the ScrollView allows scrolling in both the X and Y axes. You can
 explicitly disable scrolling on an axis by setting
 :data:`ScrollView.do_scroll_x` or :data:`ScrollView.do_scroll_y` to False.
 
@@ -96,7 +96,7 @@ from kivy.uix.stencilview import StencilView
 from kivy.metrics import sp
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
-    ObjectProperty, ListProperty
+    ObjectProperty, ListProperty, OptionProperty
 
 
 # When we are generating documentation, Config doesn't exist
@@ -125,6 +125,17 @@ class ScrollView(StencilView):
     :data:`scroll_distance` is a :class:`~kivy.properties.NumericProperty`,
     default to 20 (pixels), according to the default value in user
     configuration.
+    '''
+
+    scroll_wheel_distance = NumericProperty(20)
+    '''Distance to move when scrolling with a mouse wheel.
+    It is advisable that you base this value on the dpi of your target device's
+    screen.
+
+    .. versionadded:: 1.8.0
+
+    :data:`scroll_wheel_distance` is a :class:`~kivy.properties.NumericProperty`,
+    defaults to 20 pixels.
     '''
 
     scroll_timeout = NumericProperty(_scroll_timeout)
@@ -311,6 +322,20 @@ class ScrollView(StencilView):
     child in the scrollview.
     '''
 
+    scroll_type = OptionProperty('content', options=('content', 'bars', 'both'))
+    '''Sets the type of scrolling to use for the content of the scrollview.
+    Available options are: content, bars, both.
+
+    .. versionadded:: 1.8.0
+
+    :data:`scroll_type` is a :class:`~kivy.properties.OptionProperty`, defaults
+    to content.
+    '''
+
+    def on_scroll_type(self, instance, value):
+        self.bar_width = max('9dp', self.bar_width)\
+            if value[0] == 'b' else self.bar_width
+
     # private, for internal use only
 
     _viewport = ObjectProperty(None, allownone=True)
@@ -428,7 +453,7 @@ class ScrollView(StencilView):
         if vp and 'button' in touch.profile and \
             touch.button.startswith('scroll'):
             btn = touch.button
-            m = self.scroll_distance
+            m = sp(self.scroll_wheel_distance)
             e = None
 
             if (self.effect_x and self.do_scroll_y and vp.height > self.height
@@ -450,22 +475,38 @@ class ScrollView(StencilView):
                 e.trigger_velocity_update()
                 return True
 
+        scroll_type = self.scroll_type
         # no mouse scrolling, so the user is going to drag the scrollview with
         # this touch.
         self._touch = touch
         uid = self._get_uid()
         touch.grab(self)
-        touch.ud[uid] = {
+        ud = touch.ud
+        ud[uid] = {
             'mode': 'unknown',
             'dx': 0,
             'dy': 0,
             'user_stopped': False,
             'time': touch.time_start}
         if self.do_scroll_x and self.effect_x:
-            self.effect_x.start(touch.x)
+            if scroll_type[0] == 'b' and touch.y < self.bar_width:
+                ud['in_bar_x'] = True
+            else:
+                if scroll_type != 'bars':
+                    self.effect_x.start(touch.x)
         if self.do_scroll_y and self.effect_y:
-            self.effect_y.start(touch.y)
-        Clock.schedule_once(self._change_touch_mode,
+            if scroll_type[0] == 'b' and touch.x > self.right - self.bar_width:
+                ud['in_bar_y'] = True
+            else:
+                if scroll_type != 'bars':
+                    self.effect_y.start(touch.y)
+
+        if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
+            return
+        if scroll_type == 'bars':
+            self._change_touch_mode()
+        else:
+            Clock.schedule_once(self._change_touch_mode,
                             self.scroll_timeout / 1000.)
         return True
 
@@ -485,9 +526,23 @@ class ScrollView(StencilView):
         # check if the minimum distance has been travelled
         if mode == 'unknown' or mode == 'scroll':
             if self.do_scroll_x and self.effect_x:
-                self.effect_x.update(touch.x)
+                width = self.width
+                if touch.ud.get('in_bar_x', False):
+                    dx = touch.dx / float(width - width * self.hbar[1])
+                    self.scroll_x = min(max(self.scroll_x + dx, 0.), 1.)
+                    self._trigger_update_from_scroll()
+                else:
+                    if self.scroll_type != 'bars':
+                        self.effect_x.update(touch.x)
             if self.do_scroll_y and self.effect_y:
-                self.effect_y.update(touch.y)
+                height = self.height
+                if touch.ud.get('in_bar_y', False):
+                    dy = touch.dy / float(height - height * self.vbar[1])
+                    self.scroll_y = min(max(self.scroll_y + dy, 0.), 1.)
+                    self._trigger_update_from_scroll()
+                else:
+                    if self.scroll_type != 'bars':
+                        self.effect_y.update(touch.y)
 
         if mode == 'unknown':
             ud['dx'] += abs(touch.dx)
@@ -522,16 +577,20 @@ class ScrollView(StencilView):
             uid = self._get_uid()
             ud = touch.ud[uid]
             if self.do_scroll_x and self.effect_x:
-                self.effect_x.stop(touch.x)
-            if self.do_scroll_y and self.effect_y:
-                self.effect_y.stop(touch.y)
+                if not touch.ud.get('in_bar_x', False) and\
+                    self.scroll_type != 'bars':
+                    self.effect_x.stop(touch.x)
+            if self.do_scroll_y and self.effect_y and\
+                    self.scroll_type != 'bars':
+                if not touch.ud.get('in_bar_y', False):
+                    self.effect_y.stop(touch.y)
             if ud['mode'] == 'unknown':
                 # we must do the click at least..
                 # only send the click if it was not a click to stop
                 # autoscrolling
                 if not ud['user_stopped']:
                     super(ScrollView, self).on_touch_down(touch)
-                Clock.schedule_once(partial(self._do_touch_up, touch), .1)
+                Clock.schedule_once(partial(self._do_touch_up, touch), .2)
         else:
             if self._touch is not touch and self.uid not in touch.ud:
                 super(ScrollView, self).on_touch_up(touch)
@@ -541,28 +600,6 @@ class ScrollView(StencilView):
             return True
 
         return self._get_uid() in touch.ud
-
-    def convert_distance_to_scroll(self, dx, dy):
-        '''Convert a distance in pixels to a scroll distance, depending on the
-        content size and the scrollview size.
-
-        The result will be a tuple of scroll distance that can be added to
-        :data:`scroll_x` and :data:`scroll_y`
-        '''
-        if not self._viewport:
-            return 0, 0
-        vp = self._viewport
-        if vp.width > self.width:
-            sw = vp.width - self.width
-            sx = dx / float(sw)
-        else:
-            sx = 0
-        if vp.height > self.height:
-            sh = vp.height - self.height
-            sy = dy / float(sh)
-        else:
-            sy = 1
-        return sx, sy
 
     def update_from_scroll(self, *largs):
         '''Force the reposition of the content, according to current value of
@@ -603,7 +640,9 @@ class ScrollView(StencilView):
 
     def _start_decrease_alpha(self, *l):
         self.bar_alpha = 1.
-        Animation(bar_alpha=0., d=.5, t='out_quart').start(self)
+        # show bars if scroll_type != content
+        bar_alpha = .2 if self.scroll_type[0] != 'c' else 0
+        Animation(bar_alpha=bar_alpha, d=.5, t='out_quart').start(self)
 
     #
     # Private
@@ -666,3 +705,38 @@ class ScrollView(StencilView):
         touch.grab_current = None
 
 
+if __name__ == '__main__':
+    from kivy.app import App
+
+    from kivy.uix.gridlayout import GridLayout
+    from kivy.uix.button import Button
+
+    class ScrollViewApp(App):
+
+        def build(self):
+            layout1 = GridLayout(cols=4, spacing=10, size_hint=(None, None))
+            layout1.bind(minimum_height=layout1.setter('height'),
+                        minimum_width=layout1.setter('width'))
+            for i in range(40):
+                btn = Button(text=str(i), size_hint=(None, None),
+                             size=(200, 100))
+                layout1.add_widget(btn)
+            scrollview1 = ScrollView(bar_width='2dp')
+            scrollview1.add_widget(layout1)
+
+            layout2 = GridLayout(cols=4, spacing=10, size_hint=(None, None))
+            layout2.bind(minimum_height=layout2.setter('height'),
+                        minimum_width=layout2.setter('width'))
+            for i in range(40):
+                btn = Button(text=str(i), size_hint=(None, None),
+                             size=(200, 100))
+                layout2.add_widget(btn)
+            scrollview2 = ScrollView(scroll_type='bars', scroll_wheel_distance=100)
+            scrollview2.add_widget(layout2)
+
+            root = GridLayout(cols=2)
+            root.add_widget(scrollview1)
+            root.add_widget(scrollview2)
+            return root
+
+    ScrollViewApp().run()

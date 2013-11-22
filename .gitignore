@@ -3,6 +3,7 @@ Kivy.egg-info
 *.so
 *.pyc
 *.pyo
+*.py#
 *~
 *.swp
 *.DS_Store
@@ -24,6 +25,7 @@ kivy/core/image/osxcoreimage.c
 kivy/core/window/sdl.c
 python
 python.exe
+.idea
 
 MANIFEST
 

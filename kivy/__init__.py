@@ -42,7 +42,7 @@ from kivy.utils import platform
 __kivy_post_configuration = []
 
 
-if platform() == 'macosx' and sys.maxsize < 9223372036854775807:
+if platform == 'macosx' and sys.maxsize < 9223372036854775807:
     r = '''Unsupported Python version detected!:
     Kivy requires a 64 bit version of Python to run on OS X. We strongly advise
     you to use the version of Python that is provided by Apple (don't use ports,
@@ -193,7 +193,7 @@ kivy_options = {
     'image': ('tex', 'imageio', 'dds', 'gif', 'pil', 'pygame'),
     'camera': ('opencv', 'gstreamer', 'videocapture'),
     'spelling': ('enchant', 'osxappkit', ),
-    'clipboard': ('pygame', 'dummy'), }
+    'clipboard': ('android', 'pygame', 'dummy'), }
 
 # Read environment
 for option in kivy_options:
@@ -248,9 +248,9 @@ if any('pyinstaller' in arg for arg in sys.argv):
 if not environ.get('KIVY_DOC_INCLUDE'):
     # Configuration management
     user_home_dir = expanduser('~')
-    if platform() == 'android':
+    if platform == 'android':
         user_home_dir = environ['ANDROID_APP_PATH']
-    elif platform() == 'ios':
+    elif platform == 'ios':
         user_home_dir = join(expanduser('~'), 'Documents')
     kivy_home_dir = join(user_home_dir, '.kivy')
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
@@ -268,7 +268,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         if not exists(icon_dir):
             try:
                 shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
-            except shutil.Error as e:
+            except:
                 Logger.exception('Error when copying logo directory')
 
     # configuration
@@ -377,12 +377,12 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Modules.configure()
 
     # android hooks: force fullscreen and add android touch input provider
-    if platform() in ('android', 'ios'):
+    if platform in ('android', 'ios'):
         from kivy.config import Config
         Config.set('graphics', 'fullscreen', 'auto')
         Config.remove_section('input')
         Config.add_section('input')
 
-    if platform() == 'android':
+    if platform == 'android':
         Config.set('input', 'androidtouch', 'android')
 

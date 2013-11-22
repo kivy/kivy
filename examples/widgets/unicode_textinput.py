@@ -62,7 +62,7 @@ Builder.load_string(
             on_release: root.show_load()
 
 <LoadDialog>:
-    platform: utils.platform()
+    platform: utils.platform
     BoxLayout:
         size: root.size
         pos: root.pos

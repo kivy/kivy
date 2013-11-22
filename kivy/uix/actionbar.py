@@ -37,12 +37,12 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.checkbox import CheckBox
+from kivy.config import Config
 from kivy.properties import ObjectProperty, NumericProperty, \
     BooleanProperty, StringProperty, ListProperty, OptionProperty
 from kivy.uix.spinner import Spinner
 from kivy.lang import Builder
 from functools import partial
-from kivy.config import Config
 
 
 window_icon = ''
@@ -187,7 +187,6 @@ class ActionToggleButton(ActionItem, ToggleButton):
     '''
 
 
-
 class ActionCheck(ActionItem, CheckBox):
     '''ActionCheck class, see module documentation for more information.
     '''
@@ -273,9 +272,11 @@ class ActionGroup(ActionItem, Spinner):
 
     def _build_dropdown(self, *largs):
         if self._dropdown:
+            self._dropdown.unbind(on_dismiss=self._toggle_dropdown)
             self._dropdown.dismiss()
             self._dropdown = None
         self._dropdown = self.dropdown_cls()
+        self._dropdown.bind(on_dismiss=self._toggle_dropdown)
 
     def _update_dropdown(self, *largs):
         pass
@@ -284,8 +285,11 @@ class ActionGroup(ActionItem, Spinner):
         self.is_open = not self.is_open
         ddn = self._dropdown
         ddn.size_hint_x = None
-        ddn.width = max([self.width, 
-                        self.list_action_item[0].minimum_width])
+        if not ddn.container:
+            return
+        children = ddn.container.children
+        ddn.width = max([self.width,
+                        children[0].minimum_width])
         for item in children:
             item.size_hint_y = None
             item.height = max([self.height, '48sp'])
@@ -327,7 +331,7 @@ class ActionOverflow(ActionGroup):
         if self._list_overflow_items == []:
             return
         self.show_group()
-        super(parent.__class__, parent).add_widget(self)
+        super(ActionView, parent).add_widget(self)
 
 
 class ActionView(BoxLayout):
@@ -375,7 +379,9 @@ class ActionView(BoxLayout):
         self._list_action_group = []
         super(ActionView, self).__init__(**kwargs)
         self._state = ''
-        self.overflow_group = ActionOverflow(use_separator=self.use_separator)
+        if not self.overflow_group:
+            self.overflow_group = ActionOverflow(
+                use_separator=self.use_separator)
 
     def on_action_previous(self, instance, value):
         self._list_action_items.insert(0, value)

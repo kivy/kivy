@@ -1,4 +1,5 @@
 #:kivy 1.8.0
+<ActionSpinner@Spinner+ActionItem>
 
 <ShowcaseScreen>:
 	ScrollView:
@@ -34,12 +35,22 @@ BoxLayout:
 				with_previous: False
 				title: 'Showcase' + ('' if not app.current_title else ' - {}'.format(app.current_title))
 
+			ActionSpinner:
+                id: spnr
+                border: 27, 20, 12, 12
+                background_normal: 'atlas://data/images/defaulttheme/action_group'
+                text: 'Jump to Screen'
+                values: app.screen_names
+                on_text:
+                    if sm.current != args[1]:\
+                    idx = app.screen_names.index(args[1]);\
+                    app.index = idx;\
+                    sm.switch_to(app.load_screen(idx), direction='left')
 			ActionToggleButton:
 				text: 'Toggle sourcecode'
 				icon: 'data/icons/sourcecode.png'
 				on_release: app.toggle_source_code()
-
-			ActionButton:
+            ActionButton:
 				text: 'Previous screen'
 				icon: 'data/icons/prev.png'
 				on_release: app.go_previous_screen()

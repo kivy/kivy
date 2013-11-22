@@ -1,13 +1,13 @@
-'''
+"""
 Slider
 ======
 
 .. image:: images/slider.jpg
 
 The :class:`Slider` widget looks like a scrollbar. It supports horizontal and
-vertical orientation, min/max and a default value.
+vertical orientations, min/max values and a default value.
 
-To create a slider from -100 to 100 starting at 25::
+To create a slider from -100 to 100 starting from 25::
 
     from kivy.uix.slider import Slider
     s = Slider(min=-100, max=100, value=25)
@@ -17,61 +17,60 @@ To create a vertical slider::
     from kivy.uix.slider import Slider
     s = Slider(orientation='vertical')
 
-'''
+"""
 __all__ = ('Slider', )
 
 from kivy.uix.widget import Widget
 from kivy.properties import (NumericProperty, AliasProperty, OptionProperty,
-        ReferenceListProperty, BoundedNumericProperty, BooleanProperty)
+                             ReferenceListProperty, BoundedNumericProperty)
 
 
 class Slider(Widget):
-    '''Class for creating Slider widget.
+    """Class for creating a Slider widget.
 
     Check module documentation for more details.
-    '''
+    """
 
     value = NumericProperty(0.)
     '''Current value used for the slider.
 
-    :data:`value` is a :class:`~kivy.properties.NumericProperty`, default to 0.
-    '''
+    :data:`value` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to 0.'''
 
     min = NumericProperty(0.)
     '''Minimum value allowed for :data:`value`.
 
-    :data:`min` is a :class:`~kivy.properties.NumericProperty`, default to 0.
-    '''
+    :data:`min` is a :class:`~kivy.properties.NumericProperty` and defaults to
+    0.'''
 
     max = NumericProperty(100.)
     '''Maximum value allowed for :data:`value`.
 
-    :data:`max` is a :class:`~kivy.properties.NumericProperty`, default to 100.
-    '''
+    :data:`max` is a :class:`~kivy.properties.NumericProperty` and defaults to
+    100.'''
 
     padding = NumericProperty(10)
     '''Padding of the slider. The padding is used for graphical representation
     and interaction. It prevents the cursor from going out of the bounds of the
     slider bounding box.
 
-    By default, padding is 10. The range of the slider is reduced from padding *
-    2 on the screen. It allows drawing a cursor of 20px width, without having
-    the cursor going out of the widget.
+    By default, padding is 10. The range of the slider is reduced from padding
+    \*2 on the screen. It allows drawing a cursor of 20px width without having
+    the cursor go out of the widget.
 
-    :data:`padding` is a :class:`~kivy.properties.NumericProperty`, default to
-    10.
-    '''
+    :data:`padding` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to 10.'''
 
     orientation = OptionProperty('horizontal', options=(
         'vertical', 'horizontal'))
     '''Orientation of the slider.
 
-    :data:`orientation` is an :class:`~kivy.properties.OptionProperty`, default
-    to 'horizontal'. Can take a value of 'vertical' or 'horizontal'.
+    :data:`orientation` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'horizontal'. Can take a value of 'vertical' or 'horizontal'.
     '''
 
     range = ReferenceListProperty(min, max)
-    '''Range of the slider, in the format (minimum value, maximum value)::
+    '''Range of the slider in the format (minimum value, maximum value)::
 
         >>> slider = Slider(min=10, max=80)
         >>> slider.range
@@ -83,7 +82,7 @@ class Slider(Widget):
         100
 
     :data:`range` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`min`, :data:`max`)
+    (:data:`min`, :data:`max`).
     '''
 
     step = BoundedNumericProperty(0, min=0)
@@ -95,8 +94,8 @@ class Slider(Widget):
     min and max. If the value range can't be evenly divisible by step the
     last step will be capped by slider.max
 
-    :data:`step` is a :class:`~kivy.properties.NumericProperty`, default to 1.
-    '''
+    :data:`step` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to 1.'''
 
     def get_norm_value(self):
         vmin = self.min

@@ -23,7 +23,8 @@ Markup text
 .. versionadded:: 1.1.0
 
 You can change the style of the text using :doc:`api-kivy.core.text.markup`.
-The syntax is near the bbcode syntax, but only the inline styling is allowed::
+The syntax is similar to the bbcode syntax but only the inline styling is
+allowed::
 
     # hello world with world in bold
     l = Label(text='Hello [b]World[/b]', markup=True)
@@ -61,7 +62,7 @@ The following tags are available:
 ``[sup][/sup]``
     Display the text at a superscript position relative to the text before it.
 
-If you want to render the markup text with a character [ or ] or &, you need to
+If you want to render the markup text with a [ or ] or & character, you need to
 escape them. We created a simple syntax::
 
     [   -> &bl;
@@ -78,11 +79,11 @@ Interactive Zone in Text
 .. versionadded:: 1.1.0
 
 You can now have definable "links" using text markup. The idea is to be able
-to detect when the user clicks on part of the text, and to react.
+to detect when the user clicks on part of the text and to react.
 The tag ``[ref=xxx]`` is used for that.
 
-In this example, we are creating a reference on the word "World". When a click
-happens on it, the function ``print_it`` will be called with the name of the
+In this example, we are creating a reference on the word "World". When this word
+is clicked, the function ``print_it`` will be called with the name of the
 reference::
 
     def print_it(instance, value):
@@ -90,7 +91,7 @@ reference::
     widget = Label(text='Hello [ref=world]World[/ref]', markup=True)
     widget.bind(on_ref_press=print_it)
 
-For a better rendering, you could add a color for the reference. Replace the
+For prettier rendering, you could add a color for the reference. Replace the
 ``text=`` in the previous example with::
 
     'Hello [ref=world][color=0000ff]World[/color][/ref]'
@@ -121,7 +122,7 @@ class Label(Widget):
 
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
         'halign', 'valign', 'padding_x', 'padding_y', 'text_size', 'shorten',
-        'mipmap', 'markup', 'line_height')
+        'mipmap', 'markup', 'line_height', 'max_lines')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -232,8 +233,8 @@ class Label(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`disabled_color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
-    1, .5].
+    :data:`disabled_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [1, 1, 1, .5].
     '''
 
     text = StringProperty('')
@@ -247,7 +248,8 @@ class Label(Widget):
 
         widget = Label(text=u'My unicode string')
 
-    :data:`text` a :class:`~kivy.properties.StringProperty`.
+    :data:`text` is a :class:`~kivy.properties.StringProperty` and defaults to
+    ''.
     '''
 
     text_size = ListProperty([None, None])
@@ -263,13 +265,13 @@ class Label(Widget):
 
     .. note::
 
-        This text_size property is the same as
-        :data:`~kivy.core.text.Label.usersize` property in
-        :class:`~kivy.core.text.Label` class. (It is named size= in
+        This text_size property is the same as the
+        :data:`~kivy.core.text.Label.usersize` property in the
+        :class:`~kivy.core.text.Label` class. (It is named size= in the
         constructor.)
 
-    :data:`text_size` is a :class:`~kivy.properties.ListProperty`,
-    default to (None, None), meaning no size restriction by default.
+    :data:`text_size` is a :class:`~kivy.properties.ListProperty` and
+    defaults to (None, None), meaning no size restriction by default.
     '''
 
     font_name = StringProperty('DroidSans')
@@ -280,7 +282,7 @@ class Label(Widget):
     .. warning::
 
         Depending of your text provider, the font file can be ignored. However,
-        you can mostly use this without trouble.
+        you can mostly use this without problems.
 
         If the font used lacks the glyphs for the particular language/symbols
         you are using, you will see '[]' blank box characters instead of the
@@ -290,23 +292,23 @@ class Label(Widget):
 
         .. |unicodechar| image:: images/unicode-char.png
 
-    :data:`font_name` is a :class:`~kivy.properties.StringProperty`, default to
-    'DroidSans'.
+    :data:`font_name` is a :class:`~kivy.properties.StringProperty` and defaults
+    to 'DroidSans'.
     '''
 
     font_size = NumericProperty('15sp')
     '''Font size of the text, in pixels.
 
-    :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
-    12dp.
+    :data:`font_size` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 12dp.
     '''
 
     line_height = NumericProperty(1.0)
     '''Line Height for the text. e.g. line_height = 2 will cause the spacing
     between lines to be twice the size.
 
-    :data:`line_height` is a :class:`~kivy.properties.NumericProperty`, default
-    to 1.0.
+    :data:`line_height` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 1.0.
 
     .. versionadded:: 1.5.0
     '''
@@ -319,8 +321,8 @@ class Label(Widget):
         Depending of your font, the bold attribute may have no impact on your
         text rendering.
 
-    :data:`bold` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False
+    :data:`bold` is a :class:`~kivy.properties.BooleanProperty` and defaults to
+    False.
     '''
 
     italic = BooleanProperty(False)
@@ -331,22 +333,22 @@ class Label(Widget):
         Depending of your font, the italic attribute may have no impact on your
         text rendering.
 
-    :data:`italic` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False
+    :data:`italic` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     padding_x = NumericProperty(0)
     '''Horizontal padding of the text inside the widget box.
 
-    :data:`padding_x` is a :class:`~kivy.properties.NumericProperty`, default to
-    0
+    :data:`padding_x` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     padding_y = NumericProperty(0)
     '''Vertical padding of the text inside the widget box.
 
-    :data:`padding_x` is a :class:`~kivy.properties.NumericProperty`, default to
-    0
+    :data:`padding_x` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     padding = ReferenceListProperty(padding_x, padding_y)
@@ -360,7 +362,7 @@ class Label(Widget):
                             'justify'])
     '''Horizontal alignment of the text.
 
-    :data:`halign` is a :class:`~kivy.properties.OptionProperty`, default to
+    :data:`halign` is an :class:`~kivy.properties.OptionProperty` and defaults to
     'left'. Available options are : left, center, right and justified.
 
     .. warning::
@@ -372,29 +374,28 @@ class Label(Widget):
 
     .. versionchanged:: 1.6.0
 
-        Starting version 1.6.0 a new option was added to :data:`halign`
-        namely `justify`
+        A new option was added to :data:`halign`, namely `justify`.
     '''
 
     valign = OptionProperty('bottom', options=['bottom', 'middle', 'top'])
     '''Vertical alignment of the text.
 
-    :data:`valign` is a :class:`~kivy.properties.OptionProperty`, default to
-    'bottom'. Available options are : bottom, middle and top.
+    :data:`valign` is an :class:`~kivy.properties.OptionProperty` and defaults
+    to 'bottom'. Available options are : bottom, middle and top.
 
     .. warning::
 
         This doesn't change the position of the text texture of the Label
-        (centered), only the position of the text in this texture. You probably
-        want to bind the size of the Label to the :data:`texture_size` or set a
-        :data:`text_size`.
+        (centered), only the position of the text within this texture. You
+        probably want to bind the size of the Label to the :data:`texture_size`
+        or set a :data:`text_size` to change this behavior.
     '''
 
     color = ListProperty([1, 1, 1, 1])
     '''Text color, in the format (r, g, b, a)
 
-    :data:`color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
-    1, 1].
+    :data:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
+    [1, 1, 1, 1].
     '''
 
     texture = ObjectProperty(None, allownone=True)
@@ -420,8 +421,8 @@ class Label(Widget):
             l.texture_update()
             # l.texture is good now.
 
-    :data:`texture` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
+    :data:`texture` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
     '''
 
     texture_size = ListProperty([0, 0])
@@ -435,13 +436,13 @@ class Label(Widget):
     '''
 
     mipmap = BooleanProperty(False)
-    '''Indicates OpenGL mipmapping applied to texture or not.
+    '''Indicates whether OpenGL mipmapping is applied to the texture or not.
     Read :ref:`mipmap` for more information.
 
     .. versionadded:: 1.0.7
 
-    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     shorten = BooleanProperty(False)
@@ -450,29 +451,29 @@ class Label(Widget):
     as much as possible if a `text_size` is given. Setting this to True without
     an appropriately set `text_size` will lead to unexpected results.
 
-    :data:`shorten` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :data:`shorten` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     markup = BooleanProperty(False)
     '''
     .. versionadded:: 1.1.0
 
-    If true, the text will be rendered with
+    If True, the text will be rendered using the
     :class:`~kivy.core.text.markup.MarkupLabel`: you can change the style of the
-    text using tags. Check :doc:`api-kivy.core.text.markup` documentation for
-    more information.
+    text using tags. Check the :doc:`api-kivy.core.text.markup` documentation
+    for more information.
 
-    :data:`markup` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :data:`markup` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     refs = DictProperty({})
     '''
     .. versionadded:: 1.1.0
 
-    List of ``[ref=xxx]`` markup put into the text, with the bounding box of
-    all the words contained in a ref, only after rendering.
+    List of ``[ref=xxx]`` markup items in the text with the bounding box of
+    all the words contained in a ref, available only after rendering.
 
     For example, if you wrote::
 
@@ -482,9 +483,9 @@ class Label(Widget):
 
         {'hello': ((64, 0, 78, 16), )}
 
-    You know that the reference "hello" have a bounding box set at (x1, y1, x2,
-    y2). The current Label implementation uses these references if they exist in
-    your markup text, automatically doing the collision with the touch, and
+    You know that the reference "hello" has a bounding box at (x1, y1, x2, y2).
+    The current Label implementation uses these references if they exist in
+    your markup text, automatically doing the collision with the touch and
     dispatching an `on_ref_press` event.
 
     You can bind a ref event like this::
@@ -496,7 +497,7 @@ class Label(Widget):
 
     .. note::
 
-        This is working only with markup text. You need :data:`markup` set to
+        This works only with markup text. You need :data:`markup` set to
         True.
     '''
 
@@ -504,16 +505,16 @@ class Label(Widget):
     '''
     .. versionadded:: 1.1.0
 
-    Position of all the ``[anchor=xxx]`` markup put into the text.
+    Position of all the ``[anchor=xxx]`` markup in the text.
 
-    You can put anchors in your markup text::
+    You can place anchors in your markup text as follows::
 
         text = """
             [anchor=title1][size=24]This is my Big title.[/size]
             [anchor=content]Hello world
         """
 
-    Then, all the ``[anchor=]`` references will be removed, and you'll get all
+    Then, all the ``[anchor=]`` references will be removed and you'll get all
     the anchor positions in this property (only after rendering)::
 
         >>> widget = Label(text=text, markup=True)
@@ -523,7 +524,20 @@ class Label(Widget):
 
     .. note::
 
-        This is working only with markup text. You need :data:`markup` set to
+        This works only with markup text. You need :data:`markup` set to
         True.
 
     '''
+
+    max_lines = NumericProperty(0)
+    '''Maximum number of lines to use, defaults to 0, which means unlimited.
+    Please note that :data:`shorten` take over this property. (with shorten, the
+    text is always one line.)
+
+    .. versionadded:: 1.8.0
+
+    :data:`max_lines` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
+    '''
+
+

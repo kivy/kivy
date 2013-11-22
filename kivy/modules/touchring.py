@@ -50,6 +50,10 @@ def _touch_down(win, touch):
             size=(iw * pointer_scale, ih * pointer_scale),
             texture=pointer_image.texture)
 
+    if not ud.get('tr.grab', False):
+        ud['tr.grab'] = True
+        touch.grab(win)
+
 
 def _touch_move(win, touch):
     ud = touch.ud
@@ -59,9 +63,14 @@ def _touch_move(win, touch):
 
 
 def _touch_up(win, touch):
-    ud = touch.ud
-    win.canvas.after.remove(ud['tr.color'])
-    win.canvas.after.remove(ud['tr.rect'])
+    if touch.grab_current is win:
+        ud = touch.ud
+        win.canvas.after.remove(ud['tr.color'])
+        win.canvas.after.remove(ud['tr.rect'])
+
+        if ud.get('tr.grab') is True:
+            touch.ungrab(win)
+            ud['tr.grab'] = False
 
 
 def start(win, ctx):

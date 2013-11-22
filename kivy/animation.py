@@ -3,8 +3,8 @@ Animation
 =========
 
 :class:`Animation` and :class:`AnimationTransition` are used to animate
-:class:`~kivy.uix.widget.Widget` properties. You must specify (minimum) a
-property name and target value. To use Animation, follow these steps:
+:class:`~kivy.uix.widget.Widget` properties. You must specify at least a
+property name and target value. To use an Animation, follow these steps:
 
     * Setup an Animation object
     * Use the Animation object on a Widget
@@ -26,20 +26,20 @@ Multiple properties and transitions
 -----------------------------------
 
 You can animate multiple properties and use built-in or custom transition
-functions using :data:`transition` (or `t=` shortcut). For example,
+functions using :data:`transition` (or the `t=` shortcut). For example,
 to animate the position and size using the 'in_quad' transition::
 
     anim = Animation(x=50, size=(80, 80), t='in_quad')
     anim.start(widget)
 
 Note that the `t=` parameter can be the string name of a method in the
-:class:`AnimationTransition` class, or your own animation function.
+:class:`AnimationTransition` class or your own animation function.
 
 Sequential animation
 --------------------
 
 To join animations sequentially, use the '+' operator. The following example
-will animate to x=50 over 1 second, then animate size to (80, 80) over the
+will animate to x=50 over 1 second, then animate the size to (80, 80) over the
 next two seconds::
 
     anim = Animation(x=50) + Animation(size=(80, 80), duration=2.)
@@ -49,13 +49,13 @@ Parallel animation
 ------------------
 
 To join animations in parallel, use the '&' operator. The following example
-will animate position to (80, 10) over 1 second, while in parallel animating
-the first half of size=(800, 800)::
+will animate the position to (80, 10) over 1 second, whilst in parallel
+animating the size to (800, 800)::
 
     anim = Animation(pos=(80, 10))
     anim &= Animation(size=(800, 800), duration=2.)
     anim.start(widget)
-    
+
 Repeating animation
 -------------------
 
@@ -64,14 +64,14 @@ Repeating animation
 .. note::
     This is currently only implemented for 'Sequence' animations.
 
-To set an animation to repeat simply set the :data:`Sequence.repeat` property to
+To set an animation to repeat, simply set the :data:`Sequence.repeat` property to
 `True`::
 
     anim = Animation(...) + Animation(...)
     anim.repeat = True
     anim.start(widget)
-   
-For flow control of animations such as stopping and cancelling use the methods 
+
+For flow control of animations such as stopping and cancelling, use the methods
 already in place in the animation module.
 '''
 
@@ -84,24 +84,24 @@ from kivy.compat import string_types, iterkeys
 
 
 class Animation(EventDispatcher):
-    '''Create an animation definition that can be used to animate a Widget
+    '''Create an animation definition that can be used to animate a Widget.
 
     :Parameters:
         `duration` or `d`: float, default to 1.
-            Duration of the animation, in seconds
+            Duration of the animation, in seconds.
         `transition` or `t`: str or func
             Transition function for animate properties. It can be the name of a
-            method from :class:`AnimationTransition`
+            method from :class:`AnimationTransition`.
         `step` or `s`: float
             Step in milliseconds of the animation. Default to 1 / 60.
 
     :Events:
         `on_start`: widget
-            Fired when the animation is started on a widget
+            Fired when the animation is started on a widget.
         `on_complete`: widget
-            Fired when the animation is completed or stopped on a widget
+            Fired when the animation is completed or stopped on a widget.
         `on_progress`: widget, progression
-            Fired when the progression of the animation is changing
+            Fired when the progression of the animation is changing.
 
     .. versionchanged:: 1.4.0
         Added s/step parameter.
@@ -129,19 +129,19 @@ class Animation(EventDispatcher):
 
     @property
     def duration(self):
-        '''Return the duration of the animation
+        '''Return the duration of the animation.
         '''
         return self._duration
 
     @property
     def transition(self):
-        '''Return the transition of the animation
+        '''Return the transition of the animation.
         '''
         return self._transition
 
     @property
     def animated_properties(self):
-        '''Return the properties used to animate
+        '''Return the properties used to animate.
         '''
         return self._animated_properties
 
@@ -169,7 +169,7 @@ class Animation(EventDispatcher):
     @staticmethod
     def cancel_all(widget, *largs):
         '''Cancel all animations that concern a specific widget / list of
-        properties. see :data:`cancel`
+        properties. See :data:`cancel`.
 
         Example::
 
@@ -190,7 +190,7 @@ class Animation(EventDispatcher):
                 animation.cancel(widget)
 
     def start(self, widget):
-        '''Start the animation on a widget
+        '''Start the animation on a widget.
         '''
         self.stop(widget)
         self._initialize(widget)
@@ -198,15 +198,15 @@ class Animation(EventDispatcher):
         self.dispatch('on_start', widget)
 
     def stop(self, widget):
-        '''Stop the animation previously applied on a widget, triggering
-        `on_complete` event '''
+        '''Stop the animation previously applied to a widget, triggering the
+        `on_complete` event.'''
         props = self._widgets.pop(widget.uid, None)
         if props:
             self.dispatch('on_complete', widget)
         self.cancel(widget)
 
     def cancel(self, widget):
-        '''Cancel the animation previously applied on a widget. Same
+        '''Cancel the animation previously applied to a widget. Same
         effect as :data:`stop`, except the `on_complete` event will
         *not* be triggered!
 
@@ -219,8 +219,8 @@ class Animation(EventDispatcher):
 
     def stop_property(self, widget, prop):
         '''Even if an animation is running, remove a property. It will not be
-        animated further. If it was the only/last property being animated on.
-        the widget, the animation will be stopped (see :data:`stop`)
+        animated futher. If it was the only/last property being animated,
+        the animation will be stopped (see :data:`stop`).
         '''
         props = self._widgets.get(widget.uid, None)
         if not props:
@@ -233,8 +233,8 @@ class Animation(EventDispatcher):
 
     def cancel_property(self, widget, prop):
         '''Even if an animation is running, remove a property. It will not be
-        animated further. If it was the only/last property being animated on.
-        the widget, the animation will be canceled (see :data:`cancel`)
+        animated further. If it was the only/last property being animated,
+        the animation will be canceled (see :data:`cancel`)
 
         .. versionadded:: 1.4.0
         '''
@@ -248,7 +248,7 @@ class Animation(EventDispatcher):
             self.cancel(widget)
 
     def have_properties_to_animate(self, widget):
-        '''Return True if a widget still have properties to animate.
+        '''Return True if a widget still has properties to animate.
 
         .. versionadded:: 1.8.0
         '''
@@ -418,8 +418,11 @@ class Sequence(Animation):
         self.dispatch('on_progress', widget, progress / 2.)
 
     def on_anim2_complete(self, instance, widget):
-        '''Repeating logic used with boolean variable "repeat". Added version 1.7.1'''
-        if self.repeat == True:
+        '''Repeating logic used with boolean variable "repeat".
+        
+        .. versionadded:: 1.7.1
+        '''
+        if self.repeat:
             self.anim1.start(widget)
         else:
             self.dispatch('on_complete', widget)
@@ -477,11 +480,11 @@ class Parallel(Animation):
 
 
 class AnimationTransition(object):
-    '''Collection of animation function, to be used with Animation object.
-    Easing Functions ported into Kivy from Clutter Project
+    '''Collection of animation functions to be used with the Animation object.
+    Easing Functions ported to Kivy from the Clutter Project
     http://www.clutter-project.org/docs/clutter/stable/ClutterAlpha.html
 
-    `progress` parameter in each animation functions is between 0-1 range.
+    The `progress` parameter in each animation function is in the range 0-1.
     '''
 
     @staticmethod

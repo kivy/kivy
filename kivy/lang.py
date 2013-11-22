@@ -159,7 +159,9 @@ the value can use the values of other properties using reserved keywords.
         arguments passed to the callback.::
 
             TextInput:
-                on_focus: self.insert_text("I'm focused!") if args[1] else self.insert_text("I'm not focused.")
+                on_focus:
+                    self.insert_text("I'm focused!") \
+                    if args[1] else self.insert_text("I'm not focused.")
 
 Furthermore, if a class definition contains an id, you can use it as a
 keyword::
@@ -285,13 +287,13 @@ subclasses.
 The syntax look like:
 
 .. code-block:: kv
-     
+
     # Simple inheritance
     <NewWidget@Button>:
         ...
 
     # Multiple inheritance
-    <NewWidget@Label,ButtonBehavior>:
+    <NewWidget@ButtonBehavior+Label>:
         ...
 
 The `@` character is used to seperate the name from the classes you want to
@@ -304,7 +306,7 @@ subclass. The Python equivalent would have been:
         pass
 
     # Multiple inheritance
-    class NewWidget(Label, ButtonBehavior):
+    class NewWidget(ButtonBehavior, Label):
         pass
 
 Any new properties, usually added in python code, should be declared first.
@@ -481,7 +483,7 @@ When you are creating a context:
     #. you cannot use references other than "root":
 
     .. code-block:: kv
-    
+
         <MyRule>:
             Widget:
                 id: mywidget
@@ -492,7 +494,7 @@ When you are creating a context:
     #. all the dynamic part will be not understood:
 
     .. code-block:: kv
-    
+
         <MyRule>:
             Template:
                 ctxkey: 'value 1' if root.prop1 else 'value2' # << even if
@@ -626,6 +628,7 @@ from kivy.utils import QueryDict
 from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.compat import PY2, iteritems, iterkeys
+from kivy.context import register_context
 import kivy.metrics as Metrics
 
 
@@ -651,7 +654,7 @@ _delayed_calls = []
 # widget is deleted
 _handlers = {}
 
-    
+
 class ProxyApp(object):
     # proxy app object
     # taken from http://code.activestate.com/recipes/496741-object-proxying/
@@ -1225,15 +1228,18 @@ class Parser(object):
 
         return objects, []
 
+
 def get_proxy(widget):
     try:
         return widget.proxy_ref
     except AttributeError:
         return widget
 
+
 def custom_callback(__kvlang__, idmap, *largs, **kwargs):
     idmap['args'] = largs
     exec(__kvlang__.co_value, idmap)
+
 
 def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     locals()['__kvlang__'] = rule
@@ -1346,6 +1352,7 @@ class BuilderBase(object):
 
     def __init__(self):
         super(BuilderBase, self).__init__()
+        self.files = []
         self.dynamic_classes = {}
         self.templates = {}
         self.rules = []
@@ -1395,6 +1402,8 @@ class BuilderBase(object):
             if y[2] != filename:
                 templates[x] = y
         self.templates = templates
+        if filename in self.files:
+            self.files.remove(filename)
 
         # unregister all the dynamic classes
         Factory.unregister_from_filename(filename)
@@ -1409,6 +1418,13 @@ class BuilderBase(object):
         '''
         kwargs.setdefault('rulesonly', False)
         self._current_filename = fn = kwargs.get('filename', None)
+
+        # put a warning if a file is loaded multiple times
+        if fn in self.files:
+            Logger.warning(
+                    'Lang: The file {} is loaded multiples times, '
+                    'you might have unwanted behaviors.'.format(fn))
+
         try:
             # parse the string
             parser = Parser(content=string, filename=fn)
@@ -1433,6 +1449,12 @@ class BuilderBase(object):
                 filename = kwargs.get('rulesonly', '<string>')
                 raise Exception('The file <%s> contain also non-rules '
                                 'directives' % filename)
+
+            # save the loaded files only if there is a root without
+            # template/dynamic classes
+            if fn and (parser.templates or
+                    parser.dynamic_classes or parser.rules):
+                self.files.append(fn)
 
             if parser.root:
                 widget = Factory.get(parser.root.name)()
@@ -1551,7 +1573,7 @@ class BuilderBase(object):
 
             if Factory_is_template(cname):
                 # we got a template, so extract all the properties and
-                # handlers, and push them in a "ctx" dictionnary.
+                # handlers, and push them in a "ctx" dictionary.
                 ctx = {}
                 idmap = copy(global_idmap)
                 idmap.update({'root': rctx['ids']['root']})
@@ -1590,7 +1612,8 @@ class BuilderBase(object):
 
         # append the properties and handlers to our final resolution task
         if rule.properties:
-            rctx['set'].append((widget.proxy_ref, list(rule.properties.values())))
+            rctx['set'].append((widget.proxy_ref,
+                                list(rule.properties.values())))
         if rule.handlers:
             rctx['hdl'].append((widget.proxy_ref, rule.handlers))
 
@@ -1713,14 +1736,15 @@ class BuilderBase(object):
                     value = prule.co_value
                     if type(value) is CodeType:
                         value = create_handler(
-                            widget, instr.proxy_ref, key, value, prule, idmap, True)
+                            widget, instr.proxy_ref,
+                            key, value, prule, idmap, True)
                     setattr(instr, key, value)
             except Exception as e:
                 raise BuilderException(prule.ctx, prule.line,
                         '{}: {}'.format(e.__class__.__name__, e))
 
 #: Main instance of a :class:`BuilderBase`.
-Builder = BuilderBase()
+Builder = register_context('Builder', BuilderBase)
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
 
 if 'KIVY_PROFILE_LANG' in environ:
