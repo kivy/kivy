@@ -415,7 +415,7 @@ class VideoPlayer(GridLayout):
 
     annotations = StringProperty('')
     '''If set, it will be used for reading annotations box.
-    
+
     :data:`annotations` is a :class:`~kivy.properties.StringProperty` and
     defaults to ''.
     '''
@@ -432,8 +432,8 @@ class VideoPlayer(GridLayout):
         The re-add operation doesn't care about the index position of it's
         children within the parent.
 
-    :data:`fullscreen` is a :class:`~kivy.properties.BooleanProperty` and defaults
-    to False.
+    :data:`fullscreen` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     allow_fullscreen = BooleanProperty(True)
@@ -448,7 +448,7 @@ class VideoPlayer(GridLayout):
     '''Optional parameters can be passed to a :class:`~kivy.uix.video.Video`
     instance with this property.
 
-    :data:`options` a :class:`~kivy.properties.DictProperty` and 
+    :data:`options` a :class:`~kivy.properties.DictProperty` and
     defaults to {}.
     '''
 
@@ -609,4 +609,7 @@ class VideoPlayer(GridLayout):
 if __name__ == '__main__':
     import sys
     from kivy.base import runTouchApp
-    runTouchApp(VideoPlayer(source=sys.argv[1]))
+    player = VideoPlayer(source=sys.argv[1])
+    runTouchApp(player)
+    if player:
+        player.state = 'stop'
