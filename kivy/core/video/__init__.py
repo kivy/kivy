@@ -196,6 +196,7 @@ class VideoBase(EventDispatcher):
 Video = core_select_lib('video', (
     ('gstreamer', 'video_gstreamer', 'VideoGStreamer'),
     ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
+    ('ffpyplayer', 'video_ffpyplayer', 'VideoFFPyPlayer'),
     ('pyglet', 'video_pyglet', 'VideoPyglet'),
     ('null', 'video_null', 'VideoNull'),
 ))
