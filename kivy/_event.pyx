@@ -2,13 +2,13 @@
 Event dispatcher
 ================
 
-All objects that produce events in Kivy implement :class:`EventDispatcher`,
-providing a consistent interface for registering and manipulating event
+All objects that produce events in Kivy implement the :class:`EventDispatcher`
+which provides a consistent interface for registering and manipulating event
 handlers.
 
 .. versionchanged:: 1.0.9
-    Properties discovering and methods have been moved from
-    :class:`~kivy.uix.widget.Widget` to :class:`EventDispatcher`
+    Property discovery and methods have been moved from the
+    :class:`~kivy.uix.widget.Widget` to the :class:`EventDispatcher`.
 
 '''
 
@@ -44,7 +44,7 @@ cdef class ObjectWithUid(object):
         self.uid = widget_uid
 
 cdef class EventDispatcher(ObjectWithUid):
-    '''Generic event dispatcher interface
+    '''Generic event dispatcher interface.
 
     See the module docstring for usage.
     '''
@@ -157,13 +157,13 @@ cdef class EventDispatcher(ObjectWithUid):
         '''Register an event type with the dispatcher.
 
         Registering event types allows the dispatcher to validate event handler
-        names as they are attached, and to search attached objects for suitable
+        names as they are attached and to search attached objects for suitable
         handlers. Each event type declaration must :
 
-            1. start with the prefix `on_`
-            2. have a default handler in the class
+            1. start with the prefix `on_`.
+            2. have a default handler in the class.
 
-        Example of creating custom event::
+        Example of creating a custom event::
 
             class MyWidget(Widget):
                 def __init__(self, **kwargs):
@@ -193,7 +193,7 @@ cdef class EventDispatcher(ObjectWithUid):
             self.__event_stack[event_type] = []
 
     def unregister_event_types(self, str event_type):
-        '''Unregister an event type in the dispatcher
+        '''Unregister an event type in the dispatcher.
         '''
         if event_type in self.__event_stack:
             del self.__event_stack[event_type]
@@ -206,7 +206,7 @@ cdef class EventDispatcher(ObjectWithUid):
         return event_type in self.__event_stack
 
     def bind(self, **kwargs):
-        '''Bind an event type or a property to a callback
+        '''Bind an event type or a property to a callback.
 
         Usage::
 
@@ -220,8 +220,8 @@ cdef class EventDispatcher(ObjectWithUid):
             # With event
             self.bind(on_press=self.my_press_callback)
 
-        Most callbacks are called with the arguments 'obj' and 'value', however
-        some such as on_press only provide one argument, 'obj'
+        Most callbacks are called with the arguments 'obj' and 'value'. Some
+        however, provide only one argument, 'obj' e.g. the *on_press* event.
 
         Usage in a class::
 
@@ -274,8 +274,8 @@ cdef class EventDispatcher(ObjectWithUid):
                 prop.unbind(self, value)
 
     def get_property_observers(self, name):
-        ''' Returns a list of methods that are bound to the property/event.
-        passed as the argument::
+        ''' Returns a list of methods that are bound to the property/event
+        passed as the *name* argument::
 
             widget_instance.get_property_observers('on_release')
 
@@ -288,7 +288,7 @@ cdef class EventDispatcher(ObjectWithUid):
         return ps.observers
 
     def events(EventDispatcher self):
-        '''Return all the events in that class. Can be used for introspection.
+        '''Return all the events in the class. Can be used for introspection.
 
         .. versionadded:: 1.8.0
 
@@ -296,8 +296,8 @@ cdef class EventDispatcher(ObjectWithUid):
         return self.__event_stack.keys()
 
     def dispatch(self, str event_type, *largs):
-        '''Dispatch an event across all the handler added in bind().
-        As soon as a handler return True, the dispatching stop
+        '''Dispatch an event across all the handlers added in bind().
+        As soon as a handler returns True, the dispatching stops.
         '''
         cdef list event_stack = self.__event_stack[event_type]
         cdef object remove = event_stack.remove
@@ -325,11 +325,11 @@ cdef class EventDispatcher(ObjectWithUid):
         return prop.get(dstinstance)
 
     def setter(self, name):
-        '''Return the setter of a property. Use: instance.setter('name')
+        '''Return the setter of a property. Use: instance.setter('name').
         The setter is a convenient callback function useful if you want 
-        to directly bind a property to another. 
+        to directly bind one property to another. 
         It returns a partial function that will accept
-        (obj, value) args and result in property 'name' of instance 
+        (obj, value) args and results in the property 'name' of instance 
         being set to value.
 
         .. versionadded:: 1.0.9
@@ -366,13 +366,13 @@ cdef class EventDispatcher(ObjectWithUid):
 
         :return:
 
-            A :class:`~kivy.properties.Property` derivated instance corresponding
-            to the name.
+            A :class:`~kivy.properties.Property` derived instance
+            corresponding to the name.
         '''
         return self.__properties[name]
 
     cpdef dict properties(EventDispatcher self):
-        '''Return all the properties in that class in a dictionary of
+        '''Return all the properties in the class in a dictionary of
         key/property class. Can be used for introspection.
 
         .. versionadded:: 1.0.9
