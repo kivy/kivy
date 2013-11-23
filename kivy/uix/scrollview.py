@@ -323,7 +323,7 @@ class ScrollView(StencilView):
     '''
 
     scroll_type = OptionProperty(['content'], options=(['content'], ['bars'],
-                                                     ['bars', 'content']))
+                                    ['bars', 'content'], ['content', 'bars']))
     '''Sets the type of scrolling to use for the content of the scrollview.
     Available options are: ['content'], ['bars'], ['bars', 'content'].
 
@@ -335,7 +335,7 @@ class ScrollView(StencilView):
 
     def on_scroll_type(self, instance, value):
         self.bar_width = max('9dp', self.bar_width)\
-            if value in (['bars'], ['bars', 'content']) else self.bar_width
+            if 'bars' in value else self.bar_width
 
     # private, for internal use only
 
@@ -453,7 +453,7 @@ class ScrollView(StencilView):
         vp = self._viewport
         scroll_type = self.scroll_type
         ud = touch.ud
-        scroll_bar_content = scroll_type in (['bars'], ['bars', 'content'])
+        scroll_bar_content = 'bars' in scroll_type
 
         ud['in_bar_x'] = ud['in_bar_y'] = False
         if (scroll_bar_content and touch.y < self.bar_width):
@@ -738,7 +738,7 @@ if __name__ == '__main__':
                 btn = Button(text=str(i), size_hint=(None, None),
                              size=(200, 100))
                 layout2.add_widget(btn)
-            scrollview2 = ScrollView(scroll_type=['bars'],
+            scrollview2 = ScrollView(scroll_type=['content', 'bars'],
                                      scroll_wheel_distance=100)
             scrollview2.add_widget(layout2)
 
