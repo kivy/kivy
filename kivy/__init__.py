@@ -148,12 +148,12 @@ def kivy_usage():
         -h, --help
             Prints this help message.
         -d, --debug
-            Shows debug log
+            Shows debug log.
         -a, --auto-fullscreen
             Force 'auto' fullscreen mode (no resolution change).
             Uses your display's resolution. This is most likely what you want.
         -c, --config section:key[:value]
-            Set a custom [section] key=value in the configuration object
+            Set a custom [section] key=value in the configuration object.
         -f, --fullscreen
             Force running in fullscreen mode.
         -k, --fake-fullscreen
