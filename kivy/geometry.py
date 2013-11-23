@@ -2,6 +2,7 @@
 Geometry utilities
 ==================
 
+This module contains some helper functions for geometric calculations.
 '''
 
 __all__ = ('circumcircle', 'minimum_bounding_circle')
@@ -12,15 +13,15 @@ from kivy.vector import Vector
 def circumcircle(a, b, c):
     '''
     Computes the circumcircle of a triangle defined by a, b, c.
-    see: http://en.wikipedia.org/wiki/Circumscribed_circle
+    See: http://en.wikipedia.org/wiki/Circumscribed_circle
 
     :Parameters:
-        `a` : iterable
-            the 1. point of the triangle
-        `b` : iterable
-            the 2. point of the triangle
-        `c` : iterable
-            the 3. point of the triangle
+        `a` : iterable containing at least 2 values (for x and y)
+            The 1st point of the triangle.
+        `b` : iterable containing at least 2 values (for x and y)
+            The 2nd point of the triangle.
+        `c` : iterable containing at least 2 values (for x and y)
+            The 3rd point of the triangle.
 
     :Return:
         A tuple that defines the circle :
@@ -49,7 +50,7 @@ def circumcircle(a, b, c):
 
 def minimum_bounding_circle(points):
     '''
-    Returns the minimum bounding circle for a set of points
+    Returns the minimum bounding circle for a set of points.
 
     For a description of the problem being solved, see:
         http://en.wikipedia.org/wiki/Smallest_circle_problem
