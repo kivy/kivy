@@ -28,7 +28,7 @@ class CoreCriticalException(Exception):
     pass
 
 
-def core_select_lib(category, llist, create_instance=False):
+def core_select_lib(category, llist, create_instance=False, base='kivy.core'):
     if 'KIVY_DOC' in os.environ:
         return
     category = category.lower()
@@ -36,15 +36,18 @@ def core_select_lib(category, llist, create_instance=False):
     for option, modulename, classname in llist:
         try:
             # module activated in config ?
-            if option not in kivy.kivy_options[category]:
-                libs_ignored.append(modulename)
-                Logger.debug('{0}: Provider <{1}> ignored by config'.format(
-                    category.capitalize(), option))
-                continue
+            try:
+                if option not in kivy.kivy_options[category]:
+                    libs_ignored.append(modulename)
+                    Logger.debug('{0}: Provider <{1}> ignored by config'.format(
+                        category.capitalize(), option))
+                    continue
+            except KeyError:
+                pass
 
             # import module
-            mod = __import__(name='kivy.core.{0}.{1}'.format(
-                category, modulename),
+            mod = __import__(name='{2}.{0}.{1}'.format(
+                category, modulename, base),
                 globals=globals(),
                 locals=locals(),
                 fromlist=[modulename], level=0)
@@ -83,7 +86,7 @@ def core_select_lib(category, llist, create_instance=False):
         category.capitalize(), category.capitalize()))
 
 
-def core_register_libs(category, libs):
+def core_register_libs(category, libs, base='kivy.core'):
     if 'KIVY_DOC' in os.environ:
         return
     category = category.lower()
@@ -99,7 +102,7 @@ def core_register_libs(category, libs):
                 continue
 
             # import module
-            __import__(name='kivy.core.{0}.{1}'.format(category, lib),
+            __import__(name='{2}.{0}.{1}'.format(category, lib, base),
                         globals=globals(),
                         locals=locals(),
                         fromlist=[lib],
