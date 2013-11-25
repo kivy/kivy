@@ -453,6 +453,7 @@ class TextInput(Widget):
         '''
         if self.readonly:
             return
+        self._hide_handles(self._win)
 
         if not from_undo and self.multiline and self.auto_indent \
                 and substring == u'\n':
@@ -739,6 +740,7 @@ class TextInput(Widget):
         '''
         if self.readonly:
             return
+        self._hide_handles(self._win)
         scrl_x = self.scroll_x
         scrl_y = self.scroll_y
         cc, cr = self.cursor
@@ -1776,9 +1778,9 @@ class TextInput(Widget):
                 self.focus = False
             return True
 
-        self._hide_handles(self._win)
-        self._hide_cut_copy_paste()
         if text and not is_interesting_key:
+            self._hide_handles(self._win)
+            self._hide_cut_copy_paste()
             self._win.remove_widget(self._handle_middle)
             if is_shortcut:
                 if key == ord('x'):  # cut selection
