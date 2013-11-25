@@ -944,7 +944,7 @@ class TextInput(Widget):
         if self.selection_to != self.selection_from:
             self._show_cut_copy_paste(
                 (instance.x + ((1 if instance is self._handle_left else - 1)
-                               * self._bubble.width / 2),
+                               * self._bubble.width / 2) if self._bubble else 0,
                  instance.y + self.line_height), self._win)
 
     def _handle_move(self, instance, touch):
@@ -1774,8 +1774,9 @@ class TextInput(Widget):
                 self.focus = False
             return True
 
+        self._hide_handles(self._win)
+        self._hide_cut_copy_paste()
         if text and not is_interesting_key:
-            self._hide_cut_copy_paste()
             self._win.remove_widget(self._handle_middle)
             if is_shortcut:
                 if key == ord('x'):  # cut selection
