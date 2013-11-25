@@ -925,10 +925,11 @@ class TextInput(Widget):
                 self._hide_handles()
                 handle_middle = self._handle_middle
                 if handle_middle is None:
+                    lh = self.line_height
                     self._handle_middle = handle_middle = Selector(
                         source=self.handle_image_middle,
                         size_hint=(None, None),
-                        size=('32dp', '32dp'))
+                        size=('45dp', '45dp'))
                     handle_middle.bind(on_press=self._handle_pressed,
                         on_touch_move=self._handle_move,
                         on_release=self._handle_released)
@@ -953,7 +954,7 @@ class TextInput(Widget):
         handle_left = self._handle_left
         handle_middle = self._handle_middle
 
-        cursor = get_cursor(touch.x, touch.y + (instance.height / 2))
+        cursor = get_cursor(touch.x, touch.y + (instance.height))
 
         if instance != touch.grab_current:
             return
@@ -990,7 +991,7 @@ class TextInput(Widget):
             hp_left = group[2].pos
             handle_left.pos = self.to_window(*hp_left)
             handle_left.x -= handle_left.width
-            handle_left.y -= lh
+            handle_left.y -= handle_left.height
 
         #if mode[0] in ('b', 'r'):
             handle_right = self._handle_right
@@ -998,7 +999,7 @@ class TextInput(Widget):
             hp_right = last_rect.pos[0], last_rect.pos[1]
             handle_right.pos = self.to_window(*hp_right)
             handle_right.x += last_rect.size[0]
-            handle_right.y -= lh
+            handle_right.y -= handle_right.height
 
     def _hide_handles(self, win=None):
         win = win or self._win
@@ -1023,18 +1024,19 @@ class TextInput(Widget):
             return
         handle_right = self._handle_right
         handle_left = self._handle_left
+        lh = self.line_height
         if self._handle_left is None:
             self._handle_left = handle_left = Selector(
                 source=self.handle_image_left,
                 size_hint=(None, None),
-                size=('32dp', '32dp'))
+                size=('45dp', '45dp'))
             handle_left.bind(on_press=self._handle_pressed,
                              on_touch_move=self._handle_move,
                              on_release=self._handle_released)
             self._handle_right = handle_right = Selector(
                 source=self.handle_image_right,
                 size_hint=(None, None),
-                size=('32dp', '32dp'))
+                size=('45dp', '45dp'))
             handle_right.bind(on_press=self._handle_pressed,
                              on_touch_move=self._handle_move,
                              on_release=self._handle_released)
@@ -2405,7 +2407,8 @@ if __name__ == '__main__':
 
         def build(self):
             root = BoxLayout(orientation='vertical')
-            textinput = TextInput(multiline=True, use_bubble=True)
+            textinput = TextInput(multiline=True, use_bubble=True,
+                                  use_handles=True)
             textinput.text = __doc__
             root.add_widget(textinput)
             textinput2 = TextInput(text='monoline textinput',
