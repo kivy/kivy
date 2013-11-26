@@ -118,7 +118,7 @@ not be threadsafe because the external references to them in the python
 interpreter do not go through InteractiveLauncher's membrane behavior, inherited
 from :class:`SafeMembrane`.
 
-To threadsafe these external referencess, simply assign them to
+To threadsafe these external references, simply assign them to
 :class:`SafeMembrane` instances of themselves like so::
 
     from kivy.interactive import SafeMembrane
