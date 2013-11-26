@@ -52,8 +52,8 @@ def minimum_bounding_circle(points):
     '''
     Returns the minimum bounding circle for a set of points.
 
-    For a description of the problem being solved, see:
-        http://en.wikipedia.org/wiki/Smallest_circle_problem
+    For a description of the problem being solved, see the `Smallest Circle
+    Problem <http://en.wikipedia.org/wiki/Smallest_circle_problem>`_.
 
     The function uses Applet's Algorithm, the runtime is O\(h^3, \*n\),
     where h is the number of points in the convex hull of the set of points.
