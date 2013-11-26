@@ -225,7 +225,7 @@ class ColoredFormatter(logging.Formatter):
         self.use_color = use_color
 
     def format(self, record):
-        # XXX Hack to not show the fucking traceback for Numeric handler
+        # XXX Hack to not show the traceback for Numeric handler
         # Lot of people are complaining with that. Now we did.
         if 'Unable to load registered array format handler' in record.msg:
             if record.args and record.args[0] == 'numeric':
