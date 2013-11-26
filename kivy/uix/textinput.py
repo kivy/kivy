@@ -308,6 +308,7 @@ class TextInput(Widget):
         self._keyboard_mode = Config.get('kivy', 'keyboard_mode')
         self.reset_undo()
         self._touch_count = 0
+        self._has_focus = False
         self.interesting_keys = {
             8: 'backspace',
             13: 'enter',
@@ -1127,30 +1128,42 @@ class TextInput(Widget):
                     self._keyboard_mode == 'system'))
 
         if value:
-            keyboard = win.request_keyboard(
-                self._keyboard_released, self, input_type=self.input_type)
-            self._keyboard = keyboard
-            if editable:
-                keyboard.bind(
-                    on_key_down=self._keyboard_on_key_down,
-                    on_key_up=self._keyboard_on_key_up)
-                Clock.schedule_interval(self._do_blink_cursor, 1 / 2.)
-            else:
-                # in non-editable mode, we still want shortcut (as copy)
-                keyboard.bind(
-                    on_key_down=self._keyboard_on_key_down)
+            if not self._has_focus:
+                self._has_focus = True
+                self.escape_pressed = False
+                keyboard = win.request_keyboard(
+                    self._keyboard_released, self, input_type=self.input_type)
+                self._keyboard = keyboard
+                if editable:
+                    keyboard.bind(
+                        on_key_down=self._keyboard_on_key_down,
+                        on_key_up=self._keyboard_on_key_up)
+                    Clock.schedule_interval(self._do_blink_cursor, 1 / 2.)
+                else:
+                    # in non-editable mode, we still want shortcut (as copy)
+                    keyboard.bind(
+                        on_key_down=self._keyboard_on_key_down)
+                self._has_focus = True
         else:
             if self._keyboard:
-                keyboard = self._keyboard
-                keyboard.unbind(
-                    on_key_down=self._keyboard_on_key_down,
-                    on_key_up=self._keyboard_on_key_up)
-                keyboard.release()
-                self._keyboard = None
-            self.cancel_selection()
-            Clock.unschedule(self._do_blink_cursor)
-            self._hide_cut_copy_paste(win)
-            self._win = None
+                if self.hide_on_lose_focus:
+                    self._unbind_keyboard()
+
+    def _unbind_keyboard(self):
+        self._has_focus = False
+        self.focus = False
+        if self._keyboard:
+            keyboard = self._keyboard
+            keyboard.unbind(
+                on_key_down=self._keyboard_on_key_down,
+                on_key_up=self._keyboard_on_key_up)
+            keyboard.release()
+            self._keyboard = None
+        self.cancel_selection()
+        Clock.unschedule(self._do_blink_cursor)
+        win = self._win
+        self._hide_cut_copy_paste(win)
+        self._win = None
 
     def on_readonly(self, instance, value):
         if not value:
@@ -1781,6 +1794,8 @@ class TextInput(Widget):
 
         if key == 27:  # escape
             self.focus = False
+            self.escape_pressed = True
+            self._unbind_keyboard()
             return True
         elif key == 9:  # tab
             self.insert_text(u'\t')
@@ -2368,6 +2383,25 @@ class TextInput(Widget):
     def on_handle_image_right(self, instance, value):
         if self._handle_right:
             self._handle_right.source = value
+
+    hide_on_lose_focus = BooleanProperty(True)  # Set this in KV lang to make the keyboard sticky
+    '''Set to make the keyboard "Sticky" - the TextInput will not release the keyboard when focus is lost unless
+    escape key is pressed
+
+    .. versionadded: 1.8.0
+
+    :data:`hide_on_lose_focus` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True
+    '''
+
+    escape_pressed = BooleanProperty(False)  # Bindable property to identify when the keyboard is not visible.
+    '''Fired when the escape key is pressed to detect visibility change of keyboard
+
+    .. versionadded: 1.8.0
+
+    :data:`escape_pressed` is a :class:`~kivy.properties.BooleanProperty`,
+    default to False
+    '''
 
 if __name__ == '__main__':
     from kivy.app import App
