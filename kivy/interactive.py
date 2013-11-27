@@ -100,8 +100,10 @@ functions that need the screen to update etc.
 
 .. note::
 
-    The pausing is implemented via :meth:`kivy.clock.Clock.schedule_once` and
-    occurs before the start of each frame.
+    The pausing is implemented via the 
+    :class:`Clocks' <kivy.clock.Clock>`
+    :meth:`~kivy.clock.ClockBase.schedule_once` method
+    and occurs before the start of each frame.
 
 Adding Attributes Dynamically
 -----------------------------
