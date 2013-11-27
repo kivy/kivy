@@ -177,7 +177,10 @@ if 'KIVY_DOC' not in environ:
 
 class Selector(ButtonBehavior, Image):
     # Internal class for managing the selection Handles.
-    pass
+
+    def on_touch_down(self, touch):
+        self._touch_diff = self.top - touch.y
+        return super(Selector, self).on_touch_down(touch)
 
 
 class TextInputCutCopyPaste(Bubble):
@@ -945,6 +948,7 @@ class TextInput(Widget):
 
     def _handle_released(self, instance):
         if self.selection_to != self.selection_from:
+            self._update_selection()
             self._show_cut_copy_paste(
                 (instance.x + ((1 if instance is self._handle_left else - 1)
                                * self._bubble.width / 2) if self._bubble else 0,
@@ -956,7 +960,7 @@ class TextInput(Widget):
         handle_left = self._handle_left
         handle_middle = self._handle_middle
 
-        cursor = get_cursor(touch.x, touch.y + (instance.height))
+        cursor = get_cursor(touch.x, touch.y + instance._touch_diff)
 
         if instance != touch.grab_current:
             return
