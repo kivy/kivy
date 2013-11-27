@@ -9,14 +9,15 @@ interactions. You could compare this language to Qt's QML
 
 .. versionchanged:: 1.7.0
 
-    The Builder doesn't execute canvas expression in realtime anymore. It will
-    pack all the expressions that need to be executed first, and execute them
-    after dispatching input, and just before drawing the frame. If you want to
-    force the execution of canvas drawing, just call :meth:`Builder.sync`.
+    The Builder doesn't execute canvas expressions in realtime anymore. It will
+    pack all the expressions that need to be executed first and execute them
+    after dispatching input, just before drawing the frame. If you want to
+    force the execution of canvas drawing, just call
+    :meth:`Builder.sync <BuilderBase.sync>`.
 
-    A experimental profiling tool of kv lang is also done, you can activate it
-    by setting the env `KIVY_PROFILE_LANG=1`. You will get an html file named
-    `builder_stats.html`.
+    An experimental profiling tool for the kv lang is also included. You can
+    activate it by setting the environment variable `KIVY_PROFILE_LANG=1`.
+    It will then generate an html file named `builder_stats.html`.
 
 Overview
 --------
@@ -29,7 +30,7 @@ The language consists of several constructs that you can use:
         certain way.
         You can use rules to specify interactive behaviour or use them to add
         graphical representations of the widgets they apply to.
-        You can target a specific class of widgets (similar to CSS'
+        You can target a specific class of widgets (similar to the CSS
         concept of a *class*) by using the ``cls`` attribute (e.g.
         ``cls=MyTestWidget``).
 
@@ -52,9 +53,9 @@ Syntax of a kv File
 
 A Kivy language file must have ``.kv`` as filename extension.
 
-The content of the file must always start with the Kivy header, where `version`
-must be replaced with the Kivy language version you're using. For now, use
-1.0::
+The content of the file should always start with the Kivy header, where
+`version` must be replaced with the Kivy language version you're using. For now,
+use 1.0::
 
     #:kivy `version`
 
@@ -63,7 +64,7 @@ must be replaced with the Kivy language version you're using. For now, use
 The `content` can contain rule definitions, a root widget and templates::
 
     # Syntax of a rule definition. Note that several Rules can share the same
-    # definition (as in CSS). Note the braces; They are part of the definition.
+    # definition (as in CSS). Note the braces: they are part of the definition.
     <Rule1,Rule2>:
         # .. definitions ..
 
@@ -81,7 +82,7 @@ The `content` can contain rule definitions, a root widget and templates::
 Regardless of whether it's a rule, root widget or template you're defining,
 the definition should look like this::
 
-    # With the braces it's a rule; Without them it's a root widget.
+    # With the braces it's a rule. Without them, it's a root widget.
     <ClassName>:
         prop1: value1
         prop2: value2
@@ -105,9 +106,9 @@ instance.
 
 - The indentation is important and must be consistent. The spacing must be a
   multiple of the number of spaces used on the first indented line. Spaces
-  are encouraged; mixing tabs and spaces is not recommended.
+  are encouraged: mixing tabs and spaces is not recommended.
 - The value of a property must be given on a single line (for now at least).
-- The `canvas` property is special: You can put graphics instructions in it
+- The `canvas` property is special: you can put graphics instructions in it
   to create a graphical representation of the current class.
 
 
