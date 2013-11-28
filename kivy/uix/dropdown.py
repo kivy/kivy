@@ -147,6 +147,17 @@ class DropDown(ScrollView):
     and defaults to True.
     '''
 
+    auto_dismiss = BooleanProperty(True)
+    '''By default, the dropdown will be automatically dismissed when a
+    touch happens outside of it, this option allow to disable this
+    feature
+
+    :data:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True.
+
+    .. versionadded:: 1.8.0
+    '''
+
     attach_to = ObjectProperty(allownone=True)
     '''(internal) Property that will be set to the widget to which the drop down
     list is attached.
@@ -252,14 +263,16 @@ class DropDown(ScrollView):
             return True
         if self.collide_point(*touch.pos):
             return True
-        self.dismiss()
+        if self.auto_dismiss:
+            self.dismiss()
 
     def on_touch_up(self, touch):
         if super(DropDown, self).on_touch_up(touch):
             return True
         if 'button' in touch.profile and touch.button.startswith('scroll'):
             return
-        self.dismiss()
+        if self.auto_dismiss:
+            self.dismiss()
 
     def _reposition(self, *largs):
         # calculate the coordinate of the attached widget in the window
