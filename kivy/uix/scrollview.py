@@ -278,6 +278,24 @@ class ScrollView(StencilView):
     to 2
     '''
 
+    bar_side_x = OptionProperty('bottom', options=('top', 'bottom'))
+    '''Which side of the ScrollView the horizontal scroll bar should go
+    on. Possible values are 'top' and 'bottom'.
+
+    :data:`bar_side_x` is na :class:`~kivy.properties.OptionProperty`,
+    default to 'bottom'
+
+    '''
+
+    bar_side_y = OptionProperty('right', options=('left', 'right'))
+    '''Which side of the ScrollView the vertical scroll bar should go
+    on. Possible values are 'left' and 'right'.
+
+    :data:`bar_side_y` is an :class:`~kivy.properties.OptionProperty`,
+    default to 'right'
+
+    '''
+
     bar_margin = NumericProperty(0)
     '''Margin between the bottom / right side of the scrollview when drawing
     the horizontal / vertical scroll bar.
@@ -489,13 +507,20 @@ class ScrollView(StencilView):
             'user_stopped': False,
             'time': touch.time_start}
         if self.do_scroll_x and self.effect_x:
-            if scroll_type[0] == 'b' and touch.y < self.bar_width:
+            if (scroll_type[0] == 'b' and
+                (self.bar_side_x == 'bottom' and touch.y < self.bar_width) or
+                (self.bar_side_x == 'top' and
+                 touch.y > self.height - self.bar_width)):
                 ud['in_bar_x'] = True
             else:
                 if scroll_type != 'bars':
                     self.effect_x.start(touch.x)
         if self.do_scroll_y and self.effect_y:
-            if scroll_type[0] == 'b' and touch.x > self.right - self.bar_width:
+            if (scroll_type[0] == 'b' and
+                (self.bar_side_y == 'right' and
+                 touch.x > self.right - self.bar_width) or
+                (self.bar_side_y == 'left' and
+                 touch.x < self.x + self.bar_width)):
                 ud['in_bar_y'] = True
             else:
                 if scroll_type != 'bars':
