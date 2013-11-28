@@ -281,8 +281,10 @@ class ScrollView(StencilView):
     bar_side_x = OptionProperty('bottom', options=('top', 'bottom'))
     '''Which side of the ScrollView the horizontal scroll bar should go
     on. Possible values are 'top' and 'bottom'.
+    
+    .. versionadded:: 1.8.0
 
-    :data:`bar_side_x` is na :class:`~kivy.properties.OptionProperty`,
+    :data:`bar_side_x` is an :class:`~kivy.properties.OptionProperty`,
     default to 'bottom'
 
     '''
@@ -290,6 +292,8 @@ class ScrollView(StencilView):
     bar_side_y = OptionProperty('right', options=('left', 'right'))
     '''Which side of the ScrollView the vertical scroll bar should go
     on. Possible values are 'left' and 'right'.
+    
+    .. versionadded:: 1.8.0
 
     :data:`bar_side_y` is an :class:`~kivy.properties.OptionProperty`,
     default to 'right'
