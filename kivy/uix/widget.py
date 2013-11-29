@@ -92,6 +92,8 @@ from kivy.context import get_current_context
 from weakref import proxy
 from functools import partial
 
+from kivy.graphics import Fbo, ClearColor, ClearBuffers
+from kivy.clock import Clock
 
 # references to all the destructors widgets (partial method with widget uid as
 # key.)
@@ -462,6 +464,52 @@ class Widget(WidgetBase):
             return (x - self.x, y - self.y)
         return (x, y)
 
+    def save_image(self, filename):
+        '''Saves an image of the widget and its children in png format at the
+        specified filename. Works by removing the widget canvas from
+        its parent, rendering to a :class:`~kivy.graphics.gbo.Fbo`
+        texture, and calling :meth:`~kivy.graphics.texture.Texture.save`.
+
+        .. Note:: The resulting image will not include the background
+            of any parent or other widget(s). If you want to include
+            them in the picture, you must save an image of theirIf you
+            want to include them in the picture, you must save an
+            image of their common parent.
+
+        .. warning::
+            Taking a screenshot may cause mess up canvas ordering.
+
+        .. versionadded:: 1.8.0
+
+        '''
+
+        self.parent.canvas.remove(self.canvas)
+        self.real_pos = self.pos
+        self.pos = (0, 0)
+
+        self.fbo = fbo = Fbo(size=self.size)
+        with fbo:
+            ClearColor(0, 0, 0, 1)
+            ClearBuffers()
+        fbo.add(self.canvas)
+
+        self.parent.canvas.add(fbo)
+
+        Clock.schedule_once(partial(self.finish_saving, filename), 0)
+
+    def finish_saving(self, filename, *args):
+        fbo = self.fbo
+        fbo.texture.save(filename)
+        self.parent.canvas.remove(fbo)
+
+        fbo.remove(self.canvas)
+        self.pos = self.real_pos
+        self.parent.canvas.add(self.canvas)
+        try:
+            self.parent.do_layout()
+        except AttributeError:
+            pass
+
     x = NumericProperty(0)
     '''X position of the widget.
 
@@ -479,7 +527,7 @@ class Widget(WidgetBase):
 
     :data:`width` is a :class:`~kivy.properties.NumericProperty` ans defaults
     to 100.
-    
+
     .. warning::
         Keep in mind that the `width` property is subject to layout logic and
         that this has not yet happened at the time of the widget's `__init__`
