@@ -925,7 +925,6 @@ class TextInput(Widget):
             win = self._win
             if self._selection_to != self._selection_from:
                 self._show_cut_copy_paste(touch.pos, win)
-                self._show_handles(win)
             elif self.use_handles:
                 self._hide_handles()
                 handle_middle = self._handle_middle
@@ -955,12 +954,15 @@ class TextInput(Widget):
                  instance.y + self.line_height), self._win)
 
     def _handle_move(self, instance, touch):
+        if touch.grab_current != instance:
+            return
         get_cursor = self.get_cursor_from_xy
         handle_right = self._handle_right
         handle_left = self._handle_left
         handle_middle = self._handle_middle
 
-        cursor = get_cursor(touch.x, touch.y + instance._touch_diff)
+        cursor = get_cursor(
+            touch.x, touch.y + instance._touch_diff + (self.line_height / 2))
 
         if instance != touch.grab_current:
             return
@@ -971,12 +973,10 @@ class TextInput(Widget):
             return
         if instance == handle_left:
             self._selection_from = self.cursor_index(cursor=cursor)
-            self._position_handles('left')
         elif instance == handle_right:
-            # handle right
             self._selection_to = self.cursor_index(cursor=cursor)
-            self._position_handles('right')
         self._trigger_update_graphics()
+        Clock.schedule_once(lambda dt: self._position_handles())
 
     def _position_handles(self, mode='both'):
         group = self.canvas.get_group('selection')
@@ -1052,7 +1052,7 @@ class TextInput(Widget):
             if not self.parent:
                 return
 
-        self._position_handles()
+        Clock.schedule_once(lambda dt: self._position_handles())
         if self.selection_from != self.selection_to:
             self._handle_left.opacity = self._handle_right.opacity = 0
             win.add_widget(self._handle_left)
@@ -2213,6 +2213,10 @@ class TextInput(Widget):
     :data:`selection_text` is a :class:`~kivy.properties.StringProperty`
     and defaults to '', readonly.
     '''
+
+    def on_selection_text(self, instance, value):
+        if value:
+            self._show_handles(self._win)
 
     focus = BooleanProperty(False)
     '''If focus is True, the keyboard will be requested and you can start
