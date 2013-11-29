@@ -40,16 +40,16 @@ devices = {
     # device: (name, width, height, dpi, density)
     'onex': ('HTC One X', 1280, 720, 312, 2),
     'one': ('HTC One', 1920, 1080, 468, 3),
-    'onesv': ('HTC One SV', 480, 800, 216, 1.5),
+    'onesv': ('HTC One SV', 800, 480, 216, 1.5),
     's3': ('Galaxy SIII', 1280, 720, 306, 2),
     'note2': ('Galaxy Note II', 1280, 720, 267, 2),
     'droid2': ('Motolora Droid 2', 854, 480, 240, 1.5),
     'xoom': ('Motolora Xoom', 1280, 800, 149, 1),
     'ipad': ('iPad (1 and 2)', 1024, 768, 132, 1),
     'ipad3': ('iPad 3', 2048, 1536, 264, 2),
-    'iphone4': ('iPhone 4', 640, 960, 326, 2),
-    'iphone5': ('iPhone 5', 640, 1136, 326, 2),
-    'xperiae': ('Xperia E', 320, 480, 166, 1),
+    'iphone4': ('iPhone 4', 960, 640, 326, 2),
+    'iphone5': ('iPhone 5', 1136, 640, 326, 2),
+    'xperiae': ('Xperia E', 480, 320, 166, 1),
     'nexus4': ('Nexus 4', 1280, 768, 320, 2),
     'nexus7': ('Nexus 7 (2012 version)', 1280, 800, 216, 1.325),
     'nexus7.2': ('Nexus 7 (2013 version)', 1920, 1200, 323, 2),
@@ -118,4 +118,8 @@ def configure(ctx):
     if device not in devices:
         return usage('')
     apply_device(device, scale, orientation)
+
+if __name__ == "__main__":
+    for n in devices.values():
+        assert n[1] > n[2]
 
