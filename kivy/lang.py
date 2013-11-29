@@ -180,8 +180,9 @@ Relation Between Values and Properties
 
 When you use the Kivy language, you might notice that we do some work
 behind the scenes to automatically make things work properly. You should
-know that :doc:`api-kivy.properties` implement the *observer* software
-design pattern: That means that you can bind your own function to be
+know that :doc:`api-kivy.properties` implement the
+`Observer Design Pattern <http://en.wikipedia.org/wiki/Observer_pattern>`_.
+That means that you can bind your own function to be
 called when the value of a property changes (i.e. you passively
 `observe` the property for potential changes).
 
@@ -218,8 +219,8 @@ change to 'Release me!'.
 Graphical Instructions
 ----------------------
 
-The graphical instructions are a special part of the Kivy language. This
-concerns the 'canvas' property definition::
+The graphical instructions are a special part of the Kivy language. They are
+handled by the 'canvas' property definition::
 
     Widget:
         canvas:
@@ -234,12 +235,12 @@ All the classes added inside the canvas property must be derived from the
 inside the canvas property (as that would not make sense because a
 widget is not a graphics instruction).
 
-If you want to do theming, you'll have the same question as in CSS: You don't
-know which rules have been executed before. In our case, the rules are executed
+If you want to do theming, you'll have the same question as in CSS: which rules
+have been executed first? In our case, the rules are executed
 in processing order (i.e. top-down).
 
 If you want to change how Buttons are rendered, you can create your own kv file
-and put something like this::
+and add something like this::
 
     <Button>:
         canvas:
@@ -253,7 +254,7 @@ and put something like this::
                 size: self.texture_size
                 texture: self.texture
 
-This will result in buttons having a red background, with the label in the
+This will result in buttons having a red background with the label in the
 bottom left, in addition to all the preceding rules.
 You can clear all the previous instructions by using the `Clear` command::
 
