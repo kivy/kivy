@@ -60,7 +60,10 @@ from kivy import kivy_home_dir
 garden_system_dir = join(kivy_home_dir, 'garden')
 
 #: application path where garden modules can be installed
-garden_app_dir = join(realpath(dirname(sys.argv[0])), 'libs', 'garden')
+if getattr(sys, 'frozen', False) and getattr(sys, '_MEIPASS', False):
+    garden_app_dir = join(realpath(sys._MEIPASS), 'libs', 'garden')
+else:
+    garden_app_dir = join(realpath(dirname(sys.argv[0])), 'libs', 'garden')
 
 
 class GardenImporter(object):
