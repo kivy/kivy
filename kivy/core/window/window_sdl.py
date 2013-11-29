@@ -23,9 +23,9 @@ from kivy.input.motionevent import MotionEvent
 from collections import deque
 
 # When we are generating documentation, Config doesn't exist
-_exit_on_escape = True
+_exit_on_escape = lambda: True
 if Config:
-    _exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
+    _exit_on_escape = lambda: Config.getboolean('kivy', 'exit_on_escape')
 
 
 class SDLMotionEvent(MotionEvent):
@@ -290,8 +290,8 @@ class WindowSDL(WindowBase):
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
         is_osx = sys.platform == 'darwin'
-        if _exit_on_escape and (key == 27 or (is_osx and key in (113, 119) and
-                                              modifier == 1024)):
+        if ((key == 27 or (is_osx and key in (113, 119) and modifier == 1024))
+        and _exit_on_escape()):
             stopTouchApp()
             self.close()  # not sure what to do here
             return True
