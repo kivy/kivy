@@ -869,9 +869,9 @@ class Settings(BoxLayout):
 
     __events__ = ('on_close', 'on_config_change')
 
-    def __init__(self, *args):
+    def __init__(self, *args, **kargs):
         self._types = {}
-        super(Settings, self).__init__(*args)
+        super(Settings, self).__init__(*args, **kargs)
         self.add_interface()
         self.register_type('string', SettingString)
         self.register_type('bool', SettingBoolean)
