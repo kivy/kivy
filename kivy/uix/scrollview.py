@@ -300,6 +300,24 @@ class ScrollView(StencilView):
 
     '''
 
+    def _get_bar_side(self):
+        return (self.bar_side_x, self.bar_side_y)
+
+    def _set_bar_side(self, value):
+        if type(value) in (list, tuple):
+            self.bar_side_x, self.bar_side_y = value
+        else:
+            raise TypeError("Can't use {} for bar_side".format(value))
+
+    bar_side = AliasProperty(
+        _get_bar_side, _set_bar_side,
+        bind=('bar_side_x', 'bar_side_y'))
+    '''Which side of the scroll view to place each of the bars on.
+
+    :data:`bar_side` is a :class:`~kivy.properties.AliasProperty` of
+    (:data:`bar_side_x`, :data:`bar_side_y`)
+    '''
+
     bar_margin = NumericProperty(0)
     '''Margin between the bottom / right side of the scrollview when drawing
     the horizontal / vertical scroll bar.
