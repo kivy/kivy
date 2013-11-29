@@ -281,8 +281,8 @@ Dynamic classes
 
 Dynamic classes allow you to create new widgets on-the-fly, without any python
 declaration in the first place. The syntax of the dynamic classes is similar to
-the Rules, but you need to specify what are the bases classes you want to
-subclasses.
+the Rules, but you need to specify the base classes you want to
+subclass.
 
 The syntax look like:
 
@@ -290,14 +290,14 @@ The syntax look like:
 
     # Simple inheritance
     <NewWidget@Button>:
-        ...
+        # kv code here ...
 
     # Multiple inheritance
     <NewWidget@ButtonBehavior+Label>:
-        ...
+        # kv code here ...
 
-The `@` character is used to seperate the name from the classes you want to
-subclass. The Python equivalent would have been:
+The `@` character is used to seperate your class name from the classes you want
+to subclass. The Python equivalent would have been:
 
 .. code-block:: python
 
@@ -310,12 +310,12 @@ subclass. The Python equivalent would have been:
         pass
 
 Any new properties, usually added in python code, should be declared first.
-If the property doesn't exist in the dynamic classes, it will be automatically
+If the property doesn't exist in the dynamic class, it will be automatically
 created as an :class:`~kivy.properties.ObjectProperty`.
 
 Let's illustrate the usage of theses dynamic classes with an implementation of a
-basic Image button. We could derivate our classes from the Button, we just need
-to add a property for the image filename:
+basic Image button. We could derive our classes from the Button and just
+add a property for the image filename:
 
 .. code-block:: kv
 
@@ -337,7 +337,7 @@ to add a property for the image filename:
                 source: 'world.png'
                 on_press: root.do_something_else()
 
-In Python you can create an instance of the dynamic class by:
+In Python, you can create an instance of the dynamic class as follows:
 
 .. code-block:: python
 
@@ -352,15 +352,15 @@ Templates
 
 .. versionchanged:: 1.7.0
 
-    The template usage are now deprecated, please use Dynamic classes instead.
+    Template usage is now deprecated. Please use Dynamic classes instead.
 
-Syntax of template
-~~~~~~~~~~~~~~~~~~
+Syntax of templates
+~~~~~~~~~~~~~~~~~~~
 
-Using a template in Kivy require 2 things :
+Using a template in Kivy requires 2 things :
 
-    #. a context to pass for the context (will be ctx inside template)
-    #. a kv definition of the template
+    #. a context to pass for the context (will be ctx inside template).
+    #. a kv definition of the template.
 
 Syntax of a template:
 
@@ -376,8 +376,8 @@ Syntax of a template:
 
 For example, for a list, you'll need to create a entry with a image on
 the left, and a label on the right. You can create a template for making
-that definition more easy to use.
-So, we'll create a template that require 2 entry in the context: a image
+that definition easier to use.
+So, we'll create a template that uses 2 entries in the context: an image
 filename and a title:
 
 .. code-block:: kv
@@ -388,7 +388,7 @@ filename and a title:
         Label:
             text: ctx.title
 
-Then in Python, you can create instanciate the template with:
+Then in Python, you can instanciate the template using:
 
 .. code-block:: python
 
@@ -400,7 +400,7 @@ Then in Python, you can create instanciate the template with:
     icon1 = Builder.template('IconItem', title='Hello world',
         image='myimage.png')
 
-    # create a second template with another information
+    # create a second template with other information
     ctx = {'title': 'Another hello world',
            'image': 'myimage2.png'}
     icon2 = Builder.template('IconItem', **ctx)
