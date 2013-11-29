@@ -495,9 +495,14 @@ class Widget(WidgetBase):
 
         self.parent.canvas.add(fbo)
 
-        Clock.schedule_once(partial(self.finish_saving, filename), 0)
+        Clock.schedule_once(partial(self._finish_saving, filename), 0)
 
-    def finish_saving(self, filename, *args):
+    def _finish_saving(self, filename, *args):
+        '''(internal) Removes the image saving framebuffer, and gives
+        self.canvas back to self.parent so normal rendering can
+        proceed.
+
+        '''
         fbo = self.fbo
         fbo.texture.save(filename)
         self.parent.canvas.remove(fbo)
