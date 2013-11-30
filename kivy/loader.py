@@ -4,12 +4,12 @@ Asynchronous data loader
 
 This is the Asynchronous Loader. You can use it to load an image
 and use it, even if data are not yet available. You must specify a default
-loading image for using a such loader::
+loading image when using the loader::
 
-    from kivy import *
+    from kivy.loader import Loader
     image = Loader.image('mysprite.png')
 
-You can also load image from url::
+You can also load an image from a url::
 
     image = Loader.image('http://mysite.com/test.png')
 
@@ -22,12 +22,12 @@ Tweaking the asynchronous loader
 
 .. versionadded:: 1.6.0
 
-You can now tweak the loader to have a better user experience or more
-performance, depending of the images you're gonna to load. Take a look at the
+You can tweak the loader to provide a better user experience or more
+performance, depending of the images you are going to load. Take a look at the
 parameters:
 
 - :data:`Loader.num_workers` - define the number of threads to start for
-  loading images
+  loading images.
 - :data:`Loader.max_upload_per_frame` - define the maximum image uploads in
   GPU to do per frames.
 
@@ -56,12 +56,12 @@ class ProxyImage(Image):
     '''Image returned by the Loader.image() function.
 
     :Properties:
-        `loaded`: bool, default to False
-            It can be True if the image is already cached
+        `loaded`: bool, defaults to False
+            This value may be True if the image is already cached.
 
     :Events:
         `on_load`
-            Fired when the image is loaded and changed
+            Fired when the image is loaded or changed.
     '''
 
     __events__ = ('on_load', )
@@ -76,8 +76,8 @@ class ProxyImage(Image):
 
 
 class LoaderBase(object):
-    '''Common base for Loader and specific implementation.
-    By default, Loader will be the best available loader implementation.
+    '''Common base for the Loader and specific implementations.
+    By default, the Loader will be the best available loader implementation.
 
     The _update() function is called every 1 / 25.s or each frame if we have
     less than 25 FPS.
@@ -113,9 +113,9 @@ class LoaderBase(object):
         return self._num_workers
 
     num_workers = property(_get_num_workers, _set_num_workers)
-    '''Number of workers to use while loading. (used only if the loader
-    implementation support it.). This setting impact the loader only at the
-    beginning. Once the loader is started, the setting has no impact::
+    '''Number of workers to use while loading (used only if the loader
+    implementation supports it). This setting impacts the loader only on
+    initialization. Once the loader is started, the setting has no impact::
 
         from kivy.loader import Loader
         Loader.num_workers = 4
@@ -124,7 +124,7 @@ class LoaderBase(object):
     increase the number of workers, then all the images will be loaded faster,
     but the user will not been able to use the application while loading.
     Prior to 1.6.0, the default number was 20, and loading many full-hd images
-    was blocking completly the application.
+    was completly blocking the application.
 
     .. versionadded:: 1.6.0
     '''
