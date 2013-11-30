@@ -89,10 +89,10 @@ from kivy.graphics import Canvas, PushMatrix, PopMatrix, Translate, Rectangle
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
+from kivy.core.window import Window
+from kivy.graphics import Fbo, ClearColor, ClearBuffers
 from weakref import proxy
 from functools import partial
-
-from kivy.graphics import Fbo, ClearColor, ClearBuffers
 
 # references to all the destructors widgets (partial method with widget uid as
 # key.)
@@ -481,8 +481,9 @@ class Widget(WidgetBase):
 
         '''
 
-        canvas_parent_index = self.parent.canvas.index(self.canvas)
-        self.parent.canvas.remove(self.canvas)
+        if self.parent is not None:
+            canvas_parent_index = self.parent.canvas.index(self.canvas)
+            self.parent.canvas.remove(self.canvas)
 
         fbo = Fbo(size=self.size)
         with fbo:
@@ -496,15 +497,19 @@ class Widget(WidgetBase):
             PopMatrix()
         fbo.add(self.canvas)
 
-        self.parent.canvas.add(fbo)
+        Window.canvas.add(fbo)
 
         fbo.draw()
         fbo.texture.save(filename)
 
-        self.parent.canvas.remove(fbo)
+        Window.canvas.remove(fbo)
 
         fbo.remove(self.canvas)
-        self.parent.canvas.insert(canvas_parent_index, self.canvas)
+
+        if self.parent is not None:
+            self.parent.canvas.insert(canvas_parent_index, self.canvas)
+
+        return True
 
     x = NumericProperty(0)
     '''X position of the widget.
