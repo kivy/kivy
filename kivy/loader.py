@@ -29,7 +29,7 @@ parameters:
 - :data:`Loader.num_workers` - define the number of threads to start for
   loading images.
 - :data:`Loader.max_upload_per_frame` - define the maximum image uploads in
-  GPU to do per frames.
+  GPU to do per frame.
 
 '''
 
@@ -139,18 +139,18 @@ class LoaderBase(object):
 
     max_upload_per_frame = property(_get_max_upload_per_frame,
             _set_max_upload_per_frame)
-    '''Number of image to upload per frame. By default, we'll upload only 2
-    images in the GPU per frame. If you are uploading many tiny images, you can
-    easily increase this parameter to 10, or more.
-    If you are loading multiples Full-HD images, the upload time can be
-    consequent, and can stuck the application during the upload. If you want a
-    smooth experience, let the default.
+    '''The number of images to upload per frame. By default, we'll upload only 2
+    images to the GPU per frame. If you are uploading many small images, you can
+    easily increase this parameter to 10 or more.
+    If you are loading multiple full HD images, the upload time may have
+    consequences and block the application. If you want a
+    smooth experience, use the default.
 
-    As matter of fact, a Full-HD RGB image will take ~6MB in memory, so it will
-    take times. If you have activated mipmap=True too, then the GPU must
-    calculate the mipmap of this big images too, in real time. Then it can be
-    smart to reduce the :data:`max_upload_per_frame` to 1 or 2. If you get ride
-    of that (or reduce it a lot), take a look at the DDS format.
+    As a matter of fact, a Full-HD RGB image will take ~6MB in memory, so it may
+    take time. If you have activated mipmap=True too, then the GPU must
+    calculate the mipmap of these big images too, in real time. Then it may be
+    best to reduce the :data:`max_upload_per_frame` to 1 or 2. If you want to
+    get rid of that (or reduce it a lot), take a look at the DDS format.
 
     .. versionadded:: 1.6.0
     '''
@@ -201,7 +201,7 @@ class LoaderBase(object):
     '''
 
     def start(self):
-        '''Start the loader thread/process'''
+        '''Start the loader thread/process.'''
         self._running = True
 
     def run(self, *largs):
@@ -209,11 +209,11 @@ class LoaderBase(object):
         pass
 
     def stop(self):
-        '''Stop the loader thread/process'''
+        '''Stop the loader thread/process.'''
         self._running = False
 
     def pause(self):
-        '''Pause the loader, can be useful during interactions
+        '''Pause the loader, can be useful during interactions.
 
         .. versionadded:: 1.6.0
         '''
@@ -238,7 +238,7 @@ class LoaderBase(object):
     def _load(self, kwargs):
         '''(internal) Loading function, called by the thread.
         Will call _load_local() if the file is local,
-        or _load_urllib() if the file is on Internet
+        or _load_urllib() if the file is on Internet.
         '''
 
         while len(self._q_done) >= (
