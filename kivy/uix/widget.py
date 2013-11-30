@@ -467,7 +467,7 @@ class Widget(WidgetBase):
     def save_image(self, filename, *args):
         '''Saves an image of the widget and its children in png format at the
         specified filename. Works by removing the widget canvas from
-        its parent, rendering to a :class:`~kivy.graphics.gbo.Fbo`
+        its parent, rendering to an :class:`~kivy.graphics.fbo.Fbo`
         texture, and calling :meth:`~kivy.graphics.texture.Texture.save`.
 
         .. Note:: The image will not include the background
