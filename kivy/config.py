@@ -41,9 +41,8 @@ Available configuration tokens
         This option controls desktop OS specific features, such as enabling
         drag-able scroll-bar in scroll views, disabling of bubbles in
         TextInput etc. 0 is disabled, 1 is enabled.
-    `exit_on_escape`: int, 0 or 1
-        Enables exiting kivy when escape is pressed.
-        0 is disabled, 1 is enabled.
+    `exit_key`: string, 27
+        sets the key that exits the app, allows modifiers like ctrl-q or keycodes like 27
     `log_level`: string, one of |log_levels|
         Set the minimum log level to use.
     `log_dir`: string
@@ -200,7 +199,7 @@ Available configuration tokens
 
 .. versionchanged:: 1.8.0
     `systemanddock` and `systemandmulti` has been added as possible values for
-    `keyboard_mode` in the kivy section. `exit_on_escape` has been added to the
+    `keyboard_mode` in the kivy section. `exit_key` has been added to the
     kivy section.
 
 .. versionchanged:: 1.2.0
@@ -523,7 +522,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                 Config.set('widgets', 'scroll_timeout', '250')
 
         elif version == 9:
-            Config.setdefault('kivy', 'exit_on_escape', '1')
+            # Config.setdefault('kivy', 'exit_on_escape', '1') # TODO new version?
+            Config.setdefault('kivy', 'exit_key', '27') # TODO: add darwin-check to default to ctrl-q
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1

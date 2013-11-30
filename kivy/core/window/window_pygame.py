@@ -19,10 +19,25 @@ from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
 from kivy.utils import platform
 
+_exit_key = 27
+_exit_modifier = []
+
 # When we are generating documentation, Config doesn't exist
-_exit_on_escape = lambda: True
 if Config:
-    _exit_on_escape = lambda: Config.getboolean('kivy', 'exit_on_escape')
+    def _exit_parse(string):
+        string = string.split('-')
+        string, key = string[:-1], string[-1]
+        if len(key) == 1:
+            key = ord(key)
+        else:
+            key = int(key) # allow keycodes
+        return key, string
+    _exit_key, _exit_modifier = _exit_parse(Config.get('kivy', 'exit_key'))
+
+def _is_exit_code(key, scancode=None, codepoint=None, modifier=None, **kwargs):
+    global _exit_key, _exit_modifier
+    return key == _exit_key and modifier == _exit_modifier
+
 
 try:
     android = None
@@ -215,13 +230,9 @@ class WindowPygame(WindowBase):
         scancode=None, codepoint=None, modifier=None, **kwargs):
 
         codepoint = codepoint or kwargs.get('unicode')
-        # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
-        # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = platform == 'darwin'
-        if ((key == 27 or (is_osx and key in (113, 119) and modifier == 1024))
-        and _exit_on_escape()):
+        if _is_exit_code(key, scancode, codepoint, modifier):
             stopTouchApp()
-            self.close()  # not sure what to do here
+            self.close() # not sure what to do here
             return True
         super(WindowPygame, self).on_keyboard(key, scancode,
             codepoint=codepoint, modifier=modifier)
