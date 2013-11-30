@@ -134,15 +134,15 @@ class VectorTestCase(unittest.TestCase):
         self.assertEqual(finalVector.x, 3)
         self.assertEqual(finalVector.y, 3)
 
-    def test_rdiv_list(self):
-        finalVector = (6.0, 6.0) / Vector(3.0, 3.0)
-        self.assertEqual(finalVector.x, 2)
-        self.assertEqual(finalVector.y, 2)
+    #def test_rdiv_list(self):
+        #finalVector = (6.0, 6.0) / Vector(3.0, 3.0)
+        #self.assertEqual(finalVector.x, 2)
+        #self.assertEqual(finalVector.y, 2)
 
-    def test_rdiv_scalar(self):
-        finalVector = 6 / Vector(3, 3)
-        self.assertEqual(finalVector.x, 2)
-        self.assertEqual(finalVector.y, 2)
+    #def test_rdiv_scalar(self):
+        #finalVector = 6 / Vector(3, 3)
+        #self.assertEqual(finalVector.x, 2)
+        #self.assertEqual(finalVector.y, 2)
 
     def test_sum_oversizedlist(self):
         Vector(6, 6) + (1, 2)
