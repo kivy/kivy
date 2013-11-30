@@ -85,7 +85,7 @@ from kivy.factory import Factory
 from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
                              ReferenceListProperty, ObjectProperty,
                              ListProperty, DictProperty, BooleanProperty)
-from kivy.graphics import Canvas, PushMatrix, PopMatrix, Translate
+from kivy.graphics import Canvas, PushMatrix, PopMatrix, Translate, Rectangle
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
@@ -464,7 +464,7 @@ class Widget(WidgetBase):
             return (x - self.x, y - self.y)
         return (x, y)
 
-    def save_image(self, filename):
+    def save_image(self, filename, *args):
         '''Saves an image of the widget and its children in png format at the
         specified filename. Works by removing the widget canvas from
         its parent, rendering to a :class:`~kivy.graphics.gbo.Fbo`
@@ -482,10 +482,10 @@ class Widget(WidgetBase):
 
         '''
 
-        self.canvas_parent_index = self.parent.canvas.index(self.canvas)
+        canvas_parent_index = self.parent.canvas.index(self.canvas)
         self.parent.canvas.remove(self.canvas)
 
-        self.fbo = fbo = Fbo(size=self.size)
+        fbo = Fbo(size=self.size)
         with fbo:
             ClearColor(0, 0, 0, 1)
             ClearBuffers()
@@ -497,27 +497,27 @@ class Widget(WidgetBase):
             PopMatrix()
         fbo.add(self.canvas)
 
-        self.parent.canvas.add(fbo)
-
-        Clock.schedule_once(partial(self._finish_saving, filename), 0)
-
-    def _finish_saving(self, filename, *args):
-        '''(internal) Removes the image saving framebuffer, and gives
-        self.canvas back to self.parent so normal rendering can
-        proceed.
-
-        '''
-        fbo = self.fbo
         fbo.texture.flip_vertical()
-        fbo.texture.save(filename)
+
+        fbo2 = Fbo(size=self.size)
+        with fbo2:
+            ClearColor(0, 0, 0, 1)
+            ClearBuffers()
+            Rectangle(size=self.size, texture=fbo.texture,
+                      tex_coords=fbo.texture.tex_coords)
+
+        self.parent.canvas.add(fbo)
+        self.parent.canvas.add(fbo2)
+
+        fbo.draw()
+        fbo2.draw()
+
+        fbo2.texture.save(filename)
         self.parent.canvas.remove(fbo)
+        self.parent.canvas.remove(fbo2)
 
         fbo.remove(self.canvas)
-        self.parent.canvas.insert(self.canvas_parent_index, self.canvas)
-        try:
-            self.parent.do_layout()
-        except AttributeError:
-            pass
+        self.parent.canvas.insert(canvas_parent_index, self.canvas)
 
     x = NumericProperty(0)
     '''X position of the widget.
