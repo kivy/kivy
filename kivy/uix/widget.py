@@ -93,7 +93,6 @@ from weakref import proxy
 from functools import partial
 
 from kivy.graphics import Fbo, ClearColor, ClearBuffers
-from kivy.clock import Clock
 
 # references to all the destructors widgets (partial method with widget uid as
 # key.)
