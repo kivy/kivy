@@ -478,9 +478,6 @@ class Widget(WidgetBase):
         .. Note:: The image will be saved in png format, you should
                   include the extension in your filename.
 
-        .. warning::
-            Taking a screenshot may cause mess up canvas ordering.
-
         .. versionadded:: 1.8.0
 
         '''
