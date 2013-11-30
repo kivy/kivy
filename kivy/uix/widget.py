@@ -470,7 +470,7 @@ class Widget(WidgetBase):
         its parent, rendering to a :class:`~kivy.graphics.gbo.Fbo`
         texture, and calling :meth:`~kivy.graphics.texture.Texture.save`.
 
-        .. Note:: The resulting image will not include the background
+        .. Note:: The image will not include the background
                   of any parent or other widget(s). If you want to
                   include them in the picture, you must save an image
                   from their common parent widget.
@@ -497,24 +497,12 @@ class Widget(WidgetBase):
             PopMatrix()
         fbo.add(self.canvas)
 
-        fbo.texture.flip_vertical()
-
-        fbo2 = Fbo(size=self.size)
-        with fbo2:
-            ClearColor(0, 0, 0, 1)
-            ClearBuffers()
-            Rectangle(size=self.size, texture=fbo.texture,
-                      tex_coords=fbo.texture.tex_coords)
-
         self.parent.canvas.add(fbo)
-        self.parent.canvas.add(fbo2)
 
         fbo.draw()
-        fbo2.draw()
+        fbo.texture.save(filename)
 
-        fbo2.texture.save(filename)
         self.parent.canvas.remove(fbo)
-        self.parent.canvas.remove(fbo2)
 
         fbo.remove(self.canvas)
         self.parent.canvas.insert(canvas_parent_index, self.canvas)
