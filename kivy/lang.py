@@ -410,9 +410,10 @@ Then in Python, you can instanciate the template using:
 Template example
 ~~~~~~~~~~~~~~~~
 
-Most of time, when you are creating screen into kv lang, you have lot of
-redefinition. In our example, we'll create a Toolbar, based on a BoxLayout, and
-put many Image that will react to on_touch_down:
+Most of time, when you are creating a screen in the kv lang, you use a lot of
+redefinitions. In our example, we'll create a Toolbar, based on a BoxLayout, and
+put in a few :class:`~kivy.uix.image.Image` widgets that will react to the
+*on_touch_down* event.:
 
 .. code-block:: kv
 
@@ -449,12 +450,12 @@ Let's try to create a template for the Image:
     [ToolbarButton@Image]:
 
         # This is the same as before
-        source: 'data/%s.png' % ctx.image
         size: self.texture_size
         size_hint: None, None
 
         # Now, we are using the ctx for the variable part of the template
-        on_touch_down: self.collide_point(*args[1].pos) and self.callback()
+        source: 'data/%s.png' % ctx.image
+        on_touch_down: self.collide_point(*args[1].pos) and ctx.callback()
 
 The template can be used directly in the MyToolbar rule:
 
