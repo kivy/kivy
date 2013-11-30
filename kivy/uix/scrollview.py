@@ -510,6 +510,7 @@ class ScrollView(StencilView):
             return
         if scroll_type == ['bars']:
             self._change_touch_mode()
+            return False
         else:
             Clock.schedule_once(self._change_touch_mode,
                             self.scroll_timeout / 1000.)
