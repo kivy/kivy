@@ -85,7 +85,7 @@ from kivy.factory import Factory
 from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
                              ReferenceListProperty, ObjectProperty,
                              ListProperty, DictProperty, BooleanProperty)
-from kivy.graphics import Canvas
+from kivy.graphics import Canvas, PushMatrix, PopMatrix, Translate
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
@@ -471,10 +471,12 @@ class Widget(WidgetBase):
         texture, and calling :meth:`~kivy.graphics.texture.Texture.save`.
 
         .. Note:: The resulting image will not include the background
-            of any parent or other widget(s). If you want to include
-            them in the picture, you must save an image of theirIf you
-            want to include them in the picture, you must save an
-            image of their common parent.
+                  of any parent or other widget(s). If you want to
+                  include them in the picture, you must save an image
+                  from their common parent widget.
+
+        .. Note:: The image will be saved in png format, you should
+                  include the extension in your filename.
 
         .. warning::
             Taking a screenshot may cause mess up canvas ordering.
@@ -483,14 +485,19 @@ class Widget(WidgetBase):
 
         '''
 
+        self.canvas_parent_index = self.parent.canvas.index(self.canvas)
         self.parent.canvas.remove(self.canvas)
-        self.real_pos = self.pos
-        self.pos = (0, 0)
 
         self.fbo = fbo = Fbo(size=self.size)
         with fbo:
             ClearColor(0, 0, 0, 1)
             ClearBuffers()
+
+        with fbo.before:
+            PushMatrix()
+            Translate(-self.x, -self.y, 0)
+        with fbo.after:
+            PopMatrix()
         fbo.add(self.canvas)
 
         self.parent.canvas.add(fbo)
@@ -504,12 +511,12 @@ class Widget(WidgetBase):
 
         '''
         fbo = self.fbo
+        fbo.texture.flip_vertical()
         fbo.texture.save(filename)
         self.parent.canvas.remove(fbo)
 
         fbo.remove(self.canvas)
-        self.pos = self.real_pos
-        self.parent.canvas.add(self.canvas)
+        self.parent.canvas.insert(self.canvas_parent_index, self.canvas)
         try:
             self.parent.do_layout()
         except AttributeError:
