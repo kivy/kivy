@@ -1080,7 +1080,17 @@ cdef class Texture:
         '''
         def __get__(self):
             from kivy.graphics.fbo import Fbo
-            return Fbo(size=self.size, texture=self).pixels
+            from kivy.graphics import Color, Rectangle
+            fbo = Fbo(size=self.size)
+            fbo.clear()
+            self.flip_vertical()
+            with fbo:
+                Color(1, 1, 1)
+                Rectangle(size=self.size, texture=self,
+                        tex_coords=self.tex_coords)
+            fbo.draw()
+            self.flip_vertical()
+            return fbo.pixels
 
 
 cdef class TextureRegion(Texture):
