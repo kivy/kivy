@@ -492,7 +492,7 @@ When you are creating a context:
             Template:
                 ctxkey: mywidget.value # << fail, this reference mywidget id
 
-    #. all the dynamic part will be not understood:
+    #. not all of the dynamic parts will be understood:
 
     .. code-block:: kv
 
@@ -505,11 +505,11 @@ When you are creating a context:
 Redefining a widget's style
 ---------------------------
 
-Sometimes we would like to inherit from a widget in order to use its python
+Sometimes we would like to inherit from a widget in order to use its Python
 properties without also using its .kv defined style. For example, we would
 like to inherit from a Label, but we would also like to define our own
 canvas instructions instead of automatically using the canvas instructions
-inherited from Label. We can achieve this by prepending a dash (-) before
+inherited from the Label. We can achieve this by prepending a dash (-) before
 the class name in the .kv style definition.
 
 In myapp.py:
@@ -531,13 +531,14 @@ and in my.kv:
                 size: (32, 32)
 
 MyWidget will now have a Color and Rectangle instruction in its canvas
-without any of the instructions inherited from Label.
+without any of the instructions inherited from the Label.
 
 Lang Directives
 ---------------
 
-You can use directive to control part of the lang files. Directive is done with
-a comment line starting with:
+You can use directives to add declarative commands, such as imports or constant
+definitions, to the lang files. Directives are added as comments in the
+following format:
 
 .. code-block:: kv
 
@@ -577,7 +578,7 @@ Or more complex:
 
 .. versionadded:: 1.0.7
 
-You can directly import class from a module:
+You can directly import classes from a module:
 
 .. code-block:: kv
 
@@ -742,7 +743,7 @@ class BuilderException(ParserException):
 
 
 class ParserRuleProperty(object):
-    '''Represent a property inside a rule
+    '''Represent a property inside a rule.
     '''
 
     __slots__ = ('ctx', 'line', 'name', 'value', 'co_value',
@@ -814,7 +815,7 @@ class ParserRuleProperty(object):
 
 
 class ParserRule(object):
-    '''Represent a rule, in term if Kivy internal language
+    '''Represents a rule, in terms of the Kivy internal language.
     '''
 
     __slots__ = ('ctx', 'line', 'name', 'children', 'id', 'properties',
@@ -1077,7 +1078,7 @@ class Parser(object):
     def strip_comments(self, lines):
         '''Remove all comments from all lines in-place.
            Comments need to be on a single line and not at the end of a line.
-           I.e., a comment line's first non-whitespace character must be a #.
+           i.e. a comment line's first non-whitespace character must be a #.
         '''
         # extract directives
         for ln, line in lines[:]:
@@ -1342,11 +1343,11 @@ class ParserSelectorName(ParserSelector):
 
 
 class BuilderBase(object):
-    '''Builder is responsible for creating a :class:`Parser` for parsing a kv
-    file, merging the results to its internal rules, templates, etc.
+    '''The Builder is responsible for creating a :class:`Parser` for parsing a
+    kv file, merging the results into its internal rules, templates, etc.
 
-    By default, :class:`Builder` is the global Kivy instance used in widgets,
-    that you can use to load other kv file in addition to the default one.
+    By default, :class:`Builder` is a global Kivy instance used in widgets
+    that you can use to load other kv files in addition to the default ones.
     '''
 
     _cache_match = {}
@@ -1363,7 +1364,7 @@ class BuilderBase(object):
         '''Insert a file into the language builder.
 
         :parameters:
-            `rulesonly`: bool, default to False
+            `rulesonly`: bool, defaults to False
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
         '''
@@ -1385,14 +1386,14 @@ class BuilderBase(object):
             return self.load_string(data, **kwargs)
 
     def unload_file(self, filename):
-        '''Unload all rules associated to a previously imported file.
+        '''Unload all rules associated with a previously imported file.
 
         .. versionadded:: 1.0.8
 
         .. warning::
 
-            This will not remove rule or template already applied/used on
-            current widget. It will act only for the next widget creation or
+            This will not remove rules or templates already applied/used on
+            current widgets. It will only effect the next widgets creation or
             template invocation.
         '''
         # remove rules and templates
@@ -1410,10 +1411,10 @@ class BuilderBase(object):
         Factory.unregister_from_filename(filename)
 
     def load_string(self, string, **kwargs):
-        '''Insert a string into the Language Builder
+        '''Insert a string into the Language Builder.
 
         :Parameters:
-            `rulesonly`: bool, default to False
+            `rulesonly`: bool, defaults to False
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
         '''
@@ -1468,7 +1469,7 @@ class BuilderBase(object):
         '''Create a specialized template using a specific context.
         .. versionadded:: 1.0.5
 
-        With template, you can construct custom widget from a kv lang
+        With templates, you can construct custom widgets from a kv lang
         definition by giving them a context. Check :ref:`Template usage
         <template_usage>`.
         '''
@@ -1495,7 +1496,7 @@ class BuilderBase(object):
         return widget
 
     def apply(self, widget):
-        '''Search all the rules that match the widget, and apply them.
+        '''Search all the rules that match the widget and apply them.
         '''
         rules = self.match(widget)
         if __debug__:
@@ -1670,7 +1671,7 @@ class BuilderBase(object):
         del self.rulectx[rootrule]
 
     def match(self, widget):
-        '''Return a list of :class:`ParserRule` matching the widget.
+        '''Return a list of :class:`ParserRule` objects matching the widget.
         '''
         cache = BuilderBase._match_cache
         k = (widget.__class__, widget.id, tuple(widget.cls))
