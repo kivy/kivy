@@ -276,7 +276,7 @@ class LoaderBase(object):
 
     def _load_urllib(self, filename, kwargs):
         '''(internal) Loading a network file. First download it, save it to a
-        temporary file, and pass it to _load_local()'''
+        temporary file, and pass it to _load_local().'''
         if PY2:
             import urllib2 as urllib_request
         else:
@@ -339,7 +339,7 @@ class LoaderBase(object):
         return data
 
     def _update(self, *largs):
-        '''(internal) Check if a data is loaded, and pass to the client'''
+        '''(internal) Check if a data is loaded, and pass to the client.'''
         # want to start it ?
         if self._start_wanted:
             if not self._running:
