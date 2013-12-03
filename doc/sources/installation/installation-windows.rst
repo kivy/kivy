@@ -190,20 +190,20 @@ If you want to use the latest development version of Kivy, you can follow these 
     2. ``cd Python/Scripts``
     3. ``pip install --upgrade cython``
 
-Using an exisiting Python installation (64/32 bit)
+Using an existing Python installation (64/32 bit)
 --------------------------------------------------
 
-As an alternative to downloading the kivy distribuation zip file, you can
-install the kivy requirments into an existing 32 or 64 bit Python installation.
+As an alternative to downloading the kivy distribution zip file, you can
+install the kivy requirements into an existing 32 or 64 bit Python installation.
 For this example we'll assume you have Python installed in ``C:\dev\python27``:
 
 #.  You need a MinGW installation. You can use the MinGW directory included
     in the kivy distribution or download a fresh MinGW. If you're compiling for 64
-    bit you'll need to the download the 64 bit MinGW.
+    bit you'll need to the download the 64 bit MinGW (see below for how to setup a 64 bit mingw).
 #.  If you want to use gstreamer, copy it from the kivy distribution directory.
-#.  Get the kivy.bat file from the kivy distribution, or alternativly set the
+#.  Get the kivy.bat file from the kivy distribution, or alternatively set the
     path and other environmental variables as in the kivy.bat file in order to have
-    a permenant setup. You'll have to execute the fowllowing instructions from this environemt.
+    a permanent setup. You'll have to execute the following instructions from this environment.
 
     You'll need to edit the paths first to point to the correct python and MinGW
     locations. If you started with a clean MinGW installation you'll also have to
@@ -223,12 +223,24 @@ For this example we'll assume you have Python installed in ``C:\dev\python27``:
 #.  Download Glew 1.5.7 from http://sourceforge.net/projects/glew/files/glew/.
     Install the Glew files into the following locations::
 
-        glew32.dll -> ``C:\dev\python27``
+        glew32.dll -> C:\dev\python27
         glew32.dll -> MinGW\lib
         glew32.lib -> MinGW\lib
         glew32s.lib -> MinGW\lib
         glew.h -> MinGW\include\GL
         glxew.h -> MinGW\include\GL
+        wglew.h -> MinGW\include\GL
+
+If you get errors when installing kivy such as ``GL/glew.h: No such file or directory``,
+which is likely to happen with the 64 bit mingw, you'll need to copy the GL directory
+and its contents into ``python27/include`` and the *.dll and *.lib files from above into
+``python27/libs``. If you still get errors then type the following to generate the .a file::
+
+    cd C:\dev\Python27\libs
+    rename glew32.lib old_glew32.lib
+    rename glew32s.lib old_glew32s.lib
+    gendef glew32.dll
+    dlltool --dllname glew32.dll --def glew32.def --output-lib libglew32.a
 
 #.  Download and install the precompiled Pygame 1.9.2 binaries from
     http://www.lfd.uci.edu/~gohlke/pythonlibs/#pygame.
@@ -236,7 +248,7 @@ For this example we'll assume you have Python installed in ``C:\dev\python27``:
 
         pip install https://github.com/kivy/kivy/zipball/master
 
-    Alternativly instead of the githup zipball you can point to a specific
+    Alternatively instead of the githup zipball you can point to a specific
     kivy zip file. Also, if you have a development version of kivy and want
     to continue working on it while still installing it you can use the pip
     --editable switch e.g.::
@@ -246,6 +258,58 @@ For this example we'll assume you have Python installed in ``C:\dev\python27``:
     This will put a link in the site-packages directory pointing to your kivy
     source, so any changes in the source will be reflected in the install.
     See here for more details: http://pythonhosted.org/setuptools/setuptools.html#development-mode.
+
+Creating a 64 bit development environment
+-----------------------------------------
+
+In order to use kivy in true 64 bit mode you'll first need to set up your environment
+to be able to build 64 bit binaries. For this you'll need the 64 bit mingw. We'll
+assume that you already installed a 64 bit Python into e.g. ``C:\dev-64\python27``::
+
+#.  Download the mingw 64 binaries (e.g. x86_64-4.8.2-release-win32-sjlj-rt_v3-rev0.7z) from the personal builds
+    at http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/4.8.2/threads-win32/sjlj/.
+    Now extract the zip file into ``C:\dev-64``. Rename the top level directory, if it's not already, to
+    ``mingw64``. You should now have the following directory structure::
+
+        C:\dev-64\mingw64\bin
+        C:\dev-64\mingw64\include
+        C:\dev-64\mingw64\mingw
+        ...
+
+    where ``C:\dev-64\mingw64\bin`` contains e.g. ``gcc.exe`` etc.
+#.  You'll need gendef. Download and extract gendef.exe into ``mingw64/bin`` from
+    http://sourceforge.net/projects/mingw/files/MinGW/Extension/gendef/gendef-1.0.1346/.
+    Keep in mind that this is a 32 bit binary.
+#.  At this point it's helpful to use the kivy.bat file and to edit the python paths to point
+    to the proper Python27 location and to add the mingw64\bin directory to the system path.
+    In any case, for the following to work you either have to provide the full path to gendef and dlltool
+    or add mingw64\bin to the system path.
+#.  From ``C:\windows\system32`` copy the file ``python27.dll`` into ``C:\dev-64\Python27\libs``.
+    Now type the following as described here http://bugs.python.org/issue4709::
+
+        cd C:\dev-64\Python27\libs
+        rename python27.lib old_python27.lib
+        gendef python27.dll
+        dlltool --dllname python27.dll --def python27.def --output-lib libpython27.a
+
+#.  Now we'll patch the ``C:\Python27\include\pyconfig.h`` file. In that file
+    search for the text ``#ifdef _WIN64``, which in our copy of this file was at line 141,
+    and cut out the following three lines::
+
+        #ifdef _WIN64
+        #define MS_WIN64
+        #endif
+
+    Search for the text ``#ifdef _MSC_VER``, which in our copy of this file was at line 107.
+    Paste in the cut-out lines, ABOVE the ``#ifdef _MSC_VER``.
+#.  Finally, we need to patch the cygwin compiler in distutils as described here http://bugs.python.org/issue16472.
+    Open ``C:\dev-64\Python27\Lib\distutils\cygwinccompiler.py`` and comment out the line that
+    says ``self.dll_libraries = get_msvcr()``. In our file it's line 343. Be carefull because there's
+    another similar line that does not need to be commented out.
+
+You should now have a working 64 bit mingw installation and are ready to continue at step 2
+of `Using an existing Python installation (64/32 bit)`_. Just remember in step 3 to add
+mingw64\bin to the path instead of MinGW\bin.
 
 .. _winpackagecontents:
 
