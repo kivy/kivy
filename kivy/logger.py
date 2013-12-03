@@ -2,23 +2,24 @@
 Logger object
 =============
 
-Differents level are available : trace, debug, info, warning, error, critical.
+Differents logging levels are available : trace, debug, info, warning, error
+and critical.
 
 Examples of usage::
 
     from kivy.logger import Logger
 
-    Logger.info('title: This is a info')
-    Logger.debug('title: This is a debug')
+    Logger.info('title: This is a info message.')
+    Logger.debug('title: This is a debug message.')
 
     try:
         raise Exception('bleh')
     except Exception:
-        Logger.exception('Something happen!')
+        Logger.exception('Something happened!')
 
-The message passed to the logger is splited to the first :. The left part is
-used as a title, and the right part is used as a message. This way, you can
-"categorize" your message easily::
+The message passed to the logger is split into two parts, separated by a colon
+(:). The first part is used as a title, and the second part is used as the
+message. This way, you can "categorize" your message easily.::
 
     Logger.info('Application: This is a test')
 
@@ -29,7 +30,7 @@ used as a title, and the right part is used as a message. This way, you can
 Logger configuration
 --------------------
 
-Logger can be controled in the Kivy configuration file::
+The Logger can be controlled via the Kivy configuration file::
 
     [kivy]
     log_level = info
@@ -37,13 +38,13 @@ Logger can be controled in the Kivy configuration file::
     log_dir = logs
     log_name = kivy_%y-%m-%d_%_.txt
 
-More information about the allowed values is described in :mod:`kivy.config`
-module.
+More information about the allowed values are described in the
+:mod:`kivy.config` module.
 
 Logger history
 --------------
 
-Even if the logger is not enabled, you can still have the history of latest 100
+Even if the logger is not enabled, you still have access to the last 100
 messages::
 
     from kivy.logger import LoggerHistory

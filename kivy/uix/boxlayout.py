@@ -159,7 +159,7 @@ class BoxLayout(Layout):
                 if shw:
                     w = stretch_space * shw / stretch_weight_x
                 if shh:
-                    h = shh * (selfh - padding_y)
+                    h = max(0, shh * (selfh - padding_y))
 
                 for key, value in c.pos_hint.items():
                     posy = value * (selfh - padding_y)
@@ -190,7 +190,7 @@ class BoxLayout(Layout):
                 if shh:
                     h = stretch_space * shh / stretch_weight_y
                 if shw:
-                    w = shw * (selfw - padding_x)
+                    w = max(0, shw * (selfw - padding_x))
 
                 for key, value in c.pos_hint.items():
                     posx = value * (selfw - padding_x)

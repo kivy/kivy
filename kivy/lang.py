@@ -180,8 +180,9 @@ Relation Between Values and Properties
 
 When you use the Kivy language, you might notice that we do some work
 behind the scenes to automatically make things work properly. You should
-know that :doc:`api-kivy.properties` implement the *observer* software
-design pattern: That means that you can bind your own function to be
+know that :doc:`api-kivy.properties` implement the
+`Observer Design Pattern <http://en.wikipedia.org/wiki/Observer_pattern>`_.
+That means that you can bind your own function to be
 called when the value of a property changes (i.e. you passively
 `observe` the property for potential changes).
 
@@ -218,8 +219,8 @@ change to 'Release me!'.
 Graphical Instructions
 ----------------------
 
-The graphical instructions are a special part of the Kivy language. This
-concerns the 'canvas' property definition::
+The graphical instructions are a special part of the Kivy language. They are
+handled by the 'canvas' property definition::
 
     Widget:
         canvas:
@@ -234,12 +235,12 @@ All the classes added inside the canvas property must be derived from the
 inside the canvas property (as that would not make sense because a
 widget is not a graphics instruction).
 
-If you want to do theming, you'll have the same question as in CSS: You don't
-know which rules have been executed before. In our case, the rules are executed
+If you want to do theming, you'll have the same question as in CSS: which rules
+have been executed first? In our case, the rules are executed
 in processing order (i.e. top-down).
 
 If you want to change how Buttons are rendered, you can create your own kv file
-and put something like this::
+and add something like this::
 
     <Button>:
         canvas:
@@ -253,7 +254,7 @@ and put something like this::
                 size: self.texture_size
                 texture: self.texture
 
-This will result in buttons having a red background, with the label in the
+This will result in buttons having a red background with the label in the
 bottom left, in addition to all the preceding rules.
 You can clear all the previous instructions by using the `Clear` command::
 
@@ -280,8 +281,8 @@ Dynamic classes
 
 Dynamic classes allow you to create new widgets on-the-fly, without any python
 declaration in the first place. The syntax of the dynamic classes is similar to
-the Rules, but you need to specify what are the bases classes you want to
-subclasses.
+the Rules, but you need to specify the base classes you want to
+subclass.
 
 The syntax look like:
 
@@ -289,14 +290,14 @@ The syntax look like:
 
     # Simple inheritance
     <NewWidget@Button>:
-        ...
+        # kv code here ...
 
     # Multiple inheritance
     <NewWidget@ButtonBehavior+Label>:
-        ...
+        # kv code here ...
 
-The `@` character is used to seperate the name from the classes you want to
-subclass. The Python equivalent would have been:
+The `@` character is used to seperate your class name from the classes you want
+to subclass. The Python equivalent would have been:
 
 .. code-block:: python
 
@@ -309,12 +310,12 @@ subclass. The Python equivalent would have been:
         pass
 
 Any new properties, usually added in python code, should be declared first.
-If the property doesn't exist in the dynamic classes, it will be automatically
+If the property doesn't exist in the dynamic class, it will be automatically
 created as an :class:`~kivy.properties.ObjectProperty`.
 
 Let's illustrate the usage of theses dynamic classes with an implementation of a
-basic Image button. We could derivate our classes from the Button, we just need
-to add a property for the image filename:
+basic Image button. We could derive our classes from the Button and just
+add a property for the image filename:
 
 .. code-block:: kv
 
@@ -336,7 +337,7 @@ to add a property for the image filename:
                 source: 'world.png'
                 on_press: root.do_something_else()
 
-In Python you can create an instance of the dynamic class by:
+In Python, you can create an instance of the dynamic class as follows:
 
 .. code-block:: python
 
@@ -351,15 +352,15 @@ Templates
 
 .. versionchanged:: 1.7.0
 
-    The template usage are now deprecated, please use Dynamic classes instead.
+    Template usage is now deprecated. Please use Dynamic classes instead.
 
-Syntax of template
-~~~~~~~~~~~~~~~~~~
+Syntax of templates
+~~~~~~~~~~~~~~~~~~~
 
-Using a template in Kivy require 2 things :
+Using a template in Kivy requires 2 things :
 
-    #. a context to pass for the context (will be ctx inside template)
-    #. a kv definition of the template
+    #. a context to pass for the context (will be ctx inside template).
+    #. a kv definition of the template.
 
 Syntax of a template:
 
@@ -375,8 +376,8 @@ Syntax of a template:
 
 For example, for a list, you'll need to create a entry with a image on
 the left, and a label on the right. You can create a template for making
-that definition more easy to use.
-So, we'll create a template that require 2 entry in the context: a image
+that definition easier to use.
+So, we'll create a template that uses 2 entries in the context: an image
 filename and a title:
 
 .. code-block:: kv
@@ -387,7 +388,7 @@ filename and a title:
         Label:
             text: ctx.title
 
-Then in Python, you can create instanciate the template with:
+Then in Python, you can instanciate the template using:
 
 .. code-block:: python
 
@@ -399,7 +400,7 @@ Then in Python, you can create instanciate the template with:
     icon1 = Builder.template('IconItem', title='Hello world',
         image='myimage.png')
 
-    # create a second template with another information
+    # create a second template with other information
     ctx = {'title': 'Another hello world',
            'image': 'myimage2.png'}
     icon2 = Builder.template('IconItem', **ctx)
@@ -409,9 +410,10 @@ Then in Python, you can create instanciate the template with:
 Template example
 ~~~~~~~~~~~~~~~~
 
-Most of time, when you are creating screen into kv lang, you have lot of
-redefinition. In our example, we'll create a Toolbar, based on a BoxLayout, and
-put many Image that will react to on_touch_down:
+Most of time, when you are creating a screen in the kv lang, you use a lot of
+redefinitions. In our example, we'll create a Toolbar, based on a BoxLayout, and
+put in a few :class:`~kivy.uix.image.Image` widgets that will react to the
+*on_touch_down* event.:
 
 .. code-block:: kv
 
@@ -448,12 +450,12 @@ Let's try to create a template for the Image:
     [ToolbarButton@Image]:
 
         # This is the same as before
-        source: 'data/%s.png' % ctx.image
         size: self.texture_size
         size_hint: None, None
 
         # Now, we are using the ctx for the variable part of the template
-        on_touch_down: self.collide_point(*args[1].pos) and self.callback()
+        source: 'data/%s.png' % ctx.image
+        on_touch_down: self.collide_point(*args[1].pos) and ctx.callback()
 
 The template can be used directly in the MyToolbar rule:
 
@@ -490,7 +492,7 @@ When you are creating a context:
             Template:
                 ctxkey: mywidget.value # << fail, this reference mywidget id
 
-    #. all the dynamic part will be not understood:
+    #. not all of the dynamic parts will be understood:
 
     .. code-block:: kv
 
@@ -503,11 +505,11 @@ When you are creating a context:
 Redefining a widget's style
 ---------------------------
 
-Sometimes we would like to inherit from a widget in order to use its python
+Sometimes we would like to inherit from a widget in order to use its Python
 properties without also using its .kv defined style. For example, we would
 like to inherit from a Label, but we would also like to define our own
 canvas instructions instead of automatically using the canvas instructions
-inherited from Label. We can achieve this by prepending a dash (-) before
+inherited from the Label. We can achieve this by prepending a dash (-) before
 the class name in the .kv style definition.
 
 In myapp.py:
@@ -529,13 +531,14 @@ and in my.kv:
                 size: (32, 32)
 
 MyWidget will now have a Color and Rectangle instruction in its canvas
-without any of the instructions inherited from Label.
+without any of the instructions inherited from the Label.
 
 Lang Directives
 ---------------
 
-You can use directive to control part of the lang files. Directive is done with
-a comment line starting with:
+You can use directives to add declarative commands, such as imports or constant
+definitions, to the lang files. Directives are added as comments in the
+following format:
 
 .. code-block:: kv
 
@@ -575,7 +578,7 @@ Or more complex:
 
 .. versionadded:: 1.0.7
 
-You can directly import class from a module:
+You can directly import classes from a module:
 
 .. code-block:: kv
 
@@ -740,7 +743,7 @@ class BuilderException(ParserException):
 
 
 class ParserRuleProperty(object):
-    '''Represent a property inside a rule
+    '''Represent a property inside a rule.
     '''
 
     __slots__ = ('ctx', 'line', 'name', 'value', 'co_value',
@@ -812,7 +815,7 @@ class ParserRuleProperty(object):
 
 
 class ParserRule(object):
-    '''Represent a rule, in term if Kivy internal language
+    '''Represents a rule, in terms of the Kivy internal language.
     '''
 
     __slots__ = ('ctx', 'line', 'name', 'children', 'id', 'properties',
@@ -1075,7 +1078,7 @@ class Parser(object):
     def strip_comments(self, lines):
         '''Remove all comments from all lines in-place.
            Comments need to be on a single line and not at the end of a line.
-           I.e., a comment line's first non-whitespace character must be a #.
+           i.e. a comment line's first non-whitespace character must be a #.
         '''
         # extract directives
         for ln, line in lines[:]:
@@ -1340,11 +1343,11 @@ class ParserSelectorName(ParserSelector):
 
 
 class BuilderBase(object):
-    '''Builder is responsible for creating a :class:`Parser` for parsing a kv
-    file, merging the results to its internal rules, templates, etc.
+    '''The Builder is responsible for creating a :class:`Parser` for parsing a
+    kv file, merging the results into its internal rules, templates, etc.
 
-    By default, :class:`Builder` is the global Kivy instance used in widgets,
-    that you can use to load other kv file in addition to the default one.
+    By default, :class:`Builder` is a global Kivy instance used in widgets
+    that you can use to load other kv files in addition to the default ones.
     '''
 
     _cache_match = {}
@@ -1361,7 +1364,7 @@ class BuilderBase(object):
         '''Insert a file into the language builder.
 
         :parameters:
-            `rulesonly`: bool, default to False
+            `rulesonly`: bool, defaults to False
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
         '''
@@ -1383,14 +1386,14 @@ class BuilderBase(object):
             return self.load_string(data, **kwargs)
 
     def unload_file(self, filename):
-        '''Unload all rules associated to a previously imported file.
+        '''Unload all rules associated with a previously imported file.
 
         .. versionadded:: 1.0.8
 
         .. warning::
 
-            This will not remove rule or template already applied/used on
-            current widget. It will act only for the next widget creation or
+            This will not remove rules or templates already applied/used on
+            current widgets. It will only effect the next widgets creation or
             template invocation.
         '''
         # remove rules and templates
@@ -1408,10 +1411,10 @@ class BuilderBase(object):
         Factory.unregister_from_filename(filename)
 
     def load_string(self, string, **kwargs):
-        '''Insert a string into the Language Builder
+        '''Insert a string into the Language Builder.
 
         :Parameters:
-            `rulesonly`: bool, default to False
+            `rulesonly`: bool, defaults to False
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
         '''
@@ -1466,7 +1469,7 @@ class BuilderBase(object):
         '''Create a specialized template using a specific context.
         .. versionadded:: 1.0.5
 
-        With template, you can construct custom widget from a kv lang
+        With templates, you can construct custom widgets from a kv lang
         definition by giving them a context. Check :ref:`Template usage
         <template_usage>`.
         '''
@@ -1493,7 +1496,7 @@ class BuilderBase(object):
         return widget
 
     def apply(self, widget):
-        '''Search all the rules that match the widget, and apply them.
+        '''Search all the rules that match the widget and apply them.
         '''
         rules = self.match(widget)
         if __debug__:
@@ -1668,7 +1671,7 @@ class BuilderBase(object):
         del self.rulectx[rootrule]
 
     def match(self, widget):
-        '''Return a list of :class:`ParserRule` matching the widget.
+        '''Return a list of :class:`ParserRule` objects matching the widget.
         '''
         cache = BuilderBase._match_cache
         k = (widget.__class__, widget.id, tuple(widget.cls))
