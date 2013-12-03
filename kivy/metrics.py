@@ -4,37 +4,38 @@ Metrics
 
 .. versionadded:: 1.5.0
 
-A screen is defined by its actual physical size, density, resolution. These
-factors are essential for creating UI with correct size everywhere.
+A screen is defined by its physical size, density and resolution. These
+factors are essential for creating UI's with correct size everywhere.
 
-In Kivy, all our graphics pipeline is working with pixels. But using pixels as a
-measurement unit is wrong, because the size will changes according to the
+In Kivy, all the graphics pipelines work with pixels. But using pixels as a
+measurement unit is problematic because sizes change according to the
 screen.
 
 Dimensions
 ----------
 
-As you design your UI for different screen sizes, you'll need new measurement
-unit to work with.
+If you want to design your UI for different screen sizes, you will want better
+measurement units to work with. Kivy provides some superior alternatives.
 
 :Units:
     `pt`
         Points - 1/72 of an inch based on the physical size of the screen.
         Prefer to use sp instead of pt.
     `mm`
-        Millimeters - Based on the physical size of the screen
+        Millimeters - Based on the physical size of the screen.
     `cm`
-        Centimeters - Based on the physical size of the screen
+        Centimeters - Based on the physical size of the screen.
     `in`
-        Inches - Based on the physical size of the screen
+        Inches - Based on the physical size of the screen.
     `dp`
         Density-independent Pixels - An abstract unit that is based on the
         physical density of the screen. With a :data:`Metrics.density` of 1, 1dp
         is equal to 1px. When running on a higher density screen, the number of
-        pixels used to draw 1dp is scaled up by the factor of appropriate
+        pixels used to draw 1dp is scaled up a factor appropriate to the
         screen's dpi, and the inverse for lower dpi.
-        The ratio dp-to-pixes will change with the screen density, but not
-        necessarily in direct proportions. Using dp unit is a simple solution to
+        The ratio of dp-to-pixels will change with the screen density, but not
+        necessarily in direct proportion. Using the dp unit is a simple solution
+        to
         making the view dimensions in your layout resize properly for different
         screen densities. In others words, it provides consistency for the
         real-world size of your UI across different devices.
@@ -47,8 +48,8 @@ unit to work with.
 Examples
 --------
 
-An example of creating a label with a sp font_size, and set a manual height with
-a 10dp margin::
+Here is an example of creating a label with a sp font_size, and setting the
+height manually with a 10dp margin::
 
     #:kivy 1.5.0
     <MyWidget>:
