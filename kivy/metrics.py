@@ -29,10 +29,10 @@ measurement units to work with. Kivy provides some superior alternatives.
         Inches - Based on the physical size of the screen.
     `dp`
         Density-independent Pixels - An abstract unit that is based on the
-        physical density of the screen. With a :data:`Metrics.density` of 1, 1dp
-        is equal to 1px. When running on a higher density screen, the number of
-        pixels used to draw 1dp is scaled up a factor appropriate to the
-        screen's dpi, and the inverse for lower dpi.
+        physical density of the screen. With a :data:`~MetricsBase.density` of
+        1, 1dp is equal to 1px. When running on a higher density screen, the
+        number of pixels used to draw 1dp is scaled up a factor appropriate to
+        the screen's dpi, and the inverse for lower dpi.
         The ratio of dp-to-pixels will change with the screen density, but not
         necessarily in direct proportion. Using the dp unit is a simple solution
         to
@@ -63,24 +63,26 @@ Manual control of metrics
 -------------------------
 
 The metrics cannot be changed in runtime. Once a value has been converted to
-pixels, you don't have the original value anymore. It's not like you'll change
-the DPI or density in runtime.
+pixels, you can't retrieve the original value anymore. This stems from the fact
+that the DPI and density of a device cannot be changed at runtime.
 
 We provide new environment variables to control the metrics:
 
 - `KIVY_METRICS_DENSITY`: if set, this value will be used for
-  :data:`Metrics.density` instead of the system one. On android, the value
-  varies between 0.75, 1, 1.5. 2.
+  :data:`~MetricsBase.density` instead of the systems one. On android, the value
+  varies between 0.75, 1, 1.5 and 2.
 
 - `KIVY_METRICS_FONTSCALE`: if set, this value will be used for
-  :data:`Metrics.fontscale` instead of the system one. On android, the value
-  varies between 0.8-1.2.
+  :data:`~MetricsBase.fontscale` instead of the systems one. On android, the
+  value varies between 0.8 and 1.2.
 
-- `KIVY_DPI`: if set, this value will be used for :data:`Metrics.dpi`. Please
-  note that settings the DPI will not impact dp/sp notation, because thoses are
-  based on the density.
+- `KIVY_DPI`: if set, this value will be used for :data:`~MetricsBase.dpi`.
+  Please
+  note that setting the DPI will not impact the dp/sp notation because these
+  are based on the screen density.
 
-For example, if you want to simulate an high-density screen (like HTC One X)::
+For example, if you want to simulate a high-density screen (like the HTC One
+X)::
 
     KIVY_DPI=320 KIVY_METRICS_DENSITY=2 python main.py --size 1280x720
 
@@ -88,7 +90,7 @@ Or a medium-density (like Motorola Droid 2)::
 
     KIVY_DPI=240 KIVY_METRICS_DENSITY=1.5 python main.py --size 854x480
 
-You can also simulate an alternative user preference for fontscale, like::
+You can also simulate an alternative user preference for fontscale as follows::
 
     KIVY_METRICS_FONTSCALE=1.2 python main.py
 
