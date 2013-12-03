@@ -129,7 +129,7 @@ Here is a simple example of a kv file that contains a root widget::
 Value Expressions and Reserved Keywords
 ---------------------------------------
 
-When you specify a property's value, the value is evaluated as a python
+When you specify a property's value, the value is evaluated as a Python
 expression. This expression can be static or dynamic, which means that
 the value can use the values of other properties using reserved keywords.
 
@@ -140,7 +140,7 @@ the value can use the values of other properties using reserved keywords.
                 text: 'My state is %s' % self.state
 
     root
-        This keyword is available only in rule definitions, and represents the
+        This keyword is available only in rule definitions and represents the
         root widget of the rule (the first instance of the rule)::
 
             <Widget>:
@@ -149,8 +149,8 @@ the value can use the values of other properties using reserved keywords.
                     text: root.custom
 
     app
-        This keyword always refers to your app instance, it's equivalent
-        to a call to :meth:`App.get_running_app` in python.::
+        This keyword always refers to your app instance. It's equivalent
+        to a call to :meth:`kivy.app.App.get_running_app` in Python.::
 
             Label:
                 text: app.name
@@ -160,9 +160,7 @@ the value can use the values of other properties using reserved keywords.
         arguments passed to the callback.::
 
             TextInput:
-                on_focus:
-                    self.insert_text("I'm focused!") \
-                    if args[1] else self.insert_text("I'm not focused.")
+                on_focus: self.insert_text("Focus!" if args[1] else "No focus.")
 
 Furthermore, if a class definition contains an id, you can use it as a
 keyword::
@@ -173,8 +171,8 @@ keyword::
         Button:
             text: 'The state of the other button is %s' % btn1.state
 
-Please note that the `id` will not be available in the widget instance;
-The `id` attribute will be not used.
+Please note that the `id` will not be available in the widget instance:
+it is used exclusively for external references.
 
 
 Relation Between Values and Properties

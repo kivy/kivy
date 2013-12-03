@@ -96,7 +96,7 @@ from kivy.uix.stencilview import StencilView
 from kivy.metrics import sp
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
-    ObjectProperty, ListProperty, OptionProperty
+    ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty
 
 
 # When we are generating documentation, Config doesn't exist
@@ -134,8 +134,8 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.8.0
 
-    :data:`scroll_wheel_distance` is a :class:`~kivy.properties.NumericProperty`,
-    defaults to 20 pixels.
+    :data:`scroll_wheel_distance` is a :class:`~kivy.properties.NumericProperty`
+    , defaults to 20 pixels.
     '''
 
     scroll_timeout = NumericProperty(_scroll_timeout)
@@ -300,21 +300,10 @@ class ScrollView(StencilView):
 
     '''
 
-    def _get_bar_side(self):
-        return (self.bar_side_x, self.bar_side_y)
-
-    def _set_bar_side(self, value):
-        if type(value) in (list, tuple):
-            self.bar_side_x, self.bar_side_y = value
-        else:
-            raise TypeError("Can't use {} for bar_side".format(value))
-
-    bar_side = AliasProperty(
-        _get_bar_side, _set_bar_side,
-        bind=('bar_side_x', 'bar_side_y'))
+    bar_side = ReferenceListProperty(bar_side_x, bar_side_y)
     '''Which side of the scroll view to place each of the bars on.
 
-    :data:`bar_side` is a :class:`~kivy.properties.AliasProperty` of
+    :data:`bar_side` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`bar_side_x`, :data:`bar_side_y`)
     '''
 
@@ -362,19 +351,20 @@ class ScrollView(StencilView):
     child in the scrollview.
     '''
 
-    scroll_type = OptionProperty('content', options=('content', 'bars', 'both'))
+    scroll_type = OptionProperty(['content'], options=(['content'], ['bars'],
+                                    ['bars', 'content'], ['content', 'bars']))
     '''Sets the type of scrolling to use for the content of the scrollview.
-    Available options are: content, bars, both.
+    Available options are: ['content'], ['bars'], ['bars', 'content'].
 
     .. versionadded:: 1.8.0
 
     :data:`scroll_type` is a :class:`~kivy.properties.OptionProperty`, defaults
-    to content.
+    to ['content'].
     '''
 
     def on_scroll_type(self, instance, value):
         self.bar_width = max('9dp', self.bar_width)\
-            if value[0] == 'b' else self.bar_width
+            if 'bars' in value else self.bar_width
 
     # private, for internal use only
 
@@ -490,6 +480,16 @@ class ScrollView(StencilView):
         # handle mouse scrolling, only if the viewport size is bigger than the
         # scrollview size, and if the user allowed to do it
         vp = self._viewport
+        scroll_type = self.scroll_type
+        ud = touch.ud
+        scroll_bar_content = 'bars' in scroll_type
+
+        ud['in_bar_x'] = ud['in_bar_y'] = False
+        if (scroll_bar_content and touch.y < self.bar_width):
+            ud['in_bar_x'] = True
+        if scroll_bar_content and touch.x > self.right - self.bar_width:
+            ud['in_bar_y'] = True
+
         if vp and 'button' in touch.profile and \
             touch.button.startswith('scroll'):
             btn = touch.button
@@ -498,11 +498,11 @@ class ScrollView(StencilView):
 
             if (self.effect_x and self.do_scroll_y and vp.height > self.height
                     and btn in ('scrolldown', 'scrollup')):
-                e = self.effect_y
+                e = self.effect_x if ud['in_bar_x'] else self.effect_y
 
             elif (self.effect_y and self.do_scroll_x and vp.width > self.width
                     and btn in ('scrollleft', 'scrollright')):
-                e = self.effect_x
+                e = self.effect_y if ud['in_bar_y'] else self.effect_x
 
             if e:
                 if btn in ('scrolldown', 'scrollleft'):
@@ -515,19 +515,19 @@ class ScrollView(StencilView):
                 e.trigger_velocity_update()
                 return True
 
-        scroll_type = self.scroll_type
         # no mouse scrolling, so the user is going to drag the scrollview with
         # this touch.
         self._touch = touch
         uid = self._get_uid()
         touch.grab(self)
-        ud = touch.ud
+
         ud[uid] = {
             'mode': 'unknown',
             'dx': 0,
             'dy': 0,
             'user_stopped': False,
             'time': touch.time_start}
+
         if self.do_scroll_x and self.effect_x:
             if (scroll_type[0] == 'b' and
                 (self.bar_side_x == 'bottom' and touch.y < self.bar_width) or
@@ -550,7 +550,7 @@ class ScrollView(StencilView):
 
         if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
             return
-        if scroll_type == 'bars':
+        if scroll_type == ['bars']:
             self._change_touch_mode()
         else:
             Clock.schedule_once(self._change_touch_mode,
@@ -579,7 +579,7 @@ class ScrollView(StencilView):
                     self.scroll_x = min(max(self.scroll_x + dx, 0.), 1.)
                     self._trigger_update_from_scroll()
                 else:
-                    if self.scroll_type != 'bars':
+                    if self.scroll_type != ['bars']:
                         self.effect_x.update(touch.x)
             if self.do_scroll_y and self.effect_y:
                 height = self.height
@@ -588,7 +588,7 @@ class ScrollView(StencilView):
                     self.scroll_y = min(max(self.scroll_y + dy, 0.), 1.)
                     self._trigger_update_from_scroll()
                 else:
-                    if self.scroll_type != 'bars':
+                    if self.scroll_type != ['bars']:
                         self.effect_y.update(touch.y)
 
         if mode == 'unknown':
@@ -625,10 +625,10 @@ class ScrollView(StencilView):
             ud = touch.ud[uid]
             if self.do_scroll_x and self.effect_x:
                 if not touch.ud.get('in_bar_x', False) and\
-                    self.scroll_type != 'bars':
+                    self.scroll_type != ['bars']:
                     self.effect_x.stop(touch.x)
             if self.do_scroll_y and self.effect_y and\
-                    self.scroll_type != 'bars':
+                    self.scroll_type != ['bars']:
                 if not touch.ud.get('in_bar_y', False):
                     self.effect_y.stop(touch.y)
             if ud['mode'] == 'unknown':
@@ -638,6 +638,8 @@ class ScrollView(StencilView):
                 if not ud['user_stopped']:
                     super(ScrollView, self).on_touch_down(touch)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .2)
+            Clock.unschedule(self._update_effect_bounds)
+            Clock.schedule_once(self._update_effect_bounds)
         else:
             if self._touch is not touch and self.uid not in touch.ud:
                 super(ScrollView, self).on_touch_up(touch)
@@ -688,7 +690,7 @@ class ScrollView(StencilView):
     def _start_decrease_alpha(self, *l):
         self.bar_alpha = 1.
         # show bars if scroll_type != content
-        bar_alpha = .2 if self.scroll_type[0] != 'c' else 0
+        bar_alpha = .2 if self.scroll_type != ['content'] else 0
         Animation(bar_alpha=bar_alpha, d=.5, t='out_quart').start(self)
 
     #
@@ -778,7 +780,8 @@ if __name__ == '__main__':
                 btn = Button(text=str(i), size_hint=(None, None),
                              size=(200, 100))
                 layout2.add_widget(btn)
-            scrollview2 = ScrollView(scroll_type='bars', scroll_wheel_distance=100)
+            scrollview2 = ScrollView(scroll_type=['content', 'bars'],
+                                     scroll_wheel_distance=100)
             scrollview2.add_widget(layout2)
 
             root = GridLayout(cols=2)

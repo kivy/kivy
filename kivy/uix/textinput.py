@@ -177,7 +177,10 @@ if 'KIVY_DOC' not in environ:
 
 class Selector(ButtonBehavior, Image):
     # Internal class for managing the selection Handles.
-    pass
+
+    def on_touch_down(self, touch):
+        self._touch_diff = self.top - touch.y
+        return super(Selector, self).on_touch_down(touch)
 
 
 class TextInputCutCopyPaste(Bubble):
@@ -453,6 +456,7 @@ class TextInput(Widget):
         '''
         if self.readonly:
             return
+        self._hide_handles(self._win)
 
         if not from_undo and self.multiline and self.auto_indent \
                 and substring == u'\n':
@@ -739,6 +743,7 @@ class TextInput(Widget):
         '''
         if self.readonly:
             return
+        self._hide_handles(self._win)
         scrl_x = self.scroll_x
         scrl_y = self.scroll_y
         cc, cr = self.cursor
@@ -920,26 +925,34 @@ class TextInput(Widget):
             win = self._win
             if self._selection_to != self._selection_from:
                 self._show_cut_copy_paste(touch.pos, win)
-            elif self.use_bubble:
+                self._show_handles(win)
+            elif self.use_handles:
+                self._hide_handles()
                 handle_middle = self._handle_middle
                 if handle_middle is None:
+                    lh = self.line_height
                     self._handle_middle = handle_middle = Selector(
                         source=self.handle_image_middle,
                         size_hint=(None, None),
-                        size=('32dp', '32dp'))
+                        size=('45dp', '45dp'))
                     handle_middle.bind(on_press=self._handle_pressed,
                         on_touch_move=self._handle_move,
                         on_release=self._handle_released)
-                self._win.remove_widget(handle_middle)
-                self._win.add_widget(handle_middle)
+                if not self._handle_middle.parent and self.text:
+                    self._win.add_widget(handle_middle)
                 self._position_handles('middle')
             return True
 
     def _handle_pressed(self, instance):
-        self._hide_cut_copy_paste(retain_handles=True)
+        self._hide_cut_copy_paste()
 
     def _handle_released(self, instance):
-        pass
+        if self.selection_to != self.selection_from:
+            self._update_selection()
+            self._show_cut_copy_paste(
+                (instance.x + ((1 if instance is self._handle_left else - 1)
+                               * self._bubble.width / 2) if self._bubble else 0,
+                 instance.y + self.line_height), self._win)
 
     def _handle_move(self, instance, touch):
         get_cursor = self.get_cursor_from_xy
@@ -947,7 +960,7 @@ class TextInput(Widget):
         handle_left = self._handle_left
         handle_middle = self._handle_middle
 
-        cursor = get_cursor(touch.x, touch.y + (instance.height / 2))
+        cursor = get_cursor(touch.x, touch.y + instance._touch_diff)
 
         if instance != touch.grab_current:
             return
@@ -979,22 +992,30 @@ class TextInput(Widget):
 
         self._win.remove_widget(self._handle_middle)
 
-        if mode[0] in ('b', 'l'):
+        if mode[0] != 'm':
             handle_left = self._handle_left
             hp_left = group[2].pos
             handle_left.pos = self.to_window(*hp_left)
             handle_left.x -= handle_left.width
-            handle_left.y -= lh
+            handle_left.y -= handle_left.height
 
-        if mode[0] in ('b', 'r'):
+        #if mode[0] in ('b', 'r'):
             handle_right = self._handle_right
             last_rect = group[-1]
             hp_right = last_rect.pos[0], last_rect.pos[1]
             handle_right.pos = self.to_window(*hp_right)
             handle_right.x += last_rect.size[0]
-            handle_right.y -= lh
+            handle_right.y -= handle_right.height
 
-    def _hide_cut_copy_paste(self, win=None, retain_handles=False):
+    def _hide_handles(self, win=None):
+        win = win or self._win
+        if win is None:
+            return
+        self._win.remove_widget(self._handle_right)
+        self._win.remove_widget(self._handle_left)
+        self._win.remove_widget(self._handle_middle)
+
+    def _hide_cut_copy_paste(self, win=None):
         win = win or self._win
         if win is None:
             return
@@ -1003,30 +1024,25 @@ class TextInput(Widget):
             anim = Animation(opacity=0, d=.225)
             anim.bind(on_complete=lambda *args: win.remove_widget(bubble))
             anim.start(bubble)
-            if retain_handles:
-                return
-            self._win.remove_widget(self._handle_right)
-            self._win.remove_widget(self._handle_left)
 
-    def _show_cut_copy_paste(self, pos, win, parent_changed=False, mode='', *l):
-        # Show a bubble with cut copy and paste buttons
-        if not self.use_bubble:
+    def _show_handles(self, win):
+        if not self.use_handles:
             return
-
         handle_right = self._handle_right
         handle_left = self._handle_left
+        lh = self.line_height
         if self._handle_left is None:
             self._handle_left = handle_left = Selector(
                 source=self.handle_image_left,
                 size_hint=(None, None),
-                size=('32dp', '32dp'))
+                size=('45dp', '45dp'))
             handle_left.bind(on_press=self._handle_pressed,
                              on_touch_move=self._handle_move,
                              on_release=self._handle_released)
             self._handle_right = handle_right = Selector(
                 source=self.handle_image_right,
                 size_hint=(None, None),
-                size=('32dp', '32dp'))
+                size=('45dp', '45dp'))
             handle_right.bind(on_press=self._handle_pressed,
                              on_touch_move=self._handle_move,
                              on_release=self._handle_released)
@@ -1035,6 +1051,20 @@ class TextInput(Widget):
             win.remove_widget(self._handle_right)
             if not self.parent:
                 return
+
+        self._position_handles()
+        if self.selection_from != self.selection_to:
+            self._handle_left.opacity = self._handle_right.opacity = 0
+            win.add_widget(self._handle_left)
+            win.add_widget(self._handle_right)
+            anim = Animation(opacity=1, d=.4)
+            anim.start(self._handle_right)
+            anim.start(self._handle_left)
+
+    def _show_cut_copy_paste(self, pos, win, parent_changed=False, mode='', *l):
+        # Show a bubble with cut copy and paste buttons
+        if not self.use_bubble:
+            return
 
         bubble = self._bubble
         if bubble is None:
@@ -1050,8 +1080,6 @@ class TextInput(Widget):
 
         # Search the position from the touch to the window
         lh, ls = self.line_height, self.line_spacing
-
-        self._position_handles()
 
         x, y = pos
         t_pos = self.to_window(x, y)
@@ -1092,9 +1120,6 @@ class TextInput(Widget):
         Animation.cancel_all(bubble)
         bubble.opacity = 0
         win.add_widget(bubble)
-        if self.selection_from != self.selection_to:
-            win.add_widget(self._handle_left)
-            win.add_widget(self._handle_right)
         Animation(opacity=1, d=.225).start(bubble)
 
     #
@@ -1150,6 +1175,7 @@ class TextInput(Widget):
             self.cancel_selection()
             Clock.unschedule(self._do_blink_cursor)
             self._hide_cut_copy_paste(win)
+            self._hide_handles(win)
             self._win = None
 
     def on_readonly(self, instance, value):
@@ -1757,6 +1783,7 @@ class TextInput(Widget):
             return True
 
         if text and not is_interesting_key:
+            self._hide_handles(self._win)
             self._hide_cut_copy_paste()
             self._win.remove_widget(self._handle_middle)
             if is_shortcut:
@@ -2145,6 +2172,15 @@ class TextInput(Widget):
     and defaults to True on mobile OS's, False on desktop OS's.
     '''
 
+    use_handles = BooleanProperty(not _is_desktop)
+    '''Indicates whether the selection handles are displayed.
+
+    .. versionadded:: 1.8.0
+
+    :data:`use_handles` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True on mobile OS's, False on desktop OS's.
+    '''
+
     def get_sel_from(self):
         return self._selection_from
 
@@ -2377,7 +2413,8 @@ if __name__ == '__main__':
 
         def build(self):
             root = BoxLayout(orientation='vertical')
-            textinput = TextInput(multiline=True, use_bubble=True)
+            textinput = TextInput(multiline=True, use_bubble=True,
+                                  use_handles=True)
             textinput.text = __doc__
             root.add_widget(textinput)
             textinput2 = TextInput(text='monoline textinput',
