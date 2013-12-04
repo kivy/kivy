@@ -15,7 +15,7 @@ Dimensions
 ----------
 
 If you want to design your UI for different screen sizes, you will want better
-measurement units to work with. Kivy provides some superior alternatives.
+measurement units to work with. Kivy provides some more scalable alternatives.
 
 :Units:
     `pt`
@@ -32,7 +32,7 @@ measurement units to work with. Kivy provides some superior alternatives.
         physical density of the screen. With a :data:`~MetricsBase.density` of
         1, 1dp is equal to 1px. When running on a higher density screen, the
         number of pixels used to draw 1dp is scaled up a factor appropriate to
-        the screen's dpi, and the inverse for lower dpi.
+        the screen's dpi, and the inverse for a lower dpi.
         The ratio of dp-to-pixels will change with the screen density, but not
         necessarily in direct proportion. Using the dp unit is a simple solution
         to
@@ -41,14 +41,14 @@ measurement units to work with. Kivy provides some superior alternatives.
         real-world size of your UI across different devices.
     `sp`
         Scale-independent Pixels - This is like the dp unit, but it is also
-        scaled by the user's font size preference. It is recommended to use this
-        unit when specifying font sizes, so they will be adjusted for both the
-        screen density and the user's preference.
+        scaled by the user's font size preference. We recommend you use this
+        unit when specifying font sizes, so the font size will be adjusted to
+        both the screen density and the user's preference.
 
 Examples
 --------
 
-Here is an example of creating a label with a sp font_size, and setting the
+Here is an example of creating a label with a sp font_size and setting the
 height manually with a 10dp margin::
 
     #:kivy 1.5.0
@@ -62,11 +62,11 @@ height manually with a 10dp margin::
 Manual control of metrics
 -------------------------
 
-The metrics cannot be changed in runtime. Once a value has been converted to
+The metrics cannot be changed at runtime. Once a value has been converted to
 pixels, you can't retrieve the original value anymore. This stems from the fact
 that the DPI and density of a device cannot be changed at runtime.
 
-We provide new environment variables to control the metrics:
+We provide some environment variables to control metrics:
 
 - `KIVY_METRICS_DENSITY`: if set, this value will be used for
   :data:`~MetricsBase.density` instead of the systems one. On android, the value
