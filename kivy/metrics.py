@@ -143,14 +143,14 @@ def sp(value):
 
 
 class MetricsBase(object):
-    '''Class that contain the default attribute for metrics. Don't use the class
+    '''Class that contains the default attributes for Metrics. Don't use the class
     directly, but use the `metrics` instance.
     '''
 
     @reify
     def dpi(self):
         '''Return the DPI of the screen. Depending of the platform, the DPI can
-        be taken from the Window provider (Desktop mainly), or from
+        be taken from the Window provider (Desktop mainly) or from a
         platform-specific module (like android/ios).
         '''
         custom_dpi = environ.get('KIVY_DPI')
@@ -172,7 +172,7 @@ class MetricsBase(object):
     @reify
     def dpi_rounded(self):
         '''Return the dpi of the screen, rounded to the nearest of 120, 160,
-        240, 320.
+        240 or 320.
         '''
         dpi = self.dpi
         if dpi < 140:
@@ -186,7 +186,7 @@ class MetricsBase(object):
     @reify
     def density(self):
         '''Return the density of the screen. This value is 1 by default
-        on desktop, and varies on android depending the screen.
+        on desktops but varies on android depending on the screen.
         '''
         custom_density = environ.get('KIVY_METRICS_DENSITY')
         if custom_density:
@@ -205,8 +205,8 @@ class MetricsBase(object):
 
     @reify
     def fontscale(self):
-        '''Return the fontscale user preference. This value is 1 by default, and
-        can varies between 0.8-1.2.
+        '''Return the fontscale user preference. This value is 1 by default but
+        can vary between 0.8 and 1.2.
         '''
         custom_fontscale = environ.get('KIVY_METRICS_FONTSCALE')
         if custom_fontscale:
@@ -221,7 +221,7 @@ class MetricsBase(object):
         return 1.0
 
 
-#: default instance of :class:`MetricsBase`, used everywhere in the code
+#: Default instance of :class:`MetricsBase`, used everywhere in the code
 #: .. versionadded:: 1.7.0
 Metrics = MetricsBase()
 
