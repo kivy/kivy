@@ -456,9 +456,11 @@ class ScrollView(StencilView):
         scroll_bar_content = 'bars' in scroll_type
 
         ud['in_bar_x'] = ud['in_bar_y'] = False
-        if (scroll_bar_content and touch.y < self.bar_width):
+        if (scroll_bar_content and self.viewport_size[0] > self.width and
+            touch.y < self.bar_width):
             ud['in_bar_x'] = True
-        if scroll_bar_content and touch.x > self.right - self.bar_width:
+        if (scroll_bar_content and self.viewport_size[1] > self.height and
+            touch.x > self.right - self.bar_width):
             ud['in_bar_y'] = True
 
         if vp and 'button' in touch.profile and \
