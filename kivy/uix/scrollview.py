@@ -333,10 +333,6 @@ class ScrollView(StencilView):
     to ['content'].
     '''
 
-    def on_scroll_type(self, instance, value):
-        self.bar_width = max('9dp', self.bar_width)\
-            if 'bars' in value else self.bar_width
-
     # private, for internal use only
 
     _viewport = ObjectProperty(None, allownone=True)
