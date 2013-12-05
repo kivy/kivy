@@ -512,8 +512,8 @@ class ScrollView(StencilView):
             self._change_touch_mode()
             return False
         else:
-            Clock.schedule_once(self._change_touch_mode,
-                            self.scroll_timeout / 1000.)
+            Clock.schedule_once(partial(self._change_touch_mode, False),
+                                self.scroll_timeout / 1000.)
         return True
 
     def on_touch_move(self, touch):
@@ -671,7 +671,7 @@ class ScrollView(StencilView):
     def _get_uid(self, prefix='sv'):
         return '{0}.{1}'.format(prefix, self.uid)
 
-    def _change_touch_mode(self, *largs):
+    def _change_touch_mode(self, is_local=True, *largs):
         if not self._touch:
             return
         uid = self._get_uid()
@@ -694,7 +694,8 @@ class ScrollView(StencilView):
         # correctly calculate the position of the touch inside the
         # scrollview
         touch.push()
-        touch.apply_transform_2d(self.to_widget)
+        if not is_local:
+            touch.apply_transform_2d(self.to_widget)
         touch.apply_transform_2d(self.to_parent)
         super(ScrollView, self).on_touch_down(touch)
         touch.pop()
