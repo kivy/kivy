@@ -107,9 +107,9 @@ class FileHandler(logging.Handler):
     fd = None
 
     def purge_logs(self, directory):
-        '''Purge log is called randomly, to prevent log directory to be filled
-        by lot and lot of log files.
-        You've a chance of 1 on 20 to fire a purge log.
+        '''Purge log is called randomly to prevent the log directory from being
+        filled by lots and lots of log files.
+        You've a chance of 1 in 20 that purge log will be fired.
         '''
         if randint(0, 20) != 0:
             return
