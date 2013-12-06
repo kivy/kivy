@@ -12,10 +12,10 @@ The *Properties* classes are used when you create an
 Kivy's property classes support:
 
     Value Checking / Validation
-        When you assign a new value to a property, the value is checked to
-        pass constraints implemented in the class such as validation. For
-        example, validation for :class:`OptionProperty` will make sure that
-        the value is in a predefined list of possibilities. Validation for
+        When you assign a new value to a property, the value is checked against
+        validation constraints. For
+        example, validation for an :class:`OptionProperty` will make sure that
+        the value is in a predefined list of possibilities. Validation for a
         :class:`NumericProperty` will check that your value is a numeric type.
         This prevents many errors early on.
 
