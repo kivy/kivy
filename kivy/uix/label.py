@@ -4,7 +4,7 @@ Label
 
 The :class:`Label` widget is for rendering text. It supports ascii and unicode
 strings::
-au
+
     # hello world text
     l = Label(text='Hello world')
 
