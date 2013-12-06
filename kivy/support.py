@@ -2,7 +2,8 @@
 Support
 =======
 
-Activate other framework/toolkit inside our event loop
+Activate other frameworks/toolkits inside the kivy event loop.
+
 '''
 
 __all__ = ('install_gobject_iteration', 'install_twisted_reactor',
@@ -13,7 +14,7 @@ from kivy.compat import PY2
 
 def install_gobject_iteration():
     '''Import and install gobject context iteration inside our event loop.
-    This is used as soon as gobject is used (like gstreamer)
+    This is used as soon as gobject is used (like gstreamer).
     '''
 
     from kivy.clock import Clock
@@ -62,10 +63,10 @@ def _android_ask_redraw(*largs):
 
 
 def install_android():
-    '''Install hooks for android platform.
+    '''Install hooks for the android platform.
 
-    * Automaticly sleep when the device is paused
-    * Auto kill the application is the return key is hitted
+    * Automatically sleep when the device is paused.
+    * Automatically kill the application when return key is pressed.
     '''
     try:
         import android
