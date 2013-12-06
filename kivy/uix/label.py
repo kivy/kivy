@@ -4,7 +4,7 @@ Label
 
 The :class:`Label` widget is for rendering text. It supports ascii and unicode
 strings::
-
+au
     # hello world text
     l = Label(text='Hello world')
 
@@ -255,6 +255,7 @@ class Label(Widget):
     text_size = ListProperty([None, None])
     '''By default, the label is not constrained to any bounding box.
     You can set the size constraint of the label with this property.
+    The text will autoflow into the constrains.
 
     .. versionadded:: 1.0.4
 
