@@ -2,7 +2,7 @@
 Parser utilities
 ================
 
-Helper functions used for CSS
+Helper functions used for CSS parsing.
 '''
 
 __all__ = ('parse_color', 'parse_int', 'parse_float',
@@ -36,11 +36,15 @@ def color_error(text):
 
 
 def parse_color(text):
-    '''Parse a string to a kivy color. Supported formats :
+    '''Parse a string to a kivy color. Supported formats:
+
         * rgb(r, g, b)
         * rgba(r, g, b, a)
         * aaa
         * rrggbb
+
+    For hexadecimal values, you case also use:
+
         * #aaa
         * #rrggbb
     '''
@@ -95,14 +99,14 @@ def parse_bool(text):
 
 
 def parse_string(text):
-    '''Parse a string to a string (remove single and double quotes)'''
+    '''Parse a string to a string (removing single and double quotes)'''
     if len(text) >= 2 and text[0] in ('"', "'") and text[-1] in ('"', "'"):
         text = text[1:-1]
     return text.strip()
 
 
 def parse_int2(text):
-    '''Parse a string to a list of exactly 2 integers
+    '''Parse a string to a list of exactly 2 integers.
 
         >>> print(parse_int2("12 54"))
         12, 54
@@ -120,7 +124,7 @@ def parse_int2(text):
 
 
 def parse_float4(text):
-    '''Parse a string to a list of exactly 4 floats
+    '''Parse a string to a list of exactly 4 floats.
 
         >>> parse_float4('54 87. 35 0')
         54, 87., 35, 0
