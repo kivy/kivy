@@ -143,13 +143,13 @@ def sp(value):
 
 
 class MetricsBase(object):
-    '''Class that contains the default attributes for Metrics. Don't use the class
-    directly, but use the `metrics` instance.
+    '''Class that contains the default attributes for Metrics. Don't use this
+    class directly, but use the `Metrics` instance.
     '''
 
     @reify
     def dpi(self):
-        '''Return the DPI of the screen. Depending of the platform, the DPI can
+        '''Return the DPI of the screen. Depending on the platform, the DPI can
         be taken from the Window provider (Desktop mainly) or from a
         platform-specific module (like android/ios).
         '''
@@ -171,7 +171,7 @@ class MetricsBase(object):
 
     @reify
     def dpi_rounded(self):
-        '''Return the dpi of the screen, rounded to the nearest of 120, 160,
+        '''Return the DPI of the screen, rounded to the nearest of 120, 160,
         240 or 320.
         '''
         dpi = self.dpi
