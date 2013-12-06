@@ -31,14 +31,14 @@ Kivy's property classes support:
         The same instance of a property is shared across multiple widget
         instances.
 
-Comparison Python / Kivy
-------------------------
+Comparison Python vs. Kivy
+--------------------------
 
 Basic example
 ~~~~~~~~~~~~~
 
 Let's compare Python and Kivy properties by creating a Python class with 'a'
-as a float::
+as a float property::
 
     class MyClass(object):
         def __init__(self, a=1.0):
@@ -87,7 +87,7 @@ Error Handling
 ~~~~~~~~~~~~~~
 
 If setting a value would otherwise raise a ValueError, you have two options to
-handle the error gracefully within the property.  An errorvalue is a substitute
+handle the error gracefully within the property. An errorvalue is a substitute
 for the invalid value. An errorhandler is a callable (single argument function
 or lambda) which can return a valid substitute.
 
@@ -138,7 +138,7 @@ class::
 
     # At this point, any change to the a property will call your callback.
     ins.a = 5    # callback called
-    ins.a = 5    # callback not called, because the value didnt change
+    ins.a = 5    # callback not called, because the value did not change
     ins.a = -1   # callback called
 
 Observe using 'on_<propname>'
