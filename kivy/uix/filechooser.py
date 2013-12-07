@@ -99,7 +99,7 @@ class FileSystemAbstract(object):
         pass
 
     def is_dir(self, fn):
-        '''Return True if the directory is hidden
+        '''Return True if the argument passed to this method is a directory
         '''
         pass
 
