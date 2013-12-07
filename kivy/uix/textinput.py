@@ -1566,10 +1566,13 @@ class TextInput(Widget):
         x2 = x + w
         if line_num == s1r:
             lines = _lines[line_num]
+            x1 -= self.scroll_x
             x1 += _get_text_width(lines[:s1c], tab_width, _label_cached)
         if line_num == s2r:
             lines = _lines[line_num]
-            x2 = x + _get_text_width(lines[:s2c], tab_width, _label_cached)
+            x2 = (x - self.scroll_x) + _get_text_width(lines[:s2c],
+                                                       tab_width,
+                                                       _label_cached)
         width_minus_padding_right = width - padding_right
         maxx = x + width_minus_padding_right
         if x1 > maxx:
