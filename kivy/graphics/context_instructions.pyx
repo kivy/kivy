@@ -584,7 +584,13 @@ cdef class Rotate(Transform):
         if 'angle' in kwargs:
             self._angle = kwargs['angle']
         if 'origin' in kwargs:
-            self._origin = kwargs['origin']
+            origin = kwargs['origin']
+            if len(origin) == 3:
+                self._origin = tuple(origin)
+            elif len(origin) == 2:
+                self._origin = (origin[0], origin[1], 0.)
+            else:
+                raise Exception('invalid number of components in origin')
 
         self.compute()
 
