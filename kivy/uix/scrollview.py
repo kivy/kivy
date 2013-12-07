@@ -527,23 +527,23 @@ class ScrollView(StencilView):
             'time': touch.time_start}
 
         if self.do_scroll_x and self.effect_x:
-            if (scroll_type[0] == 'b' and
+            if (scroll_bar_content and
                 (self.bar_pos_x == 'bottom' and touch.y < self.bar_width) or
                 (self.bar_pos_x == 'top' and
                  touch.y > self.height - self.bar_width)):
                 ud['in_bar_x'] = True
             else:
-                if scroll_type != 'bars':
+                if not scroll_bar_content:
                     self.effect_x.start(touch.x)
         if self.do_scroll_y and self.effect_y:
-            if (scroll_type[0] == 'b' and
+            if (scroll_bar_content and
                 (self.bar_pos_y == 'right' and
                  touch.x > self.right - self.bar_width) or
                 (self.bar_pos_y == 'left' and
                  touch.x < self.x + self.bar_width)):
                 ud['in_bar_y'] = True
             else:
-                if scroll_type != 'bars':
+                if not scroll_bar_content:
                     self.effect_y.start(touch.y)
 
         if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
