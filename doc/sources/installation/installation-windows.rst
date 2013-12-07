@@ -171,7 +171,7 @@ If you want to use the latest development version of Kivy, you can follow these 
 #. Download and install Kivy for Windows as explained above
 #. Go into the portable Kivy directory. This contains the `kivy.bat` file and the `Python`, `kivy`, `Mingw` folders etc.
 #. Rename the kivy directory to kivy.stable
-#. Go to github, and download the `latest development version of Kivy <https://github.com/kivy/kivy/zipball/master>`_
+#. `Download the latest development version of Kivy from GitHub <https://github.com/kivy/kivy/archive/master.zip>`_ (the link comes from: https://github.com/kivy/kivy > Download ZIP)
 #. Extract the zip into the Kivy portable directory
 #. Rename the directory named "kivy-<some hash>" to just "kivy"
 #. Launch kivy.bat
