@@ -664,8 +664,9 @@ class ObservableDict(dict):
         return result
 
     def setdefault(self, *largs):
-        dict.setdefault(self, *largs)
+        cdef object result = dict.setdefault(self, *largs)
         observable_dict_dispatch(self)
+        return result
 
     def update(self, *largs):
         dict.update(self, *largs)
