@@ -269,8 +269,8 @@ Pause mode
     cases where your application could crash on resume.
 
 On tablets and phones, the user can switch at any moment to another application.
-By default, your application will close and the :func:`App.on_stop` event will be
-fired.
+By default, your application will close and the :func:`App.on_stop` event will
+be fired.
 
 If you support Pause mode, when switching to another application, your
 application will wait indefinitely until the user
@@ -323,7 +323,6 @@ from kivy.lang import Builder
 from kivy.resources import resource_find
 from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
-from kivy.uix.settings import SettingsWithSpinner
 from kivy.properties import ObjectProperty
 
 
@@ -388,7 +387,7 @@ class App(EventDispatcher):
     change this to False.
     '''
 
-    settings_cls = ObjectProperty(SettingsWithSpinner)
+    settings_cls = ObjectProperty(None)
     '''.. versionadded:: 1.8.0
 
     The class to used to construct the settings panel and
@@ -600,8 +599,8 @@ class App(EventDispatcher):
             #. Creating an instance of a ConfigParser
             #. Loading the default configuration by calling
                :meth:`build_config`, then
-            #. If it exists, it loads the application configuration file, otherwise
-               it creates one.
+            #. If it exists, it loads the application configuration file,
+               otherwise it creates one.
 
         :return: ConfigParser instance
         '''
@@ -873,6 +872,9 @@ class App(EventDispatcher):
 
         .. versionadded:: 1.8.0
         '''
+        if self.settings_cls is None:
+            from kivy.uix.settings import SettingsWithSpinner
+            self.settings_cls = SettingsWithSpinner
         s = self.settings_cls()
         self.build_settings(s)
         if self.use_kivy_settings:
