@@ -710,6 +710,9 @@ class App(EventDispatcher):
             if root:
                 self.root = root
         if self.root:
+            if not isinstance(self.root, Widget):
+                Logger.critical('App.root must be an _instance_ of Widget')
+                raise Exception('Invalid instance in App.root')
             from kivy.core.window import Window
             Window.add_widget(self.root)
 
