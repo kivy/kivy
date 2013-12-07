@@ -1591,10 +1591,17 @@ class TextInput(Widget):
         dy = self.line_height + self.line_spacing
         padding_left = self.padding[0]
         padding_top = self.padding[1]
-        x = self.x + padding_left
-        y = self.top - padding_top + self.scroll_y
+        left = self.x + padding_left
+        top = self.top - padding_top
+        y = top + self.scroll_y
         y -= self.cursor_row * dy
-        x, y = x + self.cursor_offset() - self.scroll_x, y
+        x, y = left + self.cursor_offset() - self.scroll_x, y
+        if x < left:
+            self.scroll_x = 0
+            x = left
+        if y > top:
+            y = top
+            self.scroll_y = 0
         return x, y
 
     def _get_line_options(self):
@@ -2421,7 +2428,7 @@ if __name__ == '__main__':
                                   use_handles=True)
             textinput.text = __doc__
             root.add_widget(textinput)
-            textinput2 = TextInput(text='monoline textinput',
+            textinput2 = TextInput(multiline=False, text='monoline textinput',
                                    size_hint=(1, None), height=30)
             root.add_widget(textinput2)
             return root
