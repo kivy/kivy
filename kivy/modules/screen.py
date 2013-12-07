@@ -31,6 +31,8 @@ must consistently use units 'dp' and 'sp' throughout your app. See
 '''
 
 import sys
+import kivy
+
 from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
@@ -66,6 +68,7 @@ def stop(win, ctx):
 
 def apply_device(device, scale, orientation):
     name, width, height, dpi, density = devices[device]
+    host_dpi = float(environ.get('KIVY_DPI', 96))
     if orientation == 'portrait':
         width, height = height, width
     Logger.info('Screen: Apply screen settings for {0}'.format(name))
@@ -75,12 +78,16 @@ def apply_device(device, scale, orientation):
         scale = float(scale)
     except:
         scale = 1
-    environ['KIVY_METRICS_DENSITY'] = str(density * scale)
-    environ['KIVY_DPI'] = str(dpi * scale)
+    environ['KIVY_METRICS_DENSITY'] = str(density)
+    environ['KIVY_DPI'] = str(dpi)
+    # set emulation window as window provider
+    kivy.kivy_options['window'] = ('emulation', )
+    Config.set('graphics', 'emulation_width', str(width))
+    Config.set('graphics', 'emulation_height', str(height))
+    scale *= host_dpi / dpi
+    
     Config.set('graphics', 'width', str(int(width * scale)))
-    # simulate with the android bar
-    # FIXME should be configurable
-    Config.set('graphics', 'height', str(int(height * scale - 25 * density)))
+    Config.set('graphics', 'height', str(int(height * scale)))
     Config.set('graphics', 'fullscreen', '0')
     Config.set('graphics', 'show_mousecursor', '1')
 
@@ -98,11 +105,11 @@ def usage(device=None):
             device, *info))
     print('\n')
     print('Simulate a medium-density screen such as Motolora Droid 2:\n')
-    print('    python main.py -m screen,droid2\n')
+    print('    python main.py -m screen:droid2\n')
     print('Simulate a high-density screen such as HTC One X, in portrait:\n')
-    print('    python main.py -m screen,onex,portrait\n')
+    print('    python main.py -m screen:onex,portrait\n')
     print('Simulate the iPad 2 screen\n')
-    print('    python main.py -m screen,ipad\n')
+    print('    python main.py -m screen:ipad\n')
     sys.exit(1)
 
 
