@@ -89,7 +89,6 @@ from kivy.graphics import Canvas, PushMatrix, PopMatrix, Translate, Rectangle
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
-from kivy.core.window import Window
 from kivy.graphics import Fbo, ClearColor, ClearBuffers
 from weakref import proxy
 from functools import partial
@@ -388,7 +387,7 @@ class Widget(WidgetBase):
     def clear_widgets(self, children=None):
         '''Remove all widgets added to this widget.
 
-        .. versionchanged:: 1.8.0
+        .. versionchanged:: 1.8.1
 
             `children` argument can be used to select the children we want to
             remove. It should be a list of children (or filtered list) of the
@@ -477,7 +476,7 @@ class Widget(WidgetBase):
         .. Note:: The image will be saved in png format, you should
                   include the extension in your filename.
 
-        .. versionadded:: 1.8.0
+        .. versionadded:: 1.8.1
 
         '''
 
@@ -497,12 +496,8 @@ class Widget(WidgetBase):
             PopMatrix()
         fbo.add(self.canvas)
 
-        Window.canvas.add(fbo)
-
         fbo.draw()
         fbo.texture.save(filename)
-
-        Window.canvas.remove(fbo)
 
         fbo.remove(self.canvas)
 
