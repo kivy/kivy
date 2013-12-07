@@ -791,7 +791,13 @@ image_libs += [
     ('pygame', 'img_pygame'),
     ('pil', 'img_pil'),
     ('gif', 'img_gif')]
-core_register_libs('image', image_libs)
+libs_loaded = core_register_libs('image', image_libs)
+
+if not libs_loaded:
+    import sys
+
+    Logger.critical('App: Unable to get any Image provider, abort.')
+    sys.exit(1)
 
 # resolve binding.
 from kivy.graphics.texture import Texture, TextureRegion

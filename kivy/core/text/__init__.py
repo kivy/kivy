@@ -548,6 +548,13 @@ Label = core_select_lib('text', (
     ('pil', 'text_pil', 'LabelPIL'),
 ))
 
+if not Label:
+    from kivy.logger import Logger
+    import sys
+
+    Logger.critical('App: Unable to get a Text provider, abort.')
+    sys.exit(1)
+
 # For the first initalization, register the default font
 if 'KIVY_DOC' not in os.environ:
     Label.register('DroidSans',
