@@ -793,7 +793,8 @@ image_libs += [
     ('gif', 'img_gif')]
 libs_loaded = core_register_libs('image', image_libs)
 
-if not libs_loaded:
+from os import environ
+if not 'KIVY_DOC' in environ and not libs_loaded:
     import sys
 
     Logger.critical('App: Unable to get any Image provider, abort.')
