@@ -305,7 +305,10 @@ class Animation(EventDispatcher):
                 anim['time'] += dt
 
             # calculate progression
-            progress = min(1., anim['time'] / self._duration)
+            if self._duration:
+                progress = min(1., anim['time'] / self._duration)
+            else:
+                progress = 1
             t = transition(progress)
 
             # apply progression on widget
