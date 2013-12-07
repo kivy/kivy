@@ -278,33 +278,33 @@ class ScrollView(StencilView):
     to 2
     '''
 
-    bar_side_x = OptionProperty('bottom', options=('top', 'bottom'))
+    bar_pos_x = OptionProperty('bottom', options=('top', 'bottom'))
     '''Which side of the ScrollView the horizontal scroll bar should go
     on. Possible values are 'top' and 'bottom'.
 
     .. versionadded:: 1.8.0
 
-    :data:`bar_side_x` is an :class:`~kivy.properties.OptionProperty`,
+    :data:`bar_pos_x` is an :class:`~kivy.properties.OptionProperty`,
     default to 'bottom'
 
     '''
 
-    bar_side_y = OptionProperty('right', options=('left', 'right'))
+    bar_pos_y = OptionProperty('right', options=('left', 'right'))
     '''Which side of the ScrollView the vertical scroll bar should go
     on. Possible values are 'left' and 'right'.
 
     .. versionadded:: 1.8.0
 
-    :data:`bar_side_y` is an :class:`~kivy.properties.OptionProperty`,
+    :data:`bar_pos_y` is an :class:`~kivy.properties.OptionProperty`,
     default to 'right'
 
     '''
 
-    bar_side = ReferenceListProperty(bar_side_x, bar_side_y)
+    bar_pos = ReferenceListProperty(bar_pos_x, bar_pos_y)
     '''Which side of the scroll view to place each of the bars on.
 
-    :data:`bar_side` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`bar_side_x`, :data:`bar_side_y`)
+    :data:`bar_pos` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:data:`bar_pos_x`, :data:`bar_pos_y`)
     '''
 
     bar_margin = NumericProperty(0)
@@ -528,8 +528,8 @@ class ScrollView(StencilView):
 
         if self.do_scroll_x and self.effect_x:
             if (scroll_type[0] == 'b' and
-                (self.bar_side_x == 'bottom' and touch.y < self.bar_width) or
-                (self.bar_side_x == 'top' and
+                (self.bar_pos_x == 'bottom' and touch.y < self.bar_width) or
+                (self.bar_pos_x == 'top' and
                  touch.y > self.height - self.bar_width)):
                 ud['in_bar_x'] = True
             else:
@@ -537,9 +537,9 @@ class ScrollView(StencilView):
                     self.effect_x.start(touch.x)
         if self.do_scroll_y and self.effect_y:
             if (scroll_type[0] == 'b' and
-                (self.bar_side_y == 'right' and
+                (self.bar_pos_y == 'right' and
                  touch.x > self.right - self.bar_width) or
-                (self.bar_side_y == 'left' and
+                (self.bar_pos_y == 'left' and
                  touch.x < self.x + self.bar_width)):
                 ud['in_bar_y'] = True
             else:

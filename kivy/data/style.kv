@@ -901,12 +901,12 @@
         Color:
             rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if (self.do_scroll_y and self.viewport_size[1]>self.height) else 0]
         Rectangle:
-            pos: (self.right - self.bar_width - self.bar_margin, self.y + self.height * self.vbar[0]) if self.bar_side_y == 'right' else (self.x + self.bar_margin, self.y + self.height * self.vbar[0])
+            pos: (self.right - self.bar_width - self.bar_margin, self.y + self.height * self.vbar[0]) if self.bar_pos_y == 'right' else (self.x + self.bar_margin, self.y + self.height * self.vbar[0])
             size: self.bar_width, self.height * self.vbar[1]
         Color:
             rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if (self.do_scroll_x and self.viewport_size[0] > self.width) else 0]
         Rectangle:
-            pos: (self.x + self.width * self.hbar[0], self.y + self.bar_margin) if self.bar_side_x == 'bottom' else (self.x + self.width * self.hbar[0], self.y + self.height - self.bar_margin - self.bar_width)
+            pos: (self.x + self.width * self.hbar[0], self.y + self.bar_margin) if self.bar_pos_x == 'bottom' else (self.x + self.width * self.hbar[0], self.y + self.height - self.bar_margin - self.bar_width)
             size: self.width * self.hbar[1], self.bar_width
 
 
