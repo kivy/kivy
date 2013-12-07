@@ -22,6 +22,7 @@ from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
 from kivy.resources import resource_find
 from kivy.compat import PY2
+from kivy.logger import Logger
 
 DEFAULT_FONT = 'DroidSans'
 
@@ -557,9 +558,13 @@ if not Label:
 
 # For the first initalization, register the default font
 if 'KIVY_DOC' not in os.environ:
-    Label.register('DroidSans',
-        'data/fonts/DroidSans.ttf',
-        'data/fonts/DroidSans-Italic.ttf',
-        'data/fonts/DroidSans-Bold.ttf',
-        'data/fonts/DroidSans-BoldItalic.ttf')
-
+    if Label is not None:
+        Label.register('DroidSans',
+            'data/fonts/DroidSans.ttf',
+            'data/fonts/DroidSans-Italic.ttf',
+            'data/fonts/DroidSans-Bold.ttf',
+            'data/fonts/DroidSans-BoldItalic.ttf')
+    else:
+        Logger.critical(
+            'Text: Unable to register the default font, probably due to the '
+            'absence of Text provider.')
