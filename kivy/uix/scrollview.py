@@ -96,7 +96,7 @@ from kivy.uix.stencilview import StencilView
 from kivy.metrics import sp
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
-    ObjectProperty, ListProperty, OptionProperty
+    ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty
 
 
 # When we are generating documentation, Config doesn't exist
@@ -276,6 +276,35 @@ class ScrollView(StencilView):
 
     :data:`bar_width` is a :class:`~kivy.properties.NumericProperty`, default
     to 2
+    '''
+
+    bar_side_x = OptionProperty('bottom', options=('top', 'bottom'))
+    '''Which side of the ScrollView the horizontal scroll bar should go
+    on. Possible values are 'top' and 'bottom'.
+
+    .. versionadded:: 1.8.0
+
+    :data:`bar_side_x` is an :class:`~kivy.properties.OptionProperty`,
+    default to 'bottom'
+
+    '''
+
+    bar_side_y = OptionProperty('right', options=('left', 'right'))
+    '''Which side of the ScrollView the vertical scroll bar should go
+    on. Possible values are 'left' and 'right'.
+
+    .. versionadded:: 1.8.0
+
+    :data:`bar_side_y` is an :class:`~kivy.properties.OptionProperty`,
+    default to 'right'
+
+    '''
+
+    bar_side = ReferenceListProperty(bar_side_x, bar_side_y)
+    '''Which side of the scroll view to place each of the bars on.
+
+    :data:`bar_side` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:data:`bar_side_x`, :data:`bar_side_y`)
     '''
 
     bar_margin = NumericProperty(0)
@@ -498,10 +527,23 @@ class ScrollView(StencilView):
             'time': touch.time_start}
 
         if self.do_scroll_x and self.effect_x:
-            if not ud['in_bar_x'] and scroll_type != ['bars']:
+            if (scroll_type[0] == 'b' and
+                (self.bar_side_x == 'bottom' and touch.y < self.bar_width) or
+                (self.bar_side_x == 'top' and
+                 touch.y > self.height - self.bar_width)):
+                ud['in_bar_x'] = True
+            else:
+                if scroll_type != 'bars':
                     self.effect_x.start(touch.x)
         if self.do_scroll_y and self.effect_y:
-            if not ud['in_bar_y'] and scroll_type != ['bars']:
+            if (scroll_type[0] == 'b' and
+                (self.bar_side_y == 'right' and
+                 touch.x > self.right - self.bar_width) or
+                (self.bar_side_y == 'left' and
+                 touch.x < self.x + self.bar_width)):
+                ud['in_bar_y'] = True
+            else:
+                if scroll_type != 'bars':
                     self.effect_y.start(touch.y)
 
         if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
