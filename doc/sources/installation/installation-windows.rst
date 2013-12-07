@@ -171,7 +171,7 @@ If you want to use the latest development version of Kivy, you can follow these 
 #. Download and install Kivy for Windows as explained above
 #. Go into the portable Kivy directory. This contains the `kivy.bat` file and the `Python`, `kivy`, `Mingw` folders etc.
 #. Rename the kivy directory to kivy.stable
-#. `Download the latest development version of Kivy from GitHub <https://github.com/kivy/kivy/archive/master.zip>`_ (the link comes from: https://github.com/kivy/kivy > Download ZIP)
+#. `Download the latest development version of Kivy from GitHub <https://github.com/kivy/kivy/archive/master.zip>`_
 #. Extract the zip into the Kivy portable directory
 #. Rename the directory named "kivy-<some hash>" to just "kivy"
 #. Launch kivy.bat
@@ -218,7 +218,7 @@ For this example we'll assume you have Python installed in ``C:\dev\python27``:
 
 #.  Download and install cython by typing::
 
-        pip install https://github.com/cython/cython/zipball/master
+        pip install https://github.com/cython/cython/archive/master.zip
 
 #.  Download Glew 1.5.7 from http://sourceforge.net/projects/glew/files/glew/.
     Install the Glew files into the following locations::
@@ -234,7 +234,7 @@ For this example we'll assume you have Python installed in ``C:\dev\python27``:
     http://www.lfd.uci.edu/~gohlke/pythonlibs/#pygame.
 #.  Finally, to install the latest kivy, type::
 
-        pip install https://github.com/kivy/kivy/zipball/master
+        pip install https://github.com/kivy/kivy/archive/master.zip
 
     Alternativly instead of the githup zipball you can point to a specific
     kivy zip file. Also, if you have a development version of kivy and want
