@@ -4,7 +4,7 @@ Utils
 =====
 
 .. versionchanged:: 1.6.0
-    OrderedDict class has been removed. Use the collections.OrderedDict.
+    The OrderedDict class has been removed. Use the collections.OrderedDict.
 
 '''
 
@@ -35,28 +35,28 @@ def boundary(value, minvalue, maxvalue):
 
 
 def intersection(set1, set2):
-    '''Return intersection between 2 list'''
+    '''Return the intersection of 2 lists'''
     return [s for s in set1 if s in set2]
 
 
 def difference(set1, set2):
-    '''Return difference between 2 list'''
+    '''Return the difference between 2 list'''
     return [s for s in set1 if s not in set2]
 
 
 def interpolate(value_from, value_to, step=10):
-    '''Interpolate a value to another. Can be useful to smooth some transition.
-    For example::
+    '''Interpolate between two values. This can be useful for smoothing some
+    transitions. For example::
 
         # instead of setting directly
         self.pos = pos
 
-        # use interpolate, and you'll have a nice transition
+        # use interpolate, and you'll have a nicer transition
         self.pos = interpolate(self.pos, new_pos)
 
     .. warning::
-        This interpolation work only on list/tuple/double with the same
-        dimension. No test are done if the dimension is not the same.
+        These interpolations work only on lists/tuples/doubles with the same
+        dimensions. No test is done to check the dimensions are the same.
     '''
     if type(value_from) in (list, tuple):
         out = []
@@ -68,9 +68,9 @@ def interpolate(value_from, value_to, step=10):
 
 
 def strtotuple(s):
-    '''Convert a tuple string into tuple,
-    with some security check. Designed to be used
-    with eval() function::
+    '''Convert a tuple string into a tuple
+    with some security checks. Designed to be used
+    with the eval() function::
 
         a = (12, 54, 68)
         b = str(a)         # return '(12, 54, 68)'
@@ -92,7 +92,8 @@ def strtotuple(s):
 
 
 def get_color_from_hex(s):
-    '''Transform from hex string color to kivy color'''
+    '''Transform from a hex string color to a kivy :class:`~kivy.graphics.Color`
+    '''
     if s.startswith('#'):
         return get_color_from_hex(s[1:])
 
