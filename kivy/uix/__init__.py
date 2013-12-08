@@ -39,7 +39,8 @@ First read: :doc:`api-kivy.uix.widget`
 - **Behaviors widgets**: Theses widgets do no rendering but act on the
   graphics instructions or interaction (touch) behavior.
 
-    :doc:`api-kivy.uix.scatter`, :doc:`api-kivy.uix.stencilview`
+    :doc:`api-kivy.uix.scatter`, :doc:`api-kivy.uix.stencilview`,
+    :doc:`api-kivy.uix.gesturebox`
 
 - **Screen manager**: Manages screens and transitions when switching from one to
   another.
