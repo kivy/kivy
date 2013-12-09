@@ -1,6 +1,19 @@
 '''
-AudioGstreamer: implementation of Sound with GStreamer
+Audio Gstreamer
+===============
+
+Implementation of Sound with GStreamer
 '''
+
+# if we detect gi, don't use us.
+try:
+    import gi
+    gi_found = True
+except:
+    gi_found = False
+finally:
+    if gi_found:
+        raise Exception('Avoiding PyGST, Gi is better.')
 
 try:
     import pygst
@@ -21,7 +34,7 @@ from kivy.support import install_gobject_iteration
 install_gobject_iteration()
 
 
-class SoundGstreamer(Sound):
+class SoundPyGst(Sound):
 
     @staticmethod
     def extensions():
@@ -29,7 +42,7 @@ class SoundGstreamer(Sound):
 
     def __init__(self, **kwargs):
         self._data = None
-        super(SoundGstreamer, self).__init__(**kwargs)
+        super(SoundPyGst, self).__init__(**kwargs)
 
     def __del__(self):
         if self._data is not None:
@@ -46,7 +59,7 @@ class SoundGstreamer(Sound):
         elif t == gst.MESSAGE_ERROR:
             self._data.set_state(gst.STATE_NULL)
             err, debug = message.parse_error()
-            Logger.error('AudioGstreamer: %s' % err)
+            Logger.error('AudioPyGst: %s' % err)
             Logger.debug(str(debug))
             self.stop()
 
@@ -55,13 +68,13 @@ class SoundGstreamer(Sound):
             return
         self._data.set_property('volume', self.volume)
         self._data.set_state(gst.STATE_PLAYING)
-        super(SoundGstreamer, self).play()
+        super(SoundPyGst, self).play()
 
     def stop(self):
         if not self._data:
             return
         self._data.set_state(gst.STATE_NULL)
-        super(SoundGstreamer, self).stop()
+        super(SoundPyGst, self).stop()
 
     def load(self):
         self.unload()
@@ -128,6 +141,6 @@ class SoundGstreamer(Sound):
             else:
                 return self._data.query_duration(gst.Format
                         (gst.FORMAT_TIME))[0] / 1000000000.
-        return super(SoundGstreamer, self)._get_length()
+        return super(SoundPyGst, self)._get_length()
 
-SoundLoader.register(SoundGstreamer)
+SoundLoader.register(SoundPyGst)

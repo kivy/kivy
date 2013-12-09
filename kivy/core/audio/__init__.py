@@ -28,6 +28,7 @@ from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
 from kivy.utils import platform
+from kivy.compat import PY2
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
         AliasProperty, BooleanProperty
@@ -183,7 +184,9 @@ class Sound(EventDispatcher):
 # XXX test in macosx
 audio_libs = []
 if platform != 'win':
-    audio_libs += [('gstreamer', 'audio_gstreamer')]
+    audio_libs += [('gi', 'audio_gi')]
+    if PY2:
+        audio_libs += [('pygst', 'audio_pygst')]
 audio_libs += [('sdl', 'audio_sdl')]
 audio_libs += [('pygame', 'audio_pygame')]
 
