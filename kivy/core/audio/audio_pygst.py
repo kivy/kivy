@@ -5,15 +5,12 @@ Audio Gstreamer
 Implementation of Sound with GStreamer
 '''
 
-# if we detect gi, don't use us.
 try:
     import gi
-    gi_found = True
-except:
+except ImportError:
     gi_found = False
-finally:
-    if gi_found:
-        raise Exception('Avoiding PyGST, Gi is better.')
+else:
+    raise Exception('Avoiding PyGST, Gi is better.')
 
 try:
     import pygst

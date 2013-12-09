@@ -19,7 +19,7 @@ def install_gobject_iteration():
 
     try:
         from gi.repository import GObject as gobject
-    except:
+    except ImportError:
         import gobject
 
     if hasattr(gobject, '_gobject_already_installed'):
