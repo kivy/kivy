@@ -301,9 +301,11 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
     if hasattr(sys, '_kivy_logging_handler'):
         Logger.addHandler(getattr(sys, '_kivy_logging_handler'))
     else:
-        use_color = os.name != 'nt'
-        if os.environ.get('KIVY_BUILD') in ('android', 'ios'):
-            use_color = False
+        use_color = (
+            os.name != 'nt' and
+            os.environ.get('KIVY_BUILD') not in ('android', 'ios') and
+            os.environ.get('TERM') in ('xterm', 'rxvt', 'rxvt-unicode')
+            )
         color_fmt = formatter_message(
             '[%(levelname)-18s] %(message)s', use_color)
         formatter = ColoredFormatter(color_fmt, use_color=use_color)

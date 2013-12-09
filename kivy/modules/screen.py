@@ -121,3 +121,7 @@ def configure(ctx):
         return usage('')
     apply_device(device, scale, orientation)
 
+if __name__ == "__main__":
+    for n in devices.values():
+        assert n[1] > n[2]
+
