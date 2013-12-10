@@ -32,7 +32,8 @@ override_dh_installdocs:
 	cd doc && PYTHONPATH=.. make latex
 	cd doc/build/latex && make all-pdf || eval "echo 'WARNING: PDF build returnd exit code $?. The *.pdf-file might be missing!'"
 	
+	echo "Listing files in latex's build dir..."
 	ls   doc/build/latex
-	cat  doc/build/latex/Kivy.log
+	#cat  doc/build/latex/Kivy.log
 		
 	dh_installdocs

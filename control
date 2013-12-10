@@ -4,36 +4,41 @@ Priority: optional
 Maintainer: Thomas-Karl Pietrowski <thopiekar@googlemail.com>
 Uploaders: Kivy Launchpad-Team <ubuntu@kivy.org>
 Build-Depends: debhelper (>= 7.0.50~), cdbs,
-               python (>= 2.7), python-all-dev (>= 2.7), python-nose,  python-coverage, python-sphinx,
-               python3,         python3-all-dev,         python3-nose,                  python3-sphinx,
-               cython, cython3,
+               python (>= 2.7),           python3,
+               python-all-dev (>= 2.7),   python3-all-dev,
+               python-nose,               python3-nose,
+               python-coverage,
+               python-sphinx,             python3-sphinx,
+               cython,                    cython3,
                xvfb,
                libgl1-mesa-dev,
                libgles2-mesa-dev,
                texlive-latex-base, texlive-latex-recommended, texlive-latex-extra, texlive-fonts-extra, texlive-fonts-recommended
 Standards-Version: 3.9.1
 Homepage: http://kivy.org/
-Vcs-Bzr: https://code.launchpad.net/~kivy-team/kivy/master
-X-Python-Version: >= 2.7
+Vcs-Git:  https://github.com/kivy/kivy.git
+X-Python-Version:  >= 2.7
 X-Python3-Version: >= 3.3
 
 Package: kivy
 Architecture: all
-Depends: kivy-doc,
-         kivy-examples,
-         kivy-tools,
-         python-kivy,
-         python3-kivy
+Depends: kivy-doc      (> ${binary:Version}),
+         kivy-examples (> ${binary:Version}),
+         kivy-tools    (> ${binary:Version}),
+         python-kivy   (> ${binary:Version}),
+         python3-kivy  (> ${binary:Version})
 Description: Kivy - Multimedia / Multitouch framework in Python
  This package includes all examples which can be found in the git repo.
 
 Package: kivy-doc
 Provides: kivy-docs, kivy-doc-pdf
+Replaces: kivy-doc-pdf
+Conflicts: kivy-doc-pdf
 Architecture: all
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          ${python:Depends},
-         kivy-doc-html,
+         kivy-doc-html     (= ${binary:Version}),
 #         kivy-doc-pdf
 Description: Kivy - Multimedia / Multitouch framework in Python
  This package includes all examples which can be found in the git repo.
@@ -43,8 +48,8 @@ Architecture: all
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          ${python:Depends},
-         kivy-examples,
-         kivy-tools
+         kivy-examples     (> ${binary:Version}),
+         kivy-tools        (> ${binary:Version})
 Description: Kivy - Multimedia / Multitouch framework in Python
  This package includes all examples which can be found in the git repo.
 
@@ -63,7 +68,7 @@ Architecture: all
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          ${python:Depends},
-         python-kivy
+         python-kivy (> ${binary:Version})
 Description: Kivy - Multimedia / Multitouch framework in Python
  This package includes all tools shipped with kivy.
 
@@ -84,7 +89,7 @@ Depends: ${misc:Depends},
          ${python:Versions},
          ${python:Depends},
          python-kivy-common (= ${binary:Version}),
-         python-kivy-bin (= ${binary:Version}),
+         python-kivy-bin    (= ${binary:Version}),
          python-docutils,
          python-pygame,
          python-pygments,
@@ -128,9 +133,9 @@ Description: Kivy - Multimedia / Multitouch framework in Python
 
 Package: python-kivy-common
 Architecture: any
-Depends: ${misc:Depends},
+Depends: ${misc:Depends   },
          ${python:Versions},
-         ${python:Depends},
+         ${python:Depends },
          python-kivy  (= ${binary:Version})
 Provides: ${python:Provides}
 Description: Kivy - Multimedia / Multitouch framework in Python
@@ -149,8 +154,8 @@ Description: Kivy - Multimedia / Multitouch framework in Python
 
 Package: python3-kivy
 Architecture: any
-Depends: ${misc:Depends},
-         ${python3:Depends},
+Depends: ${misc:Depends    },
+         ${python3:Depends },
          ${python3:Versions},
          python3-kivy-common (= ${binary:Version}),
          python3-kivy-bin (= ${binary:Version}),
@@ -175,10 +180,10 @@ Description: Kivy - Multimedia / Multitouch framework in Python
 
 Package: python3-kivy-bin
 Architecture: any
-Depends: ${misc:Depends},
-         ${shlibs:Depends},
+Depends: ${misc:Depends    },
+         ${shlibs:Depends  },
          ${python3:Versions},
-         ${python3:Depends},
+         ${python3:Depends },
          python3-kivy  (= ${binary:Version})
 Provides: ${python3:Provides}
 Description: Kivy - Multimedia / Multitouch framework in Python
@@ -197,10 +202,10 @@ Description: Kivy - Multimedia / Multitouch framework in Python
 
 Package: python3-kivy-common
 Architecture: any
-Depends: ${misc:Depends},
-         ${python3:Versions}
-         ${python3:Depends},
-         python3-kivy (= ${binary:Version})
+Depends: ${misc:Depends    },
+         ${python3:Versions},
+         ${python3:Depends },
+         python3-kivy  (= ${binary:Version})
 Provides: ${python3:Provides}
 Description: Kivy - Multimedia / Multitouch framework in Python
  Kivy is an open source library for developing multi-touch applications. It is
