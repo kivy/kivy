@@ -793,7 +793,9 @@ class TextInput(Widget):
         if a > b:
             a, b = b, a
         self._selection_finished = finished
-        self.selection_text = self._get_text(encode=False)[a:b]
+        self.selection_text = (('*' * (b - a)) if self.password else
+                               (self._get_text(encode=False)[a:b]
+                               if self.allow_copy else ''))
         if not finished:
             self._selection = True
         else:
@@ -2339,7 +2341,15 @@ class TextInput(Widget):
 
     :data:`auto_indent` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
+    '''
 
+    allow_copy = BooleanProperty(True)
+    '''Decides whether to allow copying the text.
+
+    .. versionadded:: 1.8.0
+
+    :data:`allow_copy` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     def _get_min_height(self):
