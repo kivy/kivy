@@ -244,8 +244,9 @@ class WindowPygame(WindowBase):
 
             # kill application (SIG_TERM)
             if event.type == pygame.QUIT:
-                EventLoop.quit = True
-                self.close()
+                if (not self._quit_callback) or not self._quit_callback():
+                    EventLoop.quit = True
+                    self.close()
 
             # mouse move
             elif event.type == pygame.MOUSEMOTION:

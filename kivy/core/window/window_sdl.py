@@ -128,9 +128,10 @@ class WindowSDL(WindowBase):
 
             action, args = event[0], event[1:]
             if action == 'quit':
-                EventLoop.quit = True
-                self.close()
-                break
+                if (not self._quit_callback) or not self._quit_callback():
+                    EventLoop.quit = True
+                    self.close()
+                    break
 
             elif action in ('fingermotion', 'fingerdown', 'fingerup'):
                 # for finger, pass the raw event to SDL motion event provider
