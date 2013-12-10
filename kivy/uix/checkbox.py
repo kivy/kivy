@@ -20,9 +20,9 @@ An example usage::
 
     def on_checkbox_active(checkbox, value):
         if value:
-            print('The checkbox', checkbox, 'is active')
+            print 'The checkbox', checkbox, 'is active'
         else:
-            print('The checkbox', checkbox, 'is inactive')
+            print 'The checkbox', checkbox, 'is inactive'
 
     checkbox = CheckBox()
     checkbox.bind(active=on_checkbox_active)
@@ -42,19 +42,18 @@ class CheckBox(Widget):
     active = BooleanProperty(False)
     '''Indicates if the switch is active or inactive.
 
-    :data:`active` is a :class:`~kivy.properties.BooleanProperty` and defaults
-    to False.
+    :data:`active` is a :class:`~kivy.properties.BooleanProperty`, default to
+    False.
     '''
 
     __groups = {}
 
     group = ObjectProperty(None, allownone=True)
     '''Group of the checkbox. If None, no group will be used (the checkbox is
-    independent). If specified, the :data:`group` must be a hashable object
-    such as a string. Only one checkbox in a group can be active.
+    independent). If specified, :data:`group` must be a hashable object, like
+    a string. Only one checkbox in a group can be active.
 
-    :data:`group` is an :class:`~kivy.properties.ObjectProperty` and defaults to
-    None.
+    :data:`group` is a :class:`~kivy.properties.ObjectProperty`
     '''
 
     def __init__(self, **kwargs):
@@ -94,16 +93,20 @@ class CheckBox(Widget):
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
-        if self.disabled:
-            return True
-        self._toggle_active()
+
+        if self.group is None or self.group == '':
+            self._toggle_active()
+
+        elif self.group is not None:
+            if not self.active:
+                self._toggle_active()
         return True
 
     @staticmethod
     def _clear_groups(wk):
         # auto flush the element when the weak reference have been deleted
         groups = CheckBox.__groups
-        for group in list(groups.values()):
+        for group in groups.values():
             if wk in group:
                 group.remove(wk)
                 break
