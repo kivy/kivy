@@ -131,8 +131,8 @@ Description: Kivy - Multimedia / Multitouch framework in Python
 
 Package: python-kivy-common
 Architecture: any
-Depends: ${misc:Depends   },
-         ${python:Depends },
+Depends: ${misc:Depends},
+         ${python:Depends},
          python-kivy  (= ${binary:Version})
 Provides: ${python:Provides}
 Description: Kivy - Multimedia / Multitouch framework in Python
@@ -151,8 +151,8 @@ Description: Kivy - Multimedia / Multitouch framework in Python
 
 Package: python3-kivy
 Architecture: any
-Depends: ${misc:Depends    },
-         ${python3:Depends },
+Depends: ${misc:Depends},
+         ${python3:Depends},
          python3-kivy-common (= ${binary:Version}),
          python3-kivy-bin (= ${binary:Version}),
          python3-docutils,
@@ -176,9 +176,9 @@ Description: Kivy - Multimedia / Multitouch framework in Python
 
 Package: python3-kivy-bin
 Architecture: any
-Depends: ${misc:Depends    },
-         ${shlibs:Depends  },
-         ${python3:Depends },
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         ${python3:Depends},
          python3-kivy  (= ${binary:Version})
 Provides: ${python3:Provides}
 Description: Kivy - Multimedia / Multitouch framework in Python
@@ -197,8 +197,8 @@ Description: Kivy - Multimedia / Multitouch framework in Python
 
 Package: python3-kivy-common
 Architecture: any
-Depends: ${misc:Depends    },
-         ${python3:Depends },
+Depends: ${misc:Depends},
+         ${python3:Depends},
          python3-kivy  (= ${binary:Version})
 Provides: ${python3:Provides}
 Description: Kivy - Multimedia / Multitouch framework in Python
