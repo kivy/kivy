@@ -793,13 +793,13 @@ class TextInput(Widget):
         if a > b:
             a, b = b, a
         self._selection_finished = finished
+        _selection_text = self._get_text(encode=False)[a:b]
         self.selection_text = (('*' * (b - a)) if self.password else
-                               (self._get_text(encode=False)[a:b]
-                               if self.allow_copy else ''))
+                               (_selection_text if self.allow_copy else ''))
         if not finished:
             self._selection = True
         else:
-            self._selection = bool(len(self.selection_text))
+            self._selection = bool(len(_selection_text))
             self._selection_touch = None
         if a == 0:
             # update graphics only on new line
