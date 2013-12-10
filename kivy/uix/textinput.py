@@ -2439,7 +2439,7 @@ class TextInput(Widget):
         if self._handle_right:
             self._handle_right.source = value
 
-    keyboard_mode = OptionProperty('managed', options=('auto', 'managed'))
+    keyboard_mode = OptionProperty('auto', options=('auto', 'managed'))
     '''How the keyboard visibility should be managed (auto will have standard
     behaviour to show/hide on focus, managed requires setting keyboard_visible
     manually, or calling the helper functions ``show_keyboard()``
@@ -2463,13 +2463,24 @@ class TextInput(Widget):
 
     def on_keyboard_visible(self, instance, value, *largs):
         if self.keyboard_mode == "managed":
-            print value
             if value:
-                Logger.debug("StickyTextInput: Binding keyboard")
                 self._bind_keyboard()
             else:
-                Logger.debug("StickyTextInput: Un-Binding keyboard")
                 self._unbind_keyboard()
+
+    def show_keyboard(self):
+        """
+        Convenience function to show the keyboard in managed mode
+        """
+        if self.keyboard_mode == "managed":
+            self._bind_keyboard()
+
+    def hide_keyboard(self):
+        """
+        Convenience function to hide the keyboard in managed mode
+        """
+        if self.keyboard_mode == "managed":
+            self._unbind_keyboard()
 
 
 if __name__ == '__main__':
