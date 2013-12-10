@@ -2440,8 +2440,26 @@ class TextInput(Widget):
             self._handle_right.source = value
 
     keyboard_mode = OptionProperty('managed', options=('auto', 'managed'))
+    '''How the keyboard visibility should be managed (auto will have standard
+    behaviour to show/hide on focus, managed requires setting keyboard_visible
+    manually, or calling the helper functions ``show_keyboard()``
+    and ``hide_keyboard()``
+
+    .. versionadded:: 1.8.0
+
+    :data:`keyboard_mode` is a :class:`~kivy.properties.OptionsProperty`,
+    default to 'auto'. Can be one of 'auto' or 'managed'.
+    '''
 
     keyboard_visible = BooleanProperty(False)
+    '''Status of the keyboard, only used in conjunction with
+    keyboard_mode="managed"
+
+    .. versionadded:: 1.8.0
+
+    :data:`keyboard_visible` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
+    '''
 
     def on_keyboard_visible(self, instance, value, *largs):
         if self.keyboard_mode == "managed":
