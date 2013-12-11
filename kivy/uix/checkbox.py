@@ -91,14 +91,17 @@ class CheckBox(Widget):
         self._release_group(self)
         self.active = not self.active
 
+    def _release(self):
+        self.active = not self.active
+
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
-
+        if self.disabled:
+            return True
         if self.group is None or self.group == '':
-            self._toggle_active()
-
-        elif self.group is not None:
+            self._release()
+        elif self.group:
             if not self.active:
                 self._toggle_active()
         return True
