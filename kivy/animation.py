@@ -87,7 +87,7 @@ class Animation(EventDispatcher):
     '''Create an animation definition that can be used to animate a Widget.
 
     :Parameters:
-        `duration` or `d`: float, default to 1.
+        `duration` or `d`: float, defaults to 1.
             Duration of the animation, in seconds.
         `transition` or `t`: str or func
             Transition function for animate properties. It can be the name of a

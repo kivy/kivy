@@ -92,16 +92,16 @@ cdef class Fbo(RenderContext):
     "with" statement.
 
     :Parameters:
-        `clear_color`: tuple, default to (0, 0, 0, 0)
+        `clear_color`: tuple, defaults to (0, 0, 0, 0)
             Define the default color for clearing the framebuffer
-        `size`: tuple, default to (1024, 1024)
+        `size`: tuple, defaults to (1024, 1024)
             Default size of the framebuffer
-        `push_viewport`: bool, default to True
+        `push_viewport`: bool, defaults to True
             If True, the OpenGL viewport will be set to the framebuffer size,
             and will be automatically restored when the framebuffer released.
-        `with_depthbuffer`: bool, default to False
+        `with_depthbuffer`: bool, defaults to False
             If True, the framebuffer will be allocated with a Z buffer.
-        `texture`: :class:`~kivy.graphics.texture.Texture`, default to None
+        `texture`: :class:`~kivy.graphics.texture.Texture`, defaults to None
             If None, a default texture will be created.
     '''
     cdef str resolve_status(self, int status):
