@@ -2451,23 +2451,6 @@ class TextInput(Widget):
     default to 'auto'. Can be one of 'auto' or 'managed'.
     '''
 
-    keyboard_visible = BooleanProperty(False)
-    '''Status of the keyboard, only used in conjunction with
-    keyboard_mode="managed"
-
-    .. versionadded:: 1.8.0
-
-    :data:`keyboard_visible` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to True.
-    '''
-
-    def on_keyboard_visible(self, instance, value, *largs):
-        if self.keyboard_mode == "managed":
-            if value:
-                self._bind_keyboard()
-            else:
-                self._unbind_keyboard()
-
     def show_keyboard(self):
         """
         Convenience function to show the keyboard in managed mode
