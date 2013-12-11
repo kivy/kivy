@@ -1,11 +1,11 @@
 Package hosting:
-	PPA stable	https://launchpad.net/~kivy-team/+archive/kivy
-	PPA daily	https://launchpad.net/~kivy-team/+archive/kivy-daily
+	PPA stable			https://launchpad.net/~kivy-team/+archive/kivy
+	PPA daily			https://launchpad.net/~kivy-team/+archive/kivy-daily
 	
-	OBS stable	https://build.opensuse.org/project/show?project=home%3Athopiekar%3Akivy
-	OBS testing	https://build.opensuse.org/project/show?project=home%3Athopiekar%3Akivy-testing
+	OBS stable (not maintained)	https://build.opensuse.org/project/show?project=home%3Athopiekar%3Akivy
+	OBS testing (not maintained)	https://build.opensuse.org/project/show?project=home%3Athopiekar%3Akivy-testing
 
-	COBS		https://build.pub.meego.com/project/show?project=home%3Athopiekar%3Akivy
+	COBS (not maintained)		https://build.pub.meego.com/project/show?project=home%3Athopiekar%3Akivy
 
 PPA recipes:
 	stable		https://code.launchpad.net/~thopiekar/+recipe/kivy-stable

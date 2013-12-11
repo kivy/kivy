@@ -712,6 +712,7 @@ class TextInput(Widget):
         dy = self.line_height + self.line_spacing
         cx = x - self.x
         scrl_y = self.scroll_y
+        scrl_x = self.scroll_x
         scrl_y = scrl_y / dy if scrl_y > 0 else 0
         cy = (self.top - padding_top + scrl_y * dy) - y
         cy = int(boundary(round(cy / dy - 0.5), 0, len(l) - 1))
@@ -720,7 +721,9 @@ class TextInput(Widget):
         _tab_width = self.tab_width
         _label_cached = self._label_cached
         for i in range(1, len(l[cy]) + 1):
-            if _get_text_width(l[cy][:i], _tab_width, _label_cached) >= cx:
+            if _get_text_width(l[cy][:i],
+                               _tab_width,
+                               _label_cached) >= cx + scrl_x:
                 break
             dcx = i
         cx = dcx
@@ -790,11 +793,13 @@ class TextInput(Widget):
         if a > b:
             a, b = b, a
         self._selection_finished = finished
-        self.selection_text = self._get_text(encode=False)[a:b]
+        _selection_text = self._get_text(encode=False)[a:b]
+        self.selection_text = (('*' * (b - a)) if self.password else
+                               (_selection_text if self.allow_copy else ''))
         if not finished:
             self._selection = True
         else:
-            self._selection = bool(len(self.selection_text))
+            self._selection = bool(len(_selection_text))
             self._selection_touch = None
         if a == 0:
             # update graphics only on new line
@@ -2356,7 +2361,15 @@ class TextInput(Widget):
 
     :data:`auto_indent` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
+    '''
 
+    allow_copy = BooleanProperty(True)
+    '''Decides whether to allow copying the text.
+
+    .. versionadded:: 1.8.0
+
+    :data:`allow_copy` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     def _get_min_height(self):
