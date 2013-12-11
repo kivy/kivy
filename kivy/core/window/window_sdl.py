@@ -128,7 +128,8 @@ class WindowSDL(WindowBase):
 
             action, args = event[0], event[1:]
             if action == 'quit':
-                if (not self._quit_callback) or not self._quit_callback():
+                callback = self._quit_callback
+                if (not callback) or callback.is_dead() or not callback()():
                     EventLoop.quit = True
                     self.close()
                     break

@@ -244,7 +244,8 @@ class WindowPygame(WindowBase):
 
             # kill application (SIG_TERM)
             if event.type == pygame.QUIT:
-                if (not self._quit_callback) or not self._quit_callback():
+                callback = self._quit_callback
+                if (not callback) or callback.is_dead() or not callback()():
                     EventLoop.quit = True
                     self.close()
 
