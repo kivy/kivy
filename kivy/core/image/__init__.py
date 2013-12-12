@@ -6,9 +6,6 @@ Core classes for loading images and converting them to a
 :class:`~kivy.graphics.texture.Texture`. The raw image data can be keep in
 memory for further access.
 
-.. note::
-
-    Saving an image is not yet supported.
 '''
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')

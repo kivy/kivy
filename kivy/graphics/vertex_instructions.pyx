@@ -37,16 +37,16 @@ cdef class Bezier(VertexInstruction):
     :Parameters:
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
-        `segments`: int, default to 180
+        `segments`: int, defaults to 180
             Define how much segment is needed for drawing the ellipse.
             The drawing will be smoother if you have lot of segment.
-        `loop`: bool, default to False
+        `loop`: bool, defaults to False
             Set the bezier curve to join last point to first.
         `dash_length`: int
-            length of a segment (if dashed), default 1
+            Length of a segment (if dashed), defaults 1
         `dash_offset`: int
-            distance between the end of a segment and the start of the
-            next one, default 0, changing this makes it dashed.
+            Distance between the end of a segment and the start of the
+            next one, defaults to 0. Changing this makes it dashed.
     '''
 
     # TODO: refactoring:
@@ -245,7 +245,7 @@ cdef class Mesh(VertexInstruction):
         `indices`: list
             List of indices in the format (i1, i2, i3...)
         `mode`: str
-            Mode of the vbo. Check :data:`mode` for more information. Default to
+            Mode of the vbo. Check :data:`mode` for more information. Defaults to
             'points'.
 
     '''
@@ -340,7 +340,7 @@ cdef class Point(VertexInstruction):
     :Parameters:
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
-        `pointsize`: float, default to 1.
+        `pointsize`: float, defaults to 1.
             Size of the point (1. mean the real size will be 2)
 
     .. warning::
@@ -808,12 +808,12 @@ cdef class Ellipse(Rectangle):
     .. versionadded:: 1.0.7 added angle_start + angle_end
 
     :Parameters:
-        `segments`: int, default to 180
+        `segments`: int, defaults to 180
             Define how much segment is needed for drawing the ellipse.
             The drawing will be smoother if you have lot of segment.
-        `angle_start`: int default to 0
+        `angle_start`: int, defaults to 0
             Specifies the starting angle, in degrees, of the disk portion
-        `angle_end`: int default to 360
+        `angle_end`: int, defaults to 360
             Specifies the ending angle, in degrees, of the disk portion
     '''
     cdef int _segments
@@ -925,7 +925,7 @@ cdef class Ellipse(Rectangle):
             self.flag_update()
 
     property angle_start:
-        '''Angle start of the ellipse in degrees, default to 0
+        '''Angle start of the ellipse in degrees, defaults to 0
         '''
         def __get__(self):
             return self._angle_start
@@ -934,7 +934,7 @@ cdef class Ellipse(Rectangle):
             self.flag_update()
 
     property angle_end:
-        '''Angle end of the ellipse in degrees, default to 360
+        '''Angle end of the ellipse in degrees, defaults to 360
         '''
         def __get__(self):
             return self._angle_end

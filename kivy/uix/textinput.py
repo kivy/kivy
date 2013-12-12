@@ -1138,7 +1138,7 @@ class TextInput(Widget):
         if wr in _textinput_list:
             _textinput_list.remove(wr)
 
-    def on_focus(self, instance, value, *largs):
+    def _set_window(self, *largs):
         win = self._win
         if not win:
             self._win = win = EventLoop.window
@@ -1153,36 +1153,56 @@ class TextInput(Widget):
                 Clock.schedule_once(partial(self.on_focus, self, value), 0)
             return
 
+    def on_focus(self, instance, value, *largs):
+        self._set_window(*largs)
+
         self._editable = editable = (not (self.readonly or self.disabled) or
                     (platform in ('win', 'linux', 'macosx') and
                     self._keyboard_mode == 'system'))
 
         if value:
-            keyboard = win.request_keyboard(
-                self._keyboard_released, self, input_type=self.input_type)
-            self._keyboard = keyboard
-            if editable:
-                keyboard.bind(
-                    on_key_down=self._keyboard_on_key_down,
-                    on_key_up=self._keyboard_on_key_up)
-                Clock.schedule_interval(self._do_blink_cursor, 1 / 2.)
-            else:
-                # in non-editable mode, we still want shortcut (as copy)
-                keyboard.bind(
-                    on_key_down=self._keyboard_on_key_down)
+            if self.keyboard_mode != 'managed':
+                self._bind_keyboard()
         else:
-            if self._keyboard:
-                keyboard = self._keyboard
-                keyboard.unbind(
-                    on_key_down=self._keyboard_on_key_down,
-                    on_key_up=self._keyboard_on_key_up)
-                keyboard.release()
-                self._keyboard = None
-            self.cancel_selection()
-            Clock.unschedule(self._do_blink_cursor)
-            self._hide_cut_copy_paste(win)
-            self._hide_handles(win)
-            self._win = None
+            if self.keyboard_mode != 'managed':
+                self._unbind_keyboard()
+
+    def _unbind_keyboard(self):
+        self._set_window()
+        win = self._win
+        if self._keyboard:
+            keyboard = self._keyboard
+            keyboard.unbind(
+                on_key_down=self._keyboard_on_key_down,
+                on_key_up=self._keyboard_on_key_up)
+            keyboard.release()
+            self._keyboard = None
+
+        self.cancel_selection()
+        Clock.unschedule(self._do_blink_cursor)
+        self._hide_cut_copy_paste(win)
+        self._hide_handles(win)
+        self._win = None
+
+    def _bind_keyboard(self):
+        self._set_window()
+        win = self._win
+        self._editable = editable = (not (self.readonly or self.disabled) or
+                    (platform in ('win', 'linux', 'macosx') and
+                    self._keyboard_mode == 'system'))
+
+        keyboard = win.request_keyboard(
+            self._keyboard_released, self, input_type=self.input_type)
+        self._keyboard = keyboard
+        if editable:
+            keyboard.bind(
+                on_key_down=self._keyboard_on_key_down,
+                on_key_up=self._keyboard_on_key_up)
+            Clock.schedule_interval(self._do_blink_cursor, 1 / 2.)
+        else:
+            # in non-editable mode, we still want shortcut (as copy)
+            keyboard.bind(
+                on_key_down=self._keyboard_on_key_down)
 
     def on_readonly(self, instance, value):
         if not value:
@@ -2432,6 +2452,33 @@ class TextInput(Widget):
     def on_handle_image_right(self, instance, value):
         if self._handle_right:
             self._handle_right.source = value
+
+    keyboard_mode = OptionProperty('auto', options=('auto', 'managed'))
+    '''How the keyboard visibility should be managed (auto will have standard
+    behaviour to show/hide on focus, managed requires setting keyboard_visible
+    manually, or calling the helper functions ``show_keyboard()``
+    and ``hide_keyboard()``
+
+    .. versionadded:: 1.8.0
+
+    :data:`keyboard_mode` is a :class:`~kivy.properties.OptionsProperty`,
+    default to 'auto'. Can be one of 'auto' or 'managed'.
+    '''
+
+    def show_keyboard(self):
+        """
+        Convenience function to show the keyboard in managed mode
+        """
+        if self.keyboard_mode == "managed":
+            self._bind_keyboard()
+
+    def hide_keyboard(self):
+        """
+        Convenience function to hide the keyboard in managed mode
+        """
+        if self.keyboard_mode == "managed":
+            self._unbind_keyboard()
+
 
 if __name__ == '__main__':
     from kivy.app import App

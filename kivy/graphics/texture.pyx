@@ -43,7 +43,7 @@ Blitting custom data
 You can create your own data and blit it on the texture using
 :func:`Texture.blit_data`::
 
-    # create a 64x64 texture, default to rgb / ubyte
+    # create a 64x64 texture, defaults to rgb / ubyte
     texture = Texture.create(size=(64, 64))
 
     # create 64x64 rgb tab, and fill with value from 0 to 255
@@ -516,17 +516,17 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
     '''Create a texture based on size.
 
     :Parameters:
-        `size`: tuple, default to (128, 128)
+        `size`: tuple, defaults to (128, 128)
             Size of the texture
-        `colorfmt`: str, default to 'rgba'
+        `colorfmt`: str, defaults to 'rgba'
             Internal color format of the texture. Can be 'rgba' or 'rgb',
             'luminance', 'luminance_alpha'
-        `bufferfmt`: str, default to 'ubyte'
+        `bufferfmt`: str, defaults to 'ubyte'
             Internal buffer format of the texture. Can be 'ubyte', 'ushort',
             'uint', 'bute', 'short', 'int', 'float'
-        `mipmap`: bool, default to False
+        `mipmap`: bool, defaults to False
             If True, it will automatically generate mipmap texture.
-        `callback`: callable(), default to False
+        `callback`: callable(), defaults to False
             If a function is provided, it will be called when data will be
             needed in the texture.
 
@@ -803,19 +803,19 @@ cdef class Texture:
         :Parameters:
             `pbuffer` : str
                 Image data
-            `size` : tuple, default to texture size
+            `size` : tuple, defaults to texture size
                 Size of the image (width, height)
-            `colorfmt` : str, default to 'rgb'
+            `colorfmt` : str, defaults to 'rgb'
                 Image format, can be one of 'rgb', 'rgba', 'bgr', 'bgra',
                 'luminance', 'luminance_alpha'
-            `pos` : tuple, default to (0, 0)
+            `pos` : tuple, defaults to (0, 0)
                 Position to blit in the texture
-            `bufferfmt` : str, default to 'ubyte'
+            `bufferfmt` : str, defaults to 'ubyte'
                 Type of the data buffer, can be one of 'ubyte', 'ushort',
                 'uint', 'byte', 'short', 'int', 'float'
-            `mipmap_level`: int, default to 0
+            `mipmap_level`: int, defaults to 0
                 Indicate which mipmap level we are going to update
-            `mipmap_generation`: bool, default to False
+            `mipmap_generation`: bool, defaults to False
                 Indicate if we need to regenerate mipmap from level 0
         '''
         cdef GLuint target = self._target

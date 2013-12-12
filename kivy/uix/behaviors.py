@@ -63,7 +63,7 @@ class ButtonBehavior(object):
     .. versionadded:: 1.8.0
 
     :data:`last_touch` is a :class:`~kivy.properties.ObjectProperty`,
-    default to None.
+    defaults to None.
     '''
 
     def __init__(self, **kwargs):
@@ -258,7 +258,7 @@ class DragBehavior(object):
     screen.
 
     :data:`drag_distance` is a :class:`~kivy.properties.NumericProperty`,
-    default to 20 (pixels), according to the default value of scroll_distance
+    defaults to 20 (pixels), according to the default value of scroll_distance
     in user configuration.
     '''
 
@@ -268,7 +268,7 @@ class DragBehavior(object):
     dragging will be disabled, and the touch event will go to the children.
 
     :data:`drag_timeout` is a :class:`~kivy.properties.NumericProperty`,
-    default to 55 (milliseconds), according to the default value of
+    defaults to 55 (milliseconds), according to the default value of
     scroll_timeout in user configuration.
     '''
 

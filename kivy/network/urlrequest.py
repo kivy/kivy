@@ -118,7 +118,7 @@ class UrlRequest(Thread):
             instead of a GET.
         `req_headers`: dict, defaults to None
             Custom headers to add to the request.
-        `chunk_size`: int, default to 8192
+        `chunk_size`: int, defaults to 8192
             Size of each chunk to read, used only when `on_progress` callback
             has been set. If you decrease it too much, a lot of on_progress
             callbacks will be fired and will slow down your download. If you

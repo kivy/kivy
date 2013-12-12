@@ -121,7 +121,7 @@ cdef class Context:
         :Parameters:
             `callback`: func(context) -> return None
                 The first parameter will be the context itself
-            `before`: boolean, default to False
+            `before`: boolean, defaults to False
                 If True, the callback will be executed before the whole
                 reloading processus. Use it if you want to clear your cache for
                 example.
