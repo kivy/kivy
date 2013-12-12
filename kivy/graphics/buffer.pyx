@@ -1,8 +1,9 @@
 include "common.pxi"
 
 cdef class Buffer:
-    '''Buffer class is designed to manage very fast a list of fixed size block.
-    You can easily add and remove data from the buffer.
+    '''
+    The Buffer class is designed to manage a very fast list of fixed size
+    blocks. You can easily add and remove data from the buffer.
     '''
     def __cinit__(self):
         self.data = NULL
@@ -24,8 +25,8 @@ cdef class Buffer:
         self.block_size = block_size
 
     cdef void grow(self, long block_count):
-        '''Automaticly realloc the memory if they are no enough block.
-        Work only for "grow" operation, not the inverse.
+        '''Automatically realloc the memory if there are not enough blocks.
+        Works only for "grow" operations, not the inverse.
         '''
         cdef void *newptr = NULL
         cdef long i
@@ -62,7 +63,7 @@ cdef class Buffer:
         self.block_count = block_count
 
     cdef void clear(self):
-        '''Clear the whole buffer, and mark all blocks as available.
+        '''Clear the whole buffer and mark all blocks as available.
         '''
         cdef long i
         for i in xrange(self.block_count):
@@ -70,7 +71,7 @@ cdef class Buffer:
         self.i_free = 0
 
     cdef void add(self, void *blocks, unsigned short *indices, int count):
-        '''Add a list of block inside our buffer
+        '''Add a list of blocks inside the buffer.
         '''
         cdef int i, block
         cdef void *p
@@ -95,7 +96,7 @@ cdef class Buffer:
                 indices[i] = block
 
     cdef void remove(self, unsigned short *indices, int count):
-        '''Remove block from our list
+        '''Remove a block from the list.
         '''
         cdef int i
 
@@ -105,22 +106,23 @@ cdef class Buffer:
             self.l_free[self.i_free] = indices[i]
 
     cdef void update(self, int index, void* blocks, int count):
-        '''Update count number of blocks starting at index with the data in blocks
+        '''Update *count* number of blocks starting at *index* with the data in
+        blocks.
         '''
         memcpy(<char *>(self.data) + (index * self.block_size), blocks, self.block_size * count)
 
     cdef int count(self):
-        '''Return how many block are currently used
+        '''Return the number of blocks currently used.
         '''
         return self.i_free
 
     cdef long size(self):
-        '''Return the size of the allocated buffer
+        '''Return the size of the allocated buffer.
         '''
         return self.block_size * self.block_count
 
     cdef void *pointer(self):
-        '''Return the data pointer
+        '''Return the data pointer.
         '''
         return self.data
 
