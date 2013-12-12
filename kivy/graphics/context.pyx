@@ -4,8 +4,8 @@ Context management
 
 .. versionadded:: 1.2.0
 
-This class handle a register of all graphics instructions created, and the
-ability to flush and delete them.
+This class manages a registry of all the created graphics instructions. It has
+the ability to flush and delete them.
 
 You can read more about it at :doc:`api-kivy.graphics`
 '''
@@ -115,15 +115,16 @@ cdef class Context:
             # no need to trigger, depthbuffer required absolutely a buffer.
 
     def add_reload_observer(self, callback, before=False):
-        '''Add a callback to be called after the whole graphics context have
-        been reloaded. This is where you can reupload your custom data in GPU.
+        '''Add a callback to be called after the whole graphics context has
+        been reloaded. This is where you can reupload your custom data into the
+        GPU.
 
         :Parameters:
             `callback`: func(context) -> return None
                 The first parameter will be the context itself
             `before`: boolean, defaults to False
-                If True, the callback will be executed before the whole
-                reloading processus. Use it if you want to clear your cache for
+                If True, the callback will be executed before all the
+                reloading processes. Use it if you want to clear your cache for
                 example.
 
         .. versionchanged:: 1.4.0
@@ -135,7 +136,7 @@ cdef class Context:
             self.observers.append(WeakMethod(callback))
 
     def remove_reload_observer(self, callback, before=False):
-        '''Remove a callback from the observer list, previously added by
+        '''Remove a callback from the observer list previously added by
         :func:`add_reload_observer`. 
         '''
         lst = self.observers_before if before else self.observers
