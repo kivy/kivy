@@ -143,8 +143,8 @@ class ScrollView(StencilView):
     If the user has not moved :data:`scroll_distance` within the timeout,
     the scrolling will be disabled, and the touch event will go to the children.
 
-    :data:`scroll_timeout` is a :class:`~kivy.properties.NumericProperty`,
-    default to 55 (milliseconds), according to the default value in user
+    :data:`scroll_timeout` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 55 (milliseconds) according to the default value in user
     configuration.
 
     .. versionchanged:: 1.5.0
@@ -159,8 +159,8 @@ class ScrollView(StencilView):
     This property is controled by :class:`ScrollView` only if
     :data:`do_scroll_x` is True.
 
-    :data:`scroll_x` is a :class:`~kivy.properties.NumericProperty`,
-    default to 0.
+    :data:`scroll_x` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     scroll_y = NumericProperty(1.)
@@ -171,22 +171,22 @@ class ScrollView(StencilView):
     This property is controled by :class:`ScrollView` only if
     :data:`do_scroll_y` is True.
 
-    :data:`scroll_y` is a :class:`~kivy.properties.NumericProperty`,
-    default to 1.
+    :data:`scroll_y` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 1.
     '''
 
     do_scroll_x = BooleanProperty(True)
     '''Allow scroll on X axis.
 
-    :data:`do_scroll_x` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True.
+    :data:`do_scroll_x` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     do_scroll_y = BooleanProperty(True)
     '''Allow scroll on Y axis.
 
-    :data:`do_scroll_y` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True.
+    :data:`do_scroll_y` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     def _get_do_scroll(self):
@@ -264,8 +264,8 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.2.0
 
-    :data:`bar_color` is a :class:`~kivy.properties.ListProperty`, default to
-    [.7, .7, .7, .9].
+    :data:`bar_color` is a :class:`~kivy.properties.ListProperty` and defaults
+    to [.7, .7, .7, .9].
     '''
 
     bar_width = NumericProperty('2dp')
@@ -274,8 +274,8 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.2.0
 
-    :data:`bar_width` is a :class:`~kivy.properties.NumericProperty`, default
-    to 2
+    :data:`bar_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 2.
     '''
 
     bar_margin = NumericProperty(0)
@@ -293,8 +293,8 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.7.0
 
-    :data:`effect_cls` is a :class:`~kivy.properties.ObjectProperty`, default to
-    :class:`DampedScrollEffect`.
+    :data:`effect_cls` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to :class:`DampedScrollEffect`.
     '''
 
     effect_x = ObjectProperty(None, allownone=True)
@@ -303,8 +303,8 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.7.0
 
-    :data:`effect_x` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None
+    :data:`effect_x` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
     '''
 
     effect_y = ObjectProperty(None, allownone=True)
@@ -313,8 +313,8 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.7.0
 
-    :data:`effect_y` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None, read-only.
+    :data:`effect_y` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None, read-only.
     '''
 
     viewport_size = ListProperty([0, 0])
