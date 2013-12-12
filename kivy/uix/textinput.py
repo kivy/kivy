@@ -794,8 +794,9 @@ class TextInput(Widget):
             a, b = b, a
         self._selection_finished = finished
         _selection_text = self._get_text(encode=False)[a:b]
-        self.selection_text = (('*' * (b - a)) if self.password else
-                               (_selection_text if self.allow_copy else ''))
+        self.selection_text = ("" if not self.allow_copy else
+                               (('*' * (b - a)) if self.password else
+                                _selection_text))
         if not finished:
             self._selection = True
         else:
@@ -1477,7 +1478,7 @@ class TextInput(Widget):
                     size[1] = vh
                 if viewport_pos:
                     tcx, tcy = viewport_pos
-                    tcx = tcx / tw * ow
+                    tcx = tcx / tw * (ow)
                     tcy = tcy / th * oh
 
                 # cropping
