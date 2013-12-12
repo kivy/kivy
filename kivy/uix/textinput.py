@@ -2405,8 +2405,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`input_type` is a :class:`~kivy.properties.OptionsProperty`,
-    default to 'text'. Can be one of 'text', 'number', 'url', 'mail',
+    :data:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
+    defaults to 'text'. Can be one of 'text', 'number', 'url', 'mail',
     'datetime', 'tel', 'address'.
     '''
 
@@ -2417,8 +2417,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`handle_image_middle` is a :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/selector_middle'
+    :data:`handle_image_middle` is a :class:`~kivy.properties.StringProperty`
+    and defaults to 'atlas://data/images/defaulttheme/selector_middle'.
     '''
 
     def on_handle_image_middle(self, instance, value):
@@ -2431,8 +2431,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`handle_image_left` is a :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/selector_left'
+    :data:`handle_image_left` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'atlas://data/images/defaulttheme/selector_left'.
     '''
 
     def on_handle_image_left(self, instance, value):
@@ -2445,8 +2445,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`handle_image_right` is a :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/selector_right'
+    :data:`handle_image_right` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'atlas://data/images/defaulttheme/selector_right'.
     '''
 
     def on_handle_image_right(self, instance, value):
@@ -2457,12 +2457,12 @@ class TextInput(Widget):
     '''How the keyboard visibility should be managed (auto will have standard
     behaviour to show/hide on focus, managed requires setting keyboard_visible
     manually, or calling the helper functions ``show_keyboard()``
-    and ``hide_keyboard()``
+    and ``hide_keyboard()``.
 
     .. versionadded:: 1.8.0
 
-    :data:`keyboard_mode` is a :class:`~kivy.properties.OptionsProperty`,
-    default to 'auto'. Can be one of 'auto' or 'managed'.
+    :data:`keyboard_mode` is an :class:`~kivy.properties.OptionsProperty` and
+    defaults to 'auto'. Can be one of 'auto' or 'managed'.
     '''
 
     def show_keyboard(self):

@@ -122,8 +122,8 @@ class ScrollView(StencilView):
     It is advisable that you base this value on the dpi of your target device's
     screen.
 
-    :data:`scroll_distance` is a :class:`~kivy.properties.NumericProperty`,
-    default to 20 (pixels), according to the default value in user
+    :data:`scroll_distance` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 20 (pixels), according to the default value in user
     configuration.
     '''
 

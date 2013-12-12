@@ -637,14 +637,14 @@ class ListItemButton(SelectableView, Button):
 
     selected_color = ListProperty([1., 0., 0., 1])
     '''
-    :data:`selected_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [1., 0., 0., 1].
+    :data:`selected_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [1., 0., 0., 1].
     '''
 
     deselected_color = ListProperty([0., 1., 0., 1])
     '''
-    :data:`selected_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [0., 1., 0., 1].
+    :data:`selected_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [0., 1., 0., 1].
     '''
 
     def __init__(self, **kwargs):
