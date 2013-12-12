@@ -394,7 +394,7 @@ class Image(EventDispatcher):
             Scale of the image.
         `mipmap` : bool, defaults to False
             Create mipmap for the texture.
-        `anim_delay`: float, default to .25
+        `anim_delay`: float, defaults to .25
             Delay in seconds between each animation frame. Lower values means
             faster animation.
     '''
@@ -564,7 +564,7 @@ class Image(EventDispatcher):
         :Parameters:
             `filename` : str
                 Filename of the image.
-            `keep_data` : bool, default to False
+            `keep_data` : bool, defaults to False
                 Keep the image data when the texture is created.
         '''
         kwargs.setdefault('keep_data', False)

@@ -65,10 +65,10 @@ class LabelBase(object):
             contents as much as possible if a `size` is given.
             Setting this to True without an appropriately set size will lead to
             unexpected results.
-        `max_lines`: int, default to 0 (unlimited)
+        `max_lines`: int, defaults to 0 (unlimited)
             If set, this indicate how maximum line are allowed to render the
             text. Works only if a limitation on text_size is set.
-        `mipmap` : bool, default to False
+        `mipmap` : bool, defaults to False
             Create a mipmap for the texture
 
     .. versionchanged:: 1.8.0
