@@ -925,6 +925,7 @@ class ScreenManager(FloatLayout):
             raise ScreenManagerException(
                     'ScreenManager accepts only Screen widget.')
 
+
         # stop any transition that might be happening already
         self.transition.stop()
 
@@ -932,6 +933,12 @@ class ScreenManager(FloatLayout):
         if screen not in self.children:
             if self.has_screen(screen.name):
                 screen.name = self._generate_screen_name()
+
+        # change the transition if given explicitly
+        old_transition = self.transition
+        specified_transition = options.pop("transition", None)
+        if specified_transition:
+            self.transition = specified_transition
 
         # change the transition options
         for key, value in iteritems(options):
@@ -947,6 +954,7 @@ class ScreenManager(FloatLayout):
         def remove_old_screen(transition):
             if old_current in self.children:
                 self.remove_widget(old_current)
+                self.transition = old_transition
             transition.unbind(on_complete=remove_old_screen)
         self.transition.bind(on_complete=remove_old_screen)
 
