@@ -51,7 +51,6 @@ class ClipboardAndroid(ClipboardBase):
                 import time
                 while not PythonActivity._clipboard:
                     time.sleep(.01)
-                return f(*args, **kargs)
             return f(*args, **kargs)
         return called
 
