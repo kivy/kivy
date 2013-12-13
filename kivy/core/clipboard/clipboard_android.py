@@ -27,7 +27,7 @@ class ClipboardAndroid(ClipboardBase):
         self._data = dict()
         self._data['text/plain'] = None
         self._data['application/data'] = None
-        self._get_clipboard_service()
+        PythonActivity._clipboard = None
 
     def get(self, mimetype='text/plain'):
         return self._get(mimetype)
@@ -43,20 +43,21 @@ class ClipboardAndroid(ClipboardBase):
         PythonActivity._clipboard = PythonActivity.getSystemService(
             Context.CLIPBOARD_SERVICE)
 
-    def _get_clipboard_service(self):
-        if not self._clipboard:
-            self._initialize_clipboard()
-            try:
-                self._clipboard = PythonActivity._clipboard
-            except AttributeError:
-                # don't know why but this happens when trying to access the
-                # clipboard for the first time. Works after that
-                Clock.schedule_once(lambda dt: self._get_clipboard_service())
-                return
-        return self._clipboard
+    def _get_clipboard(f):
+        def called(*args, **kargs):
+            self = args[0]
+            if not PythonActivity._clipboard:
+                self._initialize_clipboard()
+                import time
+                while not PythonActivity._clipboard:
+                    time.sleep(.01)
+                return f(*args, **kargs)
+            return f(*args, **kargs)
+        return called
 
+    @_get_clipboard
     def _get(self, mimetype='text/plain'):
-        clippy = self._get_clipboard_service()
+        clippy = PythonActivity._clipboard
         primary_clip = clippy.getPrimaryClip()
         if primary_clip and clippy.getPrimaryClipDescription().hasMimeType(
             ClipDescription.MIMETYPE_TEXT_PLAIN):
@@ -66,8 +67,9 @@ class ClipboardAndroid(ClipboardBase):
             data = ''
         return data
 
+    @_get_clipboard
     def _set(self, data, mimetype):
-        clippy = self._get_clipboard_service()
+        clippy = PythonActivity._clipboard
         new_clip = ClipData.newPlainText(AndroidString(""),
                                          AndroidString(data))
         # put text data onto clipboard

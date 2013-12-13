@@ -1226,9 +1226,31 @@ class TextInput(Widget):
             self._clip_mime_type = 'text/plain'
             self._encoding = 'utf-8'
 
+    def cut(self):
+        ''' Copy current selection to clipboard then delete it from TextInput.
+
+        .. versionadded:: 1.8.0
+
+        '''
+        self._cut(self.selection_text)
+
     def _cut(self, data):
         self._copy(data)
         self.delete_selection()
+
+    def copy(self, data=''):
+        ''' Copy the value provided in argument `data` into current clipboard.
+        If data is not of type string it will be converted to string.
+        If no data is provided then current selection if present is copied.
+
+        .. versionadded:: 1.8.0
+
+        '''
+        if data:
+            self._copy(data)
+            return
+        if self.selection_text:
+            self._copy(self.selection_text)
 
     def _copy(self, data):
         # explicitly terminate strings with a null character
@@ -1237,6 +1259,16 @@ class TextInput(Widget):
         self._ensure_clipboard()
         data = data.encode(self._encoding) + b'\x00'
         Clipboard.put(data, self._clip_mime_type)
+
+    def paste(self):
+        ''' Insert text from system :class:`~kivy.core.clipboard.Clipboard`
+        into the :class:`~kivy.uix.textinput.TextInput` at current cursor
+        position.
+
+        .. versionadded:: 1.8.0
+
+        '''
+        self._paste()
 
     def _paste(self):
         self._ensure_clipboard()
