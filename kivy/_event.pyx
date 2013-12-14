@@ -17,7 +17,9 @@ __all__ = ('EventDispatcher', )
 
 from functools import partial
 from kivy.weakmethod import WeakMethod
-from kivy.properties cimport Property, PropertyStorage, ObjectProperty
+from kivy.compat import string_types
+from kivy.properties cimport Property, PropertyStorage, ObjectProperty, \
+    NumericProperty, StringProperty, ListProperty
 
 cdef int widget_uid = 0
 cdef dict cache_properties = {}
@@ -389,7 +391,7 @@ cdef class EventDispatcher(ObjectWithUid):
             ret[x] = p[x]
         return ret
 
-    def create_property(self, name):
+    def create_property(self, name, value=None):
         '''Create a new property at runtime.
 
         .. versionadded:: 1.0.9
@@ -414,7 +416,14 @@ cdef class EventDispatcher(ObjectWithUid):
         >>> print(mywidget.custom)
         True
         '''
-        prop = ObjectProperty(None)
+        if isinstance(value, (list, tuple)):
+            prop = ListProperty(value)
+        elif isinstance(value, string_types):
+            prop = StringProperty(value)
+        elif isinstance(value, (int, float)):
+            prop = NumericProperty(value)
+        else:
+            prop = ObjectProperty(value)
         prop.link(self, name)
         prop.link_deps(self, name)
         self.__properties[name] = prop

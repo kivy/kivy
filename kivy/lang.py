@@ -877,8 +877,10 @@ class ParserRule(object):
             return
         self.cache_marked.append(cls)
         for name in self.properties:
-            if not hasattr(widget, name):
-                widget.create_property(name)
+            if hasattr(widget, name):
+                continue
+            value = self.properties[name].co_value
+            widget.create_property(name, value)
 
     def _forbid_selectors(self):
         c = self.name[0]
