@@ -411,7 +411,9 @@ cdef class EventDispatcher(ObjectWithUid):
         :Parameters:
             `name`: string
                 Name of the property
-            `
+            `value`: object, optional
+                Default value of the property. Type is also used for creating a
+                more appropriate property types. Default to None.
 
         The class of the property cannot be specified, it will always be an
         :class:`~kivy.properties.ObjectProperty` class. The default value of the
