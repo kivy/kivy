@@ -12,11 +12,14 @@ from kivy.support import install_gobject_iteration
 import os
 import sys
 
-install_gobject_iteration()
+# initialize the audio/gi. if the older version is used, don't use audio_gi.
 Gst.init(None)
-
+version = Gst.version()
+if version < (1, 0, 0, 0):
+    raise Exception('Cannot use audio_gi, Gstreamer < 1.0 is not supported.')
 Logger.info('AudioGi: Using Gstreamer {}'.format(
     '.'.join(['{}'.format(x) for x in Gst.version()])))
+install_gobject_iteration()
 
 
 class SoundGi(Sound):

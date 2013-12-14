@@ -12,12 +12,19 @@ from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from kivy.core.camera import CameraBase
 from kivy.support import install_gobject_iteration
+from kivy.logger import Logger
 from ctypes import Structure, c_void_p, c_int, string_at
 from weakref import ref
 import atexit
 
-install_gobject_iteration()
+# initialize the camera/gi. if the older version is used, don't use camera_gi.
 Gst.init(None)
+version = Gst.version()
+if version < (1, 0, 0, 0):
+    raise Exception('Cannot use camera_gi, Gstreamer < 1.0 is not supported.')
+Logger.info('CameraGi: Using Gstreamer {}'.format(
+    '.'.join(['{}'.format(x) for x in Gst.version()])))
+install_gobject_iteration()
 
 
 class _MapInfo(Structure):

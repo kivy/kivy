@@ -32,18 +32,21 @@ if PY2:
 else:
     from urllib.request import pathname2url
 
-install_gobject_iteration()
+# initialize the video/gi. if the older version is used, don't use video_gi.
 Gst.init(None)
-
+version = Gst.version()
+if version < (1, 0, 0, 0):
+    raise Exception('Cannot use video_gi, Gstreamer < 1.0 is not supported.')
 Logger.info('VideoGi: Using Gstreamer {}'.format(
     '.'.join(['{}'.format(x) for x in Gst.version()])))
+install_gobject_iteration()
 
 
 class _MapInfo(Structure):
     _fields_ = [
         ('memory', c_void_p),
         ('flags', c_int),
-        ('data', c_void_p) ]
+        ('data', c_void_p)]
         # we don't care about the rest
 
 
@@ -124,7 +127,8 @@ class VideoGi(VideoBase):
             result, mapinfo = buf.map(Gst.MapFlags.READ)
 
             # We cannot get the data out of mapinfo, using Gst 1.0.6 + Gi 3.8.0
-            # related bug report: https://bugzilla.gnome.org/show_bug.cgi?id=678663
+            # related bug report:
+            #     https://bugzilla.gnome.org/show_bug.cgi?id=678663
             # ie: mapinfo.data is normally a char*, but here, we have an int
             # So right now, we use ctypes instead to read the mapinfo ourself.
             addr = mapinfo.__hash__()
