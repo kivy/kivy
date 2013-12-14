@@ -119,7 +119,7 @@ class GridLayout(Layout):
     spacing also accepts a one argument form [spacing].
 
     :data:`spacing` is a
-    :class:`~kivy.properties.VariableListProperty`, default to [0, 0].
+    :class:`~kivy.properties.VariableListProperty` and defaults to [0, 0].
     '''
 
     padding = VariableListProperty([0, 0, 0, 0])

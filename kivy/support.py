@@ -2,7 +2,8 @@
 Support
 =======
 
-Activate other framework/toolkit inside our event loop
+Activate other frameworks/toolkits inside the kivy event loop.
+
 '''
 
 __all__ = ('install_gobject_iteration', 'install_twisted_reactor',
@@ -13,7 +14,7 @@ from kivy.compat import PY2
 
 def install_gobject_iteration():
     '''Import and install gobject context iteration inside our event loop.
-    This is used as soon as gobject is used (like gstreamer)
+    This is used as soon as gobject is used (like gstreamer).
     '''
 
     from kivy.clock import Clock
@@ -62,10 +63,10 @@ def _android_ask_redraw(*largs):
 
 
 def install_android():
-    '''Install hooks for android platform.
+    '''Install hooks for the android platform.
 
-    * Automaticly sleep when the device is paused
-    * Auto kill the application is the return key is hitted
+    * Automatically sleep when the device is paused.
+    * Automatically kill the application when the return key is pressed.
     '''
     try:
         import android
@@ -84,10 +85,10 @@ def install_android():
     android.map_key(android.KEYCODE_MENU, pygame.K_MENU)
     android.map_key(android.KEYCODE_BACK, pygame.K_ESCAPE)
 
-    # Check if android must be paused or not
-    # If pause is asked, just leave the app.
+    # Check if android should be paused or not.
+    # If pause is requested, just leave the app.
     def android_check_pause(*largs):
-        # do nothing until android ask for it.
+        # do nothing until android asks for it.
         if not android.check_pause():
             return
 
@@ -98,7 +99,7 @@ def install_android():
         global g_android_redraw_count
 
         # try to get the current running application
-        Logger.info('Android: Must to in sleep mode, check the app')
+        Logger.info('Android: Must go into sleep mode, check the app')
         app = App.get_running_app()
 
         # no running application, stop our loop.
@@ -117,11 +118,11 @@ def install_android():
             # is it a stop or resume ?
             if android.check_stop():
                 # app must stop
-                Logger.info('Android: Android want to close our app.')
+                Logger.info('Android: Android wants to close our app.')
                 stopTouchApp()
             else:
                 # app resuming now !
-                Logger.info('Android: Android resumed, resume the app')
+                Logger.info('Android: Android has resumed, resume the app.')
                 app.dispatch('on_resume')
                 Window.canvas.ask_update()
                 g_android_redraw_count = 25  # 5 frames/seconds during 5 seconds
@@ -129,7 +130,7 @@ def install_android():
                 Clock.schedule_interval(_android_ask_redraw, 1 / 5)
                 Logger.info('Android: App resume completed.')
 
-        # app don't support pause mode, just stop it.
+        # app doesn't support pause mode, just stop it.
         else:
             Logger.info('Android: App doesn\'t support pause mode, stop.')
             stopTouchApp()
@@ -142,14 +143,14 @@ def install_twisted_reactor(**kwargs):
     reactor iteration before the next frame only when twisted needs
     to do some work.
 
-    any arguments or keyword arguments passed to this function will be
-    passed on the the threadedselect reactors interleave function, these
-    are the arguments one would usually pass to twisted's reactor.startRunning
+    Any arguments or keyword arguments passed to this function will be
+    passed on the the threadedselect reactors interleave function. These
+    are the arguments one would usually pass to twisted's reactor.startRunning.
 
     Unlike the default twisted reactor, the installed reactor will not handle
-    any signals unnless you set the 'installSignalHandlers' keyword argument
-    to 1 explicitly.  This is done to allow kivy to handle teh signals as
-    usual, unless you specifically want the twisted reactor to handle the
+    any signals unless you set the 'installSignalHandlers' keyword argument
+    to 1 explicitly. This is done to allow kivy to handle the signals as
+    usual unless you specifically want the twisted reactor to handle the
     signals (e.g. SIGINT).'''
     import twisted
 
@@ -175,26 +176,33 @@ def install_twisted_reactor(**kwargs):
     # will hold callbacks to twisted callbacks
     q = deque()
 
-    # twisted will call the wake function when it needsto do work
+    # twisted will call the wake function when it needs to do work
     def reactor_wake(twisted_loop_next):
+        '''Wakeup the twisted reactor to start processing the task queue 
+        '''
+        
         Logger.trace("Support: twisted wakeup call to schedule task")
         q.append(twisted_loop_next)
 
     # called every frame, to process the reactors work in main thread
     def reactor_work(*args):
+        '''Process the twisted reactor task queue
+        '''
         Logger.trace("Support: processing twisted task queue")
         while len(q):
             q.popleft()()
 
     # start the reactor, by telling twisted how to wake, and process
     def reactor_start(*args):
+        '''Start the twisted reactor main loop
+        '''
         Logger.info("Support: Starting twisted reactor")
         reactor.interleave(reactor_wake, **kwargs)
         Clock.schedule_interval(reactor_work, 0)
 
     # make sure twisted reactor is shutdown if eventloop exists
     def reactor_stop(*args):
-        '''will shutdown the twisted reactor main loop
+        '''Shutdown the twisted reactor main loop
         '''
         if reactor.threadpool:
             Logger.info("Support: Stooping twisted threads")
@@ -205,4 +213,3 @@ def install_twisted_reactor(**kwargs):
     # start and stop teh reactor along with kivy EventLoop
     EventLoop.bind(on_start=reactor_start)
     EventLoop.bind(on_stop=reactor_stop)
-

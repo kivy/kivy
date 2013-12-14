@@ -151,9 +151,9 @@ cdef class Shader:
     '''Create a vertex or fragment shader
 
     :Parameters:
-        `vs`: string, default to None
+        `vs`: string, defaults to None
             source code for vertex shader
-        `fs`: string, default to None
+        `fs`: string, defaults to None
             source code for fragment shader
     '''
     def __cinit__(self):

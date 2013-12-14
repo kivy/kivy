@@ -121,4 +121,5 @@ def core_register_libs(category, libs, base='kivy.core'):
         ', '.join(libs_loaded),
         '({0} ignored)'.format(
             ', '.join(libs_ignored)) if libs_ignored else ''))
+    return libs_loaded
 

@@ -6,9 +6,6 @@ Core classes for loading images and converting them to a
 :class:`~kivy.graphics.texture.Texture`. The raw image data can be keep in
 memory for further access.
 
-.. note::
-
-    Saving an image is not yet supported.
 '''
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
@@ -397,7 +394,7 @@ class Image(EventDispatcher):
             Scale of the image.
         `mipmap` : bool, defaults to False
             Create mipmap for the texture.
-        `anim_delay`: float, default to .25
+        `anim_delay`: float, defaults to .25
             Delay in seconds between each animation frame. Lower values means
             faster animation.
     '''
@@ -567,7 +564,7 @@ class Image(EventDispatcher):
         :Parameters:
             `filename` : str
                 Filename of the image.
-            `keep_data` : bool, default to False
+            `keep_data` : bool, defaults to False
                 Keep the image data when the texture is created.
         '''
         kwargs.setdefault('keep_data', False)
@@ -791,7 +788,14 @@ image_libs += [
     ('pygame', 'img_pygame'),
     ('pil', 'img_pil'),
     ('gif', 'img_gif')]
-core_register_libs('image', image_libs)
+libs_loaded = core_register_libs('image', image_libs)
+
+from os import environ
+if not 'KIVY_DOC' in environ and not libs_loaded:
+    import sys
+
+    Logger.critical('App: Unable to get any Image provider, abort.')
+    sys.exit(1)
 
 # resolve binding.
 from kivy.graphics.texture import Texture, TextureRegion

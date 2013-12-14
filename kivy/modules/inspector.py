@@ -70,6 +70,7 @@ from kivy.uix.treeview import TreeViewNode
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.modalview import ModalView
 from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix, \
         Translate, Rotate, Scale
 from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
@@ -78,9 +79,9 @@ from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from functools import partial
+from itertools import chain
 from kivy.lang import Builder
 from kivy.vector import Vector
-
 
 Builder.load_string('''
 <Inspector>:
@@ -259,8 +260,14 @@ class Inspector(FloatLayout):
 
     def highlight_at(self, x, y):
         widget = None
-        # reverse the loop - look at children on top first
-        for child in reversed(self.win.children):
+        # reverse the loop - look at children on top first and
+        # modalviews before others
+        win_children = self.win.children
+        children = chain(
+            (c for c in reversed(win_children) if isinstance(c, ModalView)),
+            (c for c in reversed(win_children) if not isinstance(c, ModalView))
+        )
+        for child in children:
             if child is self:
                 continue
             widget = self.pick(child, x, y)

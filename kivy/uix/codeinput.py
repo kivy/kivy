@@ -129,8 +129,8 @@ class CodeInput(TextInput):
         lbl = self._create_line_label(text)
         width = lbl.width if lbl else 0
         Cache_append(
-                    'textinput.width',
-                    text + u'_' + repr(self.lexer), width)
+            'textinput.width',
+            text + u'_' + repr(self.lexer), width)
         return width
 
     def _get_bbcode(self, ntext):
@@ -184,8 +184,9 @@ if __name__ == '__main__':
     class CodeInputTest(App):
         def build(self):
             return CodeInput(lexer=KivyLexer(),
-                font_name='data/fonts/DroidSansMono.ttf', font_size=12,
-                text='''
+                             font_name='data/fonts/DroidSansMono.ttf',
+                             font_size=12,
+                             text='''
 #:kivy 1.0
 
 <YourWidget>:

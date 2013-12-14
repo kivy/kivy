@@ -28,12 +28,19 @@ pass an instance to the :class:`InteractiveLauncher` constructor.::
         def build(self):
             return Button(test='Hello Shell')
 
-    interactiveLauncher = InteractiveLauncher(MyApp()).run()
+    launcher = InteractiveLauncher(MyApp())
+    launcher.run()
 
 The script will return, allowing an interpreter shell to continue running and
 inspection or modification of the :class:`App` can be done safely through the
 InteractiveLauncher instance or the provided :class:`SafeMembrane` class
 instances.
+
+.. note::
+
+    If you want to test this example, start Python without any file to have
+    already an interpreter, and copy/paste all the lines. You'll still have the
+    interpreter at the end + the kivy application running.
 
 Interactive Development
 -----------------------
@@ -100,7 +107,7 @@ functions that need the screen to update etc.
 
 .. note::
 
-    The pausing is implemented via the 
+    The pausing is implemented via the
     :class:`Clocks' <kivy.clock.Clock>`
     :meth:`~kivy.clock.ClockBase.schedule_once` method
     and occurs before the start of each frame.
