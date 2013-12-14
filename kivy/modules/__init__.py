@@ -106,6 +106,9 @@ class ModuleContext:
     def __init__(self):
         self.config = {}
 
+    def __repr__(self):
+        return repr(self.config)
+
 
 class ModuleBase:
     '''Handle Kivy modules. It will automatically load and instanciate the
@@ -165,14 +168,20 @@ class ModuleBase:
             Logger.warning('Modules: Module <%s> not found' % name)
             return
 
-        module = self.mods[name]['module']
-        if not self.mods[name]['activated']:
-            context = self.mods[name]['context']
+        mod = self.mods[name]
+
+        # ensure the module has been configured
+        if 'module' not in mod:
+            self._configure_module(name)
+
+        pymod = mod['module']
+        if not mod['activated']:
+            context = mod['context']
             msg = 'Modules: Start <{0}> with config {1}'.format(
                     name, context)
             Logger.debug(msg)
-            module.start(win, context)
-            self.mods[name]['activated'] = True
+            pymod.start(win, context)
+            mod['activated'] = True
 
     def deactivate_module(self, name, win):
         '''Deactivate a module from a window'''
