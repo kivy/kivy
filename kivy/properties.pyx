@@ -60,7 +60,6 @@ property, here is a possible implementation in Python::
     class MyClass(object):
         def __init__(self, a=1):
             super(MyClass, self).__init__()
-            self._a = 0
             self.a_min = 0
             self.a_max = 100
             self.a = a
