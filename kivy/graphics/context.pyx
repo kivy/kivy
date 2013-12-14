@@ -10,6 +10,8 @@ the ability to flush and delete them.
 You can read more about it at :doc:`api-kivy.graphics`
 '''
 
+__all__ = ('Context',)
+
 include "config.pxi"
 
 from cpython.array cimport array
@@ -31,7 +33,11 @@ from kivy.cache import Cache
 cdef Context context = None
 
 cdef class Context:
-
+    """
+    The Context class manages groups of graphics instructions. It can also be used to manage
+    observer callbacks. See :meth:`add_reload_observer` and :meth:`remove_reload_observer`
+    for more information.
+    """
     def __init__(self):
         self.observers = []
         self.observers_before = []
@@ -115,7 +121,7 @@ cdef class Context:
             # no need to trigger, depthbuffer required absolutely a buffer.
 
     def add_reload_observer(self, callback, before=False):
-        '''Add a callback to be called after the whole graphics context has
+        '''(internal) Add a callback to be called after the whole graphics context has
         been reloaded. This is where you can reupload your custom data into the
         GPU.
 
@@ -136,7 +142,7 @@ cdef class Context:
             self.observers.append(WeakMethod(callback))
 
     def remove_reload_observer(self, callback, before=False):
-        '''Remove a callback from the observer list previously added by
+        '''(internal) Remove a callback from the observer list previously added by
         :func:`add_reload_observer`. 
         '''
         lst = self.observers_before if before else self.observers
