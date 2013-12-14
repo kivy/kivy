@@ -197,9 +197,9 @@ class Vector(list):
 
     def __rdiv__(self, val):
         try:
-            return Vector(list(map(lambda x, y: x / y, self, val)))
+            return Vector(*val) / self
         except Exception:
-            return Vector([self / x for x in val])
+            return Vector(val, val) / self
 
     def __idiv__(self, val):
         if type(val) in (int, float):
@@ -379,7 +379,7 @@ class Vector(list):
         c2 = (y1 <= py <= y2) or (y2 <= py <= y2)
         c3 = (x3 <= px <= x4) or (x4 <= px <= x3)
         c4 = (y3 <= py <= y4) or (y4 <= py <= y3)
-  
+
         if (c1 and c2) and (c3 and c4):
             return Vector(px, py)
         else:
