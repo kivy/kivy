@@ -28,7 +28,7 @@ class BaseClass(object):
         self.children.append(widget)
         widget.parent = self
 
-    def create_property(self, name):
+    def create_property(self, name, value=None):
         pass
 
     def is_event_type(self, key):

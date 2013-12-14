@@ -313,6 +313,15 @@ Any new properties, usually added in python code, should be declared first.
 If the property doesn't exist in the dynamic class, it will be automatically
 created as an :class:`~kivy.properties.ObjectProperty`.
 
+.. versionchanged:: 1.8.0
+
+    If the property value is an expression that can be evaluated right away (no
+    external binding), then the value will be used as default value of the
+    property, and the type of the value will be used for the specialization of
+    the Property class. In other terms: if you declare `hello: "world"`, a new
+    :class:`~kivy.properties.StringProperty` will be instanciated, with the
+    default value `"world"`. List, tuples, dictionnary, strings, are supported.
+
 Let's illustrate the usage of theses dynamic classes with an implementation of a
 basic Image button. We could derive our classes from the Button and just
 add a property for the image filename:
@@ -877,8 +886,12 @@ class ParserRule(object):
             return
         self.cache_marked.append(cls)
         for name in self.properties:
-            if not hasattr(widget, name):
-                widget.create_property(name)
+            if hasattr(widget, name):
+                continue
+            value = self.properties[name].co_value
+            if type(value) is CodeType:
+                value = None
+            widget.create_property(name, value)
 
     def _forbid_selectors(self):
         c = self.name[0]
@@ -1585,7 +1598,7 @@ class BuilderBase(object):
                     for prule in crule.properties.values():
                         value = prule.co_value
                         if type(value) is CodeType:
-                                value = eval(value, idmap)
+                            value = eval(value, idmap)
                         ctx[prule.name] = value
                     for prule in crule.handlers:
                         value = eval(prule.value, idmap)
