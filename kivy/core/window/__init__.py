@@ -23,6 +23,7 @@ from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
         NumericProperty, OptionProperty, StringProperty
 from kivy.utils import platform, reify
 from kivy.context import get_current_context
+from kivy.weakmethod import WeakMethod
 
 # late import
 VKeyboard = None
@@ -222,6 +223,7 @@ class WindowBase(EventDispatcher):
 
     __instance = None
     __initialized = False
+    _quit_callback = None
 
     # private properties
     _size = ListProperty([0, 0])
@@ -464,6 +466,7 @@ class WindowBase(EventDispatcher):
         self._system_keyboard = Keyboard(window=self)
         self._keyboards = {'system': self._system_keyboard}
         self._vkeyboard_cls = None
+        self._quit_callback = None
 
         self.children = []
         self.parent = self
@@ -607,6 +610,37 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.0.5
         '''
         self.icon = filename
+
+    def set_quit_callback(self, callback_func):
+        '''Sets a function to be called and possibly intercept the closing of
+        the current Window. If None, the last function will be un-registered.
+        When called, if the callback function returns True the window will not
+        close, otherwise it will continue to close.
+
+            from kivy.core.window import Window
+            def wants_to_quit():
+                return we_allow_quiting
+            Window.set_quit_callback(wants_to_quit)
+            ...
+            Window.set_quit_callback(None)
+
+        .. warning::
+
+            The function will not be called every time before the window
+            closes, only when there's a possibility of ignoring the quit event.
+
+        .. warning::
+
+            When the function returns True, a user would be unable to close
+            the window without manually terminating the process, so use with
+            care.
+
+        .. versionadded:: 1.8.0
+        '''
+        if callback_func:
+            self._quit_callback = WeakMethod(callback_func)
+        else:
+            self._quit_callback = None
 
     def to_widget(self, x, y, initial=True, relative=False):
         return (x, y)
@@ -922,7 +956,7 @@ class WindowBase(EventDispatcher):
             `input_type`: string
                 Choose the type of soft keyboard to request. Can be one of 'text',
                 'number', 'url', 'mail', 'datetime', 'tel', 'address'.
-                
+
                 .. versionadded:: 1.8.0
 
         :Return:
