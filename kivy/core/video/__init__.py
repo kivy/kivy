@@ -5,6 +5,14 @@ Video
 Core class for reading video files and managing the
 :class:`kivy.graphics.texture.Texture` video.
 
+.. versionchanged:: 1.8.0
+
+    There is now 2 distinct Gstreamer implementation: one using Gi/Gst working
+    for both Python 2+3 with Gstreamer 1.0, and one using PyGST working only for
+    Python 2 + Gstreamer 0.10.
+    If you have issue with GStreamer, have a look at
+    :ref:`gstreamer-compatibility`
+
 .. note::
 
     Recording is not supported.
@@ -16,6 +24,7 @@ from kivy.clock import Clock
 from kivy.core import core_select_lib
 from kivy.event import EventDispatcher
 from kivy.logger import Logger
+from kivy.compat import PY2
 
 
 class VideoBase(EventDispatcher):
@@ -193,10 +202,18 @@ class VideoBase(EventDispatcher):
 
 
 # Load the appropriate provider
-Video = core_select_lib('video', (
-    ('gstreamer', 'video_gstreamer', 'VideoGStreamer'),
+video_providers = []
+video_providers += [
+    ('gi', 'video_gi', 'VideoGi')]
+if PY2:
+    # if peoples do not have gi, fallback on pygst, only for python2
+    video_providers += [
+        ('pygst', 'video_pygst', 'VideoPyGst')]
+video_providers += [
     ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
     ('pyglet', 'video_pyglet', 'VideoPyglet'),
-    ('null', 'video_null', 'VideoNull'),
-))
+    ('null', 'video_null', 'VideoNull')]
+
+
+Video = core_select_lib('video', video_providers)
 

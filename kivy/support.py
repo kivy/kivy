@@ -9,8 +9,6 @@ Activate other frameworks/toolkits inside the kivy event loop.
 __all__ = ('install_gobject_iteration', 'install_twisted_reactor',
     'install_android')
 
-from kivy.compat import PY2
-
 
 def install_gobject_iteration():
     '''Import and install gobject context iteration inside our event loop.
@@ -19,10 +17,10 @@ def install_gobject_iteration():
 
     from kivy.clock import Clock
 
-    if PY2:
-        import gobject
-    else:
+    try:
         from gi.repository import GObject as gobject
+    except ImportError:
+        import gobject
 
     if hasattr(gobject, '_gobject_already_installed'):
         # already installed, don't do it twice.
@@ -178,9 +176,9 @@ def install_twisted_reactor(**kwargs):
 
     # twisted will call the wake function when it needs to do work
     def reactor_wake(twisted_loop_next):
-        '''Wakeup the twisted reactor to start processing the task queue 
+        '''Wakeup the twisted reactor to start processing the task queue
         '''
-        
+
         Logger.trace("Support: twisted wakeup call to schedule task")
         q.append(twisted_loop_next)
 

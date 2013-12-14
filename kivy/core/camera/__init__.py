@@ -4,6 +4,15 @@ Camera
 
 Core class for acquiring the camera and converting its input into a
 :class:`~kivy.graphics.texture.Texture`.
+
+.. versionchanged:: 1.8.0
+
+    There is now 2 distinct Gstreamer implementation: one using Gi/Gst working
+    for both Python 2+3 with Gstreamer 1.0, and one using PyGST working only for
+    Python 2 + Gstreamer 0.10.
+    If you have issue with GStreamer, have a look at
+    :ref:`gstreamer-compatibility`
+
 '''
 
 __all__ = ('CameraBase', 'Camera')
@@ -131,7 +140,8 @@ if sys.platform == 'win32':
     providers += (('videocapture', 'camera_videocapture',
         'CameraVideoCapture'), )
 if sys.platform != 'darwin':
-    providers += (('gstreamer', 'camera_gstreamer', 'CameraGStreamer'), )
+    providers += (('gi', 'camera_gi', 'CameraGi'), )
+    providers += (('pygst', 'camera_pygst', 'CameraPyGst'), )
 
 providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )
 
