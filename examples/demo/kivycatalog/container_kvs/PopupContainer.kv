@@ -3,6 +3,7 @@
 BoxLayout:
     id: bl
     orientation: "vertical"
+    popup: popup.__self__
     canvas:
         Color:
             rgba: .18, .18, .18, .91
@@ -23,7 +24,7 @@ BoxLayout:
             text: 'Bubble'
     Button:
         text: 'press to show popup'
-        on_release: popup.open()
+        on_release: root.popup.open()
     Popup:
         id: popup
         on_parent: if self.parent == bl: bl.remove_widget(self)
@@ -32,4 +33,4 @@ BoxLayout:
         Button:
             id: popupcontent
             text: "press to dismiss"
-            on_release: popup.dismiss()
+            on_release: root.popup.dismiss()
