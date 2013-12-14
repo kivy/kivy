@@ -2,12 +2,12 @@
 Framebuffer
 ===========
 
-Fbo is like an offscreen window. You can activate the fbo for rendering into a
-texture, and use your fbo as a texture for another drawing.
+The Fbo is like an offscreen window. You can activate the fbo for rendering into
+a texture and use your fbo as a texture for other drawing.
 
-Fbo act as a :class:`kivy.graphics.instructions.Canvas`.
+The Fbo acts as a :class:`kivy.graphics.instructions.Canvas`.
 
-Example of using an fbo for some color rectangles::
+Here is an example of using an fbo for some colored rectangles::
 
     from kivy.graphics import Fbo, Color, Rectangle
 
@@ -35,8 +35,8 @@ Example of using an fbo for some color rectangles::
                 Color(0, 1, 0, .8)
                 Rectangle(size=(64, 256))
 
-If you change anything in the `self.fbo` object, it will be automaticly updated,
-and canvas where the fbo is putted will be automaticly updated too.
+If you change anything in the `self.fbo` object, it will be automatically updated.
+The canvas where the fbo is put will be automatically updated as well.
 
 Reloading the FBO content
 -------------------------
