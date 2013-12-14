@@ -19,7 +19,7 @@ from functools import partial
 from kivy.weakmethod import WeakMethod
 from kivy.compat import string_types
 from kivy.properties cimport Property, PropertyStorage, ObjectProperty, \
-    NumericProperty, StringProperty, ListProperty
+    NumericProperty, StringProperty, ListProperty, DictProperty
 
 cdef int widget_uid = 0
 cdef dict cache_properties = {}
@@ -396,6 +396,12 @@ cdef class EventDispatcher(ObjectWithUid):
 
         .. versionadded:: 1.0.9
 
+        .. versionchanged:: 1.8.0
+
+            `value` parameter added, can be used to set the default value of the
+            property. Also, the type of the value is used to specialize the
+            created property
+
         .. warning::
 
             This function is designed for the Kivy language, don't use it in
@@ -405,6 +411,7 @@ cdef class EventDispatcher(ObjectWithUid):
         :Parameters:
             `name`: string
                 Name of the property
+            `
 
         The class of the property cannot be specified, it will always be an
         :class:`~kivy.properties.ObjectProperty` class. The default value of the
@@ -416,12 +423,14 @@ cdef class EventDispatcher(ObjectWithUid):
         >>> print(mywidget.custom)
         True
         '''
-        if isinstance(value, (list, tuple)):
-            prop = ListProperty(value)
+        if isinstance(value, (int, float)):
+            prop = NumericProperty(value)
         elif isinstance(value, string_types):
             prop = StringProperty(value)
-        elif isinstance(value, (int, float)):
-            prop = NumericProperty(value)
+        elif isinstance(value, (list, tuple)):
+            prop = ListProperty(value)
+        elif isinstance(value, dict):
+            prop = DictProperty(value)
         else:
             prop = ObjectProperty(value)
         prop.link(self, name)
