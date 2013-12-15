@@ -4,10 +4,6 @@ Accordion
 
 .. versionadded:: 1.0.8
 
-.. warning::
-
-    This widget is still experimental, and its API is subject to change in a
-    future version.
 
 .. image:: images/accordion.jpg
     :align: right

@@ -4,10 +4,6 @@ FileChooser
 
 .. versionadded:: 1.0.5
 
-.. warning::
-
-    This is experimental and subject to change as long as this warning notice
-    is present.
 
 .. versionchanged:: 1.2.0
     In the chooser template, the `controller` is not a direct reference anymore

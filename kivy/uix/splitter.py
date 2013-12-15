@@ -7,11 +7,6 @@ Splitter
 .. image:: images/splitter.jpg
     :align: right
 
-.. warning::
-
-    This widget is still experimental and its API is subject to change in
-    a future version.
-
 The :class:`Splitter` is a widget that helps you re-size it's child
 widget/layout by letting you re-size it via
 dragging the boundary or double tapping the boundary. This widget is similar to
