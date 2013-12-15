@@ -89,10 +89,12 @@ def _on_player_deleted(wk):
 
 @atexit.register
 def gst_exit_clean():
+    # XXX don't use a stop() method or anything that change the state of the
+    # element without releasing the GIL. Otherwise, we might have a deadlock due
+    # to GIL in appsink callback + GIL already locked here.
     for wk in _instances:
         player = wk()
         if player:
-            player.stop()
             player.unload()
 
 
