@@ -203,13 +203,15 @@ class VideoBase(EventDispatcher):
 
 # Load the appropriate provider
 video_providers = []
-video_providers += [
-    ('gstplayer', 'video_gstplayer', 'VideoGstplayer'),
-    ('gi', 'video_gi', 'VideoGi')]
-if PY2:
-    # if peoples do not have gi, fallback on pygst, only for python2
-    video_providers += [
-        ('pygst', 'video_pygst', 'VideoPyGst')]
+try:
+    from kivy.lib.gstplayer import GstPlayer
+    video_providers += [('gstplayer', 'video_gstplayer')]
+except ImportError:
+    #video_providers += [('gi', 'video_gi', 'VideoGi')]
+    if PY2:
+        # if peoples do not have gi, fallback on pygst, only for python2
+        video_providers += [
+            ('pygst', 'video_pygst', 'VideoPyGst')]
 video_providers += [
     ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
     ('pyglet', 'video_pyglet', 'VideoPyglet'),
