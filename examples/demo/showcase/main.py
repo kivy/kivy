@@ -73,6 +73,16 @@ class ShowcaseApp(App):
         self.root.ids.sm.switch_to(self.load_screen(idx), direction='left')
         self.update_sourcecode()
 
+    def go_higherarchy_previous(self):
+        ahr = self.higherarchy
+        if len(ahr) == 1:
+            return
+        if ahr:
+            ahr.pop()
+        if ahr:\
+            idx = ahr.pop();\
+            self.go_screen(idx)
+
     def load_screen(self, index):
         if index in self.screens:
             return self.screens[index]

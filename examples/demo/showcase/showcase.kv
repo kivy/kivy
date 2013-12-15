@@ -52,11 +52,7 @@ BoxLayout:
             ActionPrevious:
                 with_previous: (False if sm.current_screen.name == 'button' else True) if sm.current_screen else False
                 title: 'Showcase' + ('' if not app.current_title else ' - {}'.format(app.current_title))
-                on_release:
-                    if app.higherarchy: app.higherarchy.pop()
-                    if app.higherarchy:\
-                    idx = app.higherarchy.pop();\
-                    app.go_screen(idx)
+                on_release: app.go_higherarchy_previous()
 
             ActionSpinner:
                 id: spnr
