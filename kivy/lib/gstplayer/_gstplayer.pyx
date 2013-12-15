@@ -38,7 +38,7 @@ cdef extern from 'gst/gst.h':
         int code
         char *message
 
-    bool gst_init_check(int *argc, char ***argv, GError *error)
+    bool gst_init_check(int *argc, char ***argv, GError **error)
     bool gst_is_initialized()
     void gst_deinit()
     void gst_version(guint *major, guint *minor, guint *micro, guint *nano)
@@ -71,6 +71,8 @@ cdef extern from '_gstplayer.h':
     void g_object_set_caps(GstElement *element, char *value)
     void g_object_set_int(GstElement *element, char *name, int value)
     gulong c_appsink_set_sample_callback(GstElement *appsink,
+            appcallback_t callback, void *userdata)
+    void c_appsink_pull_preroll(GstElement *appsink,
             appcallback_t callback, void *userdata)
     void c_appsink_disconnect(GstElement *appsink, gulong handler_id)
 
@@ -111,7 +113,7 @@ def _gst_init():
         return True
     cdef int argc = 0
     cdef char **argv = NULL
-    cdef GError error
+    cdef GError *error
     if not gst_init_check(&argc, &argv, &error):
         msg = 'Unable to initialize gstreamer: code={} message={}'.format(
                 error.code, <bytes>error.message)
@@ -173,26 +175,28 @@ cdef class GstPlayer:
         gst_bin_add(<GstBin *>self.pipeline, self.playbin)
 
         # instanciate an appsink
-        self.appsink = gst_element_factory_make('appsink', NULL)
-        if self.appsink == NULL:
-            raise GstPlayerException('Unable to create an appsink')
+        if self.sample_cb:
+            self.appsink = gst_element_factory_make('appsink', NULL)
+            if self.appsink == NULL:
+                raise GstPlayerException('Unable to create an appsink')
 
-        g_object_set_caps(self.appsink, 'video/x-raw,format=RGB')
-        g_object_set_int(self.appsink, 'max-buffers', 5)
-        g_object_set_int(self.appsink, 'drop', 1)
-        g_object_set_int(self.appsink, 'sync', 1)
-        g_object_set_int(self.appsink, 'qos', 1)
+            g_object_set_caps(self.appsink, 'video/x-raw,format=RGB')
+            g_object_set_int(self.appsink, 'max-buffers', 5)
+            g_object_set_int(self.appsink, 'drop', 1)
+            g_object_set_int(self.appsink, 'sync', 1)
+            g_object_set_int(self.appsink, 'qos', 1)
+            g_object_set_void(self.playbin, 'video-sink', self.appsink)
 
-        # configure playbin and attach appsink
+        # configure playbin
         g_object_set_int(self.pipeline, 'async-handling', 1)
         g_object_set_int(self.playbin, 'buffer-duration', long(1e8))
-        g_object_set_void(self.playbin, 'video-sink', self.appsink)
         c_uri = <bytes>self.uri.decode('utf-8')
         g_object_set_void(self.playbin, 'uri', c_uri)
 
         # attach the callback
-        self.handler_id =c_appsink_set_sample_callback(
-                self.appsink, _on_appsink_sample, <void *>self)
+        if self.sample_cb:
+            self.handler_id =c_appsink_set_sample_callback(
+                    self.appsink, _on_appsink_sample, <void *>self)
 
         # get ready!
         gst_element_set_state(self.pipeline, GST_STATE_READY)
@@ -257,9 +261,18 @@ cdef class GstPlayer:
         return position / 1e9
 
     def seek(self, percent):
+        cdef GstState current_state, pending_state
         if self.playbin == NULL:
             return
+
         seek_t = percent * self.get_duration() * 1e9
         seek_flags = GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT
         gst_element_seek_simple(self.playbin, GST_FORMAT_TIME,
                 <GstSeekFlags>seek_flags, seek_t)
+
+        if self.appsink != NULL:
+            gst_element_get_state(self.pipeline, &current_state,
+                    &pending_state, <GstClockTime>1e9)
+            if current_state != GST_STATE_PLAYING:
+                c_appsink_pull_preroll(
+                    self.appsink, _on_appsink_sample, <void *>self)

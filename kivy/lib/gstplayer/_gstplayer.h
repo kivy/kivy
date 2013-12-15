@@ -25,6 +25,7 @@ static void g_object_set_int(GstElement *element, char *name, int value)
 typedef void (*appcallback_t)(void *, int, int, char *, int);
 typedef struct {
 	appcallback_t callback;
+	char eventname[15];
 	PyObject *userdata;
 } appcallback_data_t;
 
@@ -37,7 +38,7 @@ static GstFlowReturn c_on_appsink_sample(GstElement *appsink, appcallback_data_t
 	GstStructure *structure = NULL;
 	gint width, height;
 
-	g_signal_emit_by_name (appsink, "pull-sample", &sample);
+	g_signal_emit_by_name (appsink, data->eventname, &sample);
 	if ( sample == NULL ) {
 		g_warning("Could not get sample");
 		goto done;
@@ -86,6 +87,7 @@ static gulong c_appsink_set_sample_callback(GstElement *appsink, appcallback_t c
 		return 0;
 	data->callback = callback;
 	data->userdata = userdata;
+	strcpy(data->eventname, "pull-sample");
 
 	Py_INCREF(data->userdata);
 
@@ -95,6 +97,15 @@ static gulong c_appsink_set_sample_callback(GstElement *appsink, appcallback_t c
 			appsink, "new-sample",
 			G_CALLBACK(c_on_appsink_sample), data,
 			c_appsink_free_data, 0);
+}
+
+static void c_appsink_pull_preroll(GstElement *appsink, appcallback_t callback, PyObject *userdata)
+{
+	appcallback_data_t data;
+	data.callback = callback;
+	data.userdata = userdata;
+	strcpy(data.eventname, "pull-preroll");
+	c_on_appsink_sample(appsink, &data);
 }
 
 static void c_appsink_disconnect(GstElement *appsink, gulong handler_id)
