@@ -128,14 +128,14 @@ def get_gst_version():
 
 
 cdef class GstPlayer:
-    cdef GstElement *pipeline, *playbin, *appsink
+    cdef GstElement *pipeline, *playbin, *appsink, *fakesink
     cdef GstBus *bus
     cdef object uri, sample_cb
     cdef gulong handler_id
     cdef object __weakref__
 
     def __cinit__(self, uri, sample_cb):
-        self.pipeline = self.playbin = self.appsink = NULL
+        self.pipeline = self.playbin = self.appsink = self.fakesink = NULL
         self.bus = NULL
         self.handler_id = 0
 
@@ -189,6 +189,13 @@ cdef class GstPlayer:
             g_object_set_int(self.appsink, 'qos', 1)
             g_object_set_void(self.playbin, 'video-sink', self.appsink)
 
+        else:
+            self.fakesink = gst_element_factory_make('fakesink', NULL)
+            if self.fakesink == NULL:
+                raise GstPlayerException('Unable to create a fakesink')
+
+            g_object_set_void(self.playbin, 'video-sink', self.appsink)
+
         # configure playbin
         g_object_set_int(self.pipeline, 'async-handling', 1)
         g_object_set_int(self.playbin, 'buffer-duration', long(1e8))
@@ -238,6 +245,7 @@ cdef class GstPlayer:
         self.bus = NULL
         self.pipeline = NULL
         self.playbin = NULL
+        self.fakesink = NULL
         self.handler_id = 0
 
     def set_volume(self, float volume):
