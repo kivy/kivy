@@ -204,6 +204,7 @@ class VideoBase(EventDispatcher):
 # Load the appropriate provider
 video_providers = []
 video_providers += [
+    ('gstplayer', 'video_gstplayer', 'VideoGstplayer'),
     ('gi', 'video_gi', 'VideoGi')]
 if PY2:
     # if peoples do not have gi, fallback on pygst, only for python2
