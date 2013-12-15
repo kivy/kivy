@@ -2,8 +2,8 @@
 Resources management
 ====================
 
-Resource management can be a pain if you have multiple path and project. We are
-offering you 2 functions for searching specific resources across a list of
+Resource management can be a pain if you have multiple paths and projects. Kivy
+offers 2 functions for searching for specific resources across a list of
 paths.
 '''
 
@@ -23,8 +23,8 @@ resource_paths += [dirname(kivy.__file__), join(kivy_data_dir, '..')]
 
 
 def resource_find(filename):
-    '''Search a resource in list of paths.
-    Use resource_add_path to add a custom path to search.
+    '''Search for a resource in the list of paths.
+    Use resource_add_path to add a custom path to the search.
     '''
     if not filename:
         return None
@@ -40,7 +40,7 @@ def resource_find(filename):
 
 
 def resource_add_path(path):
-    '''Add a custom path to search in
+    '''Add a custom path to search in.
     '''
     if path in resource_paths:
         return
@@ -49,7 +49,7 @@ def resource_add_path(path):
 
 
 def resource_remove_path(path):
-    '''Remove a search path
+    '''Remove a search path.
 
     .. versionadded:: 1.0.8
     '''

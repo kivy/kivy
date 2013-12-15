@@ -164,6 +164,7 @@ from kivy.metrics import dp
 from kivy.config import ConfigParser
 from kivy.animation import Animation
 from kivy.compat import string_types, text_type
+from kivy.core.window import Window
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.tabbedpanel import TabbedPanelHeader
 from kivy.uix.button import Button
@@ -456,8 +457,9 @@ class SettingPath(SettingItem):
     def _create_popup(self, instance):
         # create popup layout
         content = BoxLayout(orientation='vertical', spacing=5)
+        popup_width = min(0.95 * Window.width, dp(500))
         self.popup = popup = Popup(title=self.title,
-            content=content, size_hint=(None, None), size=(400, 400))
+            content=content, size_hint=(None, 0.9), width=popup_width)
 
         # create the filechooser
         self.textinput = textinput = FileChooserListView(
@@ -869,9 +871,9 @@ class Settings(BoxLayout):
 
     __events__ = ('on_close', 'on_config_change')
 
-    def __init__(self, *args):
+    def __init__(self, *args, **kargs):
         self._types = {}
-        super(Settings, self).__init__(*args)
+        super(Settings, self).__init__(*args, **kargs)
         self.add_interface()
         self.register_type('string', SettingString)
         self.register_type('bool', SettingBoolean)
@@ -1016,6 +1018,7 @@ class SettingsWithNoMenu(Settings):
     full panel switcher is not useful.
 
     .. warning::
+
         This Settings panel does *not* provide a Close
         button, and so it is impossible to leave the settings screen
         unless you also add other behaviour or override

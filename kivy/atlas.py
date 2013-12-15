@@ -40,7 +40,7 @@ Example of the Kivy ``defaulttheme.atlas``::
         }
     }
 
-How to create an atlas
+How to create an Atlas
 ----------------------
 
 .. warning::
@@ -87,7 +87,7 @@ As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
     In which case the id for ``../images/button.png`` will be ``images_button``
 
 
-How to use an atlas
+How to use an Atlas
 -------------------
 
 Usually, you would use the atlas as follows::
@@ -212,24 +212,25 @@ class Atlas(EventDispatcher):
             `filenames`: list
                 List of filenames to put in the atlas.
             `size`: int or list (width, height)
-                Size of an atlas image.
-            `padding`: int, default to 2
+                Size of the atlas image.
+            `padding`: int, defaults to 2
                 Padding to put around each image.
 
-                Be careful. If you're using a padding < 2, you might get issues
-                with the borders of the images. Because of the OpenGL
+                Be careful. If you're using a padding < 2, you might have
+                issues with the borders of the images. Because of the OpenGL
                 linearization, it might use the pixels of the adjacent image.
 
                 If you're using a padding >= 2, we'll automatically generate a
-                "border" of 1px for your image, around your image. If you look
-                at
+                "border" of 1px around your image. If you look at
                 the result, don't be scared if the image inside is not
                 exactly the same as yours :).
-            `use_path`: bool, if True, the relative path of the source png
+
+            `use_path`: bool, defaults to False
+                If True, the relative path of the source png
                 file names will be included in the atlas ids rather
                 that just in the file names. Leading dots and slashes will be
                 excluded and all other slashes in the path will be replaced
-                with underscores. For example, if the `use_path` is False
+                with underscores. For example, if `use_path` is False
                 (the default) and the file name is
                 ``../data/tiles/green_grass.png``, the id will be
                 ``green_grass``. If `use_path` is True, it will be

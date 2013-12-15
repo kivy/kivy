@@ -26,6 +26,13 @@ else:
 
 platform = sys.platform
 
+# Detect 32/64bit for OSX (http://stackoverflow.com/a/1405971/798575)
+if sys.platform == 'darwin':
+    if sys.maxsize > 2**32:
+        osx_arch = 'x86_64'
+    else:
+        osx_arch = 'i386'
+
 # Detect Python for android project (http://github.com/kivy/python-for-android)
 ndkplatform = environ.get('NDKPLATFORM')
 if ndkplatform is not None and environ.get('LIBLINK'):
@@ -232,8 +239,8 @@ def determine_gl_flags():
         flags['libraries'] = ['GLESv2']
         flags['extra_link_args'] = ['-framework', 'OpenGLES']
     elif platform == 'darwin':
-        flags['extra_link_args'] = ['-framework', 'OpenGL', '-arch', 'x86_64']
-        flags['extra_compile_args'] = ['-arch', 'x86_64']
+        flags['extra_link_args'] = ['-framework', 'OpenGL', '-arch', osx_arch]
+        flags['extra_compile_args'] = ['-arch', osx_arch]
     elif platform.startswith('freebsd'):
         flags['include_dirs'] = ['/usr/local/include']
         flags['extra_link_args'] = ['-L', '/usr/local/lib']

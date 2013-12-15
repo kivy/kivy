@@ -59,15 +59,15 @@ cdef class Line(VertexInstruction):
             next one, default 0, changing this makes it dashed.
         `width`: float
             Width of the line, default 1.0
-        `cap`: str, default to 'round'
+        `cap`: str, defaults to 'round'
             See :data:`cap` for more information.
-        `joint`: str, default to 'round'
+        `joint`: str, defaults to 'round'
             See :data:`joint` for more information.
-        `cap_precision`: int, default to 10
+        `cap_precision`: int, defaults to 10
             See :data:`cap_precision` for more information
-        `joint_precision`: int, default to 10
+        `joint_precision`: int, defaults to 10
             See :data:`joint_precision` for more information
-        `close`: bool, default to False
+        `close`: bool, defaults to False
             If True, the line will be closed.
         `circle`: list
             If set, the :data:`points` will be set to build a circle. Check
@@ -81,7 +81,7 @@ cdef class Line(VertexInstruction):
         `bezier`: list
             If set, the :data:`points` will be set to build a bezier line. Check
             :data:`bezier` for more information.
-        `bezier_precision`: int, default to 180
+        `bezier_precision`: int, defaults to 180
             Precision of the Bezier drawing.
 
     .. versionadded:: 1.0.8
@@ -693,7 +693,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property width:
-        '''Determine the width of the line, default to 1.0.
+        '''Determine the width of the line, defaults to 1.0.
 
         .. versionadded:: 1.4.1
         '''
@@ -707,7 +707,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property cap:
-        '''Determine the cap of the line, default to 'round'. Can be one of
+        '''Determine the cap of the line, defaults to 'round'. Can be one of
         'none', 'square' or 'round'
 
         .. versionadded:: 1.4.1
@@ -732,7 +732,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property joint:
-        '''Determine the join of the line, default to 'round'. Can be one of
+        '''Determine the join of the line, defaults to 'round'. Can be one of
         'none', 'round', 'bevel', 'miter'.
 
         .. versionadded:: 1.4.1
@@ -762,7 +762,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property cap_precision:
-        '''Number of iteration for drawing the "round" cap, default to 10.
+        '''Number of iteration for drawing the "round" cap, defaults to 10.
         The cap_precision must be at least 1.
 
         .. versionadded:: 1.4.1
@@ -778,7 +778,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property joint_precision:
-        '''Number of iteration for drawing the "round" joint, default to 10.
+        '''Number of iteration for drawing the "round" joint, defaults to 10.
         The joint_precision must be at least 1.
 
         .. versionadded:: 1.4.1
@@ -1066,7 +1066,7 @@ cdef class Line(VertexInstruction):
 
     property bezier_precision:
         '''Number of iteration for drawing the bezier between 2 segments,
-        default to 180. The bezier_precision must be at least 1.
+        defaults to 180. The bezier_precision must be at least 1.
 
         .. versionadded:: 1.4.2
         '''

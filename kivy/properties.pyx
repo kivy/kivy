@@ -12,10 +12,10 @@ The *Properties* classes are used when you create an
 Kivy's property classes support:
 
     Value Checking / Validation
-        When you assign a new value to a property, the value is checked to
-        pass constraints implemented in the class such as validation. For
-        example, validation for :class:`OptionProperty` will make sure that
-        the value is in a predefined list of possibilities. Validation for
+        When you assign a new value to a property, the value is checked against
+        validation constraints. For
+        example, validation for an :class:`OptionProperty` will make sure that
+        the value is in a predefined list of possibilities. Validation for a
         :class:`NumericProperty` will check that your value is a numeric type.
         This prevents many errors early on.
 
@@ -31,14 +31,14 @@ Kivy's property classes support:
         The same instance of a property is shared across multiple widget
         instances.
 
-Comparison Python / Kivy
-------------------------
+Comparison Python vs. Kivy
+--------------------------
 
 Basic example
 ~~~~~~~~~~~~~
 
 Let's compare Python and Kivy properties by creating a Python class with 'a'
-as a float::
+as a float property::
 
     class MyClass(object):
         def __init__(self, a=1.0):
@@ -60,7 +60,6 @@ property, here is a possible implementation in Python::
     class MyClass(object):
         def __init__(self, a=1):
             super(MyClass, self).__init__()
-            self._a = 0
             self.a_min = 0
             self.a_max = 100
             self.a = a
@@ -87,7 +86,7 @@ Error Handling
 ~~~~~~~~~~~~~~
 
 If setting a value would otherwise raise a ValueError, you have two options to
-handle the error gracefully within the property.  An errorvalue is a substitute
+handle the error gracefully within the property. An errorvalue is a substitute
 for the invalid value. An errorhandler is a callable (single argument function
 or lambda) which can return a valid substitute.
 
@@ -138,7 +137,7 @@ class::
 
     # At this point, any change to the a property will call your callback.
     ins.a = 5    # callback called
-    ins.a = 5    # callback not called, because the value didnt change
+    ins.a = 5    # callback not called, because the value did not change
     ins.a = -1   # callback called
 
 Observe using 'on_<propname>'
@@ -664,8 +663,9 @@ class ObservableDict(dict):
         return result
 
     def setdefault(self, *largs):
-        dict.setdefault(self, *largs)
+        cdef object result = dict.setdefault(self, *largs)
         observable_dict_dispatch(self)
+        return result
 
     def update(self, *largs):
         dict.update(self, *largs)

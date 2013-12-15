@@ -16,6 +16,14 @@ You should not use the Sound class directly. The class returned by
 **SoundLoader.load** will be the best sound provider for that particular file
 type, so it might return different Sound classes depending the file type.
 
+.. versionchanged:: 1.8.0
+
+    There is now 2 distinct Gstreamer implementation: one using Gi/Gst working
+    for both Python 2+3 with Gstreamer 1.0, and one using PyGST working only for
+    Python 2 + Gstreamer 0.10.
+    If you have issue with GStreamer, have a look at
+    :ref:`gstreamer-compatibility`
+
 .. note::
 
     Recording audio is not supported.
@@ -28,6 +36,7 @@ from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
 from kivy.utils import platform
+from kivy.compat import PY2
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
         AliasProperty, BooleanProperty
@@ -183,7 +192,9 @@ class Sound(EventDispatcher):
 # XXX test in macosx
 audio_libs = []
 if platform != 'win':
-    audio_libs += [('gstreamer', 'audio_gstreamer')]
+    audio_libs += [('gi', 'audio_gi')]
+    if PY2:
+        audio_libs += [('pygst', 'audio_pygst')]
 audio_libs += [('sdl', 'audio_sdl')]
 audio_libs += [('pygame', 'audio_pygame')]
 

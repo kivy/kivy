@@ -44,7 +44,8 @@ class SimpleListAdapter(Adapter):
     def __init__(self, **kwargs):
         if 'data' not in kwargs:
             raise Exception('list adapter: input must include data argument')
-        if type(kwargs['data']) not in (tuple, list):
+        if not isinstance(kwargs['data'], list) and \
+                not isinstance(kwargs['data'], tuple):
             raise Exception('list adapter: data must be a tuple or list')
         super(SimpleListAdapter, self).__init__(**kwargs)
 

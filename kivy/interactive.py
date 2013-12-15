@@ -17,7 +17,7 @@ to an :class:`App` so that it can be prototyped and debugged interactively.
 Creating an InteractiveLauncher
 -------------------------------
 
-Take you existing subclass of :class:`App` (this can be production code) and
+Take your existing subclass of :class:`App` (this can be production code) and
 pass an instance to the :class:`InteractiveLauncher` constructor.::
 
     from kivy.interactive import InteractiveLauncher
@@ -28,18 +28,26 @@ pass an instance to the :class:`InteractiveLauncher` constructor.::
         def build(self):
             return Button(test='Hello Shell')
 
-    interactiveLauncher = InteractiveLauncher(MyApp()).run()
+    launcher = InteractiveLauncher(MyApp())
+    launcher.run()
 
 The script will return, allowing an interpreter shell to continue running and
 inspection or modification of the :class:`App` can be done safely through the
-InteractiveLauncher instance or the provided SafeMembrane class instances.
+InteractiveLauncher instance or the provided :class:`SafeMembrane` class
+instances.
+
+.. note::
+
+    If you want to test this example, start Python without any file to have
+    already an interpreter, and copy/paste all the lines. You'll still have the
+    interpreter at the end + the kivy application running.
 
 Interactive Development
 -----------------------
 
-IPython provides a fast way to learn the kivy API.  The :class:`App` instance
-itself, all of it's attributes, including methods and the entire widget tree,
-can be quickly listed by using the '.' operator and pressing 'tab.'  Try this
+IPython provides a fast way to learn the Kivy API. The :class:`App` instance
+and all of it's attributes, including methods and the entire widget tree,
+can be quickly listed by using the '.' operator and pressing 'tab'. Try this
 code in an Ipython shell.::
 
     from kivy.interactive import InteractiveLauncher
@@ -81,26 +89,28 @@ code in an Ipython shell.::
 
     All of the proxies used in the module store their referent in the
     :attr:`_ref` attribute, which can be accessed directly if needed, such as
-    for getting doc strings.  :func:`help` and :func:`type` will access the
+    for getting doc strings. :func:`help` and :func:`type` will access the
     proxy, not its referent.
 
 Directly Pausing the Application
 --------------------------------
 
-Both :class:`InteractiveLauncher` and :class:`SafeMembrane` hold internal
-references to :class:`EventLoop`'s 'safe' and 'confirmed'
-:class:`threading.Event`  objects.  You can use their safing methods to control
+Both the :class:`InteractiveLauncher` and :class:`SafeMembrane` hold internal
+references to the :class:`EventLoop`'s 'safe' and 'confirmed'
+:class:`threading.Event` objects. You can use their safing methods to control
 the application manually.
 
-:meth:`Interactive.safeIn()` will cause the applicaiton to pause and
- :meth:`InteractiveLauncher.safeOut()` will allow a paused application
-to continue running.  This is potentially useful for scripting actions into
- functions that need the screen to update etc.
+:meth:`SafeMembrane.safeIn` will cause the application to pause and
+:meth:`SafeMembrane.safeOut` will allow a paused application
+to continue running. This is potentially useful for scripting actions into
+functions that need the screen to update etc.
 
 .. note::
 
-    The pausing is implemented via :meth:`kivy.clock.Clock.schedule_once` and
-    occurs before the start of each frame.
+    The pausing is implemented via the
+    :class:`Clocks' <kivy.clock.Clock>`
+    :meth:`~kivy.clock.ClockBase.schedule_once` method
+    and occurs before the start of each frame.
 
 Adding Attributes Dynamically
 -----------------------------
@@ -108,17 +118,17 @@ Adding Attributes Dynamically
 .. note::
 
     This module uses threading and object proxies to encapsulate the running
-    :class:`App`.  Deadlocks and memory corruption can occur if making direct
+    :class:`App`. Deadlocks and memory corruption can occur if making direct
     references inside the thread without going through the provided proxy(s).
 
 The :class:`InteractiveLauncher` can have attributes added to it exactly like a
-normal object, and if these were created from outside the membrane, they will
+normal object and if these were created from outside the membrane, they will
 not be threadsafe because the external references to them in the python
 interpreter do not go through InteractiveLauncher's membrane behavior, inherited
-from SafeMembrane.
+from :class:`SafeMembrane`.
 
-To threadsafe these external referencess, simply assign them to SafeMembrane
-instances of themselves like so::
+To threadsafe these external references, simply assign them to
+:class:`SafeMembrane` instances of themselves like so::
 
     from kivy.interactive import SafeMembrane
 
@@ -131,10 +141,10 @@ instances of themselves like so::
 TODO
 ====
 
-Unit tests, an example, and more understanding of which methods are safe in a
-running application would be nice.  All three would be excellent.
+Unit tests, examples, and a better explanation of which methods are safe in a
+running application would be nice. All three would be excellent.
 
-Could be re-written with a context-manager style, ie::
+Could be re-written with a context-manager style i.e.::
 
     with safe:
         foo()
@@ -165,15 +175,16 @@ def unwrap(ob):
 
 class SafeMembrane(object):
     '''
-    This help is for a proxy object.  Did you want help on the proxy's referent
-    instead?  Try using help(<instance>._ref)
+    This help is for a proxy object. Did you want help on the proxy's referent
+    instead? Try using help(<instance>._ref)
 
-    Threadsafe proxy that also returns attributes as new thread-safe objects
+    The SafeMembrane is a threadsafe proxy that also returns attributes as new
+    thread-safe objects
     and makes thread-safe method calls, preventing thread-unsafe objects
     from leaking into the user's environment.
     '''
 
-    __slots__ = ('_ref', 'safe', 'confirmed')
+    __slots__ = ('_ref', 'safe', 'confirmed', 'safeIn', 'safeOut')
 
     def __init__(self, ob, *args, **kwargs):
         self.confirmed = EventLoop.confirmed
@@ -181,11 +192,13 @@ class SafeMembrane(object):
         self._ref = ob
 
     def safeIn(self):
+        """Provides a thread-safe entry point for interactive launching."""
         self.safe.clear()
         Clock.schedule_once(safeWait, -1)
         self.confirmed.wait()
 
     def safeOut(self):
+        """Provides a thread-safe exit point for interactive launching."""
         self.safe.set()
 
     def isMethod(self, fn):
@@ -279,7 +292,7 @@ class SafeMembrane(object):
 class InteractiveLauncher(SafeMembrane):
     '''
     Proxy to an application instance that launches it in a thread and
-    then returns and acts as a proxy to the application in the thread
+    then returns and acts as a proxy to the application in the thread.
     '''
 
     __slots__ = ('_ref', 'safe', 'confirmed', 'thread', 'app')

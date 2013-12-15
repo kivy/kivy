@@ -118,19 +118,20 @@ class CodeInput(TextInput):
         kw = super(CodeInput, self)._get_line_options()
         kw['markup'] = True
         kw['valign'] = 'top'
-        kw['codeinput'] = True
+        kw['codeinput'] = repr(self.lexer)
         return kw
 
     def _get_text_width(self, text, tab_width, _label_cached):
         # Return the width of a text, according to the current line options
-        width = Cache_get('textinput.width', text + u'_' + repr(self.lexer))
+        width = Cache_get('textinput.width', text + u'_' +
+                          repr(self._get_line_options()))
         if width:
             return width
         lbl = self._create_line_label(text)
         width = lbl.width if lbl else 0
         Cache_append(
-                    'textinput.width',
-                    text + u'_' + repr(self.lexer), width)
+            'textinput.width',
+            text + u'_' + repr(self._get_line_options()), width)
         return width
 
     def _get_bbcode(self, ntext):
@@ -159,6 +160,7 @@ class CodeInput(TextInput):
             if self.cursor_col:
                 offset = self._get_text_width(
                     self._lines[self.cursor_row][:self.cursor_col])
+                return offset
         except:
             pass
         finally:
@@ -184,8 +186,9 @@ if __name__ == '__main__':
     class CodeInputTest(App):
         def build(self):
             return CodeInput(lexer=KivyLexer(),
-                font_name='data/fonts/DroidSansMono.ttf', font_size=12,
-                text='''
+                             font_name='data/fonts/DroidSansMono.ttf',
+                             font_size=12,
+                             text='''
 #:kivy 1.0
 
 <YourWidget>:

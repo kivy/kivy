@@ -29,7 +29,7 @@ Builder.load_string(
         Spinner:
             id: fnt_spnr
             text: 'DroidSansMono'
-            fnt_name: font.match_font(self.text)
+            fnt_name: font.match_font(self.text) if font.match_font(self.text) else ''
             font_name: self.fnt_name if self.fnt_name else self.font_name
             values: sorted(font.get_fonts())
             option_cls: Factory.FntSpinnerOption
@@ -47,8 +47,7 @@ Builder.load_string(
             font_size: fntsz_spnr.text + 'sp'
             text: root.unicode_string
             size_hint: 1, None
-            height: 1494
-            on_font_name: self.height = (self.line_height + self.padding_y) * (len(self._lines)-1)
+            height: self.minimum_height
     BoxLayout:
         size_hint: 1, .05
         Label:

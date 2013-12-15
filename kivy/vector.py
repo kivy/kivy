@@ -2,9 +2,9 @@
 ======
 
 The :class:`Vector` represents a 2D vector (x, y).
-Our implementation is made in top of a Python list.
+Our implementation is made on top of a Python list.
 
-Exemple for constructing a Vector::
+Example for constructing a Vector::
 
     >>> # Construct a point at 82,34
     >>> v = Vector(82, 34)
@@ -33,8 +33,8 @@ Exemple for constructing a Vector::
 Optimized usage
 ---------------
 
-Most of the time, you can use a list for arguments, instead of using a
-Vector. For example, if you want to have the distance between 2
+Most of the time, you can use a list for arguments instead of using a
+Vector. For example, if you want to calculate the distance between 2
 points::
 
     a = (10, 10)
@@ -52,7 +52,7 @@ points::
 Vector operators
 ----------------
 
-The :class:`Vector` supports some numeric operator like +, -, /::
+The :class:`Vector` supports some numeric operators like +, -, /::
 
     >>> Vector(1, 1) + Vector(9, 5)
     [10, 6]
@@ -104,7 +104,7 @@ class Vector(list):
         self[0] = x
 
     x = property(_get_x, _set_x)
-    ''':data:`x` represent the first element in the list.
+    ''':data:`x` represents the first element in the list.
 
     >>> v = Vector(12, 23)
     >>> v[0]
@@ -120,7 +120,7 @@ class Vector(list):
         self[1] = y
 
     y = property(_get_y, _set_y)
-    ''':data:`y` represent the second element in the list.
+    ''':data:`y` represents the second element in the list.
 
     >>> v = Vector(12, 23)
     >>> v[1]
@@ -197,9 +197,9 @@ class Vector(list):
 
     def __rdiv__(self, val):
         try:
-            return Vector(list(map(lambda x, y: x / y, self, val)))
+            return Vector(*val) / self
         except Exception:
-            return Vector([self / x for x in val])
+            return Vector(val, val) / self
 
     def __idiv__(self, val):
         if type(val) in (int, float):
@@ -281,7 +281,7 @@ class Vector(list):
         return self[0] * a[0] + self[1] * a[1]
 
     def angle(self, a):
-        '''Computes the angle between a and b, and return the angle in
+        '''Computes the angle between a and b, and returns the angle in
         degrees.
 
         >>> Vector(100, 0).angle((0, 100))
@@ -379,7 +379,7 @@ class Vector(list):
         c2 = (y1 <= py <= y2) or (y2 <= py <= y2)
         c3 = (x3 <= px <= x4) or (x4 <= px <= x3)
         c4 = (y3 <= py <= y4) or (y4 <= py <= y3)
-  
+
         if (c1 and c2) and (c3 and c4):
             return Vector(px, py)
         else:
@@ -387,7 +387,7 @@ class Vector(list):
 
     @staticmethod
     def in_bbox(point, a, b):
-        '''Return a true if `point` is in bbox defined by `a` and `b`.
+        '''Return True if `point` is in the bounding box defined by `a` and `b`.
 
         >>> bmin = (0, 0)
         >>> bmax = (100, 100)

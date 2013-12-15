@@ -70,9 +70,9 @@
             size: self.width, 24
             source: 'atlas://data/images/defaulttheme/progressbar_background'
         BorderImage:
-            border: [int(min(self.width * (self.value / float(self.max)), 12))] * 4
+            border: [int(min(self.width * (self.value / float(self.max)) if self.max else 0, 12))] * 4
             pos: self.x, self.center_y - 12
-            size: self.width * (self.value / float(self.max)), 24
+            size: self.width * (self.value / float(self.max)) if self.max else 0, 24
             source: 'atlas://data/images/defaulttheme/progressbar'
 
 <SplitterStrip>:
@@ -146,6 +146,8 @@
     border: (8, 8, 8, 8)
     font_size: '15sp'
 
+<Selector>
+    allow_stretch: True
 
 <TextInput>:
     canvas.before:
@@ -165,10 +167,10 @@
             rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text and not self.focus else self.foreground_color)
 
 <TextInputCutCopyPaste>:
-    but_cut: cut
-    but_copy: copy
-    but_paste: paste
-    but_selectall: selectall
+    but_cut: cut.__self__
+    but_copy: copy.__self__
+    but_paste: paste.__self__
+    but_selectall: selectall.__self__
 
     size_hint: None, None
     size: '150sp', '50sp'
@@ -794,7 +796,7 @@
 
 <Settings>:
     orientation: 'horizontal'
-    canvas:
+    canvas.before:
         Color:
             rgb: 0, 0, 0
         Rectangle:
@@ -836,7 +838,7 @@
         size_hint_x: None
         width: min(dp(200), 0.4*root.width)
         font_size: '15sp'
-    
+
 
 <MenuSidebar>:
     size_hint_x: None
@@ -900,12 +902,12 @@
             rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if (self.do_scroll_y and self.viewport_size[1]>self.height) else 0]
         Rectangle:
             pos: self.right - self.bar_width - self.bar_margin, self.y + self.height * self.vbar[0]
-            size: self.bar_width, self.height * self.vbar[1]
+            size: min(self.bar_width, self.width), self.height * self.vbar[1]
         Color:
             rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if (self.do_scroll_x and self.viewport_size[0] > self.width) else 0]
         Rectangle:
             pos: self.x + self.width * self.hbar[0], self.y + self.bar_margin
-            size: self.width * self.hbar[1], self.bar_width
+            size: self.width * self.hbar[1], min(self.bar_width, self.height)
 
 
 # =============================================================================

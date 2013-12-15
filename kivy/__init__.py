@@ -148,12 +148,12 @@ def kivy_usage():
         -h, --help
             Prints this help message.
         -d, --debug
-            Shows debug log
+            Shows debug log.
         -a, --auto-fullscreen
             Force 'auto' fullscreen mode (no resolution change).
             Uses your display's resolution. This is most likely what you want.
         -c, --config section:key[:value]
-            Set a custom [section] key=value in the configuration object
+            Set a custom [section] key=value in the configuration object.
         -f, --fullscreen
             Force running in fullscreen mode.
         -k, --fake-fullscreen
@@ -188,12 +188,12 @@ else:
 kivy_options = {
     'window': ('egl_rpi', 'pygame', 'sdl', 'x11'),
     'text': ('pil', 'pygame', 'sdlttf'),
-    'video': ('ffmpeg', 'gstreamer', 'pyglet', 'null'),
-    'audio': ('pygame', 'gstreamer', 'sdl'),
+    'video': ('ffmpeg', 'gi', 'pygst', 'pyglet', 'null'),
+    'audio': ('pygame', 'gi', 'pygst', 'sdl'),
     'image': ('tex', 'imageio', 'dds', 'gif', 'pil', 'pygame'),
-    'camera': ('opencv', 'gstreamer', 'videocapture'),
+    'camera': ('opencv', 'gi', 'pygst', 'videocapture'),
     'spelling': ('enchant', 'osxappkit', ),
-    'clipboard': ('pygame', 'dummy'), }
+    'clipboard': ('android', 'pygame', 'dummy'), }
 
 # Read environment
 for option in kivy_options:
