@@ -21,6 +21,23 @@ else:
     PY3 = False
 
 
+def getoutput(cmd):
+    import subprocess
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+    return p.communicate()[0]
+
+
+def pkgconfig(*packages, **kw):
+    flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
+    cmd = 'pkg-config --libs --cflags {}'.format(' '.join(packages))
+    for token in getoutput(cmd).split():
+        flag = flag_map.get(token[:2])
+        if not flag:
+            continue
+        kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
+    return kw
+
+
 # -----------------------------------------------------------------------------
 # Determine on which platform we are
 
@@ -28,7 +45,7 @@ platform = sys.platform
 
 # Detect 32/64bit for OSX (http://stackoverflow.com/a/1405971/798575)
 if sys.platform == 'darwin':
-    if sys.maxsize > 2**32:
+    if sys.maxsize > 2 ** 32:
         osx_arch = 'x86_64'
     else:
         osx_arch = 'i386'
@@ -54,7 +71,8 @@ c_options = {
     'use_sdl': False,
     'use_ios': False,
     'use_mesagl': False,
-    'use_x11': False}
+    'use_x11': False,
+    'use_gstreamer': False}
 
 # now check if environ is changing the default values
 for key in list(c_options.keys()):
@@ -84,6 +102,7 @@ if not have_cython:
 
 # -----------------------------------------------------------------------------
 # Setup classes
+
 
 class KivyBuildExt(build_ext):
 
@@ -169,8 +188,15 @@ if platform == 'ios':
     c_options['use_ios'] = True
     c_options['use_sdl'] = True
 
+# detect gstreamer
+gst_flags = pkgconfig('gstreamer-1.0')
+if 'libraries' in gst_flags:
+    c_options['use_gstreamer'] = True
+
+
 # -----------------------------------------------------------------------------
 # declare flags
+
 
 def get_modulename_from_file(filename):
     filename = filename.replace(sep, '/')
@@ -208,6 +234,7 @@ def merge(d1, *args):
                 d1[key] = value
     return d1
 
+
 def determine_base_flags():
     flags = {
         'libraries': [],
@@ -224,12 +251,16 @@ def determine_base_flags():
     elif platform == 'darwin':
         v = os.uname()
         if v[2] == '13.0.0':
-    	    sysroot = '/Applications/Xcode5-DP.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/System/Library/Frameworks'
+            sysroot = ('/Applications/Xcode5-DP.app/Contents/Developer'
+                       '/Platforms/MacOSX.platform/Developer/SDKs'
+                       '/MacOSX10.8.sdk/System/Library/Frameworks')
         else:
-            sysroot = '/System/Library/Frameworks/ApplicationServices.framework/Frameworks'
+            sysroot = ('/System/Library/Frameworks/'
+                       'ApplicationServices.framework/Frameworks')
         flags['extra_compile_args'] += ['-F%s' % sysroot]
         flags['extra_link_args'] += ['-F%s' % sysroot]
     return flags
+
 
 def determine_gl_flags():
     flags = {'libraries': []}
@@ -267,6 +298,7 @@ def determine_gl_flags():
         else:
             flags['libraries'] += ['GLEW']
     return flags
+
 
 def determine_sdl():
     flags = {}
@@ -312,6 +344,7 @@ def determine_sdl():
         flags['extra_link_args'] += [
             '-framework', 'ApplicationServices']
     return flags
+
 
 def determine_graphics_pxd():
     flags = {'depends': [join(dirname(__file__), 'kivy', x) for x in [
@@ -413,6 +446,10 @@ if c_options['use_x11']:
                 'kivy/core/window/window_x11_core.c')],
             'libraries': ['Xrender', 'X11']
         })
+
+if c_options['use_gstreamer']:
+    sources['lib/gstplayer/_gstplayer.pyx'] = merge(
+        base_flags, gst_flags)
 
 
 # -----------------------------------------------------------------------------
@@ -557,7 +594,7 @@ setup(
         'Topic :: Scientific/Engineering :: Visualization',
         'Topic :: Software Development :: Libraries :: Application Frameworks',
         'Topic :: Software Development :: User Interfaces'],
-    dependency_links=['https://github.com/kivy-garden/garden/archive/0.1.1.zip#egg=Kivy-Garden-0.1.1'],
-    install_requires=['Kivy-Garden==0.1.1'],
-    )
+    dependency_links=[
+        'https://github.com/kivy-garden/garden/archive/master.zip'],
+    install_requires=['Kivy-Garden==0.1.1'])
 
