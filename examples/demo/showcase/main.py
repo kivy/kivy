@@ -26,14 +26,15 @@ class ShowcaseApp(App):
     show_sourcecode = BooleanProperty(False)
     sourcecode = StringProperty()
     screen_names = ListProperty([])
+    higherarchy = ListProperty([])
 
     def build(self):
         Clock.schedule_interval(self._update_clock, 1 / 60.)
         self.screens = {}
         self.available_screens = [
-            'buttons', 'togglebutton', 'sliders', 'progressbar', 'switchs',
-            'checkboxs', 'textinputs', 'accordions', 'filechoosers',
-            'carousels', 'bubbles', 'codeinput', 'dropdown', 'spinner',
+            'buttons', 'togglebutton', 'sliders', 'progressbar', 'switches',
+            'checkboxes', 'textinputs', 'accordions', 'filechoosers',
+            'carousel', 'bubbles', 'codeinput', 'dropdown', 'spinner',
             'scatter', 'splitter', 'tabbedpanel', 'rstdocument',
             'screenmanager']
         self.screen_names = self.available_screens
@@ -41,6 +42,12 @@ class ShowcaseApp(App):
         self.available_screens = [join(curdir, 'data', 'screens',
             '{}.kv'.format(fn)) for fn in self.available_screens]
         self.go_next_screen()
+
+    def on_pause(self):
+        return True
+
+    def on_resume(self):
+        pass
 
     def on_current_title(self, instance, value):
         self.root.ids.spnr.text = value
@@ -59,6 +66,11 @@ class ShowcaseApp(App):
         sm = self.root.ids.sm
         sm.switch_to(screen, direction='left')
         self.current_title = screen.name
+        self.update_sourcecode()
+
+    def go_screen(self, idx):
+        self.index = idx
+        self.root.ids.sm.switch_to(self.load_screen(idx), direction='left')
         self.update_sourcecode()
 
     def load_screen(self, index):
@@ -87,6 +99,7 @@ class ShowcaseApp(App):
 
     def update_sourcecode(self):
         if not self.show_sourcecode:
+            self.root.ids.sourcecode.focus = False
             return
         self.root.ids.sourcecode.text = self.read_sourcecode()
         self.root.ids.sv.scroll_y = 1
@@ -169,18 +182,13 @@ Button:
     def showcase_anchorlayout(self, layout):
 
         def change_anchor(self, *l):
+            if not layout.get_parent_window():
+                return
+            anchor_x = ('left', 'center', 'right')
+            anchor_y = ('top', 'center', 'bottom')
             if layout.anchor_x == 'left':
-                layout.anchor_x = 'center'
-            elif layout.anchor_x == 'center':
-                layout.anchor_x = 'right'
-            else:
-                layout.anchor_x = 'left'
-                if layout.anchor_y == 'top':
-                    layout.anchor_y = 'center'
-                elif layout.anchor_y == 'center':
-                    layout.anchor_y = 'bottom'
-                else:
-                    layout.anchor_y = 'top'
+                layout.anchor_y = anchor_y[anchor_y.index(layout.anchor_y) - 1]
+            layout.anchor_x = anchor_x[anchor_x.index(layout.anchor_x) -1]
 
             Clock.schedule_once(change_anchor, 1)
         Clock.schedule_once(change_anchor, 1)
