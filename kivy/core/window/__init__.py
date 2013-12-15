@@ -740,7 +740,7 @@ class WindowBase(EventDispatcher):
         path = None
         if name != 'screenshot{:04d}.png':
             _ext = name.split('.')[-1]
-            name = ''.join(name[:-(len(_ext) + 1)], '{:o4d}.', _ext)
+            name = ''.join(name[:-(len(_ext) + 1)], '{:04d}.', _ext)
         while True:
             i += 1
             path = join(getcwd(), name.format('counter': i))
