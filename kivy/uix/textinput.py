@@ -1629,12 +1629,12 @@ class TextInput(Widget):
             x2 = (x - self.scroll_x) + _get_text_width(lines[:s2c],
                                                        tab_width,
                                                        _label_cached)
-        width_minus_padding_right = width - padding_right
-        maxx = x + width_minus_padding_right
+        width_minus_padding = width - (padding_right + padding_left)
+        maxx = x + width_minus_padding
         if x1 > maxx:
             return
         x1 = max(x1, x)
-        x2 = min(x2, x + width_minus_padding_right)
+        x2 = min(x2, x + width_minus_padding)
         canvas_add(Color(*selection_color, group='selection'))
         canvas_add(Rectangle(
             pos=(x1, pos[1]), size=(x2 - x1, size[1]), group='selection'))
