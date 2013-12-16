@@ -27,6 +27,19 @@ activating the "disable_multitouch" token::
    [input]
    mouse = mouse,disable_multitouch
 
+Following is a list of the supported profiles for :class:`MouseMotionEvent`.
+
+=================== ==========================================================
+Profile name        Description
+------------------- ----------------------------------------------------------
+button              Mouse button (left, right, middle, scrollup, scrolldown)
+                    Use property `button`
+pos                 2D position. Use properties `x`, `y` or `pos``
+multitouch_sim      If multitouch is simulated. Use property `multitouch_sim`.
+                    Defaults to False. Set to True in on_touch_down to
+                    allow multi-touch simulation for that touch.
+=================== ==========================================================
+
 '''
 
 __all__ = ('MouseMotionEventProvider', )
@@ -45,11 +58,13 @@ Color = Ellipse = None
 class MouseMotionEvent(MotionEvent):
 
     def depack(self, args):
-        self.profile = ['pos', 'button']
+        self.profile = ['pos', 'button', 'multitouch_sim']
         self.is_touch = True
         self.sx, self.sy = args[:2]
-        if len(args) == 3:
+        if len(args) >= 3:
             self.button = args[2]
+        if len(args) == 4:
+            self.multitouch_sim = args[3]
         super(MouseMotionEvent, self).depack(args)
 
     #
@@ -152,7 +167,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.counter += 1
         id = 'mouse' + str(self.counter)
         self.current_drag = cur = MouseMotionEvent(
-            self.device, id=id, args=[rx, ry, button])
+            self.device, id=id, args=[rx, ry, button, False])
         cur.is_double_tap = is_double_tap
         self.touches[id] = cur
         if do_graphics:
@@ -210,7 +225,7 @@ class MouseMotionEventProvider(MotionEventProvider):
             self.current_drag = None
 
         cur = self.current_drag
-        if (cur and self.disable_multitouch) or (
+        if (cur and (self.disable_multitouch or not cur.multitouch_sim)) or (
                 button in ('left', 'scrollup', 'scrolldown', 'scrollleft',
                    'scrollright') and cur and not ('ctrl' in modifiers)):
             self.remove_touch(cur)
