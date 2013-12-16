@@ -550,7 +550,10 @@ class TreeView(Widget):
         if node.disabled:
             return
         # toggle node or selection ?
-        if node.x - self.indent_start <= touch.x < node.x:
+        if 'button' in touch.profile and touch.button in\
+            ('scrollup', 'scrolldown', 'scrollleft', 'scrollright'):
+            return False
+        elif node.x - self.indent_start <= touch.x < node.x:
             self.toggle_node(node)
         elif node.x <= touch.x:
             kmulti = self.keyboard_multiselect
