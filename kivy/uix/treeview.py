@@ -668,23 +668,30 @@ class TreeView(Widget):
 
 if __name__ == '__main__':
     from kivy.app import App
+    from kivy.uix.boxlayout import BoxLayout
 
     class TestApp(App):
 
         def build(self):
-            tv = TreeView(hide_root=True)
-            add = tv.add_node
-            root = add(TreeViewLabel(text='Level 1, entry 1', is_open=True))
-            for x in range(5):
-                add(TreeViewLabel(text='Element %d' % x), root)
-            root2 = add(TreeViewLabel(text='Level 1, entry 2', is_open=False))
-            for x in range(24):
-                add(TreeViewLabel(text='Element %d' % x), root2)
-            for x in range(5):
-                add(TreeViewLabel(text='Element %d' % x), root)
-            root2 = add(TreeViewLabel(text='Element childs 2', is_open=False),
-                        root)
-            for x in range(24):
-                add(TreeViewLabel(text='Element %d' % x), root2)
-            return tv
+            box = BoxLayout(orientation='horizontal', spacing=20)
+            for i in range(2):
+                tv = TreeView(hide_root=True, multiselect=i == 1)
+                add = tv.add_node
+                root = add(TreeViewLabel(text='Level 1, entry 1',
+                                         is_open=True))
+                for x in range(5):
+                    add(TreeViewLabel(text='Element %d' % x), root)
+                root2 = add(TreeViewLabel(text='Level 1, entry 2',
+                                          is_open=False))
+                for x in range(24):
+                    add(TreeViewLabel(text='Element %d' % x), root2)
+                for x in range(5):
+                    add(TreeViewLabel(text='Element %d' % x), root)
+                root2 = add(TreeViewLabel(text='Element childs 2',
+                                          is_open=False),
+                            root)
+                for x in range(24):
+                    add(TreeViewLabel(text='Element %d' % x), root2)
+                box.add_widget(tv)
+            return box
     TestApp().run()
