@@ -6,7 +6,6 @@ static void c_glib_iteration(int count)
 	while (count > 0 && g_main_context_pending(NULL))
 	{
 		count --;
-		g_print("GOT CONTEXT PENDING!\n");
 		g_main_context_iteration(NULL, FALSE);
 	}
 }

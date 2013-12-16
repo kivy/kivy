@@ -2,6 +2,8 @@
 Video Gstplayer
 ===============
 
+.. versionadded:: 1.8.0
+
 Implementation of a VideoBase with Kivy :class:`~kivy.lib.gstplayer.GstPlayer`
 This player is the prefered player, using Gstreamer 1.0, working on both Python
 2 and 3.
@@ -11,6 +13,7 @@ from kivy.lib.gstplayer import GstPlayer, get_gst_version
 from kivy.graphics.texture import Texture
 from kivy.core.video import VideoBase
 from kivy.logger import Logger
+from kivy.clock import Clock
 from kivy.compat import PY2
 from threading import Lock
 from functools import partial
@@ -44,12 +47,15 @@ class VideoGstplayer(VideoBase):
         self._buffer_lock = Lock()
         super(VideoGstplayer, self).__init__(**kwargs)
 
+    def _on_gst_eos_sync(self):
+        Clock.schedule_once(self._do_eos, 0)
+
     def load(self):
         Logger.debug('VideoGstplayer: Load <{}>'.format(self._filename))
         uri = self._get_uri()
         wk_self = ref(self)
         self.player_callback = partial(_on_gstplayer_buffer, wk_self)
-        self.player = GstPlayer(uri, self.player_callback)
+        self.player = GstPlayer(uri, self.player_callback, self._on_gst_eos_sync)
         self.player.set_volume(self.volume)
         self.player.load()
 

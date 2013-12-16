@@ -154,7 +154,7 @@ class VideoBase(EventDispatcher):
     state = property(lambda self: self._get_state(),
             doc='Get the video playing status')
 
-    def _do_eos(self):
+    def _do_eos(self, *args):
         '''.. versionchanged:: 1.4.0
         Now dispatches the `on_eos` event.
         '''
@@ -205,7 +205,7 @@ class VideoBase(EventDispatcher):
 video_providers = []
 try:
     from kivy.lib.gstplayer import GstPlayer
-    video_providers += [('gstplayer', 'video_gstplayer')]
+    video_providers += [('gstplayer', 'video_gstplayer', 'VideoGstplayer')]
 except ImportError:
     #video_providers += [('gi', 'video_gi', 'VideoGi')]
     if PY2:

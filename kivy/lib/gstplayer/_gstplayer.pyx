@@ -301,10 +301,20 @@ cdef class GstPlayer:
         if self.playbin == NULL:
             return
 
-        seek_t = percent * self.get_duration() * 1e9
+        duration = self.get_duration()
+        if duration <= 0:
+            seek_t = 0
+        else:
+            seek_t = percent * duration * 1e9
         seek_flags = GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT
-        gst_element_seek_simple(self.playbin, GST_FORMAT_TIME,
-                <GstSeekFlags>seek_flags, seek_t)
+        gst_element_get_state(self.pipeline, &current_state,
+                &pending_state, <GstClockTime>1e9)
+
+        if current_state == GST_STATE_READY:
+            gst_element_set_state(self.pipeline, GST_STATE_PAUSED)
+        if not gst_element_seek_simple(self.playbin, GST_FORMAT_TIME,
+                <GstSeekFlags>seek_flags, seek_t):
+            return
 
         if self.appsink != NULL:
             gst_element_get_state(self.pipeline, &current_state,
@@ -312,3 +322,4 @@ cdef class GstPlayer:
             if current_state != GST_STATE_PLAYING:
                 c_appsink_pull_preroll(
                     self.appsink, _on_appsink_sample, <void *>self)
+
