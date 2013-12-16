@@ -310,6 +310,8 @@ class TreeView(Widget):
             parent.nodes.append(node)
             node.parent_node = parent
             node.level = parent.level + 1
+            if self.select_leaves_only:
+                self.deselect_node(parent)
         node.bind(size=self._trigger_layout)
         self._trigger_layout()
         return node
@@ -329,7 +331,7 @@ class TreeView(Widget):
                 'The node must be a subclass of TreeViewNode')
         parent = node.parent_node
         if parent is not None:
-            parent.deselect_node(node)
+            self.deselect_node(node)
             nodes = parent.nodes
             if node in nodes:
                 nodes.remove(node)
@@ -496,7 +498,8 @@ class TreeView(Widget):
         return y
 
     def _select_node(self, node, ctrl_mode=False, shift_mode=False):
-        if node.no_selection:
+        select_leaves_only = self.select_leaves_only
+        if node.no_selection or (select_leaves_only and not node.is_leaf):
             return
         nodes = self._selected_nodes
         if (not ctrl_mode) and (not shift_mode) and not self.multiselect:
@@ -528,7 +531,8 @@ class TreeView(Widget):
             if idx1 > idx2:
                 idx1, idx2 = idx2, idx1
             for node in sister_nodes[idx1:idx2 + 1]:
-                if node.no_selection:
+                if (node.no_selection or (select_leaves_only and
+                                          not node.is_leaf)):
                     continue
                 node.is_selected = True
                 nodes.append(node)
@@ -649,6 +653,15 @@ class TreeView(Widget):
     defaults to False.
     '''
 
+    select_leaves_only = BooleanProperty(False)
+    '''Determines whether non-leaf nodes are valid selections or not.
+
+    .. versionadded:: 1.8.0
+
+    :data:`select_leaves_only` :class:`~kivy.properties.BooleanProperty`,
+    defaults to False.
+    '''
+
     multiselect = BooleanProperty(False)
     '''Determines whether multiple nodes can be selected.
 
@@ -764,7 +777,8 @@ if __name__ == '__main__':
             box = BoxLayout(orientation='horizontal', spacing=20)
             for i in range(2):
                 tv = TreeView(hide_root=True, multiselect=i == 1,
-                              keyboard_multiselect=i == 0)
+                              keyboard_multiselect=i == 0,
+                              select_leaves_only=i == 0)
                 add = tv.add_node
                 root = add(TreeViewLabel(text='Level 1, entry 1',
                                          is_open=True))
