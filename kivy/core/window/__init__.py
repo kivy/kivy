@@ -733,14 +733,17 @@ class WindowBase(EventDispatcher):
                 elif key == 'center_y':
                     w.center_y = value * height
 
-    def screenshot(self, name='screenshot%(counter)04d.png'):
+    def screenshot(self, name='screenshot{:04d}.png'):
         '''Save the actual displayed image in a file
         '''
         i = 0
         path = None
+        if name != 'screenshot{:04d}.png':
+            _ext = name.split('.')[-1]
+            name = ''.join((name[:-(len(_ext) + 1)], '{:04d}.', _ext))
         while True:
             i += 1
-            path = join(getcwd(), name % {'counter': i})
+            path = join(getcwd(), name.format(i))
             if not exists(path):
                 break
         return path
@@ -920,9 +923,9 @@ class WindowBase(EventDispatcher):
                 target attached if you're using the keyboard in a multi user
                 mode.
             `input_type`: string
-                Choose the type of soft keyboard to request. Can be one of 'text',
-                'number', 'url', 'mail', 'datetime', 'tel', 'address'.
-                
+                Choose the type of soft keyboard to request. Can be one of
+                'text', 'number', 'url', 'mail', 'datetime', 'tel', 'address'.
+
                 .. versionadded:: 1.8.0
 
         :Return:
