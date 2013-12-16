@@ -117,6 +117,7 @@ from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty, ListProperty, ObjectProperty, \
         AliasProperty, NumericProperty, ReferenceListProperty
+from kivy.core.window import Window, Keyboard
 
 
 class TreeViewException(Exception):
@@ -139,7 +140,7 @@ class TreeViewNode(object):
             self.is_selected = False
             # need to make sure that the tree doesn't think it's still selected
             if self.parent_node:
-                self.parent_node.unselect_node(self)
+                self.parent_node.deselect_node(self)
 
     is_leaf = BooleanProperty(True)
     '''Boolean to indicate whether this node is a leaf or not. Used to adjust
@@ -286,6 +287,7 @@ class TreeView(Widget):
             indent_level=self._trigger_layout,
             indent_start=self._trigger_layout)
         self._trigger_layout()
+        Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
 
     def add_node(self, node, parent=None):
         '''Add a new node in the tree.
@@ -327,7 +329,7 @@ class TreeView(Widget):
                 'The node must be a subclass of TreeViewNode')
         parent = node.parent_node
         if parent is not None:
-            parent.unselect_node(node)
+            parent.deselect_node(node)
             nodes = parent.nodes
             if node in nodes:
                 nodes.remove(node)
@@ -344,24 +346,27 @@ class TreeView(Widget):
 
     def select_node(self, node):
         '''Select a node in the tree.
-        '''
-        if node.no_selection:
-            return
-        nodes = self._selected_nodes
-        if (not self.multiselect) and nodes:
-            # need to go through all in case it was multiselect before
-            map(self.unselect_node, nodes)
-        if node not in nodes:
-            node.is_selected = True
-            nodes.append(node)
 
-    def unselect_node(self, node):
-        '''Unselect a node in the tree.
+        :Parameters:
+            `node`: instance of a :class:`TreeViewNode`
+                Node to select.
+        '''
+        self._select_node(node)
+
+    def deselect_node(self, node):
+        '''Deselect a node in the tree.
+
+        .. versionadded:: 1.8.0
+
+        :Parameters:
+            `node`: instance of a :class:`TreeViewNode`
+                Node to deselect.
         '''
         nodes = self._selected_nodes
         if node in nodes:
             node.is_selected = False
             nodes.remove(node)
+        self._last_selected_node = None
 
     def toggle_node(self, node):
         '''Toggle the state of the node (open/collapsed).
@@ -490,6 +495,50 @@ class TreeView(Widget):
             y = self._do_layout_node(cnode, level + 1, y)
         return y
 
+    def _select_node(self, node, ctrl_mode=False, shift_mode=False):
+        if node.no_selection:
+            return
+        nodes = self._selected_nodes
+        if (not ctrl_mode) and (not shift_mode) and not self.multiselect:
+            # need to go through all in case it was multiselect before
+            for old_node in nodes:
+                old_node.is_selected = False
+            del nodes[:]
+            self._last_selected_node = None
+
+        if shift_mode:
+            parent = node.parent_node
+            if not parent:
+                return
+            sister_nodes = parent.nodes
+            last_node = self._last_selected_node
+            if not last_node:
+                last_node = sister_nodes[0]
+            if last_node.parent_node != parent:
+                return
+            if not ctrl_mode:  # discard previous selection
+                for old_node in nodes:
+                    old_node.is_selected = False
+                del nodes[:]
+            else:
+                self._last_selected_node = node
+
+            idx1 = sister_nodes.index(node)
+            idx2 = sister_nodes.index(last_node)
+            if idx1 > idx2:
+                idx1, idx2 = idx2, idx1
+            for node in sister_nodes[idx1:idx2 + 1]:
+                if node.no_selection:
+                    continue
+                node.is_selected = True
+                nodes.append(node)
+            return
+
+        if node not in nodes:
+            node.is_selected = True
+            nodes.append(node)
+            self._last_selected_node = node
+
     def on_touch_down(self, touch):
         node = self.get_node_at_pos(touch.pos)
         if not node:
@@ -500,12 +549,35 @@ class TreeView(Widget):
         if node.x - self.indent_start <= touch.x < node.x:
             self.toggle_node(node)
         elif node.x <= touch.x:
-            if self.multiselect and node in self._selected_nodes:
-                self.unselect_node(node)
+            kmulti = self.keyboard_multiselect
+            ctrl_mode = kmulti and self._ctrl_down
+            shift_mode = kmulti and self._shift_down
+            if ((self.multiselect or ctrl_mode)
+                and (not shift_mode)  # don't deselect when shift is down
+                and node in self._selected_nodes):
+                self.deselect_node(node)
             else:
-                self.select_node(node)
+                # if ctrl is down always select
+                self._select_node(node, ctrl_mode, shift_mode)
             node.dispatch('on_touch_down', touch)
         return True
+
+    def on_key_down(self, instance, key, scancode, codepoint, modifiers,
+                    **kwargs):
+        if not self.get_parent_window():
+            return
+        if key == Keyboard.keycodes['shift']:
+            self._shift_down = True
+        elif key == Keyboard.keycodes['ctrl']:
+            self._ctrl_down = True
+
+    def on_key_up(self, instance, key, scancode, **kwargs):
+        if not self.get_parent_window():
+            return
+        if key == Keyboard.keycodes['shift']:
+            self._shift_down = False
+        elif key == Keyboard.keycodes['ctrl']:
+            self._ctrl_down = False
 
     #
     # Private properties
@@ -513,6 +585,9 @@ class TreeView(Widget):
     _root = ObjectProperty(None)
 
     _selected_nodes = ListProperty([])
+    _last_selected_node = None
+    _ctrl_down = False
+    _shift_down = False
 
     #
     # Properties
@@ -580,6 +655,19 @@ class TreeView(Widget):
     .. versionadded:: 1.8.0
 
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
+    '''
+
+    keyboard_multiselect = BooleanProperty(False)
+    '''Determines whether multiple nodes can be selected using the keyboard
+    shift or ctrl keys. This is in independent of :data:`multiselect`. That is
+    even if :data:`multiselect` is False, if :data:`keyboard_multiselect` is
+    True, selection using the shift and ctrl keys as is typical on a desktop
+    will be enabled.
+
+    .. versionadded:: 1.8.0
+
+    :data:`keyboard_multiselect` is a :class:`~kivy.properties.BooleanProperty`
+    , defaults to False.
     '''
 
     def get_selected_node(self):
@@ -675,7 +763,8 @@ if __name__ == '__main__':
         def build(self):
             box = BoxLayout(orientation='horizontal', spacing=20)
             for i in range(2):
-                tv = TreeView(hide_root=True, multiselect=i == 1)
+                tv = TreeView(hide_root=True, multiselect=i == 1,
+                              keyboard_multiselect=i == 0)
                 add = tv.add_node
                 root = add(TreeViewLabel(text='Level 1, entry 1',
                                          is_open=True))
