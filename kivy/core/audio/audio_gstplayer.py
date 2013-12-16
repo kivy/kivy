@@ -8,23 +8,22 @@ This player is the prefered player, using Gstreamer 1.0, working on both Python
 '''
 
 from kivy.lib.gstplayer import GstPlayer, get_gst_version
-from kivy.graphics.texture import Texture
 from kivy.core.audio import Sound, SoundLoader
 from kivy.logger import Logger
 from kivy.compat import PY2
-from threading import Lock
-from functools import partial
+from kivy.support import install_glib_iteration
+from kivy.clock import Clock
 from os.path import realpath
-from weakref import ref
 
 if PY2:
     from urllib import pathname2url
 else:
     from urllib.request import pathname2url
 
-
 Logger.info('AudioGstplayer: Using Gstreamer {}'.format(
     '.'.join(map(str, get_gst_version()))))
+
+install_glib_iteration()
 
 
 class SoundGstplayer(Sound):
@@ -37,10 +36,20 @@ class SoundGstplayer(Sound):
         self.player = None
         super(SoundGstplayer, self).__init__(**kwargs)
 
+    def _on_gst_eos_sync(self):
+        Clock.schedule_once(self._on_gst_eos, 0)
+
+    def _on_gst_eos(self, *dt):
+        if self.loop:
+            self.player.stop()
+            self.player.play()
+        else:
+            self.player.stop()
+
     def load(self):
         self.unload()
         uri = self._get_uri()
-        self.player = GstPlayer(uri, None)
+        self.player = GstPlayer(uri, None, self._on_gst_eos_sync)
         self.player.set_volume(self.volume)
         self.player.load()
 

@@ -10,6 +10,7 @@ cdef extern from 'gst/gst.h':
     ctypedef void *GstSample
     ctypedef void *GstBin
     ctypedef void (*appcallback_t)(void *, int, int, char *, int)
+    ctypedef void (*buscallback_t)(void *)
     ctypedef unsigned int guint
     ctypedef unsigned long gulong
     ctypedef void *gpointer
@@ -74,7 +75,10 @@ cdef extern from '_gstplayer.h':
             appcallback_t callback, void *userdata)
     void c_appsink_pull_preroll(GstElement *appsink,
             appcallback_t callback, void *userdata)
-    void c_appsink_disconnect(GstElement *appsink, gulong handler_id)
+    gulong c_bus_connect_eos(GstBus *bus,
+            buscallback_t callback, void *userdata)
+    void c_signal_disconnect(GstElement *appsink, gulong handler_id)
+    void c_glib_iteration(int count)
 
 
 #
@@ -110,6 +114,12 @@ cdef void _on_appsink_sample(
     if player.sample_cb:
         player.sample_cb(width, height, buf)
 
+
+cdef void _on_gstplayer_eos(void *c_player) with gil:
+    cdef GstPlayer player = <GstPlayer>c_player
+    player.got_eos()
+
+
 def _gst_init():
     if gst_is_initialized():
         return True
@@ -127,22 +137,27 @@ def get_gst_version():
     return (major, minor, micro, nano)
 
 
+def glib_iteration(int loop):
+    c_glib_iteration(loop)
+
+
 cdef class GstPlayer:
     cdef GstElement *pipeline, *playbin, *appsink, *fakesink
     cdef GstBus *bus
-    cdef object uri, sample_cb
-    cdef gulong handler_id
+    cdef object uri, sample_cb, eos_cb
+    cdef gulong hid_sample, hid_eos
     cdef object __weakref__
 
-    def __cinit__(self, uri, sample_cb):
+    def __cinit__(self, *args, **kwargs):
         self.pipeline = self.playbin = self.appsink = self.fakesink = NULL
         self.bus = NULL
-        self.handler_id = 0
+        self.hid_sample = self.hid_eos = 0
 
-    def __init__(self, uri, sample_cb):
+    def __init__(self, uri, sample_cb=None, eos_cb=None):
         super(GstPlayer, self).__init__()
         self.uri = uri
         self.sample_cb = sample_cb
+        self.eos_cb = eos_cb
         _instances.append(ref(self, _on_player_deleted))
 
         # ensure gstreamer is init
@@ -150,6 +165,10 @@ cdef class GstPlayer:
 
     def __dealloc__(self):
         self.unload()
+
+    cdef void got_eos(self):
+        if self.eos_cb:
+            self.eos_cb()
 
     def load(self):
         cdef char *c_uri
@@ -168,6 +187,9 @@ cdef class GstPlayer:
             raise GstPlayerException('Unable to get the bus from the pipeline')
 
         gst_bus_enable_sync_message_emission(self.bus)
+        if self.eos_cb:
+            self.hid_eos = c_bus_connect_eos(
+                    self.bus, _on_gstplayer_eos, <void *>self)
 
         # instanciate the playbin
         self.playbin = gst_element_factory_make('playbin', NULL)
@@ -204,7 +226,7 @@ cdef class GstPlayer:
 
         # attach the callback
         if self.sample_cb:
-            self.handler_id =c_appsink_set_sample_callback(
+            self.hid_sample =c_appsink_set_sample_callback(
                     self.appsink, _on_appsink_sample, <void *>self)
 
         # get ready!
@@ -225,8 +247,13 @@ cdef class GstPlayer:
     def unload(self):
         cdef GstState current_state, pending_state
 
-        if self.appsink != NULL and self.handler_id != 0:
-            c_appsink_disconnect(self.appsink, self.handler_id)
+        if self.appsink != NULL and self.hid_sample != 0:
+            c_signal_disconnect(self.appsink, self.hid_sample)
+            self.hid_sample = 0
+
+        if self.bus != NULL and self.hid_eos != 0:
+            c_signal_disconnect(<GstElement *>self.bus, self.hid_eos)
+            self.hid_eos = 0
 
         if self.pipeline != NULL:
             # the state changes are async. if we want to guarantee that the
@@ -246,7 +273,6 @@ cdef class GstPlayer:
         self.pipeline = NULL
         self.playbin = NULL
         self.fakesink = NULL
-        self.handler_id = 0
 
     def set_volume(self, float volume):
         if self.playbin != NULL:

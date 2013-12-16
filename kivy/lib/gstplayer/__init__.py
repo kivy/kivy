@@ -1,1 +1,1 @@
-from _gstplayer import GstPlayer, get_gst_version
+from _gstplayer import GstPlayer, get_gst_version, glib_iteration

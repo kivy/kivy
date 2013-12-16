@@ -1,6 +1,16 @@
 #include <glib.h>
 #include <gst/gst.h>
 
+static void c_glib_iteration(int count)
+{
+	while (count > 0 && g_main_context_pending(NULL))
+	{
+		count --;
+		g_print("GOT CONTEXT PENDING!\n");
+		g_main_context_iteration(NULL, FALSE);
+	}
+}
+
 static void g_object_set_void(GstElement *element, char *name, void *value)
 {
 	g_object_set(G_OBJECT(element), name, value, NULL);
@@ -23,13 +33,15 @@ static void g_object_set_int(GstElement *element, char *name, int value)
 }
 
 typedef void (*appcallback_t)(void *, int, int, char *, int);
+typedef void (*buscallback_t)(void *);
 typedef struct {
 	appcallback_t callback;
+	buscallback_t bcallback;
 	char eventname[15];
 	PyObject *userdata;
-} appcallback_data_t;
+} callback_data_t;
 
-static GstFlowReturn c_on_appsink_sample(GstElement *appsink, appcallback_data_t *data)
+static GstFlowReturn c_on_appsink_sample(GstElement *appsink, callback_data_t *data)
 {
 	GstSample *sample = NULL;
 	GstBuffer *buffer = NULL;
@@ -73,19 +85,20 @@ done:
 	return GST_FLOW_OK;
 }
 
-static void c_appsink_free_data(gpointer data, GClosure *closure)
+static void c_signal_free_data(gpointer data, GClosure *closure)
 {
-	appcallback_data_t *cdata = data;
+	callback_data_t *cdata = data;
 	Py_DECREF(cdata->userdata);
 	free(cdata);
 }
 
 static gulong c_appsink_set_sample_callback(GstElement *appsink, appcallback_t callback, PyObject *userdata)
 {
-	appcallback_data_t *data = (appcallback_data_t *)malloc(sizeof(appcallback_data_t));
+	callback_data_t *data = (callback_data_t *)malloc(sizeof(callback_data_t));
 	if ( data == NULL )
 		return 0;
 	data->callback = callback;
+	data->bcallback = NULL;
 	data->userdata = userdata;
 	strcpy(data->eventname, "pull-sample");
 
@@ -96,20 +109,43 @@ static gulong c_appsink_set_sample_callback(GstElement *appsink, appcallback_t c
 	return g_signal_connect_data(
 			appsink, "new-sample",
 			G_CALLBACK(c_on_appsink_sample), data,
-			c_appsink_free_data, 0);
+			c_signal_free_data, 0);
 }
 
 static void c_appsink_pull_preroll(GstElement *appsink, appcallback_t callback, PyObject *userdata)
 {
-	appcallback_data_t data;
+	callback_data_t data;
 	data.callback = callback;
 	data.userdata = userdata;
 	strcpy(data.eventname, "pull-preroll");
 	c_on_appsink_sample(appsink, &data);
 }
 
-static void c_appsink_disconnect(GstElement *appsink, gulong handler_id)
+static void c_signal_disconnect(GstElement *element, gulong handler_id)
 {
-	g_signal_handler_disconnect(appsink, handler_id);
+	g_signal_handler_disconnect(element, handler_id);
 }
 
+static gboolean c_on_bus_eos(GstBus *bus, GstMessage *message, callback_data_t *data)
+{
+	g_return_val_if_fail( GST_MESSAGE_TYPE( message ) == GST_MESSAGE_EOS, FALSE);
+	data->bcallback(data->userdata);
+	return TRUE;
+}
+
+static gulong c_bus_connect_eos(GstBus *bus, buscallback_t callback, PyObject *userdata)
+{
+	callback_data_t *data = (callback_data_t *)malloc(sizeof(callback_data_t));
+	if ( data == NULL )
+		return 0;
+	data->callback = NULL;
+	data->bcallback = callback;
+	data->userdata = userdata;
+
+	Py_INCREF(data->userdata);
+
+	return g_signal_connect_data(
+			(GstElement *)bus, "sync-message::eos",
+			G_CALLBACK(c_on_bus_eos), data,
+			c_signal_free_data, 0);
+}
