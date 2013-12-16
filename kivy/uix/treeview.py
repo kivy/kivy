@@ -358,7 +358,7 @@ class TreeView(Widget):
     def deselect_node(self, node):
         '''Deselect a node in the tree.
 
-        .. versionadded:: 1.8.0
+        .. versionadded:: 1.8.1
 
         :Parameters:
             `node`: instance of a :class:`TreeViewNode`
@@ -659,7 +659,7 @@ class TreeView(Widget):
     select_leaves_only = BooleanProperty(False)
     '''Determines whether non-leaf nodes are valid selections or not.
 
-    .. versionadded:: 1.8.0
+    .. versionadded:: 1.8.1
 
     :data:`select_leaves_only` :class:`~kivy.properties.BooleanProperty`,
     defaults to False.
@@ -668,7 +668,7 @@ class TreeView(Widget):
     multiselect = BooleanProperty(False)
     '''Determines whether multiple nodes can be selected.
 
-    .. versionadded:: 1.8.0
+    .. versionadded:: 1.8.1
 
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
     '''
@@ -680,7 +680,7 @@ class TreeView(Widget):
     True, selection using the shift and ctrl keys as is typical on a desktop
     will be enabled.
 
-    .. versionadded:: 1.8.0
+    .. versionadded:: 1.8.1
 
     :data:`keyboard_multiselect` is a :class:`~kivy.properties.BooleanProperty`
     , defaults to False.
@@ -698,7 +698,7 @@ class TreeView(Widget):
 
         Deprecated, use :data:`selected_nodes` instead.
 
-    .. versionchanged:: 1.8.0
+    .. versionchanged:: 1.8.1
 
         Previously, only one node could be selected at any time. This has been
         changed to allow multiple nodes to be selected and read using
@@ -718,7 +718,7 @@ class TreeView(Widget):
                                    bind=('_selected_nodes', ))
     '''A list of nodes selected by :meth:`TreeView.select_node` or by touch.
 
-    .. versionadded:: 1.8.0
+    .. versionadded:: 1.8.1
 
     :data:`selected_nodes` is a :class:`~kivy.properties.AliasProperty` and
     defaults to the empty list, []. It is read-only.
