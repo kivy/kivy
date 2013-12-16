@@ -1156,10 +1156,6 @@ class TextInput(Widget):
     def on_focus(self, instance, value, *largs):
         self._set_window(*largs)
 
-        self._editable = editable = (not (self.readonly or self.disabled) or
-                    (platform in ('win', 'linux', 'macosx') and
-                    self._keyboard_mode == 'system'))
-
         if value:
             if self.keyboard_mode != 'managed':
                 self._bind_keyboard()
@@ -1188,8 +1184,10 @@ class TextInput(Widget):
         self._set_window()
         win = self._win
         self._editable = editable = (not (self.readonly or self.disabled) or
-                    (platform in ('win', 'linux', 'macosx') and
-                    self._keyboard_mode == 'system'))
+                    _is_desktop and self._keyboard_mode == 'system')
+
+        if not _is_desktop and not editable:
+            return
 
         keyboard = win.request_keyboard(
             self._keyboard_released, self, input_type=self.input_type)
