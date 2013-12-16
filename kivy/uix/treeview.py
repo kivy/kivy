@@ -134,6 +134,13 @@ class TreeViewNode(object):
             raise TreeViewException('You cannot use directly TreeViewNode.')
         super(TreeViewNode, self).__init__(**kwargs)
 
+    def on_no_selection(self, instance, value):
+        if value:
+            self.is_selected = False
+            # need to make sure that the tree doesn't think it's still selected
+            if self.parent_node:
+                self.parent_node.unselect_node(self)
+
     is_leaf = BooleanProperty(True)
     '''Boolean to indicate whether this node is a leaf or not. Used to adjust
     the graphical representation.
@@ -320,6 +327,7 @@ class TreeView(Widget):
                 'The node must be a subclass of TreeViewNode')
         parent = node.parent_node
         if parent is not None:
+            parent.unselect_node(node)
             nodes = parent.nodes
             if node in nodes:
                 nodes.remove(node)
@@ -339,10 +347,21 @@ class TreeView(Widget):
         '''
         if node.no_selection:
             return
-        if self._selected_node:
-            self._selected_node.is_selected = False
-        node.is_selected = True
-        self._selected_node = node
+        nodes = self._selected_nodes
+        if (not self.multiselect) and nodes:
+            # need to go through all in case it was multiselect before
+            map(self.unselect_node, nodes)
+        if node not in nodes:
+            node.is_selected = True
+            nodes.append(node)
+
+    def unselect_node(self, node):
+        '''Unselect a node in the tree.
+        '''
+        nodes = self._selected_nodes
+        if node in nodes:
+            node.is_selected = False
+            nodes.remove(node)
 
     def toggle_node(self, node):
         '''Toggle the state of the node (open/collapsed).
@@ -481,7 +500,10 @@ class TreeView(Widget):
         if node.x - self.indent_start <= touch.x < node.x:
             self.toggle_node(node)
         elif node.x <= touch.x:
-            self.select_node(node)
+            if self.multiselect and node in self._selected_nodes:
+                self.unselect_node(node)
+            else:
+                self.select_node(node)
             node.dispatch('on_touch_down', touch)
         return True
 
@@ -490,7 +512,7 @@ class TreeView(Widget):
     #
     _root = ObjectProperty(None)
 
-    _selected_node = ObjectProperty(None)
+    _selected_nodes = ListProperty([])
 
     #
     # Properties
@@ -548,19 +570,54 @@ class TreeView(Widget):
     '''Use this property to show/hide the initial root node. If True, the root
     node will be appear as a closed node.
 
-    :data:`hide_root` is a :class:`~kivy.properties.BooleanProperty` and defaults
-    to False.
+    :data:`hide_root` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
+    '''
+
+    multiselect = BooleanProperty(False)
+    '''Determines whether multiple nodes can be selected.
+
+    .. versionadded:: 1.8.0
+
+    :class:`~kivy.properties.BooleanProperty`, defaults to False.
     '''
 
     def get_selected_node(self):
-        return self._selected_node
+        nodes = self._selected_nodes
+        return nodes[0] if len(nodes) else None
 
     selected_node = AliasProperty(get_selected_node, None,
-                                  bind=('_selected_node', ))
+                                  bind=('_selected_nodes', ))
     '''Node selected by :meth:`TreeView.select_node` or by touch.
+
+    .. warning::
+
+        Deprecated, use :data:`selected_nodes` instead.
+
+    .. versionchanged:: 1.8.0
+
+        Previously, only one node could be selected at any time. This has been
+        changed to allow multiple nodes to be selected and read using
+        :data:`selected_nodes`. :data:`selected_node` remains only for backward
+        compatibility and will be removed in version 2.0.0.
+        :data:`selected_node` will still return the first selected node, if
+        there are any, or None otherwise.
 
     :data:`selected_node` is a :class:`~kivy.properties.AliasProperty` and
     defaults to None. It is read-only.
+    '''
+
+    def get_selected_nodes(self):
+        return self._selected_nodes
+
+    selected_nodes = AliasProperty(get_selected_nodes, None,
+                                   bind=('_selected_nodes', ))
+    '''A list of nodes selected by :meth:`TreeView.select_node` or by touch.
+
+    .. versionadded:: 1.8.0
+
+    :data:`selected_nodes` is a :class:`~kivy.properties.AliasProperty` and
+    defaults to the empty list, []. It is read-only.
     '''
 
     def get_root(self):
