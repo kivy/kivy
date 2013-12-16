@@ -1633,6 +1633,7 @@ class TextInput(Widget):
         maxx = x + width_minus_padding_right
         if x1 > maxx:
             return
+        x1 = max(x1, x)
         x2 = min(x2, x + width_minus_padding_right)
         canvas_add(Color(*selection_color, group='selection'))
         canvas_add(Rectangle(
