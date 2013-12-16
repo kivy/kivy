@@ -135,13 +135,6 @@ class TreeViewNode(object):
             raise TreeViewException('You cannot use directly TreeViewNode.')
         super(TreeViewNode, self).__init__(**kwargs)
 
-    def on_no_selection(self, instance, value):
-        if value:
-            self.is_selected = False
-            # need to make sure that the tree doesn't think it's still selected
-            if self.parent_node:
-                self.parent_node.deselect_node(self)
-
     is_leaf = BooleanProperty(True)
     '''Boolean to indicate whether this node is a leaf or not. Used to adjust
     the graphical representation.
@@ -186,7 +179,14 @@ class TreeViewNode(object):
 
     no_selection = BooleanProperty(False)
     '''Boolean used to indicate whether selection of the node is allowed or
-     not.
+    not.
+
+    .. warning::
+
+        If the node is selected in a TreeView, setting no_selection to False
+        will not deselect it automatically. To ensure proper state you must
+        call :meth:`TreeView.deselect_node` before setting :data:`no_selection`
+        to False if it was selected.
 
     :data:`no_selection` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
