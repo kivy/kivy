@@ -891,7 +891,7 @@ class ParserRule(object):
             value = self.properties[name].co_value
             if type(value) is CodeType:
                 value = None
-            widget.create_property(name, value)
+            widget.create_property(name)
 
     def _forbid_selectors(self):
         c = self.name[0]
