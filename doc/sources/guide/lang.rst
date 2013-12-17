@@ -286,27 +286,26 @@ code above.
 
 There is a simpler way to access the ids as defined in the kv language for example::
 
-    <MyBumHurts>
-        Button:
-          id: gentle_pats_are_good
-          text: 'press gently'
-          on_release: root.polite_smack()
-        Button:
-          id: enthusiast
-          text: 'make it red'
-          on_release: root.smack_hard()
+.. code-block:: kv
 
-In your python code::
+    <Marvel>
+      Label:
+        id: loki
+        text: 'loki: I AM YOUR GOD!'
+      Button:
+        id: hulk
+        text: "press to smash loki"
+        on_release: root.hulk_smash()
 
-    class MyBumHurts(BoxLayout):
+In your python code:
+
+.. code-block:: python
+
+    class Marvel(BoxLayout):
     
-        def polite_smack(self):
-            self.ids.gentle_pats_are_good.text = 'I like!, be gentle.'
-            self.ids.enthusiast.text = 'Is that all you've got? Make it red!'
-    
-        def smack_hard(self):
-            self.ids.gentle_pats_are_good.text = 'OUCH!, be gentle.'
-            self.ids.enthusiast.text = 'Now that's more like it. Make it red!'
+        def hulk_smash(self):
+            self.ids.hulk.text = "hulk: puny god!"
+            self.ids.loki.text = "loki: >_<!!!"
 
 
 Templates
