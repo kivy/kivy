@@ -69,14 +69,17 @@ Color = Ellipse = None
 class MouseMotionEvent(MotionEvent):
 
     def depack(self, args):
-        self.profile = ['pos', 'button']
+        profile = self.profile
+        # don't overwrite previous profile
+        if not profile:
+            profile.extend(('pos', 'button'))
         self.is_touch = True
         self.sx, self.sy = args[:2]
         if len(args) >= 3:
             self.button = args[2]
         if len(args) == 4:
             self.multitouch_sim = args[3]
-            self.profile += ['multitouch_sim']
+            profile.append('multitouch_sim')
         super(MouseMotionEvent, self).depack(args)
 
     #
