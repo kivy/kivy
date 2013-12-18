@@ -17,6 +17,7 @@ cdef extern from 'gst/gst.h':
     ctypedef char const_gchar 'const gchar'
     ctypedef long int gint64
     ctypedef unsigned long long GstClockTime
+    ctypedef int gboolean
 
     ctypedef enum GstState:
         GST_STATE_VOID_PENDING
@@ -64,7 +65,7 @@ cdef extern from 'gst/gst.h':
             GstElement *element, GstFormat format, gint64 *cur)
     bool gst_element_seek_simple(
             GstElement *element, GstFormat format,
-            GstSeekFlags seek_flags, gint64 seek_pos)
+            GstSeekFlags seek_flags, gint64 seek_pos) nogil
 
 cdef extern from '_gstplayer.h':
     void g_object_set_void(GstElement *element, char *name, void *value)
@@ -74,7 +75,7 @@ cdef extern from '_gstplayer.h':
     gulong c_appsink_set_sample_callback(GstElement *appsink,
             appcallback_t callback, void *userdata)
     void c_appsink_pull_preroll(GstElement *appsink,
-            appcallback_t callback, void *userdata)
+            appcallback_t callback, void *userdata) nogil
     gulong c_bus_connect_eos(GstBus *bus,
             buscallback_t callback, void *userdata)
     void c_signal_disconnect(GstElement *appsink, gulong handler_id)
@@ -298,6 +299,8 @@ cdef class GstPlayer:
 
     def seek(self, percent):
         cdef GstState current_state, pending_state
+        cdef gboolean ret
+        cdef gint64 seek_t
         if self.playbin == NULL:
             return
 
@@ -307,13 +310,15 @@ cdef class GstPlayer:
         else:
             seek_t = percent * duration * 1e9
         seek_flags = GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT
-        gst_element_get_state(self.pipeline, &current_state,
-                &pending_state, <GstClockTime>1e9)
+        with nogil:
+            gst_element_get_state(self.pipeline, &current_state,
+                    &pending_state, <GstClockTime>1e9)
+            if current_state == GST_STATE_READY:
+                gst_element_set_state(self.pipeline, GST_STATE_PAUSED)
+            ret = gst_element_seek_simple(self.playbin, GST_FORMAT_TIME,
+                    <GstSeekFlags>seek_flags, seek_t)
 
-        if current_state == GST_STATE_READY:
-            gst_element_set_state(self.pipeline, GST_STATE_PAUSED)
-        if not gst_element_seek_simple(self.playbin, GST_FORMAT_TIME,
-                <GstSeekFlags>seek_flags, seek_t):
+        if not ret:
             return
 
         if self.appsink != NULL:
