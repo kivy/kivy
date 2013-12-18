@@ -284,7 +284,7 @@ the function `check_status`. In contrast to this method you could also just pass
 the `id` to the function that needs to use it, like in case of `f_but` in the
 code above.
 
-There is a simpler way to access the ids as defined in the kv language for example::
+There is a simpler way to access the ids as defined in the kv language for example:
 
 .. code-block:: kv
 
