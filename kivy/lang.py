@@ -618,7 +618,43 @@ Set a key that will be available anywhere in the kv. For example:
         canvas:
             Color:
                 rgb: my_color if self.state == 'normal' else my_color_hl
+
+include <file>
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.8.0
+
+Syntax:
+
+.. code-block:: kv
+
+    #:include <file>
+
+Includes an external kivy file. This allows you to split complex
+widgets into their own files. For example:
+
+.. code-block:: kv
+    # Test.kv
+    #:include mybutton.kv
+
+    <Rule>:
+        state: 'normal'
+        MyButton:
+            text: 'Includes!'
+
+.. code-block:: kv
+    # mybutton.kv
+
+    <MyButton>:
+        canvas:
+            Color:
+                rgb: (1.0, 0.0, 0.0)
+            Rectangle:
+                pos: self.pos
+                size: (self.size[0]/4, self.size[1]/4)
+
 '''
+import os
 
 __all__ = ('Builder', 'BuilderBase', 'BuilderException',
            'Parser', 'ParserException')
@@ -651,6 +687,9 @@ Instruction = None
 
 # register cache for creating new classtype (template)
 Cache.register('kv.lang')
+
+# all previously included files
+__INCLUDES__ = []
 
 # precompile regexp expression
 lang_str = re.compile('([\'"][^\'"]*[\'"])')
@@ -1006,6 +1045,7 @@ class Parser(object):
         self.parse(content)
 
     def execute_directives(self):
+        global __INCLUDES__
         for ln, cmd in self.directives:
             cmd = cmd.strip()
             if __debug__:
@@ -1027,7 +1067,15 @@ class Parser(object):
                     Logger.exception('')
                     raise ParserException(self, ln, 'Invalid value')
                 global_idmap[name] = value
-
+            elif cmd[:8] == 'include ':
+                ref = cmd[8:].strip()
+                if not os.path.isfile(ref):
+                    raise ParserException(self, ln, 'Invalid or unknown file: {0}'.format(ref))
+                if ref in __INCLUDES__:
+                    raise ParserException(self, ln, 'Circular reference: {0} is already included!'.format(ref))
+                Logger.debug('Including file: {0}'.format(0))
+                __INCLUDES__.append(ref)
+                Builder.load_file(ref)
             elif cmd[:7] == 'import ':
                 package = cmd[7:].strip()
                 l = package.split(' ')
