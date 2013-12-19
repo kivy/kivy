@@ -488,9 +488,9 @@ class ScrollView(StencilView):
         bar_pos_y = self.bar_pos_y[0]
 
         d = {'b': True if touch.y < self.y + self.bar_width else False,
-             't': True if touch.y > (self.height - self.bar_width) else False,
+             't': True if touch.y > self.top - self.bar_width else False,
              'l': True if touch.x < self.x + self.bar_width else False,
-             'r': True if touch.x > (self.width - self.bar_width) else False}
+             'r': True if touch.x > self.right - self.bar_width else False}
         if scroll_bar:
             if (width_scrollable and d[bar_pos_x]):
                 ud['in_bar_x'] = True
@@ -774,7 +774,8 @@ if __name__ == '__main__':
                 btn = Button(text=str(i), size_hint=(None, None),
                              size=(200, 100))
                 layout2.add_widget(btn)
-            scrollview2 = ScrollView(scroll_type=['bars'], bar_width='9dp',
+            scrollview2 = ScrollView(scroll_type=['bars'],
+                                     bar_width='9dp',
                                      scroll_wheel_distance=100)
             scrollview2.add_widget(layout2)
 
