@@ -478,15 +478,24 @@ class ScrollView(StencilView):
         vp = self._viewport
         scroll_type = self.scroll_type
         ud = touch.ud
-        scroll_bar_content = 'bars' in scroll_type
+        scroll_bar = 'bars' in scroll_type
 
+        # check if touch is in bar_x(horizontal) or bay_y(bertical)
         ud['in_bar_x'] = ud['in_bar_y'] = False
-        if (scroll_bar_content and self.viewport_size[0] > self.width and
-            touch.y < self.bar_width):
-            ud['in_bar_x'] = True
-        if (scroll_bar_content and self.viewport_size[1] > self.height and
-            touch.x > self.right - self.bar_width):
-            ud['in_bar_y'] = True
+        width_scrollable = vp.width > self.width
+        height_scrollable = vp.height > self.height
+        bar_pos_x = self.bar_pos_x[0]
+        bar_pos_y = self.bar_pos_y[0]
+
+        d = {'b': True if touch.y < self.y + self.bar_width else False,
+             't': True if touch.y > (self.height - self.bar_width) else False,
+             'l': True if touch.x < self.x + self.bar_width else False,
+             'r': True if touch.x > (self.width - self.bar_width) else False}
+        if scroll_bar:
+            if (width_scrollable and d[bar_pos_x]):
+                ud['in_bar_x'] = True
+            if (height_scrollable and d[bar_pos_y]):
+                ud['in_bar_y'] = True
 
         if vp and 'button' in touch.profile and \
             touch.button.startswith('scroll'):
@@ -494,11 +503,11 @@ class ScrollView(StencilView):
             m = sp(self.scroll_wheel_distance)
             e = None
 
-            if (self.effect_x and self.do_scroll_y and vp.height > self.height
+            if (self.effect_x and self.do_scroll_y and height_scrollable
                     and btn in ('scrolldown', 'scrollup')):
                 e = self.effect_x if ud['in_bar_x'] else self.effect_y
 
-            elif (self.effect_y and self.do_scroll_x and vp.width > self.width
+            elif (self.effect_y and self.do_scroll_x and width_scrollable
                     and btn in ('scrollleft', 'scrollright')):
                 e = self.effect_y if ud['in_bar_y'] else self.effect_x
 
@@ -526,25 +535,10 @@ class ScrollView(StencilView):
             'user_stopped': False,
             'time': touch.time_start}
 
-        if self.do_scroll_x and self.effect_x:
-            if (scroll_bar_content and
-                (self.bar_pos_x == 'bottom' and touch.y < self.bar_width) or
-                (self.bar_pos_x == 'top' and
-                 touch.y > self.height - self.bar_width)):
-                ud['in_bar_x'] = True
-            else:
-                if not scroll_bar_content:
-                    self.effect_x.start(touch.x)
-        if self.do_scroll_y and self.effect_y:
-            if (scroll_bar_content and
-                (self.bar_pos_y == 'right' and
-                 touch.x > self.right - self.bar_width) or
-                (self.bar_pos_y == 'left' and
-                 touch.x < self.x + self.bar_width)):
-                ud['in_bar_y'] = True
-            else:
-                if not scroll_bar_content:
-                    self.effect_y.start(touch.y)
+        if self.do_scroll_x and self.effect_x and not ud['in_bar_x']:
+            self.effect_x.start(touch.x)
+        if self.do_scroll_y and self.effect_y and not ud['in_bar_y']:
+            self.effect_y.start(touch.y)
 
         if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
             return
@@ -780,7 +774,7 @@ if __name__ == '__main__':
                 btn = Button(text=str(i), size_hint=(None, None),
                              size=(200, 100))
                 layout2.add_widget(btn)
-            scrollview2 = ScrollView(scroll_type=['content', 'bars'],
+            scrollview2 = ScrollView(scroll_type=['bars'], bar_width='9dp',
                                      scroll_wheel_distance=100)
             scrollview2.add_widget(layout2)
 
