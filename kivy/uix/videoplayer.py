@@ -468,7 +468,9 @@ class VideoPlayer(GridLayout):
         # we got a value, try to see if we have an image for it
         self._load_thumbnail()
         self._load_annotations()
-        self._video = None
+        if self._video is not None:
+            self._video.unload()
+            self._video = None
 
     def _load_thumbnail(self):
         if not self.container:
