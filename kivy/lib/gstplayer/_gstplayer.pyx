@@ -77,6 +77,10 @@ cdef extern from 'gst/gst.h':
             GstSeekFlags seek_flags, gint64 seek_pos) nogil
     void gst_message_parse_error(
             GstMessage *message, GError **gerror, char **debug)
+    void gst_message_parse_warning(
+            GstMessage *message, GError **gerror, char **debug)
+    void gst_message_parse_info(
+            GstMessage *message, GError **gerror, char **debug)
 
 cdef extern from '_gstplayer.h':
     void g_object_set_void(GstElement *element, char *name, void *value)
@@ -130,18 +134,18 @@ cdef void _on_appsink_sample(
 cdef void _on_gstplayer_message(void *c_player, GstMessage *message) with gil:
     cdef GstPlayer player = <GstPlayer>c_player
     cdef GError *err = NULL
-    if message.type & GST_MESSAGE_EOS:
+    if message.type == GST_MESSAGE_EOS:
         player.got_eos()
-    elif message.type & GST_MESSAGE_ERROR:
+    elif message.type == GST_MESSAGE_ERROR:
         gst_message_parse_error(message, &err, NULL)
         player.message_cb('error', err.message)
         g_error_free(err);
-    elif message.type & GST_MESSAGE_WARNING:
-        gst_message_parse_error(message, &err, NULL)
+    elif message.type == GST_MESSAGE_WARNING:
+        gst_message_parse_warning(message, &err, NULL)
         player.message_cb('warning', err.message)
         g_error_free(err);
-    elif message.type & GST_MESSAGE_INFO:
-        gst_message_parse_error(message, &err, NULL)
+    elif message.type == GST_MESSAGE_INFO:
+        gst_message_parse_info(message, &err, NULL)
         player.message_cb('info', err.message)
         g_error_free(err);
     else:
@@ -193,7 +197,6 @@ cdef class GstPlayer:
         _gst_init()
 
     def __dealloc__(self):
-        print 'PLAYER', self, 'REMOVED!'
         self.unload()
 
     cdef void got_eos(self):
