@@ -1156,10 +1156,6 @@ class TextInput(Widget):
     def on_focus(self, instance, value, *largs):
         self._set_window(*largs)
 
-        self._editable = editable = (not (self.readonly or self.disabled) or
-                    (platform in ('win', 'linux', 'macosx') and
-                    self._keyboard_mode == 'system'))
-
         if value:
             if self.keyboard_mode != 'managed':
                 self._bind_keyboard()
@@ -1188,8 +1184,10 @@ class TextInput(Widget):
         self._set_window()
         win = self._win
         self._editable = editable = (not (self.readonly or self.disabled) or
-                    (platform in ('win', 'linux', 'macosx') and
-                    self._keyboard_mode == 'system'))
+                    _is_desktop and self._keyboard_mode == 'system')
+
+        if not _is_desktop and not editable:
+            return
 
         keyboard = win.request_keyboard(
             self._keyboard_released, self, input_type=self.input_type)
@@ -1631,11 +1629,12 @@ class TextInput(Widget):
             x2 = (x - self.scroll_x) + _get_text_width(lines[:s2c],
                                                        tab_width,
                                                        _label_cached)
-        width_minus_padding_right = width - padding_right
-        maxx = x + width_minus_padding_right
+        width_minus_padding = width - (padding_right + padding_left)
+        maxx = x + width_minus_padding
         if x1 > maxx:
             return
-        x2 = min(x2, x + width_minus_padding_right)
+        x1 = max(x1, x)
+        x2 = min(x2, x + width_minus_padding)
         canvas_add(Color(*selection_color, group='selection'))
         canvas_add(Rectangle(
             pos=(x1, pos[1]), size=(x2 - x1, size[1]), group='selection'))
