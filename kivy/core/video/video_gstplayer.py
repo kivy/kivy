@@ -39,6 +39,15 @@ def _on_gstplayer_buffer(video, width, height, data):
         video._buffer = (width, height, data)
 
 
+def _on_gstplayer_message(mtype, message):
+    if mtype == 'error':
+        Logger.error('VideoGstplayer: {}'.format(message))
+    elif mtype == 'warning':
+        Logger.warning('VideoGstplayer: {}'.format(message))
+    elif mtype == 'info':
+        Logger.info('VideoGstplayer: {}'.format(message))
+
+
 class VideoGstplayer(VideoBase):
 
     def __init__(self, **kwargs):
@@ -55,7 +64,8 @@ class VideoGstplayer(VideoBase):
         uri = self._get_uri()
         wk_self = ref(self)
         self.player_callback = partial(_on_gstplayer_buffer, wk_self)
-        self.player = GstPlayer(uri, self.player_callback, self._on_gst_eos_sync)
+        self.player = GstPlayer(uri, self.player_callback,
+                self._on_gst_eos_sync, _on_gstplayer_message)
         self.player.set_volume(self.volume)
         self.player.load()
 

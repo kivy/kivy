@@ -32,7 +32,7 @@ static void g_object_set_int(GstElement *element, char *name, int value)
 }
 
 typedef void (*appcallback_t)(void *, int, int, char *, int);
-typedef void (*buscallback_t)(void *);
+typedef void (*buscallback_t)(void *, GstMessage *);
 typedef struct {
 	appcallback_t callback;
 	buscallback_t bcallback;
@@ -155,14 +155,14 @@ static void c_signal_disconnect(GstElement *element, gulong handler_id)
 	g_signal_handler_disconnect(element, handler_id);
 }
 
-static gboolean c_on_bus_eos(GstBus *bus, GstMessage *message, callback_data_t *data)
+static gboolean c_on_bus_message(GstBus *bus, GstMessage *message, callback_data_t *data)
 {
-	g_return_val_if_fail( GST_MESSAGE_TYPE( message ) == GST_MESSAGE_EOS, FALSE);
-	data->bcallback(data->userdata);
+	//g_return_val_if_fail( GST_MESSAGE_TYPE( message ) == GST_MESSAGE_EOS, FALSE);
+	data->bcallback(data->userdata, message);
 	return TRUE;
 }
 
-static gulong c_bus_connect_eos(GstBus *bus, buscallback_t callback, PyObject *userdata)
+static gulong c_bus_connect_message(GstBus *bus, buscallback_t callback, PyObject *userdata)
 {
 	callback_data_t *data = (callback_data_t *)malloc(sizeof(callback_data_t));
 	if ( data == NULL )
@@ -174,7 +174,7 @@ static gulong c_bus_connect_eos(GstBus *bus, buscallback_t callback, PyObject *u
 	Py_INCREF(data->userdata);
 
 	return g_signal_connect_data(
-			(GstElement *)bus, "sync-message::eos",
-			G_CALLBACK(c_on_bus_eos), data,
+			(GstElement *)bus, "sync-message",
+			G_CALLBACK(c_on_bus_message), data,
 			c_signal_free_data, 0);
 }

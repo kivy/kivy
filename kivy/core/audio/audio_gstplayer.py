@@ -28,6 +28,15 @@ Logger.info('AudioGstplayer: Using Gstreamer {}'.format(
 install_glib_iteration()
 
 
+def _on_gstplayer_message(mtype, message):
+    if mtype == 'error':
+        Logger.error('AudioGstplayer: {}'.format(message))
+    elif mtype == 'warning':
+        Logger.warning('AudioGstplayer: {}'.format(message))
+    elif mtype == 'info':
+        Logger.info('AudioGstplayer: {}'.format(message))
+
+
 class SoundGstplayer(Sound):
 
     @staticmethod
@@ -51,7 +60,8 @@ class SoundGstplayer(Sound):
     def load(self):
         self.unload()
         uri = self._get_uri()
-        self.player = GstPlayer(uri, None, self._on_gst_eos_sync)
+        self.player = GstPlayer(uri, None, self._on_gst_eos_sync,
+                _on_gstplayer_message)
         self.player.set_volume(self.volume)
         self.player.load()
 
