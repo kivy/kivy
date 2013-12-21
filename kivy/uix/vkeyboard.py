@@ -7,10 +7,6 @@ VKeyboard
 
 .. versionadded:: 1.0.8
 
-.. warning::
-
-    This is experimental and subject to change as long as this warning notice is
-    present.
 
 VKeyboard is an onscreen keyboard for Kivy. Its operation is intended to be
 transparent to the user. Using the widget directly is NOT recommended. Read the
@@ -238,8 +234,8 @@ class VKeyboard(Scatter):
         'atlas://data/images/defaulttheme/vkeyboard_background')
     '''Filename of the background image.
 
-    :data:`background` a :class:`~kivy.properties.StringProperty` and defaults to
-    :file:`atlas://data/images/defaulttheme/vkeyboard_background`.
+    :data:`background` a :class:`~kivy.properties.StringProperty` and defaults
+    to :file:`atlas://data/images/defaulttheme/vkeyboard_background`.
     '''
 
     background_disabled = StringProperty(

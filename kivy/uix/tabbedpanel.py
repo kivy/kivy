@@ -7,10 +7,6 @@ TabbedPanel
 
 .. versionadded:: 1.3.0
 
-.. warning::
-
-    This widget is still experimental, and its API is subject to change in a
-    future version.
 
 The `TabbedPanel` widget manages different widgets in tabs, with a header area
 for the actual tab buttons and a content area for showing the current tab

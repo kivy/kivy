@@ -4,10 +4,6 @@ Tree View
 
 .. versionadded:: 1.0.4
 
-.. warning::
-
-    This widget is still experimental, and the API is subject to change in a
-    future version.
 
 :class:`TreeView` is a widget used to represent a tree structure. It is
 currently very basic, supporting a minimal feature set.
