@@ -628,19 +628,29 @@ Syntax:
 
 .. code-block:: kv
 
-    #:include <file>
+    #:include [force] <file>
 
 Includes an external kivy file. This allows you to split complex
-widgets into their own files. For example:
+widgets into their own files. If the include is forced, the file
+will first be unloaded and then reloaded again. For example:
 
 .. code-block:: kv
     # Test.kv
-    #:include mybutton.kv
+    #:include mycomponent.kv
+    #:include force mybutton.kv
 
     <Rule>:
         state: 'normal'
         MyButton:
-            text: 'Includes!'
+        MyComponent:
+
+
+.. code-block:: kv
+    # mycomponent.kv
+    #:include mybutton.kv
+
+    <MyComponent>:
+        MyButton:
 
 .. code-block:: kv
     # mybutton.kv
@@ -652,6 +662,7 @@ widgets into their own files. For example:
             Rectangle:
                 pos: self.pos
                 size: (self.size[0]/4, self.size[1]/4)
+
 
 '''
 import os
@@ -1069,10 +1080,29 @@ class Parser(object):
                 global_idmap[name] = value
             elif cmd[:8] == 'include ':
                 ref = cmd[8:].strip()
-                if not os.path.isfile(ref):
-                    raise ParserException(self, ln, 'Invalid or unknown file: {0}'.format(ref))
+                force_load = False
+
+                if ref[:6] == 'force ':
+                    ref = ref[6:].strip()
+                    force_load = True
+
+                if ref[-3:] != '.kv':
+                    Logger.warn('WARNING: {0} does not have a valid Kivy'
+                                'Language extension (.kv)'.format(ref))
+                    break
                 if ref in __INCLUDES__:
-                    raise ParserException(self, ln, 'Circular reference: {0} is already included!'.format(ref))
+                    if not force_load:
+                        Logger.warn('WARNING: {0} has already been included!'
+                                    .format(ref))
+                        break
+                    else:
+                        Logger.debug('Reloading {0} because include was forced.'
+                                    .format(ref))
+                        Builder.unload_file(ref)
+                        Builder.load_file(ref)
+                if not os.path.isfile(ref):
+                    raise ParserException(self, ln, 'Invalid or unknown file: '
+                                                    '{0}'.format(ref))
                 Logger.debug('Including file: {0}'.format(0))
                 __INCLUDES__.append(ref)
                 Builder.load_file(ref)
