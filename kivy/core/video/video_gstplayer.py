@@ -25,7 +25,6 @@ if PY2:
 else:
     from urllib.request import pathname2url
 
-
 Logger.info('VideoGstplayer: Using Gstreamer {}'.format(
     '.'.join(map(str, get_gst_version()))))
 

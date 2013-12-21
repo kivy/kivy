@@ -13,7 +13,6 @@ from kivy.lib.gstplayer import GstPlayer, get_gst_version
 from kivy.core.audio import Sound, SoundLoader
 from kivy.logger import Logger
 from kivy.compat import PY2
-from kivy.support import install_glib_iteration
 from kivy.clock import Clock
 from os.path import realpath
 
@@ -24,8 +23,6 @@ else:
 
 Logger.info('AudioGstplayer: Using Gstreamer {}'.format(
     '.'.join(map(str, get_gst_version()))))
-
-install_glib_iteration()
 
 
 def _on_gstplayer_message(mtype, message):

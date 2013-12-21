@@ -7,7 +7,7 @@ Activate other frameworks/toolkits inside the kivy event loop.
 '''
 
 __all__ = ('install_gobject_iteration', 'install_twisted_reactor',
-    'install_glib_iteration', 'install_android')
+    'install_android')
 
 
 def install_gobject_iteration():
@@ -41,27 +41,6 @@ def install_gobject_iteration():
             context.iteration(False)
             loop += 1
     Clock.schedule_interval(_gobject_iteration, 0)
-
-
-def install_glib_iteration():
-    '''Import and install glib context iteration inside our event loop.
-    Use it if you want to poll gstplayer, or anything related to glib-2.0.
-
-    .. versionadded:: 1.8.0
-    '''
-    from kivy.lib import gstplayer
-    from kivy.clock import Clock
-
-    if hasattr(gstplayer, '_glib_already_installed'):
-        # already installed, don't do it twice.
-        return
-
-    gstplayer._glib_already_installed = True
-
-    def _glib_iteration(*largs):
-        gstplayer.glib_iteration(10)
-
-    Clock.schedule_interval(_glib_iteration, 0)
 
 
 # -----------------------------------------------------------------------------
