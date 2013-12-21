@@ -140,7 +140,7 @@ if sys.platform == 'win32':
     providers += (('videocapture', 'camera_videocapture',
         'CameraVideoCapture'), )
 if sys.platform != 'darwin':
-    providers += (('gi', 'camera_gi', 'CameraGi'), )
+    #providers += (('gi', 'camera_gi', 'CameraGi'), )
     providers += (('pygst', 'camera_pygst', 'CameraPyGst'), )
 
 providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )

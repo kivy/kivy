@@ -35,7 +35,6 @@ __all__ = ('Sound', 'SoundLoader')
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
-from kivy.utils import platform
 from kivy.compat import PY2
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
@@ -189,10 +188,14 @@ class Sound(EventDispatcher):
 
 # Little trick here, don't activate gstreamer on window
 # seem to have lot of crackle or something...
-# XXX test in macosx
 audio_libs = []
-if platform != 'win':
-    audio_libs += [('gi', 'audio_gi')]
+
+# from now on, prefer our gstplayer instead of gi/pygst.
+try:
+    from kivy.lib.gstplayer import GstPlayer
+    audio_libs += [('gstplayer', 'audio_gstplayer')]
+except ImportError:
+    #audio_libs += [('gi', 'audio_gi')]
     if PY2:
         audio_libs += [('pygst', 'audio_pygst')]
 audio_libs += [('sdl', 'audio_sdl')]

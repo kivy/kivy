@@ -17,6 +17,7 @@ kivy/graphics/*.c
 kivy/graphics/*.pyd
 kivy/graphics/config.h
 kivy/graphics/config.pxi
+kivy/lib/gstplayer/_gstplayer.c
 kivy/tests/build
 kivy/tests/results
 .last_known_portable_deps_hash

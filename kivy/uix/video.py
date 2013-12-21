@@ -214,6 +214,16 @@ class Video(Image):
         if self._video:
             self._video.volume = value
 
+    def unload(self):
+        '''Unload the video. The playback will be stopped.
+
+        .. versionadded:: 1.8.0
+        '''
+        if self._video:
+            self._video.stop()
+            self._video.unload()
+            self._video = None
+
 if __name__ == '__main__':
     from kivy.app import App
     import sys
