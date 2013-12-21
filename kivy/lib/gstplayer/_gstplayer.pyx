@@ -49,6 +49,7 @@ cdef extern from 'gst/gst.h':
     ctypedef struct GstMessage:
         GstMessageType type
 
+    int GST_SECOND
     bool gst_init_check(int *argc, char ***argv, GError **error)
     bool gst_is_initialized()
     void gst_deinit()
@@ -69,9 +70,9 @@ cdef extern from 'gst/gst.h':
             void *retvalue)
     void g_error_free(GError *error)
     bool gst_element_query_position(
-            GstElement *element, GstFormat format, gint64 *cur)
+            GstElement *element, GstFormat format, gint64 *cur) nogil
     bool gst_element_query_duration(
-            GstElement *element, GstFormat format, gint64 *cur)
+            GstElement *element, GstFormat format, gint64 *cur) nogil
     bool gst_element_seek_simple(
             GstElement *element, GstFormat format,
             GstSeekFlags seek_flags, gint64 seek_pos) nogil
@@ -318,51 +319,69 @@ cdef class GstPlayer:
             g_object_set_double(self.playbin, 'volume', volume)
 
     def get_duration(self):
+        cdef float duration
+        with nogil:
+            duration = self._get_duration() / float(GST_SECOND)
+        return duration
+
+    def get_position(self):
+        cdef float position
+        with nogil:
+            position = self._get_position() / float(GST_SECOND)
+        return position
+
+    def seek(self, float percent):
+        with nogil:
+            self._seek(percent)
+
+    #
+    # C-like API, that doesn't require the GIL
+    #
+
+    cdef gint64 _get_duration(self) nogil:
         cdef gint64 duration = 0
         if self.playbin == NULL:
             return -1
         if not gst_element_query_duration(
                 self.playbin, GST_FORMAT_TIME, &duration):
             return -1
-        return duration / 1e9
+        return duration
 
-    def get_position(self):
+    cdef gint64 _get_position(self) nogil:
         cdef gint64 position = 0
         if self.playbin == NULL:
             return -1
         if not gst_element_query_position(
                 self.playbin, GST_FORMAT_TIME, &position):
             return -1
-        return position / 1e9
+        return position
 
-    def seek(self, percent):
+    cdef void _seek(self, float percent) nogil:
         cdef GstState current_state, pending_state
         cdef gboolean ret
-        cdef gint64 seek_t
+        cdef gint64 seek_t, duration
         if self.playbin == NULL:
             return
 
-        duration = self.get_duration()
+        duration = self._get_duration()
         if duration <= 0:
             seek_t = 0
         else:
-            seek_t = percent * duration * 1e9
+            seek_t = <gint64>(percent * duration)
         seek_flags = GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT
-        with nogil:
-            gst_element_get_state(self.pipeline, &current_state,
-                    &pending_state, <GstClockTime>1e9)
-            if current_state == GST_STATE_READY:
-                gst_element_set_state(self.pipeline, GST_STATE_PAUSED)
-            ret = gst_element_seek_simple(self.playbin, GST_FORMAT_TIME,
-                    <GstSeekFlags>seek_flags, seek_t)
+        gst_element_get_state(self.pipeline, &current_state,
+                &pending_state, <GstClockTime>GST_SECOND)
+        if current_state == GST_STATE_READY:
+            gst_element_set_state(self.pipeline, GST_STATE_PAUSED)
+        ret = gst_element_seek_simple(self.playbin, GST_FORMAT_TIME,
+                <GstSeekFlags>seek_flags, seek_t)
 
         if not ret:
             return
 
         if self.appsink != NULL:
             gst_element_get_state(self.pipeline, &current_state,
-                    &pending_state, <GstClockTime>1e9)
+                    &pending_state, <GstClockTime>GST_SECOND)
             if current_state != GST_STATE_PLAYING:
                 c_appsink_pull_preroll(
                     self.appsink, _on_appsink_sample, <void *>self)
-
