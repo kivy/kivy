@@ -97,10 +97,10 @@ cdef class Instruction(ObjectWithUid):
             return False
 
     property proxy_ref:
-        '''Return a proxy reference to the Instruction, ie, without taking a
+        '''Return a proxy reference to the Instruction i.e. without creating a
         reference of the widget. See `weakref.proxy
         <http://docs.python.org/2/library/weakref.html?highlight=proxy#weakref.proxy>`_
-        for more information about it.
+        for more information.
 
         .. versionadded:: 1.7.2
         '''
@@ -111,8 +111,8 @@ cdef class Instruction(ObjectWithUid):
 
 
 cdef class InstructionGroup(Instruction):
-    '''Group of :class:`Instruction`. Adds the possibility of adding and
-    removing graphics instruction.
+    '''Group of :class:`Instructions <Instruction>`. Allows for the adding and
+    removing of graphics instruction.
     '''
     def __init__(self, **kwargs):
         Instruction.__init__(self, **kwargs)
@@ -152,7 +152,7 @@ cdef class InstructionGroup(Instruction):
         return
 
     cpdef insert(self, int index, Instruction c):
-        '''Insert a new :class:`Instruction` in our list at index.
+        '''Insert a new :class:`Instruction` into our list at index.
         '''
         c.rinsert(self, index)
         self.flag_update()
@@ -174,7 +174,7 @@ cdef class InstructionGroup(Instruction):
         return len(self.children)
 
     cpdef clear(self):
-        '''Remove all the :class:`Instruction`.
+        '''Remove all the :class:`Instructions <Instruction>`.
         '''
         cdef Instruction c
         for c in self.children[:]:
@@ -183,7 +183,8 @@ cdef class InstructionGroup(Instruction):
             self.remove(c)
 
     cpdef remove_group(self, str groupname):
-        '''Remove all :class:`Instruction` with a specific group name.
+        '''Remove all :class:`Instructions <Instruction>` with a specific group
+        name.
         '''
         cdef Instruction c
         for c in self.children[:]:
@@ -193,8 +194,8 @@ cdef class InstructionGroup(Instruction):
                 self.remove(c)
 
     cpdef get_group(self, str groupname):
-        '''Return an iterable with all the :class:`Instruction` with a specific
-        group name.
+        '''Return an iterable for all the :class:`Instructions <Instruction>`
+        with a specific group name.
         '''
         cdef Instruction c
         return [c for c in self.children if c.group == groupname]
