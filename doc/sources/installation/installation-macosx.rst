@@ -5,7 +5,7 @@ Installation on MacOSX
 
 .. note::
 
-    This method has only been tested on Mac OSX 10.7 Snow Leopard 64-bit.
+    This method has only been tested on Mac OSX 10.7 Lion 64-bit.
     For versions prior to 10.7 or 10.7 32-bit, you have to install the
     components yourself. We suggest using
     `homebrew <http://mxcl.github.com/homebrew/>`_ to do that.
