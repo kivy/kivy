@@ -321,13 +321,13 @@ cdef class VertexInstruction(Instruction):
             <MyWidget>:
                 canvas:
                     Rectangle:
-                        source: 'myfilename.png'
+                        source: 'mylogo.png'
                         pos: self.pos
                         size: self.size
 
         .. note::
 
-            The filename will be searched with the
+            The filename will be searched for using the
             :func:`kivy.resources.resource_find` function.
 
         '''
@@ -347,14 +347,14 @@ cdef class VertexInstruction(Instruction):
 
             [u, v, u + w, v, u + w, y + h, u, y + h]
 
-        You can pass your own texture coordinates, if you want to achieve fancy
+        You can pass your own texture coordinates if you want to achieve fancy
         effects.
 
         .. warning::
 
-            The default value as mentioned before can be negative. Depending
+            The default values just mentioned can be negative. Depending
             on the image and label providers, the coordinates are flipped
-            vertically, because of the order in which the image is internally
+            vertically because of the order in which the image is internally
             stored. Instead of flipping the image data, we are just flipping
             the texture coordinates to be faster.
 
@@ -407,8 +407,8 @@ cdef class Callback(Instruction):
         Note that if you perform many and/or costly calls to callbacks, you
         might potentially slow down the rendering performance significantly.
 
-    The drawing of your canvas can not happen until something new happens. From
-    your callback, you can ask for an update::
+    The updating of your canvas does not occur until something new happens.
+    From your callback, you can ask for an update::
 
         with self.canvas:
             self.cb = Callback(self.my_callback)
@@ -421,7 +421,7 @@ cdef class Callback(Instruction):
     returns to Kivy, it will just break. You can have glitches, crashes, black
     holes might occur, etc.
     To avoid that, you can activate the :data:`reset_context` option. It will
-    reset the OpenGL context state to make Kivy's rendering correct, after the
+    reset the OpenGL context state to make Kivy's rendering correct after the
     call to your callback.
 
     .. warning::
@@ -509,7 +509,8 @@ cdef class Callback(Instruction):
 
 
 cdef class CanvasBase(InstructionGroup):
-    '''CanvasBase provides the context manager methods for :class:`Canvas`.'''
+    '''CanvasBase provides the context manager methods for the
+    :class:`Canvas`.'''
     def __enter__(self):
         pushActiveCanvas(self)
 
@@ -570,7 +571,7 @@ cdef class Canvas(CanvasBase):
             self.remove(c)
 
     cpdef draw(self):
-        '''Apply the instruction on our window.
+        '''Apply the instruction to our window.
         '''
         self.apply()
 
@@ -627,7 +628,7 @@ cdef class Canvas(CanvasBase):
             return self._after
 
     property has_before:
-        '''Property to see if the canvas.before is already created
+        '''Property to see if the :attr:`before` group has already been created.
 
         .. versionadded:: 1.7.0
         '''
@@ -635,7 +636,7 @@ cdef class Canvas(CanvasBase):
             return self._before is not None
 
     property has_after:
-        '''Property to see if the canvas.after is already created
+        '''Property to see if the :attr:`after` group has already been created.
 
         .. versionadded:: 1.7.0
         '''
@@ -644,17 +645,17 @@ cdef class Canvas(CanvasBase):
 
 
     property opacity:
-        '''Property for get/set the opacity value of the canvas.
+        '''Property to get/set the opacity value of the canvas.
 
         .. versionadded:: 1.4.1
 
         The opacity attribute controls the opacity of the canvas and its
         children.  Be careful, it's a cumulative attribute: the value is
-        multiplied to the current global opacity, and the result is applied to
+        multiplied to the current global opacity and the result is applied to
         the current context color.
 
-        For example: if your parent have an opacity of 0.5, and one children have an
-        opacity of 0.2, the real opacity of the children will be 0.5 * 0.2 = 0.1.
+        For example: if your parent has an opacity of 0.5 and a child has an
+        opacity of 0.2, the real opacity of the child will be 0.5 * 0.2 = 0.1.
 
         Then, the opacity is applied on the shader as::
 
