@@ -250,11 +250,10 @@ cdef class GstPlayer:
             if self.fakesink == NULL:
                 raise GstPlayerException('Unable to create a fakesink')
 
-            g_object_set_void(self.playbin, 'video-sink', self.appsink)
+            g_object_set_void(self.playbin, 'video-sink', self.fakesink)
 
         # configure playbin
         g_object_set_int(self.pipeline, 'async-handling', 1)
-        g_object_set_int(self.playbin, 'buffer-duration', long(1e8))
         c_uri = <bytes>self.uri.decode('utf-8')
         g_object_set_void(self.playbin, 'uri', c_uri)
 
