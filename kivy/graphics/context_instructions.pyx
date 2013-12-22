@@ -498,7 +498,7 @@ cdef class MatrixInstruction(ContextInstruction):
         context.set_state(self._stack, mvm.multiply(self.matrix))
 
     property matrix:
-        ''' Matrix property. Numpy matrix from the transformation module.
+        ''' Matrix property. Matrix from the transformation module.
         Setting the matrix using this property when a change is made
         is important because it will notify the context about the update.
         '''
