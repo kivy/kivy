@@ -5,27 +5,28 @@ Texture
 .. versionchanged:: 1.6.0
     Added support for paletted texture on OES: 'palette4_rgb8',
     'palette4_rgba8', 'palette4_r5_g6_b5', 'palette4_rgba4', 'palette4_rgb5_a1',
-    'palette8_rgb8', 'palette8_rgba8', 'palette8_r5_g6_b5', 'palette8_rgba4',
-    'palette8_rgb5_a1'
+    'palette8_rgb8', 'palette8_rgba8', 'palette8_r5_g6_b5', 'palette8_rgba4'
+    and 'palette8_rgb5_a1'.
 
-:class:`Texture` is a class to handle OpenGL texture. Depending of the hardware,
+:class:`Texture` is a class that handles OpenGL textures. Depending on the
+hardware,
 some OpenGL capabilities might not be available (BGRA support, NPOT support,
 etc.)
 
-You cannot instanciate the class yourself. You must use the function
+You cannot instanciate this class yourself. You must use the function
 :func:`Texture.create` to create a new texture::
 
     texture = Texture.create(size=(640, 480))
 
-When you are creating a texture, you must be aware of the default color format
+When you create a texture, you should be aware of the default color
 and buffer format:
 
-    - the color/pixel format (:data:`Texture.colorfmt`), that can be one of
-      'rgb', 'rgba', 'luminance', 'luminance_alpha', 'bgr', 'bgra'. The default
-      value is 'rgb'
-    - the buffer format is how a color component is stored into memory. This can
-      be one of 'ubyte', 'ushort', 'uint', 'byte', 'short', 'int', 'float'. The
-      default value and the most commonly used is 'ubyte'.
+    - the color/pixel format (:data:`Texture.colorfmt`) that can be one of
+      'rgb', 'rgba', 'luminance', 'luminance_alpha', 'bgr' or 'bgra'.
+      The default value is 'rgb'
+    - the buffer format determines how a color component is stored into memory.
+      This can be one of 'ubyte', 'ushort', 'uint', 'byte', 'short', 'int' or
+      'float'. The default value and the most commonly used is 'ubyte'.
 
 So, if you want to create an RGBA texture::
 
@@ -66,11 +67,11 @@ You can create your own data and blit it on the texture using
 BGR/BGRA support
 ----------------
 
-The first time you'll try to create a BGR or BGRA texture, we are checking if
-your hardware support BGR / BGRA texture by checking the extension
+The first time you try to create a BGR or BGRA texture, we check whether
+your hardware supports BGR / BGRA textures by checking the extension
 'GL_EXT_bgra'.
 
-If the extension is not found, a conversion to RGB / RGBA will be done in
+If the extension is not found, the conversion to RGB / RGBA will be done in
 software.
 
 
