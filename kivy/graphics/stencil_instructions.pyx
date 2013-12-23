@@ -5,22 +5,23 @@ Stencil instructions
 .. versionadded:: 1.0.4
 
 .. versionchanged:: 1.3.0
-    The stencil operation have been updated to resolve some issues appearing
-    when nested. You **must** know have a StencilUnUse and repeat the same
+
+    The stencil operation has been updated to resolve some issues that appeared
+    when nested. You **must** now have a StencilUnUse and repeat the same
     operation as you did after StencilPush.
 
 Stencil instructions permit you to draw and use the current drawing as a mask.
-Even if you don't have as much control as OpenGL, you can still do fancy things
-:=)
+Even if you don't have as much control as pure OpenGL, you can still do fancy
+things :=)
 
-The stencil buffer can be controled with theses 3 instructions :
+The stencil buffer can be controlled using these 3 instructions:
 
-    - :class:`StencilPush`: push a new stencil layer
-      any drawing that happening here will be used as a mask
+    - :class:`StencilPush`: push a new stencil layer.
+      Any drawing that happens after this will be used as a mask.
     - :class:`StencilUse` : now draw the next instructions and use the stencil
-      for masking them
+      for masking them.
     - :class:`StencilUnUse` : stop drawing, and use the stencil to remove the
-      mask
+      mask.
     - :class:`StencilPop` : pop the current stencil layer.
 
 
@@ -30,7 +31,7 @@ Here is a global scheme to respect::
 
     StencilPush
 
-    # PHASE 1: put here any drawing instruction to use as a mask
+    # PHASE 1: put any drawing instruction here to use as a mask
 
     StencilUse
 
@@ -38,7 +39,7 @@ Here is a global scheme to respect::
 
     StencilUnUse
 
-    # PHASE 3: put here the same drawing instruction as you did in PHASE 1
+    # PHASE 3: put the same drawing instruction here as you did in PHASE 1
 
     StencilPop
 
@@ -47,14 +48,14 @@ Here is a global scheme to respect::
 Limitations
 -----------
 
-- Drawing in PHASE 1 and PHASE 3 must not collide between each others, or you
+- Drawing in PHASE 1 and PHASE 3 must not collide or you
   will get unexpected result.
-- The stencil is activated as soon as you're doing a StencilPush
-- The stencil is deactivated as soon as you've correctly pop all the stencils
+- The stencil is activated as soon as you perform a StencilPush
+- The stencil is deactivated as soon as you've correctly popped all the stencil
   layers
-- You must not play with stencil yourself between a StencilPush / StencilPop
-- You can push again the stencil after a StencilUse / before the StencilPop
-- You can push up to 128 layers of stencils. (8 for kivy < 1.3.0)
+- You must not play with stencils yourself between a StencilPush / StencilPop
+- You can push another stencil after a StencilUse / before the StencilPop
+- You can push up to 128 layers of stencils (8 for kivy < 1.3.0)
 
 
 Example of stencil usage
@@ -64,7 +65,7 @@ Here is an example, in kv style::
 
     StencilPush
 
-    # create a rectangle mask, from pos 100, 100, with a 100, 100 size.
+    # create a rectangular mask with a pos of (100, 100) and a (100, 100) size.
     Rectangle:
         pos: 100, 100
         size: 100, 100
@@ -79,7 +80,7 @@ Here is an example, in kv style::
         size: 900, 900
 
     StencilUnUse:
-        # new in kivy 1.3.0, remove the mask previoulsy added
+        # new in kivy 1.3.0, remove the mask previously added
         Rectangle:
             pos: 100, 100
             size: 100, 100
@@ -119,7 +120,8 @@ cdef inline int _stencil_op_to_gl(x):
 
 
 cdef class StencilPush(Instruction):
-    '''Push the stencil stack. See module documentation for more information.
+    '''Push the stencil stack. See the module documentation for more
+    information.
     '''
     cdef void apply(self):
         global _stencil_level, _stencil_in_push
@@ -143,7 +145,7 @@ cdef class StencilPush(Instruction):
         glColorMask(0, 0, 0, 0)
 
 cdef class StencilPop(Instruction):
-    '''Pop the stencil stack. See module documentation for more information.
+    '''Pop the stencil stack. See the module documentation for more information.
     '''
     cdef void apply(self):
         global _stencil_level, _stencil_in_push
@@ -161,8 +163,8 @@ cdef class StencilPop(Instruction):
 
 
 cdef class StencilUse(Instruction):
-    '''Use current stencil buffer as a mask. Check module documentation for more
-    information.
+    '''Use current stencil buffer as a mask. Check the module documentation for
+    more information.
     '''
     def __init__(self, **kwargs):
         super(StencilUse, self).__init__(**kwargs)
@@ -181,7 +183,7 @@ cdef class StencilUse(Instruction):
     property func_op:
         '''Determine the stencil operation to use for glStencilFunc(). Can be
         one of 'never', 'less', 'equal', 'lequal', 'greater', 'notequal',
-        'gequal', 'always'.
+        'gequal' or 'always'.
 
         By default, the operator is set to 'equal'.
 
