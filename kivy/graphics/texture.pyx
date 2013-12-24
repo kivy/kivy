@@ -944,43 +944,43 @@ cdef class Texture:
             self._source, len(self.observers))
 
     property size:
-        '''Return the (width, height) of the texture (readonly)
+        '''Return the (width, height) of the texture (readonly).
         '''
         def __get__(self):
             return (self.width, self.height)
 
     property mipmap:
-        '''Return True if the texture have mipmap enabled (readonly)
+        '''Return True if the texture has mipmap enabled (readonly).
         '''
         def __get__(self):
             return self._mipmap
 
     property id:
-        '''Return the OpenGL ID of the texture (readonly)
+        '''Return the OpenGL ID of the texture (readonly).
         '''
         def __get__(self):
             return self._id
 
     property target:
-        '''Return the OpenGL target of the texture (readonly)
+        '''Return the OpenGL target of the texture (readonly).
         '''
         def __get__(self):
             return self._target
 
     property width:
-        '''Return the width of the texture (readonly)
+        '''Return the width of the texture (readonly).
         '''
         def __get__(self):
             return self._width
 
     property height:
-        '''Return the height of the texture (readonly)
+        '''Return the height of the texture (readonly).
         '''
         def __get__(self):
             return self._height
 
     property tex_coords:
-        '''Return the list of tex_coords (opengl)
+        '''Return the list of tex_coords (opengl).
         '''
         def __get__(self):
             return (
@@ -994,7 +994,7 @@ cdef class Texture:
                 self._tex_coords[7])
 
     property uvpos:
-        '''Get/set the UV position inside texture
+        '''Get/set the UV position inside the texture.
         '''
         def __get__(self):
             return (self._uvx, self._uvy)
@@ -1003,10 +1003,10 @@ cdef class Texture:
             self.update_tex_coords()
 
     property uvsize:
-        '''Get/set the UV size inside texture.
+        '''Get/set the UV size inside the texture.
 
         .. warning::
-            The size can be negative is the texture is flipped.
+            The size can be negative if the texture is flipped.
         '''
         def __get__(self):
             return (self._uvw, self._uvh)
@@ -1015,7 +1015,7 @@ cdef class Texture:
             self.update_tex_coords()
 
     property colorfmt:
-        '''Return the color format used in this texture. (readonly)
+        '''Return the color format used in this texture (readonly).
 
         .. versionadded:: 1.0.7
         '''
@@ -1023,7 +1023,7 @@ cdef class Texture:
             return self._colorfmt
 
     property bufferfmt:
-        '''Return the buffer format used in this texture. (readonly)
+        '''Return the buffer format used in this texture (readonly).
 
         .. versionadded:: 1.2.0
         '''
@@ -1040,8 +1040,9 @@ cdef class Texture:
         - nearest_mipmap_nearest
         - nearest_mipmap_linear
 
-        Check opengl documentation for more information about the behavior of
-        theses values : http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameter.xml.
+        Check the opengl documentation for more information about the behavior
+        of these values :
+        http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameter.xml.
         '''
         def __get__(self):
             return self._min_filter
@@ -1054,8 +1055,9 @@ cdef class Texture:
         - linear
         - nearest
 
-        Check opengl documentation for more information about the behavior of
-        theses values : http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameter.xml.
+        Check the opengl documentation for more information about the behavior
+        of these values :
+        http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameter.xml.
         '''
         def __get__(self):
             return self._mag_filter
@@ -1069,8 +1071,9 @@ cdef class Texture:
         - mirrored_repeat
         - clamp_to_edge
 
-        Check opengl documentation for more information about the behavior of
-        theses values : http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameter.xml.
+        Check the opengl documentation for more information about the behavior
+        of these values :
+        http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameter.xml.
         '''
         def __get__(self):
             return self._wrap
