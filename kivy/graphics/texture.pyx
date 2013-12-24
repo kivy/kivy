@@ -158,12 +158,12 @@ Reloading the Texture
 
 .. versionadded:: 1.2.0
 
-If the OpenGL context is lost, the Texture must be reloaded. Texture having a
-source are automatically reloaded without any help. But generated textures must
+If the OpenGL context is lost, the Texture must be reloaded. Textures that have
+a source are automatically reloaded but generated textures must
 be reloaded by the user.
 
-Use the :func:`Texture.add_reload_observer` to add a reloading function that will be
-automatically called when needed::
+Use the :func:`Texture.add_reload_observer` to add a reloading function that
+will be automatically called when needed::
 
     def __init__(self, **kwargs):
         super(...).__init__(**kwargs)
@@ -178,13 +178,13 @@ automatically called when needed::
     def populate_texture(self, texture):
         texture.blit_buffer(self.cbuffer)
 
-This way, you could use the same method for initialization and for reloading.
+This way, you can use the same method for initialization and reloading.
 
 .. note::
 
-    For all text rendering with our core text renderer, texture is generated,
-    but we are binding already a method to redo the text rendering and reupload
-    the text to the texture. You have nothing to do on that case.
+    For all text rendering with our core text renderer, the texture is generated
+    but we already bind a method to redo the text rendering and reupload
+    the text to the texture. You have nothing to do in this case.
 '''
 
 __all__ = ('Texture', 'TextureRegion')
@@ -296,7 +296,7 @@ cdef inline int _is_pow2(int v):
 
 
 cdef inline int _color_fmt_to_gl(x):
-    '''Return the GL numeric value from a color string format
+    '''Return the GL numeric value from a color string format.
     '''
     x = x.lower()
     try:
@@ -306,7 +306,7 @@ cdef inline int _color_fmt_to_gl(x):
 
 
 cdef inline int _is_compressed_fmt(x):
-    '''Return 1 if the color string format is a compressed one
+    '''Return 1 if the color string format is a compressed one.
     '''
     if x.startswith('palette'):
         return 1
@@ -318,7 +318,7 @@ cdef inline int _is_compressed_fmt(x):
 
 
 cdef inline int _buffer_fmt_to_gl(x):
-    '''Return the GL numeric value from a buffer string format
+    '''Return the GL numeric value from a buffer string format.
     '''
     x = x.lower()
     try:
@@ -328,7 +328,7 @@ cdef inline int _buffer_fmt_to_gl(x):
 
 
 cdef inline int _buffer_type_to_gl_size(x):
-    '''Return the size of a buffer string format in str
+    '''Return the size of a buffer string format in str.
     '''
     x = x.lower()
     try:
@@ -338,7 +338,7 @@ cdef inline int _buffer_type_to_gl_size(x):
 
 
 cdef inline GLuint _str_to_gl_texture_min_filter(x):
-    '''Return the GL numeric value from a texture min filter string
+    '''Return the GL numeric value from a texture min filter string.
     '''
     x = x.lower()
     try:
@@ -348,7 +348,7 @@ cdef inline GLuint _str_to_gl_texture_min_filter(x):
 
 
 cdef inline GLuint _str_to_gl_texture_mag_filter(x):
-    '''Return the GL numeric value from a texture mag filter string
+    '''Return the GL numeric value from a texture mag filter string.
     '''
     x = x.lower()
     if x == 'nearest':
@@ -359,7 +359,7 @@ cdef inline GLuint _str_to_gl_texture_mag_filter(x):
 
 
 cdef inline GLuint _str_to_gl_texture_wrap(x):
-    '''Return the GL numeric value from a texture wrap string
+    '''Return the GL numeric value from a texture wrap string.
     '''
     if x == 'clamp_to_edge':
         return GL_CLAMP_TO_EDGE
@@ -370,7 +370,7 @@ cdef inline GLuint _str_to_gl_texture_wrap(x):
 
 
 cdef inline int _gl_format_size(GLuint x):
-    '''Return the GL numeric value from a texture wrap string
+    '''Return the GL numeric value from a texture wrap string.
     '''
     if x in (GL_RGB, GL_BGR):
         return 3
@@ -444,7 +444,7 @@ cdef inline _convert_buffer(bytes data, fmt):
 
 
 cdef inline void _gl_prepare_pixels_upload(int width) nogil:
-    '''Set the best pixel alignement for the current width
+    '''Set the best pixel alignment for the current width.
     '''
     if not (width & 0x7):
         glPixelStorei(GL_UNPACK_ALIGNMENT, 8)
