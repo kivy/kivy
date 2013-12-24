@@ -727,7 +727,7 @@ cdef class Texture:
         self._callback = callback
 
     cpdef bind(self):
-        '''Bind the texture to current opengl state'''
+        '''Bind the texture to the current opengl state.'''
         cdef GLuint value
 
         # if we have no change to apply, just bind and exit
@@ -783,7 +783,7 @@ cdef class Texture:
             self.flags |= TI_WRAP
 
     def blit_data(self, im, pos=None):
-        '''Replace a whole texture with a image data
+        '''Replace a whole texture with image data.
         '''
         blit = self.blit_buffer
 
@@ -800,27 +800,27 @@ cdef class Texture:
     def blit_buffer(self, pbuffer, size=None, colorfmt=None,
                     pos=None, bufferfmt=None, mipmap_level=0,
                     mipmap_generation=True):
-        '''Blit a buffer into a texture.
+        '''Blit a buffer into the texture.
 
         .. versionadded:: 1.0.7 added mipmap_level + mipmap_generation
 
         :Parameters:
             `pbuffer` : str
-                Image data
+                Image data.
             `size` : tuple, defaults to texture size
                 Size of the image (width, height)
             `colorfmt` : str, defaults to 'rgb'
                 Image format, can be one of 'rgb', 'rgba', 'bgr', 'bgra',
-                'luminance', 'luminance_alpha'
+                'luminance' or 'luminance_alpha'.
             `pos` : tuple, defaults to (0, 0)
-                Position to blit in the texture
+                Position to blit in the texture.
             `bufferfmt` : str, defaults to 'ubyte'
                 Type of the data buffer, can be one of 'ubyte', 'ushort',
-                'uint', 'byte', 'short', 'int', 'float'
+                'uint', 'byte', 'short', 'int' or 'float'.
             `mipmap_level`: int, defaults to 0
-                Indicate which mipmap level we are going to update
+                Indicate which mipmap level we are going to update.
             `mipmap_generation`: bool, defaults to False
-                Indicate if we need to regenerate mipmap from level 0
+                Indicate if we need to regenerate the mipmap from level 0.
         '''
         cdef GLuint target = self._target
         if colorfmt is None:
@@ -930,8 +930,8 @@ cdef class Texture:
             callback()(self)
 
     def save(self, filename):
-        '''Save the texture content into a file. Check
-        :meth:`kivy.core.image.Image.save` for more information about the usage.
+        '''Save the texture content to a file. Check
+        :meth:`kivy.core.image.Image.save` for more information.
 
         .. versionadded:: 1.7.0
         '''
