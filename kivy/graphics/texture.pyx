@@ -520,17 +520,17 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
 
     :Parameters:
         `size`: tuple, defaults to (128, 128)
-            Size of the texture
+            Size of the texture.
         `colorfmt`: str, defaults to 'rgba'
             Internal color format of the texture. Can be 'rgba' or 'rgb',
-            'luminance', 'luminance_alpha'
+            'luminance' or 'luminance_alpha'.
         `bufferfmt`: str, defaults to 'ubyte'
             Internal buffer format of the texture. Can be 'ubyte', 'ushort',
-            'uint', 'bute', 'short', 'int', 'float'
+            'uint', 'bute', 'short', 'int' or 'float'.
         `mipmap`: bool, defaults to False
-            If True, it will automatically generate mipmap texture.
+            If True, it will automatically generate the mipmap texture.
         `callback`: callable(), defaults to False
-            If a function is provided, it will be called when data will be
+            If a function is provided, it will be called when data is
             needed in the texture.
 
     .. versionchanged:: 1.7.0
@@ -550,7 +550,7 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
 
 
 def texture_create_from_data(im, mipmap=False):
-    '''Create a texture from an ImageData class
+    '''Create a texture from an ImageData class.
     '''
     cdef int width = im.width
     cdef int height = im.height
@@ -590,8 +590,8 @@ def texture_create_from_data(im, mipmap=False):
 
 
 cdef class Texture:
-    '''Handle a OpenGL texture. This class can be used to create simple texture
-    or complex texture based on ImageData.'''
+    '''Handle an OpenGL texture. This class can be used to create simple
+    textures or complex textures based on ImageData.'''
 
     create = staticmethod(texture_create)
     create_from_data = staticmethod(texture_create_from_data)
@@ -640,14 +640,15 @@ cdef class Texture:
         self._tex_coords[7] = self._uvy + self._uvh
 
     def add_reload_observer(self, callback):
-        '''Add a callback to be called after the whole graphics context have
-        been reloaded. This is where you can reupload your custom data in GPU.
+        '''Add a callback to be called after the whole graphics context has
+        been reloaded. This is where you can reupload your custom data into
+        the GPU.
 
         .. versionadded:: 1.2.0
 
         :Parameters:
             `callback`: func(context) -> return None
-                The first parameter will be the context itself
+                The first parameter will be the context itself.
         '''
         self.observers.append(WeakMethod(callback))
 
@@ -707,19 +708,19 @@ cdef class Texture:
                             datasize)
 
     cpdef flip_vertical(self):
-        '''Flip tex_coords for vertical displaying'''
+        '''Flip tex_coords for vertical display.'''
         self._uvy += self._uvh
         self._uvh = -self._uvh
         self.update_tex_coords()
 
     cpdef get_region(self, x, y, width, height):
-        '''Return a part of the texture defined by the rectangle arguments
+        '''Return a part of the texture defined by the rectangular arguments
         (x, y, width, height). Returns a :class:`TextureRegion` instance.'''
         return TextureRegion(x, y, width, height, self)
 
     def ask_update(self, callback):
-        '''Indicate that the content of the texture should be updated, and the
-        callback function need to be called when the texture will be really
+        '''Indicate that the content of the texture should be updated and the
+        callback function needs to be called when the texture will be
         used.
         '''
         self.flags |= TI_NEED_PIXELS
