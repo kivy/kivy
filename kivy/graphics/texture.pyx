@@ -130,17 +130,18 @@ Mipmapping
 
 .. versionadded:: 1.0.7
 
-Mipmapping is an OpenGL technique for enhancing the rendering of large texture
-to small surface. Without mipmapping, you might seen pixels when you are
-rendering to small surface.
-The idea is to precalculate subtexture and apply some image filter, as linear
-filter. Then, when you rendering a small surface, instead of using the biggest
-texture, it will use a lower filtered texture. The result can look better with
-that way.
+Mipmapping is an OpenGL technique for enhancing the rendering of large textures
+to small surfaces. Without mipmapping, you might see pixelation when you
+render to small surfaces.
+The idea is to precalculate the subtexture and apply some image filter as a
+linear filter. Then, when you render a small surface, instead of using the
+biggest texture, it will use a lower filtered texture. The result can look
+better this way.
 
-To make that happen, you need to specify mipmap=True when you're creating a
-texture. Some widget already give you the possibility to create mipmapped
-texture like :class:`~kivy.uix.label.Label` or :class:`~kivy.uix.image.Image`.
+To make that happen, you need to specify mipmap=True when you create a
+texture. Some widgets already give you the ability to create mipmapped
+textures, such as the :class:`~kivy.uix.label.Label` and
+:class:`~kivy.uix.image.Image`.
 
 From the OpenGL Wiki : "So a 64x16 2D texture can have 5 mip-maps: 32x8, 16x4,
 8x2, 4x1, 2x1, and 1x1". Check http://www.opengl.org/wiki/Texture for more
@@ -148,8 +149,8 @@ information.
 
 .. note::
 
-    As the table in previous section said, if your texture is NPOT, we are
-    actually creating the nearest POT texture and generate mipmap on it. This
+    As the table in previous section said, if your texture is NPOT, we
+    create the nearest POT texture and generate a mipmap from it. This
     might change in the future.
 
 Reloading the Texture
