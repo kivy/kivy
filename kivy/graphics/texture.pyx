@@ -41,7 +41,7 @@ your texture in kv lang, you can save it in an
 Blitting custom data
 --------------------
 
-You can create your own data and blit it on the texture using
+You can create your own data and blit it to the texture using
 :func:`Texture.blit_data`::
 
     # create a 64x64 texture, defaults to rgb / ubyte
@@ -59,7 +59,7 @@ You can create your own data and blit it on the texture using
     texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
 
     # that's all ! you can use it in your graphics now :)
-    # if self is a widget, you can do that
+    # if self is a widget, you can do this
     with self.canvas:
         Rectangle(texture=texture, pos=self.pos, size=(64, 64))
 
@@ -80,13 +80,14 @@ NPOT texture
 
 .. versionadded:: 1.0.7
 
-    If hardware can support NPOT, no POT are created.
+    If your hardware supports NPOT, no POT is created.
 
-As OpenGL documentation said, a texture must be power-of-two sized. That's mean
-your width and height can be one of 64, 32, 256... but not 3, 68, 42. NPOT mean
-non-power-of-two. OpenGL ES 2 support NPOT texture natively, but with some
-drawbacks. Another type of NPOT texture are also called rectangle texture.
-POT, NPOT and texture have their own pro/cons.
+As the OpenGL documentation says, a texture must be power-of-two sized. That
+means
+your width and height can be one of 64, 32, 256... but not 3, 68, 42. NPOT means
+non-power-of-two. OpenGL ES 2 supports NPOT textures natively but with some
+drawbacks. Another type of NPOT texture is called a rectangle texture.
+POT, NPOT and textures all have their own pro/cons.
 
 ================= ============= ============= =================================
     Features           POT           NPOT                Rectangle
@@ -97,9 +98,9 @@ Mipmapping        Supported     Partially     No
 Wrap mode         Supported     Supported     No
 ================= ============= ============= =================================
 
-If you are creating a NPOT texture, we first are checking if your hardware is
-capable of it by checking the extensions GL_ARB_texture_non_power_of_two or
-OES_texture_npot. If none of theses are availables, we are creating the nearest
+If you create a NPOT texture, we first check whether your hardware 
+supports it by checking the extensions GL_ARB_texture_non_power_of_two or
+OES_texture_npot. If none of theses are available, we create the nearest
 POT texture that can contain your NPOT texture. The :func:`Texture.create` will
 return a :class:`TextureRegion` instead.
 
@@ -107,9 +108,9 @@ return a :class:`TextureRegion` instead.
 Texture atlas
 -------------
 
-We are calling texture atlas a texture that contain many images in it.
-If you want to seperate the original texture into many single one, you don't
-need to. You can get a region of the original texture. That will return you the
+A texture atlas is a single texture that contains many images.
+If you want to seperate the original texture into many single ones, you don't
+need to. You can get a region of the original texture. That will return the
 original texture with custom texture coordinates::
 
     # for example, load a 128x128 image that contain 4 64x64 images
