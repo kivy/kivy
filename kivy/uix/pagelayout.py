@@ -8,91 +8,45 @@ borders.
 
 :class:`PageLayout` doesn't honor size_hint or pos_hint in any way currently.
 
-.. versionadded:: 1.7.1
+.. versionadded:: 1.8.1
 
 example::
 
     PageLayout:
-        BoxLayout:
-            canvas:
-                Color:
-                    rgba: 216/255., 195/255., 88/255., 1
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
+        Button:
+            text: 'page1'
 
-            orientation: 'vertical'
-            Label:
-                size_hint_y: None
-                height: 1.5 * self.texture_size[1]
-                text: 'page 1'
+        Button:
+            text: 'page2'
 
-            Button:
-                text: 'test'
-                on_press: print "test"
-
-        BoxLayout:
-            orientation: 'vertical'
-            canvas:
-                Color:
-                    rgba: 109/255., 8/255., 57/255., 1
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
-
-            Label:
-                text: 'page 2'
-
-            AsyncImage:
-                source: 'http://kivy.org/logos/kivy-logo-black-64.png'
-
-        GridLayout:
-            canvas:
-                Color:
-                    rgba: 37/255., 39/255., 30/255., 1
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
-
-            cols: 2
-            Label:
-                text: 'page 3'
-            AsyncImage:
-                source: 'http://kivy.org/slides/kivyandroid-thumb.jpg'
-            Button:
-                text: 'test'
-                on_press: print "test last page"
-            AsyncImage:
-                source: 'http://kivy.org/slides/kivypictures-thumb.jpg'
-            Widget
-            AsyncImage:
-                source: 'http://kivy.org/slides/particlepanda-thumb.jpg'
+        Button:
+            text: 'page3'
 """
 
 __all__ = ('PageLayout', )
 
 from kivy.uix.layout import Layout
-from kivy.metrics import dp
 from kivy.properties import NumericProperty
 from kivy.animation import Animation
 
 
 class PageLayout(Layout):
-    ''' PageLayout class. See module documentation for more information
+    '''PageLayout class. See module documentation for more information
     '''
 
-    '''currently displayed page.
+    '''Currently displayed page.
 
     :data:`page` is a :class:`~kivy.properties.NumericProperty`, default to 0.
     '''
     page = NumericProperty(0)
 
-    '''width of the border used around current page to display previous/next
+    '''Width of the border used around current page to display previous/next
     page when needed.
 
-    :data:`border` is a :class:`~kivy.properties.NumericProperty`, default to 0.
+    :data:`border` is a :class:`~kivy.properties.NumericProperty`,
+    default to 0.
     '''
-    border = NumericProperty(dp(50))
+    border = NumericProperty('50dp')
 
     '''Thresold to the swipe action triggering, as percentage of the widget
     size.
@@ -114,8 +68,9 @@ class PageLayout(Layout):
             pos=self._trigger_layout)
 
     def do_layout(self, *largs):
+        l_children = len(self.children)
         for i, c in enumerate(reversed(self.children)):
-            if i in (0, len(self.children) - 1):
+            if i < l_children:
                 width = self.width - self.border
             else:
                 width = self.width - 2 * self.border
@@ -164,8 +119,8 @@ class PageLayout(Layout):
         if touch.grab_current == self:
             if touch.ud['page'] == 'previous':
                 self.children[-self.page - 1].x = max(min(
-                        self.x + self.border + (touch.x - touch.ox),
-                        self.right - self.border),
+                    self.x + self.border + (touch.x - touch.ox),
+                    self.right - self.border),
                     self.x + self.border)
 
                 if self.page > 1:
@@ -180,8 +135,8 @@ class PageLayout(Layout):
 
             elif touch.ud['page'] == 'next':
                 self.children[-self.page + 1].x = min(max(
-                        self.right - self.border + (touch.x - touch.ox),
-                        self.x + self.border),
+                    self.right - self.border + (touch.x - touch.ox),
+                    self.x + self.border),
                     self.right - self.border)
 
                 if self.page >= 1:
@@ -213,3 +168,15 @@ class PageLayout(Layout):
 
             touch.ungrab(self)
         return self.children[-self.page + 1].on_touch_up(touch)
+
+
+if __name__ == '__main__':
+    from kivy.base import runTouchApp
+    from kivy.uix.button import Button
+
+    pl = PageLayout()
+    for i in range(1, 4):
+        b = Button(text='page%s' % i)
+        pl.add_widget(b)
+
+    runTouchApp(pl)
