@@ -807,7 +807,6 @@ cdef class Ellipse(Rectangle):
     '''A 2D ellipse.
 
     .. versionadded:: 1.0.7
-    
         Added angle_start and angle_end.
 
     :Parameters:
