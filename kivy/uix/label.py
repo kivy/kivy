@@ -122,7 +122,7 @@ class Label(Widget):
 
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
         'halign', 'valign', 'padding_x', 'padding_y', 'text_size', 'shorten',
-        'mipmap', 'markup', 'line_height', 'max_lines')
+        'mipmap', 'markup', 'line_height', 'max_lines', 'right_to_left')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -541,4 +541,13 @@ class Label(Widget):
     defaults to 0.
     '''
 
+    right_to_left = BooleanProperty(False)
+    '''Use right-to-left word ordering, for supporting right-to-left languages (hebrew, arabic etc.), defaults to False.
+    Please note that this property should usually be used in conjunction with :data:`halign` set to 'right'.
+
+    .. versionadded:: 1.8.0
+
+    :data:`right_to_left` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
+    '''
 
