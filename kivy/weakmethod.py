@@ -41,8 +41,11 @@ if sys.version > '3':
             method.
             Returns None if the original object doesn't exist.
             '''
-            if self.proxy:
-                return getattr(self.proxy, self.method_name)
+            try:
+                if self.proxy:
+                    return getattr(self.proxy, self.method_name)
+            except ReferenceError:
+                pass
             return self.method
 
         def is_dead(self):
