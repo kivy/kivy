@@ -111,7 +111,7 @@ class FactoryBase(object):
 
     def __getattr__(self, name):
         classes = self.classes
-        if not name in classes:
+        if name not in classes:
             if name[0] == name[0].lower():
                 # if trying to access attributes like checking for `bind`
                 # then raise AttributeError
