@@ -188,10 +188,11 @@ if platform == 'ios':
     c_options['use_ios'] = True
     c_options['use_sdl'] = True
 
-# detect gstreamer
-gst_flags = pkgconfig('gstreamer-1.0')
-if 'libraries' in gst_flags:
-    c_options['use_gstreamer'] = True
+# detect gstreamer, only on desktop
+if platform not in ('ios', 'android'):
+    gst_flags = pkgconfig('gstreamer-1.0')
+    if 'libraries' in gst_flags:
+        c_options['use_gstreamer'] = True
 
 
 # -----------------------------------------------------------------------------
