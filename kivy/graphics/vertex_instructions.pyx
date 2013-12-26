@@ -325,7 +325,7 @@ cdef class Mesh(VertexInstruction):
             self.flag_update()
 
     property mode:
-        '''VBO Mode used for drawing vertices/indices. Can be one of: 'points',
+        '''VBO Mode used for drawing vertices/indices. Can be one of 'points',
         'line_strip', 'line_loop', 'lines', 'triangle_strip' or 'triangle_fan'.
         '''
         def __get__(self):
@@ -342,7 +342,7 @@ cdef class Point(VertexInstruction):
         `points`: list
             List of points in the format (x1, y1, x2, y2...).
         `pointsize`: float, defaults to 1.
-            Size of the point (1. mean the real size will be 2).
+            Size of the point (1. means the real size will be 2).
 
     .. warning::
 
@@ -549,7 +549,7 @@ cdef class Quad(VertexInstruction):
 
     :Parameters:
         `points`: list
-            List of point in the format (x1, y1, x2, y2, x3, y3, x4, y4)
+            List of point in the format (x1, y1, x2, y2, x3, y3, x4, y4).
     '''
     cdef list _points
 
