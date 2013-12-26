@@ -37,10 +37,11 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.checkbox import CheckBox
+from kivy.uix.spinner import Spinner
 from kivy.config import Config
 from kivy.properties import ObjectProperty, NumericProperty, \
     BooleanProperty, StringProperty, ListProperty, OptionProperty
-from kivy.uix.spinner import Spinner
+from kivy.metrics import sp
 from kivy.lang import Builder
 from functools import partial
 
@@ -292,7 +293,7 @@ class ActionGroup(ActionItem, Spinner):
                         children[0].minimum_width])
         for item in children:
             item.size_hint_y = None
-            item.height = max([self.height, '48sp'])
+            item.height = max([self.height, sp(48)])
 
     def clear_widgets(self):
         self._dropdown.clear_widgets()
