@@ -78,4 +78,3 @@ class ScatterLayout(Scatter):
 
     def clear_widgets(self):
         self.content.clear_widgets()
-
