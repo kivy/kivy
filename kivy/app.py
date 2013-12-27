@@ -444,6 +444,7 @@ class App(EventDispatcher):
 
         :return: None or a root :class:`~kivy.uix.widget.Widget`
         instance if no self.root exists.
+
         '''
         if not self.root:
             return Widget()
