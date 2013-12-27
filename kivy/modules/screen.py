@@ -70,7 +70,8 @@ def apply_device(device, scale, orientation):
         width, height = height, width
     Logger.info('Screen: Apply screen settings for {0}'.format(name))
     Logger.info('Screen: size={0}x{1} dpi={2} density={3} '
-        'orientation={4}'.format(width, height, dpi, density, orientation))
+                'orientation={4}'.format(width, height, dpi, density,
+                                         orientation))
     try:
         scale = float(scale)
     except:
@@ -88,7 +89,7 @@ def apply_device(device, scale, orientation):
 def usage(device=None):
     if device:
         Logger.error('Screen: The specified device ({0}) is unknown.',
-                device)
+                     device)
     print('\nModule usage: python main.py -m screen:deviceid[,orientation]\n')
     print('Available devices:\n')
     print('{0:12} {1:<22} {2:<8} {3:<8} {4:<5} {5:<8}'.format(
@@ -124,4 +125,3 @@ def configure(ctx):
 if __name__ == "__main__":
     for n in devices.values():
         assert n[1] > n[2]
-
