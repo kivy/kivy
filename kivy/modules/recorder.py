@@ -14,8 +14,8 @@ Configuration
 -------------
 
 :Parameters:
-    `attrs`: str, defaults to :data:`~kivy.input.recorder.Recorder.record_attrs`
-    value.
+    `attrs`: str, defaults to
+    :data:`~kivy.input.recorder.Recorder.record_attrs` value.
 
         Attributes to record from the motion event
 
@@ -79,4 +79,3 @@ def start(win, ctx):
 def stop(win, ctx):
     if hasattr(ctx, 'recorder'):
         ctx.recorder.release()
-
