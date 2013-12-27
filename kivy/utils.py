@@ -18,12 +18,6 @@ __all__ = ('intersection', 'difference', 'strtotuple',
 from os import environ
 from sys import platform as _sys_platform
 from re import match, split
-try:
-    from UserDict import UserDict
-    from UserDict import DictMixin
-except ImportError:
-    from collections import UserDict
-    from collections import MutableMapping as DictMixin
 
 _platform_android = None
 _platform_ios = None
