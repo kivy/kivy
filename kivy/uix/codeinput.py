@@ -58,8 +58,8 @@ class CodeInput(TextInput):
     '''This holds the selected Lexer used by pygments to highlight the code.
 
 
-    :data:`lexer` is an :class:`~kivy.properties.ObjectProperty` and defaults to
-    `PythonLexer`.
+    :data:`lexer` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to `PythonLexer`.
     '''
 
     def __init__(self, **kwargs):
@@ -96,8 +96,9 @@ class CodeInput(TextInput):
 
         if not texture:
             # FIXME right now, we can't render very long line...
-            # if we move on "VBO" version as fallback, we won't need to do this.
-            # try to found the maximum text we can handle
+            # if we move on "VBO" version as fallback, we won't need to
+            # do this.
+            # try to find the maximum text we can handle
             label = Label(text=ntext, **kw)
             if text.find(u'\n') > 0:
                 label.text = u''
