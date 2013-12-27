@@ -41,8 +41,8 @@ First read: :doc:`api-kivy.uix.widget`
 
     :doc:`api-kivy.uix.scatter`, :doc:`api-kivy.uix.stencilview`
 
-- **Screen manager**: Manages screens and transitions when switching from one to
-  another.
+- **Screen manager**: Manages screens and transitions when switching
+  from one to another.
 
     :doc:`api-kivy.uix.screenmanager`
 
