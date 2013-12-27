@@ -45,7 +45,7 @@ from kivy.uix.widget import Widget
 from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
-        AliasProperty, BooleanProperty, NumericProperty
+    AliasProperty, BooleanProperty, NumericProperty
 from kivy.loader import Loader
 from kivy.logger import Logger
 
@@ -57,8 +57,8 @@ class Image(Widget):
     source = StringProperty(None)
     '''Filename / source of your image.
 
-    :data:`source` is a :class:`~kivy.properties.StringProperty` and defaults to
-    None.
+    :data:`source` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
     '''
 
     texture = ObjectProperty(None, allownone=True)
@@ -117,8 +117,8 @@ class Image(Widget):
 
     allow_stretch = BooleanProperty(False)
     '''If True, the normalized image size will be maximized to fit in the image
-    box. Otherwise, if the box is too tall, the image will not be stretched more
-    than 1:1 pixels.
+    box. Otherwise, if the box is too tall, the image will not be
+    stretched more than 1:1 pixels.
 
     .. versionadded:: 1.0.7
 
@@ -229,8 +229,9 @@ class Image(Widget):
                 self._coreimage.unbind(on_texture=self._on_tex_change)
             try:
                 self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
-                        anim_delay=self.anim_delay, keep_data=self.keep_data,
-                        nocache=self.nocache)
+                                                 anim_delay=self.anim_delay,
+                                                 keep_data=self.keep_data,
+                                                 nocache=self.nocache)
             except:
                 self._coreimage = ci = None
 
@@ -284,10 +285,10 @@ class AsyncImage(Image):
 
     .. note::
 
-        The AsyncImage is a specialized form of the Image class. You may want to
-        refer to the :mod:`~kivy.loader` documentation and in particular, the
-        :class:`~kivy.loader.ProxyImage` for more detail on how to handle events
-        around asynchronous image loading.
+        The AsyncImage is a specialized form of the Image class. You may
+        want to refer to the :mod:`~kivy.loader` documentation and in
+        particular, the :class:`~kivy.loader.ProxyImage` for more detail
+        on how to handle events around asynchronous image loading.
     '''
 
     def __init__(self, **kwargs):
@@ -308,7 +309,8 @@ class AsyncImage(Image):
             if not self.is_uri(source):
                 source = resource_find(source)
             self._coreimage = image = Loader.image(source,
-                    nocache=self.nocache, mipmap=self.mipmap)
+                                                   nocache=self.nocache,
+                                                   mipmap=self.mipmap)
             image.bind(on_load=self._on_source_load)
             image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture
