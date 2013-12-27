@@ -2,7 +2,7 @@
 Gesture recognition
 ===================
 
-This class allows you to easily create new 
+This class allows you to easily create new
 gestures and compare them::
 
     from kivy.gesture import Gesture, GestureDatabase
@@ -28,7 +28,7 @@ gestures and compare them::
    need a lot more points, so it's better to record gestures in a file and
    reload them to compare later. Look in the examples/gestures directory for
    an example of how to do that.
-   
+
 '''
 
 __all__ = ('Gesture', 'GestureDatabase', 'GesturePoint', 'GestureStroke')
@@ -127,25 +127,25 @@ class GestureStroke:
     def max_x(self):
         if len(self.points) == 0:
             return 0
-        return max(self.points, key = lambda pt: pt.x).x
+        return max(self.points, key=lambda pt: pt.x).x
 
     @property
     def min_x(self):
         if len(self.points) == 0:
             return 0
-        return min(self.points, key = lambda pt: pt.x).x
+        return min(self.points, key=lambda pt: pt.x).x
 
     @property
     def max_y(self):
         if len(self.points) == 0:
             return 0
-        return max(self.points, key = lambda pt: pt.y).y
+        return max(self.points, key=lambda pt: pt.y).y
 
     @property
     def min_y(self):
         if len(self.points) == 0:
             return 0
-        return min(self.points, key = lambda pt: pt.y).y
+        return min(self.points, key=lambda pt: pt.y).y
 
     def add_point(self, x, y):
         '''
@@ -178,14 +178,14 @@ class GestureStroke:
         if point_list is None:
             point_list = self.points
         gesture_length = 0.0
-        if len(point_list) <= 1: # If there is only one point -> no length
+        if len(point_list) <= 1:  # If there is only one point -> no length
             return gesture_length
         for i in range(len(point_list)-1):
             gesture_length += self.points_distance(
                 point_list[i], point_list[i+1])
         return gesture_length
 
-    def normalize_stroke(self, sample_points = 32):
+    def normalize_stroke(self, sample_points=32):
         '''Normalizes strokes so that every stroke has a standard number of
            points. Returns True if stroke is normalized, False if it can't be
            normalized. sample_points controls the resolution of the stroke.
@@ -195,8 +195,8 @@ class GestureStroke:
             return False
 
         # Calculate how long each point should be in the stroke
-        target_stroke_size = self.stroke_length(self.points) / \
-                             float(sample_points)
+        target_stroke_size = \
+            self.stroke_length(self.points) / float(sample_points)
         new_points = list()
         new_points.append(self.points[0])
 
@@ -220,7 +220,7 @@ class GestureStroke:
                     to_y = y_dir * ratio + prev.y
                     new_points.append(GesturePoint(to_x, to_y))
                     dst_distance = self.stroke_length(self.points) / \
-                            float(sample_points) * len(new_points)
+                        float(sample_points) * len(new_points)
 
         # If this happens, we are into troubles...
         if not len(new_points) == sample_points:
@@ -321,8 +321,9 @@ class Gesture:
                         raise ValueError("Stroke entry must have 2 values max")
                     self.strokes[-1].add_point(point[0], point[1])
                 else:
-                    raise TypeError("The point list should either be " + \
-                        " tuples of x and y or a list of GesturePoint objects")
+                    raise TypeError("The point list should either be "
+                                    "tuples of x and y or a list of "
+                                    "GesturePoint objects")
         elif point_list is not None:
             raise ValueError("point_list should be a tuple/list")
         return self.strokes[-1]
@@ -366,8 +367,8 @@ class Gesture:
                 list(zip(self.strokes, comparison_gesture.strokes))):
             for pt_index, (my_point, cmp_point) in enumerate(
                     list(zip(my_stroke.points, cmp_stroke.points))):
-                dot_product += my_point.x * cmp_point.x +\
-                               my_point.y * cmp_point.y
+                dot_product += (my_point.x * cmp_point.x +
+                                my_point.y * cmp_point.y)
         return dot_product
 
     def rotate(self, angle):
@@ -397,7 +398,7 @@ class Gesture:
             if score <= 0:
                 return score
             score /= math.sqrt(
-                    self.gesture_product * comparison_gesture.gesture_product)
+                self.gesture_product * comparison_gesture.gesture_product)
             return score
 
     def __eq__(self, comparison_gesture):
@@ -407,7 +408,7 @@ class Gesture:
             # definitely not the same gesture
             score = self.get_score(comparison_gesture)
             if (score > (1.0 - self.tolerance) and
-                score < (1.0 + self.tolerance)):
+                    score < (1.0 + self.tolerance)):
                 return True
             else:
                 return False
@@ -432,4 +433,3 @@ class Gesture:
 
     def __ge__(self, comparison_gesture):
         raise TypeError("Gesture cannot be evaluated with >=")
-
