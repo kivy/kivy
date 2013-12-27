@@ -26,4 +26,3 @@ class StencilView(Widget):
     '''StencilView class. See module documentation for more information.
     '''
     pass
-
