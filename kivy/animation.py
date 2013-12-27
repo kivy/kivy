@@ -64,8 +64,8 @@ Repeating animation
 .. note::
     This is currently only implemented for 'Sequence' animations.
 
-To set an animation to repeat, simply set the :data:`Sequence.repeat` property to
-`True`::
+To set an animation to repeat, simply set the :data:`Sequence.repeat`
+property to `True`::
 
     anim = Animation(...) + Animation(...)
     anim.repeat = True
@@ -403,7 +403,7 @@ class Sequence(Animation):
         self.anim1.stop_property(widget, prop)
         self.anim2.stop_property(widget, prop)
         if (not self.anim1.have_properties_to_animate(widget) and
-            not self.anim2.have_properties_to_animate(widget)):
+                not self.anim2.have_properties_to_animate(widget)):
             self.stop(widget)
 
     def cancel(self, widget):
@@ -422,7 +422,7 @@ class Sequence(Animation):
 
     def on_anim2_complete(self, instance, widget):
         '''Repeating logic used with boolean variable "repeat".
-        
+
         .. versionadded:: 1.7.1
         '''
         if self.repeat:
@@ -468,7 +468,7 @@ class Parallel(Animation):
         self.anim1.stop_property(widget, prop)
         self.anim2.stop_property(widget, prop)
         if (not self.anim1.have_properties_to_animate(widget) and
-            not self.anim2.have_properties_to_animate(widget)):
+                not self.anim2.have_properties_to_animate(widget)):
             self.stop(widget)
 
     def cancel(self, widget):
