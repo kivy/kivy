@@ -7,7 +7,7 @@ Activate other frameworks/toolkits inside the kivy event loop.
 '''
 
 __all__ = ('install_gobject_iteration', 'install_twisted_reactor',
-    'install_android')
+           'install_android')
 
 
 def install_gobject_iteration():
@@ -35,7 +35,7 @@ def install_gobject_iteration():
 
     # schedule the iteration each frame
     def _gobject_iteration(*largs):
-        # XXX we need to loop over context here, otherwise, we might have a lag.
+        # XXX we need to loop over context here, otherwise, we might have a lag
         loop = 0
         while context.pending() and loop < 10:
             context.iteration(False)
@@ -124,7 +124,7 @@ def install_android():
                 Logger.info('Android: Android has resumed, resume the app.')
                 app.dispatch('on_resume')
                 Window.canvas.ask_update()
-                g_android_redraw_count = 25  # 5 frames/seconds during 5 seconds
+                g_android_redraw_count = 25  # 5 frames/seconds for 5 seconds
                 Clock.unschedule(_android_ask_redraw)
                 Clock.schedule_interval(_android_ask_redraw, 1 / 5)
                 Logger.info('Android: App resume completed.')
