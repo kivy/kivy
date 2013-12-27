@@ -10,8 +10,8 @@ system.
 
 .. warning::
 
-    This widget is highly experimental. The whole styling and implementation are
-    not stable until this warning has been removed.
+    This widget is highly experimental. The whole styling and
+    implementation are not stable until this warning has been removed.
 
 Usage with Text
 ---------------
@@ -48,7 +48,8 @@ document ``index.rst`` you can write::
 
     Go to my next document: :doc:`moreinfo.rst`
 
-It will generate a link that, when clicked, opens the ``moreinfo.rst`` document.
+It will generate a link that, when clicked, opens the ``moreinfo.rst``
+document.
 
 '''
 
@@ -59,8 +60,8 @@ from os.path import dirname, join, exists
 from kivy.clock import Clock
 from kivy.compat import PY2
 from kivy.properties import ObjectProperty, NumericProperty, \
-        DictProperty, ListProperty, StringProperty, \
-        BooleanProperty, OptionProperty, AliasProperty
+    DictProperty, ListProperty, StringProperty, \
+    BooleanProperty, OptionProperty, AliasProperty
 from kivy.lang import Builder
 from kivy.utils import get_hex_from_color, get_color_from_hex
 from kivy.uix.widget import Widget
@@ -394,8 +395,8 @@ class RstDocument(ScrollView):
     source = StringProperty(None)
     '''Filename of the RST document.
 
-    :data:`source` is a :class:`~kivy.properties.StringProperty` and defaults to
-    None.
+    :data:`source` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
     '''
 
     source_encoding = StringProperty('utf-8')
@@ -411,7 +412,8 @@ class RstDocument(ScrollView):
 
     source_error = OptionProperty('strict',
                                   options=('strict', 'ignore', 'replace',
-                                    'xmlcharrefreplace', 'backslashreplac'))
+                                           'xmlcharrefreplace',
+                                           'backslashreplac'))
     '''Error handling to be used while encoding the :data:`source` file.
 
     :data:`source_error` is an :class:`~kivy.properties.OptionProperty` and
@@ -442,7 +444,8 @@ class RstDocument(ScrollView):
     '''
 
     show_errors = BooleanProperty(False)
-    '''Indicate whether RST parsers errors should be shown on the screen or not.
+    '''Indicate whether RST parsers errors should be shown on the screen
+    or not.
 
     :data:`show_errors` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
@@ -508,12 +511,13 @@ class RstDocument(ScrollView):
         self._trigger_load = Clock.create_trigger(self._load_from_text, -1)
         self._parser = rst.Parser()
         self._settings = frontend.OptionParser(
-                components=(rst.Parser, )).get_default_values()
+            components=(rst.Parser, )).get_default_values()
         super(RstDocument, self).__init__(**kwargs)
 
     def on_source(self, instance, value):
         if self.document_root is None:
-            # set the documentation root to the directory name of the first tile
+            # set the documentation root to the directory name of the
+            # first tile
             self.document_root = dirname(value)
         self._load_from_source()
 
@@ -607,8 +611,9 @@ class RstDocument(ScrollView):
 
             It is preferable to delay the call of the goto if you just loaded
             the document because the layout might not be finished or the
-            size of the RstDocument has not yet been determined. In either case,
-            the calculation of the scrolling would be wrong.
+            size of the RstDocument has not yet been determined. In
+            either case, the calculation of the scrolling would be
+            wrong.
 
             You can, however, do a direct call if the document is already
             loaded.
@@ -995,9 +1000,9 @@ class _Visitor(nodes.NodeVisitor):
 
         elif cls is nodes.reference:
             name = node.get('name', node.get('refuri'))
-            self.text += '[ref=%s][color=%s]' % (name,
-                    self.root.colors.get('link',
-                        self.root.colors.get('paragraph')))
+            self.text += '[ref=%s][color=%s]' % (
+                name, self.root.colors.get(
+                    'link', self.root.colors.get('paragraph')))
             if 'refname' in node and 'name' in node:
                 self.root.refs_assoc[node['name']] = node['refname']
 
@@ -1122,7 +1127,8 @@ class _Visitor(nodes.NodeVisitor):
             filename = self.root.resolve_path(rst_docname)
             self.root.preload(filename)
 
-            # if exist, use the title of the first section found in the document
+            # if exist, use the title of the first section found in the
+            # document
             title = docname
             if filename in self.root.toctrees:
                 toctree = self.root.toctrees[filename]
@@ -1131,8 +1137,8 @@ class _Visitor(nodes.NodeVisitor):
 
             # replace the text with a good reference
             text = '[ref=%s]%s[/ref]' % (
-                    rst_docname,
-                    self.colorize(title, 'link'))
+                rst_docname,
+                self.colorize(title, 'link'))
             self.text = self.text[:self.doc_index] + text
 
         elif cls is role_video:
@@ -1142,9 +1148,9 @@ class _Visitor(nodes.NodeVisitor):
             if uri.startswith('/') and self.root.document_root:
                 uri = join(self.root.document_root, uri[1:])
             video = RstVideoPlayer(
-                    source=uri,
-                    size_hint=(None, None),
-                    size=(width, height))
+                source=uri,
+                size_hint=(None, None),
+                size=(width, height))
             anchor = AnchorLayout(size_hint_y=None, height=height + 20)
             anchor.add_widget(video)
             self.current.add_widget(anchor)
