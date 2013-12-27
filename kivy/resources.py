@@ -57,4 +57,3 @@ def resource_remove_path(path):
         return
     Logger.debug('Resource: remove <%s> from path list' % path)
     resource_paths.remove(path)
-
