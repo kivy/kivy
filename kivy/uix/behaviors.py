@@ -56,9 +56,9 @@ class ButtonBehavior(object):
     '''
 
     last_touch = ObjectProperty(None)
-    '''Contains the last relevant touch received by the Button. This can be used
-    in `on_press` or `on_release` in order to know which touch dispatched the
-    event.
+    '''Contains the last relevant touch received by the Button. This can
+    be used in `on_press` or `on_release` in order to know which touch
+    dispatched the event.
 
     .. versionadded:: 1.8.0
 
@@ -217,10 +217,10 @@ class ToggleButtonBehavior(ButtonBehavior):
 
         .. warning::
 
-            It's possible that some widgets that you have previously deleted are
-            still in the list. Garbage collector might need more elements before
-            flushing it. The return of this method is informative, you've been
-            warned!
+            It's possible that some widgets that you have previously
+            deleted are still in the list. Garbage collector might need
+            more elements before flushing it. The return of this method
+            is informative, you've been warned!
         '''
         groups = ToggleButtonBehavior.__groups
         if groupname not in groups:
@@ -344,7 +344,7 @@ class DragBehavior(object):
 
     def on_touch_move(self, touch):
         if self._get_uid('svavoid') in touch.ud or\
-            self._drag_touch is not touch:
+                self._drag_touch is not touch:
             return super(DragBehavior, self).on_touch_move(touch) or\
                 self._get_uid() in touch.ud
         if touch.grab_current is not self:
@@ -412,4 +412,3 @@ class DragBehavior(object):
         super(DragBehavior, self).on_touch_down(touch)
         touch.pop()
         return
-
