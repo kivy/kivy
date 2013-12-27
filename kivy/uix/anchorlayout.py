@@ -12,8 +12,8 @@ Anchor Layout
     .. image:: images/anchorlayout.png
         :align: right
 
-The :class:`AnchorLayout` aligns children to a border (top, bottom, left, right)
-or center.
+The :class:`AnchorLayout` aligns children to a border (top, bottom,
+left, right) or center.
 
 
 To draw a button in the lower-right corner::
@@ -46,16 +46,18 @@ class AnchorLayout(Layout):
         'left', 'center', 'right'))
     '''Horizontal anchor.
 
-    :data:`anchor_x` is an :class:`~kivy.properties.OptionProperty` and defaults
-    to 'center'. It accepts values of 'left', 'center' or 'right'.
+    :data:`anchor_x` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'center'. It accepts values of 'left', 'center' or
+    'right'.
     '''
 
     anchor_y = OptionProperty('center', options=(
         'top', 'center', 'bottom'))
     '''Vertical anchor.
 
-    :data:`anchor_y` is an :class:`~kivy.properties.OptionProperty` and defaults
-    to 'center'. It accepts values of 'top', 'center' or 'bottom'.
+    :data:`anchor_y` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'center'. It accepts values of 'top', 'center' or
+    'bottom'.
     '''
 
     def __init__(self, **kwargs):
