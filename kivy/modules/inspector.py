@@ -72,10 +72,10 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.modalview import ModalView
 from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix, \
-        Translate, Rotate, Scale
+    Translate, Rotate, Scale
 from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
-        NumericProperty, StringProperty, OptionProperty, \
-        ReferenceListProperty, AliasProperty, VariableListProperty
+    NumericProperty, StringProperty, OptionProperty, \
+    ReferenceListProperty, AliasProperty, VariableListProperty
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from functools import partial
@@ -484,16 +484,17 @@ class Inspector(FloatLayout):
                 button = Button(text=repr(item), size_hint_y=None, height=44)
                 if isinstance(item, Widget):
                     button.bind(on_release=partial(self.highlight_widget, item,
-                        False))
+                                                   False))
                 else:
                     button.bind(on_release=partial(self.show_property, widget,
-                        item, key, i))
+                                                   item, key, i))
                 content.add_widget(button)
         elif isinstance(prop, OptionProperty):
             content = GridLayout(cols=1, size_hint_y=None)
             content.bind(minimum_height=content.setter('height'))
             for option in prop.options:
-                button = ToggleButton(text=option,
+                button = ToggleButton(
+                    text=option,
                     state='down' if option == value else 'normal',
                     group=repr(content.uid), size_hint_y=None,
                     height=44)
@@ -513,7 +514,7 @@ class Inspector(FloatLayout):
             state = 'down' if value else 'normal'
             content = ToggleButton(text=key, state=state)
             content.bind(on_release=partial(self.save_property_boolean, widget,
-                key, index))
+                                            key, index))
 
         self.content.clear_widgets()
         if content:
@@ -570,7 +571,7 @@ def create_inspector(win, ctx, *l):
     # rules are applied.
     ctx.inspector = Inspector(win=win)
     win.bind(children=ctx.inspector.on_window_children,
-            on_keyboard=ctx.inspector.keyboard_shortcut)
+             on_keyboard=ctx.inspector.keyboard_shortcut)
 
 
 def start(win, ctx):
@@ -584,4 +585,3 @@ def stop(win, ctx):
                    on_keyboard=ctx.inspector.keyboard_shortcut)
         win.remove_widget(ctx.inspector)
         del ctx.inspector
-
