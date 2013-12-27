@@ -30,7 +30,7 @@ __all__ = ('Camera', )
 from kivy.uix.image import Image
 from kivy.core.camera import Camera as CoreCamera
 from kivy.properties import NumericProperty, ListProperty, \
-        BooleanProperty
+    BooleanProperty
 
 
 class Camera(Image):
@@ -98,7 +98,7 @@ class Camera(Image):
         if self.resolution[0] < 0 or self.resolution[1] < 0:
             return
         self._camera = CoreCamera(index=self.index,
-            resolution=self.resolution, stopped=True)
+                                  resolution=self.resolution, stopped=True)
         self._camera.bind(on_load=self._camera_loaded)
         if self.play:
             self._camera.start()
@@ -115,4 +115,3 @@ class Camera(Image):
             self._camera.start()
         else:
             self._camera.stop()
-
