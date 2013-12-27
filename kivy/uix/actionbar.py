@@ -500,8 +500,8 @@ class ActionView(BoxLayout):
                    group.separator_width < width:
                     super_add(group)
                     group.show_group()
-                    total_width += group.minimum_width +\
-                                   group.separator_width
+                    total_width += (group.minimum_width +
+                                    group.separator_width)
 
                 else:
                     hidden_groups.append(group)
