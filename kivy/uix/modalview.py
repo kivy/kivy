@@ -67,8 +67,9 @@ True from your callback. ::
 
 .. versionchanged:: 1.5.0
 
-    The ModalView can be closed by hitting the escape key on the keyboard if the
-    :data:`ModalView.auto_dismiss` property is True (the default).
+    The ModalView can be closed by hitting the escape key on the
+    keyboard if the :data:`ModalView.auto_dismiss` property is True (the
+    default).
 
 '''
 
@@ -194,7 +195,6 @@ class ModalView(AnchorLayout):
         # XXX HACK DONT REMOVE OR FOUND AND FIX THE ISSUE
         # It seems that if we don't access to the center before assigning a new
         # value, no dispatch will be done >_>
-        a = self.center
         self.center = self._window.center
 
     def dismiss(self, *largs, **kwargs):
@@ -286,7 +286,8 @@ if __name__ == '__main__':
     # add view
     content = GridLayout(cols=1)
     content.add_widget(Label(text='This is a hello world'))
-    view = ModalView(size_hint=(None, None), size=(256, 256), auto_dismiss=True)
+    view = ModalView(size_hint=(None, None), size=(256, 256),
+                     auto_dismiss=True)
     view.add_widget(content)
 
     def open_view(btn):
