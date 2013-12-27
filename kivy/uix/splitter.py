@@ -46,7 +46,7 @@ __all__ = ('Splitter', )
 
 from kivy.uix.button import Button
 from kivy.properties import (OptionProperty, NumericProperty, ObjectProperty,
-                            ListProperty, BooleanProperty)
+                             ListProperty)
 from kivy.uix.boxlayout import BoxLayout
 
 
@@ -92,8 +92,8 @@ class Splitter(BoxLayout):
     :class:`~kivy.uix.button.Button`.
     '''
 
-    sizable_from = OptionProperty('left',
-        options=('left', 'right', 'top', 'bottom'))
+    sizable_from = OptionProperty('left', options=(
+        'left', 'right', 'top', 'bottom'))
     '''Specifies whether the widget is resizable. Options are::
         `left`, `right`, `top` or `bottom`
 
