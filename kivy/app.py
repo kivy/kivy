@@ -3,10 +3,11 @@ Application
 ===========
 
 The :class:`App` class is the base for creating Kivy applications.
-Think of it as your main entry point into the Kivy run loop.  In most cases, you
-subclass this class and make your own app. You create an instance of your
-specific app class and then, when you are ready to start the application's life
-cycle, you call your instance's :func:`App.run` method.
+Think of it as your main entry point into the Kivy run loop.  In most
+cases, you subclass this class and make your own app. You create an
+instance of your specific app class and then, when you are ready to
+start the application's life cycle, you call your instance's
+:func:`App.run` method.
 
 
 Creating an Application
@@ -26,16 +27,16 @@ Here's an example of a very simple application that just shows a button:
 The file is also available in the examples folder at
 :file:`kivy/examples/application/app_with_build.py`.
 
-Here, no widget tree was constructed (or if you will, a tree with only the root
-node).
+Here, no widget tree was constructed (or if you will, a tree with only
+the root node).
 
 
 Method using kv file
 ~~~~~~~~~~~~~~~~~~~~
 
-You can also use the :doc:`api-kivy.lang` for creating applications. The .kv can
-contain rules and root widget definitions at the same time. Here is the same
-example as the Button one in a kv file.
+You can also use the :doc:`api-kivy.lang` for creating applications. The
+.kv can contain rules and root widget definitions at the same time. Here
+is the same example as the Button one in a kv file.
 
 Contents of 'test.kv':
 
@@ -72,9 +73,9 @@ parameter (which is an instance of :class:`~kivy.config.ConfigParser`)::
                 'key2': '42'
             })
 
-As soon as you add one section in the config, a file is created on the disk and
-named from the mangled name of your class. "TestApp" will give a config
-file-name "test.ini" with the content::
+As soon as you add one section in the config, a file is created on the
+disk and named from the mangled name of your class. "TestApp" will give
+a config file-name "test.ini" with the content::
 
     [section1]
     key1 = value1
@@ -111,8 +112,8 @@ the :meth:`App.build_settings` method.
 Check the :class:`~kivy.uix.settings.Settings` about how to create a panel,
 because you need a JSON file / data first.
 
-Let's take as an example the previous snippet of TestApp with custom config. We
-could create a JSON like this::
+Let's take as an example the previous snippet of TestApp with custom
+config. We could create a JSON like this::
 
     [
         { "type": "title",
@@ -142,10 +143,10 @@ options and link them to our :data:`App.config` ConfigParser instance::
             settings.add_json_panel('Test application',
                 self.config, data=jsondata)
 
-That's all! Now you can press F1 (default keystroke) to toggle the settings
-panel or press the "settings" key on your android device. You can manually call
-:meth:`App.open_settings` and :meth:`App.close_settings` if you want to handle
-this manually. Every
+That's all! Now you can press F1 (default keystroke) to toggle the
+settings panel or press the "settings" key on your android device. You
+can manually call :meth:`App.open_settings` and
+:meth:`App.close_settings` if you want to handle this manually. Every
 change in the panel is automatically saved in the config file.
 
 You can also use :meth:`App.build_settings` to modify properties of
@@ -268,9 +269,9 @@ Pause mode
     This mode is experimental, and designed for phones/tablets. There are some
     cases where your application could crash on resume.
 
-On tablets and phones, the user can switch at any moment to another application.
-By default, your application will close and the :func:`App.on_stop` event will
-be fired.
+On tablets and phones, the user can switch at any moment to another
+application.  By default, your application will close and the
+:func:`App.on_stop` event will be fired.
 
 If you support Pause mode, when switching to another application, your
 application will wait indefinitely until the user
@@ -282,10 +283,11 @@ implemented in Kivy.
 The currently implemented Pause mechanism is:
 
     #. Kivy checks every frame if Pause mode is activated by the Operating
-       System due to the user switching to another application, a phone shutdown
-       or any other reason.
+       System due to the user switching to another application, a phone
+       shutdown or any other reason.
     #. :func:`App.on_pause` is called:
-    #. If False is returned (default case), then :func:`App.on_stop` is called.
+    #. If False is returned (default case), then :func:`App.on_stop` is
+       called.
     #. Otherwise the application will sleep until the OS resumes our App
     #. When the app is resumed, :func:`App.on_resume` is called.
     #. If our app memory has been reclaimed by the OS, then nothing will be
@@ -351,8 +353,9 @@ class App(EventDispatcher):
             file. By default, the file is assumed to be in the same directory
             as the current App definition file.
         `kv_file`: <filename>, defaults to None
-            If a kv_file is set, it will be loaded when the application starts.
-            The loading of the "default" kv file will be prevented.
+            If a kv_file is set, it will be loaded when the application
+            starts. The loading of the "default" kv file will be
+            prevented.
 
     .. versionchanged:: 1.7.0
         Parameter `kv_file` added.
@@ -424,8 +427,10 @@ class App(EventDispatcher):
         #: Options passed to the __init__ of the App
         self.options = kwargs
 
-        #: Instance to the :class:`~kivy.config.ConfigParser` of the application
-        #: configuration. Can be used to query some config token in the build()
+        #: Instance to the :class:`~kivy.config.ConfigParser` of the
+        #: application
+        #: configuration. Can be used to query some config token in the
+        #: build()
         self.config = None
 
         #: Root widget set by the :meth:`build` method or by the
@@ -437,8 +442,8 @@ class App(EventDispatcher):
         If this method returns a widget (tree), it will be used as the root
         widget and added to the window.
 
-        :return: None or a root :class:`~kivy.uix.widget.Widget` instance if no
-            self.root exists.
+        :return: None or a root :class:`~kivy.uix.widget.Widget`
+        instance if no self.root exists.
         '''
         if not self.root:
             return Widget()
@@ -446,11 +451,12 @@ class App(EventDispatcher):
     def build_config(self, config):
         '''.. versionadded:: 1.0.7
 
-        This method is called before the application is initialized to construct
-        your :class:`~kivy.config.ConfigParser` object. This is where you can
-        put any default section / key / value for your config. If anything is
-        set, the configuration will be automatically saved in the file returned
-        by :meth:`get_application_config`.
+        This method is called before the application is initialized to
+        construct your :class:`~kivy.config.ConfigParser` object. This
+        is where you can put any default section / key / value for your
+        config. If anything is set, the configuration will be
+        automatically saved in the file returned by
+        :meth:`get_application_config`.
 
         :param config: Use this to add defaults section / key / value items
         :type config: :class:`~kivy.config.ConfigParser`
@@ -516,8 +522,8 @@ class App(EventDispatcher):
             kv_directory = self.options.get('kv_directory',
                                             default_kv_directory)
             clsname = self.__class__.__name__.lower()
-            if clsname.endswith('app') and \
-                not isfile(join(kv_directory, '%s.kv' % clsname)):
+            if (clsname.endswith('app') and
+                    not isfile(join(kv_directory, '%s.kv' % clsname))):
                 clsname = clsname[:-3]
             filename = join(kv_directory, '%s.kv' % clsname)
 
@@ -557,19 +563,20 @@ class App(EventDispatcher):
             defaultpath parameter for desktop OS's (not applicable to iOS
             and Android.)
 
-        Return the filename of your application configuration. Depending on the
-        platform, the application file will be stored in different locations:
+        Return the filename of your application configuration. Depending
+        on the platform, the application file will be stored in
+        different locations:
 
             - on iOS: <appdir>/Documents/.<appname>.ini
             - on Android: /sdcard/.<appname>.ini
             - otherwise: <appdir>/<appname>.ini
 
-        When you are distributing your application on Desktops, please note that
-        if the application is meant to be installed system-wide, the user
-        might not have write-access to the application directory. If you
-        want to store user settings, you should
-        overload this method and change the default behavior to save the
-        configuration file in the user directory.::
+        When you are distributing your application on Desktops, please
+        note that if the application is meant to be installed
+        system-wide, the user might not have write-access to the
+        application directory. If you want to store user settings, you
+        should overload this method and change the default behavior to
+        save the configuration file in the user directory.::
 
             class TestApp(App):
                 def get_application_config(self):
@@ -728,7 +735,7 @@ class App(EventDispatcher):
             self._install_settings_keys(window)
         else:
             Logger.critical("Application: No window is created."
-                " Terminating application run.")
+                            " Terminating application run.")
             return
 
         self.dispatch('on_start')
@@ -778,8 +785,8 @@ class App(EventDispatcher):
         return False
 
     def on_resume(self):
-        '''Event handler called when your application is resuming from the Pause
-        mode.
+        '''Event handler called when your application is resuming from
+        the Pause mode.
 
         .. versionadded:: 1.1.0
 
