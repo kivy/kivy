@@ -138,19 +138,20 @@ class LoaderBase(object):
         return self._max_upload_per_frame
 
     max_upload_per_frame = property(_get_max_upload_per_frame,
-            _set_max_upload_per_frame)
-    '''The number of images to upload per frame. By default, we'll upload only 2
-    images to the GPU per frame. If you are uploading many small images, you can
-    easily increase this parameter to 10 or more.
+                                    _set_max_upload_per_frame)
+    '''The number of images to upload per frame. By default, we'll
+    upload only 2 images to the GPU per frame. If you are uploading many
+    small images, you can easily increase this parameter to 10 or more.
     If you are loading multiple full HD images, the upload time may have
     consequences and block the application. If you want a
     smooth experience, use the default.
 
-    As a matter of fact, a Full-HD RGB image will take ~6MB in memory, so it may
-    take time. If you have activated mipmap=True too, then the GPU must
-    calculate the mipmap of these big images too, in real time. Then it may be
-    best to reduce the :data:`max_upload_per_frame` to 1 or 2. If you want to
-    get rid of that (or reduce it a lot), take a look at the DDS format.
+    As a matter of fact, a Full-HD RGB image will take ~6MB in memory,
+    so it may take time. If you have activated mipmap=True too, then the
+    GPU must calculate the mipmap of these big images too, in real time.
+    Then it may be best to reduce the :data:`max_upload_per_frame` to 1
+    or 2. If you want to get rid of that (or reduce it a lot), take a
+    look at the DDS format.
 
     .. versionadded:: 1.6.0
     '''
@@ -242,7 +243,7 @@ class LoaderBase(object):
         '''
 
         while len(self._q_done) >= (
-            self.max_upload_per_frame * self._num_workers):
+                self.max_upload_per_frame * self._num_workers):
             sleep(0.1)
 
         self._wait_for_resume()
@@ -297,7 +298,7 @@ class LoaderBase(object):
             _out_filename = ''
             suffix = '.%s' % (filename.split('.')[-1])
             _out_osfd, _out_filename = tempfile.mkstemp(
-                    prefix='kivyloader', suffix=suffix)
+                prefix='kivyloader', suffix=suffix)
 
             if proto == 'smb':
                 # read from samba shares
@@ -374,7 +375,8 @@ class LoaderBase(object):
 
         self._trigger_update()
 
-    def image(self, filename, load_callback=None, post_callback=None, **kwargs):
+    def image(self, filename, load_callback=None, post_callback=None,
+              **kwargs):
         '''Load a image using the Loader. A ProxyImage is returned with a
         loading image. You can use it as follows::
 
@@ -401,11 +403,11 @@ class LoaderBase(object):
         if data not in (None, False):
             # found image, if data is not here, need to reload.
             return ProxyImage(data,
-                    loading_image=self.loading_image,
-                    loaded=True, **kwargs)
+                              loading_image=self.loading_image,
+                              loaded=True, **kwargs)
 
         client = ProxyImage(self.loading_image,
-                    loading_image=self.loading_image, **kwargs)
+                            loading_image=self.loading_image, **kwargs)
         self._client.append((filename, client))
 
         if data is None:
@@ -506,4 +508,3 @@ else:
     Loader = LoaderThreadPool()
     Logger.info('Loader: using a thread pool of {} workers'.format(
         Loader.num_workers))
-
