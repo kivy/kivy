@@ -320,7 +320,7 @@ class ActionOverflow(ActionGroup):
 
         if not isinstance(action_item, ActionItem):
             raise ActionBarException('ActionView only accepts ActionItem'
-                    ' (got {!r}'.format(action_item))
+                                     ' (got {!r}'.format(action_item))
 
         else:
             if index == 0:
@@ -393,7 +393,7 @@ class ActionView(BoxLayout):
 
         if not isinstance(action_item, ActionItem):
             raise ActionBarException('ActionView only accepts ActionItem'
-                    ' (got {!r}'.format(action_item))
+                                     ' (got {!r}'.format(action_item))
 
         elif isinstance(action_item, ActionOverflow):
             self.overflow_group = action_item
@@ -478,7 +478,7 @@ class ActionView(BoxLayout):
         super_add(self.action_previous)
 
         width = (self.width - self.overflow_group.minimum_width -
-                self.action_previous.minimum_width)
+                 self.action_previous.minimum_width)
 
         if len(self._list_action_items):
             for child in self._list_action_items[1:]:
@@ -648,7 +648,6 @@ class ActionBar(BoxLayout):
 if __name__ == "__main__":
     from kivy.base import runTouchApp
     from kivy.uix.floatlayout import FloatLayout
-    from kivy.lang import Builder
     from kivy.factory import Factory
 
     # XXX clean the first registration done from '__main__' here.
