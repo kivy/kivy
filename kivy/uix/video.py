@@ -2,13 +2,14 @@
 Video
 =====
 
-The :class:`Video` widget is used to display video files and streams. Depending
-on your Video core provider, platform, and plugins, you will be able to play
-different formats. For example, the pygame video provider only supports MPEG1 on
-Linux and OSX. GStreamer is more versatile, and can read many video containers
-and codecs such as MKV, OGV, AVI, MOV, FLV (if the correct gstreamer plugins
-are installed). Our :class:`~kivy.core.video.VideoBase` implementation is used
-under the hood.
+The :class:`Video` widget is used to display video files and streams.
+Depending on your Video core provider, platform, and plugins, you will
+be able to play different formats. For example, the pygame video
+provider only supports MPEG1 on Linux and OSX. GStreamer is more
+versatile, and can read many video containers and codecs such as MKV,
+OGV, AVI, MOV, FLV (if the correct gstreamer plugins are installed). Our
+:class:`~kivy.core.video.VideoBase` implementation is used under the
+hood.
 
 Video loading is asynchronous - many properties are not available until
 the video is loaded (when the texture is created)::
@@ -30,7 +31,7 @@ from kivy.uix.image import Image
 from kivy.core.video import Video as CoreVideo
 from kivy.resources import resource_find
 from kivy.properties import (BooleanProperty, NumericProperty, ObjectProperty,
-        OptionProperty)
+                             OptionProperty)
 
 
 class Video(Image):
@@ -97,20 +98,21 @@ class Video(Image):
     '''Position of the video between 0 and :data:`duration`. The position
     defaults to -1 and is set to a real position when the video is loaded.
 
-    :data:`position` is a :class:`~kivy.properties.NumericProperty` and defaults
-    to -1.
+    :data:`position` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to -1.
     '''
 
     duration = NumericProperty(-1)
     '''Duration of the video. The duration defaults to -1, and is set to a real
     duration when the video is loaded.
 
-    :data:`duration` is a :class:`~kivy.properties.NumericProperty` and defaults
-    to -1.
+    :data:`duration` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to -1.
     '''
 
     volume = NumericProperty(1.)
-    '''Volume of the video, in the range 0-1. 1 means full volume, 0 means mute.
+    '''Volume of the video, in the range 0-1. 1 means full volume, 0
+    means mute.
 
     :data:`volume` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.
@@ -134,8 +136,8 @@ class Video(Image):
             self._trigger_video_load()
 
     def seek(self, percent):
-        '''Change the position to a percentage of duration. Percentage must be a
-        value between 0-1.
+        '''Change the position to a percentage of duration. Percentage
+        must be a value between 0-1.
 
         .. warning::
 
