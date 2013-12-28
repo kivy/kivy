@@ -366,6 +366,7 @@ class App(EventDispatcher):
         class MyApp(App):
             title = 'Custom title'
 
+    Title can be changed at runtime using :meth:`App.set_title`.
     '''
 
     icon = None
@@ -905,6 +906,18 @@ class App(EventDispatcher):
         '''
         if self._app_settings is not None:
             self._app_settings = None
+
+    def set_title(self, title):
+        '''.. versionadded:: 1.8.0
+
+           Set the window title.
+           Do the same as :meth:`.core.window.WindowBase.set_title`
+        '''
+        self.title = title
+        from kivy.base import EventLoop
+        window = EventLoop.window
+        if window:
+            window.set_title(self.title)
 
     def _on_config_change(self, *largs):
         self.on_config_change(*largs[1:])
