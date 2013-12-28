@@ -84,8 +84,8 @@ class ScrollEffect(KineticEffect):
     '''
 
     def reset(self, pos):
-        '''(internal) Reset the value and the velocity to the `pos`. Mostly used
-        when the bounds are checked.
+        '''(internal) Reset the value and the velocity to the `pos`.
+        Mostly used when the bounds are checked.
         '''
         self.value = pos
         self.velocity = 0
@@ -123,4 +123,3 @@ class ScrollEffect(KineticEffect):
             self.velocity = 0
             return
         return super(ScrollEffect, self).stop(val, t)
-
