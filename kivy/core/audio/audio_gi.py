@@ -96,7 +96,7 @@ class SoundGi(Sound):
         if self._data is None:
             return
         self._data.seek_simple(
-                Gst.Format.TIME, Gst.SeekFlags.SKIP, position * Gst.SECOND)
+            Gst.Format.TIME, Gst.SeekFlags.SKIP, position * Gst.SECOND)
 
     def get_pos(self):
         if self._data is not None:
