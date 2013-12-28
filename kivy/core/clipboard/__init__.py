@@ -64,4 +64,3 @@ Clipboard = core_select_lib('clipboard', _clipboards, True)
 
 del _clipboards
 del _platform
-
