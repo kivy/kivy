@@ -434,13 +434,18 @@ if platform in ('darwin', 'ios'):
         base_flags, osx_flags)
 
 if c_options['use_avfoundation']:
-    osx_flags = {
-        'extra_link_args': ['-framework', 'AVFoundation'],
-        'extra_compile_args': ['-ObjC++'],
-        'depends': [join(dirname(__file__),
-            'kivy/core/camera/camera_avfoundation_implem.m')]}
-    sources['core/camera/camera_avfoundation.pyx'] = merge(
-        base_flags, osx_flags)
+    import platform as _platform
+    mac_ver = [int(x) for x in _platform.mac_ver()[0].split('.')[:2]]
+    if mac_ver >= (10, 7):
+        osx_flags = {
+            'extra_link_args': ['-framework', 'AVFoundation'],
+            'extra_compile_args': ['-ObjC++'],
+            'depends': [join(dirname(__file__),
+                'kivy/core/camera/camera_avfoundation_implem.m')]}
+        sources['core/camera/camera_avfoundation.pyx'] = merge(
+            base_flags, osx_flags)
+    else:
+        print('AVFoundation cannot be used, OSX >= 10.7 is required')
 
 if c_options['use_rpi']:
     sources['lib/vidcore_lite/egl.pyx'] = merge(
