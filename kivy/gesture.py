@@ -169,7 +169,7 @@ class GestureStroke:
         '''
         x = point1.x - point2.x
         y = point1.y - point2.y
-        return math.sqrt(x*x + y*y)
+        return math.sqrt(x * x + y * y)
 
     def stroke_length(self, point_list=None):
         '''Finds the length of the stroke. If a point list is given,
@@ -180,9 +180,9 @@ class GestureStroke:
         gesture_length = 0.0
         if len(point_list) <= 1:  # If there is only one point -> no length
             return gesture_length
-        for i in range(len(point_list)-1):
+        for i in range(len(point_list) - 1):
             gesture_length += self.points_distance(
-                point_list[i], point_list[i+1])
+                point_list[i], point_list[i + 1])
         return gesture_length
 
     def normalize_stroke(self, sample_points=32):
@@ -208,14 +208,14 @@ class GestureStroke:
             d = self.points_distance(prev, curr)
             if d > 0:
                 prev = curr
-                src_distance = src_distance+d
+                src_distance = src_distance + d
 
                 # The new point need to be inserted into the
                 # segment [prev, curr]
                 while dst_distance < src_distance:
                     x_dir = curr.x - prev.x
                     y_dir = curr.y - prev.y
-                    ratio = (src_distance-dst_distance)/d
+                    ratio = (src_distance - dst_distance) / d
                     to_x = x_dir * ratio + prev.x
                     to_y = y_dir * ratio + prev.y
                     new_points.append(GesturePoint(to_x, to_y))
