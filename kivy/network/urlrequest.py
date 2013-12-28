@@ -4,9 +4,9 @@ Url Request
 
 .. versionadded:: 1.0.8
 
-You can use the :class:`UrlRequest` to make asynchronous requests on the web and
-get the result when the request is completed. The spirit is the same as the XHR
-object in Javascript.
+You can use the :class:`UrlRequest` to make asynchronous requests on the
+web and get the result when the request is completed. The spirit is the
+same as the XHR object in Javascript.
 
 The content is also decoded if the Content-Type is
 application/json and the result automatically passed through json.loads.
@@ -131,8 +131,8 @@ class UrlRequest(Thread):
         `decode`: bool, defaults to True
             If False, skip decoding of the response.
         `debug`: bool, defaults to False
-            If True, it will use the Logger.debug to print information about url
-            access/progression/errors.
+            If True, it will use the Logger.debug to print information
+            about url access/progression/errors.
         `file_path`: str, defaults to None
             If set, the result of the UrlRequest will be written to this path
             instead of in memory.
@@ -145,9 +145,10 @@ class UrlRequest(Thread):
     '''
 
     def __init__(self, url, on_success=None, on_redirect=None,
-            on_failure=None, on_error=None, on_progress=None, req_body=None,
-            req_headers=None, chunk_size=8192, timeout=None, method=None,
-            decode=True, debug=False, file_path=None):
+                 on_failure=None, on_error=None, on_progress=None,
+                 req_body=None, req_headers=None, chunk_size=8192,
+                 timeout=None, method=None, decode=True, debug=False,
+                 file_path=None):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -353,9 +354,9 @@ class UrlRequest(Thread):
             except IndexError:
                 return
             if resp:
-                # XXX usage of dict can be dangerous if multiple headers are set
-                # even if it's invalid. But it look like it's ok ?
-                # http://stackoverflow.com/questions/2454494/..
+                # XXX usage of dict can be dangerous if multiple headers
+                # are set even if it's invalid. But it look like it's ok
+                # ?  http://stackoverflow.com/questions/2454494/..
                 # ..urllib2-multiple-set-cookie-headers-in-response
                 self._resp_headers = dict(resp.getheaders())
                 self._resp_status = resp.status
@@ -365,8 +366,8 @@ class UrlRequest(Thread):
                 if status_class in (1, 2):
                     if self._debug:
                         Logger.debug('UrlRequest: {0} Download finished with'
-                                ' {1} datalen'.format(
-                                id(self), len(data)))
+                                     ' {1} datalen'.format(id(self),
+                                                           len(data)))
                     self._is_finished = True
                     self._result = data
                     if self.on_success:
@@ -377,7 +378,7 @@ class UrlRequest(Thread):
                 elif status_class == 3:
                     if self._debug:
                         Logger.debug('UrlRequest: {} Download '
-                                'redirected'.format(id(self)))
+                                     'redirected'.format(id(self)))
                     self._is_finished = True
                     self._result = data
                     if self.on_redirect:
@@ -388,7 +389,8 @@ class UrlRequest(Thread):
                 elif status_class in (4, 5):
                     if self._debug:
                         Logger.debug('UrlRequest: {} Download failed with '
-                                'http error {}'.format(id(self), resp.status))
+                                     'http error {}'.format(id(self),
+                                                            resp.status))
                     self._is_finished = True
                     self._result = data
                     if self.on_failure:
@@ -399,7 +401,7 @@ class UrlRequest(Thread):
             elif result == 'error':
                 if self._debug:
                     Logger.debug('UrlRequest: {0} Download error '
-                            '<{1}>'.format(id(self), data))
+                                 '<{1}>'.format(id(self), data))
                 self._is_finished = True
                 self._error = data
                 if self.on_error:
@@ -409,8 +411,8 @@ class UrlRequest(Thread):
 
             elif result == 'progress':
                 if self._debug:
-                    Logger.debug('UrlRequest: {0} Download progress {1}'.format(
-                        id(self), data))
+                    Logger.debug('UrlRequest: {0} Download progress '
+                                 '{1}'.format(id(self), data))
                 if self.on_progress:
                     func = self.on_progress()
                     if func:
@@ -490,7 +492,7 @@ if __name__ == '__main__':
         pprint(error)
 
     req = UrlRequest('http://api.twitter.com/1/trends.json',
-            on_success, on_error)
+                     on_success, on_error)
     while not req.is_finished:
         sleep(1)
         Clock.tick()
