@@ -72,7 +72,8 @@ c_options = {
     'use_ios': False,
     'use_mesagl': False,
     'use_x11': False,
-    'use_gstreamer': False}
+    'use_gstreamer': False,
+    'use_avfoundation': platform == 'darwin'}
 
 # now check if environ is changing the default values
 for key in list(c_options.keys()):
@@ -430,6 +431,15 @@ if platform in ('darwin', 'ios'):
         osx_flags = {'extra_link_args': [
             '-framework', 'ApplicationServices']}
     sources['core/image/img_imageio.pyx'] = merge(
+        base_flags, osx_flags)
+
+if c_options['use_avfoundation']:
+    osx_flags = {
+        'extra_link_args': ['-framework', 'AVFoundation'],
+        'extra_compile_args': ['-ObjC++'],
+        'depends': [join(dirname(__file__),
+            'kivy/core/camera/camera_avfoundation_implem.m')]}
+    sources['core/camera/camera_avfoundation.pyx'] = merge(
         base_flags, osx_flags)
 
 if c_options['use_rpi']:

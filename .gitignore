@@ -18,6 +18,7 @@ kivy/graphics/*.pyd
 kivy/graphics/config.h
 kivy/graphics/config.pxi
 kivy/lib/gstplayer/_gstplayer.c
+kivy/core/camera/camera_avfoundation.c
 kivy/tests/build
 kivy/tests/results
 .last_known_portable_deps_hash

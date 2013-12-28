@@ -139,7 +139,10 @@ providers = ()
 if sys.platform == 'win32':
     providers += (('videocapture', 'camera_videocapture',
         'CameraVideoCapture'), )
-if sys.platform != 'darwin':
+if sys.platform == 'darwin':
+    providers += (('avfoundation', 'camera_avfoundation',
+        'CameraAVFoundation'), )
+else:
     #providers += (('gi', 'camera_gi', 'CameraGi'), )
     providers += (('pygst', 'camera_pygst', 'CameraPyGst'), )
 
