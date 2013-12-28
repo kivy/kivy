@@ -39,8 +39,9 @@ def core_select_lib(category, llist, create_instance=False, base='kivy.core'):
             try:
                 if option not in kivy.kivy_options[category]:
                     libs_ignored.append(modulename)
-                    Logger.debug('{0}: Provider <{1}> ignored by config'.format(
-                        category.capitalize(), option))
+                    Logger.debug(
+                        '{0}: Provider <{1}> ignored by config'.format(
+                            category.capitalize(), option))
                     continue
             except KeyError:
                 pass
@@ -69,9 +70,9 @@ def core_select_lib(category, llist, create_instance=False, base='kivy.core'):
 
         except CoreCriticalException as e:
             Logger.error('{0}: Unable to use {1}'.format(
-                    category.capitalize(), option))
+                category.capitalize(), option))
             Logger.error(
-                    '{0}: The module raised an important error: {1!r}'.format(
+                '{0}: The module raised an important error: {1!r}'.format(
                     category.capitalize(), e.message))
             raise
 
@@ -83,7 +84,7 @@ def core_select_lib(category, llist, create_instance=False, base='kivy.core'):
 
     Logger.critical(
         '{0}: Unable to find any valuable {1} provider at all!'.format(
-        category.capitalize(), category.capitalize()))
+            category.capitalize(), category.capitalize()))
 
 
 def core_register_libs(category, libs, base='kivy.core'):
@@ -103,10 +104,10 @@ def core_register_libs(category, libs, base='kivy.core'):
 
             # import module
             __import__(name='{2}.{0}.{1}'.format(category, lib, base),
-                        globals=globals(),
-                        locals=locals(),
-                        fromlist=[lib],
-                        level=0)
+                       globals=globals(),
+                       locals=locals(),
+                       fromlist=[lib],
+                       level=0)
 
             libs_loaded.append(lib)
 
@@ -122,4 +123,3 @@ def core_register_libs(category, libs, base='kivy.core'):
         '({0} ignored)'.format(
             ', '.join(libs_ignored)) if libs_ignored else ''))
     return libs_loaded
-
