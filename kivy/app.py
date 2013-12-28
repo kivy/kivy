@@ -407,6 +407,15 @@ class App(EventDispatcher):
 
     '''
 
+    kv_directory = None
+    '''.. versionadded:: 1.8.0
+
+    <path>, defaults to None
+    If a kv_directory is set, it will be used to get the initial kv
+    file. By default, the file is assumed to be in the same directory
+    as the current App definition file.
+    '''
+
     # Return the current running App instance
     _running_app = None
 
@@ -513,8 +522,11 @@ class App(EventDispatcher):
             except TypeError:
                 # if it's a builtin module.. use the current dir.
                 default_kv_directory = '.'
-            kv_directory = self.options.get('kv_directory',
-                                            default_kv_directory)
+            if self.kv_directory:
+                kv_directory = self.kv_directory
+            else:
+                kv_directory = self.options.get('kv_directory',
+                                                default_kv_directory)
             clsname = self.__class__.__name__.lower()
             if clsname.endswith('app') and \
                 not isfile(join(kv_directory, '%s.kv' % clsname)):
