@@ -4,7 +4,7 @@ __all__ = ('AndroidMotionEventProvider', )
 import os
 
 try:
-    import android
+    import android  # NOQA
 except ImportError:
     if 'KIVY_DOC' not in os.environ:
         raise Exception('android lib not found.')
@@ -77,7 +77,7 @@ class AndroidMotionEventProvider(MotionEventProvider):
             if pressed and jid not in touches:
                 self.uid += 1
                 touch = AndroidMotionEvent(self.device, self.uid,
-                                     [x, y, pressure, radius])
+                                           [x, y, pressure, radius])
                 touches[jid] = touch
                 dispatch_fn('begin', touch)
             # update touch
