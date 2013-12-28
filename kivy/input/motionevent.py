@@ -5,8 +5,8 @@ Motion Event
 ============
 
 The :class:`MotionEvent` is the base class used for every touch and non-touch
-event. This class defines all the properties and methods needed to handle 2D and
-3D movements but has many more capabilities.
+event. This class defines all the properties and methods needed to
+handle 2D and 3D movements but has many more capabilities.
 
 .. note::
 
@@ -45,10 +45,11 @@ Profiles
 --------
 
 A capability is the ability of a :class:`MotionEvent` to store new
-information or a way to indicate what is supported by the MotionEvent. For
-example, you can receive a MotionEvent that has an angle, a fiducial ID, or
-even a shape.  You can check the :attr:`~MotionEvent.profile` attribute to check
-what is currently supported by the MotionEvent and how to access it.
+information or a way to indicate what is supported by the MotionEvent.
+For example, you can receive a MotionEvent that has an angle, a fiducial
+ID, or even a shape.  You can check the :attr:`~MotionEvent.profile`
+attribute to check what is currently supported by the MotionEvent and
+how to access it.
 
 This is a tiny list of the supported profiles by default. Check other input
 providers to see if there are other profiles available.
@@ -111,7 +112,8 @@ class MotionEventMetaclass(type):
         if '__attrs__' in attrs:
             __attrs__.extend(attrs['__attrs__'])
         attrs['__attrs__'] = tuple(__attrs__)
-        return super(MotionEventMetaclass, mcs).__new__(mcs, name, bases, attrs)
+        return super(MotionEventMetaclass, mcs).__new__(mcs, name,
+                                                        bases, attrs)
 
 
 MotionEventBase = MotionEventMetaclass('MotionEvent', (object, ), {})
@@ -157,8 +159,8 @@ class MotionEvent(MotionEventBase):
             raise NotImplementedError('class MotionEvent is abstract')
         MotionEvent.__uniq_id += 1
 
-        #: True if the Motion Event is a Touch. Can be also verified is `pos` is
-        #: :attr:`profile`.
+        #: True if the Motion Event is a Touch. Can be also verified is
+        #: `pos` is :attr:`profile`.
         self.is_touch = False
 
         #: Attributes to push by default, when we use :func:`push` : x, y, z,
@@ -187,8 +189,9 @@ class MotionEvent(MotionEventBase):
         self.profile = []
 
         #: Id of the touch, not uniq. This is generally the Id set by the input
-        #: provider, like ID in TUIO. If you have multiple TUIO source, the same
-        #: id can be used. Prefer to use :attr:`uid` attribute instead.
+        #: provider, like ID in TUIO. If you have multiple TUIO source,
+        #: the same id can be used. Prefer to use :attr:`uid` attribute
+        #: instead.
         self.id = id
 
         #: Shape of the touch, subclass of
@@ -264,12 +267,12 @@ class MotionEvent(MotionEventBase):
         #: .. versionadded:: 1.7.0
         self.is_triple_tap = False
 
-        #: If the touch is a :attr:`is_double_tap`, this is the time between the
-        #: previous tap and the current touch.
+        #: If the touch is a :attr:`is_double_tap`, this is the time
+        #: between the previous tap and the current touch.
         self.double_tap_time = 0
 
-        #: If the touch is a :attr:`is_triple_tap`, this is the time between the
-        #: first tap and the current touch.
+        #: If the touch is a :attr:`is_triple_tap`, this is the time
+        #: between the first tap and the current touch.
         #: .. versionadded:: 1.7.0
         self.triple_tap_time = 0
 
@@ -292,9 +295,9 @@ class MotionEvent(MotionEventBase):
         self.dsz = self.sz - self.psz
 
     def grab(self, class_instance, exclusive=False):
-        '''Grab this motion event. You can grab a touch if you absolutly want to
-        receive on_touch_move() and on_touch_up(), even if the touch is not
-        dispatched by your parent::
+        '''Grab this motion event. You can grab a touch if you absolutly
+        want to receive on_touch_move() and on_touch_up(), even if the
+        touch is not dispatched by your parent::
 
             def on_touch_down(self, touch):
                 touch.grab(self)
