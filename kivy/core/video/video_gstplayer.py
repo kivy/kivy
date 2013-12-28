@@ -64,7 +64,7 @@ class VideoGstplayer(VideoBase):
         wk_self = ref(self)
         self.player_callback = partial(_on_gstplayer_buffer, wk_self)
         self.player = GstPlayer(uri, self.player_callback,
-                self._on_gst_eos_sync, _on_gstplayer_message)
+                                self._on_gst_eos_sync, _on_gstplayer_message)
         self.player.set_volume(self.volume)
         self.player.load()
 
@@ -119,7 +119,8 @@ class VideoGstplayer(VideoBase):
 
         # texture is not allocated yet, create it first
         if not self._texture:
-            self._texture = Texture.create(size=(width, height), colorfmt='rgb')
+            self._texture = Texture.create(size=(width, height),
+                                           colorfmt='rgb')
             self._texture.flip_vertical()
             self.dispatch('on_load')
 

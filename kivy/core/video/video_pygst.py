@@ -194,4 +194,3 @@ class VideoPyGst(VideoBase):
     def _set_volume(self, volume):
         self._playbin.set_property('volume', volume)
         self._volume = volume
-
