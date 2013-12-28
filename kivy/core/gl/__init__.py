@@ -8,14 +8,14 @@ core provider can select an OpenGL ES or a 'classic' desktop OpenGL library.
 '''
 
 from os import environ
-from sys import platform, exit
+from sys import platform as sysplatform, exit
 
 
 MIN_REQUIRED_GL_VERSION = (2, 0)
 
 
 def msgbox(message):
-    if platform == 'win32':
+    if sysplatform == 'win32':
         import win32ui
         win32ui.MessageBox(message, 'Kivy Fatal Error')
         exit(1)
@@ -25,7 +25,10 @@ if 'KIVY_DOC' not in environ:
     from kivy.logger import Logger
     from kivy.graphics import gl_init_resources
     from kivy.graphics.opengl_utils import gl_get_version
-    from kivy.graphics.opengl import *
+    from kivy.graphics.opengl import GL_VERSION, GL_VENDOR, GL_RENDERER, \
+        GL_MAX_TEXTURE_IMAGE_UNITS, GL_MAX_TEXTURE_SIZE, \
+        GL_SHADING_LANGUAGE_VERSION,\
+        glGetString, glGetIntegerv, gl_init_symbols
     from kivy.utils import platform
 
     def init_gl():
@@ -52,7 +55,7 @@ if 'KIVY_DOC' not in environ:
                 'Try upgrading your graphics drivers and/or your '
                 'graphics hardware in case of problems.\n\n'
                 'The application will leave now.').format(
-                        major, minor, version, vendor, renderer)
+                    major, minor, version, vendor, renderer)
             Logger.critical(msg)
             msgbox(msg)
 
@@ -68,4 +71,4 @@ if 'KIVY_DOC' not in environ:
 
     # To be able to use our GL provider, we must have a window
     # Automaticly import window auto to ensure the default window creation
-    import kivy.core.window
+    import kivy.core.window  # NOQA
