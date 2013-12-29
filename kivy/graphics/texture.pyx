@@ -929,14 +929,20 @@ cdef class Texture:
                 continue
             callback()(self)
 
-    def save(self, filename):
+    def save(self, filename, flipped=True):
         '''Save the texture content to a file. Check
         :meth:`kivy.core.image.Image.save` for more information.
 
         .. versionadded:: 1.7.0
+
+        .. versionchanged:: 1.8.0
+
+            Parameter `flipped` added, default to True. All the OpenGL Texture
+            are readed from bottom / left, it need to be flipped before saving.
+            If you don't want to flip the image, set flipped to False.
         '''
         from kivy.core.image import Image
-        return Image(self).save(filename)
+        return Image(self).save(filename, flipped=flipped)
 
     def __repr__(self):
         return '<Texture hash=%r id=%d size=%r colorfmt=%r bufferfmt=%r source=%r observers=%d>' % (
@@ -1081,7 +1087,8 @@ cdef class Texture:
             self.set_wrap(wrap)
 
     property pixels:
-        '''Get the pixels texture, in RGBA format only, unsigned byte.
+        '''Get the pixels texture, in RGBA format only, unsigned byte. The
+        origin of the image is at bottom / left.
 
         .. versionadded:: 1.7.0
         '''

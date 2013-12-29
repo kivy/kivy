@@ -672,7 +672,7 @@ class Image(EventDispatcher):
         '''
         return self._nocache
 
-    def save(self, filename):
+    def save(self, filename, flipped=False):
         '''Save image texture to file.
 
         The filename should have the '.png' extension because the texture data
@@ -693,6 +693,11 @@ class Image(EventDispatcher):
             img.save('hello3.png')
 
         .. versionadded:: 1.7.0
+
+        .. versionchanged:: 1.8.0
+
+            Parameter `flipped` added to flip the image before saving, default
+            to False.
         '''
         pixels = None
         size = None
@@ -730,7 +735,7 @@ class Image(EventDispatcher):
             fmt = 'rgba'
         else:
             raise Exception('Unable to determine the format of the pixels')
-        return loader.save(filename, size[0], size[1], fmt, pixels)
+        return loader.save(filename, size[0], size[1], fmt, pixels, flipped)
 
     def read_pixel(self, x, y):
         '''For a given local x/y position, return the pixel color at that

@@ -380,12 +380,13 @@ cdef class Fbo(RenderContext):
             return self._texture
 
     property pixels:
-        '''Get the pixels texture, in RGBA format only, unsigned byte.
+        '''Get the pixels texture, in RGBA format only, unsigned byte. The
+        origin of the image is at bottom / left.
 
         .. versionadded:: 1.7.0
         '''
         def __get__(self):
-            w,h = self._width, self._height
+            w, h = self._width, self._height
             self.bind()
             data = py_glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE)
             self.release()
