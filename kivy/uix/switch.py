@@ -109,4 +109,3 @@ class Switch(Widget):
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     runTouchApp(Switch())
-

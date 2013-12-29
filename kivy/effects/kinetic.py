@@ -52,22 +52,22 @@ class KineticEffect(EventDispatcher):
     velocity = NumericProperty(0)
     '''Velocity of the movement.
 
-    :data:`velocity` is a :class:`~kivy.properties.NumericProperty` and defaults
-    to 0.
+    :data:`velocity` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     friction = NumericProperty(0.05)
     '''Friction to apply on the velocity
 
-    :data:`velocity` is a :class:`~kivy.properties.NumericProperty` and defaults
-    to 0.05.
+    :data:`velocity` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.05.
     '''
 
     value = NumericProperty(0)
     '''Value (during the movement and computed) of the effect.
 
-    :data:`velocity` is a :class:`~kivy.properties.NumericProperty` and defaults
-    to 0.
+    :data:`velocity` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     is_manual = BooleanProperty(False)
@@ -180,4 +180,3 @@ class KineticEffect(EventDispatcher):
         self.velocity -= self.velocity * self.friction
         self.apply_distance(self.velocity * dt)
         self.trigger_velocity_update()
-

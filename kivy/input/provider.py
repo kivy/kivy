@@ -38,4 +38,3 @@ class MotionEventProvider(object):
         `dispatch_fn` argument.
         '''
         pass
-

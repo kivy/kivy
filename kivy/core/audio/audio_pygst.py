@@ -6,7 +6,7 @@ Implementation of Sound with GStreamer
 '''
 
 try:
-    import gi
+    import gi  # NOQA
 except ImportError:
     gi_found = False
 else:
@@ -112,8 +112,8 @@ class SoundPyGst(Sound):
         if self._data is not None:
             if self._data.get_state()[1] == gst.STATE_PLAYING:
                 try:
-                    return self._data.query_position(gst.Format
-                        (gst.FORMAT_TIME))[0] / 1000000000.
+                    return self._data.query_position(
+                        gst.Format(gst.FORMAT_TIME))[0] / 1000000000.
                 except:
                     pass
         return 0
@@ -136,8 +136,8 @@ class SoundPyGst(Sound):
                     self._data.set_state(gst.STATE_NULL)
                     self._data.set_property('volume', volume_before)
             else:
-                return self._data.query_duration(gst.Format
-                        (gst.FORMAT_TIME))[0] / 1000000000.
+                return self._data.query_duration(
+                    gst.Format(gst.FORMAT_TIME))[0] / 1000000000.
         return super(SoundPyGst, self)._get_length()
 
 SoundLoader.register(SoundPyGst)

@@ -54,8 +54,8 @@ Syntax of a kv File
 A Kivy language file must have ``.kv`` as filename extension.
 
 The content of the file should always start with the Kivy header, where
-`version` must be replaced with the Kivy language version you're using. For now,
-use 1.0::
+`version` must be replaced with the Kivy language version you're using.
+For now, use 1.0::
 
     #:kivy `version`
 
@@ -160,7 +160,7 @@ the value can use the values of other properties using reserved keywords.
         arguments passed to the callback.::
 
             TextInput:
-                on_focus: self.insert_text("Focus!" if args[1] else "No focus.")
+                on_focus: self.insert_text("Focus" if args[1] else "No focus")
 
 Furthermore, if a class definition contains an id, you can use it as a
 keyword::
@@ -322,9 +322,9 @@ created as an :class:`~kivy.properties.ObjectProperty`.
     :class:`~kivy.properties.StringProperty` will be instanciated, with the
     default value `"world"`. List, tuples, dictionnary, strings, are supported.
 
-Let's illustrate the usage of theses dynamic classes with an implementation of a
-basic Image button. We could derive our classes from the Button and just
-add a property for the image filename:
+Let's illustrate the usage of theses dynamic classes with an
+implementation of a basic Image button. We could derive our classes from
+the Button and just add a property for the image filename:
 
 .. code-block:: kv
 
@@ -420,9 +420,9 @@ Template example
 ~~~~~~~~~~~~~~~~
 
 Most of time, when you are creating a screen in the kv lang, you use a lot of
-redefinitions. In our example, we'll create a Toolbar, based on a BoxLayout, and
-put in a few :class:`~kivy.uix.image.Image` widgets that will react to the
-*on_touch_down* event.:
+redefinitions. In our example, we'll create a Toolbar, based on a
+BoxLayout, and put in a few :class:`~kivy.uix.image.Image` widgets that
+will react to the *on_touch_down* event.:
 
 .. code-block:: kv
 
@@ -684,7 +684,7 @@ class ProxyApp(object):
             object.__setattr__(self, '_obj', app)
             # Clear cached application instance, when it stops
             app.bind(on_stop=lambda instance:
-                object.__setattr__(self, '_obj', None))
+                     object.__setattr__(self, '_obj', None))
         return app
 
     def __getattribute__(self, name):
@@ -941,7 +941,7 @@ class ParserRule(object):
                 rule, baseclasses = rule.split('@', 1)
                 if not re.match(lang_key, rule):
                     raise ParserException(self.ctx, self.line,
-                            'Invalid dynamic class name')
+                                          'Invalid dynamic class name')
 
                 # save the name in the dynamic classes dict.
                 self.ctx.dynamic_classes[rule] = baseclasses
@@ -1172,7 +1172,7 @@ class Parser(object):
                 name = x[0]
                 if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+':
                     _objects, _lines = self.parse_level(
-                            level + 1, lines[i:], spaces)
+                        level + 1, lines[i:], spaces)
                     current_object.children = _objects
                     lines = _lines
                     i = 0
@@ -1209,7 +1209,7 @@ class Parser(object):
                 if current_property in (
                         'canvas', 'canvas.after', 'canvas.before'):
                     _objects, _lines = self.parse_level(
-                            level + 2, lines[i:], spaces)
+                        level + 2, lines[i:], spaces)
                     rl = ParserRule(self, ln, current_property, rlevel)
                     rl.children = _objects
                     if current_property == 'canvas':
@@ -1303,7 +1303,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
         return eval(value, idmap)
     except Exception as e:
         raise BuilderException(rule.ctx, rule.line,
-                '{}: {}'.format(e.__class__.__name__, e))
+                               '{}: {}'.format(e.__class__.__name__, e))
 
 
 class ParserSelector(object):
@@ -1437,8 +1437,8 @@ class BuilderBase(object):
         # put a warning if a file is loaded multiple times
         if fn in self.files:
             Logger.warning(
-                    'Lang: The file {} is loaded multiples times, '
-                    'you might have unwanted behaviors.'.format(fn))
+                'Lang: The file {} is loaded multiples times, '
+                'you might have unwanted behaviors.'.format(fn))
 
         try:
             # parse the string
@@ -1468,7 +1468,7 @@ class BuilderBase(object):
             # save the loaded files only if there is a root without
             # template/dynamic classes
             if fn and (parser.templates or
-                    parser.dynamic_classes or parser.rules):
+                       parser.dynamic_classes or parser.rules):
                 self.files.append(fn)
 
             if parser.root:
@@ -1604,7 +1604,8 @@ class BuilderBase(object):
                         value = eval(prule.value, idmap)
                         ctx[prule.name] = value
                 except Exception as e:
-                    raise BuilderException(prule.ctx, prule.line,
+                    raise BuilderException(
+                        prule.ctx, prule.line,
                         '{}: {}'.format(e.__class__.__name__, e))
 
                 # create the template with an explicit ctx
@@ -1653,7 +1654,8 @@ class BuilderBase(object):
         except Exception as e:
             if rule is not None:
                 raise BuilderException(rule.ctx, rule.line,
-                    '{}: {}'.format(e.__class__.__name__, e))
+                                       '{}: {}'.format(e.__class__.__name__,
+                                                       e))
             raise e
 
         # build handlers
@@ -1676,7 +1678,8 @@ class BuilderBase(object):
                         Factory.Widget.parent.dispatch(widget_set.__self__)
         except Exception as e:
             if crule is not None:
-                raise BuilderException(crule.ctx, crule.line,
+                raise BuilderException(
+                    crule.ctx, crule.line,
                     '{}: {}'.format(e.__class__.__name__, e))
             raise e
 
@@ -1715,8 +1718,9 @@ class BuilderBase(object):
 
     def unbind_widget(self, uid):
         '''(internal) Unbind all the handlers created by the rules of the
-        widget. The :data:`kivy.uix.widget.Widget.uid` is passed here instead of
-        the widget itself, because we are using it in the widget destructor.
+        widget. The :data:`kivy.uix.widget.Widget.uid` is passed here
+        instead of the widget itself, because we are using it in the
+        widget destructor.
 
         .. versionadded:: 1.7.2
         '''
@@ -1755,8 +1759,9 @@ class BuilderBase(object):
                             key, value, prule, idmap, True)
                     setattr(instr, key, value)
             except Exception as e:
-                raise BuilderException(prule.ctx, prule.line,
-                        '{}: {}'.format(e.__class__.__name__, e))
+                raise BuilderException(
+                    prule.ctx, prule.line,
+                    '{}: {}'.format(e.__class__.__name__, e))
 
 #: Main instance of a :class:`BuilderBase`.
 Builder = register_context('Builder', BuilderBase)
@@ -1809,10 +1814,10 @@ if 'KIVY_PROFILE_LANG' in environ:
 
                 color = (255, 155, 155) if count else (255, 255, 255)
                 html += ['<tr style="background-color: rgb{}">'.format(color),
-                        '<td>', str(index + 1), '</td>',
-                        '<td>', str(count), '</td>',
-                        '<td><pre>', line, '</pre></td>',
-                        '</tr>']
+                         '<td>', str(index + 1), '</td>',
+                         '<td>', str(count), '</td>',
+                         '<td><pre>', line, '</pre></td>',
+                         '</tr>']
             html += ['</table>']
         html += ['</body></html>']
         with open('builder_stats.html', 'w') as fd:

@@ -82,10 +82,9 @@ class GardenImporter(object):
 
     def _load_module(self, fullname, moddir):
         mod = imp.load_module(fullname, None, moddir,
-                ('', '', imp.PKG_DIRECTORY))
+                              ('', '', imp.PKG_DIRECTORY))
         return mod
 
 
 # insert the garden importer as ultimate importer
 sys.meta_path.append(GardenImporter())
-

@@ -923,8 +923,7 @@ class ScreenManager(FloatLayout):
 
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
-                    'ScreenManager accepts only Screen widget.')
-
+                'ScreenManager accepts only Screen widget.')
 
         # stop any transition that might be happening already
         self.transition.stop()

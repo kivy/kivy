@@ -82,9 +82,9 @@ You can now have definable "links" using text markup. The idea is to be able
 to detect when the user clicks on part of the text and to react.
 The tag ``[ref=xxx]`` is used for that.
 
-In this example, we are creating a reference on the word "World". When this word
-is clicked, the function ``print_it`` will be called with the name of the
-reference::
+In this example, we are creating a reference on the word "World". When
+this word is clicked, the function ``print_it`` will be called with the
+name of the reference::
 
     def print_it(instance, value):
         print('User clicked on', value)
@@ -106,8 +106,8 @@ from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel
 from kivy.core.text.markup import MarkupLabel as CoreMarkupLabel
 from kivy.properties import StringProperty, OptionProperty, \
-        NumericProperty, BooleanProperty, ReferenceListProperty, \
-        ListProperty, ObjectProperty, DictProperty
+    NumericProperty, BooleanProperty, ReferenceListProperty, \
+    ListProperty, ObjectProperty, DictProperty
 from kivy.utils import get_hex_from_color
 
 
@@ -121,8 +121,9 @@ class Label(Widget):
     '''
 
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
-        'halign', 'valign', 'padding_x', 'padding_y', 'text_size', 'shorten',
-        'mipmap', 'markup', 'line_height', 'max_lines')
+                        'halign', 'valign', 'padding_x', 'padding_y',
+                        'text_size', 'shorten', 'mipmap', 'markup',
+                        'line_height', 'max_lines')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -188,8 +189,8 @@ class Label(Widget):
             if mrkup:
                 text = self._label.text
                 self._label.text = ''.join(('[color=',
-                                            get_hex_from_color(self.color), ']',
-                                            text, '[/color]'))
+                                            get_hex_from_color(self.color),
+                                            ']', text, '[/color]'))
                 self._label.refresh()
                 # force the rendering to get the references
                 if self._label.texture:
@@ -293,8 +294,8 @@ class Label(Widget):
 
         .. |unicodechar| image:: images/unicode-char.png
 
-    :data:`font_name` is a :class:`~kivy.properties.StringProperty` and defaults
-    to 'DroidSans'.
+    :data:`font_name` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'DroidSans'.
     '''
 
     font_size = NumericProperty('15sp')
@@ -363,8 +364,9 @@ class Label(Widget):
                             'justify'])
     '''Horizontal alignment of the text.
 
-    :data:`halign` is an :class:`~kivy.properties.OptionProperty` and defaults to
-    'left'. Available options are : left, center, right and justified.
+    :data:`halign` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'left'. Available options are : left, center, right and
+    justified.
 
     .. warning::
 
@@ -431,9 +433,10 @@ class Label(Widget):
 
     .. warning::
 
-        The :data:`texture_size` is set after the :data:`texture` property. If
-        you listen for changes to :data:`texture`, :data:`texture_size` will not
-        be up-to-date in your callback. Bind to :data:`texture_size` instead.
+        The :data:`texture_size` is set after the :data:`texture`
+        property. If you listen for changes to :data:`texture`,
+        :data:`texture_size` will not be up-to-date in your callback.
+        Bind to :data:`texture_size` instead.
     '''
 
     mipmap = BooleanProperty(False)
@@ -461,9 +464,9 @@ class Label(Widget):
     .. versionadded:: 1.1.0
 
     If True, the text will be rendered using the
-    :class:`~kivy.core.text.markup.MarkupLabel`: you can change the style of the
-    text using tags. Check the :doc:`api-kivy.core.text.markup` documentation
-    for more information.
+    :class:`~kivy.core.text.markup.MarkupLabel`: you can change the
+    style of the text using tags. Check the
+    :doc:`api-kivy.core.text.markup` documentation for more information.
 
     :data:`markup` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
@@ -532,13 +535,11 @@ class Label(Widget):
 
     max_lines = NumericProperty(0)
     '''Maximum number of lines to use, defaults to 0, which means unlimited.
-    Please note that :data:`shorten` take over this property. (with shorten, the
-    text is always one line.)
+    Please note that :data:`shorten` take over this property. (with
+    shorten, the text is always one line.)
 
     .. versionadded:: 1.8.0
 
     :data:`max_lines` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
-
-

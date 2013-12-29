@@ -41,10 +41,9 @@ class ImageData(object):
     '''
 
     __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical')
-    _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra',
-            's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5',
-            'pvrtc_rgb2', 'pvrtc_rgb4', 'pvrtc_rgba2', 'pvrtc_rgba4',
-            'etc1_rgb8')
+    _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra', 's3tc_dxt1', 's3tc_dxt3',
+                       's3tc_dxt5', 'pvrtc_rgb2', 'pvrtc_rgb4', 'pvrtc_rgba2',
+                       'pvrtc_rgba4', 'etc1_rgb8')
 
     def __init__(self, width, height, fmt, data, source=None,
                  flip_vertical=True):
@@ -141,7 +140,7 @@ class ImageLoaderBase(object):
     '''Base to implement an image loader.'''
 
     __slots__ = ('_texture', '_data', 'filename', 'keep_data',
-                '_mipmap', '_nocache')
+                 '_mipmap', '_nocache')
 
     def __init__(self, filename, **kwargs):
         self._mipmap = kwargs.get('mipmap', False)
@@ -169,7 +168,7 @@ class ImageLoaderBase(object):
         self._textures = []
         if __debug__:
             Logger.trace('Image: %r, populate to textures (%d)' %
-                    (self.filename, len(self._data)))
+                         (self.filename, len(self._data)))
 
         for count in range(len(self._data)):
 
@@ -182,7 +181,7 @@ class ImageLoaderBase(object):
             if texture is None:
                 imagedata = self._data[count]
                 texture = Texture.create_from_data(
-                        imagedata, mipmap=self._mipmap)
+                    imagedata, mipmap=self._mipmap)
                 if not self._nocache:
                     Cache.append('kv.texture', uid, texture)
                 if imagedata.flip_vertical:
@@ -273,7 +272,7 @@ class ImageLoader(object):
                     if ext not in loader.extensions():
                         continue
                     Logger.debug('Image%s: Load <%s> from <%s>' %
-                            (loader.__name__[11:], zfilename, filename))
+                                 (loader.__name__[11:], zfilename, filename))
                     try:
                         im = loader(tmpfile, **kwargs)
                     except:
@@ -281,14 +280,15 @@ class ImageLoader(object):
                         continue
                     break
                 if im is not None:
-                    # append ImageData to local variable before it's overwritten
+                    # append ImageData to local variable before it's
+                    # overwritten
                     image_data.append(im._data[0])
                     image = im
                 #else: if not image file skip to next
             except:
-                Logger.warning('Image: Unable to load image' +
-                    '<%s> in zip <%s> trying to continue...'
-                    % (zfilename, filename))
+                Logger.warning('Image: Unable to load image'
+                               '<%s> in zip <%s> trying to continue...'
+                               % (zfilename, filename))
         z.close()
         if len(image_data) == 0:
             raise Exception('no images in zip <%s>' % filename)
@@ -362,7 +362,7 @@ class ImageLoader(object):
                 if ext not in loader.extensions():
                     continue
                 Logger.debug('Image%s: Load <%s>' %
-                        (loader.__name__[11:], filename))
+                             (loader.__name__[11:], filename))
                 im = loader(filename, **kwargs)
                 break
             if im is None:
@@ -518,7 +518,8 @@ class Image(EventDispatcher):
                 Clock.schedule_interval(self._anim, self._anim_delay)
 
     anim_delay = property(_get_anim_delay, _set_anim_delay)
-    '''Delay between each animation frame. A lower value means faster animation.
+    '''Delay between each animation frame. A lower value means faster
+    animation.
 
     .. versionadded:: 1.0.8
     '''
@@ -581,7 +582,7 @@ class Image(EventDispatcher):
             self._size = (self.image.width, self.image.height)
 
     image = property(_get_image, _set_image,
-            doc='Get/set the data image object')
+                     doc='Get/set the data image object')
 
     def _get_filename(self):
         return self._filename
@@ -603,7 +604,7 @@ class Image(EventDispatcher):
             # if image.__class__ is core image then it's a texture
             # from atlas or other sources and has no data so skip
             if (image.__class__ != self.__class__ and
-                not image.keep_data and self._keep_data):
+                    not image.keep_data and self._keep_data):
                 self.remove_from_cache()
                 self._filename = ''
                 self._set_filename(value)
@@ -621,8 +622,8 @@ class Image(EventDispatcher):
         # if image not already in cache then load
         tmpfilename = self._filename
         image = ImageLoader.load(
-                self._filename, keep_data=self._keep_data,
-                mipmap=self._mipmap, nocache=self._nocache)
+            self._filename, keep_data=self._keep_data,
+            mipmap=self._mipmap, nocache=self._nocache)
         self._filename = tmpfilename
 
         # put the image into the cache if needed
@@ -635,7 +636,7 @@ class Image(EventDispatcher):
                 Cache.append('kv.image', uid, self.image)
 
     filename = property(_get_filename, _set_filename,
-            doc='Get/set the filename of image')
+                        doc='Get/set the filename of image')
 
     @property
     def size(self):
@@ -799,4 +800,3 @@ if not 'KIVY_DOC' in environ and not libs_loaded:
 
 # resolve binding.
 from kivy.graphics.texture import Texture, TextureRegion
-

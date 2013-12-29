@@ -53,8 +53,8 @@ class CheckBox(Widget):
     independent). If specified, the :data:`group` must be a hashable object
     such as a string. Only one checkbox in a group can be active.
 
-    :data:`group` is an :class:`~kivy.properties.ObjectProperty` and defaults to
-    None.
+    :data:`group` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     def __init__(self, **kwargs):

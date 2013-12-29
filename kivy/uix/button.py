@@ -6,9 +6,9 @@ Button
     :align: right
 
 The :class:`Button` is a :class:`~kivy.uix.label.Label` with associated actions
-that are triggered when the button is pressed (or released after a click/touch).
-To configure the button, you can use the same properties that you can use for
-the Label class::
+that are triggered when the button is pressed (or released after a
+click/touch).  To configure the button, you can use the same properties
+that you can use for the Label class::
 
     button = Button(text='Hello world', font_size=14)
 
@@ -55,8 +55,8 @@ class Button(ButtonBehavior, Label):
 
     .. versionadded:: 1.0.8
 
-    The :data:`background_color` is a :class:`~kivy.properties.ListProperty` and
-    defaults to [1, 1, 1, 1].
+    The :data:`background_color` is a
+    :class:`~kivy.properties.ListProperty` and defaults to [1, 1, 1, 1].
     '''
 
     background_normal = StringProperty(
@@ -114,4 +114,3 @@ class Button(ButtonBehavior, Label):
     :data:`border` is a :class:`~kivy.properties.ListProperty` and defaults to
     (16, 16, 16, 16)
     '''
-

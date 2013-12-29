@@ -45,7 +45,7 @@ class RelativeLayout(FloatLayout):
         self.content = FloatLayout()
         super(RelativeLayout, self).__init__(**kw)
         self.unbind(pos=self._trigger_layout,
-                pos_hint=self._trigger_layout)
+                    pos_hint=self._trigger_layout)
 
     def do_layout(self, *args):
         super(RelativeLayout, self).do_layout(pos=(0, 0))
@@ -79,5 +79,3 @@ class RelativeLayout(FloatLayout):
         ret = super(RelativeLayout, self).on_touch_up(touch)
         touch.pop()
         return ret
-
-

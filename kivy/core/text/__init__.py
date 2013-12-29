@@ -2,8 +2,8 @@
 Text
 ====
 
-An abstraction of text creation. Depending of the selected backend, the accuracy
-of text rendering may vary.
+An abstraction of text creation. Depending of the selected backend, the
+accuracy of text rendering may vary.
 
 .. versionchanged:: 1.5.0
     :data:`LabelBase.line_height` added.
@@ -103,9 +103,9 @@ class LabelBase(object):
                  line_height=1.0, **kwargs):
 
         options = {'text': text, 'font_size': font_size,
-            'font_name': font_name, 'bold': bold, 'italic': italic,
-            'halign': halign, 'valign': valign, 'shorten': shorten,
-            'mipmap': mipmap, 'line_height': line_height}
+                   'font_name': font_name, 'bold': bold, 'italic': italic,
+                   'halign': halign, 'valign': valign, 'shorten': shorten,
+                   'mipmap': mipmap, 'line_height': line_height}
 
         options['color'] = color or (1, 1, 1, 1)
         options['padding'] = kwargs.get('padding', 0)
@@ -137,7 +137,7 @@ class LabelBase(object):
 
     @staticmethod
     def register(name, fn_regular, fn_italic=None, fn_bold=None,
-            fn_bolditalic=None):
+                 fn_bolditalic=None):
         '''Register an alias for a Font.
 
         .. versionadded:: 1.1.0
@@ -229,7 +229,7 @@ class LabelBase(object):
         if segment - margin > 5:
             segment -= margin
             return u'{0}...{1}'.format(text[:segment].strip(),
-                text[-segment:].strip())
+                                       text[-segment:].strip())
         else:
             segment = max_letters - 3  # length of '...'
             return u'{0}...'.format(text[:segment].strip())
@@ -304,8 +304,8 @@ class LabelBase(object):
             # Shorten the text that we actually display
             text = self.text
             last_word_width = get_extents(text[text.rstrip().rfind(' '):])[0]
-            if (options['shorten'] and get_extents(text)[0] >
-                uw - last_word_width):
+            if (options['shorten'] and
+                    get_extents(text)[0] > uw - last_word_width):
                 text = self.shorten(text)
 
             # first, split lines
@@ -394,9 +394,9 @@ class LabelBase(object):
                             # TODO implement a better method of stretching
                             # glyphs?
                             if _spaces:
-                                space_width = cache[' '][0] if last_space else 0
-                                just_space = (((uw - size[0] + space_width) *
-                                               1.) / (_spaces * 1.))
+                                sw = cache[' '][0] if last_space else 0
+                                just_space = (((uw - size[0] + sw) * 1.) /
+                                              (_spaces * 1.))
 
                     for glyph in glyphs:
                         lw, lh = cache[glyph]
@@ -438,8 +438,8 @@ class LabelBase(object):
         # first pass, calculating width/height
         sz = self.render()
         self._size_texture = sz
-        self._size = sz[0] + self.options['padding_x'] * 2, \
-                     sz[1] + self.options['padding_y'] * 2
+        self._size = (sz[0] + self.options['padding_x'] * 2,
+                      sz[1] + self.options['padding_y'] * 2)
 
         # if no text are rendered, return nothing.
         width, height = self._size
@@ -453,8 +453,8 @@ class LabelBase(object):
                 width != texture.width or \
                 height != texture.height:
             texture = Texture.create(size=(width, height),
-                    mipmap=self.options['mipmap'],
-                    callback=self._texture_fill)
+                                     mipmap=self.options['mipmap'],
+                                     callback=self._texture_fill)
             texture.flip_vertical()
             texture.add_reload_observer(self._texture_refresh)
             self.texture = texture
@@ -536,10 +536,11 @@ class LabelBase(object):
         self._text_size = x
 
     text_size = property(_get_text_size, _set_text_size,
-        doc='''Get/set the (width, height) of the contrained rendering box''')
+                         doc='''Get/set the (width, height) of the '
+                         'contrained rendering box''')
 
     usersize = property(_get_text_size, _set_text_size,
-        doc='''(deprecated) Use text_size instead.''')
+                        doc='''(deprecated) Use text_size instead.''')
 
 # Load the appropriate provider
 Label = core_select_lib('text', (
@@ -557,8 +558,7 @@ if 'KIVY_DOC' not in os.environ:
 
 # For the first initalization, register the default font
     Label.register('DroidSans',
-        'data/fonts/DroidSans.ttf',
-        'data/fonts/DroidSans-Italic.ttf',
-        'data/fonts/DroidSans-Bold.ttf',
-        'data/fonts/DroidSans-BoldItalic.ttf')
-
+                   'data/fonts/DroidSans.ttf',
+                   'data/fonts/DroidSans-Italic.ttf',
+                   'data/fonts/DroidSans-Bold.ttf',
+                   'data/fonts/DroidSans-BoldItalic.ttf')

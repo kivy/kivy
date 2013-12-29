@@ -56,7 +56,7 @@ if sys.version > '3':
 
         def __repr__(self):
             return '<WeakMethod proxy={} method={} method_name={}>'.format(
-                    self.proxy, self.method, self.method_name)
+                   self.proxy, self.method, self.method_name)
 
 else:
 
@@ -112,4 +112,3 @@ else:
 
         def __ne__(self, other):
             return not self == other
-

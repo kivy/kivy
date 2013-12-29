@@ -50,11 +50,11 @@ The JSON must be structured like this::
         ...
     }
 
-Then, you need to describe the keys in each row, for either a "normal" mode or a
-"shift" mode. Keys for this row data must be named `normal_<row>` and
-`shift_<row>`. Replace `row` with the row number.
-Inside each row, you will describe the key. A key is a 4 element list in the
-format::
+Then, you need to describe the keys in each row, for either a "normal"
+mode or a "shift" mode. Keys for this row data must be named
+`normal_<row>` and `shift_<row>`. Replace `row` with the row number.
+Inside each row, you will describe the key. A key is a 4 element list in
+the format::
 
     [ <text displayed on the keyboard>, <text to put when the key is pressed>,
       <text that represents the keycode>, <size of cols> ]
@@ -153,16 +153,17 @@ class VKeyboard(Scatter):
     '''
 
     callback = ObjectProperty(None, allownone=True)
-    '''Callback can be set to a function that will be called if the VKeyboard is
-    closed by the user.
+    '''Callback can be set to a function that will be called if the
+    VKeyboard is closed by the user.
 
     :data:`target` is an :class:`~kivy.properties.ObjectProperty` instance and
     defaults to None.
     '''
 
     layout = StringProperty(None)
-    '''Layout to use for the VKeyboard. By default, it will be the layout set in
-    the configuration, according to the `keyboard_layout` in `[kivy]` section.
+    '''Layout to use for the VKeyboard. By default, it will be the
+    layout set in the configuration, according to the `keyboard_layout`
+    in `[kivy]` section.
 
     .. versionchanged:: 1.8.0
 
@@ -176,8 +177,8 @@ class VKeyboard(Scatter):
     layout_path = StringProperty(default_layout_path)
     '''Path from which layouts are read.
 
-    :data:`layout` is a :class:`~kivy.properties.StringProperty` and defaults to
-    :file:`<kivy_data_dir>/keyboards/`
+    :data:`layout` is a :class:`~kivy.properties.StringProperty` and
+    defaults to :file:`<kivy_data_dir>/keyboards/`
     '''
 
     available_layouts = DictProperty({})
@@ -208,8 +209,8 @@ class VKeyboard(Scatter):
     The margin hints will be multiplied by width and height, according to their
     position.
 
-    :data:`margin_hint` is a :class:`~kivy.properties.ListProperty` and defaults
-    to [.05, .06, .05, .06]
+    :data:`margin_hint` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [.05, .06, .05, .06]
     '''
 
     key_margin = ListProperty([2, 2, 2, 2])
@@ -223,8 +224,8 @@ class VKeyboard(Scatter):
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
-    '''Background color, in the format (r, g, b, a). If a background is set, the
-    color will be combined with the background texture.
+    '''Background color, in the format (r, g, b, a). If a background is
+    set, the color will be combined with the background texture.
 
     :data:`background_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [1, 1, 1, 1].
@@ -259,7 +260,7 @@ class VKeyboard(Scatter):
     '''
 
     key_background_normal = StringProperty(
-            'atlas://data/images/defaulttheme/vkeyboard_key_normal')
+        'atlas://data/images/defaulttheme/vkeyboard_key_normal')
     '''Filename of the key background image for use when no touches are active
     on the widget.
 
@@ -269,7 +270,7 @@ class VKeyboard(Scatter):
     '''
 
     key_disabled_background_normal = StringProperty(
-            'atlas://data/images/defaulttheme/vkeyboard_key_normal')
+        'atlas://data/images/defaulttheme/vkeyboard_key_normal')
     '''Filename of the key background image for use when no touches are active
     on the widget and vkeyboard is disabled.
 
@@ -410,7 +411,7 @@ class VKeyboard(Scatter):
         value = self.layout_path
         for fn in listdir(value):
             self._load_layout_fn(join(value, fn),
-                    basename(splitext(fn)[0]))
+                                 basename(splitext(fn)[0]))
 
     def _load_layout_fn(self, fn, name):
         available_layouts = self.available_layouts
@@ -496,13 +497,13 @@ class VKeyboard(Scatter):
         # the goal now is to map both point, calculate the diff between them
         diff = dpos - cpos
 
-        # we still have an issue, self.pos represent the bounding box, not the
-        # 0,0 coordinate of the scatter. we need to apply also the diff between
-        # them (inside and outside coordinate matrix). It's hard to explain, but
-        # do a scheme on a paper, wrote all the vector i'm calculating, and
-        # you'll understand. :)
+        # we still have an issue, self.pos represent the bounding box,
+        # not the 0,0 coordinate of the scatter. we need to apply also
+        # the diff between them (inside and outside coordinate matrix).
+        # It's hard to explain, but do a scheme on a paper, write all
+        # the vector i'm calculating, and you'll understand. :)
         diff2 = Vector(self.x + self.width / 2., self.y + self.height) - \
-                Vector(self.to_parent(self.width / 2., self.height))
+            Vector(self.to_parent(self.width / 2., self.height))
         diff -= diff2
 
         # now we have a good "diff", set it as a pos.
@@ -535,7 +536,7 @@ class VKeyboard(Scatter):
             for line_nb, index in active_keys.values():
                 pos, size = layout_geometry['LINE_%d' % line_nb][index]
                 BorderImage(texture=texture, pos=pos, size=size,
-                        border=self.key_border)
+                            border=self.key_border)
 
     def refresh_keys_hint(self):
         layout = self.available_layouts[self.layout]
@@ -555,7 +556,8 @@ class VKeyboard(Scatter):
         uh_hint = (1. / layout_rows) * eh_hint
         layout_geometry['U_HINT'] = (uw_hint, uh_hint)
 
-        # calculate individual key RELATIVE surface and pos (without key margin)
+        # calculate individual key RELATIVE surface and pos (without key
+        # margin)
         current_y_hint = ey_hint + eh_hint
         for line_nb in range(1, layout_rows + 1):
             current_y_hint -= uh_hint
@@ -623,7 +625,7 @@ class VKeyboard(Scatter):
         with self.background_key_layer:
             Color(*self.background_color)
             BorderImage(texture=texture, size=self.size,
-                    border=self.background_border)
+                        border=self.background_border)
 
         # XXX seperate drawing the keys and the fonts to avoid
         # XXX reloading the texture each time
@@ -637,7 +639,7 @@ class VKeyboard(Scatter):
             for line_nb in range(1, layout_rows + 1):
                 for pos, size in layout_geometry['LINE_%d' % line_nb]:
                         BorderImage(texture=texture, pos=pos, size=size,
-                                border=self.key_border)
+                                    border=self.key_border)
 
         # then draw the text
         # calculate font_size
@@ -649,7 +651,7 @@ class VKeyboard(Scatter):
                 # retrieve the relative text
                 text = layout[layout_mode + '_' + str(line_nb)][key_nb][0]
                 l = Label(text=text, font_size=font_size, pos=pos, size=size,
-                        font_name=self.font_name)
+                          font_name=self.font_name)
                 self.add_widget(l)
                 key_nb += 1
 
@@ -704,7 +706,7 @@ class VKeyboard(Scatter):
         x_hint = x / self.width
         y_hint = y / self.height
         if x_hint > mleft and x_hint < 1. - mright \
-            and y_hint > mbottom and y_hint < 1. - mtop:
+                and y_hint > mbottom and y_hint < 1. - mtop:
             return False
         return True
 

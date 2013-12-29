@@ -51,7 +51,7 @@ class LinuxWacomMotionEvent(MotionEvent):
 
     def __str__(self):
         return '<LinuxWacomMotionEvent id=%d pos=(%f, %f) device=%s>' \
-                % (self.id, self.sx, self.sy, self.device)
+            % (self.id, self.sx, self.sy, self.device)
 
 if 'KIVY_DOC' in os.environ:
     # documentation hack
@@ -161,7 +161,7 @@ else:
                 # ensure it's a key = value
                 if len(arg) != 2:
                     err = 'LinuxWacom: Bad parameter' \
-                            '%s: Not in key=value format.' % arg
+                        '%s: Not in key=value format.' % arg
                     Logger.error(err)
                     continue
 
@@ -263,7 +263,7 @@ else:
 
             # get the controler name (EVIOCGNAME)
             device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
-                                        " " * 256).split('\x00')[0]
+                                      " " * 256).split('\x00')[0]
             Logger.info('LinuxWacom: using <%s>' % device_name)
 
             # get abs infos
@@ -278,7 +278,7 @@ else:
                     continue
                 # ask abs info keys to the devices
                 sbit = fcntl.ioctl(fd, EVIOCGBIT + x + (KEY_MAX << 16),
-                                    ' ' * sz_l)
+                                   ' ' * sz_l)
                 sbit, = struct.unpack('Q', sbit)
                 for y in range(KEY_MAX):
                     if (sbit & (1 << y)) == 0:
@@ -292,20 +292,20 @@ else:
                         range_min_position_x = drs('min_position_x', abs_min)
                         range_max_position_x = drs('max_position_x', abs_max)
                         Logger.info('LinuxWacom: ' +
-                            '<%s> range position X is %d - %d' % (
-                            device_name, abs_min, abs_max))
+                                    '<%s> range position X is %d - %d' % (
+                                        device_name, abs_min, abs_max))
                     elif y == ABS_Y:
                         range_min_position_y = drs('min_position_y', abs_min)
                         range_max_position_y = drs('max_position_y', abs_max)
                         Logger.info('LinuxWacom: ' +
-                            '<%s> range position Y is %d - %d' % (
-                            device_name, abs_min, abs_max))
+                                    '<%s> range position Y is %d - %d' % (
+                                        device_name, abs_min, abs_max))
                     elif y == ABS_PRESSURE:
                         range_min_pressure = drs('min_pressure', abs_min)
                         range_max_pressure = drs('max_pressure', abs_max)
                         Logger.info('LinuxWacom: ' +
-                            '<%s> range pressure is %d - %d' % (
-                            device_name, abs_min, abs_max))
+                                    '<%s> range pressure is %d - %d' % (
+                                        device_name, abs_min, abs_max))
 
             # read until the end
             changed = False
@@ -325,7 +325,7 @@ else:
 
                     # extract timeval + event infos
                     tv_sec, tv_usec, ev_type, ev_code, ev_value = \
-                            struct.unpack('LLHHi', ev[:struct_input_event_sz])
+                        struct.unpack('LLHHi', ev[:struct_input_event_sz])
 
                     if ev_type == EV_SYN and ev_code == SYN_REPORT:
                         if touch_id in l_points:
@@ -356,21 +356,24 @@ else:
                         touch_id = ev_value
                     elif ev_type == EV_ABS and ev_code == ABS_X:
                         val = normalize(ev_value,
-                            range_min_position_x, range_max_position_x)
+                                        range_min_position_x,
+                                        range_max_position_x)
                         if invert_x:
                             val = 1. - val
                         touch_x = val
                         changed = True
                     elif ev_type == EV_ABS and ev_code == ABS_Y:
                         val = 1. - normalize(ev_value,
-                            range_min_position_y, range_max_position_y)
+                                             range_min_position_y,
+                                             range_max_position_y)
                         if invert_y:
                             val = 1. - val
                         touch_y = val
                         changed = True
                     elif ev_type == EV_ABS and ev_code == ABS_PRESSURE:
                         touch_pressure = normalize(ev_value,
-                            range_min_pressure, range_max_pressure)
+                                                   range_min_pressure,
+                                                   range_max_pressure)
                         changed = True
                     elif ev_type == EV_ABS and ev_code == ABS_MISC:
                         if ev_value == 0:

@@ -32,7 +32,8 @@ the X and Y values, but the real values are in a range from 0-32768. To correct
 this, you can add the following to the configuration::
 
     [input]
-    t101m = hidinput,/dev/input/event7,max_position_x=32768,max_position_y=32768
+    t101m = hidinput,/dev/input/event7,max_position_x=32768,\
+max_position_y=32768
 
 '''
 
@@ -180,12 +181,14 @@ else:
                 try:
                     self.default_ranges[key] = int(value)
                 except ValueError:
-                    err = 'HIDInput: invalid value "%s" for "%s"' % (key, value)
+                    err = 'HIDInput: invalid value "%s" for "%s"' % (
+                        key, value)
                     Logger.error(err)
                     continue
 
                 # all good!
-                Logger.info('HIDInput: Set custom %s to %d' % (key, int(value)))
+                Logger.info('HIDInput: Set custom %s to %d' % (
+                    key, int(value)))
 
         def start(self):
             if self.input_fn is None:
@@ -244,13 +247,15 @@ else:
                         point['id'] = ev_value
                     elif ev_code == ABS_MT_POSITION_X:
                         val = normalize(ev_value,
-                            range_min_position_x, range_max_position_x)
+                                        range_min_position_x,
+                                        range_max_position_x)
                         if invert_x:
                             val = 1. - val
                         point['x'] = val
                     elif ev_code == ABS_MT_POSITION_Y:
                         val = 1. - normalize(ev_value,
-                            range_min_position_y, range_max_position_y)
+                                             range_min_position_y,
+                                             range_max_position_y)
                         if invert_y:
                             val = 1. - val
                         point['y'] = val
@@ -260,7 +265,8 @@ else:
                         point['blobid'] = ev_value
                     elif ev_code == ABS_MT_PRESSURE:
                         point['pressure'] = normalize(ev_value,
-                            range_min_pressure, range_max_pressure)
+                                                      range_min_pressure,
+                                                      range_max_pressure)
                     elif ev_code == ABS_MT_TOUCH_MAJOR:
                         point['size_w'] = ev_value
                     elif ev_code == ABS_MT_TOUCH_MINOR:
@@ -275,11 +281,11 @@ else:
                 elif ev_type == EV_REL:
 
                     if ev_code == 0:
-                        point['x'] = min(1., max(0.,
-                                                 point['x'] + ev_value / 1000.))
+                        point['x'] = \
+                            min(1., max(0., point['x'] + ev_value / 1000.))
                     elif ev_code == 1:
-                        point['y'] = min(1., max(0.,
-                                                 point['y'] - ev_value / 1000.))
+                        point['y'] = \
+                            min(1., max(0., point['y'] - ev_value / 1000.))
 
                 elif ev_type == EV_KEY:
                     buttons = {
@@ -345,7 +351,7 @@ else:
 
             # get the controler name (EVIOCGNAME)
             device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
-                " " * 256).split('\x00')[0]
+                                      " " * 256).split('\x00')[0]
             Logger.info('HIDMotionEvent: using <%s>' % device_name)
 
             # get abs infos
@@ -361,7 +367,7 @@ else:
                     continue
                 # ask abs info keys to the devices
                 sbit = fcntl.ioctl(fd, EVIOCGBIT + x + (KEY_MAX << 16),
-                                    ' ' * sz_l)
+                                   ' ' * sz_l)
                 sbit, = struct.unpack('Q', sbit)
                 for y in range(KEY_MAX):
                     if (sbit & (1 << y)) == 0:
@@ -376,21 +382,21 @@ else:
                         range_min_position_x = drs('min_position_x', abs_min)
                         range_max_position_x = drs('max_position_x', abs_max)
                         Logger.info('HIDMotionEvent: ' +
-                            '<%s> range position X is %d - %d' % (
-                            device_name, abs_min, abs_max))
+                                    '<%s> range position X is %d - %d' % (
+                                        device_name, abs_min, abs_max))
                     elif y == ABS_MT_POSITION_Y:
                         is_multitouch = True
                         range_min_position_y = drs('min_position_y', abs_min)
                         range_max_position_y = drs('max_position_y', abs_max)
                         Logger.info('HIDMotionEvent: ' +
-                            '<%s> range position Y is %d - %d' % (
-                            device_name, abs_min, abs_max))
+                                    '<%s> range position Y is %d - %d' % (
+                                        device_name, abs_min, abs_max))
                     elif y == ABS_MT_PRESSURE:
                         range_min_pressure = drs('min_pressure', abs_min)
                         range_max_pressure = drs('max_pressure', abs_max)
                         Logger.info('HIDMotionEvent: ' +
-                            '<%s> range pressure is %d - %d' % (
-                            device_name, abs_min, abs_max))
+                                    '<%s> range pressure is %d - %d' % (
+                                        device_name, abs_min, abs_max))
 
             # init the point
             if not is_multitouch:
@@ -414,7 +420,6 @@ else:
                         process_as_multitouch(*infos)
                     else:
                         process_as_mouse(*infos)
-
 
         def update(self, dispatch_fn):
             # dispatch all event from threads

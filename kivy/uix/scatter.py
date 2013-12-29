@@ -11,8 +11,8 @@ drawing is finished. That makes it possible to perform rotation, scaling and
 translation over the entire children tree without changing any widget
 properties.
 
-That specific behavior makes the scatter unique, but there are some advantages /
-constraints that you should consider:
+That specific behavior makes the scatter unique, but there are some
+advantages / constraints that you should consider:
 
 #. The children are positionned relative to 0, 0. The scatter position has
    no impact of the position of children. This applies to the size too.
@@ -90,7 +90,7 @@ __all__ = ('Scatter', 'ScatterPlane')
 
 from math import radians
 from kivy.properties import BooleanProperty, AliasProperty, \
-        NumericProperty, ObjectProperty, BoundedNumericProperty
+    NumericProperty, ObjectProperty, BoundedNumericProperty
 from kivy.vector import Vector
 from kivy.uix.widget import Widget
 from kivy.graphics.transformation import Matrix
@@ -140,8 +140,9 @@ class Scatter(Widget):
             self.do_translation_x, self.do_translation_y = value
         else:
             self.do_translation_x = self.do_translation_y = bool(value)
-    do_translation = AliasProperty(_get_do_translation, _set_do_translation,
-                                bind=('do_translation_x', 'do_translation_y'))
+    do_translation = AliasProperty(
+        _get_do_translation, _set_do_translation,
+        bind=('do_translation_x', 'do_translation_y'))
     '''Allow translation on the X or Y axis.
 
     :data:`do_translation` is an :class:`~kivy.properties.AliasProperty` of
@@ -242,7 +243,7 @@ class Scatter(Widget):
         angle_change = self.rotation - rotation
         r = Matrix().rotate(-radians(angle_change), 0, 0, 1)
         self.apply_transform(r, post_multiply=True,
-                            anchor=self.to_local(*self.center))
+                             anchor=self.to_local(*self.center))
     rotation = AliasProperty(_get_rotation, _set_rotation, bind=(
         'x', 'y', 'transform'))
     '''Rotation value of the scatter.
@@ -255,10 +256,10 @@ class Scatter(Widget):
         p2 = Vector(*self.to_parent(1, 0))
         scale = p1.distance(p2)
 
-        # XXX float calculation are not accurate, and then, scale can be throwed
-        # again even with only the position change. So to prevent anything wrong
-        # with scale, just avoid to dispatch it if the scale "visually" didn't
-        # change. #947
+        # XXX float calculation are not accurate, and then, scale can be
+        # throwed again even with only the position change. So to
+        # prevent anything wrong with scale, just avoid to dispatch it
+        # if the scale "visually" didn't change. #947
         # Remove this ugly hack when we'll be Python 3 only.
         if hasattr(self, '_scale_p'):
             if str(scale) == str(self._scale_p):
@@ -270,7 +271,8 @@ class Scatter(Widget):
     def _set_scale(self, scale):
         rescale = scale * 1.0 / self.scale
         self.apply_transform(Matrix().scale(rescale, rescale, rescale),
-                        post_multiply=True, anchor=self.to_local(*self.center))
+                             post_multiply=True,
+                             anchor=self.to_local(*self.center))
     scale = AliasProperty(_get_scale, _set_scale, bind=('x', 'y', 'transform'))
     '''Scale value of the scatter.
 
@@ -402,9 +404,9 @@ class Scatter(Widget):
             # _last_touch_pos has last pos in correct parent space,
             # just like incoming touch
             dx = (touch.x - self._last_touch_pos[touch][0]) \
-                    * self.do_translation_x
+                * self.do_translation_x
             dy = (touch.y - self._last_touch_pos[touch][1]) \
-                    * self.do_translation_y
+                * self.do_translation_y
             dx = dx / self.translation_touches
             dy = dy / self.translation_touches
             self.apply_transform(Matrix().translate(dx, dy, 0))
@@ -474,9 +476,9 @@ class Scatter(Widget):
         # if our child didn't do anything, and if we don't have any active
         # interaction control, then don't accept the touch.
         if not self.do_translation_x and \
-            not self.do_translation_y and \
-            not self.do_rotation and \
-            not self.do_scale:
+                not self.do_translation_y and \
+                not self.do_rotation and \
+                not self.do_scale:
             return False
 
         if self.do_collide_after_children:

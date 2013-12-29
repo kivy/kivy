@@ -58,7 +58,7 @@ class SoundGstplayer(Sound):
         self.unload()
         uri = self._get_uri()
         self.player = GstPlayer(uri, None, self._on_gst_eos_sync,
-                _on_gstplayer_message)
+                                _on_gstplayer_message)
         self.player.set_volume(self.volume)
         self.player.load()
 

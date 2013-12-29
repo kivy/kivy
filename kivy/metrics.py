@@ -34,11 +34,11 @@ measurement units to work with. Kivy provides some more scalable alternatives.
         number of pixels used to draw 1dp is scaled up a factor appropriate to
         the screen's dpi, and the inverse for a lower dpi.
         The ratio of dp-to-pixels will change with the screen density, but not
-        necessarily in direct proportion. Using the dp unit is a simple solution
-        to
-        making the view dimensions in your layout resize properly for different
-        screen densities. In others words, it provides consistency for the
-        real-world size of your UI across different devices.
+        necessarily in direct proportion. Using the dp unit is a simple
+        solution to making the view dimensions in your layout resize
+        properly for different screen densities. In others words, it
+        provides consistency for the real-world size of your UI across
+        different devices.
     `sp`
         Scale-independent Pixels - This is like the dp unit, but it is also
         scaled by the user's font size preference. We recommend you use this
@@ -69,8 +69,8 @@ that the DPI and density of a device cannot be changed at runtime.
 We provide some environment variables to control metrics:
 
 - `KIVY_METRICS_DENSITY`: if set, this value will be used for
-  :data:`~MetricsBase.density` instead of the systems one. On android, the value
-  varies between 0.75, 1, 1.5 and 2.
+  :data:`~MetricsBase.density` instead of the systems one. On android,
+  the value varies between 0.75, 1, 1.5 and 2.
 
 - `KIVY_METRICS_FONTSCALE`: if set, this value will be used for
   :data:`~MetricsBase.fontscale` instead of the systems one. On android, the
@@ -98,7 +98,7 @@ You can also simulate an alternative user preference for fontscale as follows::
 
 
 __all__ = ('Metrics', 'MetricsBase', 'pt', 'inch', 'cm', 'mm', 'dp', 'sp',
-'metrics')
+           'metrics')
 
 
 from os import environ
@@ -213,8 +213,8 @@ class MetricsBase(object):
             return float(custom_fontscale)
 
         if platform == 'android':
-            import jnius
-            PythonActivity = jnius.autoclass('org.renpy.android.PythonActivity')
+            from jnius import autoclass
+            PythonActivity = autoclass('org.renpy.android.PythonActivity')
             config = PythonActivity.mActivity.getResources().getConfiguration()
             return config.fontScale
 

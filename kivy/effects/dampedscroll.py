@@ -96,6 +96,3 @@ class DampedScrollEffect(ScrollEffect):
         if os:
             distance /= 1. + os / sp(200.)
         super(DampedScrollEffect, self).apply_distance(distance)
-
-
-

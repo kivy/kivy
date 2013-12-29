@@ -19,8 +19,8 @@ type, so it might return different Sound classes depending the file type.
 .. versionchanged:: 1.8.0
 
     There is now 2 distinct Gstreamer implementation: one using Gi/Gst working
-    for both Python 2+3 with Gstreamer 1.0, and one using PyGST working only for
-    Python 2 + Gstreamer 0.10.
+    for both Python 2+3 with Gstreamer 1.0, and one using PyGST working
+    only for Python 2 + Gstreamer 0.10.
     If you have issue with GStreamer, have a look at
     :ref:`gstreamer-compatibility`
 
@@ -38,7 +38,7 @@ from kivy.core import core_register_libs
 from kivy.compat import PY2
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
-        AliasProperty, BooleanProperty
+    AliasProperty, BooleanProperty
 
 
 class SoundLoader:
@@ -155,7 +155,7 @@ class Sound(EventDispatcher):
         return 0
 
     length = property(lambda self: self._get_length(),
-            doc='Get length of the sound (in seconds).')
+                      doc='Get length of the sound (in seconds).')
 
     def load(self):
         '''Load the file into memory.'''
@@ -192,7 +192,7 @@ audio_libs = []
 
 # from now on, prefer our gstplayer instead of gi/pygst.
 try:
-    from kivy.lib.gstplayer import GstPlayer
+    from kivy.lib.gstplayer import GstPlayer  # NOQA
     audio_libs += [('gstplayer', 'audio_gstplayer')]
 except ImportError:
     #audio_libs += [('gi', 'audio_gi')]

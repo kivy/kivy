@@ -17,9 +17,9 @@ This widget class is designed with a couple of principles in mind:
         widget class.
         Obviously you can still use all the available properties to do that, so
         that your representation properly reflects the widget's current state.
-        Every widget has its own :class:`~kivy.graphics.Canvas` that you can use
-        to draw. This separation allows Kivy to run your application in a very
-        efficient manner.
+        Every widget has its own :class:`~kivy.graphics.Canvas` that you
+        can use to draw. This separation allows Kivy to run your
+        application in a very efficient manner.
 
     Bounding Box / Collision
         Often you want to know if a certain point is within the bounds of your
@@ -113,7 +113,8 @@ class WidgetException(Exception):
 
 
 class WidgetMetaclass(type):
-    '''Metaclass to auto register new widget into :class:`~kivy.factory.Factory`
+    '''Metaclass to auto register new widget into
+    :class:`~kivy.factory.Factory`
 
     .. warning::
         This metaclass is used for Widget. Don't use it directly !
@@ -144,8 +145,8 @@ class Widget(WidgetBase):
         when contructing a simple class without subclassing :class:`Widget`.
 
     .. versionchanged:: 1.5.0
-        Constructor now accept on_* arguments to automatically bind callbacks to
-        properties or events, as the Kv language.
+        Constructor now accept on_* arguments to automatically bind
+        callbacks to properties or events, as the Kv language.
     '''
 
     __metaclass__ = WidgetMetaclass
@@ -320,6 +321,8 @@ class Widget(WidgetBase):
                 *(this attribute was added in 1.0.5)*
                 Index to insert the widget in the list
 
+        >>> from kivy.uix.button import Button
+        >>> from kivy.uix.slider import Slider
         >>> root = Widget()
         >>> root.add_widget(Button())
         >>> slider = Slider()
@@ -336,7 +339,7 @@ class Widget(WidgetBase):
         # check if widget is already a child of another widget
         if parent:
             raise WidgetException('Cannot add %r, it already has a parent %r'
-                % (widget, parent))
+                                  % (widget, parent))
         widget.parent = parent = self
         # child will be disabled if added to a disabled parent
         if parent.disabled:
@@ -372,6 +375,7 @@ class Widget(WidgetBase):
             `widget`: :class:`Widget`
                 Widget to remove from our children list.
 
+        >>> from kivy.uix.button import Button
         >>> root = Widget()
         >>> button = Button()
         >>> root.add_widget(button)
@@ -379,7 +383,6 @@ class Widget(WidgetBase):
         '''
         if widget not in self.children:
             return
-        parent = widget.parent
         self.children.remove(widget)
         self.canvas.remove(widget.canvas)
         widget.parent = None
@@ -435,7 +438,8 @@ class Widget(WidgetBase):
         if not initial:
             x, y = self.to_parent(x, y, relative=relative)
         if self.parent:
-            return self.parent.to_window(x, y, initial=False, relative=relative)
+            return self.parent.to_window(x, y, initial=False,
+                                         relative=relative)
         return (x, y)
 
     def to_parent(self, x, y, relative=False):
@@ -479,7 +483,7 @@ class Widget(WidgetBase):
 
     :data:`width` is a :class:`~kivy.properties.NumericProperty` ans defaults
     to 100.
-    
+
     .. warning::
         Keep in mind that the `width` property is subject to layout logic and
         that this has not yet happened at the time of the widget's `__init__`
@@ -638,11 +642,12 @@ class Widget(WidgetBase):
     '''
 
     pos_hint = ObjectProperty({})
-    '''Position hint. This property allows you to set the position of the widget
-    inside its parent layout, in percent (similar to size_hint).
+    '''Position hint. This property allows you to set the position of
+    the widget inside its parent layout, in percent (similar to
+    size_hint).
 
-    For example, if you want to set the top of the widget to be at 90% height of
-    its parent layout, you can write:
+    For example, if you want to set the top of the widget to be at 90%
+    height of its parent layout, you can write:
 
         widget = Widget(pos_hint={'top': 0.9})
 
@@ -651,11 +656,12 @@ class Widget(WidgetBase):
 
     See :doc:`api-kivy.uix.floatlayout` for further reference.
 
-    Position hint is only used by the :class:`~kivy.uix.floatlayout.FloatLayout`
-    and :class:`~kivy.core.window.Window`.
+    Position hint is only used by the
+    :class:`~kivy.uix.floatlayout.FloatLayout` and
+    :class:`~kivy.core.window.Window`.
 
-    :data:`pos_hint` is an :class:`~kivy.properties.ObjectProperty` containing a
-    dict.
+    :data:`pos_hint` is an :class:`~kivy.properties.ObjectProperty`
+    containing a dict.
     '''
 
     ids = DictProperty({})

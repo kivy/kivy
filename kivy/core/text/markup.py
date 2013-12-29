@@ -201,7 +201,7 @@ class MarkupLabel(MarkupLabelBase):
                 self._anchors[ref] = x, y
             else:
                 item = item.replace('&bl;', '[').replace(
-                        '&br;', ']').replace('&amp;', '&')
+                    '&br;', ']').replace('&amp;', '&')
                 self._pre_render_label(item, options, lines)
 
         # calculate the texture size
@@ -240,8 +240,8 @@ class MarkupLabel(MarkupLabelBase):
         if len(lines):
             line = lines[-1]
         else:
-            # line-> line width, line height, is_last_line, is_first_line, words
-            # words -> (w, h, word)...
+            # line-> line width, line height, is_last_line,
+            # is_first_line, words words -> (w, h, word)...
             line = [0, 0, 0, 1, []]
             lines.append(line)
 
@@ -302,7 +302,7 @@ class MarkupLabel(MarkupLabelBase):
         # convert halign/valign to int, faster comparison
         av = {'top': 0, 'middle': 1, 'bottom': 2}[self.options['valign']]
         ah = {'left': 0, 'center': 1, 'right': 2,
-                'justify': 3, }[self.options['halign']]
+              'justify': 3, }[self.options['halign']]
 
         y = 0
         w, h = self._size
@@ -341,8 +341,6 @@ class MarkupLabel(MarkupLabelBase):
             if ah > 2:
                 # justified
                 if line[4] and not last_line:
-                    last_word = line[4][-1][2]
-
                     x = first_space = last_space = space_width = _spaces = 0
                     for pw, ph, word, options in line[4]:
                         _spaces += 1 if word == ' ' else 0
@@ -358,7 +356,7 @@ class MarkupLabel(MarkupLabelBase):
                     # divide left over space between `spaces`
                     if _spaces:
                         just_space = (((w - lw + space_width) * 1.)
-                                    / (_spaces * 1.))
+                                      / (_spaces * 1.))
 
             # previous part height/pos = 0
             psp = pph = 0
@@ -372,17 +370,12 @@ class MarkupLabel(MarkupLabelBase):
 
                 # calculate sub/super script pos
                 if options['script'] == 'superscript':
-                    script_pos = max(0,
-                                    psp
-                                    if psp else
-                                    self.get_descent())
+                    script_pos = max(0, psp if psp else self.get_descent())
                     psp = script_pos
                     pph = ph
                 elif options['script'] == 'subscript':
                     script_pos = min(lh - ph,
-                                    ((psp + pph) - ph)
-                                    if pph else
-                                    (lh - ph))
+                                     ((psp + pph) - ph) if pph else (lh - ph))
                     pph = ph
                     psp = script_pos
                 else:
@@ -409,4 +402,3 @@ class MarkupLabel(MarkupLabelBase):
         # Don't blit that kind of data, otherwise, you have a little black bar.
         if data is not None and data.width > 1:
             self.texture.blit_data(data)
-

@@ -6,16 +6,16 @@ Input recorder
 
 .. warning::
 
-    This part of Kivy is still experimental and this API is subject to change in
-    a future version.
+    This part of Kivy is still experimental and this API is subject to
+    change in a future version.
 
 This is a class that can record and replay some input events. This can
 be used for test cases, screen savers etc.
 
 Once activated, the recorder will listen for any input event and save its
-properties in a file with the delta time. Later, you can play the input file: it
-will generate fake touch events with the saved properties and dispatch it to
-the event loop.
+properties in a file with the delta time. Later, you can play the input
+file: it will generate fake touch events with the saved properties and
+dispatch it to the event loop.
 
 By default, only the position is saved ('pos' profile and 'sx', 'sy',
 attributes). Change it only if you understand how input handling works.
@@ -26,9 +26,9 @@ Recording events
 The best way is to use the "recorder" module. Check the :doc:`api-kivy.modules`
 documentation to see how to activate a module.
 
-Once activated, you can press F8 to start the recording. By default, events will
-be written to `<currentpath>/recorder.kvi`. When you want to stop recording,
-press F8 again.
+Once activated, you can press F8 to start the recording. By default,
+events will be written to `<currentpath>/recorder.kvi`. When you want to
+stop recording, press F8 again.
 
 You can replay the file by pressing F7.
 
@@ -94,7 +94,7 @@ from os.path import exists
 from time import time
 from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty, BooleanProperty, StringProperty, \
-        NumericProperty, ListProperty
+    NumericProperty, ListProperty
 from kivy.input.motionevent import MotionEvent
 from kivy.base import EventLoop
 from kivy.logger import Logger
@@ -118,8 +118,8 @@ class Recorder(EventDispatcher):
     '''Window instance to attach the recorder. If None, it will use the
     default instance.
 
-    :data:`window` is a :class:`~kivy.properties.ObjectProperty` and defaults to
-    None.
+    :data:`window` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     counter = NumericProperty(0)
@@ -175,20 +175,20 @@ class Recorder(EventDispatcher):
             from kivy.core.window import Window
             self.window = Window
         self.window.bind(
-                on_motion=self.on_motion,
-                on_key_up=partial(self.on_keyboard, 'keyup'),
-                on_key_down=partial(self.on_keyboard, 'keydown'),
-                on_keyboard=partial(self.on_keyboard, 'keyboard'))
+            on_motion=self.on_motion,
+            on_key_up=partial(self.on_keyboard, 'keyup'),
+            on_key_down=partial(self.on_keyboard, 'keydown'),
+            on_keyboard=partial(self.on_keyboard, 'keyboard'))
 
     def on_motion(self, window, etype, motionevent):
         if not self.record:
             return
 
         args = dict((arg, getattr(motionevent, arg))
-                for arg in self.record_attrs if hasattr(motionevent, arg))
+                    for arg in self.record_attrs if hasattr(motionevent, arg))
 
         args['profile'] = [x for x in motionevent.profile if x in
-                self.record_profile_mask]
+                           self.record_profile_mask]
         self.record_fd.write('%r\n' % (
             (time() - self.record_time, etype, motionevent.uid, args), ))
         self.counter += 1
@@ -207,9 +207,9 @@ class Recorder(EventDispatcher):
 
     def release(self):
         self.window.unbind(
-                on_motion=self.on_motion,
-                on_key_up=self.on_keyboard,
-                on_key_down=self.on_keyboard)
+            on_motion=self.on_motion,
+            on_key_up=self.on_keyboard,
+            on_key_down=self.on_keyboard)
 
     def on_record(self, instance, value):
         if value:
@@ -222,7 +222,7 @@ class Recorder(EventDispatcher):
         else:
             self.record_fd.close()
             Logger.info('Recorder: Recorded %d events in %r' % (self.counter,
-                self.filename))
+                                                                self.filename))
 
     # needed for acting as an input provider
     def stop(self):
@@ -259,7 +259,7 @@ class Recorder(EventDispatcher):
         self.play_time = time()
         self.play_me = {}
         Logger.info('Recorder: Start playing %d events from %r' %
-                (len(self.play_data), self.filename))
+                    (len(self.play_data), self.filename))
         EventLoop.add_input_provider(self)
 
     def update(self, dispatch_fn):
@@ -287,25 +287,25 @@ class Recorder(EventDispatcher):
                 me.depack(args)
             elif etype == 'keydown':
                 self.window.dispatch(
-                        'on_key_down',
-                        args['key'],
-                        args['scancode'],
-                        args['codepoint'],
-                        args['modifier'])
+                    'on_key_down',
+                    args['key'],
+                    args['scancode'],
+                    args['codepoint'],
+                    args['modifier'])
             elif etype == 'keyup':
                 self.window.dispatch(
-                        'on_key_up',
-                        args['key'],
-                        args['scancode'],
-                        args['codepoint'],
-                        args['modifier'])
+                    'on_key_up',
+                    args['key'],
+                    args['scancode'],
+                    args['codepoint'],
+                    args['modifier'])
             elif etype == 'keyboard':
                 self.window.dispatch(
-                        'on_keyboard',
-                        args['key'],
-                        args['scancode'],
-                        args['codepoint'],
-                        args['modifier'])
+                    'on_keyboard',
+                    args['key'],
+                    args['scancode'],
+                    args['codepoint'],
+                    args['modifier'])
 
             if me:
                 dispatch_fn(etype, me)

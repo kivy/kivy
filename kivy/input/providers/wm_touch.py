@@ -6,11 +6,12 @@ Support for WM_TOUCH messages (Windows platform)
 __all__ = ('WM_MotionEventProvider', 'WM_MotionEvent')
 
 import os
-from kivy.input.providers.wm_common import (WM_TABLET_QUERYSYSTEMGESTURE,
-        GWL_WNDPROC, QUERYSYSTEMGESTURE_WNDPROC, WM_TOUCH, WM_MOUSEMOVE,
-        WM_MOUSELAST, PEN_OR_TOUCH_MASK, PEN_OR_TOUCH_SIGNATURE,
-        PEN_EVENT_TOUCH_MASK, TOUCHEVENTF_UP, TOUCHEVENTF_DOWN,
-        TOUCHEVENTF_MOVE, SM_CYCAPTION)
+from kivy.input.providers.wm_common import (
+    WM_TABLET_QUERYSYSTEMGESTURE,
+    GWL_WNDPROC, QUERYSYSTEMGESTURE_WNDPROC, WM_TOUCH, WM_MOUSEMOVE,
+    WM_MOUSELAST, PEN_OR_TOUCH_MASK, PEN_OR_TOUCH_SIGNATURE,
+    PEN_EVENT_TOUCH_MASK, TOUCHEVENTF_UP, TOUCHEVENTF_DOWN,
+    TOUCHEVENTF_MOVE, SM_CYCAPTION)
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
 
@@ -42,7 +43,7 @@ if 'KIVY_DOC' in os.environ:
 
 else:
     from ctypes.wintypes import (ULONG, HANDLE, DWORD, LONG, UINT,
-            WPARAM, LPARAM, POINTER, BOOL)
+                                 WPARAM, LPARAM, POINTER, BOOL)
     from ctypes import windll, WINFUNCTYPE, c_int, Structure, sizeof, byref
     from collections import deque
     from kivy.input.provider import MotionEventProvider
@@ -166,8 +167,8 @@ else:
                 # actually dispatch input
                 if t.event_type == 'begin':
                     self.uid += 1
-                    self.touches[t.id] = WM_MotionEvent(self.device,
-                                                  self.uid, [x, y, t.size()])
+                    self.touches[t.id] = WM_MotionEvent(
+                        self.device, self.uid, [x, y, t.size()])
                     dispatch_fn('begin', self.touches[t.id])
 
                 if t.event_type == 'update' and t.id in self.touches:
@@ -201,7 +202,8 @@ else:
 
             if not done:
                 return windll.user32.CallWindowProcW(self.old_windProc,
-                                                hwnd, msg, wParam, lParam)
+                                                     hwnd, msg, wParam,
+                                                     lParam)
             return 1
 
         # this on pushes WM_TOUCH messages onto our event stack

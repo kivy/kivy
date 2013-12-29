@@ -305,8 +305,9 @@ class Vector(list):
 
         '''
         angle = math.radians(angle)
-        return Vector((self[0] * math.cos(angle)) - (self[1] * math.sin(angle)),
-                      (self[1] * math.cos(angle)) + (self[0] * math.sin(angle)))
+        return Vector(
+            (self[0] * math.cos(angle)) - (self[1] * math.sin(angle)),
+            (self[1] * math.cos(angle)) + (self[0] * math.sin(angle)))
 
     @staticmethod
     def line_intersection(v1, v2, v3, v4):
@@ -387,7 +388,8 @@ class Vector(list):
 
     @staticmethod
     def in_bbox(point, a, b):
-        '''Return True if `point` is in the bounding box defined by `a` and `b`.
+        '''Return True if `point` is in the bounding box defined by `a`
+        and `b`.
 
         >>> bmin = (0, 0)
         >>> bmax = (100, 100)
@@ -401,4 +403,3 @@ class Vector(list):
                  point[0] <= b[0] and point[0] >= a[0]) and
                 (point[1] <= a[1] and point[1] >= b[1] or
                  point[1] <= b[1] and point[1] >= a[1]))
-

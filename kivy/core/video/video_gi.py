@@ -2,8 +2,8 @@
 Video GI
 ========
 
-Implementation of VideoBase with using pygi / gstreamer. Pygi is both compatible
-with Python 2 and 3.
+Implementation of VideoBase with using pygi / gstreamer. Pygi is both
+compatible with Python 2 and 3.
 '''
 
 #
@@ -97,7 +97,7 @@ class VideoGi(VideoBase):
         # self._appsink will receive the buffers so we can upload them to GPU
         self._appsink = Gst.ElementFactory.make('appsink', '')
         self._appsink.props.caps = Gst.caps_from_string(
-                'video/x-raw,format=RGB')
+            'video/x-raw,format=RGB')
 
         self._appsink.props.async = True
         self._appsink.props.drop = True
@@ -240,4 +240,3 @@ def video_gi_clean():
         if video:
             video.stop()
             video.unload()
-

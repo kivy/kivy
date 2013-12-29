@@ -66,7 +66,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
-        ListProperty, BooleanProperty
+    ListProperty, BooleanProperty
 from kivy.clock import Clock
 from kivy.base import EventLoop
 
@@ -109,7 +109,8 @@ class Bubble(GridLayout):
     (16, 16, 16, 16)
     '''
 
-    background_image = StringProperty('atlas://data/images/defaulttheme/bubble')
+    background_image = StringProperty(
+        'atlas://data/images/defaulttheme/bubble')
     '''Background image of the bubble.
 
     :data:`background_image` is a :class:`~kivy.properties.StringProperty` and
@@ -133,10 +134,10 @@ class Bubble(GridLayout):
     defaults to `True`.
     '''
 
-    arrow_pos = OptionProperty('bottom_mid',
-            options=('left_top', 'left_mid', 'left_bottom', 'top_left',
-                'top_mid', 'top_right', 'right_top', 'right_mid',
-                'right_bottom', 'bottom_left', 'bottom_mid', 'bottom_right'))
+    arrow_pos = OptionProperty('bottom_mid', options=(
+        'left_top', 'left_mid', 'left_bottom', 'top_left', 'top_mid',
+        'top_right', 'right_top', 'right_mid', 'right_bottom',
+        'bottom_left', 'bottom_mid', 'bottom_right'))
     '''Specifies the position of the arrow relative to the bubble.
     Can be one of: left_top, left_mid, left_bottom top_left, top_mid, top_right
     right_top, right_mid, right_bottom bottom_left, bottom_mid, bottom_right.
@@ -153,7 +154,7 @@ class Bubble(GridLayout):
     '''
 
     orientation = OptionProperty('horizontal',
-            options=('horizontal', 'vertical'))
+                                 options=('horizontal', 'vertical'))
     '''This specifies the manner in which the children inside bubble
     are arranged. Can be one of 'vertical' or 'horizontal'.
 
@@ -178,7 +179,7 @@ class Bubble(GridLayout):
             keep_ratio=False, color=self.background_color)
         self.background_texture = self._bk_img.texture
         self._arrow_img = Image(source=self.arrow_image,
-            color=self.background_color)
+                                color=self.background_color)
         self.content = content = BubbleContent(parent=self)
         super(Bubble, self).__init__(**kwargs)
         content.parent = None
@@ -190,7 +191,7 @@ class Bubble(GridLayout):
         if content is None:
             return
         if l[0] == content or l[0] == self._arrow_img\
-            or l[0] == self._arrow_layout:
+                or l[0] == self._arrow_layout:
             super(Bubble, self).add_widget(*l)
         else:
             content.add_widget(*l)
@@ -200,7 +201,7 @@ class Bubble(GridLayout):
         if not content:
             return
         if l[0] == content or l[0] == self._arrow_img\
-            or l[0] == self._arrow_layout:
+                or l[0] == self._arrow_layout:
             super(Bubble, self).remove_widget(*l)
         else:
             content.remove_widget(l[0])
