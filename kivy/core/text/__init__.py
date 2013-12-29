@@ -23,7 +23,7 @@ from kivy.core import core_select_lib
 from kivy.resources import resource_find
 from kivy.compat import PY2
 
-DEFAULT_FONT = 'DroidSans'
+DEFAULT_FONT = 'DejaVuSans'
 
 FONT_REGULAR = 0
 FONT_ITALIC = 1
@@ -557,8 +557,10 @@ if 'KIVY_DOC' not in os.environ:
         sys.exit(1)
 
 # For the first initalization, register the default font
-    Label.register('DroidSans',
-                   'data/fonts/DroidSans.ttf',
-                   'data/fonts/DroidSans-Italic.ttf',
-                   'data/fonts/DroidSans-Bold.ttf',
-                   'data/fonts/DroidSans-BoldItalic.ttf')
+    Label.register('DejaVuSans',
+        'data/fonts/DejaVuSans.ttf')
+#    Label.register('DroidSans',
+#                   'data/fonts/DroidSans.ttf',
+#                   'data/fonts/DroidSans-Italic.ttf',
+#                   'data/fonts/DroidSans-Bold.ttf',
+#                   'data/fonts/DroidSans-BoldItalic.ttf')
