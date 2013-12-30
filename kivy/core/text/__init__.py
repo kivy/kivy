@@ -476,8 +476,7 @@ class LabelBase(object):
             return rtl_reshape(self._text)
 
     def _set_text(self, text):
-        if text != self._text:
-            self._text = text
+        self._text = text
 
     text = property(_get_text, _set_text, doc='Get/Set the text')
     label = property(_get_text, _set_text, doc='Get/Set the text')
