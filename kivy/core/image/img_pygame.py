@@ -75,9 +75,9 @@ class ImageLoaderPygame(ImageLoaderBase):
                 fmt, data, source=filename)]
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels):
+    def save(filename, width, height, fmt, pixels, flipped):
         surface = pygame.image.fromstring(
-            pixels, (width, height), fmt.upper(), False)
+            pixels, (width, height), fmt.upper(), flipped)
         pygame.image.save(surface, filename)
         return True
 

@@ -126,7 +126,7 @@ cdef class ShaderSource:
 
     def __dealloc__(self):
         if self.shader != -1:
-            glDeleteShader(self.shader)
+            get_context().dealloc_shader_source(self.shader)
 
     cdef int is_compiled(self):
         if self.shader != -1:
@@ -182,8 +182,15 @@ cdef class Shader:
         # is called only when the gl context is reseted. If we do it, we might
         # free newly created shaders (id collision)
         glUseProgram(0)
-        self.vertex_shader = None
-        self.fragment_shader = None
+
+        # avoid shaders to be collected
+        if self.vertex_shader:
+            self.vertex_shader.shader = -1
+            self.vertex_shader = None
+        if self.fragment_shader:
+            self.fragment_shader.shader = -1
+            self.fragment_shader = None
+
         #self.uniform_values = dict()
         self.uniform_locations = dict()
         self._success = 0
