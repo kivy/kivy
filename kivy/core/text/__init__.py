@@ -23,6 +23,8 @@ from kivy.core import core_select_lib
 from kivy.resources import resource_find
 from kivy.compat import PY2
 
+from kivy.core.text.rtl_reshape import rtl_reshape
+
 DEFAULT_FONT = 'DejaVuSans'
 
 FONT_REGULAR = 0
@@ -464,16 +466,14 @@ class LabelBase(object):
     def _get_text(self):
         if PY2:
             try:
-                if type(self._text) is unicode:
-                    return self._text
-                return self._text.decode('utf8')
+                return rtl_reshape(self._text)
             except AttributeError:
                 # python 3 support
                 return str(self._text)
             except UnicodeDecodeError:
                 return self._text
         else:
-            return self._text
+            return rtl_reshape(self._text)
 
     def _set_text(self, text):
         if text != self._text:

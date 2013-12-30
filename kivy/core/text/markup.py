@@ -49,6 +49,8 @@ from kivy.core.text import Label, LabelBase
 from copy import copy
 from math import ceil
 
+from kivy.core.text.rtl_reshape import rtl_reshape
+
 # We need to do this trick when documentation is generated
 MarkupLabelBase = Label
 if Label is None:
@@ -90,7 +92,7 @@ class MarkupLabel(MarkupLabelBase):
             >>> ('[b]', 'Hello world', '[/b]')
 
         '''
-        s = re.split('(\[.*?\])', self.label)
+        s = re.split('(\[.*?\])', rtl_reshape(self.label))
         s = [x for x in s if x != '']
         return s
 
