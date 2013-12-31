@@ -4,10 +4,6 @@ Tree View
 
 .. versionadded:: 1.0.4
 
-.. warning::
-
-    This widget is still experimental, and the API is subject to change in a
-    future version.
 
 :class:`TreeView` is a widget used to represent a tree structure. It is
 currently very basic, supporting a minimal feature set.
@@ -116,7 +112,7 @@ from kivy.clock import Clock
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty, ListProperty, ObjectProperty, \
-        AliasProperty, NumericProperty, ReferenceListProperty
+    AliasProperty, NumericProperty, ReferenceListProperty
 
 
 class TreeViewException(Exception):
@@ -463,7 +459,8 @@ class TreeView(Widget):
             node.x = self.x + self.indent_start + level * self.indent_level
             node.top = y
             if node.size_hint_x:
-                node.width = (self.width - (node.x - self.x)) * node.size_hint_x
+                node.width = (self.width - (node.x - self.x)) \
+                    * node.size_hint_x
             y -= node.height
             if not node.is_open:
                 return y
@@ -548,8 +545,8 @@ class TreeView(Widget):
     '''Use this property to show/hide the initial root node. If True, the root
     node will be appear as a closed node.
 
-    :data:`hide_root` is a :class:`~kivy.properties.BooleanProperty` and defaults
-    to False.
+    :data:`hide_root` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     def get_selected_node(self):
@@ -604,8 +601,8 @@ class TreeView(Widget):
             for name in ('Item 1', 'Item 2'):
                 yield TreeViewLabel(text=name)
 
-    :data:`load_func` is a :class:`~kivy.properties.ObjectProperty` and defaults
-    to None.
+    :data:`load_func` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
 

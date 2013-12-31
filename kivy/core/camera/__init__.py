@@ -4,6 +4,15 @@ Camera
 
 Core class for acquiring the camera and converting its input into a
 :class:`~kivy.graphics.texture.Texture`.
+
+.. versionchanged:: 1.8.0
+
+    There is now 2 distinct Gstreamer implementation: one using Gi/Gst
+    working for both Python 2+3 with Gstreamer 1.0, and one using PyGST
+    working only for Python 2 + Gstreamer 0.10.
+    If you have issue with GStreamer, have a look at
+    :ref:`gstreamer-compatibility`
+
 '''
 
 __all__ = ('CameraBase', 'Camera')
@@ -72,8 +81,8 @@ class CameraBase(EventDispatcher):
         return self._resolution
 
     resolution = property(lambda self: self._get_resolution(),
-                lambda self, x: self._set_resolution(x),
-                doc='Resolution of camera capture (width, height)')
+                          lambda self, x: self._set_resolution(x),
+                          doc='Resolution of camera capture (width, height)')
 
     def _set_index(self, x):
         if x == self._index:
@@ -85,13 +94,13 @@ class CameraBase(EventDispatcher):
         return self._x
 
     index = property(lambda self: self._get_index(),
-                lambda self, x: self._set_index(x),
-                doc='Source index of the camera')
+                     lambda self, x: self._set_index(x),
+                     doc='Source index of the camera')
 
     def _get_texture(self):
         return self._texture
     texture = property(lambda self: self._get_texture(),
-                doc='Return the camera texture with the latest capture')
+                       doc='Return the camera texture with the latest capture')
 
     def init_camera(self):
         '''Initialise the camera (internal)'''
@@ -129,9 +138,13 @@ providers = ()
 
 if sys.platform == 'win32':
     providers += (('videocapture', 'camera_videocapture',
-        'CameraVideoCapture'), )
-if sys.platform != 'darwin':
-    providers += (('gstreamer', 'camera_gstreamer', 'CameraGStreamer'), )
+                   'CameraVideoCapture'), )
+elif sys.platform == 'darwin':
+    providers += (('avfoundation', 'camera_avfoundation',
+                   'CameraAVFoundation'), )
+else:
+    #providers += (('gi', 'camera_gi', 'CameraGi'), )
+    providers += (('pygst', 'camera_pygst', 'CameraPyGst'), )
 
 providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )
 

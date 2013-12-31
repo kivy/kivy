@@ -14,14 +14,15 @@ the layout.
 
 For example, if you create a RelativeLayout, add a widget with position =
 (0,0), the child widget will also move when you change the position of the
-RelativeLayout.  The child widgets coordiantes remain (0,0) i.e. they are
+RelativeLayout. The child widgets coordinates remain (0,0) i.e. they are
 always relative to the containing layout.
 
 
 .. versionchanged:: 1.7.0
 
     Prior to version 1.7.0, the :class:`RelativeLayout` was implemented as a
-    :class`FloatLayout` inside a :class:`Scatter`.  This behaviour/widget has
+    :class:`~kivy.uix.floatlayout.FloatLayout` inside a
+    :class:`~kivy.uix.scatter.Scatter`. This behaviour/widget has
     been renamed to `ScatterLayout`.  The :class:`RelativeLayout` now only
     supports relative positions (and can't be rotated, scaled or translated on
     a multitouch system using two or more fingers). This was done so that the
@@ -44,7 +45,7 @@ class RelativeLayout(FloatLayout):
         self.content = FloatLayout()
         super(RelativeLayout, self).__init__(**kw)
         self.unbind(pos=self._trigger_layout,
-                pos_hint=self._trigger_layout)
+                    pos_hint=self._trigger_layout)
 
     def do_layout(self, *args):
         super(RelativeLayout, self).do_layout(pos=(0, 0))
@@ -78,5 +79,3 @@ class RelativeLayout(FloatLayout):
         ret = super(RelativeLayout, self).on_touch_up(touch)
         touch.pop()
         return ret
-
-

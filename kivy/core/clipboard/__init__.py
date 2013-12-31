@@ -50,7 +50,7 @@ class ClipboardBase(object):
 
 # load clipboard implementation
 _clipboards = []
-_platform = platform()
+_platform = platform
 if _platform == 'android':
     _clipboards.append(
         ('android', 'clipboard_android', 'ClipboardAndroid'))
@@ -64,4 +64,3 @@ Clipboard = core_select_lib('clipboard', _clipboards, True)
 
 del _clipboards
 del _platform
-

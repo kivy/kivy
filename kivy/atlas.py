@@ -192,8 +192,8 @@ class Atlas(EventDispatcher):
             # load the image
             ci = CoreImage(subfilename)
 
-            # for all the uid, load the image, get the region, and put it in our
-            # dict.
+            # for all the uid, load the image, get the region, and put
+            # it in our dict.
             for meta_id, meta_coords in ids.items():
                 x, y, w, h = meta_coords
                 textures[meta_id] = ci.texture.get_region(*meta_coords)
@@ -258,7 +258,7 @@ class Atlas(EventDispatcher):
 
         # sort by image area
         ims = sorted(ims, key=lambda im: im[1].size[0] * im[1].size[1],
-                reverse=True)
+                     reverse=True)
 
         # free boxes are empty space in our output image set
         # the freebox tuple format is: outidx, x, y, w, h
@@ -269,15 +269,16 @@ class Atlas(EventDispatcher):
         # the full box tuple format is: image, outidx, x, y, w, h, filename
         fullboxes = []
 
-        # do the actual atlasing by sticking the largest images we can have into
-        # the smallest valid free boxes
+        # do the actual atlasing by sticking the largest images we can
+        # have into the smallest valid free boxes
         for imageinfo in ims:
             im = imageinfo[1]
             imw, imh = im.size
             imw += padding
             imh += padding
             if imw > size_w or imh > size_h:
-                Logger.error('Atlas: image %s is larger than the atlas size!' %
+                Logger.error(
+                    'Atlas: image %s is larger than the atlas size!' %
                     imageinfo[0])
                 return
 
@@ -286,9 +287,9 @@ class Atlas(EventDispatcher):
                 for idx, fb in enumerate(freeboxes):
                     # find the smallest free box that will contain this image
                     if fb[3] >= imw and fb[4] >= imh:
-                        # we found a valid spot! Remove the current freebox, and
-                        # split the leftover space into (up to) two new
-                        # freeboxes
+                        # we found a valid spot! Remove the current
+                        # freebox, and split the leftover space into (up to)
+                        # two new freeboxes
                         del freeboxes[idx]
                         if fb[3] > imw:
                             freeboxes.append((
@@ -302,17 +303,17 @@ class Atlas(EventDispatcher):
 
                         # keep this sorted!
                         freeboxes = sorted(freeboxes,
-                                key=lambda fb: fb[3] * fb[4])
+                                           key=lambda fb: fb[3] * fb[4])
                         fullboxes.append((im,
-                            fb[0], fb[1] + padding,
-                            fb[2] + padding, imw - padding,
-                            imh - padding, imageinfo[0]))
+                                          fb[0], fb[1] + padding,
+                                          fb[2] + padding, imw - padding,
+                                          imh - padding, imageinfo[0]))
                         inserted = True
                         break
 
                 if not inserted:
-                    # oh crap - there isn't room in any of our free boxes, so we
-                    # have to add a new output image
+                    # oh crap - there isn't room in any of our free
+                    # boxes, so we have to add a new output image
                     freeboxes.append((numoutimages, 0, 0, size_w, size_h))
                     numoutimages += 1
 
@@ -321,7 +322,7 @@ class Atlas(EventDispatcher):
         Logger.info('Atlas: create an {0}x{1} rgba image'.format(size_w,
                                                                  size_h))
         outimages = [Image.new('RGBA', (size_w, size_h))
-                for i in range(0, int(numoutimages))]
+                     for i in range(0, int(numoutimages))]
         for fb in fullboxes:
             x, y = fb[2], fb[3]
             out = outimages[fb[1]]
@@ -413,5 +414,4 @@ if __name__ == '__main__':
     fn, meta = ret
     print('Atlas created at', fn)
     print('%d image%s have been created' % (len(meta),
-            's' if len(meta) > 1 else ''))
-
+          's' if len(meta) > 1 else ''))

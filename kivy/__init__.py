@@ -44,10 +44,12 @@ __kivy_post_configuration = []
 
 if platform == 'macosx' and sys.maxsize < 9223372036854775807:
     r = '''Unsupported Python version detected!:
-    Kivy requires a 64 bit version of Python to run on OS X. We strongly advise
-    you to use the version of Python that is provided by Apple (don't use ports,
-    fink or homebrew unless you know what you're doing).
-    See http://kivy.org/docs/installation/installation-macosx.html for details.
+    Kivy requires a 64 bit version of Python to run on OS X. We strongly
+    advise you to use the version of Python that is provided by Apple
+    (don't use ports, fink or homebrew unless you know what you're
+    doing).
+    See http://kivy.org/docs/installation/installation-macosx.html for
+    details.
     '''
     Logger.critical(r)
 
@@ -76,8 +78,8 @@ def require(version):
     .. warning::
 
         You must not ask for a version with a tag, except -dev. Asking for a
-        'dev' version will just warn the user if the current Kivy version is not
-        a -dev, but it will never raise an exception.
+        'dev' version will just warn the user if the current Kivy
+        version is not a -dev, but it will never raise an exception.
         You must not ask for a version with a tagrevision.
 
     '''
@@ -148,12 +150,12 @@ def kivy_usage():
         -h, --help
             Prints this help message.
         -d, --debug
-            Shows debug log
+            Shows debug log.
         -a, --auto-fullscreen
             Force 'auto' fullscreen mode (no resolution change).
             Uses your display's resolution. This is most likely what you want.
         -c, --config section:key[:value]
-            Set a custom [section] key=value in the configuration object
+            Set a custom [section] key=value in the configuration object.
         -f, --fullscreen
             Force running in fullscreen mode.
         -k, --fake-fullscreen
@@ -188,10 +190,10 @@ else:
 kivy_options = {
     'window': ('egl_rpi', 'pygame', 'sdl', 'x11'),
     'text': ('pil', 'pygame', 'sdlttf'),
-    'video': ('ffpyplayer', 'ffmpeg', 'gstreamer', 'pyglet', 'null'),
-    'audio': ('pygame', 'gstreamer', 'sdl'),
+    'video': ('gstplayer', 'ffmpeg', 'gi', 'pygst', 'pyglet', 'null'),
+    'audio': ('gstplayer', 'pygame', 'gi', 'pygst', 'sdl'),
     'image': ('tex', 'imageio', 'dds', 'gif', 'pil', 'pygame'),
-    'camera': ('opencv', 'gstreamer', 'videocapture'),
+    'camera': ('opencv', 'gi', 'pygst', 'videocapture', 'avfoundation'),
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': ('android', 'pygame', 'dummy'), }
 
@@ -286,11 +288,11 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         sys.argv = sys.argv[:1]
 
         try:
-            opts, args = getopt(sys_argv[1:], 'hp:fkawFem:sr:dc:',
-                ['help', 'fullscreen', 'windowed', 'fps', 'event',
-                 'module=', 'save', 'fake-fullscreen', 'auto-fullscreen',
-                 'display=', 'size=', 'rotate=', 'config=', 'debug',
-                 'dpi='])
+            opts, args = getopt(sys_argv[1:], 'hp:fkawFem:sr:dc:', [
+                'help', 'fullscreen', 'windowed', 'fps', 'event',
+                'module=', 'save', 'fake-fullscreen', 'auto-fullscreen',
+                'display=', 'size=', 'rotate=', 'config=', 'debug',
+                'dpi='])
 
         except GetoptError as err:
             Logger.error('Core: %s' % str(err))
@@ -313,10 +315,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                 pid, args = arg.split(':', 1)
                 Config.set('input', pid, args)
             except ValueError:
-                # when we are doing an executable on macosx with pyinstaller,
-                # they are passing information with -p. so it will conflict with
-                # our current -p option. since the format is not the same, just
-                # avoid it.
+                # when we are doing an executable on macosx with
+                # pyinstaller, they are passing information with -p. so
+                # it will conflict with our current -p option. since the
+                # format is not the same, just avoid it.
                 pass
         elif opt in ('-a', '--auto-fullscreen'):
             Config.set('graphics', 'fullscreen', 'auto')
@@ -385,4 +387,3 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
     if platform == 'android':
         Config.set('input', 'androidtouch', 'android')
-

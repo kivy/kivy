@@ -2,9 +2,9 @@
 Weak Method
 ===========
 
-:class:`WeakMethod` is used in Clock class to prevent the clock from taking
-memory if the object is deleted. Check examples/core/clock_method.py for more
-information.
+The :class:`WeakMethod` is used in the Clock class to allow a reference
+to a bound method that permits the associated object to be garbage collected.
+Check examples/core/clock_method.py for more information.
 
 This WeakMethod class is taken from the recipe
 http://code.activestate.com/recipes/81253/, based on the nicodemus version.
@@ -17,7 +17,9 @@ import sys
 if sys.version > '3':
 
     class WeakMethod:
-        '''Implementation of weakref for function and bounded method.
+        '''Implementation of a
+        `weakref <http://en.wikipedia.org/wiki/Weak_reference>`_
+        for functions and bound methods.
         '''
         def __init__(self, method):
             self.method = None
@@ -35,12 +37,15 @@ if sys.version > '3':
 
         def __call__(self):
             '''Return a new bound-method like the original, or the
-            original function if refers just to a function or unbound
+            original function if it was just a function or unbound
             method.
-            Returns None if the original object doesn't exist
+            Returns None if the original object doesn't exist.
             '''
-            if self.proxy:
-                return getattr(self.proxy, self.method_name)
+            try:
+                if self.proxy:
+                    return getattr(self.proxy, self.method_name)
+            except ReferenceError:
+                pass
             return self.method
 
         def is_dead(self):
@@ -51,14 +56,16 @@ if sys.version > '3':
 
         def __repr__(self):
             return '<WeakMethod proxy={} method={} method_name={}>'.format(
-                    self.proxy, self.method, self.method_name)
+                   self.proxy, self.method, self.method_name)
 
 else:
 
     import new
 
     class WeakMethod(object):
-        '''Implementation of weakref for function and bounded method.
+        '''Implementation of a
+        `weakref <http://en.wikipedia.org/wiki/Weak_reference>`_
+        for functions and bound methods.
         '''
 
         def __init__(self, method):
@@ -79,9 +86,9 @@ else:
 
         def __call__(self):
             '''Return a new bound-method like the original, or the
-            original function if refers just to a function or unbound
+            original function if it was just a function or unbound
             method.
-            Returns None if the original object doesn't exist
+            Returns None if the original object doesn't exist.
             '''
             if self.is_dead():
                 return None
@@ -105,4 +112,3 @@ else:
 
         def __ne__(self, other):
             return not self == other
-

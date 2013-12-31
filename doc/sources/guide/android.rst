@@ -84,6 +84,7 @@ Tablets
 ~~~~~~~
 - Asus EeePad Transformer
 - Asus (Google) Nexus 7 2013
+- Kindle Fire 2nd generation
 - Motorola Xoom
 - Samsung Galaxy Note 8.0” (N5100)
 - Samsung Galaxy Note 10.1 (N8000) (Kivy Launcher does not install)

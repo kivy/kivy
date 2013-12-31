@@ -8,13 +8,13 @@ Popup
     :align: right
 
 The :class:`Popup` widget is used to create modal popups. By default, the popup
-will cover the whole "parent" window. When you are creating a popup, you must at
-least set a :data:`Popup.title` and :data:`Popup.content`.
+will cover the whole "parent" window. When you are creating a popup, you
+must at least set a :data:`Popup.title` and :data:`Popup.content`.
 
 Remember that the default size of a Widget is size_hint=(1, 1). If you don't
 want your popup to be fullscreen, either use size hints with values less than 1
-(for instance size_hint=(.8, .8)) or deactivate the size_hint and use fixed size
-attributes.
+(for instance size_hint=(.8, .8)) or deactivate the size_hint and use
+fixed size attributes.
 
 
 .. versionchanged:: 1.4.0
@@ -80,7 +80,7 @@ __all__ = ('Popup', 'PopupException')
 
 from kivy.uix.modalview import ModalView
 from kivy.properties import (StringProperty, ObjectProperty,
-    NumericProperty, ListProperty)
+                             NumericProperty, ListProperty)
 
 
 class PopupException(Exception):
@@ -160,7 +160,7 @@ class Popup(ModalView):
         if self._container:
             if self.content:
                 raise PopupException(
-                        'Popup can have only one widget as content')
+                    'Popup can have only one widget as content')
             self.content = widget
         else:
             super(Popup, self).add_widget(widget)

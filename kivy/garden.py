@@ -4,10 +4,10 @@ Garden
 
 .. versionadded:: 1.7.0
 
-Garden is a project to centralize addons for Kivy, maintained by users. You can
-find more information at `Kivy Garden <http://kivy-garden.github.io/>`_ All the
-garden packages are centralized on the `kivy-garden Github
-<https://github.com/kivy-garden>`_.
+Garden is a project to centralize addons for Kivy maintained by users. You can
+find more information at `Kivy Garden <http://kivy-garden.github.io/>`_. All
+the garden packages are centralized on the `kivy-garden Github
+<https://github.com/kivy-garden>`_ repository.
 
 We provide a tool (`kivy/tools/garden`) for managing garden packages::
 
@@ -37,9 +37,9 @@ All the garden packages are installed by default in `~/.kivy/garden`.
 Packaging
 ---------
 
-If you want to include garden package in your application, you can add `--app`
-in the `install` command. This will create a `libs/garden` directory in your
-current directory, and will be used by `kivy.garden`.
+If you want to include garden packages in your application, you can add `--app`
+to the `install` command. This will create a `libs/garden` directory in your
+current directory which will be used by `kivy.garden`.
 
 For example::
 
@@ -60,7 +60,10 @@ from kivy import kivy_home_dir
 garden_system_dir = join(kivy_home_dir, 'garden')
 
 #: application path where garden modules can be installed
-garden_app_dir = join(realpath(dirname(sys.argv[0])), 'libs', 'garden')
+if getattr(sys, 'frozen', False) and getattr(sys, '_MEIPASS', False):
+    garden_app_dir = join(realpath(sys._MEIPASS), 'libs', 'garden')
+else:
+    garden_app_dir = join(realpath(dirname(sys.argv[0])), 'libs', 'garden')
 
 
 class GardenImporter(object):
@@ -79,10 +82,9 @@ class GardenImporter(object):
 
     def _load_module(self, fullname, moddir):
         mod = imp.load_module(fullname, None, moddir,
-                ('', '', imp.PKG_DIRECTORY))
+                              ('', '', imp.PKG_DIRECTORY))
         return mod
 
 
 # insert the garden importer as ultimate importer
 sys.meta_path.append(GardenImporter())
-

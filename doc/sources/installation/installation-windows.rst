@@ -70,7 +70,7 @@ to launch Kivy applications by just double-clicking them:
     #. Right click on the main Python file (.py file extention) of the application you want to launch
     #. From the context menu that appears, select *Open With*
     #. Browse your hard disk drive and find the file ``kivy.bat`` from the portable package. Select it.
-    #. Select "Always open the file with..." if you don't want to repeat this procedure every time you 
+    #. Select "Always open the file with..." if you don't want to repeat this procedure every time you
        double click a .py file.
     #. You are done. Open the file.
 
@@ -155,7 +155,7 @@ pick a specific Python version. (On my Linux workstation, ``/usr/bin/kivy`` is s
 NOTE: In order to work correctly on Linux, your Python file must be saved with Unix-style (LF-only) line endings.
 
 Full documentation can be found at:
-`Python3.3 docs <http://docs.python.org/3.3/using/windows.html#launcher>`_ and 
+`Python3.3 docs <http://docs.python.org/3.3/using/windows.html#launcher>`_ and
 `PEP 397 <http://www.python.org/dev/peps/pep-0397/>`_.
 
 Use development Kivy
@@ -171,7 +171,7 @@ If you want to use the latest development version of Kivy, you can follow these 
 #. Download and install Kivy for Windows as explained above
 #. Go into the portable Kivy directory. This contains the `kivy.bat` file and the `Python`, `kivy`, `Mingw` folders etc.
 #. Rename the kivy directory to kivy.stable
-#. Go to github, and download the `latest development version of Kivy <https://github.com/kivy/kivy/zipball/master>`_
+#. `Download the latest development version of Kivy from GitHub <https://github.com/kivy/kivy/archive/master.zip>`_
 #. Extract the zip into the Kivy portable directory
 #. Rename the directory named "kivy-<some hash>" to just "kivy"
 #. Launch kivy.bat
@@ -185,10 +185,19 @@ If you want to use the latest development version of Kivy, you can follow these 
 .. note::
 
     If you get errors you may need to upgrade Cython:
-    
+
     1.  Launch kivy.bat
     2. ``cd Python/Scripts``
     3. ``pip install --upgrade cython``
+
+Other Environments
+------------------
+
+`Using Kivy with an existing Python installation
+<https://github.com/kivy/kivy/wiki/Using-Kivy-with-an-existing-Python-installation-on-Windows-%2864-or-32-bit%29>`_.
+
+`Creating a 64 bit development environment with MinGW
+<https://github.com/kivy/kivy/wiki/Creating-a-64-bit-development-environment-with-MinGW-on-Windows>`_.
 
 .. _winpackagecontents:
 

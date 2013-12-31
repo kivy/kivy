@@ -5,12 +5,12 @@ Installation on MacOSX
 
 .. note::
 
-    This method has only been tested on Mac OSX 10.6 Snow Leopard 64-bit.
-    For versions prior to 10.6 or 10.6 32-bit, you have to install the
+    This method has only been tested on Mac OSX 10.7 Lion 64-bit.
+    For versions prior to 10.7 or 10.7 32-bit, you have to install the
     components yourself. We suggest using
     `homebrew <http://mxcl.github.com/homebrew/>`_ to do that.
 
-For Mac OS X 10.6 and later, we provide a Kivy.app with all dependencies
+For Mac OS X 10.7 and later, we provide a Kivy.app with all dependencies
 bundled. Download it from our `Download Page <http://kivy.org/#download>`_.
 It comes as a .dmg 
 file that contains:

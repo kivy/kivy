@@ -2,12 +2,12 @@
 Framebuffer
 ===========
 
-Fbo is like an offscreen window. You can activate the fbo for rendering into a
-texture, and use your fbo as a texture for another drawing.
+The Fbo is like an offscreen window. You can activate the fbo for rendering into
+a texture and use your fbo as a texture for other drawing.
 
-Fbo act as a :class:`kivy.graphics.instructions.Canvas`.
+The Fbo acts as a :class:`kivy.graphics.instructions.Canvas`.
 
-Example of using an fbo for some color rectangles::
+Here is an example of using an fbo for some colored rectangles::
 
     from kivy.graphics import Fbo, Color, Rectangle
 
@@ -35,8 +35,8 @@ Example of using an fbo for some color rectangles::
                 Color(0, 1, 0, .8)
                 Rectangle(size=(64, 256))
 
-If you change anything in the `self.fbo` object, it will be automaticly updated,
-and canvas where the fbo is putted will be automaticly updated too.
+If you change anything in the `self.fbo` object, it will be automatically updated.
+The canvas where the fbo is put will be automatically updated as well.
 
 Reloading the FBO content
 -------------------------
@@ -92,16 +92,16 @@ cdef class Fbo(RenderContext):
     "with" statement.
 
     :Parameters:
-        `clear_color`: tuple, default to (0, 0, 0, 0)
+        `clear_color`: tuple, defaults to (0, 0, 0, 0)
             Define the default color for clearing the framebuffer
-        `size`: tuple, default to (1024, 1024)
+        `size`: tuple, defaults to (1024, 1024)
             Default size of the framebuffer
-        `push_viewport`: bool, default to True
+        `push_viewport`: bool, defaults to True
             If True, the OpenGL viewport will be set to the framebuffer size,
             and will be automatically restored when the framebuffer released.
-        `with_depthbuffer`: bool, default to False
+        `with_depthbuffer`: bool, defaults to False
             If True, the framebuffer will be allocated with a Z buffer.
-        `texture`: :class:`~kivy.graphics.texture.Texture`, default to None
+        `texture`: :class:`~kivy.graphics.texture.Texture`, defaults to None
             If None, a default texture will be created.
     '''
     cdef str resolve_status(self, int status):
@@ -380,12 +380,13 @@ cdef class Fbo(RenderContext):
             return self._texture
 
     property pixels:
-        '''Get the pixels texture, in RGBA format only, unsigned byte.
+        '''Get the pixels texture, in RGBA format only, unsigned byte. The
+        origin of the image is at bottom / left.
 
         .. versionadded:: 1.7.0
         '''
         def __get__(self):
-            w,h = self._width, self._height
+            w, h = self._width, self._height
             self.bind()
             data = py_glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE)
             self.release()

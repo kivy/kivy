@@ -134,4 +134,3 @@ class Spinner(Button):
         else:
             if self._dropdown.attach_to:
                 self._dropdown.dismiss()
-

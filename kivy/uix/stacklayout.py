@@ -18,11 +18,6 @@ The :class:`StackLayout` arranges children vertically or horizontally, as many
 as the layout can fit.
 
 
-.. warning:
-
-    This widget is experimental and subject to change as long as this warning
-    notice is present.
-
 '''
 
 __all__ = ('StackLayout', )
@@ -64,7 +59,8 @@ class StackLayout(Layout):
     '''
 
     orientation = OptionProperty('lr-tb', options=(
-        'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt', 'bt-lr', 'rl-bt', 'bt-rl'))
+        'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt', 'bt-lr', 'rl-bt',
+        'bt-rl'))
     '''Orientation of the layout.
 
     :data:`orientation` is an :class:`~kivy.properties.OptionProperty` and
@@ -112,7 +108,8 @@ class StackLayout(Layout):
 
     .. versionadded:: 1.0.8
 
-    :data:`minimum_size` is a :class:`~kivy.properties.ReferenceListProperty` of
+    :data:`minimum_size` is a
+    :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`minimum_width`, :data:`minimum_height`) properties.
     '''
 

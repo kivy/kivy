@@ -7,15 +7,10 @@ Splitter
 .. image:: images/splitter.jpg
     :align: right
 
-.. warning::
-
-    This widget is still experimental and its API is subject to change in
-    a future version.
-
 The :class:`Splitter` is a widget that helps you re-size it's child
 widget/layout by letting you re-size it via
-dragging the boundary. This widget is similar to the
-:class:`~kivy.uix.scrollview.ScrollView` in that it allows only one child
+dragging the boundary or double tapping the boundary. This widget is similar to
+the :class:`~kivy.uix.scrollview.ScrollView` in that it allows only one child
 widget.
 
 Usage::
@@ -51,7 +46,7 @@ __all__ = ('Splitter', )
 
 from kivy.uix.button import Button
 from kivy.properties import (OptionProperty, NumericProperty, ObjectProperty,
-                            ListProperty, BooleanProperty)
+                             ListProperty)
 from kivy.uix.boxlayout import BoxLayout
 
 
@@ -97,8 +92,8 @@ class Splitter(BoxLayout):
     :class:`~kivy.uix.button.Button`.
     '''
 
-    sizable_from = OptionProperty('left',
-        options=('left', 'right', 'top', 'bottom'))
+    sizable_from = OptionProperty('left', options=(
+        'left', 'right', 'top', 'bottom'))
     '''Specifies whether the widget is resizable. Options are::
         `left`, `right`, `top` or `bottom`
 
@@ -247,6 +242,27 @@ class Splitter(BoxLayout):
     def strip_up(self, instance, touch):
         if touch.grab_current is not instance:
             return
+
+        if touch.is_double_tap:
+            max_size = self.max_size
+            min_size = self.min_size
+            sz_frm = self.sizable_from[0]
+            s = self.size
+
+            if sz_frm in ('t', 'b'):
+                if self.size_hint_y:
+                    self.size_hint_y = None
+                if s[1] - min_size <= max_size - s[1]:
+                    self.height = max_size
+                else:
+                    self.height = min_size
+            else:
+                if self.size_hint_x:
+                    self.size_hint_x = None
+                if s[0] - min_size <= max_size - s[0]:
+                    self.width = max_size
+                else:
+                    self.width = min_size
         touch.ungrab(instance)
         self.dispatch('on_release')
 

@@ -2,14 +2,15 @@
 OpenGL
 ======
 
-This module is python wrapper for OpenGL commands.
+This module is a Python wrapper for OpenGL commands.
 
 .. warning::
 
-    Not every OpenGL command have been wrapped, because we are using the C binding
-    for higher performance, and you should stick on the Kivy Graphics API, not the
-    OpenGL one. By using theses OpenGL commands, you might change the OpenGL context
-    and introduce inconsistency between Kivy state and OpenGL state.
+    Not every OpenGL command has been wrapped and because we are using the C
+    binding for higher performance, and you should rather stick to the Kivy
+    Graphics API. By using OpenGL commands directly, you might change
+    the OpenGL context and introduce inconsistency between the Kivy state and
+    the OpenGL state.
 
 '''
 
@@ -1183,8 +1184,8 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
                  GLenum type): #, GLvoid* pixels):
     '''See: `glReadPixels() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glReadPixels.xml>`_
-    
-    We are supporting only GL_RGB/GL_RGBA as format, and GL_UNSIGNED_BYTE as
+
+    We support only GL_RGB/GL_RGBA as a format and GL_UNSIGNED_BYTE as a
     type.
     '''
     assert(format in (GL_RGB, GL_RGBA))

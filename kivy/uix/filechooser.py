@@ -4,10 +4,6 @@ FileChooser
 
 .. versionadded:: 1.0.5
 
-.. warning::
-
-    This is experimental and subject to change as long as this warning notice
-    is present.
 
 .. versionchanged:: 1.2.0
     In the chooser template, the `controller` is not a direct reference anymore
@@ -99,7 +95,7 @@ class FileSystemAbstract(object):
         pass
 
     def is_dir(self, fn):
-        '''Return True if the directory is hidden
+        '''Return True if the argument passed to this method is a directory
         '''
         pass
 
@@ -238,15 +234,16 @@ class FileChooserController(FloatLayout):
     #. Callbacks
 
         You can specify a function that will be called for each file. The
-        callback will be passed the folder and file name as the first and second
-        parameters respectively. It should return True to indicate a match and
-        False otherwise.
+        callback will be passed the folder and file name as the first
+        and second parameters respectively. It should return True to
+        indicate a match and False otherwise.
 
     .. versionchanged:: 1.4.0
         If the filter is a callable (function or method), it will be called
         with the path and the file name as arguments for each file in the
         directory.
-        The callable should returns True to indicate a match and False overwise.
+        The callable should returns True to indicate a match and False
+        overwise.
     '''
 
     filter_dirs = BooleanProperty(False)
@@ -264,8 +261,8 @@ class FileChooserController(FloatLayout):
 
     .. versionchanged:: 1.8.0
 
-        The signature needs now 2 arguments: first the list of files, second the
-        filesystem class to use.
+        The signature needs now 2 arguments: first the list of files,
+        second the filesystem class to use.
     '''
 
     files = ListProperty([])
@@ -314,7 +311,8 @@ class FileChooserController(FloatLayout):
     '''
 
     progress_cls = ObjectProperty(FileChooserProgress)
-    '''Class to use for displaying a progress indicator for filechooser loading.
+    '''Class to use for displaying a progress indicator for filechooser
+    loading.
 
     .. versionadded:: 1.2.0
 
@@ -337,7 +335,7 @@ class FileChooserController(FloatLayout):
     '''
 
     file_system = ObjectProperty(FileSystemLocal(),
-            baseclass=FileSystemAbstract)
+                                 baseclass=FileSystemAbstract)
     '''Implementation to access the file system. Must be an instance of
     FileSystemAbstract.
 
@@ -348,7 +346,7 @@ class FileChooserController(FloatLayout):
     '''
 
     __events__ = ('on_entry_added', 'on_entries_cleared',
-            'on_subentry_to_entry', 'on_remove_subentry', 'on_submit')
+                  'on_subentry_to_entry', 'on_remove_subentry', 'on_submit')
 
     def __init__(self, **kwargs):
         self._progress = None

@@ -14,18 +14,18 @@ Configuration
 -------------
 
 :Parameters:
-    `attrs`: str, default to :data:`~kivy.input.recorder.Recorder.record_attrs`
-    value.
+    `attrs`: str, defaults to
+    :data:`~kivy.input.recorder.Recorder.record_attrs` value.
 
         Attributes to record from the motion event
 
-    `profile_mask`: str, default to
+    `profile_mask`: str, defaults to
     :data:`~kivy.input.recorder.Recorder.record_profile_mask` value.
 
         Mask for motion event profile. Used to filter which profile will appear
         in the fake motion event when replayed.
 
-    `filename`: str, default to 'recorder.kvi'
+    `filename`: str, defaults to 'recorder.kvi'
 
         Name of the file to record / play with
 
@@ -79,4 +79,3 @@ def start(win, ctx):
 def stop(win, ctx):
     if hasattr(ctx, 'recorder'):
         ctx.recorder.release()
-

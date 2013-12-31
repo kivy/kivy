@@ -4,51 +4,52 @@ Metrics
 
 .. versionadded:: 1.5.0
 
-A screen is defined by its actual physical size, density, resolution. These
-factors are essential for creating UI with correct size everywhere.
+A screen is defined by its physical size, density and resolution. These
+factors are essential for creating UI's with correct size everywhere.
 
-In Kivy, all our graphics pipeline is working with pixels. But using pixels as a
-measurement unit is wrong, because the size will changes according to the
+In Kivy, all the graphics pipelines work with pixels. But using pixels as a
+measurement unit is problematic because sizes change according to the
 screen.
 
 Dimensions
 ----------
 
-As you design your UI for different screen sizes, you'll need new measurement
-unit to work with.
+If you want to design your UI for different screen sizes, you will want better
+measurement units to work with. Kivy provides some more scalable alternatives.
 
 :Units:
     `pt`
         Points - 1/72 of an inch based on the physical size of the screen.
         Prefer to use sp instead of pt.
     `mm`
-        Millimeters - Based on the physical size of the screen
+        Millimeters - Based on the physical size of the screen.
     `cm`
-        Centimeters - Based on the physical size of the screen
+        Centimeters - Based on the physical size of the screen.
     `in`
-        Inches - Based on the physical size of the screen
+        Inches - Based on the physical size of the screen.
     `dp`
         Density-independent Pixels - An abstract unit that is based on the
-        physical density of the screen. With a :data:`Metrics.density` of 1, 1dp
-        is equal to 1px. When running on a higher density screen, the number of
-        pixels used to draw 1dp is scaled up by the factor of appropriate
-        screen's dpi, and the inverse for lower dpi.
-        The ratio dp-to-pixes will change with the screen density, but not
-        necessarily in direct proportions. Using dp unit is a simple solution to
-        making the view dimensions in your layout resize properly for different
-        screen densities. In others words, it provides consistency for the
-        real-world size of your UI across different devices.
+        physical density of the screen. With a :data:`~MetricsBase.density` of
+        1, 1dp is equal to 1px. When running on a higher density screen, the
+        number of pixels used to draw 1dp is scaled up a factor appropriate to
+        the screen's dpi, and the inverse for a lower dpi.
+        The ratio of dp-to-pixels will change with the screen density, but not
+        necessarily in direct proportion. Using the dp unit is a simple
+        solution to making the view dimensions in your layout resize
+        properly for different screen densities. In others words, it
+        provides consistency for the real-world size of your UI across
+        different devices.
     `sp`
         Scale-independent Pixels - This is like the dp unit, but it is also
-        scaled by the user's font size preference. It is recommended to use this
-        unit when specifying font sizes, so they will be adjusted for both the
-        screen density and the user's preference.
+        scaled by the user's font size preference. We recommend you use this
+        unit when specifying font sizes, so the font size will be adjusted to
+        both the screen density and the user's preference.
 
 Examples
 --------
 
-An example of creating a label with a sp font_size, and set a manual height with
-a 10dp margin::
+Here is an example of creating a label with a sp font_size and setting the
+height manually with a 10dp margin::
 
     #:kivy 1.5.0
     <MyWidget>:
@@ -61,25 +62,27 @@ a 10dp margin::
 Manual control of metrics
 -------------------------
 
-The metrics cannot be changed in runtime. Once a value has been converted to
-pixels, you don't have the original value anymore. It's not like you'll change
-the DPI or density in runtime.
+The metrics cannot be changed at runtime. Once a value has been converted to
+pixels, you can't retrieve the original value anymore. This stems from the fact
+that the DPI and density of a device cannot be changed at runtime.
 
-We provide new environment variables to control the metrics:
+We provide some environment variables to control metrics:
 
 - `KIVY_METRICS_DENSITY`: if set, this value will be used for
-  :data:`Metrics.density` instead of the system one. On android, the value
-  varies between 0.75, 1, 1.5. 2.
+  :data:`~MetricsBase.density` instead of the systems one. On android,
+  the value varies between 0.75, 1, 1.5 and 2.
 
 - `KIVY_METRICS_FONTSCALE`: if set, this value will be used for
-  :data:`Metrics.fontscale` instead of the system one. On android, the value
-  varies between 0.8-1.2.
+  :data:`~MetricsBase.fontscale` instead of the systems one. On android, the
+  value varies between 0.8 and 1.2.
 
-- `KIVY_DPI`: if set, this value will be used for :data:`Metrics.dpi`. Please
-  note that settings the DPI will not impact dp/sp notation, because thoses are
-  based on the density.
+- `KIVY_DPI`: if set, this value will be used for :data:`~MetricsBase.dpi`.
+  Please
+  note that setting the DPI will not impact the dp/sp notation because these
+  are based on the screen density.
 
-For example, if you want to simulate an high-density screen (like HTC One X)::
+For example, if you want to simulate a high-density screen (like the HTC One
+X)::
 
     KIVY_DPI=320 KIVY_METRICS_DENSITY=2 python main.py --size 1280x720
 
@@ -87,7 +90,7 @@ Or a medium-density (like Motorola Droid 2)::
 
     KIVY_DPI=240 KIVY_METRICS_DENSITY=1.5 python main.py --size 854x480
 
-You can also simulate an alternative user preference for fontscale, like::
+You can also simulate an alternative user preference for fontscale as follows::
 
     KIVY_METRICS_FONTSCALE=1.2 python main.py
 
@@ -95,7 +98,7 @@ You can also simulate an alternative user preference for fontscale, like::
 
 
 __all__ = ('Metrics', 'MetricsBase', 'pt', 'inch', 'cm', 'mm', 'dp', 'sp',
-'metrics')
+           'metrics')
 
 
 from os import environ
@@ -140,14 +143,14 @@ def sp(value):
 
 
 class MetricsBase(object):
-    '''Class that contain the default attribute for metrics. Don't use the class
-    directly, but use the `metrics` instance.
+    '''Class that contains the default attributes for Metrics. Don't use this
+    class directly, but use the `Metrics` instance.
     '''
 
     @reify
     def dpi(self):
-        '''Return the DPI of the screen. Depending of the platform, the DPI can
-        be taken from the Window provider (Desktop mainly), or from
+        '''Return the DPI of the screen. Depending on the platform, the DPI can
+        be taken from the Window provider (Desktop mainly) or from a
         platform-specific module (like android/ios).
         '''
         custom_dpi = environ.get('KIVY_DPI')
@@ -168,8 +171,8 @@ class MetricsBase(object):
 
     @reify
     def dpi_rounded(self):
-        '''Return the dpi of the screen, rounded to the nearest of 120, 160,
-        240, 320.
+        '''Return the DPI of the screen, rounded to the nearest of 120, 160,
+        240 or 320.
         '''
         dpi = self.dpi
         if dpi < 140:
@@ -183,7 +186,7 @@ class MetricsBase(object):
     @reify
     def density(self):
         '''Return the density of the screen. This value is 1 by default
-        on desktop, and varies on android depending the screen.
+        on desktops but varies on android depending on the screen.
         '''
         custom_density = environ.get('KIVY_METRICS_DENSITY')
         if custom_density:
@@ -202,23 +205,23 @@ class MetricsBase(object):
 
     @reify
     def fontscale(self):
-        '''Return the fontscale user preference. This value is 1 by default, and
-        can varies between 0.8-1.2.
+        '''Return the fontscale user preference. This value is 1 by default but
+        can vary between 0.8 and 1.2.
         '''
         custom_fontscale = environ.get('KIVY_METRICS_FONTSCALE')
         if custom_fontscale:
             return float(custom_fontscale)
 
         if platform == 'android':
-            import jnius
-            PythonActivity = jnius.autoclass('org.renpy.android.PythonActivity')
+            from jnius import autoclass
+            PythonActivity = autoclass('org.renpy.android.PythonActivity')
             config = PythonActivity.mActivity.getResources().getConfiguration()
             return config.fontScale
 
         return 1.0
 
 
-#: default instance of :class:`MetricsBase`, used everywhere in the code
+#: Default instance of :class:`MetricsBase`, used everywhere in the code
 #: .. versionadded:: 1.7.0
 Metrics = MetricsBase()
 

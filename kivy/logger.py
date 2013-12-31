@@ -2,23 +2,24 @@
 Logger object
 =============
 
-Differents level are available : trace, debug, info, warning, error, critical.
+Differents logging levels are available : trace, debug, info, warning, error
+and critical.
 
 Examples of usage::
 
     from kivy.logger import Logger
 
-    Logger.info('title: This is a info')
-    Logger.debug('title: This is a debug')
+    Logger.info('title: This is a info message.')
+    Logger.debug('title: This is a debug message.')
 
     try:
         raise Exception('bleh')
     except Exception:
-        Logger.exception('Something happen!')
+        Logger.exception('Something happened!')
 
-The message passed to the logger is splited to the first :. The left part is
-used as a title, and the right part is used as a message. This way, you can
-"categorize" your message easily::
+The message passed to the logger is split into two parts, separated by a colon
+(:). The first part is used as a title, and the second part is used as the
+message. This way, you can "categorize" your message easily.::
 
     Logger.info('Application: This is a test')
 
@@ -29,7 +30,7 @@ used as a title, and the right part is used as a message. This way, you can
 Logger configuration
 --------------------
 
-Logger can be controled in the Kivy configuration file::
+The Logger can be controlled via the Kivy configuration file::
 
     [kivy]
     log_level = info
@@ -37,13 +38,13 @@ Logger can be controled in the Kivy configuration file::
     log_dir = logs
     log_name = kivy_%y-%m-%d_%_.txt
 
-More information about the allowed values is described in :mod:`kivy.config`
-module.
+More information about the allowed values are described in the
+:mod:`kivy.config` module.
 
 Logger history
 --------------
 
-Even if the logger is not enabled, you can still have the history of latest 100
+Even if the logger is not enabled, you still have access to the last 100
 messages::
 
     from kivy.logger import LoggerHistory
@@ -106,9 +107,9 @@ class FileHandler(logging.Handler):
     fd = None
 
     def purge_logs(self, directory):
-        '''Purge log is called randomly, to prevent log directory to be filled
-        by lot and lot of log files.
-        You've a chance of 1 on 20 to fire a purge log.
+        '''Purge log is called randomly to prevent the log directory from being
+        filled by lots and lots of log files.
+        You've a chance of 1 in 20 that purge log will be fired.
         '''
         if randint(0, 20) != 0:
             return
@@ -225,11 +226,6 @@ class ColoredFormatter(logging.Formatter):
         self.use_color = use_color
 
     def format(self, record):
-        # XXX Hack to not show the fucking traceback for Numeric handler
-        # Lot of people are complaining with that. Now we did.
-        if 'Unable to load registered array format handler' in record.msg:
-            if record.args and record.args[0] == 'numeric':
-                return
         try:
             msg = record.msg.split(':', 1)
             if len(msg) == 2:
@@ -305,9 +301,10 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
     if hasattr(sys, '_kivy_logging_handler'):
         Logger.addHandler(getattr(sys, '_kivy_logging_handler'))
     else:
-        use_color = os.name != 'nt'
-        if os.environ.get('KIVY_BUILD') in ('android', 'ios'):
-            use_color = False
+        use_color = (
+            os.name != 'nt' and
+            os.environ.get('KIVY_BUILD') not in ('android', 'ios') and
+            os.environ.get('TERM') in ('xterm', 'rxvt', 'rxvt-unicode'))
         color_fmt = formatter_message(
             '[%(levelname)-18s] %(message)s', use_color)
         formatter = ColoredFormatter(color_fmt, use_color=use_color)

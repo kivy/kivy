@@ -77,7 +77,7 @@ def start(win, ctx):
     # XXX use ctx !
     global pointer_image, pointer_scale, pointer_alpha
     pointer_fn = ctx.config.get('image',
-            'atlas://data/images/defaulttheme/ring')
+                                'atlas://data/images/defaulttheme/ring')
     pointer_scale = float(ctx.config.get('scale', 1.0))
     pointer_alpha = float(ctx.config.get('alpha', 1.0))
     pointer_image = Image(pointer_fn)
@@ -88,5 +88,5 @@ def start(win, ctx):
 
 def stop(win, ctx):
     win.unbind(on_touch_down=_touch_down,
-             on_touch_move=_touch_move,
-             on_touch_up=_touch_up)
+               on_touch_move=_touch_move,
+               on_touch_up=_touch_up)

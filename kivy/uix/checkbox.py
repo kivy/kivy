@@ -53,8 +53,8 @@ class CheckBox(Widget):
     independent). If specified, the :data:`group` must be a hashable object
     such as a string. Only one checkbox in a group can be active.
 
-    :data:`group` is an :class:`~kivy.properties.ObjectProperty` and defaults to
-    None.
+    :data:`group` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     def __init__(self, **kwargs):
@@ -91,12 +91,19 @@ class CheckBox(Widget):
         self._release_group(self)
         self.active = not self.active
 
+    def _release(self):
+        self.active = not self.active
+
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
         if self.disabled:
             return True
-        self._toggle_active()
+        if self.group is None or self.group == '':
+            self._release()
+        elif self.group:
+            if not self.active:
+                self._toggle_active()
         return True
 
     @staticmethod
@@ -107,4 +114,3 @@ class CheckBox(Widget):
             if wk in group:
                 group.remove(wk)
                 break
-

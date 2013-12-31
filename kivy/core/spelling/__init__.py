@@ -6,8 +6,8 @@ Provides abstracted access to a range of spellchecking backends as well as
 word suggestions. The API is inspired by enchant but other backends can be
 added that implement the same API.
 
-Spelling currently requires `python-enchant` for all platforms except OSX, where
-a native implementation exists.
+Spelling currently requires `python-enchant` for all platforms except
+OSX, where a native implementation exists.
 
 ::
 
@@ -133,4 +133,3 @@ if sys.platform == 'darwin':
     _libs += (('osxappkit', 'spelling_osxappkit', 'SpellingOSXAppKit'), )
 
 Spelling = core_select_lib('spelling', _libs)
-

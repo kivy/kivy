@@ -4,10 +4,6 @@ Accordion
 
 .. versionadded:: 1.0.8
 
-.. warning::
-
-    This widget is still experimental, and its API is subject to change in a
-    future version.
 
 .. image:: images/accordion.jpg
     :align: right
@@ -44,8 +40,8 @@ The current implementation divides the :class:`AccordionItem` into two parts:
 #. One container for the title bar
 #. One container for the content
 
-The title bar is made from a Kv template. We'll see how to create a new template
-to customize the design of the title bar.
+The title bar is made from a Kv template. We'll see how to create a new
+template to customize the design of the title bar.
 
 .. warning::
 
@@ -77,8 +73,8 @@ Or change the orientation to vertical::
 
     root = Accordion(orientation='vertical')
 
-The AccordionItem is more configurable and you can set your own title background
-when the item is collapsed or opened::
+The AccordionItem is more configurable and you can set your own title
+background when the item is collapsed or opened::
 
     item = AccordionItem(background_normal='image_when_collapsed.png',
         background_selected='image_when_selected.png')
@@ -106,7 +102,8 @@ class AccordionException(Exception):
 
 class AccordionItem(FloatLayout):
     '''AccordionItem class that must be used in conjunction with the
-    :class:`Accordion` class. See the module documentation for more information.
+    :class:`Accordion` class. See the module documentation for more
+    information.
     '''
 
     title = StringProperty('')
@@ -171,8 +168,8 @@ class AccordionItem(FloatLayout):
     collapse = BooleanProperty(True)
     '''Boolean to indicate if the current item is collapsed or not.
 
-    :data:`collapse` is a :class:`~kivy.properties.BooleanProperty` and defaults
-    to True.
+    :data:`collapse` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     collapse_alpha = NumericProperty(1.)

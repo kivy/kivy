@@ -5,6 +5,14 @@ Video
 Core class for reading video files and managing the
 :class:`kivy.graphics.texture.Texture` video.
 
+.. versionchanged:: 1.8.0
+
+    There is now 2 distinct Gstreamer implementation: one using Gi/Gst
+    working for both Python 2+3 with Gstreamer 1.0, and one using PyGST
+    working only for Python 2 + Gstreamer 0.10.
+    If you have issue with GStreamer, have a look at
+    :ref:`gstreamer-compatibility`
+
 .. note::
 
     Recording is not supported.
@@ -16,6 +24,7 @@ from kivy.clock import Clock
 from kivy.core import core_select_lib
 from kivy.event import EventDispatcher
 from kivy.logger import Logger
+from kivy.compat import PY2
 
 
 class VideoBase(EventDispatcher):
@@ -104,8 +113,8 @@ class VideoBase(EventDispatcher):
         self.load()
 
     filename = property(lambda self: self._get_filename(),
-            lambda self, x: self._set_filename(x),
-            doc='Get/set the filename/uri of the current video')
+                        lambda self, x: self._set_filename(x),
+                        doc='Get/set the filename/uri of the current video')
 
     def _get_position(self):
         return 0
@@ -114,8 +123,8 @@ class VideoBase(EventDispatcher):
         self.seek(pos)
 
     position = property(lambda self: self._get_position(),
-            lambda self, x: self._set_position(x),
-            doc='Get/set the position in the video (in seconds)')
+                        lambda self, x: self._set_position(x),
+                        doc='Get/set the position in the video (in seconds)')
 
     def _get_volume(self):
         return self._volume
@@ -124,28 +133,28 @@ class VideoBase(EventDispatcher):
         self._volume = volume
 
     volume = property(lambda self: self._get_volume(),
-            lambda self, x: self._set_volume(x),
-            doc='Get/set the volume in the video (1.0 = 100%)')
+                      lambda self, x: self._set_volume(x),
+                      doc='Get/set the volume in the video (1.0 = 100%)')
 
     def _get_duration(self):
         return 0
 
     duration = property(lambda self: self._get_duration(),
-            doc='Get the video duration (in seconds)')
+                        doc='Get the video duration (in seconds)')
 
     def _get_texture(self):
         return self._texture
 
     texture = property(lambda self: self._get_texture(),
-            doc='Get the video texture')
+                       doc='Get the video texture')
 
     def _get_state(self):
         return self._state
 
     state = property(lambda self: self._get_state(),
-            doc='Get the video playing status')
+                     doc='Get the video playing status')
 
-    def _do_eos(self):
+    def _do_eos(self, *args):
         '''.. versionchanged:: 1.4.0
         Now dispatches the `on_eos` event.
         '''
@@ -193,11 +202,21 @@ class VideoBase(EventDispatcher):
 
 
 # Load the appropriate provider
-Video = core_select_lib('video', (
-    ('gstreamer', 'video_gstreamer', 'VideoGStreamer'),
+video_providers = []
+try:
+    from kivy.lib.gstplayer import GstPlayer  # NOQA
+    video_providers += [('gstplayer', 'video_gstplayer', 'VideoGstplayer')]
+except ImportError:
+    #video_providers += [('gi', 'video_gi', 'VideoGi')]
+    if PY2:
+        # if peoples do not have gi, fallback on pygst, only for python2
+        video_providers += [
+            ('pygst', 'video_pygst', 'VideoPyGst')]
+video_providers += [
     ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
     ('ffpyplayer', 'video_ffpyplayer', 'VideoFFPyPlayer'),
     ('pyglet', 'video_pyglet', 'VideoPyglet'),
-    ('null', 'video_null', 'VideoNull'),
-))
+    ('null', 'video_null', 'VideoNull')]
 
+
+Video = core_select_lib('video', video_providers)

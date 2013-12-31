@@ -140,16 +140,27 @@ class DropDown(ScrollView):
     '''
 
     dismiss_on_select = BooleanProperty(True)
-    '''By default, the dropdown will be automatically dismissed when a selection
-    has been done. Set to False to prevent the dismiss.
+    '''By default, the dropdown will be automatically dismissed when a
+    selection has been done. Set to False to prevent the dismiss.
 
     :data:`dismiss_on_select` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True.
     '''
 
+    auto_dismiss = BooleanProperty(True)
+    '''By default, the dropdown will be automatically dismissed when a
+    touch happens outside of it, this option allow to disable this
+    feature
+
+    :data:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True.
+
+    .. versionadded:: 1.8.0
+    '''
+
     attach_to = ObjectProperty(allownone=True)
-    '''(internal) Property that will be set to the widget to which the drop down
-    list is attached.
+    '''(internal) Property that will be set to the widget to which the
+    drop down list is attached.
 
     The :meth:`open` method will automatically set this property whilst
     :meth:`dismiss` will set it back to None.
@@ -178,15 +189,16 @@ class DropDown(ScrollView):
 
     def open(self, widget):
         '''Open the dropdown list and attach it to a specific widget.
-        Depending on the position of the widget within the window and the height
-        of the dropdown, the dropdown might be above or below that widget.
+        Depending on the position of the widget within the window and
+        the height of the dropdown, the dropdown might be above or below
+        that widget.
         '''
         # ensure we are not already attached
         if self.attach_to is not None:
             self.dismiss()
 
-        # we will attach ourself to the main window, so ensure the widget we are
-        # looking for have a window
+        # we will attach ourself to the main window, so ensure the
+        # widget we are looking for have a window
         self._win = widget.get_parent_window()
         if self._win is None:
             raise DropDownException(
@@ -252,14 +264,16 @@ class DropDown(ScrollView):
             return True
         if self.collide_point(*touch.pos):
             return True
-        self.dismiss()
+        if self.auto_dismiss:
+            self.dismiss()
 
     def on_touch_up(self, touch):
         if super(DropDown, self).on_touch_up(touch):
             return True
         if 'button' in touch.profile and touch.button.startswith('scroll'):
             return
-        self.dismiss()
+        if self.auto_dismiss:
+            self.dismiss()
 
     def _reposition(self, *largs):
         # calculate the coordinate of the attached widget in the window
@@ -292,8 +306,9 @@ class DropDown(ScrollView):
         elif h_top > 0:
             self.y = wtop
         else:
-            # none of both top/bottom have enough place to display the widget at
-            # the current size. Take the best side, and fit to it.
+            # none of both top/bottom have enough place to display the
+            # widget at the current size. Take the best side, and fit to
+            # it.
             height = max(h_bottom, h_top)
             if height == h_bottom:
                 self.top = wy

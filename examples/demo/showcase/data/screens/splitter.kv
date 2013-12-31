@@ -3,8 +3,11 @@ ShowcaseScreen:
 	fullscreen: True
 
 	RelativeLayout:
+        id: rl
 
 		Splitter:
 			sizable_from: 'right'
+			min_size: 10
+			max_size: rl.width
 			Button:
 				text: 'Panel'

@@ -64,8 +64,8 @@ Repeating animation
 .. note::
     This is currently only implemented for 'Sequence' animations.
 
-To set an animation to repeat, simply set the :data:`Sequence.repeat` property to
-`True`::
+To set an animation to repeat, simply set the :data:`Sequence.repeat`
+property to `True`::
 
     anim = Animation(...) + Animation(...)
     anim.repeat = True
@@ -87,13 +87,13 @@ class Animation(EventDispatcher):
     '''Create an animation definition that can be used to animate a Widget.
 
     :Parameters:
-        `duration` or `d`: float, default to 1.
+        `duration` or `d`: float, defaults to 1.
             Duration of the animation, in seconds.
         `transition` or `t`: str or func
             Transition function for animate properties. It can be the name of a
             method from :class:`AnimationTransition`.
         `step` or `s`: float
-            Step in milliseconds of the animation. Default to 1 / 60.
+            Step in milliseconds of the animation. Defaults to 1 / 60.
 
     :Events:
         `on_start`: widget
@@ -305,7 +305,10 @@ class Animation(EventDispatcher):
                 anim['time'] += dt
 
             # calculate progression
-            progress = min(1., anim['time'] / self._duration)
+            if self._duration:
+                progress = min(1., anim['time'] / self._duration)
+            else:
+                progress = 1
             t = transition(progress)
 
             # apply progression on widget
@@ -400,7 +403,7 @@ class Sequence(Animation):
         self.anim1.stop_property(widget, prop)
         self.anim2.stop_property(widget, prop)
         if (not self.anim1.have_properties_to_animate(widget) and
-            not self.anim2.have_properties_to_animate(widget)):
+                not self.anim2.have_properties_to_animate(widget)):
             self.stop(widget)
 
     def cancel(self, widget):
@@ -419,7 +422,7 @@ class Sequence(Animation):
 
     def on_anim2_complete(self, instance, widget):
         '''Repeating logic used with boolean variable "repeat".
-        
+
         .. versionadded:: 1.7.1
         '''
         if self.repeat:
@@ -465,7 +468,7 @@ class Parallel(Animation):
         self.anim1.stop_property(widget, prop)
         self.anim2.stop_property(widget, prop)
         if (not self.anim1.have_properties_to_animate(widget) and
-            not self.anim2.have_properties_to_animate(widget)):
+                not self.anim2.have_properties_to_animate(widget)):
             self.stop(widget)
 
     def cancel(self, widget):

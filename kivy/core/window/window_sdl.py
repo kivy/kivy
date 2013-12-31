@@ -84,6 +84,7 @@ class WindowSDL(WindowBase):
 
         # auto add input provider
         Logger.info('Window: auto add sdl input provider')
+        # xXX already imported at the top, is this necessary?
         from kivy.base import EventLoop
         SDLMotionEventProvider.win = self
         EventLoop.add_input_provider(SDLMotionEventProvider('sdl', ''))
@@ -230,7 +231,6 @@ class WindowSDL(WindowBase):
     def do_pause(self):
         # should go to app pause mode.
         from kivy.app import App
-        from kivy.base import stopTouchApp
         app = App.get_running_app()
         if not app:
             Logger.info('WindowSDL: No running App found, exit.')
@@ -315,4 +315,3 @@ class WindowSDL(WindowBase):
             return False
         if not sdl.is_keyboard_shown():
             self._sdl_keyboard.release()
-

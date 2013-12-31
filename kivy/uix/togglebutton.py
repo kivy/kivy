@@ -32,4 +32,3 @@ class ToggleButton(ToggleButtonBehavior, Button):
     '''
 
     pass
-

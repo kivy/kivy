@@ -26,7 +26,7 @@ class WindowsPortableBuild(Command):
     description = "custom build command that builds portable win32 package"
     user_options = [
         ('dist-dir=', None,
-         "path of dist directory to use for building portable kivy, the end result will be output to this driectory. default to cwd."),
+         "path of dist directory to use for building portable kivy, the end result will be output to this driectory. Defaults to cwd."),
         ('deps-url=', None,
          "url of binary dependancies for portable kivy package default: http://kivy.googlecode.com/files/portable-deps-win32.zip"),
         ('no-cext', None,

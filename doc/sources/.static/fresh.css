@@ -451,3 +451,10 @@ table.highlighttable {
 table.highlighttable td.linenos {
 	width: 40px;
 }
+
+/** viewcode link style **/
+.viewcode-back,
+.viewcode-link {
+	position: absolute;
+	right: 2em;
+}

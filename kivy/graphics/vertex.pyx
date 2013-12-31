@@ -12,7 +12,7 @@ class VertexFormatException(Exception):
 
 cdef class VertexFormat:
     '''VertexFormat is used to describe the layout of the vertex data stored 
-    in vertex arrays/vbo.
+    in vertex arrays/vbo's.
 
     .. versionadded:: 1.6.0
     '''

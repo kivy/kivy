@@ -37,10 +37,11 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.checkbox import CheckBox
+from kivy.uix.spinner import Spinner
 from kivy.config import Config
 from kivy.properties import ObjectProperty, NumericProperty, \
     BooleanProperty, StringProperty, ListProperty, OptionProperty
-from kivy.uix.spinner import Spinner
+from kivy.metrics import sp
 from kivy.lang import Builder
 from functools import partial
 
@@ -292,7 +293,7 @@ class ActionGroup(ActionItem, Spinner):
                         children[0].minimum_width])
         for item in children:
             item.size_hint_y = None
-            item.height = max([self.height, '48sp'])
+            item.height = max([self.height, sp(48)])
 
     def clear_widgets(self):
         self._dropdown.clear_widgets()
@@ -319,7 +320,7 @@ class ActionOverflow(ActionGroup):
 
         if not isinstance(action_item, ActionItem):
             raise ActionBarException('ActionView only accepts ActionItem'
-                    ' (got {!r}'.format(action_item))
+                                     ' (got {!r}'.format(action_item))
 
         else:
             if index == 0:
@@ -392,7 +393,7 @@ class ActionView(BoxLayout):
 
         if not isinstance(action_item, ActionItem):
             raise ActionBarException('ActionView only accepts ActionItem'
-                    ' (got {!r}'.format(action_item))
+                                     ' (got {!r}'.format(action_item))
 
         elif isinstance(action_item, ActionOverflow):
             self.overflow_group = action_item
@@ -477,7 +478,7 @@ class ActionView(BoxLayout):
         super_add(self.action_previous)
 
         width = (self.width - self.overflow_group.minimum_width -
-                self.action_previous.minimum_width)
+                 self.action_previous.minimum_width)
 
         if len(self._list_action_items):
             for child in self._list_action_items[1:]:
@@ -499,8 +500,8 @@ class ActionView(BoxLayout):
                    group.separator_width < width:
                     super_add(group)
                     group.show_group()
-                    total_width += group.minimum_width +\
-                                   group.separator_width
+                    total_width += (group.minimum_width +
+                                    group.separator_width)
 
                 else:
                     hidden_groups.append(group)
@@ -647,7 +648,6 @@ class ActionBar(BoxLayout):
 if __name__ == "__main__":
     from kivy.base import runTouchApp
     from kivy.uix.floatlayout import FloatLayout
-    from kivy.lang import Builder
     from kivy.factory import Factory
 
     # XXX clean the first registration done from '__main__' here.

@@ -1,8 +1,11 @@
 '''
-GStreamer Camera: Implement CameraBase with GStreamer
+GStreamer Camera
+================
+
+Implement CameraBase with GStreamer, based on PyGST
 '''
 
-__all__ = ('CameraGStreamer', )
+__all__ = ('CameraPyGst', )
 
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
@@ -22,7 +25,7 @@ from kivy.support import install_gobject_iteration
 install_gobject_iteration()
 
 
-class CameraGStreamer(CameraBase):
+class CameraPyGst(CameraBase):
     '''Implementation of CameraBase using GStreamer
 
     :Parameters:
@@ -40,7 +43,7 @@ class CameraGStreamer(CameraBase):
         self._decodebin = None
         self._texturesize = None
         self._video_src = kwargs.get('video_src', 'v4l2src')
-        super(CameraGStreamer, self).__init__(**kwargs)
+        super(CameraPyGst, self).__init__(**kwargs)
 
     def init_camera(self):
         # TODO: This doesn't work when camera resolution is resized at runtime.
@@ -82,11 +85,11 @@ class CameraGStreamer(CameraBase):
         Clock.schedule_once(self._update)
 
     def start(self):
-        super(CameraGStreamer, self).start()
+        super(CameraPyGst, self).start()
         self._pipeline.set_state(gst.STATE_PLAYING)
 
     def stop(self):
-        super(CameraGStreamer, self).stop()
+        super(CameraPyGst, self).stop()
         self._pipeline.set_state(gst.STATE_PAUSED)
 
     def _update(self, dt):

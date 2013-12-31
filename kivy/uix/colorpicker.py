@@ -34,8 +34,9 @@ __all__ = ('ColorPicker', 'ColorWheel')
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
 from kivy.properties import (NumericProperty, BoundedNumericProperty,
-                            ListProperty, ObjectProperty, ReferenceListProperty,
-                            StringProperty, AliasProperty)
+                             ListProperty, ObjectProperty,
+                             ReferenceListProperty, StringProperty,
+                             AliasProperty)
 from kivy.clock import Clock
 from kivy.graphics import Mesh, InstructionGroup, Color
 from kivy.utils import get_color_from_hex, get_hex_from_color
@@ -134,10 +135,8 @@ class ColorWheel(Widget):
         super(ColorWheel, self).__init__(**kwargs)
 
         pdv = self._piece_divisions
-        self.sv_s = [(float(x) / pdv, 1)
-                     for x in range(pdv)] + [
-                         (1, float(y) / pdv)
-                         for y in reversed(range(pdv))]
+        self.sv_s = [(float(x) / pdv, 1) for x in range(pdv)] + [
+            (1, float(y) / pdv) for y in reversed(range(pdv))]
 
     def on__origin(self, instance, value):
         self.init_wheel(None)
@@ -403,8 +402,8 @@ class ColorPicker(RelativeLayout):
     wheel = ObjectProperty(None)
     '''The :data:`wheel` holds the color wheel.
 
-    :data:`wheel` is an :class:`~kivy.properties.ObjectProperty` and defaults to
-    None.
+    :data:`wheel` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     # now used only internally.
