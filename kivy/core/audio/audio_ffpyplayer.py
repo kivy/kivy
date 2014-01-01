@@ -115,7 +115,7 @@ class SoundFFPy(Sound):
         self.unload()
         ff_opts = {'vn': True, 'sn': True}  # only audio
         self._ffplayer = MediaPlayer(self.source,
-                                     vid_sink=self._callback_ref,
+                                     callback=self._callback_ref,
                                      loglevel='info', ff_opts=ff_opts)
         player = self._ffplayer
         player.set_volume(self.volume)

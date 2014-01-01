@@ -188,7 +188,7 @@ class VideoFFPy(VideoBase):
             return
         self.load()
         self._ffplayer = MediaPlayer(self._filename,
-                                     vid_sink=self._callback_ref,
+                                     callback=self._callback_ref,
                                      loglevel='info')
         player = self._ffplayer
         # wait until loaded or failed, shouldn't take long, but just to make
