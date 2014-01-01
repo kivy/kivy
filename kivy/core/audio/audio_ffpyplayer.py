@@ -49,7 +49,7 @@ try:
     import ffpyplayer
     from ffpyplayer.player import MediaPlayer
     from ffpyplayer.tools import set_log_callback, loglevels,\
-    get_log_callback, formats_in
+        get_log_callback, formats_in
 except:
     raise
 
@@ -85,7 +85,7 @@ class SoundFFPy(Sound):
         self._ffplayer = None
         self.quitted = False
         self._log_callback_set = False
-        self._state == ''
+        self._state = ''
         self.state = 'stop'
         self._callback_ref = WeakMethod(self._player_callback)
 
