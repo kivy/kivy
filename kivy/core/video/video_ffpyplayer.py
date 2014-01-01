@@ -1,6 +1,6 @@
 '''
-FFplay based video abstraction
-========================
+FFmpeg based video abstraction
+==============================
 
 To use, you need to install ffpyplyaer and have a compiled ffmpeg shared
 library.
@@ -32,8 +32,8 @@ Finally, before running you need to ensure that ffpyplayer is in python's path.
 ..Note::
 
     When kivy exits by closing the window while the video is playing,
-    it appears that the __del__method of VideoFFPyPlayer
-    is not called. Because of this the VideoFFPyPlayer object is not
+    it appears that the __del__method of VideoFFPy
+    is not called. Because of this the VideoFFPy object is not
     properly deleted when kivy exits. The consequence is that because
     MediaPlayer creates internal threads which do not have their daemon
     flag set, when the main threads exists it'll hang and wait for the other
@@ -43,22 +43,24 @@ Finally, before running you need to ensure that ffpyplayer is in python's path.
     kivy exits by setting it to None.
 '''
 
-__all__ = ('VideoFFPyPlayer', )
+__all__ = ('VideoFFPy', )
 
 try:
+    import ffpyplayer
     from ffpyplayer.player import MediaPlayer
-    from ffpyplayer.tools import set_log_callback, loglevels
+    from ffpyplayer.tools import set_log_callback, loglevels, get_log_callback
 except:
     raise
 
 
 from kivy.clock import Clock
-from kivy.core import core_select_lib
 from kivy.logger import Logger
 from kivy.core.video import VideoBase
 from kivy.graphics.texture import Texture
 from kivy.weakmethod import WeakMethod
-from kivy.logger import Logger
+import time
+
+Logger.info('VideoFFPy: Using ffpyplayer {}'.format(ffpyplayer.version))
 
 
 logger_func = {'quiet': Logger.critical, 'panic': Logger.critical,
@@ -67,31 +69,38 @@ logger_func = {'quiet': Logger.critical, 'panic': Logger.critical,
                'verbose': Logger.debug, 'debug': Logger.debug}
 
 
-def log_callback(message, level):
+def _log_callback(message, level):
     message = message.strip()
     if message:
-        logger_func[level]('ffpyplayer:%s' % message)
+        logger_func[level]('ffpyplayer: {}'.format(message))
 
 
-class VideoFFPyPlayer(VideoBase):
+class VideoFFPy(VideoBase):
 
     def __init__(self, **kwargs):
         self._ffplayer = None
         self._next_frame = None
+        self.quitted = False
+        self._log_callback_set = False
         self._callback_ref = WeakMethod(self._player_callback)
-        self._update_ref = WeakMethod(self._update)
-        set_log_callback(log_callback)
-        super(VideoFFPyPlayer, self).__init__(**kwargs)
+
+        if not get_log_callback():
+            set_log_callback(_log_callback)
+            self._log_callback_set = True
+
+        super(VideoFFPy, self).__init__(**kwargs)
 
     def __del__(self):
         self.unload()
-        set_log_callback(None)
+        if self._log_callback_set:
+            set_log_callback(None)
 
     def _player_callback(self, selector, value):
         if self._ffplayer is None:
             return
         if selector == 'quit':
             def close(*args):
+                self.quitted = True
                 self.unload()
             Clock.schedule_once(close, 0)
 
@@ -134,7 +143,7 @@ class VideoFFPyPlayer(VideoBase):
             return
 
         if self._next_frame:
-            buffer, size, linesize, pts = self._next_frame
+            buffer, size, linesizes, pts = self._next_frame
             self.next_frame = None
             if size != self._size or self._texture is None:
                 self._texture = Texture.create(size=size, colorfmt='rgb')
@@ -178,10 +187,16 @@ class VideoFFPyPlayer(VideoBase):
             Clock.schedule_once(self._update, 0)
             return
         self.load()
-        ff_opts = {}
         self._ffplayer = MediaPlayer(self._filename,
                                      vid_sink=self._callback_ref,
-                                     loglevel='info', ff_opts=ff_opts)
+                                     loglevel='info')
+        player = self._ffplayer
+        # wait until loaded or failed, shouldn't take long, but just to make
+        # sure metadata is available.
+        s = time.clock()
+        while (player.get_metadata()['src_vid_size'] == (0, 0)
+               and not self.quitted and time.clock() - s < 10.):
+            time.sleep(0.005)
         self._state = 'playing'
         Clock.schedule_once(self._update, 1 / 30.)
 
@@ -195,3 +210,4 @@ class VideoFFPyPlayer(VideoBase):
         self._next_frame = None
         self._size = (0, 0)
         self._state = ''
+        self.quitted = False

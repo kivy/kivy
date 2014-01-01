@@ -214,7 +214,7 @@ except ImportError:
             ('pygst', 'video_pygst', 'VideoPyGst')]
 video_providers += [
     ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
-    ('ffpyplayer', 'video_ffpyplayer', 'VideoFFPyPlayer'),
+    ('ffpyplayer', 'video_ffpyplayer', 'VideoFFPy'),
     ('pyglet', 'video_pyglet', 'VideoPyglet'),
     ('null', 'video_null', 'VideoNull')]
 
