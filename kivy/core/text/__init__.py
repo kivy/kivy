@@ -232,7 +232,11 @@ class LabelBase(object):
                                        text[-segment:].strip())
         else:
             segment = max_letters - 3  # length of '...'
-            return u'{0}...'.format(text[:segment].strip())
+            try:
+                return u'{0}...'.format(text[:segment].strip())
+            except:
+                text = unicode(text,errors='ignore')
+                return u'{0}...'.format(text[:segment].strip())
 
     def render(self, real=False):
         '''Return a tuple (width, height) to create the image
