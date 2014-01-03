@@ -6,8 +6,9 @@
 import sys
 
 from copy import deepcopy
+import os
 from os.path import join, dirname, sep, exists, basename
-from os import walk, environ, uname
+from os import walk, environ
 try:
     from setuptools import setup
 except ImportError:
@@ -265,7 +266,7 @@ def determine_base_flags():
         flags['extra_compile_args'] += ['-isysroot', sysroot]
         flags['extra_link_args'] += ['-isysroot', sysroot]
     elif platform == 'darwin':
-        v = uname()
+        v = os.uname()
         if v[2] >= '13.0.0':
             # use xcode-select to search on the right Xcode path
             # XXX use the best SDK available instead of a specific one
