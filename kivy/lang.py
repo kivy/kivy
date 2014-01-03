@@ -640,6 +640,7 @@ from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.compat import PY2, iteritems, iterkeys
 from kivy.context import register_context
+from kivy.resources import resource_find
 import kivy.metrics as Metrics
 
 
@@ -1381,6 +1382,7 @@ class BuilderBase(object):
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
         '''
+        filename = resource_find(filename) or filename
         if __debug__:
             trace('Builder: load file %s' % filename)
         with open(filename, 'r') as fd:
