@@ -160,6 +160,8 @@ __all__ = ('Settings', 'SettingsPanel', 'SettingItem', 'SettingString',
 
 import json
 import os
+from kivy.compat import string_types
+from kivy.factory import Factory
 from kivy.metrics import dp
 from kivy.config import ConfigParser
 from kivy.animation import Animation
@@ -871,6 +873,11 @@ class Settings(BoxLayout):
     :class:`~kivy.properties.ObjectProperty` and defaults to
     :class`InterfaceWithSidebar`.
 
+    .. versionchanged:: 1.8.0
+
+        If you set a string, the :class:`~kivy.factory.Factory` will be used to
+        resolve the class.
+
     '''
 
     __events__ = ('on_close', 'on_config_change')
@@ -905,7 +912,10 @@ class Settings(BoxLayout):
         created, they will be added to this interface which will display them
         to the user.
         '''
-        interface = self.interface_cls()
+        cls = self.interface_cls
+        if isinstance(cls, string_types):
+            cls = Factory.get(cls)
+        interface = cls()
         self.interface = interface
         self.add_widget(interface)
         self.interface.bind(on_close=lambda j: self.dispatch('on_close'))

@@ -44,6 +44,8 @@ if self.horizontal else 'path to vertical pressed image'
 
 __all__ = ('Splitter', )
 
+from kivy.compat import string_types
+from kivy.factory import Factory
 from kivy.uix.button import Button
 from kivy.properties import (OptionProperty, NumericProperty, ObjectProperty,
                              ListProperty)
@@ -90,6 +92,12 @@ class Splitter(BoxLayout):
     :data:`strip_cls` is an :class:`kivy.properties.ObjectProperty` and
     defaults to :class:`~kivy.uix.splitter.SplitterStrip`, which is of type
     :class:`~kivy.uix.button.Button`.
+
+    .. versionchanged:: 1.8.0
+
+        If you set a string, the :class:`~kivy.factory.Factory` will be used to
+        resolve the class.
+
     '''
 
     sizable_from = OptionProperty('left', options=(
@@ -144,7 +152,10 @@ class Splitter(BoxLayout):
 
             sup.remove_widget(instance._strip)
         else:
-            instance._strip = _strp = instance.strip_cls()
+            cls = instance.strip_cls
+            if isinstance(cls, string_types):
+                cls = Factory.get(cls)
+            instance._strip = _strp = cls()
 
         sz_frm = instance.sizable_from[0]
         if sz_frm in ('l', 'r'):

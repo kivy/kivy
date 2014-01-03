@@ -34,6 +34,8 @@ __all__ = ('FileChooserListView', 'FileChooserIconView',
 
 from weakref import ref
 from time import time
+from kivy.compat import string_types
+from kivy.factory import Factory
 from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.logger import Logger
@@ -318,6 +320,12 @@ class FileChooserController(FloatLayout):
 
     :class:`~kivy.properties.ObjectProperty`, defaults to
     :class:`FileChooserProgress`.
+
+    .. versionchanged:: 1.8.0
+
+        If you set a string, the :class:`~kivy.factory.Factory` will be used to
+        resolve the class.
+
     '''
 
     file_encodings = ListProperty(['utf-8', 'latin1', 'cp1252'])
@@ -578,7 +586,10 @@ class FileChooserController(FloatLayout):
     def _show_progress(self):
         if self._progress:
             return
-        self._progress = self.progress_cls(path=self.path)
+        cls = self.progress_cls
+        if isinstance(cls, string_types):
+            cls = Factory.get(cls)
+        self._progress = cls(path=self.path)
         self._progress.value = 0
         self.add_widget(self._progress)
 

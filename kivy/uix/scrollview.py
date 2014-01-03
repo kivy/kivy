@@ -90,8 +90,10 @@ __all__ = ('ScrollView', )
 
 from functools import partial
 from kivy.animation import Animation
+from kivy.compat import string_types
 from kivy.config import Config
 from kivy.clock import Clock
+from kivy.factory import Factory
 from kivy.uix.stencilview import StencilView
 from kivy.metrics import sp
 from kivy.effects.dampedscroll import DampedScrollEffect
@@ -325,6 +327,12 @@ class ScrollView(StencilView):
 
     :data:`effect_cls` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to :class:`DampedScrollEffect`.
+
+    .. versionchanged:: 1.8.0
+
+        If you set a string, the :class:`~kivy.factory.Factory` will be used to
+        resolve the class.
+
     '''
 
     effect_x = ObjectProperty(None, allownone=True)
@@ -381,10 +389,13 @@ class ScrollView(StencilView):
         self._trigger_update_from_scroll = Clock.create_trigger(
             self.update_from_scroll, -1)
         super(ScrollView, self).__init__(**kwargs)
-        if self.effect_x is None and self.effect_cls is not None:
-            self.effect_x = self.effect_cls(target_widget=self._viewport)
-        if self.effect_y is None and self.effect_cls is not None:
-            self.effect_y = self.effect_cls(target_widget=self._viewport)
+        effect_cls = self.effect_cls
+        if isinstance(effect_cls, string_types):
+            effect_cls = Factory.get(effect_cls)
+        if self.effect_x is None and effect_cls is not None:
+            self.effect_x = effect_cls(target_widget=self._viewport)
+        if self.effect_y is None and effect_cls is not None:
+            self.effect_y = effect_cls(target_widget=self._viewport)
         self.bind(
             width=self._update_effect_x_bounds,
             height=self._update_effect_y_bounds,
@@ -410,9 +421,11 @@ class ScrollView(StencilView):
             value.target_widget = self._viewport
 
     def on_effect_cls(self, instance, cls):
-        self.effect_x = self.effect_cls(target_widget=self._viewport)
+        if isinstance(effect_cls, string_types):
+            effect_cls = Factory.get(effect_cls)
+        self.effect_x = effect_cls(target_widget=self._viewport)
         self.effect_x.bind(scroll=self._update_effect_x)
-        self.effect_y = self.effect_cls(target_widget=self._viewport)
+        self.effect_y = effect_cls(target_widget=self._viewport)
         self.effect_y.bind(scroll=self._update_effect_y)
 
     def _update_effect_widget(self, *args):

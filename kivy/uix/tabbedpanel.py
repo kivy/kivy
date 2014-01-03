@@ -127,6 +127,8 @@ __all__ = ('StripLayout', 'TabbedPanel', 'TabbedPanelContent',
 
 from functools import partial
 from kivy.clock import Clock
+from kivy.compat import string_types
+from kivy.factory import Factory
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.widget import Widget
 from kivy.uix.scatter import Scatter
@@ -385,7 +387,12 @@ class TabbedPanel(GridLayout):
         `default_tab_cls` should be subclassed from `TabbedPanelHeader`
 
     :data:`default_tab_cls` is an :class:`~kivy.properties.ObjectProperty`
-    and defaults to `TabbedPanelHeader`.
+    and defaults to `TabbedPanelHeader`. If you set a string, the
+    :class:`~kivy.factory.Factory` will be used to resolve the class.
+
+    .. versionchanged:: 1.8.0
+
+        Factory will resolve the class if a string is set.
     '''
 
     def get_tab_list(self):
@@ -596,6 +603,9 @@ class TabbedPanel(GridLayout):
         content = self._default_tab.content
         _tabs = self._tab_strip
         cls = self.default_tab_cls
+
+        if isinstance(cls, string_types):
+            cls = Factory.get(cls)
 
         if not issubclass(cls, TabbedPanelHeader):
             raise TabbedPanelException('`default_tab_class` should be\

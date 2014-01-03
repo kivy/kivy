@@ -319,6 +319,8 @@ from inspect import getfile
 from os.path import dirname, join, exists, sep, expanduser, isfile
 from kivy.config import ConfigParser
 from kivy.base import runTouchApp, stopTouchApp
+from kivy.compat import string_types
+from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
@@ -406,7 +408,9 @@ class App(EventDispatcher):
 
     :attr:`~App.settings_cls` is an :class:`~kivy.properties.ObjectProperty`
     and defaults to :class:`~kivy.uix.settings.SettingsWithSpinner` which
-    displays settings panels with a spinner to switch between them.
+    displays settings panels with a spinner to switch between them. If you set a
+    string, the :class:`~kivy.factory.Factory` will be used to resolve the
+    class.
 
     '''
 
@@ -886,6 +890,8 @@ class App(EventDispatcher):
         if self.settings_cls is None:
             from kivy.uix.settings import SettingsWithSpinner
             self.settings_cls = SettingsWithSpinner
+        elif isinstance(self.settings_cls, string_types):
+            self.settings_cls = Factory.get(self.settings_cls)
         s = self.settings_cls()
         self.build_settings(s)
         if self.use_kivy_settings:

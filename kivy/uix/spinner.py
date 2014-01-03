@@ -38,6 +38,8 @@ Example::
 
 __all__ = ('Spinner', 'SpinnerOption')
 
+from kivy.compat import string_types
+from kivy.factory import Factory
 from kivy.properties import ListProperty, ObjectProperty, BooleanProperty
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
@@ -73,6 +75,12 @@ class Spinner(Button):
 
     :data:`option_cls` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to :class:`SpinnerOption`.
+
+    .. versionchanged:: 1.8.0
+
+        If you set a string, the :class:`~kivy.factory.Factory` will be used to
+        resolve the class.
+
     '''
 
     dropdown_cls = ObjectProperty(DropDown)
@@ -80,6 +88,12 @@ class Spinner(Button):
 
     :data:`dropdown_cls` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to :class:`~kivy.uix.dropdown.DropDown`.
+
+    .. versionchanged:: 1.8.0
+
+        If you set a string, the :class:`~kivy.factory.Factory` will be used to
+        resolve the class.
+
     '''
 
     is_open = BooleanProperty(False)
@@ -107,7 +121,10 @@ class Spinner(Button):
             self._dropdown.unbind(on_dismiss=self._toggle_dropdown)
             self._dropdown.dismiss()
             self._dropdown = None
-        self._dropdown = self.dropdown_cls()
+        cls = self.dropdown_cls
+        if isinstance(cls, string_types):
+            cls = Factory.get(cls)
+        self._dropdown = cls()
         self._dropdown.bind(on_select=self._on_dropdown_select)
         self._dropdown.bind(on_dismiss=self._toggle_dropdown)
         self._update_dropdown()
@@ -115,6 +132,8 @@ class Spinner(Button):
     def _update_dropdown(self, *largs):
         dp = self._dropdown
         cls = self.option_cls
+        if isinstance(cls, string_types):
+            cls = Factory.get(cls)
         dp.clear_widgets()
         for value in self.values:
             item = cls(text=value)
