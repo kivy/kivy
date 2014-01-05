@@ -21,7 +21,7 @@ from kivy.utils import platform
 from kivy.compat import string_types
 import zipfile
 try:
-    import io as SIO
+    import cio as SIO
 except ImportError:
     import io as SIO
 
@@ -180,6 +180,9 @@ class ImageLoaderBase(object):
             # if not create it and append to the cache
             if texture is None:
                 imagedata = self._data[count]
+                imagedata.source = '{}{}|{}'.format(
+                    'zip|' if self.filename.endswith('.zip') else '',
+                     self._nocache, uid)
                 texture = Texture.create_from_data(
                     imagedata, mipmap=self._mipmap)
                 if not self._nocache:

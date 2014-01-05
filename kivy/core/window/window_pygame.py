@@ -13,11 +13,12 @@ from kivy.core import CoreCriticalException
 from os import environ
 from os.path import exists, join
 from kivy.config import Config
-from kivy import kivy_home_dir
+from kivy import kivy_data_dir
 from kivy.base import ExceptionManager
 from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
 from kivy.utils import platform
+from kivy.resources import resource_find
 
 # When we are generating documentation, Config doesn't exist
 _exit_on_escape = True
@@ -106,12 +107,16 @@ class WindowPygame(WindowBase):
 
         # set window icon before calling set_mode
         try:
-            #filename_icon = Config.get('kivy', 'window_icon')
             filename_icon = self.icon or Config.get('kivy', 'window_icon')
             if filename_icon == '':
-                logo_size = 512 if platform == 'macosx' else 32
-                filename_icon = join(kivy_home_dir,
-                                     'icon', 'kivy-icon-%d.png' % logo_size)
+                logo_size = 32
+                if platform == 'macosx':
+                    logo_size = 512
+                elif platform == 'win':
+                    logo_size = 64
+                filename_icon = 'kivy-icon-{}.png'.format(logo_size)
+                filename_icon = resource_find(
+                        join(kivy_data_dir, 'logo', filename_icon))
             self.set_icon(filename_icon)
         except:
             Logger.exception('Window: cannot set icon')
@@ -183,22 +188,58 @@ class WindowPygame(WindowBase):
             pygame.display.set_caption(self.title)
 
     def set_icon(self, filename):
+        if not exists(filename):
+            return False
         try:
-            if not exists(filename):
-                return False
-            if PY2:
+            if platform == 'win':
                 try:
-                    im = pygame.image.load(filename)
-                except UnicodeEncodeError:
-                    im = pygame.image.load(filename.encode('utf8'))
-            else:
-                im = pygame.image.load(filename)
-            if im is None:
-                raise Exception('Unable to load window icon (not found)')
-            pygame.display.set_icon(im)
+                    if self._set_icon_win(filename):
+                        return True
+                except:
+                    # fallback on standard loading then.
+                    pass
+
+            # for all others platform, or if the ico is not available, use the
+            # default way to set it.
+            self._set_icon_standard(filename)
             super(WindowPygame, self).set_icon(filename)
         except:
             Logger.exception('WinPygame: unable to set icon')
+
+    def _set_icon_standard(self, filename):
+        if PY2:
+            try:
+                im = pygame.image.load(filename)
+            except UnicodeEncodeError:
+                im = pygame.image.load(filename.encode('utf8'))
+        else:
+            im = pygame.image.load(filename)
+        if im is None:
+            raise Exception('Unable to load window icon (not found)')
+        pygame.display.set_icon(im)
+
+    def _set_icon_win(self, filename):
+        # ensure the window ico is ended by ico
+        if not filename.endswith('.ico'):
+            filename = '{}.ico'.format(filename.rsplit('.', 1)[0])
+        if not exists(filename):
+            return False
+
+        import win32api
+        import win32gui
+        import win32con
+        hwnd = pygame.display.get_wm_info()['window']
+        icon_big = win32gui.LoadImage(
+            None, filename, win32con.IMAGE_ICON,
+            48, 48, win32con.LR_LOADFROMFILE)
+        icon_small = win32gui.LoadImage(
+            None, filename, win32con.IMAGE_ICON,
+            16, 16, win32con.LR_LOADFROMFILE)
+        win32api.SendMessage(
+            hwnd, win32con.WM_SETICON, win32con.ICON_SMALL, icon_small)
+        win32api.SendMessage(
+            hwnd, win32con.WM_SETICON, win32con.ICON_BIG, icon_big)
+        return True
 
     def screenshot(self, *largs, **kwargs):
         global glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE

@@ -593,6 +593,9 @@ cdef class Texture:
     '''Handle an OpenGL texture. This class can be used to create simple
     textures or complex textures based on ImageData.'''
 
+    _sequenced_textures = {}
+    '''Internal use only for textures of sequenced images
+    '''
     create = staticmethod(texture_create)
     create_from_data = staticmethod(texture_create_from_data)
 
@@ -891,22 +894,49 @@ cdef class Texture:
             texture = texture_create(self.size, self.colorfmt, self.bufferfmt,
                     self.mipmap)
         else:
-            source = self._source
-            proto = source.split(':', 1)[0]
+            source = osource = self._source
+            proto = None
+            if source.startswith('zip|'):
+                proto = 'zip'
+                source = source[4:]
+            no_cache, filename, mipmap, count = source.split('|')
+            source = '{}|{}|{}'.format(filename, mipmap, count)
+
+            if not proto:
+                proto = filename.split(':', 1)[0]
+
             if proto in ('http', 'https', 'ftp', 'smb'):
                 from kivy.loader import Loader
-                self._proxyimage = Loader.image(source)
+                self._proxyimage = Loader.image(filename)
                 self._id = 0 # FIXME this will point to an invalid texture ...
                 self._proxyimage.bind(on_load=self._on_proxyimage_loaded)
                 if self._proxyimage.loaded:
                     self._on_proxyimage_loaded(self._proxyimage)
                 return
-            else:
-                from kivy.core.image import Image
-                image = Image(self._source, nocache=True)
+            
+            mipmap = 0 if mipmap == 'False' else 1
+            if count == '0':
+                if proto =='zip' or filename.endswith('.gif'):
+                    from kivy.core.image import ImageLoader
+                    image = ImageLoader.load(filename, nocache=True, mipmap=mipmap)
+
+                    texture_list = []
+                    create_tex = self.create_from_data
+                    for data in image._data[1:]:
+                        tex = create_tex(data, mipmap=mipmap)
+                        texture_list.append(tex)
+                    self._sequenced_textures[filename] = texture_list
+                else:
+                    from kivy.core.image import Image
+                    image = Image(filename, nocache=True, mipmap=mipmap)
                 texture = image.texture
+            else:
+                item_no = int(count) - 1
+                texture = self._sequenced_textures[filename][item_no]
+                
 
         self._reload_propagate(texture)
+
 
     cdef void _reload_propagate(self, Texture texture):
         # set the same parameters as our current texture
