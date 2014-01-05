@@ -252,10 +252,18 @@ def determine_base_flags():
         flags['extra_link_args'] += ['-isysroot', sysroot]
     elif platform == 'darwin':
         v = os.uname()
-        if v[2] == '13.0.0':
-            sysroot = ('/Applications/Xcode5-DP.app/Contents/Developer'
-                       '/Platforms/MacOSX.platform/Developer/SDKs'
-                       '/MacOSX10.8.sdk/System/Library/Frameworks')
+        if v[2] >= '13.0.0':
+            # use xcode-select to search on the right Xcode path
+            # XXX we should use the best SDK available instead of a specific one.
+            import platform as _platform
+            xcode_dev = getoutput('xcode-select -p').splitlines()[0]
+            sdk_mac_ver = '.'.join(_platform.mac_ver()[0].split('.')[:2])
+            print('Xcode detected at {}, and using MacOSX{} sdk'.format(
+                    xcode_dev, sdk_mac_ver))
+            sysroot = join(xcode_dev,
+                    'Platforms/MacOSX.platform/Developer/SDKs',
+                    'MacOSX{}.sdk'.format(sdk_mac_ver),
+                    '/System/Library/Frameworks')
         else:
             sysroot = ('/System/Library/Frameworks/'
                        'ApplicationServices.framework/Frameworks')
@@ -436,7 +444,7 @@ if platform in ('darwin', 'ios'):
 if c_options['use_avfoundation']:
     import platform as _platform
     mac_ver = [int(x) for x in _platform.mac_ver()[0].split('.')[:2]]
-    if mac_ver >= (10, 7):
+    if mac_ver >= [10, 7]:
         osx_flags = {
             'extra_link_args': ['-framework', 'AVFoundation'],
             'extra_compile_args': ['-ObjC++'],
