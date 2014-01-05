@@ -378,9 +378,7 @@ class Accordion(Widget):
             raise AccordionException(
                 'Accordion: instance not found in children')
         for widget in self.children:
-            if widget == instance:
-                continue
-            widget.collapse = True
+            widget.collapse = widget is not instance
         self._trigger_layout()
 
     def _do_layout(self, dt):
@@ -458,6 +456,12 @@ if __name__ == '__main__':
     btn = Button(text='Toggle layout')
     btn.bind(on_release=toggle_layout)
 
+    def select_2nd_item(*l):
+        print 'select second item'
+        acc.select(acc.children[-2])
+    btn2 = Button(text='Select 2nd item')
+    btn2.bind(on_release=select_2nd_item)
+
     from kivy.uix.slider import Slider
     slider = Slider()
 
@@ -469,6 +473,7 @@ if __name__ == '__main__':
     root = BoxLayout(spacing=20, padding=20)
     controls = BoxLayout(orientation='vertical', size_hint_x=.3)
     controls.add_widget(btn)
+    controls.add_widget(btn2)
     controls.add_widget(slider)
     root.add_widget(controls)
     root.add_widget(acc)
