@@ -22,10 +22,13 @@ dropdown. ::
 
     from kivy.uix.dropdown import DropDown
     from kivy.uix.button import Button
+    from kivy.base import runTouchApp
 
-    # create a dropdown with 10 button
+    # create a dropdown with 10 buttons
     dropdown = DropDown()
     for index in range(10):
+        # when adding widgets, we need to specify the height manually (disabling
+        # the size_hint_y) so the dropdown can calculate the area it needs.
         btn = Button(text='Value %d' % index, size_hint_y=None, height=44)
 
         # for each button, attach a callback that will call the select() method
@@ -49,6 +52,7 @@ dropdown. ::
     # assign the data to the button text.
     dropdown.bind(on_select=lambda instance, x: setattr(mainbutton, 'text', x))
 
+    runTouchApp(mainbutton)
 
 Extending dropdown in Kv
 ------------------------
