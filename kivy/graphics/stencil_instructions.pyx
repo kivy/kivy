@@ -20,8 +20,8 @@ The stencil buffer can be controlled using these 3 instructions:
       Any drawing that happens after this will be used as a mask.
     - :class:`StencilUse` : now draw the next instructions and use the stencil
       for masking them.
-    - :class:`StencilUnUse` : stop drawing, and use the stencil to remove the
-      mask.
+    - :class:`StencilUnUse` : stop using the stencil i.e. remove the mask and
+      draw normally.
     - :class:`StencilPop` : pop the current stencil layer.
 
 
@@ -31,18 +31,22 @@ Here is a global scheme to respect::
 
     StencilPush
 
-    # PHASE 1: put any drawing instruction here to use as a mask
+    # PHASE 1: put any drawing instructions to use as a mask here.
 
     StencilUse
 
-    # PHASE 2: all the drawing here will be automatically clipped by the previous mask
+    # PHASE 2: all the drawing here will be automatically clipped by the
+    mask created in PHASE 1.
 
     StencilUnUse
 
-    # PHASE 3: put the same drawing instruction here as you did in PHASE 1
+    # PHASE 3: drawing instructions wil now be drawn without clipping but the
+    mask will still be on the stack. You can return to PHASE 2 at any
+    time by issuing another *StencilUse* command.
 
     StencilPop
 
+    # PHASE 4: the stencil is now removed from the stack and unloaded.
 
 
 Limitations
