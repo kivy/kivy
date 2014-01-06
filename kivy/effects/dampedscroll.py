@@ -70,9 +70,24 @@ class DampedScrollEffect(ScrollEffect):
         else:
             self.overscroll = 0
 
+        stop_overscroll = ''
+        if not self.is_manual:
+            if self.overscroll > 0 and self.velocity < 0:
+                stop_overscroll = 'max'
+            elif self.overscroll < 0 and self.velocity > 0:
+                stop_overscroll = 'min'
+
         self.velocity = self.velocity - total_force
         if not self.is_manual:
             self.apply_distance(self.velocity * dt)
+            if stop_overscroll == 'min' and self.value > self.min:
+                self.value = self.min
+                self.velocity = 0
+                return
+            if stop_overscroll == 'max' and self.value < self.max:
+                self.value = self.max
+                self.velocity = 0
+                return
         self.trigger_velocity_update()
 
     def on_value(self, *args):
