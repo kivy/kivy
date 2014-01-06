@@ -457,7 +457,6 @@ if __name__ == '__main__':
     btn.bind(on_release=toggle_layout)
 
     def select_2nd_item(*l):
-        print 'select second item'
         acc.select(acc.children[-2])
     btn2 = Button(text='Select 2nd item')
     btn2.bind(on_release=select_2nd_item)
