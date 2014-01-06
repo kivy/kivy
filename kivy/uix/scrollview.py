@@ -421,11 +421,11 @@ class ScrollView(StencilView):
             value.target_widget = self._viewport
 
     def on_effect_cls(self, instance, cls):
-        if isinstance(effect_cls, string_types):
-            effect_cls = Factory.get(effect_cls)
-        self.effect_x = effect_cls(target_widget=self._viewport)
+        if isinstance(cls, string_types):
+            cls = Factory.get(cls)
+        self.effect_x = cls(target_widget=self._viewport)
         self.effect_x.bind(scroll=self._update_effect_x)
-        self.effect_y = effect_cls(target_widget=self._viewport)
+        self.effect_y = cls(target_widget=self._viewport)
         self.effect_y.bind(scroll=self._update_effect_y)
 
     def _update_effect_widget(self, *args):
