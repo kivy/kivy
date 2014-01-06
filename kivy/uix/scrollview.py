@@ -388,7 +388,22 @@ class ScrollView(StencilView):
         self._touch = None
         self._trigger_update_from_scroll = Clock.create_trigger(
             self.update_from_scroll, -1)
+
+        # create a specific canvas for the viewport
+        from kivy.graphics import PushMatrix, Translate, PopMatrix, Canvas
+        self.canvas_viewport = Canvas()
+        self.canvas = Canvas()
+        with self.canvas_viewport.before:
+            PushMatrix()
+            self.g_translate = Translate(0, 0)
+        with self.canvas_viewport.after:
+            PopMatrix()
+
         super(ScrollView, self).__init__(**kwargs)
+
+        # now add the viewport canvas to our canvas
+        self.canvas.add(self.canvas_viewport)
+
         effect_cls = self.effect_cls
         if isinstance(effect_cls, string_types):
             effect_cls = Factory.get(effect_cls)
@@ -685,7 +700,12 @@ class ScrollView(StencilView):
             y = self.y - self.scroll_y * sh
         else:
             y = self.top - vp.height
-        vp.pos = x, y
+
+        # from 1.8.0, we now use a matrix by default, instead of moving the
+        # widget position behind. We set it here, but it will be a no-op most of
+        # the time.
+        vp.pos = 0, 0
+        self.g_translate.xy = x, y
 
         # new in 1.2.0, show bar when scrolling happen
         # and slowly remove them when no scroll is happening.
@@ -706,13 +726,19 @@ class ScrollView(StencilView):
     def add_widget(self, widget, index=0):
         if self._viewport:
             raise Exception('ScrollView accept only one widget')
+        canvas = self.canvas
+        self.canvas = self.canvas_viewport
         super(ScrollView, self).add_widget(widget, index)
+        self.canvas = canvas
         self._viewport = widget
         widget.bind(size=self._trigger_update_from_scroll)
         self._trigger_update_from_scroll()
 
     def remove_widget(self, widget):
+        canvas = self.canvas
+        self.canvas = self.canvas_viewport
         super(ScrollView, self).remove_widget(widget)
+        self.canvas = canvas
         if widget is self._viewport:
             self._viewport = None
 
