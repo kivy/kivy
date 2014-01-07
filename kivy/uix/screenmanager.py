@@ -463,6 +463,16 @@ class ShaderTransition(TransitionBase):
         self.manager.real_add_widget(self.screen_in)
 
 
+class NoTransition(TransitionBase):
+    '''No transition, instantly switches to the next screen with no delay or
+    animation.
+
+    .. versionadded:: 1.8.0
+    '''
+
+    duration = NumericProperty(0.0)
+
+
 class SlideTransition(TransitionBase):
     '''Slide Transition, can be used to show a new screen from any direction:
     left, right, up or down.
