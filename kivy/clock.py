@@ -329,6 +329,7 @@ class ClockBase(_ClockBase):
     '''
     __slots__ = ('_dt', '_last_fps_tick', '_last_tick', '_fps', '_rfps',
                  '_start_tick', '_fps_counter', '_rfps_counter', '_events',
+                 '_frames', '_frames_displayed',
                  '_max_fps', 'max_iteration')
 
     MIN_SLEEP = 0.005
@@ -343,6 +344,8 @@ class ClockBase(_ClockBase):
         self._fps_counter = 0
         self._rfps_counter = 0
         self._last_fps_tick = None
+        self._frames = 0
+        self._frames_displayed = 0
         self._events = {}
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
 
@@ -356,8 +359,25 @@ class ClockBase(_ClockBase):
     def frametime(self):
         '''Time spent between the last frame and the current frame
         (in seconds).
+
+        .. versionadded:: 1.8.0
         '''
         return self._dt
+
+    @property
+    def frames(self):
+        '''Number of internal frames (not necesseraly drawed) from the start of
+        the clock.
+
+        .. versionadded:: 1.8.0
+        '''
+        return self._frames
+
+    @property
+    def frames_displayed(self):
+        '''Number of displayed frames from the start of the clock.
+        '''
+        return self._frames_displayed
 
     def tick(self):
         '''Advance the clock to the next step. Must be called every frame.
@@ -383,6 +403,7 @@ class ClockBase(_ClockBase):
         # tick the current time
         current = _default_time()
         self._dt = current - self._last_tick
+        self._frames += 1
         self._fps_counter += 1
         self._last_tick = current
 
@@ -407,6 +428,7 @@ class ClockBase(_ClockBase):
         '''
         self._process_events_before_frame()
         self._rfps_counter += 1
+        self._frames_displayed += 1
 
     def get_fps(self):
         '''Get the current average FPS calculated by the clock.

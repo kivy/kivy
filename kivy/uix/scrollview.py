@@ -576,6 +576,7 @@ class ScrollView(StencilView):
             'dx': 0,
             'dy': 0,
             'user_stopped': False,
+            'frames': Clock.frames,
             'time': touch.time_start}
 
         if self.do_scroll_x and self.effect_x and not ud['in_bar_x']:
@@ -767,6 +768,17 @@ class ScrollView(StencilView):
         ud = touch.ud[uid]
         if ud['mode'] != 'unknown' or ud['user_stopped']:
             return
+        diff_frames = Clock.frames - ud['frames']
+
+        # in order to be able to scroll on very slow devices, let at least 3
+        # frames displayed to accumulate some velocity. And then, change the
+        # touch mode. Otherwise, we might never be able to compute velocity, and
+        # no way to scroll it. See #1464 and #1499
+        if diff_frames < 3:
+            Clock.schedule_once(
+                    partial(self._change_touch_mode, is_local), 0)
+            return
+
         if self.do_scroll_x and self.effect_x:
             self.effect_x.cancel()
         if self.do_scroll_y and self.effect_y:
