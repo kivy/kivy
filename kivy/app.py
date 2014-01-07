@@ -327,7 +327,7 @@ from kivy.lang import Builder
 from kivy.resources import resource_find
 from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, StringProperty
 
 
 platform = core_platform
@@ -363,25 +363,58 @@ class App(EventDispatcher):
         Parameter `kv_file` added.
     '''
 
-    title = None
-    '''.. versionadded:: 1.0.5
-
+    title = StringProperty(None)
+    '''
     Title of your application. You can set this as follows::
 
         class MyApp(App):
-            title = 'Custom title'
+            def build(self):
+                self.title = 'Hello world'
+
+    .. versionadded:: 1.0.5
+
+    .. versionchanged:: 1.8.0
+
+        `title` is now a :class:`~kivy.properties.StringProperty`. Don't set the
+        title in the class as previously stated in the documentation.
+
+    .. note::
+
+        For Kivy < 1.8.0, you can set this as follows::
+
+            class MyApp(App):
+                title = 'Custom title'
+
+        If you want to dynamically change the title, you can do::
+
+            from kivy.base import EventLoop
+            EventLoop.window.title = 'New title'
 
     '''
 
-    icon = None
-    '''.. versionadded:: 1.0.5
-
-    Icon of your application. You can set this as follows::
+    icon = StringProperty(None)
+    '''Icon of your application.
+    The icon can be located in the same directory as your main file. You can set
+    this as follows::
 
         class MyApp(App):
-            icon = 'customicon.png'
+            def build(self):
+                self.icon = 'myicon.png'
 
-    The icon can be located in the same directory as your main file.
+    .. versionadded:: 1.0.5
+
+    .. versionchanged:: 1.8.0
+
+        `icon` is now a :class:`~kivy.properties.StringProperty`. Don't set the
+        icon in the class as previously stated in the documentation.
+
+    .. note::
+
+        For Kivy prior to 1.8.0, you need to set this as follows::
+
+            class MyApp(App):
+                icon = 'customicon.png'
+
     '''
 
     use_kivy_settings = True
@@ -919,6 +952,10 @@ class App(EventDispatcher):
         if self._app_settings is not None:
             self._app_settings = None
 
+    #
+    # privates
+    #
+
     def _on_config_change(self, *largs):
         self.on_config_change(*largs[1:])
 
@@ -941,3 +978,12 @@ class App(EventDispatcher):
             return True
         if key == 27:
             return self.close_settings()
+
+    def on_title(self, instance, title):
+        if self._app_window:
+            self._app_window.set_title(title)
+
+    def on_icon(self, instance, icon):
+        if self._app_window:
+            self._app_window.set_icon(self.get_application_icon())
+
