@@ -111,6 +111,7 @@ Changing transitions
 
 You have multiple transitions available by default, such as:
 
+- :class:`NoTransition` - switches screens instantly with no animation
 - :class:`SlideTransition` - slide the screen in/out, from any direction
 - :class:`SwapTransition` - implementation of the iOS swap transition
 - :class:`FadeTransition` - shader to fade the screen in/out
@@ -141,7 +142,7 @@ You can easily switch transitions by changing the
 __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
            'TransitionBase', 'ShaderTransition', 'SlideTransition',
            'SwapTransition', 'FadeTransition', 'WipeTransition',
-           'FallOutTransition', 'RiseInTransition')
+           'FallOutTransition', 'RiseInTransition', 'NoTransition')
 
 from kivy.compat import iteritems
 from kivy.logger import Logger
