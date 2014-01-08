@@ -147,8 +147,8 @@ cdef class Matrix:
         self.mat[14] = -1.0
         self.mat[15] = 0.0
 
-    cpdef Matrix view_clip(Matrix self, double left, double right, 
-            double bottom, double top, 
+    cpdef Matrix view_clip(Matrix self, double left, double right,
+            double bottom, double top,
             double near, double far, int perspective):
         '''Create a clip matrix (inplace).
 
@@ -208,7 +208,9 @@ cdef class Matrix:
         .. versionadded:: 1.6.0
         '''
 
-        cdef double x[3], y[3], z[3]
+        cdef double x[3]
+        cdef double y[3]
+        cdef double z[3]
         cdef double mag
 
         # Make rotation matrix
@@ -324,7 +326,8 @@ cdef class Matrix:
         '''Return the inverse of the matrix as a new Matrix.
         '''
         cdef Matrix mr = Matrix()
-        cdef double *m = <double *>self.mat, *r = <double *>mr.mat
+        cdef double *m = <double *>self.mat
+        cdef double *r = <double *>mr.mat
         cdef double det
         with nogil:
             det = m[0] * (m[5] * m[10] - m[9] * m[6]) \
@@ -354,7 +357,7 @@ cdef class Matrix:
 
     cpdef Matrix normal_matrix(self):
         '''Computes the normal matrix, which is the inverse transpose
-        of the top left 3x3 modelview matrix used to transform normals 
+        of the top left 3x3 modelview matrix used to transform normals
         into eye/camera space.
 
         .. versionadded:: 1.6.0
@@ -378,7 +381,9 @@ cdef class Matrix:
             m.multiply(n) -> n * m
         '''
         cdef Matrix mr = Matrix()
-        cdef double *a = <double *>ma.mat, *b = <double *>mb.mat, *r = <double *>mr.mat
+        cdef double *a = <double *>ma.mat
+        cdef double *b = <double *>mb.mat
+        cdef double *r = <double *>mr.mat
         with nogil:
             r[ 0] = a[ 0] * b[0] + a[ 1] * b[4] + a[ 2] * b[ 8]
             r[ 4] = a[ 4] * b[0] + a[ 5] * b[4] + a[ 6] * b[ 8]
