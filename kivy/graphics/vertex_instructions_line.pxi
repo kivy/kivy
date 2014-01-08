@@ -861,6 +861,7 @@ cdef class Line(VertexInstruction):
             x, y, w, h, angle_start, angle_end, segments = args
             segments += 2
         else:
+            x = y = w = h = 0
             assert(0)
 
         if angle_end > angle_start:
@@ -943,6 +944,7 @@ cdef class Line(VertexInstruction):
             x, y, r, angle_start, angle_end, segments = args
             segments += 2
         else:
+            x = y = r = 0
             assert(0)
 
         if angle_end > angle_start:
@@ -1009,6 +1011,7 @@ cdef class Line(VertexInstruction):
         if len(args) == 4:
             x, y, width, height = args
         else:
+            x = y = width = height = 0
             assert(0)
 
         self._points = [x, y, x + width, y, x + width, y + height, x, y + height]
