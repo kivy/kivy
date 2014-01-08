@@ -234,8 +234,10 @@ $(document).ready(function () {
 			return version;
 		}
 
+		//function read_version(item, version) { return version; }
+
 		// get module version
-		var module_version = read_version($('div.section > div.versionadded'), '1.0.0');
+		var module_version = read_version($('div.body > div.section > div.versionadded'), '1.0.0');
 		var html_version = '<span class="versionadded">Added in <span>' + module_version + '</span></span>';
 		$('div.bodyshortcut').append(html_version);
 
