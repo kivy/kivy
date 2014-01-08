@@ -143,7 +143,8 @@ class VideoFFPy(VideoBase):
             return
 
         if self._next_frame:
-            buffer, size, linesizes, pts = self._next_frame
+            img, pts = self._next_frame
+            size = img.get_size()
             self.next_frame = None
             if size != self._size or self._texture is None:
                 self._texture = Texture.create(size=size, colorfmt='rgb')
@@ -152,7 +153,7 @@ class VideoFFPy(VideoBase):
                 self._texture.flip_vertical()
                 self._size = size
                 self.dispatch('on_load')
-            self._texture.blit_buffer(buffer)
+            self._texture.blit_buffer(bytes(img.to_bytearray()[0]))
             self.dispatch('on_frame')
         self._next_frame, val = ffplayer.get_frame()
         if val == 'eof':
