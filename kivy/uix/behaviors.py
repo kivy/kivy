@@ -52,7 +52,7 @@ class ButtonBehavior(object):
     The state is 'down' only when the button is currently touched/clicked,
     otherwise 'normal'.
 
-    :data:`state` is an :class:`~kivy.properties.OptionProperty`.
+    :attr:`state` is an :class:`~kivy.properties.OptionProperty`.
     '''
 
     last_touch = ObjectProperty(None)
@@ -62,7 +62,7 @@ class ButtonBehavior(object):
 
     .. versionadded:: 1.8.0
 
-    :data:`last_touch` is a :class:`~kivy.properties.ObjectProperty`,
+    :attr:`last_touch` is a :class:`~kivy.properties.ObjectProperty`,
     defaults to None.
     '''
 
@@ -150,10 +150,10 @@ class ToggleButtonBehavior(ButtonBehavior):
 
     group = ObjectProperty(None, allownone=True)
     '''Group of the button. If None, no group will be used (button is
-    independent). If specified, :data:`group` must be a hashable object, like
+    independent). If specified, :attr:`group` must be a hashable object, like
     a string. Only one button in a group can be in 'down' state.
 
-    :data:`group` is a :class:`~kivy.properties.ObjectProperty`
+    :attr:`group` is a :class:`~kivy.properties.ObjectProperty`
     '''
 
     def __init__(self, **kwargs):
@@ -230,7 +230,7 @@ class ToggleButtonBehavior(ButtonBehavior):
 
 class DragBehavior(object):
     '''Drag behavior. When combined with a widget, dragging in the rectangle
-    defined by :data:`drag_rectangle` will drag the widget.
+    defined by :attr:`drag_rectangle` will drag the widget.
 
     For example, to make a popup which is draggable by its title do::
 
@@ -257,17 +257,17 @@ class DragBehavior(object):
     It is advisable that you base this value on the dpi of your target device's
     screen.
 
-    :data:`drag_distance` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_distance` is a :class:`~kivy.properties.NumericProperty`,
     defaults to 20 (pixels), according to the default value of scroll_distance
     in user configuration.
     '''
 
     drag_timeout = NumericProperty(_scroll_timeout)
-    '''Timeout allowed to trigger the :data:`drag_distance`, in milliseconds.
-    If the user has not moved :data:`drag_distance` within the timeout,
+    '''Timeout allowed to trigger the :attr:`drag_distance`, in milliseconds.
+    If the user has not moved :attr:`drag_distance` within the timeout,
     dragging will be disabled, and the touch event will go to the children.
 
-    :data:`drag_timeout` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_timeout` is a :class:`~kivy.properties.NumericProperty`,
     defaults to 55 (milliseconds), according to the default value of
     scroll_timeout in user configuration.
     '''
@@ -276,7 +276,7 @@ class DragBehavior(object):
     '''X position of the axis aligned bounding rectangle where dragging
     is allowed. In window coordinates.
 
-    :data:`drag_rect_x` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_rect_x` is a :class:`~kivy.properties.NumericProperty`,
     defaults to 0.
     '''
 
@@ -284,21 +284,21 @@ class DragBehavior(object):
     '''Y position of the axis aligned bounding rectangle where dragging
     is allowed. In window coordinates.
 
-    :data:`drag_rect_Y` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_rect_Y` is a :class:`~kivy.properties.NumericProperty`,
     defaults to 0.
     '''
 
     drag_rect_width = NumericProperty(100)
     '''Width of the axis aligned bounding rectangle where dragging is allowed.
 
-    :data:`drag_rect_width` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_rect_width` is a :class:`~kivy.properties.NumericProperty`,
     defaults to 100.
     '''
 
     drag_rect_height = NumericProperty(100)
     '''Height of the axis aligned bounding rectangle where dragging is allowed.
 
-    :data:`drag_rect_height` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_rect_height` is a :class:`~kivy.properties.NumericProperty`,
     defaults to 100.
     '''
 
@@ -307,9 +307,9 @@ class DragBehavior(object):
     '''Position and size of the axis aligned bounding rectangle where dragging
     is allowed.
 
-    :data:`drag_rectangle` is a :class:`~kivy.properties.ReferenceListProperty`
-    of (:data:`drag_rect_x`, :data:`drag_rect_y`, :data:`drag_rect_width`,
-    :data:`drag_rect_height`) properties.
+    :attr:`drag_rectangle` is a :class:`~kivy.properties.ReferenceListProperty`
+    of (:attr:`drag_rect_x`, :attr:`drag_rect_y`, :attr:`drag_rect_width`,
+    :attr:`drag_rect_height`) properties.
     '''
 
     def __init__(self, **kwargs):

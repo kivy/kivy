@@ -24,7 +24,7 @@ To attach a callback when the button is pressed (clicked/touched), use
     btn2.bind(on_press=callback)
 
 If you want to be notified every time the button state changes, you can bind
-to the :data:`Button.state` property::
+to the :attr:`Button.state` property::
 
     def callback(instance, value):
         print('My button <%s> state is <%s>' % (instance, value))
@@ -55,7 +55,7 @@ class Button(ButtonBehavior, Label):
 
     .. versionadded:: 1.0.8
 
-    The :data:`background_color` is a
+    The :attr:`background_color` is a
     :class:`~kivy.properties.ListProperty` and defaults to [1, 1, 1, 1].
     '''
 
@@ -66,7 +66,7 @@ class Button(ButtonBehavior, Label):
 
     .. versionadded:: 1.0.4
 
-    :data:`background_normal` is a :class:`~kivy.properties.StringProperty`
+    :attr:`background_normal` is a :class:`~kivy.properties.StringProperty`
     and defaults to 'atlas://data/images/defaulttheme/button'.
     '''
 
@@ -77,7 +77,7 @@ class Button(ButtonBehavior, Label):
 
     .. versionadded:: 1.0.4
 
-    :data:`background_down` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`background_down` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/button_pressed'.
     '''
 
@@ -88,7 +88,7 @@ class Button(ButtonBehavior, Label):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_normal` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`background_normal` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/button_disabled'.
     '''
 
@@ -99,18 +99,18 @@ class Button(ButtonBehavior, Label):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_down` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`background_down` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/button_disabled_pressed'.
     '''
 
     border = ListProperty([16, 16, 16, 16])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
-    graphics instruction. Used with :data:`background_normal` and
-    :data:`background_down`. Can be used for custom backgrounds.
+    graphics instruction. Used with :attr:`background_normal` and
+    :attr:`background_down`. Can be used for custom backgrounds.
 
     It must be a list of four values: (top, right, bottom, left). Read the
     BorderImage instruction for more information about how to use it.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults to
     (16, 16, 16, 16)
     '''

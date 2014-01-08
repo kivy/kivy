@@ -29,7 +29,7 @@ measurement units to work with. Kivy provides some more scalable alternatives.
         Inches - Based on the physical size of the screen.
     `dp`
         Density-independent Pixels - An abstract unit that is based on the
-        physical density of the screen. With a :data:`~MetricsBase.density` of
+        physical density of the screen. With a :attr:`~MetricsBase.density` of
         1, 1dp is equal to 1px. When running on a higher density screen, the
         number of pixels used to draw 1dp is scaled up a factor appropriate to
         the screen's dpi, and the inverse for a lower dpi.
@@ -69,14 +69,14 @@ that the DPI and density of a device cannot be changed at runtime.
 We provide some environment variables to control metrics:
 
 - `KIVY_METRICS_DENSITY`: if set, this value will be used for
-  :data:`~MetricsBase.density` instead of the systems one. On android,
+  :attr:`~MetricsBase.density` instead of the systems one. On android,
   the value varies between 0.75, 1, 1.5 and 2.
 
 - `KIVY_METRICS_FONTSCALE`: if set, this value will be used for
-  :data:`~MetricsBase.fontscale` instead of the systems one. On android, the
+  :attr:`~MetricsBase.fontscale` instead of the systems one. On android, the
   value varies between 0.8 and 1.2.
 
-- `KIVY_DPI`: if set, this value will be used for :data:`~MetricsBase.dpi`.
+- `KIVY_DPI`: if set, this value will be used for :attr:`~MetricsBase.dpi`.
   Please
   note that setting the DPI will not impact the dp/sp notation because these
   are based on the screen density.

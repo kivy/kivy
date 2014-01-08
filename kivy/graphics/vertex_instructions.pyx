@@ -246,7 +246,7 @@ cdef class Mesh(VertexInstruction):
         `indices`: list
             List of indices in the format (i1, i2, i3...).
         `mode`: str
-            Mode of the vbo. Check :data:`mode` for more information. Defaults to
+            Mode of the vbo. Check :attr:`mode` for more information. Defaults to
             'points'.
 
     '''
@@ -419,10 +419,10 @@ cdef class Point(VertexInstruction):
         free(indices)
 
     def add_point(self, float x, float y):
-        '''Add a point to the current :data:`points` list.
+        '''Add a point to the current :attr:`points` list.
 
         If you intend to add multiple points, prefer to use this method instead
-        of reassigning a new :data:`points` list. Assigning a new :data:`points`
+        of reassigning a new :attr:`points` list. Assigning a new :attr:`points`
         list will recalculate and reupload the whole buffer into the GPU.
         If you use add_point, it will only upload the changes.
         '''

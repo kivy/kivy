@@ -145,7 +145,7 @@ class Atlas(EventDispatcher):
     textures = DictProperty({})
     '''List of available textures within the atlas.
 
-    :data:`textures` is a :class:`~kivy.properties.DictProperty` and defaults
+    :attr:`textures` is a :class:`~kivy.properties.DictProperty` and defaults
     to {}.
     '''
 
@@ -155,7 +155,7 @@ class Atlas(EventDispatcher):
     filename = AliasProperty(_get_filename, None)
     '''Filename of the current Atlas.
 
-    :data:`filename` is an :class:`~kivy.properties.AliasProperty` and defaults
+    :attr:`filename` is an :class:`~kivy.properties.AliasProperty` and defaults
     to None.
     '''
 

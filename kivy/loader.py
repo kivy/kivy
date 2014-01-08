@@ -26,9 +26,9 @@ You can tweak the loader to provide a better user experience or more
 performance, depending of the images you are going to load. Take a look at the
 parameters:
 
-- :data:`Loader.num_workers` - define the number of threads to start for
+- :attr:`Loader.num_workers` - define the number of threads to start for
   loading images.
-- :data:`Loader.max_upload_per_frame` - define the maximum image uploads in
+- :attr:`Loader.max_upload_per_frame` - define the maximum image uploads in
   GPU to do per frame.
 
 '''
@@ -149,7 +149,7 @@ class LoaderBase(object):
     As a matter of fact, a Full-HD RGB image will take ~6MB in memory,
     so it may take time. If you have activated mipmap=True too, then the
     GPU must calculate the mipmap of these big images too, in real time.
-    Then it may be best to reduce the :data:`max_upload_per_frame` to 1
+    Then it may be best to reduce the :attr:`max_upload_per_frame` to 1
     or 2. If you want to get rid of that (or reduce it a lot), take a
     look at the DDS format.
 

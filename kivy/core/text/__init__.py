@@ -6,7 +6,7 @@ An abstraction of text creation. Depending of the selected backend, the
 accuracy of text rendering may vary.
 
 .. versionchanged:: 1.5.0
-    :data:`LabelBase.line_height` added.
+    :attr:`LabelBase.line_height` added.
 
 .. versionchanged:: 1.0.7
     The :class:`LabelBase` does not generate any texture if the text has a

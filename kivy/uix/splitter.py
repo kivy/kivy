@@ -82,14 +82,14 @@ class Splitter(BoxLayout):
     Read the BorderImage instructions for more information about how
     to use it.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`border` is a :class:`~kivy.properties.ListProperty` and
     defaults to (4, 4, 4, 4).
     '''
 
     strip_cls = ObjectProperty(SplitterStrip)
     '''Specifies the class of the resize Strip.
 
-    :data:`strip_cls` is an :class:`kivy.properties.ObjectProperty` and
+    :attr:`strip_cls` is an :class:`kivy.properties.ObjectProperty` and
     defaults to :class:`~kivy.uix.splitter.SplitterStrip`, which is of type
     :class:`~kivy.uix.button.Button`.
 
@@ -105,28 +105,28 @@ class Splitter(BoxLayout):
     '''Specifies whether the widget is resizable. Options are::
         `left`, `right`, `top` or `bottom`
 
-    :data:`sizable_from` is an :class:`~kivy.properties.OptionProperty`
+    :attr:`sizable_from` is an :class:`~kivy.properties.OptionProperty`
     and defaults to `left`.
     '''
 
     strip_size = NumericProperty('10pt')
     '''Specifies the size of resize strip
 
-    :data:`strp_size` is a :class:`~kivy.properties.NumericProperty`
+    :attr:`strp_size` is a :class:`~kivy.properties.NumericProperty`
     defaults to `10pt`
     '''
 
     min_size = NumericProperty('100pt')
     '''Specifies the minimum size beyond which the widget is not resizable.
 
-    :data:`min_size` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`min_size` is a :class:`~kivy.properties.NumericProperty` and
     defaults to `100pt`.
     '''
 
     max_size = NumericProperty('500pt')
     '''Specifies the maximum size beyond which the widget is not resizable.
 
-    :data:`max_size` is a :class:`~kivy.properties.NumericProperty`
+    :attr:`max_size` is a :class:`~kivy.properties.NumericProperty`
     and defaults to `500pt`.
     '''
 

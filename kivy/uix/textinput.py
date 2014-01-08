@@ -39,7 +39,7 @@ key will defocus the textinput and emit on_text_validate event)::
     textinput = TextInput(text='Hello world', multiline=False)
     textinput.bind(on_text_validate=on_enter)
 
-The textinput's text is stored on its :data:`TextInput.text` property. To run a
+The textinput's text is stored on its :attr:`TextInput.text` property. To run a
 callback when the text changes::
 
     def on_text(instance, value):
@@ -72,7 +72,7 @@ Selection
 
 The selection is automatically updated when the cursor position changes.
 You can get the currently selected text from the
-:data:`TextInput.selection_text` property.
+:attr:`TextInput.selection_text` property.
 
 
 Default shortcuts
@@ -1930,7 +1930,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.3.0
 
-    :data:`readonly` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`readonly` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -1939,7 +1939,7 @@ class TextInput(Widget):
     the "enter" keypress will defocus the textinput instead of adding a new
     line.
 
-    :data:`multiline` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`multiline` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
@@ -1948,26 +1948,26 @@ class TextInput(Widget):
 
     .. versionadded:: 1.2.0
 
-    :data:`password` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`password` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
     keyboard_suggestions = BooleanProperty(True)
     '''If True provides auto suggestions on top of keyboard.
-    This will only work if :data:`input_type` is set to `text`.
+    This will only work if :attr:`input_type` is set to `text`.
 
      .. versionadded:: 1.8.0
 
-     :data:`keyboard_suggestions` is a
+     :attr:`keyboard_suggestions` is a
      :class:`~kivy.properties.BooleanProperty` defaults to True.
     '''
 
     cursor_blink = BooleanProperty(False)
     '''This property is used to blink the cursor graphic. The value of
-    :data:`cursor_blink` is automatically computed. Setting a value on it will
+    :attr:`cursor_blink` is automatically computed. Setting a value on it will
     have no impact.
 
-    :data:`cursor_blink` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`cursor_blink` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -2023,7 +2023,7 @@ class TextInput(Widget):
     area will be automatically updated to ensure that the cursor is
     visible inside the viewport.
 
-    :data:`cursor` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`cursor` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_cursor_col(self):
@@ -2032,7 +2032,7 @@ class TextInput(Widget):
     cursor_col = AliasProperty(_get_cursor_col, None, bind=('cursor', ))
     '''Current column of the cursor.
 
-    :data:`cursor_col` is an :class:`~kivy.properties.AliasProperty` to
+    :attr:`cursor_col` is an :class:`~kivy.properties.AliasProperty` to
     cursor[0], read-only.
     '''
 
@@ -2042,7 +2042,7 @@ class TextInput(Widget):
     cursor_row = AliasProperty(_get_cursor_row, None, bind=('cursor', ))
     '''Current row of the cursor.
 
-    :data:`cursor_row` is an :class:`~kivy.properties.AliasProperty` to
+    :attr:`cursor_row` is an :class:`~kivy.properties.AliasProperty` to
     cursor[1], read-only.
     '''
 
@@ -2051,16 +2051,16 @@ class TextInput(Widget):
         'scroll_x', 'scroll_y'))
     '''Current position of the cursor, in (x, y).
 
-    :data:`cursor_pos` is an :class:`~kivy.properties.AliasProperty`,
+    :attr:`cursor_pos` is an :class:`~kivy.properties.AliasProperty`,
     read-only.
     '''
 
     line_height = NumericProperty(1)
     '''Height of a line. This property is automatically computed from the
-    :data:`font_name`, :data:`font_size`. Changing the line_height will have
+    :attr:`font_name`, :attr:`font_size`. Changing the line_height will have
     no impact.
 
-    :data:`line_height` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`line_height` is a :class:`~kivy.properties.NumericProperty`,
     read-only.
     '''
 
@@ -2068,7 +2068,7 @@ class TextInput(Widget):
     '''By default, each tab will be replaced by four spaces on the text
     input widget. You can set a lower or higher value.
 
-    :data:`tab_width` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`tab_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 4.
     '''
 
@@ -2077,11 +2077,11 @@ class TextInput(Widget):
 
     padding_x also accepts a one argument form [padding_horizontal].
 
-    :data:`padding_x` is a :class:`~kivy.properties.VariableListProperty` and
+    :attr:`padding_x` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
-        Use :data:`padding` instead.
+        Use :attr:`padding` instead.
     '''
 
     def on_padding_x(self, instance, value):
@@ -2093,11 +2093,11 @@ class TextInput(Widget):
 
     padding_y also accepts a one argument form [padding_vertical].
 
-    :data:`padding_y` is a :class:`~kivy.properties.VariableListProperty` and
+    :attr:`padding_y` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
-        Use :data:`padding` instead.
+        Use :attr:`padding` instead.
     '''
 
     def on_padding_y(self, instance, value):
@@ -2115,7 +2115,7 @@ class TextInput(Widget):
 
     Replaced AliasProperty with VariableListProperty.
 
-    :data:`padding` is a :class:`~kivy.properties.VariableListProperty` and
+    :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [6, 6, 6, 6].
     '''
 
@@ -2124,15 +2124,15 @@ class TextInput(Widget):
     updated when the cursor is moved or text changed. If there is no
     user input, the scroll_x and scroll_y properties may be changed.
 
-    :data:`scroll_x` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`scroll_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
     scroll_y = NumericProperty(0)
-    '''Y scrolling value of the viewport. See :data:`scroll_x` for more
+    '''Y scrolling value of the viewport. See :attr:`scroll_x` for more
     information.
 
-    :data:`scroll_y` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`scroll_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -2144,21 +2144,21 @@ class TextInput(Widget):
         The color should always have an "alpha" component less than 1
         since the selection is drawn after the text.
 
-    :data:`selection_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`selection_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [0.1843, 0.6549, 0.8313, .5].
     '''
 
     border = ListProperty([16, 16, 16, 16])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
-    graphics instruction. Used with :data:`background_normal` and
-    :data:`background_active`. Can be used for a custom background.
+    graphics instruction. Used with :attr:`background_normal` and
+    :attr:`background_active`. Can be used for a custom background.
 
     .. versionadded:: 1.4.1
 
     It must be a list of four values: (top, right, bottom, left). Read the
     BorderImage instruction for more information about how to use it.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty` and defaults
+    :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults
     to (16, 16, 16, 16).
     '''
 
@@ -2168,7 +2168,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.4.1
 
-    :data:`background_normal` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`background_normal` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/textinput'.
     '''
 
@@ -2178,7 +2178,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled_normal` is a
+    :attr:`background_disabled_normal` is a
     :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/textinput_disabled'.
     '''
@@ -2189,7 +2189,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.4.1
 
-    :data:`background_active` is a
+    :attr:`background_active` is a
     :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/textinput_active'.
     '''
@@ -2200,7 +2200,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled_active` is a
+    :attr:`background_disabled_active` is a
     :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/textinput_disabled_active'.
     '''
@@ -2210,7 +2210,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.2.0
 
-    :data:`background_color` is a :class:`~kivy.properties.ListProperty`
+    :attr:`background_color` is a :class:`~kivy.properties.ListProperty`
     and defaults to [1, 1, 1, 1] (white).
     '''
 
@@ -2219,7 +2219,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.2.0
 
-    :data:`foreground_color` is a :class:`~kivy.properties.ListProperty`
+    :attr:`foreground_color` is a :class:`~kivy.properties.ListProperty`
     and defaults to [0, 0, 0, 1] (black).
     '''
 
@@ -2228,7 +2228,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`disabled_foreground_color` is a
+    :attr:`disabled_foreground_color` is a
     :class:`~kivy.properties.ListProperty` and
     defaults to [0, 0, 0, 5] (50% transparent black).
     '''
@@ -2238,7 +2238,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.7.0
 
-    :data:`use_bubble` is a :class:`~kivy.properties.BooleanProperty`
+    :attr:`use_bubble` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True on mobile OS's, False on desktop OS's.
     '''
 
@@ -2247,7 +2247,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`use_handles` is a :class:`~kivy.properties.BooleanProperty`
+    :attr:`use_handles` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True on mobile OS's, False on desktop OS's.
     '''
 
@@ -2260,7 +2260,7 @@ class TextInput(Widget):
 
     .. versionchanged:: 1.4.0
 
-    :data:`selection_from` is an :class:`~kivy.properties.AliasProperty` and
+    :attr:`selection_from` is an :class:`~kivy.properties.AliasProperty` and
     defaults to None, readonly.
     '''
 
@@ -2273,14 +2273,14 @@ class TextInput(Widget):
 
     .. versionchanged:: 1.4.0
 
-    :data:`selection_to` is an :class:`~kivy.properties.AliasProperty` and
+    :attr:`selection_to` is an :class:`~kivy.properties.AliasProperty` and
     defaults to None, readonly.
     '''
 
     selection_text = StringProperty(u'')
     '''Current content selection.
 
-    :data:`selection_text` is a :class:`~kivy.properties.StringProperty`
+    :attr:`selection_text` is a :class:`~kivy.properties.StringProperty`
     and defaults to '', readonly.
     '''
 
@@ -2292,7 +2292,7 @@ class TextInput(Widget):
     '''If focus is True, the keyboard will be requested and you can start
     entering text into the textinput.
 
-    :data:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
 
     .. Note::
@@ -2337,7 +2337,7 @@ class TextInput(Widget):
 
         widget = TextInput(text=u'My unicode string')
 
-    :data:`text` a :class:`~kivy.properties.StringProperty`.
+    :attr:`text` a :class:`~kivy.properties.StringProperty`.
     '''
 
     font_name = StringProperty('DroidSans')
@@ -2358,14 +2358,14 @@ class TextInput(Widget):
 
         .. |unicodechar| image:: images/unicode-char.png
 
-    :data:`font_name` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`font_name` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'DroidSans'.
     '''
 
     font_size = NumericProperty('15sp')
     '''Font size of the text in pixels.
 
-    :data:`font_size` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 10.
     '''
 
@@ -2376,7 +2376,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.6.0
 
-    :data:`hint_text` a :class:`~kivy.properties.StringProperty` and defaults
+    :attr:`hint_text` a :class:`~kivy.properties.StringProperty` and defaults
     to ''.
     '''
 
@@ -2385,7 +2385,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.6.0
 
-    :data:`hint_text_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`hint_text_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [0.5, 0.5, 0.5, 1.0] (grey).
     '''
 
@@ -2394,7 +2394,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.7.0
 
-    :data:`auto_indent` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`auto_indent` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -2403,7 +2403,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`allow_copy` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`allow_copy` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
@@ -2419,7 +2419,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`minimum_height` is a readonly
+    :attr:`minimum_height` is a readonly
     :class:`~kivy.properties.AliasProperty`.
     '''
 
@@ -2428,7 +2428,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`line_spacing` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`line_spacing` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -2439,7 +2439,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
+    :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
     defaults to 'text'. Can be one of 'text', 'number', 'url', 'mail',
     'datetime', 'tel', 'address'.
     '''
@@ -2451,7 +2451,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`handle_image_middle` is a :class:`~kivy.properties.StringProperty`
+    :attr:`handle_image_middle` is a :class:`~kivy.properties.StringProperty`
     and defaults to 'atlas://data/images/defaulttheme/selector_middle'.
     '''
 
@@ -2465,7 +2465,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`handle_image_left` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`handle_image_left` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/selector_left'.
     '''
 
@@ -2479,7 +2479,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`handle_image_right` is a
+    :attr:`handle_image_right` is a
     :class:`~kivy.properties.StringProperty` and defaults to
     'atlas://data/images/defaulttheme/selector_right'.
     '''
@@ -2496,7 +2496,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`keyboard_mode` is an :class:`~kivy.properties.OptionsProperty` and
+    :attr:`keyboard_mode` is an :class:`~kivy.properties.OptionsProperty` and
     defaults to 'auto'. Can be one of 'auto' or 'managed'.
     '''
 

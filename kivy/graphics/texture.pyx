@@ -21,7 +21,7 @@ You cannot instanciate this class yourself. You must use the function
 When you create a texture, you should be aware of the default color
 and buffer format:
 
-    - the color/pixel format (:data:`Texture.colorfmt`) that can be one of
+    - the color/pixel format (:attr:`Texture.colorfmt`) that can be one of
       'rgb', 'rgba', 'luminance', 'luminance_alpha', 'bgr' or 'bgra'.
       The default value is 'rgb'
     - the buffer format determines how a color component is stored into memory.
@@ -33,7 +33,7 @@ So, if you want to create an RGBA texture::
     texture = Texture.create(size=(640, 480), colorfmt='rgba')
 
 You can use your texture in almost all vertex instructions with the
-:data:`kivy.graphics.VertexIntruction.texture` parameter. If you want to use
+:attr:`kivy.graphics.VertexIntruction.texture` parameter. If you want to use
 your texture in kv lang, you can save it in an
 :class:`~kivy.properties.ObjectProperty` inside your widget.
 
@@ -534,7 +534,7 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
             needed in the texture.
 
     .. versionchanged:: 1.7.0
-        :data:`callback` has been added
+        :attr:`callback` has been added
     '''
     cdef int width = 128, height = 128, allocate = 1
     if size is not None:

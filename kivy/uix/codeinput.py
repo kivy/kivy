@@ -58,7 +58,7 @@ class CodeInput(TextInput):
     '''This holds the selected Lexer used by pygments to highlight the code.
 
 
-    :data:`lexer` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`lexer` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to `PythonLexer`.
     '''
 

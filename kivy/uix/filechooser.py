@@ -76,7 +76,7 @@ def alphanumeric_folders_first(files, filesystem):
 
 class FileSystemAbstract(object):
     '''Class for implementing a File System view that can be used with the
-    :class:`FileChooser`.:data:`~FileChooser.file_system`.
+    :class:`FileChooser`.:attr:`~FileChooser.file_system`.
 
     .. versionadded:: 1.8.0
     '''
@@ -149,7 +149,7 @@ class FileChooserProgressBase(FloatLayout):
     '''
 
     index = NumericProperty(0)
-    '''Current index of :data:`total` entries to be loaded.
+    '''Current index of :attr:`total` entries to be loaded.
     '''
 
     total = NumericProperty(1)

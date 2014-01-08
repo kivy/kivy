@@ -196,7 +196,7 @@ Here's a simple example that demonstrates this behaviour::
         text: str(self.state)
 
 In this example, the parser detects that `self.state` is a dynamic value (a
-property). The :data:`~kivy.uix.button.Button.state` property of the button
+property). The :attr:`~kivy.uix.button.Button.state` property of the button
 can change at any moment (when the user touches it).
 We now want this button to display its own state as text, even as the state
 changes. To do this, we use the state property of the Button and use it in the
@@ -1720,7 +1720,7 @@ class BuilderBase(object):
 
     def unbind_widget(self, uid):
         '''(internal) Unbind all the handlers created by the rules of the
-        widget. The :data:`kivy.uix.widget.Widget.uid` is passed here
+        widget. The :attr:`kivy.uix.widget.Widget.uid` is passed here
         instead of the widget itself, because we are using it in the
         widget destructor.
 

@@ -100,18 +100,18 @@ Metrics
 -------
 
 KIVY_DPI
-    If set, the value will be used for :data:`Metrics.dpi`.
+    If set, the value will be used for :attr:`Metrics.dpi`.
 
     .. versionadded:: 1.4.0
 
 KIVY_METRICS_DENSITY
-    If set, the value will be used for :data:`Metrics.density`.
+    If set, the value will be used for :attr:`Metrics.density`.
 
     .. versionadded:: 1.5.0
 
 KIVY_METRICS_FONTSCALE
 
-    If set, the value will be used for :data:`Metrics.fontscale`.
+    If set, the value will be used for :attr:`Metrics.fontscale`.
 
     .. versionadded:: 1.5.0
 

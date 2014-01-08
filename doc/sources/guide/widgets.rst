@@ -93,7 +93,7 @@ If you want to clear all the children inside a widget, use
 Traversing the Tree
 -------------------
 
-The Widget class instance's :data:`~kivy.uix.widget.Widget.children` list property
+The Widget class instance's :attr:`~kivy.uix.widget.Widget.children` list property
 contains all the children. You can easily traverse the tree by doing::
 
     root = BoxLayout()

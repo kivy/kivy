@@ -16,7 +16,7 @@ the concrete layout classes:
 Understanding the `size_hint` Property in `Widget`
 --------------------------------------------------
 
-The :data:`~kivy.uix.Widget.size_hint` is a tuple of values used by
+The :attr:`~kivy.uix.Widget.size_hint` is a tuple of values used by
 layouts to manage the sizes of their children. It indicates the size
 relative to the layout's size instead of an absolute size (in
 pixels/points/cm/etc). The format is::

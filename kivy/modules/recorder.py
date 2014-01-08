@@ -15,12 +15,12 @@ Configuration
 
 :Parameters:
     `attrs`: str, defaults to
-    :data:`~kivy.input.recorder.Recorder.record_attrs` value.
+    :attr:`~kivy.input.recorder.Recorder.record_attrs` value.
 
         Attributes to record from the motion event
 
     `profile_mask`: str, defaults to
-    :data:`~kivy.input.recorder.Recorder.record_profile_mask` value.
+    :attr:`~kivy.input.recorder.Recorder.record_profile_mask` value.
 
         Mask for motion event profile. Used to filter which profile will appear
         in the fake motion event when replayed.

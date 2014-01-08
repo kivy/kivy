@@ -50,9 +50,9 @@ transition options and remove the previous one by using
     # later
     sm.swith_to(screens[1], direction='right')
 
-The default :data:`ScreenManager.transition` is a :class:`SlideTransition` with
-options :data:`~SlideTransition.direction` and
-:data:`~TransitionBase.duration`.
+The default :attr:`ScreenManager.transition` is a :class:`SlideTransition` with
+options :attr:`~SlideTransition.direction` and
+:attr:`~TransitionBase.duration`.
 
 Please note that by default, a :class:`Screen` displays nothing: it's just a
 :class:`~kivy.uix.relativelayout.RelativeLayout`. You need to use that class as
@@ -121,7 +121,7 @@ You have multiple transitions available by default, such as:
   screen centre while fading from transparent to opaque.
 
 You can easily switch transitions by changing the
-:data:`ScreenManager.transition` property::
+:attr:`ScreenManager.transition` property::
 
     sm = ScreenManager(transition=FadeTransition())
 
@@ -190,9 +190,9 @@ class Screen(RelativeLayout):
     name = StringProperty('')
     '''
     Name of the screen which must be unique within a :class:`ScreenManager`.
-    This is the name used for :data:`ScreenManager.current`.
+    This is the name used for :attr:`ScreenManager.current`.
 
-    :data:`name` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`name` is a :class:`~kivy.properties.StringProperty` and defaults to
     ''.
     '''
 
@@ -200,7 +200,7 @@ class Screen(RelativeLayout):
     ''':class:`ScreenManager` object, set when the screen is added to a
     manager.
 
-    :data:`manager` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`manager` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None, read-only.
 
     '''
@@ -211,9 +211,9 @@ class Screen(RelativeLayout):
 
     If a transition is in progress, whatever the mode, the value will change
     from 0 to 1. If you want to know if it's an entering or leaving animation,
-    check the :data:`transition_state`.
+    check the :attr:`transition_state`.
 
-    :data:`transition_progress` is a :class:`~kivy.properties.NumericProperty`
+    :attr:`transition_progress` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
     '''
 
@@ -226,7 +226,7 @@ class Screen(RelativeLayout):
     After the transition is complete, the state will retain it's last value (in
     or out).
 
-    :data:`transition_state` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`transition_state` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'out'.
     '''
 
@@ -292,7 +292,7 @@ class TransitionBase(EventDispatcher):
     ''':class:`ScreenManager` object, set when the screen is added to a
     manager.
 
-    :data:`manager` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`manager` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None, read-only.
 
     '''
@@ -300,7 +300,7 @@ class TransitionBase(EventDispatcher):
     is_active = BooleanProperty(False)
     '''Indicate whether the transition is currently active or not.
 
-    :data:`is_active` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`is_active` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False, read-only.
     '''
 
@@ -403,13 +403,13 @@ class ShaderTransition(TransitionBase):
     fs = StringProperty(None)
     '''Fragment shader to use.
 
-    :data:`fs` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`fs` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.'''
 
     vs = StringProperty(None)
     '''Vertex shader to use.
 
-    :data:`vs` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`vs` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.'''
 
     def make_screen_fbo(self, screen):
@@ -471,7 +471,7 @@ class SlideTransition(TransitionBase):
     direction = OptionProperty('left', options=('left', 'right', 'up', 'down'))
     '''Direction of the transition.
 
-    :data:`direction` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`direction` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'left'. Can be one of 'left', 'right', 'up' or 'down'.
     '''
 
@@ -751,15 +751,15 @@ class ScreenManager(FloatLayout):
     '''List of all the :class:`Screen` widgets added. You must not change the
     list manually. Use :meth:`Screen.add_widget` instead.
 
-    :data:`screens` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`screens` is a :class:`~kivy.properties.ListProperty` and defaults to
     [], read-only.
     '''
 
     current_screen = ObjectProperty(None)
     '''Contains the currently displayed screen. You must not change this
-    property manually, use :data:`current` instead.
+    property manually, use :attr:`current` instead.
 
-    :data:`current_screen` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`current_screen` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None, read-only.
     '''
 
@@ -771,7 +771,7 @@ class ScreenManager(FloatLayout):
     '''List of the names of all the :class:`Screen` widgets added. The list
     is read only.
 
-    :data:`screens_names` is an :class:`~kivy.properties.AliasProperty` and
+    :attr:`screens_names` is an :class:`~kivy.properties.AliasProperty` and
     is read-only. It is updated if the screen list changes or the name
     of a screen changes.
     '''
@@ -897,7 +897,7 @@ class ScreenManager(FloatLayout):
     def switch_to(self, screen, **options):
         '''Add a new screen to the ScreenManager and switch to it. The previous
         screen will be removed from the children. `options` are the
-        :data:`transition` options that will be changed before the animation
+        :attr:`transition` options that will be changed before the animation
         happens.
 
         If no previous screens are available, the screen will be used as the
@@ -912,7 +912,7 @@ class ScreenManager(FloatLayout):
 
         If any animation is in progress, it will be stopped and replaced by
         this one: you should avoid this because the animation will just look
-        weird. Use either :meth:`switch` or :data:`current` but not both.
+        weird. Use either :meth:`switch` or :attr:`current` but not both.
 
         The `screen` name will be changed if there is any conflict with the
         current screen.

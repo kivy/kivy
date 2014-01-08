@@ -139,7 +139,7 @@ class DropDown(ScrollView):
     take the maximum height available until the top or bottom of the screen
     is reached.
 
-    :data:`max_height` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`max_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to None.
     '''
 
@@ -147,7 +147,7 @@ class DropDown(ScrollView):
     '''By default, the dropdown will be automatically dismissed when a
     selection has been done. Set to False to prevent the dismiss.
 
-    :data:`dismiss_on_select` is a :class:`~kivy.properties.BooleanProperty`
+    :attr:`dismiss_on_select` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True.
     '''
 
@@ -156,7 +156,7 @@ class DropDown(ScrollView):
     touch happens outside of it, this option allow to disable this
     feature
 
-    :data:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`
+    :attr:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True.
 
     .. versionadded:: 1.8.0

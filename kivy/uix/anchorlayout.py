@@ -38,7 +38,7 @@ class AnchorLayout(Layout):
     padding = NumericProperty(0)
     '''Padding between the widget box and it's children, in pixels.
 
-    :data:`padding` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`padding` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 0.
     '''
 
@@ -46,7 +46,7 @@ class AnchorLayout(Layout):
         'left', 'center', 'right'))
     '''Horizontal anchor.
 
-    :data:`anchor_x` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`anchor_x` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'center'. It accepts values of 'left', 'center' or
     'right'.
     '''
@@ -55,7 +55,7 @@ class AnchorLayout(Layout):
         'top', 'center', 'bottom'))
     '''Vertical anchor.
 
-    :data:`anchor_y` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`anchor_y` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'center'. It accepts values of 'top', 'center' or
     'bottom'.
     '''

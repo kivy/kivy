@@ -602,7 +602,7 @@ cdef class Rotate(Transform):
 
         .. deprecated:: 1.7.0
 
-            The set() method doesn't use the new :data:`origin` property.
+            The set() method doesn't use the new :attr:`origin` property.
         '''
         self._angle = angle
         self._axis = (ax, ay, az)

@@ -12,18 +12,18 @@ Scrolling Behavior
 ------------------
 
 The ScrollView accepts only one child and applies a viewport/window to it
-according to the :data:`scroll_x` and :data:`scroll_y` properties. Touches are
+according to the :attr:`scroll_x` and :attr:`scroll_y` properties. Touches are
 analyzed to determine if the user wants to scroll or control the child in some
 other manner - you cannot do both at the same time. To determine if interaction
 is a scrolling gesture, these properties are used:
 
-    - :data:`ScrollView.scroll_distance`: the minimum distance to travel,
+    - :attr:`ScrollView.scroll_distance`: the minimum distance to travel,
          defaults to 20 pixels.
-    - :data:`ScrollView.scroll_timeout`: the maximum time period, defaults
+    - :attr:`ScrollView.scroll_timeout`: the maximum time period, defaults
          to 250 milliseconds.
 
-If a touch travels :data:`~ScrollView.scroll_distance` pixels within the
-:data:`~ScrollView.scroll_timeout` period, it is recognized as a scrolling
+If a touch travels :attr:`~ScrollView.scroll_distance` pixels within the
+:attr:`~ScrollView.scroll_timeout` period, it is recognized as a scrolling
 gesture and translation (scroll/pan) will begin. If the timeout occurs, the
 touch down event is dispatched to the child instead (no translation).
 
@@ -43,7 +43,7 @@ Limiting to the X or Y Axis
 
 By default, the ScrollView allows scrolling in both the X and Y axes. You can
 explicitly disable scrolling on an axis by setting
-:data:`ScrollView.do_scroll_x` or :data:`ScrollView.do_scroll_y` to False.
+:attr:`ScrollView.do_scroll_x` or :attr:`ScrollView.do_scroll_y` to False.
 
 
 Managing the Content Size
@@ -114,7 +114,7 @@ class ScrollView(StencilView):
     .. versionchanged:: 1.7.0
 
         `auto_scroll`, `scroll_friction`, `scroll_moves`, `scroll_stoptime' has
-        been deprecated, use :data:`effect_cls` instead.
+        been deprecated, use :attr:`effect_cls` instead.
     '''
 
     scroll_distance = NumericProperty(_scroll_distance)
@@ -124,7 +124,7 @@ class ScrollView(StencilView):
     It is advisable that you base this value on the dpi of your target device's
     screen.
 
-    :data:`scroll_distance` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`scroll_distance` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 20 (pixels), according to the default value in user
     configuration.
     '''
@@ -136,17 +136,17 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.8.0
 
-    :data:`scroll_wheel_distance` is a
+    :attr:`scroll_wheel_distance` is a
     :class:`~kivy.properties.NumericProperty` , defaults to 20 pixels.
     '''
 
     scroll_timeout = NumericProperty(_scroll_timeout)
-    '''Timeout allowed to trigger the :data:`scroll_distance`, in milliseconds.
-    If the user has not moved :data:`scroll_distance` within the timeout,
+    '''Timeout allowed to trigger the :attr:`scroll_distance`, in milliseconds.
+    If the user has not moved :attr:`scroll_distance` within the timeout,
     the scrolling will be disabled, and the touch event will go to the
     children.
 
-    :data:`scroll_timeout` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`scroll_timeout` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 55 (milliseconds) according to the default value in user
     configuration.
 
@@ -160,9 +160,9 @@ class ScrollView(StencilView):
     touch the right side.
 
     This property is controled by :class:`ScrollView` only if
-    :data:`do_scroll_x` is True.
+    :attr:`do_scroll_x` is True.
 
-    :data:`scroll_x` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`scroll_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -172,23 +172,23 @@ class ScrollView(StencilView):
     touch the top side.
 
     This property is controled by :class:`ScrollView` only if
-    :data:`do_scroll_y` is True.
+    :attr:`do_scroll_y` is True.
 
-    :data:`scroll_y` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`scroll_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
     '''
 
     do_scroll_x = BooleanProperty(True)
     '''Allow scroll on X axis.
 
-    :data:`do_scroll_x` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`do_scroll_x` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
     do_scroll_y = BooleanProperty(True)
     '''Allow scroll on Y axis.
 
-    :data:`do_scroll_y` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`do_scroll_y` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
@@ -204,8 +204,8 @@ class ScrollView(StencilView):
                               bind=('do_scroll_x', 'do_scroll_y'))
     '''Allow scroll on X or Y axis.
 
-    :data:`do_scroll` is a :class:`~kivy.properties.AliasProperty` of
-    (:data:`do_scroll_x` + :data:`do_scroll_y`)
+    :attr:`do_scroll` is a :class:`~kivy.properties.AliasProperty` of
+    (:attr:`do_scroll_x` + :attr:`do_scroll_y`)
     '''
 
     def _get_vbar(self):
@@ -232,7 +232,7 @@ class ScrollView(StencilView):
     percentage of the current scrollview height. This property is used
     internally for drawing the little vertical bar when you're scrolling.
 
-    :data:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
+    :attr:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
     '''
 
     def _get_hbar(self):
@@ -259,7 +259,7 @@ class ScrollView(StencilView):
     percentage of the current scrollview height. This property is used
     internally for drawing the little horizontal bar when you're scrolling.
 
-    :data:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
+    :attr:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
     '''
 
     bar_color = ListProperty([.7, .7, .7, .9])
@@ -267,7 +267,7 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.2.0
 
-    :data:`bar_color` is a :class:`~kivy.properties.ListProperty` and defaults
+    :attr:`bar_color` is a :class:`~kivy.properties.ListProperty` and defaults
     to [.7, .7, .7, .9].
     '''
 
@@ -277,7 +277,7 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.2.0
 
-    :data:`bar_width` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`bar_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 2.
     '''
 
@@ -287,7 +287,7 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.8.0
 
-    :data:`bar_pos_x` is an :class:`~kivy.properties.OptionProperty`,
+    :attr:`bar_pos_x` is an :class:`~kivy.properties.OptionProperty`,
     default to 'bottom'
 
     '''
@@ -298,7 +298,7 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.8.0
 
-    :data:`bar_pos_y` is an :class:`~kivy.properties.OptionProperty`,
+    :attr:`bar_pos_y` is an :class:`~kivy.properties.OptionProperty`,
     default to 'right'
 
     '''
@@ -306,8 +306,8 @@ class ScrollView(StencilView):
     bar_pos = ReferenceListProperty(bar_pos_x, bar_pos_y)
     '''Which side of the scroll view to place each of the bars on.
 
-    :data:`bar_pos` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`bar_pos_x`, :data:`bar_pos_y`)
+    :attr:`bar_pos` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:attr:`bar_pos_x`, :attr:`bar_pos_y`)
     '''
 
     bar_margin = NumericProperty(0)
@@ -316,7 +316,7 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.2.0
 
-    :data:`bar_margin` is a :class:`~kivy.properties.NumericProperty`, default
+    :attr:`bar_margin` is a :class:`~kivy.properties.NumericProperty`, default
     to 0
     '''
 
@@ -325,7 +325,7 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.7.0
 
-    :data:`effect_cls` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`effect_cls` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to :class:`DampedScrollEffect`.
 
     .. versionchanged:: 1.8.0
@@ -337,21 +337,21 @@ class ScrollView(StencilView):
 
     effect_x = ObjectProperty(None, allownone=True)
     '''Effect to apply for the X axis. If None is set, an instance of
-    :data:`effect_cls` will be created.
+    :attr:`effect_cls` will be created.
 
     .. versionadded:: 1.7.0
 
-    :data:`effect_x` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`effect_x` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 
     effect_y = ObjectProperty(None, allownone=True)
     '''Effect to apply for the Y axis. If None is set, an instance of
-    :data:`effect_cls` will be created.
+    :attr:`effect_cls` will be created.
 
     .. versionadded:: 1.7.0
 
-    :data:`effect_y` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`effect_y` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None, read-only.
     '''
 
@@ -367,7 +367,7 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.8.0
 
-    :data:`scroll_type` is a :class:`~kivy.properties.OptionProperty`, defaults
+    :attr:`scroll_type` is a :class:`~kivy.properties.OptionProperty`, defaults
     to ['content'].
     '''
 
@@ -689,10 +689,10 @@ class ScrollView(StencilView):
 
     def update_from_scroll(self, *largs):
         '''Force the reposition of the content, according to current value of
-        :data:`scroll_x` and :data:`scroll_y`.
+        :attr:`scroll_x` and :attr:`scroll_y`.
 
-        This method is automatically called when one of the :data:`scroll_x`,
-        :data:`scroll_y`, :data:`pos` or :data:`size` properties change, or
+        This method is automatically called when one of the :attr:`scroll_x`,
+        :attr:`scroll_y`, :attr:`pos` or :attr:`size` properties change, or
         if the size of the content changes.
         '''
         if not self._viewport:

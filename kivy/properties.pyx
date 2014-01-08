@@ -857,7 +857,7 @@ cdef class BoundedNumericProperty(Property):
     def set_max(self, EventDispatcher obj, value):
         '''Change the maximum value acceptable for the BoundedNumericProperty,
         only for the `obj` instance. Set to None if you want to disable it.
-        Check :data:`set_min` for a usage example.
+        Check :attr:`set_min` for a usage example.
 
         .. warning::
 
@@ -878,7 +878,7 @@ cdef class BoundedNumericProperty(Property):
     def get_max(self, EventDispatcher obj):
         '''Return the maximum value acceptable for the BoundedNumericProperty
         in `obj`. Return None if no maximum value is set. Check
-        :data:`get_min` for a usage example.
+        :attr:`get_min` for a usage example.
 
         .. versionadded:: 1.1.0
         '''

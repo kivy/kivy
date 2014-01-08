@@ -51,12 +51,12 @@ class ProgressBar(Widget):
     value = AliasProperty(_get_value, _set_value)
     '''Current value used for the slider.
 
-    :data:`value` is an :class:`~kivy.properties.AliasProperty` than
+    :attr:`value` is an :class:`~kivy.properties.AliasProperty` than
     returns the value of the progressbar. If the value is < 0 or >
-    :data:`max`, it will be normalized to thoses boundaries.
+    :attr:`max`, it will be normalized to thoses boundaries.
 
     .. versionchanged:: 1.6.0
-        The value is now limited to between 0 and :data:`max`.
+        The value is now limited to between 0 and :attr:`max`.
     '''
 
     def get_norm_value(self):
@@ -78,13 +78,13 @@ class ProgressBar(Widget):
         >>> slider.value_normalized
         0.5
 
-    :data:`value_normalized` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`value_normalized` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     max = NumericProperty(100.)
-    '''Maximum value allowed for :data:`value`.
+    '''Maximum value allowed for :attr:`value`.
 
-    :data:`max` is a :class:`~kivy.properties.NumericProperty` and defaults to
+    :attr:`max` is a :class:`~kivy.properties.NumericProperty` and defaults to
     100.
     '''
 

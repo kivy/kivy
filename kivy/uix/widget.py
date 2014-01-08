@@ -62,7 +62,7 @@ When you read the documentation, all properties are described in the format::
 
 e.g.
 
-    :data:`~kivy.uix.label.Label.text` is a
+    :attr:`~kivy.uix.label.Label.text` is a
     :class:`~kivy.properties.StringProperty` and defaults to ''.
 
 If you want to be notified when the pos attribute changes, i.e. when the
@@ -469,19 +469,19 @@ class Widget(WidgetBase):
     x = NumericProperty(0)
     '''X position of the widget.
 
-    :data:`x` is a :class:`~kivy.properties.NumericProperty` and defaults to 0.
+    :attr:`x` is a :class:`~kivy.properties.NumericProperty` and defaults to 0.
     '''
 
     y = NumericProperty(0)
     '''Y position of the widget.
 
-    :data:`y` is a :class:`~kivy.properties.NumericProperty` and defaults to 0.
+    :attr:`y` is a :class:`~kivy.properties.NumericProperty` and defaults to 0.
     '''
 
     width = NumericProperty(100)
     '''Width of the widget.
 
-    :data:`width` is a :class:`~kivy.properties.NumericProperty` ans defaults
+    :attr:`width` is a :class:`~kivy.properties.NumericProperty` ans defaults
     to 100.
 
     .. warning::
@@ -493,7 +493,7 @@ class Widget(WidgetBase):
     height = NumericProperty(100)
     '''Height of the widget.
 
-    :data:`height` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`height` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 100.
 
     .. warning::
@@ -505,15 +505,15 @@ class Widget(WidgetBase):
     pos = ReferenceListProperty(x, y)
     '''Position of the widget.
 
-    :data:`pos` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`x`, :data:`y`) properties.
+    :attr:`pos` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:attr:`x`, :attr:`y`) properties.
     '''
 
     size = ReferenceListProperty(width, height)
     '''Size of the widget.
 
-    :data:`size` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`width`, :data:`height`) properties.
+    :attr:`size` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:attr:`width`, :attr:`height`) properties.
     '''
 
     def get_right(self):
@@ -525,8 +525,8 @@ class Widget(WidgetBase):
     right = AliasProperty(get_right, set_right, bind=('x', 'width'))
     '''Right position of the widget.
 
-    :data:`right` is an :class:`~kivy.properties.AliasProperty` of
-    (:data:`x` + :data:`width`),
+    :attr:`right` is an :class:`~kivy.properties.AliasProperty` of
+    (:attr:`x` + :attr:`width`),
     '''
 
     def get_top(self):
@@ -538,8 +538,8 @@ class Widget(WidgetBase):
     top = AliasProperty(get_top, set_top, bind=('y', 'height'))
     '''Top position of the widget.
 
-    :data:`top` is an :class:`~kivy.properties.AliasProperty` of
-    (:data:`y` + :data:`height`),
+    :attr:`top` is an :class:`~kivy.properties.AliasProperty` of
+    (:attr:`y` + :attr:`height`),
     '''
 
     def get_center_x(self):
@@ -550,8 +550,8 @@ class Widget(WidgetBase):
     center_x = AliasProperty(get_center_x, set_center_x, bind=('x', 'width'))
     '''X center position of the widget.
 
-    :data:`center_x` is an :class:`~kivy.properties.AliasProperty` of
-    (:data:`x` + :data:`width` / 2.),
+    :attr:`center_x` is an :class:`~kivy.properties.AliasProperty` of
+    (:attr:`x` + :attr:`width` / 2.),
     '''
 
     def get_center_y(self):
@@ -562,15 +562,15 @@ class Widget(WidgetBase):
     center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'height'))
     '''Y center position of the widget.
 
-    :data:`center_y` is an :class:`~kivy.properties.AliasProperty` of
-    (:data:`y` + :data:`height` / 2.)
+    :attr:`center_y` is an :class:`~kivy.properties.AliasProperty` of
+    (:attr:`y` + :attr:`height` / 2.)
     '''
 
     center = ReferenceListProperty(center_x, center_y)
     '''Center position of the widget.
 
-    :data:`center` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`center_x`, :data:`center_y`)
+    :attr:`center` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:attr:`center_x`, :attr:`center_y`)
     '''
 
     cls = ListProperty([])
@@ -580,19 +580,19 @@ class Widget(WidgetBase):
     id = StringProperty(None, allownone=True)
     '''Unique identifier of the widget in the tree.
 
-    :data:`id` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`id` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
 
     .. warning::
 
-        If the :data:`id` is already used in the tree, an exception will
+        If the :attr:`id` is already used in the tree, an exception will
         be raised.
     '''
 
     children = ListProperty([])
     '''List of children of this widget.
 
-    :data:`children` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`children` is a :class:`~kivy.properties.ListProperty` and
     defaults to an empty list.
 
     Use :meth:`add_widget` and :meth:`remove_widget` for manipulating the
@@ -603,7 +603,7 @@ class Widget(WidgetBase):
     parent = ObjectProperty(None, allownone=True)
     '''Parent of this widget.
 
-    :data:`parent` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`parent` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
 
     The parent of a widget is set when the widget is added to another widget
@@ -619,26 +619,26 @@ class Widget(WidgetBase):
     The value is in percent as a float from 0. to 1., where 1. means the full
     size of his parent. 0.5 represents 50%.
 
-    :data:`size_hint_x` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`size_hint_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
     '''
 
     size_hint_y = NumericProperty(1, allownone=True)
     '''Y size hint.
 
-    :data:`size_hint_y` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`size_hint_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
 
-    See :data:`size_hint_x` for more information
+    See :attr:`size_hint_x` for more information
     '''
 
     size_hint = ReferenceListProperty(size_hint_x, size_hint_y)
     '''Size hint.
 
-    :data:`size_hint` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`size_hint_x`, :data:`size_hint_y`).
+    :attr:`size_hint` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:attr:`size_hint_x`, :attr:`size_hint_y`).
 
-    See :data:`size_hint_x` for more information
+    See :attr:`size_hint_x` for more information
     '''
 
     pos_hint = ObjectProperty({})
@@ -660,7 +660,7 @@ class Widget(WidgetBase):
     :class:`~kivy.uix.floatlayout.FloatLayout` and
     :class:`~kivy.core.window.Window`.
 
-    :data:`pos_hint` is an :class:`~kivy.properties.ObjectProperty`
+    :attr:`pos_hint` is an :class:`~kivy.properties.ObjectProperty`
     containing a dict.
     '''
 
@@ -670,7 +670,7 @@ class Widget(WidgetBase):
 
     .. versionadded:: 1.7.0
 
-    :data:`ids` is a :class:`~kivy.properties.DictProperty` and defaults to a
+    :attr:`ids` is a :class:`~kivy.properties.DictProperty` and defaults to a
     empty dict {}.
     '''
 
@@ -691,7 +691,7 @@ class Widget(WidgetBase):
 
         frag_color = color * vec4(1.0, 1.0, 1.0, opacity);
 
-    :data:`opacity` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`opacity` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.0.
     '''
 
@@ -726,6 +726,6 @@ class Widget(WidgetBase):
 
     .. versionadded:: 1.8.0
 
-    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''

@@ -134,7 +134,7 @@ config. We could create a JSON like this::
     ]
 
 Then, we can create a panel using this JSON to automatically create all the
-options and link them to our :data:`App.config` ConfigParser instance::
+options and link them to our :attr:`App.config` ConfigParser instance::
 
     class TestApp(App):
         # ...
@@ -623,8 +623,8 @@ class App(EventDispatcher):
         Some notes:
 
         - The tilda '~' will be expanded to the user directory.
-        - %(appdir)s will be replaced with the application :data:`directory`
-        - %(appname)s will be replaced with the application :data:`name`
+        - %(appdir)s will be replaced with the application :attr:`directory`
+        - %(appname)s will be replaced with the application :attr:`name`
         '''
 
         if platform == 'android':
@@ -909,8 +909,8 @@ class App(EventDispatcher):
         application life-time and the result is cached internally.
 
         By default, it will build a settings panel according to
-        :data:`settings_cls`, call :meth:`build_settings`, add a Kivy panel if
-        :data:`use_kivy_settings` is True, and bind to
+        :attr:`settings_cls`, call :meth:`build_settings`, add a Kivy panel if
+        :attr:`use_kivy_settings` is True, and bind to
         on_close/on_config_change.
 
         If you want to plug your own way of doing settings, without the Kivy

@@ -14,7 +14,7 @@ alternatives.
     :align: center
 
 A :class:`SettingsPanel` represents a group of configurable options. The
-:data:`SettingsPanel.title` property is used by :class:`Settings` when a panel
+:attr:`SettingsPanel.title` property is used by :class:`Settings` when a panel
 is added - it determines the name of the sidebar button. SettingsPanel controls
 a :class:`~kivy.config.ConfigParser` instance.
 
@@ -83,7 +83,7 @@ properties of that class.
 In the JSON example above, the first element is of type "title". It will create
 a new instance of :class:`SettingTitle` and apply the rest of the key/value
 pairs to the properties of that class, i.e. "title": "Windows" sets the
-:data:`SettingTitle.title` property to "Windows".
+:attr:`SettingTitle.title` property to "Windows".
 
 To load the JSON example to a :class:`Settings` instance, use the
 :meth:`Settings.add_json_panel` method. It will automatically instantiate a
@@ -124,21 +124,21 @@ on_close event.
 - :class:`SettingsWithSpinner`: Displays settings with a spinner at
   the top, which can be used to switch between json panels. Uses
   :class:`InterfaceWithSpinner` as the
-  :data:`~Settings.interface_cls`.
+  :attr:`~Settings.interface_cls`.
 
 - :class:`SettingsWithTabbedPanel`: Displays json panels as individual
   tabs in a :class:`~kivy.uix.tabbedpanel.TabbedPanel`. Uses
-  :class:`InterfaceWithTabbedPanel` as the :data:`~Settings.interface_cls`.
+  :class:`InterfaceWithTabbedPanel` as the :attr:`~Settings.interface_cls`.
 
 - :class:`SettingsWithNoMenu`: Displays a single json panel, with no
   way to switch to other panels and no close button. This makes it
   impossible for the user to exit unless
   :meth:`~kivy.app.App.close_settings` is overridden with a different
   close trigger! Uses :class:`InterfaceWithNoMenu` as the
-  :data:`~Settings.interface_cls`.
+  :attr:`~Settings.interface_cls`.
 
 You can construct your own settings panels with any layout you choose
-by setting :data:`Settings.interface_cls`. This should be a widget
+by setting :attr:`Settings.interface_cls`. This should be a widget
 that displays a json settings panel with some way to switch between
 panels. An instance will be automatically created by :class:`Settings`.
 
@@ -206,14 +206,14 @@ class SettingItem(FloatLayout):
     title = StringProperty('<No title set>')
     '''Title of the setting, defaults to '<No title set>'.
 
-    :data:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
     '<No title set>'.
     '''
 
     desc = StringProperty(None, allownone=True)
     '''Description of the setting, rendered on the line below the title.
 
-    :data:`desc` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`desc` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
     '''
 
@@ -221,7 +221,7 @@ class SettingItem(FloatLayout):
     '''Indicate if this setting is disabled. If True, all touches on the
     setting item will be discarded.
 
-    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -229,15 +229,15 @@ class SettingItem(FloatLayout):
     '''Section of the token inside the :class:`~kivy.config.ConfigParser`
     instance.
 
-    :data:`section` is a :class:`~kivy.properties.StringProperty` and defaults
+    :attr:`section` is a :class:`~kivy.properties.StringProperty` and defaults
     to None.
     '''
 
     key = StringProperty(None)
-    '''Key of the token inside the :data:`section` in the
+    '''Key of the token inside the :attr:`section` in the
     :class:`~kivy.config.ConfigParser` instance.
 
-    :data:`key` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`key` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
     '''
 
@@ -246,7 +246,7 @@ class SettingItem(FloatLayout):
     instance. Any change to this value will trigger a
     :meth:`Settings.on_config_change` event.
 
-    :data:`value` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`value` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -254,7 +254,7 @@ class SettingItem(FloatLayout):
     '''(internal) Reference to the SettingsPanel for this setting. You don't
     need to use it.
 
-    :data:`panel` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`panel` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -263,7 +263,7 @@ class SettingItem(FloatLayout):
     As soon as the content object is set, any further call to add_widget will
     call the content.add_widget. This is automatically set.
 
-    :data:`content` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`content` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -271,7 +271,7 @@ class SettingItem(FloatLayout):
     '''(internal) Float value from 0 to 1, used to animate the background when
     the user touches the item.
 
-    :data:`selected_alpha` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`selected_alpha` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -319,7 +319,7 @@ class SettingItem(FloatLayout):
 class SettingBoolean(SettingItem):
     '''Implementation of a boolean setting on top of a :class:`SettingItem`. It
     is visualized with a :class:`~kivy.uix.switch.Switch` widget. By default,
-    0 and 1 are used for values: you can change them by setting :data:`values`.
+    0 and 1 are used for values: you can change them by setting :attr:`values`.
     '''
 
     values = ListProperty(['0', '1'])
@@ -333,7 +333,7 @@ class SettingBoolean(SettingItem):
         You need a minimum of two values, the index 0 will be used as False,
         and index 1 as True
 
-    :data:`values` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`values` is a :class:`~kivy.properties.ListProperty` and defaults to
     ['0', '1']
     '''
 
@@ -349,7 +349,7 @@ class SettingString(SettingItem):
     popup = ObjectProperty(None, allownone=True)
     '''(internal) Used to store the current popup when it's shown.
 
-    :data:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -357,7 +357,7 @@ class SettingString(SettingItem):
     '''(internal) Used to store the current textinput from the popup and
     to listen for changes.
 
-    :data:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -425,7 +425,7 @@ class SettingPath(SettingItem):
     popup = ObjectProperty(None, allownone=True)
     '''(internal) Used to store the current popup when it is shown.
 
-    :data:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -433,7 +433,7 @@ class SettingPath(SettingItem):
     '''(internal) Used to store the current textinput from the popup and
     to listen for changes.
 
-    :data:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -523,14 +523,14 @@ class SettingOptions(SettingItem):
     '''List of all availables options. This must be a list of "string" items.
     Otherwise, it will crash. :)
 
-    :data:`options` is a :class:`~kivy.properties.ListProperty` and defaults
+    :attr:`options` is a :class:`~kivy.properties.ListProperty` and defaults
     to [].
     '''
 
     popup = ObjectProperty(None, allownone=True)
     '''(internal) Used to store the current popup when it is shown.
 
-    :data:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -609,7 +609,7 @@ class SettingsPanel(GridLayout):
                             'kivy.config.ConfigParser, not another one !')
 
     def get_value(self, section, key):
-        '''Return the value of the section/key from the :data:`config`
+        '''Return the value of the section/key from the :attr:`config`
         ConfigParser instance. This function is used by :class:`SettingItem` to
         get the value for a given section/key.
 
@@ -654,7 +654,7 @@ class InterfaceWithSidebar(BoxLayout):
     menu = ObjectProperty()
     '''(internal) A reference to the sidebar menu widget.
 
-    :data:`menu` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`menu` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 
@@ -662,7 +662,7 @@ class InterfaceWithSidebar(BoxLayout):
     '''(internal) A reference to the panel display widget (a
     :class:`ContentPanel`).
 
-    :data:`menu` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`menu` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
 
     '''
@@ -712,7 +712,7 @@ class InterfaceWithSpinner(BoxLayout):
     menu = ObjectProperty()
     '''(internal) A reference to the sidebar menu widget.
 
-    :data:`menu` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`menu` is an :class:`~kivy.properties.ObjectProperty` and
     defauls to None.
     '''
 
@@ -720,7 +720,7 @@ class InterfaceWithSpinner(BoxLayout):
     '''(internal) A reference to the panel display widget (a
     :class:`ContentPanel`).
 
-    :data:`menu` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`menu` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
 
     '''
@@ -765,7 +765,7 @@ class ContentPanel(ScrollView):
     panels = DictProperty({})
     '''(internal) Stores a dictionary mapping settings panels to their uids.
 
-    :data:`panels` is a :class:`~kivy.properties.DictProperty` and
+    :attr:`panels` is a :class:`~kivy.properties.DictProperty` and
     defaults to {}.
 
     '''
@@ -774,7 +774,7 @@ class ContentPanel(ScrollView):
     '''(internal) A reference to the GridLayout that contains the
     settings panel.
 
-    :data:`container` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`container` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
 
     '''
@@ -782,7 +782,7 @@ class ContentPanel(ScrollView):
     current_panel = ObjectProperty(None)
     '''(internal) A reference to the current settings panel.
 
-    :data:`current_panel` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`current_panel` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
 
     '''
@@ -790,7 +790,7 @@ class ContentPanel(ScrollView):
     current_uid = NumericProperty(0)
     '''(internal) A reference to the uid of the current settings panel.
 
-    :data:`current_uid` is a
+    :attr:`current_uid` is a
     :class:`~kivy.properties.NumericProperty` and defaults to 0.
 
     '''
@@ -859,7 +859,7 @@ class Settings(BoxLayout):
     '''(internal) Reference to the widget that will contain, organise and
     display the panel configuration panel widgets.
 
-    :data:`interface` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`interface` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
 
     '''
@@ -869,7 +869,7 @@ class Settings(BoxLayout):
     interface for the settings panel. By default, it displays one Settings
     panel at a time with a sidebar to switch between them.
 
-    :data:`interface_cls` is an
+    :attr:`interface_cls` is an
     :class:`~kivy.properties.ObjectProperty` and defaults to
     :class`InterfaceWithSidebar`.
 
@@ -1133,9 +1133,9 @@ class MenuSidebar(FloatLayout):
     selected_uid = NumericProperty(0)
     '''The uid of the currently selected panel. This may be used to switch
     between displayed panels, e.g. by binding it to the
-    :data:`~ContentPanel.current_uid` of a :class:`ContentPanel`.
+    :attr:`~ContentPanel.current_uid` of a :class:`ContentPanel`.
 
-    :data:`selected_uid` is a
+    :attr:`selected_uid` is a
     :class`~kivy.properties.NumericProperty` and defaults to 0.
 
     '''
@@ -1144,7 +1144,7 @@ class MenuSidebar(FloatLayout):
     '''(internal) Reference to the GridLayout that contains individual
     settings panel menu buttons.
 
-    :data:`buttons_layout` is an
+    :attr:`buttons_layout` is an
     :class:`~kivy.properties.ObjectProperty` and defaults to None.
 
     '''
@@ -1152,7 +1152,7 @@ class MenuSidebar(FloatLayout):
     close_button = ObjectProperty(None)
     '''(internal) Reference to the widget's Close button.
 
-    :data:`buttons_layout` is an
+    :attr:`buttons_layout` is an
     :class:`~kivy.properties.ObjectProperty` and defaults to None.
 
     '''

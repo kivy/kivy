@@ -17,10 +17,10 @@ Modes
 
 This virtual keyboard has a docked and free mode:
 
-* docked mode (:data:`VKeyboard.docked` = True)
+* docked mode (:attr:`VKeyboard.docked` = True)
   Generally used when only one person is using the computer, like a tablet or
   personal computer etc.
-* free mode: (:data:`VKeyboard.docked` = False)
+* free mode: (:attr:`VKeyboard.docked` = False)
   Mostly for multitouch surfaces. This mode allows multiple virtual
   keyboards to be used on the screen.
 
@@ -37,7 +37,7 @@ Layouts
 
 The virtual keyboard is able to load a custom layout. If you create a new
 layout and put the JSON in :file:`<kivy_data_dir>/keyboards/<layoutid>.json`,
-you can load it by setting :data:`VKeyboard.layout` to your layoutid.
+you can load it by setting :attr:`VKeyboard.layout` to your layoutid.
 
 The JSON must be structured like this::
 
@@ -148,7 +148,7 @@ class VKeyboard(Scatter):
     send keyboard events. If the VKeyboard mode is "free", it will also be used
     to set the initial position.
 
-    :data:`target` is an :class:`~kivy.properties.ObjectProperty` instance and
+    :attr:`target` is an :class:`~kivy.properties.ObjectProperty` instance and
     defaults to None.
     '''
 
@@ -156,7 +156,7 @@ class VKeyboard(Scatter):
     '''Callback can be set to a function that will be called if the
     VKeyboard is closed by the user.
 
-    :data:`target` is an :class:`~kivy.properties.ObjectProperty` instance and
+    :attr:`target` is an :class:`~kivy.properties.ObjectProperty` instance and
     defaults to None.
     '''
 
@@ -170,14 +170,14 @@ class VKeyboard(Scatter):
         If layout is a .json filename, it will loaded and added to the
         available_layouts.
 
-    :data:`layout` is a :class:`~kivy.properties.StringProperty` and defaults
+    :attr:`layout` is a :class:`~kivy.properties.StringProperty` and defaults
     to None.
     '''
 
     layout_path = StringProperty(default_layout_path)
     '''Path from which layouts are read.
 
-    :data:`layout` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`layout` is a :class:`~kivy.properties.StringProperty` and
     defaults to :file:`<kivy_data_dir>/keyboards/`
     '''
 
@@ -185,7 +185,7 @@ class VKeyboard(Scatter):
     '''Dictionary of all available layouts. Keys are the layout ID, and the
     value is the JSON (translated into a Python object).
 
-    :data:`available_layouts` is a :class:`~kivy.properties.DictProperty` and
+    :attr:`available_layouts` is a :class:`~kivy.properties.DictProperty` and
     defaults to {}.
     '''
 
@@ -196,7 +196,7 @@ class VKeyboard(Scatter):
     be automatically set by the configuration, using the `keyboard_mode` token
     in `[kivy]` section.
 
-    :data:`docked` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    :attr:`docked` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
     '''
 
@@ -209,7 +209,7 @@ class VKeyboard(Scatter):
     The margin hints will be multiplied by width and height, according to their
     position.
 
-    :data:`margin_hint` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`margin_hint` is a :class:`~kivy.properties.ListProperty` and
     defaults to [.05, .06, .05, .06]
     '''
 
@@ -219,7 +219,7 @@ class VKeyboard(Scatter):
 
         key_margin = [top, right, bottom, left]
 
-    :data:`key_margin` is a :class:`~kivy.properties.ListProperty` and defaults
+    :attr:`key_margin` is a :class:`~kivy.properties.ListProperty` and defaults
     to [2, 2, 2, 2]
     '''
 
@@ -227,7 +227,7 @@ class VKeyboard(Scatter):
     '''Background color, in the format (r, g, b, a). If a background is
     set, the color will be combined with the background texture.
 
-    :data:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [1, 1, 1, 1].
     '''
 
@@ -235,7 +235,7 @@ class VKeyboard(Scatter):
         'atlas://data/images/defaulttheme/vkeyboard_background')
     '''Filename of the background image.
 
-    :data:`background` a :class:`~kivy.properties.StringProperty` and defaults
+    :attr:`background` a :class:`~kivy.properties.StringProperty` and defaults
     to :file:`atlas://data/images/defaulttheme/vkeyboard_background`.
     '''
 
@@ -245,7 +245,7 @@ class VKeyboard(Scatter):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled` is a
+    :attr:`background_disabled` is a
     :class:`~kivy.properties.StringProperty` and defaults to
     :file:`atlas://data/images/defaulttheme/vkeyboard__disabled_background`.
 
@@ -255,7 +255,7 @@ class VKeyboard(Scatter):
     '''Key background color, in the format (r, g, b, a). If a key background is
     set, the color will be combined with the key background texture.
 
-    :data:`key_background_color` is a :class:`~kivy.properties.ListProperty`
+    :attr:`key_background_color` is a :class:`~kivy.properties.ListProperty`
     and defaults to [1, 1, 1, 1].
     '''
 
@@ -264,7 +264,7 @@ class VKeyboard(Scatter):
     '''Filename of the key background image for use when no touches are active
     on the widget.
 
-    :data:`key_background_normal` a :class:`~kivy.properties.StringProperty`
+    :attr:`key_background_normal` a :class:`~kivy.properties.StringProperty`
     and defaults to
     :file:`atlas://data/images/defaulttheme/vkeyboard_key_normal`.
     '''
@@ -276,7 +276,7 @@ class VKeyboard(Scatter):
 
     ..versionadded:: 1.8.0
 
-    :data:`key_disabled_background_normal` a
+    :attr:`key_disabled_background_normal` a
     :class:`~kivy.properties.StringProperty` and defaults to
     :file:`atlas://data/images/defaulttheme/vkeyboard_disabled_key_normal`.
 
@@ -287,26 +287,26 @@ class VKeyboard(Scatter):
     '''Filename of the key background image for use when a touch is active
     on the widget.
 
-    :data:`key_background_down` a :class:`~kivy.properties.StringProperty`
+    :attr:`key_background_down` a :class:`~kivy.properties.StringProperty`
     and defaults to
     :file:`atlas://data/images/defaulttheme/vkeyboard_key_down`.
     '''
 
     background_border = ListProperty([16, 16, 16, 16])
     '''Background image border. Used for controlling the
-    :data:`~kivy.graphics.vertex_instructions.BorderImage.border` property of
+    :attr:`~kivy.graphics.vertex_instructions.BorderImage.border` property of
     the background.
 
-    :data:`background_border` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_border` is a :class:`~kivy.properties.ListProperty` and
     defaults to [16, 16, 16, 16]
     '''
 
     key_border = ListProperty([8, 8, 8, 8])
     '''Key image border. Used for controlling the
-    :data:`~kivy.graphics.vertex_instructions.BorderImage.border` property of
+    :attr:`~kivy.graphics.vertex_instructions.BorderImage.border` property of
     the key.
 
-    :data:`key_border` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`key_border` is a :class:`~kivy.properties.ListProperty` and
     defaults to [16, 16, 16, 16]
     '''
 
@@ -424,10 +424,10 @@ class VKeyboard(Scatter):
 
     def setup_mode(self, *largs):
         '''Call this method when you want to readjust the keyboard according to
-        options: :data:`docked` or not, with attached :data:`target` or not:
+        options: :attr:`docked` or not, with attached :attr:`target` or not:
 
-        * If :data:`docked` is True, it will call :meth:`setup_mode_dock`
-        * If :data:`docked` is False, it will call :meth:`setup_mode_free`
+        * If :attr:`docked` is True, it will call :meth:`setup_mode_dock`
+        * If :attr:`docked` is False, it will call :meth:`setup_mode_free`
 
         Feel free to overload these methods to create new
         positioning behavior.
@@ -468,7 +468,7 @@ class VKeyboard(Scatter):
         Free mode is designed to let the user control the position and
         orientation of the keyboard. The only real usage is for a multiuser
         environment, but you might found other ways to use it.
-        If a :data:`target` is set, it will place the vkeyboard under the
+        If a :attr:`target` is set, it will place the vkeyboard under the
         target.
 
         .. note::

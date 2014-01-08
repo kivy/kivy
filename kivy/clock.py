@@ -99,7 +99,7 @@ more than 10 times, it will leave the loop and send a warning to the console,
 then continue after the next frame. This is implemented to prevent bugs from
 hanging or crashing the application.
 
-If you need to increase the limit, set the :data:`max_iteration` property::
+If you need to increase the limit, set the :attr:`max_iteration` property::
 
     from kivy.clock import Clock
     Clock.max_iteration = 20

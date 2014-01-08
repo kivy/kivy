@@ -150,14 +150,14 @@ class Keyboard(EventDispatcher):
 
     def string_to_keycode(self, value):
         '''Convert a string to a keycode number according to the
-        :data:`Keyboard.keycodes`. If the value is not found in the
+        :attr:`Keyboard.keycodes`. If the value is not found in the
         keycodes, it will return -1.
         '''
         return Keyboard.keycodes.get(value, -1)
 
     def keycode_to_string(self, value):
         '''Convert a keycode number to a string according to the
-        :data:`Keyboard.keycodes`. If the value is not found in the
+        :attr:`Keyboard.keycodes`. If the value is not found in the
         keycodes, it will return ''.
         '''
         keycodes = list(Keyboard.keycodes.values())
@@ -234,7 +234,7 @@ class WindowBase(EventDispatcher):
     children = ListProperty([])
     '''List of the children of this window.
 
-    :data:`children` is a :class:`~kivy.properties.ListProperty` instance and
+    :attr:`children` is a :class:`~kivy.properties.ListProperty` instance and
     defaults to an empty list.
 
     Use :meth:`add_widget` and :meth:`remove_widget` to manipulate the list of
@@ -245,7 +245,7 @@ class WindowBase(EventDispatcher):
     parent = ObjectProperty(None, allownone=True)
     '''Parent of this window.
 
-    :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance and
+    :attr:`parent` is a :class:`~kivy.properties.ObjectProperty` instance and
     defaults to None. When created, the parent is set to the window itself.
     You must take care of it if you are doing a recursive check.
     '''
@@ -279,7 +279,7 @@ class WindowBase(EventDispatcher):
         else:
             return False
     size = AliasProperty(_get_size, _set_size, bind=('_size', ))
-    '''Get the rotated size of the window. If :data:`rotation` is set, then the
+    '''Get the rotated size of the window. If :attr:`rotation` is set, then the
     size will change to reflect the rotation.
     '''
 
@@ -323,7 +323,7 @@ class WindowBase(EventDispatcher):
     width = AliasProperty(_get_width, None, bind=('_rotation', '_size'))
     '''Rotated window width.
 
-    :data:`width` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`width` is a :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_height(self):
@@ -336,7 +336,7 @@ class WindowBase(EventDispatcher):
     height = AliasProperty(_get_height, None, bind=('_rotation', '_size'))
     '''Rotated window height.
 
-    :data:`height` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`height` is a :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_center(self):
@@ -345,7 +345,7 @@ class WindowBase(EventDispatcher):
     center = AliasProperty(_get_center, None, bind=('width', 'height'))
     '''Center of the rotated window.
 
-    :data:`center` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`center` is a :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_rotation(self):
@@ -826,7 +826,7 @@ class WindowBase(EventDispatcher):
         .. warning::
 
             This value is not cross-platform. Use
-            :data:`kivy.base.EventLoop.dpi` instead.
+            :attr:`kivy.base.EventLoop.dpi` instead.
         '''
         return 96.
 

@@ -49,14 +49,14 @@ class Video(Image):
         # and later
         video.state = 'play'
 
-    :data:`state` is an :class:`~kivy.properties.OptionProperty` and defaults
+    :attr:`state` is an :class:`~kivy.properties.OptionProperty` and defaults
     to 'play'.
     '''
 
     play = BooleanProperty(False)
     '''
     .. deprecated:: 1.4.0
-        Use :data:`state` instead.
+        Use :attr:`state` instead.
 
     Boolean, indicates whether the video is playing or not.
     You can start/stop the video by setting this property::
@@ -69,18 +69,18 @@ class Video(Image):
         # and later
         video.play = True
 
-    :data:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
+    :attr:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
 
     .. deprecated:: 1.4.0
-        Use :data:`state` instead.
+        Use :attr:`state` instead.
     '''
 
     eos = BooleanProperty(False)
     '''Boolean, indicates whether the video has finished playing or not
     (reached the end of the stream).
 
-    :data:`eos` is a :class:`~kivy.properties.BooleanProperty` and defaults to
+    :attr:`eos` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
     '''
 
@@ -90,15 +90,15 @@ class Video(Image):
 
     .. versionadded:: 1.6.0
 
-    :data:`loaded` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    :attr:`loaded` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
     '''
 
     position = NumericProperty(-1)
-    '''Position of the video between 0 and :data:`duration`. The position
+    '''Position of the video between 0 and :attr:`duration`. The position
     defaults to -1 and is set to a real position when the video is loaded.
 
-    :data:`position` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`position` is a :class:`~kivy.properties.NumericProperty` and
     defaults to -1.
     '''
 
@@ -106,7 +106,7 @@ class Video(Image):
     '''Duration of the video. The duration defaults to -1, and is set to a real
     duration when the video is loaded.
 
-    :data:`duration` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`duration` is a :class:`~kivy.properties.NumericProperty` and
     defaults to -1.
     '''
 
@@ -114,7 +114,7 @@ class Video(Image):
     '''Volume of the video, in the range 0-1. 1 means full volume, 0
     means mute.
 
-    :data:`volume` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`volume` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.
     '''
 
@@ -123,7 +123,7 @@ class Video(Image):
 
     .. versionadded:: 1.0.4
 
-    :data:`options` is an :class:`kivy.properties.ObjectProperty` and defaults
+    :attr:`options` is an :class:`kivy.properties.ObjectProperty` and defaults
     to {}.
     '''
 

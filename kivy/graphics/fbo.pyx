@@ -278,7 +278,7 @@ cdef class Fbo(RenderContext):
                        self._viewport[2], self._viewport[3])
 
     cpdef clear_buffer(self):
-        '''Clear the framebuffer with the :data:`clear_color`.
+        '''Clear the framebuffer with the :attr:`clear_color`.
 
         You need to bound the framebuffer yourself before calling this
         method::

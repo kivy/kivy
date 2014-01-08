@@ -39,7 +39,7 @@ The rendering will output:
 Usage with Source
 -----------------
 
-You can also render a rst file using the :data:`RstDocument.source` property::
+You can also render a rst file using the :attr:`RstDocument.source` property::
 
     document = RstDocument(source='index.rst')
 
@@ -395,14 +395,14 @@ class RstDocument(ScrollView):
     source = StringProperty(None)
     '''Filename of the RST document.
 
-    :data:`source` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`source` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
     '''
 
     source_encoding = StringProperty('utf-8')
-    '''Encoding to be used for the :data:`source` file.
+    '''Encoding to be used for the :attr:`source` file.
 
-    :data:`source_encoding` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`source_encoding` is a :class:`~kivy.properties.StringProperty` and
     defaults to `utf-8`.
 
     .. Note::
@@ -414,9 +414,9 @@ class RstDocument(ScrollView):
                                   options=('strict', 'ignore', 'replace',
                                            'xmlcharrefreplace',
                                            'backslashreplac'))
-    '''Error handling to be used while encoding the :data:`source` file.
+    '''Error handling to be used while encoding the :attr:`source` file.
 
-    :data:`source_error` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`source_error` is an :class:`~kivy.properties.OptionProperty` and
     defaults to `strict`. Can be one of 'strict', 'ignore', 'replace',
     'xmlcharrefreplace' or 'backslashreplac'.
     '''
@@ -424,7 +424,7 @@ class RstDocument(ScrollView):
     text = StringProperty(None)
     '''RST markup text of the document.
 
-    :data:`text` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`text` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
     '''
 
@@ -432,7 +432,7 @@ class RstDocument(ScrollView):
     '''Root path where :doc: will search for rst documents. If no path is
     given, it will use the directory of the first loaded source file.
 
-    :data:`document_root` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`document_root` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
     '''
 
@@ -447,7 +447,7 @@ class RstDocument(ScrollView):
     '''Indicate whether RST parsers errors should be shown on the screen
     or not.
 
-    :data:`show_errors` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`show_errors` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -462,7 +462,7 @@ class RstDocument(ScrollView):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_color` is an :class:`~kivy.properties.AliasProperty`
+    :attr:`background_color` is an :class:`~kivy.properties.AliasProperty`
     for colors['background'].
     '''
 
@@ -479,13 +479,13 @@ class RstDocument(ScrollView):
         This dictionary is needs special handling. You also need to call
         :meth:`RstDocument.render` if you change them after loading.
 
-    :data:`colors` is a :class:`~kivy.properties.DictProperty`.
+    :attr:`colors` is a :class:`~kivy.properties.DictProperty`.
     '''
 
     title = StringProperty('')
     '''Title of the current document.
 
-    :data:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
     ''. It is read-only.
     '''
 
@@ -497,7 +497,7 @@ class RstDocument(ScrollView):
     If the document has no filename, e.g. when the document is loaded from a
     text file, the key will be ''.
 
-    :data:`toctrees` is a :class:`~kivy.properties.DictProperty` and defaults
+    :attr:`toctrees` is a :class:`~kivy.properties.DictProperty` and defaults
     to {}.
     '''
 
@@ -540,7 +540,7 @@ class RstDocument(ScrollView):
     def preload(self, filename, encoding='utf-8', errors='strict'):
         '''Preload a rst file to get its toctree and its title.
 
-        The result will be stored in :data:`toctrees` with the ``filename`` as
+        The result will be stored in :attr:`toctrees` with the ``filename`` as
         key.
         '''
         if filename in self.toctrees:
