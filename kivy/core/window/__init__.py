@@ -912,8 +912,8 @@ class WindowBase(EventDispatcher):
     def request_keyboard(self, callback, target, input_type='text'):
         '''.. versionadded:: 1.0.4
 
-        not intented to be used by the end-user. If you want to use the
         Internal widget method to request the keyboard. This method is
+        not intented to be used by the end-user. If you want to use the
         real keyboard (not the virtual keyboard), you don't want to share it
         with another widget.
 
