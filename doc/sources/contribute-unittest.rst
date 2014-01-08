@@ -103,7 +103,7 @@ Writing GL Unit tests
 ---------------------
 
 The idea is to create a root widget, as you would do in
-:meth:`~kivy.app.App.build()`, or in :func:`kivy.base.runTouchApp()`.
+:meth:`~kivy.app.App.build`, or in :func:`kivy.base.runTouchApp`.
 You'll give that root widget to a rendering function which will capture the
 output in X frames.
 

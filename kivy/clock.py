@@ -114,7 +114,7 @@ Triggered Events
 A triggered event is a way to defer a callback exactly like schedule_once(),
 but with some added convenience. The callback will only be scheduled once per
 frame even if you call the trigger twice (or more). This is not the case
-with :func:`Clock.schedule_once`::
+with :meth:`Clock.schedule_once`::
 
     # will run the callback twice before the next frame
     Clock.schedule_once(my_callback)
@@ -133,7 +133,7 @@ Before triggered events, you may have used this approach in a widget::
 
 As soon as you call `trigger_callback()`, it will correctly schedule the
 callback once in the next frame. It is more convenient to create and bind to
-the triggered event than using :func:`Clock.schedule_once` in a function::
+the triggered event than using :meth:`Clock.schedule_once` in a function::
 
     from kivy.clock import Clock
     from kivy.uix.widget import Widget
@@ -151,8 +151,8 @@ Even if x and y changes within one frame, the callback is only run once.
 
 .. note::
 
-    :func:`ClockBase.create_trigger` also has a timeout parameter that
-    behaves exactly like :func:`ClockBase.schedule_once`.
+    :meth:`ClockBase.create_trigger` also has a timeout parameter that
+    behaves exactly like :meth:`ClockBase.schedule_once`.
 
 '''
 
@@ -469,7 +469,7 @@ class ClockBase(_ClockBase):
 
         .. versionchanged:: 1.0.5
             If the timeout is -1, the callback will be called before the next
-            frame (at :func:`tick_draw`).
+            frame (at :meth:`tick_draw`).
 
         '''
         if not callable(callback):

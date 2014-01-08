@@ -14,7 +14,7 @@ some OpenGL capabilities might not be available (BGRA support, NPOT support,
 etc.)
 
 You cannot instanciate this class yourself. You must use the function
-:func:`Texture.create` to create a new texture::
+:meth:`Texture.create` to create a new texture::
 
     texture = Texture.create(size=(640, 480))
 
@@ -42,7 +42,7 @@ Blitting custom data
 --------------------
 
 You can create your own data and blit it to the texture using
-:func:`Texture.blit_data`::
+:meth:`Texture.blit_data`::
 
     # create a 64x64 texture, defaults to rgb / ubyte
     texture = Texture.create(size=(64, 64))
@@ -101,7 +101,7 @@ Wrap mode         Supported     Supported     No
 If you create a NPOT texture, we first check whether your hardware 
 supports it by checking the extensions GL_ARB_texture_non_power_of_two or
 OES_texture_npot. If none of theses are available, we create the nearest
-POT texture that can contain your NPOT texture. The :func:`Texture.create` will
+POT texture that can contain your NPOT texture. The :meth:`Texture.create` will
 return a :class:`TextureRegion` instead.
 
 
@@ -162,7 +162,7 @@ If the OpenGL context is lost, the Texture must be reloaded. Textures that have
 a source are automatically reloaded but generated textures must
 be reloaded by the user.
 
-Use the :func:`Texture.add_reload_observer` to add a reloading function that
+Use the :meth:`Texture.add_reload_observer` to add a reloading function that
 will be automatically called when needed::
 
     def __init__(self, **kwargs):
@@ -657,7 +657,7 @@ cdef class Texture:
 
     def remove_reload_observer(self, callback):
         '''Remove a callback from the observer list, previously added by
-        :func:`add_reload_observer`.
+        :meth:`add_reload_observer`.
 
         .. versionadded:: 1.2.0
 

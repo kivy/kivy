@@ -7,7 +7,7 @@ Think of it as your main entry point into the Kivy run loop.  In most
 cases, you subclass this class and make your own app. You create an
 instance of your specific app class and then, when you are ready to
 start the application's life cycle, you call your instance's
-:func:`App.run` method.
+:meth:`App.run` method.
 
 
 Creating an Application
@@ -16,7 +16,7 @@ Creating an Application
 Method using build() override
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To initialize your app with a widget tree, override the :func:`~App.build`
+To initialize your app with a widget tree, override the :meth:`~App.build`
 method in your app class and return the widget tree you constructed.
 
 Here's an example of a very simple application that just shows a button:
@@ -50,7 +50,7 @@ Contents of 'main.py':
 
 See :file:`kivy/examples/application/app_with_kv.py`.
 
-The relation between main.py and test.kv is explained in :func:`App.load_kv`.
+The relation between main.py and test.kv is explained in :meth:`App.load_kv`.
 
 
 Application configuration
@@ -271,7 +271,7 @@ Pause mode
 
 On tablets and phones, the user can switch at any moment to another
 application.  By default, your application will close and the
-:func:`App.on_stop` event will be fired.
+:meth:`App.on_stop` event will be fired.
 
 If you support Pause mode, when switching to another application, your
 application will wait indefinitely until the user
@@ -285,11 +285,11 @@ The currently implemented Pause mechanism is:
     #. Kivy checks every frame if Pause mode is activated by the Operating
        System due to the user switching to another application, a phone
        shutdown or any other reason.
-    #. :func:`App.on_pause` is called:
-    #. If False is returned (default case), then :func:`App.on_stop` is
+    #. :meth:`App.on_pause` is called:
+    #. If False is returned (default case), then :meth:`App.on_stop` is
        called.
     #. Otherwise the application will sleep until the OS resumes our App
-    #. When the app is resumed, :func:`App.on_resume` is called.
+    #. When the app is resumed, :meth:`App.on_resume` is called.
     #. If our app memory has been reclaimed by the OS, then nothing will be
        called.
 

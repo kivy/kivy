@@ -433,7 +433,7 @@ nothing will be shown on the screen. This is expected, because the
 ``Controller`` class has no widgets in it, it's just a ``FloatLayout``. We can
 create the UI around the ``Controller`` class in a file named `controller.kv`,
 which will be loaded when we run the ``ControllerApp``. How this is done and
-what files are loaded is described in the :func:`kivy.app.App.load_kv` method.
+what files are loaded is described in the :meth:`kivy.app.App.load_kv` method.
 
 .. literalinclude:: ../../../examples/guide/designwithkv/controller.kv
     :language: kv

@@ -291,8 +291,8 @@ cdef class Property:
                 uid = NumericProperty(0)
 
         In this example, the uid will be a NumericProperty() instance, but the
-        property instance doesn't know its name. That's why :func:`link` is
-        used in Widget.__new__. The link function is also used to create the
+        property instance doesn't know its name. That's why :meth:`link` is
+        used in `Widget.__new__`. The link function is also used to create the
         storage space of the property for this specific widget instance.
         '''
         cdef PropertyStorage d = PropertyStorage()

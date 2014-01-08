@@ -152,7 +152,7 @@ cdef class Context:
 
     def remove_reload_observer(self, callback, before=False):
         '''(internal) Remove a callback from the observer list previously added by
-        :func:`add_reload_observer`. 
+        :meth:`add_reload_observer`. 
         '''
         lst = self.observers_before if before else self.observers
         for cb in lst[:]:

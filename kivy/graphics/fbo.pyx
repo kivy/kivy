@@ -44,7 +44,7 @@ Reloading the FBO content
 .. versionadded:: 1.2.0
 
 If the OpenGL context is lost, then the FBO is lost too. You need to reupload
-data on it yourself. Use the :func:`Fbo.add_reload_observer` to add a reloading
+data on it yourself. Use the :meth:`Fbo.add_reload_observer` to add a reloading
 function that will be automatically called when needed::
 
     def __init__(self, **kwargs):
@@ -225,7 +225,7 @@ cdef class Fbo(RenderContext):
     cpdef bind(self):
         '''Bind the FBO to the current opengl context.
         `Bind` mean that you enable the Framebuffer, and all the drawing
-        operations will act inside the Framebuffer, until :func:`release` is
+        operations will act inside the Framebuffer, until :meth:`release` is
         called.
 
         The bind/release operation are automatically done when you add graphics
@@ -328,7 +328,7 @@ cdef class Fbo(RenderContext):
 
     def remove_reload_observer(self, callback):
         '''Remove a callback from the observer list, previously added by
-        :func:`add_reload_observer`.
+        :meth:`add_reload_observer`.
 
         .. versionadded:: 1.2.0
 

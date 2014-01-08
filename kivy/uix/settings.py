@@ -23,7 +23,7 @@ describe the settings you want and corresponding sections/keys in the
 ConfigParser instance... and you're done!
 
 Settings are also integrated with the :class:`~kivy.app.App` class. Use
-:func:`Settings.add_kivy_panel` to configure the Kivy core settings in a panel.
+:meth:`Settings.add_kivy_panel` to configure the Kivy core settings in a panel.
 
 
 .. _settings_json:

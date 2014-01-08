@@ -237,7 +237,7 @@ class WindowBase(EventDispatcher):
     :data:`children` is a :class:`~kivy.properties.ListProperty` instance and
     defaults to an empty list.
 
-    Use :func:`add_widget` and :func:`remove_widget` to manipulate the list of
+    Use :meth:`add_widget` and :meth:`remove_widget` to manipulate the list of
     children. Don't manipulate the list directly unless you know what you are
     doing.
     '''
@@ -1004,7 +1004,7 @@ class WindowBase(EventDispatcher):
         '''.. versionadded:: 1.0.4
 
         Internal method for the widget to release the real-keyboard. Check
-        :func:`request_keyboard` to understand how it works.
+        :meth:`request_keyboard` to understand how it works.
         '''
         if self.allow_vkeyboard:
             key = 'single' if self.single_vkeyboard else target
