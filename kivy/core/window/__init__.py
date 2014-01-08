@@ -912,13 +912,13 @@ class WindowBase(EventDispatcher):
     def request_keyboard(self, callback, target, input_type='text'):
         '''.. versionadded:: 1.0.4
 
-        Internal widget method to request the keyboard. This method is
         not intented to be used by the end-user. If you want to use the
+        Internal widget method to request the keyboard. This method is
         real keyboard (not the virtual keyboard), you don't want to share it
         with another widget.
 
         A widget can request the keyboard, indicating a callback to call
-        when the keyboard will be released (or taken by another widget).
+        when the keyboard will is released (or taken by another widget).
 
         :Parameters:
             `callback`: func
@@ -927,8 +927,8 @@ class WindowBase(EventDispatcher):
                 keyboard, or if the user closed it.
             `target`: Widget
                 Attach the keyboard to the specified target. Ensure you have a
-                target attached if you're using the keyboard in a multi user
-                mode.
+                different target attached to each keyboard if you're working in
+                a multi user mode.
             `input_type`: string
                 Choose the type of soft keyboard to request. Can be one of
                 'text', 'number', 'url', 'mail', 'datetime', 'tel', 'address'.
@@ -937,7 +937,8 @@ class WindowBase(EventDispatcher):
 
         :Return:
             An instance of :class:`Keyboard` containing the callback, target,
-            and if the configuration allowed it, a VKeyboard instance.
+            and if the configuration allows it, a
+            :class:`~kivy.uix.vkeyboard.VKeyboard` instance.
 
         .. versionchanged:: 1.0.8
 
