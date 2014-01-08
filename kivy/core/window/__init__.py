@@ -912,39 +912,48 @@ class WindowBase(EventDispatcher):
     def request_keyboard(self, callback, target, input_type='text'):
         '''.. versionadded:: 1.0.4
 
-        Internal widget method to request the keyboard. This method is
-        not intented to be used by the end-user. If you want to use the
-        real keyboard (not the virtual keyboard), you don't want to share it
-        with another widget.
+        Internal widget method to request the keyboard. This method is rarely
+        required by the end-user as it is handled automatically by the 
+        :class:`~kivy.uix.textinput.TextInput`. We expose it in case you want
+        to handle the keyboard manually for unique input scenarios.
 
         A widget can request the keyboard, indicating a callback to call
-        when the keyboard will is released (or taken by another widget).
+        when the keyboard is released (or taken by another widget).
 
         :Parameters:
             `callback`: func
                 Callback that will be called when the keyboard is
-                closed. It can be because somebody else requested the
-                keyboard, or if the user closed it.
+                closed. This can be because somebody else requested the
+                keyboard or the user closed it.
             `target`: Widget
                 Attach the keyboard to the specified target. Ensure you have a
                 different target attached to each keyboard if you're working in
                 a multi user mode.
+
+                `target` must be the widget source that requested the keyboard
+                and must have a method named `on_keyboard_text` that will be
+                called by the vkeyboard.
+
+                .. versionadded:: 1.0.8
+
             `input_type`: string
                 Choose the type of soft keyboard to request. Can be one of
                 'text', 'number', 'url', 'mail', 'datetime', 'tel', 'address'.
 
+                .. note::
+
+                    `input_type` is only honored if the "keyboard_mode" setting
+                    in the "kivy" section of the :class:`~kivy.config.Config`
+                    is set to "dock". This must be set before the start of the
+                    application to have effect.
+                
                 .. versionadded:: 1.8.0
 
         :Return:
             An instance of :class:`Keyboard` containing the callback, target,
             and if the configuration allows it, a
-            :class:`~kivy.uix.vkeyboard.VKeyboard` instance.
-
-        .. versionchanged:: 1.0.8
-
-            `target` has been added, and must be the widget source that
-            requested the keyboard. If set, the widget must have one method
-            named `on_keyboard_text` that will be called by the vkeyboard.
+            :class:`~kivy.uix.vkeyboard.VKeyboard` instance attached as a 
+            *.widget* property.
 
         '''
 
