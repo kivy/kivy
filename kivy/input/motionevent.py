@@ -183,7 +183,7 @@ class MotionEvent(MotionEventBase):
 
         #: Used to determine which widget the touch is being dispatched to.
         #: Check the :meth:`grab` function for more information.
-        self.grab_currmeth= None
+        self.grab_current = None
 
         #: Profiles currently used in the touch
         self.profile = []
