@@ -196,7 +196,7 @@ include "opengl_utils_def.pxi"
 from array import array
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
-from kivy.graphics.carray cimport BaseArray
+from kivy.graphics.carray cimport BaseArray, Memory
 
 from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
@@ -852,6 +852,7 @@ cdef class Texture:
         cdef bytes data
         cdef long datasize
         cdef BaseArray basearray
+        cdef Memory memory
         cdef char *cdata
 
         if isinstance(pbuffer, BaseArray):
@@ -859,6 +860,11 @@ cdef class Texture:
             basearray = pbuffer
             cdata = <char *>basearray.mem.data
             datasize = basearray.mem.size
+        elif isinstance(pbuffer, Memory):
+            # we are using a pure memory block, no conversion yet
+            memory = pbuffer
+            cdata = <char *>memory.data
+            datasize = memory.size
         else:
             # using a standard python string
             data = pbuffer
