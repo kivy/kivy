@@ -349,18 +349,11 @@ class App(EventDispatcher):
             you have no guarantee that this event will be fired after the
             `on_pause` event has been called.
 
-    :Parameters:
-        `kv_directory`: <path>, defaults to None
-            If a kv_directory is set, it will be used to get the initial kv
-            file. By default, the file is assumed to be in the same directory
-            as the current App definition file.
-        `kv_file`: <filename>, defaults to None
-            If a kv_file is set, it will be loaded when the application
-            starts. The loading of the "default" kv file will be
-            prevented.
-
     .. versionchanged:: 1.7.0
         Parameter `kv_file` added.
+
+    .. versionchanged:: 1.8.0
+        Parameters `kv_file` and `kv_directory` are now properties of App.
     '''
 
     title = StringProperty(None)
@@ -447,13 +440,23 @@ class App(EventDispatcher):
 
     '''
 
-    kv_directory = None
-    '''.. versionadded:: 1.8.0
+    kv_directory = StringProperty(None)
+    '''Path of the directory where application kv is stored, defaults to None
 
-    <path>, defaults to None
-    If a kv_directory is set, it will be used to get the initial kv
-    file. By default, the file is assumed to be in the same directory
-    as the current App definition file.
+    .. versionadded:: 1.8.0
+
+    If a kv_directory is set, it will be used to get the initial kv file. By
+    default, the file is assumed to be in the same directory as the current App
+    definition file.
+    '''
+
+    kv_file = StringProperty(None)
+    '''Filename of the Kv file to load, defaults to None.
+
+    .. versionadded:: 1.8.0
+
+    If a kv_file is set, it will be loaded when the application starts. The
+    loading of the "default" kv file will be prevented.
     '''
 
     # Return the current running App instance
@@ -565,11 +568,8 @@ class App(EventDispatcher):
             except TypeError:
                 # if it's a builtin module.. use the current dir.
                 default_kv_directory = '.'
-            if self.kv_directory:
-                kv_directory = self.kv_directory
-            else:
-                kv_directory = self.options.get('kv_directory',
-                                                default_kv_directory)
+
+            kv_directory = self.kv_directory or default_kv_directory
             clsname = self.__class__.__name__.lower()
             if (clsname.endswith('app') and
                     not isfile(join(kv_directory, '%s.kv' % clsname))):
@@ -578,10 +578,11 @@ class App(EventDispatcher):
 
         # Load KV file
         Logger.debug('App: Loading kv <{0}>'.format(filename))
-        if not exists(filename):
+        rfilename = resource_find(filename)
+        if not exists(rfilename):
             Logger.debug('App: kv <%s> not found' % filename)
             return False
-        root = Builder.load_file(filename)
+        root = Builder.load_file(rfilename)
         if root:
             self.root = root
         return True
@@ -761,7 +762,7 @@ class App(EventDispatcher):
         '''
         if not self.built:
             self.load_config()
-            self.load_kv(filename=self.options.get('kv_file'))
+            self.load_kv(filename=self.kv_file)
             root = self.build()
             if root:
                 self.root = root
