@@ -926,13 +926,10 @@ class WindowBase(EventDispatcher):
                 closed. This can be because somebody else requested the
                 keyboard or the user closed it.
             `target`: Widget
-                Attach the keyboard to the specified target. Ensure you have a
+                Attach the keyboard to the specified `target`. This should be
+                the widget that requested the keyboard. Ensure you have a
                 different target attached to each keyboard if you're working in
                 a multi user mode.
-
-                `target` must be the widget source that requested the keyboard
-                and must have a method named `on_keyboard_text` that will be
-                called by the vkeyboard.
 
                 .. versionadded:: 1.0.8
 
