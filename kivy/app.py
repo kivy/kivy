@@ -579,7 +579,7 @@ class App(EventDispatcher):
         # Load KV file
         Logger.debug('App: Loading kv <{0}>'.format(filename))
         rfilename = resource_find(filename)
-        if not exists(rfilename):
+        if rfilename is None or not exists(rfilename):
             Logger.debug('App: kv <%s> not found' % filename)
             return False
         root = Builder.load_file(rfilename)
