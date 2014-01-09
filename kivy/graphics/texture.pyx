@@ -196,6 +196,7 @@ include "opengl_utils_def.pxi"
 from array import array
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
+from kivy.graphics.carray cimport BaseArray
 
 from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
@@ -842,18 +843,29 @@ cdef class Texture:
 
         # need conversion ?
         cdef bytes data
-        data = pbuffer
-        data, colorfmt = _convert_buffer(data, colorfmt)
+        cdef long datasize
+        cdef BaseArray basearray
+        cdef char *cdata
+
+        if isinstance(pbuffer, BaseArray):
+            # base array doesn't support conversion, yet
+            basearray = pbuffer
+            cdata = <char *>basearray.mem.data
+            datasize = basearray.mem.size
+        else:
+            # using a standard python string
+            data = pbuffer
+            data, colorfmt = _convert_buffer(data, colorfmt)
+            datasize = len(pbuffer)
+            cdata = <char *>data
 
         # prepare nogil
         cdef int iglfmt = _color_fmt_to_gl(self._colorfmt)
         cdef int glfmt = _color_fmt_to_gl(colorfmt)
-        cdef long datasize = len(pbuffer)
         cdef int x = pos[0]
         cdef int y = pos[1]
         cdef int w = size[0]
         cdef int h = size[1]
-        cdef char *cdata = <char *>data
         cdef int glbufferfmt = bufferfmt
         cdef int is_allocated = self._is_allocated
         cdef int is_compressed = _is_compressed_fmt(colorfmt)

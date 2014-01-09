@@ -154,8 +154,12 @@ cdef class ByteArray(BaseArray):
     cdef void sync_with_memory(self):
         self.cdata = <unsigned char *>self.mem.data
 
-    def __setitem__(self, int x, int b):
-        if self.cdata != NULL:
+    def __setitem__(self, int x, b):
+        if self.cdata == NULL:
+            return
+        if isinstance(b, bytes):
+            self.cdata[x] = (<unsigned char*><bytes>b)[0]
+        else:
             self.cdata[x] = b
 
     def __getitem__(self, int x):
