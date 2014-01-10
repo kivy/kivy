@@ -1,7 +1,14 @@
 # pylint: disable=W0611
 '''
+Kivy Base
+=========
+
+This module contains core Kivy functionality and is not intended for end users.
+Feel free to look though it, but calling any of these methods directly may well
+result in unpredicatable behavior.
+
 Event loop management
-=====================
+---------------------
 
 '''
 
