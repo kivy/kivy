@@ -278,7 +278,7 @@ def determine_base_flags():
             sysroot = join(xcode_dev,
                     'Platforms/MacOSX.platform/Developer/SDKs',
                     'MacOSX{}.sdk'.format(sdk_mac_ver),
-                    '/System/Library/Frameworks')
+                    'System/Library/Frameworks')
         else:
             sysroot = ('/System/Library/Frameworks/'
                        'ApplicationServices.framework/Frameworks')
