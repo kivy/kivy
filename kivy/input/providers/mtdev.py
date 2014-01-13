@@ -194,7 +194,12 @@ else:
             _changes = set()
 
             # prepare some vars to get limit of some component
-            ab = _device.get_abs(MTDEV_ABS_POSITION_X)
+            try:
+                ab = _device.get_abs(MTDEV_ABS_POSITION_X)
+            except Exception:
+                Logger.debug("kivy/input/providers/mdev.py: _device.get_abs("
+                             "MTDEV_ABS_POSITION_X) failed, _fn={}".format(_fn))
+                return
             range_min_position_x = drs('min_position_x', ab.minimum)
             range_max_position_x = drs('max_position_x', ab.maximum)
             Logger.info('MTD: <%s> range position X is %d - %d' %
