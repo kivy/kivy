@@ -391,11 +391,6 @@ class FileChooserController(FloatLayout):
             item.selected = item.path in self.selection
 
     def _save_previous_path(self, instance, value):
-        path = expanduser(value)
-        path = realpath(path)
-        if path != value:
-            self.path = path
-            return
         self._previous_path.append(value)
         self._previous_path = self._previous_path[-2:]
 
