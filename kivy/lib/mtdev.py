@@ -142,7 +142,6 @@ class Device:
             self._fd = -1
             raise Exception('Unable to open device')
 
-
     def close(self):
         '''Close the mtdev converter
         '''
