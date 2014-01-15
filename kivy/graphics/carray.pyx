@@ -33,9 +33,8 @@ cdef class Memory:
     def __cinit__(self, int size=0, ctypes_array=None, read_only=False):
         self.data = NULL
         self.size = 0
-        self.is_proxy = 0
         self.read_only = read_only
-        self.ctypes_array = None
+        self.proxy_src = None
 
         if size != 0:
             self.data = malloc(size)
@@ -47,22 +46,21 @@ cdef class Memory:
                 raise TypeError()
             self.data = <void *><size_t>ctypes.addressof(ctypes_array)
             self.size = ctypes.sizeof(ctypes_array)
-            self.is_proxy = 1
-            self.ctypes_array = ctypes_array  # keep ref to keep array alive
+            self.proxy_src = ctypes_array  # keep ref to keep array alive
 
 
     def __init__(self, int size=0, ctypes_array=None, read_only=False):
         pass
 
     def __dealloc__(self):
-        if self.data != NULL and self.is_proxy == 0:
+        if self.data != NULL and self.proxy_src is None:
             free(self.data)
 
     cdef Memory proxy(self, int i, int size):
         cdef Memory mem = Memory()
         mem.data = self.data + i
         mem.size = size
-        mem.is_proxy = 1
+        mem.proxy_src = self
         return mem
 
 
