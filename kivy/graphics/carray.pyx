@@ -17,6 +17,13 @@ cdef class Memory:
     *read_only* (bool): Whether the buffer should be read only. Defaults to
     False.
 
+    ::
+
+        import ctypes
+        char_array = ctypes.c_char * (3 * texsize * texsize)
+        data = char_array()
+        memory = Memory(ctypes_array=data)
+
     '''
 
     def __cinit__(self, int size=0, ctypes_array=None, read_only=False):
@@ -24,6 +31,7 @@ cdef class Memory:
         self.size = 0
         self.is_proxy = 0
         self.read_only = read_only
+        self.ctypes_array = None
 
         if size != 0:
             self.data = malloc(size)
@@ -36,6 +44,7 @@ cdef class Memory:
             self.data = <void *><size_t>ctypes.addressof(ctypes_array)
             self.size = ctypes.sizeof(ctypes_array)
             self.is_proxy = 1
+            self.ctypes_array = ctypes_array  # keep ref to keep array alive
 
 
     def __init__(self, int size=0, ctypes_array=None, read_only=False):
