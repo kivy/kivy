@@ -3,6 +3,7 @@ cdef class Memory:
     cdef int size
     cdef int is_proxy
     cdef int read_only
+    cdef object ctypes_array
     cdef Memory proxy(self, int i, int size)
 
 cdef class BaseArray:
