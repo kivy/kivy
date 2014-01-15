@@ -4,7 +4,7 @@ from kivy.app import App
 from os.path import dirname, join
 from kivy.lang import Builder
 from kivy.properties import NumericProperty, StringProperty, BooleanProperty,\
-                            ListProperty
+    ListProperty
 from kivy.clock import Clock
 from kivy.animation import Animation
 from kivy.uix.screenmanager import Screen
@@ -12,6 +12,7 @@ from kivy.uix.screenmanager import Screen
 
 class ShowcaseScreen(Screen):
     fullscreen = BooleanProperty(False)
+
     def add_widget(self, *args):
         if 'content' in self.ids:
             return self.ids.content.add_widget(*args)
@@ -36,7 +37,7 @@ class ShowcaseApp(App):
             'buttons', 'togglebutton', 'sliders', 'progressbar', 'switches',
             'checkboxes', 'textinputs', 'accordions', 'filechoosers',
             'carousel', 'bubbles', 'codeinput', 'dropdown', 'spinner',
-            'scatter', 'splitter', 'tabbedpanel', 'rstdocument',
+            'scatter', 'splitter', 'tabbedpanel + layouts', 'rstdocument',
             'screenmanager']
         self.screen_names = self.available_screens
         curdir = dirname(__file__)
@@ -80,8 +81,8 @@ class ShowcaseApp(App):
             return
         if ahr:
             ahr.pop()
-        if ahr:\
-            idx = ahr.pop();\
+        if ahr:
+            idx = ahr.pop()
             self.go_screen(idx)
 
     def load_screen(self, index):
@@ -157,7 +158,7 @@ Button:
             if not layout.get_parent_window():
                 return
             if len(layout.children) > 15:
-                layout.rows = 3 if layout.rows == None else None
+                layout.rows = 3 if layout.rows is None else None
                 layout.cols = None if layout.rows == 3 else 3
                 layout.clear_widgets()
             layout.add_widget(Builder.load_string('''
@@ -199,11 +200,10 @@ Button:
             anchor_y = ('top', 'center', 'bottom')
             if layout.anchor_x == 'left':
                 layout.anchor_y = anchor_y[anchor_y.index(layout.anchor_y) - 1]
-            layout.anchor_x = anchor_x[anchor_x.index(layout.anchor_x) -1]
+            layout.anchor_x = anchor_x[anchor_x.index(layout.anchor_x) - 1]
 
             Clock.schedule_once(change_anchor, 1)
         Clock.schedule_once(change_anchor, 1)
-
 
     def _update_clock(self, dt):
         self.time = time()
