@@ -2,7 +2,7 @@ cdef class Memory:
     cdef void *data
     cdef int size
     cdef int is_proxy
-    cdef void allocate(self, int size)
+    cdef int read_only
     cdef Memory proxy(self, int i, int size)
 
 cdef class BaseArray:
