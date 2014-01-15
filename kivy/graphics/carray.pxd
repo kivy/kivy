@@ -3,9 +3,8 @@
 cdef class Memory:
     cdef void *data
     cdef int size
-    cdef int is_proxy
     cdef int read_only
-    cdef object ctypes_array
+    cdef object proxy_src
 
     cdef Memory proxy(self, int i, int size)
 
