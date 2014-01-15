@@ -1,3 +1,7 @@
+'''
+Module that implements array type classes.
+'''
+
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy
 
@@ -6,7 +10,7 @@ import ctypes
 
 cdef class Memory:
     '''
-    A class that stores a memory buffer.
+    An abstracted class that stores memory buffers.
 
     *size* (int): If non-zero, a buffer of size size (in bytes) will be
     created. If zero, no buffer is created. Defaults to zero.
@@ -88,6 +92,9 @@ cdef class BaseArray:
     def __dealloc__(self):
         self.mem = None
 
+    def __len__(self):
+        return self.count
+
     def __getslice__(self, int i, int j):
         cdef int count = self._resolve_slice(&i, &j)
         if count <= 0:
@@ -152,10 +159,10 @@ cdef class BaseArray:
         return j - i + 1
 
     def tolist(self):
-        cdef list pl = []
+        cdef list pl = [None, ] * self.count
         cdef int idx
-        for idx in xrange(self.count):
-            pl.append(self[idx])
+        for idx in range(self.count):
+            pl[idx] = self[idx]
         return pl
 
 
@@ -175,6 +182,13 @@ cdef class FloatArray(BaseArray):
     def __getitem__(self, int x):
         if self.fdata != NULL:
             return self.fdata[x]
+
+    def tolist(self):
+        cdef list pl = [None, ] * self.count
+        cdef int idx
+        for idx in range(self.count):
+            pl[idx] = self.fdata[idx]
+        return pl
 
 
 cdef class ByteArray(BaseArray):
@@ -201,12 +215,23 @@ cdef class ByteArray(BaseArray):
     def __setslice__(self, int i, int j, arr):
         cdef int count = self._resolve_slice(&i, &j)
         cdef unsigned char *uc_arr
-        if isinstance(arr, bytes):
+        if isinstance(arr, bytes) or isinstance(arr, bytearray):
             uc_arr = arr
             memcpy(self.mem.data + i * self.itemsize,
                     uc_arr, count * self.itemsize)
         else:
             BaseArray.__setslice__(self, i, j, arr)
 
+    def tolist(self):
+        cdef list pl = [None, ] * self.count
+        cdef int idx
+        for idx in range(self.count):
+            pl[idx] = self.cdata[idx]
+        return pl
+
     def tobytes(self):
-        cdef bytes py_str = <bytes>self.cdata
+        '''
+        Returns a bytes representation of the array.
+        '''
+        cdef bytes py_str = self.cdata[:self.count * self.itemsize]
+        return py_str
