@@ -1,25 +1,49 @@
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy
 
+import ctypes
+
 
 cdef class Memory:
+    '''
+    A class that stores a memory buffer.
 
-    def __cinit__(self):
+    *size* (int): If non-zero, a buffer of size size (in bytes) will be
+    created. If zero, no buffer is created. Defaults to zero.
+
+    *ctypes_array* (ctypes.Array): If not None, a ctypes array object which is
+    used as the buffer. Defaults to None.
+
+    *read_only* (bool): Whether the buffer should be read only. Defaults to
+    False.
+
+    '''
+
+    def __cinit__(self, int size=0, ctypes_array=None, read_only=False):
         self.data = NULL
         self.size = 0
         self.is_proxy = 0
+        self.read_only = read_only
 
-    def __init__(self):
+        if size != 0:
+            self.data = malloc(size)
+            self.size = size
+            if self.data == NULL:
+                raise MemoryError()
+        elif ctypes_array is not None:
+            if not isinstance(ctypes_array, ctypes.Array):
+                raise TypeError()
+            self.data = <void *><size_t>ctypes.addressof(ctypes_array)
+            self.size = ctypes.sizeof(ctypes_array)
+            self.is_proxy = 1
+
+
+    def __init__(self, int size=0, ctypes_array=None, read_only=False):
         pass
 
     def __dealloc__(self):
         if self.data != NULL and self.is_proxy == 0:
             free(self.data)
-
-    cdef void allocate(self, int size):
-        self.data = malloc(size)
-        self.size = size
-        self.is_proxy = 0
 
     cdef Memory proxy(self, int i, int size):
         cdef Memory mem = Memory()
@@ -40,8 +64,7 @@ cdef class BaseArray:
             self.allocate(count)
 
     cdef void allocate(self, int count):
-        self.mem = Memory()
-        self.mem.allocate(count * sizeof(float))
+        self.mem = Memory(count * sizeof(float))
         self.count = count
         self.sync_with_memory()
 
