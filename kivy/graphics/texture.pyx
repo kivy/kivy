@@ -98,7 +98,7 @@ Mipmapping        Supported     Partially     No
 Wrap mode         Supported     Supported     No
 ================= ============= ============= =================================
 
-If you create a NPOT texture, we first check whether your hardware 
+If you create a NPOT texture, we first check whether your hardware
 supports it by checking the extensions GL_ARB_texture_non_power_of_two or
 OES_texture_npot. If none of theses are available, we create the nearest
 POT texture that can contain your NPOT texture. The :meth:`Texture.create` will
@@ -408,8 +408,8 @@ cdef inline str _convert_gl_format(x):
     return x
 
 
-cdef inline _convert_buffer(bytes data, fmt):
-    cdef bytes ret_buffer
+cdef inline _convert_buffer(object data, fmt):
+    cdef object ret_buffer
     cdef str ret_format
 
     # if native support of this format is available, use it
@@ -842,7 +842,7 @@ cdef class Texture:
         self.bind()
 
         # need conversion ?
-        cdef bytes data
+        cdef object data
         cdef long datasize
         cdef BaseArray basearray
         cdef Memory memory
@@ -858,12 +858,13 @@ cdef class Texture:
             memory = pbuffer
             cdata = <char *>memory.data
             datasize = memory.size
-        else:
+        elif isinstance(pbuffer, bytes) or isinstance(pbuffer, bytearray):
             # using a standard python string
-            data = pbuffer
-            data, colorfmt = _convert_buffer(data, colorfmt)
+            data, colorfmt = _convert_buffer(pbuffer, colorfmt)
             datasize = len(pbuffer)
             cdata = <char *>data
+        else:
+            raise TypeError('Buffer cannot be converted to image data.')
 
         # prepare nogil
         cdef int iglfmt = _color_fmt_to_gl(self._colorfmt)
@@ -931,7 +932,7 @@ cdef class Texture:
                 if self._proxyimage.loaded:
                     self._on_proxyimage_loaded(self._proxyimage)
                 return
-            
+
             mipmap = 0 if mipmap == 'False' else 1
             if count == '0':
                 if proto =='zip' or filename.endswith('.gif'):
@@ -951,7 +952,7 @@ cdef class Texture:
             else:
                 item_no = int(count) - 1
                 texture = self._sequenced_textures[filename][item_no]
-                
+
 
         self._reload_propagate(texture)
 
