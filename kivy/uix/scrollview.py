@@ -590,7 +590,7 @@ class ScrollView(StencilView):
             self._change_touch_mode()
             return False
         else:
-            Clock.schedule_once(partial(self._change_touch_mode, False),
+            Clock.schedule_once(self._change_touch_mode,
                                 self.scroll_timeout / 1000.)
         return True
 
@@ -760,7 +760,7 @@ class ScrollView(StencilView):
     def _get_uid(self, prefix='sv'):
         return '{0}.{1}'.format(prefix, self.uid)
 
-    def _change_touch_mode(self, is_local=True, *largs):
+    def _change_touch_mode(self, *largs):
         if not self._touch:
             return
         uid = self._get_uid()
@@ -775,8 +775,7 @@ class ScrollView(StencilView):
         # touch mode. Otherwise, we might never be able to compute velocity, and
         # no way to scroll it. See #1464 and #1499
         if diff_frames < 3:
-            Clock.schedule_once(
-                    partial(self._change_touch_mode, is_local), 0)
+            Clock.schedule_once(self._change_touch_mode, 0)
             return
 
         if self.do_scroll_x and self.effect_x:
@@ -794,8 +793,7 @@ class ScrollView(StencilView):
         # correctly calculate the position of the touch inside the
         # scrollview
         touch.push()
-        if not is_local:
-            touch.apply_transform_2d(self.to_widget)
+        touch.apply_transform_2d(self.to_widget)
         touch.apply_transform_2d(self.to_parent)
         self.simulate_touch_down(touch)
         touch.pop()
