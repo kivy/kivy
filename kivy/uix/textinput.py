@@ -1032,6 +1032,10 @@ class TextInput(Widget):
     def _show_handles(self, win):
         if not self.use_handles:
             return
+
+        if not win:
+            self._set_window()
+
         handle_right = self._handle_right
         handle_left = self._handle_left
         if self._handle_left is None:
