@@ -1035,6 +1035,7 @@ class TextInput(Widget):
 
         if not win:
             self._set_window()
+            win = self._win
 
         handle_right = self._handle_right
         handle_left = self._handle_left
