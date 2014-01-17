@@ -286,6 +286,8 @@ class TextInput(Widget):
         self._line_options = None
         self._keyboard = None
         self._keyboard_mode = Config.get('kivy', 'keyboard_mode')
+        self._command_mode = False
+        self._command = ''
         self.reset_undo()
         self._touch_count = 0
         self.interesting_keys = {
@@ -423,8 +425,39 @@ class TextInput(Widget):
         '''Insert new text on the current cursor position. Override this
         function in order to pre-process text for input validation
         '''
-        if self.readonly:
+        if self.readonly or not substring:
             return
+
+        # check for command modes
+        if ord(substring) == 1:
+            self._command_mode = True
+            self._command = ''
+        if ord(substring) == 2:
+            self._command_mode = False
+            self._command = self._command[1:]
+
+        if self._command_mode:
+            self._command += substring
+            return
+
+        _command = self._command
+        if _command and ord(substring) == 2:
+            from_undo = True
+            _command, data = _command.split(':')
+            self._command = ''
+            if _command == 'DEL':
+                count = int(data)
+                end = self.cursor_index()
+                self._selection_from = max(end - count, 0)
+                self._selection_to = end
+                self._selection = True
+                self.delete_selection(from_undo=True)
+                return
+            elif _command == 'INSERT':
+                substring = data
+            elif _command == 'INSERTN':
+                from_undo = False
+                substring = data
 
         if not from_undo and self.multiline and self.auto_indent \
                 and substring == '\n':
