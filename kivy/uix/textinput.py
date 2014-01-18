@@ -462,10 +462,10 @@ class TextInput(Widget):
         self._hide_handles(self._win)
 
         # check for command modes
-        if ord(substring) == 1:
+        if ord(substring[0]) == 1:
             self._command_mode = True
             self._command = ''
-        if ord(substring) == 2:
+        if ord(substring[0]) == 2:
             self._command_mode = False
             self._command = self._command[1:]
 
@@ -474,7 +474,7 @@ class TextInput(Widget):
             return
 
         _command = self._command
-        if _command and ord(substring) == 2:
+        if _command and ord(substring[0]) == 2:
             from_undo = True
             _command, data = _command.split(':')
             self._command = ''
