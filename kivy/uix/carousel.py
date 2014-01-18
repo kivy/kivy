@@ -569,11 +569,7 @@ class Carousel(StencilView):
         if ud['mode'] == 'unknown':
             touch.ungrab(self)
             self._touch = None
-            touch.push()
-            touch.apply_transform_2d(self.to_widget)
-            touch.apply_transform_2d(self.to_parent)
             super(Carousel, self).on_touch_down(touch)
-            touch.pop()
             return
 
     def add_widget(self, widget, index=0):
