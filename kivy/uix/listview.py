@@ -901,7 +901,7 @@ class ListView(AbstractView, EventDispatcher):
     _count = NumericProperty(0)
 
     _wstart = NumericProperty(0)
-    _wend = NumericProperty(None, allownone=True)
+    _wend = NumericProperty(-1)
 
     __events__ = ('on_scroll_complete', )
 
@@ -979,7 +979,7 @@ class ListView(AbstractView, EventDispatcher):
         self.populate()
 
     def _reset_spopulate(self, *args):
-        self._wend = None
+        self._wend = -1
         self.populate()
         # simulate the scroll again, only if we already scrolled before
         # the position might not be the same, mostly because we don't know the
@@ -1001,7 +1001,7 @@ class ListView(AbstractView, EventDispatcher):
         container.clear_widgets()
 
         # guess only ?
-        if iend is not None:
+        if iend is not None and iend != -1:
 
             # fill with a "padding"
             fh = 0

@@ -404,11 +404,5 @@ class DragBehavior(object):
             return
         touch.ungrab(self)
         self._drag_touch = None
-        # correctly calculate the position of the touch inside the
-        # DragBehavior
-        touch.push()
-        touch.apply_transform_2d(self.to_widget)
-        touch.apply_transform_2d(self.to_parent)
         super(DragBehavior, self).on_touch_down(touch)
-        touch.pop()
         return
