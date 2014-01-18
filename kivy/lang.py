@@ -125,7 +125,8 @@ Here is a simple example of a kv file that contains a root widget::
     The indentation is not limited to 4 spaces anymore. The spacing must be a
     multiple of the number of spaces used on the first indented line.
 
-Both the :meth:`Builder.load_file` and the :meth:`Builder.load_string` methods
+Both the :meth:`~BuilderBase.load_file` and the
+:meth:`~BuilderBase.load_string` methods
 return the root widget defined in your kv file/string. They will also add any
 class and template definitions to the :class:`~kivy.factory.Factory` for later
 usage.
