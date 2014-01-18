@@ -1,31 +1,66 @@
+'''
+Module that implements array type classes.
+'''
+
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy
 
+import ctypes
+
 
 cdef class Memory:
+    '''
+    An abstracted class that stores memory buffers.
 
-    def __cinit__(self):
+    *size* (int): If non-zero, a buffer of size size (in bytes) will be
+    created. If zero, no buffer is created. Defaults to zero.
+
+    *ctypes_array* (ctypes.Array): If not None, a ctypes array object which is
+    used as the buffer. Defaults to None.
+
+    *read_only* (bool): Whether the buffer should be read only. Defaults to
+    False.
+
+    ::
+
+        import ctypes
+        char_array = ctypes.c_char * (3 * texsize * texsize)
+        data = char_array()
+        memory = Memory(ctypes_array=data)
+
+    '''
+
+    def __cinit__(self, int size=0, ctypes_array=None, read_only=False):
         self.data = NULL
         self.size = 0
-        self.is_proxy = 0
+        self.read_only = read_only
+        self.proxy_src = None
 
-    def __init__(self):
+        if size != 0:
+            self.data = malloc(size)
+            self.size = size
+            if self.data == NULL:
+                raise MemoryError()
+        elif ctypes_array is not None:
+            if not isinstance(ctypes_array, ctypes.Array):
+                raise TypeError()
+            self.data = <void *><size_t>ctypes.addressof(ctypes_array)
+            self.size = ctypes.sizeof(ctypes_array)
+            self.proxy_src = ctypes_array  # keep ref to keep array alive
+
+
+    def __init__(self, int size=0, ctypes_array=None, read_only=False):
         pass
 
     def __dealloc__(self):
-        if self.data != NULL and self.is_proxy == 0:
+        if self.data != NULL and self.proxy_src is None:
             free(self.data)
-
-    cdef void allocate(self, int size):
-        self.data = malloc(size)
-        self.size = size
-        self.is_proxy = 0
 
     cdef Memory proxy(self, int i, int size):
         cdef Memory mem = Memory()
         mem.data = self.data + i
         mem.size = size
-        mem.is_proxy = 1
+        mem.proxy_src = self
         return mem
 
 
@@ -40,8 +75,7 @@ cdef class BaseArray:
             self.allocate(count)
 
     cdef void allocate(self, int count):
-        self.mem = Memory()
-        self.mem.allocate(count * sizeof(float))
+        self.mem = Memory(count * sizeof(float))
         self.count = count
         self.sync_with_memory()
 
@@ -55,6 +89,9 @@ cdef class BaseArray:
 
     def __dealloc__(self):
         self.mem = None
+
+    def __len__(self):
+        return self.count
 
     def __getslice__(self, int i, int j):
         cdef int count = self._resolve_slice(&i, &j)
@@ -120,10 +157,10 @@ cdef class BaseArray:
         return j - i + 1
 
     def tolist(self):
-        cdef list pl = []
+        cdef list pl = [None, ] * self.count
         cdef int idx
-        for idx in xrange(self.count):
-            pl.append(self[idx])
+        for idx in range(self.count):
+            pl[idx] = self[idx]
         return pl
 
 
@@ -143,6 +180,13 @@ cdef class FloatArray(BaseArray):
     def __getitem__(self, int x):
         if self.fdata != NULL:
             return self.fdata[x]
+
+    def tolist(self):
+        cdef list pl = [None, ] * self.count
+        cdef int idx
+        for idx in range(self.count):
+            pl[idx] = self.fdata[idx]
+        return pl
 
 
 cdef class ByteArray(BaseArray):
@@ -169,12 +213,23 @@ cdef class ByteArray(BaseArray):
     def __setslice__(self, int i, int j, arr):
         cdef int count = self._resolve_slice(&i, &j)
         cdef unsigned char *uc_arr
-        if isinstance(arr, bytes):
+        if isinstance(arr, bytes) or isinstance(arr, bytearray):
             uc_arr = arr
             memcpy(self.mem.data + i * self.itemsize,
                     uc_arr, count * self.itemsize)
         else:
             BaseArray.__setslice__(self, i, j, arr)
 
+    def tolist(self):
+        cdef list pl = [None, ] * self.count
+        cdef int idx
+        for idx in range(self.count):
+            pl[idx] = self.cdata[idx]
+        return pl
+
     def tobytes(self):
-        cdef bytes py_str = <bytes>self.cdata
+        '''
+        Returns a bytes representation of the array.
+        '''
+        cdef bytes py_str = self.cdata[:self.count * self.itemsize]
+        return py_str
