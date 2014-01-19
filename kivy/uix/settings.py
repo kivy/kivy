@@ -1083,8 +1083,12 @@ class InterfaceWithTabbedPanel(FloatLayout):
     def add_panel(self, panel, name, uid):
         scrollview = ScrollView()
         scrollview.add_widget(panel)
-        panelitem = TabbedPanelHeader(text=name, content=scrollview)
-        self.tabbedpanel.add_widget(panelitem)
+        if not self.tabbedpanel.default_tab_content:
+            self.tabbedpanel.default_tab_text = name
+            self.tabbedpanel.default_tab_content = scrollview
+        else:
+            panelitem = TabbedPanelHeader(text=name, content=scrollview)
+            self.tabbedpanel.add_widget(panelitem)
 
     def on_close(self, *args):
         pass

@@ -501,6 +501,7 @@ class ScrollView(StencilView):
         return x + tx, y + ty
 
     def simulate_touch_down(self, touch):
+        # at this point the touch is in parent coords
         touch.push()
         touch.apply_transform_2d(self.to_local)
         ret = super(ScrollView, self).on_touch_down(touch)
@@ -587,7 +588,12 @@ class ScrollView(StencilView):
         if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
             return
         if scroll_type == ['bars']:
+            # touch is in parent, but _change_touch_mode expects window coords
+            touch.push()
+            touch.apply_transform_2d(self.to_local)
+            touch.apply_transform_2d(self.to_window)
             self._change_touch_mode()
+            touch.pop()
             return False
         else:
             Clock.schedule_once(self._change_touch_mode,
@@ -598,7 +604,11 @@ class ScrollView(StencilView):
         if self._get_uid('svavoid') in touch.ud:
             return
         if self._touch is not touch:
+            # touch is in parent
+            touch.push()
+            touch.apply_transform_2d(self.to_local)
             super(ScrollView, self).on_touch_move(touch)
+            touch.pop()
             return self._get_uid() in touch.ud
         if touch.grab_current is not self:
             return True
@@ -633,13 +643,23 @@ class ScrollView(StencilView):
             ud['dy'] += abs(touch.dy)
             if ud['dx'] > self.scroll_distance:
                 if not self.do_scroll_x:
+                    # touch is in parent, but _change expects window coords
+                    touch.push()
+                    touch.apply_transform_2d(self.to_local)
+                    touch.apply_transform_2d(self.to_window)
                     self._change_touch_mode()
+                    touch.pop()
                     return
                 mode = 'scroll'
 
             if ud['dy'] > self.scroll_distance:
                 if not self.do_scroll_y:
+                    # touch is in parent, but _change expects window coords
+                    touch.push()
+                    touch.apply_transform_2d(self.to_local)
+                    touch.apply_transform_2d(self.to_window)
                     self._change_touch_mode()
+                    touch.pop()
                     return
                 mode = 'scroll'
             ud['mode'] = mode
@@ -679,7 +699,11 @@ class ScrollView(StencilView):
             Clock.schedule_once(self._update_effect_bounds)
         else:
             if self._touch is not touch and self.uid not in touch.ud:
+                # touch is in parents
+                touch.push()
+                touch.apply_transform_2d(self.to_local)
                 super(ScrollView, self).on_touch_up(touch)
+                touch.pop()
 
         # if we do mouse scrolling, always accept it
         if 'button' in touch.profile and touch.button.startswith('scroll'):
@@ -790,8 +814,7 @@ class ScrollView(StencilView):
         # and touch.dx + touch.dy == 0:
         touch.ungrab(self)
         self._touch = None
-        # correctly calculate the position of the touch inside the
-        # scrollview
+        # touch is in window coords
         touch.push()
         touch.apply_transform_2d(self.to_widget)
         touch.apply_transform_2d(self.to_parent)
@@ -800,7 +823,11 @@ class ScrollView(StencilView):
         return
 
     def _do_touch_up(self, touch, *largs):
+        # touch is in window coords
+        touch.push()
+        touch.apply_transform_2d(self.to_widget)
         super(ScrollView, self).on_touch_up(touch)
+        touch.pop()
         # don't forget about grab event!
         for x in touch.grab_list[:]:
             touch.grab_list.remove(x)
@@ -808,7 +835,11 @@ class ScrollView(StencilView):
             if not x:
                 continue
             touch.grab_current = x
+            # touch is in window coords
+            touch.push()
+            touch.apply_transform_2d(self.to_widget)
             super(ScrollView, self).on_touch_up(touch)
+            touch.pop()
         touch.grab_current = None
 
 

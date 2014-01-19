@@ -57,7 +57,7 @@ The content of the file should always start with the Kivy header, where
 `version` must be replaced with the Kivy language version you're using.
 For now, use 1.0::
 
-    #:kivy `version`
+    #:kivy `1.0`
 
     # content here
 
@@ -125,6 +125,11 @@ Here is a simple example of a kv file that contains a root widget::
     The indentation is not limited to 4 spaces anymore. The spacing must be a
     multiple of the number of spaces used on the first indented line.
 
+Both the :meth:`~BuilderBase.load_file` and the
+:meth:`~BuilderBase.load_string` methods
+return the root widget defined in your kv file/string. They will also add any
+class and template definitions to the :class:`~kivy.factory.Factory` for later
+usage.
 
 Value Expressions and Reserved Keywords
 ---------------------------------------
@@ -1375,7 +1380,8 @@ class BuilderBase(object):
         self.rulectx = {}
 
     def load_file(self, filename, **kwargs):
-        '''Insert a file into the language builder.
+        '''Insert a file into the language builder and return the root widget
+        (if defined) of the kv file.
 
         :parameters:
             `rulesonly`: bool, defaults to False
@@ -1426,7 +1432,8 @@ class BuilderBase(object):
         Factory.unregister_from_filename(filename)
 
     def load_string(self, string, **kwargs):
-        '''Insert a string into the Language Builder.
+        '''Insert a string into the Language Builder and return the root widget
+        (if defined) of the kv string.
 
         :Parameters:
             `rulesonly`: bool, defaults to False
