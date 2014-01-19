@@ -94,8 +94,8 @@ def _mouse_move(win, pos, *args):
             img = Image(cursor_image)
             Color(1, 1, 1, 1, mode='rgba')
             size = (
-                cursor_size[0] or texture.size[0],
-                cursor_size[1] or texture.size[1]
+                cursor_size[0] or img.texture.size[0],
+                cursor_size[1] or img.texture.size[1]
             )
             print(size)
             win._cursor = c = Rectangle(texture=img.texture,
