@@ -65,7 +65,7 @@ def install_android():
     '''Install hooks for android platform.
 
     * Automaticly sleep when the device is paused
-    * Auto kill the application is the return key is hitted
+    * Auto kill the application is the return key has been
     '''
     try:
         import android
@@ -147,8 +147,8 @@ def install_twisted_reactor(**kwargs):
     are the arguments one would usually pass to twisted's reactor.startRunning
 
     Unlike the default twisted reactor, the installed reactor will not handle
-    any signals unnless you set the 'installSignalHandlers' keyword argument
-    to 1 explicitly.  This is done to allow kivy to handle teh signals as
+    any signals unless you set the 'installSignalHandlers' keyword argument
+    to 1 explicitly.  This is done to allow kivy to handle the signals as
     usual, unless you specifically want the twisted reactor to handle the
     signals (e.g. SIGINT).'''
     import twisted
@@ -158,7 +158,7 @@ def install_twisted_reactor(**kwargs):
         return
     twisted._kivy_twisted_reactor_installed = True
 
-    # dont let twisted handle signals, unless specifically requested
+    # don't let twisted handle signals, unless specifically requested
     kwargs.setdefault('installSignalHandlers', 0)
 
     # install threaded-select reactor, to use with own event loop
@@ -175,7 +175,7 @@ def install_twisted_reactor(**kwargs):
     # will hold callbacks to twisted callbacks
     q = deque()
 
-    # twisted will call the wake function when it needsto do work
+    # twisted will call the wake function when it needs to do work
     def reactor_wake(twisted_loop_next):
         Logger.trace("Support: twisted wakeup call to schedule task")
         q.append(twisted_loop_next)
@@ -202,7 +202,7 @@ def install_twisted_reactor(**kwargs):
         Logger.info("Support: Shutting down twisted reactor")
         reactor._mainLoopShutdown()
 
-    # start and stop teh reactor along with kivy EventLoop
+    # start and stop the reactor along with kivy EventLoop
     EventLoop.bind(on_start=reactor_start)
     EventLoop.bind(on_stop=reactor_stop)
 
