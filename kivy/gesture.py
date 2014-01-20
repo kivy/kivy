@@ -38,20 +38,9 @@ import base64
 import zlib
 import math
 
-from kivy.compat import PY2
 from kivy.vector import Vector
 
-# XXX we can't use io.StringIO in PY2 cause it require unicode
-# PY2 / StringIO ( str or unicode )
-# PY2 / cStringIO ( str )
-# PY3 / io.StringIO ( unicode )
-if PY2:
-    try:
-        from cStringIO import StringIO
-    except ImportError:
-        from StringIO import StringIO
-else:
-    from io import StringIO
+from io import BytesIO
 
 
 class GestureDatabase(object):
@@ -83,7 +72,7 @@ class GestureDatabase(object):
 
     def gesture_to_str(self, gesture):
         '''Convert a gesture into a unique string.'''
-        io = StringIO()
+        io = BytesIO()
         p = pickle.Pickler(io)
         p.dump(gesture)
         data = base64.b64encode(zlib.compress(io.getvalue(), 9))
@@ -91,7 +80,7 @@ class GestureDatabase(object):
 
     def str_to_gesture(self, data):
         '''Convert a unique string to a gesture.'''
-        io = StringIO(zlib.decompress(base64.b64decode(data)))
+        io = BytesIO(zlib.decompress(base64.b64decode(data)))
         p = pickle.Unpickler(io)
         gesture = p.load()
         return gesture
