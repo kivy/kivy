@@ -7,7 +7,6 @@ cdef class Canvas
 cdef class RenderContext
 
 from vbo cimport *
-from context_instructions cimport *
 from compiler cimport *
 from shader cimport *
 from texture cimport Texture
@@ -57,6 +56,9 @@ cdef class ContextInstruction(Instruction):
     cdef void set_state(self, str name, value)
     cdef void push_state(self, str name)
     cdef void pop_state(self, str name)
+
+
+from context_instructions cimport BindTexture
 
 cdef class VertexInstruction(Instruction):
     cdef BindTexture texture_binding
