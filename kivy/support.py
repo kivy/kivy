@@ -148,7 +148,7 @@ def install_twisted_reactor(**kwargs):
 
     Unlike the default twisted reactor, the installed reactor will not handle
     any signals unless you set the 'installSignalHandlers' keyword argument
-    to 1 explicitly.  This is done to allow kivy to handle the signals as
+    to 1 explicitly.This is done to allow kivy to handle the signals as
     usual, unless you specifically want the twisted reactor to handle the
     signals (e.g. SIGINT).'''
     import twisted
