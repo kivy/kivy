@@ -7,6 +7,7 @@ Recorder module
 Create an instance of :class:`~kivy.input.recorder.Recorder`, attach to the
 class, and bind some keys to record / play sequences:
 
+    - F6: play the last record in a loop
     - F7: read the latest recording
     - F8: record input events
 
@@ -41,6 +42,13 @@ from kivy.logger import Logger
 from functools import partial
 
 
+def replay(recorder, *args):
+    if recorder.play:
+        return
+    else:
+        recorder.play = True
+
+
 def on_recorder_key(recorder, window, key, *largs):
     if key == 289:  # F8
         if recorder.play:
@@ -52,6 +60,9 @@ def on_recorder_key(recorder, window, key, *largs):
             Logger.error('Recorder: Cannot start playing while recording.')
             return
         recorder.play = not recorder.play
+    elif key == 287:  # F6
+        recorder.bind(play=replay)
+        recorder.play = True
 
 
 def start(win, ctx):
