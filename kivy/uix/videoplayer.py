@@ -309,10 +309,10 @@ class VideoPlayer(GridLayout):
     '''String, indicates whether to play, pause, or stop the video::
 
         # start playing the video at creation
-        video = Video(source='movie.mkv', state='play')
+        video = VideoPlayer(source='movie.mkv', state='play')
 
         # create the video, and start later
-        video = Video(source='movie.mkv')
+        video = VideoPlayer(source='movie.mkv')
         # and later
         video.state = 'play'
 
@@ -329,10 +329,10 @@ class VideoPlayer(GridLayout):
     the video by setting this property::
 
         # start playing the video at creation
-        video = Video(source='movie.mkv', play=True)
+        video = VideoPlayer(source='movie.mkv', play=True)
 
         # create the video, and start later
-        video = Video(source='movie.mkv')
+        video = VideoPlayer(source='movie.mkv')
         # and later
         video.play = True
 
