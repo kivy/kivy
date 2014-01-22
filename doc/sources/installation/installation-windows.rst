@@ -3,9 +3,17 @@
 Installation on Windows
 =======================
 
-For Windows, we provide what we call a 'portable package'. You don't have
-to install anything "system" wide. Just unzip & run:
+For Windows, we provide what we call a 'portable package'. This is the easiest
+way to get Kivy running as you don't have to install anything "system" wide.
+You can just unzip & run it.
 
+This installation method is simple because it bundles the Python interpreter
+together with the Kivy environment and libraries. If you wish to install Kivy
+into an existing Python environment or install the development environment,
+please see the :ref:`Other Environments <other_environments>` section below.
+
+Installing the portable version
+-------------------------------
 #. Download the latest version from http://kivy.org/#download
 
     .. image:: images/win-step1.png
@@ -189,6 +197,8 @@ If you want to use the latest development version of Kivy, you can follow these 
     1.  Launch kivy.bat
     2. ``cd Python/Scripts``
     3. ``pip install --upgrade cython``
+
+.. _other_environments:
 
 Other Environments
 ------------------
