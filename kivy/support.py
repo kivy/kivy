@@ -137,6 +137,9 @@ def install_android():
     Clock.schedule_interval(android_check_pause, 0)
 
 
+_twisted_reactor_stopper = None
+_twisted_reactor_work = None
+
 def install_twisted_reactor(**kwargs):
     '''Installs a threaded twisted reactor, which will schedule one
     reactor iteration before the next frame only when twisted needs
@@ -167,6 +170,8 @@ def install_twisted_reactor(**kwargs):
 
     # now we can import twisted reactor as usual
     from twisted.internet import reactor
+    from twisted.internet.error import ReactorNotRunning
+
     from collections import deque
     from kivy.base import EventLoop
     from kivy.logger import Logger
@@ -185,6 +190,8 @@ def install_twisted_reactor(**kwargs):
         Logger.trace("Support: processing twisted task queue")
         while len(q):
             q.popleft()()
+    global _twisted_reactor_work
+    _twisted_reactor_work = reactor_work
 
     # start the reactor, by telling twisted how to wake, and process
     def reactor_start(*args):
@@ -201,6 +208,16 @@ def install_twisted_reactor(**kwargs):
             reactor.threadpool.stop()
         Logger.info("Support: Shutting down twisted reactor")
         reactor._mainLoopShutdown()
+        try:
+            reactor.stop()
+        except ReactorNotRunning:
+            pass
+
+        import sys
+        sys.modules.pop('twisted.internet.reactor', None)
+
+    global _twisted_reactor_stopper
+    _twisted_reactor_stopper = reactor_stop
 
     # start and stop teh reactor along with kivy EventLoop
     Clock.schedule_once(reactor_start, 0)
