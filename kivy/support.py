@@ -223,3 +223,22 @@ def install_twisted_reactor(**kwargs):
     Clock.schedule_once(reactor_start, 0)
     EventLoop.bind(on_stop=reactor_stop)
 
+
+def uninstall_twisted_reactor(**kwargs):
+    '''Uninstalls a threaded twisted reactor. It blocks, and no iteration will
+    run after.
+    '''
+    import twisted
+
+    # prevent uninstalling more than once
+    if not hasattr(twisted, '_kivy_twisted_reactor_installed'):
+        return
+
+    from kivy.base import EventLoop
+    from kivy.logger import Logger
+
+    global _twisted_reactor_stopper
+    _twisted_reactor_stopper()
+    EventLoop.unbind(on_stop=_twisted_reactor_stopper)
+
+    del twisted._kivy_twisted_reactor_installed
