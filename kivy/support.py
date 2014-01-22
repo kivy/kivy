@@ -203,6 +203,6 @@ def install_twisted_reactor(**kwargs):
         reactor._mainLoopShutdown()
 
     # start and stop teh reactor along with kivy EventLoop
-    EventLoop.bind(on_start=reactor_start)
+    Clock.schedule_once(reactor_start, 0)
     EventLoop.bind(on_stop=reactor_stop)
 
