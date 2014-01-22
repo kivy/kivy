@@ -6,7 +6,7 @@ Activate other framework/toolkit inside our event loop
 '''
 
 __all__ = ('install_gobject_iteration', 'install_twisted_reactor',
-    'install_android')
+    'uninstall_twisted_reactor', 'install_android')
 
 from kivy.compat import PY2
 
