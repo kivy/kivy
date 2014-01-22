@@ -22,19 +22,19 @@ Create the spec file
 --------------------
 
 For this example, we'll package the touchtracer example and embed a custom icon.
-The touchtracer example is the `kivy\examples\demo\touchtracer` directory, and
+The touchtracer example is the `kivy\examples\demo\touchtracer` directory and
 the main file is named `main.py`.
 
 #. Double click on the Kivy.bat and a console will open.
-#. Go to the pyinstaller 2.1 directory, and create the initial specs::
+#. Go to the pyinstaller 2.1 directory and create the initial spec::
 
     cd pyinstaller-2.1
     python pyinstaller.py --name touchtracer ..\kivy\examples\demo\touchtracer\main.py
 
    You can also add an `icon.ico` file to the application folder in order to create an icon
-   for the executable. If you don't have an .ico file available, you can convert your
+   for the executable. If you don't have a .ico file available, you can convert your
    `icon.png` file to ico using the web app `ConvertICO <http://www.convertico.com>`_.
-   Save the `icon.ico` in the touchtracer dxirectory and type::
+   Save the `icon.ico` in the touchtracer directory and type::
 
     python pyinstaller.py --name touchtracer --icon ..\kivy\examples\demo\touchtracer\icon.ico ..\kivy\examples\demo\touchtracer\main.py
 
@@ -85,8 +85,8 @@ Including Gstreamer
 If you wish to use Gstreamer, you'll need to further modify the spec file.
 
 #. Kivy does some magic when trying to find which version of gstreamer
-   and and its bindings are available. In order for pyinstaller to find the
-   correct gstreamer modules you have to import core.video in the spec file
+   and its bindings are available. In order for pyinstaller to find the
+   correct gstreamer modules, you have to import core.video in the spec file
    before doing anything::
 
        from kivy.tools.packaging.pyinstaller_hooks import install_hooks
@@ -95,8 +95,9 @@ If you wish to use Gstreamer, you'll need to further modify the spec file.
 #. You'll need to include the gstreamer directory, found in the kivy distribution,
    in the COLLECT call. You can specify the direct path, or get it from the
    environment. In addition, the contents of the gstreamer/bin directory
-   need to be included in the top level directory, otherwise it has trouble
-   finding some dlls (this will create a second copy of the contents of bin)::
+   need to be included in the top level directory, otherwise the build process
+   may have trouble finding dlls (this will create a second copy of the contents
+   of bin)::
 
        import os
        gst_plugin_path = os.environ.get('GST_PLUGIN_PATH').split('lib')[0]
