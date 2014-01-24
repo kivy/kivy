@@ -136,8 +136,7 @@ class Splitter(BoxLayout):
         self._container = None
         self._strip = None
         super(Splitter, self).__init__(**kwargs)
-        self.bind(size=self._do_size,
-                  max_size=self._do_size,
+        self.bind(max_size=self._do_size,
                   min_size=self._do_size)
 
     def on_sizable_from(self, instance, sizable_from):
