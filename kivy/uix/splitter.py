@@ -136,6 +136,9 @@ class Splitter(BoxLayout):
         self._container = None
         self._strip = None
         super(Splitter, self).__init__(**kwargs)
+        self.bind(size=self._do_size,
+                  max_size=self._do_size,
+                  min_size=self._do_size)
 
     def on_sizable_from(self, instance, sizable_from):
         if not instance._container:
@@ -214,6 +217,12 @@ class Splitter(BoxLayout):
 
     def on_press(self):
         pass
+
+    def _do_size(self, instance, value):
+        if self.sizable_from[0] in ('l', 'r'):
+            self.width = max(self.min_size, min(self.width, self.max_size))
+        else:
+            self.height = max(self.min_size, min(self.height, self.max_size))
 
     def strip_move(self, instance, touch):
         if touch.grab_current is not instance:
