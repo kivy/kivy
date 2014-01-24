@@ -27,7 +27,7 @@ from kivy.context import register_context
 EventLoop = None
 
 
-class ExceptionHandler(object):
+class ExceptionHandler:
     '''Base handler that catches exceptions in :func:`runTouchApp`.
     You can subclass and extend it as follows::
 
