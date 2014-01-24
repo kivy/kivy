@@ -8,7 +8,7 @@ borders.
 
 :class:`PageLayout` doesn't honor size_hint or pos_hint in any way currently.
 
-.. versionadded:: 1.8.1
+.. versionadded:: 1.8.0
 
 example::
 
