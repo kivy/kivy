@@ -142,13 +142,9 @@ proportions allowed to each child, or set fixed size for some of them.
 .. only:: html
 
     .. image:: ../images/boxlayout.gif
-        :align: left
     .. image:: ../images/gridlayout.gif
-        :align: right
     .. image:: ../images/stacklayout.gif
-        :align: left
     .. image:: ../images/anchorlayout.gif
-        :align: right
     .. image:: ../images/floatlayout.gif
 
 .. only:: latex
@@ -323,10 +319,9 @@ instance easily, as with adding a colored background:
 In Python::
 
     with layout_instance.canvas.before:
-        Color(rgba(0, 1, 0, 1)) # green; colors range from 0-1 instead of 0-255
-        self.rect = Rectangle(
-                                size=layout_instance.size,
-                                pos=layout_instance.pos)
+        Color(0, 1, 0, 1) # green; colors range from 0-1 instead of 0-255
+        self.rect = Rectangle(size=layout_instance.size,
+                               pos=layout_instance.pos)
 
 Unfortunately, this will only draw a rectangle at the layout's initial position
 and size. To make sure the rect is drawn inside the layout, when layout size/pos
