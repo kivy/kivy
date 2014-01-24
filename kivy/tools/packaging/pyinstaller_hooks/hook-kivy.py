@@ -78,11 +78,13 @@ _kivy_modules = [
 
     # core
     'kivy.core.image.img_pygame',
-    'kivy.core.audio.audio_gstreamer',
+    'kivy.core.image.img_pil',
+    'kivy.core.audio.audio_gstplayer',
     'kivy.core.audio.audio_pygame',
-    'kivy.core.camera.camera_gstreamer',
+    'kivy.core.camera.camera_avfoundation',
+    'kivy.core.camera.camera_pygst',
     'kivy.core.camera.camera_opencv',
-    'kivy.core.video.video_gi',
+    'kivy.core.camera.camera_videocapture',
     'kivy.core.video.video_gstplayer',
     'kivy.core.video.video_pyglet',
     'kivy.core.video.video_pygst',
