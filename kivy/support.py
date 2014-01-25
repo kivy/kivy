@@ -224,10 +224,13 @@ def install_twisted_reactor(**kwargs):
     EventLoop.bind(on_stop=reactor_stop)
 
 
-def uninstall_twisted_reactor(**kwargs):
-    '''Uninstalls a threaded twisted reactor. It blocks, and no iteration will
-    run after.
+def uninstall_twisted_reactor():
+    '''Uninstalls the Kivy's threaded Twisted Reactor. No more Twisted tasks will
+    run after this got called. Use this to clean the `twisted.internet.reactor`
+
+    .. versionadded:: 1.8.0
     '''
+
     import twisted
 
     # prevent uninstalling more than once
