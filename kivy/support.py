@@ -238,7 +238,6 @@ def uninstall_twisted_reactor():
         return
 
     from kivy.base import EventLoop
-    from kivy.logger import Logger
 
     global _twisted_reactor_stopper
     _twisted_reactor_stopper()
