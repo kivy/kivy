@@ -18,12 +18,15 @@ Configuration
     `show_cursor`: boolean, default to False
     `cursor_image`: str, defaults to 'atlas://data/images/defaulttheme/slider_cursor'
         Image used to represent the cursor if displayed
+        .. versionadded:: 1.8.0
     `cursor_size`: tuple, defaults to (None, None)
         Apparent size of the mouse cursor, if displayed, default value
         will keep its real size.
+        .. versionadded:: 1.8.0
     `cursor_offset`: tuple, defaults to (None, None)
         Offset of the texture image, default value , will align the
         top-left corner of the image to the mouse pos.
+        .. versionadded:: 1.8.0
 
 Example
 -------
@@ -128,7 +131,6 @@ def start(win, ctx):
              on_touch_move=_touch_move,
              on_touch_up=_touch_up)
 
-    print(ctx.config.get('show_mouse', "banana"))
     if ctx.config.get('show_cursor', False):
         print('adding binding for mouse move')
         win.bind(mouse_pos=_mouse_move)
