@@ -133,10 +133,6 @@ class FileSystemLocal(FileSystemAbstract):
         return isdir(fn)
 
 
-class ForceUnicodeError(Exception):
-    pass
-
-
 class FileChooserProgressBase(FloatLayout):
     '''Base for implementing a progress view. This view is used when too many
     entries need to be created and are delayed over multiple frames.
@@ -635,22 +631,9 @@ class FileChooserController(FloatLayout):
             self.files[:] = []
 
     def _add_files(self, path, parent=None):
-        force_unicode = self._force_unicode
-        # Make sure we're using unicode in case of non-ascii chars in
-        # filenames.  listdir() returns unicode if you pass it unicode.
-        try:
-            path = expanduser(path)
-            path = force_unicode(path)
-        except ForceUnicodeError:
-            pass
+        path = expanduser(path)
 
-        files = []
-        fappend = files.append
-        for fn in self.file_system.listdir(path):
-            try:
-                fappend(force_unicode(fn))
-            except ForceUnicodeError:
-                pass
+        files = self.file_system.listdir(path)
         # In the following, use fully qualified filenames
         files = [normpath(join(path, f)) for f in files]
         # Apply filename filters
@@ -678,21 +661,6 @@ class FileChooserController(FloatLayout):
                    'sep': sep}
             entry = Builder.template(self._ENTRY_TEMPLATE, **ctx)
             yield index, total, entry
-
-    def _force_unicode(self, s):
-        # the idea is, whatever is the filename, unicode or str, even if the
-        # str can't be directly returned as a unicode, return something.
-        if type(s) is str:
-            return s
-        encodings = self.file_encodings
-        for encoding in encodings:
-            try:
-                return s.decode(encoding, 'strict')
-            except UnicodeDecodeError:
-                pass
-            except UnicodeEncodeError:
-                pass
-        raise ForceUnicodeError('Unable to decode %r' % s)
 
     def entry_subselect(self, entry):
         if not self.file_system.is_dir(entry.path):
