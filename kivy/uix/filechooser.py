@@ -199,11 +199,19 @@ class FileChooserController(FloatLayout):
     '''
     _ENTRY_TEMPLATE = None
 
-    path = StringProperty('/')
+    path = StringProperty(u'/')
     '''
     :class:`~kivy.properties.StringProperty`, defaults to the current working
     directory as a unicode string. It specifies the path on the filesystem that
     this controller should refer to.
+
+    ..warning::
+
+        If a unicode path is specified, all the files returned will be in
+        unicode allowing the display of unicode files and paths. If a bytes
+        path is specified, only files and paths with ascii names will be
+        displayed properly; non-ascii filenames will be displayed and listed
+        with questions marks (?) instead of their unicode characters.
     '''
 
     filters = ListProperty([])
@@ -333,6 +341,11 @@ class FileChooserController(FloatLayout):
     here, we'll be glad to add it to this list.
 
     .. versionadded:: 1.3.0
+
+    .. versionchanged:: 1.8
+
+        This property is not used anymore because filechooser doesn't do any
+        decoding anymore.
 
     :class:`~kivy.properties.ListProperty`, defaults to ['utf-8', 'latin1',
     'cp1252']
