@@ -61,8 +61,11 @@ def on_recorder_key(recorder, window, key, *largs):
             return
         recorder.play = not recorder.play
     elif key == 287:  # F6
-        recorder.bind(play=replay)
-        recorder.play = True
+        if recorder.play:
+            recorder.unbind(play=replay)
+        else:
+            recorder.bind(play=replay)
+            recorder.play = True
 
 
 def start(win, ctx):
