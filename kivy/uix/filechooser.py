@@ -314,6 +314,12 @@ class FileChooserController(FloatLayout):
     .. versionadded:: 1.2.0
 
     :class:`~kivy.properties.StringProperty`, defaults to None.
+
+    .. note::
+
+        Similar to :attr:`path`, if `rootpath` is specified, whether it's a
+        bytes or unicode string determines the type of the filenames and paths
+        read.
     '''
 
     progress_cls = ObjectProperty(FileChooserProgress)
