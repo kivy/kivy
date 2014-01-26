@@ -1,0 +1,17 @@
+ShowcaseScreen:
+    popup: popup
+    fullscreen: True
+    name: 'Popups'
+    BoxLayout:
+        id: bl
+        Popup:
+            id: popup
+            title: "Hello World"
+            on_parent:
+                if self.parent == bl: self.parent.remove_widget(self)
+            Button:
+                text: 'press to dismiss'
+                on_release: popup.dismiss()
+        Button:
+            text: 'press to show Popup'
+            on_release: root.popup.open()

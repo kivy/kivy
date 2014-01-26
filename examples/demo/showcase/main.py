@@ -33,12 +33,12 @@ class ShowcaseApp(App):
         self.title = 'hello world'
         Clock.schedule_interval(self._update_clock, 1 / 60.)
         self.screens = {}
-        self.available_screens = [
-            'buttons', 'togglebutton', 'sliders', 'progressbar', 'switches',
-            'checkboxes', 'textinputs', 'accordions', 'filechoosers',
-            'carousel', 'bubbles', 'codeinput', 'dropdown', 'spinner',
-            'scatter', 'splitter', 'tabbedpanel + layouts', 'rstdocument',
-            'screenmanager']
+        self.available_screens = sorted([
+            'Buttons', 'ToggleButton', 'Sliders', 'ProgressBar', 'Switches',
+            'CheckBoxes', 'TextInputs', 'Accordions', 'FileChoosers',
+            'Carousel', 'Bubbles', 'CodeInput', 'DropDown', 'Spinner',
+            'Scatter', 'Splitter', 'TabbedPanel + Layouts', 'RstDocument',
+            'Popups', 'ScreenManager'])
         self.screen_names = self.available_screens
         curdir = dirname(__file__)
         self.available_screens = [join(curdir, 'data', 'screens',
@@ -88,12 +88,12 @@ class ShowcaseApp(App):
     def load_screen(self, index):
         if index in self.screens:
             return self.screens[index]
-        screen = Builder.load_file(self.available_screens[index])
+        screen = Builder.load_file(self.available_screens[index].lower())
         self.screens[index] = screen
         return screen
 
     def read_sourcecode(self):
-        fn = self.available_screens[self.index]
+        fn = self.available_screens[self.index].lower()
         with open(fn) as fd:
             return fd.read()
 
