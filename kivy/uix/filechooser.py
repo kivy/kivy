@@ -62,7 +62,7 @@ if platform == 'win':
     # Note: For some reason this doesn't work after a os.chdir(), no matter to
     #       what directory you change from where. Windows weirdness.
     try:
-        from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesEx, error
+        from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesExW, error
         _have_win32file = True
     except ImportError:
         Logger.error('filechooser: win32file module is missing')
@@ -119,7 +119,7 @@ class FileSystemLocal(FileSystemAbstract):
             if not _have_win32file:
                 return False
             try:
-                return GetFileAttributesEx(fn)[0] & FILE_ATTRIBUTE_HIDDEN
+                return GetFileAttributesExW(fn)[0] & FILE_ATTRIBUTE_HIDDEN
             except error:
                 # This error can occured when a file is already accessed by
                 # someone else. So don't return to True, because we have lot
