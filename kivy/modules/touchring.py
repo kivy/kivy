@@ -16,6 +16,7 @@ Configuration
     `alpha`: float, defaults to 1.
         Opacity of the image.
     `show_cursor`: boolean, default to False
+        .. versionadded:: 1.8.0
     `cursor_image`: str, defaults to 'atlas://data/images/defaulttheme/slider_cursor'
         Image used to represent the cursor if displayed
         .. versionadded:: 1.8.0
