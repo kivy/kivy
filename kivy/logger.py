@@ -263,6 +263,7 @@ class LogFile(object):
         self.buffer = ''
         self.func = func
         self.channel = channel
+        self.errors = ''
 
     def write(self, s):
         s = self.buffer + s
