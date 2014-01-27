@@ -11,6 +11,7 @@ from os.path import join, dirname, sep, exists, basename
 from os import walk, environ
 from distutils.core import setup
 from distutils.extension import Extension
+from collections import OrderedDict
 
 if sys.version > '3':
     PY3 = True
@@ -28,10 +29,11 @@ def pkgconfig(*packages, **kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
     cmd = 'pkg-config --libs --cflags {}'.format(' '.join(packages))
     for token in getoutput(cmd).split():
-        flag = flag_map.get(token[:2])
+        ext = token[:2].decode('utf-8')
+        flag = flag_map.get(ext)
         if not flag:
             continue
-        kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
+        kw.setdefault(flag, []).append(token[2:])
     return kw
 
 
@@ -60,17 +62,17 @@ if exists('/opt/vc/include/bcm_host.h'):
 # -----------------------------------------------------------------------------
 # Detect options
 #
-c_options = {
-    'use_rpi': platform == 'rpi',
-    'use_opengl_es2': True,
-    'use_opengl_debug': False,
-    'use_glew': False,
-    'use_sdl': False,
-    'use_ios': False,
-    'use_mesagl': False,
-    'use_x11': False,
-    'use_gstreamer': False,
-    'use_avfoundation': platform == 'darwin'}
+c_options = OrderedDict()
+c_options['use_rpi'] = platform == 'rpi'
+c_options['use_opengl_es2'] = True
+c_options['use_opengl_debug'] = False
+c_options['use_glew'] = False
+c_options['use_sdl'] = False
+c_options['use_ios'] = False
+c_options['use_mesagl'] = False
+c_options['use_x11'] = False
+c_options['use_gstreamer'] = False
+c_options['use_avfoundation'] = platform == 'darwin'
 
 # now check if environ is changing the default values
 for key in list(c_options.keys()):

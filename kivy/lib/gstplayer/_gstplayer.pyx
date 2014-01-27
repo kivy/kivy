@@ -254,7 +254,7 @@ cdef class GstPlayer:
 
         # configure playbin
         g_object_set_int(self.pipeline, 'async-handling', 1)
-        c_uri = <bytes>self.uri.decode('utf-8')
+        c_uri = <bytes>self.uri.encode('utf-8')
         g_object_set_void(self.playbin, 'uri', c_uri)
 
         # attach the callback
