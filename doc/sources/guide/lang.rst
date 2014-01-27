@@ -240,7 +240,7 @@ garbage collected. To demonstrate:
 
 .. code-block:: kv
 
-    <MyWidget@BoxLayout>:
+    <MyWidget>:
         label_widget: label_widget
         Button:
             text: 'Add Button'
@@ -266,7 +266,7 @@ in this case. So the correct way is:
 
 .. code-block:: kv
 
-    <MyWidget@BoxLayout>:
+    <MyWidget>:
         label_widget: label_widget.__self__
 
 Accessing Widgets defined inside Kv lang in your python code
