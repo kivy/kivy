@@ -131,8 +131,8 @@ return the root widget defined in your kv file/string. They will also add any
 class and template definitions to the :class:`~kivy.factory.Factory` for later
 usage.
 
-Value Expressions and Reserved Keywords
----------------------------------------
+Value Expressions, on_property Expressions, and Reserved Keywords
+-----------------------------------------------------------------
 
 When you specify a property's value, the value is evaluated as a Python
 expression. This expression can be static or dynamic, which means that
@@ -177,8 +177,45 @@ keyword::
             text: 'The state of the other button is %s' % btn1.state
 
 Please note that the `id` will not be available in the widget instance:
-it is used exclusively for external references.
+it is used exclusively for external references. `id` is a weakref to the
+widget, and not the widget itself. The widget itself can be accessed
+with `id.__self__` (`btn1.__self__` in this case).
 
+Valid expressons
+~~~~~~~~~~~~~~~~
+
+There are two types of places that accept python statments in a kv file:
+after a property, which assigns to the property the result of the expression
+such as the text of a button as shown above, and after a on_property, which
+executes the statement when the property is updated, such as on_state.
+
+In the former case, the
+`expression <http://docs.python.org/2/reference/expressions.html>`_ can only
+span a single line, cannot be extended to multiple lines using newline
+escaping, and must return a value. An example of a valid expression is
+``text: self.state and ('up' if self.state == 'normal' else 'down')``.
+
+In the latter case, multiple single line statements are valid including
+multi-line statements that escape their newline, as long as they don't
+add an indentation leevl.
+
+Examples of valid statements are::
+
+    on_press: if self.state == 'normal': print('normal')
+    on_state:
+        if self.state == 'normal': print('normal')
+        else: print('down')
+        if self.state == 'normal': \
+        print('multiline normal')
+        for i in range(10): print(i)
+        print([1,2,3,4,
+        5,6,7])
+
+An example of a invalid statement::
+
+    on_state:
+        if self.state == 'normal':
+            print('normal')
 
 Relation Between Values and Properties
 --------------------------------------
