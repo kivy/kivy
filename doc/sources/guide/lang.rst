@@ -252,17 +252,18 @@ garbage collected. To demonstrate:
             id: label_widget
             text: 'widget'
 
-although a reference to ``label_widget`` is stored in ``MyWidget``, it is not
-sufficient to keep the object alive once other references are removed because it's
-only a weakref. Therefore, after the remove button is clicked, which removes
-any direct reference to the widget, and the window resized, which calls the
-garbage collector resulting in the deletion of ``label_widget``, when the add
-button is clicked to add back the widget a ``ReferenceError: weakly-referenced
+Although a reference to ``label_widget`` is stored in ``MyWidget``, it is not
+sufficient to keep the object alive once other references have been removed
+because it's only a weakref.
+Therefore, after the remove button is clicked (which removes
+any direct reference to the widget) and the window is resized (which calls the
+garbage collector resulting in the deletion of ``label_widget``), when the add
+button is clicked to add the widget back, a ``ReferenceError: weakly-referenced
 object no longer exists`` will be thrown.
 
 To keep the widget alive, a direct reference to the ``label_widget`` widget
 must be kept. This is achieved using ``id.__self__`` or ``label_widget.__self__``
-in this case. So the correct way is:
+in this case. The correct way to do this would be:
 
 .. code-block:: kv
 
