@@ -986,6 +986,16 @@ class ParserRule(object):
                     raise ParserException(self.ctx, self.line,
                                           'Invalid dynamic class name')
 
+                # Ensure the baseclass exists
+                # Ref: https://github.com/kivy/kivy/issues/1791
+                for bclass in baseclasses.split(","):
+                    if bclass not in Factory.classes.keys():
+                        if bclass not in self.ctx.dynamic_classes:
+                            raise ParserException(
+                                self.ctx,
+                                self.line,
+                                'Superclass not yet defined')
+
                 # save the name in the dynamic classes dict.
                 self.ctx.dynamic_classes[rule] = baseclasses
                 crule = ParserSelectorName(rule)
