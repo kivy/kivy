@@ -256,7 +256,11 @@ class Label(Widget):
     text_size = ListProperty([None, None])
     '''By default, the label is not constrained to any bounding box.
     You can set the size constraint of the label with this property.
-    The text will autoflow into the constrains.
+    The text will autoflow into the constrains. So although the font size
+    will not be reduced, the text will be arranged to fit into the box as best
+    as possible, with any text still outside the box clipped.
+
+    This sets and clips :attr:`texture_size` to text_size if not None.
 
     .. versionadded:: 1.0.4
 
@@ -429,7 +433,13 @@ class Label(Widget):
     '''
 
     texture_size = ListProperty([0, 0])
-    '''Texture size of the text.
+    '''Texture size of the text. The size is determined by the font size and
+    text. If :attr:`text_size` is [None, None], the texture will be the size
+    required to fit the text, otherwise it's clipped to fit :attr:`text_size`.
+
+    When :attr:`text_size` is [None, None], one can bind to texture_size
+    and rescale it proportionally to fit the size of the label in order to
+    make the text fit maximally in the label.
 
     .. warning::
 

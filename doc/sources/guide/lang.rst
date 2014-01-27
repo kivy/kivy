@@ -22,12 +22,12 @@ How to load KV
 There are two ways to load Kv code into your application:
 - By name convention:
 
-  Kivy looks if there is a Kv file with the same name as your App class in 
+  Kivy looks if there is a Kv file with the same name as your App class in
   lowercase,  minus "App" if it ends with 'App'. E.g::
-  
+
     MyApp -> my.kv.
 
-  If this file defines a `Root Widget` it will be attached to the App's `root` 
+  If this file defines a `Root Widget` it will be attached to the App's `root`
   attribute and used as the base of the application widget tree.
 
 - :obj:`~kivy.lang.Builder`:
@@ -39,7 +39,7 @@ There are two ways to load Kv code into your application:
   or::
 
     Builder.load_string(kv_string)
-  
+
 Rule context
 ------------
 
@@ -234,6 +234,41 @@ An ``id`` is limited in scope to the rule it is declared in, so in the
 code above ``s_but`` can not be accessed outside the <MySecondWidget>
 rule.
 
+An ``id`` is a ``weakref`` to the widget and not the widget itself. As a
+consequence, storing the ``id`` is not sufficient to keep the widget from being
+garbage collected. To demonstrate:
+
+.. code-block:: kv
+
+    <MyWidget>:
+        label_widget: label_widget
+        Button:
+            text: 'Add Button'
+            on_press: root.add_widget(label_widget)
+        Button:
+            text: 'Remove Button'
+            on_press: root.remove_widget(label_widget)
+        Label:
+            id: label_widget
+            text: 'widget'
+
+although a reference to ``label_widget`` is stored in ``MyWidget``, it is not
+sufficient to keep the object alive once other references are removed because it's
+only a weakref. Therefore, after the remove button is clicked, which removes
+any direct reference to the widget, and the window resized, which calls the
+garbage collector resulting in the deletion of ``label_widget``, when the add
+button is clicked to add back the widget a ``ReferenceError: weakly-referenced
+object no longer exists`` will be thrown.
+
+To keep the widget alive, a direct reference to the ``label_widget`` widget
+must be kept. This is achieved using ``id.__self__`` or ``label_widget.__self__``
+in this case. So the correct way is:
+
+.. code-block:: kv
+
+    <MyWidget>:
+        label_widget: label_widget.__self__
+
 Accessing Widgets defined inside Kv lang in your python code
 ------------------------------------------------------------
 
@@ -259,9 +294,9 @@ In myapp.py:
 
     ...
     class MyFirstWidget(BoxLayout):
-    
+
         txt_inpt = ObjectProperty(None)
-    
+
         def check_status(self, btn):
             print('button state is: {state}'.format(state=btn.state))
             print('text input text is: {txt}'.format(txt=self.txt_inpt))
@@ -302,7 +337,7 @@ In your python code:
 .. code-block:: python
 
     class Marvel(BoxLayout):
-    
+
         def hulk_smash(self):
             self.ids.hulk.text = "hulk: puny god!"
             self.ids.loki.text = "loki: >_<!!!"
@@ -342,7 +377,7 @@ template instead, like so:
         text_size: self.size
         font_size: '25sp'
         markup: True
-    
+
     <MyWidget>:
         MyBigButt:
             text: "Hello world, watch this text wrap inside the button"

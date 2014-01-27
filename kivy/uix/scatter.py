@@ -14,9 +14,13 @@ properties.
 That specific behavior makes the scatter unique, but there are some
 advantages / constraints that you should consider:
 
-#. The children are positionned relative to 0, 0. The scatter position has
-   no impact of the position of children. This applies to the size too.
-#. If you want to resize the scatter, use scale, not size. (read #1.)
+#. The children are positioned relative to the scatter similar to a
+   RelativeLayout (see :mod:`~kivy.uix.relativelayout`). So when dragging the
+   scatter, the position of the children don't change, only the position of
+   the scatter.
+#. The scatter size has no impact on the size of the children.
+#. If you want to resize the scatter, use scale, not size. (read #2.). Scale
+   transforms both the scatter and its children, but does not change size.
 #. The scatter is not a layout. You must manage the size of the children
    yourself.
 

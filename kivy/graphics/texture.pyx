@@ -98,7 +98,7 @@ Mipmapping        Supported     Partially     No
 Wrap mode         Supported     Supported     No
 ================= ============= ============= =================================
 
-If you create a NPOT texture, we first check whether your hardware 
+If you create a NPOT texture, we first check whether your hardware
 supports it by checking the extensions GL_ARB_texture_non_power_of_two or
 OES_texture_npot. If none of theses are available, we create the nearest
 POT texture that can contain your NPOT texture. The :meth:`Texture.create` will
@@ -807,6 +807,13 @@ cdef class Texture:
 
         .. versionadded:: 1.0.7 added mipmap_level + mipmap_generation
 
+        .. note::
+
+            Unless the canvas will be updated due to other changes,
+            :meth:`~kivy.graphics.instructions.Canvas.ask_update` needs to be
+            called on the canvas containing this texture to display the new
+            data.
+
         :Parameters:
             `pbuffer` : str
                 Image data.
@@ -913,7 +920,7 @@ cdef class Texture:
                 if self._proxyimage.loaded:
                     self._on_proxyimage_loaded(self._proxyimage)
                 return
-            
+
             mipmap = 0 if mipmap == 'False' else 1
             if count == '0':
                 if proto =='zip' or filename.endswith('.gif'):
@@ -933,7 +940,7 @@ cdef class Texture:
             else:
                 item_no = int(count) - 1
                 texture = self._sequenced_textures[filename][item_no]
-                
+
 
         self._reload_propagate(texture)
 
