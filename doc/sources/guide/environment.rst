@@ -59,32 +59,32 @@ selector to a specific implementation.
 KIVY_WINDOW
     Implementation to use for creating the Window
 
-    Values: pygame, x11, sdl
+    Values: pygame, x11, sdl, egl_rpi
 
 KIVY_TEXT
     Implementation to use for rendering text
 
-    Values: pil, pygame
+    Values: pil, pygame, sdlttf
 
 KIVY_VIDEO
     Implementation to use for rendering video
 
-    Values: gstreamer, pyglet, ffmpeg
+    Values: pygst, gstplayer, pyglet, ffmpeg, null
 
 KIVY_AUDIO
     Implementation to use for playing audio
 
-    Values: gstreamer, pygame
+    Values: gstplayer, pygst, sdl, pygame
 
 KIVY_IMAGE
     Implementation to use for reading image
 
-    Values: pil, pygame
+    Values: pil, pygame, imageio, tex, dds, gif
 
 KIVY_CAMERA
     Implementation to use for reading camera
 
-    Values: gstreamer, opencv, videocapture
+    Values: videocapture, avfoundation, pygst, opencv
 
 KIVY_SPELLING
     Implementation to use for spelling
@@ -94,7 +94,7 @@ KIVY_SPELLING
 KIVY_CLIPBOARD
     Implementation to use for clipboard management
 
-    Values: pygame, dummy
+    Values: pygame, dummy, android
 
 Metrics
 -------
