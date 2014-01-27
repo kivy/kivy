@@ -271,7 +271,9 @@ class Widget(WidgetBase):
 
         :Parameters:
             `touch`: :class:`~kivy.input.motionevent.MotionEvent` class
-                Touch received
+                Touch received. The touch is in parent coordinates. See
+                :mod:`~kivy.uix.relativelayout` for a discussion on
+                coordinate systems.
 
         :Returns:
             bool. If True, the dispatching of the touch event will stop.
@@ -283,7 +285,7 @@ class Widget(WidgetBase):
                 return True
 
     def on_touch_move(self, touch):
-        '''Receive a touch move event.
+        '''Receive a touch move event. The touch is in parent coordinates.
 
         See :meth:`on_touch_down` for more information.
         '''
@@ -294,7 +296,7 @@ class Widget(WidgetBase):
                 return True
 
     def on_touch_up(self, touch):
-        '''Receive a touch up event.
+        '''Receive a touch up event. The touch is in parent coordinates.
 
         See :meth:`on_touch_down` for more information.
         '''
@@ -427,14 +429,17 @@ class Widget(WidgetBase):
 
     def to_widget(self, x, y, relative=False):
         '''Convert the given coordinate from window to local widget
-        coordinates.
+        coordinates. See :mod:`~kivy.uix.relativelayout` for details on the
+        coordinate systems.
         '''
         if self.parent:
             x, y = self.parent.to_widget(x, y)
         return self.to_local(x, y, relative=relative)
 
     def to_window(self, x, y, initial=True, relative=False):
-        '''Transform local coordinates to window coordinates.'''
+        '''Transform local coordinates to window coordinates. See
+        :mod:`~kivy.uix.relativelayout` for details on the coordinate systems.
+        '''
         if not initial:
             x, y = self.to_parent(x, y, relative=relative)
         if self.parent:
@@ -443,7 +448,8 @@ class Widget(WidgetBase):
         return (x, y)
 
     def to_parent(self, x, y, relative=False):
-        '''Transform local coordinates to parent coordinates.
+        '''Transform local coordinates to parent coordinates. See
+        :mod:`~kivy.uix.relativelayout` for details on the coordinate systems.
 
         :Parameters:
             `relative`: bool, defaults to False
@@ -455,7 +461,8 @@ class Widget(WidgetBase):
         return (x, y)
 
     def to_local(self, x, y, relative=False):
-        '''Transform parent coordinates to local coordinates.
+        '''Transform parent coordinates to local coordinates. See
+        :mod:`~kivy.uix.relativelayout` for details on the coordinate systems.
 
         :Parameters:
             `relative`: bool, defaults to False
