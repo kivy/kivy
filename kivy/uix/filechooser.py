@@ -205,7 +205,7 @@ class FileChooserController(FloatLayout):
     directory as a unicode string. It specifies the path on the filesystem that
     this controller should refer to.
 
-    ..warning::
+    .. warning::
 
         If a unicode path is specified, all the files returned will be in
         unicode allowing the display of unicode files and paths. If a bytes
