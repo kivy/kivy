@@ -43,7 +43,7 @@ echo 'Convert to windows path:' $KIVY_PORTABLE_ROOT
 KIVY_PORTABLE_ROOT_PY=$(python -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' $KIVY_PORTABLE_ROOT/kivy)
 export PYTHONPATH=$KIVY_PORTABLE_ROOT_PY\;$PYTHONPATH
 echo PYTHONPATH is $PYTHONPATH
-export PKG_CONFIG_PATH=$KIVY_PORTABLE_ROOT/gstreamer/lib/pkgconfig:$PKG_CONFIG_PATH
+export PKG_CONFIG_PATH=$KIVY_PORTABLE_ROOT/gstreamer/lib/pkgconfig\;$PKG_CONFIG_PATH
 
 export KIVY_PATHS_INITIALIZED=1
 echo ##################################
