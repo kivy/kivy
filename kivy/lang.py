@@ -675,6 +675,7 @@ from copy import copy
 from types import CodeType
 from functools import partial
 from collections import OrderedDict
+from kivy.event import EventDispatcher
 from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.utils import QueryDict
@@ -1333,7 +1334,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                 f = idmap[k[0]]
                 for x in k[1:-1]:
                     f = getattr(f, x)
-                if hasattr(f, 'bind'):
+                if isinstance(f, EventDispatcher):
                     f.bind(**{k[-1]: fn})
                     # make sure _handlers doesn't keep widgets alive
                     _handlers[uid].append([get_proxy(f), k[-1], fn])
