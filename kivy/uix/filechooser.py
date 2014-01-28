@@ -210,7 +210,7 @@ class FileChooserController(FloatLayout):
         If a unicode path is specified, all the files returned will be in
         unicode allowing the display of unicode files and paths. If a bytes
         path is specified, only files and paths with ascii names will be
-        displayed properly; non-ascii filenames will be displayed and listed
+        displayed properly: non-ascii filenames will be displayed and listed
         with questions marks (?) instead of their unicode characters.
     '''
 
@@ -348,13 +348,12 @@ class FileChooserController(FloatLayout):
 
     .. versionadded:: 1.3.0
 
-    .. versionchanged:: 1.8
+    .. deprecated:: 1.8.0
+       This property is no longer used as the filechooser no longer decodes
+       the file names.
 
-        This property is not used anymore because filechooser doesn't do any
-        decoding anymore.
-
-    :class:`~kivy.properties.ListProperty`, defaults to ['utf-8', 'latin1',
-    'cp1252']
+    file_encodings is a :class:`~kivy.properties.ListProperty` and defaults to
+    ['utf-8', 'latin1', 'cp1252'],
     '''
 
     file_system = ObjectProperty(FileSystemLocal(),
