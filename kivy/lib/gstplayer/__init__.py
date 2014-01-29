@@ -18,4 +18,5 @@ import os
 if 'KIVY_DOC' in os.environ:
     GstPlayer = get_gst_version = glib_iteration = None
 else:
-    from _gstplayer import GstPlayer, get_gst_version, glib_iteration
+    from kivy.lib.gstplayer._gstplayer import (
+        GstPlayer, get_gst_version, glib_iteration)
