@@ -33,7 +33,7 @@ def pkgconfig(*packages, **kw):
         flag = flag_map.get(ext)
         if not flag:
             continue
-        kw.setdefault(flag, []).append(token[2:])
+        kw.setdefault(flag, []).append(token[2:].decode('utf-8'))
     return kw
 
 

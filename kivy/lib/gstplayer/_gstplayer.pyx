@@ -150,7 +150,6 @@ cdef void _on_gstplayer_message(void *c_player, GstMessage *message) with gil:
         player.message_cb('info', err.message)
         g_error_free(err);
     else:
-        #print 'got something else', message.type
         pass
 
 def _gst_init():
@@ -175,7 +174,10 @@ def glib_iteration(int loop):
 
 
 cdef class GstPlayer:
-    cdef GstElement *pipeline, *playbin, *appsink, *fakesink
+    cdef GstElement *pipeline
+    cdef GstElement *playbin
+    cdef GstElement *appsink
+    cdef GstElement *fakesink
     cdef GstBus *bus
     cdef object uri, sample_cb, eos_cb, message_cb
     cdef gulong hid_sample, hid_message
