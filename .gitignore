@@ -3,6 +3,7 @@ Kivy.egg-info
 *.so
 *.pyc
 *.pyo
+*.py#
 *~
 *.swp
 *.DS_Store
@@ -11,9 +12,13 @@ build/*
 doc/build
 doc/sources/api-*.rst
 kivy/*.c
+kivy/*.pyd
 kivy/graphics/*.c
+kivy/graphics/*.pyd
 kivy/graphics/config.h
 kivy/graphics/config.pxi
+kivy/lib/gstplayer/_gstplayer.c
+kivy/core/camera/camera_avfoundation.c
 kivy/tests/build
 kivy/tests/results
 .last_known_portable_deps_hash
@@ -24,6 +29,7 @@ kivy/core/image/osxcoreimage.c
 kivy/core/window/sdl.c
 python
 python.exe
+.idea
 
 MANIFEST
 
@@ -34,3 +40,9 @@ kivy/core/audio/audio_sdl.c
 kivy/core/text/text_sdlttf.c
 
 kivy/core/window/window_x11.c
+
+kivy/lib/vidcore_lite/bcm.c
+
+kivy/lib/vidcore_lite/bcm.h
+
+kivy/lib/vidcore_lite/egl.c

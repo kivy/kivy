@@ -52,7 +52,7 @@ def point_inside_polygon(x, y, poly):
     inside = False
     p1x = poly[0]
     p1y = poly[1]
-    for i in xrange(0, n + 2, 2):
+    for i in range(0, n + 2, 2):
         p2x = poly[i % n]
         p2y = poly[(i + 1) % n]
         if y > min(p1y, p2y):

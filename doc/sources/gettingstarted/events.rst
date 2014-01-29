@@ -1,7 +1,7 @@
 Events
 ------
 
-Kivy is mostly event-based, meaning the flow of the program is determined
+Kivy is mostly `event-based <http://en.wikipedia.org/wiki/Event-driven_programming>`_, meaning the flow of the program is determined
 by events.
 
 **Clock events**
@@ -47,7 +47,7 @@ changes its position or size, the corresponding event is automatically fired.
 In addition, you have the ability to create your own events using
 :meth:`~kivy.event.EventDispatcher.register_event_type`, as the
 `on_press` and `on_release` events in the :class:`~kivy.uix.button.Button`
-widgit demonstrate.
+widget demonstrate.
 
 Another thing to note is that if you override an event, you become responsible
 for implementing all its behaviour previously handled by the base class. The
@@ -58,7 +58,7 @@ easiest way to do this is to call `super()`::
             return True
         if not self.collide_point(touch.x, touch.y):
             return False
-        print 'you touched me!'
+        print('you touched me!')
         return True
 
 Get more familiar with events by reading the :doc:`/guide/events` documentation.

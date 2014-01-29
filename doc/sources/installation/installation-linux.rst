@@ -8,8 +8,8 @@ Using software packages
 
 For installing distribution relative packages .deb/.rpm/...
 
-Ubuntu / Kubuntu / Xubuntu / Lubuntu (Oneirc and above)
--------------------------------------------------------
+Ubuntu / Kubuntu / Xubuntu / Lubuntu (Oneiric and above)
+--------------------------------------------------------
 
 #. Add one of the PPAs as you prefer
 
@@ -39,7 +39,7 @@ Debian
         
         :stable builds:
             deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
-        :nightly builds:
+        :daily builds:
             deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu oneiric main
 
         **Notice**: Don't forget to use the python2.7 interpreter
@@ -52,9 +52,15 @@ Debian
         :stable builds:
             deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
 
-#. Add the GPG key to your apt keyring by
+#. Add the GPG key to your apt keyring by executing
 
-    $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6
+    as user:
+    
+    ``sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6``
+    
+    as root:
+    
+    ``apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6``
 
 #. Refresh your package list and install **python-kivy** and optionally the examples
    found in **python-kivy-examples**
@@ -139,16 +145,16 @@ Ubuntu
 ------
 ::
 
-    $ sudo apt-get install python-setuptools python-pygame python-opengl \
+    $ sudo apt-get install pkg-config python-setuptools python-pygame python-opengl \
       python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
       build-essential libgl1-mesa-dev libgles2-mesa-dev cython
 
 
 *Upgrade Cython ( <= Oneiric [11.10] )*
 
-:Using our PPA: ::
+:Using Cython's daily PPA: ::
 
-    $ sudo add-apt-repository ppa:kivy-team/kivy-daily
+    $ sudo add-apt-repository ppa:cython-dev/master-ppa
     $ sudo apt-get update
     $ sudo apt-get install cython
 
@@ -222,7 +228,7 @@ We ship some examples that are ready-to-run. However, theses examples are packag
 This means you must first know where easy_install has installed your current kivy package,
 and then go to the examples directory::
 
-    $ python -c "import pkg_resources; print pkg_resources.resource_filename('kivy', '../share/kivy-examples')"
+    $ python -c "import pkg_resources; print(pkg_resources.resource_filename('kivy', '../share/kivy-examples'))"
 
 And you should have a path similar to::
 
@@ -251,3 +257,20 @@ for easier access. For example:
 #. Then, you can access to kivy-examples directly in your home directory::
 
     $ cd ~/kivy-examples
+
+If you wish to start your Kivy programs as scripts (by typing `./main.py`) or by double-clicking them,
+you will want to define the correct version of Python by linking to it. Something like::
+
+    $ sudo ln -s /usr/bin/python2.7 /usr/bin/kivy
+
+Or, if you are running Kivy inside a virtualenv, link to the Python interpreter for it, like::
+
+    $ sudo ln -s /home/your_username/Envs/kivy/bin/python2.7 /usr/bin/kivy
+
+Then, inside each main.py, add a new first line::
+
+    #!/usr/bin/kivy
+
+NOTE: Beware of Python files stored with Windows-style line endings (CR-LF). Linux will not ignore the <CR>
+and will try to use it as part of the file name. This makes confusing error messages. Convert to Unix line endings.
+

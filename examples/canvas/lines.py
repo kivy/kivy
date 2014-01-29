@@ -166,7 +166,7 @@ class LinePlayground(FloatLayout):
         points = []
         points2 = []
         self.dt += dt
-        for i in xrange(int(w / step)):
+        for i in range(int(w / step)):
             x = i * step
             points.append(cx + x)
             points.append(cy + cos(x / w * 8. + self.dt) * self.height * 0.2)

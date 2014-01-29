@@ -2,10 +2,10 @@ from kivy.properties import NumericProperty, BooleanProperty
 
 
 class SelectableView(object):
-    '''The :class:`SelectableView` mixin is used in list item and other
-    classes that are to be instantiated in a list view, or another class
-    which uses a selection-enabled adapter such as ListAdapter.  select() and
-    deselect() are to be overridden with display code to mark items as
+    '''The :class:`SelectableView` mixin is used with list items and other
+    classes that are to be instantiated in a list view or other classes
+    which use a selection-enabled adapter such as ListAdapter. select() and
+    deselect() can be overridden with display code to mark items as
     selected or not, if desired.
     '''
 
@@ -15,21 +15,21 @@ class SelectableView(object):
     '''
 
     is_selected = BooleanProperty(False)
-    '''A SelectableView instance carries this property, which should be kept
-    in sync with the equivalent property in the data item it represents.
+    '''A SelectableView instance carries this property which should be kept
+    in sync with the equivalent property the data item represents.
     '''
 
     def __init__(self, **kwargs):
         super(SelectableView, self).__init__(**kwargs)
 
     def select(self, *args):
-        '''The list item is responsible for updating the display for
+        '''The list item is responsible for updating the display when
         being selected, if desired.
         '''
         self.is_selected = True
 
     def deselect(self, *args):
-        '''The list item is responsible for updating the display for
+        '''The list item is responsible for updating the display when
         being unselected, if desired.
         '''
         self.is_selected = False

@@ -1,0 +1,24 @@
+ShowcaseScreen:
+	name: 'RstDocument'
+	fullscreen: True
+	on_parent: if not args[1]: textinput.focus = False
+
+	GridLayout:
+		cols: 2 if root.width > root.height else 1
+		spacing: '8dp'
+
+		TextInput:
+			id: textinput
+			text:
+				('.. _top:\n'
+				'\n'
+				'Hello world\n'
+				'===========\n'
+				'\n'
+				'This is an **emphased text**, *italic text*, ``interpreted text``.\n'
+				'And this is a reference to top_::\n'
+				'\n'
+				'	$ print("Hello world")\n')
+
+		RstDocument:
+			text: textinput.text

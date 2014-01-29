@@ -9,11 +9,11 @@ DictAdapter
     This code is still experimental, and its API is subject to change in a
     future version.
 
-:class:`~kivy.adapters.dictadapter.DictAdapter` is an adapter around a python
-dictionary of records. It extends the list-like capabilities of
+A :class:`~kivy.adapters.dictadapter.DictAdapter` is an adapter around a
+python dictionary of records. It extends the list-like capabilities of the
 :class:`~kivy.adapters.listadapter.ListAdapter`.
 
-If you wish to have a bare-bones list adapter, without selection, use
+If you wish to have a bare-bones list adapter, without selection, use the
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`.
 
 '''
@@ -25,20 +25,20 @@ from kivy.adapters.listadapter import ListAdapter
 
 
 class DictAdapter(ListAdapter):
-    ''':class:`~kivy.adapters.dictadapter.DictAdapter` is an adapter around a
+    '''A :class:`~kivy.adapters.dictadapter.DictAdapter` is an adapter around a
     python dictionary of records. It extends the list-like capabilities of
-    :class:`~kivy.adapters.listadapter.ListAdapter`.
+    the :class:`~kivy.adapters.listadapter.ListAdapter`.
     '''
 
     sorted_keys = ListProperty([])
     '''The sorted_keys list property contains a list of hashable objects (can
     be strings) that will be used directly if no args_converter function is
     provided. If there is an args_converter, the record received from a
-    lookup in the data, using key from sorted_keys, will be passed
-    to it, for instantiation of list item view class instances.
+    lookup of the data, using keys from sorted_keys, will be passed
+    to it for instantiation of list item view class instances.
 
-    :data:`sorted_keys` is a :class:`~kivy.properties.ListProperty`, default
-    to [].
+    :attr:`sorted_keys` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [].
     '''
 
     data = DictProperty(None)
@@ -47,7 +47,7 @@ class DictAdapter(ListAdapter):
 
     The values can be strings, class instances, dicts, etc.
 
-    :data:`data` is a :class:`~kivy.properties.DictProperty`, default
+    :attr:`data` is a :class:`~kivy.properties.DictProperty` and defaults
     to None.
     '''
 
@@ -100,7 +100,7 @@ class DictAdapter(ListAdapter):
 
     def trim_left_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are less than the
-        index of the first selected item, if there is selection.
+        index of the first selected item, if there is a selection.
 
         sorted_keys will be updated by update_for_new_data().
         '''
@@ -112,7 +112,7 @@ class DictAdapter(ListAdapter):
 
     def trim_right_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are greater than
-        the index of the last selected item, if there is selection.
+        the index of the last selected item, if there is a selection.
 
         sorted_keys will be updated by update_for_new_data().
         '''
@@ -124,7 +124,7 @@ class DictAdapter(ListAdapter):
 
     def trim_to_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are les than or
-        greater than the index of the last selected item, if there is
+        greater than the index of the last selected item, if there is a
         selection. This preserves intervening list items within the selected
         range.
 
@@ -139,7 +139,7 @@ class DictAdapter(ListAdapter):
 
     def cut_to_sel(self, *args):
         '''Same as trim_to_sel, but intervening list items within the selected
-        range are cut also, leaving only list items that are selected.
+        range are also cut, leaving only list items that are selected.
 
         sorted_keys will be updated by update_for_new_data().
         '''

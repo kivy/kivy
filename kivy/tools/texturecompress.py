@@ -11,12 +11,12 @@ This tool is designed to compress images into:
 Usage
 -----
 
-For compressing a texture::
+In order to compress a texture::
 
     texturecompress.py [--dir <directory>] <format> <image.png>
 
-It will create a `image.tex` file with a json header that contain all the image
-information, and the compressed data.
+This will create a `image.tex` file with a json header that contains all the
+image information and the compressed data.
 
 TODO
 ----
@@ -129,6 +129,12 @@ class Etc1Tool(Tool):
             print('Found texturetool at {}'.format(directory))
             self.etc1tool = fn
             return
+
+        if self.etc1tool is None:
+            print('Error: Unable to locate "etc1tool".\n'
+                  'Make sure that "etc1tool" is available in your PATH.\n'
+                  'Or export the path of your Android SDK to ANDROIDSDK')
+            exit(1)
 
     def compress(self):
         # 1. open the source image, and get the dimensions

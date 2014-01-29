@@ -3,10 +3,7 @@
 VideoPyglet: implementation of VideoBase with Pyglet
 '''
 
-try:
-    import pyglet
-except:
-    raise
+import pyglet
 
 from kivy.core.video import VideoBase
 
@@ -103,5 +100,3 @@ class VideoPyglet(VideoBase):
         if self._player:
             self._player.volume = volume
             self.dispatch('on_frame')
-
-

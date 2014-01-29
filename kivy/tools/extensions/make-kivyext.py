@@ -13,19 +13,19 @@
                           (Originally developed for flask.pocoo.org)
     :license: BSD, see LICENSE for more details.
 """
-from __future__ import with_statement
+
 import re
 import os
 import sys
 import getpass
 from datetime import datetime
-from urllib import quote
+from urllib.parse import quote
 
 
 _sep_re = re.compile(r'[\s.,;_-]+')
 
 
-FILE_HEADER_TEMPLATE = u'''\
+FILE_HEADER_TEMPLATE = '''\
 # -*- coding: utf-8 -*-
 """
     %(module)s
@@ -37,7 +37,7 @@ FILE_HEADER_TEMPLATE = u'''\
 """
 '''
 
-SETUP_PY_TEMPLATE = u'''\
+SETUP_PY_TEMPLATE = '''\
 """
 %(name)s
 %(namedecor)s
@@ -62,6 +62,7 @@ import os
 from os.path import join
 from shutil import copy
 from subprocess import call
+import sys
 
 
 class PackageBuild(Command):
@@ -80,7 +81,7 @@ class PackageBuild(Command):
         for file in files:
             # Simply copy & replace...
             copy(join('dist', file), join('kexfiles', file[:-3] + "kex"))
-        print 'The extension files are now available in kexfiles/'
+        print('The extension files are now available in kexfiles/')
 
     def initialize_options(self):
         pass
@@ -119,7 +120,7 @@ def prompt(name, default=None):
     prompt = name + (default and ' [%s]' % default or '')
     prompt += name.endswith('?') and ' ' or ': '
     while True:
-        rv = raw_input(prompt)
+        rv = input(prompt)
         if rv:
             return rv
         if default is not None:
@@ -193,11 +194,11 @@ class Extension(object):
 
 def main():
     if len(sys.argv) not in (1, 2):
-        print 'usage: make-kivyext.py [output-folder]'
+        print('usage: make-kivyext.py [output-folder]')
         return
     msg = 'Welcome to the Kivy Extension Creator Wizard'
-    print msg
-    print '~' * len(msg)
+    print(msg)
+    print('~' * len(msg))
 
     name = prompt('Extension Name (human readable)')
     shortname = prompt('Extension Name (for filesystem)', guess_package(name))
@@ -208,7 +209,7 @@ def main():
     while 1:
         folder = prompt('Output folder', default=output_folder)
         if os.path.isfile(folder):
-            print 'Error: output folder is a file'
+            print('Error: output folder is a file')
         elif os.path.isdir(folder) and os.listdir(folder):
             if prompt_bool('Warning: output folder is not empty. Continue'):
                 break
@@ -227,7 +228,7 @@ def main():
     populate the placeholder values. Obviously you will also need to add the
     actual extension code.
     ''' % dict(output_folder=output_folder)
-    print msg
+    print(msg)
 
 
 if __name__ == '__main__':

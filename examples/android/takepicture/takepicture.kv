@@ -1,0 +1,40 @@
+#:kivy 1.0
+#:import win kivy.core.window
+
+Widget:
+	canvas:
+		Color:
+			rgb: .85, .87, .88
+		Rectangle:
+			size: self.size
+
+    Button:
+        text: 'Take a picture'
+		width: self.texture_size[0] + dp(40)
+		height: '48dp'
+        on_release: app.take_picture()
+
+<Picture>:
+    on_size: self.center = win.Window.center
+    size: image.size
+    size_hint: None, None
+
+    Image:
+        id: image
+        source: root.source
+
+        # create initial image to be 400 pixels width
+        size: 400, 400
+
+        # add shadow background
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1
+            BorderImage:
+                source: 'shadow32.png'
+                border: (36, 36, 36, 36)
+                size:(self.width + 72, self.height + 72)
+                pos: (-36, -36)
+
+
+

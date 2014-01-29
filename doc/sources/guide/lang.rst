@@ -22,12 +22,12 @@ How to load KV
 There are two ways to load Kv code into your application:
 - By name convention:
 
-  Kivy looks if there is a Kv file with the same name as your App class in 
+  Kivy looks if there is a Kv file with the same name as your App class in
   lowercase,  minus "App" if it ends with 'App'. E.g::
-  
+
     MyApp -> my.kv.
 
-  If this file defines a `Root Widget` it will be attached to the App's `root` 
+  If this file defines a `Root Widget` it will be attached to the App's `root`
   attribute and used as the base of the application widget tree.
 
 - :obj:`~kivy.lang.Builder`:
@@ -39,7 +39,7 @@ There are two ways to load Kv code into your application:
   or::
 
     Builder.load_string(kv_string)
-  
+
 Rule context
 ------------
 
@@ -106,9 +106,10 @@ this child inside the rule:
             Button:
             Button:
 
-The example above defines that our root widget, an instance of `MyRootWidget`
-has a child; an instance of the :class:`~kivy.uix.boxlayout.BoxLayout` which
-has two children, instances of the :class:`~kivy.uix.button.Button` class.
+The example above defines that our root widget, an instance of `MyRootWidget`,
+which has a child that is an instance of the
+:class:`~kivy.uix.boxlayout.BoxLayout`.  That BoxLayout further has two
+children, instances of the :class:`~kivy.uix.button.Button` class.
 
 A python equivalent of this code could be:
 
@@ -120,10 +121,10 @@ A python equivalent of this code could be:
     box.add_widget(Button())
     root.add_widget(box)
 
-Which you way find maybe less nice, both to read and to write.
+Which you may find less nice, both to read and to write.
 
 Of course, in python, you can pass keyword arguments to your widgets at
-creation, to specify their behaviour, for example, to set the number of columns
+creation to specify their behaviour.  For example, to set the number of columns
 of a :mod:`~kivy.uix.gridlayout`, we would do::
 
     grid = GridLayout(cols=3)
@@ -176,8 +177,8 @@ More complex expressions can be used, like:
     pos: self.center_x - self.texture_size[0] / 2., self.center_y - self.texture_size[1] / 2.
 
 This expression listens for a change in ``center_x``, ``center_y``,
-and ``texture_size``. If one of them is changing, the expression will be
-re-evaluated, and update the ``pos`` field.
+and ``texture_size``. If one of them changes, the expression will be
+re-evaluated to update the ``pos`` field.
 
 You can also handle ``on_`` events inside your kv language.
 For example the TextInput class has a ``focus`` property whose auto-generated
@@ -186,13 +187,13 @@ For example the TextInput class has a ``focus`` property whose auto-generated
 .. code-block:: kv
 
     TextInput:
-        on_focus: print args 
+        on_focus: print(args)
 
 
 Extend canvas
 -------------
 
-Kv lang can be used to define the canvas instructions of your widget too:
+Kv lang can be used to define the canvas instructions of your widget like this:
 
 .. code-block:: kv
 
@@ -203,7 +204,7 @@ Kv lang can be used to define the canvas instructions of your widget too:
             Line:
                 points: zip(self.data.x, self.data.y)
 
-And yes, they get updated too if properties values change.
+And they get updated when properties values change.
 
 Of course you can use `canvas.before` and `canvas.after`.
 
@@ -225,13 +226,49 @@ following:
 
     <MySecondWidget>:
         Button:
-            id:s_but
+            id: s_but
         TextInput:
             text: s_but.state
 
-id's are limited in scope to the rule they are declared in so, in the
-code above `s_but` can not be accessed outside the <MySecondWidget>
+An ``id`` is limited in scope to the rule it is declared in, so in the
+code above ``s_but`` can not be accessed outside the <MySecondWidget>
 rule.
+
+An ``id`` is a ``weakref`` to the widget and not the widget itself. As a
+consequence, storing the ``id`` is not sufficient to keep the widget from being
+garbage collected. To demonstrate:
+
+.. code-block:: kv
+
+    <MyWidget>:
+        label_widget: label_widget
+        Button:
+            text: 'Add Button'
+            on_press: root.add_widget(label_widget)
+        Button:
+            text: 'Remove Button'
+            on_press: root.remove_widget(label_widget)
+        Label:
+            id: label_widget
+            text: 'widget'
+
+Although a reference to ``label_widget`` is stored in ``MyWidget``, it is not
+sufficient to keep the object alive once other references have been removed
+because it's only a weakref.
+Therefore, after the remove button is clicked (which removes
+any direct reference to the widget) and the window is resized (which calls the
+garbage collector resulting in the deletion of ``label_widget``), when the add
+button is clicked to add the widget back, a ``ReferenceError: weakly-referenced
+object no longer exists`` will be thrown.
+
+To keep the widget alive, a direct reference to the ``label_widget`` widget
+must be kept. This is achieved using ``id.__self__`` or ``label_widget.__self__``
+in this case. The correct way to do this would be:
+
+.. code-block:: kv
+
+    <MyWidget>:
+        label_widget: label_widget.__self__
 
 Accessing Widgets defined inside Kv lang in your python code
 ------------------------------------------------------------
@@ -241,8 +278,8 @@ Consider the code below in my.kv:
 .. code-block:: kv
 
     <MyFirstWidget>:
-        # both these variable don't have to be the same name and this doesn't
-        # lead to a issue with uniqueness as id's are accessible only in kv.
+        # both these variables can be the same name and this doesn't lead to
+        # an issue with uniqueness as the id is only accessible in kv.
         txt_inpt: txt_inpt
         Button:
             id: f_but
@@ -258,12 +295,12 @@ In myapp.py:
 
     ...
     class MyFirstWidget(BoxLayout):
-    
+
         txt_inpt = ObjectProperty(None)
-    
+
         def check_status(self, btn):
-            print ('button state is: {state}'.format(state=btn.state))
-            print ('text input text is: {txt}'.format(txt=self.txt_inpt))
+            print('button state is: {state}'.format(state=btn.state))
+            print('text input text is: {txt}'.format(txt=self.txt_inpt))
     ...
 
 `txt_inpt` is defined as a :class:`~kivy.properties.ObjectProperty` initialized
@@ -283,6 +320,29 @@ the function `check_status`. In contrast to this method you could also just pass
 the `id` to the function that needs to use it, like in case of `f_but` in the
 code above.
 
+There is a simpler way to access the ids as defined in the kv language for example:
+
+.. code-block:: kv
+
+    <Marvel>
+      Label:
+        id: loki
+        text: 'loki: I AM YOUR GOD!'
+      Button:
+        id: hulk
+        text: "press to smash loki"
+        on_release: root.hulk_smash()
+
+In your python code:
+
+.. code-block:: python
+
+    class Marvel(BoxLayout):
+
+        def hulk_smash(self):
+            self.ids.hulk.text = "hulk: puny god!"
+            self.ids.loki.text = "loki: >_<!!!"
+
 
 Templates
 ---------
@@ -292,20 +352,17 @@ Consider the code below:
 
     <MyWidget>:
         Button:
-            text:
-                "Hello world, watch this text wrap inside the button"
+            text: "Hello world, watch this text wrap inside the button"
             text_size: self.size
             font_size: '25sp'
             markup: True
         Button:
-            text:
-                "Even absolute is relative to itself"
+            text: "Even absolute is relative to itself"
             text_size: self.size
             font_size: '25sp'
             markup: True
         Button:
-            text:
-                "repeating the same thing over and over in a comp = fail"
+            text: "Repeating the same thing over and over in a comp = fail"
             text_size: self.size
             font_size: '25sp'
             markup: True
@@ -321,7 +378,7 @@ template instead, like so:
         text_size: self.size
         font_size: '25sp'
         markup: True
-    
+
     <MyWidget>:
         MyBigButt:
             text: "Hello world, watch this text wrap inside the button"
@@ -333,6 +390,56 @@ template instead, like so:
 
 `ctx` is a keyword inside a template that can be used to access the individual
 attributes of each instance of this template.
+
+Re-using styles in multiple widgets
+-----------------------------------
+
+Consider the code below in my.kv:
+
+.. code-block:: kv
+
+    <MyFirstWidget>:
+        Button:
+            on_press: self.text(txt_inpt.text)
+        TextInput:
+            id: txt_inpt
+
+    <MySecondWidget>:
+        Button:
+            on_press: self.text(txt_inpt.text)
+        TextInput:
+            id: txt_inpt
+
+In myapp.py:
+
+.. code-block:: py
+
+    class MyFirstWidget(BoxLayout):
+
+        def text(self, val):
+            print('text input text is: {txt}'.format(txt=val))
+
+    class MySecondWidget(BoxLayout):
+
+        writing = StringProperty('')
+
+        def text(self, val):
+            self.writing = val
+
+Because both classes share the same .kv style, this design can be simplified
+if we reuse the style for both widgets. You can do this in .kv as follows.
+In my.kv:
+
+.. code-block:: kv
+
+    <MyFirstWidget,MySecondWidget>:
+        Button:
+            on_press: self.text(txt_inpt.text)
+        TextInput:
+            id: txt_inpt
+
+By separating the class names with a comma, all the classes listed in the
+declaration will have the same kv properties.
 
 Designing with the Kivy Language
 --------------------------------
@@ -362,7 +469,7 @@ nothing will be shown on the screen. This is expected, because the
 ``Controller`` class has no widgets in it, it's just a ``FloatLayout``. We can
 create the UI around the ``Controller`` class in a file named `controller.kv`,
 which will be loaded when we run the ``ControllerApp``. How this is done and
-what files are loaded is described in the :func:`kivy.app.App.load_kv` method.
+what files are loaded is described in the :meth:`kivy.app.App.load_kv` method.
 
 .. literalinclude:: ../../../examples/guide/designwithkv/controller.kv
     :language: kv
@@ -372,8 +479,8 @@ One label and one button in a vertical ``BoxLayout``. Seems very simple. There
 are 3 things going on here:
 
     1. Using data from the ``Controller``. As soon as the ``info`` property is
-       changed in the controller, the expression ``text: 'My controller info is
-       : ' + root.info`` will automatically be re-evaluated, changing the text
+       changed in the controller, the expression ``text: 'My controller info
+       is: ' + root.info`` will automatically be re-evaluated, changing the text
        in the ``Button``.
 
     2. Giving data to the ``Controller``. The expression ``id: my_custom_label``

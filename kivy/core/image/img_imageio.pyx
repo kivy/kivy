@@ -148,7 +148,7 @@ def load_image_data(bytes _url):
 
     # Release image ref to avoid memory leak
     CFRelease(url)
-    CGImageRelease(myImageSourceRef)
+    CGImageRelease(<CGImageRef>myImageSourceRef)
     CFRelease(myImageRef)
     CGContextRelease(myBitmapContext)
     CGColorSpaceRelease(space)
@@ -180,7 +180,9 @@ def save_image(filename, width, height, fmt, data):
         data = data.tostring()
     source = <bytes>data[:len(data)]
 
-    cdef int fmt_length = 4 if fmt == 'rgba' else 3
+    cdef int fmt_length = 3
+    if fmt == 'rgba':
+        fmt_length = 4
     cdef char *pixels = <char *>malloc(int(width * height * fmt_length))
     memcpy(pixels, <void *>source, int(width * height * fmt_length))
 

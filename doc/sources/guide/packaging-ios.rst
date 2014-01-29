@@ -28,6 +28,7 @@ use `Homebrew <http://mxcl.github.com/homebrew/>`_ to install thoses dependencie
     brew install autoconf automake libtool pkg-config mercurial
     brew link libtool
     brew link mercurial
+    sudo easy_install pip
     sudo pip install cython
 
 Ensure that everything is ok before starting the second step!
@@ -93,9 +94,6 @@ Known issues
 
 Currently, the project has a few known issues (we'll fix these in future
 versions):
-
-- Application configuration not writing: we are still learning how IOS manages its
-  filesystem.
 
 - You can't export your project outside the kivy-ios directory because the
   libraries included in the project are relative to it.

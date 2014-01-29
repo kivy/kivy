@@ -5,12 +5,13 @@ List Item View Argument Converters
 .. versionadded:: 1.5
 
 
-The default list item args converter for list adapters is this function
-that takes a string and returns the string as the text argument in a dict,
-along with two properties suited for simple text items with height of 25.
+The default list item args converter for list adapters is a function (shown
+below) that takes a row index and a string. It returns a dict with the string as
+the *text* item, along with two properties suited for simple text items with
+a height of 25.
 
-These may be normal functions or, in the case of the default args converter,
-lambdas::
+Argument converters may be normal functions or, as in the case of the default
+args converter, lambdas::
 
     list_item_args_converter = lambda row_index, x: {'text': x,
                                                      'size_hint_y': None,

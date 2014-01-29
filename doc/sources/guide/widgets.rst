@@ -93,13 +93,13 @@ If you want to clear all the children inside a widget, use
 Traversing the Tree
 -------------------
 
-The Widget class instance's :data:`~kivy.uix.widget.Widget.children` list property
+The Widget class instance's :attr:`~kivy.uix.widget.Widget.children` list property
 contains all the children. You can easily traverse the tree by doing::
 
     root = BoxLayout()
     # ... add widgets to root ...
     for child in root.children:
-        print child
+        print(child)
 
 However, this must be used carefuly. If you intend to modify the children list
 with one of the methods shown in the previous section, you must use a copy of
@@ -142,13 +142,9 @@ proportions allowed to each child, or set fixed size for some of them.
 .. only:: html
 
     .. image:: ../images/boxlayout.gif
-        :align: left
     .. image:: ../images/gridlayout.gif
-        :align: right
     .. image:: ../images/stacklayout.gif
-        :align: left
     .. image:: ../images/anchorlayout.gif
-        :align: right
     .. image:: ../images/floatlayout.gif
 
 .. only:: latex
@@ -307,6 +303,8 @@ This gives us:
 As with |size_hint|, you should experiment with |pos_hint| to
 understand the effect it has on the widget positions.
 
+.. _adding_widget_background:
+
 Adding a Background to a Layout
 -------------------------------
 
@@ -321,10 +319,9 @@ instance easily, as with adding a colored background:
 In Python::
 
     with layout_instance.canvas.before:
-        Color(rgba(0, 1, 0, 1)) # green; colors range from 0-1 instead of 0-255
-        self.rect = Rectangle(
-                                size=layout_instance.size,
-                                pos=layout_instance.pos)
+        Color(0, 1, 0, 1) # green; colors range from 0-1 instead of 0-255
+        self.rect = Rectangle(size=layout_instance.size,
+                               pos=layout_instance.pos)
 
 Unfortunately, this will only draw a rectangle at the layout's initial position
 and size. To make sure the rect is drawn inside the layout, when layout size/pos

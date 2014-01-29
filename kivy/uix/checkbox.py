@@ -10,7 +10,7 @@ CheckBox
 :class:`CheckBox` is a specific two-state button that can be either checked or
 unchecked. If the CheckBox is in a Group, it becomes a Radio button.
 As with the :class:`~kivy.uix.togglebutton.ToggleButton`, only one Radio button
-at a time can be selected when the :data:`CheckBox.group` is set.
+at a time can be selected when the :attr:`CheckBox.group` is set.
 
 An example usage::
 
@@ -20,9 +20,9 @@ An example usage::
 
     def on_checkbox_active(checkbox, value):
         if value:
-            print 'The checkbox', checkbox, 'is active'
+            print('The checkbox', checkbox, 'is active')
         else:
-            print 'The checkbox', checkbox, 'is inactive'
+            print('The checkbox', checkbox, 'is inactive')
 
     checkbox = CheckBox()
     checkbox.bind(active=on_checkbox_active)
@@ -42,18 +42,19 @@ class CheckBox(Widget):
     active = BooleanProperty(False)
     '''Indicates if the switch is active or inactive.
 
-    :data:`active` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :attr:`active` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     __groups = {}
 
     group = ObjectProperty(None, allownone=True)
     '''Group of the checkbox. If None, no group will be used (the checkbox is
-    independent). If specified, :data:`group` must be a hashable object, like
-    a string. Only one checkbox in a group can be active.
+    independent). If specified, the :attr:`group` must be a hashable object
+    such as a string. Only one checkbox in a group can be active.
 
-    :data:`group` is a :class:`~kivy.properties.ObjectProperty`
+    :attr:`group` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     def __init__(self, **kwargs):
@@ -90,18 +91,26 @@ class CheckBox(Widget):
         self._release_group(self)
         self.active = not self.active
 
+    def _release(self):
+        self.active = not self.active
+
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
-        self._toggle_active()
+        if self.disabled:
+            return True
+        if self.group is None or self.group == '':
+            self._release()
+        elif self.group:
+            if not self.active:
+                self._toggle_active()
         return True
 
     @staticmethod
     def _clear_groups(wk):
         # auto flush the element when the weak reference have been deleted
         groups = CheckBox.__groups
-        for group in groups.values():
+        for group in list(groups.values()):
             if wk in group:
                 group.remove(wk)
                 break
-

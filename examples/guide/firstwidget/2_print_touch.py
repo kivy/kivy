@@ -4,7 +4,7 @@ from kivy.uix.widget import Widget
 
 class MyPaintWidget(Widget):
     def on_touch_down(self, touch):
-        print touch
+        print(touch)
 
 class MyPaintApp(App):
     def build(self):

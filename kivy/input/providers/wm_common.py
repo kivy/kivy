@@ -1,8 +1,8 @@
 '''
-Common definitions for Windows provider
-=======================================
+Common definitions for a Windows provider
+=========================================
 
-This file provides common definitions of constants used for WM_Touch / WM_Pen
+This file provides common definitions for constants used by WM_Touch / WM_Pen.
 '''
 
 WM_MOUSEFIRST = 512
@@ -27,6 +27,8 @@ TOUCHEVENTF_UP = 4
 PEN_OR_TOUCH_SIGNATURE = 0xFF515700
 PEN_OR_TOUCH_MASK = 0xFFFFFF00
 PEN_EVENT_TOUCH_MASK = 0x80
+
+SM_CYCAPTION = 4
 
 WM_TABLET_QUERYSYSTEMGESTURE = 0x000002CC
 TABLET_DISABLE_PRESSANDHOLD = 0x00000001

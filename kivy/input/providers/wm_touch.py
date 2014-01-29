@@ -1,16 +1,17 @@
 '''
-Support of WM_TOUCH message (Window platform)
-=============================================
+Support for WM_TOUCH messages (Windows platform)
+================================================
 '''
 
 __all__ = ('WM_MotionEventProvider', 'WM_MotionEvent')
 
 import os
-from kivy.input.providers.wm_common import (WM_TABLET_QUERYSYSTEMGESTURE,
-        GWL_WNDPROC, QUERYSYSTEMGESTURE_WNDPROC, WM_TOUCH, WM_MOUSEMOVE,
-        WM_MOUSELAST, PEN_OR_TOUCH_MASK, PEN_OR_TOUCH_SIGNATURE,
-        PEN_EVENT_TOUCH_MASK, TOUCHEVENTF_UP, TOUCHEVENTF_DOWN,
-        TOUCHEVENTF_MOVE)
+from kivy.input.providers.wm_common import (
+    WM_TABLET_QUERYSYSTEMGESTURE,
+    GWL_WNDPROC, QUERYSYSTEMGESTURE_WNDPROC, WM_TOUCH, WM_MOUSEMOVE,
+    WM_MOUSELAST, PEN_OR_TOUCH_MASK, PEN_OR_TOUCH_SIGNATURE,
+    PEN_EVENT_TOUCH_MASK, TOUCHEVENTF_UP, TOUCHEVENTF_DOWN,
+    TOUCHEVENTF_MOVE, SM_CYCAPTION)
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
 
@@ -42,8 +43,9 @@ if 'KIVY_DOC' in os.environ:
 
 else:
     from ctypes.wintypes import (ULONG, HANDLE, DWORD, LONG, UINT,
-            WPARAM, LPARAM, POINTER, BOOL)
-    from ctypes import windll, WINFUNCTYPE, c_int, Structure, sizeof, byref
+                                 WPARAM, LPARAM, BOOL)
+    from ctypes import (windll, WINFUNCTYPE, POINTER,
+                        c_int, Structure, sizeof, byref)
     from collections import deque
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory
@@ -125,6 +127,8 @@ else:
     windll.user32.GetTouchInputInfo.restype = BOOL
     windll.user32.GetTouchInputInfo.argtypes = [HANDLE, UINT,
                                                 POINTER(TOUCHINPUT), c_int]
+    windll.user32.GetSystemMetrics.restype = c_int
+    windll.user32.GetSystemMetrics.argtypes = [c_int]
 
     class WM_MotionEventProvider(MotionEventProvider):
 
@@ -143,9 +147,12 @@ else:
             self.old_windProc = SetWindowLong_wrapper(
                 self.hwnd, GWL_WNDPROC, self.new_windProc)
 
+            self.caption_size = windll.user32.GetSystemMetrics(SM_CYCAPTION)
+
         def update(self, dispatch_fn):
             win_rect = RECT()
             windll.user32.GetWindowRect(self.hwnd, byref(win_rect))
+            caption = self.caption_size
 
             while True:
                 try:
@@ -155,13 +162,14 @@ else:
 
                 # adjust x,y to window coordinates (0.0 to 1.0)
                 x = (t.screen_x() - win_rect.x) / float(win_rect.w)
-                y = 1.0 - (t.screen_y() - win_rect.y) / float(win_rect.h)
+                y = 1.0 - (t.screen_y() - win_rect.y - caption
+                           ) / float(win_rect.h)
 
                 # actually dispatch input
                 if t.event_type == 'begin':
                     self.uid += 1
-                    self.touches[t.id] = WM_MotionEvent(self.device,
-                                                  self.uid, [x, y, t.size()])
+                    self.touches[t.id] = WM_MotionEvent(
+                        self.device, self.uid, [x, y, t.size()])
                     dispatch_fn('begin', self.touches[t.id])
 
                 if t.event_type == 'update' and t.id in self.touches:
@@ -195,7 +203,8 @@ else:
 
             if not done:
                 return windll.user32.CallWindowProcW(self.old_windProc,
-                                                hwnd, msg, wParam, lParam)
+                                                     hwnd, msg, wParam,
+                                                     lParam)
             return 1
 
         # this on pushes WM_TOUCH messages onto our event stack
@@ -205,7 +214,7 @@ else:
                                             wParam,
                                             touches,
                                             sizeof(TOUCHINPUT))
-            for i in xrange(wParam):
+            for i in range(wParam):
                 self.touch_events.appendleft(touches[i])
             return True
 

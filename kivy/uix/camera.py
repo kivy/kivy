@@ -9,7 +9,7 @@ the hood::
 
     cam = Camera()
 
-By default the first camera found on your system is used. To use a different
+By default, the first camera found on your system is used. To use a different
 camera, set the index property::
 
     cam = Camera(index=1)
@@ -21,9 +21,8 @@ You can also select the camera resolution::
 .. warning::
 
     The camera texture is not updated as soon as you have created the object.
-    The camera initialization is asynchronous, it may take a little bit before
-    the texture is created.
-
+    The camera initialization is asynchronous, so there may be a delay before
+    the requested texture is created.
 '''
 
 __all__ = ('Camera', )
@@ -31,7 +30,7 @@ __all__ = ('Camera', )
 from kivy.uix.image import Image
 from kivy.core.camera import Camera as CoreCamera
 from kivy.properties import NumericProperty, ListProperty, \
-        BooleanProperty
+    BooleanProperty
 
 
 class Camera(Image):
@@ -39,7 +38,7 @@ class Camera(Image):
     '''
 
     play = BooleanProperty(True)
-    '''Boolean indicate if the camera is playing.
+    '''Boolean indicating whether the camera is playing or not.
     You can start/stop the camera by setting this property::
 
         # start the camera playing at creation (default)
@@ -50,15 +49,15 @@ class Camera(Image):
         # and later
         cam.play = True
 
-    :data:`play` is a :class:`~kivy.properties.BooleanProperty`, default to
+    :attr:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     True.
     '''
 
     index = NumericProperty(-1)
     '''Index of the used camera, starting from 0.
 
-    :data:`index` is a :class:`~kivy.properties.NumericProperty`, default to -1
-    to allow auto selection.
+    :attr:`index` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to -1 to allow auto selection.
     '''
 
     resolution = ListProperty([-1, -1])
@@ -76,8 +75,8 @@ class Camera(Image):
         Depending on the implementation, the camera may not respect this
         property.
 
-    :data:`resolution` is a :class:`~kivy.properties.ListProperty`, default to
-    [-1, -1]
+    :attr:`resolution` is a :class:`~kivy.properties.ListProperty` and defaults
+    to [-1, -1].
     '''
 
     def __init__(self, **kwargs):
@@ -99,7 +98,7 @@ class Camera(Image):
         if self.resolution[0] < 0 or self.resolution[1] < 0:
             return
         self._camera = CoreCamera(index=self.index,
-            resolution=self.resolution, stopped=True)
+                                  resolution=self.resolution, stopped=True)
         self._camera.bind(on_load=self._camera_loaded)
         if self.play:
             self._camera.start()
@@ -116,4 +115,3 @@ class Camera(Image):
             self._camera.start()
         else:
             self._camera.stop()
-

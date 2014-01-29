@@ -6,29 +6,29 @@ Input recorder
 
 .. warning::
 
-    This part of Kivy is still experimental, and his API is subject to change in
-    a future version.
+    This part of Kivy is still experimental and this API is subject to
+    change in a future version.
 
-This is a class that can record and replay some part of input events. This can
-be used for test case, screen saver etc.
+This is a class that can record and replay some input events. This can
+be used for test cases, screen savers etc.
 
-Once activated, the recorder will listen to any input event, and save some
-properties in a file + the delta time. Later, you can play the input file: it
-will generate fake touch with saved properties, and dispatch it to the event
-loop.
+Once activated, the recorder will listen for any input event and save its
+properties in a file with the delta time. Later, you can play the input
+file: it will generate fake touch events with the saved properties and
+dispatch it to the event loop.
 
-By default, only the position are saved ('pos' profile and 'sx', 'sy',
-attributes). Changes it only if you understand how input is working.
+By default, only the position is saved ('pos' profile and 'sx', 'sy',
+attributes). Change it only if you understand how input handling works.
 
 Recording events
 ----------------
 
 The best way is to use the "recorder" module. Check the :doc:`api-kivy.modules`
-documentation for learning about how to activate a module.
+documentation to see how to activate a module.
 
-When activated, you can press F8 to start the recording. By default, events will
-be written at `<currentpath>/recorder.kvi`. When you want to stop recording,
-press F8 again.
+Once activated, you can press F8 to start the recording. By default,
+events will be written to `<currentpath>/recorder.kvi`. When you want to
+stop recording, press F8 again.
 
 You can replay the file by pressing F7.
 
@@ -60,10 +60,10 @@ If you want to loop over that file, you can do::
 Recording more attributes
 -------------------------
 
-You can extend the attributes to save, at one condition: attributes values must
-be simple value, not instance of complex class. Aka, saving shape will not work.
+You can extend the attributes to save on one condition: attributes values must
+be simple values, not instances of complex classes.
 
-Let's say you want to save angle and pressure of the touch, if available::
+Let's say you want to save the angle and pressure of the touch, if available::
 
     from kivy.input.recorder import Recorder
 
@@ -80,11 +80,11 @@ Or with modules variables::
 Known limitations
 -----------------
 
-  - Unable to save attributes with instance of complex class
-  - Values that represent time will be not adjusted
-  - Can replay only complete record, if a begin/update/end event is missing,
-    this could lead to ghost touch.
-  - Stopping the replay before the end can lead to ghost touch.
+  - Unable to save attributes with instances of complex classes.
+  - Values that represent time will not be adjusted.
+  - Can replay only complete records. If a begin/update/end event is missing,
+    this could lead to ghost touches.
+  - Stopping the replay before the end can lead to ghost touches.
 
 '''
 
@@ -94,7 +94,7 @@ from os.path import exists
 from time import time
 from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty, BooleanProperty, StringProperty, \
-        NumericProperty, ListProperty
+    NumericProperty, ListProperty
 from kivy.input.motionevent import MotionEvent
 from kivy.base import EventLoop
 from kivy.logger import Logger
@@ -105,63 +105,63 @@ from functools import partial
 class RecorderMotionEvent(MotionEvent):
 
     def depack(self, args):
-        for key, value in args.items():
+        for key, value in list(args.items()):
             setattr(self, key, value)
         super(RecorderMotionEvent, self).depack(args)
 
 
 class Recorder(EventDispatcher):
-    '''Recorder class, check module documentation for more information.
+    '''Recorder class. Please check module documentation for more information.
     '''
 
     window = ObjectProperty(None)
-    '''Window instance to attach the recorder. If None set, it will use the
-    default one.
+    '''Window instance to attach the recorder. If None, it will use the
+    default instance.
 
-    :data:`window` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
+    :attr:`window` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     counter = NumericProperty(0)
     '''Number of events recorded in the last session.
 
-    :data:`counter` is a :class:`~kivy.properties.NumericProperty`, default to
-    0, read-only.
+    :attr:`counter` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to 0, read-only.
     '''
 
     play = BooleanProperty(False)
-    '''Boolean to start/stop the replay of the current file (if exist.)
+    '''Boolean to start/stop the replay of the current file (if it exists).
 
-    :data:`play` is a :class:`~kivy.properties.BooleanProperty`, default to
+    :attr:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
     '''
 
     record = BooleanProperty(False)
     '''Boolean to start/stop the recording of input events.
 
-    :data:`record` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :attr:`record` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     filename = StringProperty('recorder.kvi')
-    '''Filename to save the output of recorder.
+    '''Filename to save the output of the recorder.
 
-    :data:`filename` is a :class:`~kivy.properties.StringProperty`, default to
-    'recorder.kvi'.
+    :attr:`filename` is a :class:`~kivy.properties.StringProperty` and defaults
+    to 'recorder.kvi'.
     '''
 
     record_attrs = ListProperty(['is_touch', 'sx', 'sy'])
     '''Attributes to record from the motion event.
 
-    :data:`record_attrs` is a :class:`~kivy.properties.ListProperty`, default to
-    ['is_touch', 'sx', 'sy'].
+    :attr:`record_attrs` is a :class:`~kivy.properties.ListProperty` and
+    defaults to ['is_touch', 'sx', 'sy'].
     '''
 
     record_profile_mask = ListProperty(['pos'])
     '''Profile to save in the fake motion event when replayed.
 
-    :data:`record_profile_mask` is a :class:`~kivy.properties.ListProperty`,
-    default to ['pos'].
+    :attr:`record_profile_mask` is a :class:`~kivy.properties.ListProperty` and
+    defaults to ['pos'].
     '''
 
     # internals
@@ -175,20 +175,20 @@ class Recorder(EventDispatcher):
             from kivy.core.window import Window
             self.window = Window
         self.window.bind(
-                on_motion=self.on_motion,
-                on_key_up=partial(self.on_keyboard, 'keyup'),
-                on_key_down=partial(self.on_keyboard, 'keydown'),
-                on_keyboard=partial(self.on_keyboard, 'keyboard'))
+            on_motion=self.on_motion,
+            on_key_up=partial(self.on_keyboard, 'keyup'),
+            on_key_down=partial(self.on_keyboard, 'keydown'),
+            on_keyboard=partial(self.on_keyboard, 'keyboard'))
 
     def on_motion(self, window, etype, motionevent):
         if not self.record:
             return
 
         args = dict((arg, getattr(motionevent, arg))
-                for arg in self.record_attrs if hasattr(motionevent, arg))
+                    for arg in self.record_attrs if hasattr(motionevent, arg))
 
         args['profile'] = [x for x in motionevent.profile if x in
-                self.record_profile_mask]
+                           self.record_profile_mask]
         self.record_fd.write('%r\n' % (
             (time() - self.record_time, etype, motionevent.uid, args), ))
         self.counter += 1
@@ -207,9 +207,9 @@ class Recorder(EventDispatcher):
 
     def release(self):
         self.window.unbind(
-                on_motion=self.on_motion,
-                on_key_up=self.on_keyboard,
-                on_key_down=self.on_keyboard)
+            on_motion=self.on_motion,
+            on_key_up=self.on_keyboard,
+            on_key_down=self.on_keyboard)
 
     def on_record(self, instance, value):
         if value:
@@ -222,7 +222,7 @@ class Recorder(EventDispatcher):
         else:
             self.record_fd.close()
             Logger.info('Recorder: Recorded %d events in %r' % (self.counter,
-                self.filename))
+                                                                self.filename))
 
     # needed for acting as an input provider
     def stop(self):
@@ -259,7 +259,7 @@ class Recorder(EventDispatcher):
         self.play_time = time()
         self.play_me = {}
         Logger.info('Recorder: Start playing %d events from %r' %
-                (len(self.play_data), self.filename))
+                    (len(self.play_data), self.filename))
         EventLoop.add_input_provider(self)
 
     def update(self, dispatch_fn):
@@ -287,25 +287,25 @@ class Recorder(EventDispatcher):
                 me.depack(args)
             elif etype == 'keydown':
                 self.window.dispatch(
-                        'on_key_down',
-                        args['key'],
-                        args['scancode'],
-                        args['codepoint'],
-                        args['modifier'])
+                    'on_key_down',
+                    args['key'],
+                    args['scancode'],
+                    args['codepoint'],
+                    args['modifier'])
             elif etype == 'keyup':
                 self.window.dispatch(
-                        'on_key_up',
-                        args['key'],
-                        args['scancode'],
-                        args['codepoint'],
-                        args['modifier'])
+                    'on_key_up',
+                    args['key'],
+                    args['scancode'],
+                    args['codepoint'],
+                    args['modifier'])
             elif etype == 'keyboard':
                 self.window.dispatch(
-                        'on_keyboard',
-                        args['key'],
-                        args['scancode'],
-                        args['codepoint'],
-                        args['modifier'])
+                    'on_keyboard',
+                    args['key'],
+                    args['scancode'],
+                    args['codepoint'],
+                    args['modifier'])
 
             if me:
                 dispatch_fn(etype, me)

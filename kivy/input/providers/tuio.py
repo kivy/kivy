@@ -2,10 +2,11 @@
 TUIO Input Provider
 ===================
 
-TUIO is a de facto standard network protocol for the transmission of touch and
-fiducial information between a server and a client.
-To learn more about TUIO (which is itself based on the OSC protocol), please
-refer to http://tuio.org -- The specification should be of special interest.
+TUIO is the de facto standard network protocol for the transmission of
+touch and fiducial information between a server and a client.  To learn
+more about TUIO (which is itself based on the OSC protocol), please
+refer to http://tuio.org -- The specification should be of special
+interest.
 
 Configure a TUIO provider in the config.ini
 -------------------------------------------
@@ -20,7 +21,7 @@ The TUIO provider can be configured in the configuration file in the
 Configure a TUIO provider in the App
 ------------------------------------
 
-You must add the provider before your application is runned, like::
+You must add the provider before your application is run, like this::
 
     from kivy.app import App
     from kivy.config import Config
@@ -112,35 +113,35 @@ class TuioMotionEventProvider(MotionEventProvider):
 
     @staticmethod
     def register(oscpath, classname):
-        '''Register a new path to handle in tuio provider'''
+        '''Register a new path to handle in TUIO provider'''
         TuioMotionEventProvider.__handlers__[oscpath] = classname
 
     @staticmethod
     def unregister(oscpath, classname):
-        '''Unregister a path to stop handling it in the tuio provider'''
+        '''Unregister a path to stop handling it in the TUIO provider'''
         if oscpath in TuioMotionEventProvider.__handlers__:
             del TuioMotionEventProvider.__handlers__[oscpath]
 
     @staticmethod
     def create(oscpath, **kwargs):
-        '''Create a touch from a tuio path'''
+        '''Create a touch event from a TUIO path'''
         if oscpath not in TuioMotionEventProvider.__handlers__:
             raise Exception('Unknown %s touch path' % oscpath)
         return TuioMotionEventProvider.__handlers__[oscpath](**kwargs)
 
     def start(self):
-        '''Start the tuio provider'''
+        '''Start the TUIO provider'''
         self.oscid = osc.listen(self.ip, self.port)
         for oscpath in TuioMotionEventProvider.__handlers__:
             self.touches[oscpath] = {}
             osc.bind(self.oscid, self._osc_tuio_cb, oscpath)
 
     def stop(self):
-        '''Stop the tuio provider'''
+        '''Stop the TUIO provider'''
         osc.dontListen(self.oscid)
 
     def update(self, dispatch_fn):
-        '''Update the tuio provider (pop events from the queue)'''
+        '''Update the TUIO provider (pop events from the queue)'''
 
         # deque osc queue
         osc.readQueue(self.oscid)
@@ -202,7 +203,7 @@ class TuioMotionEvent(MotionEvent):
     '''Abstraction for TUIO touches/fiducials.
 
     Depending on the tracking software you use (e.g. Movid, CCV, etc.) and its
-    TUIO implementation, the TuioMotionEvent object will support multiple
+    TUIO implementation, the TuioMotionEvent object can support multiple
     profiles such as:
 
         * Fiducial ID: profile name 'markerid', attribute ``.fid``
@@ -247,15 +248,16 @@ class Tuio2dCurMotionEvent(TuioMotionEvent):
     def depack(self, args):
         self.is_touch = True
         if len(args) < 5:
-            self.sx, self.sy = map(float, args[0:2])
+            self.sx, self.sy = list(map(float, args[0:2]))
             self.profile = ('pos', )
         elif len(args) == 5:
-            self.sx, self.sy, self.X, self.Y, self.m = map(float, args[0:5])
+            self.sx, self.sy, self.X, self.Y, self.m = list(map(float,
+                                                                args[0:5]))
             self.Y = -self.Y
             self.profile = ('pos', 'mov', 'motacc')
         else:
-            self.sx, self.sy, self.X, self.Y = map(float, args[0:4])
-            self.m, width, height = map(float, args[4:7])
+            self.sx, self.sy, self.X, self.Y = list(map(float, args[0:4]))
+            self.m, width, height = list(map(float, args[4:7]))
             self.Y = -self.Y
             self.profile = ('pos', 'mov', 'motacc', 'shape')
             if self.shape is None:
@@ -298,7 +300,33 @@ class Tuio2dObjMotionEvent(TuioMotionEvent):
         super(Tuio2dObjMotionEvent, self).depack(args)
 
 
+class Tuio2dBlbMotionEvent(TuioMotionEvent):
+    '''A 2dBlb TUIO object.
+    # FIXME 3d shape are not supported
+    /tuio/2Dobj set s i x y a       X Y A m r
+    /tuio/2Dblb set s   x y a w h f X Y A m r
+    '''
+
+    def __init__(self, device, id, args):
+        super(Tuio2dBlbMotionEvent, self).__init__(device, id, args)
+
+    def depack(self, args):
+        self.is_touch = True
+        self.sx, self.sy, self.a, self.X, self.Y, sw, sh, sd, \
+            self.A, self.m, self.r = args
+        self.Y = -self.Y
+        self.profile = ('pos', 'angle', 'mov', 'rot', 'rotacc',
+                        'acc', 'shape')
+        if self.shape is None:
+            self.shape = ShapeRect()
+            self.shape.width = sw
+            self.shape.height = sh
+        self.sy = 1 - self.sy
+        super(Tuio2dBlbMotionEvent, self).depack(args)
+
+
 # registers
 TuioMotionEventProvider.register('/tuio/2Dcur', Tuio2dCurMotionEvent)
 TuioMotionEventProvider.register('/tuio/2Dobj', Tuio2dObjMotionEvent)
+TuioMotionEventProvider.register('/tuio/2Dblb', Tuio2dBlbMotionEvent)
 MotionEventFactory.register('tuio', TuioMotionEventProvider)

@@ -137,6 +137,6 @@ def MTL(filename):
         if values[0] == 'newmtl':
             mtl = contents[values[1]] = {}
         elif mtl is None:
-            raise ValueError, "mtl file doesn't start with newmtl stmt"
+            raise ValueError("mtl file doesn't start with newmtl stmt")
         mtl[values[0]] = values[1:]
     return contents

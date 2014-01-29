@@ -9,6 +9,10 @@ Builder.load_string('''
 #:import SwapTransition kivy.uix.screenmanager.SwapTransition
 #:import WipeTransition kivy.uix.screenmanager.WipeTransition
 #:import FadeTransition kivy.uix.screenmanager.FadeTransition
+#:import RiseInTransition kivy.uix.screenmanager.RiseInTransition
+#:import FallOutTransition kivy.uix.screenmanager.FallOutTransition
+#:import NoTransition kivy.uix.screenmanager.NoTransition
+
 <CustomScreen>:
     hue: random()
     canvas:
@@ -42,19 +46,23 @@ Builder.load_string('''
 
         Button:
             text: 'Use SlideTransition with "up" direction'
-            on_release: root.manager.transition = SlideTransition(direction="up")
+            on_release: root.manager.transition = \
+                        SlideTransition(direction="up")
 
         Button:
             text: 'Use SlideTransition with "down" direction'
-            on_release: root.manager.transition = SlideTransition(direction="down")
+            on_release: root.manager.transition = \
+                        SlideTransition(direction="down")
 
         Button:
             text: 'Use SlideTransition with "left" direction'
-            on_release: root.manager.transition = SlideTransition(direction="left")
+            on_release: root.manager.transition = \
+                        SlideTransition(direction="left")
 
         Button:
             text: 'Use SlideTransition with "right" direction'
-            on_release: root.manager.transition = SlideTransition(direction="right")
+            on_release: root.manager.transition = \
+                        SlideTransition(direction="right")
 
         Button:
             text: 'Use SwapTransition'
@@ -67,16 +75,29 @@ Builder.load_string('''
         Button:
             text: 'Use FadeTransition'
             on_release: root.manager.transition = FadeTransition()
+
+        Button:
+            text: 'Use FallOutTransition'
+            on_release: root.manager.transition = FallOutTransition()
+
+        Button:
+            text: 'Use RiseInTransition'
+            on_release: root.manager.transition = RiseInTransition()
+        Button:
+            text: 'Use NoTransition'
+            on_release: root.manager.transition = NoTransition(duration=0)
 ''')
+
 
 class CustomScreen(Screen):
     hue = NumericProperty(0)
+
 
 class ScreenManagerApp(App):
 
     def build(self):
         root = ScreenManager()
-        for x in xrange(4):
+        for x in range(4):
             root.add_widget(CustomScreen(name='Screen %d' % x))
         return root
 

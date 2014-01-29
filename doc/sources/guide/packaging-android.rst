@@ -3,21 +3,21 @@
 Create a package for Android
 ============================
 
-.. versionchanged:: 1.1.0
-    Kivy-XXX-android.zip is not provided anymore.  We are using
-    `python-for-android <http://github.com/kivy/python-for-android>`_
-    (`doc <http://python-for-android.readthedocs.org/en/latest/index.html>`_)
+
+You can create a package for android using the `python-for-android
+<https://github.com/kivy/python-for-android>`_ project. This page explains how to
+download and use it directly on your own machine (see
+:ref:`Packaging your application into APK`), use the prebuilt :ref:`testdrive` virtual
+machine image, or use the :ref:`buildozer` tool to automate the entire
+process. You can also see :ref:`Packaging your application for Kivy Launcher` to run kivy
+programs without compiling them.
 
 .. _Packaging your application into APK:
 
-TestDrive
----------
-There is a VirtualBox Image we provide with the prerequisites along with
-the Android SDK and NDK preinstalled to ease your installation woes. You can
-download it from `here <http://kivy.org/#download>`_.
-
 Packaging your application into an APK
 --------------------------------------
+
+This section describes how to download and use python-for-android directly.
 
 You'll need:
 
@@ -59,9 +59,23 @@ examples of building distributions::
     ./distribute.sh -m "openssl kivy"
     ./distribute.sh -m "pil ffmpeg kivy"
 
+.. note::
+
+    The order of modules provided are important, as a general rule put
+    dependencies first and then the dependent modules, C libs come first
+    then python modules.
+
 To see the available options for distribute.sh, type::
 
     ./distribute.sh -h
+
+.. note::
+
+    To use the latest Kivy development version to build your distribution, link
+    "P4A_kivy_DIR" to the kivy folder environment variable to the kivy folder
+    location. On linux you would use the export command, like this::
+
+        export P4A_kivy_DIR=/path/to/cloned/kivy/
 
 Package your application
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -77,6 +91,14 @@ Inside the distribution (`dist/default` by default), you have a tool named
                --orientation <landscape|portrait>
                --permission <android permission like VIBRATE> (multiple allowed)
                <debug|release> <installd|installr|...>
+               
+An example of using multiple permissions::
+
+    --permission INTERNET --permission WRITE_EXTERNAL_STORAGE
+    
+Full list of available permissions are documented here:
+http://developer.android.com/reference/android/Manifest.permission.html
+
 
 For example, if we imagine that the touchtracer demo of Kivy is in the directory
 ~/kivy/examples/demo/touchtracer, you can do::
@@ -109,6 +131,60 @@ http://developer.android.com/guide/publishing/app-signing.html
 
 The release binary will be generated in
 bin/KivyTouchtracer-1.1.0-release-unsigned.apk (for the previous touchtracer example.)
+
+.. _testdrive:
+
+TestDrive
+---------
+
+We provide a VirtualBox Image with python-for-android along with
+the Android SDK and NDK preinstalled to ease your installation woes. You can
+download it from `here <http://kivy.org/#download>`_.
+
+Once the VM is loaded, you can follow the instructions from
+:ref:`Packaging your application into APK`. You don't need to download
+with `git clone` though, as python-for-android is already installed
+and set up in the virtual machine home directory.
+
+.. _Buildozer:
+
+Buildozer
+---------
+
+Buildozer is a tool that automates the entire build process. It
+downloads and sets up all the prequisites for python-for-android,
+including the android SDK and NDK, then builds an apk that can be
+automatically pushed to the device. 
+
+Buildozer currently works only in Linux, and is an alpha
+release, but it already works well and can significantly simplify the
+apk build.
+
+You can get buildozer at `<https://github.com/kivy/buildozer>`_::
+
+    git clone https://github.com/kivy/buildozer.git
+    cd buildozer
+    sudo python2.7 setup.py install
+
+This will install buildozer in your system. Afterwards, navigate to
+your project directory and run::
+
+    buildozer init
+
+This creates a `buildozer.spec` file controlling your build
+configuration. You should edit it appropriately with your app name
+etc. You can set variables to control most or all of the parameters
+passed to python-for-android.
+
+Afterwards, plug in your android device and run::
+
+    buildozer android debug deploy run
+
+to build, push and automatically run the apk on your device. 
+
+You can check the buildozer README at
+`<https://github.com/kivy/buildozer>`_ for more documentation of
+buildozer's capabilities.
 
 .. _Packaging your application for Kivy Launcher:
 

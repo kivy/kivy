@@ -1,13 +1,14 @@
 '''
-Dictionnary store
+Dictionary store
 =================
 
-Use a Python dictionnary as a store.
+Use a Python dictionary as a store.
 '''
 
 __all__ = ('DictStore', )
 
 
+from kivy.compat import iteritems
 from kivy.storage import AbstractStore
 
 
@@ -35,9 +36,9 @@ class DictStore(AbstractStore):
         return True
 
     def store_find(self, filters):
-        for key, values in self.data.iteritems():
+        for key, values in iteritems(self.data):
             found = True
-            for fkey, fvalue in filters.iteritems():
+            for fkey, fvalue in iteritems(filters):
                 if fkey not in values:
                     found = False
                     break

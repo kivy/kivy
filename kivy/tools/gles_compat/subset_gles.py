@@ -23,6 +23,7 @@
     extension.
 '''
 
+from __future__ import print_function
 
 gl = open("/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks/" +
           "OpenGL.framework/Versions/A/Headers/gl.h", 'r')
@@ -54,9 +55,9 @@ def add_defines_to_set(header):
                         symbol = element
             if symbol:
                 symbols.append((symbol, lineno, line, hexcode))
-        except Exception, e:
-            print 'error:', lineno, ':', line
-            print e
+        except Exception as e:
+            print('error:', lineno, ':', line)
+            print(e)
 
     return symbols
 
@@ -69,21 +70,21 @@ def extract_common_symbols(symbols1, symbols2, already_extracted):
             if symbol1 == symbol2 + 'f':
                 # There is no `double` type in GLES; Functions that were using
                 # a double were renamed with the suffix 'f'.
-                print "// Different Name; Redefine"
-                print line2
-                print "#define %s %s" % (symbol1, symbol2)
+                print("// Different Name; Redefine")
+                print(line2)
+                print("#define %s %s" % (symbol1, symbol2))
             elif symbol1 == symbol2:
                 already_extracted.append(symbol1)
-                print line1
+                print(line1)
                 if symbol1 == 'GLclampf;':
                     # See explanation about doubles on GLES above.
-                    print 'typedef GLclampf GLclampd;'
+                    print('typedef GLclampf GLclampd;')
             elif hexcode1 and hexcode2 and hexcode1 == hexcode2:
                 already_extracted.append(symbol1)
                 already_extracted.append(symbol2)
-                print "// Different Name; Redefine"
-                print line2
-                print "#define %s %s" % (symbol1, symbol2)
+                print("// Different Name; Redefine")
+                print(line2)
+                print("#define %s %s" % (symbol1, symbol2))
 
 # Generate ------------------------------------------------
 # pipe to kivy/kivy/graphics/common_subset.h
@@ -92,33 +93,33 @@ gl_symbols = add_defines_to_set(gl)
 glext_symbols = add_defines_to_set(glext)
 gles_symbols = add_defines_to_set(gles)
 
-print '// GLES 2.0 Header file, generated for Kivy'
-print '// Check kivy/kivy/tools/gles_compat/subset_gles.py'
-print '#pragma once'
-print '#include "gl2platform.h"'
-print '#ifdef __cplusplus'
-print 'extern "C" {'
-print '#endif'
+print('// GLES 2.0 Header file, generated for Kivy')
+print('// Check kivy/kivy/tools/gles_compat/subset_gles.py')
+print('#pragma once')
+print('#include "gl2platform.h"')
+print('#ifdef __cplusplus')
+print('extern "C" {')
+print('#endif')
 
 # Don't add the same symbol more than once
 already_extracted = []
 
-print '\n// Subset common to GLES and GL: ===================================='
+print('\n// Subset common to GLES and GL: ====================================')
 extract_common_symbols(gles_symbols, gl_symbols, already_extracted)
 
-print '\n// Subset common to GLES and GLEXT: ================================='
+print('\n// Subset common to GLES and GLEXT: =================================')
 extract_common_symbols(gles_symbols, glext_symbols, already_extracted)
 
-print
-print '// What follows was manually extracted from the GLES2 headers because'
-print '// it was not present in any other header.',
-print '''
+print()
+print('// What follows was manually extracted from the GLES2 headers because')
+print('// it was not present in any other header.', end=' ')
+print('''
 #define GL_SHADER_BINARY_FORMATS          0x8DF8
 #define GL_RGB565                         0x8D62
-'''
+''')
 
-print '#ifdef __cplusplus'
-print '}'
-print '#endif'
-print
+print('#ifdef __cplusplus')
+print('}')
+print('#endif')
+print()
 

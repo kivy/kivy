@@ -12,7 +12,7 @@ project.
 
 __all__ = ('SoundSDL', )
 
-from . import Sound, SoundLoader
+from kivy.core.audio import Sound, SoundLoader
 from kivy.logger import Logger
 from kivy.clock import Clock
 from libcpp cimport bool
@@ -35,6 +35,7 @@ cdef extern from "SDL_mixer.h":
     int Mix_PlayChannel(int, Mix_Chunk *, int)
     int Mix_HaltChannel(int)
     Mix_Chunk *Mix_GetChunk(int)
+    int Mix_Playing(int)
 
     int MIX_DEFAULT_FORMAT
     int MIX_DEFAULT_FREQUENCY
@@ -44,7 +45,7 @@ cdef int mix_is_init = 0
 
 cdef void channel_finished_cb(int channel) nogil:
     with gil:
-        print 'Channel finished playing.', channel
+        print('Channel finished playing.', channel)
 
 cdef mix_init():
     cdef int audio_rate = 22050
@@ -97,9 +98,14 @@ class SoundSDL(Sound):
         cdef MixContainer mc = self.mc
         if mc.channel == -1 or mc.chunk == NULL:
             return False
-        if Mix_GetChunk(mc.channel) == mc.chunk:
+        if Mix_Playing(mc.channel):
             return
-        self.stop()
+        if self.loop:
+            def do_loop(dt):
+                self.play()
+            Clock.schedule_once(do_loop)
+        else:
+            self.stop()
         return False
 
     def play(self):
@@ -107,6 +113,7 @@ class SoundSDL(Sound):
         self.stop()
         if mc.chunk == NULL:
             return
+        mc.chunk.volume = int(self.volume * 128)
         mc.channel = Mix_PlayChannel(-1, mc.chunk, 0)
         if mc.channel == -1:
             Logger.warning(
@@ -131,11 +138,7 @@ class SoundSDL(Sound):
         self.unload()
         if self.filename is None:
             return
-        #from time import time
-        #start = time()
-        #print '>>> load wav', self.filename
         mc.chunk = Mix_LoadWAV(<char *><bytes>self.filename)
-        #print '<<< load wav done in %.4fs' % (time() - start)
         if mc.chunk == NULL:
             Logger.warning('AudioSDL: Unable to load %r' % self.filename)
         else:
@@ -148,16 +151,9 @@ class SoundSDL(Sound):
             Mix_FreeChunk(mc.chunk)
             mc.chunk = NULL
 
-    def _get_volume(self):
-        cdef MixContainer mc = self.mc
-        if mc.chunk != NULL:
-            self._volume = mc.chunk.volume / 128.
-        return super(SoundSDL, self)._get_volume()
-
-    def _set_volume(self, volume):
+    def on_volume(self, instance, volume):
         cdef MixContainer mc = self.mc
         if mc.chunk != NULL:
             mc.chunk.volume = int(volume * 128)
-        return super(SoundSDL, self)._set_volume(volume)
 
 SoundLoader.register(SoundSDL)

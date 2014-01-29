@@ -8,24 +8,51 @@ Inspector
 
     This module is highly experimental, use it with care.
 
-Inspector is a tool to lookup the widget tree by pointing widget on the screen.
-Some keyboard shortcut are activated:
+The Inspector is a tool for finding a widget in the widget tree by clicking or
+tapping on it.
+Some keyboard shortcuts are activated:
 
-    * "Ctrl + e": activate / deactivate inspector view
-    * "Escape": cancel widget inspect first, then hide inspector view
+    * "Ctrl + e": activate / deactivate the inspector view
+    * "Escape": cancel widget lookup first, then hide the inspector view
 
-Available inspect interactions:
+Available inspector interactions:
 
     * tap once on a widget to select it without leaving inspect mode
     * double tap on a widget to select and leave inspect mode (then you can
       manipulate the widget again)
 
-Some properties can be edited in live. However, this due to delayed usage of
-some properties, you might have crash if you didn't handle all the case.
+Some properties can be edited live. However, due to the delayed usage of
+some properties, it might crash if you don't handle all the cases.
+
+Usage
+-----
+
+For normal module usage, please see the :mod:`~kivy.modules` documentation.
+
+The Inspector, however, can also be imported and used just like a normal
+python module. This has the added advantage of being able to activate and
+deactivate the module programmatically::
+
+    from kivy.core.window import Window
+    from kivy.app import App
+    from kivy.uix.button import Button
+    from kivy.modules import inspector
+
+    class Demo(App):
+        def build(self):
+            button = Button(text="Test")
+            inspector.create_inspector(Window, button)
+            return button
+
+    Demo().run()
+
+To remove the Inspector, you can do the following::
+
+    inspector.stop(Window, button)
 
 '''
 
-__all__ = ('start', 'stop')
+__all__ = ('start', 'stop', 'create_inspector')
 
 import kivy
 kivy.require('1.0.9')
@@ -43,17 +70,18 @@ from kivy.uix.treeview import TreeViewNode
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.modalview import ModalView
 from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix, \
-        Translate, Rotate, Scale
+    Translate, Rotate, Scale
 from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
-        NumericProperty, StringProperty, OptionProperty, \
-        ReferenceListProperty, AliasProperty
+    NumericProperty, StringProperty, OptionProperty, \
+    ReferenceListProperty, AliasProperty, VariableListProperty
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from functools import partial
+from itertools import chain
 from kivy.lang import Builder
 from kivy.vector import Vector
-
 
 Builder.load_string('''
 <Inspector>:
@@ -86,6 +114,12 @@ Builder.load_string('''
             size_hint_y: None
             height: 50
             spacing: 5
+            Button:
+                text: 'Move to Top'
+                on_release: root.toggle_position(args[0])
+                size_hint_x: None
+                width: 120
+
             ToggleButton:
                 text: 'Inspect'
                 on_state: root.inspect_enabled = args[1] == 'down'
@@ -177,6 +211,8 @@ class Inspector(FloatLayout):
 
     content = ObjectProperty(None)
 
+    at_bottom = BooleanProperty(True)
+
     def __init__(self, **kwargs):
         super(Inspector, self).__init__(**kwargs)
         self.avoid_bring_to_top = False
@@ -224,8 +260,14 @@ class Inspector(FloatLayout):
 
     def highlight_at(self, x, y):
         widget = None
-        # reverse the loop - look at children on top first
-        for child in reversed(self.win.children):
+        # reverse the loop - look at children on top first and
+        # modalviews before others
+        win_children = self.win.children
+        children = chain(
+            (c for c in reversed(win_children) if isinstance(c, ModalView)),
+            (c for c in reversed(win_children) if not isinstance(c, ModalView))
+        )
+        for child in children:
             if child is self:
                 continue
             widget = self.pick(child, x, y)
@@ -266,6 +308,33 @@ class Inspector(FloatLayout):
         # fix warning about scale property deprecation
         self.gscale.xyz = (scale,) * 3
 
+    def toggle_position(self, button):
+        to_bottom = button.text == 'Move to Bottom'
+
+        if to_bottom:
+            button.text = 'Move to Top'
+            if self.widget_info:
+                Animation(top=250, t='out_quad', d=.3).start(self.layout)
+            else:
+                Animation(top=60, t='out_quad', d=.3).start(self.layout)
+
+            bottom_bar = self.layout.children[1]
+            self.layout.remove_widget(bottom_bar)
+            self.layout.add_widget(bottom_bar)
+        else:
+            button.text = 'Move to Bottom'
+            if self.widget_info:
+                Animation(top=self.height, t='out_quad', d=.3).start(
+                    self.layout)
+            else:
+                Animation(y=self.height - 60, t='out_quad', d=.3).start(
+                    self.layout)
+
+            bottom_bar = self.layout.children[1]
+            self.layout.remove_widget(bottom_bar)
+            self.layout.add_widget(bottom_bar)
+        self.at_bottom = to_bottom
+
     def pick(self, widget, x, y):
         ret = None
         # try to filter widgets that are not visible (invalid inspect target)
@@ -282,14 +351,22 @@ class Inspector(FloatLayout):
     def on_activated(self, instance, activated):
         if not activated:
             self.grect.size = 0, 0
-            anim = Animation(top=0, t='out_quad', d=.3)
+            if self.at_bottom:
+                anim = Animation(top=0, t='out_quad', d=.3)
+            else:
+                anim = Animation(y=self.height, t='out_quad', d=.3)
             anim.bind(on_complete=self.animation_close)
             anim.start(self.layout)
             self.widget = None
+            self.widget_info = False
         else:
             self.win.add_widget(self)
             Logger.info('Inspector: inspector activated')
-            Animation(top=60, t='out_quad', d=.3).start(self.layout)
+            if self.at_bottom:
+                Animation(top=60, t='out_quad', d=.3).start(self.layout)
+            else:
+                Animation(y=self.height - 60, t='out_quad', d=.3).start(
+                    self.layout)
 
     def animation_close(self, instance, value):
         if self.activated is False:
@@ -309,15 +386,22 @@ class Inspector(FloatLayout):
             node.widget_ref = None
             treeview.remove_node(node)
         if not widget:
-            Animation(top=60, t='out_quad', d=.3).start(self.layout)
+            if self.at_bottom:
+                Animation(top=60, t='out_quad', d=.3).start(self.layout)
+            else:
+                Animation(y=self.height - 60, t='out_quad', d=.3).start(
+                    self.layout)
             self.widget_info = False
             return
         self.widget_info = True
-        Animation(top=250, t='out_quad', d=.3).start(self.layout)
+        if self.at_bottom:
+            Animation(top=250, t='out_quad', d=.3).start(self.layout)
+        else:
+            Animation(top=self.height, t='out_quad', d=.3).start(self.layout)
         for node in list(treeview.iterate_all_nodes())[:]:
             treeview.remove_node(node)
 
-        keys = widget.properties().keys()
+        keys = list(widget.properties().keys())
         keys.sort()
         node = None
         wk_widget = weakref.ref(widget)
@@ -354,7 +438,7 @@ class Inspector(FloatLayout):
     def show_property(self, instance, value, key=None, index=-1, *l):
         # normal call: (tree node, focus, )
         # nested call: (widget, prop value, prop key, index in dict/list)
-        if not value:
+        if value is False:
             return
 
         content = None
@@ -372,9 +456,10 @@ class Inspector(FloatLayout):
             prop = None
 
         dtype = None
+
         if isinstance(prop, AliasProperty) or nested:
             # trying to resolve type dynamicly
-            if type(value) in (unicode, str):
+            if type(value) in (str, str):
                 dtype = 'string'
             elif type(value) in (int, float):
                 dtype = 'numeric'
@@ -389,24 +474,27 @@ class Inspector(FloatLayout):
             content = TextInput(text=value or '', multiline=True)
             content.bind(text=partial(
                 self.save_property_text, widget, key, index))
-        elif isinstance(prop, ListProperty) or isinstance(prop,
-                ReferenceListProperty) or dtype == 'list':
+        elif (isinstance(prop, ListProperty) or
+              isinstance(prop, ReferenceListProperty) or
+              isinstance(prop, VariableListProperty) or
+              dtype == 'list'):
             content = GridLayout(cols=1, size_hint_y=None)
             content.bind(minimum_height=content.setter('height'))
             for i, item in enumerate(value):
                 button = Button(text=repr(item), size_hint_y=None, height=44)
                 if isinstance(item, Widget):
                     button.bind(on_release=partial(self.highlight_widget, item,
-                        False))
+                                                   False))
                 else:
                     button.bind(on_release=partial(self.show_property, widget,
-                        item, key, i))
+                                                   item, key, i))
                 content.add_widget(button)
         elif isinstance(prop, OptionProperty):
             content = GridLayout(cols=1, size_hint_y=None)
             content.bind(minimum_height=content.setter('height'))
             for option in prop.options:
-                button = ToggleButton(text=option,
+                button = ToggleButton(
+                    text=option,
                     state='down' if option == value else 'normal',
                     group=repr(content.uid), size_hint_y=None,
                     height=44)
@@ -426,7 +514,7 @@ class Inspector(FloatLayout):
             state = 'down' if value else 'normal'
             content = ToggleButton(text=key, state=state)
             content.bind(on_release=partial(self.save_property_boolean, widget,
-                key, index))
+                                            key, index))
 
         self.content.clear_widgets()
         if content:
@@ -468,11 +556,22 @@ class Inspector(FloatLayout):
 
 
 def create_inspector(win, ctx, *l):
+    '''Create an Inspector instance attached to the *ctx* and bound to the
+    Windows :meth:`~kivy.core.window.WindowBase.on_keyboard` event for capturing
+    the keyboard shortcut.
+
+        :Parameters:
+            `win`: A :class:`Window <kivy.core.window.WindowBase>`
+                The application Window to bind to.
+            `ctx`: A :class:`~kivy.uix.widget.Widget` or subclass
+                The Widget to be inspected.
+
+    '''
     # Dunno why, but if we are creating inspector within the start(), no lang
     # rules are applied.
     ctx.inspector = Inspector(win=win)
     win.bind(children=ctx.inspector.on_window_children,
-            on_keyboard=ctx.inspector.keyboard_shortcut)
+             on_keyboard=ctx.inspector.keyboard_shortcut)
 
 
 def start(win, ctx):
@@ -480,5 +579,9 @@ def start(win, ctx):
 
 
 def stop(win, ctx):
-    win.remove_widget(ctx.inspector)
-
+    '''Stop and unload any active Inspectors for the given *ctx*.'''
+    if hasattr(ctx, 'inspector'):
+        win.unbind(children=ctx.inspector.on_window_children,
+                   on_keyboard=ctx.inspector.keyboard_shortcut)
+        win.remove_widget(ctx.inspector)
+        del ctx.inspector

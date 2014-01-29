@@ -4,8 +4,8 @@ cdef class PropertyStorage:
     cdef object value
     cdef list observers
     cdef str numeric_fmt
-    cdef int bnum_min
-    cdef int bnum_max
+    cdef long bnum_min
+    cdef long bnum_max
     cdef float bnum_f_min
     cdef float bnum_f_max
     cdef int bnum_use_min
@@ -50,7 +50,7 @@ cdef class DictProperty(Property):
     pass
 
 cdef class ObjectProperty(Property):
-    pass
+    cdef object baseclass
 
 cdef class BooleanProperty(Property):
     pass
@@ -69,6 +69,7 @@ cdef class OptionProperty(Property):
 cdef class ReferenceListProperty(Property):
     cdef list properties
     cpdef trigger_change(self, EventDispatcher obj, value)
+    cpdef setitem(self, EventDispatcher obj, key, value)
 
 cdef class AliasProperty(Property):
     cdef object getter
@@ -76,3 +77,9 @@ cdef class AliasProperty(Property):
     cdef list bind_objects
     cdef int use_cache
     cpdef trigger_change(self, EventDispatcher obj, value)
+
+cdef class VariableListProperty(Property):
+    cdef public int length
+    cdef _convert_numeric(self, EventDispatcher obj, x)
+    cdef float parse_str(self, EventDispatcher obj, value)
+    cdef float parse_list(self, EventDispatcher obj, value, str ext)

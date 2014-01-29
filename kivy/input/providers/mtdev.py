@@ -1,14 +1,14 @@
 '''
-Native support of Multitouch device on Linux, using libmtdev.
-=============================================================
+Native support for Multitouch devices on Linux, using libmtdev.
+===============================================================
 
-Mtdev project is a part of Ubuntu Maverick multitouch architecture.
+The Mtdev project is a part of the Ubuntu Maverick multitouch architecture.
 You can read more on http://wiki.ubuntu.com/Multitouch
 
 To configure MTDev, it's preferable to use probesysfs providers.
 Check :py:class:`~kivy.input.providers.probesysfs` for more information.
 
-Otherwise, you can put in your configuration::
+Otherwise, add this to your configuration::
 
     [input]
     # devicename = hidinput,/dev/input/eventXX
@@ -17,9 +17,9 @@ Otherwise, you can put in your configuration::
 .. note::
     You must have read access to the input event.
 
-You have the possibility to use custom range for some X, Y and pressure value.
+You can use a custom range for the X, Y and pressure values.
 On some drivers, the range reported is invalid.
-To fix that, you can add one of theses options on the argument line :
+To fix that, you can add these options to the argument line:
 
 * invert_x : 1 to invert X axis
 * invert_y : 1 to invert Y axis
@@ -72,12 +72,12 @@ else:
     import threading
     import collections
     from kivy.lib.mtdev import Device, \
-            MTDEV_TYPE_EV_ABS, MTDEV_CODE_SLOT, MTDEV_CODE_POSITION_X, \
-            MTDEV_CODE_POSITION_Y, MTDEV_CODE_PRESSURE, \
-            MTDEV_CODE_TOUCH_MAJOR, MTDEV_CODE_TOUCH_MINOR, \
-            MTDEV_CODE_TRACKING_ID, MTDEV_ABS_POSITION_X, \
-            MTDEV_ABS_POSITION_Y, MTDEV_ABS_TOUCH_MINOR, \
-            MTDEV_ABS_TOUCH_MAJOR
+        MTDEV_TYPE_EV_ABS, MTDEV_CODE_SLOT, MTDEV_CODE_POSITION_X, \
+        MTDEV_CODE_POSITION_Y, MTDEV_CODE_PRESSURE, \
+        MTDEV_CODE_TOUCH_MAJOR, MTDEV_CODE_TOUCH_MINOR, \
+        MTDEV_CODE_TRACKING_ID, MTDEV_ABS_POSITION_X, \
+        MTDEV_ABS_POSITION_Y, MTDEV_ABS_TOUCH_MINOR, \
+        MTDEV_ABS_TOUCH_MAJOR
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory
     from kivy.logger import Logger
@@ -116,7 +116,8 @@ else:
 
                 # ensure it's a key = value
                 if len(arg) != 2:
-                    err = 'MTD: Bad parameter %s: Not in key=value format' % arg
+                    err = 'MTD: Bad parameter %s: Not in key=value format' %\
+                        arg
                     Logger.error()
                     continue
 
@@ -252,25 +253,30 @@ else:
                     ev_code = data.code
                     if ev_code == MTDEV_CODE_POSITION_X:
                         val = normalize(ev_value,
-                            range_min_position_x, range_max_position_x)
+                                        range_min_position_x,
+                                        range_max_position_x)
                         if invert_x:
                             val = 1. - val
                         point['x'] = val
                     elif ev_code == MTDEV_CODE_POSITION_Y:
                         val = 1. - normalize(ev_value,
-                            range_min_position_y, range_max_position_y)
+                                             range_min_position_y,
+                                             range_max_position_y)
                         if invert_y:
                             val = 1. - val
                         point['y'] = val
                     elif ev_code == MTDEV_CODE_PRESSURE:
                         point['pressure'] = normalize(ev_value,
-                            range_min_pressure, range_max_pressure)
+                                                      range_min_pressure,
+                                                      range_max_pressure)
                     elif ev_code == MTDEV_CODE_TOUCH_MAJOR:
                         point['size_w'] = normalize(ev_value,
-                            range_min_major, range_max_major)
+                                                    range_min_major,
+                                                    range_max_major)
                     elif ev_code == MTDEV_CODE_TOUCH_MINOR:
                         point['size_h'] = normalize(ev_value,
-                            range_min_minor, range_max_minor)
+                                                    range_min_minor,
+                                                    range_max_minor)
                     elif ev_code == MTDEV_CODE_TRACKING_ID:
                         if ev_value == -1:
                             point['delete'] = True

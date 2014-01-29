@@ -79,7 +79,7 @@ The code in the core package provides commonly used features, such as:
 
     Clock
         You can use the clock to schedule timer events. Both one-shot timers
-        and periodic timers are supported
+        and periodic timers are supported.
 
     Cache
         If you need to cache something that you use often, you can use our

@@ -7,8 +7,8 @@ from kivy.core.window import Window
 
 class KvApp(App):
     def _print_fps(self, *largs):
-        print 'FPS: %2.4f (real draw: %d)' % (
-            Clock.get_fps(), Clock.get_rfps())
+        print('FPS: %2.4f (real draw: %d)' % (
+            Clock.get_fps(), Clock.get_rfps()))
 
     def _reload_keypress(self, instance, code, *largs):
         if code != 286:
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     import os
 
     if len(sys.argv) < 2:
-        print 'Usage: %s filename.kv' % os.path.basename(sys.argv[0])
+        print('Usage: %s filename.kv' % os.path.basename(sys.argv[0]))
         sys.exit(1)
 
     KvApp(filename=sys.argv[1]).run()

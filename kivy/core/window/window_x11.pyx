@@ -15,6 +15,9 @@ from kivy.base import stopTouchApp, EventLoop, ExceptionManager
 from kivy.utils import platform
 from os import environ
 
+cdef extern from "window_x11_core.c":
+    pass
+
 cdef extern from "X11/Xutil.h":
     int KeyPress
     int KeyRelease
@@ -90,7 +93,6 @@ cdef int event_callback(XEvent *event):
         _window_object.dispatch('on_keyboard', key, scancode, codepoint, modifiers)
 
     elif event.type == MotionNotify:
-        #print 'mouse motion', event.xmotion.x, event.xmotion.y
         modifiers = get_modifiers_from_state(event.xmotion.state)
         _window_object.dispatch('on_mouse_move',
                 event.xmotion.x, event.xmotion.y, modifiers)
@@ -114,7 +116,6 @@ cdef int event_callback(XEvent *event):
                 event.xbutton.x, event.xbutton.y, btn, modifiers)
 
     else:
-        #print 'not handled event', event.type
         pass
 
     return 0
@@ -199,12 +200,11 @@ class WindowX11(WindowBase):
 
     def on_keyboard(self, key,
         scancode=None, codepoint=None, modifier=None, **kwargs):
-        #print 'on_keyboard', key, scancode
 
         codepoint = codepoint or kwargs.get('unicode')
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = platform() == 'darwin'
+        is_osx = platform == 'darwin'
         if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
             stopTouchApp()
             self.close()  # not sure what to do here

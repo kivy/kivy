@@ -7,13 +7,10 @@ TabbedPanel
 
 .. versionadded:: 1.3.0
 
-.. warning::
-
-    This widget is still experimental, and its API is subject to change in a
-    future version.
 
 The `TabbedPanel` widget manages different widgets in tabs, with a header area
-for the actual tab buttons and a content area for showing current tab content.
+for the actual tab buttons and a content area for showing the current tab
+content.
 
 The :class:`TabbedPanel` provides one default tab.
 
@@ -25,41 +22,41 @@ Simple example
 
 .. note::
 
-    A new Class :class:`TabbedPanelItem` has been introduced in 1.5.0 for
-    conveniance. So now one can simply add a :class:`TabbedPanelItem` to a
-    :class:`TabbedPanel` and the `content` to the :class:`TabbedPanelItem`
-    like in the example provided above.
+    A new class :class:`TabbedPanelItem` has been introduced in 1.5.0 for
+    convenience. So now one can simply add a :class:`TabbedPanelItem` to a
+    :class:`TabbedPanel` and `content` to the :class:`TabbedPanelItem`
+    as in the example provided above.
 
 Customize the Tabbed Panel
 --------------------------
 
-You can choose the direction the tabs are displayed::
+You can choose the position in which the tabs are displayed::
 
     tab_pos = 'top_mid'
 
 An individual tab is called a TabbedPanelHeader. It is a special button
-containing a content property. You add the TabbedPanelHeader first, and set its
-content separately::
+containing a `content` property. You add the TabbedPanelHeader first, and set
+its `content` property separately::
 
     tp = TabbedPanel()
     th = TabbedPanelHeader(text='Tab2')
     tp.add_widget(th)
 
 An individual tab, represented by a TabbedPanelHeader, needs its content set.
-This content can be any of the widget choices. It could be a layout with a deep
-hierarchy of widget, or it could be an indivual widget, such as a label or
+This content can be any widget. It could be a layout with a deep
+hierarchy of widgets, or it could be an individual widget, such as a label or a
 button::
 
     th.content = your_content_instance
 
-There is one "shared" main content area, active at a given time, for all
-the tabs. Your app is responsible for adding the content of individual tabs,
-and for managing it, but not for doing the content switching. The tabbed panel
-handles switching of the main content object, per user action.
+There is one "shared" main content area active at any given time, for all
+the tabs. Your app is responsible for adding the content of individual tabs
+and for managing them, but it's not responsible for content switching. The
+tabbed panel handles switching of the main content object as per user action.
 
 .. note::
-    The default_tab functionality is turned off by default since 1.5.0 to
-    turn it back on set `do_default_tab` = True.
+    The default_tab functionality is turned off by default since 1.5.0. To
+    turn it back on, set `do_default_tab` = True.
 
 There is a default tab added when the tabbed panel is instantiated.
 Tabs that you add individually as above, are added in addition to the default
@@ -74,24 +71,23 @@ Accordingly, an `on_default_tab` event is provided for associating a callback::
 
     tp.bind(default_tab = my_default_tab_callback)
 
-It's important to note that as by default :data:`default_tab_cls` is of type
-:class:`TabbedPanelHeader` it has the same properties as other tabs.
+It's important to note that by default, :attr:`default_tab_cls` is of type
+:class:`TabbedPanelHeader` and thus has the same properties as other tabs.
 
-Since 1.5.0 it is now possible to disable the creation of the
-:data:`default_tab` by setting :data:`do_default_tab` to False
+Since 1.5.0, it is now possible to disable the creation of the
+:attr:`default_tab` by setting :attr:`do_default_tab` to False.
 
 Tabs and content can be removed in several ways::
 
-    tp.remove_widget(Widget/TabbedPanelHeader)
+    tp.remove_widget(widget/tabbed_panel_header)
     or
     tp.clear_widgets() # to clear all the widgets in the content area
     or
     tp.clear_tabs() # to remove the TabbedPanelHeaders
 
-.. warning::
-    To access the children of the tabbed panel, use content.children::
+To access the children of the tabbed panel, use content.children::
 
-        tp.content.children
+    tp.content.children
 
 To access the list of tabs::
 
@@ -125,19 +121,22 @@ tabbed panel's background_image and background_color.
 
 '''
 
-__all__ = ('TabbedPanel', 'TabbedPanelContent', 'TabbedPanelHeader',
-           'TabbedPanelItem', 'TabbedPanelStrip', 'TabbedPanelException')
+__all__ = ('StripLayout', 'TabbedPanel', 'TabbedPanelContent',
+           'TabbedPanelHeader', 'TabbedPanelItem', 'TabbedPanelStrip',
+           'TabbedPanelException')
 
 from functools import partial
 from kivy.clock import Clock
+from kivy.compat import string_types
+from kivy.factory import Factory
 from kivy.uix.togglebutton import ToggleButton
-from kivy.uix.image import Image
 from kivy.uix.widget import Widget
 from kivy.uix.scatter import Scatter
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.logger import Logger
+from kivy.metrics import dp
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
     ListProperty, NumericProperty, AliasProperty, BooleanProperty
 
@@ -150,15 +149,16 @@ class TabbedPanelException(Exception):
 
 class TabbedPanelHeader(ToggleButton):
     '''A Base for implementing a Tabbed Panel Head. A button intended to be
-    used as a Heading/Tab for TabbedPanel widget.
+    used as a Heading/Tab for a TabbedPanel widget.
 
-    You can use this TabbedPanelHeader widget to add a new tab to TabbedPanel.
+    You can use this TabbedPanelHeader widget to add a new tab to a
+    TabbedPanel.
     '''
 
     content = ObjectProperty(None, allownone=True)
     '''Content to be loaded when this tab header is selected.
 
-    :data:`content` is a :class:`~kivy.properties.ObjectProperty` default
+    :attr:`content` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -177,6 +177,10 @@ class TabbedPanelHeader(ToggleButton):
         # `tabbed_panel` property
         if self.parent:
             self.parent.tabbed_panel.switch_to(self)
+        else:
+            # tab removed before we could switch to it. Switch back to
+            # previous tab
+            self.panel.switch_to(self.panel.current_tab)
 
 
 class TabbedPanelItem(TabbedPanelHeader):
@@ -215,12 +219,39 @@ class TabbedPanelItem(TabbedPanelHeader):
 
 class TabbedPanelStrip(GridLayout):
     '''A strip intended to be used as background for Heading/Tab.
+    This does not cover the blank areas in case the tabs don't cover
+    the entire width/height of the TabbedPanel(use StripLayout for that).
     '''
     tabbed_panel = ObjectProperty(None)
-    '''link to the panel that tab strip is a part of.
+    '''Link to the panel that the tab strip is a part of.
 
-    :data:`tabbed_panel` is a :class:`~kivy.properties.ObjectProperty` default
-    to None .
+    :attr:`tabbed_panel` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None .
+    '''
+
+
+class StripLayout(GridLayout):
+    ''' The main layout that is used to house the entire tabbedpanel strip
+    including the blank areas in case the tabs don't cover the entire
+    width/height.
+
+    .. versionadded:: 1.8.0
+
+    '''
+
+    border = ListProperty([4, 4, 4, 4])
+    '''Border property for the :attr:`background_image`.
+
+    :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults
+    to [4, 4, 4, 4]
+    '''
+
+    background_image = StringProperty(
+        'atlas://data/images/defaulttheme/action_view')
+    '''Background image to be used for the Strip layout of the TabbedPanel.
+
+    :attr:`background_image` is a :class:`~kivy.properties.StringProperty` and
+     defaults to a transparent image.
     '''
 
 
@@ -237,27 +268,57 @@ class TabbedPanel(GridLayout):
     background_color = ListProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a).
 
-    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [1, 1, 1, 1].
+    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [1, 1, 1, 1].
     '''
 
     border = ListProperty([16, 16, 16, 16])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
-    graphics instruction, used itself for :data:`background_image`.
+    graphics instruction, used itself for :attr:`background_image`.
     Can be changed for a custom background.
 
     It must be a list of four values: (top, right, bottom, left). Read the
     BorderImage instructions for more information.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty`,
-    default to (16, 16, 16, 16)
+    :attr:`border` is a :class:`~kivy.properties.ListProperty` and
+    defaults to (16, 16, 16, 16)
     '''
 
     background_image = StringProperty('atlas://data/images/defaulttheme/tab')
     '''Background image of the main shared content object.
 
-    :data:`background_image` is a :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/tab'.
+    :attr:`background_image` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'atlas://data/images/defaulttheme/tab'.
+    '''
+
+    background_disabled_image = StringProperty(
+        'atlas://data/images/defaulttheme/tab_disabled')
+    '''Background image of the main shared content object when disabled.
+
+    .. versionadded:: 1.8.0
+
+    :attr:`background_disabled_image` is a
+    :class:`~kivy.properties.StringProperty` and defaults to
+    'atlas://data/images/defaulttheme/tab'.
+    '''
+
+    strip_image = StringProperty(
+        'atlas://data/images/defaulttheme/action_view')
+    '''Background image of the tabbed strip.
+
+    .. versionadded:: 1.8.0
+
+    :attr:`strip_image` is a :class:`~kivy.properties.StringProperty`
+    and defaults to a empty image.
+    '''
+
+    strip_border = ListProperty([4, 4, 4, 4])
+    '''Border to be used on :attr:`strip_image`.
+
+    .. versionadded:: 1.8.0
+
+    :attr:`strip_border` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [4, 4, 4, 4].
     '''
 
     _current_tab = ObjectProperty(None)
@@ -266,11 +327,11 @@ class TabbedPanel(GridLayout):
         return self._current_tab
 
     current_tab = AliasProperty(get_current_tab, None, bind=('_current_tab', ))
-    '''Links to the currently select or active tab.
+    '''Links to the currently selected or active tab.
 
     .. versionadded:: 1.4.0
 
-    :data:`current_tab` is a :class:`~kivy.AliasProperty`, read-only.
+    :attr:`current_tab` is an :class:`~kivy.AliasProperty`, read-only.
     '''
 
     tab_pos = OptionProperty(
@@ -283,37 +344,37 @@ class TabbedPanel(GridLayout):
     `top_mid`, `top_right`, `right_top`, `right_mid`, `right_bottom`,
     `bottom_left`, `bottom_mid`, `bottom_right`.
 
-    :data:`tab_pos` is a :class:`~kivy.properties.OptionProperty`,
-    default to 'bottom_mid'.
+    :attr:`tab_pos` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'bottom_mid'.
     '''
 
     tab_height = NumericProperty('40dp')
     '''Specifies the height of the tab header.
 
-    :data:`tab_height` is a :class:`~kivy.properties.NumericProperty`,
-    default to 40.
+    :attr:`tab_height` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 40.
     '''
 
     tab_width = NumericProperty('100dp', allownone=True)
     '''Specifies the width of the tab header.
 
-    :data:`tab_width` is a :class:`~kivy.properties.NumericProperty`,
-    default to 100.
+    :attr:`tab_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 100.
     '''
 
     do_default_tab = BooleanProperty(True)
-    '''Specifies weather a default_tab head is provided.
+    '''Specifies whether a default_tab head is provided.
 
     .. versionadded:: 1.5.0
 
-    :data:`do_default_tab` is a :class:`~kivy.properties.BooleanProperty`,
+    :attr:`do_default_tab` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to 'True'.
     '''
 
     default_tab_text = StringProperty('Default tab')
     '''Specifies the text displayed on the default tab header.
 
-    :data:`default_tab_text` is a :class:`~kivy.properties.StringProperty`,
+    :attr:`default_tab_text` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'default tab'.
     '''
 
@@ -325,8 +386,13 @@ class TabbedPanel(GridLayout):
     .. warning::
         `default_tab_cls` should be subclassed from `TabbedPanelHeader`
 
-    :data:`default_tab_cls` is a :class:`~kivy.properties.ObjectProperty`,
-    default to `TabbedPanelHeader`.
+    :attr:`default_tab_cls` is an :class:`~kivy.properties.ObjectProperty`
+    and defaults to `TabbedPanelHeader`. If you set a string, the
+    :class:`~kivy.factory.Factory` will be used to resolve the class.
+
+    .. versionchanged:: 1.8.0
+
+        Factory will resolve the class if a string is set.
     '''
 
     def get_tab_list(self):
@@ -337,18 +403,17 @@ class TabbedPanel(GridLayout):
     tab_list = AliasProperty(get_tab_list, None)
     '''List of all the tab headers.
 
-    :data:`tab_list` is a :class:`~kivy.properties.AliasProperty`, and is
+    :attr:`tab_list` is an :class:`~kivy.properties.AliasProperty` and is
     read-only.
     '''
 
     content = ObjectProperty(None)
-    '''This is the object holding(current_tab's content is added to this)
+    '''This is the object holding (current_tab's content is added to this)
     the content of the current tab. To Listen to the changes in the content
-    of the current tab you should bind to `current_tab` and then access it's
-    `content` property.
+    of the current tab, you should bind to current_tabs `content` property.
 
-    :data:`content` is a :class:`~kivy.properties.ObjectProperty`,
-    default to 'None'.
+    :attr:`content` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to 'None'.
     '''
 
     _default_tab = ObjectProperty(None, allow_none=True)
@@ -360,7 +425,7 @@ class TabbedPanel(GridLayout):
         if not issubclass(new_tab.__class__, TabbedPanelHeader):
             raise TabbedPanelException('`default_tab_class` should be\
                 subclassed from `TabbedPanelHeader`')
-        if  self._default_tab == new_tab:
+        if self._default_tab == new_tab:
             return
         oltab = self._default_tab
         self._default_tab = new_tab
@@ -375,10 +440,11 @@ class TabbedPanel(GridLayout):
 
     .. Note:: For convenience, the automatically provided default tab is
               deleted when you change default_tab to something else.
-              As of 1.5.0 This behaviour has been extended to every
-              `default_tab` for consistency not just the auto provided one.
+              As of 1.5.0, this behaviour has been extended to every
+              `default_tab` for consistency and not just the automatically
+              provided one.
 
-    :data:`default_tab` is a :class:`~kivy.properties.AliasProperty`
+    :attr:`default_tab` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def get_def_tab_content(self):
@@ -391,19 +457,15 @@ class TabbedPanel(GridLayout):
                                         set_def_tab_content)
     '''Holds the default tab content.
 
-    :data:`default_tab_content` is a :class:`~kivy.properties.AliasProperty`
+    :attr:`default_tab_content` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def __init__(self, **kwargs):
-        # these variables need to be initialised before the kv lang is
+        # these variables need to be initialized before the kv lang is
         # processed setup the base layout for the tabbed panel
-        self._tab_layout = GridLayout(rows=1)
+        self._childrens = []
+        self._tab_layout = StripLayout(rows=1)
         self.rows = 1
-        # bakground_image
-        self._bk_img = Image(
-            source=self.background_image, allow_stretch=True,
-            keep_ratio=False, color=self.background_color)
-
         self._tab_strip = TabbedPanelStrip(
             tabbed_panel=self,
             rows=1, cols=99, size_hint=(None, None),
@@ -459,11 +521,13 @@ class TabbedPanel(GridLayout):
             super(TabbedPanel, self).add_widget(widget, index)
         elif isinstance(widget, TabbedPanelHeader):
             self_tabs = self._tab_strip
-            self_tabs.add_widget(widget)
+            self_tabs.add_widget(widget, index)
             widget.group = '__tab%r__' % self_tabs.uid
             self.on_tab_width()
         else:
             widget.pos_hint = {'x': 0, 'top': 1}
+            self._childrens.append(widget)
+            content.disabled = self.current_tab.disabled
             content.add_widget(widget, index)
 
     def remove_widget(self, widget):
@@ -484,6 +548,7 @@ class TabbedPanel(GridLayout):
                 Logger.info('TabbedPanel: default tab! can\'t be removed.\n' +
                             'Change `default_tab` to a different tab.')
         else:
+            self._childrens.pop(widget, None)
             if widget in content.children:
                 content.remove_widget(widget)
 
@@ -496,13 +561,15 @@ class TabbedPanel(GridLayout):
         else:
             content.clear_widgets()
 
-    def on_background_image(self, *l):
-        self._bk_img.source = self.background_image
-
-    def on_background_color(self, *l):
-        if self.content is None:
+    def on_strip_image(self, instance, value):
+        if not self._tab_layout:
             return
-        self._bk_img.color = self.background_color
+        self._tab_layout.background_image = value
+
+    def on_strip_border(self, instance, value):
+        if not self._tab_layout:
+            return
+        self._tab_layout.border = value
 
     def on_do_default_tab(self, instance, value):
         if not value:
@@ -536,6 +603,9 @@ class TabbedPanel(GridLayout):
         content = self._default_tab.content
         _tabs = self._tab_strip
         cls = self.default_tab_cls
+
+        if isinstance(cls, string_types):
+            cls = Factory.get(cls)
 
         if not issubclass(cls, TabbedPanelHeader):
             raise TabbedPanelException('`default_tab_class` should be\
@@ -622,7 +692,8 @@ class TabbedPanel(GridLayout):
             tab_layout.rows = 1
             tab_layout.cols = 3
             tab_layout.size_hint = (1, None)
-            tab_layout.height = tab_height
+            tab_layout.height = (tab_height + tab_layout.padding[1] +
+                                 tab_layout.padding[3] + dp(2))
             self_update_scrollview(scrl_v)
 
             if pos_letter == 'b':

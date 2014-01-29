@@ -229,6 +229,25 @@ class PropertiesTestCase(unittest.TestCase):
         x.set(wid, 99)
         self.assertEqual(observe_called, 1)
 
+    def test_reference_child_update(self):
+        from kivy.properties import NumericProperty, ReferenceListProperty
+
+        x = NumericProperty(0)
+        x.link(wid, 'x')
+        x.link_deps(wid, 'x')
+        y = NumericProperty(0)
+        y.link(wid, 'y')
+        y.link_deps(wid, 'y')
+        pos = ReferenceListProperty(x, y)
+        pos.link(wid, 'pos')
+        pos.link_deps(wid, 'pos')
+
+        pos.get(wid)[0] = 10
+        self.assertEqual(pos.get(wid), [10, 0])
+
+        pos.get(wid)[:] = (20, 30)
+        self.assertEqual(pos.get(wid), [20, 30])
+
     def test_dict(self):
         from kivy.properties import DictProperty
 
@@ -269,6 +288,7 @@ class PropertiesTestCase(unittest.TestCase):
     def test_aliasproperty_with_cache(self):
         from kivy.properties import NumericProperty, AliasProperty
         global observe_called
+        observe_called = 0
 
         class CustomAlias(EventDispatcher):
             basevalue = NumericProperty(1)

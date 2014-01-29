@@ -1,5 +1,5 @@
 '''
-Clipboard Pygame: implementation of clipboard using pygame.scrap.
+Clipboard Pygame: an implementation of the Clipboard using pygame.scrap.
 '''
 
 __all__ = ('ClipboardPygame', )
@@ -7,7 +7,7 @@ __all__ = ('ClipboardPygame', )
 from kivy.utils import platform
 from kivy.core.clipboard import ClipboardBase
 
-if platform() not in ('win', 'linux', 'macosx'):
+if platform not in ('win', 'linux', 'macosx'):
     raise SystemError('unsupported platform for pygame clipboard')
 
 try:
@@ -33,7 +33,7 @@ class ClipboardPygame(ClipboardBase):
 
     def put(self, data, mimetype='text/plain'):
         self.init()
-        if platform() == 'macosx' and data.endswith('\x00'):
+        if platform == 'macosx' and data.endswith('\x00'):
             data = data[:-1]
         pygame.scrap.put(mimetype, data)
 

@@ -1,3 +1,4 @@
+#!/usr/bin/kivy
 '''
 Pictures demo
 =============
@@ -46,7 +47,7 @@ class PicturesApp(App):
                 picture = Picture(source=filename, rotation=randint(-30,30))
                 # add to the main field
                 root.add_widget(picture)
-            except Exception, e:
+            except Exception as e:
                 Logger.exception('Pictures: Unable to load <%s>' % filename)
 
     def on_pause(self):

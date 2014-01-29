@@ -1,7 +1,7 @@
 Properties
 ----------
 
-Kivy introduce a new way of declaring the properties within a class.
+Kivy introduces a new way of declaring properties within a class.
 Before::
 
     class MyClass(object):
@@ -15,9 +15,9 @@ After, using Kivy's properties::
         numeric_var = NumericProperty(1)
 
 Theses properties implement the `Observer pattern
-<http://en.wikipedia.org/wiki/Observer_pattern>`_. You can:
+<http://en.wikipedia.org/wiki/Observer_pattern>`_. They help you to:
 
-- Allow manipulating your widgets in kv language more easily
+- Easily manipulate widgets defined in the :doc:`/guide/lang`
 - Automatically observe any changes and dispatch functions/code accordingly
 - Check and validate values
 - Optimize memory management
@@ -27,7 +27,7 @@ To use them, **you have to declare them at class level**. That is, directly in
 the class, not in any method of the class. A property is a class attribute
 that will automatically create instance attributes. Each property by default
 provides an ``on_<propertyname>`` event that is called whenever the property's
-state/value changes .
+state/value changes.
 
 Kivy provides the following properties:
     :mod:`~kivy.properties.NumericProperty`,
@@ -41,4 +41,4 @@ Kivy provides the following properties:
     :mod:`~kivy.properties.AliasProperty`,
     :mod:`~kivy.properties.DictProperty`,
 
-For an in-depth explaination, look at :doc:`/api-kivy.properties`
+For an in-depth explaination, take a look at :doc:`/api-kivy.properties`.

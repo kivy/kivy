@@ -11,19 +11,20 @@ class BoundedLabel(Label):
 
 class Selector(FloatLayout):
     app = ObjectProperty(None)
+    grid = ObjectProperty(None)
 
 
 class TextAlignApp(App):
 
     def select(self, case):
-        grid = GridLayout(rows=3, cols=3, spacing=10, size_hint=(None, None),
-                          pos_hint={'center_x': .5, 'center_y': .5})
+        for _child in self.selector.grid.children[:]:
+            self.selector.grid.remove_widget(_child)
         for valign in ('bottom', 'middle', 'top'):
             for halign in ('left', 'center', 'right'):
                 label = BoundedLabel(text='V: %s\nH: %s' % (valign, halign),
-                              size_hint=(None, None),
-                              size=(150, 150),
-                              halign=halign, valign=valign)
+                               size_hint=(None, None),
+                               size=(150, 150),
+                               halign=halign, valign=valign)
                 if case == 0:
                     label.text_size = (None, None)
                 elif case == 1:
@@ -32,13 +33,9 @@ class TextAlignApp(App):
                     label.text_size = (None, label.height)
                 else:
                     label.text_size = label.size
-                grid.add_widget(label)
+                self.selector.grid.add_widget(label)
 
-        if self.grid:
-            self.root.remove_widget(self.grid)
-        grid.bind(minimum_size=grid.setter('size'))
-        self.grid = grid
-        self.root.add_widget(grid)
+        self.selector.grid.bind(minimum_size=self.selector.grid.setter('size'))
 
     def build(self):
         self.root = FloatLayout()

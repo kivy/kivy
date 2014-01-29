@@ -4,12 +4,12 @@ Asynchronous data loader
 
 This is the Asynchronous Loader. You can use it to load an image
 and use it, even if data are not yet available. You must specify a default
-loading image for using a such loader::
+loading image when using the loader::
 
-    from kivy import *
+    from kivy.loader import Loader
     image = Loader.image('mysprite.png')
 
-You can also load image from url::
+You can also load an image from a url::
 
     image = Loader.image('http://mysite.com/test.png')
 
@@ -22,14 +22,14 @@ Tweaking the asynchronous loader
 
 .. versionadded:: 1.6.0
 
-You can now tweak the loader to have a better user experience or more
-performance, depending of the images you're gonna to load. Take a look at the
+You can tweak the loader to provide a better user experience or more
+performance, depending of the images you are going to load. Take a look at the
 parameters:
 
-- :data:`Loader.num_workers` - define the number of threads to start for
-  loading images
-- :data:`Loader.max_upload_per_frame` - define the maximum image uploads in
-  GPU to do per frames.
+- :attr:`Loader.num_workers` - define the number of threads to start for
+  loading images.
+- :attr:`Loader.max_upload_per_frame` - define the maximum image uploads in
+  GPU to do per frame.
 
 '''
 
@@ -40,6 +40,7 @@ from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.cache import Cache
 from kivy.core.image import ImageLoader, Image
+from kivy.compat import PY2
 
 from collections import deque
 from time import sleep
@@ -55,12 +56,12 @@ class ProxyImage(Image):
     '''Image returned by the Loader.image() function.
 
     :Properties:
-        `loaded`: bool, default to False
-            It can be True if the image is already cached
+        `loaded`: bool, defaults to False
+            This value may be True if the image is already cached.
 
     :Events:
         `on_load`
-            Fired when the image is loaded and changed
+            Fired when the image is loaded or changed.
     '''
 
     __events__ = ('on_load', )
@@ -75,8 +76,8 @@ class ProxyImage(Image):
 
 
 class LoaderBase(object):
-    '''Common base for Loader and specific implementation.
-    By default, Loader will be the best available loader implementation.
+    '''Common base for the Loader and specific implementations.
+    By default, the Loader will be the best available loader implementation.
 
     The _update() function is called every 1 / 25.s or each frame if we have
     less than 25 FPS.
@@ -112,9 +113,9 @@ class LoaderBase(object):
         return self._num_workers
 
     num_workers = property(_get_num_workers, _set_num_workers)
-    '''Number of workers to use while loading. (used only if the loader
-    implementation support it.). This setting impact the loader only at the
-    beginning. Once the loader is started, the setting has no impact::
+    '''Number of workers to use while loading (used only if the loader
+    implementation supports it). This setting impacts the loader only on
+    initialization. Once the loader is started, the setting has no impact::
 
         from kivy.loader import Loader
         Loader.num_workers = 4
@@ -123,7 +124,7 @@ class LoaderBase(object):
     increase the number of workers, then all the images will be loaded faster,
     but the user will not been able to use the application while loading.
     Prior to 1.6.0, the default number was 20, and loading many full-hd images
-    was blocking completly the application.
+    was completly blocking the application.
 
     .. versionadded:: 1.6.0
     '''
@@ -137,19 +138,20 @@ class LoaderBase(object):
         return self._max_upload_per_frame
 
     max_upload_per_frame = property(_get_max_upload_per_frame,
-            _set_max_upload_per_frame)
-    '''Number of image to upload per frame. By default, we'll upload only 2
-    images in the GPU per frame. If you are uploading many tiny images, you can
-    easily increase this parameter to 10, or more.
-    If you are loading multiples Full-HD images, the upload time can be
-    consequent, and can stuck the application during the upload. If you want a
-    smooth experience, let the default.
+                                    _set_max_upload_per_frame)
+    '''The number of images to upload per frame. By default, we'll
+    upload only 2 images to the GPU per frame. If you are uploading many
+    small images, you can easily increase this parameter to 10 or more.
+    If you are loading multiple full HD images, the upload time may have
+    consequences and block the application. If you want a
+    smooth experience, use the default.
 
-    As matter of fact, a Full-HD RGB image will take ~6MB in memory, so it will
-    take times. If you have activated mipmap=True too, then the GPU must
-    calculate the mipmap of this big images too, in real time. Then it can be
-    smart to reduce the :data:`max_upload_per_frame` to 1 or 2. If you get ride
-    of that (or reduce it a lot), take a look at the DDS format.
+    As a matter of fact, a Full-HD RGB image will take ~6MB in memory,
+    so it may take time. If you have activated mipmap=True too, then the
+    GPU must calculate the mipmap of these big images too, in real time.
+    Then it may be best to reduce the :attr:`max_upload_per_frame` to 1
+    or 2. If you want to get rid of that (or reduce it a lot), take a
+    look at the DDS format.
 
     .. versionadded:: 1.6.0
     '''
@@ -200,7 +202,7 @@ class LoaderBase(object):
     '''
 
     def start(self):
-        '''Start the loader thread/process'''
+        '''Start the loader thread/process.'''
         self._running = True
 
     def run(self, *largs):
@@ -208,11 +210,11 @@ class LoaderBase(object):
         pass
 
     def stop(self):
-        '''Stop the loader thread/process'''
+        '''Stop the loader thread/process.'''
         self._running = False
 
     def pause(self):
-        '''Pause the loader, can be useful during interactions
+        '''Pause the loader, can be useful during interactions.
 
         .. versionadded:: 1.6.0
         '''
@@ -237,11 +239,11 @@ class LoaderBase(object):
     def _load(self, kwargs):
         '''(internal) Loading function, called by the thread.
         Will call _load_local() if the file is local,
-        or _load_urllib() if the file is on Internet
+        or _load_urllib() if the file is on Internet.
         '''
 
         while len(self._q_done) >= (
-            self.max_upload_per_frame * self._num_workers):
+                self.max_upload_per_frame * self._num_workers):
             sleep(0.1)
 
         self._wait_for_resume()
@@ -275,8 +277,11 @@ class LoaderBase(object):
 
     def _load_urllib(self, filename, kwargs):
         '''(internal) Loading a network file. First download it, save it to a
-        temporary file, and pass it to _load_local()'''
-        import urllib2
+        temporary file, and pass it to _load_local().'''
+        if PY2:
+            import urllib2 as urllib_request
+        else:
+            import urllib.request as urllib_request
         proto = filename.split(':', 1)[0]
         if proto == 'smb':
             try:
@@ -293,14 +298,14 @@ class LoaderBase(object):
             _out_filename = ''
             suffix = '.%s' % (filename.split('.')[-1])
             _out_osfd, _out_filename = tempfile.mkstemp(
-                    prefix='kivyloader', suffix=suffix)
+                prefix='kivyloader', suffix=suffix)
 
             if proto == 'smb':
                 # read from samba shares
-                fd = urllib2.build_opener(SMBHandler).open(filename)
+                fd = urllib_request.build_opener(SMBHandler).open(filename)
             else:
                 # read from internet
-                fd = urllib2.urlopen(filename)
+                fd = urllib_request.urlopen(filename)
             idata = fd.read()
             fd.close()
             fd = None
@@ -335,7 +340,7 @@ class LoaderBase(object):
         return data
 
     def _update(self, *largs):
-        '''(internal) Check if a data is loaded, and pass to the client'''
+        '''(internal) Check if a data is loaded, and pass to the client.'''
         # want to start it ?
         if self._start_wanted:
             if not self._running:
@@ -347,7 +352,7 @@ class LoaderBase(object):
             self._trigger_update()
             return
 
-        for x in xrange(self.max_upload_per_frame):
+        for x in range(self.max_upload_per_frame):
             try:
                 filename, data = self._q_done.pop()
             except IndexError:
@@ -370,28 +375,39 @@ class LoaderBase(object):
 
         self._trigger_update()
 
-    def image(self, filename, load_callback=None, post_callback=None, **kwargs):
-        '''Load a image using loader. A Proxy image is returned with a loading
-        image.
+    def image(self, filename, load_callback=None, post_callback=None,
+              **kwargs):
+        '''Load a image using the Loader. A ProxyImage is returned with a
+        loading image. You can use it as follows::
 
-      ::
-            img = Loader.image(filename)
-            # img will be a ProxyImage.
-            # You'll use it the same as an Image class.
-            # Later, when the image is really loaded,
-            # the loader will change the img.image property
-            # to the new loaded image
+            from kivy.app import App
+            from kivy.uix.image import Image
+            from kivy.loader import Loader
 
+            class TestApp(App):
+                def _image_loaded(self, proxyImage):
+                    if proxyImage.image.texture:
+                        self.image.texture = proxyImage.image.texture
+
+                def build(self):
+                    proxyImage = Loader.image("myPic.jpg")
+                    proxyImage.bind(on_load=self._image_loaded)
+                    self.image = Image()
+                    return self.image
+
+            TestApp().run()
+
+        In order to cancel all background loading, call *Loader.stop()*.
         '''
         data = Cache.get('kv.loader', filename)
         if data not in (None, False):
             # found image, if data is not here, need to reload.
             return ProxyImage(data,
-                    loading_image=self.loading_image,
-                    loaded=True, **kwargs)
+                              loading_image=self.loading_image,
+                              loaded=True, **kwargs)
 
         client = ProxyImage(self.loading_image,
-                    loading_image=self.loading_image, **kwargs)
+                            loading_image=self.loading_image, **kwargs)
         self._client.append((filename, client))
 
         if data is None:
@@ -425,7 +441,7 @@ else:
     # Try to use pygame as our first choice for loader
     #
 
-    from Queue import Queue
+    from kivy.compat import queue
     from threading import Thread
 
     class _Worker(Thread):
@@ -443,8 +459,8 @@ else:
                 func, args, kargs = self.tasks.get()
                 try:
                     func(*args, **kargs)
-                except Exception, e:
-                    print e
+                except Exception as e:
+                    print(e)
                 self.tasks.task_done()
 
     class _ThreadPool(object):
@@ -453,7 +469,7 @@ else:
         def __init__(self, num_threads):
             super(_ThreadPool, self).__init__()
             self.running = True
-            self.tasks = Queue()
+            self.tasks = queue.Queue()
             for _ in range(num_threads):
                 _Worker(self, self.tasks)
 
@@ -492,4 +508,3 @@ else:
     Loader = LoaderThreadPool()
     Logger.info('Loader: using a thread pool of {} workers'.format(
         Loader.num_workers))
-

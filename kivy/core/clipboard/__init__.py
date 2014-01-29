@@ -2,7 +2,7 @@
 Clipboard
 =========
 
-Core class for accessing to the Clipboard. If we are not able to access to the
+Core class for accessing the Clipboard. If we are not able to access the
 system clipboard, a fake one will be used.
 
 Usage example::
@@ -20,13 +20,14 @@ Usage example::
     >>> Clipboard.get('UTF8_STRING')
     'Great'
 
-.. note:: The main implementation rely on Pygame, and works great with
-          text/string. Anything else might not work the same on all platform.
+.. note:: The main implementation relies on Pygame and works well with
+          text/strings. Anything else might not work the same on all platforms.
 '''
 
 __all__ = ('ClipboardBase', 'Clipboard')
 
 from kivy.core import core_select_lib
+from kivy.utils import platform
 
 
 class ClipboardBase(object):
@@ -48,7 +49,18 @@ class ClipboardBase(object):
 
 
 # load clipboard implementation
-Clipboard = core_select_lib('clipboard', (
-    ('pygame', 'clipboard_pygame', 'ClipboardPygame'),
-    ('dummy', 'clipboard_dummy', 'ClipboardDummy')), True)
+_clipboards = []
+_platform = platform
+if _platform == 'android':
+    _clipboards.append(
+        ('android', 'clipboard_android', 'ClipboardAndroid'))
+elif _platform in ('macosx', 'linux', 'win'):
+    _clipboards.append(
+        ('pygame', 'clipboard_pygame', 'ClipboardPygame'))
+_clipboards.append(
+    ('dummy', 'clipboard_dummy', 'ClipboardDummy'))
 
+Clipboard = core_select_lib('clipboard', _clipboards, True)
+
+del _clipboards
+del _platform

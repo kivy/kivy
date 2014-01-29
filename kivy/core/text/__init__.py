@@ -2,15 +2,15 @@
 Text
 ====
 
-Abstraction of text creation. Depending of the selected backend, the text
-rendering can be more or less accurate.
+An abstraction of text creation. Depending of the selected backend, the
+accuracy of text rendering may vary.
 
 .. versionchanged:: 1.5.0
-    :data:`LabelBase.line_height` added.
+    :attr:`LabelBase.line_height` added.
 
 .. versionchanged:: 1.0.7
-    The :class:`LabelBase` don't generate any texture is the text have a width
-    <= 1.
+    The :class:`LabelBase` does not generate any texture if the text has a
+    width <= 1.
 '''
 
 __all__ = ('LabelBase', 'Label')
@@ -21,6 +21,7 @@ from kivy import kivy_data_dir
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
 from kivy.resources import resource_find
+from kivy.compat import PY2
 
 DEFAULT_FONT = 'DroidSans'
 
@@ -32,48 +33,58 @@ FONT_BOLDITALIC = 3
 
 class LabelBase(object):
     '''Core text label.
-    This is the abstract class used for different backend to render text.
+    This is the abstract class used by different backends to render text.
 
     .. warning::
-        The core text label can't be changed at runtime, you must recreate one.
-
-    .. versionadded::
-        In 1.0.7, the valign is now respected. This wasn't the case before. You
-        might have issue in your application if you never think about that
-        before.
-
-    .. versionadded::
-        In 1.0.8, `size` have been deprecated and replaced with `text_size`
+        The core text label can't be changed at runtime. You must recreate one.
 
     :Parameters:
-        `font_size`: int, default to 12
+        `font_size`: int, defaults to 12
             Font size of the text
-        `font_name`: str, default to DEFAULT_FONT
+        `font_name`: str, defaults to DEFAULT_FONT
             Font name of the text
-        `bold`: bool, default to False
+        `bold`: bool, defaults to False
             Activate "bold" text style
-        `italic`: bool, default to False
+        `italic`: bool, defaults to False
             Activate "italic" text style
-        `text_size`: tuple, default to (None, None)
-            Add constraint to render the text (inside a bounding box)
+        `text_size`: tuple, defaults to (None, None)
+            Add constraint to render the text (inside a bounding box).
             If no size is given, the label size will be set to the text size.
-        `padding`: float, default to None
+        `padding`: float, defaults to None
             If it's a float, it will set padding_x and padding_y
-        `padding_x`: float, default to 0.0
+        `padding_x`: float, defaults to 0.0
             Left/right padding
-        `padding_y`: float, default to 0.0
+        `padding_y`: float, defaults to 0.0
             Top/bottom padding
-        `halign`: str, default to "left"
-            Horizontal text alignement inside bounding box
-        `valign`: str, default to "bottom"
-            Vertical text alignement inside bounding box
+        `halign`: str, defaults to "left"
+            Horizontal text alignment inside the bounding box
+        `valign`: str, defaults to "bottom"
+            Vertical text alignment inside the bounding box
         `shorten`: bool, defaults to False
             Indicate whether the label should attempt to shorten its textual
             contents as much as possible if a `size` is given.
-            Setting this to True without an appropriately set size will lead
+            Setting this to True without an appropriately set size will lead to
             unexpected results.
-        `mipmap` : bool, default to False
-            Create mipmap for the texture
+        `max_lines`: int, defaults to 0 (unlimited)
+            If set, this indicate how maximum line are allowed to render the
+            text. Works only if a limitation on text_size is set.
+        `mipmap` : bool, defaults to False
+            Create a mipmap for the texture
+
+    .. versionchanged:: 1.8.0
+
+        `max_lines` parameters has been added.
+
+    .. versionchanged:: 1.0.8
+
+        `size` have been deprecated and replaced with `text_size`.
+
+    .. versionchanged:: 1.0.7
+
+        The `valign` is now respected. This wasn't the case previously
+        so you might have an issue in your application if you have not
+        considered this.
+
     '''
 
     __slots__ = ('options', 'texture', '_label', '_text_size')
@@ -84,15 +95,17 @@ class LabelBase(object):
 
     _fonts_cache = {}
 
+    _texture_1px = None
+
     def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
                  bold=False, italic=False, halign='left', valign='bottom',
                  shorten=False, text_size=None, mipmap=False, color=None,
                  line_height=1.0, **kwargs):
 
         options = {'text': text, 'font_size': font_size,
-            'font_name': font_name, 'bold': bold, 'italic': italic,
-            'halign': halign, 'valign': valign, 'shorten': shorten,
-            'mipmap': mipmap, 'line_height': line_height}
+                   'font_name': font_name, 'bold': bold, 'italic': italic,
+                   'halign': halign, 'valign': valign, 'shorten': shorten,
+                   'mipmap': mipmap, 'line_height': line_height}
 
         options['color'] = color or (1, 1, 1, 1)
         options['padding'] = kwargs.get('padding', 0)
@@ -124,15 +137,16 @@ class LabelBase(object):
 
     @staticmethod
     def register(name, fn_regular, fn_italic=None, fn_bold=None,
-            fn_bolditalic=None):
+                 fn_bolditalic=None):
         '''Register an alias for a Font.
 
         .. versionadded:: 1.1.0
 
-        If you're using a ttf directly, you might not be able to use bold/italic
-        of the ttf version. If the font is delivered with different version of
-        it (one regular, one italic and one bold), then you need to register it
-        and use the alias instead.
+        If you're using a ttf directly, you might not be able to use the
+        bold/italic properties of
+        the ttf version. If the font is delivered in multiple files
+        (one regular, one italic and one bold), then you need to register these
+        files and use the alias instead.
 
         All the fn_regular/fn_italic/fn_bold parameters are resolved with
         :func:`kivy.resources.resource_find`. If fn_italic/fn_bold are None,
@@ -184,7 +198,8 @@ class LabelBase(object):
             options['font_name_r'] = filename
 
     def get_extents(self, text):
-        '''Return a tuple with (width, height) for a text.'''
+        '''Return a tuple (width, height) indicating the size of the specified
+        text'''
         return (0, 0)
 
     def _render_begin(self):
@@ -198,15 +213,15 @@ class LabelBase(object):
 
     def shorten(self, text, margin=2):
         # Just a tiny shortcut
-        textwidth = lambda txt: self.get_extents(txt)[0]
+        textwidth = self.get_extents
         if self.text_size[0] is None:
             width = 0
         else:
             width = int(self.text_size[0])
 
-        letters = ' ... ' + text
-        while textwidth(letters) > width:
-            letters = letters[: letters.rfind(' ')]
+        letters = '_..._' + text
+        while textwidth(letters)[0] > width:
+            letters = letters[:letters.rfind(' ')]
 
         max_letters = len(letters) - 2
         segment = (max_letters // 2)
@@ -214,25 +229,26 @@ class LabelBase(object):
         if segment - margin > 5:
             segment -= margin
             return u'{0}...{1}'.format(text[:segment].strip(),
-                text[-segment:].strip())
+                                       text[-segment:].strip())
         else:
             segment = max_letters - 3  # length of '...'
             return u'{0}...'.format(text[:segment].strip())
 
     def render(self, real=False):
-        '''Return a tuple(width, height) to create the image
+        '''Return a tuple (width, height) to create the image
         with the user constraints.
 
         2 differents methods are used:
-          * if user don't set width, splitting line
+          * if the user does not set the width, split the line
             and calculate max width + height
-          * if user set a width, blit per glyph
+          * if the user sets a width, blit per glyph
         '''
 
         options = self.options
         render_text = self._render_text
         get_extents = self.get_extents
         uw, uh = self.text_size
+        max_lines = int(options.get('max_lines', 0))
         w, h = 0, 0
         x, y = 0, 0
         if real:
@@ -248,7 +264,11 @@ class LabelBase(object):
 
         # no width specified, faster method
         if uw is None:
+            index = 0
             for line in self.text.split('\n'):
+                index += 1
+                if max_lines > 0 and index > max_lines:
+                    break
                 lw, lh = get_extents(line)
                 lh = lh * options['line_height']
                 if real:
@@ -284,8 +304,8 @@ class LabelBase(object):
             # Shorten the text that we actually display
             text = self.text
             last_word_width = get_extents(text[text.rstrip().rfind(' '):])[0]
-            if (options['shorten'] and get_extents(text)[0] >
-                uw - last_word_width):
+            if (options['shorten'] and
+                    get_extents(text)[0] > uw - last_word_width):
                 text = self.shorten(text)
 
             # first, split lines
@@ -308,6 +328,8 @@ class LabelBase(object):
                 if ww > uw:
                     lines.append(((ww, wh), 0, word))
                     lw = lh = x = 0
+                    if max_lines > 0 and len(lines) >= max_lines:
+                        break
                     continue
 
                 # get the maximum height for this line
@@ -336,6 +358,10 @@ class LabelBase(object):
             # got some char left ?
             if lw != 0:
                 lines.append(((lw, lh), 1, glyphs))
+
+            # ensure the number of lines is not more than the user asked
+            if max_lines > 0:
+                lines = lines[:max_lines]
 
             if not real:
                 self._internal_height = sum([size[1] for size, last_line,
@@ -368,9 +394,9 @@ class LabelBase(object):
                             # TODO implement a better method of stretching
                             # glyphs?
                             if _spaces:
-                                space_width = cache[' '][0] if last_space else 0
-                                just_space = (((uw - size[0] + space_width) *
-                                               1.) / (_spaces * 1.))
+                                sw = cache[' '][0] if last_space else 0
+                                just_space = (((uw - size[0] + sw) * 1.) /
+                                              (_spaces * 1.))
 
                     for glyph in glyphs:
                         lw, lh = cache[glyph]
@@ -412,13 +438,13 @@ class LabelBase(object):
         # first pass, calculating width/height
         sz = self.render()
         self._size_texture = sz
-        self._size = sz[0] + self.options['padding_x'] * 2, \
-                     sz[1] + self.options['padding_y'] * 2
+        self._size = (sz[0] + self.options['padding_x'] * 2,
+                      sz[1] + self.options['padding_y'] * 2)
 
         # if no text are rendered, return nothing.
         width, height = self._size
         if width <= 1 or height <= 1:
-            self.texture = None
+            self.texture = self.texture_1px
             return
 
         # create a delayed texture
@@ -427,8 +453,8 @@ class LabelBase(object):
                 width != texture.width or \
                 height != texture.height:
             texture = Texture.create(size=(width, height),
-                    mipmap=self.options['mipmap'],
-                    callback=self._texture_fill)
+                                     mipmap=self.options['mipmap'],
+                                     callback=self._texture_fill)
             texture.flip_vertical()
             texture.add_reload_observer(self._texture_refresh)
             self.texture = texture
@@ -436,14 +462,17 @@ class LabelBase(object):
             texture.ask_update(self._texture_fill)
 
     def _get_text(self):
-        try:
-            if type(self._text) is unicode:
+        if PY2:
+            try:
+                if type(self._text) is unicode:
+                    return self._text
+                return self._text.decode('utf8')
+            except AttributeError:
+                # python 3 support
+                return str(self._text)
+            except UnicodeDecodeError:
                 return self._text
-            return self._text.decode('utf8')
-        except AttributeError:
-            # python 3 support
-            return str(self._text)
-        except UnicodeDecodeError:
+        else:
             return self._text
 
     def _set_text(self, text):
@@ -452,6 +481,14 @@ class LabelBase(object):
 
     text = property(_get_text, _set_text, doc='Get/Set the text')
     label = property(_get_text, _set_text, doc='Get/Set the text')
+
+    @property
+    def texture_1px(self):
+        if LabelBase._texture_1px is None:
+            tex = Texture.create(size=(1, 1), colorfmt='rgba')
+            tex.blit_buffer(b'\x00\x00\x00\x00')
+            LabelBase._texture_1px = tex
+        return LabelBase._texture_1px
 
     @property
     def size(self):
@@ -488,7 +525,7 @@ class LabelBase(object):
 
     @property
     def fontid(self):
-        '''Return an uniq id for all font parameters'''
+        '''Return a unique id for all font parameters'''
         return str([self.options[x] for x in (
             'font_size', 'font_name_r', 'bold', 'italic')])
 
@@ -499,10 +536,11 @@ class LabelBase(object):
         self._text_size = x
 
     text_size = property(_get_text_size, _set_text_size,
-        doc='''Get/set the (width, height) of the contrained rendering box''')
+                         doc='''Get/set the (width, height) of the '
+                         'contrained rendering box''')
 
     usersize = property(_get_text_size, _set_text_size,
-        doc='''(deprecated) Use text_size instead.''')
+                        doc='''(deprecated) Use text_size instead.''')
 
 # Load the appropriate provider
 Label = core_select_lib('text', (
@@ -511,11 +549,16 @@ Label = core_select_lib('text', (
     ('pil', 'text_pil', 'LabelPIL'),
 ))
 
-# For the first initalization, register the default font
 if 'KIVY_DOC' not in os.environ:
-    Label.register('DroidSans',
-        'data/fonts/DroidSans.ttf',
-        'data/fonts/DroidSans-Italic.ttf',
-        'data/fonts/DroidSans-Bold.ttf',
-        'data/fonts/DroidSans-BoldItalic.ttf')
+    if not Label:
+        from kivy.logger import Logger
+        import sys
+        Logger.critical('App: Unable to get a Text provider, abort.')
+        sys.exit(1)
 
+# For the first initalization, register the default font
+    Label.register('DroidSans',
+                   'data/fonts/DroidSans.ttf',
+                   'data/fonts/DroidSans-Italic.ttf',
+                   'data/fonts/DroidSans-Bold.ttf',
+                   'data/fonts/DroidSans-BoldItalic.ttf')

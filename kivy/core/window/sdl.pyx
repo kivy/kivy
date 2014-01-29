@@ -275,7 +275,7 @@ def poll():
             action = ('windowrestored', )
         else:
             if __debug__:
-                print 'receive unknown sdl event', event.type
+                print('receive unknown sdl event', event.type)
             pass
         return action
     elif event.type == SDL_KEYDOWN or event.type == SDL_KEYUP:
@@ -290,7 +290,7 @@ def poll():
         return ('textinput', s)
     else:
         if __debug__:
-            print 'receive unknown sdl event', event.type
+            print('receive unknown sdl event', event.type)
         pass
 
 

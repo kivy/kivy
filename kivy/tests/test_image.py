@@ -8,7 +8,7 @@ class ImageTestCase(unittest.TestCase):
         import os
         self.cls = Image
         self.image = os.path.join(os.path.dirname(__file__), 'test_button.png')
-        print self.image
+        print(self.image)
         self.root = Image(self.image)
 
     def test_keep_data(self):

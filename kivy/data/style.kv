@@ -3,13 +3,15 @@
 <Label>:
     canvas:
         Color:
-            rgba: self.color if not self.markup else (1, 1, 1, 1)
+            rgba: self.disabled_color if self.disabled else (self.color if not self.markup else (1, 1, 1, 1))
         Rectangle:
             texture: self.texture
             size: self.texture_size
             pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 
 <-Button,-ToggleButton>:
+    state_image: self.background_normal if self.state == 'normal' else self.background_down
+    disabled_image: self.background_disabled_normal if self.state == 'normal' else self.background_disabled_down
     canvas:
         Color:
             rgba: self.background_color
@@ -17,15 +19,16 @@
             border: self.border
             pos: self.pos
             size: self.size
-            source: self.background_normal if self.state == 'normal' else self.background_down
+            source: self.disabled_image if self.disabled else self.state_image
         Color:
-            rgba: self.color
+            rgba: self.disabled_color if self.disabled else self.color
         Rectangle:
             texture: self.texture
             size: self.texture_size
             pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 
 <BubbleContent>
+    opacity: .7 if self.disabled else 1
     rows: 1
     canvas:
         Color:
@@ -39,6 +42,8 @@
 <BubbleButton>:
     background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
     background_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
+    background_disabled_normal: 'atlas://data/images/defaulttheme/bubble_btn'
+    background_disabled_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
     border: (0, 0, 0, 0)
 
 <Slider>:
@@ -47,13 +52,13 @@
             rgb: 1, 1, 1
         BorderImage:
             border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
-            pos: (self.x + self.padding, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y + self.padding)
-            size: (self.width - self.padding * 2, 37) if self.orientation == 'horizontal' else (37, self.height - self.padding * 2)
-            source: 'atlas://data/images/defaulttheme/slider%s_background' % self.orientation[0]
+            pos: (self.x + self.padding, self.center_y - sp(18)) if self.orientation == 'horizontal' else (self.center_x - 18, self.y + self.padding)
+            size: (self.width - self.padding * 2, sp(36)) if self.orientation == 'horizontal' else (sp(36), self.height - self.padding * 2)
+            source: 'atlas://data/images/defaulttheme/slider{}_background{}'.format(self.orientation[0], '_disabled' if self.disabled else '')
         Rectangle:
-            pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
-            size: (32, 32)
-            source: 'atlas://data/images/defaulttheme/slider_cursor'
+            pos: (self.value_pos[0] - sp(16), self.center_y - sp(17)) if self.orientation == 'horizontal' else (self.center_x - (16), self.value_pos[1] - sp(16))
+            size: (sp(32), sp(32))
+            source: 'atlas://data/images/defaulttheme/slider_cursor{}'.format('_disabled' if self.disabled else '')
 
 <ProgressBar>:
     canvas:
@@ -65,16 +70,16 @@
             size: self.width, 24
             source: 'atlas://data/images/defaulttheme/progressbar_background'
         BorderImage:
-            border: [int(min(self.width * (self.value / float(self.max)), 12))] * 4
+            border: [int(min(self.width * (self.value / float(self.max)) if self.max else 0, 12))] * 4
             pos: self.x, self.center_y - 12
-            size: self.width * (self.value / float(self.max)), 24
+            size: self.width * (self.value / float(self.max)) if self.max else 0, 24
             source: 'atlas://data/images/defaulttheme/progressbar'
 
 <SplitterStrip>:
     border: self.parent.border if self.parent else (3, 3, 3, 3)
     horizontal: '_h' if self.parent and self.parent.sizable_from[0] in  ('t', 'b') else ''
-    background_normal: 'atlas://data/images/defaulttheme/splitter' + self.horizontal
-    background_down: 'atlas://data/images/defaulttheme/splitter_down' + self.horizontal
+    background_normal: 'atlas://data/images/defaulttheme/splitter{}{}'.format('_disabled' if self.disabled else '', self.horizontal)
+    background_down: 'atlas://data/images/defaulttheme/splitter_down{}{}'.format('_disabled' if self.disabled else '', self.horizontal)
     Image:
         pos: root.pos
         size: root.size
@@ -115,21 +120,34 @@
             rgba: self.parent.background_color if self.parent else (1, 1, 1, 1)
         BorderImage:
             border: self.parent.border if self.parent else (16, 16, 16, 16)
-            texture: root.parent._bk_img.texture if root.parent else None
+            source: (root.parent.background_disabled_image if self.disabled else root.parent.background_image) if root.parent else None
             size: self.size
             pos: self.pos
 
 <TabbedPanelStrip>
     rows: 1
 
+<StripLayout>
+    padding: '2dp', '2dp', '2dp', '2dp'
+    canvas.before:
+        BorderImage:
+            pos: self.pos
+            size: self.size
+            border: root.border
+            source: root.background_image
+
 <TabbedPanelHeader>:
     halign: 'center'
     valign: 'middle'
     background_normal: 'atlas://data/images/defaulttheme/tab_btn'
+    background_disabled_normal: 'atlas://data/images/defaulttheme/tab_btn_disabled'
     background_down: 'atlas://data/images/defaulttheme/tab_btn_pressed'
+    background_disabled_down: 'atlas://data/images/defaulttheme/tab_btn_pressed'
     border: (8, 8, 8, 8)
     font_size: '15sp'
 
+<Selector>
+    allow_stretch: True
 
 <TextInput>:
     canvas.before:
@@ -139,20 +157,20 @@
             border: self.border
             pos: self.pos
             size: self.size
-            source: self.background_active if self.focus else self.background_normal
+            source: (self.background_disabled_active if self.disabled else self.background_active) if self.focus else (self.background_disabled_normal if self.disabled else self.background_normal)
         Color:
             rgba: (1, 0, 0, 1 if self.focus and not self.cursor_blink else 0)
         Rectangle:
-            pos: map(int, self.cursor_pos)
+            pos: [int(x) for x in self.cursor_pos]
             size: 1, -self.line_height
         Color:
-            rgba: self.hint_text_color if not self.text and not self.focus else self.foreground_color
+            rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text and not self.focus else self.foreground_color)
 
 <TextInputCutCopyPaste>:
-    but_cut: cut
-    but_copy: copy
-    but_paste: paste
-    but_selectall: selectall
+    but_cut: cut.__self__
+    but_copy: copy.__self__
+    but_paste: paste.__self__
+    but_selectall: selectall.__self__
 
     size_hint: None, None
     size: '150sp', '50sp'
@@ -172,6 +190,9 @@
         id: selectall
         text: 'Select All'
         on_release: root.do('selectall')
+
+<CodeInput>:
+    font_name: 'data/fonts/DroidSansMono.ttf'
 
 
 <TreeViewNode>:
@@ -289,16 +310,16 @@
     BoxLayout:
         pos: root.pos
         Label:
-			id: filename
+            id: filename
             text_size: self.width, None
             halign: 'left'
             shorten: True
-            text: unicode(ctx.name)
+            text: ctx.name
         Label:
             text_size: self.width, None
             size_hint_x: None
             halign: 'right'
-            text: unicode(ctx.get_nice_size())
+            text: '{}'.format(ctx.get_nice_size())
 
 
 <FileChooserIconView>:
@@ -332,7 +353,7 @@
 
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
     on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
-	size: '100dp', '100dp'
+    size: '100dp', '100dp'
 
     canvas:
         Color:
@@ -348,7 +369,7 @@
         source: 'atlas://data/images/defaulttheme/filechooser_%s' % ('folder' if ctx.isdir else 'file')
         pos: root.x + dp(24), root.y + dp(40)
     Label:
-        text: unicode(ctx.name)
+        text: ctx.name
         text_size: (root.width, self.height)
         halign: 'center'
         shorten: True
@@ -356,7 +377,7 @@
         pos: root.x, root.y + dp(16)
 
     Label:
-        text: unicode(ctx.get_nice_size())
+        text: '{}'.format(ctx.get_nice_size())
         font_size: '11sp'
         color: .8, .8, .8, 1
         size: '100dp', '16sp'
@@ -411,11 +432,11 @@
         Color:
             rgb: 1, 1, 1
         Rectangle:
-            source: 'atlas://data/images/defaulttheme/switch-background'
+            source: 'atlas://data/images/defaulttheme/switch-background{}'.format('_disabled' if self.disabled else '')
             size: sp(83), sp(32)
             pos: int(self.center_x - sp(41)), int(self.center_y - sp(16))
         Rectangle:
-            source: 'atlas://data/images/defaulttheme/switch-button'
+            source: 'atlas://data/images/defaulttheme/switch-button{}'.format('_disabled' if self.disabled else '')
             size: sp(43), sp(32)
             pos: int(self.center_x - sp(41) + self.active_norm_pos * sp(41)), int(self.center_y - sp(16))
 
@@ -449,6 +470,7 @@
 
         Label:
             text: root.title
+            color: root.title_color
             size_hint_y: None
             height: self.texture_size[1] + 16
             text_size: self.width - 16, None
@@ -467,6 +489,141 @@
         BoxLayout:
             id: container
 
+# =============================================================================
+# Spinner widget
+# =============================================================================
+
+<SpinnerOption>:
+    size_hint_y: None
+    height: '48dp'
+
+<Spinner>:
+    background_normal: 'atlas://data/images/defaulttheme/spinner'
+    background_disabled_normal: 'atlas://data/images/defaulttheme/spinner_disabled'
+    background_down: 'atlas://data/images/defaulttheme/spinner_pressed'
+
+# =============================================================================
+# ActionBar widget
+# =============================================================================
+
+<ActionBar>:
+	height: '48dp'
+	size_hint_y: None
+    spacing: '4dp'
+    canvas:
+        Color:
+            rgba: self.background_color
+        BorderImage:
+            border: root.border
+            pos: self.pos
+            size: self.size
+            source: self.background_image
+
+<ActionView>:
+    orientation: 'horizontal'
+    canvas:
+        Color:
+            rgba: self.background_color
+        BorderImage:
+            pos: self.pos
+            size: self.size
+            source: self.background_image
+
+<ActionSeparator>:
+    size_hint_x: None
+    minimum_width: '2sp'
+    width: self.minimum_width
+    canvas:
+        Rectangle:
+            pos: self.x, self.y + sp(4)
+            size: self.width, self.height - sp(8)
+            source: self.background_image
+
+<ActionButton,ActionToggleButton>:
+    background_normal: 'atlas://data/images/defaulttheme/' + ('action_bar' if self.inside_group else 'action_item')
+	background_down: 'atlas://data/images/defaulttheme/action_item_down'
+	size_hint_x: None if not root.inside_group else 1
+	width: [dp(48) if (root.icon and not root.inside_group) else max(dp(48), (self.texture_size[0] + dp(32))), self.size_hint_x][0]
+	color: self.color[:3] + [0 if (root.icon and not root.inside_group) else 1]
+
+	Image:
+		opacity: 1 if (root.icon and not root.inside_group) else 0
+		source: root.icon
+        mipmap: root.mipmap
+		pos: root.x + dp(4), root.y + dp(4)
+		size: root.width - dp(8), root.height - sp(8)
+
+<ActionGroup>:
+	size_hint_x: None
+	width: self.texture_size[0] + dp(32)
+
+<ActionCheck>:
+    background_normal: 'atlas://data/images/defaulttheme/action_bar' if self.inside_group else 'atlas://data/images/defaulttheme/action_item'
+
+<ActionPrevious>:
+	size_hint_x: 1
+    minimum_width: '100sp'
+    important: True
+    BoxLayout:
+        orientation: 'horizontal'
+        pos: root.pos
+        size: root.size
+        Image:
+            source: root.previous_image
+            opacity: 1 if root.with_previous else 0
+            allow_stretch: True
+            size_hint_x: None
+            width: self.texture_size[0] if root.with_previous else dp(8)
+            mipmap: root.mipmap
+        Image:
+            source: root.app_icon
+            allow_stretch: True
+            size_hint_x: None
+            width: min(self.height, self.texture_size[0]) if self.texture else self.height
+			mipmap: root.mipmap
+		Widget:
+			size_hint_x: None
+			width: '5sp'
+        Label:
+            text: root.title
+            text_size: self.size
+            color: root.color
+            shorten: True
+            halign: 'left'
+            valign: 'middle'
+
+<ActionGroup>:
+    background_normal: 'atlas://data/images/defaulttheme/action_group'
+    background_down: 'atlas://data/images/defaulttheme/action_group_down'
+    background_disabled_normal: 'atlas://data/images/defaulttheme/action_group_disabled'
+    border: 30, 30, 3, 3
+    ActionSeparator:
+        pos: root.pos
+        size: root.separator_width, root.height
+        opacity: 1 if root.use_separator else 0
+        background_image: root.separator_image if root.use_separator else 'action_view'
+
+<ActionOverflow>:
+    border: 3, 3, 3, 3
+    background_normal: 'atlas://data/images/defaulttheme/action_item'
+    background_down: 'atlas://data/images/defaulttheme/action_item_down'
+    background_disabled_normal: 'atlas://data/images/defaulttheme/button_disabled'
+    size_hint_x: None
+    minimum_width: '48sp'
+    width: self.texture_size[0] if self.texture else self.minimum_width
+    canvas.after:
+		Color:
+			rgb: 1, 1, 1
+        Rectangle:
+            pos: root.center_x - sp(16), root.center_y - sp(16)
+            size: sp(32), sp(32)
+            source: root.overflow_image
+
+<ActionDropDown>:
+    auto_width: False
+
+<ContextualActionView>:
+
 
 # =============================================================================
 # Accordion widget
@@ -474,11 +631,13 @@
 
 [AccordionItemTitle@Label]:
     text: ctx.title
+    normal_background: ctx.item.background_normal if ctx.item.collapse else ctx.item.background_selected
+    disabled_background: ctx.item.background_disabled_normal if ctx.item.collapse else ctx.item.background_disabled_selected
     canvas.before:
         Color:
-            rgb: 1, 1, 1
+            rgba: self.disabled_color if self.disabled else self.color
         BorderImage:
-            source: ctx.item.background_normal if ctx.item.collapse else ctx.item.background_selected
+            source: self.disabled_background if self.disabled else self.normal_background
             pos: self.pos
             size: self.size
         PushMatrix
@@ -553,7 +712,7 @@
             size_hint_x: .66
             id: labellayout
             markup: True
-            text: '{0}\n[size=13sp][color=999999]{1}[/color][/size]'.format(root.title or '', root.desc or '')
+            text: u'{0}\n[size=13sp][color=999999]{1}[/color][/size]'.format(root.title or '', root.desc or '')
             font_size: '15sp'
             text_size: self.width - 32, None
 
@@ -571,19 +730,19 @@
 
 <SettingString>:
     Label:
-        text: str(root.value)
+        text: root.value or ''
         pos: root.pos
         font_size: '15sp'
 
 <SettingPath>:
     Label:
-        text: str(root.value)
+        text: root.value or ''
         pos: root.pos
         font_size: '15sp'
 
 <SettingOptions>:
     Label:
-        text: str(root.value)
+        text: root.value or ''
         pos: root.pos
         font_size: '15sp'
 
@@ -639,68 +798,119 @@
                 size: self.width, 1
 
 <Settings>:
-    content: content
-    menu: menu
-
-    canvas:
+    orientation: 'horizontal'
+    canvas.before:
         Color:
             rgb: 0, 0, 0
         Rectangle:
             pos: self.pos
             size: self.size
 
-    FloatLayout:
+<InterfaceWithSidebar>:
+    orientation: 'horizontal'
+    menu: menu
+    content: content
+    MenuSidebar:
+        id: menu
+    ContentPanel:
+        id: content
+        current_uid: menu.selected_uid
+
+<InterfaceWithSpinner>:
+    orientation: 'vertical'
+    menu: menu
+    content: content
+    MenuSpinner:
+        id: menu
+    ContentPanel:
+        id: content
+        current_uid: menu.selected_uid
+
+<MenuSpinner>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: '50dp'
+    spinner: spinner
+    spinner_text: spinner.text
+    close_button: button
+    Spinner:
+        id: spinner
+    Button:
+        text: 'Close'
+        id: button
         size_hint_x: None
-        width: '200dp'
-        GridLayout:
-            pos: root.pos
-            cols: 1
-            id: menu
-            orientation: 'vertical'
-            padding: 5
+        width: min(dp(200), 0.4*root.width)
+        font_size: '15sp'
 
-            canvas.after:
-                Color:
-                    rgb: .2, .2, .2
-                Rectangle:
-                    pos: self.right - 1, self.y
-                    size: 1, self.height
 
-        Button:
-            text: 'Close'
-            size_hint: None, None
-            width: '180dp'
-            height: max(50, self.texture_size[1] + dp(20))
-            pos: root.x + dp(10), root.y + dp(10)
-            on_release: root.dispatch('on_close')
-            font_size: '15sp'
+<MenuSidebar>:
+    size_hint_x: None
+    width: '200dp'
+    buttons_layout: menu
+    close_button: button
+    GridLayout:
+        pos: root.pos
+        cols: 1
+        id: menu
+        orientation: 'vertical'
+        padding: 5
 
-    ScrollView:
-        do_scroll_x: False
-        id: sv
-        Scatter:
-            size_hint: None, None
-            size: content.size
-            do_translation: False
-            do_rotation: False
-            do_scale: False
-            StackLayout:
-                id: content
-                height: self.minimum_height
-                width: sv.width
+        canvas.after:
+            Color:
+                rgb: .2, .2, .2
+            Rectangle:
+                pos: self.right - 1, self.y
+                size: 1, self.height
+
+    Button:
+        text: 'Close'
+        id: button
+        size_hint: None, None
+        width: root.width - dp(20)
+        height: max(50, self.texture_size[1] + dp(20))
+        pos: root.x + dp(10), root.y + dp(10)
+        font_size: '15sp'
+
+<ContentPanel>:
+    do_scroll_x: False
+    container: content
+    GridLayout:
+        id: content
+        cols: 1
+        size_hint_y: None
+        height: self.minimum_height
+
+<InterfaceWithTabbedPanel>:
+    tabbedpanel: tp
+    close_button: button
+    TabbedPanel:
+        id: tp
+        size: root.size
+        pos: root.pos
+        #do_default_tab: False
+        background_color: (0,0,0,1)
+    Button:
+        id: button
+        text: 'Close'
+        size_hint: None, None
+        height: '45dp'
+        width: min(dp(200), 0.3*root.width)
+        x: root.x + root.width - self.width
+        y: root.y + root.height - self.height
+
 
 <ScrollView>:
     canvas.after:
         Color:
-            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if self.do_scroll_y else 0]
+            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if (self.do_scroll_y and self.viewport_size[1]>self.height) else 0]
         Rectangle:
-            pos: self.right - self.bar_width - self.bar_margin, self.y + self.height * self.vbar[0]
-            size: self.bar_width, self.height * self.vbar[1]
+            pos: (self.right - self.bar_width - self.bar_margin) if self.bar_pos_y == 'right' else (self.x + self.bar_margin), self.y + self.height * self.vbar[0]
+            size: min(self.bar_width, self.width), self.height * self.vbar[1]
         Color:
-            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if self.do_scroll_x else 0]
+            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if (self.do_scroll_x and self.viewport_size[0] > self.width) else 0]
         Rectangle:
-            pos: self.x + self.width * self.hbar[0], self.y + self.bar_margin
-            size: self.width * self.hbar[1], self.bar_width
+            pos: self.x + self.width * self.hbar[0], (self.y + self.bar_margin) if self.bar_pos_x == 'bottom' else (self.top - self.bar_margin - self.bar_width)
+            size: self.width * self.hbar[1], min(self.bar_width, self.height)
 
 
 # =============================================================================
@@ -784,7 +994,7 @@
         Color:
             rgb: 1, 1, 1
         Rectangle:
-            source: 'atlas://data/images/defaulttheme/checkbox%s_%s' % (('_radio' if self.group else ''), ('on' if self.active else 'off'))
+            source: 'atlas://data/images/defaulttheme/checkbox%s%s_%s' % (('_radio' if self.group else ''), ('_disabled' if self.disabled else ''), ('on' if self.active else 'off'))
             size: sp(32), sp(32)
             pos: int(self.center_x - sp(16)), int(self.center_y - sp(16))
 
@@ -820,181 +1030,162 @@
 # =============================================================================
 # Color Picker
 # =============================================================================
+<ColorPicker_Input@TextInput>
+    multiline: False
+    mroot: None
+    padding: sp(5)
+    border: 4, 9, 4, 9
+
+<ColorPicker_Label@Label>
+    mroot: None
+	size_hint_x: None
+	width: '30sp'
+    text_size: self.size
+    halign: "center"
+    valign: "middle"
+
+<ColorPicker_Selector@BoxLayout>
+	foreground_color: None
+    text: ''
+    mroot: None
+    mode: 'rgb'
+    color: 0
+    spacing: '2sp'
+	ColorPicker_Label:
+		text: root.text
+		mroot: root.mroot
+		color: root.foreground_color or (1, 1, 1, 1)
+	AnchorLayout:
+		size_hint_x: None
+		width: '50sp'
+		ColorPicker_Input:
+			mroot: root.mroot
+			text: str(int(sldr.value))
+			size_hint_y: None
+			height: '28sp'
+			on_text:
+				root.mroot._trigger_update_clr(root.mode, root.clr_idx, args[1])
+    Slider:
+        id: sldr
+        size_hint: 1, .25
+        pos_hint: {'center_y':.5}
+        range: 0, 255
+        value: root.color * 255
+        on_value:
+            root.mroot._trigger_update_clr(root.mode, root.clr_idx, args[1])
 
 <ColorPicker>:
+	foreground_color: (1, 1, 1, 1) if self.hsv[2] * wheel.a < .5 else (0, 0, 0, 1)
     wheel: wheel
-    alphaslider: alphaslider
-    canvas:
-        Color:
-            rgba: root.bg_color
-        Rectangle:
-            pos: root.pos
-            size: root.size
     BoxLayout:
-        id: main_layout
-        orientation: 'vertical'
-        size: root.size
-        pos: root.pos
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: .33
-            spacing: 10
-            padding: 10
-            GridLayout:
-                cols: 4
-                size_hint: (.5, 1.)
-                spacing: [0, '15pt']
-                Label:
-                    text: "R:"
-                    color: root.label_color
-                    size_hint_x: .25
-                    size_hint_y: .5
-                    text_size: self.size
-                    halign: "right"
-                    valign: "middle"
-                    font_size: root.size[0] * .04
-                TextInput:
-                    multiline: False
-                    font_size: root.size[0] * .040
-                    text: str(int(root.color[0] * 255))
-                    background_color: root.bg_color
-                    foreground_color: root.label_color
-                    size_hint_x: .25
-                    border: [2, 2, 2, 2]
-                    on_text: root.color[0] = int(args[1] if args[1] else 0) / 255.0
-                Label:
-                    text: "G:"
-                    color: root.label_color
-                    size_hint_x: .25
-                    size_hint_y: .5
-                    text_size: self.size
-                    halign: "right"
-                    valign: "middle"
-                    font_size: root.size[0] * .04
-                TextInput:
-                    multiline: False
-                    font_size: root.size[0] * .040
-                    text: str(int(root.color[1] * 255))
-                    background_color: root.bg_color
-                    foreground_color: root.label_color
-                    size_hint_x: .25
-                    border: [2, 2, 2, 2]
-                    on_text: root.color[1] = int(args[1] if args[1] else 0) / 255.0
-                Label:
-                    text: "B:"
-                    color: root.label_color
-                    size_hint_x: .25
-                    size_hint_y: .5
-                    text_size: self.size
-                    halign: "right"
-                    valign: "middle"
-                    font_size: root.size[0] * .04
-                TextInput:
-                    multiline: False
-                    font_size: root.size[0] * .040
-                    text: str(int(root.color[2] * 255))
-                    background_color: root.bg_color
-                    foreground_color: root.label_color
-                    size_hint_x: .25
-                    border: [2, 2, 2, 2]
-                    on_text: root.color[2] = int(args[1] if args[1] else 0) / 255.0
-                Label:
-                    text: "A:"
-                    color: root.label_color
-                    size_hint_x: .25
-                    size_hint_y: .5
-                    text_size: self.size
-                    halign: "right"
-                    valign: "middle"
-                    font_size: root.size[0] * .04
-                TextInput:
-                    multiline: False
-                    font_size: root.size[0] * .040
-                    text: str(int(root.color[3] * 255))
-                    background_color: root.bg_color
-                    foreground_color: root.label_color
-                    size_hint_x: .25
-                    border: [2, 2, 2, 2]
-                    on_text: root.color[3] = int(args[1] if args[1] else 0) / 255.0
-            Widget:
-                size_hint: (.5, 1)
-                canvas:
-                    Color:
-                        rgba: root.color
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint: (1, 1)
-            spacing: 1
-            padding: 1
-            GridLayout:
-                rows: 2
-                Slider:
-                    id: redslider
-                    padding: 20
-                    orientation: 'vertical'
-                    min: 0
-                    max: 1
-                    step: .01
-                    value: root.color[0]
-                    on_value: root.color[0] = args[1]
-                Slider:
-                    id: greenslider
-                    padding: 20
-                    orientation: 'vertical'
-                    min: 0
-                    max: 1
-                    step: .01
-                    value: root.color[1]
-                    on_value: root.color[1] = args[1]
-                Slider:
-                    id: blueslider
-                    padding: 20
-                    orientation: 'vertical'
-                    min: 0
-                    max: 1
-                    step: .01
-                    value: root.color[2]
-                    on_value: root.color[2] = args[1]
-                Slider:
-                    id: alphaslider
-                    padding: 20
-                    orientation: 'vertical'
-                    min: 0
-                    max: 1
-                    step: .01
-                    value: root.color[3]
-                    on_value: root.color[3] = args[1]
-                Label:
-                    size_hint: (1, .2)
-                    halign: 'center'
-                    valign: 'top'
-                    text: 'R'
-                    text_size: self.size
-                Label:
-                    size_hint: (1, .2)
-                    halign: 'center'
-                    valign: 'top'
-                    text: 'G'
-                    text_size: self.size
-                Label:
-                    size_hint: (1, .2)
-                    halign: 'center'
-                    valign: 'top'
-                    text: 'B'
-                    text_size: self.size
-                Label:
-                    size_hint: (1, .2)
-                    halign: 'center'
-                    valign: 'top'
-                    text: 'A'
-                    text_size: self.size
+        orientation: 'vertical' if root.width < root.height else 'horizontal'
+        spacing: '5sp'
+        StackLayout:
+			orientation: 'tb-lr'
+			size_hint_y: None if root.width < root.height else 1
+			height: sp(33) * 4 if root.width < root.height else self.height
+            canvas:
+                Color:
+                    rgba: root.color
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
 
-            ColorWheel:
-                id: wheel
-                size_hint: (1, 1)
-                origin: (self.center_x, self.center_y)
-                radius: 0.45 * min(self.size)
-                on_color: root.color[:3] = args[1][:3]
+			ColorPicker_Selector:
+				mroot: root
+				text: 'R'
+				clr_idx: 0
+				color: wheel.r
+				foreground_color: root.foreground_color
+				size_hint_y: None if root.width < root.height else 0.125
+				size_hint_x: .5 if root.width < root.height else 1
+				height: '33sp' if root.width < root.height else self.height
+
+			ColorPicker_Selector:
+				mroot: root
+				text: 'G'
+				clr_idx: 1
+				color: wheel.g
+				foreground_color: root.foreground_color
+				size_hint_y: None if root.width < root.height else 0.125
+				size_hint_x: .5 if root.width < root.height else 1
+				height: '33sp' if root.width < root.height else self.height
+
+			ColorPicker_Selector:
+				mroot: root
+				text: 'B'
+				clr_idx: 2
+				color: wheel.b
+				foreground_color: root.foreground_color
+				size_hint_y: None if root.width < root.height else 0.125
+				size_hint_x: .5 if root.width < root.height else 1
+				height: '33sp' if root.width < root.height else self.height
+
+			ColorPicker_Selector:
+				mroot: root
+				text: 'A'
+				clr_idx: 3
+				color: root.color[3]
+				foreground_color: root.foreground_color
+				size_hint_y: None if root.width < root.height else 0.125
+				size_hint_x: .5 if root.width < root.height else 1
+				height: '33sp' if root.width < root.height else self.height
+
+			ColorPicker_Selector:
+				mroot: root
+				mode: 'hsv'
+				text: 'H'
+				clr_idx: 0
+				color: root.hsv[0]
+				foreground_color: root.foreground_color
+				size_hint_y: None if root.width < root.height else 0.125
+				size_hint_x: .5 if root.width < root.height else 1
+				height: '33sp' if root.width < root.height else self.height
+
+			ColorPicker_Selector:
+				mroot: root
+				mode: 'hsv'
+				text: 'S'
+				clr_idx: 1
+				color: root.hsv[1]
+				foreground_color: root.foreground_color
+				size_hint_y: None if root.width < root.height else 0.125
+				size_hint_x: .5 if root.width < root.height else 1
+				height: '33sp' if root.width < root.height else self.height
+
+			ColorPicker_Selector:
+				mroot: root
+				mode: 'hsv'
+				text: 'V'
+				clr_idx: 2
+				color: root.hsv[2]
+				foreground_color: root.foreground_color
+				size_hint_y: None if root.width < root.height else 0.125
+				size_hint_x: .5 if root.width < root.height else 1
+				height: '33sp' if root.width < root.height else self.height
+
+			BoxLayout:
+				size_hint_y: None if root.width < root.height else 0.125
+				size_hint_x: .5 if root.width < root.height else 1
+				height: '33sp' if root.width < root.height else self.height
+
+				spacing: '2sp'
+				ColorPicker_Label:
+					mroot: root
+					text: 'X'
+					color: root.foreground_color
+				AnchorLayout:
+					ColorPicker_Input:
+						size_hint_y: None
+						height: '28sp'
+						mroot: root
+						text: str(root.hex_color)
+						on_text: root._trigger_update_hex(args[1])
+
+
+        ColorWheel:
+            id: wheel
+            _origin: (self.center_x, self.center_y)
+            _radius: 0.45 * min(self.size)
+            color: root.color
+            on_color: root.color[:3] = args[1][:3]

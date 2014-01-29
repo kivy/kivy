@@ -1,0 +1,48 @@
+ShowcaseScreen:
+    name: 'TextInputs'
+    focused: ti_default
+    on_parent:
+        if not args[1] and self.focused: self.focused.focus = False
+        if args[1]: ti_default.focus = True
+
+    CTextInput
+        size_hint_y: None
+        height: '32dp'
+        multiline: False
+        text: 'Monoline textinput'
+
+    CTextInput:
+        id: ti_default
+        size_hint_y: None
+        height: '32dp'
+        text: 'Focused textinput'
+        focus: True
+
+    CTextInput:
+        size_hint_y: None
+        height: '32dp'
+        text: 'Password'
+        password: True
+
+    CTextInput:
+        size_hint_y: None
+        height: '32dp'
+        text: 'Readonly textinput'
+        readonly: True
+
+    CTextInput:
+        size_hint_y: None
+        height: '48dp'
+        text: 'Multiline textinput\nSecond line'
+        multiline: True
+
+    CTextInput:
+        size_hint_y: None
+        height: '32dp'
+        disabled: True
+        text: 'Disabled textinput'
+
+<CTextInput@TextInput>
+    on_focus:
+        screen = self.parent.parent.parent.parent
+        if screen.parent: screen.focused = self

@@ -50,6 +50,7 @@ Please refer to the installation instructions for your specific platform:
     installation-macosx
     installation-linux
     installation-android
+    troubleshooting-macosx
 
 
 .. _installation_devel:
@@ -85,12 +86,22 @@ For other versions of Ubuntu, this one should work::
 
     $ sudo apt-get install python-setuptools python-pygame python-opengl \
       python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
-      build-essential libgl1-mesa-dev libgles2-mesa-dev python-pip
+      build-essential libgl1-mesa-dev libgles2-mesa-dev zlib1g-dev python-pip
 
 Kivy requires a recent version of Cython, so it's better to use the last
 version published on pypi::
 
     $ sudo pip install --upgrade cython
+
+Mac OS X
+++++++++
+
+You will need to install at least the following:
+
+* PyGame - we recommend installing from a binary packaged for your version
+  of Mac OS X. Download it from http://www.pygame.org/download.shtml
+
+If you run into problems, please read :ref:`troubleshooting-macosx`.
 
 .. _dev-install:
 
@@ -112,6 +123,14 @@ following shortcut to compile (does the same as the last command)::
 
     $ make
 
+.. warning::
+
+  By default, versions 2.7 to 2.7.2 of Python use the gcc compiler which ships
+  with earlier versions of XCode. As of version 4.2, only the clang compiler
+  is shipped with XCode by default. This means that if you build using XCode
+  4.2 or above, you need to ensure you have at least Python 2.7.3 installed,
+  but prefferably the latest version (2.7.5 at the time of writing).
+    
 If you want to modify the Kivy code itself, set up the `PYTHONPATH environment
 variable
 <http://docs.python.org/tutorial/modules.html#the-module-search-path>`_ to
@@ -153,14 +172,14 @@ located.  Please note that you might need to follow these steps multiple times i
 Kivy versions installed in the Python library path.
 To find your current installed version, you can use the command line::
 
-    $ python -c 'import kivy; print kivy.__path__'
+    $ python -c 'import kivy; print(kivy.__path__)'
 
 Then, remove that directory recursively.
 
 If you have installed Kivy with easy_install on linux, the directory may
 contain a "egg" directory. Remove that as well::
 
-    $ python -c 'import kivy; print kivy.__path__'
+    $ python -c 'import kivy; print(kivy.__path__)'
     ['/usr/local/lib/python2.7/dist-packages/Kivy-1.0.7-py2.7-linux-x86_64.egg/kivy']
     $ sudo rm -rf /usr/local/lib/python2.7/dist-packages/Kivy-1.0.7-py2.7-linux-x86_64.egg
 

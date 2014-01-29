@@ -17,10 +17,20 @@ Builder.load_string('''
     Button
     Button
     Button
+        text: 'load(page 3)'
+        on_release:
+            carousel = root.parent.parent
+            carousel.load_slide(carousel.slides[2])
     Button
     Button
+        text: 'prev'
+        on_release:
+            root.parent.parent.load_previous()
     Button
     Button
+        text: 'next'
+        on_release:
+            root.parent.parent.load_next()
 ''')
 
 class Page(GridLayout):
@@ -29,7 +39,7 @@ class Page(GridLayout):
 class TestApp(App):
     def build(self):
         root = Carousel()
-        for x in xrange(10):
+        for x in range(10):
             root.add_widget(Page())
         return root
 

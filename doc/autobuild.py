@@ -25,6 +25,7 @@ import kivy
 import kivy.app
 import kivy.metrics
 import kivy.atlas
+import kivy.context
 import kivy.core.audio
 import kivy.core.camera
 import kivy.core.clipboard
@@ -36,6 +37,7 @@ import kivy.core.text.markup
 import kivy.core.video
 import kivy.core.window
 import kivy.ext
+import kivy.geometry
 import kivy.graphics
 import kivy.graphics.shader
 import kivy.animation
@@ -45,7 +47,12 @@ import kivy.modules.touchring
 import kivy.modules.inspector
 import kivy.modules.recorder
 import kivy.modules.screen
+import kivy.storage
+import kivy.storage.dictstore
+import kivy.storage.jsonstore
+import kivy.storage.redisstore
 import kivy.network.urlrequest
+import kivy.modules.webdebugger
 import kivy.support
 import kivy.input.recorder
 import kivy.interactive
@@ -53,7 +60,7 @@ import kivy.garden
 from kivy.factory import Factory
 
 # force loading of all classes from factory
-for x in Factory.classes.keys()[:]:
+for x in list(Factory.classes.keys())[:]:
     getattr(Factory, x)
 
 
@@ -66,7 +73,7 @@ def writefile(filename, data):
     global dest_dir
     # avoid to rewrite the file if the content didn't change
     f = os.path.join(dest_dir, filename)
-    print 'write', filename
+    print('write', filename)
     if os.path.exists(f):
         with open(f) as fd:
             if fd.read() == data:
@@ -181,7 +188,7 @@ for package in packages:
         t += "    api-%s.rst\n" % subpackage
 
     # search modules
-    m = modules.keys()
+    m = list(modules.keys())
     m.sort(key=lambda x: extract_summary_line(sys.modules[x].__doc__))
     for module in m:
         packagemodule = module.rsplit('.', 1)[0]
@@ -193,7 +200,7 @@ for package in packages:
 
 
 # Create index for all module
-m = modules.keys()
+m = list(modules.keys())
 m.sort()
 refid = 0
 for module in m:
@@ -238,4 +245,4 @@ for module in m:
 
 
 # Generation finished
-print 'Generation finished, do make html'
+print('Generation finished, do make html')

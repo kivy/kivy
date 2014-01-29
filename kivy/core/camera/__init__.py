@@ -2,8 +2,17 @@
 Camera
 ======
 
-Core class for acquiring the camera, and convert the input to a
+Core class for acquiring the camera and converting its input into a
 :class:`~kivy.graphics.texture.Texture`.
+
+.. versionchanged:: 1.8.0
+
+    There is now 2 distinct Gstreamer implementation: one using Gi/Gst
+    working for both Python 2+3 with Gstreamer 1.0, and one using PyGST
+    working only for Python 2 + Gstreamer 0.10.
+    If you have issue with GStreamer, have a look at
+    :ref:`gstreamer-compatibility`
+
 '''
 
 __all__ = ('CameraBase', 'Camera')
@@ -19,25 +28,26 @@ class CameraBase(EventDispatcher):
     '''Abstract Camera Widget class.
 
     Concrete camera classes must implement initialization and
-    frame capturing to buffer that can be uploaded to gpu.
+    frame capturing to a buffer that can be uploaded to the gpu.
 
     :Parameters:
         `index`: int
             Source index of the camera.
         `size` : tuple (int, int)
             Size at which the image is drawn. If no size is specified,
-            it defaults to resolution of the camera image.
+            it defaults to the resolution of the camera image.
         `resolution` : tuple (int, int)
             Resolution to try to request from the camera.
             Used in the gstreamer pipeline by forcing the appsink caps
-            to this resolution. If the camera doesnt support the resolution
+            to this resolution. If the camera doesnt support the resolution,
             a negotiation error might be thrown.
 
     :Events:
         `on_load`
-            Fired when the camera is loaded, and the texture became available
+            Fired when the camera is loaded and the texture has become
+            available.
         `on_frame`
-            Fired each time the camera texture is updated
+            Fired each time the camera texture is updated.
     '''
 
     __events__ = ('on_load', 'on_texture')
@@ -71,8 +81,8 @@ class CameraBase(EventDispatcher):
         return self._resolution
 
     resolution = property(lambda self: self._get_resolution(),
-                lambda self, x: self._set_resolution(x),
-                doc='Resolution of camera capture (width, height)')
+                          lambda self, x: self._set_resolution(x),
+                          doc='Resolution of camera capture (width, height)')
 
     def _set_index(self, x):
         if x == self._index:
@@ -84,13 +94,13 @@ class CameraBase(EventDispatcher):
         return self._x
 
     index = property(lambda self: self._get_index(),
-                lambda self, x: self._set_index(x),
-                doc='Source index of the camera')
+                     lambda self, x: self._set_index(x),
+                     doc='Source index of the camera')
 
     def _get_texture(self):
         return self._texture
     texture = property(lambda self: self._get_texture(),
-                doc='Return the camera texture with the latest capture')
+                       doc='Return the camera texture with the latest capture')
 
     def init_camera(self):
         '''Initialise the camera (internal)'''
@@ -128,9 +138,13 @@ providers = ()
 
 if sys.platform == 'win32':
     providers += (('videocapture', 'camera_videocapture',
-        'CameraVideoCapture'), )
-if sys.platform != 'darwin':
-    providers += (('gstreamer', 'camera_gstreamer', 'CameraGStreamer'), )
+                   'CameraVideoCapture'), )
+elif sys.platform == 'darwin':
+    providers += (('avfoundation', 'camera_avfoundation',
+                   'CameraAVFoundation'), )
+else:
+    #providers += (('gi', 'camera_gi', 'CameraGi'), )
+    providers += (('pygst', 'camera_pygst', 'CameraPyGst'), )
 
 providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )
 

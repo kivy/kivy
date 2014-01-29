@@ -59,6 +59,55 @@ Cython. (Reference: http://mail.scipy.org/pipermail/nipy-devel/2011-March/005709
 
 Solution: use `easy_install`, as our documentation said.
 
+.. _gstreamer-compatibility:
+
+GStreamer compatibility
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting from 1.8.0 version, Kivy now use by default the Gi bindings, on the
+platforms that have Gi. We are still in a transition, as Gstreamer 0.10 is now
+unmaintained by the Gstreamer team. But 1.0 is not accessible with Python
+everywhere. Here is the compatibility table you can use.
+
+    ================= ======== ====== =========================================
+    Gstreamer version Bindings Status Remarks
+    ----------------- -------- ------ -----------------------------------------
+    0.10              pygst    Works  Lot of issues remain with 0.10
+    0.10              gi       Buggy  Internal issues with pygobject, and video
+                                      doesn't play.
+    1.0               pygst    -      No pygst bindings exists for 1.0
+    1.0               gi       Works* Linux: works
+                                      OSX: works with brew
+                                      Windows: No python bindings available
+    ================= ======== ====== =========================================
+
+Also, we have no reliable way to check if you have 1.0 installed on your
+system. Trying to import gi, and then pygst, will fail.
+
+So currently:
+
+- if you are on Windows: stay on Gstreamer 0.10 with pygst.
+- if you are on OSX/Linux: install Gstreamer 1.0.x
+- if you are on OSX/Linux and doesn't want to install 1.0:
+  `export KIVY_VIDEO=pygst`
+
+If you are on OSX, Brew now have `pygobject3`. You must install it, and
+re-install gstreamer with introspection options::
+
+    $ brew install pygobject3
+    $ brew install gstreamer --with-gobject-introspection
+    $ brew install gst-plugins-base --with-gobject-introspection
+    $ brew install gst-plugins-good --with-gobject-introspection
+    $ brew install gst-plugins-bad --with-gobject-introspection
+    $ brew install gst-plugins-ugly --with-gobject-introspection
+
+    # then add the gi into your PYTHONPATH (as they don't do it for you)
+    $ export PYTHONPATH=$PYTHONPATH:/usr/local/opt/pygobject3/lib/python2.7/site-packages
+
+    # test it
+    $ python -c 'import gi; from gi.repository import Gst; print Gst.version()'
+    (1L, 2L, 1L, 0L)
+
 
 Android FAQ
 -----------

@@ -4,23 +4,31 @@ Language tests
 '''
 
 import unittest
+from weakref import proxy
 
 
 class BaseClass(object):
+    uid = 0
+
     # base class needed for builder
     def __init__(self, **kwargs):
         super(BaseClass, self).__init__()
+        self.proxy_ref = proxy(self)
         self.children = []
         self.parent = None
         self.binded_func = {}
         self.id = None
+        self.ids = {}
         self.cls = []
+        self.ids = {}
+        self.uid = BaseClass.uid
+        BaseClass.uid += 1
 
     def add_widget(self, widget):
         self.children.append(widget)
         widget.parent = self
 
-    def create_property(self, name):
+    def create_property(self, name, value=None):
         pass
 
     def is_event_type(self, key):
@@ -154,8 +162,8 @@ class LangTestCase(unittest.TestCase):
         Builder.load_string('''
 <TestClass>:
     on_press:
-        print 'hello world'
-        print 'this is working !'
+        print('hello world')
+        print('this is working !')
         self.a = 1
 ''')
         wid = TestClass()
@@ -171,8 +179,8 @@ class LangTestCase(unittest.TestCase):
         Builder.load_string('''
 <TestClass>:
         on_press:
-                print 'hello world'
-                print 'this is working !'
+                print('hello world')
+                print('this is working !')
                 self.a = 1
 ''')
         wid = TestClass()
@@ -188,8 +196,8 @@ class LangTestCase(unittest.TestCase):
         Builder.load_string('''
 <TestClass>:
  on_press:
-  print 'hello world'
-  print 'this is working !'
+  print('hello world')
+  print('this is working !')
   self.a = 1
 ''')
         wid = TestClass()
@@ -205,8 +213,8 @@ class LangTestCase(unittest.TestCase):
         Builder.load_string('''
 <TestClass>:
   on_press:
-    print 'hello world'
-    print 'this is working !'
+    print('hello world')
+    print('this is working !')
     self.a = 1
 ''')
         wid = TestClass()

@@ -4,10 +4,10 @@ Auto Create Input Provider Config Entry for Available MT Hardware (linux only).
 
 Thanks to Marc Tardif for the probing code, taken from scan-for-mt-device.
 
-The device discovery is done by this provider. However, the reading of input can
-be made by other providers like: hidinput, mtdev, linuxwacom. mtdev is used
-prior to other providers. For more information about mtdev, check
-:py:class:`~kivy.input.providers.mtdev`.
+The device discovery is done by this provider. However, the reading of
+input can be performed by other providers like: hidinput, mtdev and
+linuxwacom.  mtdev is used prior to other providers. For more
+information about mtdev, check :py:class:`~kivy.input.providers.mtdev`.
 
 Here is an example of auto creation::
 
@@ -30,9 +30,9 @@ Here is an example of auto creation::
     pen = probesysfs,match=E3 Pen,provider=linuxwacom,
         select_all=1,param=mode=pen
 
-By default, ProbeSysfs module will enumerate hardware from /sys/class/input
+By default, ProbeSysfs module will enumerate hardware from the /sys/class/input
 device, and configure hardware with ABS_MT_POSITION_X capability. But for
-example, wacom screen doesn't support this capability. You can prevent this
+example, the wacom screen doesn't support this capability. You can prevent this
 behavior by putting select_all=1 in your config line.
 '''
 
@@ -52,6 +52,7 @@ else:
     from kivy.logger import Logger
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory
+    from kivy.config import _is_rpi
 
     # See linux/input.h
     ABS_MT_POSITION_X = 0x35
@@ -80,7 +81,8 @@ else:
             long_bit = getconf("LONG_BIT")
             for i, word in enumerate(line.split(" ")):
                 word = int(word, 16)
-                subcapabilities = [bool(word & 1 << i) for i in range(long_bit)]
+                subcapabilities = [bool(word & 1 << i)
+                                   for i in range(long_bit)]
                 capabilities[:0] = subcapabilities
 
             return capabilities
@@ -120,7 +122,7 @@ else:
             self.provider = 'mtdev'
             self.match = None
             self.input_path = '/sys/class/input'
-            self.select_all = False
+            self.select_all = True if _is_rpi else False
             self.use_regex = False
             self.args = []
 
@@ -154,6 +156,7 @@ else:
 
         def probe(self):
             inputs = get_inputs(self.input_path)
+            Logger.debug('ProbeSysfs: using probsysfs!')
             if not self.select_all:
                 inputs = [x for x in inputs if
                           x.has_capability(ABS_MT_POSITION_X)]
@@ -180,7 +183,7 @@ else:
                 provider = MotionEventFactory.get(self.provider)
                 if provider is None:
                     Logger.info('ProbeSysfs: unable to found provider %s' %
-                                     self.provider)
+                                self.provider)
                     Logger.info('ProbeSysfs: fallback on hidinput')
                     provider = MotionEventFactory.get('hidinput')
                 if provider is None:
@@ -188,8 +191,8 @@ else:
                                     ' to handle this device !')
                     continue
 
-                instance = provider(devicename, '%s,%s' % (device.device,
-                                                           ','.join(self.args)))
+                instance = provider(devicename, '%s,%s' % (
+                    device.device, ','.join(self.args)))
                 if instance:
                     from kivy.base import EventLoop
                     EventLoop.add_input_provider(instance)

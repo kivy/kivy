@@ -2,14 +2,15 @@
 OpenGL
 ======
 
-This module is python wrapper for OpenGL commands.
+This module is a Python wrapper for OpenGL commands.
 
 .. warning::
 
-    Not every OpenGL command have been wrapped, because we are using the C binding
-    for higher performance, and you should stick on the Kivy Graphics API, not the
-    OpenGL one. By using theses OpenGL commands, you might change the OpenGL context
-    and introduce inconsistency between Kivy state and OpenGL state.
+    Not every OpenGL command has been wrapped and because we are using the C
+    binding for higher performance, and you should rather stick to the Kivy
+    Graphics API. By using OpenGL commands directly, you might change
+    the OpenGL context and introduce inconsistency between the Kivy state and
+    the OpenGL state.
 
 '''
 
@@ -710,11 +711,18 @@ def glDrawArrays(GLenum mode, GLint first, GLsizei count):
     '''
     c_opengl.glDrawArrays(mode, first, count)
 
-def glDrawElements(GLenum mode, GLsizei count, GLenum type, bytes indices):
+def glDrawElements(GLenum mode, GLsizei count, GLenum type, indices):
     '''See: `glDrawElements() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDrawElements.xml>`_
     '''
-    c_opengl.glDrawElements(mode, count, type, <void *>indices)
+    cdef void *ptr = NULL
+    if isinstance(indices, bytes):
+        ptr = <void *>(<char *>(<bytes>indices))
+    elif isinstance(indices, (long, int)):
+        ptr = <void *>(<long>indices)
+    else:
+        raise TypeError("Argument 'indices' has incorrect type (expected bytes or int).")
+    c_opengl.glDrawElements(mode, count, type, ptr)
 
 def glEnable(GLenum cap):
     '''See: `glEnable() on Kronos website
@@ -1176,18 +1184,22 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
                  GLenum type): #, GLvoid* pixels):
     '''See: `glReadPixels() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glReadPixels.xml>`_
-    
-    We are supporting only GL_RGB/GL_RGBA as format, and GL_UNSIGNED_BYTE as
+
+    We support only GL_RGB/GL_RGBA as a format and GL_UNSIGNED_BYTE as a
     type.
     '''
     assert(format in (GL_RGB, GL_RGBA))
     assert(type == GL_UNSIGNED_BYTE)
 
     cdef object py_pixels = None
-    cdef int size
+    cdef long size
     cdef char *data
 
-    size = (3 if format == GL_RGB else 4) * width * height * sizeof(GLubyte)
+    size = width * height * sizeof(GLubyte)
+    if format == GL_RGB:
+        size *= 3
+    else:
+        size *= 4
     data = <char *>malloc(size)
     if data == NULL:
         raise MemoryError('glReadPixels()')
@@ -1195,7 +1207,7 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
     c_opengl.glPixelStorei(GL_PACK_ALIGNMENT, 1)
     c_opengl.glReadPixels(x, y, width, height, format, type, data)
     try:
-        py_pixels = PyString_FromStringAndSize(data, size)
+        py_pixels = data[:size]
     finally:
         free(data)
 
@@ -1470,14 +1482,11 @@ def glUniformMatrix3fv(GLint location, GLsizei count):#, GLboolean transpose,  b
     # c_opengl.glUniformMatrix3fv(location, count, transpose, <GLfloat*>ptr_value)
     raise NotImplemented()
 
-def glUniformMatrix4fv(GLint location, GLsizei count):#, GLboolean transpose,  bytes values):
+def glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose,  bytes value):
     '''See: `glUniformMatrix4fv() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glUniformMatrix4fv.xml>`_
-
-    .. warning:: Not implemented yet.
     '''
-    # c_opengl.glUniformMatrix4fv(location, count, transpose, <GLfloat*>ptr_value)
-    raise NotImplemented()
+    c_opengl.glUniformMatrix4fv(location, count, transpose, <GLfloat*>(<char *>value))
 
 def glUseProgram(GLuint program):
     '''See: `glUseProgram() on Kronos website
@@ -1551,14 +1560,19 @@ def glVertexAttrib4fv(GLuint indx, list values):
     #c_opengl.glVertexAttrib4fv(indx, values)
     raise NotImplemented()
 
-def glVertexAttribPointer(GLuint indx, GLint size):#, GLenum type, GLboolean normalized, GLsizei stride,  GLvoid* ptr):
+def glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, data):
     '''See: `glVertexAttribPointer() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glVertexAttribPointer.xml>`_
 
-    .. warning:: Not implemented yet.
     '''
-    # c_opengl.glVertexAttribPointer(indx, size, type, normalized, stride, <GLvoid*>ptr)
-    raise NotImplemented()
+    cdef void *ptr = NULL
+    if isinstance(data, bytes):
+        ptr = <void *>(<char *>(<bytes>data))
+    elif isinstance(data, (long, int)):
+        ptr = <void *>(<long>data)
+    else:
+        raise TypeError("Argument 'data' has incorrect type (expected bytes or int).")
+    c_opengl.glVertexAttribPointer(index, size, type, normalized, stride, ptr)
 
 def glViewport(GLint x, GLint y, GLsizei width, GLsizei height):
     '''See: `glViewport() on Kronos website
@@ -1578,9 +1592,9 @@ IF USE_GLEW:
         result = glewInit()
         if result != GLEW_OK:
             error = glewGetErrorString(result)
-            print 'GLEW initialization error:', error
+            print('GLEW initialization error:', error)
         else:
-            print 'GLEW initialization succeeded'
+            print('GLEW initialization succeeded')
         glew_dynamic_binding()
 
 ELSE:

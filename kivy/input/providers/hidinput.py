@@ -1,10 +1,10 @@
 '''
-Native support of HID input from linux kernel
-=============================================
+Native support for HID input from the linux kernel
+==================================================
 
-Support start from 2.6.32-ubuntu, or 2.6.34.
+Support starts from 2.6.32-ubuntu, or 2.6.34.
 
-To configure HIDInput, put in your configuration::
+To configure HIDInput, add this to your configuration::
 
     [input]
     # devicename = hidinput,/dev/input/eventXX
@@ -14,9 +14,9 @@ To configure HIDInput, put in your configuration::
 .. note::
     You must have read access to the input event.
 
-You have the possibility to use custom range for some X, Y and pressure value.
-On some drivers, the range reported is invalid.
-To fix that, you can add one of theses options on the argument line :
+You can use a custom range for the X, Y and pressure values.
+For some drivers, the range reported is invalid.
+To fix that, you can add these options to the argument line:
 
 * invert_x : 1 to invert X axis
 * invert_y : 1 to invert Y axis
@@ -27,12 +27,13 @@ To fix that, you can add one of theses options on the argument line :
 * min_pressure : pressure minimum
 * max_pressure : pressure maximum
 
-For example, on Asus T101M, the touchscreen report a range from 0-4095 for X and
-Y value, but real value are in a range from 0-32768. You can put it on
-configuration::
+For example, on the Asus T101M, the touchscreen reports a range from 0-4095 for
+the X and Y values, but the real values are in a range from 0-32768. To correct
+this, you can add the following to the configuration::
 
     [input]
-    t101m = hidinput,/dev/input/event7,max_position_x=32768,max_position_y=32768
+    t101m = hidinput,/dev/input/event7,max_position_x=32768,\
+max_position_y=32768
 
 '''
 
@@ -180,12 +181,14 @@ else:
                 try:
                     self.default_ranges[key] = int(value)
                 except ValueError:
-                    err = 'HIDInput: invalid value "%s" for "%s"' % (key, value)
+                    err = 'HIDInput: invalid value "%s" for "%s"' % (
+                        key, value)
                     Logger.error(err)
                     continue
 
                 # all good!
-                Logger.info('HIDInput: Set custom %s to %d' % (key, int(value)))
+                Logger.info('HIDInput: Set custom %s to %d' % (
+                    key, int(value)))
 
         def start(self):
             if self.input_fn is None:
@@ -222,8 +225,96 @@ else:
             invert_x = int(bool(drs('invert_x', 0)))
             invert_y = int(bool(drs('invert_y', 0)))
 
+            def process_as_multitouch(tv_sec, tv_usec, ev_type,
+                                      ev_code, ev_value):
+                # sync event
+                if ev_type == EV_SYN:
+                    if ev_code == SYN_MT_REPORT:
+                        if 'id' not in point:
+                            return
+                        l_points.append(point)
+                    elif ev_code == SYN_REPORT:
+                        process(l_points)
+                        l_points = []
+
+                elif ev_type == EV_MSC and ev_code in (MSC_RAW, MSC_SCAN):
+                    pass
+
+                else:
+                    # compute multitouch track
+                    if ev_code == ABS_MT_TRACKING_ID:
+                        point = {}
+                        point['id'] = ev_value
+                    elif ev_code == ABS_MT_POSITION_X:
+                        val = normalize(ev_value,
+                                        range_min_position_x,
+                                        range_max_position_x)
+                        if invert_x:
+                            val = 1. - val
+                        point['x'] = val
+                    elif ev_code == ABS_MT_POSITION_Y:
+                        val = 1. - normalize(ev_value,
+                                             range_min_position_y,
+                                             range_max_position_y)
+                        if invert_y:
+                            val = 1. - val
+                        point['y'] = val
+                    elif ev_code == ABS_MT_ORIENTATION:
+                        point['orientation'] = ev_value
+                    elif ev_code == ABS_MT_BLOB_ID:
+                        point['blobid'] = ev_value
+                    elif ev_code == ABS_MT_PRESSURE:
+                        point['pressure'] = normalize(ev_value,
+                                                      range_min_pressure,
+                                                      range_max_pressure)
+                    elif ev_code == ABS_MT_TOUCH_MAJOR:
+                        point['size_w'] = ev_value
+                    elif ev_code == ABS_MT_TOUCH_MINOR:
+                        point['size_h'] = ev_value
+
+            def process_as_mouse(tv_sec, tv_usec, ev_type, ev_code, ev_value):
+
+                if ev_type == EV_SYN:
+                    if ev_code == SYN_REPORT:
+                        process([point])
+
+                elif ev_type == EV_REL:
+
+                    if ev_code == 0:
+                        point['x'] = \
+                            min(1., max(0., point['x'] + ev_value / 1000.))
+                    elif ev_code == 1:
+                        point['y'] = \
+                            min(1., max(0., point['y'] - ev_value / 1000.))
+
+                elif ev_type == EV_KEY:
+                    buttons = {
+                        272: 'left',
+                        273: 'right',
+                        274: 'middle',
+                        275: 'side',
+                        276: 'extra',
+                        277: 'forward',
+                        278: 'back',
+                        279: 'task'}
+
+                    if ev_code in buttons.keys():
+                        if ev_value:
+                            if 'button' not in point:
+                                point['button'] = buttons[ev_code]
+                                point['id'] += 1
+                                if '_avoid' in point:
+                                    del point['_avoid']
+                        elif 'button' in point:
+                            if point['button'] == buttons[ev_code]:
+                                del point['button']
+                                point['id'] += 1
+                                point['_avoid'] = True
+
             def process(points):
-                actives = [args['id'] for args in points]
+                actives = [args['id']
+                           for args in points
+                           if 'id' in args and not '_avoid' in args]
                 for args in points:
                     tid = args['id']
                     try:
@@ -236,10 +327,14 @@ else:
                             touches_sent.append(tid)
                         queue.append(('update', touch))
                     except KeyError:
-                        touch = HIDMotionEvent(device, tid, args)
-                        touches[touch.id] = touch
+                        if '_avoid' not in args:
+                            touch = HIDMotionEvent(device, tid, args)
+                            touches[touch.id] = touch
+                            if tid not in touches_sent:
+                                queue.append(('begin', touch))
+                                touches_sent.append(tid)
 
-                for tid in touches.keys()[:]:
+                for tid in list(touches.keys())[:]:
                     if tid not in actives:
                         touch = touches[tid]
                         if tid in touches_sent:
@@ -256,13 +351,14 @@ else:
 
             # get the controler name (EVIOCGNAME)
             device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
-                " " * 256).split('\x00')[0]
+                                      " " * 256).split('\x00')[0]
             Logger.info('HIDMotionEvent: using <%s>' % device_name)
 
             # get abs infos
             bit = fcntl.ioctl(fd, EVIOCGBIT + (EV_MAX << 16), ' ' * sz_l)
             bit, = struct.unpack('Q', bit)
-            for x in xrange(EV_MAX):
+            is_multitouch = False
+            for x in range(EV_MAX):
                 # preserve this, we may want other things than EV_ABS
                 if x != EV_ABS:
                     continue
@@ -271,9 +367,9 @@ else:
                     continue
                 # ask abs info keys to the devices
                 sbit = fcntl.ioctl(fd, EVIOCGBIT + x + (KEY_MAX << 16),
-                                    ' ' * sz_l)
+                                   ' ' * sz_l)
                 sbit, = struct.unpack('Q', sbit)
-                for y in xrange(KEY_MAX):
+                for y in range(KEY_MAX):
                     if (sbit & (1 << y)) == 0:
                         continue
                     absinfo = fcntl.ioctl(fd, EVIOCGABS + y +
@@ -282,23 +378,29 @@ else:
                     abs_value, abs_min, abs_max, abs_fuzz, \
                         abs_flat, abs_res = struct.unpack('iiiiii', absinfo)
                     if y == ABS_MT_POSITION_X:
+                        is_multitouch = True
                         range_min_position_x = drs('min_position_x', abs_min)
                         range_max_position_x = drs('max_position_x', abs_max)
                         Logger.info('HIDMotionEvent: ' +
-                            '<%s> range position X is %d - %d' % (
-                            device_name, abs_min, abs_max))
+                                    '<%s> range position X is %d - %d' % (
+                                        device_name, abs_min, abs_max))
                     elif y == ABS_MT_POSITION_Y:
+                        is_multitouch = True
                         range_min_position_y = drs('min_position_y', abs_min)
                         range_max_position_y = drs('max_position_y', abs_max)
                         Logger.info('HIDMotionEvent: ' +
-                            '<%s> range position Y is %d - %d' % (
-                            device_name, abs_min, abs_max))
+                                    '<%s> range position Y is %d - %d' % (
+                                        device_name, abs_min, abs_max))
                     elif y == ABS_MT_PRESSURE:
                         range_min_pressure = drs('min_pressure', abs_min)
                         range_max_pressure = drs('max_pressure', abs_max)
                         Logger.info('HIDMotionEvent: ' +
-                            '<%s> range pressure is %d - %d' % (
-                            device_name, abs_min, abs_max))
+                                    '<%s> range pressure is %d - %d' % (
+                                        device_name, abs_min, abs_max))
+
+            # init the point
+            if not is_multitouch:
+                point = {'x': .5, 'y': .5, 'id': 0, '_avoid': True}
 
             # read until the end
             while fd:
@@ -308,54 +410,16 @@ else:
                     break
 
                 # extract each event
-                for i in xrange(len(data) / struct_input_event_sz):
+                for i in range(len(data) / struct_input_event_sz):
                     ev = data[i * struct_input_event_sz:]
 
                     # extract timeval + event infos
-                    tv_sec, tv_usec, ev_type, ev_code, ev_value = \
-                            struct.unpack('LLHHi', ev[:struct_input_event_sz])
+                    infos = struct.unpack('LLHHi', ev[:struct_input_event_sz])
 
-                    # sync event
-                    if ev_type == EV_SYN:
-                        if ev_code == SYN_MT_REPORT:
-                            if 'id' not in point:
-                                continue
-                            l_points.append(point)
-                        elif ev_code == SYN_REPORT:
-                            process(l_points)
-                            l_points = []
-
-                    elif ev_type == EV_MSC and ev_code in (MSC_RAW, MSC_SCAN):
-                        pass
-
+                    if is_multitouch:
+                        process_as_multitouch(*infos)
                     else:
-                        # compute multitouch track
-                        if ev_code == ABS_MT_TRACKING_ID:
-                            point = {}
-                            point['id'] = ev_value
-                        elif ev_code == ABS_MT_POSITION_X:
-                            val = normalize(ev_value,
-                                range_min_position_x, range_max_position_x)
-                            if invert_x:
-                                val = 1. - val
-                            point['x'] = val
-                        elif ev_code == ABS_MT_POSITION_Y:
-                            val = 1. - normalize(ev_value,
-                                range_min_position_y, range_max_position_y)
-                            if invert_y:
-                                val = 1. - val
-                            point['y'] = val
-                        elif ev_code == ABS_MT_ORIENTATION:
-                            point['orientation'] = ev_value
-                        elif ev_code == ABS_MT_BLOB_ID:
-                            point['blobid'] = ev_value
-                        elif ev_code == ABS_MT_PRESSURE:
-                            point['pressure'] = normalize(ev_value,
-                                range_min_pressure, range_max_pressure)
-                        elif ev_code == ABS_MT_TOUCH_MAJOR:
-                            point['size_w'] = ev_value
-                        elif ev_code == ABS_MT_TOUCH_MINOR:
-                            point['size_h'] = ev_value
+                        process_as_mouse(*infos)
 
         def update(self, dispatch_fn):
             # dispatch all event from threads

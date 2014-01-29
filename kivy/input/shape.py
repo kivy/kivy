@@ -9,12 +9,12 @@ __all__ = ('Shape', 'ShapeRect')
 
 
 class Shape(object):
-    '''Abstract class for all implementation of a shape'''
+    '''Abstract class for all implementations of a shape'''
     pass
 
 
 class ShapeRect(Shape):
-    '''Represent a rectangle shape.'''
+    '''Class for the representation of a rectangle.'''
     __slots__ = ('width', 'height')
 
     def __init__(self):
@@ -25,4 +25,3 @@ class ShapeRect(Shape):
 
         #: Height of the rect
         self.height = 0
-

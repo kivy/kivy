@@ -60,8 +60,8 @@ $(document).ready(function () {
 
 	if ( apibreaker == true ) {
 		ensure_bodyshortcut();
-		var apilink = $('<div class="right"><a id="api-link" href="#api">Jump to API</a> &dArr;</div>');
-		apilink.appendTo($('div.bodyshortcut'));
+		var apilink = $('<div class="navlink right"><a id="api-link" href="#api">Jump to API</a> &dArr;</div>');
+		apilink.insertBefore($('div.bodyshortcut'));
 	}
 
 	/**
@@ -218,6 +218,47 @@ $(document).ready(function () {
 		update_api();
 
 		$('.toc').hide();
+
+
+		// Resolve API version
+		function read_version(item, default_version) {
+			if ( item === undefined )
+				return default_version;
+			var version = item.find('p').text();
+			if ( version == "" )
+				return default_version;
+			item.detach();
+			version = version.replace('New in version ', '');
+			if ( version.substr(-1) == '.' )
+				version = version.substr(0, version.length - 1);
+			return version;
+		}
+
+		//function read_version(item, version) { return version; }
+
+		// get module version
+		var module_version = read_version($('div.body > div.section > div.versionadded'), '1.0.0');
+		var html_version = '<span class="versionadded">Added in <span>' + module_version + '</span></span>';
+		$('div.bodyshortcut').append(html_version);
+
+		// resolve class version, default to module if nothing has been found
+		$('div.section > dl[class]').each(function (i1, el_class) {
+			var rel_class = $(el_class);
+			var class_version = read_version(
+				rel_class.find('> dd > div.versionadded'), module_version);
+
+			var html_version = '<span class="versionadded">Added in <span>' + class_version + '</span></span>';	
+			rel_class.find('> dt').append(html_version);
+
+			// resolve method / attr version
+			rel_class.find('> dd > dl[class]').each(function (i2, el_methattr) {
+				var rel_methattr = $(el_methattr);
+				var methattr_version = read_version(
+					rel_methattr.find('> dd > div.versionadded'), class_version);
+				var html_version = '<span class="versionadded">Added in <span>' + methattr_version + '</span></span>';	
+				rel_methattr.find('> dt').append(html_version);
+			});
+		});
 
 	} else {
 		var divscroll = $('div.sphinxsidebar');

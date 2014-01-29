@@ -20,8 +20,8 @@ class CloseableHeader(TabbedPanelHeader):
     pass
 
 
-Factory.register('StandingHeader', cls = StandingHeader)
-Factory.register('CloseableHeader', cls = CloseableHeader)
+Factory.register('StandingHeader', cls=StandingHeader)
+Factory.register('CloseableHeader', cls=CloseableHeader)
 
 from kivy.lang import Builder
 
@@ -35,6 +35,7 @@ Builder.load_string('''
 
 <StandingHeader>
     color: 0,0,0,0
+    disabled_color: self.color
     Scatter:
         do_translation: False
         do_scale: False
@@ -49,6 +50,7 @@ Builder.load_string('''
             id: lbl
             text: root.text
             size: root.size
+            color: 1, 1, 1, .5 if self.disabled else 1
             pos: 0,0
 
 <PanelLeft>
@@ -57,7 +59,7 @@ Builder.load_string('''
     #replace the default tab with our custom tab class
     default_tab_cls: sh.__class__
     do_default_tab: True
-    default_tab_content: default_content
+    default_tab_content: default_content.__self__
     tab_width: 40
     tab_height: 70
     FloatLayout:
@@ -77,7 +79,7 @@ Builder.load_string('''
             source: 'data/images/image-loading.gif'
     StandingHeader:
         id: sh
-        content: tab_2_content
+        content: tab_2_content.__self__
         text: 'tab 2'
     StandingHeader:
         content: tab_3_content
@@ -85,6 +87,7 @@ Builder.load_string('''
 
 <CloseableHeader>
     color: 0,0,0,0
+    disabled_color: self.color
     # variable tab_width
     text: 'tabx'
     size_hint_x: None
@@ -140,16 +143,16 @@ Builder.load_string('''
     CloseableHeader:
         id: def_tab
         text: 'default tab'
-        content:default_content
+        content:default_content.__self__
         panel: root
     CloseableHeader:
         text: 'tab2'
-        content: tab_2_content
+        content: tab_2_content.__self__
         panel: root
     CloseableHeader:
         id: tab3
         text: 'tab3'
-        content: tab_3_content
+        content: tab_3_content.__self__
         panel: root
     CloseableHeader:
         panel: root
@@ -212,13 +215,13 @@ Builder.load_string('''
             source: 'softboy.avi'
     TabbedPanelHeader:
         id: def_tab
-        content:default_content
+        content:default_content.__self__
         border: 0, 0, 0, 0
         background_down: 'softboy.png'
         background_normal:'sequenced_images/data/images/info.png'
     TabbedPanelHeader:
         id: tph
-        content: tab_2_content
+        content: tab_2_content.__self__
         BoxLayout:
             pos: tph.pos
             size: tph.size
@@ -230,7 +233,7 @@ Builder.load_string('''
                 text: 'text & img'
     TabbedPanelHeader:
         id: my_header
-        content: tab_3_content
+        content: tab_3_content.__self__
         Scatter:
             do_translation: False
             do_scale: False
@@ -266,7 +269,7 @@ class Tp(TabbedPanel):
                 start_anim(anim, header.content, True)
             super(Tp, self).switch_to(header)
 
-        anim.bind(on_complete = _on_complete)
+        anim.bind(on_complete=_on_complete)
         if self.current_tab.content:
             start_anim(anim, self.current_tab.content, False)
         else:
@@ -280,7 +283,7 @@ class PanelLeft(Tp):
 class PanelRight(Tp):
 
     def add_header(self):
-        self.add_widget(CloseableHeader(panel = self))
+        self.add_widget(CloseableHeader(panel=self))
 
 
 class PanelbLeft(Tp):
@@ -312,7 +315,7 @@ class TabShowcase(FloatLayout):
             index = values.index(self.tab.tab_pos)
             self.tab.tab_pos = self.tab1.tab_pos = self.tab2.tab_pos\
                 = self.tab3.tab_pos = values[(index + 1) % len(values)]
-            self.but.text = 'Tabs in \'%s\' position,' %self.tab.tab_pos\
+            self.but.text = 'Tabs in \'%s\' position,' % self.tab.tab_pos\
                 + '\n press to change to next pos'
 
 

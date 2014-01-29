@@ -1,548 +1,101 @@
-#:kivy 1.0
-#:import kivy kivy
+#:kivy 1.8.0
+#:import KivyLexer kivy.extras.highlight.KivyLexer
+#:import Factory kivy.factory.Factory
 
-<Showcase>:
-    content: content
-    canvas:
-        Color:
-            rgb: 1, 1, 1
-        Rectangle:
-            source: 'data/images/background.jpg'
-            size: self.size
+<ActionSpinnerOptions@SpinnerOption>
+    background_color: .4, .4, .4, 1
 
-    BoxLayout:
-        orientation: 'vertical'
-
-        BoxLayout:
-            padding: '10dp'
-            spacing: '10dp'
-            size_hint: 1, None
-            pos_hint: {'top': 1}
-            height: '44dp'
-            Image:
-                size_hint: None, None
-                size: '24dp', '24dp'
-                source: 'data/logo/kivy-icon-64.png'
-                mipmap: True
-            Label:
-                height: '24dp'
-                text_size: self.width, None
-                color: (1, 1, 1, .8)
-                text: 'Kivy %s - Showcase' % kivy.__version__
-
-        FloatLayout:
-            id: content
-
-<KivyImageScatter>:
-    scale_min: 1
-    Image:
-        source: 'data/logo/kivy-icon-512.png'
-
-<ButtonsScatter>:
-    scale_min: 1
-    canvas:
-        Color:
-            rgba: .5, .5, .5, .2
-        Rectangle:
-            size: self.size
-    BoxLayout:
-        size: root.size
-        padding: 40
-        Button:
-            text: 'Hello'
-        Button:
-            text: 'World'
-
-[Title@Label]
-    pos_hint: {'center_x': .5, 'y': .3}
-    text: ctx.text
-    font_size: '29dp'
-
-<AnchorLayoutShowcase>
-    Title:
-        text: 'Anchor Layout'
-    AnchorLayout:
-        size_hint: .5, .5
-        pos_hint: {'center_x':.5, 'center_y':.5}
-        anchor_x: root.anchor_x
-        anchor_y: root.anchor_y
-        # highlight the Layout area
-        canvas:
-            Color:
-                rgba: .1, .3, .1, .51
-            Rectangle:
-                size: self.size
-                pos: self.pos
-        Button:
-            text: 'anchor_x = %s\nanchor_y = %s' %(root.anchor_x, root.anchor_y)
-            size_hint: None, None
-            size: 150, 50
-
-<BoxLayoutShowcase>
-    blayout: blayout
-    Title:
-        text: "Box Layout"
-    BoxLayout:
-        id:blayout
-        # highlight the Layout area
-        size_hint: .5, .5
-        pos_hint: {'center_x':.5, 'center_y':.5}
-        canvas:
-            Color:
-                rgba: .1, .3, .1, .51
-            Rectangle:
-                size: self.size
-                pos: self.pos
-
-<FloatLayoutShowcase>
-    flayout: flayout
-    Title:
-        text: "Float Layout"
-    FloatLayout:
-        id: flayout
-        # highlight the Layout area
-        size_hint: .5, .5
-        pos_hint: {'center_x':.5, 'center_y':.5}
-        canvas:
-            Color:
-                rgba: .1, .3, .1, .51
-            Rectangle:
-                size: self.size
-                pos: self.pos
-
-<GridLayoutShowcase>
-    glayout: glayout
-    Title:
-        text: "Grid Layout"
-    GridLayout:
-        id: glayout
-        # highlight the Layout area
-        size_hint: .5, .5
-        pos_hint: {'center_x':.5, 'center_y':.5}
-        canvas:
-            Color:
-                rgba: .1, .3, .1, .51
-            Rectangle:
-                size: self.size
-                pos: self.pos
-
-<StackLayoutShowcase>
-    slayout: slayout
-    Title:
-        text: "Stack Layout"
-    StackLayout:
-        id: slayout
-        # highlight the Layout area
-        size_hint: .5, .5
-        pos_hint: {'center_x':.5, 'center_y':.5}
-        canvas:
-            Color:
-                rgba: .1, .3, .1, .51
-            Rectangle:
-                size: self.size
-                pos: self.pos
-
-
-<RelativeLayoutShowcase>
-    Title:
-        text: "Relative Layout"
-
-    RelativeLayout:
-        id: rel_layout
-        size_hint: .6,.5
-        center: [root.center, self.size][0]
-        canvas:
-            Color:
-                rgba: 0,0,1,0.5
-            Rectangle:
-                pos: 0,0
-                size: self.size
-
-        BoxLayout:
-            orientation: 'vertical'
-            Label:
-                text: "Position value of children stays the same; they are relative with respect to the RelativeLayout"
-                valign: 'top'
-                text_size: rel_layout.width-40, None
-                size_hint_y: 0.2
-            GridLayout:
-                cols:2
-                padding: 40
-                spacing: 20
-
-                Button:
-                    text: "Set pos = (100,0)"
-                    on_release: rel_layout.pos = (100,0)
-                Button:
-                    text: "Set pos = (150,100)"
-                    on_release: rel_layout.pos = (150,200)
-                Button:
-                    text: "Set pos = (300,60)"
-                    on_release: rel_layout.pos = (300,80)
-                Button:
-                    text: "Center "
-                    on_release: rel_layout.center = root.center
-
-
-
-[VSeparator@Widget]:
-    size_hint_x: None
-    width: 10
-    canvas:
-        Color:
-            rgba: .8, .8, .8, .3
-        Rectangle:
-            size: 1, self.height
-            pos: self.center_x, self.y
-
-[HSeparator@Label]:
-    size_hint_y: None
-    height: max(dp(45), self.texture_size[1] + dp(10))
-    text: ctx.text if 'text' in ctx else ''
-    text_size: self.width, None
-    valign: 'middle'
-    halign: 'center'
+<ActionSpinner@Spinner+ActionItem>
     canvas.before:
         Color:
-            rgba: .2, .2, .2, .8
+            rgba: 0.128, 0.128, 0.128, 1
         Rectangle:
             size: self.size
             pos: self.pos
+    border: 27, 20, 12, 12
+    background_normal: 'atlas://data/images/defaulttheme/action_group'
+    option_cls: Factory.ActionSpinnerOptions
 
-<StandardWidgets>:
-    BoxLayout:
-        pos_hint: {'x': 0, 'y': 0}
+<ActionDropdown>:
+    on_size: self.width = '220dp'
 
-        BoxLayout:
-            orientation: 'vertical'
-            padding: 10
-            spacing: 10
-
-            HSeparator:
-                text: 'Buttons'
-
-            Button:
-                text: 'Button ' + self.state
-
-            Button:
-                text: 'Button ' + self.state
-                state: 'down'
-
-            ToggleButton:
-                text: 'Toggle ' + self.state
-
-            HSeparator:
-                text: 'Toggle buttons with group'
-
-            ToggleButton:
-                text: 'Toggle 1'
-                group: 'tgroup'
-
-            ToggleButton:
-                text: 'Toggle 2'
-                group: 'tgroup'
-
-
-        BoxLayout:
-            orientation: 'vertical'
-            padding: 10
-            spacing: 10
-
-            HSeparator:
-                text: 'Sliders'
-
-            Slider:
-                value: 25
-                size_hint_y: None
-                height: 50
-
-            Slider:
-                value: 75
-                size_hint_y: None
-                height: 50
-                step: 25
-
-
-            BoxLayout:
-
-                Slider:
-                    orientation: 'vertical'
-                    value: 25
-
-                Slider:
-                    orientation: 'vertical'
-                    value: 75
-                    step: 25
-
-            HSeparator:
-                text: 'Progress Bar'
-
-            ProgressBar:
-                value: (20 * root.value) % (1 + self.max)
-                size_hint_y: None
-                height: 50
-
-            HSeparator:
-                text: 'Switch'
-
-            Switch:
-                size_hint_y: None
-                height: 50
-
-
-        BoxLayout:
-            orientation: 'vertical'
-            padding: 10
-            spacing: 10
-
-            HSeparator:
-                text: 'Text inputs'
-
-            TextInput:
-                text: 'Monoline textinput'
-                size_hint_y: None
-                height: sp(30)
-
-            TextInput:
-                text: 'This is a password'
-                size_hint_y: None
-                height: sp(30)
-                password: True
-
-            TextInput:
-                text: 'Readonly textinput'
-                size_hint_y: None
-                height: sp(30)
-                readonly: True
-
-            TextInput:
-                text: 'Multiline textinput\nSecond line'
-
-            HSeparator:
-                text: 'Checkbox'
-
+<ShowcaseScreen>:
+    ScrollView:
+        do_scroll_x: False
+        do_scroll_y: False if root.fullscreen else (content.height > root.height - dp(16))
+        AnchorLayout:
+            size_hint_y: None
+            height: root.height if root.fullscreen else max(root.height, content.height)
             GridLayout:
-                rows: 1
-                CheckBox
-                CheckBox
-
-            GridLayout:
-                cols: 2
-                CheckBox:
-                    group: 'group1'
-                CheckBox:
-                    group: 'group1'
-                CheckBox:
-                    group: 'group2'
-                CheckBox:
-                    group: 'group2'
+                id: content
+                cols: 1
+                spacing: '8dp'
+                padding: '8dp'
+                size_hint: (1, 1) if root.fullscreen else (.8, None)
+                height: self.height if root.fullscreen else self.minimum_height
 
 
-
-<ComplexWidgets>:
-    BoxLayout:
-        pos_hint: {'x': 0, 'y': 0}
-
-        BoxLayout:
-            orientation: 'vertical'
-            padding: 10
-            spacing: 10
-
-            HSeparator:
-                text: 'Accordions'
-
-            Accordion:
-
-                AccordionItem:
-                    title: 'Panel 1'
-                    Label:
-                        text: 'This is a label fit to the content view'
-                        halign: 'center'
-                        text_size: self.width, None
-
-                AccordionItem:
-                    title: 'Panel 2'
-                    Button:
-                        text: 'A button, what else?'
-
-                AccordionItem:
-                    title: 'Panel 3'
-                    Label:
-                        text: 'This is a label fit to the content view'
-                        halign: 'center'
-                        text_size: self.width, None
-
-
-            Accordion:
-
-                orientation: 'vertical'
-
-                AccordionItem:
-                    title: 'Panel 1'
-                    Label:
-                        text: 'This is a label fit to the content view'
-                        text_size: self.width, None
-
-                AccordionItem:
-                    title: 'Panel 2'
-                    Button:
-                        text: 'A button, what else?'
-
-                AccordionItem:
-                    title: 'Panel 3'
-                    Label:
-                        text: 'This is a label fit to the content view'
-                        text_size: self.width, None
-
-
-        VSeparator
-
-        BoxLayout:
-            orientation: 'vertical'
-            padding: 10
-            spacing: 10
-
-            HSeparator:
-                text: 'File choosers'
-
-            FileChooserListView
-
-            FileChooserIconView
-
-<TreeViewWidgets>:
-    treeview1: treeview1
-    treeview2: treeview2
-
-    BoxLayout:
-        pos_hint: {'x': 0, 'y': 0}
-
-        BoxLayout:
-            orientation: 'vertical'
-            padding: 10
-            spacing: 10
-
-            HSeparator:
-                text: 'Treeview with root'
-
-            TreeView:
-                id: treeview1
-
-            Button:
-                text: 'Remove first node'
-                size_hint_y: None
-                height: 50
-                on_release: treeview1.remove_node(treeview1.root.nodes[0]) if not treeview1.root.is_leaf else None
-
-        BoxLayout:
-            orientation: 'vertical'
-            padding: 10
-            spacing: 10
-
-            HSeparator:
-                text: 'Treeview without root'
-
-            TreeView:
-                id: treeview2
-                hide_root: True
-
-            Button:
-                text: 'Remove first node'
-                size_hint_y: None
-                height: 50
-                on_release: treeview2.remove_node(treeview2.root.nodes[0]) if not treeview2.root.is_leaf else None
-
-
-
-<ScatterWidgets>:
-
-
-<FontSizesWidgets>:
+BoxLayout:
     orientation: 'vertical'
 
-    Label:
-        text: 'Metrics'
-        size_hint: (1., .1)
+    canvas.before:
+        Color:
+            rgb: .6, .6, .6
+        Rectangle:
+            size: self.size
+            source: 'data/background.png'
 
-    BoxLayout:
-        orientation: 'horizontal'
+    ActionBar:
 
-        BoxLayout:
-            orientation: 'vertical'
+        ActionView:
+            id: av
+            ActionPrevious:
+                with_previous: (False if sm.current_screen.name == 'button' else True) if sm.current_screen else False
+                title: 'Showcase' + ('' if not app.current_title else ' - {}'.format(app.current_title))
+                on_release: app.go_higherarchy_previous()
 
-            Label:
-                text: '6sp'
-                font_size: '6sp'
+            ActionSpinner:
+                id: spnr
+                important: True
+                text: 'Jump to Screen'
+                values: app.screen_names
+                on_text:
+                    if sm.current != args[1]:\
+                    idx = app.screen_names.index(args[1]);\
+                    app.go_screen(idx)
+            ActionToggleButton:
+                text: 'Toggle sourcecode'
+                icon: 'data/icons/sourcecode.png'
+                on_release: app.toggle_source_code()
+            ActionButton:
+                text: 'Previous screen'
+                icon: 'data/icons/prev.png'
+                on_release: app.go_previous_screen()
 
-            Label:
-                text: '12sp'
-                font_size: '12sp'
+            ActionButton:
+                text: 'Next screen'
+                icon: 'data/icons/next.png'
+                on_release: app.go_next_screen()
+                important: True
 
-            Label:
-                text: '18sp'
-                font_size: '18sp'
+    ScrollView:
+        id: sv
+        size_hint_y: None
+        height: 0
 
-            Label:
-                text: '24sp'
-                font_size: '24sp'
+        CodeInput:
+            id: sourcecode
+            lexer: KivyLexer()
+            text: app.sourcecode
+            readonly: True
+            size_hint_y: None
+            font_name: 'data/fonts/DroidSansMono.ttf'
+            font_size: '12sp'
+            height: self.minimum_height
 
-            Label:
-                text: '30sp'
-                font_size: '30sp'
-
-            Label:
-                text: '36sp'
-                font_size: '36sp'
-
-        BoxLayout:
-            orientation: 'vertical'
-
-            Label:
-                text: '6pt'
-                font_size: '6pt'
-
-            Label:
-                text: '12pt'
-                font_size: '12pt'
-
-            Label:
-                text: '18pt'
-                font_size: '18pt'
-
-            Label:
-                text: '24pt'
-                font_size: '24pt'
-
-            Label:
-                text: '30pt'
-                font_size: '30pt'
-
-            Label:
-                text: '36pt'
-                font_size: '36pt'
-
-        BoxLayout:
-            orientation: 'vertical'
-
-            Label:
-                text: '6px'
-                font_size: '6px'
-
-            Label:
-                text: '12px'
-                font_size: '12px'
-
-            Label:
-                text: '18px'
-                font_size: '18px'
-
-            Label:
-                text: '24px'
-                font_size: '24px'
-
-            Label:
-                text: '30px'
-                font_size: '30px'
-
-            Label:
-                text: '36px'
-                font_size: '36px'
+    ScreenManager:
+        id: sm
+        on_current_screen:
+            spnr.text = args[1].name
+            idx = app.screen_names.index(args[1].name)
+            if idx > -1: app.higherarchy.append(idx)

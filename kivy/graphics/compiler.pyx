@@ -3,7 +3,7 @@ Graphics compiler
 =================
 
 Before rendering an :class:`~kivy.graphics.instructions.InstructionGroup`, we
-are compiling the group, in order to reduce the number of instructions executed
+compile the group in order to reduce the number of instructions executed
 at rendering time.
 
 Reducing the context instructions
@@ -18,7 +18,7 @@ Imagine that you have a scheme like this::
     Color(1, 1, 1)
     Rectangle(source='button.png', pos=(10, 20), size=(20, 20))
 
-The real instruction seen by the graphics canvas would be::
+The real instructions seen by the graphics canvas would be::
 
     Color: change 'color' context to 1, 1, 1
     BindTexture: change 'texture0' to `button.png texture`
@@ -31,8 +31,8 @@ The real instruction seen by the graphics canvas would be::
     Rectangle: push vertices (x1, y1...) to vbo & draw
 
 Only the first :class:`~kivy.graphics.context_instructions.Color` and
-:class:`~kivy.graphics.context_instructions.BindTexture` are useful, and really
-change the context.  We can reduce them to::
+:class:`~kivy.graphics.context_instructions.BindTexture` are useful and really
+change the context. We can reduce them to::
 
     Color: change 'color' context to 1, 1, 1
     BindTexture: change 'texture0' to `button.png texture`
@@ -41,19 +41,19 @@ change the context.  We can reduce them to::
     Rectangle: push vertices (x1, y1...) to vbo & draw
 
 This is what the compiler does in the first place, by flagging all the unused
-instruction with GI_IGNORE flag. As soon as a Color content change, the whole
-InstructionGroup will be recompiled, and maybe a previous unused Color will be
-used at the next compilation.
+instruction with GI_IGNORE flag. As soon as a Color content changes, the whole
+InstructionGroup will be recompiled and a previously unused Color might be
+used for the next compilation.
 
 
 Note to any Kivy contributor / internal developer:
 
-- All context instructions are checked if they are changing anything on the
+- All context instructions are checked to see if they change anything in the
   cache
-- We must ensure that a context instruction are needed into our current Canvas.
+- We must ensure that a context instruction is needed for our current Canvas.
 - We must ensure that we don't depend of any other canvas
-- We must reset our cache if one of our children is another instruction group,
-  because we don't know if they are doing weird things or not.
+- We must reset our cache if one of our children is another instruction group
+  because we don't know whether it might do weird things or not.
 
 '''
 
@@ -146,7 +146,5 @@ cdef class GraphicsCompiler:
             rc.flag_update(0)
 
         group.flags |= GI_NO_APPLY_ONCE
-
-        #if count: print 'Ignored', count
 
         return group

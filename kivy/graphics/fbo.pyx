@@ -2,12 +2,12 @@
 Framebuffer
 ===========
 
-Fbo is like an offscreen window. You can activate the fbo for rendering into a
-texture, and use your fbo as a texture for another drawing.
+The Fbo is like an offscreen window. You can activate the fbo for rendering into
+a texture and use your fbo as a texture for other drawing.
 
-Fbo act as a :class:`kivy.graphics.instructions.Canvas`.
+The Fbo acts as a :class:`kivy.graphics.instructions.Canvas`.
 
-Example of using an fbo for some color rectangles::
+Here is an example of using an fbo for some colored rectangles::
 
     from kivy.graphics import Fbo, Color, Rectangle
 
@@ -35,8 +35,8 @@ Example of using an fbo for some color rectangles::
                 Color(0, 1, 0, .8)
                 Rectangle(size=(64, 256))
 
-If you change anything in the `self.fbo` object, it will be automaticly updated,
-and canvas where the fbo is putted will be automaticly updated too.
+If you change anything in the `self.fbo` object, it will be automatically updated.
+The canvas where the fbo is put will be automatically updated as well.
 
 Reloading the FBO content
 -------------------------
@@ -44,7 +44,7 @@ Reloading the FBO content
 .. versionadded:: 1.2.0
 
 If the OpenGL context is lost, then the FBO is lost too. You need to reupload
-data on it yourself. Use the :func:`Fbo.add_reload_observer` to add a reloading
+data on it yourself. Use the :meth:`Fbo.add_reload_observer` to add a reloading
 function that will be automatically called when needed::
 
     def __init__(self, **kwargs):
@@ -92,16 +92,16 @@ cdef class Fbo(RenderContext):
     "with" statement.
 
     :Parameters:
-        `clear_color`: tuple, default to (0, 0, 0, 0)
+        `clear_color`: tuple, defaults to (0, 0, 0, 0)
             Define the default color for clearing the framebuffer
-        `size`: tuple, default to (1024, 1024)
+        `size`: tuple, defaults to (1024, 1024)
             Default size of the framebuffer
-        `push_viewport`: bool, default to True
+        `push_viewport`: bool, defaults to True
             If True, the OpenGL viewport will be set to the framebuffer size,
             and will be automatically restored when the framebuffer released.
-        `with_depthbuffer`: bool, default to False
+        `with_depthbuffer`: bool, defaults to False
             If True, the framebuffer will be allocated with a Z buffer.
-        `texture`: :class:`~kivy.graphics.texture.Texture`, default to None
+        `texture`: :class:`~kivy.graphics.texture.Texture`, defaults to None
             If None, a default texture will be created.
     '''
     cdef str resolve_status(self, int status):
@@ -192,10 +192,11 @@ cdef class Fbo(RenderContext):
 
         # if we need depth, create a renderbuffer
         if self._depthbuffer_attached:
+             
             glGenRenderbuffers(1, &f_id)
             self.depthbuffer_id = f_id
             glBindRenderbuffer(GL_RENDERBUFFER, self.depthbuffer_id)
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16,
                                   self._width, self._height)
             glBindRenderbuffer(GL_RENDERBUFFER, 0)
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
@@ -224,7 +225,7 @@ cdef class Fbo(RenderContext):
     cpdef bind(self):
         '''Bind the FBO to the current opengl context.
         `Bind` mean that you enable the Framebuffer, and all the drawing
-        operations will act inside the Framebuffer, until :func:`release` is
+        operations will act inside the Framebuffer, until :meth:`release` is
         called.
 
         The bind/release operation are automatically done when you add graphics
@@ -237,7 +238,7 @@ cdef class Fbo(RenderContext):
             self.fbo.release()
 
             # then, your fbo texture is available at
-            print self.fbo.texture
+            print(self.fbo.texture)
         '''
         if self._is_bound:
             self.raise_exception('FBO already binded.')
@@ -277,7 +278,7 @@ cdef class Fbo(RenderContext):
                        self._viewport[2], self._viewport[3])
 
     cpdef clear_buffer(self):
-        '''Clear the framebuffer with the :data:`clear_color`.
+        '''Clear the framebuffer with the :attr:`clear_color`.
 
         You need to bound the framebuffer yourself before calling this
         method::
@@ -327,7 +328,7 @@ cdef class Fbo(RenderContext):
 
     def remove_reload_observer(self, callback):
         '''Remove a callback from the observer list, previously added by
-        :func:`add_reload_observer`.
+        :meth:`add_reload_observer`.
 
         .. versionadded:: 1.2.0
 
@@ -379,13 +380,32 @@ cdef class Fbo(RenderContext):
             return self._texture
 
     property pixels:
-        '''Get the pixels texture, in RGBA format only, unsigned byte.
+        '''Get the pixels texture, in RGBA format only, unsigned byte. The
+        origin of the image is at bottom / left.
 
-        .. versionadded:: 1.6.1
+        .. versionadded:: 1.7.0
         '''
         def __get__(self):
-            w,h = self._width, self._height
+            w, h = self._width, self._height
             self.bind()
             data = py_glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE)
             self.release()
-            return str(buffer(data))
+            return data
+
+    cpdef get_pixel_color(self, int wx, int wy):
+        """Get the color of the pixel with specified window
+        coordinates wx, wy. It returns result in RGBA format.
+ 
+        .. versionadded:: 1.8.0
+        """
+        if wx > self._width or wy > self._height:
+            # window coordinates should not exceed the
+            # frame buffer size
+            return (0, 0, 0, 0)
+        self.bind()
+        data = py_glReadPixels(wx, wy, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE)
+        self.release()
+        raw_data = str(data)
+        
+        return [ord(i) for i in raw_data]
+

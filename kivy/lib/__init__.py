@@ -2,7 +2,7 @@
 External libraries
 ==================
 
-Kivy come with other python/c libraries :
+Kivy comes with other python/C libraries :
 
 * ddslib
 * oscAPI (modified / optimized)
@@ -10,7 +10,8 @@ Kivy come with other python/c libraries :
 
 .. warning::
 
-    Even if Kivy come with theses external libraries, we don't give any support,
-    and we might change in the future. Don't rely on theses in your code.
+    Even though Kivy comes with these external libraries, we do not provide any
+    support for them and they might change in the future.
+    Don't rely on them in your code.
 
 '''

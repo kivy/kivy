@@ -1,7 +1,7 @@
 import unittest
 
 rules = '''
-<Label>:
+<CustomLabel>:
     title: 'invalid'
 <TestWidget>:
     source: 'invalid.png'
@@ -28,7 +28,7 @@ rules = '''
         source2: 'valid.png'
         source3: self.source + 'from source3' if self.can_edit else 'valid.png'
         on_release: root.edit()
-        Label:
+        CustomLabel:
             title: 'valid'
 '''
 
@@ -42,6 +42,7 @@ class LangComplexTestCase(unittest.TestCase):
 
         from kivy.lang import Builder
         from kivy.uix.widget import Widget
+        from kivy.uix.label import Label
         from kivy.factory import Factory
         from kivy.properties import StringProperty, ObjectProperty, \
             BooleanProperty
@@ -68,6 +69,10 @@ class LangComplexTestCase(unittest.TestCase):
         class TestWidget2(Widget):
             pass
 
+        class CustomLabel(Label):
+            pass
+
+        Factory.register('CustomLabel', cls=CustomLabel)
         Factory.register('TestWidget', cls=TestWidget)
         Factory.register('TestWidget2', cls=TestWidget2)
 

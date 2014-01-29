@@ -58,7 +58,6 @@ class SpellingOSXAppKit(SpellingBase):
             # From 10.6 onwards you're supposed to do it like this:
             checkrange = NSMakeRange(0, len(fragment))
             g = l.guessesForWordRange_inString_language_inSpellDocumentWithTag_(
-                        checkrange, fragment, l.language(), 0)
+                checkrange, fragment, l.language(), 0)
             # Right, this was much easier, Apple! :-)
             return list(g)
-

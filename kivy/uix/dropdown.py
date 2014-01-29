@@ -4,9 +4,10 @@ Drop-Down List
 
 .. versionadded:: 1.4.0
 
-A versatile drop-down list, that can be used with custom widget. It allow you to
-display a list of widgets under a displayed widget. Unlike others toolkits, the
-list of widgets is what you want, it can be simple button, or images etc.
+A versatile drop-down list that can be used with custom widgets. It allows you
+to display a list of widgets under a displayed widget. Unlike other toolkits,
+the list of widgets can contain any type of widget: simple buttons,
+images etc.
 
 The positioning of the drop-down list is fully automatic: we will always try to
 place the dropdown list in a way that the user can select an item in the list.
@@ -14,16 +15,20 @@ place the dropdown list in a way that the user can select an item in the list.
 Basic example
 -------------
 
-A button with a dropdown list of 10 possibles values. All the button within the
-dropdown list will trigger the dropdown :meth:`DropDown.select` method. And
-then, the main button text will display the selection of the dropdown. ::
+A button with a dropdown list of 10 possible values. All the buttons within the
+dropdown list will trigger the dropdown :meth:`DropDown.select` method. After
+being called, the main button text will display the selection of the
+dropdown. ::
 
     from kivy.uix.dropdown import DropDown
     from kivy.uix.button import Button
+    from kivy.base import runTouchApp
 
-    # create a dropdown with 10 button
+    # create a dropdown with 10 buttons
     dropdown = DropDown()
-    for index in xrange(10):
+    for index in range(10):
+        # when adding widgets, we need to specify the height manually (disabling
+        # the size_hint_y) so the dropdown can calculate the area it needs.
         btn = Button(text='Value %d' % index, size_hint_y=None, height=44)
 
         # for each button, attach a callback that will call the select() method
@@ -38,20 +43,21 @@ then, the main button text will display the selection of the dropdown. ::
     mainbutton = Button(text='Hello', size_hint=(None, None))
 
     # show the dropdown menu when the main button is released
-    # note: all the bind() always pass the instance of the caller (here, the
-    # mainbutton instance) as first argument of the callback (here,
+    # note: all the bind() calls pass the instance of the caller (here, the
+    # mainbutton instance) as the first argument of the callback (here,
     # dropdown.open.).
     mainbutton.bind(on_release=dropdown.open)
 
-    # one last thing, listen to the selection done in the dropdown list.
-    # Assign the data to the button text.
+    # one last thing, listen for the selection in the dropdown list and
+    # assign the data to the button text.
     dropdown.bind(on_select=lambda instance, x: setattr(mainbutton, 'text', x))
 
+    runTouchApp(mainbutton)
 
 Extending dropdown in Kv
 ------------------------
 
-You could create a dropdown directly from kv::
+You could create a dropdown directly from your kv::
 
     #:kivy 1.4.0
     <CustomDropDown>:
@@ -70,7 +76,7 @@ You could create a dropdown directly from kv::
             height: 44
             on_release: root.select('item2')
 
-And then, create the associated python class, and use it::
+And then, create the associated python class and use it::
 
     class CustomDropDown(DropDown):
         pass
@@ -85,6 +91,7 @@ __all__ = ('DropDown', )
 
 from kivy.uix.scrollview import ScrollView
 from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
+from kivy.core.window import Window
 from kivy.lang import Builder
 
 Builder.load_string('''
@@ -112,9 +119,14 @@ class DropDown(ScrollView):
 
     :Events:
         `on_select`: data
-            Fired when a selection is done, with the data of the selection as
-            first argument. Data is what you pass in the :meth:`select` method
-            as first argument.
+            Fired when a selection is done. The data of the selection is passed
+            in as the first argument and is what you pass in the :meth:`select`
+            method as the first argument.
+        `on_dismiss`:
+            .. versionadded:: 1.8.0
+
+            Fired when the DropDown is dismissed, either on selection or on
+            touching outside the widget.
     '''
 
     auto_width = BooleanProperty(True)
@@ -124,53 +136,73 @@ class DropDown(ScrollView):
 
     max_height = NumericProperty(None, allownone=True)
     '''Indicate the maximum height that the dropdown can take. If None, it will
-    take the maximum height available, until the top or bottom of the screen
-    will be reached.
+    take the maximum height available until the top or bottom of the screen
+    is reached.
 
-    :data:`max_height` is a :class:`~kivy.properties.NumericProperty`, default
-    to None.
+    :attr:`max_height` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to None.
     '''
 
     dismiss_on_select = BooleanProperty(True)
-    '''By default, the dropdown will be automatically dismissed when a selection
-    have been done. Set to False to prevent the dismiss.
+    '''By default, the dropdown will be automatically dismissed when a
+    selection has been done. Set to False to prevent the dismiss.
 
-    :data:`dismiss_on_select` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True.
+    :attr:`dismiss_on_select` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True.
+    '''
+
+    auto_dismiss = BooleanProperty(True)
+    '''By default, the dropdown will be automatically dismissed when a
+    touch happens outside of it, this option allow to disable this
+    feature
+
+    :attr:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True.
+
+    .. versionadded:: 1.8.0
     '''
 
     attach_to = ObjectProperty(allownone=True)
-    '''(internal) Property that will be set to the widget on which the drop down
-    list is attached to.
+    '''(internal) Property that will be set to the widget to which the
+    drop down list is attached.
 
-    The method :meth:`open` will automatically set that property, while
-    :meth:`dismiss` will set back to None.
+    The :meth:`open` method will automatically set this property whilst
+    :meth:`dismiss` will set it back to None.
     '''
 
     container = ObjectProperty()
     '''(internal) Property that will be set to the container of the dropdown
-    list, which is a :class:`~kivy.uix.gridlayout.GridLayout` by default.
+    list. It is a :class:`~kivy.uix.gridlayout.GridLayout` by default.
     '''
 
-    __events__ = ('on_select', )
+    __events__ = ('on_select', 'on_dismiss')
 
     def __init__(self, **kwargs):
         self._win = None
         super(DropDown, self).__init__(**kwargs)
-        self.container.bind(minimum_size=self._container_minimum_size)
+        Window.bind(on_key_down=self.on_key_down)
         self.bind(size=self._reposition)
 
+    def on_key_down(self, instance, key, scancode, codepoint, modifiers):
+        if key == 27 and self.get_parent_window():
+            self.dismiss()
+            return True
+
+    def on_container(self, instance, value):
+        self.container.bind(minimum_size=self._container_minimum_size)
+
     def open(self, widget):
-        '''Open the dropdown list, and attach to a specific widget.
-        Depending the position of the widget on the window and the height of the
-        dropdown, the placement might be lower or higher off that widget.
+        '''Open the dropdown list and attach it to a specific widget.
+        Depending on the position of the widget within the window and
+        the height of the dropdown, the dropdown might be above or below
+        that widget.
         '''
         # ensure we are not already attached
         if self.attach_to is not None:
             self.dismiss()
 
-        # we will attach ourself to the main window, so ensure the widget we are
-        # looking for have a window
+        # we will attach ourself to the main window, so ensure the
+        # widget we are looking for have a window
         self._win = widget.get_parent_window()
         if self._win is None:
             raise DropDownException(
@@ -184,7 +216,7 @@ class DropDown(ScrollView):
         self._win.add_widget(self)
 
     def dismiss(self, *largs):
-        '''Remove the dropdown widget from the iwndow, and detach itself from
+        '''Remove the dropdown widget from the window and detach it from
         the attached widget.
         '''
         if self.parent:
@@ -192,9 +224,13 @@ class DropDown(ScrollView):
         if self.attach_to:
             self.attach_to.unbind(pos=self._reposition, size=self._reposition)
             self.attach_to = None
+        self.dispatch('on_dismiss')
+
+    def on_dismiss(self):
+        pass
 
     def select(self, data):
-        '''Call this method to trigger the `on_select` event, with the `data`
+        '''Call this method to trigger the `on_select` event with the `data`
         selection. The `data` can be anything you want.
         '''
         self.dispatch('on_select', data)
@@ -232,16 +268,20 @@ class DropDown(ScrollView):
             return True
         if self.collide_point(*touch.pos):
             return True
-        self.dismiss()
+        if self.auto_dismiss:
+            self.dismiss()
 
     def on_touch_up(self, touch):
         if super(DropDown, self).on_touch_up(touch):
             return True
-        self.dismiss()
+        if 'button' in touch.profile and touch.button.startswith('scroll'):
+            return
+        if self.auto_dismiss:
+            self.dismiss()
 
     def _reposition(self, *largs):
         # calculate the coordinate of the attached widget in the window
-        # coordinate sysem
+        # coordinate system
         win = self._win
         widget = self.attach_to
         if not widget or not win:
@@ -270,8 +310,9 @@ class DropDown(ScrollView):
         elif h_top > 0:
             self.y = wtop
         else:
-            # none of both top/bottom have enough place to display the widget at
-            # the current size. Take the best side, and fit to it.
+            # none of both top/bottom have enough place to display the
+            # widget at the current size. Take the best side, and fit to
+            # it.
             height = max(h_bottom, h_top)
             if height == h_bottom:
                 self.top = wy
@@ -288,7 +329,7 @@ if __name__ == '__main__':
     def show_dropdown(button, *largs):
         dp = DropDown()
         dp.bind(on_select=lambda instance, x: setattr(button, 'text', x))
-        for i in xrange(10):
+        for i in range(10):
             item = Button(text='hello %d' % i, size_hint_y=None, height=44)
             item.bind(on_release=lambda btn: dp.select(btn.text))
             dp.add_widget(item)

@@ -2,24 +2,26 @@
 Mouse provider implementation
 =============================
 
-On linux system, mouse provider can be annoying when used with another
-multitouch provider (hidinput or mtdev.). Mouse can conflict with them: a single
-touch can generate one event from mouse provider and from multitouch provider.
+On linux systems, the mouse provider can be annoying when used with another
+multitouch provider (hidinput or mtdev). The Mouse can conflict with them: a
+single touch can generate one event from the mouse provider and another
+from the multitouch provider.
 
 To avoid this behavior, you can activate the "disable_on_activity" token in
-mouse. Then, if they are any touch active from another provider, the mouse will
-be discarded. Put in your configuration::
+the mouse configuration. Then, if there are any touches activated by another
+provider, the mouse event will be discarded. Add this to your configuration::
 
     [input]
     mouse = mouse,disable_on_activity
 
-Disabling multitouch interaction with mouse
--------------------------------------------
+Disabling multitouch interaction with the mouse
+-----------------------------------------------
 
 .. versionadded:: 1.3.0
 
-By default middle and right mouse buttons ared used for multitouch emulation.
-If you want to use them for other purpose you can disable this behavior by
+By default, the middle and right mouse buttons are used for multitouch
+emulation.
+If you want to use them for other purposes, you can disable this behavior by
 activating the "disable_multitouch" token::
 
    [input]
@@ -141,7 +143,7 @@ class MouseMotionEventProvider(MotionEventProvider):
 
     def find_touch(self, x, y):
         factor = 10. / EventLoop.window.system_size[0]
-        for t in self.touches.itervalues():
+        for t in self.touches.values():
             if abs(x - t.sx) < factor and abs(y - t.sy) < factor:
                 return t
         return False
@@ -192,8 +194,8 @@ class MouseMotionEventProvider(MotionEventProvider):
             self.current_drag = new_me
         else:
             is_double_tap = 'shift' in modifiers
-            do_graphics = (not self.disable_multitouch and button != 'left' or
-                           ('ctrl' in modifiers))
+            do_graphics = (not self.disable_multitouch) and (
+                button != 'left' or 'ctrl' in modifiers)
             cur = self.create_touch(rx, ry, is_double_tap, do_graphics, button)
             if 'alt' in modifiers:
                 self.alt_touch = cur
@@ -203,14 +205,15 @@ class MouseMotionEventProvider(MotionEventProvider):
     def on_mouse_release(self, win, x, y, button, modifiers):
         # special case, if button is all, then remove all the current mouses.
         if button == 'all':
-            for cur in self.touches.values()[:]:
+            for cur in list(self.touches.values())[:]:
                 self.remove_touch(cur)
             self.current_drag = None
 
         cur = self.current_drag
-        if (button in ('left', 'scrollup', 'scrolldown', 'scrollleft',
-                       'scrollright') or
-                self.disable_multitouch) and cur and not ('ctrl' in modifiers):
+        if (cur and self.disable_multitouch) or (
+                button in ('left', 'scrollup', 'scrolldown', 'scrollleft',
+                           'scrollright') and cur and not ('ctrl' in
+                                                           modifiers)):
             self.remove_touch(cur)
             self.current_drag = None
         if self.alt_touch:
