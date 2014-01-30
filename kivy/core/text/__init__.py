@@ -228,11 +228,11 @@ class LabelBase(object):
 
         if segment - margin > 5:
             segment -= margin
-            return u'{0}...{1}'.format(text[:segment].strip(),
-                                       text[-segment:].strip())
+            return type(text)('{0}...{1}').format(text[:segment].strip(),
+                                                  text[-segment:].strip())
         else:
             segment = max_letters - 3  # length of '...'
-            return u'{0}...'.format(text[:segment].strip())
+            return type(text)('{0}...').format(text[:segment].strip())
 
     def render(self, real=False):
         '''Return a tuple (width, height) to create the image
