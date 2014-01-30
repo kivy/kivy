@@ -68,5 +68,5 @@ class FileChooserUnicodeTestCase(unittest.TestCase):
 
     def tearDown(self):
         import shutil
-        shutil.rmtree(self.basepathu)
+        shutil.rmtree(self.basepathu, ignore_errors=True)
 
