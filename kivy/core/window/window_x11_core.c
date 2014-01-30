@@ -71,7 +71,7 @@ static void describe_fbconfig(GLXFBConfig fbconfig)
 			red_bits, green_bits, blue_bits, alpha_bits, depth_bits);
 }
 
-static void createTheWindow(int width, int height, int x, int y, int resizable, int fullscreen, int border, char *title)
+static void createTheWindow(int width, int height, int x, int y, int resizable, int fullscreen, int border, int above, char *title)
 {
 	XEvent event;
 	int attr_mask;
@@ -138,16 +138,33 @@ static void createTheWindow(int width, int height, int x, int y, int resizable, 
 		CWColormap|
 		CWEventMask;
 
+	// Get the available display size
+    int disp_width = DisplayWidth(Xdisplay, DefaultScreen(Xdisplay));
+    int disp_height = DisplayHeight(Xdisplay, DefaultScreen(Xdisplay));
+
 	if ( fullscreen ) {
+        // If the fullscreen is set, we take the size of the screen
 		if ( width == -1 ) {
-			width = DisplayWidth(Xdisplay, DefaultScreen(Xdisplay));
-			height = DisplayHeight(Xdisplay, DefaultScreen(Xdisplay));
+			width = disp_width;
+			height = disp_height;
 		}
 		border = 0;
-	}
+	}else{
+        // Check if the user did go fullscreen (set width & height to the size of the screen)
+        // even he didn't set the fullscreen arg.
+        if ( (width == disp_width) & (height == disp_height) ){
+            fullscreen = True;
+        }
+    }
 
-	if ( !border )
-		attr_mask |= CWOverrideRedirect;
+	if ( !border ){
+        if ( !above ){
+            // As soon attr_mask is set to CWOverrideRedirect, the WM (windowmanager) won't be able to controll the window properly.
+            // To make the window stay above we need the cooperation ot the WM.
+            attr_mask |= CWOverrideRedirect;
+        }
+    }
+
 
 	window_handle = XCreateWindow(  Xdisplay,
 			Xroot,
@@ -196,15 +213,52 @@ static void createTheWindow(int width, int height, int x, int y, int resizable, 
 			startup_state,
 			NULL);
 
+    XEvent xev;
+    if ( above ){
+        Atom type = XInternAtom(Xdisplay,"_NET_WM_STATE", False);
+        Atom value = XInternAtom(Xdisplay,"_NET_WM_STATE_ABOVE", False);
+        XChangeProperty(Xdisplay, window_handle, type, XA_ATOM, 32, PropModeReplace, (const unsigned char *)&value, 1);
+        
+        if ( fullscreen ) {
+            // The fullscreen atom has only be set if the window should be above (and we need the help of the WM)
+            Atom wm_state = XInternAtom(Xdisplay, "_NET_WM_STATE", False);
+            Atom wm_fullscreen = XInternAtom(Xdisplay, "_NET_WM_STATE_FULLSCREEN", False);
+            memset(&xev, 0, sizeof(xev));
+            xev.type = ClientMessage;
+            xev.xclient.window = window_handle;
+            xev.xclient.message_type = wm_state;
+            xev.xclient.format = 32;
+            xev.xclient.data.l[0] = 1;
+            xev.xclient.data.l[1] = wm_fullscreen;
+            xev.xclient.data.l[2] = 0;
+        }
+    }
 
 	XFree(startup_state);
 
 	XMapWindow(Xdisplay, window_handle);
+
+	if ( fullscreen & above ){
+        // Send the Fullscreen event after the window got mapped
+        XSendEvent (Xdisplay, DefaultRootWindow(Xdisplay), False,
+                    SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+    }
+
 	XIfEvent(Xdisplay, &event, WaitForMapNotify, (char*)&window_handle);
 
 	if ((del_atom = XInternAtom(Xdisplay, "WM_DELETE_WINDOW", 0)) != None) {
 		XSetWMProtocols(Xdisplay, window_handle, &del_atom, 1);
 	}
+
+	XFlush(Xdisplay);
+
+	// Set the PID atom
+	pid_t pid = getpid();
+	Atom am_wm_pid;
+	am_wm_pid = XInternAtom(Xdisplay, "_NET_WM_PID", False);
+	XChangeProperty(Xdisplay, window_handle, am_wm_pid, XA_CARDINAL,
+                    32, PropModeReplace, (unsigned char *)&pid, 1);
+
 }
 
 static void createTheRenderContext(void)
@@ -273,8 +327,8 @@ void x11_set_event_callback(event_cb_t callback) {
 }
 
 int x11_create_window(int width, int height, int x, int y,
-		int resizable, int fullscreen, int border, char *title) {
-	createTheWindow(width, height, x, y, resizable, fullscreen, border, title);
+		int resizable, int fullscreen, int border, int above, char *title) {
+	createTheWindow(width, height, x, y, resizable, fullscreen, border, above, title);
 	createTheRenderContext();
 	return 1;
 }
