@@ -940,11 +940,8 @@ class WindowBase(EventDispatcher):
 
                 .. note::
 
-                    `input_type` is only honored if the "keyboard_mode" setting
-                    in the "kivy" section of the :class:`~kivy.config.Config`
-                    is set to "dock". This must be set before the start of the
-                    application to have effect.
-                
+                    `input_type` is currently only honored on mobile devices.
+
                 .. versionadded:: 1.8.0
 
         :Return:
