@@ -651,9 +651,16 @@ class FileChooserController(FloatLayout):
     def _add_files(self, path, parent=None):
         path = expanduser(path)
 
-        files = self.file_system.listdir(path)
-        # In the following, use fully qualified filenames
-        files = [normpath(join(path, f)) for f in files]
+        files = []
+        fappend = files.append
+        for f in self.file_system.listdir(path):
+            try:
+                # In the following, use fully qualified filenames
+                fappend(normpath(join(path, f)))
+            except UnicodeDecodeError:
+                Logger.exception('unable to decode <{}>'.format(f))
+            except UnicodeEncodeError:
+                Logger.exception('unable to encode <{}>'.format(f))
         # Apply filename filters
         files = self._apply_filters(files)
         # Sort the list of files
