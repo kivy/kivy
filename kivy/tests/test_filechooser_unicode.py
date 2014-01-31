@@ -2,6 +2,12 @@
 # XXX: please be careful to only save this file with an utf-8 editor
 import unittest
 import logging
+from kivy.compat import PY2
+
+if PY2:
+    unicode_char = unichr
+else:
+    unicode_char = chr
 
 
 class FileChooserUnicodeTestCase(unittest.TestCase):
@@ -20,9 +26,9 @@ class FileChooserUnicodeTestCase(unittest.TestCase):
 
         # this will test creating unicode and bytes filesnames
         ufiles = [u'कीवीtestu',
-                  u'कीवीtestu' + unichr(0xFFFF),
-                  u'कीवीtestu' + unichr(0xFFFF - 1),
-                  u'कीवीtestu' + unichr(0xFF)]
+                  u'कीवीtestu' + unicode_char(0xFFFF),
+                  u'कीवीtestu' + unicode_char(0xFFFF - 1),
+                  u'कीवीtestu' + unicode_char(0xFF)]
         # don't use non-ascii directly because that will test source file
         # text conversion, not path issues :)
         bfiles = [b'\xc3\xa0\xc2\xa4\xe2\x80\xa2\xc3\xa0\xc2\xa5\xe2\x82\xac\
