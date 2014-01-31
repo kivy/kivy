@@ -195,6 +195,12 @@ class Vector(list):
         except Exception:
             return Vector([x / val for x in self])
 
+    def __rtruediv__(self, val):
+        try:
+            return Vector(*val) / self
+        except Exception:
+            return Vector(val, val) / self
+
     def __rdiv__(self, val):
         try:
             return Vector(*val) / self
