@@ -123,7 +123,7 @@ Builder.load_string('''
     content: content
     scatter: scatter
     do_scroll_x: False
-    canvas:
+    canvas.before:
         Color:
             rgba: parse_color(root.colors['background'])
         Rectangle:
@@ -173,6 +173,7 @@ Builder.load_string('''
     height: self.texture_size[1] + self.my
     text_size: self.width - self.mx, None
     font_size: sp(self.document.base_font_size / 2.0)
+
 <RstTerm>:
     size_hint: None, None
     height: label.height
@@ -184,7 +185,7 @@ Builder.load_string('''
         valign: 'top'
         size_hint: None, None
         size: self.texture_size[0] + dp(10), self.texture_size[1] + dp(10)
-        font_size: sp(self.parent.root.base_font_size / 2.0)
+        font_size: sp(self.document.base_font_size / 2.0)
 
 <RstBlockQuote>:
     cols: 2
