@@ -46,11 +46,11 @@ explicitly disable scrolling on an axis by setting
 :attr:`ScrollView.do_scroll_x` or :attr:`ScrollView.do_scroll_y` to False.
 
 
-Managing the Content Size and position
+Managing the Content Size and Position
 --------------------------------------
 
-ScrollView manages the position of the child content similar to a
-RelativeLayout (see :mod:`~kivy.uix.relativelayout`), not the size. You must
+ScrollView manages the position of its children similarly to a
+RelativeLayout (see :mod:`~kivy.uix.relativelayout`) but not the size. You must
 carefully specify the `size_hint` of your content to get the desired
 scroll/pan effect.
 
