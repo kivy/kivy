@@ -810,9 +810,8 @@ cdef class Texture:
         .. note::
 
             Unless the canvas will be updated due to other changes,
-            :meth:`~kivy.graphics.instructions.Canvas.ask_update` needs to be
-            called on the canvas containing this texture to display the new
-            data.
+            :meth:`~kivy.graphics.instructions.Canvas.ask_update` should be
+            called in order to update the texture.
 
         :Parameters:
             `pbuffer` : str
