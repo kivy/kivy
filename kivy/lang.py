@@ -184,10 +184,10 @@ with `id.__self__` (`btn1.__self__` in this case).
 Valid expressons
 ~~~~~~~~~~~~~~~~
 
-There are two types of places that accept python statments in a kv file:
+There are two places that accept python statments in a kv file:
 after a property, which assigns to the property the result of the expression
-such as the text of a button as shown above, and after a on_property, which
-executes the statement when the property is updated, such as on_state.
+(such as the text of a button as shown above) and after a on_property, which
+executes the statement when the property is updated (such as on_state).
 
 In the former case, the
 `expression <http://docs.python.org/2/reference/expressions.html>`_ can only
@@ -197,7 +197,7 @@ escaping, and must return a value. An example of a valid expression is
 
 In the latter case, multiple single line statements are valid including
 multi-line statements that escape their newline, as long as they don't
-add an indentation leevl.
+add an indentation level.
 
 Examples of valid statements are::
 
