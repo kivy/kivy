@@ -13,7 +13,9 @@ class FileChooserUnicodeTestCase(unittest.TestCase):
         basepath = os.path.dirname(__file__) + u''
         basepathu = join(basepath, u'filechooser_files')
         self.basepathu = basepathu
-        basepathb = bytes(basepathu)
+        basepathb = os.path.dirname(__file__.encode())
+        basepathb = join(basepathb, b'filechooser_files')
+        self.assertIsInstance(basepathb, bytes)
         self.basepathb = basepathb
 
         # this will test creating unicode and bytes filesnames
@@ -67,9 +69,15 @@ class FileChooserUnicodeTestCase(unittest.TestCase):
             self.assertIn(f, files)
 
     def tearDown(self):
-        import shutil
+        from os import remove, rmdir
         try:
-            shutil.rmtree(self.basepathu, ignore_errors=True)
+            for f in self.ufiles:
+                remove(f)
+            for f in self.exitsfiles:
+                remove(f)
+            for f in self.bfiles:
+                remove(f)
+            rmdir(self.basepathu)
         except:
             pass
 
