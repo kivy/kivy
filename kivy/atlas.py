@@ -254,7 +254,13 @@ class Atlas(EventDispatcher):
             size_w = size_h = int(size)
 
         # open all of the images
-        ims = [(f, Image.open(f)) for f in filenames]
+        ims = list()
+        for f in filenames:
+            fp = open(f)
+            im = Image.open(fp)
+            im.load()
+            fp.close()
+            ims.append((f, im))
 
         # sort by image area
         ims = sorted(ims, key=lambda im: im[1].size[0] * im[1].size[1],
