@@ -64,6 +64,8 @@ IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.logger import Logger
 from kivy.graphics.texture cimport Texture
+from kivy.graphics.carray cimport FloatArray
+
 
 
 class GraphicException(Exception):
@@ -294,8 +296,8 @@ cdef class Mesh(VertexInstruction):
             'points'.
 
     '''
-    cdef list _vertices
-    cdef list _indices
+    cdef object _vertices
+    cdef object _indices
     cdef VertexFormat vertex_format
 
     def __init__(self, **kwargs):
@@ -316,31 +318,37 @@ cdef class Mesh(VertexInstruction):
         cdef long icount = len(self._indices)
         cdef float *vertices = NULL
         cdef unsigned short *indices = NULL
-        cdef list lvertices = self._vertices
-        cdef list lindices = self._indices
+        cdef object lvertices = self._vertices
+        cdef object lindices = self._indices
+        cdef FloatArray varray
         cdef vsize = self.batch.vbo.vertex_format.vsize
 
         if vcount == 0 or icount == 0:
             self.batch.clear_data()
             return
-
-        vertices = <float *>malloc(vcount * sizeof(float))
-        if vertices == NULL:
-            raise MemoryError('vertices')
+        if isinstance(lvertices, list):
+            vertices = <float *>malloc(vcount * sizeof(float))
+            if vertices == NULL:
+                raise MemoryError('vertices')
+        if isinstance(lvertices, FloatArray):
+            varray = lvertices
+            vertices = <float *>varray.fdata
 
         indices = <unsigned short *>malloc(icount * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
 
-        for i in xrange(vcount):
-            vertices[i] = lvertices[i]
+        if isinstance(lvertices, list):
+            for i in xrange(vcount):
+                vertices[i] = lvertices[i]
         for i in xrange(icount):
             indices[i] = lindices[i]
 
         self.batch.set_data(vertices, <int>(vcount / vsize), indices, <int>icount)
 
-        free(vertices)
+        if isinstance(lvertices, list):
+            free(vertices)
         free(indices)
 
     property vertices:
@@ -351,7 +359,12 @@ cdef class Mesh(VertexInstruction):
         def __get__(self):
             return self._vertices
         def __set__(self, value):
-            self._vertices = list(value)
+            if isinstance(value, list):
+                self._vertices = list(value)
+            elif isinstance(value, FloatArray):
+                self._vertices = value
+            else: 
+                raise TypeError()
             self.flag_update()
 
     property indices:
