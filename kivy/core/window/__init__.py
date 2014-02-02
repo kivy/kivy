@@ -20,12 +20,14 @@ from kivy.base import EventLoop
 from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
-    NumericProperty, OptionProperty, StringProperty
+    NumericProperty, OptionProperty, StringProperty, BooleanProperty
 from kivy.utils import platform, reify
 from kivy.context import get_current_context
 
 # late import
 VKeyboard = None
+android = None
+autoclass = None
 
 
 class Keyboard(EventDispatcher):
@@ -299,7 +301,7 @@ class WindowBase(EventDispatcher):
     '''Color used to clear the window.
 
     ::
-    
+
         from kivy.core.window import Window
 
         # red background color
@@ -370,6 +372,45 @@ class WindowBase(EventDispatcher):
     degrees.
     '''
 
+    _keyboard_changed = BooleanProperty(False)
+
+    def _upd_kbd_height(self, *kargs):
+        self._keyboard_changed = not self._keyboard_changed
+
+    def _get_ios_kheight(self):
+        return 0
+
+    def _get_android_kheight(self):
+        global android, autoclass
+        height = 0
+        if not android:
+            import android
+            from jnius import autoclass
+        python_act = autoclass('org.renpy.android.PythonActivity')
+        rctx = autoclass('android.graphics.Rect')()
+        mActivity = python_act.mActivity
+        mActivity.getWindow().getDecorView().\
+            getWindowVisibleDisplayFrame(rctx)
+        height = mActivity.getWindowManager().getDefaultDisplay().getHeight()
+        return height - rctx.bottom
+
+    def _get_kheight(self):
+        if platform == 'android':
+            return self._get_android_kheight()
+        if platform == 'ios':
+            return self._get_ios_kheight()
+        return 0
+
+    keyboard_height = AliasProperty(_get_kheight, None,
+                                    bind=('_keyboard_changed',))
+    '''Rerturns the height of the softkeyboard/IME on mobile platforms.
+    Will return 0 if not on mobile platform or if IME is not active.
+
+    ..versionadded:: 1.8.1
+
+    :attr:`keyboard_height` is a read only :class:`AliasProperty` defaults to 0.
+    '''
+
     def _set_system_size(self, size):
         self._size = size
 
@@ -429,6 +470,10 @@ class WindowBase(EventDispatcher):
         self.trigger_create_window = Clock.create_trigger(
             self.create_window, -1)
 
+        # Create a trigger for updating the keyboard height
+        self.trigger_keyboard_height = Clock.create_trigger(
+            self._upd_kbd_height, .5)
+
         # set the default window parameter according to the configuration
         if 'fullscreen' not in kwargs:
             fullscreen = Config.get('graphics', 'fullscreen')
@@ -463,6 +508,9 @@ class WindowBase(EventDispatcher):
                 'fullscreen', 'position', 'top',
                 'left', '_size', 'system_size'):
             self.bind(**{prop: self.trigger_create_window})
+
+        self.bind(size=self.trigger_keyboard_height,
+                  rotation=self.trigger_keyboard_height)
 
         # init privates
         self._system_keyboard = Keyboard(window=self)
@@ -1030,7 +1078,6 @@ class WindowBase(EventDispatcher):
             self._system_keyboard.callback = None
             callback()
             return True
-
 
 #: Instance of a :class:`WindowBase` implementation
 Window = core_select_lib('window', (

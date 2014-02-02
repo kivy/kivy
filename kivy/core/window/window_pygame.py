@@ -19,6 +19,7 @@ from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
 from kivy.utils import platform
 from kivy.resources import resource_find
+from kivy.clock import Clock
 
 # When we are generating documentation, Config doesn't exist
 _exit_on_escape = True
@@ -423,10 +424,12 @@ class WindowPygame(WindowBase):
             callback, target, input_type)
         if android and not self.allow_vkeyboard:
             android.show_keyboard(target, input_type)
+            self.trigger_keyboard_height()
         return keyboard
 
     def release_keyboard(self, *largs):
         super(WindowPygame, self).release_keyboard(*largs)
         if android:
             android.hide_keyboard()
+            self.trigger_keyboard_height()
         return True
