@@ -22,7 +22,7 @@ How to load KV
 There are two ways to load Kv code into your application:
 - By name convention:
 
-  Kivy looks if there is a Kv file with the same name as your App class in
+  Kivy looks for a Kv file with the same name as your App class in
   lowercase,  minus "App" if it ends with 'App'. E.g::
 
     MyApp -> my.kv.
@@ -31,7 +31,7 @@ There are two ways to load Kv code into your application:
   attribute and used as the base of the application widget tree.
 
 - :obj:`~kivy.lang.Builder`:
-  you can tell kivy to directly load a string or a file. If this string or file
+  You can tell Kivy to directly load a string or a file. If this string or file
   defines a root widget, it will be returned by the method::
 
     Builder.load_file('path/to/file.kv')
