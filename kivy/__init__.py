@@ -185,6 +185,7 @@ if 'vim' in globals():
 else:
     Logger.setLevel(level=LOG_LEVELS.get('info'))
     Logger.info('Kivy v%s' % (__version__))
+    Logger.info('Python: v{}'.format(sys.version))
 
 #: Global settings options for kivy
 kivy_options = {
