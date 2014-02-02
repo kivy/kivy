@@ -4,8 +4,7 @@ Module that implements array type classes.
 
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy
-
-import ctypes
+from cython.view cimport array as cvarray
 
 
 cdef class Memory:
@@ -35,17 +34,16 @@ cdef class Memory:
         self.size = 0
         self.read_only = read_only
         self.proxy_src = None
-
         if size != 0:
             self.data = malloc(size)
             self.size = size
             if self.data == NULL:
                 raise MemoryError()
         elif ctypes_array is not None:
-            if not isinstance(ctypes_array, ctypes.Array):
+            if not isinstance(ctypes_array, cvarray):
                 raise TypeError()
-            self.data = <void *><size_t>ctypes.addressof(ctypes_array)
-            self.size = ctypes.sizeof(ctypes_array)
+            self.data = <void *>ctypes_array.data
+            self.size = ctypes_array.itemsize
             self.proxy_src = ctypes_array  # keep ref to keep array alive
 
 
@@ -65,17 +63,17 @@ cdef class Memory:
 
 
 cdef class BaseArray:
-    def __cinit__(self, count):
+    def __cinit__(self, count, data=None):
         self.mem = None
         self.count = count
         self.itemsize = 0
 
-    def __init__(self, count):
+    def __init__(self, count, data=None):
         if count > 0:
-            self.allocate(count)
+            self.allocate(count, data=data)
 
-    cdef void allocate(self, int count):
-        self.mem = Memory(count * sizeof(float))
+    cdef void allocate(self, int count, data):
+        self.mem = Memory(count * sizeof(float), ctypes_array=data)
         self.count = count
         self.sync_with_memory()
 
@@ -166,7 +164,7 @@ cdef class BaseArray:
 
 cdef class FloatArray(BaseArray):
 
-    def __cinit__(self, count):
+    def __cinit__(self, count, data=None):
         self.fdata = NULL
         self.itemsize = sizeof(float)
 

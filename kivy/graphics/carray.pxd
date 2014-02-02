@@ -14,7 +14,7 @@ cdef class BaseArray:
     cdef int count
 
     cdef int _resolve_slice(self, int *ip, int *jp)
-    cdef void allocate(self, int count)
+    cdef void allocate(self, int count, data)
     cdef void link_to_memory(self, Memory mem)
     cdef void sync_with_memory(self)
 
