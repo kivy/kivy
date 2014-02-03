@@ -1,5 +1,4 @@
-'''
-Scroll View
+'''Scroll View
 ===========
 
 .. versionadded:: 1.0.4
@@ -11,11 +10,12 @@ clipped at the scrollview's bounding box.
 Scrolling Behavior
 ------------------
 
-The ScrollView accepts only one child and applies a viewport/window to it
-according to the :attr:`scroll_x` and :attr:`scroll_y` properties. Touches are
-analyzed to determine if the user wants to scroll or control the child in some
-other manner - you cannot do both at the same time. To determine if interaction
-is a scrolling gesture, these properties are used:
+The ScrollView accepts only one child and applies a viewport/window to
+it according to the :attr:`ScrollView.scroll_x` and
+:attr:`ScrollView.scroll_y` properties. Touches are analyzed to
+determine if the user wants to scroll or control the child in some
+other manner - you cannot do both at the same time. To determine if
+interaction is a scrolling gesture, these properties are used:
 
     - :attr:`ScrollView.scroll_distance`: the minimum distance to travel,
          defaults to 20 pixels.
@@ -72,18 +72,41 @@ size_hint_y property to None::
     root.add_widget(layout)
 
 
-Effects
--------
+Overscroll Effects
+------------------
 
 .. versionadded:: 1.7.0
 
-An effect is a subclass of :class:`~kivy.effects.scroll.ScrollEffect` that will
-compute informations during the dragging, and apply transformation to the
-:class:`ScrollView`. Depending of the effect, more computing can be done for
-calculating over-scroll, bouncing, etc.
+When scrolling would exceed the bounds of the :class:`ScrollView`, it
+uses a :class:`~kivy.effects.scroll.ScrollEffect` to handle the
+overscroll. These effects can perform actions like bouncing back,
+changing opacity, or simply preventing scrolling beyond the normal
+boundaries. Note that complex effects may perform many computations,
+which can be slow on weaker hardware.
+
+You can change what effect is being used by setting
+:attr:`ScrollView.effect_cls` to any effect class. Current options
+include:
+
+    - :class:`~kivy.effects.scroll.ScrollEffect`: Does not allow
+      scrolling beyond the :class:`ScrollView` boundaries.
+    - :class:`~kivy.effects.dampedscroll.DampedScrollEffect`: The
+      current default. Allows the user to scroll beyond the normal
+      boundaries, but has the content spring back once the
+      touch/click is released.
+    - :class:`~kivy.effects.opacityscroll.OpacityScrollEffect`: Similar
+      to the :class:`~kivy.effect.dampedscroll.DampedScrollEffect`, but
+      also reduces opacity during overscroll.
+
+You can also create your own scroll effect by subclassing one of these,
+then pass it as the :attr:`~ScrollView.effect_cls` in the same way.
+
+Alternatively, you can set :attr:`ScrollView.effect_x` and/or
+:attr:`ScrollView.effect_y` to an *instance* of the effect you want to
+use. This will override the default effect set in
+:attr:`ScrollView.effect_cls`.
 
 All the effects are located in the :mod:`kivy.effects`.
-
 
 '''
 
