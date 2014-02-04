@@ -74,7 +74,35 @@ widget moves, you can bind your own callback function like this::
     wid = Widget()
     wid.bind(pos=callback_pos)
 
-Read more about the :doc:`/api-kivy.properties`.
+Read more about :doc:`/api-kivy.properties`.
+
+Basic drawing
+-------------
+
+Widgets support a range of drawing instructions that you can use to customize
+the look of your widgets and layouts. For example, to draw a background image
+for your widget, you can do the following::
+
+    def redraw(self, args):
+        with self.canvas:
+            Rectangle(source="cover.jpg", pos=self.pos, size=self.size)
+
+    widget = Widget()
+    widget.bind(pos=redraw, size=redraw)
+
+.. highlight:: kv
+
+To draw a background in kv::
+
+    Widget:
+        canvas:
+            Rectangle:
+                source: "cover.jpg"
+                size: self.size
+                pos: self.pos
+
+These examples only the surface. Please see the :mod:`kivy.graphics` module for
+more information.
 
 '''
 
