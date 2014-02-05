@@ -101,8 +101,8 @@ To draw a background in kv::
                 size: self.size
                 pos: self.pos
 
-These examples only the surface. Please see the :mod:`kivy.graphics` module for
-more information.
+These examples only scratch the surface. Please see the :mod:`kivy.graphics`
+documentation for more information.
 
 '''
 
