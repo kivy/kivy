@@ -157,6 +157,12 @@ cdef class InstructionGroup(Instruction):
         c.rinsert(self, index)
         self.flag_update()
 
+    cpdef index(self, Instruction c):
+        '''Get the index of the given :class:`Instruction` in our list.
+
+        .. versionadded:: 1.8.1
+        '''
+
     cpdef remove(self, Instruction c):
         '''Remove an existing :class:`Instruction` from our list.
         '''
