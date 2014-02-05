@@ -113,13 +113,13 @@ from kivy.factory import Factory
 from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
                              ReferenceListProperty, ObjectProperty,
                              ListProperty, DictProperty, BooleanProperty)
-from kivy.graphics import Canvas
+from kivy.graphics import Canvas, PushMatrix, PopMatrix, Translate, Rectangle
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
+from kivy.graphics import Fbo, ClearColor, ClearBuffers
 from weakref import proxy
 from functools import partial
-
 
 # references to all the destructors widgets (partial method with widget uid as
 # key.)
@@ -420,7 +420,7 @@ class Widget(WidgetBase):
     def clear_widgets(self, children=None):
         '''Remove all widgets added to this widget.
 
-        .. versionchanged:: 1.8.0
+        .. versionchanged:: 1.8.1
 
             `children` argument can be used to select the children we want to
             remove. It should be a list of children (or filtered list) of the
@@ -500,6 +500,50 @@ class Widget(WidgetBase):
         if relative:
             return (x - self.x, y - self.y)
         return (x, y)
+
+    def save_image(self, filename, *args):
+        '''Saves an image of the widget and its children in png format at the
+        specified filename. Works by removing the widget canvas from
+        its parent, rendering to an :class:`~kivy.graphics.fbo.Fbo`
+        texture, and calling :meth:`~kivy.graphics.texture.Texture.save`.
+
+        .. Note:: The image will not include the background
+                  of any parent or other widget(s). If you want to
+                  include them in the picture, you must save an image
+                  from their common parent widget.
+
+        .. Note:: The image will be saved in png format, you should
+                  include the extension in your filename.
+
+        .. versionadded:: 1.8.1
+
+        '''
+
+        if self.parent is not None:
+            canvas_parent_index = self.parent.canvas.index(self.canvas)
+            self.parent.canvas.remove(self.canvas)
+
+        fbo = Fbo(size=self.size)
+        with fbo:
+            ClearColor(0, 0, 0, 1)
+            ClearBuffers()
+
+        with fbo.before:
+            PushMatrix()
+            Translate(-self.x, -self.y, 0)
+        with fbo.after:
+            PopMatrix()
+        fbo.add(self.canvas)
+
+        fbo.draw()
+        fbo.texture.save(filename)
+
+        fbo.remove(self.canvas)
+
+        if self.parent is not None:
+            self.parent.canvas.insert(canvas_parent_index, self.canvas)
+
+        return True
 
     x = NumericProperty(0)
     '''X position of the widget.
