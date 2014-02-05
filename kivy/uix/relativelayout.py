@@ -70,7 +70,7 @@ diverge from the window coordinate system. For each such widget in the stack, a
 coordinate system with (0, 0) of that coordinate system being at the bottom
 left corner of that widget is created. **Position and touch coordinates
 received and read by a widget are in the coordinate system of the most
-recent special widget in its parent stack (not including itself), or in window
+recent special widget in its parent stack (not including itself) or in window
 coordinates if there are none** (as in the first example). We call these
 coordinates parent coordinates.
 
@@ -140,7 +140,7 @@ relative to itself.
 Coordinate transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:class:`~kivy.uix.widget.Widget` provides 4 function to transform coordinates
+:class:`~kivy.uix.widget.Widget` provides 4 functions to transform coordinates
 between the various coordinate systems. For now, we assume that the `relative`
 keyword of these functions is `False`.
 :meth:`~kivy.uix.widget.Widget.to_widget` takes the coordinates expressed in
