@@ -696,7 +696,7 @@ will first be unloaded and then reloaded again. For example:
     <MyComponent>:
         MyButton:
 
-.. code-block:: 
+.. code-block:: kv
 
     # mybutton.kv
 
