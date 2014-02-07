@@ -22,19 +22,19 @@ size_hint, size_hint_x, size_hint_y and pos_hint.
 
 .. note::
 
-    The :class:`ScatterLayout` is implemented as a 
+    The :class:`ScatterLayout` is implemented as a
     :class:`~kivy.uix.floatlayout.FloatLayout`
     inside a :class:`~kivy.uix.scatter.Scatter`.
 
 .. warning::
 
-    Since the actual :class:`ScatterLayout` is a 
+    Since the actual :class:`ScatterLayout` is a
     :class:`~kivy.uix.scatter.Scatter`, its
     add_widget and remove_widget functions are overridden to add children
     to the embedded :class:`~kivy.uix.floatlayout.FloatLayout` (accessible as
-    the `content` property of :class:`~kivy.uix.scatter.Scatter`) automatically.
-    So if you want to access the added
-    child elements, you need self.content.children instead of self.children.
+    the `content` property of :class:`~kivy.uix.scatter.Scatter`)
+    automatically. So if you want to access the added child elements,
+    you need self.content.children instead of self.children.
 
 .. warning::
 
@@ -78,4 +78,3 @@ class ScatterLayout(Scatter):
 
     def clear_widgets(self):
         self.content.clear_widgets()
-

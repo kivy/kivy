@@ -20,7 +20,7 @@ from kivy.base import EventLoop
 from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
-        NumericProperty, OptionProperty, StringProperty
+    NumericProperty, OptionProperty, StringProperty
 from kivy.utils import platform, reify
 from kivy.context import get_current_context
 
@@ -30,9 +30,10 @@ VKeyboard = None
 
 class Keyboard(EventDispatcher):
     '''Keyboard interface that is returned by
-    :meth:`WindowBase.request_keyboard`. When you request a keyboard, you'll get
-    an instance of this class. Whatever the keyboard input is (system or virtual
-    keyboard), you'll receive events through this instance.
+    :meth:`WindowBase.request_keyboard`. When you request a keyboard,
+    you'll get an instance of this class. Whatever the keyboard input is
+    (system or virtual keyboard), you'll receive events through this
+    instance.
 
     :Events:
         `on_key_down`: keycode, text, modifiers
@@ -48,16 +49,16 @@ class Keyboard(EventDispatcher):
 
     '''
 
-    #: Keycodes mapping, between str <-> int. Theses keycode are currently taken
-    #: from pygame.key. But when a new provider will be used, it must do the
-    #: translation to theses keycodes too.
+    # Keycodes mapping, between str <-> int. Theses keycode are
+    # currently taken from pygame.key. But when a new provider will be
+    # used, it must do the translation to theses keycodes too.
     keycodes = {
         # specials keys
         'backspace': 8, 'tab': 9, 'enter': 13, 'shift': 304, 'ctrl': 306,
         'capslock': 301, 'escape': 27, 'spacebar': 32, 'pageup': 280,
-        'pagedown': 281, 'end': 279, 'home': 278, 'left': 276, 'up': 273,
-        'right': 275, 'down': 274, 'insert': 277, 'delete': 127, 'numlock': 300,
-        'screenlock': 145, 'pause': 19,
+        'pagedown': 281, 'end': 279, 'home': 278, 'left': 276, 'up':
+        273, 'right': 275, 'down': 274, 'insert': 277, 'delete': 127,
+        'numlock': 300, 'screenlock': 145, 'pause': 19,
 
         # a-z keys
         'a': 97, 'b': 98, 'c': 99, 'd': 100, 'e': 101, 'f': 102, 'g': 103,
@@ -126,7 +127,8 @@ class Keyboard(EventDispatcher):
         if self.window:
             self.window.release_keyboard(self.target)
 
-    def _on_window_key_down(self, instance, keycode, scancode, text, modifiers):
+    def _on_window_key_down(self, instance, keycode, scancode, text,
+                            modifiers):
         keycode = (keycode, self.keycode_to_string(keycode))
         return self.dispatch('on_key_down', keycode, text, modifiers)
 
@@ -148,14 +150,14 @@ class Keyboard(EventDispatcher):
 
     def string_to_keycode(self, value):
         '''Convert a string to a keycode number according to the
-        :data:`Keyboard.keycodes`. If the value is not found in the keycodes, it
-        will return -1.
+        :attr:`Keyboard.keycodes`. If the value is not found in the
+        keycodes, it will return -1.
         '''
         return Keyboard.keycodes.get(value, -1)
 
     def keycode_to_string(self, value):
         '''Convert a keycode number to a string according to the
-        :data:`Keyboard.keycodes`. If the value is not found in the
+        :attr:`Keyboard.keycodes`. If the value is not found in the
         keycodes, it will return ''.
         '''
         keycodes = list(Keyboard.keycodes.values())
@@ -232,10 +234,10 @@ class WindowBase(EventDispatcher):
     children = ListProperty([])
     '''List of the children of this window.
 
-    :data:`children` is a :class:`~kivy.properties.ListProperty` instance and
+    :attr:`children` is a :class:`~kivy.properties.ListProperty` instance and
     defaults to an empty list.
 
-    Use :func:`add_widget` and :func:`remove_widget` to manipulate the list of
+    Use :meth:`add_widget` and :meth:`remove_widget` to manipulate the list of
     children. Don't manipulate the list directly unless you know what you are
     doing.
     '''
@@ -243,7 +245,7 @@ class WindowBase(EventDispatcher):
     parent = ObjectProperty(None, allownone=True)
     '''Parent of this window.
 
-    :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance and
+    :attr:`parent` is a :class:`~kivy.properties.ObjectProperty` instance and
     defaults to None. When created, the parent is set to the window itself.
     You must take care of it if you are doing a recursive check.
     '''
@@ -277,7 +279,7 @@ class WindowBase(EventDispatcher):
         else:
             return False
     size = AliasProperty(_get_size, _set_size, bind=('_size', ))
-    '''Get the rotated size of the window. If :data:`rotation` is set, then the
+    '''Get the rotated size of the window. If :attr:`rotation` is set, then the
     size will change to reflect the rotation.
     '''
 
@@ -293,10 +295,11 @@ class WindowBase(EventDispatcher):
         self._clearcolor = value
 
     clearcolor = AliasProperty(_get_clearcolor, _set_clearcolor,
-            bind=('_clearcolor', ))
+                               bind=('_clearcolor', ))
     '''Color used to clear the window.
 
-  ::
+    ::
+    
         from kivy.core.window import Window
 
         # red background color
@@ -321,7 +324,7 @@ class WindowBase(EventDispatcher):
     width = AliasProperty(_get_width, None, bind=('_rotation', '_size'))
     '''Rotated window width.
 
-    :data:`width` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`width` is a :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_height(self):
@@ -334,7 +337,7 @@ class WindowBase(EventDispatcher):
     height = AliasProperty(_get_height, None, bind=('_rotation', '_size'))
     '''Rotated window height.
 
-    :data:`height` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`height` is a :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_center(self):
@@ -343,7 +346,7 @@ class WindowBase(EventDispatcher):
     center = AliasProperty(_get_center, None, bind=('width', 'height'))
     '''Center of the rotated window.
 
-    :data:`center` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`center` is a :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_rotation(self):
@@ -361,7 +364,8 @@ class WindowBase(EventDispatcher):
         self.dispatch('on_resize', *self.size)
         self.dispatch('on_rotate', x)
 
-    rotation = AliasProperty(_get_rotation, _set_rotation, bind=('_rotation', ))
+    rotation = AliasProperty(_get_rotation, _set_rotation,
+                             bind=('_rotation', ))
     '''Get/set the window content rotation. Can be one of 0, 90, 180, 270
     degrees.
     '''
@@ -373,9 +377,9 @@ class WindowBase(EventDispatcher):
         return self._size
 
     system_size = AliasProperty(
-            _get_system_size,
-            _set_system_size,
-            bind=('_size', ))
+        _get_system_size,
+        _set_system_size,
+        bind=('_size', ))
     '''Real size of the window ignoring rotation.
     '''
 
@@ -401,9 +405,9 @@ class WindowBase(EventDispatcher):
     title = StringProperty('Kivy')
 
     __events__ = ('on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
-            'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
-            'on_mouse_down', 'on_mouse_move', 'on_mouse_up', 'on_keyboard',
-            'on_key_down', 'on_key_up', 'on_dropfile')
+                  'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
+                  'on_mouse_down', 'on_mouse_move', 'on_mouse_up',
+                  'on_keyboard', 'on_key_down', 'on_key_up', 'on_dropfile')
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -423,7 +427,7 @@ class WindowBase(EventDispatcher):
         # create a trigger for update/create the window when one of window
         # property changes
         self.trigger_create_window = Clock.create_trigger(
-                self.create_window, -1)
+            self.create_window, -1)
 
         # set the default window parameter according to the configuration
         if 'fullscreen' not in kwargs:
@@ -439,7 +443,7 @@ class WindowBase(EventDispatcher):
             kwargs['rotation'] = Config.getint('graphics', 'rotation')
         if 'position' not in kwargs:
             kwargs['position'] = Config.getdefault('graphics', 'position',
-                                     'auto')
+                                                   'auto')
         if 'top' in kwargs:
             kwargs['position'] = 'custom'
             kwargs['top'] = kwargs['top']
@@ -469,7 +473,7 @@ class WindowBase(EventDispatcher):
         self.parent = self
 
         # before creating the window
-        import kivy.core.gl
+        import kivy.core.gl  # NOQA
 
         # configure the window
         self.create_window()
@@ -515,8 +519,8 @@ class WindowBase(EventDispatcher):
             Again, don't use this method unless you know exactly what you are
             doing!
         '''
-        # just to be sure, if the trigger is set, and if this method is manually
-        # called, unset the trigger
+        # just to be sure, if the trigger is set, and if this method is
+        # manually called, unset the trigger
         Clock.unschedule(self.create_window)
 
         if not self.initialized:
@@ -770,8 +774,8 @@ class WindowBase(EventDispatcher):
         '''Event called when the mouse is moved with buttons pressed'''
         pass
 
-    def on_keyboard(self, key,
-        scancode=None, codepoint=None, modifier=None, **kwargs):
+    def on_keyboard(self, key, scancode=None, codepoint=None,
+                    modifier=None, **kwargs):
         '''Event called when keyboard is used.
 
         .. warning::
@@ -779,25 +783,28 @@ class WindowBase(EventDispatcher):
         '''
         if 'unicode' in kwargs:
             Logger.warning("The use of the unicode parameter is deprecated, "
-                "and will be removed in future versions. Use codepoint "
-                "instead, which has identical semantics.")
+                           "and will be removed in future versions. Use "
+                           "codepoint instead, which has identical "
+                           "semantics.")
 
-    def on_key_down(self, key,
-        scancode=None, codepoint=None, modifier=None, **kwargs):
+    def on_key_down(self, key, scancode=None, codepoint=None,
+                    modifier=None, **kwargs):
         '''Event called when a key is down (same arguments as on_keyboard)'''
         if 'unicode' in kwargs:
             Logger.warning("The use of the unicode parameter is deprecated, "
-                "and will be removed in future versions. Use codepoint "
-                "instead, which has identical semantics.")
+                           "and will be removed in future versions. Use "
+                           "codepoint instead, which has identical "
+                           "semantics.")
 
-    def on_key_up(self, key,
-        scancode=None, codepoint=None, modifier=None, **kwargs):
+    def on_key_up(self, key, scancode=None, codepoint=None,
+                  modifier=None, **kwargs):
         '''Event called when a key is released (same arguments as on_keyboard)
         '''
         if 'unicode' in kwargs:
             Logger.warning("The use of the unicode parameter is deprecated, "
-                "and will be removed in future versions. Use codepoint "
-                "instead, which has identical semantics.")
+                           "and will be removed in future versions. Use "
+                           "codepoint instead, which has identical "
+                           "semantics.")
 
     def on_dropfile(self, filename):
         '''Event called when a file is dropped on the application.
@@ -820,7 +827,7 @@ class WindowBase(EventDispatcher):
         .. warning::
 
             This value is not cross-platform. Use
-            :data:`kivy.base.EventLoop.dpi` instead.
+            :attr:`kivy.base.EventLoop.dpi` instead.
         '''
         return 96.
 
@@ -848,7 +855,7 @@ class WindowBase(EventDispatcher):
         # now read the configuration
         mode = Config.get('kivy', 'keyboard_mode')
         if mode not in ('', 'system', 'dock', 'multi', 'systemanddock',
-                'systemandmulti'):
+                        'systemandmulti'):
             Logger.critical('Window: unknown keyboard mode %r' % mode)
 
         # adapt mode according to the configuration
@@ -878,8 +885,9 @@ class WindowBase(EventDispatcher):
             self.single_vkeyboard = False
             self.docked_vkeyboard = False
 
-        Logger.info('Window: virtual keyboard %sallowed, %s, %s' %
-                ('' if self.allow_vkeyboard else 'not ',
+        Logger.info(
+            'Window: virtual keyboard %sallowed, %s, %s' % (
+                '' if self.allow_vkeyboard else 'not ',
                 'single mode' if self.single_vkeyboard else 'multiuser mode',
                 'docked' if self.docked_vkeyboard else 'not docked'))
 
@@ -905,38 +913,42 @@ class WindowBase(EventDispatcher):
     def request_keyboard(self, callback, target, input_type='text'):
         '''.. versionadded:: 1.0.4
 
-        Internal widget method to request the keyboard. This method is
-        not intented to be used by the end-user. If you want to use the
-        real keyboard (not the virtual keyboard), you don't want to share it
-        with another widget.
+        Internal widget method to request the keyboard. This method is rarely
+        required by the end-user as it is handled automatically by the 
+        :class:`~kivy.uix.textinput.TextInput`. We expose it in case you want
+        to handle the keyboard manually for unique input scenarios.
 
         A widget can request the keyboard, indicating a callback to call
-        when the keyboard will be released (or taken by another widget).
+        when the keyboard is released (or taken by another widget).
 
         :Parameters:
             `callback`: func
-                Callback that will be called when the keyboard is closed. It can
-                be because somebody else requested the keyboard, or if the user
-                closed it.
+                Callback that will be called when the keyboard is
+                closed. This can be because somebody else requested the
+                keyboard or the user closed it.
             `target`: Widget
-                Attach the keyboard to the specified target. Ensure you have a
-                target attached if you're using the keyboard in a multi user
-                mode.
+                Attach the keyboard to the specified `target`. This should be
+                the widget that requested the keyboard. Ensure you have a
+                different target attached to each keyboard if you're working in
+                a multi user mode.
+
+                .. versionadded:: 1.0.8
+
             `input_type`: string
                 Choose the type of soft keyboard to request. Can be one of
                 'text', 'number', 'url', 'mail', 'datetime', 'tel', 'address'.
+
+                .. note::
+
+                    `input_type` is currently only honored on mobile devices.
 
                 .. versionadded:: 1.8.0
 
         :Return:
             An instance of :class:`Keyboard` containing the callback, target,
-            and if the configuration allowed it, a VKeyboard instance.
-
-        .. versionchanged:: 1.0.8
-
-            `target` has been added, and must be the widget source that
-            requested the keyboard. If set, the widget must have one method
-            named `on_keyboard_text` that will be called by the vkeyboard.
+            and if the configuration allows it, a
+            :class:`~kivy.uix.vkeyboard.VKeyboard` instance attached as a 
+            *.widget* property.
 
         '''
 
@@ -997,7 +1009,7 @@ class WindowBase(EventDispatcher):
         '''.. versionadded:: 1.0.4
 
         Internal method for the widget to release the real-keyboard. Check
-        :func:`request_keyboard` to understand how it works.
+        :meth:`request_keyboard` to understand how it works.
         '''
         if self.allow_vkeyboard:
             key = 'single' if self.single_vkeyboard else target

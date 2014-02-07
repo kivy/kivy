@@ -56,11 +56,12 @@ if platform == 'android' or 'KIVY_DOC' in os.environ:
     try:
         import kivy.input.providers.androidjoystick
     except:
-        err = 'Input: AndroidJoystick is not supported by your version of linux'
+        err = 'Input: AndroidJoystick is not supported by your version ' \
+              'of linux'
         Logger.exception(err)
 
 try:
-    import kivy.input.providers.leapfinger
+    import kivy.input.providers.leapfinger  # NOQA
 except:
     err = 'Input: LeapFinger is not available on your system'
     Logger.exception(err)

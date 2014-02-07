@@ -104,7 +104,7 @@ class Vector(list):
         self[0] = x
 
     x = property(_get_x, _set_x)
-    ''':data:`x` represents the first element in the list.
+    ''':attr:`x` represents the first element in the list.
 
     >>> v = Vector(12, 23)
     >>> v[0]
@@ -120,7 +120,7 @@ class Vector(list):
         self[1] = y
 
     y = property(_get_y, _set_y)
-    ''':data:`y` represents the second element in the list.
+    ''':attr:`y` represents the second element in the list.
 
     >>> v = Vector(12, 23)
     >>> v[1]
@@ -194,6 +194,12 @@ class Vector(list):
             return Vector(list(map(lambda x, y: x / y, self, val)))
         except Exception:
             return Vector([x / val for x in self])
+
+    def __rtruediv__(self, val):
+        try:
+            return Vector(*val) / self
+        except Exception:
+            return Vector(val, val) / self
 
     def __rdiv__(self, val):
         try:
@@ -305,8 +311,9 @@ class Vector(list):
 
         '''
         angle = math.radians(angle)
-        return Vector((self[0] * math.cos(angle)) - (self[1] * math.sin(angle)),
-                      (self[1] * math.cos(angle)) + (self[0] * math.sin(angle)))
+        return Vector(
+            (self[0] * math.cos(angle)) - (self[1] * math.sin(angle)),
+            (self[1] * math.cos(angle)) + (self[0] * math.sin(angle)))
 
     @staticmethod
     def line_intersection(v1, v2, v3, v4):
@@ -387,7 +394,8 @@ class Vector(list):
 
     @staticmethod
     def in_bbox(point, a, b):
-        '''Return True if `point` is in the bounding box defined by `a` and `b`.
+        '''Return True if `point` is in the bounding box defined by `a`
+        and `b`.
 
         >>> bmin = (0, 0)
         >>> bmax = (100, 100)
@@ -401,4 +409,3 @@ class Vector(list):
                  point[0] <= b[0] and point[0] >= a[0]) and
                 (point[1] <= a[1] and point[1] >= b[1] or
                  point[1] <= b[1] and point[1] >= a[1]))
-

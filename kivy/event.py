@@ -8,4 +8,3 @@ __all__ = ('EventDispatcher', )
 import kivy._event
 __doc__ = kivy._event.__doc__
 EventDispatcher = kivy._event.EventDispatcher
-

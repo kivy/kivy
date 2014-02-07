@@ -118,4 +118,3 @@ def minimum_bounding_circle(points):
 
     # find the circumcenter for triangle given by P,Q,R
     return circumcircle(P, Q, R)
-

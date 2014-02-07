@@ -10,7 +10,8 @@ loading of modules is managed by the config file. Currently, we include:
       and a small graph indicating input activity.
     * :class:`~kivy.modules.keybinding`: Bind some keys to actions, such as a
       screenshot.
-    * :class:`~kivy.modules.recorder`: Record and playback a sequence of events.
+    * :class:`~kivy.modules.recorder`: Record and playback a sequence of
+      events.
     * :class:`~kivy.modules.screen`: Emulate the characteristics (dpi/density/
       resolution) of different screens.
     * :class:`~kivy.modules.inspector`: Examines your widget heirarchy and
@@ -81,10 +82,11 @@ Create a file in your `HOME/.kivy/mods`, and create 2 functions::
     def stop(win, ctx):
         pass
 
-Start/stop are functions that will be called for every window opened in Kivy.
-When you are starting a module, you can use these to store and manage the module
-state. Use the `ctx` variable as a dictionary. This context is unique for each
-instance/start() call of the module, and will be passed to stop() too.
+Start/stop are functions that will be called for every window opened in
+Kivy.  When you are starting a module, you can use these to store and
+manage the module state. Use the `ctx` variable as a dictionary. This
+context is unique for each instance/start() call of the module, and will
+be passed to stop() too.
 
 '''
 
@@ -178,7 +180,7 @@ class ModuleBase:
         if not mod['activated']:
             context = mod['context']
             msg = 'Modules: Start <{0}> with config {1}'.format(
-                    name, context)
+                  name, context)
             Logger.debug(msg)
             pymod.start(win, context)
             mod['activated'] = True

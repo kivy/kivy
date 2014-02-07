@@ -31,7 +31,7 @@ class _MapInfo(Structure):
     _fields_ = [
         ('memory', c_void_p),
         ('flags', c_int),
-        ('data', c_void_p) ]
+        ('data', c_void_p)]
         # we don't care about the rest
 
 
@@ -77,10 +77,10 @@ class CameraGi(CameraBase):
             video_src += ' camera-number=%d' % self._index
 
         if Gst.version() < (1, 0, 0, 0):
-            caps = 'video/x-raw-rgb,red_mask=(int)0xff0000,' + \
-                    'green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff'
-            pl = '{} ! decodebin name=decoder ! ffmpegcolorspace ! appsink ' + \
-                 'name=camerasink emit-signals=True caps={}'
+            caps = ('video/x-raw-rgb,red_mask=(int)0xff0000,'
+                    'green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff')
+            pl = ('{} ! decodebin name=decoder ! ffmpegcolorspace ! '
+                  'appsink name=camerasink emit-signals=True caps={}')
         else:
             caps = 'video/x-raw,format=RGB'
             pl = '{} ! decodebin name=decoder ! videoconvert ! appsink ' + \
@@ -143,7 +143,8 @@ class CameraGi(CameraBase):
             result, mapinfo = buf.map(Gst.MapFlags.READ)
 
             # We cannot get the data out of mapinfo, using Gst 1.0.6 + Gi 3.8.0
-            # related bug report: https://bugzilla.gnome.org/show_bug.cgi?id=678663
+            # related bug report:
+            # https://bugzilla.gnome.org/show_bug.cgi?id=6t8663
             # ie: mapinfo.data is normally a char*, but here, we have an int
             # So right now, we use ctypes instead to read the mapinfo ourself.
             addr = mapinfo.__hash__()
@@ -167,4 +168,3 @@ def camera_gi_clean():
         if isinstance(camera, CameraGi):
             camera.stop()
             camera.unload()
-

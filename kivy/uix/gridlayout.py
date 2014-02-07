@@ -31,7 +31,7 @@ column/row. Each child is automatically assigned a position determined by the
 layout configuration and the child's index in the children list.
 
 A GridLayout must always have at least one input constraint:
-:data:`GridLayout.cols` or :data:`GridLayout.rows`. If you do not specify cols
+:attr:`GridLayout.cols` or :attr:`GridLayout.rows`. If you do not specify cols
 or rows, the Layout will throw an exception.
 
 Column Width and Row Height
@@ -39,13 +39,14 @@ Column Width and Row Height
 
 The column width/row height are determined in 3 steps:
 
-    - The initial size is given by the :data:`col_default_width` and
-      :data:`row_default_height` properties. To customize the size of a single
-      column or row, use :data:`cols_minimum` or :data:`rows_minimum`.
+    - The initial size is given by the :attr:`col_default_width` and
+      :attr:`row_default_height` properties. To customize the size of a single
+      column or row, use :attr:`cols_minimum` or :attr:`rows_minimum`.
     - The `size_hint_x`/`size_hint_y` of the children are taken into account.
-      If no widgets have a size hint, the maximum size is used for all children.
-    - You can force the default size by setting the :data:`col_force_default`
-      or :data:`row_force_default` property. This will force the layout to
+      If no widgets have a size hint, the maximum size is used for all
+      children.
+    - You can force the default size by setting the :attr:`col_force_default`
+      or :attr:`row_force_default` property. This will force the layout to
       ignore the `width` and `size_hint` properties of children and use the
       default size.
 
@@ -91,7 +92,7 @@ __all__ = ('GridLayout', 'GridLayoutException')
 from kivy.logger import Logger
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
-        BoundedNumericProperty, ReferenceListProperty, VariableListProperty
+    BoundedNumericProperty, ReferenceListProperty, VariableListProperty
 from math import ceil
 
 
@@ -118,7 +119,7 @@ class GridLayout(Layout):
 
     spacing also accepts a one argument form [spacing].
 
-    :data:`spacing` is a
+    :attr:`spacing` is a
     :class:`~kivy.properties.VariableListProperty` and defaults to [0, 0].
     '''
 
@@ -133,7 +134,7 @@ class GridLayout(Layout):
 
     Replaced NumericProperty with VariableListProperty.
 
-    :data:`padding` is a :class:`~kivy.properties.VariableListProperty` and
+    :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [0, 0, 0, 0].
     '''
 
@@ -145,7 +146,7 @@ class GridLayout(Layout):
         Changed from a NumericProperty to BoundedNumericProperty. You can no
         longer set this to a negative value.
 
-    :data:`cols` is a :class:`~kivy.properties.NumericProperty` and defaults to
+    :attr:`cols` is a :class:`~kivy.properties.NumericProperty` and defaults to
     0.
     '''
 
@@ -157,7 +158,7 @@ class GridLayout(Layout):
         Changed from a NumericProperty to a BoundedNumericProperty. You can no
         longer set this to a negative value.
 
-    :data:`rows` is a :class:`~kivy.properties.NumericProperty` and defaults to
+    :attr:`rows` is a :class:`~kivy.properties.NumericProperty` and defaults to
     0.
     '''
 
@@ -166,7 +167,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.7
 
-    :data:`col_default_width` is a :class:`~kivy.properties.NumericProperty`
+    :attr:`col_default_width` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
     '''
 
@@ -175,7 +176,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.7
 
-    :data:`row_default_height` is a :class:`~kivy.properties.NumericProperty`
+    :attr:`row_default_height` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
     '''
 
@@ -185,7 +186,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.7
 
-    :data:`col_force_default` is a :class:`~kivy.properties.BooleanProperty`
+    :attr:`col_force_default` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to False.
     '''
 
@@ -195,7 +196,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.7
 
-    :data:`row_force_default` is a :class:`~kivy.properties.BooleanProperty`
+    :attr:`row_force_default` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to False.
     '''
 
@@ -204,7 +205,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.7
 
-    :data:`cols_minimum` is a :class:`~kivy.properties.DictProperty` and
+    :attr:`cols_minimum` is a :class:`~kivy.properties.DictProperty` and
     defaults to {}.
     '''
 
@@ -213,7 +214,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.7
 
-    :data:`rows_minimum` is a :class:`~kivy.properties.DictProperty` and
+    :attr:`rows_minimum` is a :class:`~kivy.properties.DictProperty` and
     defaults to {}.
     '''
 
@@ -222,7 +223,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.8
 
-    :data:`minimum_width` is a :class:`kivy.properties.NumericProperty` and
+    :attr:`minimum_width` is a :class:`kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -231,7 +232,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.8
 
-    :data:`minimum_height` is a :class:`kivy.properties.NumericProperty` and
+    :attr:`minimum_height` is a :class:`kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -240,8 +241,9 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.8
 
-    :data:`minimum_size` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`minimum_width`, :data:`minimum_height`) properties.
+    :attr:`minimum_size` is a
+    :class:`~kivy.properties.ReferenceListProperty` of
+    (:attr:`minimum_width`, :attr:`minimum_height`) properties.
     '''
 
     def __init__(self, **kwargs):
@@ -277,7 +279,7 @@ class GridLayout(Layout):
         smax = self.get_max_widgets()
         if smax and len(value) > smax:
             raise GridLayoutException(
-                    'Too many children in GridLayout. Increase rows/cols!')
+                'Too many children in GridLayout. Increase rows/cols!')
 
     def update_minimum_size(self, *largs):
         # the goal here is to calculate the minimum size of every cols/rows
@@ -291,7 +293,7 @@ class GridLayout(Layout):
         # the grid must be contrained at least on one side
         if not current_cols and not current_rows:
             Logger.warning('%r have no cols or rows set, '
-                'layout is not triggered.' % self)
+                           'layout is not triggered.' % self)
             return None
         if current_cols is None:
             current_cols = int(ceil(len_children / float(current_rows)))
@@ -342,7 +344,8 @@ class GridLayout(Layout):
                 # next child
                 i = i - 1
 
-        # calculate minimum width/height needed, starting from padding + spacing
+        # calculate minimum width/height needed, starting from padding +
+        # spacing
         padding_x = self.padding[0] + self.padding[2]
         padding_y = self.padding[1] + self.padding[3]
         spacing_x, spacing_y = self.spacing
@@ -399,7 +402,8 @@ class GridLayout(Layout):
                 # calculate the column stretch, and take the maximum from
                 # minimum size and the calculated stretch
                 col_width = cols[index]
-                col_width = max(col_width, strech_w * col_stretch / cols_weigth)
+                col_width = max(col_width,
+                                strech_w * col_stretch / cols_weigth)
                 cols[index] = col_width
 
         # same algo for rows
@@ -440,4 +444,3 @@ class GridLayout(Layout):
                 i = i - 1
                 x = x + col_width + spacing_x
             y -= row_height + spacing_y
-

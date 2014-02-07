@@ -20,7 +20,7 @@ if 'KIVY_DOC' not in os.environ:
     CFIndex = ctypes.c_long
 
     dll = '/System/Library/PrivateFrameworks/' + \
-            'MultitouchSupport.framework/MultitouchSupport'
+        'MultitouchSupport.framework/MultitouchSupport'
     MultitouchSupport = ctypes.CDLL(dll)
 
     CFArrayGetCount = MultitouchSupport.CFArrayGetCount
@@ -45,32 +45,32 @@ if 'KIVY_DOC' not in os.environ:
 
     class MTData(ctypes.Structure):
         _fields_ = [
-                    ('frame', ctypes.c_int),
-                    ('timestamp', ctypes.c_double),
-                    ('identifier', ctypes.c_int),
-                    # Current state (of unknown meaning).
-                    ('state', ctypes.c_int),
-                    ('unknown1', ctypes.c_int),
-                    ('unknown2', ctypes.c_int),
-                    # Normalized position and vector of the touch (0 to 1)
-                    ('normalized', MTVector),
-                    # The area of the touch.
-                    ('size', ctypes.c_float),
-                    ('unknown3', ctypes.c_int),
-                    # The following three define the ellipsoid of a finger.
-                    ('angle', ctypes.c_float),
-                    ('major_axis', ctypes.c_float),
-                    ('minor_axis', ctypes.c_float),
-                    ('unknown4', MTVector),
-                    ('unknown5_1', ctypes.c_int),
-                    ('unknown5_2', ctypes.c_int),
-                    ('unknown6', ctypes.c_float), ]
+            ('frame', ctypes.c_int),
+            ('timestamp', ctypes.c_double),
+            ('identifier', ctypes.c_int),
+            # Current state (of unknown meaning).
+            ('state', ctypes.c_int),
+            ('unknown1', ctypes.c_int),
+            ('unknown2', ctypes.c_int),
+            # Normalized position and vector of the touch (0 to 1)
+            ('normalized', MTVector),
+            # The area of the touch.
+            ('size', ctypes.c_float),
+            ('unknown3', ctypes.c_int),
+            # The following three define the ellipsoid of a finger.
+            ('angle', ctypes.c_float),
+            ('major_axis', ctypes.c_float),
+            ('minor_axis', ctypes.c_float),
+            ('unknown4', MTVector),
+            ('unknown5_1', ctypes.c_int),
+            ('unknown5_2', ctypes.c_int),
+            ('unknown6', ctypes.c_float), ]
 
     MTDataRef = ctypes.POINTER(MTData)
 
     MTContactCallbackFunction = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int,
-                                    MTDataRef, ctypes.c_int,
-                                    ctypes.c_double, ctypes.c_int)
+                                                 MTDataRef, ctypes.c_int,
+                                                 ctypes.c_double, ctypes.c_int)
 
     MTDeviceRef = ctypes.c_void_p
 
@@ -104,7 +104,7 @@ class MacMotionEvent(MotionEvent):
 
     def __str__(self):
         return '<MacMotionEvent id=%d pos=(%f, %f) device=%s>' \
-                % (self.id, self.sx, self.sy, self.device)
+            % (self.id, self.sx, self.sy, self.device)
 
 _instance = None
 
@@ -212,4 +212,3 @@ class MacMotionEventProvider(MotionEventProvider):
         return 0
 
 MotionEventFactory.register('mactouch', MacMotionEventProvider)
-

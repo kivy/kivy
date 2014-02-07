@@ -18,12 +18,6 @@ __all__ = ('intersection', 'difference', 'strtotuple',
 from os import environ
 from sys import platform as _sys_platform
 from re import match, split
-try:
-    from UserDict import UserDict
-    from UserDict import DictMixin
-except ImportError:
-    from collections import UserDict
-    from collections import MutableMapping as DictMixin
 
 _platform_android = None
 _platform_ios = None
@@ -160,13 +154,13 @@ def deprecated(func):
         if caller_id not in DEPRECATED_CALLERS:
             DEPRECATED_CALLERS.append(caller_id)
             warning = (
-                    'Call to deprecated function %s in %s line %d.'
-                    'Called from %s line %d'
-                    ' by %s().') % (
-                            func.__name__,
-                            func.__code__.co_filename,
-                            func.__code__.co_firstlineno + 1,
-                            file, line, caller)
+                'Call to deprecated function %s in %s line %d.'
+                'Called from %s line %d'
+                ' by %s().' % (
+                    func.__name__,
+                    func.__code__.co_filename,
+                    func.__code__.co_firstlineno + 1,
+                    file, line, caller))
             from kivy.logger import Logger
             Logger.warn(warning)
             if func.__doc__:
@@ -362,4 +356,3 @@ class reify(object):
         retval = self.func(inst)
         setattr(inst, self.func.__name__, retval)
         return retval
-

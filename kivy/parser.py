@@ -55,7 +55,7 @@ def parse_color(text):
             try:
                 # default r/g/b values to 1 if greater than 255 else x/255
                 value = [1 if int(x) > 255. else (int(x) / 255.)
-                    for x in re.split(',\ ?', res.groups()[0])]
+                         for x in re.split(',\ ?', res.groups()[0])]
                 if len(value) < 3:
                     #in case of invalid input like rgb()/rgb(r)/rgb(r, g)
                     raise ValueError
@@ -77,7 +77,7 @@ def parse_color(text):
         elif lres != 6 and lres != 8:
             #raise ColorException('Invalid color format for %r' % text)
             return color_error(
-                    'ColorParser: Invalid color format for %r' % text)
+                'ColorParser: Invalid color format for %r' % text)
         try:
             value = [int(res[i:i + 2], 16) / 255.
                      for i in range(0, len(res), 2)]
@@ -148,4 +148,3 @@ def parse_float4(text):
 
 parse_int = int
 parse_float = float
-

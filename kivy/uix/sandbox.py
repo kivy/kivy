@@ -10,8 +10,8 @@ Sandbox
     is present.
 
 This is a widget that runs itself and all of its children in a Sandbox. That
-means if a child raises an Exception, it will be caught. The Sandbox itself runs
-its own Clock, Cache, etc.
+means if a child raises an Exception, it will be caught. The Sandbox
+itself runs its own Clock, Cache, etc.
 
 The SandBox widget is still experimental and required for the Kivy designer.
 When the user designs their own widget, if they do something wrong (wrong size
@@ -109,7 +109,7 @@ class Sandbox(FloatLayout):
     on_touch_down = sandbox(Widget.on_touch_down)
     on_touch_move = sandbox(Widget.on_touch_move)
     on_touch_up = sandbox(Widget.on_touch_up)
-        
+
     @sandbox
     def add_widget(self, *args, **kwargs):
         self._container.add_widget(*args, **kwargs)
@@ -149,7 +149,6 @@ class Sandbox(FloatLayout):
 
 if __name__ == '__main__':
     from kivy.base import runTouchApp
-    from kivy.lang import Builder
     from kivy.uix.button import Button
 
     class TestButton(Button):
@@ -176,7 +175,8 @@ if __name__ == '__main__':
             rgb: 1, 1, 1
         Rectangle:
             size: self.texture_size
-            pos: self.center_x - self.texture_size[0] / 2., self.center_y - self.texture_size[1] / 2.
+            pos: self.center_x - self.texture_size[0] / 2.,\
+                 self.center_y - self.texture_size[1] / 2.
             texture: self.texture
 
     # invalid... for testing.

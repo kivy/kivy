@@ -4,7 +4,8 @@ Application from a .kv
 
 The root application is created from the corresponding .kv. Check the test.kv
 file to see what will be the root widget.
-This example show how you can change the directory where the .kv live.
+
+This example shows how you can change the directory where the .kv lives.
 '''
 
 import kivy

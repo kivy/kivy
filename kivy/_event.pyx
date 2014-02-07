@@ -258,7 +258,7 @@ cdef class EventDispatcher(ObjectWithUid):
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions.
 
-        Same usage as :func:`bind`.
+        Same usage as :meth:`bind`.
         '''
         cdef Property prop
         for key, value in kwargs.iteritems():

@@ -12,9 +12,9 @@ Storage
 Usage
 -----
 
-The idea behind the Storage module is to be able to load/store keys-value pairs.
-The default model is abstract so you cannot use it directly. We provide some
-implementations such as:
+The idea behind the Storage module is to be able to load/store
+keys-value pairs.  The default model is abstract so you cannot use it
+directly. We provide some implementations such as:
 
 - :class:`kivy.storage.dictstore.DictStore`: use a python dict as a store
 - :class:`kivy.storage.jsonstore.JsonStore`: use a JSON file as a store
@@ -56,15 +56,15 @@ Because the data is persistant, you can check later to see if the key exists::
 Synchronous / Asynchronous API
 ------------------------------
 
-All the standard methods (:meth:`~AbstractStore.get`, :meth:`~AbstractStore.put`
-, :meth:`~AbstractStore.exists`, :meth:`~AbstractStore.delete`,
-:meth:`~AbstractStore.find`) have an asynchronous version.
+All the standard methods (:meth:`~AbstractStore.get`,
+:meth:`~AbstractStore.put` , :meth:`~AbstractStore.exists`,
+:meth:`~AbstractStore.delete`, :meth:`~AbstractStore.find`) have an
+asynchronous version.
 
-For example, the *get* method has a `callback` parameter. If set, the `callback`
-will be used
-to return the result to the user when available: the request will be
-asynchronous.  If the `callback` is None, then the request will be synchronous
-and the result will be returned directly.
+For example, the *get* method has a `callback` parameter. If set, the
+`callback` will be used to return the result to the user when available:
+the request will be asynchronous.  If the `callback` is None, then the
+request will be synchronous and the result will be returned directly.
 
 
 Without callback (Synchronous API)::
@@ -145,7 +145,7 @@ class AbstractStore(EventDispatcher):
                 Result of the query, None if any error
         '''
         self._schedule(self.store_exists_async,
-                key=key, callback=callback)
+                       key=key, callback=callback)
 
     def get(self, key):
         '''Get the value stored at `key`. If the key is not found, a
@@ -187,7 +187,7 @@ class AbstractStore(EventDispatcher):
                 nothing has been done (no changes). None if any error.
         '''
         self._schedule(self.store_put_async,
-                key=key, value=values, callback=callback)
+                       key=key, value=values, callback=callback)
 
     def delete(self, key):
         '''Delete a key from the storage. If the key is not found, a `KeyError`
@@ -210,7 +210,7 @@ class AbstractStore(EventDispatcher):
                 nothing has been done (no changes). None if any error.
         '''
         self._schedule(self.store_delete_async, key=key,
-                callback=callback)
+                       callback=callback)
 
     def find(self, **filters):
         '''Return all the entries matching the filters. The entries are given
@@ -245,7 +245,7 @@ class AbstractStore(EventDispatcher):
                 nothing has been done (no changes). None if any error.
         '''
         self._schedule(self.store_find_async,
-                callback=callback, filters=filters)
+                       callback=callback, filters=filters)
 
     def keys(self):
         '''Return a list of all the keys in the storage

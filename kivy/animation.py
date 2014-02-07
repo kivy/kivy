@@ -18,7 +18,7 @@ where you want the widget positioned at the end of the animation::
     anim = Animation(x=100, y=100)
     anim.start(widget)
 
-The animation will last for 1 second unless :data:`duration` is specified.
+The animation will last for 1 second unless :attr:`duration` is specified.
 When anim.start() is called, the Widget will move smoothly from the current
 x/y position to (100, 100).
 
@@ -26,7 +26,7 @@ Multiple properties and transitions
 -----------------------------------
 
 You can animate multiple properties and use built-in or custom transition
-functions using :data:`transition` (or the `t=` shortcut). For example,
+functions using :attr:`transition` (or the `t=` shortcut). For example,
 to animate the position and size using the 'in_quad' transition::
 
     anim = Animation(x=50, size=(80, 80), t='in_quad')
@@ -64,8 +64,8 @@ Repeating animation
 .. note::
     This is currently only implemented for 'Sequence' animations.
 
-To set an animation to repeat, simply set the :data:`Sequence.repeat` property to
-`True`::
+To set an animation to repeat, simply set the :attr:`Sequence.repeat`
+property to `True`::
 
     anim = Animation(...) + Animation(...)
     anim.repeat = True
@@ -169,7 +169,7 @@ class Animation(EventDispatcher):
     @staticmethod
     def cancel_all(widget, *largs):
         '''Cancel all animations that concern a specific widget / list of
-        properties. See :data:`cancel`.
+        properties. See :attr:`cancel`.
 
         Example::
 
@@ -207,7 +207,7 @@ class Animation(EventDispatcher):
 
     def cancel(self, widget):
         '''Cancel the animation previously applied to a widget. Same
-        effect as :data:`stop`, except the `on_complete` event will
+        effect as :attr:`stop`, except the `on_complete` event will
         *not* be triggered!
 
         .. versionadded:: 1.4.0
@@ -220,7 +220,7 @@ class Animation(EventDispatcher):
     def stop_property(self, widget, prop):
         '''Even if an animation is running, remove a property. It will not be
         animated futher. If it was the only/last property being animated,
-        the animation will be stopped (see :data:`stop`).
+        the animation will be stopped (see :attr:`stop`).
         '''
         props = self._widgets.get(widget.uid, None)
         if not props:
@@ -234,7 +234,7 @@ class Animation(EventDispatcher):
     def cancel_property(self, widget, prop):
         '''Even if an animation is running, remove a property. It will not be
         animated further. If it was the only/last property being animated,
-        the animation will be canceled (see :data:`cancel`)
+        the animation will be canceled (see :attr:`cancel`)
 
         .. versionadded:: 1.4.0
         '''
@@ -403,7 +403,7 @@ class Sequence(Animation):
         self.anim1.stop_property(widget, prop)
         self.anim2.stop_property(widget, prop)
         if (not self.anim1.have_properties_to_animate(widget) and
-            not self.anim2.have_properties_to_animate(widget)):
+                not self.anim2.have_properties_to_animate(widget)):
             self.stop(widget)
 
     def cancel(self, widget):
@@ -422,7 +422,7 @@ class Sequence(Animation):
 
     def on_anim2_complete(self, instance, widget):
         '''Repeating logic used with boolean variable "repeat".
-        
+
         .. versionadded:: 1.7.1
         '''
         if self.repeat:
@@ -468,7 +468,7 @@ class Parallel(Animation):
         self.anim1.stop_property(widget, prop)
         self.anim2.stop_property(widget, prop)
         if (not self.anim1.have_properties_to_animate(widget) and
-            not self.anim2.have_properties_to_animate(widget)):
+                not self.anim2.have_properties_to_animate(widget)):
             self.stop(widget)
 
     def cancel(self, widget):

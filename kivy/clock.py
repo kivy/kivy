@@ -45,15 +45,17 @@ to write a short function that does accept dt. For Example::
 
 .. note::
 
-    You cannot unschedule an anonymous function unless you keep a reference to
-    it.  It's better to add \*args to your function definition so that it can be
-    called with an arbitrary number of parameters.
+    You cannot unschedule an anonymous function unless you keep a
+    reference to it.  It's better to add \*args to your function
+    definition so that it can be called with an arbitrary number of
+    parameters.
 
 .. important::
 
-    The callback is weak-referenced: you are responsible for keeping a reference
-    to your original object/callback. If you don't keep a reference, the ClockBase
-    will never execute your callback. For example::
+    The callback is weak-referenced: you are responsible for keeping a
+    reference to your original object/callback. If you don't keep a
+    reference, the ClockBase will never execute your callback. For
+    example::
 
         class Foo(object):
             def start(self):
@@ -87,17 +89,17 @@ from 1.0.5, you can use a timeout of -1::
     Clock.schedule_once(my_callback, 0) # call after the next frame
     Clock.schedule_once(my_callback, -1) # call before the next frame
 
-The Clock will execute all the callbacks with a timeout of -1 before
-the next frame even if you add a new callback with -1 from a running callback.
-However, :class:`Clock` has an iteration limit for these callbacks: it defaults
-to 10.
+The Clock will execute all the callbacks with a timeout of -1 before the
+next frame even if you add a new callback with -1 from a running
+callback.  However, :class:`Clock` has an iteration limit for these
+callbacks: it defaults to 10.
 
 If you schedule a callback that schedules a callback that schedules a .. etc
 more than 10 times, it will leave the loop and send a warning to the console,
 then continue after the next frame. This is implemented to prevent bugs from
 hanging or crashing the application.
 
-If you need to increase the limit, set the :data:`max_iteration` property::
+If you need to increase the limit, set the :attr:`max_iteration` property::
 
     from kivy.clock import Clock
     Clock.max_iteration = 20
@@ -112,7 +114,7 @@ Triggered Events
 A triggered event is a way to defer a callback exactly like schedule_once(),
 but with some added convenience. The callback will only be scheduled once per
 frame even if you call the trigger twice (or more). This is not the case
-with :func:`Clock.schedule_once`::
+with :meth:`Clock.schedule_once`::
 
     # will run the callback twice before the next frame
     Clock.schedule_once(my_callback)
@@ -131,7 +133,7 @@ Before triggered events, you may have used this approach in a widget::
 
 As soon as you call `trigger_callback()`, it will correctly schedule the
 callback once in the next frame. It is more convenient to create and bind to
-the triggered event than using :func:`Clock.schedule_once` in a function::
+the triggered event than using :meth:`Clock.schedule_once` in a function::
 
     from kivy.clock import Clock
     from kivy.uix.widget import Widget
@@ -149,8 +151,8 @@ Even if x and y changes within one frame, the callback is only run once.
 
 .. note::
 
-    :func:`ClockBase.create_trigger` also has a timeout parameter that behaves
-    exactly like :func:`ClockBase.schedule_once`.
+    :meth:`ClockBase.create_trigger` also has a timeout parameter that
+    behaves exactly like :meth:`ClockBase.schedule_once`.
 
 '''
 
@@ -167,9 +169,10 @@ import time
 try:
     import ctypes
     if platform in ('win32', 'cygwin'):
-        # Win32 Sleep function is only 10-millisecond resolution, so instead use
-        # a waitable timer object, which has up to 100-nanosecond resolution
-        # (hardware and implementation dependent, of course).
+        # Win32 Sleep function is only 10-millisecond resolution, so
+        # instead use a waitable timer object, which has up to
+        # 100-nanosecond resolution (hardware and implementation
+        # dependent, of course).
 
         _kernel32 = ctypes.windll.kernel32
 
@@ -179,8 +182,9 @@ try:
 
             def usleep(self, microseconds):
                 delay = ctypes.c_longlong(int(-microseconds * 10))
-                _kernel32.SetWaitableTimer(self._timer, ctypes.byref(delay),
-                    0, ctypes.c_void_p(), ctypes.c_void_p(), False)
+                _kernel32.SetWaitableTimer(
+                    self._timer, ctypes.byref(delay), 0,
+                    ctypes.c_void_p(), ctypes.c_void_p(), False)
                 _kernel32.WaitForSingleObject(self._timer, 0xffffffff)
 
         _default_time = time.clock
@@ -281,8 +285,9 @@ class ClockEvent(object):
         self.callback = None
 
     def tick(self, curtime):
-        # timeout happened ? (check also if we would miss from 5ms)
-        # this 5ms increase the accuracy if the timing of animation for example.
+        # timeout happened ? (check also if we would miss from 5ms) this
+        # 5ms increase the accuracy if the timing of animation for
+        # example.
         if curtime - self._last_dt < self.timeout - 0.005:
             return True
 
@@ -324,6 +329,7 @@ class ClockBase(_ClockBase):
     '''
     __slots__ = ('_dt', '_last_fps_tick', '_last_tick', '_fps', '_rfps',
                  '_start_tick', '_fps_counter', '_rfps_counter', '_events',
+                 '_frames', '_frames_displayed',
                  '_max_fps', 'max_iteration')
 
     MIN_SLEEP = 0.005
@@ -338,12 +344,14 @@ class ClockBase(_ClockBase):
         self._fps_counter = 0
         self._rfps_counter = 0
         self._last_fps_tick = None
+        self._frames = 0
+        self._frames_displayed = 0
         self._events = {}
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
 
         #: .. versionadded:: 1.0.5
-        #:     When a schedule_once is used with -1, you can add a limit on how
-        #:     iteration will be allowed. That is here to prevent too much
+        #:     When a schedule_once is used with -1, you can add a limit on
+        #:     how iteration will be allowed. That is here to prevent too much
         #:     relayout.
         self.max_iteration = 10
 
@@ -351,8 +359,25 @@ class ClockBase(_ClockBase):
     def frametime(self):
         '''Time spent between the last frame and the current frame
         (in seconds).
+
+        .. versionadded:: 1.8.0
         '''
         return self._dt
+
+    @property
+    def frames(self):
+        '''Number of internal frames (not necesseraly drawed) from the start of
+        the clock.
+
+        .. versionadded:: 1.8.0
+        '''
+        return self._frames
+
+    @property
+    def frames_displayed(self):
+        '''Number of displayed frames from the start of the clock.
+        '''
+        return self._frames_displayed
 
     def tick(self):
         '''Advance the clock to the next step. Must be called every frame.
@@ -378,6 +403,7 @@ class ClockBase(_ClockBase):
         # tick the current time
         current = _default_time()
         self._dt = current - self._last_tick
+        self._frames += 1
         self._fps_counter += 1
         self._last_tick = current
 
@@ -402,6 +428,7 @@ class ClockBase(_ClockBase):
         '''
         self._process_events_before_frame()
         self._rfps_counter += 1
+        self._frames_displayed += 1
 
     def get_fps(self):
         '''Get the current average FPS calculated by the clock.
@@ -412,8 +439,8 @@ class ClockBase(_ClockBase):
         '''Get the current "real" FPS calculated by the clock.
         This counter reflects the real framerate displayed on the screen.
 
-        In contrast to get_fps(), this function returns a counter of the number
-        of frames, not the average of frames per second.
+        In contrast to get_fps(), this function returns a counter of the
+        number of frames, not the average of frames per second.
         '''
         return self._rfps
 
@@ -442,13 +469,14 @@ class ClockBase(_ClockBase):
 
         .. versionchanged:: 1.0.5
             If the timeout is -1, the callback will be called before the next
-            frame (at :func:`tick_draw`).
+            frame (at :meth:`tick_draw`).
 
         '''
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
         cid = _hash(callback)
-        event = ClockEvent(self, False, callback, timeout, self._last_tick, cid)
+        event = ClockEvent(
+            self, False, callback, timeout, self._last_tick, cid)
         events = self._events
         if not cid in events:
             events[cid] = []
@@ -460,7 +488,8 @@ class ClockBase(_ClockBase):
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
         cid = _hash(callback)
-        event = ClockEvent(self, True, callback, timeout, self._last_tick, cid)
+        event = ClockEvent(
+            self, True, callback, timeout, self._last_tick, cid)
         events = self._events
         if not cid in events:
             events[cid] = []
@@ -488,8 +517,8 @@ class ClockBase(_ClockBase):
                         events[cid].remove(event)
 
     def _release_references(self):
-        # call that function to release all the direct reference to any callback
-        # and replace it with a weakref
+        # call that function to release all the direct reference to any
+        # callback and replace it with a weakref
         events = self._events
         for cid in list(events.keys())[:]:
             [x.release() for x in events[cid] if x.callback is not None]
@@ -517,9 +546,10 @@ class ClockBase(_ClockBase):
         while found:
             count -= 1
             if count == -1:
-                Logger.critical('Clock: Warning, too much iteration done before'
-                                ' the next frame. Check your code, or increase'
-                                ' the Clock.max_iteration attribute')
+                Logger.critical(
+                    'Clock: Warning, too much iteration done before'
+                    ' the next frame. Check your code, or increase'
+                    ' the Clock.max_iteration attribute')
                 break
 
             # search event that have timeout = -1
@@ -536,10 +566,10 @@ class ClockBase(_ClockBase):
 
 
 def mainthread(func):
-    '''Decorator that will schedule the call of the function in the mainthread.
-    It can be useful when you use :class:`~kivy.network.urlrequest.UrlRequest`
-    or when you do Thread programming: you cannot do any OpenGL-related work in
-    a thread.
+    '''Decorator that will schedule the call of the function in the
+    mainthread.  It can be useful when you use
+    :class:`~kivy.network.urlrequest.UrlRequest` or when you do Thread
+    programming: you cannot do any OpenGL-related work in a thread.
 
     Please note that this method will return directly and no result can be
     returned::
@@ -564,4 +594,3 @@ if 'KIVY_DOC_INCLUDE' in environ:
     Clock = None
 else:
     Clock = register_context('Clock', ClockBase)
-

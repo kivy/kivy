@@ -446,7 +446,7 @@ Consider the following code.
         'scroll_x', 'scroll_y'))
     '''Current position of the cursor, in (x, y).
 
-    :data:`cursor_pos` is a :class:`~kivy.properties.AliasProperty`, read-only.
+    :attr:`cursor_pos` is a :class:`~kivy.properties.AliasProperty`, read-only.
     '''
 
 Here `cursor_pos` is a :class:`~kivy.properties.AliasProperty` which uses the

@@ -16,7 +16,8 @@ TODO: document this module.
 
 '''
 
-__all__ = ('Context', 'ProxyContext', 'register_context', 'get_current_context')
+__all__ = ('Context', 'ProxyContext', 'register_context',
+           'get_current_context')
 
 _contexts = {}
 _default_context = None
@@ -89,7 +90,7 @@ def register_context(name, cls, *args, **kwargs):
     _default_context[name] = instance
     return proxy
 
-    
+
 def get_current_context():
     '''Return the current context.
     '''

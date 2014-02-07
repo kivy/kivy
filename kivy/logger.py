@@ -263,6 +263,7 @@ class LogFile(object):
         self.buffer = ''
         self.func = func
         self.channel = channel
+        self.errors = ''
 
     def write(self, s):
         s = self.buffer + s
@@ -304,8 +305,7 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
         use_color = (
             os.name != 'nt' and
             os.environ.get('KIVY_BUILD') not in ('android', 'ios') and
-            os.environ.get('TERM') in ('xterm', 'rxvt', 'rxvt-unicode')
-            )
+            os.environ.get('TERM') in ('xterm', 'rxvt', 'rxvt-unicode'))
         color_fmt = formatter_message(
             '[%(levelname)-18s] %(message)s', use_color)
         formatter = ColoredFormatter(color_fmt, use_color=use_color)

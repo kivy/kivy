@@ -58,5 +58,3 @@ class CameraVideoCapture(CameraBase):
     def stop(self):
         super(CameraVideoCapture, self).stop()
         Clock.unschedule(self._update)
-
-

@@ -34,19 +34,19 @@ class Slider(Widget):
     value = NumericProperty(0.)
     '''Current value used for the slider.
 
-    :data:`value` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`value` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 0.'''
 
     min = NumericProperty(0.)
-    '''Minimum value allowed for :data:`value`.
+    '''Minimum value allowed for :attr:`value`.
 
-    :data:`min` is a :class:`~kivy.properties.NumericProperty` and defaults to
+    :attr:`min` is a :class:`~kivy.properties.NumericProperty` and defaults to
     0.'''
 
     max = NumericProperty(100.)
-    '''Maximum value allowed for :data:`value`.
+    '''Maximum value allowed for :attr:`value`.
 
-    :data:`max` is a :class:`~kivy.properties.NumericProperty` and defaults to
+    :attr:`max` is a :class:`~kivy.properties.NumericProperty` and defaults to
     100.'''
 
     padding = NumericProperty(10)
@@ -58,14 +58,14 @@ class Slider(Widget):
     \*2 on the screen. It allows drawing a cursor of 20px width without having
     the cursor go out of the widget.
 
-    :data:`padding` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`padding` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 10.'''
 
     orientation = OptionProperty('horizontal', options=(
         'vertical', 'horizontal'))
     '''Orientation of the slider.
 
-    :data:`orientation` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'horizontal'. Can take a value of 'vertical' or 'horizontal'.
     '''
 
@@ -81,8 +81,8 @@ class Slider(Widget):
         >>> slider.max
         100
 
-    :data:`range` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`min`, :data:`max`).
+    :attr:`range` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:attr:`min`, :attr:`max`).
     '''
 
     step = BoundedNumericProperty(0, min=0)
@@ -94,7 +94,7 @@ class Slider(Widget):
     min and max. If the value range can't be evenly divisible by step the
     last step will be capped by slider.max
 
-    :data:`step` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`step` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.'''
 
     def get_norm_value(self):
@@ -111,10 +111,11 @@ class Slider(Widget):
         if step == 0:
             self.value = val
         else:
-            self.value = min(round((val - vmin) / step) * step + vmin, self.max)
+            self.value = min(round((val - vmin) / step) * step + vmin,
+                             self.max)
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
                                      bind=('value', 'min', 'max', 'step'))
-    '''Normalized value inside the :data:`range` (min/max) to 0-1 range::
+    '''Normalized value inside the :attr:`range` (min/max) to 0-1 range::
 
         >>> slider = Slider(value=50, min=0, max=100)
         >>> slider.value
@@ -139,7 +140,7 @@ class Slider(Widget):
         >>> slider.value
         200
 
-    :data:`value_normalized` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`value_normalized` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def get_value_pos(self):
@@ -173,7 +174,7 @@ class Slider(Widget):
                                     'max', 'value_normalized', 'orientation'))
     '''Position of the internal cursor, based on the normalized value.
 
-    :data:`value_pos` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`value_pos` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def on_touch_down(self, touch):

@@ -4,17 +4,17 @@
 Transformation
 ==============
 
-This module contain a Matrix class, used for our Graphics calculation. We are
-supporting:
+This module contains a Matrix class used for our Graphics calculation. We
+currently support:
 
-- rotation, translation, scaling matrix
-- multiply matrix
-- create clip matrix (with or without perspective)
-- transform 3d touch on a matrix
+- rotation, translation and scaling matrix
+- multiplication matrix
+- clip matrix (with or without perspective)
+- transformation matrix for 3d touch
 
 .. versionchanged:: 1.6.0
-   Added :meth:`Matrix.perspective`, :meth:`Matrix.look_at`,
-   :meth:`Matrix.transpose`
+   Added :meth:`Matrix.perspective`, :meth:`Matrix.look_at` and
+   :meth:`Matrix.transpose`.
 '''
 
 __all__ = ('Matrix', )
@@ -57,7 +57,7 @@ cdef class Matrix:
         self.identity()
 
     cpdef Matrix rotate(Matrix self, double angle, double x, double y, double z):
-        '''Rotate the matrix with the angle, around the axis (x, y, z)
+        '''Rotate the matrix with the angle around the axis (x, y, z).
         '''
         cdef double d, c, s, co, ox, oy, oz, f1, f2, f3, f4, f5, f6, f7, f8, f9
         with nogil:
@@ -105,7 +105,8 @@ cdef class Matrix:
         return self
 
     cpdef Matrix scale(Matrix self, double x, double y, double z):
-        '''Scale the matrix current Matrix (inplace).
+        '''Scale the current matrix by the specified factors over
+        each dimension (inplace).
         '''
         with nogil:
             self.mat[ 0] *= x;
@@ -114,7 +115,7 @@ cdef class Matrix:
         return self
 
     cpdef Matrix translate(Matrix self, double x, double y, double z):
-        '''Translate the matrix
+        '''Translate the matrix.
         '''
         with nogil:
             self.mat[12] += x
@@ -124,7 +125,7 @@ cdef class Matrix:
 
     cpdef Matrix perspective(Matrix self, double fovy, double aspect,
             double zNear, double zFar):
-        '''Creates a perspective matrix (inplace)
+        '''Creates a perspective matrix (inplace).
 
         .. versionadded:: 1.6.0
         '''
@@ -146,13 +147,13 @@ cdef class Matrix:
         self.mat[14] = -1.0
         self.mat[15] = 0.0
 
-    cpdef Matrix view_clip(Matrix self, double left, double right, 
-            double bottom, double top, 
+    cpdef Matrix view_clip(Matrix self, double left, double right,
+            double bottom, double top,
             double near, double far, int perspective):
-        '''Create a clip matrix (inplace)
+        '''Create a clip matrix (inplace).
 
         .. versionchanged:: 1.6.0
-            Enable support for perspective parameter
+            Enable support for perspective parameter.
         '''
         cdef double t
         if left >= right or bottom >= top or near >= far:
@@ -202,12 +203,14 @@ cdef class Matrix:
     cpdef look_at(Matrix self, double eyex, double eyey, double eyez,
           double centerx, double centery, double centerz,
           double upx, double upy, double upz):
-        '''returns a new lookat Matrix (simmilar to gluLookAt)
+        '''Returns a new lookat Matrix (similar to gluLookAt)
 
         .. versionadded:: 1.6.0
         '''
 
-        cdef double x[3], y[3], z[3]
+        cdef double x[3]
+        cdef double y[3]
+        cdef double z[3]
         cdef double mag
 
         # Make rotation matrix
@@ -286,7 +289,7 @@ cdef class Matrix:
             return (tx, ty, tz)
 
     cpdef Matrix identity(self):
-        '''Reset matrix to identity matrix (inplace)
+        '''Reset the matrix to the identity matrix (inplace).
         '''
         cdef double *m = <double *>self.mat
         with nogil:
@@ -296,7 +299,7 @@ cdef class Matrix:
         return self
 
     cpdef Matrix transpose(self):
-        '''Return the transposed of the matrix as a new Matrix.
+        '''Return the transposed matrix as a new Matrix.
 
         .. versionadded:: 1.6.0
         '''
@@ -323,7 +326,8 @@ cdef class Matrix:
         '''Return the inverse of the matrix as a new Matrix.
         '''
         cdef Matrix mr = Matrix()
-        cdef double *m = <double *>self.mat, *r = <double *>mr.mat
+        cdef double *m = <double *>self.mat
+        cdef double *r = <double *>mr.mat
         cdef double det
         with nogil:
             det = m[0] * (m[5] * m[10] - m[9] * m[6]) \
@@ -353,7 +357,7 @@ cdef class Matrix:
 
     cpdef Matrix normal_matrix(self):
         '''Computes the normal matrix, which is the inverse transpose
-        of the top left 3x3 modelview matrix used to transform normals 
+        of the top left 3x3 modelview matrix used to transform normals
         into eye/camera space.
 
         .. versionadded:: 1.6.0
@@ -370,14 +374,16 @@ cdef class Matrix:
         return nm
 
     cpdef Matrix multiply(Matrix mb, Matrix ma):
-        '''Multiply the given matrix with self (from the left).
-        I.e., we premultiply the given matrix to the current matrix and return
+        '''Multiply the given matrix with self (from the left)
+        i.e. we premultiply the given matrix by the current matrix and return
         the result (not inplace)::
 
             m.multiply(n) -> n * m
         '''
         cdef Matrix mr = Matrix()
-        cdef double *a = <double *>ma.mat, *b = <double *>mb.mat, *r = <double *>mr.mat
+        cdef double *a = <double *>ma.mat
+        cdef double *b = <double *>mb.mat
+        cdef double *r = <double *>mr.mat
         with nogil:
             r[ 0] = a[ 0] * b[0] + a[ 1] * b[4] + a[ 2] * b[ 8]
             r[ 4] = a[ 4] * b[0] + a[ 5] * b[4] + a[ 6] * b[ 8]
@@ -399,7 +405,7 @@ cdef class Matrix:
 
     cpdef project(Matrix self, double objx, double objy, double objz, Matrix model, Matrix proj,
             double vx, double vy, double vw, double vh):
-        '''Project a point from 3d space to 2d viewport.
+        '''Project a point from 3d space into a 2d viewport.
 
         .. versionadded:: 1.7.0
         '''

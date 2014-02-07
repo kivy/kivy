@@ -53,7 +53,7 @@ If you already have Python installed
 ====================================
 
 The portable Kivy version shouldn't cause any conflicts and cooperate fairly well 
-(at least if it's Python 2.6, otherwise some modules might cause problems if there
+(at least if it's Python 2.7, otherwise some modules might cause problems if there
 is entries on PYTHONPATH)
 
 
@@ -76,7 +76,7 @@ can type :
 
 And it will load the whole enviroment of Kivy. This will give you an access to:
 
-  * Python binaries (python, pythonw, easy_install)
+  * Python binaries (python, pythonw, easy_install, pip)
   * Cython binaries (cython)
   * Gstreamer binaries (gst-inspect, gst-launch, ...)
   * Pre-configured PYTHONPATH for gst and Kivy

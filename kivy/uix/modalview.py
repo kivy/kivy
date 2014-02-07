@@ -21,7 +21,7 @@ Example of a simple 400x400 Hello world view::
     view.add_widget(Label(text='Hello world'))
 
 By default, any click outside the view will dismiss it. If you don't
-want that, you can set :data:`ModalView.auto_dismiss` to False::
+want that, you can set :attr:`ModalView.auto_dismiss` to False::
 
     view = ModalView(auto_dismiss=False)
     view.add_widget(Label(text='Hello world'))
@@ -67,8 +67,9 @@ True from your callback. ::
 
 .. versionchanged:: 1.5.0
 
-    The ModalView can be closed by hitting the escape key on the keyboard if the
-    :data:`ModalView.auto_dismiss` property is True (the default).
+    The ModalView can be closed by hitting the escape key on the
+    keyboard if the :attr:`ModalView.auto_dismiss` property is True (the
+    default).
 
 '''
 
@@ -96,7 +97,7 @@ class ModalView(AnchorLayout):
     '''This property determines if the view is automatically
     dismissed when the user clicks outside it.
 
-    :data:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
@@ -105,14 +106,14 @@ class ModalView(AnchorLayout):
     parent window of the widget. If none is found, it will attach to the
     main/global Window.
 
-    :data:`attach_to` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`attach_to` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 
     background_color = ListProperty([0, 0, 0, .7])
     '''Background color in the format (r, g, b, a).
 
-    :data:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [0, 0, 0, .7].
     '''
 
@@ -120,20 +121,20 @@ class ModalView(AnchorLayout):
         'atlas://data/images/defaulttheme/modalview-background')
     '''Background image of the view used for the view background.
 
-    :data:`background` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`background` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/modalview-background'.
     '''
 
     border = ListProperty([16, 16, 16, 16])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
-    graphics instruction. Used for the :data:`background_normal` and the
-    :data:`background_down` properties. Can be used when using custom
+    graphics instruction. Used for the :attr:`background_normal` and the
+    :attr:`background_down` properties. Can be used when using custom
     backgrounds.
 
     It must be a list of four values: (top, right, bottom, left). Read the
     BorderImage instructions for more information about how to use it.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults to
     (16, 16, 16, 16).
     '''
 
@@ -164,7 +165,7 @@ class ModalView(AnchorLayout):
         return window
 
     def open(self, *largs):
-        '''Show the view window from the :data:`attach_to` widget. If set, it
+        '''Show the view window from the :attr:`attach_to` widget. If set, it
         will attach to the nearest window. If the widget is not attached to any
         window, the view will attach to the global
         :class:`~kivy.core.window.Window`.
@@ -194,7 +195,6 @@ class ModalView(AnchorLayout):
         # XXX HACK DONT REMOVE OR FOUND AND FIX THE ISSUE
         # It seems that if we don't access to the center before assigning a new
         # value, no dispatch will be done >_>
-        a = self.center
         self.center = self._window.center
 
     def dismiss(self, *largs, **kwargs):
@@ -286,7 +286,8 @@ if __name__ == '__main__':
     # add view
     content = GridLayout(cols=1)
     content.add_widget(Label(text='This is a hello world'))
-    view = ModalView(size_hint=(None, None), size=(256, 256), auto_dismiss=True)
+    view = ModalView(size_hint=(None, None), size=(256, 256),
+                     auto_dismiss=True)
     view.add_widget(content)
 
     def open_view(btn):

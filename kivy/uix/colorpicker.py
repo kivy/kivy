@@ -34,8 +34,9 @@ __all__ = ('ColorPicker', 'ColorWheel')
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
 from kivy.properties import (NumericProperty, BoundedNumericProperty,
-                            ListProperty, ObjectProperty, ReferenceListProperty,
-                            StringProperty, AliasProperty)
+                             ListProperty, ObjectProperty,
+                             ReferenceListProperty, StringProperty,
+                             AliasProperty)
 from kivy.clock import Clock
 from kivy.graphics import Mesh, InstructionGroup, Color
 from kivy.utils import get_color_from_hex, get_hex_from_color
@@ -84,35 +85,35 @@ class ColorWheel(Widget):
     r = BoundedNumericProperty(0, min=0, max=1)
     '''The Red value of the color currently selected.
 
-    :data:`r` is a :class:`~kivy.properties.BoundedNumericProperty` and
+    :attr:`r` is a :class:`~kivy.properties.BoundedNumericProperty` and
     can be a value from 0 to 1. It defaults to 0.
     '''
 
     g = BoundedNumericProperty(0, min=0, max=1)
     '''The Green value of the color currently selected.
 
-    :data:`g` is a :class:`~kivy.properties.BoundedNumericProperty`
+    :attr:`g` is a :class:`~kivy.properties.BoundedNumericProperty`
     and can be a value from 0 to 1.
     '''
 
     b = BoundedNumericProperty(0, min=0, max=1)
     '''The Blue value of the color currently selected.
 
-    :data:`b` is a :class:`~kivy.properties.BoundedNumericProperty` and
+    :attr:`b` is a :class:`~kivy.properties.BoundedNumericProperty` and
     can be a value from 0 to 1.
     '''
 
     a = BoundedNumericProperty(0, min=0, max=1)
     '''The Alpha value of the color currently selected.
 
-    :data:`a` is a :class:`~kivy.properties.BoundedNumericProperty` and
+    :attr:`a` is a :class:`~kivy.properties.BoundedNumericProperty` and
     can be a value from 0 to 1.
     '''
 
     color = ReferenceListProperty(r, g, b, a)
     '''The holds the color currently selected.
 
-    :data:`color` is a :class:`~kivy.properties.ReferenceListProperty` and
+    :attr:`color` is a :class:`~kivy.properties.ReferenceListProperty` and
     contains a list of `r`, `g`, `b`, `a` values.
     '''
 
@@ -134,10 +135,8 @@ class ColorWheel(Widget):
         super(ColorWheel, self).__init__(**kwargs)
 
         pdv = self._piece_divisions
-        self.sv_s = [(float(x) / pdv, 1)
-                     for x in range(pdv)] + [
-                         (1, float(y) / pdv)
-                         for y in reversed(range(pdv))]
+        self.sv_s = [(float(x) / pdv, 1) for x in range(pdv)] + [
+            (1, float(y) / pdv) for y in reversed(range(pdv))]
 
     def on__origin(self, instance, value):
         self.init_wheel(None)
@@ -370,21 +369,21 @@ class ColorPicker(RelativeLayout):
     font_name = StringProperty('data/fonts/DroidSansMono.ttf')
     '''Specifies the font used on the ColorPicker.
 
-    :data:`font_name` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`font_name` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'data/fonts/DroidSansMono.ttf'.
     '''
 
     color = ListProperty((1, 1, 1, 1))
-    '''The :data:`color` holds the color currently selected in rgba format.
+    '''The :attr:`color` holds the color currently selected in rgba format.
 
-    :data:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
     (1, 1, 1, 1).
     '''
 
     hsv = ListProperty((1, 1, 1))
-    '''The :data:`hsv` holds the color currently selected in hsv format.
+    '''The :attr:`hsv` holds the color currently selected in hsv format.
 
-    :data:`hsv` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`hsv` is a :class:`~kivy.properties.ListProperty` and defaults to
     (1, 1, 1).
     '''
     def _get_hex(self):
@@ -394,17 +393,17 @@ class ColorPicker(RelativeLayout):
         self.color = get_color_from_hex(value)[:4]
 
     hex_color = AliasProperty(_get_hex, _set_hex, bind=('color', ))
-    '''The :data:`hex_color` holds the currently selected color in hex.
+    '''The :attr:`hex_color` holds the currently selected color in hex.
 
-    :data:`hex_color` is an :class:`~kivy.properties.AliasProperty` and
+    :attr:`hex_color` is an :class:`~kivy.properties.AliasProperty` and
     defaults to `#ffffffff`.
     '''
 
     wheel = ObjectProperty(None)
-    '''The :data:`wheel` holds the color wheel.
+    '''The :attr:`wheel` holds the color wheel.
 
-    :data:`wheel` is an :class:`~kivy.properties.ObjectProperty` and defaults to
-    None.
+    :attr:`wheel` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     # now used only internally.
