@@ -677,6 +677,7 @@ widgets into their own files. If the include is forced, the file
 will first be unloaded and then reloaded again. For example:
 
 .. code-block:: kv
+
     # Test.kv
     #:include mycomponent.kv
     #:include force mybutton.kv
@@ -688,13 +689,15 @@ will first be unloaded and then reloaded again. For example:
 
 
 .. code-block:: kv
+
     # mycomponent.kv
     #:include mybutton.kv
 
     <MyComponent>:
         MyButton:
 
-.. code-block:: kv
+.. code-block:: 
+
     # mybutton.kv
 
     <MyButton>:
