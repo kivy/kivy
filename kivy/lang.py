@@ -660,7 +660,54 @@ Set a key that will be available anywhere in the kv. For example:
         canvas:
             Color:
                 rgb: my_color if self.state == 'normal' else my_color_hl
+
+include <file>
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.8.1
+
+Syntax:
+
+.. code-block:: kv
+
+    #:include [force] <file>
+
+Includes an external kivy file. This allows you to split complex
+widgets into their own files. If the include is forced, the file
+will first be unloaded and then reloaded again. For example:
+
+.. code-block:: kv
+    # Test.kv
+    #:include mycomponent.kv
+    #:include force mybutton.kv
+
+    <Rule>:
+        state: 'normal'
+        MyButton:
+        MyComponent:
+
+
+.. code-block:: kv
+    # mycomponent.kv
+    #:include mybutton.kv
+
+    <MyComponent>:
+        MyButton:
+
+.. code-block:: kv
+    # mybutton.kv
+
+    <MyButton>:
+        canvas:
+            Color:
+                rgb: (1.0, 0.0, 0.0)
+            Rectangle:
+                pos: self.pos
+                size: (self.size[0]/4, self.size[1]/4)
+
+
 '''
+import os
 
 __all__ = ('Builder', 'BuilderBase', 'BuilderException',
            'Parser', 'ParserException')
@@ -694,6 +741,9 @@ Instruction = None
 
 # register cache for creating new classtype (template)
 Cache.register('kv.lang')
+
+# all previously included files
+__KV_INCLUDES__ = []
 
 # precompile regexp expression
 lang_str = re.compile('([\'"][^\'"]*[\'"])')
@@ -1049,6 +1099,7 @@ class Parser(object):
         self.parse(content)
 
     def execute_directives(self):
+        global __KV_INCLUDES__
         for ln, cmd in self.directives:
             cmd = cmd.strip()
             if __debug__:
@@ -1070,7 +1121,34 @@ class Parser(object):
                     Logger.exception('')
                     raise ParserException(self, ln, 'Invalid value')
                 global_idmap[name] = value
+            elif cmd[:8] == 'include ':
+                ref = cmd[8:].strip()
+                force_load = False
 
+                if ref[:6] == 'force ':
+                    ref = ref[6:].strip()
+                    force_load = True
+
+                if ref[-3:] != '.kv':
+                    Logger.warn('WARNING: {0} does not have a valid Kivy'
+                                'Language extension (.kv)'.format(ref))
+                    break
+                if ref in __KV_INCLUDES__:
+                    if not force_load:
+                        Logger.warn('WARNING: {0} has already been included!'
+                                    .format(ref))
+                        break
+                    else:
+                        Logger.debug('Reloading {0} because include was forced.'
+                                    .format(ref))
+                        Builder.unload_file(ref)
+                        Builder.load_file(ref)
+                if not os.path.isfile(ref):
+                    raise ParserException(self, ln, 'Invalid or unknown file: '
+                                                    '{0}'.format(ref))
+                Logger.debug('Including file: {0}'.format(0))
+                __KV_INCLUDES__.append(ref)
+                Builder.load_file(ref)
             elif cmd[:7] == 'import ':
                 package = cmd[7:].strip()
                 l = package.split(' ')
