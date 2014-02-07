@@ -622,7 +622,7 @@ Set a key that will be available anywhere in the kv. For example:
 include <file>
 ~~~~~~~~~~~~~~~~
 
-.. versionadded:: 1.8.0
+.. versionadded:: 1.8.1
 
 Syntax:
 
@@ -700,7 +700,7 @@ Instruction = None
 Cache.register('kv.lang')
 
 # all previously included files
-__INCLUDES__ = []
+__KV_INCLUDES__ = []
 
 # precompile regexp expression
 lang_str = re.compile('([\'"][^\'"]*[\'"])')
@@ -1056,7 +1056,7 @@ class Parser(object):
         self.parse(content)
 
     def execute_directives(self):
-        global __INCLUDES__
+        global __KV_INCLUDES__
         for ln, cmd in self.directives:
             cmd = cmd.strip()
             if __debug__:
@@ -1090,7 +1090,7 @@ class Parser(object):
                     Logger.warn('WARNING: {0} does not have a valid Kivy'
                                 'Language extension (.kv)'.format(ref))
                     break
-                if ref in __INCLUDES__:
+                if ref in __KV_INCLUDES__:
                     if not force_load:
                         Logger.warn('WARNING: {0} has already been included!'
                                     .format(ref))
@@ -1104,7 +1104,7 @@ class Parser(object):
                     raise ParserException(self, ln, 'Invalid or unknown file: '
                                                     '{0}'.format(ref))
                 Logger.debug('Including file: {0}'.format(0))
-                __INCLUDES__.append(ref)
+                __KV_INCLUDES__.append(ref)
                 Builder.load_file(ref)
             elif cmd[:7] == 'import ':
                 package = cmd[7:].strip()
