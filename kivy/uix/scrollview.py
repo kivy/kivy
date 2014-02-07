@@ -544,6 +544,8 @@ class ScrollView(StencilView):
         # handle mouse scrolling, only if the viewport size is bigger than the
         # scrollview size, and if the user allowed to do it
         vp = self._viewport
+        if not vp:
+            return True
         scroll_type = self.scroll_type
         ud = touch.ud
         scroll_bar = 'bars' in scroll_type
