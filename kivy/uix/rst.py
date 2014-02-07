@@ -546,8 +546,6 @@ class RstDocument(ScrollView):
         '''
         if filename in self.toctrees:
             return
-        if not exists(filename):
-            return
 
         with open(filename, 'rb') as fd:
             text = fd.read().decode(encoding, errors)
