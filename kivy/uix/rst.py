@@ -185,7 +185,7 @@ Builder.load_string('''
         valign: 'top'
         size_hint: None, None
         size: self.texture_size[0] + dp(10), self.texture_size[1] + dp(10)
-        font_size: sp(self.document.base_font_size / 2.0)
+        font_size: sp(root.document.base_font_size / 2.0)
 
 <RstBlockQuote>:
     cols: 2
