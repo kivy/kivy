@@ -228,7 +228,7 @@ def uninstall_twisted_reactor():
     '''Uninstalls the Kivy's threaded Twisted Reactor. No more Twisted tasks will
     run after this got called. Use this to clean the `twisted.internet.reactor`
 
-    .. versionadded:: 1.8.0
+    .. versionadded:: 1.8.1
     '''
 
     import twisted
