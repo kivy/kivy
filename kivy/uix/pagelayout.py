@@ -155,12 +155,12 @@ class PageLayout(Layout):
         if touch.grab_current == self:
             if (
                 touch.ud['page'] == 'previous' and
-                abs(touch.sx - touch.osx) > self.swipe_threshold
+                abs(touch.x - touch.ox) / self.width > self.swipe_threshold
             ):
                 self.page -= 1
             elif (
                 touch.ud['page'] == 'next' and
-                abs(touch.sx - touch.osx) > self.swipe_threshold
+                abs(touch.x - touch.ox) / self.width > self.swipe_threshold
             ):
                 self.page += 1
             else:
