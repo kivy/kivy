@@ -45,12 +45,8 @@ Mobile
 * Plyer - the idea is to provide an stable API to the user for accessing to any
   feature of your desktop or mobile, such as Accelerometer, GPS, SMS, Contact,
   and more. Under the hood, you'll use PyJNIus, PyOBJus, Cython, to do what it
-  need to be done.
-* PyOBJus - access to Objective C from Python. That will allow any python
-  project to access to anything in the objective C API. The project is not
-  working yet, and a good knowledge to Objective C and C is required. This base
-  is required to access to GPS, Accelerometer, SMS, Contacts from your iPhone
-  or iPad from Python.
+  need to be done. This probably would also include improving PyObjus and
+  PyJnius to handle interfaces that they can't rght now.
 
 Toolchain
 ~~~~~~~~~
