@@ -1,7 +1,7 @@
-Google Summer of Code - 2013
+Google Summer of Code - 2014
 ============================
 
-Kivy is hoping to participate in Google Summer of Code 2013.
+Kivy is hoping to participate in Google Summer of Code 2014
 
 
 Projects ideas
@@ -61,28 +61,12 @@ Toolchain
 * Create a new toolchain for iOS - based on the idea of Python for android, in
   order to replace kivy-ios. Cross-platform compilation skills are heavilly
   required.
-* Kivy in HTML5 - we already have a POC internally for compiling Python, SDL,
-  SDLimage, etc... into javascript. We could go further on this POC, if a good
-  student with awesome skills on javascript, python and cross compilation come
-  to us :)
+* Buildozer - Needs rpm, .deb and exe backends to be hashed out.
 
 
 Applications
 ~~~~~~~~~~~~
 
-* A kivy designer - we tackle this idea last year, without success. A lot of
-  users would love to have a designer for create screen of their application:
-  add widgets element on a page, reorder the tree, editing properties, attach
-  kv lang to it, and test in real time.
-* For the scope of a GSOC project, perhaps it is better not to have a specific
-  app, such as the Designer app, as a target. Rather, focus could be put on
-  kivy-statecharts, https://github.com/kivy/kivy-statecharts/, which would be a
-  great help to app development in general, and is a very good fit for the
-  Designer app.  This project would involve: 1) improving the Kivy statecharts
-  framework and its documentation;  2) targeting app examples, including the
-  Designer app, for illustration purposes and for their advancement toward
-  working apps. There has been discussion of writing statecharts documentation
-  as an advanced section for Kivy docs.
 * Website - a new Kivy website is required!
 
 
