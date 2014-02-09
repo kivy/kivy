@@ -5,7 +5,9 @@ Currently highly experimental.
 '''
 
 from kivy.app import App
-from kivy.uix.effectwidget import EffectWidget, shader_header, shader_uniforms
+from kivy.uix.effectwidget import (EffectWidget, shader_header,
+                                   shader_uniforms, effect_monochrome,
+                                   effect_trivial, EffectFbo)
 from kivy.uix.image import Image
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scatter import Scatter
@@ -80,15 +82,19 @@ class EffectApp(App):
         sw = EffectWidget()
         root.add_widget(sw)
 
-        sw.fs = plasma_shader
+        #sw.fs = plasma_shader
+        sw.effects.append(effect_monochrome)
 
         sw.add_widget(Image(size_hint=(1, 1), pos_hint={'x': 0, 'y': 0},
-                            source='data/logo/kivy-icon-512.png', allow_stretch=True,
+                            source='colours.png', allow_stretch=True,
                             keep_ratio=False))
 
         # add a button and scatter image inside the shader widget
         btn = Button(text='Hello world', size_hint=(None, None),
                      pos_hint={'center_x': .25, 'center_y': .5})
+        def press_func(*args):
+            print 'button pressed!'
+        btn.bind(on_press=press_func)
         sw.add_widget(btn)
 
         return root
