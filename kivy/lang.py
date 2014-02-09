@@ -1,5 +1,4 @@
-'''
-Kivy Language
+'''Kivy Language
 =============
 
 The Kivy language is a language dedicated to describing user interface and
@@ -38,12 +37,16 @@ The language consists of several constructs that you can use:
         You can use the language to create your entire user interface.
         A kv file must contain only one root widget at most.
 
-    Templates
-        *(introduced in version 1.0.5.)*
-        Templates will be used to populate parts of your application, such as a
-        list's content. If you want to design the look of an entry in a list
-        (icon on the left, text on the right), you will use a template
-        for that.
+    Dynamic Classes
+        *(introduced in version 1.7.0)*
+        Dynamic classes let you create new widgets and rules on-the-fly,
+        without any Python declaration.
+
+    Templates (deprecated)
+        *(introduced in version 1.0.5, deprecated from version 1.7.0)*
+        Templates were used to populate parts of an application, such as
+        styling the content of a list (e.g. icon on the left, text on the
+        right). They are now deprecated by dynamic classes.
 
 
 Syntax of a kv File
@@ -61,7 +64,8 @@ For now, use 1.0::
 
     # content here
 
-The `content` can contain rule definitions, a root widget and templates::
+The `content` can contain rule definitions, a root widget, dynamic class
+definitions and templates::
 
     # Syntax of a rule definition. Note that several Rules can share the same
     # definition (as in CSS). Note the braces: they are part of the definition.
@@ -75,12 +79,16 @@ The `content` can contain rule definitions, a root widget and templates::
     RootClassName:
         # .. definitions ..
 
+    # Syntax for creating a dynamic class
+    <NewWidget@BaseClass>:
+        # .. definitions ..
+
     # Syntax for create a template
     [TemplateName@BaseClass1,BaseClass2]:
         # .. definitions ..
 
-Regardless of whether it's a rule, root widget or template you're defining,
-the definition should look like this::
+Regardless of whether it's a rule, root widget, dynamic class or
+template you're defining, the definition should look like this::
 
     # With the braces it's a rule. Without them, it's a root widget.
     <ClassName>:
@@ -326,7 +334,7 @@ declaration in the first place. The syntax of the dynamic classes is similar to
 the Rules, but you need to specify the base classes you want to
 subclass.
 
-The syntax look like:
+The syntax looks like:
 
 .. code-block:: kv
 
@@ -351,9 +359,11 @@ to subclass. The Python equivalent would have been:
     class NewWidget(ButtonBehavior, Label):
         pass
 
-Any new properties, usually added in python code, should be declared first.
-If the property doesn't exist in the dynamic class, it will be automatically
-created as an :class:`~kivy.properties.ObjectProperty`.
+Any new properties, usually added in python code, should be declared
+first.  If the property doesn't exist in the dynamic class, it will be
+automatically created as an :class:`~kivy.properties.ObjectProperty`
+(pre 1.8.0) or as an appropriate typed property (from version
+1.8.0).
 
 .. versionchanged:: 1.8.0
 
@@ -362,7 +372,8 @@ created as an :class:`~kivy.properties.ObjectProperty`.
     property, and the type of the value will be used for the specialization of
     the Property class. In other terms: if you declare `hello: "world"`, a new
     :class:`~kivy.properties.StringProperty` will be instanciated, with the
-    default value `"world"`. List, tuples, dictionnary, strings, are supported.
+    default value `"world"`. Lists, tuples, dictionaries and strings are
+    supported.
 
 Let's illustrate the usage of theses dynamic classes with an
 implementation of a basic Image button. We could derive our classes from
@@ -707,7 +718,6 @@ will first be unloaded and then reloaded again. For example:
             Rectangle:
                 pos: self.pos
                 size: (self.size[0]/4, self.size[1]/4)
-
 
 '''
 import os
