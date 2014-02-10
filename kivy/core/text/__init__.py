@@ -231,26 +231,24 @@ class LabelBase(object):
         if not (len(s) == 1 or textwidth(s[1])[0] > width / 3):
             e += s[1]
         s = s[0]
-        w = textwidth(e)[0] + margin
+        we = textwidth(e)[0] + margin
         letters = text if text.endswith(' ') else text + char(' ')
 
-        # this ignores kerning at the benefit of counting each char only once
         e_sub = text.find(' ')
         s_sub = 0
         count = textwidth(letters[:e_sub])[0]
-        while s_sub != len(letters) - 1 and e_sub != -1 and w + count <= width:
-            w += count
+        while (s_sub != len(letters) - 1 and e_sub != -1 and
+               count + we <= width):
             s_sub = e_sub
             e_sub = text.find(' ', s_sub + 1)
-            count = textwidth(letters[s_sub:e_sub])[0]
+            count = textwidth(letters[:e_sub])[0]
 
         if s_sub == 0:  # first word is too long, so only display part of it
             i = 0
             count = textwidth(letters[:3])[0]
-            while count + w <= width:
+            while count + we <= width:
                 i += 3
-                w += count
-                count = textwidth(letters[i:i + 3])[0]
+                count = textwidth(letters[:i + 3])[0]
             return char('').join((letters[:i], e))
         return char('').join((letters[:s_sub], e))
 
