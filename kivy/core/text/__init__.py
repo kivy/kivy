@@ -322,8 +322,8 @@ class LabelBase(object):
                         cache[glyph] = get_extents(glyph)
 
             # Shorten the text that we actually display
-            text = self.text
-            if (options['shorten'] and get_extents(text)[0] > uw):
+            text = self.text  # margins of 2?
+            if (options['shorten'] and get_extents(text)[0] > uw - 2):
                 text = self.shorten(text)
 
             # first, split lines
