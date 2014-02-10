@@ -303,9 +303,7 @@ class LabelBase(object):
 
             # Shorten the text that we actually display
             text = self.text
-            last_word_width = get_extents(text[text.rstrip().rfind(' '):])[0]
-            if (options['shorten'] and
-                    get_extents(text)[0] > uw - last_word_width):
+            if (options['shorten'] and get_extents(text)[0] > uw):
                 text = self.shorten(text)
 
             # first, split lines
