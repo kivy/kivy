@@ -217,15 +217,8 @@ clever optimizations to make your application run smoothly.
 Does Kivy support Python 3.x?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-No. Not yet. Python 3 is certainly a good thing; However, it broke
-backwards compatibility (for good reasons) which means that some
-considerable portion of available Python projects do not yet work
-with Python 3. This also applies to some of the projects that Kivy
-uses as a dependency, which is why we haven't make the switch yet.
-We would also need to switch our own codebase to Python 3. We haven't
-done that yet because it's not very high on our priority list, but if
-somebody doesn't want to wait for us to do it, please go ahead.
-Please note, though, that Python 2.x is still the de facto standard.
+Yes! As of version 1.8.0 Kivy supports both Python 2 and Python 3 with
+the same codebase.
 
 
 How is Kivy related to PyMT?
