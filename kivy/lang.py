@@ -406,6 +406,12 @@ In Python, you can create an instance of the dynamic class as follows:
     from kivy.factory import Factory
     button_inst = Factory.ImageButton()
 
+.. note::
+
+    Using dynamic classes, a child class can be declared before it's parent.
+    This however, leads to the unintuitive situation where the parent
+    properties/methods override those of the child. Be careful if you choose
+    to do this.
 
 .. _template_usage:
 
