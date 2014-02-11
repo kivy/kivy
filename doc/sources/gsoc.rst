@@ -10,6 +10,12 @@ Projects ideas
 Kivy
 ~~~~
 
+* full support for major embedded platforms like beagle board and rpi. Kivy
+  already has partial support for rpi. Would be great to get full support for
+  most major embedded platforms.
+* Inspector - redo / improve the inspector module. Python have an awesome
+  introspection possibilities. Let's work together to have an awesome inspector
+  that would allow the user to debug anything from its application.
 * Kivy language compiler - our language is parsed and interpreted at runtime.
   If you run on an embed device with low cpu resources (such as Raspberry Pi),
   you want to have a faster loading and execution
@@ -23,21 +29,7 @@ Kivy
   be improved, and new classes added, just as a Sprite that subclass a
   Rectangle, but can be rotated, scaled, etc. Or a Tiling manager. Or anything.
   A good knownledge of others game engine is required.
-* Widget and application serialization - this is a recurent project, but nobody
-  has really tackle the idea yet. Kivy widgets cannot be serialized, yet. It
-  would be nice if you could "save" your part of your widget tree, and restore
-  it later, and transmit it over the web. Serialization open also the doors to
-  collaborative widget.
-* Inspector - redo / improve the inspector module. Python have an awesome
-  introspection possibilities. Let's work together to have an awesome inspector
-  that would allow the user to debug anything from its application.
-* ListView / GridView work and the generalization of the selection / adapter
-  (and "controller") system. Goal would be two-fold: 1) improving ListView and
-  bring GridView in; 2) extending a general selection / adapter (and
-  "controller") approach to other widgets where appropriate. There is already a
-  good start for ListView, but it needs fleshing out for layout and resizing
-  improvements.  GridView has a substantial start:
-  https://github.com/geojeff/kivy/tree/uix-gridview. 
+
 
 Mobile
 ~~~~~~
@@ -47,6 +39,8 @@ Mobile
   and more. Under the hood, you'll use PyJNIus, PyOBJus, Cython, to do what it
   need to be done. This probably would also include improving PyObjus and
   PyJnius to handle interfaces that they can't rght now.
+* Porting facades from sl4a to plyer for easy integration and compatability. 
+
 
 Toolchain
 ~~~~~~~~~
@@ -57,7 +51,12 @@ Toolchain
 * Create a new toolchain for iOS - based on the idea of Python for android, in
   order to replace kivy-ios. Cross-platform compilation skills are heavilly
   required.
-* Buildozer - Needs rpm, .deb and exe backends to be hashed out.
+* Buildozer - Needs rpm, .deb, dmg and exe backends to be hashed out. This
+  however might not be enough in itself for a gsoc, would have to be clubbed
+  together with some other work.
+* SDL2 backends/providers for kivy, including porting the mobile toolchains to
+  SDL2. Part of the work is already done, please contact the devs for further
+  details. 
 
 
 Applications
