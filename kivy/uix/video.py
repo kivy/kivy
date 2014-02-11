@@ -132,6 +132,8 @@ class Video(Image):
         super(Image, self).__init__(**kwargs)
         self.bind(source=self._trigger_video_load)
 
+        if "eos" in kwargs:
+            self.options["eos"] = kwargs["eos"]
         if self.source:
             self._trigger_video_load()
 
