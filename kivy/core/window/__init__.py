@@ -382,17 +382,9 @@ class WindowBase(EventDispatcher):
 
     def _get_android_kheight(self):
         global android, autoclass
-        height = 0
         if not android:
             import android
-            from jnius import autoclass
-        python_act = autoclass('org.renpy.android.PythonActivity')
-        rctx = autoclass('android.graphics.Rect')()
-        mActivity = python_act.mActivity
-        mActivity.getWindow().getDecorView().\
-            getWindowVisibleDisplayFrame(rctx)
-        height = mActivity.getWindowManager().getDefaultDisplay().getHeight()
-        return height - rctx.bottom
+        return android.get_keyboard_height()
 
     def _get_kheight(self):
         if platform == 'android':
