@@ -43,7 +43,7 @@ class Keyboard(EventDispatcher):
             Fired when a key is released (up)
 
     Here is an example of how to request a Keyboard in accordance with the
-    current configuration:
+    current configuration:a
 
     .. include:: ../../examples/widgets/keyboardlistener.py
         :literal:
@@ -380,7 +380,7 @@ class WindowBase(EventDispatcher):
         return 0
 
     def _get_android_kheight(self):
-        global android, autoclass
+        global android
         if not android:
             import android
         return android.get_keyboard_height()
