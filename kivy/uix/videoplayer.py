@@ -513,6 +513,9 @@ class VideoPlayer(GridLayout):
         if self._video is not None:
             self._video.state = value
 
+    def _set_state(self, instance, value):
+        self.state = value
+
     def _do_video_load(self, *largs):
         self._video = Video(source=self.source, state=self.state,
                             volume=self.volume, pos_hint={'x': 0, 'y': 0},
@@ -520,7 +523,8 @@ class VideoPlayer(GridLayout):
         self._video.bind(texture=self._play_started,
                          duration=self.setter('duration'),
                          position=self.setter('position'),
-                         volume=self.setter('volume'))
+                         volume=self.setter('volume'),
+                         state=self._set_state)
 
     def on_play(self, instance, value):
         value = 'play' if value else 'stop'
