@@ -27,7 +27,6 @@ from kivy.context import get_current_context
 # late import
 VKeyboard = None
 android = None
-autoclass = None
 
 
 class Keyboard(EventDispatcher):
