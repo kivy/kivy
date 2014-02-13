@@ -38,100 +38,147 @@ Kivy
 ~~~~
 
 * Embedded Support:
-    - Mentors: Gabriel Pettier, Mathieu Virbel
-    - Requirements: Access to specific embedded hardware.
-    - Task level: Intermediate/Advanced
-    - Desired Skills: Familiarity with programming on the specific embedded hardware.
 
-  Add full support for major embedded platforms like Beagle
-  Board and Raspberry Pi. Kivy already has partial support for RPi. It would be
-  great to get full support for other major embedded platforms.
+  Description:
+    Add full support for major embedded platforms like Beagle Board and Raspberry Pi.
+    Kivy already has partial support for RPi. It would be
+    great to get full support for other major embedded platforms.
   
   This would involve:
     - Native Keyboard Provider.
     - Window prvider for Beagle board using hooks to the driver for hardware
       acceleration inspiration can be taken from the rpi window provier
       https://github.com/kivy/kivy/blob/master/kivy/core/window/window_egl_rpi.py.
-    - Making sure atleast one of the backend for each of the core providers work on
+    - Making sure at least one of the backend for each of the core providers work on
       the embedded hardware with acceptable performnce. Namely Text, Window, Audio,
       Video, Keyboard, Clipboard, Image.
+  Reference: 
+      https://github.com/kivy/kivy/blob/master/kivy/core/window/window_egl_rpi.py.
+      http://kivy.org/docs/api-kivy.core.html
+      http://kivy.org/docs/guide/architecture.html#architecture
+      http://kivy.org/docs/guide/architecture.html#providers
+      
+  Expected Outcome:
+    Full Working support for the embedded platforms. This would include suport for
+    at least one of the backends for each core providers mentioned above to achieve
+    feature parity with other patforms.
+
+  - Mentors: Gabriel Pettier, Mathieu Virbel
+  - Requirements: Access to specific embedded hardware.
+  - Task level: Intermediate/Advanced
+  - Desired Skills: Familiarity with programming on the specific embedded hardware.
 
 * Inspector: 
-    - Mentors: Akshay Arora, Gabriel Pettier
-    - Task level: Intermediate
 
-  Redo or improve the inspector module.
-  - Use Python introspection to enhance current state of inpector. 
-  - Allow the user to debug anything from their application.
-  - Introduce automatic creash reporting.
-  - Possibly launch debugger automaticlaly when kivy app crashes.
+  Description:
+    Redo or improve the inspector module to include the following features:
+      - Use Python introspection to enhance current state of inpector. 
+      - Extend Inspectors debugging cpabilities to the whole app.
+      - Introduce automatic creash reporting.
+      - Possibly launch debugger automaticlaly when kivy app crashes.
+  Reference: 
+      http://kivy.org/docs/api-kivy.modules.html
+      http://kivy.org/docs/api-kivy.modules.inspector.html
+
+  Expected Outcome:
+    A fully functional Inspector module that facilitates debugging at any stage,
+    including crash reports and a debugging console.
+  
+  - Mentors: Akshay Arora, Gabriel Pettier
+  - Task level: Intermediate
 
 * Graphics Pipeline Enhancements:
-      - Mentors: Jacob Kovac, Mathieu Virbel
-      - Task level: Intermediate/Advanced
-      - Desired Skills: Familiarity with OpenGL, desire to learn/solve difficult
-        concepts/puzzles.
-  
-  We have a lot of ideas around the graphics pipeline.
-  
-  - Merging instructions
-  - VBOs to reduce GL calls
-  - helpers to create shaders dynamically according to the current vertex format
-  - improving 3D support.
-  - add Bounding-Box calculation / selection on the tree only if requested
+
+  Description:
+    We have a lot of ideas around the graphics pipeline:
+      - Merging instructions
+      - VBOs to reduce GL calls
+      - helpers to create shaders dynamically according to the current vertex format
+      - improving 3D support.
+      - add Bounding-Box calculation / selection on the tree only if requested
+      - Unit tests to quantify the amount of improvements achieved.
+  Reference: 
+      http://kivy.org/docs/api-kivy.graphics.html
+      http://www.khronos.org/opengles/
+  Expected Outcome:
+    Significant improvement in the graphics pipeline that can be quantfied by tests.
+
+  - Mentors: Jacob Kovac, Mathieu Virbel
+  - Task level: Intermediate/Advanced
+  - Desired Skills: Familiarity with OpenGL ES, desire to learn/solve difficult
+    concepts/puzzles.
 
 
 Mobile
 ~~~~~~
 
 * Plyer:
-    - Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch.
-    - Requirements: Access to Linux, Windows, OS X, iOS device, Android device.
-    - Task level: Intermediate/Advanced.
-    - Desired Skills: Familiarity with Pyjnius, PyObjus.
 
-  The idea is to provide a stable API to the user for accessing features
-  of their desktop or mobile device, such as Accelerometer, GPS, SMS, Contact,
-  and more. Under the hood you'll use PyJNIus, PyOBJus and Cython. This probably
-  would also include improving PyObjus and PyJnius to handle interfaces that
-  they can't right now.
-
-* SL4A Facades:
-    - Mentors: Gabriel Pettier, Akshay Arora, Mathieu Virbel
-
-  Porting facades from Scripting Language for Android to Plyer
-  for easy integration and compatability. 
+  Description:
+    The idea is to provide a stable API to the user for accessing features
+    of their desktop or mobile device.
+    
+    Facades and implementation for::
+      - such as Accelerometer, GPS, SMS, Contact,
+        and more. 
+      - Porting facades from Scripting Language for Android to Plyer
+        for easy integration and compatability.
+    
+    Under the hood you'll use PyJNIus, PyOBJus. This probably
+    would also include improving PyObjus and PyJnius to handle interfaces that
+    they can't right now.
+  References:
+    https://github.com/kivy/plyer
+    https://github.com/kivy/pyjnius
+    https://github.com/kivy/pyobjus
+  Expected Outcome:
+    platform independent api for accessing most platform specific parts.
+    
+  - Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch.
+  - Requirements: Access to Linux, Windows, OS X, iOS device, Android device.
+  - Task level: Intermediate/Advanced.
+  - Desired Skills: Familiarity with Pyjnius, PyObjus.
 
 
 Toolchain
 ~~~~~~~~~
 
 * Toolchain for iOS:
-    - Mentors: Thomas Hansen, Mathieu Virbel
-    - Reuirements: Access to iOS, Android device along with a developer licence.
-    - Task level: Intermediate/Advanced
-    - Desired Skills: Familiarity with xcode, objc.
 
-  An iOS interface based on the idea of Python for Android,
-  in order to replace kivy-ios. Cross-platform compilation skills are heavily
-  required.
+  Description:
+    An iOS interface based on the idea of Python for Android,
+    in order to replace kivy-ios. Cross-platform compilation skills are heavily
+    required.
+  References:
+    https://github.com/kivy/kivy-ios
+  Expected Outcome:
+    A new new/improved modular and extendable toolchain.
+  
+  - Mentors: Thomas Hansen, Mathieu Virbel
+  - Reuirements: Access to iOS, Android device along with a developer licence.
+  - Task level: Intermediate/Advanced
+  - Desired Skills: Familiarity with xcode, objc.
 
 * Buildozer:
-    - Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch
-    - Requirements: Access to linux, Windows, OS X, iOS, Android.
-    - Task level: Intermediate
 
-  Needs support for generating RPM, DEB, DMG, and EXE files. This might not be
-  enough in itself for a GSoC project. It would have to be joined together with 
-  some other work.
+  Description:
+    Needs support for generating RPM, DEB, DMG, and EXE files. This might not be
+    enough in itself for a GSoC project. It would have to be joined together with 
+    some other work.
+  References:
+    https://github.com/kivy/Buildozer
+  Expected Outcome:
+    New targets for buildozer to be able to get deb, rpm, dmg, exe binaries.
+
+  - Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch
+  - Requirements: Access to linux, Windows, OS X, iOS, Android.
+  - Task level: Intermediate
 
 * SDL2 Backends:
-    - Mentors: Akshay Arora, Jacob Kovac, Mathieu Virbel
-    - Requirements: Access to Linux, Windows, OS X, iOS, Android.
-    - Task level: Intermediate/Advanced
-
-  SDL2 backend providers for Kivy, including porting the mobile
-  toolchains to SDL2. Part of the work is already done. What left is mostly
+  
+  Description:
+    SDL2 backend providers for Kivy, including porting the mobile
+    toolchains to SDL2. Part of the work is already done. What left is mostly
 
     - Hashing out distribution mechanisms for the lib.
     - Porting mobile backends to ios and android sdl2. Partial work on this has 
@@ -141,8 +188,14 @@ Toolchain
     - Performace testing. Looking at the difference between sdl2 and other providers
       to ascertain wether sdl2 could be used as the default provider giving it priority
       over other backends.
+  References:
+    https://github.com/kivy/kivy sdl2 branch
+  Expected Outcome:
+    New sdl2 core providers and support for using sdl2 on mobiles.
 
-
+  - Mentors: Akshay Arora, Jacob Kovac, Mathieu Virbel
+  - Requirements: Access to Linux, Windows, OS X, iOS, Android.
+  - Task level: Intermediate/Advanced
 
 Anything Else ?
 ~~~~~~~~~~~~~~~
