@@ -78,6 +78,7 @@ Kivy
   - VBOs to reduce GL calls
   - helpers to create shaders dynamically according to the current vertex format
   - improving 3D support.
+  - add Bounding-Box calculation / selection on the tree only if requested
 
 
 Mobile
