@@ -31,7 +31,8 @@ in advance would be given preference.
 Projects ideas
 --------------
 
-THIS SECTION IS a WIP. The mentors list is not yet final.
+
+The mentors list is only of potential mentors for a particular project and not final.
 
 Kivy
 ~~~~
@@ -45,14 +46,25 @@ Kivy
   Add full support for major embedded platforms like Beagle
   Board and Raspberry Pi. Kivy already has partial support for RPi. It would be
   great to get full support for other major embedded platforms.
+  
+  This would involve:
+    - Native Keyboard Provider.
+    - Window prvider for Beagle board using hooks to the driver for hardware
+      acceleration inspiration can be taken from the rpi window provier
+      https://github.com/kivy/kivy/blob/master/kivy/core/window/window_egl_rpi.py.
+    - Making sure atleast one of the backend for each of the core providers work on
+      the embedded hardware with acceptable performnce. Namely Text, Window, Audio,
+      Video, Keyboard, Clipboard, Image.
 
 * Inspector: 
-    - Mentors: Akshay Arora
+    - Mentors: Akshay Arora, Gabriel Pettier
     - Task level: Intermediate
 
-  Redo or improve the inspector module. Python has awesome
-  introspection possibilities. Let's work together to have an awesome inspector
-  that would allow the user to debug anything from their application.
+  Redo or improve the inspector module.
+  - Use Python introspection to enhance current state of inpector. 
+  - Allow the user to debug anything from their application.
+  - Introduce automatic creash reporting.
+  - Possibly launch debugger automaticlaly when kivy app crashes.
 
 * Graphics Pipeline Enhancements:
       - Mentors: Jacob Kovac, Mathieu Virbel
@@ -60,10 +72,12 @@ Kivy
       - Desired Skills: Familiarity with OpenGL, desire to learn/solve difficult
         concepts/puzzles.
   
-  We have a lot of ideas around the graphics
-  pipeline, like merging instructions or VBOs to reduce GL calls, helpers to
-  create shaders dynamically according to the current vertex format, and
-  improving 3D support.
+  We have a lot of ideas around the graphics pipeline.
+  
+  - Merging instructions
+  - VBOs to reduce GL calls
+  - helpers to create shaders dynamically according to the current vertex format
+  - improving 3D support.
 
 
 Mobile
@@ -115,9 +129,16 @@ Toolchain
     - Requirements: Access to Linux, Windows, OS X, iOS, Android.
     - Task level: Intermediate/Advanced
 
-  SDL2 providers for Kivy, including porting the mobile
-  toolchains to SDL2. Part of the work is already done, so please contact the
-  devs for further details. 
+  SDL2 backend providers for Kivy, including porting the mobile
+  toolchains to SDL2. Part of the work is already done. What left is mostly
+    - Hashing out distribution mechanisms for the lib.
+    - Porting mobile backends to ios and android sdl2. Partial work on this has 
+      already been going on.
+    - Unit tests for the new sdl2 bckends making sure apps work the same
+      on sdl2 as on other backends.
+    - Performace testing. Looking at the difference between sdl2 and other providers
+      to ascertain wether sdl2 could be used as the default provider giving it priority
+      over other backends.
 
 
 
