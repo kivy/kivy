@@ -132,6 +132,7 @@ Toolchain
 
   SDL2 backend providers for Kivy, including porting the mobile
   toolchains to SDL2. Part of the work is already done. What left is mostly
+
     - Hashing out distribution mechanisms for the lib.
     - Porting mobile backends to ios and android sdl2. Partial work on this has 
       already been going on.
