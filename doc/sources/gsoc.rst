@@ -1,69 +1,120 @@
 Google Summer of Code - 2014
 ============================
 
-Kivy is hoping to participate in Google Summer of Code 2014
+Kivy is hoping to participate in Google Summer of Code 2014.
+This page showcases some ideas for gsoc projects and corresponding
+guidelines to get students familiar with contributing towards the
+kivy framework.
+
+Requirements
+------------
+It is assumed that the incoming student be familiar with some basic
+skills as highleted here::
+
+* Intermediate level familiarity with python
+* Student should be fairly comfortable with git and github
+  (Kivy and it's sister projects are all managed on github)
+* Comfortable with Event Driven programming.
+* Preset development environment for kivy or the appropriate
+  sister project you are going to work on. For example to be
+  able to work on pyobjus/pyjnius/plyer you would need access
+  to a ios device, mac with xcode and a developer license,
+  android device respectively.
+  
+Additional desired skills may be listed with specific projects.
+
+Familiarize yourself with the contributing guide http://kivy.org/docs/contribute.html 
+We can help you get up to speed, however students demonstrating ability
+in advance would be given preference.
 
 
 Projects ideas
 --------------
 
+THIS SECTION IS  WIP. The mentors list is not yet final.
+
 Kivy
 ~~~~
 
-* Embedded Support: Add full support for major embedded platforms like Beagle
+* Embedded Support:
+
+  Mentors: Gabriel Pettier, Mathieu Virbel
+  Requirements: Access to specific embedded hardware.
+
+  Add full support for major embedded platforms like Beagle
   Board and Raspberry Pi. Kivy already has partial support for RPi. It would be
   great to get full support for other major embedded platforms.
-* Inspector: Redo or improve the inspector module. Python has awesome
+
+* Inspector: 
+
+  Mentors: Alexander Taylor, Mathieu Virbel
+
+  Redo or improve the inspector module. Python has awesome
   introspection possibilities. Let's work together to have an awesome inspector
   that would allow the user to debug anything from their application.
-* KV Language Compiler: The KV language is parsed and interpreted at runtime.
-  If you run on an embedded device with low CPU resources (such as Raspberry
-  Pi), you'll want to have faster loading and execution.
-* Graphics Pipeline Enhancements: We have a lot of ideas around the graphics
+
+* Graphics Pipeline Enhancements:
+
+  Mentors: Jacob Kovac, Mathieu Virbel
+  
+  We have a lot of ideas around the graphics
   pipeline, like merging instructions or VBOs to reduce GL calls, helpers to
   create shaders dynamically according to the current vertex format, and
   improving 3D support.
-* Kivy Game Engine: A lot of people are still wondering how they can create
-  games on top of Kivy. Even if we have a good set of widgets, we still lack a
-  good API for approaching gaming. Multiple parts could be improved, and new
-  classes added, like a Sprite that subclasses a Rectangle, but can be rotated,
-  scaled, etc. Or a Tiling manager. Or anything. A good knowledge of other game
-  engines is required.
 
 
 Mobile
 ~~~~~~
 
-* Plyer: The idea is to provide a stable API to the user for accessing features
+* Plyer:
+
+  Mentors: Gabriel Pettier, Akshay Arora
+  Requirements: Access to linux, windows, Mac OsX, ios device, android device.
+
+  The idea is to provide a stable API to the user for accessing features
   of your desktop or mobile device, such as Accelerometer, GPS, SMS, Contact,
   and more. Under the hood, you'll use PyJNIus, PyOBJus, and Cython, to do what
   needs to be done. This probably would also include improving PyObjus and
   PyJnius to handle interfaces that they can't right now.
-* SL4A Facades: Porting facades from Scripting Language for Android to Plyer
+
+* SL4A Facades:
+
+  Mentors: Gabriel Pettier, Mathieu virbel
+
+  Porting facades from Scripting Language for Android to Plyer
   for easy integration and compatability. 
 
 
 Toolchain
 ~~~~~~~~~
 
-* Python for Android: Enhance the project to support native Android interfaces,
-  and not just a Kivy interface. The project can also be improved to create a
-  binary release for users so they just have to call build.py.
-* Toolchain for iOS: An iOS interface based on the idea of Python for Android,
+* Toolchain for iOS:
+
+  Mentors: Thomas Hansen, Mathieu Virbel
+  Reuirements: Access to ios, android device along with a developer licence.
+
+  An iOS interface based on the idea of Python for Android,
   in order to replace kivy-ios. Cross-platform compilation skills are heavily
   required.
-* Buildozer: Needs support for generating RPM, DEB, DMG, and EXE files. This,
+
+* Buildozer:
+
+  Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor
+  Requirements: Acces to linux, Windows, OsX, ios, android.
+
+  Needs support for generating RPM, DEB, DMG, and EXE files. This,
   however, might not be enough in itself for a GSoC project. It would have to
   be joined together with some other work.
-* SDL2 Backends: SDL2 providers for Kivy, including porting the mobile
+
+* SDL2 Backends:
+
+  Mentors: Akshay Arora, Jacob Kovac, Mthieu Virbel
+  Requirements: Acces to linux, Windows, OsX, ios, android.
+
+  SDL2 providers for Kivy, including porting the mobile
   toolchains to SDL2. Part of the work is already done, so please contact the
   devs for further details. 
 
-
-Applications
-~~~~~~~~~~~~
-
-* Website: A new Kivy website is required!
 
 
 Anything Else ?
@@ -102,3 +153,5 @@ Here's a checklist:
   the docs or somewhere else and can be found with some research. If your
   questions don't reflect that you've actually thought through what you're
   asking, it might not be well received.
+  
+  [1]:http://en.wikipedia.org/wiki/Event-driven_programming
