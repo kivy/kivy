@@ -70,7 +70,7 @@ Mobile
 ~~~~~~
 
 * Plyer:
-    - Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor.
+    - Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch.
     - Requirements: Access to Linux, Windows, OS X, iOS device, Android device.
     - Task level: Intermediate/Advanced.
     - Desired Skills: Familiarity with Pyjnius, PyObjus.
@@ -82,7 +82,7 @@ Mobile
   they can't right now.
 
 * SL4A Facades:
-    - Mentors: Gabriel Pettier, Akshay Arora, Mathieu virbel
+    - Mentors: Gabriel Pettier, Akshay Arora, Mathieu Virbel
 
   Porting facades from Scripting Language for Android to Plyer
   for easy integration and compatability. 
@@ -102,7 +102,7 @@ Toolchain
   required.
 
 * Buildozer:
-    - Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor
+    - Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch
     - Requirements: Access to linux, Windows, OS X, iOS, Android.
     - Task level: Intermediate
 
