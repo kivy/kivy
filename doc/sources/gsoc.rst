@@ -40,6 +40,8 @@ Kivy
 
   Mentors: Gabriel Pettier, Mathieu Virbel
   Requirements: Access to specific embedded hardware.
+  Task level: Intermediate/Advnced
+  Desired Skills: Familiarity with programming on the specific embedded hardware.
 
   Add full support for major embedded platforms like Beagle
   Board and Raspberry Pi. Kivy already has partial support for RPi. It would be
@@ -47,7 +49,8 @@ Kivy
 
 * Inspector: 
 
-  Mentors: Alexander Taylor, Mathieu Virbel
+  Mentors: Alexander Taylor, Akshay Arora
+  Task level: Intermediate
 
   Redo or improve the inspector module. Python has awesome
   introspection possibilities. Let's work together to have an awesome inspector
@@ -56,6 +59,9 @@ Kivy
 * Graphics Pipeline Enhancements:
 
   Mentors: Jacob Kovac, Mathieu Virbel
+  Task level: Intermediate/Advnced
+  Desired Skills: Familiarity with OpenGL, desire to learnsolve difficult
+                  concepts/puzzles.
   
   We have a lot of ideas around the graphics
   pipeline, like merging instructions or VBOs to reduce GL calls, helpers to
@@ -68,8 +74,10 @@ Mobile
 
 * Plyer:
 
-  Mentors: Gabriel Pettier, Akshay Arora
+  Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor
   Requirements: Access to linux, windows, Mac OsX, ios device, android device.
+  Task level: Intermediate/Advnced
+  Desired Skills: Familiarity with Pyjnius, PyObjus...
 
   The idea is to provide a stable API to the user for accessing features
   of your desktop or mobile device, such as Accelerometer, GPS, SMS, Contact,
@@ -79,7 +87,7 @@ Mobile
 
 * SL4A Facades:
 
-  Mentors: Gabriel Pettier, Mathieu virbel
+  Mentors: Gabriel Pettier, Alexander Taylor, Akshay Arora, Mathieu virbel
 
   Porting facades from Scripting Language for Android to Plyer
   for easy integration and compatability. 
@@ -92,6 +100,8 @@ Toolchain
 
   Mentors: Thomas Hansen, Mathieu Virbel
   Reuirements: Access to ios, android device along with a developer licence.
+  Task level: Intermediate/Advnced
+  Desired Skills: Familiarity with xcode, objc.
 
   An iOS interface based on the idea of Python for Android,
   in order to replace kivy-ios. Cross-platform compilation skills are heavily
@@ -101,6 +111,7 @@ Toolchain
 
   Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor
   Requirements: Acces to linux, Windows, OsX, ios, android.
+  Task level: Intermediate
 
   Needs support for generating RPM, DEB, DMG, and EXE files. This,
   however, might not be enough in itself for a GSoC project. It would have to
@@ -110,6 +121,7 @@ Toolchain
 
   Mentors: Akshay Arora, Jacob Kovac, Mthieu Virbel
   Requirements: Acces to linux, Windows, OsX, ios, android.
+  Task level: Intermediate/Advnced
 
   SDL2 providers for Kivy, including porting the mobile
   toolchains to SDL2. Part of the work is already done, so please contact the
