@@ -47,7 +47,7 @@ Kivy
   great to get full support for other major embedded platforms.
 
 * Inspector: 
-    - Mentors: Alexander Taylor, Akshay Arora
+    - Mentors: Akshay Arora
     - Task level: Intermediate
 
   Redo or improve the inspector module. Python has awesome
@@ -82,7 +82,7 @@ Mobile
   they can't right now.
 
 * SL4A Facades:
-    - Mentors: Gabriel Pettier, Alexander Taylor, Akshay Arora, Mathieu virbel
+    - Mentors: Gabriel Pettier, Akshay Arora, Mathieu virbel
 
   Porting facades from Scripting Language for Android to Plyer
   for easy integration and compatability. 
