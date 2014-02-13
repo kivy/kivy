@@ -9,16 +9,16 @@ kivy framework.
 Requirements
 ------------
 It is assumed that the incoming student be familiar with some basic
-skills as highleted here::
+skills as highlighted here:
 
 * Intermediate level familiarity with python
 * Student should be fairly comfortable with git and github
-  (Kivy and it's sister projects are all managed on github)
+  (Kivy and its sister projects are all managed on github)
 * Comfortable with Event Driven programming.
 * Preset development environment for kivy or the appropriate
   sister project you are going to work on. For example to be
   able to work on pyobjus/pyjnius/plyer you would need access
-  to a ios device, mac with xcode and a developer license,
+  to an iOS device, mac with xcode and a developer license,
   android device respectively.
   
 Additional desired skills may be listed with specific projects.
@@ -31,7 +31,7 @@ in advance would be given preference.
 Projects ideas
 --------------
 
-THIS SECTION IS  WIP. The mentors list is not yet final.
+THIS SECTION IS a WIP. The mentors list is not yet final.
 
 Kivy
 ~~~~
@@ -39,7 +39,7 @@ Kivy
 * Embedded Support:
     - Mentors: Gabriel Pettier, Mathieu Virbel
     - Requirements: Access to specific embedded hardware.
-    - Task level: Intermediate/Advnced
+    - Task level: Intermediate/Advanced
     - Desired Skills: Familiarity with programming on the specific embedded hardware.
 
   Add full support for major embedded platforms like Beagle
@@ -56,8 +56,8 @@ Kivy
 
 * Graphics Pipeline Enhancements:
       - Mentors: Jacob Kovac, Mathieu Virbel
-      - Task level: Intermediate/Advnced
-      - Desired Skills: Familiarity with OpenGL, desire to learnsolve difficult
+      - Task level: Intermediate/Advanced
+      - Desired Skills: Familiarity with OpenGL, desire to learn/solve difficult
         concepts/puzzles.
   
   We have a lot of ideas around the graphics
@@ -71,15 +71,15 @@ Mobile
 
 * Plyer:
     - Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor.
-    - Requirements: Access to linux, windows, Mac OsX, ios device, android device.
-    - Task level: Intermediate/Advnced.
+    - Requirements: Access to Linux, Windows, OS X, iOS device, Android device.
+    - Task level: Intermediate/Advanced.
     - Desired Skills: Familiarity with Pyjnius, PyObjus.
 
   The idea is to provide a stable API to the user for accessing features
-  of your desktop or mobile device, such as Accelerometer, GPS, SMS, Contact,
-  and more. Under the hood, you'll use PyJNIus, PyOBJus, and Cython, to do what
-  needs to be done. This probably would also include improving PyObjus and
-  PyJnius to handle interfaces that they can't right now.
+  of their desktop or mobile device, such as Accelerometer, GPS, SMS, Contact,
+  and more. Under the hood you'll use PyJNIus, PyOBJus and Cython. This probably
+  would also include improving PyObjus and PyJnius to handle interfaces that
+  they can't right now.
 
 * SL4A Facades:
     - Mentors: Gabriel Pettier, Alexander Taylor, Akshay Arora, Mathieu virbel
@@ -93,8 +93,8 @@ Toolchain
 
 * Toolchain for iOS:
     - Mentors: Thomas Hansen, Mathieu Virbel
-    - Reuirements: Access to ios, android device along with a developer licence.
-    - Task level: Intermediate/Advnced
+    - Reuirements: Access to iOS, Android device along with a developer licence.
+    - Task level: Intermediate/Advanced
     - Desired Skills: Familiarity with xcode, objc.
 
   An iOS interface based on the idea of Python for Android,
@@ -103,17 +103,17 @@ Toolchain
 
 * Buildozer:
     - Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor
-    - Requirements: Acces to linux, Windows, OsX, ios, android.
+    - Requirements: Access to linux, Windows, OS X, iOS, Android.
     - Task level: Intermediate
 
-  Needs support for generating RPM, DEB, DMG, and EXE files. This,
-  however, might not be enough in itself for a GSoC project. It would have to
-  be joined together with some other work.
+  Needs support for generating RPM, DEB, DMG, and EXE files. This might not be
+  enough in itself for a GSoC project. It would have to be joined together with 
+  some other work.
 
 * SDL2 Backends:
-    - Mentors: Akshay Arora, Jacob Kovac, Mthieu Virbel
-    - Requirements: Acces to linux, Windows, OsX, ios, android.
-    - Task level: Intermediate/Advnced
+    - Mentors: Akshay Arora, Jacob Kovac, Mathieu Virbel
+    - Requirements: Access to Linux, Windows, OS X, iOS, Android.
+    - Task level: Intermediate/Advanced
 
   SDL2 providers for Kivy, including porting the mobile
   toolchains to SDL2. Part of the work is already done, so please contact the
