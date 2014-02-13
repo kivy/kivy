@@ -113,7 +113,8 @@ from kivy.factory import Factory
 from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
                              ReferenceListProperty, ObjectProperty,
                              ListProperty, DictProperty, BooleanProperty)
-from kivy.graphics import Canvas
+from kivy.graphics import (Canvas, PushMatrix, PopMatrix, Translate, Rectangle,
+                           Fbo, ClearColor, ClearBuffers)
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
@@ -432,6 +433,52 @@ class Widget(WidgetBase):
         remove_widget = self.remove_widget
         for child in children[:]:
             remove_widget(child)
+
+    def save_image(self, filename, *args):
+        '''Saves an image of the widget and its children in png format at the
+        specified filename. Works by removing the widget canvas from its
+        parent, rendering to an :class:`~kivy.graphics.fbo.Fbo`, and calling
+        :meth:`~kivy.graphics.texture.Texture.save`.
+
+        .. Note:: The image includes only this widget and its
+                  children. If you want to include widgets elsewhere
+                  in the tree, you must call
+                  :meth:`~Widget.save_image` from their common parent,
+                  or use :meth:`~kivy.core.window.Window.screenshot`
+                  to capture the whole window.
+
+        .. Note:: The image will be saved in png format, you should
+                  include the extension in your filename.
+
+        .. versionadded:: 1.8.1
+        '''
+
+        if self.parent is not None:
+            canvas_parent_index = self.parent.canvas.indexof(self.canvas)
+            self.parent.canvas.remove(self.canvas)
+
+        fbo = Fbo(size=self.size)
+
+        with fbo:
+            ClearColor(0, 0, 0, 1)
+            ClearBuffers()
+
+        with fbo.before:
+            PushMatrix()
+            Translate(-self.x, -self.y, 0)
+
+        with fbo.after:
+            PopMatrix()
+
+        fbo.add(self.canvas)
+        fbo.draw()
+        fbo.texture.save(filename)
+        fbo.remove(self.canvas)
+
+        if self.parent is not None:
+            self.parent.canvas.insert(canvas_parent_index, self.canvas)
+
+        return True
 
     def get_root_window(self):
         '''Return the root window.
