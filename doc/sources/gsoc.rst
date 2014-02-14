@@ -126,8 +126,13 @@ Kivy
 
   - **Mentors**: Jacob Kovac, Mathieu Virbel
   - **Task level**: Intermediate/Advanced
+<<<<<<< HEAD
   - **Desired Skills*: Familiarity with OpenGL ES and Cython, desire to learn about
     advanced rendering algorithms and solve difficult puzzles.
+=======
+  - **Desired Skills**: Familiarity with OpenGL ES, desire to learn/solve difficult
+    concepts/puzzles.
+>>>>>>> ae833bee6ff8774d4e10afeb19ca4605d13c336a
 
 
 Mobile
