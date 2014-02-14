@@ -56,7 +56,7 @@ Projects Ideas
 The mentors list is only of potential mentors for a particular project and not final.
 
 Enhancements to Kivy
-~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 **Inspector:** 
 
@@ -131,7 +131,7 @@ Enhancements to Kivy
 
 
 Enhancements to Mobile Platforms
-~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Plyer:**
 
@@ -163,7 +163,7 @@ Enhancements to Mobile Platforms
 
 
 Enhancements to Toolchain
-~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Python-for-ios:**
 
