@@ -126,13 +126,8 @@ Kivy
 
   - **Mentors**: Jacob Kovac, Mathieu Virbel
   - **Task level**: Intermediate/Advanced
-<<<<<<< HEAD
   - **Desired Skills*: Familiarity with OpenGL ES and Cython, desire to learn about
     advanced rendering algorithms and solve difficult puzzles.
-=======
-  - **Desired Skills**: Familiarity with OpenGL ES, desire to learn/solve difficult
-    concepts/puzzles.
->>>>>>> ae833bee6ff8774d4e10afeb19ca4605d13c336a
 
 
 Mobile
@@ -205,11 +200,12 @@ Toolchain
     Needs support for generating RPM, DEB, DMG, and EXE files. You will be required to
     write code that creates a RPM, DEB, DMG, EXE target see
     https://github.com/kivy/buildozer/tree/master/buildozer/targets for details.
-    
     extending buildozer backends supports
+
   References:
     https://github.com/kivy/Buildozer
     https://github.com/kivy/buildozer/tree/master/buildozer/targets
+    
   Expected Outcome:
     Running `buildoer deb debug` or `buildozer deb release` should result in a .deb
     package that can be directly be used to install on the target machine.
