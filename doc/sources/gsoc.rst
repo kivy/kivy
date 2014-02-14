@@ -1,7 +1,13 @@
 Google Summer of Code - 2014
 ============================
 
-Kivy is hoping to participate in Google Summer of Code 2014.
+Introduction
+------------
+Kivy - cross-platform, business friedly, GPU Accelerated Open source
+Python library for rapid development of applications that make use of
+innovative user interfaces, such as multi-touch apps.
+
+We are hoping to participate in Google Summer of Code 2014 under PSF.
 This page showcases some ideas for gsoc projects and corresponding
 guidelines to get students familiar with contributing towards the
 kivy framework.
@@ -63,10 +69,10 @@ Kivy
     at least one of the backends for each core providers mentioned above to achieve
     feature parity with other patforms.
 
-  - Mentors: Gabriel Pettier, Mathieu Virbel
-  - Requirements: Access to specific embedded hardware.
-  - Task level: Intermediate/Advanced
-  - Desired Skills: Familiarity with programming on the specific embedded hardware.
+  - **Mentors**: Gabriel Pettier, Mathieu Virbel
+  - **Requirements**: Access to specific embedded hardware.
+  - **Task level**: Intermediate/Advanced
+  - **Desired Skills**: Familiarity with programming on the specific embedded hardware.
 
 * Inspector: 
 
@@ -84,8 +90,8 @@ Kivy
     A fully functional Inspector module that facilitates debugging at any stage,
     including crash reports and a debugging console.
   
-  - Mentors: Akshay Arora, Gabriel Pettier
-  - Task level: Intermediate
+  - **Mentors**: Akshay Arora, Gabriel Pettier
+  - **Task level**: Intermediate
 
 * Graphics Pipeline Enhancements:
 
@@ -103,9 +109,9 @@ Kivy
   Expected Outcome:
     Significant improvement in the graphics pipeline that can be quantfied by tests.
 
-  - Mentors: Jacob Kovac, Mathieu Virbel
-  - Task level: Intermediate/Advanced
-  - Desired Skills: Familiarity with OpenGL ES, desire to learn/solve difficult
+  - **Mentors**: Jacob Kovac, Mathieu Virbel
+  - **Task level**: Intermediate/Advanced
+  - **Desired Skills*: Familiarity with OpenGL ES, desire to learn/solve difficult
     concepts/puzzles.
 
 
@@ -134,10 +140,10 @@ Mobile
   Expected Outcome:
     platform independent api for accessing most platform specific parts.
     
-  - Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch.
-  - Requirements: Access to Linux, Windows, OS X, iOS device, Android device.
-  - Task level: Intermediate/Advanced.
-  - Desired Skills: Familiarity with Pyjnius, PyObjus.
+  - **Mentors**: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch.
+  - **Requirements**: Access to Linux, Windows, OS X, iOS device, Android device.
+  - **Task level**: Intermediate/Advanced.
+  - **Desired Skills**: Familiarity with Pyjnius, PyObjus.
 
 
 Toolchain
@@ -154,10 +160,10 @@ Toolchain
   Expected Outcome:
     A new new/improved modular and extendable toolchain.
   
-  - Mentors: Thomas Hansen, Mathieu Virbel
-  - Reuirements: Access to iOS, Android device along with a developer licence.
-  - Task level: Intermediate/Advanced
-  - Desired Skills: Familiarity with xcode, objc.
+  - **Mentors**: Thomas Hansen, Mathieu Virbel
+  - **Reuirements**: Access to iOS, Android device along with a developer licence.
+  - **Task level**: Intermediate/Advanced
+  - **Desired Skills**: Familiarity with xcode, objc.
 
 * Buildozer:
 
@@ -170,9 +176,9 @@ Toolchain
   Expected Outcome:
     New targets for buildozer to be able to get deb, rpm, dmg, exe binaries.
 
-  - Mentors: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch
-  - Requirements: Access to linux, Windows, OS X, iOS, Android.
-  - Task level: Intermediate
+  - **Mentors**: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch
+  - **Requirements**: Access to linux, Windows, OS X, iOS, Android.
+  - **Task level**: Intermediate
 
 * SDL2 Backends:
   
@@ -193,14 +199,40 @@ Toolchain
   Expected Outcome:
     New sdl2 core providers and support for using sdl2 on mobiles.
 
-  - Mentors: Akshay Arora, Jacob Kovac, Mathieu Virbel
-  - Requirements: Access to Linux, Windows, OS X, iOS, Android.
-  - Task level: Intermediate/Advanced
+  - **Mentors**: Akshay Arora, Jacob Kovac, Mathieu Virbel
+  - **Requirements:** Access to Linux, Windows, OS X, iOS, Android.
+  - **Task level**: Intermediate/Advanced
 
 Anything Else ?
 ~~~~~~~~~~~~~~~
 
 * Let your imagination run wild, and show what Kivy is capable of!
+
+How to get setup
+----------------
+For Kivy Easiest way is to follow the install instructions for the
+development version for your specific platform
+
+http://kivy.org/docs/installation/installation.html#development-version
+
+For the rest it's usually suffecient to install the relevant project
+from git and add it to your PYTHONPATH.
+
+eg.. for pyjnius::
+
+    git clone http://github.com/kivy/pyjnius
+    export PYTHONPATH=/path/to/pyjnius:$PYTHONPATH
+
+How to Contact devs
+-------------------
+Ask your questions on the Kivy users forums
+http://kivy.org/#forum
+
+Or send a mail at kivy-users@googlegroups.com
+
+You can also try to contact us on IRC (online chat),
+but make sure to read the IRC rules before connecting.
+http://webchat.freenode.net/?nick=kvuser.&channels=kivy&uio=d4
 
 
 How to be a good student
