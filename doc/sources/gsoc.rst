@@ -58,37 +58,6 @@ The mentors list is only of potential mentors for a particular project and not f
 Kivy
 ~~~~
 
-* Embedded Support:
-
-  Description:
-    Add full support for major embedded platforms like Beagle Board and Raspberry Pi.
-    Kivy already has partial support for RPi. It would be
-    great to have support for other major embedded platforms.
-  
-  This would involve:
-    - Native Keyboard Provider.
-    - Window provider for Beagle board using hooks to the driver for hardware
-      acceleration inspiration can be taken from the rpi window provider
-      https://github.com/kivy/kivy/blob/master/kivy/core/window/window_egl_rpi.py.
-    - Ensuring at least one of the backends for each of the core providers work on
-      the embedded hardware with acceptable performance. Namely: Text, Window, Audio,
-      Video, Keyboard, Clipboard, and Image Providers
-  Reference: 
-      - https://github.com/kivy/kivy/blob/master/kivy/core/window/window_egl_rpi.py.
-      - http://kivy.org/docs/api-kivy.core.html
-      - http://kivy.org/docs/guide/architecture.html#architecture
-      - http://kivy.org/docs/guide/architecture.html#providers
-      
-  Expected Outcome:
-    Full Working support for the embedded platforms. This would include support for
-    at least one of the backends for each core providers mentioned above to achieve
-    feature parity with other platforms.
-
-  - **Mentors**: Gabriel Pettier, Mathieu Virbel
-  - **Requirements**: Access to specific embedded hardware.
-  - **Task level**: Intermediate/Advanced
-  - **Desired Skills**: Familiarity with programming on the specific embedded hardware.
-
 * Inspector: 
 
   Description:
@@ -128,20 +97,52 @@ Kivy
   - **Task level**: Intermediate/Advanced
   - **Desired Skills*: Familiarity with OpenGL ES and Cython, desire to learn about
     advanced rendering algorithms and solve difficult puzzles.
+    
+* Embedded Support:
+
+  Description:
+    Add full support for major embedded platforms like Beagle Board and Raspberry Pi.
+    Kivy already has partial support for RPi. It would be
+    great to have support for other major embedded platforms.
+  
+  This would involve:
+    - Native Keyboard Provider.
+    - Window provider for Beagle board using hooks to the driver for hardware
+      acceleration inspiration can be taken from the rpi window provider
+      https://github.com/kivy/kivy/blob/master/kivy/core/window/window_egl_rpi.py.
+    - Ensuring at least one of the backends for each of the core providers work on
+      the embedded hardware with acceptable performance. Namely: Text, Window, Audio,
+      Video, Keyboard, Clipboard, and Image Providers
+  Reference: 
+      - https://github.com/kivy/kivy/blob/master/kivy/core/window/window_egl_rpi.py.
+      - http://kivy.org/docs/api-kivy.core.html
+      - http://kivy.org/docs/guide/architecture.html#architecture
+      - http://kivy.org/docs/guide/architecture.html#providers
+      
+  Expected Outcome:
+    Full Working support for the embedded platforms. This would include support for
+    at least one of the backends for each core providers mentioned above to achieve
+    feature parity with other platforms.
+
+  - **Mentors**: Gabriel Pettier, Mathieu Virbel
+  - **Requirements**: Access to specific embedded hardware.
+  - **Task level**: Intermediate/Advanced
+  - **Desired Skills**: Familiarity with programming on the specific embedded hardware.
 
 
 Mobile
 ~~~~~~
 
 * Plyer:
+  Platform Abstraction layer, is a platform-independant api to use features
+  commonly found on various platforms, notably mobile ones, in python.
 
   Description:
     The idea is to provide a stable API to the user for accessing features
     of their desktop or mobile device.
     
     Facades and implementation for::
-      - such as Accelerometer, GPS, SMS, Contact,
-        and more. 
+      - such as Accelerometer, GPS, SMS, Contact, and more. 
       - Porting facades from Scripting Language for Android to Plyer
         for easy integration and compatibility.
     
@@ -197,10 +198,13 @@ Toolchain
     is intended in the future.
 
   Description:
-    Needs support for generating RPM, DEB, DMG, and EXE files. You will be required to
+    Needs support for generating RPM, DEB, DMG, and EXE files. You will be required to 
     write code that creates a RPM, DEB, DMG, EXE target see
     https://github.com/kivy/buildozer/tree/master/buildozer/targets for details.
-    extending buildozer backends supports
+    Optimize final package size. Introspect all the python files, extract all the symbols
+    (global variables / functions / class / class methods), mark all the symbol needed
+    (whitelist) from a file as well generate a stripped version of all the python files
+    with only the part needed.
 
   References:
     - https://github.com/kivy/Buildozer
@@ -222,17 +226,17 @@ Toolchain
     toolchains to SDL2. Part of the work is already done. What left is mostly
 
     - Hashing out distribution mechanisms for the lib.
-    - Porting mobile backends to ios and android sdl2. Partial work on this has 
+    - Porting mobile backends for ios and android to sdl2. Partial work on this has 
       already been going on.
     - Unit tests for the new sdl2 backends making sure apps work the same
       on sdl2 as on other backends.
-    - Performance testing. Looking at the difference between sdl2 and other providers
-      to ascertain whether sdl2 could be used as the default provider giving it priority
-      over other backends.
+    - Performace testing. Looking at the difference between sdl2 and other providers
+      to ascertain wether sdl2 could be used as the default provider giving it priority
   References:
     https://github.com/kivy/kivy/tree/sdl2-support
   Expected Outcome:
-    New sdl2 core providers and support for using sdl2 on mobiles.
+    Completing the existing and adding new sdl2 core providers and support for using
+    sdl2 on mobiles.
 
   - **Mentors**: Akshay Arora, Jacob Kovac, Mathieu Virbel
   - **Requirements:** Access to Linux, Windows, OS X, iOS, Android.
