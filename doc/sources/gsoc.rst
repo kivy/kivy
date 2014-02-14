@@ -33,6 +33,20 @@ Familiarize yourself with the contributing guide http://kivy.org/docs/contribute
 We can help you get up to speed, however students demonstrating ability
 in advance would be given preference.
 
+How to get setup
+----------------
+For Kivy Easiest way is to follow the install instructions for the
+development version for your specific platform
+
+http://kivy.org/docs/installation/installation.html#development-version
+
+For the rest it's usually suffecient to install the relevant project
+from git and add it to your PYTHONPATH.
+
+eg.. for pyjnius::
+
+    git clone http://github.com/kivy/pyjnius
+    export PYTHONPATH=/path/to/pyjnius:$PYTHONPATH
 
 Projects ideas
 --------------
@@ -149,13 +163,17 @@ Mobile
 Toolchain
 ~~~~~~~~~
 
-* Toolchain for iOS:
+* Python-for-ios:
 
   Description:
-    An iOS interface based on the idea of Python for Android,
-    in order to replace kivy-ios. Cross-platform compilation skills are heavily
-    required.
+    An iOS interface for building a app for the app store based on the idea of
+    Python for Android, https://github.com/kivy/python-for-android in order to
+    improve on kivy-ios.
+  Current state:
+    kivy ios achieves this but in a more restricted monolith manner. We'd like to
+    replace it with a more modular tool that is more extensible.
   References:
+    https://github.com/kivy/python-for-android
     https://github.com/kivy/kivy-ios
   Expected Outcome:
     A new new/improved modular and extendable toolchain.
@@ -163,22 +181,38 @@ Toolchain
   - **Mentors**: Thomas Hansen, Mathieu Virbel
   - **Reuirements**: Access to iOS, Android device along with a developer licence.
   - **Task level**: Intermediate/Advanced
-  - **Desired Skills**: Familiarity with xcode, objc.
+  - **Desired Skills**: Familiarity with xcode, objc. Cross-platform compilation
+    skills are heavily required.
 
 * Buildozer:
+    Buildozer is a python app for creating application packages easily.
+    The goal is to have one "buildozer.spec" file in your app directory,
+    describing your application requirements and settings such as title, icon,
+    included modules etc. Buildozer will use that spec to create a package for
+    Android, iOS, Windows, OSX and/or Linux.
+
+    Buildozer currently supports packaging for Android via the python-for-android
+    project, and for iOS via the kivy-ios project. Support for other operating systems
+    is intended in the future.
 
   Description:
-    Needs support for generating RPM, DEB, DMG, and EXE files. This might not be
-    enough in itself for a GSoC project. It would have to be joined together with 
-    some other work.
+    Needs support for generating RPM, DEB, DMG, and EXE files. You will be required to
+    write code that creates a RPM, DEB, DMG, EXE target see
+    https://github.com/kivy/buildozer/tree/master/buildozer/targets for details.
+    
+    extending buildozer backends supports
   References:
     https://github.com/kivy/Buildozer
+    https://github.com/kivy/buildozer/tree/master/buildozer/targets
   Expected Outcome:
+    Running `buildoer deb debug` or `buildozer deb release` should result in a .deb
+    package that can be directly be used to install on the target machine.
     New targets for buildozer to be able to get deb, rpm, dmg, exe binaries.
 
   - **Mentors**: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch
   - **Requirements**: Access to linux, Windows, OS X, iOS, Android.
   - **Task level**: Intermediate
+  
 
 * SDL2 Backends:
   
@@ -208,27 +242,15 @@ Anything Else ?
 
 * Let your imagination run wild, and show what Kivy is capable of!
 
-How to get setup
-----------------
-For Kivy Easiest way is to follow the install instructions for the
-development version for your specific platform
-
-http://kivy.org/docs/installation/installation.html#development-version
-
-For the rest it's usually suffecient to install the relevant project
-from git and add it to your PYTHONPATH.
-
-eg.. for pyjnius::
-
-    git clone http://github.com/kivy/pyjnius
-    export PYTHONPATH=/path/to/pyjnius:$PYTHONPATH
-
 How to Contact devs
 -------------------
 Ask your questions on the Kivy users forums
 http://kivy.org/#forum
 
 Or send a mail at kivy-users@googlegroups.com
+
+Make sure to Join kivy-dev user group too @
+https://groups.google.com/forum/#!forum/kivy-dev
 
 You can also try to contact us on IRC (online chat),
 but make sure to read the IRC rules before connecting.
@@ -266,4 +288,3 @@ Here's a checklist:
   questions don't reflect that you've actually thought through what you're
   asking, it might not be well received.
   
-  [1]:http://en.wikipedia.org/wiki/Event-driven_programming
