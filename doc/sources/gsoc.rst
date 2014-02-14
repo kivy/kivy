@@ -230,7 +230,7 @@ Toolchain
       to ascertain whether sdl2 could be used as the default provider giving it priority
       over other backends.
   References:
-    https://github.com/kivy/kivy sdl2 branch
+    https://github.com/kivy/kivy/tree/sdl2-support
   Expected Outcome:
     New sdl2 core providers and support for using sdl2 on mobiles.
 
