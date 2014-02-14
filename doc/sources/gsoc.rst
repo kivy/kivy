@@ -50,15 +50,15 @@ eg.. for pyjnius::
     export PYTHONPATH=/path/to/pyjnius:$PYTHONPATH
 
 
-Projects ideas
+Projects Ideas
 --------------
 
 The mentors list is only of potential mentors for a particular project and not final.
 
-Kivy
+Enhancements to Kivy
 ~~~~
 
-* Inspector: 
+**Inspector:** 
 
   Description:
     Redo or improve the inspector module to include the following features:
@@ -77,7 +77,7 @@ Kivy
   - **Mentors**: Akshay Arora, Gabriel Pettier
   - **Task level**: Intermediate
 
-* Graphics Pipeline Enhancements:
+**Graphics Pipeline Enhancements:**
 
   Description:
     We have a lot of ideas around the graphics pipeline:
@@ -95,10 +95,10 @@ Kivy
 
   - **Mentors**: Jacob Kovac, Mathieu Virbel
   - **Task level**: Intermediate/Advanced
-  - **Desired Skills*: Familiarity with OpenGL ES and Cython, desire to learn about
+  - **Desired Skills**: Familiarity with OpenGL ES and Cython, desire to learn about
     advanced rendering algorithms and solve difficult puzzles.
     
-* Embedded Support:
+**Embedded Support:**
 
   Description:
     Add full support for major embedded platforms like Beagle Board and Raspberry Pi.
@@ -130,14 +130,14 @@ Kivy
   - **Desired Skills**: Familiarity with programming on the specific embedded hardware.
 
 
-Mobile
+Enhancements to Mobile Platforms
 ~~~~~~
 
-* Plyer:
-  Platform Abstraction layer, is a platform-independant api to use features
-  commonly found on various platforms, notably mobile ones, in python.
+**Plyer:**
 
   Description:
+    Platform Abstraction layer, is a platform-independant api to use features
+    commonly found on various platforms, notably mobile ones, in python.
     The idea is to provide a stable API to the user for accessing features
     of their desktop or mobile device.
     
@@ -162,10 +162,10 @@ Mobile
   - **Desired Skills**: Familiarity with Pyjnius, PyObjus.
 
 
-Toolchain
+Enhancements to Toolchain
 ~~~~~~~~~
 
-* Python-for-ios:
+**Python-for-ios:**
 
   Description:
     An iOS interface for building a app for the app store based on the idea of
@@ -186,7 +186,9 @@ Toolchain
   - **Desired Skills**: Familiarity with xcode, objc. Cross-platform compilation
     skills are heavily required.
 
-* Buildozer:
+**Buildozer:**
+
+  Description:
     Buildozer is a python app for creating application packages easily.
     The goal is to have one "buildozer.spec" file in your app directory,
     describing your application requirements and settings such as title, icon,
@@ -196,16 +198,15 @@ Toolchain
     Buildozer currently supports packaging for Android via the python-for-android
     project, and for iOS via the kivy-ios project. Support for other operating systems
     is intended in the future.
-
-  Description:
-    Needs support for generating RPM, DEB, DMG, and EXE files. You will be required to 
-    write code that creates a RPM, DEB, DMG, EXE target see
-    https://github.com/kivy/buildozer/tree/master/buildozer/targets for details.
-    Optimize final package size. Introspect all the python files, extract all the symbols
-    (global variables / functions / class / class methods), mark all the symbol needed
-    (whitelist) from a file as well generate a stripped version of all the python files
-    with only the part needed.
-
+    
+    - Buildozer needs support for generating RPM, DEB, DMG, and EXE files. You will be 
+      required to write code that creates a RPM, DEB, DMG, EXE target see
+      https://github.com/kivy/buildozer/tree/master/buildozer/targets for details.
+    
+    - Optimize final package size. Introspect all the python files, extract all the symbols
+      (global variables / functions / class / class methods), mark all the symbol needed
+      (whitelist) from a file as well generate a stripped version of all the python files
+      with only the part needed.
   References:
     - https://github.com/kivy/Buildozer
     - https://github.com/kivy/buildozer/tree/master/buildozer/targets
@@ -219,7 +220,7 @@ Toolchain
   - **Task level**: Intermediate
   
 
-* SDL2 Backends:
+**SDL2 Backends:**
   
   Description:
     SDL2 backend providers for Kivy, including porting the mobile
