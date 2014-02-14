@@ -3,7 +3,7 @@ Google Summer of Code - 2014
 
 Introduction
 ------------
-Kivy - Cross-platform, business friendly, GPU Accelerated Open Source
+Kivy is a cross-platform, business friendly, GPU Accelerated open source
 Python library for rapid development of applications that make use of
 innovative user interfaces, such as multi-touch apps.
 
@@ -13,14 +13,15 @@ guidelines for students contributing to the Kivy Framework.
 
 Requirements
 ------------
-It is assumed that the incoming student be familiar with some basic
-skills as highlighted here:
+
+It is assumed that the incoming student meets some basic
+requirements as highlighted here:
 
 * Intermediate level familiarity with python
-* Student should be fairly comfortable with git and github
+* Comfortable with git and github
   (Kivy and its sister projects are all managed on github)
-* Comfortable with Event Driven programming.
-* Preset development environment for kivy or the appropriate
+* Comfortable with event driven programming.
+* Has suitable tools/environment for kivy or the 
   sister project you are going to work on. For example to be
   able to work on pyobjus you would need access to an iOS device, 
   mac with xcode and a developer license, to work on pyjnius you 
@@ -36,7 +37,8 @@ in advance will be given preference.
 
 How to get setup
 ----------------
-For Kivy Easiest way is to follow the install instructions for the
+
+For Kivy Easiest way is to follow the installation instructions for the
 development version for your specific platform
 
 http://kivy.org/docs/installation/installation.html#development-version
@@ -50,7 +52,7 @@ eg.. for pyjnius::
     export PYTHONPATH=/path/to/pyjnius:$PYTHONPATH
 
 
-Projects Ideas
+Project Ideas
 --------------
 
 The mentors list is only of potential mentors for a particular project and not final.
@@ -136,25 +138,25 @@ Enhancements to Mobile Platforms
 **Plyer:**
 
   Description:
-    Platform Abstraction layer, is a platform-independant api to use features
-    commonly found on various platforms, notably mobile ones, in python.
+    Plyer is a platform-independant api to use features
+    commonly found on various platforms, especially mobile ones, in Python.
     The idea is to provide a stable API to the user for accessing features
     of their desktop or mobile device.
     
-    Facades and implementation for::
-      - such as Accelerometer, GPS, SMS, Contact, and more. 
-      - Porting facades from Scripting Language for Android to Plyer
-        for easy integration and compatibility.
+    The student would work on facades and implementation for Accelerometer, 
+    GPS, SMS, Contact etc., including porting facades from SL4A (Scripting 
+    Layer for Android) to Plyer for easy integration and compatibility.
     
-    Under the hood you'll use PyJNIus, PyOBJus. This probably
+    Under the hood you'll use PyJNIus and PyOBJus. This probably
     would also include improving PyObjus and PyJnius to handle interfaces that
     they can't right now.
+    
   References:
     - https://github.com/kivy/plyer
     - https://github.com/kivy/pyjnius
     - https://github.com/kivy/pyobjus
   Expected Outcome:
-    platform independent api for accessing most platform specific parts.
+    Platform independent api for accessing most platform specific features.
     
   - **Mentors**: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch.
   - **Requirements**: Access to Linux, Windows, OS X, iOS device, Android device.
@@ -165,14 +167,13 @@ Enhancements to Mobile Platforms
 Enhancements to Toolchain
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Python-for-ios:**
+**Python-for-iOS:**
 
   Description:
     An iOS interface for building a app for the app store based on the idea of
-    Python for Android, https://github.com/kivy/python-for-android in order to
-    improve on kivy-ios.
+    Python for Android, https://github.com/kivy/python-for-android
   Current state:
-    kivy ios achieves this but in a more restricted monolith manner. We'd like to
+    Kivy iOS achieves this but in a more restricted monolith manner. We'd like to
     replace it with a more modular tool that is more extensible.
   References:
     - https://github.com/kivy/python-for-android
@@ -189,31 +190,30 @@ Enhancements to Toolchain
 **Buildozer:**
 
   Description:
-    Buildozer is a python app for creating application packages easily.
+    Buildozer is a Python tool for creating application packages easily.
     The goal is to have one "buildozer.spec" file in your app directory,
     describing your application requirements and settings such as title, icon,
     included modules etc. Buildozer will use that spec to create a package for
-    Android, iOS, Windows, OSX and/or Linux.
+    Android, iOS, Windows, OS X and/or Linux.
 
     Buildozer currently supports packaging for Android via the python-for-android
-    project, and for iOS via the kivy-ios project. Support for other operating systems
-    is intended in the future.
+    project, and for iOS via the kivy-ios project. This project would involve
+    extending this support to other package formats and operating systems,
+    e.g. RPM, DEB, DMG, EXE. You will need to write new buildozer target code
+    to support these formats.
     
-    - Buildozer needs support for generating RPM, DEB, DMG, and EXE files. You will be 
-      required to write code that creates a RPM, DEB, DMG, EXE target see
-      https://github.com/kivy/buildozer/tree/master/buildozer/targets for details.
-    
-    - Optimize final package size. Introspect all the python files, extract all the symbols
-      (global variables / functions / class / class methods), mark all the symbol needed
-      (whitelist) from a file as well generate a stripped version of all the python files
-      with only the part needed.
+    This project would also involve optimizations to the final package formats, 
+    e.g. introspect the python files, extract all the symbols (global 
+    variables / functions / class / class methods), mark all the necessary
+    symbols (whitelist) and generate a stripped version of all the python files
+    without the unnecessary symbols.
   References:
     - https://github.com/kivy/Buildozer
     - https://github.com/kivy/buildozer/tree/master/buildozer/targets
   Expected Outcome:
     Running `buildoer deb debug` or `buildozer deb release` should result in a .deb
-    package that can be directly be used to install on the target machine.
-    New targets for buildozer to be able to get deb, rpm, dmg, exe binaries.
+    package that can be directly be used to install on the target machine,
+    or the equivalent for other package and binary formats.
 
   - **Mentors**: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch
   - **Requirements**: Access to linux, Windows, OS X, iOS, Android.
@@ -227,16 +227,16 @@ Enhancements to Toolchain
     toolchains to SDL2. Part of the work is already done. What left is mostly
 
     - Hashing out distribution mechanisms for the lib.
-    - Porting mobile backends for ios and android to sdl2. Partial work on this has 
+    - Porting mobile backends for ios and android to SDL2. Partial work on this has 
       already been going on.
     - Unit tests for the new sdl2 backends making sure apps work the same
-      on sdl2 as on other backends.
-    - Performace testing. Looking at the difference between sdl2 and other providers
+      on SDL2 as on other backends.
+    - Performace testing. Looking at the difference between SDL2 and other providers
       to ascertain wether sdl2 could be used as the default provider giving it priority
   References:
     https://github.com/kivy/kivy/tree/sdl2-support
   Expected Outcome:
-    Completing the existing and adding new sdl2 core providers and support for using
+    Completing the existing and adding new SDL2 core providers and support for using
     sdl2 on mobiles.
 
   - **Mentors**: Akshay Arora, Jacob Kovac, Mathieu Virbel
