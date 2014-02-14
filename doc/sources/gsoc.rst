@@ -167,7 +167,7 @@ Toolchain
 
   Description:
     An iOS interface for building a app for the app store based on the idea of
-    Python for Android, https://github.com/kivy/python-for-android in order to
+    Python for android, https://github.com/kivy/python-for-android in order to
     improve on kivy-ios.
   Current state:
     kivy ios achieves this but in a more restricted monolith manner. We'd like to
@@ -176,7 +176,7 @@ Toolchain
     https://github.com/kivy/python-for-android
     https://github.com/kivy/kivy-ios
   Expected Outcome:
-    A new new/improved modular and extendable toolchain.
+    A new new/improved modular and extendable project.
   
   - **Mentors**: Thomas Hansen, Mathieu Virbel
   - **Reuirements**: Access to iOS, Android device along with a developer licence.
@@ -193,14 +193,16 @@ Toolchain
 
     Buildozer currently supports packaging for Android via the python-for-android
     project, and for iOS via the kivy-ios project. Support for other operating systems
-    is intended in the future.
+    is intended for this GSOC.
 
   Description:
-    Needs support for generating RPM, DEB, DMG, and EXE files. You will be required to
-    write code that creates a RPM, DEB, DMG, EXE target see
-    https://github.com/kivy/buildozer/tree/master/buildozer/targets for details.
-    
-    extending buildozer backends supports
+    - Needs support for generating RPM, DEB, DMG, and EXE files. You will be required to
+      write code that creates a RPM, DEB, DMG, EXE target see
+      https://github.com/kivy/buildozer/tree/master/buildozer/targets for details.
+    - Optimize final package size. Introspect all the python files, extract all the symbols
+      (global variables / functions / class / class methods), mark all the symbol needed
+      (whitelist) from a file as well generate a stripped version of all the python files
+      with only the part needed.
   References:
     https://github.com/kivy/Buildozer
     https://github.com/kivy/buildozer/tree/master/buildozer/targets
