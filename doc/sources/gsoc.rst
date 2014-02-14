@@ -133,14 +133,14 @@ Mobile
 ~~~~~~
 
 * Plyer:
-
+    Platform Abstraction layer, is a platform-independant api to use features
+    commonly found on various platforms, notably mobile ones, in python.
   Description:
     The idea is to provide a stable API to the user for accessing features
     of their desktop or mobile device.
     
     Facades and implementation for::
-      - such as Accelerometer, GPS, SMS, Contact,
-        and more. 
+      - such as Accelerometer, GPS, SMS, Contact, and more. 
       - Porting facades from Scripting Language for Android to Plyer
         for easy integration and compatability.
     
@@ -223,7 +223,7 @@ Toolchain
     toolchains to SDL2. Part of the work is already done. What left is mostly
 
     - Hashing out distribution mechanisms for the lib.
-    - Porting mobile backends to ios and android sdl2. Partial work on this has 
+    - Porting mobile backends for ios and android to sdl2. Partial work on this has 
       already been going on.
     - Unit tests for the new sdl2 bckends making sure apps work the same
       on sdl2 as on other backends.
@@ -231,9 +231,10 @@ Toolchain
       to ascertain wether sdl2 could be used as the default provider giving it priority
       over other backends.
   References:
-    https://github.com/kivy/kivy sdl2 branch
+    https://github.com/kivy/kivy/tree/sdl2-support
   Expected Outcome:
-    New sdl2 core providers and support for using sdl2 on mobiles.
+    Completing the existing and adding new sdl2 core providers and support for using
+    sdl2 on mobiles.
 
   - **Mentors**: Akshay Arora, Jacob Kovac, Mathieu Virbel
   - **Requirements:** Access to Linux, Windows, OS X, iOS, Android.
