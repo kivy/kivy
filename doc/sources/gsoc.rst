@@ -260,7 +260,7 @@ https://groups.google.com/forum/#!forum/kivy-dev
 
 You can also try to contact us on IRC (online chat),
 but make sure to read the IRC rules before connecting.
-http://webchat.freenode.net/?nick=kvuser.&channels=kivy&uio=d4
+http://webchat.freenode.net/?nick=kvuser_GSOC_.&channels=kivy&uio=d4
 
 
 How to be a good student
