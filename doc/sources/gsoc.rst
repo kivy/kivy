@@ -3,14 +3,13 @@ Google Summer of Code - 2014
 
 Introduction
 ------------
-Kivy - cross-platform, business friedly, GPU Accelerated Open source
+Kivy - Cross-platform, business friendly, GPU Accelerated Open Source
 Python library for rapid development of applications that make use of
 innovative user interfaces, such as multi-touch apps.
 
 We are hoping to participate in Google Summer of Code 2014 under PSF.
 This page showcases some ideas for gsoc projects and corresponding
-guidelines to get students familiar with contributing towards the
-kivy framework.
+guidelines for students contributing to the Kivy Framework.
 
 Requirements
 ------------
@@ -23,15 +22,17 @@ skills as highlighted here:
 * Comfortable with Event Driven programming.
 * Preset development environment for kivy or the appropriate
   sister project you are going to work on. For example to be
-  able to work on pyobjus/pyjnius/plyer you would need access
-  to an iOS device, mac with xcode and a developer license,
-  android device respectively.
+  able to work on pyobjus you would need access to an iOS device, 
+  mac with xcode and a developer license, to work on pyjnius you 
+  would need an android device, and to work on plyer you would 
+  need access to hardware for both platforms.
+
   
 Additional desired skills may be listed with specific projects.
 
 Familiarize yourself with the contributing guide http://kivy.org/docs/contribute.html 
 We can help you get up to speed, however students demonstrating ability
-in advance would be given preference.
+in advance will be given preference.
 
 How to get setup
 ----------------
@@ -40,7 +41,7 @@ development version for your specific platform
 
 http://kivy.org/docs/installation/installation.html#development-version
 
-For the rest it's usually suffecient to install the relevant project
+For the rest it's usually sufficient to install the relevant project
 from git and add it to your PYTHONPATH.
 
 eg.. for pyjnius::
@@ -48,9 +49,9 @@ eg.. for pyjnius::
     git clone http://github.com/kivy/pyjnius
     export PYTHONPATH=/path/to/pyjnius:$PYTHONPATH
 
+
 Projects ideas
 --------------
-
 
 The mentors list is only of potential mentors for a particular project and not final.
 
@@ -62,16 +63,16 @@ Kivy
   Description:
     Add full support for major embedded platforms like Beagle Board and Raspberry Pi.
     Kivy already has partial support for RPi. It would be
-    great to get full support for other major embedded platforms.
+    great to have support for other major embedded platforms.
   
   This would involve:
     - Native Keyboard Provider.
-    - Window prvider for Beagle board using hooks to the driver for hardware
-      acceleration inspiration can be taken from the rpi window provier
+    - Window provider for Beagle board using hooks to the driver for hardware
+      acceleration inspiration can be taken from the rpi window provider
       https://github.com/kivy/kivy/blob/master/kivy/core/window/window_egl_rpi.py.
-    - Making sure at least one of the backend for each of the core providers work on
-      the embedded hardware with acceptable performnce. Namely Text, Window, Audio,
-      Video, Keyboard, Clipboard, Image.
+    - Ensuring at least one of the backends for each of the core providers work on
+      the embedded hardware with acceptable performance. Namely: Text, Window, Audio,
+      Video, Keyboard, Clipboard, and Image Providers
   Reference: 
       https://github.com/kivy/kivy/blob/master/kivy/core/window/window_egl_rpi.py.
       http://kivy.org/docs/api-kivy.core.html
@@ -79,9 +80,9 @@ Kivy
       http://kivy.org/docs/guide/architecture.html#providers
       
   Expected Outcome:
-    Full Working support for the embedded platforms. This would include suport for
+    Full Working support for the embedded platforms. This would include support for
     at least one of the backends for each core providers mentioned above to achieve
-    feature parity with other patforms.
+    feature parity with other platforms.
 
   - **Mentors**: Gabriel Pettier, Mathieu Virbel
   - **Requirements**: Access to specific embedded hardware.
@@ -92,10 +93,10 @@ Kivy
 
   Description:
     Redo or improve the inspector module to include the following features:
-      - Use Python introspection to enhance current state of inpector. 
-      - Extend Inspectors debugging cpabilities to the whole app.
-      - Introduce automatic creash reporting.
-      - Possibly launch debugger automaticlaly when kivy app crashes.
+      - Use Python introspection to enhance current state of inspector. 
+      - Extend Inspectors debugging capabilities to the whole app.
+      - Introduce automatic crash reporting.
+      - Possibly launch debugger automatically when Kivy app crashes.
   Reference: 
       http://kivy.org/docs/api-kivy.modules.html
       http://kivy.org/docs/api-kivy.modules.inspector.html
@@ -113,9 +114,9 @@ Kivy
     We have a lot of ideas around the graphics pipeline:
       - Merging instructions
       - VBOs to reduce GL calls
-      - helpers to create shaders dynamically according to the current vertex format
-      - improving 3D support.
-      - add Bounding-Box calculation / selection on the tree only if requested
+      - Helpers to create shaders dynamically according to the current vertex format
+      - Improving 3D support.
+      - Add Bounding-Box calculation / selection on the tree only if requested
       - Unit tests to quantify the amount of improvements achieved.
   Reference: 
       http://kivy.org/docs/api-kivy.graphics.html
@@ -125,24 +126,24 @@ Kivy
 
   - **Mentors**: Jacob Kovac, Mathieu Virbel
   - **Task level**: Intermediate/Advanced
-  - **Desired Skills*: Familiarity with OpenGL ES, desire to learn/solve difficult
-    concepts/puzzles.
+  - **Desired Skills*: Familiarity with OpenGL ES and Cython, desire to learn about
+    advanced rendering algorithms and solve difficult puzzles.
 
 
 Mobile
 ~~~~~~
 
 * Plyer:
-    Platform Abstraction layer, is a platform-independant api to use features
-    commonly found on various platforms, notably mobile ones, in python.
+
   Description:
     The idea is to provide a stable API to the user for accessing features
     of their desktop or mobile device.
     
     Facades and implementation for::
-      - such as Accelerometer, GPS, SMS, Contact, and more. 
+      - such as Accelerometer, GPS, SMS, Contact,
+        and more. 
       - Porting facades from Scripting Language for Android to Plyer
-        for easy integration and compatability.
+        for easy integration and compatibility.
     
     Under the hood you'll use PyJNIus, PyOBJus. This probably
     would also include improving PyObjus and PyJnius to handle interfaces that
@@ -167,7 +168,7 @@ Toolchain
 
   Description:
     An iOS interface for building a app for the app store based on the idea of
-    Python for android, https://github.com/kivy/python-for-android in order to
+    Python for Android, https://github.com/kivy/python-for-android in order to
     improve on kivy-ios.
   Current state:
     kivy ios achieves this but in a more restricted monolith manner. We'd like to
@@ -176,10 +177,10 @@ Toolchain
     https://github.com/kivy/python-for-android
     https://github.com/kivy/kivy-ios
   Expected Outcome:
-    A new new/improved modular and extendable project.
+    A new, modular and extendable toolchain.
   
   - **Mentors**: Thomas Hansen, Mathieu Virbel
-  - **Reuirements**: Access to iOS, Android device along with a developer licence.
+  - **Requirements**: Access to iOS, Android device along with a developer license.
   - **Task level**: Intermediate/Advanced
   - **Desired Skills**: Familiarity with xcode, objc. Cross-platform compilation
     skills are heavily required.
@@ -193,16 +194,14 @@ Toolchain
 
     Buildozer currently supports packaging for Android via the python-for-android
     project, and for iOS via the kivy-ios project. Support for other operating systems
-    is intended for this GSOC.
+    is intended in the future.
 
   Description:
-    - Needs support for generating RPM, DEB, DMG, and EXE files. You will be required to
-      write code that creates a RPM, DEB, DMG, EXE target see
-      https://github.com/kivy/buildozer/tree/master/buildozer/targets for details.
-    - Optimize final package size. Introspect all the python files, extract all the symbols
-      (global variables / functions / class / class methods), mark all the symbol needed
-      (whitelist) from a file as well generate a stripped version of all the python files
-      with only the part needed.
+    Needs support for generating RPM, DEB, DMG, and EXE files. You will be required to
+    write code that creates a RPM, DEB, DMG, EXE target see
+    https://github.com/kivy/buildozer/tree/master/buildozer/targets for details.
+    
+    extending buildozer backends supports
   References:
     https://github.com/kivy/Buildozer
     https://github.com/kivy/buildozer/tree/master/buildozer/targets
@@ -223,18 +222,17 @@ Toolchain
     toolchains to SDL2. Part of the work is already done. What left is mostly
 
     - Hashing out distribution mechanisms for the lib.
-    - Porting mobile backends for ios and android to sdl2. Partial work on this has 
+    - Porting mobile backends to ios and android sdl2. Partial work on this has 
       already been going on.
-    - Unit tests for the new sdl2 bckends making sure apps work the same
+    - Unit tests for the new sdl2 backends making sure apps work the same
       on sdl2 as on other backends.
-    - Performace testing. Looking at the difference between sdl2 and other providers
-      to ascertain wether sdl2 could be used as the default provider giving it priority
+    - Performance testing. Looking at the difference between sdl2 and other providers
+      to ascertain whether sdl2 could be used as the default provider giving it priority
       over other backends.
   References:
-    https://github.com/kivy/kivy/tree/sdl2-support
+    https://github.com/kivy/kivy sdl2 branch
   Expected Outcome:
-    Completing the existing and adding new sdl2 core providers and support for using
-    sdl2 on mobiles.
+    New sdl2 core providers and support for using sdl2 on mobiles.
 
   - **Mentors**: Akshay Arora, Jacob Kovac, Mathieu Virbel
   - **Requirements:** Access to Linux, Windows, OS X, iOS, Android.
