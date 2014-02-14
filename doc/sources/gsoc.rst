@@ -74,10 +74,10 @@ Kivy
       the embedded hardware with acceptable performance. Namely: Text, Window, Audio,
       Video, Keyboard, Clipboard, and Image Providers
   Reference: 
-      https://github.com/kivy/kivy/blob/master/kivy/core/window/window_egl_rpi.py.
-      http://kivy.org/docs/api-kivy.core.html
-      http://kivy.org/docs/guide/architecture.html#architecture
-      http://kivy.org/docs/guide/architecture.html#providers
+      - https://github.com/kivy/kivy/blob/master/kivy/core/window/window_egl_rpi.py.
+      - http://kivy.org/docs/api-kivy.core.html
+      - http://kivy.org/docs/guide/architecture.html#architecture
+      - http://kivy.org/docs/guide/architecture.html#providers
       
   Expected Outcome:
     Full Working support for the embedded platforms. This would include support for
@@ -98,8 +98,8 @@ Kivy
       - Introduce automatic crash reporting.
       - Possibly launch debugger automatically when Kivy app crashes.
   Reference: 
-      http://kivy.org/docs/api-kivy.modules.html
-      http://kivy.org/docs/api-kivy.modules.inspector.html
+      - http://kivy.org/docs/api-kivy.modules.html
+      - http://kivy.org/docs/api-kivy.modules.inspector.html
 
   Expected Outcome:
     A fully functional Inspector module that facilitates debugging at any stage,
@@ -119,8 +119,8 @@ Kivy
       - Add Bounding-Box calculation / selection on the tree only if requested
       - Unit tests to quantify the amount of improvements achieved.
   Reference: 
-      http://kivy.org/docs/api-kivy.graphics.html
-      http://www.khronos.org/opengles/
+      - http://kivy.org/docs/api-kivy.graphics.html
+      - http://www.khronos.org/opengles/
   Expected Outcome:
     Significant improvement in the graphics pipeline that can be quantfied by tests.
 
@@ -149,9 +149,9 @@ Mobile
     would also include improving PyObjus and PyJnius to handle interfaces that
     they can't right now.
   References:
-    https://github.com/kivy/plyer
-    https://github.com/kivy/pyjnius
-    https://github.com/kivy/pyobjus
+    - https://github.com/kivy/plyer
+    - https://github.com/kivy/pyjnius
+    - https://github.com/kivy/pyobjus
   Expected Outcome:
     platform independent api for accessing most platform specific parts.
     
@@ -174,8 +174,8 @@ Toolchain
     kivy ios achieves this but in a more restricted monolith manner. We'd like to
     replace it with a more modular tool that is more extensible.
   References:
-    https://github.com/kivy/python-for-android
-    https://github.com/kivy/kivy-ios
+    - https://github.com/kivy/python-for-android
+    - https://github.com/kivy/kivy-ios
   Expected Outcome:
     A new, modular and extendable toolchain.
   
@@ -203,9 +203,8 @@ Toolchain
     extending buildozer backends supports
 
   References:
-    https://github.com/kivy/Buildozer
-    https://github.com/kivy/buildozer/tree/master/buildozer/targets
-    
+    - https://github.com/kivy/Buildozer
+    - https://github.com/kivy/buildozer/tree/master/buildozer/targets
   Expected Outcome:
     Running `buildoer deb debug` or `buildozer deb release` should result in a .deb
     package that can be directly be used to install on the target machine.
