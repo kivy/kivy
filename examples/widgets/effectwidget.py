@@ -5,98 +5,110 @@ Currently highly experimental.
 '''
 
 from kivy.app import App
-from kivy.uix.effectwidget import (EffectWidget, shader_header,
-                                   shader_uniforms, effect_monochrome,
-                                   effect_trivial, EffectFbo)
+from kivy.uix.effectwidget import EffectWidget
 from kivy.uix.image import Image
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scatter import Scatter
 from kivy.uix.button import Button
+from kivy.uix.spinner import Spinner
+from kivy.uix.boxlayout import BoxLayout
+from kivy.lang import Builder
+from kivy.properties import ObjectProperty
 
-plasma_shader = shader_header + '''
-uniform vec2 resolution;
-uniform float time;
+from kivy.uix.effectwidget import (effect_monochrome,
+                                   effect_red,
+                                   effect_blue,
+                                   effect_green,
+                                   effect_invert,
+                                   effect_plasma)
 
-void main(void)
-{
-    float x = gl_FragCoord.x;
-    float y = gl_FragCoord.y;
+class EffectSpinner(Spinner):
+    pass
 
-    vec4 normal_rgba = texture2D(texture0, tex_coord0);
+class SpinnerRow(BoxLayout):
+    effectwidget = ObjectProperty()
+    def update_effectwidget(self, *args):
+        effects = []
+        for child in self.children:
+            text = child.text
+            if text == 'none':
+                pass
+            if text == 'monochrome':
+                effects.append(effect_monochrome)
+            if text == 'red':
+                effects.append(effect_red)
+            if text == 'blue':
+                effects.append(effect_blue)
+            if text == 'green':
+                effects.append(effect_green)
+            if text == 'invert':
+                effects.append(effect_invert)
+            if text == 'plasma':
+                effects.append(effect_plasma)
+        if self.effectwidget:
+            self.effectwidget.effects = effects
 
-    float mov0 = x+y+cos(sin(time)*2.)*100.+sin(x/100.)*1000.;
-    float mov1 = y / resolution.y / 0.2 + time;
-    float mov2 = x / resolution.x / 0.2;
-    float c1 = abs(sin(mov1+time)/2.+mov2/2.-mov1-mov2+time);
-    float c2 = abs(sin(c1+sin(mov0/1000.+time)+
-                   sin(y/40.+time)+sin((x+y)/100.)*3.));
-    float c3 = abs(sin(c2+cos(mov1+mov2+c2)+cos(mov2)+sin(x/1000.)));
-    gl_FragColor = vec4( normal_rgba.x, c2, normal_rgba.y, 1.0);
-}
-'''
+example = Builder.load_string('''
+BoxLayout:
+    orientation: 'vertical'
+    BoxLayout:
+        EffectWidget:
+            id: effect1
+            Image:
+                size_hint: 1, 1
+                pos_hint: {'x': 0, 'y': 0}
+                source: 'colours.png'
+                allow_stretch: True
+                keep_ratio: False
+            Button:
+                text: 'Hello world'
+                size_hint: None, None
+                size: 150, 100
+                pos_hint: {'center_x': 0.25, 'center_y': 0.5}
+                on_press: print('Button pressed!')
+        EffectWidget:
+            id: effect2
+            size: 100, 100
+            Image:
+                id: im
+                pos: self.parent.pos
+                size: self.parent.size
+                source: 'colours2.png'
+                allow_stretch: True
+                keep_ratio: False
+                on_touch_down: print(self.size, self.pos)
+    SpinnerRow:
+        effectwidget: effect1
+        text: 'bg effects'
+    SpinnerRow:
+        effectwidget: effect2
+        text: 'scatter effects'
 
-shader_monochrome = shader_header + '''
-void main() {
-    vec4 rgb = texture2D(texture0, tex_coord0);
-    float c = (rgb.x + rgb.y + rgb.z) * 0.3333;
-    gl_FragColor = vec4(c, c, c, 1.0);
-}
-'''
+<SpinnerRow>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: dp(40)
+    text: ''
+    Label:
+        text: root.text
+    EffectSpinner:
+        on_text: root.update_effectwidget()
+    EffectSpinner:
+        on_text: root.update_effectwidget()
+    EffectSpinner:
+        on_text: root.update_effectwidget()
 
-shader_postprocessing = shader_header + '''
-uniform vec2 uvsize;
-uniform vec2 uvpos;
-void main(void)
-{
-    vec2 q = tex_coord0 * vec2(1, -1);
-    vec2 uv = 0.5 + (q-0.5);//*(0.9);// + 0.1*sin(0.2*time));
+<EffectSpinner>:
+    text: 'none'
+    values: ['none', 'monochrome', 'red', 'blue', 'green', 'invert', 'plasma']
+        
+''')
 
-    vec3 oricol = texture2D(texture0,vec2(q.x,1.0-q.y)).xyz;
-    vec3 col;
+            
 
-    col.r = texture2D(texture0,vec2(uv.x+0.003,-uv.y)).x;
-    col.g = texture2D(texture0,vec2(uv.x+0.000,-uv.y)).y;
-    col.b = texture2D(texture0,vec2(uv.x-0.003,-uv.y)).z;
-
-    col = clamp(col*0.5+0.5*col*col*1.2,0.0,1.0);
-
-    //col *= 0.5 + 0.5*16.0*uv.x*uv.y*(1.0-uv.x)*(1.0-uv.y);
-
-    col *= vec3(0.8,1.0,0.7);
-
-    col *= 0.9+0.1*sin(10.0*time+uv.y*1000.0);
-
-    col *= 0.97+0.03*sin(110.0*time);
-
-    float comp = smoothstep( 0.2, 0.7, sin(time) );
-    //col = mix( col, oricol, clamp(-2.0+2.0*q.x+3.0*comp,0.0,1.0) );
-
-    gl_FragColor = vec4(col,1.0);
-}
-'''
 
 class EffectApp(App):
     def build(self):
-        # create our widget tree
-        root = FloatLayout()
-        sw = EffectWidget()
-        root.add_widget(sw)
-
-        #sw.fs = plasma_shader
-        sw.effects.append(effect_monochrome)
-
-        sw.add_widget(Image(size_hint=(1, 1), pos_hint={'x': 0, 'y': 0},
-                            source='colours.png', allow_stretch=True,
-                            keep_ratio=False))
-
-        # add a button and scatter image inside the shader widget
-        btn = Button(text='Hello world', size_hint=(None, None),
-                     pos_hint={'center_x': .25, 'center_y': .5})
-        def press_func(*args):
-            print 'button pressed!'
-        btn.bind(on_press=press_func)
-        sw.add_widget(btn)
-
-        return root
+        return example
 
 EffectApp().run()
