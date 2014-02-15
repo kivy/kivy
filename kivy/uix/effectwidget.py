@@ -14,7 +14,6 @@ draw children to Fbo and apply custom shader to a RenderContext.
 from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.uix.floatlayout import FloatLayout
-from kivy.core.window import Window
 from kivy.properties import StringProperty, ObjectProperty, ListProperty
 from kivy.graphics import (RenderContext, Fbo, Color, Rectangle,
                            Translate, PushMatrix, PopMatrix,
@@ -30,13 +29,6 @@ Builder.load_string('''
             texture: self.texture
             pos: self.pos
             size: self.size
-
-<ScatterImage>:
-    size: image.size
-    Image:
-        id: image
-        source: root.source
-        size: self.texture_size
 ''')
 
 shader_header = '''
@@ -88,14 +80,56 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 }
 '''
 
+effect_red = '''
+vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
+{
+    return vec4(color.x, 0.0, 0.0, 1.0);
+}
+'''
+
+effect_green = '''
+vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
+{
+    return vec4(0.0, color.y, 0.0, 1.0);
+}
+'''
+
+effect_blue = '''
+vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
+{
+    return vec4(0.0, 0.0, color.z, 1.0);
+}
+'''
+
+effect_invert = '''
+vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
+{
+    return vec4(1.0 - color.xyz, 1.0);
+}
+'''
+
+effect_plasma = '''
+vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
+{
+   float x = coords.x;
+   float y = coords.y;
+   float mov0 = x+y+cos(sin(time)*2.)*100.+sin(x/100.)*1000.;
+   float mov1 = y / resolution.y / 0.2 + time;
+   float mov2 = x / resolution.x / 0.2;
+   float c1 = abs(sin(mov1+time)/2.+mov2/2.-mov1-mov2+time);
+   float c2 = abs(sin(c1+sin(mov0/1000.+time)+sin(y/40.+time)+
+                  sin((x+y)/100.)*3.));
+   float c3 = abs(sin(c2+cos(mov1+mov2+c2)+cos(mov2)+sin(x/1000.)));
+   return vec4( 0.5*(c1 + color.z), 0.5*(c2 + color.x),
+                0.5*(c3 + color.y), 1.0);
+}
+'''
+
 
 class EffectFbo(Fbo):
     def __init__(self, *args, **kwargs):
         super(EffectFbo, self).__init__(*args, **kwargs)
-        self.input_texture = None
         self.texture_rectangle = None
-        self.effect = ''
-        self.fs = ''
 
     def set_fs(self, value):
         # set the fragment shader to our source code
@@ -127,10 +161,11 @@ class EffectWidget(FloatLayout):
         # Make sure opengl context exists
         EventLoop.ensure_window()
 
-        self.canvas = RenderContext(use_parent_projection=True)
+        self.canvas = RenderContext(use_parent_projection=True,
+                                    use_parent_modelview=True)
 
         with self.canvas:
-            self.fbo = Fbo(size=self.size, use_parent_projection=True)
+            self.fbo = Fbo(size=self.size)
 
         with self.fbo.before:
             PushMatrix()
@@ -146,7 +181,7 @@ class EffectWidget(FloatLayout):
         Clock.schedule_interval(self.update_glsl, 0)
 
         self.refresh_fbo_setup()
-        #self.texture = self.fbo.texture
+        Clock.schedule_interval(self.update_fbos, 0)
 
     def on_pos(self, *args):
         self.fbo_translation.x = -self.x
@@ -155,7 +190,6 @@ class EffectWidget(FloatLayout):
     def on_size(self, *args):
         self.fbo.size = self.size
         self.fbo_rectangle.size = self.size
-        #self.texture = self.fbo.texture
         self.refresh_fbo_setup()
 
     def update_glsl(self, *largs):
@@ -165,56 +199,48 @@ class EffectWidget(FloatLayout):
     def on_effects(self, *args):
         self.refresh_fbo_setup()
 
+    def update_fbos(self, *args):
+        for fbo in self.fbo_list:
+            fbo.ask_update()
+
     def refresh_fbo_setup(self, *args):
+        # Add/remove fbos until there is one per effect
         while len(self.fbo_list) < len(self.effects):
             with self.canvas:
-                new_fbo = EffectFbo(size=self.size,
-                                    use_parent_projection=True)
+                new_fbo = EffectFbo(size=self.size)
             with new_fbo:
                 Color(1, 1, 1, 1)
                 new_fbo.texture_rectangle = Rectangle(
-                    size=self.size,
-                    texture=new_fbo.input_texture)
+                    size=self.size)
 
                 new_fbo.texture_rectangle.size = self.size
             self.fbo_list.append(new_fbo)
-
         while len(self.fbo_list) > len(self.effects):
             old_fbo = self.fbo_list.pop()
-            index = self.canvas.index(old_fbo)
-            self.canvas.remove(index)
-
-        if len(self.fbo_list) == 0:
-            self.texture = self.fbo.texture
-            return
+            self.canvas.remove(old_fbo)
 
         # Do resizing etc.
+        self.fbo.size = self.size
+        self.fbo_rectangle.size = self.size
         for i in range(len(self.fbo_list)):
             self.fbo_list[i].size = self.size
             self.fbo_list[i].texture_rectangle.size = self.size
 
+        # If there are no effects, just draw our main fbo
+        if len(self.fbo_list) == 0:
+            self.texture = self.fbo.texture
+            return
+
         for i in range(1, len(self.fbo_list)):
             fbo = self.fbo_list[i]
-            fbo.input_texture = self.fbo_list[i - 1].texture
-            fbo.texture_rectangle.texture = fbo.input_texture
+            fbo.texture_rectangle.texture = self.fbo_list[i - 1].texture
 
         for effect, fbo in zip(self.effects, self.fbo_list):
             fbo.set_fs(shader_header + shader_uniforms + effect +
                        shader_footer_effect)
 
-        self.fbo_list[0].input_texture = self.fbo.texture
         self.fbo_list[0].texture_rectangle.texture = self.fbo.texture
         self.texture = self.fbo_list[-1].texture
-
-        Clock.schedule_once(self.fbo_capture, 1)
-
-    def fbo_capture(self, *args):
-        self.fbo.texture.save('fboin.png')
-        for i, fbo in enumerate(self.fbo_list):
-            fbo.input_texture.save('fbo{}_in.png'.format(i))
-            fbo.texture_rectangle.texture.save('fbo{}_rec.png'.format(i))
-            fbo.texture.save('fbo{}_out.png'.format(i))
-        self.texture.save('selfout.png')
 
     def on_fs(self, instance, value):
         # set the fragment shader to our source code
