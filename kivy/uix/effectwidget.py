@@ -9,6 +9,30 @@ pipeline so users can write and easily apply their own glsl effects.
 Basic idea: Take implementation inspiration from shadertree example,
 draw children to Fbo and apply custom shader to a RenderContext.
 
+Effects
+-------
+
+An effect is a string representing part of a glsl fragment shader. It
+must implement a function :code:`effect` as below::
+
+    vec4 effect( vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
+    {
+        ...
+    }
+
+The parameters are:
+
+- **color**: The normal colour of the current pixel (i.e. texture
+  sampled at tex_coords)
+- **texture**: The texture containing the widget's normal background
+- **tex_coords**: The normal texture_coords used to access texture
+- **coords**: The pixel indices of the current pixel.
+
+The shader code also has access to two useful uniform variables,
+:code:`time` containing the time (in seconds) since the program start,
+and :code:`resolution` containing the shape (x pixels, y pixels) of
+the widget.
+
 '''
 
 from kivy.clock import Clock
@@ -160,15 +184,15 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 effect_postprocessing = '''
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {
-    vec2 q = tex_coord0 * vec2(1, -1);
+    vec2 q = tex_coords * vec2(1, -1);
     vec2 uv = 0.5 + (q-0.5);//*(0.9);// + 0.1*sin(0.2*time));
 
-    vec3 oricol = texture2D(texture0,vec2(q.x,1.0-q.y)).xyz;
+    vec3 oricol = texture2D(texture,vec2(q.x,1.0-q.y)).xyz;
     vec3 col;
 
-    col.r = texture2D(texture0,vec2(uv.x+0.003,-uv.y)).x;
-    col.g = texture2D(texture0,vec2(uv.x+0.000,-uv.y)).y;
-    col.b = texture2D(texture0,vec2(uv.x-0.003,-uv.y)).z;
+    col.r = texture2D(texture,vec2(uv.x+0.003,-uv.y)).x;
+    col.g = texture2D(texture,vec2(uv.x+0.000,-uv.y)).y;
+    col.b = texture2D(texture,vec2(uv.x-0.003,-uv.y)).z;
 
     col = clamp(col*0.5+0.5*col*col*1.2,0.0,1.0);
 
@@ -183,7 +207,7 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
     float comp = smoothstep( 0.2, 0.7, sin(time) );
     //col = mix( col, oricol, clamp(-2.0+2.0*q.x+3.0*comp,0.0,1.0) );
 
-    gl_FragColor = vec4(col,1.0);
+    return vec4(col,1.0);
 }
 '''
 
@@ -201,6 +225,135 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
    float c3 = abs(sin(c2+cos(mov1+mov2+c2)+cos(mov2)+sin(x/1000.)));
    return vec4( 0.5*(c1 + color.z), 0.5*(c2 + color.x),
                 0.5*(c3 + color.y), 1.0);
+}
+'''
+
+effect_pixelate = '''
+vec4 effect(vec4 vcolor, sampler2D texture, vec2 texcoord, vec2 pixel_coords)
+{
+    vec2 pixelSize = 10.0 / resolution;
+
+    vec2 xy = floor(texcoord/pixelSize)*pixelSize + pixelSize/2.0;
+
+    return texture2D(texture, xy);
+}
+'''
+
+effect_waterpaint = '''
+/*
+Themaister's Waterpaint shader
+
+Placed in the public domain.
+
+(From this thread: http://board.byuu.org/viewtopic.php?p=30483#p30483
+PD declaration here: http://board.byuu.org/viewtopic.php?p=30542#p30542 )
+modified by slime73 for use with love2d and mari0
+*/
+
+vec4 compress(vec4 in_color, float threshold, float ratio)
+{
+    vec4 diff = in_color - vec4(threshold);
+    diff = clamp(diff, 0.0, 100.0);
+    return in_color - (diff * (1.0 - 1.0/ratio));
+}
+
+vec4 effect( vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
+{
+    vec2 textureSize = resolution;
+
+    float x = 0.5 * (1.0 / textureSize.x);
+    float y = 0.5 * (1.0 / textureSize.y);
+
+    vec2 dg1 = vec2( x, y);
+    vec2 dg2 = vec2(-x, y);
+    vec2 dx = vec2(x, 0.0);
+    vec2 dy = vec2(0.0, y);
+
+    vec3 c00 = texture2D(texture, tex_coords - dg1).xyz;
+    vec3 c01 = texture2D(texture, tex_coords - dx).xyz;
+    vec3 c02 = texture2D(texture, tex_coords + dg2).xyz;
+    vec3 c10 = texture2D(texture, tex_coords - dy).xyz;
+    vec3 c11 = texture2D(texture, tex_coords).xyz;
+    vec3 c12 = texture2D(texture, tex_coords + dy).xyz;
+    vec3 c20 = texture2D(texture, tex_coords - dg2).xyz;
+    vec3 c21 = texture2D(texture, tex_coords + dx).xyz;
+    vec3 c22 = texture2D(texture, tex_coords + dg1).xyz;
+
+    vec2 texsize = textureSize;
+
+    vec3 first = mix(c00, c20, fract(tex_coords.x * texsize.x + 0.5));
+    vec3 second = mix(c02, c22, fract(tex_coords.x * texsize.x + 0.5));
+
+    vec3 mid_horiz = mix(c01, c21, fract(tex_coords.x * texsize.x + 0.5));
+    vec3 mid_vert = mix(c10, c12, fract(tex_coords.y * texsize.y + 0.5));
+
+    vec3 res = mix(first, second, fract(tex_coords.y * texsize.y + 0.5));
+    vec4 final = vec4(0.26 * (res + mid_horiz + mid_vert) + 3.5 * abs(res -
+                      mix(mid_horiz, mid_vert, 0.5)), 1.0);
+
+    final = compress(final, 0.8, 5.0);
+    final.a = 1.0;
+
+    return final;
+}
+'''
+
+effect_fxaa = '''
+vec4 effect( vec4 color, sampler2D buf0, vec2 texCoords, vec2 coords)
+{
+
+    vec2 frameBufSize = resolution;
+
+    float FXAA_SPAN_MAX = 8.0;
+    float FXAA_REDUCE_MUL = 1.0/8.0;
+    float FXAA_REDUCE_MIN = 1.0/128.0;
+
+    vec3 rgbNW=texture2D(buf0,texCoords+(vec2(-1.0,-1.0)/frameBufSize)).xyz;
+    vec3 rgbNE=texture2D(buf0,texCoords+(vec2(1.0,-1.0)/frameBufSize)).xyz;
+    vec3 rgbSW=texture2D(buf0,texCoords+(vec2(-1.0,1.0)/frameBufSize)).xyz;
+    vec3 rgbSE=texture2D(buf0,texCoords+(vec2(1.0,1.0)/frameBufSize)).xyz;
+    vec3 rgbM=texture2D(buf0,texCoords).xyz;
+
+    vec3 luma=vec3(0.299, 0.587, 0.114);
+    float lumaNW = dot(rgbNW, luma);
+    float lumaNE = dot(rgbNE, luma);
+    float lumaSW = dot(rgbSW, luma);
+    float lumaSE = dot(rgbSE, luma);
+    float lumaM  = dot(rgbM,  luma);
+
+    float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));
+    float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));
+
+    vec2 dir;
+    dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));
+    dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));
+
+    float dirReduce = max(
+        (lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL),
+        FXAA_REDUCE_MIN);
+
+    float rcpDirMin = 1.0/(min(abs(dir.x), abs(dir.y)) + dirReduce);
+
+    dir = min(vec2( FXAA_SPAN_MAX,  FXAA_SPAN_MAX),
+          max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX),
+          dir * rcpDirMin)) / frameBufSize;
+
+    vec3 rgbA = (1.0/2.0) * (
+        texture2D(buf0, texCoords.xy + dir * (1.0/3.0 - 0.5)).xyz +
+        texture2D(buf0, texCoords.xy + dir * (2.0/3.0 - 0.5)).xyz);
+    vec3 rgbB = rgbA * (1.0/2.0) + (1.0/4.0) * (
+        texture2D(buf0, texCoords.xy + dir * (0.0/3.0 - 0.5)).xyz +
+        texture2D(buf0, texCoords.xy + dir * (3.0/3.0 - 0.5)).xyz);
+    float lumaB = dot(rgbB, luma);
+
+    vec4 return_color;
+    if((lumaB < lumaMin) || (lumaB > lumaMax)){
+        return_color = vec4(rgbA, color.w);
+    }else{
+        return_color = vec4(rgbB, color.w);
+    }
+
+    return return_color;
 }
 '''
 
@@ -355,3 +508,7 @@ class EffectWidget(BoxLayout):
         self.canvas = self.fbo
         super(EffectWidget, self).clear_widgets(children)
         self.canvas = c
+
+
+class BlurEffectWidget(EffectWidget):
+    effects = ListProperty([effect_blur_h, effect_blur_v])
