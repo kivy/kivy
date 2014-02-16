@@ -434,20 +434,20 @@ class Widget(WidgetBase):
         for child in children[:]:
             remove_widget(child)
 
-    def save_image(self, filename, *args):
+    def export_to_png(self, filename, *args):
         '''Saves an image of the widget and its children in png format at the
         specified filename. Works by removing the widget canvas from its
         parent, rendering to an :class:`~kivy.graphics.fbo.Fbo`, and calling
         :meth:`~kivy.graphics.texture.Texture.save`.
 
-        .. Note:: The image includes only this widget and its
+        .. note:: The image includes only this widget and its
                   children. If you want to include widgets elsewhere
                   in the tree, you must call
-                  :meth:`~Widget.save_image` from their common parent,
+                  :meth:`~Widget.export_to_png` from their common parent,
                   or use :meth:`~kivy.core.window.Window.screenshot`
                   to capture the whole window.
 
-        .. Note:: The image will be saved in png format, you should
+        .. note:: The image will be saved in png format, you should
                   include the extension in your filename.
 
         .. versionadded:: 1.8.1
@@ -462,13 +462,7 @@ class Widget(WidgetBase):
         with fbo:
             ClearColor(0, 0, 0, 1)
             ClearBuffers()
-
-        with fbo.before:
-            PushMatrix()
             Translate(-self.x, -self.y, 0)
-
-        with fbo.after:
-            PopMatrix()
 
         fbo.add(self.canvas)
         fbo.draw()
@@ -801,7 +795,7 @@ class Widget(WidgetBase):
     disabled = BooleanProperty(False)
     '''Indicates whether this widget can interact with input or not.
 
-    .. Note::
+    .. note::
         1. Child Widgets, when added to a disabled widget, will be disabled
         automatically,
         2. Disabling/enabling a parent disables/enables all it's children.
