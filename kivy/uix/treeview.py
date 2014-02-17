@@ -637,6 +637,15 @@ class TreeView(SelectionBehavior, Widget):
     defaults to False.
     '''
 
+    select_leaves_only = BooleanProperty(False)
+    '''Determines whether non-leaf nodes are valid selections or not.
+
+    .. versionadded:: 1.8.1
+
+    :attr:`select_leaves_only` :class:`~kivy.properties.BooleanProperty`,
+    defaults to False.
+    '''
+
     def get_selected_node(self):
         nodes = self.selected_nodes
         return nodes[0] if len(nodes) else None
