@@ -211,23 +211,23 @@ class TreeViewNode(object):
 
     parent_node = ObjectProperty(None, allownone=True)
     '''The :class:`TreeViewNode` that is the parent node of this node. This
-    attribute is needed because the :data:`parent` can be None when the node
+    attribute is needed because the :attr:`parent` can be None when the node
     is not displayed.
 
     .. versionadded:: 1.0.7
 
-    :data:`parent_node` is a :class:`~kivy.properties.ObjectProperty` and
+    :attr:`parent_node` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 
     parent_tree = ObjectProperty(None, allownone=True)
     '''The :class:`TreeView` instance of which this is a node. If the node has
     not been added to any tree or if it has been removed it'll be None. This
-    is preferd to :data:`parent`.
+    is preferd to :attr:`parent`.
 
     .. versionadded:: 1.8.1
 
-    :data:`parent_tree` is a :class:`~kivy.properties.ObjectProperty` and
+    :attr:`parent_tree` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 
@@ -710,23 +710,33 @@ class TreeView(SelectionBehavior, Widget):
 
 if __name__ == '__main__':
     from kivy.app import App
+    from kivy.uix.boxlayout import BoxLayout
 
     class TestApp(App):
 
         def build(self):
-            tv = TreeView(hide_root=True)
-            add = tv.add_node
-            root = add(TreeViewLabel(text='Level 1, entry 1', is_open=True))
-            for x in range(5):
-                add(TreeViewLabel(text='Element %d' % x), root)
-            root2 = add(TreeViewLabel(text='Level 1, entry 2', is_open=False))
-            for x in range(24):
-                add(TreeViewLabel(text='Element %d' % x), root2)
-            for x in range(5):
-                add(TreeViewLabel(text='Element %d' % x), root)
-            root2 = add(TreeViewLabel(text='Element childs 2', is_open=False),
-                        root)
-            for x in range(24):
-                add(TreeViewLabel(text='Element %d' % x), root2)
-            return tv
+            box = BoxLayout(orientation='horizontal', spacing=20)
+            for i in range(2):
+                tv = TreeView(hide_root=True, multiselect=i == 1,
+                              touch_multiselect=i == 0,
+                              keyboard_select=True,
+                              select_leaves_only=i == 0)
+                add = tv.add_node
+                root = add(TreeViewLabel(text='Level 1, entry 1',
+                                         is_open=True))
+                for x in range(5):
+                    add(TreeViewLabel(text='Element %d' % x), root)
+                root2 = add(TreeViewLabel(text='Level 1, entry 2',
+                                          is_open=False))
+                for x in range(24):
+                    add(TreeViewLabel(text='Element %d' % x), root2)
+                for x in range(5):
+                    add(TreeViewLabel(text='Element %d' % x), root)
+                root2 = add(TreeViewLabel(text='Element childs 2',
+                                          is_open=False),
+                            root)
+                for x in range(24):
+                    add(TreeViewLabel(text='Element %d' % x), root2)
+                box.add_widget(tv)
+            return box
     TestApp().run()
