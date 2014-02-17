@@ -326,6 +326,8 @@
 <FileChooserIconView>:
     on_entry_added: stacklayout.add_widget(args[1])
     on_entries_cleared: stacklayout.clear_widgets()
+    selection: stacklayout.selected_nodes
+    _selector: stacklayout
     ScrollView:
         id: scrollview
         pos: root.pos
@@ -338,8 +340,12 @@
             do_translation: False
             size_hint_y: None
             height: stacklayout.height
-            StackLayout:
+            FileChooserIconViewSelector_:
                 id: stacklayout
+                multiselect: root.multiselect
+                keyboard_select: root.keyboard_select
+                touch_multiselect: root.touch_multiselect
+                select_leaves_only: not root.dirselect
                 width: scrollview.width
                 size_hint_y: None
                 height: self.minimum_height
@@ -349,13 +355,14 @@
 [FileIconEntry@Widget]:
     locked: False
     path: ctx.path
-    selected: self.path in ctx.controller().selection
+    selected: False
     size_hint: None, None
 
+    on_touch_down: self.collide_point(*args[1].pos) and ctx.controller()._selector.select_with_touch(self, args[1])
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
     on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
     size: '100dp', '100dp'
-
+    is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
     canvas:
         Color:
             rgba: 1, 1, 1, 1 if self.selected else 0

@@ -41,6 +41,9 @@ from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.utils import platform as core_platform
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.stacklayout import StackLayout
+from kivy.uix.behaviors import SelectionBehavior
+from kivy.core.window import Window
 from kivy.properties import (
     StringProperty, ListProperty, BooleanProperty, ObjectProperty,
     NumericProperty)
@@ -725,6 +728,55 @@ class FileChooserIconView(FileChooserController):
     '''Implementation of :class:`FileChooserController` using an icon view.
     '''
     _ENTRY_TEMPLATE = 'FileIconEntry'
+
+
+class FileChooserIconViewSelector_(SelectionBehavior, StackLayout):
+    '''Selection class for the icon view.
+    '''
+
+    _selectable_list = []
+
+    def __init__(self, **kwargs):
+        super(FileChooserIconViewSelector_, self).__init__(**kwargs)
+        self._keyboard = None
+        self._update_keyboard()
+
+        def reverse_children(*l):
+            self._selectable_list = self.children[::-1]
+        self.bind(keyboard_select=self._update_keyboard,
+                  children=reverse_children)
+
+    def __del__(self):
+        self.keyboard_select = False
+        self._release_keyboard()
+
+    def _update_keyboard(self, *l):
+        keyboard = self._keyboard
+        if self.keyboard_select:
+            if not keyboard:
+                keyboard = Window.request_keyboard(self._update_keyboard, self)
+                self._keyboard = keyboard
+            if keyboard:
+                keyboard.bind(on_key_down=self.select_with_key_down,
+                              on_key_up=self.select_with_key_up)
+        else:
+            if keyboard:
+                keyboard.unbind(on_key_down=self.select_with_key_down,
+                                on_key_up=self.select_with_key_up)
+                self._keyboard = None
+
+    def select_node(self, node):
+        if self.select_leaves_only and not node.is_leaf:
+            return False
+        node.selected = True
+        return super(FileChooserIconViewSelector_, self).select_node(node)
+
+    def deselect_node(self, node):
+        node.selected = False
+        super(FileChooserIconViewSelector_, self).deselect_node(node)
+
+    def get_selectable_nodes(self):
+        return self._selectable_list
 
 
 if __name__ == '__main__':
