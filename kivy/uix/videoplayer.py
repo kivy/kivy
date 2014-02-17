@@ -480,6 +480,8 @@ class VideoPlayer(GridLayout):
         if self._video is not None:
             self._video.unload()
             self._video = None
+        if value:
+            self._trigger_video_load()
 
     def _load_thumbnail(self):
         if not self.container:
