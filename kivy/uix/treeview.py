@@ -113,6 +113,8 @@ from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty, ListProperty, ObjectProperty, \
     AliasProperty, NumericProperty, ReferenceListProperty
+from kivy.uix.behaviors import SelectionBehavior
+from kivy.core.window import Window
 
 
 class TreeViewException(Exception):
@@ -275,8 +277,18 @@ class TreeViewLabel(Label, TreeViewNode):
     '''
 
 
-class TreeView(Widget):
+class TreeView(SelectionBehavior, Widget):
     '''TreeView class. See module documentation for more information.
+
+    .. versionchanged:: 1.8.1
+
+        TreeView has changed to inherit from
+        :class:`~kivy.uix.SelectionBehavior`. Before, only a single node could
+        be selected, now, multi-node selection is possible. Keyboard selection
+        is now also possible.
+
+        In additon, :attr:`selected_node` is deprecated in favor of
+        :attr:`selected_nodes`, which lists all the nodes selected.
 
     :Events:
         `on_node_expand`: (node, )
@@ -286,20 +298,48 @@ class TreeView(Widget):
     '''
 
     __events__ = ('on_node_expand', 'on_node_collapse')
+    _keyboard = None
 
     def __init__(self, **kwargs):
         self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
+        # in past multiselect was True be default, so if not specfied set it
+        # to True. it only takes effect if multiselect is True, making it
+        # behave the same as before
+        if 'touch_multiselect' not in kwargs:
+            self.touch_multiselect = True
         super(TreeView, self).__init__(**kwargs)
         tvlabel = TreeViewLabel(text='Root', is_open=True, level=0)
         for key, value in self.root_options.items():
             setattr(tvlabel, key, value)
         self._root = self.add_node(tvlabel, None)
+        self._keyboard = None
+        self._update_keyboard()
         self.bind(
             pos=self._trigger_layout,
             size=self._trigger_layout,
             indent_level=self._trigger_layout,
-            indent_start=self._trigger_layout)
+            indent_start=self._trigger_layout,
+            keyboard_select=self._update_keyboard)
         self._trigger_layout()
+
+    def __del__(self):
+        self.keyboard_select = False
+        self._release_keyboard()
+
+    def _update_keyboard(self, *l):
+        keyboard = self._keyboard
+        if self.keyboard_select:
+            if not keyboard:
+                keyboard = Window.request_keyboard(self._update_keyboard, self)
+                self._keyboard = keyboard
+            if keyboard:
+                keyboard.bind(on_key_down=self.select_with_key_down,
+                              on_key_up=self.select_with_key_up)
+        else:
+            if keyboard:
+                keyboard.unbind(on_key_down=self.select_with_key_down,
+                                on_key_up=self.select_with_key_up)
+                self._keyboard = None
 
     def add_node(self, node, parent=None):
         '''Add a new node in the tree.
@@ -323,6 +363,8 @@ class TreeView(Widget):
             parent.nodes.append(node)
             node.parent_node = parent
             node.level = parent.level + 1
+            if self.select_leaves_only:
+                self.deselect_node(parent)
         node.bind(size=self._trigger_layout)
         self._trigger_layout()
         return node
@@ -359,14 +401,30 @@ class TreeView(Widget):
         pass
 
     def select_node(self, node):
-        '''Select a node in the tree.
+        '''Selects a node in the tree. See
+        :meth:`~kivy.uix.SelectionBehavior.select_node`.
+
+        :Parameters:
+            `node`: instance of a :class:`TreeViewNode` Node to select.
         '''
-        if node.no_selection:
-            return
-        if self._selected_node:
-            self._selected_node.is_selected = False
-        node.is_selected = True
-        self._selected_node = node
+        if node.no_selection or (self.select_leaves_only and not node.is_leaf):
+            return False
+        if super(TreeView, self).select_node(node):
+            node.is_selected = True
+            return True
+        return False
+
+    def deselect_node(self, node):
+        '''Deselect a node in the tree. See
+        :meth:`~kivy.uix.SelectionBehavior.deselect_node`.
+
+        .. versionadded:: 1.8.1
+
+        :Parameters:
+            `node`: instance of a :class:`TreeViewNode` Node to deselect.
+        '''
+        node.is_selected = False
+        super(TreeView, self).deselect_node(node)
 
     def toggle_node(self, node):
         '''Toggle the state of the node (open/collapsed).
@@ -497,6 +555,10 @@ class TreeView(Widget):
         return y
 
     def on_touch_down(self, touch):
+        if 'button' in touch.profile and touch.button in\
+            ('scrollup', 'scrolldown', 'scrollleft', 'scrollright')\
+            and self.collide_point(*touch.pos):
+            return self.select_with_touch(None, touch)
         node = self.get_node_at_pos(touch.pos)
         if not node:
             return
@@ -506,7 +568,7 @@ class TreeView(Widget):
         if node.x - self.indent_start <= touch.x < node.x:
             self.toggle_node(node)
         elif node.x <= touch.x:
-            self.select_node(node)
+            self.select_with_touch(node, touch)
             node.dispatch('on_touch_down', touch)
         return True
 
@@ -514,8 +576,6 @@ class TreeView(Widget):
     # Private properties
     #
     _root = ObjectProperty(None)
-
-    _selected_node = ObjectProperty(None)
 
     #
     # Properties
@@ -578,11 +638,25 @@ class TreeView(Widget):
     '''
 
     def get_selected_node(self):
-        return self._selected_node
+        nodes = self.selected_nodes
+        return nodes[0] if len(nodes) else None
 
     selected_node = AliasProperty(get_selected_node, None,
-                                  bind=('_selected_node', ))
-    '''Node selected by :meth:`TreeView.select_node` or by touch.
+                                  bind=('selected_nodes', ))
+    '''Node selected with :meth:`select_node`.
+
+    .. warning::
+
+        Deprecated, use :attr:`selected_nodes` instead.
+
+    .. versionchanged:: 1.8.1
+
+        Previously, only one node could be selected at any time. This has been
+        changed to allow multiple nodes to be selected and read using
+        :attr:`selected_nodes`. :attr:`selected_node` remains only for backward
+        compatibility and will be removed in version 2.0.0.
+        :attr:`selected_node` will still return the first selected node, if
+        there are any, or None otherwise.
 
     :attr:`selected_node` is a :class:`~kivy.properties.AliasProperty` and
     defaults to None. It is read-only.
