@@ -16,6 +16,7 @@ cdef class Texture:
     cdef object _mag_filter
     cdef int _rectangle
     cdef object _colorfmt
+    cdef object _icolorfmt
     cdef object _bufferfmt
     cdef float _uvx
     cdef float _uvy
