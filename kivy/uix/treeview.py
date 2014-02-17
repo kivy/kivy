@@ -129,6 +129,19 @@ class TreeViewNode(object):
         if self.__class__ is TreeViewNode:
             raise TreeViewException('You cannot use directly TreeViewNode.')
         super(TreeViewNode, self).__init__(**kwargs)
+        self.bind(is_leaf=self._on_is_leaf, no_selection=self._on_no_selection)
+
+    def _on_is_leaf(self, instance, val):
+        tree = self.parent_tree
+        if (not val) and tree and tree.select_leaves_only:
+            tree.deselect_node(self)
+        self.is_selected = False
+
+    def _on_no_selection(self, instance, val):
+        tree = self.parent_tree
+        if val and tree:
+            tree.deselect_node(self)
+        self.is_selected = False
 
     is_leaf = BooleanProperty(True)
     '''Boolean to indicate whether this node is a leaf or not. Used to adjust
@@ -174,7 +187,7 @@ class TreeViewNode(object):
 
     no_selection = BooleanProperty(False)
     '''Boolean used to indicate whether selection of the node is allowed or
-     not.
+    not.
 
     :attr:`no_selection` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
@@ -195,12 +208,24 @@ class TreeViewNode(object):
     '''
 
     parent_node = ObjectProperty(None, allownone=True)
-    '''Parent node. This attribute is needed because the :attr:`parent` can be
-    None when the node is not displayed.
+    '''The :class:`TreeViewNode` that is the parent node of this node. This
+    attribute is needed because the :data:`parent` can be None when the node
+    is not displayed.
 
     .. versionadded:: 1.0.7
 
-    :attr:`parent_node` is an :class:`~kivy.properties.ObjectProperty` and
+    :data:`parent_node` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
+    '''
+
+    parent_tree = ObjectProperty(None, allownone=True)
+    '''The :class:`TreeView` instance of which this is a node. If the node has
+    not been added to any tree or if it has been removed it'll be None. This
+    is preferd to :data:`parent`.
+
+    .. versionadded:: 1.8.1
+
+    :data:`parent_tree` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 
@@ -293,6 +318,7 @@ class TreeView(Widget):
         if parent is None and self._root:
             parent = self._root
         if parent:
+            node.parent_tree = self
             parent.is_leaf = False
             parent.nodes.append(node)
             node.parent_node = parent
@@ -316,6 +342,7 @@ class TreeView(Widget):
                 'The node must be a subclass of TreeViewNode')
         parent = node.parent_node
         if parent is not None:
+            self.deselect_node(node)
             nodes = parent.nodes
             if node in nodes:
                 nodes.remove(node)
@@ -323,6 +350,7 @@ class TreeView(Widget):
             node.parent_node = None
             node.unbind(size=self._trigger_layout)
             self._trigger_layout()
+            node.parent_tree = None
 
     def on_node_expand(self, node):
         pass
