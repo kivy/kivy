@@ -148,6 +148,7 @@ Builder.load_string('''
         # Bottom Bar
         BoxLayout:
             ScrollView:
+                scroll_type: ['bars', 'content']
                 TreeView:
                     id: treeview
                     size_hint_y: None
