@@ -401,6 +401,9 @@ class TreeView(SelectionBehavior, Widget):
     def on_node_collapse(self, node):
         pass
 
+    def get_selectable_nodes(self):
+        return self._nodes_reversed
+
     def select_node(self, node):
         '''Selects a node in the tree. See
         :meth:`~kivy.uix.behavior.SelectionBehavior.select_node`.
@@ -514,6 +517,7 @@ class TreeView(SelectionBehavior, Widget):
         self.clear_widgets()
         # display only the one who are is_open
         self._do_open_node(self.root)
+        self._nodes_reversed = self.children[::-1]
         # now do layout
         self._do_layout_node(self.root, 0, self.top)
         # now iterate for calculating minimum size
@@ -577,6 +581,9 @@ class TreeView(SelectionBehavior, Widget):
     # Private properties
     #
     _root = ObjectProperty(None)
+
+    # list of inversed nodes for selection
+    _nodes_reversed = ListProperty([])
 
     #
     # Properties
