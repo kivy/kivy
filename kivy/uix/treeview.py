@@ -221,9 +221,9 @@ class TreeViewNode(object):
     '''
 
     parent_tree = ObjectProperty(None, allownone=True)
-    '''The :class:`TreeView` instance of which this is a node. If the node has
-    not been added to any tree or if it has been removed it'll be None. This
-    is preferd to :attr:`parent`.
+    '''The :class:`TreeViewNode` instance of which this is a node. If the
+    node has not been added to any tree or if it has been removed it'll be
+    None. This is preferd to :attr:`parent`.
 
     .. versionadded:: 1.8.1
 
@@ -283,12 +283,13 @@ class TreeView(SelectionBehavior, Widget):
     .. versionchanged:: 1.8.1
 
         TreeView has changed to inherit from
-        :class:`~kivy.uix.SelectionBehavior`. Before, only a single node could
-        be selected, now, multi-node selection is possible. Keyboard selection
-        is now also possible.
+        :class:`~kivy.uix.behavior.SelectionBehavior`. Before, only a single
+        node could be selected, now, multi-node selection is possible.
+        Keyboard selection is now also possible.
 
         In additon, :attr:`selected_node` is deprecated in favor of
-        :attr:`selected_nodes`, which lists all the nodes selected.
+        :attr:`~kivy.uix.behavior.SelectionBehavior.selected_nodes`, which
+        lists all the nodes selected.
 
     :Events:
         `on_node_expand`: (node, )
@@ -402,7 +403,7 @@ class TreeView(SelectionBehavior, Widget):
 
     def select_node(self, node):
         '''Selects a node in the tree. See
-        :meth:`~kivy.uix.SelectionBehavior.select_node`.
+        :meth:`~kivy.uix.behavior.SelectionBehavior.select_node`.
 
         :Parameters:
             `node`: instance of a :class:`TreeViewNode` Node to select.
@@ -416,7 +417,7 @@ class TreeView(SelectionBehavior, Widget):
 
     def deselect_node(self, node):
         '''Deselect a node in the tree. See
-        :meth:`~kivy.uix.SelectionBehavior.deselect_node`.
+        :meth:`~kivy.uix.behavior.SelectionBehavior.deselect_node`.
 
         .. versionadded:: 1.8.1
 
@@ -642,7 +643,7 @@ class TreeView(SelectionBehavior, Widget):
 
     .. versionadded:: 1.8.1
 
-    :attr:`select_leaves_only` :class:`~kivy.properties.BooleanProperty`,
+    :attr:`select_leaves_only` is a :class:`~kivy.properties.BooleanProperty`,
     defaults to False.
     '''
 
@@ -656,7 +657,8 @@ class TreeView(SelectionBehavior, Widget):
 
     .. warning::
 
-        Deprecated, use :attr:`selected_nodes` instead.
+        Deprecated, use
+        :attr:`~kivy.uix.behavior.SelectionBehavior.selected_nodes` instead.
 
     .. versionchanged:: 1.8.1
 

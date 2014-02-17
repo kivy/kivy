@@ -413,8 +413,8 @@ class DragBehavior(object):
 class SelectionBehavior(object):
     '''Selection behavior implements the logic behind keyboard and touch
     selection of selectable widgets contained in the derived widget.
-    For example, it could be combined with a :class:`~kivy.uix.GridLayout` to
-    add selection to the layout.
+    For example, it could be combined with a
+    :class:`~kivy.uix.gridlayout.GridLayout` to add selection to the layout.
 
     To make the selection work, :meth:`select_node` and :meth:`deselect_node`
     must be overwritten in order affect the selected nodes. By default,
@@ -430,8 +430,9 @@ class SelectionBehavior(object):
 
             def __init__(self, **kwargs):
                 super(SelectableGrid, self).__init__(**kwargs)
-                Window.request_keyboard(None, self).bind(on_key_down=\
-                self.select_with_key_down, on_key_up=self.select_with_key_up)
+                keyboard = Window.request_keyboard(None, self)
+                keyboard.bind(on_key_down=self.select_with_key_down,
+                on_key_up=self.select_with_key_up)
 
             def select_node(self, node):
                 node.background_color = (1, 0, 0, 1)
