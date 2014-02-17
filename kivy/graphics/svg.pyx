@@ -12,8 +12,8 @@ from xml.etree.cElementTree import parse
 from kivy.graphics.instructions cimport RenderContext
 from kivy.graphics.vertex_instructions import Mesh
 
-DEF BEZIER_POINTS = 10
-DEF CIRCLE_POINTS = 24
+DEF BEZIER_POINTS = 64 # 10
+DEF CIRCLE_POINTS = 64 # 24
 DEF TOLERANCE = 0.001
 
 from cython.operator cimport dereference as deref, preincrement as inc
@@ -265,7 +265,7 @@ cdef dict parse_style(string):
 
 cdef parse_color(c):
     cdef int r, g, b, a
-    if c is None or c == 'None':
+    if c is None or c == 'none':
         return None
     if c[0] == '#':
         c = c[1:]
@@ -574,7 +574,6 @@ cdef class Svg(RenderContext):
             self.parse_element(e)
 
     def parse_element(self, e):
-        print 'parse_element()', e.tag
         self.fill = parse_color(e.get('fill'))
         self.stroke = parse_color(e.get('stroke'))
         oldopacity = self.opacity
@@ -677,11 +676,9 @@ cdef class Svg(RenderContext):
 
         elif e.tag.endswith('linearGradient'):
             self.gradients[e.get('id')] = LinearGradient(e, self)
-            print 'added lineargradient', e.get('id')
 
         elif e.tag.endswith('radialGradient'):
             self.gradients[e.get('id')] = RadialGradient(e, self)
-            print 'added radialgradient', e.get('id')
 
         for c in e.getchildren():
             self.parse_element(c)
@@ -718,7 +715,6 @@ cdef class Svg(RenderContext):
                     raise ValueError("Unallowed implicit command in %s, position %s" % (
                         pathdef, len(pathdef.split()) - len(elements)))
 
-            print 'execute command', command
 
             if command == 'M':
                 # Moveto command.
@@ -958,7 +954,8 @@ cdef class Svg(RenderContext):
             loop = [orig_loop[0]]
             for pt in orig_loop:
                 if (pt[0] - loop[-1][0]) ** 2 + (pt[1] - loop[-1][1]) ** 2 > TOLERANCE:
-                    loop.append(pt)
+                    if pt not in loop:
+                        loop.append(pt)
             path.append(loop)
 
         self.paths.append((
@@ -977,6 +974,9 @@ cdef class Svg(RenderContext):
         cdef vector[Point *] *polyline
         cdef vector[Triangle *].iterator it
         cdef vector[Triangle *] triangles
+
+        #print 'triangulate()'
+        #return []
 
         tris = []
         for points in looplist:
@@ -1010,14 +1010,10 @@ cdef class Svg(RenderContext):
             ('v_pos', 2, 'float'),
             ('v_color', 4, 'float')]
 
-        print '-> render!', len(self.paths)
         for path, stroke, tris, fill, transform in self.paths:
-            print 'we have multiples paths!', path, stroke, tris, fill
 
             if tris:
-                print fill
                 if isinstance(fill, str):
-                    print 'fill is', fill
                     g = self.gradients[fill]
                     fills = [g.interp(x) for x in tris]
                 else:
@@ -1049,6 +1045,7 @@ cdef class Svg(RenderContext):
                         vtx = transform(vtx)
                         vertices += [vtx[0], vtx[1], clr[0], clr[1], clr[2], clr[3]]
 
+                    print 'add a mesh', len(indices), len(vertices)
                     mesh = Mesh(
                         fmt=vertex_format,
                         indices=indices,
