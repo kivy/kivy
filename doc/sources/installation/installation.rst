@@ -50,6 +50,7 @@ Please refer to the installation instructions for your specific platform:
     installation-macosx
     installation-linux
     installation-android
+    installation-rpi
     troubleshooting-macosx
 
 
