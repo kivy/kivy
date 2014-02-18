@@ -104,9 +104,9 @@ import keyword
 import tokenize
 from optparse import OptionParser
 from fnmatch import fnmatch
+from io import TextIOWrapper
 try:
     from ConfigParser import RawConfigParser
-    from io import TextIOWrapper
 except ImportError:
     from configparser import RawConfigParser
 
