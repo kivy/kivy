@@ -737,6 +737,29 @@ class ScrollView(StencilView):
 
         return self._get_uid() in touch.ud
 
+    def convert_distance_to_scroll(self, dx, dy):
+        '''Convert a distance in pixels to a scroll distance, depending on the
+        content size and the scrollview size.
+
+        The result will be a tuple of scroll distance that can be added to
+        :data:`scroll_x` and :data:`scroll_y`
+        '''
+        if not self._viewport:
+            return 0, 0
+        vp = self._viewport
+        if vp.width > self.width:
+            sw = vp.width - self.width
+            sx = dx / float(sw)
+        else:
+            sx = 0
+        if vp.height > self.height:
+            sh = vp.height - self.height
+            sy = dy / float(sh)
+        else:
+            sy = 1
+        return sx, sy
+
+
     def update_from_scroll(self, *largs):
         '''Force the reposition of the content, according to current value of
         :attr:`scroll_x` and :attr:`scroll_y`.
