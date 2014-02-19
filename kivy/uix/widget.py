@@ -104,6 +104,7 @@ To draw a background in kv::
 These examples only scratch the surface. Please see the :mod:`kivy.graphics`
 documentation for more information.
 
+.. highlight:: python
 '''
 
 __all__ = ('Widget', 'WidgetException')
@@ -358,6 +359,7 @@ class Widget(WidgetBase):
         >>> root.add_widget(Button())
         >>> slider = Slider()
         >>> root.add_widget(slider)
+
         '''
         if not isinstance(widget, Widget):
             raise WidgetException(
