@@ -348,8 +348,9 @@ class Widget(WidgetBase):
             `widget`: :class:`Widget`
                 Widget to add to our list of children.
             `index`: int, defaults to 0
-                *(this attribute was added in 1.0.5)*
                 Index to insert the widget in the list
+
+                .. versionadded:: 1.0.5
 
         >>> from kivy.uix.button import Button
         >>> from kivy.uix.slider import Slider
