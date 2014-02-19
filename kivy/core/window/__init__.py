@@ -16,7 +16,7 @@ from kivy.core import core_select_lib
 from kivy.clock import Clock
 from kivy.config import Config
 from kivy.logger import Logger
-from kivy.base import EventLoop
+from kivy.base import EventLoop, stopTouchApp
 from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
@@ -26,6 +26,7 @@ from kivy.context import get_current_context
 
 # late import
 VKeyboard = None
+
 
 
 class Keyboard(EventDispatcher):
@@ -166,6 +167,9 @@ class Keyboard(EventDispatcher):
         return ''
 
 
+Config.add_callback(
+    lambda s, k, v: setattr(
+        WindowBase.on_keyboard, 'exit_on_escape', v), 'kivy', 'exit_on_escape')
 class WindowBase(EventDispatcher):
     '''WindowBase is an abstract window widget for any window implementation.
 
@@ -786,6 +790,16 @@ class WindowBase(EventDispatcher):
                            "and will be removed in future versions. Use "
                            "codepoint instead, which has identical "
                            "semantics.")
+
+        # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
+        # TODO If just CMD+w is pressed, only the window should be closed.
+        is_osx = platform == 'darwin'
+        if self.on_keyboard.exit_on_escape:
+            if key == 27 or all([is_osx, key in [113, 119], modifier==1024]):
+                stopTouchApp()
+                self.close()
+                return True
+    on_keyboard.exit_on_escape = Config.get('kivy', 'exit_on_escape')
 
     def on_key_down(self, key, scancode=None, codepoint=None,
                     modifier=None, **kwargs):
