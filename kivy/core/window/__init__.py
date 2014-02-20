@@ -28,7 +28,6 @@ from kivy.context import get_current_context
 VKeyboard = None
 
 
-
 class Keyboard(EventDispatcher):
     '''Keyboard interface that is returned by
     :meth:`WindowBase.request_keyboard`. When you request a keyboard,
@@ -167,9 +166,6 @@ class Keyboard(EventDispatcher):
         return ''
 
 
-Config.add_callback(
-    lambda s, k, v: setattr(
-        WindowBase.on_keyboard, 'exit_on_escape', v), 'kivy', 'exit_on_escape')
 class WindowBase(EventDispatcher):
     '''WindowBase is an abstract window widget for any window implementation.
 
@@ -303,7 +299,7 @@ class WindowBase(EventDispatcher):
     '''Color used to clear the window.
 
     ::
-    
+
         from kivy.core.window import Window
 
         # red background color
@@ -795,7 +791,7 @@ class WindowBase(EventDispatcher):
         # TODO If just CMD+w is pressed, only the window should be closed.
         is_osx = platform == 'darwin'
         if self.on_keyboard.exit_on_escape:
-            if key == 27 or all([is_osx, key in [113, 119], modifier==1024]):
+            if key == 27 or all([is_osx, key in [113, 119], modifier == 1024]):
                 stopTouchApp()
                 self.close()
                 return True
@@ -928,7 +924,7 @@ class WindowBase(EventDispatcher):
         '''.. versionadded:: 1.0.4
 
         Internal widget method to request the keyboard. This method is rarely
-        required by the end-user as it is handled automatically by the 
+        required by the end-user as it is handled automatically by the
         :class:`~kivy.uix.textinput.TextInput`. We expose it in case you want
         to handle the keyboard manually for unique input scenarios.
 
@@ -961,7 +957,7 @@ class WindowBase(EventDispatcher):
         :Return:
             An instance of :class:`Keyboard` containing the callback, target,
             and if the configuration allows it, a
-            :class:`~kivy.uix.vkeyboard.VKeyboard` instance attached as a 
+            :class:`~kivy.uix.vkeyboard.VKeyboard` instance attached as a
             *.widget* property.
 
         '''
@@ -1044,6 +1040,8 @@ class WindowBase(EventDispatcher):
             self._system_keyboard.callback = None
             callback()
             return True
+Config.add_callback(lambda s, k, v: setattr(
+        WindowBase.on_keyboard, 'exit_on_escape', v), 'kivy', 'exit_on_escape')
 
 
 #: Instance of a :class:`WindowBase` implementation
