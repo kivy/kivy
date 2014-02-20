@@ -436,8 +436,8 @@ class LabelBase(object):
         # first pass, calculating width/height
         sz = self.render()
         self._size_texture = sz
-        self._size = (sz[0] + self.options['padding_x'] * 2,
-                      sz[1] + self.options['padding_y'] * 2)
+        self._size = (sz[0] - self.options['padding_x'] * 2,
+                      sz[1] - self.options['padding_y'] * 2)
 
         # if no text are rendered, return nothing.
         width, height = self._size
@@ -505,14 +505,14 @@ class LabelBase(object):
         '''Return the content width'''
         if self.texture is None:
             return 0
-        return self.texture.width + 2 * self.options['padding_x']
+        return self.texture.width - 2 * self.options['padding_x']
 
     @property
     def content_height(self):
         '''Return the content height'''
         if self.texture is None:
             return 0
-        return self.texture.height + 2 * self.options['padding_y']
+        return self.texture.height - 2 * self.options['padding_y']
 
     @property
     def content_size(self):
