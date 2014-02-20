@@ -113,6 +113,8 @@ from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty, ListProperty, ObjectProperty, \
     AliasProperty, NumericProperty, ReferenceListProperty
+from kivy.uix.behaviors import SelectionBehavior
+from kivy.core.window import Window
 
 
 class TreeViewException(Exception):
@@ -129,6 +131,19 @@ class TreeViewNode(object):
         if self.__class__ is TreeViewNode:
             raise TreeViewException('You cannot use directly TreeViewNode.')
         super(TreeViewNode, self).__init__(**kwargs)
+        self.bind(is_leaf=self._on_is_leaf, no_selection=self._on_no_selection)
+
+    def _on_is_leaf(self, instance, val):
+        tree = self.parent_tree
+        if (not val) and tree and tree.select_leaves_only:
+            tree.deselect_node(self)
+        self.is_selected = False
+
+    def _on_no_selection(self, instance, val):
+        tree = self.parent_tree
+        if val and tree:
+            tree.deselect_node(self)
+        self.is_selected = False
 
     is_leaf = BooleanProperty(True)
     '''Boolean to indicate whether this node is a leaf or not. Used to adjust
@@ -174,7 +189,7 @@ class TreeViewNode(object):
 
     no_selection = BooleanProperty(False)
     '''Boolean used to indicate whether selection of the node is allowed or
-     not.
+    not.
 
     :attr:`no_selection` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
@@ -195,12 +210,24 @@ class TreeViewNode(object):
     '''
 
     parent_node = ObjectProperty(None, allownone=True)
-    '''Parent node. This attribute is needed because the :attr:`parent` can be
-    None when the node is not displayed.
+    '''The :class:`TreeViewNode` that is the parent node of this node. This
+    attribute is needed because the :attr:`parent` can be None when the node
+    is not displayed.
 
     .. versionadded:: 1.0.7
 
-    :attr:`parent_node` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`parent_node` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
+    '''
+
+    parent_tree = ObjectProperty(None, allownone=True)
+    '''The :class:`TreeViewNode` instance of which this is a node. If the
+    node has not been added to any tree or if it has been removed it'll be
+    None. This is preferd to :attr:`parent`.
+
+    .. versionadded:: 1.8.1
+
+    :attr:`parent_tree` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 
@@ -250,8 +277,19 @@ class TreeViewLabel(Label, TreeViewNode):
     '''
 
 
-class TreeView(Widget):
+class TreeView(SelectionBehavior, Widget):
     '''TreeView class. See module documentation for more information.
+
+    .. versionchanged:: 1.8.1
+
+        TreeView has changed to inherit from
+        :class:`~kivy.uix.behavior.SelectionBehavior`. Before, only a single
+        node could be selected, now, multi-node selection is possible.
+        Keyboard selection is now also possible.
+
+        In additon, :attr:`selected_node` is deprecated in favor of
+        :attr:`~kivy.uix.behavior.SelectionBehavior.selected_nodes`, which
+        lists all the nodes selected.
 
     :Events:
         `on_node_expand`: (node, )
@@ -261,20 +299,48 @@ class TreeView(Widget):
     '''
 
     __events__ = ('on_node_expand', 'on_node_collapse')
+    _keyboard = None
 
     def __init__(self, **kwargs):
         self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
+        # in past multiselect was True be default, so if not specfied set it
+        # to True. it only takes effect if multiselect is True, making it
+        # behave the same as before
+        if 'touch_multiselect' not in kwargs:
+            self.touch_multiselect = True
         super(TreeView, self).__init__(**kwargs)
         tvlabel = TreeViewLabel(text='Root', is_open=True, level=0)
         for key, value in self.root_options.items():
             setattr(tvlabel, key, value)
         self._root = self.add_node(tvlabel, None)
+        self._keyboard = None
+        self._update_keyboard()
         self.bind(
             pos=self._trigger_layout,
             size=self._trigger_layout,
             indent_level=self._trigger_layout,
-            indent_start=self._trigger_layout)
+            indent_start=self._trigger_layout,
+            keyboard_select=self._update_keyboard)
         self._trigger_layout()
+
+    def __del__(self):
+        self.keyboard_select = False
+        self._release_keyboard()
+
+    def _update_keyboard(self, *l):
+        keyboard = self._keyboard
+        if self.keyboard_select:
+            if not keyboard:
+                keyboard = Window.request_keyboard(self._update_keyboard, self)
+                self._keyboard = keyboard
+            if keyboard:
+                keyboard.bind(on_key_down=self.select_with_key_down,
+                              on_key_up=self.select_with_key_up)
+        else:
+            if keyboard:
+                keyboard.unbind(on_key_down=self.select_with_key_down,
+                                on_key_up=self.select_with_key_up)
+                self._keyboard = None
 
     def add_node(self, node, parent=None):
         '''Add a new node in the tree.
@@ -293,10 +359,13 @@ class TreeView(Widget):
         if parent is None and self._root:
             parent = self._root
         if parent:
+            node.parent_tree = self
             parent.is_leaf = False
             parent.nodes.append(node)
             node.parent_node = parent
             node.level = parent.level + 1
+            if self.select_leaves_only:
+                self.deselect_node(parent)
         node.bind(size=self._trigger_layout)
         self._trigger_layout()
         return node
@@ -316,6 +385,7 @@ class TreeView(Widget):
                 'The node must be a subclass of TreeViewNode')
         parent = node.parent_node
         if parent is not None:
+            self.deselect_node(node)
             nodes = parent.nodes
             if node in nodes:
                 nodes.remove(node)
@@ -323,6 +393,7 @@ class TreeView(Widget):
             node.parent_node = None
             node.unbind(size=self._trigger_layout)
             self._trigger_layout()
+            node.parent_tree = None
 
     def on_node_expand(self, node):
         pass
@@ -330,15 +401,34 @@ class TreeView(Widget):
     def on_node_collapse(self, node):
         pass
 
+    def get_selectable_nodes(self):
+        return self._nodes_reversed
+
     def select_node(self, node):
-        '''Select a node in the tree.
+        '''Selects a node in the tree. See
+        :meth:`~kivy.uix.behavior.SelectionBehavior.select_node`.
+
+        :Parameters:
+            `node`: instance of a :class:`TreeViewNode` Node to select.
         '''
-        if node.no_selection:
-            return
-        if self._selected_node:
-            self._selected_node.is_selected = False
-        node.is_selected = True
-        self._selected_node = node
+        if node.no_selection or (self.select_leaves_only and not node.is_leaf):
+            return False
+        if super(TreeView, self).select_node(node):
+            node.is_selected = True
+            return True
+        return False
+
+    def deselect_node(self, node):
+        '''Deselect a node in the tree. See
+        :meth:`~kivy.uix.behavior.SelectionBehavior.deselect_node`.
+
+        .. versionadded:: 1.8.1
+
+        :Parameters:
+            `node`: instance of a :class:`TreeViewNode` Node to deselect.
+        '''
+        node.is_selected = False
+        super(TreeView, self).deselect_node(node)
 
     def toggle_node(self, node):
         '''Toggle the state of the node (open/collapsed).
@@ -427,6 +517,7 @@ class TreeView(Widget):
         self.clear_widgets()
         # display only the one who are is_open
         self._do_open_node(self.root)
+        self._nodes_reversed = self.children[::-1]
         # now do layout
         self._do_layout_node(self.root, 0, self.top)
         # now iterate for calculating minimum size
@@ -469,6 +560,10 @@ class TreeView(Widget):
         return y
 
     def on_touch_down(self, touch):
+        if 'button' in touch.profile and touch.button in\
+            ('scrollup', 'scrolldown', 'scrollleft', 'scrollright')\
+            and self.collide_point(*touch.pos):
+            return self.select_with_touch(None, touch)
         node = self.get_node_at_pos(touch.pos)
         if not node:
             return
@@ -478,7 +573,7 @@ class TreeView(Widget):
         if node.x - self.indent_start <= touch.x < node.x:
             self.toggle_node(node)
         elif node.x <= touch.x:
-            self.select_node(node)
+            self.select_with_touch(node, touch)
             node.dispatch('on_touch_down', touch)
         return True
 
@@ -487,7 +582,8 @@ class TreeView(Widget):
     #
     _root = ObjectProperty(None)
 
-    _selected_node = ObjectProperty(None)
+    # list of inversed nodes for selection
+    _nodes_reversed = ListProperty([])
 
     #
     # Properties
@@ -549,12 +645,36 @@ class TreeView(Widget):
     defaults to False.
     '''
 
+    select_leaves_only = BooleanProperty(False)
+    '''Determines whether non-leaf nodes are valid selections or not.
+
+    .. versionadded:: 1.8.1
+
+    :attr:`select_leaves_only` is a :class:`~kivy.properties.BooleanProperty`,
+    defaults to False.
+    '''
+
     def get_selected_node(self):
-        return self._selected_node
+        nodes = self.selected_nodes
+        return nodes[0] if len(nodes) else None
 
     selected_node = AliasProperty(get_selected_node, None,
-                                  bind=('_selected_node', ))
-    '''Node selected by :meth:`TreeView.select_node` or by touch.
+                                  bind=('selected_nodes', ))
+    '''Node selected with :meth:`select_node`.
+
+    .. warning::
+
+        Deprecated, use
+        :attr:`~kivy.uix.behavior.SelectionBehavior.selected_nodes` instead.
+
+    .. versionchanged:: 1.8.1
+
+        Previously, only one node could be selected at any time. This has been
+        changed to allow multiple nodes to be selected and read using
+        :attr:`selected_nodes`. :attr:`selected_node` remains only for backward
+        compatibility and will be removed in version 2.0.0.
+        :attr:`selected_node` will still return the first selected node, if
+        there are any, or None otherwise.
 
     :attr:`selected_node` is a :class:`~kivy.properties.AliasProperty` and
     defaults to None. It is read-only.
@@ -608,23 +728,33 @@ class TreeView(Widget):
 
 if __name__ == '__main__':
     from kivy.app import App
+    from kivy.uix.boxlayout import BoxLayout
 
     class TestApp(App):
 
         def build(self):
-            tv = TreeView(hide_root=True)
-            add = tv.add_node
-            root = add(TreeViewLabel(text='Level 1, entry 1', is_open=True))
-            for x in range(5):
-                add(TreeViewLabel(text='Element %d' % x), root)
-            root2 = add(TreeViewLabel(text='Level 1, entry 2', is_open=False))
-            for x in range(24):
-                add(TreeViewLabel(text='Element %d' % x), root2)
-            for x in range(5):
-                add(TreeViewLabel(text='Element %d' % x), root)
-            root2 = add(TreeViewLabel(text='Element childs 2', is_open=False),
-                        root)
-            for x in range(24):
-                add(TreeViewLabel(text='Element %d' % x), root2)
-            return tv
+            box = BoxLayout(orientation='horizontal', spacing=20)
+            for i in range(2):
+                tv = TreeView(hide_root=True, multiselect=i == 1,
+                              touch_multiselect=i == 0,
+                              keyboard_select=True,
+                              select_leaves_only=i == 0)
+                add = tv.add_node
+                root = add(TreeViewLabel(text='Level 1, entry 1',
+                                         is_open=True))
+                for x in range(5):
+                    add(TreeViewLabel(text='Element %d' % x), root)
+                root2 = add(TreeViewLabel(text='Level 1, entry 2',
+                                          is_open=False))
+                for x in range(24):
+                    add(TreeViewLabel(text='Element %d' % x), root2)
+                for x in range(5):
+                    add(TreeViewLabel(text='Element %d' % x), root)
+                root2 = add(TreeViewLabel(text='Element childs 2',
+                                          is_open=False),
+                            root)
+                for x in range(24):
+                    add(TreeViewLabel(text='Element %d' % x), root2)
+                box.add_widget(tv)
+            return box
     TestApp().run()

@@ -41,6 +41,9 @@ from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.utils import platform as core_platform
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.stacklayout import StackLayout
+from kivy.uix.behaviors import SelectionBehavior
+from kivy.core.window import Window
 from kivy.properties import (
     StringProperty, ListProperty, BooleanProperty, ObjectProperty,
     NumericProperty)
@@ -198,6 +201,8 @@ class FileChooserController(FloatLayout):
             Fired when a file has been selected with a double-tap.
     '''
     _ENTRY_TEMPLATE = None
+    # must be populated with a attr that has a clear_selection function
+    _selector = ObjectProperty(None)
 
     path = StringProperty(u'/')
     '''
@@ -296,6 +301,33 @@ class FileChooserController(FloatLayout):
     Determines whether the user is able to select multiple files or not.
     '''
 
+    keyboard_select = BooleanProperty(False)
+    ''' Whether the keybaord can be used for selection.
+
+    :attr:`keyboard_select` is a :class:`~kivy.properties.BooleanProperty`
+    , defaults to False.
+
+    .. versionadded:: 1.8.1
+    '''
+
+    touch_multiselect = BooleanProperty(True)
+    '''Determines whether touch events will add to the selection the currently
+    touched node, or if it will clear the selection before adding the node.
+    This allows the selection of multiple nodes by simply touching them, as
+    opposed to having to e.g. hold ctrl down as is required when this is False
+    and :attr:`multiselect` is True.
+
+    .. note::
+
+        :attr:`multiselect`, when False, will disable
+        :attr:`touch_multiselect`.
+
+    :attr:`touch_multiselect` is a :class:`~kivy.properties.BooleanProperty`,
+    defaults to True.
+
+    .. versionadded:: 1.8.1
+    '''
+
     dirselect = BooleanProperty(False)
     '''
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
@@ -375,7 +407,6 @@ class FileChooserController(FloatLayout):
         super(FileChooserController, self).__init__(**kwargs)
 
         self._items = []
-        self.bind(selection=self._update_item_selection)
 
         self._previous_path = [self.path]
         self.bind(path=self._save_previous_path)
@@ -399,10 +430,6 @@ class FileChooserController(FloatLayout):
         if self.disabled:
             return True
         return super(FileChooserController, self).on_touch_up(touch)
-
-    def _update_item_selection(self, *args):
-        for item in self._items:
-            item.selected = item.path in self.selection
 
     def _save_previous_path(self, instance, value):
         self._previous_path.append(value)
@@ -431,24 +458,11 @@ class FileChooserController(FloatLayout):
         '''(internal) This method must be called by the template when an entry
         is touched by the user.
         '''
-        if (
-            'button' in touch.profile and touch.button in (
-                'scrollup', 'scrolldown', 'scrollleft', 'scrollright')):
-            return False
-        if self.multiselect:
-            if self.file_system.is_dir(entry.path) and touch.is_double_tap:
-                self.open_entry(entry)
-            else:
-                if entry.path in self.selection:
-                    self.selection.remove(entry.path)
-                else:
-                    self.selection.append(entry.path)
-        else:
-            if self.file_system.is_dir(entry.path):
-                if self.dirselect:
-                    self.selection = [entry.path, ]
-            else:
-                self.selection = [entry.path, ]
+        if (('button' not in touch.profile or touch.button not in ('scrollup',
+            'scrolldown', 'scrollleft', 'scrollright')) and
+            self.file_system.is_dir(entry.path) and self.touch_multiselect
+            and touch.is_double_tap and self.multiselect):
+            self.open_entry(entry)
 
     def entry_released(self, entry, touch):
         '''(internal) This method must be called by the template when an entry
@@ -460,7 +474,7 @@ class FileChooserController(FloatLayout):
             'button' in touch.profile and touch.button in (
                 'scrollup', 'scrolldown', 'scrollleft', 'scrollright')):
             return False
-        if not self.multiselect:
+        if not self.touch_multiselect or not self.multiselect:
             if self.file_system.is_dir(entry.path) and not self.dirselect:
                 self.open_entry(entry)
             elif touch.is_double_tap:
@@ -480,7 +494,7 @@ class FileChooserController(FloatLayout):
             entry.locked = True
         else:
             self.path = join(self.path, entry.path)
-            self.selection = []
+            self.clear_selection()
 
     def _apply_filters(self, files):
         if not self.filters:
@@ -696,6 +710,13 @@ class FileChooserController(FloatLayout):
         for subentry in entry.entries:
             self.dispatch('on_remove_subentry', subentry, entry)
 
+    def clear_selection(self):
+        '''Deselects all the selected entries.
+
+        .. versionadded:: 1.8.1
+        '''
+        self._selector.clear_selection()
+
 
 class FileChooserListView(FileChooserController):
     '''Implementation of :class:`FileChooserController` using a list view.
@@ -707,6 +728,55 @@ class FileChooserIconView(FileChooserController):
     '''Implementation of :class:`FileChooserController` using an icon view.
     '''
     _ENTRY_TEMPLATE = 'FileIconEntry'
+
+
+class FileChooserIconViewSelector_(SelectionBehavior, StackLayout):
+    '''Selection class for the icon view.
+    '''
+
+    _selectable_list = []
+
+    def __init__(self, **kwargs):
+        super(FileChooserIconViewSelector_, self).__init__(**kwargs)
+        self._keyboard = None
+        self._update_keyboard()
+
+        def reverse_children(*l):
+            self._selectable_list = self.children[::-1]
+        self.bind(keyboard_select=self._update_keyboard,
+                  children=reverse_children)
+
+    def __del__(self):
+        self.keyboard_select = False
+        self._release_keyboard()
+
+    def _update_keyboard(self, *l):
+        keyboard = self._keyboard
+        if self.keyboard_select:
+            if not keyboard:
+                keyboard = Window.request_keyboard(self._update_keyboard, self)
+                self._keyboard = keyboard
+            if keyboard:
+                keyboard.bind(on_key_down=self.select_with_key_down,
+                              on_key_up=self.select_with_key_up)
+        else:
+            if keyboard:
+                keyboard.unbind(on_key_down=self.select_with_key_down,
+                                on_key_up=self.select_with_key_up)
+                self._keyboard = None
+
+    def select_node(self, node):
+        if self.select_leaves_only and not node.is_leaf:
+            return False
+        node.selected = True
+        return super(FileChooserIconViewSelector_, self).select_node(node)
+
+    def deselect_node(self, node):
+        node.selected = False
+        super(FileChooserIconViewSelector_, self).deselect_node(node)
+
+    def get_selectable_nodes(self):
+        return self._selectable_list
 
 
 if __name__ == '__main__':

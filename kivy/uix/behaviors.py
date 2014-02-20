@@ -19,15 +19,17 @@ do::
 
 '''
 
-__all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior')
+__all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior',
+           'SelectionBehavior')
 
 from kivy.clock import Clock
-from kivy.properties import OptionProperty, ObjectProperty,\
-    NumericProperty, ReferenceListProperty
+from kivy.properties import OptionProperty, ObjectProperty, NumericProperty,\
+    ReferenceListProperty, BooleanProperty, ListProperty
 from weakref import ref
 from kivy.config import Config
 from kivy.metrics import sp
 from functools import partial
+from kivy.core.window import Keyboard
 
 # When we are generating documentation, Config doesn't exist
 _scroll_timeout = _scroll_distance = 0
@@ -406,3 +408,402 @@ class DragBehavior(object):
         self._drag_touch = None
         super(DragBehavior, self).on_touch_down(touch)
         return
+
+
+class SelectionBehavior(object):
+    '''Selection behavior implements the logic behind keyboard and touch
+    selection of selectable widgets contained in the derived widget.
+    For example, it could be combined with a
+    :class:`~kivy.uix.gridlayout.GridLayout` to add selection to the layout.
+
+    To make the selection work, :meth:`select_node` and :meth:`deselect_node`
+    must be overwritten in order affect the selected nodes. By default,
+    it doesn't listen to keyboard and touch events, so the derived widget must
+    call :meth:`select_with_touch` and :meth:`select_with_key_down` and
+    :meth:`select_with_key_up` on events that it wants to pass on for selection
+    purposes.
+
+    For example, to add selection to a grid layout which will contain
+    :class:`~kivy.uix.Button` widgets::
+
+        class SelectableGrid(SelectionBehavior, GridLayout):
+
+            def __init__(self, **kwargs):
+                super(SelectableGrid, self).__init__(**kwargs)
+                keyboard = Window.request_keyboard(None, self)
+                keyboard.bind(on_key_down=self.select_with_key_down,
+                on_key_up=self.select_with_key_up)
+
+            def select_node(self, node):
+                node.background_color = (1, 0, 0, 1)
+                return super(SelectableGrid, self).select_node(node)
+
+            def deselect_node(self, node):
+                node.background_color = (1, 1, 1, 1)
+                super(SelectableGrid, self).deselect_node(node)
+
+    Then, for each button added to the layout, bind on_touch_down of the button
+    to :meth:`select_with_touch` to pass on the touch events.
+
+    .. versionadded:: 1.8.1
+    '''
+
+    selected_nodes = ListProperty([])
+    '''The list of nodes selected with :meth:`select_node`, with touch or with
+    the keyboard.
+
+    .. note:
+
+        Multiple nodes can be selected right after another using e.g. the
+        keyboard, so when listening to :attr:`selected_nodes` one should be
+        aware of this.
+
+    :attr:`selected_nodes` is a :class:`~kivy.properties.ListProperty` and
+    defaults to the empty list, []. It is read-only and should not be modified.
+    '''
+
+    touch_multiselect = BooleanProperty(False)
+    '''Determines whether touch events as processed with
+    :meth:`select_with_touch` will add to the selection the currently touched
+    node, or if it will clear the selection before adding the node. This allows
+    the selection of multiple nodes by simply touching them.
+
+    .. note::
+
+        :attr:`multiselect`, when False, will disable
+        :attr:`touch_multiselect`.
+
+    :attr:`touch_multiselect` is a :class:`~kivy.properties.BooleanProperty`,
+    defaults to False.
+    '''
+
+    multiselect = BooleanProperty(False)
+    '''Determines whether multiple nodes can be selected. If enabled, keyboard
+    shift and ctrl selection, optionally combined with touch will be able to
+    select multiple widgets in the normally expected manner. This overwrites
+    :attr:`touch_multiselect` when False.
+
+    :attr:`multiselect` is a :class:`~kivy.properties.BooleanProperty`
+    , defaults to False.
+    '''
+
+    keyboard_select = BooleanProperty(False)
+    ''' Whether the keybaord can be used for selection.
+
+    The derived widget is responsible for forwarding keyboard events with
+    :meth:`select_with_key_down`, so it is its responsibilty to use this
+    to decide whether to forward these events. On its own,
+    :class:`SelectionBehavior` will ignore :attr:`keyboard_select`.
+
+    :attr:`keyboard_select` is a :class:`~kivy.properties.BooleanProperty`
+    , defaults to False.
+    '''
+
+    page_count = NumericProperty(10)
+    '''Determines by how much is selected node is moved up or down, relative
+    to position of the last selected node, when pageup or pagedown is pressed.
+
+    :attr:`page_count` is a :class:`~kivy.properties.NumericProperty`,
+    defaults to 10.
+    '''
+
+    up_count = NumericProperty(1)
+    '''Determines by how much is selected node is moved up or down, relative
+    to position of the last selected node, when the up or down arrow is
+    pressed.
+
+    :attr:`up_count` is a :class:`~kivy.properties.NumericProperty`,
+    defaults to 1.
+    '''
+
+    right_count = NumericProperty(1)
+    '''Determines by how much is selected node is moved up or down, relative
+    to position of the last selected node, when the right or left arrow is
+    pressed.
+
+    :attr:`right_count` is a :class:`~kivy.properties.NumericProperty`,
+    defaults to 1.
+    '''
+
+    _anchor = None  # the last anchor node selected (e.g. shift relative node)
+    _last_selected_node = None  # the absolute last node selected
+    _ctrl_down = False
+    _shift_down = False
+    _key_list = []  # keyboard keys already processed
+    _scroll_codes = {'scrollup': (Keyboard.keycodes['down'], 'down'),
+                     'scrolldown': (Keyboard.keycodes['up'], 'up'),
+                     'scrollleft': (Keyboard.keycodes['right'], 'right'),
+                     'scrollright': (Keyboard.keycodes['left'], 'left')}
+
+    def __init__(self, **kwargs):
+        super(SelectionBehavior, self).__init__(**kwargs)
+
+        def ensure_single_select(*l):
+            if (not self.multiselect) and len(self.selected_nodes) > 1:
+                self.clear_selection()
+        self.bind(multiselect=ensure_single_select)
+
+    def select_with_touch(self, node, touch=None):
+        '''Processes a touch on the node. This is called when a node is touched
+        and is to be used for selection. Depending on the keyboard keys pressed
+        and the configuration, it could select or deslect this and other nodes
+        in the selectable nodes list, :meth:`get_selectable_nodes`.
+
+        :Parameters:
+            `node`
+                The node that recieved the touch. Can be None for a scroll
+                type touch.
+            `touch`
+                Optionally, the touch. Defaults to None.
+
+        :Returns:
+            bool, True if the touch was used.
+        '''
+        multi = self.multiselect
+        multiselect = multi and (self._ctrl_down or self.touch_multiselect)
+        range_select = multi and self._shift_down
+
+        btns = self._scroll_codes
+        if touch and 'button' in touch.profile and touch.button in btns:
+            modifiers = []
+            if range_select:
+                modifiers.append('shift')
+            if multiselect:
+                modifiers.append('ctrl')
+            return self.select_with_key_down(None, btns[touch.button], '',
+                                             modifiers)
+        if node is None:
+            return False
+
+        if (node in self.selected_nodes and (not range_select)):  # selected
+            if multiselect:  # ctrl type selection
+                self.deselect_node(node)
+            else:
+                self.clear_selection()
+                self.select_node(node)
+        elif range_select:  # whether selected or not, select all in range
+            self._select_range(multiselect, not multiselect, node=node)
+        else:   # it's not selected at this point
+            if not multiselect:
+                self.clear_selection()
+            self.select_node(node)
+        return True
+
+    def select_with_key_down(self, keyboard, scancode, codepoint, modifiers,
+                             **kwargs):
+        '''Processes a key press. This is called when a key press is to be used
+        for selection. Depending on the keyboard keys pressed and the
+        configuration, it could select or deslect nodes or node ranges
+        from the selectable nodes list, :meth:`get_selectable_nodes`.
+
+        The parameters are such that it could be bound directly to the
+        on_key_down event of a keyboard. Therefore, it is safe to be called
+        repeatedly when the key is held down as is done by the keyboard.
+
+        :Returns:
+            bool, True if the keypress was used.
+        '''
+        sister_nodes = self.get_selectable_nodes()
+        keys = self._key_list
+        multi = self.multiselect
+        # for keyboard, we have a anchor, and we select everything between
+        # anchor and added offset relative to last node
+        last_node = self._last_selected_node
+        if last_node is None:
+            last_node = self._anchor
+        if last_node is None:
+            idx = 0
+        else:
+            try:
+                idx = sister_nodes.index(last_node)
+            except ValueError:
+                idx = 0
+
+        if scancode[1] == 'shift':
+            self._shift_down = True
+            return True
+        elif scancode[1] == 'ctrl':
+            self._ctrl_down = True
+            return True
+        elif (multi and 'ctrl' in modifiers and (scancode[1] == 'a'
+            or scancode[1] == 'A') and scancode[1] not in keys):
+            select = self.select_node
+            for node in sister_nodes:
+                select(node)
+            keys.append(scancode[1])
+            return True
+        elif scancode[1] == 'pageup':
+            idx = max(0, idx - self.page_count)
+        elif scancode[1] == 'pagedown':
+            idx = min(len(sister_nodes) - 1, idx + self.page_count)
+        elif scancode[1] == 'home' and 'home' not in keys:
+            idx = 0
+            keys.append('home')
+        elif scancode[1] == 'end' and 'end' not in keys:
+            idx = len(sister_nodes) - 1
+            keys.append('end')
+        elif scancode[1] == 'up':
+            idx = max(0, idx - self.up_count)
+        elif scancode[1] == 'down':
+            idx = min(len(sister_nodes) - 1, idx + self.up_count)
+        elif scancode[1] == 'left':
+            idx = max(0, idx - self.right_count)
+        elif scancode[1] == 'right':
+            idx = min(len(sister_nodes) - 1, idx + self.right_count)
+        else:
+            return False
+
+        multiselect = multi and 'ctrl' in modifiers
+        range_select = multi and 'shift' in modifiers
+        if range_select:
+            self._select_range(multiselect, True, idx=idx)
+        elif not multiselect:
+            self.clear_selection()
+            self.select_node(sister_nodes[idx])
+        return True
+
+    def select_with_key_up(self, keyboard, scancode, **kwargs):
+        '''Processes a key release. This must be called when a key that
+        :meth:`select_with_key_down` returned True is released.
+
+        The parameters are such that it could be bound directly to the
+        on_key_up event of a keyboard.
+
+        :Returns:
+            bool, True if the key release was used.
+        '''
+        if scancode[1] == 'shift':
+            self._shift_down = False
+        elif scancode[1] == 'ctrl':
+            self._ctrl_down = False
+        else:
+            try:
+                self._key_list.remove(scancode[1])
+                return True
+            except ValueError:
+                return False
+        return True
+
+    def _select_range(self, multiselect, keep_anchor, node=None, idx=-1):
+        select = self.select_node
+        sister_nodes = self.get_selectable_nodes()
+        last_node = self._anchor
+
+        if last_node is None:
+            idx1 = 0
+            last_node = sister_nodes[0]
+        else:
+            try:
+                idx1 = sister_nodes.index(last_node)
+            except ValueError:
+                # list changed - cannot do select across them
+                return
+        if node is None:
+            idx2 = idx
+            node = sister_nodes[idx]
+        else:
+            try:    # just in case
+                idx2 = sister_nodes.index(node)
+            except ValueError:
+                return
+
+        if idx1 > idx2:
+            idx1, idx2 = idx2, idx1
+        if not multiselect:
+            self.clear_selection()
+        for item in sister_nodes[idx1:idx2 + 1]:
+            select(item)
+
+        if keep_anchor:
+            self._anchor = last_node
+        else:
+            self._anchor = node  # in case idx was reversed, reset
+        self._last_selected_node = node
+
+    def clear_selection(self):
+        ''' Deselects all the currently selected nodes.
+        '''
+        deselect = self.deselect_node
+        nodes = self.selected_nodes
+        self._anchor = None
+        # empty beforehand so lookup in deselect will be fast
+        self.selected_nodes = []
+        for node in nodes:
+            deselect(node)
+
+    def get_selectable_nodes(self):
+        ''' Returns a list of the nodes that can be selected. It should be
+        overwritten by the derived widget to return the correct list.
+
+        This list is used to determine which nodes to select with group
+        selection. E.g. the first element in the list will be selected when
+        home is pressed, pagedown will move (or add to, if shift is held) the
+        selection from the current position by :attr:`page_count` nodes
+        starting from the position of the currently selected node in this list
+        and so on.
+
+        .. note::
+
+            It is safe to dynamically change this list including removing,
+            adding, or re-arranging its elements. Nodes can be selected even
+            if they are not on this list. And selected nodes
+            removed from the list will remain selected until
+            :meth:`deselect_node` is called.
+
+        Defaults to returning :attr:`~kivy.uix.Widget.children` in reverse
+        order (because layouts display their elements in reverse order).
+        '''
+        return self.children[::-1]  # to make it work by default for layouts
+
+    def select_node(self, node):
+        ''' Selects a node.
+
+        It is called by the controller when it selects a node and should be
+        called from the outside to select a node directly. The derived widget
+        should overwrite this method and change the node to its selected state
+        when this is called
+
+        :Parameters:
+            `node`
+                The node to be selected.
+
+        :Returns:
+            bool, True if the node was selected, False otherwise.
+
+        .. warning::
+
+            This method must be called by the derived widget using super if it
+            is overwritten.
+        '''
+        nodes = self.selected_nodes
+        if (not self.multiselect) and len(nodes):
+            self.clear_selection()
+        if node not in nodes:
+            nodes.append(node)
+        self._anchor = node
+        self._last_selected_node = node
+        return True
+
+    def deselect_node(self, node):
+        ''' Deselects a possibly selected node.
+
+        It is called by the controller when it deselects a node and should be
+        called from the outside to deselect a node directly. The derived widget
+        should overwrite this method and change the node to its unselected
+        state when this is called
+
+        :Parameters:
+            `node`
+                The node to be deselected.
+
+        .. warning::
+
+            This method must be called by the derived widget using super if it
+            is overwritten.
+        '''
+        try:
+            self.selected_nodes.remove(node)
+        except ValueError:
+            pass
+        if self._anchor == node:
+            self._anchor = None
