@@ -201,23 +201,23 @@ class WindowBase(EventDispatcher):
             Fired when the keyboard is used for input.
 
             .. versionchanged:: 1.3.0
+                The *unicode* parameter has been deprecated in favor of
+                codepoint, and will be removed completely in future versions.
 
-            The *unicode* parameter has been deprecated in favor of
-            codepoint, and will be removed completely in future versions.
         `on_key_down`: key, scancode, codepoint
             Fired when a key pressed.
 
             .. versionchanged:: 1.3.0
+                The *unicode* parameter has been deprecated in favor of
+                codepoint, and will be removed completely in future versions.
 
-            The *unicode* parameter has been deprecated in favor of
-            codepoint, and will be removed completely in future versions.
         `on_key_up`: key, scancode, codepoint
             Fired when a key is released.
 
             .. versionchanged:: 1.3.0
+                The *unicode* parameter has be deprecated in favor of
+                codepoint, and will be removed completely in future versions.
 
-            The *unicode* parameter has be deprecated in favor of
-            codepoint, and will be removed completely in future versions.
         `on_dropfile`: str
             Fired when a file is dropped on the application.
     '''
@@ -309,7 +309,6 @@ class WindowBase(EventDispatcher):
         Window.clearcolor = None
 
     .. versionchanged:: 1.7.2
-
         The clearcolor default value is now: (0, 0, 0, 1).
 
     '''
