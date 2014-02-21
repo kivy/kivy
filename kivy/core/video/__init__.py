@@ -6,7 +6,6 @@ Core class for reading video files and managing the
 :class:`kivy.graphics.texture.Texture` video.
 
 .. versionchanged:: 1.8.0
-
     There is now 2 distinct Gstreamer implementation: one using Gi/Gst
     working for both Python 2+3 with Gstreamer 1.0, and one using PyGST
     working only for Python 2 + Gstreamer 0.10.
@@ -37,7 +36,7 @@ class VideoBase(EventDispatcher):
             Action to take when EOS is hit. Can be one of 'pause', 'stop' or
             'loop'.
 
-            .. versionchanged::
+            .. versionchanged:: unknown
                 added 'pause'
 
         `async` : bool, defaults to True
@@ -155,8 +154,9 @@ class VideoBase(EventDispatcher):
                      doc='Get the video playing status')
 
     def _do_eos(self, *args):
-        '''.. versionchanged:: 1.4.0
-        Now dispatches the `on_eos` event.
+        '''
+        .. versionchanged:: 1.4.0
+            Now dispatches the `on_eos` event.
         '''
         if self.eos == 'pause':
             self.pause()
