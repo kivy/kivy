@@ -51,6 +51,8 @@ if sys.platform == 'darwin':
 ndkplatform = environ.get('NDKPLATFORM')
 if ndkplatform is not None and environ.get('LIBLINK'):
     platform = 'android'
+if ndkplatform is not None and environ.get('PLATFORM_KLAATU') == "egl_klaatu":
+    platform = 'klaatu'
 kivy_ios_root = environ.get('KIVYIOSROOT', None)
 if kivy_ios_root is not None:
     platform = 'ios'
@@ -62,6 +64,7 @@ if exists('/opt/vc/include/bcm_host.h'):
 #
 c_options = {
     'use_rpi': platform == 'rpi',
+    'use_klaatu': platform == 'klaatu',
     'use_opengl_es2': True,
     'use_opengl_debug': False,
     'use_glew': False,
@@ -489,7 +492,16 @@ if c_options['use_rpi']:
             base_flags, gl_flags)
     sources['lib/vidcore_lite/bcm.pyx'] = merge(
             base_flags, gl_flags)
-
+if c_options['use_klaatu']:
+    if environ.get('ANDROID_BUILD_TOP'):
+        klaatu_ldir = join(environ.get('ANDROID_PRODUCT_OUT'), '/system/lib')
+    else:
+        klaatu_ldir = ''
+    sources['lib/klaatu/egl.pyx'] = merge(
+            base_flags, gl_flags, {
+                'library_dirs' : [klaatu_ldir],
+                'libraries': ['EGL', 'klaatu_window']
+            })
 if c_options['use_x11']:
     sources['core/window/window_x11.pyx'] = merge(
         base_flags, gl_flags, {
@@ -604,6 +616,7 @@ setup(
         'kivy.lib',
         'kivy.lib.osc',
         'kivy.lib.gstplayer',
+        'kivy.lib.klaatu',
         'kivy.lib.vidcore_lite',
         'kivy.modules',
         'kivy.network',
