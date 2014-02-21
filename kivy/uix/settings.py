@@ -116,7 +116,7 @@ Several pre-built settings widgets are available. All except
 on_close event.
 
 - :class:`Settings`: Displays settings with a sidebar at the left to
-  switch between json panels. This is the default behaviour.
+  switch between json panels.
 
 - :class:`SettingsWithSidebar`: A trivial subclass of
   :class:`Settings`.
@@ -124,7 +124,8 @@ on_close event.
 - :class:`SettingsWithSpinner`: Displays settings with a spinner at
   the top, which can be used to switch between json panels. Uses
   :class:`InterfaceWithSpinner` as the
-  :attr:`~Settings.interface_cls`.
+  :attr:`~Settings.interface_cls`. This is the default behavior from
+  Kivy 1.8.0.
 
 - :class:`SettingsWithTabbedPanel`: Displays json panels as individual
   tabs in a :class:`~kivy.uix.tabbedpanel.TabbedPanel`. Uses

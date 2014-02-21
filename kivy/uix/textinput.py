@@ -74,6 +74,36 @@ The selection is automatically updated when the cursor position changes.
 You can get the currently selected text from the
 :attr:`TextInput.selection_text` property.
 
+Filtering
+---------
+
+You can control which text can be added to the :class:`TextInput` by
+overwriting :meth:`TextInput.insert_text`.Every string that is typed, pasted
+or inserted by any other means to the :class:`TextInput` is passed through
+this function. By overwriting it you can reject or change unwanted characters.
+
+For example, to write only in capitalized characters::
+
+    class CapitalInput(TextInput):
+
+        def insert_text(self, substring, from_undo=False):
+            s = substring.upper()
+            return super(CapitalInput, self).insert_text(s,\
+ from_undo=from_undo)
+
+Or to only allow floats (0 - 9 and a single period)::
+
+    class FloatInput(TextInput):
+
+        pat = re.compile('[^0-9]')
+        def insert_text(self, substring, from_undo=False):
+            pat = self.pat
+            if '.' in self.text:
+                s = re.sub(pat, '', substring)
+            else:
+                s = '.'.join([re.sub(pat, '', s) for s in\
+ substring.split('.', 1)])
+            return super(FloatInput, self).insert_text(s, from_undo=from_undo)
 
 Default shortcuts
 -----------------

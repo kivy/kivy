@@ -157,12 +157,12 @@ If you created the class yourself, you can use the 'on_<propname>' callback::
     property you are inheriting, you must not forget to call the superclass
     function too.
 
-Binding to Properties of properties.
+Binding to properties of properties.
 ------------------------------------
 
 When binding to a property of a property, for example binding to a numeric
-property of a object saved in a object property, updating the object property
-to point to a new object will not re-bind to the numeric property of the
+property of an object saved in a object property, updating the object property
+to point to a new object will not re-bind the numeric property to the
 new object. For example::
 
     <MyWidget>:
@@ -177,8 +177,8 @@ new object. For example::
             text: self.label.text
             on_press: self.label = second
 
-When clicking on the button, although the label object property is changed
-to the second widget, the button text is not changed because it is bound to
+When clicking on the button, although the label object property has changed
+to the second widget, the button text will not change because it is bound to
 the text property of the first label directly.
 '''
 

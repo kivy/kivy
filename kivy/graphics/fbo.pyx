@@ -101,8 +101,17 @@ cdef class Fbo(RenderContext):
             and will be automatically restored when the framebuffer released.
         `with_depthbuffer`: bool, defaults to False
             If True, the framebuffer will be allocated with a Z buffer.
+        `with_stencilbuffer`: bool, defaults to False
+            .. versionadded:: 1.8.1
+
+            If True, the framebuffer will be allocated with a stencil buffer.
         `texture`: :class:`~kivy.graphics.texture.Texture`, defaults to None
             If None, a default texture will be created.
+
+    .. note::
+        Using both of ``with_stencilbuffer`` and ``with_depthbuffer`` is not
+        supported in kivy 1.8.1
+
     '''
     cdef str resolve_status(self, int status):
         if status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
@@ -146,18 +155,25 @@ cdef class Fbo(RenderContext):
             kwargs['push_viewport'] = True
         if 'with_depthbuffer' not in kwargs:
             kwargs['with_depthbuffer'] = False
+        if 'with_stencilbuffer' not in kwargs:
+            kwargs['with_stencilbuffer'] = False
         if 'texture' not in kwargs:
             kwargs['texture'] = None
 
         self.buffer_id = 0
         self.depthbuffer_id = 0
+        self.stencilbuffer_id = 0
         self._width, self._height  = kwargs['size']
         self.clear_color = kwargs['clear_color']
         self._depthbuffer_attached = int(kwargs['with_depthbuffer'])
+        self._stencilbuffer_attached = int(kwargs['with_stencilbuffer'])
         self._push_viewport = int(kwargs['push_viewport'])
         self._is_bound = 0
         self._texture = kwargs['texture']
         self.observers = []
+
+        if self._depthbuffer_attached and self._stencilbuffer_attached:
+            self.raise_exception('Depth+stencil buffer is not supported yet.')
 
         self.create_fbo()
 
@@ -192,7 +208,6 @@ cdef class Fbo(RenderContext):
 
         # if we need depth, create a renderbuffer
         if self._depthbuffer_attached:
-             
             glGenRenderbuffers(1, &f_id)
             self.depthbuffer_id = f_id
             glBindRenderbuffer(GL_RENDERBUFFER, self.depthbuffer_id)
@@ -201,6 +216,17 @@ cdef class Fbo(RenderContext):
             glBindRenderbuffer(GL_RENDERBUFFER, 0)
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                                       GL_RENDERBUFFER, self.depthbuffer_id)
+
+        # if we need stencil, create a renderbuffer
+        if self._stencilbuffer_attached:
+            glGenRenderbuffers(1, &f_id)
+            self.stencilbuffer_id = f_id
+            glBindRenderbuffer(GL_RENDERBUFFER, self.stencilbuffer_id)
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8,
+                                  self._width, self._height)
+            glBindRenderbuffer(GL_RENDERBUFFER, 0)
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
+                                      GL_RENDERBUFFER, self.stencilbuffer_id)
 
         # attach the framebuffer to our texture
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
@@ -292,6 +318,8 @@ cdef class Fbo(RenderContext):
                      self._clear_color[2], self._clear_color[3])
         if self._depthbuffer_attached:
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        elif self._stencilbuffer_attached:
+            glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
         else:
             glClear(GL_COLOR_BUFFER_BIT)
 

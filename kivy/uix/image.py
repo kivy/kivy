@@ -14,6 +14,11 @@ the :class:`AsyncImage` subclass::
 
     aimg = AsyncImage(source='http://mywebsite.com/logo.png')
 
+This can be useful as it prevents your application from waiting until the image
+is loaded. If you want to display large images or retrieve them from URL's,
+using :class:`AsyncImage` will allow these resources to be retrieved on a
+background thread without blocking your application.
+
 Alignment
 ---------
 

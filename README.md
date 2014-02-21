@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/kivy/kivy.png?label=ready)](https://waffle.io/kivy/kivy)
 Kivy
 ====
 

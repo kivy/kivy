@@ -42,6 +42,7 @@ __all__ = ('HIDInputMotionEventProvider', 'HIDMotionEvent')
 import os
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
+from kivy.core.window import Window
 
 
 class HIDMotionEvent(MotionEvent):
@@ -312,6 +313,9 @@ else:
                                 point['_avoid'] = True
 
             def process(points):
+                if not is_multitouch:
+                    Window.mouse_pos = points[0]['x'] * Window.width, points[0]['y'] * Window.height
+
                 actives = [args['id']
                            for args in points
                            if 'id' in args and not '_avoid' in args]

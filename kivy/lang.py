@@ -1,5 +1,4 @@
-'''
-Kivy Language
+'''Kivy Language
 =============
 
 The Kivy language is a language dedicated to describing user interface and
@@ -38,12 +37,16 @@ The language consists of several constructs that you can use:
         You can use the language to create your entire user interface.
         A kv file must contain only one root widget at most.
 
-    Templates
-        *(introduced in version 1.0.5.)*
-        Templates will be used to populate parts of your application, such as a
-        list's content. If you want to design the look of an entry in a list
-        (icon on the left, text on the right), you will use a template
-        for that.
+    Dynamic Classes
+        *(introduced in version 1.7.0)*
+        Dynamic classes let you create new widgets and rules on-the-fly,
+        without any Python declaration.
+
+    Templates (deprecated)
+        *(introduced in version 1.0.5, deprecated from version 1.7.0)*
+        Templates were used to populate parts of an application, such as
+        styling the content of a list (e.g. icon on the left, text on the
+        right). They are now deprecated by dynamic classes.
 
 
 Syntax of a kv File
@@ -61,7 +64,8 @@ For now, use 1.0::
 
     # content here
 
-The `content` can contain rule definitions, a root widget and templates::
+The `content` can contain rule definitions, a root widget, dynamic class
+definitions and templates::
 
     # Syntax of a rule definition. Note that several Rules can share the same
     # definition (as in CSS). Note the braces: they are part of the definition.
@@ -75,12 +79,16 @@ The `content` can contain rule definitions, a root widget and templates::
     RootClassName:
         # .. definitions ..
 
+    # Syntax for creating a dynamic class
+    <NewWidget@BaseClass>:
+        # .. definitions ..
+
     # Syntax for create a template
     [TemplateName@BaseClass1,BaseClass2]:
         # .. definitions ..
 
-Regardless of whether it's a rule, root widget or template you're defining,
-the definition should look like this::
+Regardless of whether it's a rule, root widget, dynamic class or
+template you're defining, the definition should look like this::
 
     # With the braces it's a rule. Without them, it's a root widget.
     <ClassName>:
@@ -184,10 +192,10 @@ with `id.__self__` (`btn1.__self__` in this case).
 Valid expressons
 ~~~~~~~~~~~~~~~~
 
-There are two types of places that accept python statments in a kv file:
+There are two places that accept python statments in a kv file:
 after a property, which assigns to the property the result of the expression
-such as the text of a button as shown above, and after a on_property, which
-executes the statement when the property is updated, such as on_state.
+(such as the text of a button as shown above) and after a on_property, which
+executes the statement when the property is updated (such as on_state).
 
 In the former case, the
 `expression <http://docs.python.org/2/reference/expressions.html>`_ can only
@@ -197,7 +205,7 @@ escaping, and must return a value. An example of a valid expression is
 
 In the latter case, multiple single line statements are valid including
 multi-line statements that escape their newline, as long as they don't
-add an indentation leevl.
+add an indentation level.
 
 Examples of valid statements are::
 
@@ -326,7 +334,7 @@ declaration in the first place. The syntax of the dynamic classes is similar to
 the Rules, but you need to specify the base classes you want to
 subclass.
 
-The syntax look like:
+The syntax looks like:
 
 .. code-block:: kv
 
@@ -351,9 +359,11 @@ to subclass. The Python equivalent would have been:
     class NewWidget(ButtonBehavior, Label):
         pass
 
-Any new properties, usually added in python code, should be declared first.
-If the property doesn't exist in the dynamic class, it will be automatically
-created as an :class:`~kivy.properties.ObjectProperty`.
+Any new properties, usually added in python code, should be declared
+first.  If the property doesn't exist in the dynamic class, it will be
+automatically created as an :class:`~kivy.properties.ObjectProperty`
+(pre 1.8.0) or as an appropriate typed property (from version
+1.8.0).
 
 .. versionchanged:: 1.8.0
 
@@ -362,7 +372,8 @@ created as an :class:`~kivy.properties.ObjectProperty`.
     property, and the type of the value will be used for the specialization of
     the Property class. In other terms: if you declare `hello: "world"`, a new
     :class:`~kivy.properties.StringProperty` will be instanciated, with the
-    default value `"world"`. List, tuples, dictionnary, strings, are supported.
+    default value `"world"`. Lists, tuples, dictionaries and strings are
+    supported.
 
 Let's illustrate the usage of theses dynamic classes with an
 implementation of a basic Image button. We could derive our classes from
@@ -395,6 +406,12 @@ In Python, you can create an instance of the dynamic class as follows:
     from kivy.factory import Factory
     button_inst = Factory.ImageButton()
 
+.. note::
+
+    Using dynamic classes, a child class can be declared before it's parent.
+    This however, leads to the unintuitive situation where the parent
+    properties/methods override those of the child. Be careful if you choose
+    to do this.
 
 .. _template_usage:
 
@@ -660,7 +677,56 @@ Set a key that will be available anywhere in the kv. For example:
         canvas:
             Color:
                 rgb: my_color if self.state == 'normal' else my_color_hl
+
+include <file>
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.8.1
+
+Syntax:
+
+.. code-block:: kv
+
+    #:include [force] <file>
+
+Includes an external kivy file. This allows you to split complex
+widgets into their own files. If the include is forced, the file
+will first be unloaded and then reloaded again. For example:
+
+.. code-block:: kv
+
+    # Test.kv
+    #:include mycomponent.kv
+    #:include force mybutton.kv
+
+    <Rule>:
+        state: 'normal'
+        MyButton:
+        MyComponent:
+
+
+.. code-block:: kv
+
+    # mycomponent.kv
+    #:include mybutton.kv
+
+    <MyComponent>:
+        MyButton:
+
+.. code-block:: kv
+
+    # mybutton.kv
+
+    <MyButton>:
+        canvas:
+            Color:
+                rgb: (1.0, 0.0, 0.0)
+            Rectangle:
+                pos: self.pos
+                size: (self.size[0]/4, self.size[1]/4)
+
 '''
+import os
 
 __all__ = ('Builder', 'BuilderBase', 'BuilderException',
            'Parser', 'ParserException')
@@ -694,6 +760,9 @@ Instruction = None
 
 # register cache for creating new classtype (template)
 Cache.register('kv.lang')
+
+# all previously included files
+__KV_INCLUDES__ = []
 
 # precompile regexp expression
 lang_str = re.compile('([\'"][^\'"]*[\'"])')
@@ -1049,6 +1118,7 @@ class Parser(object):
         self.parse(content)
 
     def execute_directives(self):
+        global __KV_INCLUDES__
         for ln, cmd in self.directives:
             cmd = cmd.strip()
             if __debug__:
@@ -1070,7 +1140,34 @@ class Parser(object):
                     Logger.exception('')
                     raise ParserException(self, ln, 'Invalid value')
                 global_idmap[name] = value
+            elif cmd[:8] == 'include ':
+                ref = cmd[8:].strip()
+                force_load = False
 
+                if ref[:6] == 'force ':
+                    ref = ref[6:].strip()
+                    force_load = True
+
+                if ref[-3:] != '.kv':
+                    Logger.warn('WARNING: {0} does not have a valid Kivy'
+                                'Language extension (.kv)'.format(ref))
+                    break
+                if ref in __KV_INCLUDES__:
+                    if not force_load:
+                        Logger.warn('WARNING: {0} has already been included!'
+                                    .format(ref))
+                        break
+                    else:
+                        Logger.debug('Reloading {0} because include was forced.'
+                                    .format(ref))
+                        Builder.unload_file(ref)
+                        Builder.load_file(ref)
+                if not os.path.isfile(ref):
+                    raise ParserException(self, ln, 'Invalid or unknown file: '
+                                                    '{0}'.format(ref))
+                Logger.debug('Including file: {0}'.format(0))
+                __KV_INCLUDES__.append(ref)
+                Builder.load_file(ref)
             elif cmd[:7] == 'import ':
                 package = cmd[7:].strip()
                 l = package.split(' ')

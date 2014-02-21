@@ -76,12 +76,12 @@ class SoundGstplayer(Sound):
             self.player = None
 
     def seek(self, position):
-        self.player.seek(position / self.duration)
+        self.player.seek(position / self.length)
 
     def get_pos(self):
         return self.player.get_position()
 
-    def get_length(self):
+    def _get_length(self):
         return self.player.get_duration()
 
     def on_volume(self, instance, volume):

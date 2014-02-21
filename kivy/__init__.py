@@ -28,7 +28,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.8.0-dev'
+__version__ = '1.8.1-dev'
 
 import sys
 import shutil
@@ -185,6 +185,7 @@ if 'vim' in globals():
 else:
     Logger.setLevel(level=LOG_LEVELS.get('info'))
     Logger.info('Kivy v%s' % (__version__))
+    Logger.info('Python: v{}'.format(sys.version))
 
 #: Global settings options for kivy
 kivy_options = {

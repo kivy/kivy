@@ -74,8 +74,37 @@ widget moves, you can bind your own callback function like this::
     wid = Widget()
     wid.bind(pos=callback_pos)
 
-Read more about the :doc:`/api-kivy.properties`.
+Read more about :doc:`/api-kivy.properties`.
 
+Basic drawing
+-------------
+
+Widgets support a range of drawing instructions that you can use to customize
+the look of your widgets and layouts. For example, to draw a background image
+for your widget, you can do the following::
+
+    def redraw(self, args):
+        with self.canvas:
+            Rectangle(source="cover.jpg", pos=self.pos, size=self.size)
+
+    widget = Widget()
+    widget.bind(pos=redraw, size=redraw)
+
+.. highlight:: kv
+
+To draw a background in kv::
+
+    Widget:
+        canvas:
+            Rectangle:
+                source: "cover.jpg"
+                size: self.size
+                pos: self.pos
+
+These examples only scratch the surface. Please see the :mod:`kivy.graphics`
+documentation for more information.
+
+.. highlight:: python
 '''
 
 __all__ = ('Widget', 'WidgetException')
@@ -145,8 +174,8 @@ class Widget(WidgetBase):
         when contructing a simple class without subclassing :class:`Widget`.
 
     .. versionchanged:: 1.5.0
-        Constructor now accept on_* arguments to automatically bind
-        callbacks to properties or events, as the Kv language.
+        The constructor now accepts on_* arguments to automatically bind
+        callbacks to properties or events, as in the Kv language.
     '''
 
     __metaclass__ = WidgetMetaclass
@@ -320,8 +349,9 @@ class Widget(WidgetBase):
             `widget`: :class:`Widget`
                 Widget to add to our list of children.
             `index`: int, defaults to 0
-                *(this attribute was added in 1.0.5)*
                 Index to insert the widget in the list
+
+                .. versionadded:: 1.0.5
 
         >>> from kivy.uix.button import Button
         >>> from kivy.uix.slider import Slider
@@ -329,6 +359,7 @@ class Widget(WidgetBase):
         >>> root.add_widget(Button())
         >>> slider = Slider()
         >>> root.add_widget(slider)
+
         '''
         if not isinstance(widget, Widget):
             raise WidgetException(

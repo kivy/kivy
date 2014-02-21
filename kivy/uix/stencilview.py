@@ -17,10 +17,9 @@ provides an efficient way to clip the drawing area of children.
 
 .. note::
 
-    StencilView is not a layout, consequently, you have to manage the size and
-    position of the children directly. You can combine a StencilView with a
-    layout in order to have both a layout and stencilview behavior. For
-    example::
+    StencilView is not a layout. Consequently, you have to manage the size and
+    position of its children directly. You can combine (subclass both)
+    a StencilView and a Layout in order thier behavior. For example::
 
         class BoxStencil(BoxLayout, StencilView):
             pass

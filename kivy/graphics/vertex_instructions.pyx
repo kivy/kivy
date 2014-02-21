@@ -8,8 +8,8 @@ This module includes all the classes for drawing simple vertex objects.
 
     The list attributes of the graphics instruction classes (e.g.
     :attr:`Triangle.points`, :attr:`Mesh.indices` etc.) are not Kivy
-    properties, but Python properties. As a consequence, the graphics will only
-    be updated when the list object itself is changed, but not when list values
+    properties but Python properties. As a consequence, the graphics will only
+    be updated when the list object itself is changed and not when list values
     are modified.
 
     For example in python:

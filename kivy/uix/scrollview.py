@@ -1,5 +1,4 @@
-'''
-Scroll View
+'''Scroll View
 ===========
 
 .. versionadded:: 1.0.4
@@ -11,11 +10,12 @@ clipped at the scrollview's bounding box.
 Scrolling Behavior
 ------------------
 
-The ScrollView accepts only one child and applies a viewport/window to it
-according to the :attr:`scroll_x` and :attr:`scroll_y` properties. Touches are
-analyzed to determine if the user wants to scroll or control the child in some
-other manner - you cannot do both at the same time. To determine if interaction
-is a scrolling gesture, these properties are used:
+The ScrollView accepts only one child and applies a viewport/window to
+it according to the :attr:`ScrollView.scroll_x` and
+:attr:`ScrollView.scroll_y` properties. Touches are analyzed to
+determine if the user wants to scroll or control the child in some
+other manner - you cannot do both at the same time. To determine if
+interaction is a scrolling gesture, these properties are used:
 
     - :attr:`ScrollView.scroll_distance`: the minimum distance to travel,
          defaults to 20 pixels.
@@ -46,11 +46,11 @@ explicitly disable scrolling on an axis by setting
 :attr:`ScrollView.do_scroll_x` or :attr:`ScrollView.do_scroll_y` to False.
 
 
-Managing the Content Size and position
+Managing the Content Size and Position
 --------------------------------------
 
-ScrollView manages the position of the child content similar to a
-RelativeLayout (see :mod:`~kivy.uix.relativelayout`), not the size. You must
+ScrollView manages the position of its children similarly to a
+RelativeLayout (see :mod:`~kivy.uix.relativelayout`) but not the size. You must
 carefully specify the `size_hint` of your content to get the desired
 scroll/pan effect.
 
@@ -72,18 +72,41 @@ size_hint_y property to None::
     root.add_widget(layout)
 
 
-Effects
--------
+Overscroll Effects
+------------------
 
 .. versionadded:: 1.7.0
 
-An effect is a subclass of :class:`~kivy.effects.scroll.ScrollEffect` that will
-compute informations during the dragging, and apply transformation to the
-:class:`ScrollView`. Depending of the effect, more computing can be done for
-calculating over-scroll, bouncing, etc.
+When scrolling would exceed the bounds of the :class:`ScrollView`, it
+uses a :class:`~kivy.effects.scroll.ScrollEffect` to handle the
+overscroll. These effects can perform actions like bouncing back,
+changing opacity, or simply preventing scrolling beyond the normal
+boundaries. Note that complex effects may perform many computations,
+which can be slow on weaker hardware.
+
+You can change what effect is being used by setting
+:attr:`ScrollView.effect_cls` to any effect class. Current options
+include:
+
+    - :class:`~kivy.effects.scroll.ScrollEffect`: Does not allow
+      scrolling beyond the :class:`ScrollView` boundaries.
+    - :class:`~kivy.effects.dampedscroll.DampedScrollEffect`: The
+      current default. Allows the user to scroll beyond the normal
+      boundaries, but has the content spring back once the
+      touch/click is released.
+    - :class:`~kivy.effects.opacityscroll.OpacityScrollEffect`: Similar
+      to the :class:`~kivy.effect.dampedscroll.DampedScrollEffect`, but
+      also reduces opacity during overscroll.
+
+You can also create your own scroll effect by subclassing one of these,
+then pass it as the :attr:`~ScrollView.effect_cls` in the same way.
+
+Alternatively, you can set :attr:`ScrollView.effect_x` and/or
+:attr:`ScrollView.effect_y` to an *instance* of the effect you want to
+use. This will override the default effect set in
+:attr:`ScrollView.effect_cls`.
 
 All the effects are located in the :mod:`kivy.effects`.
-
 
 '''
 
@@ -521,6 +544,8 @@ class ScrollView(StencilView):
         # handle mouse scrolling, only if the viewport size is bigger than the
         # scrollview size, and if the user allowed to do it
         vp = self._viewport
+        if not vp:
+            return True
         scroll_type = self.scroll_type
         ud = touch.ud
         scroll_bar = 'bars' in scroll_type
@@ -711,6 +736,29 @@ class ScrollView(StencilView):
             return True
 
         return self._get_uid() in touch.ud
+
+    def convert_distance_to_scroll(self, dx, dy):
+        '''Convert a distance in pixels to a scroll distance, depending on the
+        content size and the scrollview size.
+
+        The result will be a tuple of scroll distance that can be added to
+        :data:`scroll_x` and :data:`scroll_y`
+        '''
+        if not self._viewport:
+            return 0, 0
+        vp = self._viewport
+        if vp.width > self.width:
+            sw = vp.width - self.width
+            sx = dx / float(sw)
+        else:
+            sx = 0
+        if vp.height > self.height:
+            sh = vp.height - self.height
+            sy = dy / float(sh)
+        else:
+            sy = 1
+        return sx, sy
+
 
     def update_from_scroll(self, *largs):
         '''Force the reposition of the content, according to current value of

@@ -34,27 +34,27 @@ class PageLayout(Layout):
     '''PageLayout class. See module documentation for more information
     '''
 
+    page = NumericProperty(0)
     '''Currently displayed page.
 
     :data:`page` is a :class:`~kivy.properties.NumericProperty`, default to 0.
     '''
-    page = NumericProperty(0)
 
+    border = NumericProperty('50dp')
     '''Width of the border used around current page to display previous/next
     page when needed.
 
     :data:`border` is a :class:`~kivy.properties.NumericProperty`,
     default to 0.
     '''
-    border = NumericProperty('50dp')
 
+    swipe_threshold = NumericProperty(.5)
     '''Thresold to the swipe action triggering, as percentage of the widget
     size.
 
     :data:`swipe_threshold` is a :class:`~kivy.properties.NumericProperty`,
     default to .5.
     '''
-    swipe_threshold = NumericProperty(.5)
 
     def __init__(self, **kwargs):
         super(PageLayout, self).__init__(**kwargs)
@@ -155,12 +155,12 @@ class PageLayout(Layout):
         if touch.grab_current == self:
             if (
                 touch.ud['page'] == 'previous' and
-                abs(touch.sx - touch.osx) > self.swipe_threshold
+                abs(touch.x - touch.ox) / self.width > self.swipe_threshold
             ):
                 self.page -= 1
             elif (
                 touch.ud['page'] == 'next' and
-                abs(touch.sx - touch.osx) > self.swipe_threshold
+                abs(touch.x - touch.ox) / self.width > self.swipe_threshold
             ):
                 self.page += 1
             else:

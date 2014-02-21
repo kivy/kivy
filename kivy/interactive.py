@@ -185,7 +185,7 @@ class SafeMembrane(object):
     from leaking into the user's environment.
     '''
 
-    __slots__ = ('_ref', 'safe', 'confirmed', 'safeIn', 'safeOut')
+    __slots__ = ('_ref', 'safe', 'confirmed')
 
     def __init__(self, ob, *args, **kwargs):
         self.confirmed = EventLoop.confirmed

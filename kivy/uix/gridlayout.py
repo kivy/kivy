@@ -18,7 +18,7 @@ The :class:`GridLayout` arranges children in a matrix. It takes the available
 space and divides it into columns and rows, then adds widgets to the resulting
 "cells".
 
-.. versionadded:: 1.0.7
+.. versionchanged:: 1.0.7
     The implementation has changed to use the widget size_hint for calculating
     column/row sizes. `uniform_width` and `uniform_height` have been removed
     and other properties have added to give you more control.
@@ -131,8 +131,7 @@ class GridLayout(Layout):
     padding_vertical] and a one argument form [padding].
 
     .. versionchanged:: 1.7.0
-
-    Replaced NumericProperty with VariableListProperty.
+        Replaced NumericProperty with VariableListProperty.
 
     :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [0, 0, 0, 0].
@@ -141,8 +140,7 @@ class GridLayout(Layout):
     cols = BoundedNumericProperty(None, min=0, allownone=True)
     '''Number of columns in the grid.
 
-    .. versionadded:: 1.0.8
-
+    .. versionchanged:: 1.0.8
         Changed from a NumericProperty to BoundedNumericProperty. You can no
         longer set this to a negative value.
 
@@ -153,8 +151,7 @@ class GridLayout(Layout):
     rows = BoundedNumericProperty(None, min=0, allownone=True)
     '''Number of rows in the grid.
 
-    .. versionadded:: 1.0.8
-
+    .. versionchanged:: 1.0.8
         Changed from a NumericProperty to a BoundedNumericProperty. You can no
         longer set this to a negative value.
 

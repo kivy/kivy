@@ -33,7 +33,7 @@ def pkgconfig(*packages, **kw):
         flag = flag_map.get(ext)
         if not flag:
             continue
-        kw.setdefault(flag, []).append(token[2:])
+        kw.setdefault(flag, []).append(token[2:].decode('utf-8'))
     return kw
 
 
@@ -274,7 +274,7 @@ def determine_base_flags():
             sdk_mac_ver = '.'.join(_platform.mac_ver()[0].split('.')[:2])
             print('Xcode detected at {}, and using MacOSX{} sdk'.format(
                     xcode_dev, sdk_mac_ver))
-            sysroot = join(xcode_dev,
+            sysroot = join(xcode_dev.decode('utf-8'),
                     'Platforms/MacOSX.platform/Developer/SDKs',
                     'MacOSX{}.sdk'.format(sdk_mac_ver),
                     'System/Library/Frameworks')
@@ -656,8 +656,9 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: BSD :: FreeBSD',
         'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Artistic Software',
         'Topic :: Games/Entertainment',
         'Topic :: Multimedia :: Graphics :: 3D Rendering',

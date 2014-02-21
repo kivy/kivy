@@ -24,14 +24,14 @@ Window coordinates
 ~~~~~~~~~~~~~~~~~~
 
 By default, there's only one coordinate system that defines the position of
-widgets and touch events dispatched to them - the window coordinate system,
-which places (0, 0) of the coordinate system at the bottom left corner of
+widgets and touch events dispatched to them: the window coordinate system,
+which places (0, 0) at the bottom left corner of
 the window. Although there are other coordinate systems defined, e.g. local
 and parent coordinates, these coordinate systems are identical to the window
 coordinate system as long as a relative layout type widget is not in the
 widget's parent stack. When widget.pos is read or a touch is received,
-the coordinate values are in parent coordinates, but as said it is identical
-to window coordinates, even in complex widget stacks.
+the coordinate values are in parent coordinates, but as mentioned, these are
+identical to window coordinates, even in complex widget stacks.
 
 For example::
 
@@ -54,7 +54,7 @@ different parent coordinate systems, it prints the following::
     >>> Right: (430.0, 282.0)
     >>> Middle: (430.0, 282.0)
 
-Which as claimed, the touch has identical coordinates to window coordinates
+As claimed, the touch has identical coordinates to the window coordinates
 in every coordinate system. :meth:`~kivy.uix.widget.Widget.collide_point`
 for example, takes the point in window coordinates.
 
@@ -65,14 +65,14 @@ Other :class:`RelativeLayout` type widgets are
 :class:`~kivy.uix.scatter.Scatter`,
 :class:`~kivy.uix.scatterlayout.ScatterLayout`,
 and :class:`~kivy.uix.scrollview.ScrollView`. If such a special widget is in
-the parent stack, only then does the parent and local coordinate systems
+the parent stack, only then does the parent and local coordinate system
 diverge from the window coordinate system. For each such widget in the stack, a
 coordinate system with (0, 0) of that coordinate system being at the bottom
 left corner of that widget is created. **Position and touch coordinates
-received and read by a widget, is in the coordinate system of the most
-recent special widget in its parent stack (not including itself), or in window
+received and read by a widget are in the coordinate system of the most
+recent special widget in its parent stack (not including itself) or in window
 coordinates if there are none** (as in the first example). We call these
-coordinates, parent coordinates.
+coordinates parent coordinates.
 
 
 For example::
@@ -95,7 +95,7 @@ Clicking on the middle button prints::
     >>> Right: (-137.33, 298.0)
     >>> Middle: (396.0, 298.0)
 
-As we can see, as the touch propagates through the widgets, for each widget the
+As the touch propagates through the widgets, for each widget, the
 touch is received in parent coordinates. Because both the relative and middle
 widgets don't have these special widgets in their parent stack, the touch is
 the same as window coordinates. Only the right widget, which has a
@@ -140,7 +140,7 @@ relative to itself.
 Coordinate transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:class:`~kivy.uix.widget.Widget` provides 4 function to transform coordinates
+:class:`~kivy.uix.widget.Widget` provides 4 functions to transform coordinates
 between the various coordinate systems. For now, we assume that the `relative`
 keyword of these functions is `False`.
 :meth:`~kivy.uix.widget.Widget.to_widget` takes the coordinates expressed in
