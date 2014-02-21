@@ -51,7 +51,7 @@ if sys.platform == 'darwin':
 ndkplatform = environ.get('NDKPLATFORM')
 if ndkplatform is not None and environ.get('LIBLINK'):
     platform = 'android'
-if ndkplatform is not None and environ.get('PLATFORM_KLAATU') == "egl_klaatu":
+if ndkplatform is not None and environ.get('PLATFORM_KLAATU'):
     platform = 'klaatu'
 kivy_ios_root = environ.get('KIVYIOSROOT', None)
 if kivy_ios_root is not None:
@@ -59,6 +59,7 @@ if kivy_ios_root is not None:
 if exists('/opt/vc/include/bcm_host.h'):
     platform = 'rpi'
 
+print('\nPlatform: ', platform)
 # -----------------------------------------------------------------------------
 # Detect options
 #
@@ -87,7 +88,7 @@ for key in list(c_options.keys()):
 # Cython check
 # on python-for-android and kivy-ios, cython usage is external
 have_cython = False
-if platform in ('ios', 'android'):
+if platform in ('ios', 'android', 'klaatu'):
     print('\nCython check avoided.')
 else:
     try:
@@ -172,7 +173,7 @@ except ImportError:
     print('User distribution detected, avoid portable command.')
 
 # Detect which opengl version headers to use
-if platform in ('android', 'darwin', 'ios', 'rpi'):
+if platform in ('android', 'klaatu', 'darwin', 'ios', 'rpi'):
     pass
 elif platform == 'win32':
     print('Windows platform detected, force GLEW usage.')
@@ -305,7 +306,7 @@ def determine_gl_flags():
         flags['include_dirs'] = ['/usr/X11R6/include']
         flags['extra_link_args'] = ['-L', '/usr/X11R6/lib']
         flags['libraries'] = ['GL']
-    elif platform == 'android':
+    elif platform == 'android' or platform == 'klaatu' :
         flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
         flags['extra_link_args'] = ['-L', join(ndkplatform, 'usr', 'lib')]
         flags['libraries'] = ['GLESv2']
