@@ -367,7 +367,6 @@ class App(EventDispatcher):
     .. versionadded:: 1.0.5
 
     .. versionchanged:: 1.8.0
-
         `title` is now a :class:`~kivy.properties.StringProperty`. Don't set the
         title in the class as previously stated in the documentation.
 
@@ -397,7 +396,6 @@ class App(EventDispatcher):
     .. versionadded:: 1.0.5
 
     .. versionchanged:: 1.8.0
-
         `icon` is now a :class:`~kivy.properties.StringProperty`. Don't set the
         icon in the class as previously stated in the documentation.
 
