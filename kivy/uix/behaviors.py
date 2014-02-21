@@ -19,14 +19,17 @@ do::
 
 '''
 
-__all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior')
+__all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior',
+           'FocusBehavior')
 
 from kivy.clock import Clock
 from kivy.properties import OptionProperty, ObjectProperty,\
-    NumericProperty, ReferenceListProperty
+    NumericProperty, ReferenceListProperty, BooleanProperty, AliasProperty
 from weakref import ref
 from kivy.config import Config
 from kivy.metrics import sp
+from kivy.base import EventLoop
+from kivy.logger import Logger
 from functools import partial
 
 # When we are generating documentation, Config doesn't exist
@@ -406,3 +409,130 @@ class DragBehavior(object):
         self._drag_touch = None
         super(DragBehavior, self).on_touch_down(touch)
         return
+
+
+class FocusBehavior(object):
+
+    _win = None
+    _requested_keyboard = False
+    _keyboard = ObjectProperty(None, allownone=True)
+    _keyboards = {}
+
+    def _set_keyboard(self, value):
+        focused = self.focused
+        if self._keyboard:
+            self.focused = False    # this'll unbind
+        keyboards = FocusBehavior._keyboards
+        if not value in keyboards:
+            keyboards[value] = None
+        self._keyboard = value
+        self.focused = focused
+
+    def _get_keyboard(self):
+        return self._keyboard
+    keyboard = AliasProperty(_get_keyboard, _set_keyboard,
+                             bind=('_keyboard', ))
+
+    is_focusable = BooleanProperty(True)
+
+    focused = BooleanProperty(False)
+
+    focus_previous = ObjectProperty(None)
+
+    focus_next = ObjectProperty(None)
+
+    @staticmethod
+    def autopopulate_focus(widget, previous=None):
+        '''Convenience function to link all the FocusBehavior child widgets of
+        a widget recursively, in the order that they are displayed for most
+        layouts.
+        '''
+        for child in widget.children:
+            if isinstance(child, FocusBehavior):
+                child.focus_next = previous
+                if previous:
+                    previous.focus_previous = child
+                previous = child
+            previous = FocusBehavior.autopopulate_focus(child, previous)
+        return previous
+
+    def __init__(self, **kwargs):
+        super(FocusBehavior, self).__init__(**kwargs)
+        self.bind(focused=self._on_focused, disabled=self._on_disabled)
+
+    def _on_disabled(self, instance, value):
+        if value:
+            self.focused = False
+
+    def _on_focused(self, instance, value, *largs):
+        if value:
+            self._bind_keyboard()
+        else:
+            self._unbind_keyboard()
+
+    def _ensure_keyboard(self):
+        if self._keyboard is None:
+            win = self._win
+            if not win:
+                self._win = win = EventLoop.window
+            if not win:
+                Logger.warning('FocusBehavior: '
+                'Cannot focus the element, unable to get root window')
+                return
+            self._requested_keyboard = True
+            keyboard = self._keyboard =\
+                win.request_keyboard(self._keyboard_released, self)
+            keyboards = FocusBehavior._keyboards
+            if keyboard not in keyboards:
+                keyboards[keyboard] = None
+
+    def _bind_keyboard(self):
+        self._ensure_keyboard()
+        keyboard = self._keyboard
+
+        if not keyboard or self.disabled or not self.is_focusable:
+            return
+        keyboards = FocusBehavior._keyboards
+        if keyboards[keyboard]:
+            keyboards[keyboard].focused = False
+        keyboards[keyboard] = self
+        keyboard.bind(on_key_down=self.keyboard_on_key_down,
+                      on_key_up=self.keyboard_on_key_up)
+
+    def _unbind_keyboard(self):
+        keyboard = self._keyboard
+        if keyboard:
+            keyboard.unbind(on_key_down=self.keyboard_on_key_down,
+                            on_key_up=self.keyboard_on_key_up)
+            if self._requested_keyboard:
+                keyboard.release()
+                self._keyboard = None
+                self._requested_keyboard = False
+                del FocusBehavior._keyboards[keyboard]
+            else:
+                FocusBehavior._keyboards[keyboard] = None
+
+    def _keyboard_released(self):
+        self.focused = False
+
+    def on_touch_down(self, touch):
+        if not self.disabled and self.collide_point(*touch.pos) and\
+            ('button' not in touch.profile
+             or not touch.button.startswith('scroll')):
+            self.focused = True
+        return super(FocusBehavior, self).on_touch_down(touch)
+
+    def keyboard_on_key_down(self, window, keycode, text, modifiers):
+        if keycode[1] == 'tab':
+            attr = 'focus_previous' if ['shift'] == modifiers else 'focus_next'
+            next = getattr(self, attr)
+            while next and not next.is_focusable:
+                next = getattr(next, attr)
+            if next:
+                self.focused = False
+                next.focused = True
+            return True
+        return False
+
+    def keyboard_on_key_up(self, window, keycode):
+        pass
