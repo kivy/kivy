@@ -397,10 +397,9 @@ cdef class EventDispatcher(ObjectWithUid):
         .. versionadded:: 1.0.9
 
         .. versionchanged:: 1.8.0
-
             `value` parameter added, can be used to set the default value of the
             property. Also, the type of the value is used to specialize the
-            created property
+            created property.
 
         .. warning::
 
