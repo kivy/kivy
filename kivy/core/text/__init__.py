@@ -72,15 +72,12 @@ class LabelBase(object):
             Create a mipmap for the texture
 
     .. versionchanged:: 1.8.0
-
         `max_lines` parameters has been added.
 
     .. versionchanged:: 1.0.8
-
         `size` have been deprecated and replaced with `text_size`.
 
     .. versionchanged:: 1.0.7
-
         The `valign` is now respected. This wasn't the case previously
         so you might have an issue in your application if you have not
         considered this.
