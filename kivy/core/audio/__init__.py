@@ -17,7 +17,6 @@ You should not use the Sound class directly. The class returned by
 type, so it might return different Sound classes depending the file type.
 
 .. versionchanged:: 1.8.0
-
     There is now 2 distinct Gstreamer implementation: one using Gi/Gst working
     for both Python 2+3 with Gstreamer 1.0, and one using PyGST working
     only for Python 2 + Gstreamer 0.10.
