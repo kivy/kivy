@@ -380,7 +380,6 @@ class Label(Widget):
         :attr:`text_size`.
 
     .. versionchanged:: 1.6.0
-
         A new option was added to :attr:`halign`, namely `justify`.
     '''
 
