@@ -34,9 +34,11 @@ from functools import partial
 
 # When we are generating documentation, Config doesn't exist
 _scroll_timeout = _scroll_distance = 0
+_is_desktop = False
 if Config:
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
     _scroll_distance = Config.getint('widgets', 'scroll_distance')
+    _is_desktop = Config.getboolean('kivy', 'desktop')
 
 
 class ButtonBehavior(object):
@@ -412,6 +414,46 @@ class DragBehavior(object):
 
 
 class FocusBehavior(object):
+    '''Implements keyboard focus behavior. When combined with other
+    FocusBehavior widgets it allows one to cycle focus among them by pressing
+    tab. In addition, upon gaining focus the instance will automatically
+    receive keyboard input.
+
+    Focus, very different then selection, is intimately tied with the keyboard;
+    each keyboard can focus on zero or one widgets, and each widget can only
+    have the focus of one keyboard. However, multiple keyboards can focus
+    simultaneously on different widgets.
+
+    In essence, focus is implemented as a doubly linked list, where each
+    node holds a (weak) reference to the instance before it and after it,
+    as visualized when cycling through the nodes using tab (forward) or
+    shift+tab (backward).
+
+    For example, to cycle focus between :class:`~kivy.uix.button.Button`
+    elements of a :class:`~kivy.uix.gridlayout.GridLayout`::
+
+        class FocusButton(FocusBehavior, Button):
+            pass
+
+        grid = GridLayout(cols=4)
+        for i in range(40):
+            grid.add_widget(FocusButton(text=str(i)))
+        # auto populate focus order
+        last = FocusBehavior.autopopulate_focus(grid)
+        # link the last element with the first, to loop with tab cycling.
+        # children[0] is actually the last element because layouts display
+        # their elements in reverse order. So grid.children[-1] is also first.
+        grid.children[0].link_focus(next=grid.children[-1])
+        # could have been done instead with:
+        # FocusBehavior.autopopulate_focus(grid, previous=grid.children[-1])
+
+
+
+    .. versionadded:: 1.8.1
+
+        This code is still experimental, and its API is subject to change in a
+        future version.
+    '''
 
     _win = None
     _requested_keyboard = False
@@ -420,10 +462,13 @@ class FocusBehavior(object):
 
     def _set_keyboard(self, value):
         focused = self.focused
-        if self._keyboard:
-            self.focused = False    # this'll unbind
+        keyboard = self._keyboard
         keyboards = FocusBehavior._keyboards
-        if not value in keyboards:
+        if keyboard:
+            self.focused = False    # this'll unbind
+            if self._keyboard:  # remove assigned keyboard from dict
+                del keyboards[keyboard]
+        if value and not value in keyboards:
             keyboards[value] = None
         self._keyboard = value
         self.focused = focused
@@ -432,36 +477,182 @@ class FocusBehavior(object):
         return self._keyboard
     keyboard = AliasProperty(_get_keyboard, _set_keyboard,
                              bind=('_keyboard', ))
+    '''The keyboard to bind, or bound to the widget when focused.
 
-    is_focusable = BooleanProperty(True)
+    When None, a keyboard is requested and released whenever the widget comes
+    into and out of focus. If not None, it must be a keyboard, which gets
+    bound and unbound from the widget whenever it's in or out of focus. It is
+    useful only when more than one keyboard is available, so it is recommended
+    to be set to None when only one keyboard is available
+
+    If more than one keyboard is available, whenever an instance get focused
+    a new keyboard will be requested if None. Unless, the other instances lose
+    focus (e.g. if tab was used), a new keyboard will appear. When this is
+    undesired, the keyboard property can be used. For example, if there are
+    two users with two keyboards, then each keyboard can be assigned to
+    different groups of instances of FocusBehavior, ensuring that within
+    each group, only one FocusBehavior will have focus, and will receive input
+    from the correct keyboard. see `keyboard_mode` in :mod:`~kivy.config` for
+    information on the keyboard modes.
+
+    :attr:`keyboard` is a :class:`~kivy.properties.AliasProperty`, defaults to
+    None.
+
+    .. note:
+
+        If the keyboard property is set, that keyboard will be used when the
+        instance gets focused. If widgets with different keyboards are linked
+        through :attr:`focus_next` and :attr:`focus_previous`, then as they are
+        tabbed through, different keyboards will become active. Therefore,
+        typically it's undesirable to link instances which are assigned
+        different keyboards.
+
+    .. note:
+
+        When an instance has focus, setting keyboard to None will remove the
+        current keyboard, but will then try to get a keyboard back. It is
+        better to set :attr:`focused` to False.
+
+    .. warning:
+
+        When assigning a keyboard, the keyboard must not be released while
+        it is still assigned to an instance. Similarly, the keyboard created
+        by the instance on focus and assigned to :attr:`keyboard` if None,
+        will be released by the instance when the instance loses focus.
+        Therefore, it is not safe to assign this keyboard to another instance's
+        :attr:`keyboard`.
+    '''
+
+    is_focusable = BooleanProperty(_is_desktop)
+    '''Whether the instance can become focused. If focused, it'll lose focus
+    when set to False.
+
+    :attr:`is_focusable` is a :class:`~kivy.properties.BooleanProperty`,
+    defaults to True on a desktop (i.e. desktop is True in
+    :mod:`~kivy.config`), False otherwise.
+    '''
 
     focused = BooleanProperty(False)
+    '''Whether the instance currently has focus.
 
-    focus_previous = ObjectProperty(None)
+    Setting it to True, will bind to and/or request the keyboard, and input
+    will be forwarded to the instance. Setting it to False, will unbind
+    and/or release the keyboard. For a given keyboard, only one widget can
+    have its focus, so focusing one will automatically unfocus the other
+    instance holding its focus.
 
-    focus_next = ObjectProperty(None)
+    :attr:`focused` is a :class:`~kivy.properties.BooleanProperty`, defaults to
+    False.
+    '''
+
+    focus_next = ObjectProperty(None, allownone=True)
+    '''A weakref to the :class:`FocusBehavior` instance to acquire focus when
+    tab is pressed on this instance, if not None. When tab is pressed, focus
+    cycles through all the :class:`FocusBehavior` widgets that are linked
+    through :attr:`focus_next`. When :attr:`is_focusable` of :attr:`focus_next`
+    is False, it continues walking through :attr:`focus_next` until it finds
+    one that is focusable.
+
+    .. note:
+
+        :meth:`link_focus`, :meth:`unlink_focus`, and
+        :meth:`autopopulate_focus` are preferred to change this property in
+        order to ensure that instances are properly linked. When setting
+        directly, every change in :attr:`focus_next` must be accompanied
+        by a corresponding change to :attr:`focus_previous` of the other
+        instance to point to this instance (or None).
+
+    :attr:`focus_next` is a :class:`~kivy.properties.ObjectProperty`, defaults
+    to None.
+    '''
+
+    focus_previous = ObjectProperty(None, allownone=True)
+    '''A weakref to the :class:`FocusBehavior` instance to acquire focus when
+    shift+tab is pressed on this instance, if not None. When shift+tab is
+    pressed, focus cycles through all the :class:`FocusBehavior` widgets that
+    are linked through :attr:`focus_previous`. When
+    :attr:`is_focusable` of :attr:`focus_previous` is False, it continues
+    walking through :attr:`focus_previous` until it finds one that is
+    focusable.
+
+    .. note:
+
+        :meth:`link_focus`, :meth:`unlink_focus`, and
+        :meth:`autopopulate_focus` are preferred to change this property in
+        order to ensure that instances are properly linked. When setting
+        directly, every change in :attr:`focus_previous` must be accompanied
+        by a corresponding change to :attr:`focus_next` of the other
+        instance to point to this instance (or None).
+
+    :attr:`focus_previous` is a :class:`~kivy.properties.ObjectProperty`,
+    defaults to None.
+    '''
 
     @staticmethod
-    def autopopulate_focus(widget, previous=None):
-        '''Convenience function to link all the FocusBehavior child widgets of
-        a widget recursively, in the order that they are displayed for most
-        layouts.
+    def autopopulate_focus(root, previous=None, overwrite=False):
+        '''When called, it performs automatic focus order linking between all
+        the :class:`FocusBehavior` instances in the recursive children list
+        of root. Similar to :meth:`link_focus`, it links using weakrefs to the
+        instances.
+
+        :attr:`focus_next`, and :attr:`focus_previous` determine the order in
+        which focus cycles through :class:`FocusBehavior` instances. However,
+        by default, they are None. Instances can be linked directly with
+        :meth:`link_focus`. Still, it is tedious to manually link all the
+        :class:`FocusBehavior` instances in the tree. This method is provided
+        as a convenient way to automatically perform the linking so that focus
+        cycles in the expected manner for layouts (top to bottom, left to
+        right, and flat across all the children and children's children etc.).
+
+        :Parameters:
+            `root`
+                :class:`~kivy.uix.widget.Widget`, The widget to use as the root
+                for recursively going through and linking it children.
+            `previous`
+                :class:`FocusBehavior`, the instance to link the with the first
+                :class:`FocusBehavior` instance in the children list. If not
+                None, it can be used to loop the linking so that tab will cycle
+                through the children in a loop. See the class docs for an
+                example. Defaults to None. Populate starts from the first
+                child of root, so to complete a loop, the last child should be
+                specified as previous.
+            `overwrite`
+                bool, whether to overwrite existing links. If False, links of
+                instances that are not None (see :meth:`link_focus`), will be
+                skipped. A user can customize links of some instances and then
+                safely auto populate on root, which if overwrite is False,
+                will leave the custom links intact.
+
+        :Returns:
+            The last :class:`FocusBehavior` instance inspected. Can be linked
+            with the first child of root directly using :meth:`link_focus` to
+            complete a loop.
         '''
-        for child in widget.children:
+        for child in root.children:
             if isinstance(child, FocusBehavior):
-                child.focus_next = previous
-                if previous:
-                    previous.focus_previous = child
-                previous = child
-            previous = FocusBehavior.autopopulate_focus(child, previous)
+                # if either side of the link is specified, unless overwrite
+                # skip this link
+                if overwrite or child.focus_next is None and (previous is None
+                    or previous.focus_previous is None):
+                    if previous:
+                        child.focus_next = previous.proxy_ref
+                        previous.focus_previous = child.proxy_ref
+                    else:
+                        child.focus_next = None
+                previous = child    # either way, move previous
+            previous = FocusBehavior.autopopulate_focus(child, previous,
+                                                        overwrite)
         return previous
 
     def __init__(self, **kwargs):
         super(FocusBehavior, self).__init__(**kwargs)
-        self.bind(focused=self._on_focused, disabled=self._on_disabled)
+        self.bind(focused=self._on_focused, disabled=self._on_focusable,
+                  is_focusable=self._on_focusable,
+                  # don't be at mercy of child calling super
+                  on_touch_down=self._focus_on_touch_down)
 
-    def _on_disabled(self, instance, value):
-        if value:
+    def _on_focusable(self, instance, value):
+        if self.disabled or not self.is_focusable:
             self.focused = False
 
     def _on_focused(self, instance, value, *largs):
@@ -491,10 +682,13 @@ class FocusBehavior(object):
         keyboard = self._keyboard
 
         if not keyboard or self.disabled or not self.is_focusable:
+            self.focused = False
             return
         keyboards = FocusBehavior._keyboards
-        if keyboards[keyboard]:
-            keyboards[keyboard].focused = False
+        old_focus = keyboards[keyboard]  # keyboard should be in dict
+        if old_focus:
+            old_focus.focused = False
+            # keyboard shouldn't have been released here, see keyboard warning
         keyboards[keyboard] = self
         keyboard.bind(on_key_down=self.keyboard_on_key_down,
                       on_key_up=self.keyboard_on_key_up)
@@ -515,24 +709,102 @@ class FocusBehavior(object):
     def _keyboard_released(self):
         self.focused = False
 
-    def on_touch_down(self, touch):
-        if not self.disabled and self.collide_point(*touch.pos) and\
-            ('button' not in touch.profile
-             or not touch.button.startswith('scroll')):
+    def _focus_on_touch_down(self, instance, touch):
+        if not self.disabled and self.is_focusable and\
+            self.collide_point(*touch.pos) and ('button' not in touch.profile
+            or not touch.button.startswith('scroll')):
             self.focused = True
-        return super(FocusBehavior, self).on_touch_down(touch)
+        return False
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
-        if keycode[1] == 'tab':
+        '''The method bound to the keyboard when the instance has focus.
+
+        When the instance becomes focused, this method is bound to the
+        keyboard and will be called for every input press. The parameters are
+        the same as :meth:`kivy.core.window.WindowBase.on_key_down`.
+
+        When overwriting the method in the derived widget, super should be
+        called to enable tab cycling. If the derived widget wishes to use tab
+        for its own purposes, it can call super at the end after it is done if
+        it didn't consume tab.
+
+        Similar to other keyboard functions, it should return True if the
+        key was consumed.
+        '''
+        if keycode[1] == 'tab':  # deal with cycle
             attr = 'focus_previous' if ['shift'] == modifiers else 'focus_next'
             next = getattr(self, attr)
-            while next and not next.is_focusable:
+            while next and next is not self and not next.is_focusable:
                 next = getattr(next, attr)
-            if next:
+            if next and next is not self:
                 self.focused = False
                 next.focused = True
             return True
         return False
 
     def keyboard_on_key_up(self, window, keycode):
-        pass
+        '''The method bound to the keyboard when the instance has focus.
+
+        When the instance becomes focused, this method is bound to the
+        keyboard and will be called for every input release. The parameters are
+        the same as :meth:`kivy.core.window.WindowBase.on_key_up`.
+
+        See :meth:`on_key_down`
+        '''
+        return False
+
+    def link_focus(self, previous=None, next=None):
+        '''Links the predecessor and successor :class:`FocusBehavior` instances
+        to gain focus when cycling focus with tab or shift+tab.
+
+        Focus order is determined by forward and backward links
+        (:attr:`focus_next`, and :attr:`focus_previous`) in each
+        FocusBehavior instance. Tab will cycle through the instances in a
+        forward direction, while shift+tab will cycle in the backward
+        direction. This method is the preferred way to set those links to
+        ensure it's set correctly.
+
+        :Parameters:
+            `previous`
+                If not None, a :class:`FocusBehavior` instance (or a
+                :attr:`~kivy.uix.widget.Widget.weakref` to it) that will gain
+                focus when shift+tab is pressed on this instance. Defaults to
+                None.
+            `next`
+                If not None, a :class:`FocusBehavior` instance (or a
+                :attr:`~kivy.uix.widget.Widget.weakref` to it) that will gain
+                focus when tab is pressed on this instance. Defaults to
+                None.
+
+        .. note::
+
+            This methods populates the :attr:`focus_next`, and
+            :attr:`focus_previous` attributes with a
+            :attr:`~kivy.uix.widget.Widget.weakref` to the instances.
+        '''
+        if next:
+            self.focus_next = next.proxy_ref
+            next.focus_previous = self.proxy_ref
+        if previous:
+            self.focus_previous = previous.proxy_ref
+            previous.fouc_next = self.proxy_ref
+
+    def unlink_focus(self, previous=False, next=True):
+        '''Severs the links between this instance and the predecessor and
+        successor :class:`FocusBehavior` instances that determine focus order.
+        See :meth:`link_focus`
+
+        :Parameters:
+            `previous`
+                bool, if True the link with the predecessor instance will be
+                severed. Defaults to False.
+            `next`
+                bool, if True the link with the successor instance will be
+                severed. Defaults to False.
+        '''
+        if next and self.focus_next:
+            self.focus_next.focus_previous = None
+            self.focus_next = None
+        if previous and self.focus_previous:
+            self.focus_previous.fouc_next = None
+            self.focus_previous = None
