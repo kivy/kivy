@@ -494,8 +494,8 @@ if c_options['use_rpi']:
     sources['lib/vidcore_lite/bcm.pyx'] = merge(
             base_flags, gl_flags)
 if c_options['use_klaatu']:
-    if environ.get('ANDROID_BUILD_TOP'):
-        klaatu_ldir = join(environ.get('ANDROID_PRODUCT_OUT'), '/system/lib')
+    if environ.get('ANDROID_BUILD_TOP') and os.environ.get('ANDROID_PRODUCT_OUT'):
+        klaatu_ldir = os.environ.get('ANDROID_PRODUCT_OUT') + '/system/lib'
     else:
         klaatu_ldir = ''
     sources['lib/klaatu/egl.pyx'] = merge(
