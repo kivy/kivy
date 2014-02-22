@@ -2181,8 +2181,7 @@ class TextInput(Widget):
     padding_vertical] and a one argument form [padding].
 
     .. versionchanged:: 1.7.0
-
-    Replaced AliasProperty with VariableListProperty.
+        Replaced AliasProperty with VariableListProperty.
 
     :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [6, 6, 6, 6].
@@ -2328,9 +2327,8 @@ class TextInput(Widget):
     the cursor index where the selection started.
 
     .. versionchanged:: 1.4.0
-
-    :attr:`selection_from` is an :class:`~kivy.properties.AliasProperty` and
-    defaults to None, readonly.
+        :attr:`selection_from` is an :class:`~kivy.properties.AliasProperty` and
+        defaults to None, readonly.
     '''
 
     def get_sel_to(self):
@@ -2341,9 +2339,8 @@ class TextInput(Widget):
     the cursor index where the selection started.
 
     .. versionchanged:: 1.4.0
-
-    :attr:`selection_to` is an :class:`~kivy.properties.AliasProperty` and
-    defaults to None, readonly.
+        :attr:`selection_to` is an :class:`~kivy.properties.AliasProperty` and
+        defaults to None, readonly.
     '''
 
     selection_text = StringProperty(u'')
