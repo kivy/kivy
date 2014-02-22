@@ -424,7 +424,6 @@ class Widget(WidgetBase):
         '''Remove all widgets added to this widget.
 
         .. versionchanged:: 1.8.0
-
             `children` argument can be used to select the children we want to
             remove. It should be a list of children (or filtered list) of the
             current widget.
