@@ -58,7 +58,6 @@ class StackLayout(Layout):
     padding_vertical] and a single argument form [padding].
 
     .. versionchanged:: 1.7.0
-
         Replaced the NumericProperty with a VariableListProperty.
 
     :attr:`padding` is a
@@ -79,7 +78,6 @@ class StackLayout(Layout):
     'bt-lr', 'rl-bt' and 'bt-rl'.
 
     .. versionchanged:: 1.5.0
-
         :attr:`orientation` now correctly handles all valid combinations of
         'lr','rl','tb','bt'. Before this version only 'lr-tb' and
         'tb-lr' were supported, and 'tb-lr' was misnamed and placed
