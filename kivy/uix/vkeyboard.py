@@ -166,7 +166,6 @@ class VKeyboard(Scatter):
     in `[kivy]` section.
 
     .. versionchanged:: 1.8.0
-
         If layout is a .json filename, it will loaded and added to the
         available_layouts.
 
