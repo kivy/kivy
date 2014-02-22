@@ -24,7 +24,6 @@ Example::
     Example1().run()
 
 .. versionchanged:: 1.5.0
-
     The carousel now supports active children, like the
     :class:`~kivy.uix.scrollview.ScrollView`. It will detect a swipe gesture
     according to :attr:`Carousel.scroll_timeout` and
@@ -158,7 +157,6 @@ class Carousel(StencilView):
     :attr:`previous_slide` is a :class:`~kivy.properties.AliasProperty`.
 
     .. versionchanged:: 1.5.0
-
         This property doesn't expose the container used for storing the slide.
         It returns the widget you have added.
     '''
@@ -172,7 +170,6 @@ class Carousel(StencilView):
     :attr:`current_slide` is an :class:`~kivy.properties.AliasProperty`.
 
     .. versionchanged:: 1.5.0
-
         The property doesn't expose the container used for storing the slide.
         It returns widget you have added.
     '''
@@ -198,7 +195,6 @@ class Carousel(StencilView):
     :attr:`previous_slide` is a :class:`~kivy.properties.AliasProperty`.
 
     .. versionchanged:: 1.5.0
-
         The property doesn't expose the container used for storing the slide.
         It returns the widget you have added.
     '''
