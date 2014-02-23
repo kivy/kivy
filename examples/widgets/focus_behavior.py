@@ -31,8 +31,10 @@ class FocusApp(App):
         root = BoxLayout()
         self.grid1 = grid1 = GridLayout(cols=4)
         self.grid2 = grid2 = GridLayout(cols=4)
+        root.add_widget(FocusButton(text='Left', size_hint_x=0.4))
         root.add_widget(grid1)
         root.add_widget(grid2)
+        root.add_widget(FocusButton(text='Right', size_hint_x=0.4))
 
         for i in range(40):
             grid1.add_widget(FocusButton(text='l' + str(i)))
@@ -41,24 +43,22 @@ class FocusApp(App):
 
         # make elements 29, 9 un-focusable. The widgets are displayed in
         # reverse order, so 9 = 39 - 10
+        grid2.children[30].text = grid1.children[14].text =\
+            grid2.children[10].text = grid1.children[34].text = 'Skip me'
         grid2.children[10].is_focusable = False
         grid2.children[30].is_focusable = False
         # similarly, make 39 - 14 = 25, and 5 un-focusable
         grid1.children[14].is_focusable = False
         grid1.children[34].is_focusable = False
+        # don't move focus passed this element
+        grid2.children[35].focus_next = FocusBehavior.EndIteration
+        grid2.children[35].text = 'Stop forward'
 
         # exchange the links between the sides so that it'll skip to the other
         # side in the middle. Remember that children are displayed reversed
         # in layouts.
         grid1.children[10].link_focus(next=grid2.children[9])
         grid2.children[10].link_focus(next=grid1.children[9])
-
-        # autopopulate the rest, and complete the loop
-        FocusBehavior.autopopulate_focus(grid1, previous=grid2.children[-1])
-        # autopopulate the rest
-        FocusBehavior.autopopulate_focus(grid2)
-        # but now complete the loop directly, children[0] is the last element
-        grid2.children[0].link_focus(next=grid1.children[-1])
         return root
 
 
