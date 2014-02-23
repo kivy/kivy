@@ -422,7 +422,8 @@ class FocusBehavior(object):
     Focus, very different then selection, is intimately tied with the keyboard;
     each keyboard can focus on zero or one widgets, and each widget can only
     have the focus of one keyboard. However, multiple keyboards can focus
-    simultaneously on different widgets.
+    simultaneously on different widgets. When escape is hit, the widget having
+    the focus of that keyboard will de-focus.
 
     In essence, focus is implemented as a doubly linked list, where each
     node holds a (weak) reference to the instance before it and after it,
@@ -749,8 +750,16 @@ class FocusBehavior(object):
         keyboard and will be called for every input release. The parameters are
         the same as :meth:`kivy.core.window.WindowBase.on_key_up`.
 
+        When overwriting the method in the derived widget, super should be
+        called to enable de-focusing on escape. If the derived widget wishes
+        to use escape for its own purposes, it can call super at the end after
+        it is done if it didn't consume escape.
+
         See :meth:`on_key_down`
         '''
+        if keycode[1] == 'escape':
+            self.focused = False
+            return True
         return False
 
     def link_focus(self, previous=None, next=None):
