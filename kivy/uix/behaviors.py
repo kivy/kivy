@@ -31,6 +31,7 @@ from kivy.metrics import sp
 from kivy.base import EventLoop
 from kivy.logger import Logger
 from functools import partial
+from collections import deque
 
 # When we are generating documentation, Config doesn't exist
 _scroll_timeout = _scroll_distance = 0
@@ -413,6 +414,10 @@ class DragBehavior(object):
         return
 
 
+class EndIteration(object):
+    pass
+
+
 class FocusBehavior(object):
     '''Implements keyboard focus behavior. When combined with other
     FocusBehavior widgets it allows one to cycle focus among them by pressing
@@ -428,7 +433,9 @@ class FocusBehavior(object):
     In essence, focus is implemented as a doubly linked list, where each
     node holds a (weak) reference to the instance before it and after it,
     as visualized when cycling through the nodes using tab (forward) or
-    shift+tab (backward).
+    shift+tab (backward). If no previous or next widget is specified, the
+    children list and parent is walked to find the next focusable widget,
+    unless :attr:`EndIteration` is specified, in which case it stops.
 
     For example, to cycle focus between :class:`~kivy.uix.button.Button`
     elements of a :class:`~kivy.uix.gridlayout.GridLayout`::
@@ -439,15 +446,8 @@ class FocusBehavior(object):
         grid = GridLayout(cols=4)
         for i in range(40):
             grid.add_widget(FocusButton(text=str(i)))
-        # auto populate focus order
-        last = FocusBehavior.autopopulate_focus(grid)
-        # link the last element with the first, to loop with tab cycling.
-        # children[0] is actually the last element because layouts display
-        # their elements in reverse order. So grid.children[-1] is also first.
-        grid.children[0].link_focus(next=grid.children[-1])
-        # could have been done instead with:
-        # FocusBehavior.autopopulate_focus(grid, previous=grid.children[-1])
-
+        # clicking on a widget will activate focus, and tab can now be used
+        # to cycle through
 
 
     .. versionadded:: 1.8.1
@@ -548,20 +548,21 @@ class FocusBehavior(object):
 
     focus_next = ObjectProperty(None, allownone=True)
     '''A weakref to the :class:`FocusBehavior` instance to acquire focus when
-    tab is pressed on this instance, if not None. When tab is pressed, focus
-    cycles through all the :class:`FocusBehavior` widgets that are linked
-    through :attr:`focus_next`. When :attr:`is_focusable` of :attr:`focus_next`
-    is False, it continues walking through :attr:`focus_next` until it finds
-    one that is focusable.
+    tab is pressed on this instance, if not None.
+
+    When tab is pressed, focus cycles through all the :class:`FocusBehavior`
+    widgets that are linked through :attr:`focus_next` and are focusable. If
+    :attr:`focus_next` is None, it instead walks the children lists to find
+    the next focusable widget. Finally, if :attr:`focus_next` is
+    :attr:`EndIteration`, focus won't move forward, but end here.
 
     .. note:
 
-        :meth:`link_focus`, :meth:`unlink_focus`, and
-        :meth:`autopopulate_focus` are preferred to change this property in
-        order to ensure that instances are properly linked. When setting
-        directly, every change in :attr:`focus_next` must be accompanied
-        by a corresponding change to :attr:`focus_previous` of the other
-        instance to point to this instance (or None).
+        :meth:`link_focus` and :meth:`unlink_focus` are preferred to change
+        this property in order to ensure that instances are properly linked.
+        When setting directly, every change in :attr:`focus_next` must be
+        accompanied by a corresponding change to :attr:`focus_previous` of the
+        other instance to point to this instance (or None).
 
     :attr:`focus_next` is a :class:`~kivy.properties.ObjectProperty`, defaults
     to None.
@@ -569,81 +570,34 @@ class FocusBehavior(object):
 
     focus_previous = ObjectProperty(None, allownone=True)
     '''A weakref to the :class:`FocusBehavior` instance to acquire focus when
-    shift+tab is pressed on this instance, if not None. When shift+tab is
-    pressed, focus cycles through all the :class:`FocusBehavior` widgets that
-    are linked through :attr:`focus_previous`. When
-    :attr:`is_focusable` of :attr:`focus_previous` is False, it continues
-    walking through :attr:`focus_previous` until it finds one that is
-    focusable.
+    shift+tab is pressed on this instance, if not None.
+
+    When shift+tab is pressed, focus cycles through all the
+    :class:`FocusBehavior` widgets that are linked through
+    :attr:`focus_previous` and are focusable. If :attr:`focus_previous` is
+    None, it instead walks the children lists to find the previous focusable
+    widget. Finally, if :attr:`focus_previous` is :attr:`EndIteration`, focus
+    won't move backward, but end here.
 
     .. note:
 
-        :meth:`link_focus`, :meth:`unlink_focus`, and
-        :meth:`autopopulate_focus` are preferred to change this property in
-        order to ensure that instances are properly linked. When setting
-        directly, every change in :attr:`focus_previous` must be accompanied
-        by a corresponding change to :attr:`focus_next` of the other
-        instance to point to this instance (or None).
+        :meth:`link_focus` and :meth:`unlink_focus` are preferred to change
+        this property in order to ensure that instances are properly linked.
+        When setting directly, every change in :attr:`focus_previous` must be
+        accompanied by a corresponding change to :attr:`focus_next` of the
+        other instance to point to this instance (or None).
 
     :attr:`focus_previous` is a :class:`~kivy.properties.ObjectProperty`,
     defaults to None.
     '''
 
-    @staticmethod
-    def autopopulate_focus(root, previous=None, overwrite=False):
-        '''When called, it performs automatic focus order linking between all
-        the :class:`FocusBehavior` instances in the recursive children list
-        of root. Similar to :meth:`link_focus`, it links using weakrefs to the
-        instances.
+    EndIteration = EndIteration
+    '''A value that can be used for :attr:`focus_next` and
+    :attr:`focus_previous` to signal for focus to not move forward or
+    backward. See :attr:`focus_next` and :attr:`focus_previous`.
 
-        :attr:`focus_next`, and :attr:`focus_previous` determine the order in
-        which focus cycles through :class:`FocusBehavior` instances. However,
-        by default, they are None. Instances can be linked directly with
-        :meth:`link_focus`. Still, it is tedious to manually link all the
-        :class:`FocusBehavior` instances in the tree. This method is provided
-        as a convenient way to automatically perform the linking so that focus
-        cycles in the expected manner for layouts (top to bottom, left to
-        right, and flat across all the children and children's children etc.).
-
-        :Parameters:
-            `root`
-                :class:`~kivy.uix.widget.Widget`, The widget to use as the root
-                for recursively going through and linking it children.
-            `previous`
-                :class:`FocusBehavior`, the instance to link the with the first
-                :class:`FocusBehavior` instance in the children list. If not
-                None, it can be used to loop the linking so that tab will cycle
-                through the children in a loop. See the class docs for an
-                example. Defaults to None. Populate starts from the first
-                child of root, so to complete a loop, the last child should be
-                specified as previous.
-            `overwrite`
-                bool, whether to overwrite existing links. If False, links of
-                instances that are not None (see :meth:`link_focus`), will be
-                skipped. A user can customize links of some instances and then
-                safely auto populate on root, which if overwrite is False,
-                will leave the custom links intact.
-
-        :Returns:
-            The last :class:`FocusBehavior` instance inspected. Can be linked
-            with the first child of root directly using :meth:`link_focus` to
-            complete a loop.
-        '''
-        for child in root.children:
-            if isinstance(child, FocusBehavior):
-                # if either side of the link is specified, unless overwrite
-                # skip this link
-                if overwrite or child.focus_next is None and (previous is None
-                    or previous.focus_previous is None):
-                    if previous:
-                        child.focus_next = previous.proxy_ref
-                        previous.focus_previous = child.proxy_ref
-                    else:
-                        child.focus_next = None
-                previous = child    # either way, move previous
-            previous = FocusBehavior.autopopulate_focus(child, previous,
-                                                        overwrite)
-        return previous
+    It is a global value and is the same for all instances.
+    '''
 
     def __init__(self, **kwargs):
         super(FocusBehavior, self).__init__(**kwargs)
@@ -717,6 +671,125 @@ class FocusBehavior(object):
             self.focused = True
         return False
 
+    def _get_focus_next(self):
+        # layouts are displayed in reverse, we have to walk backwards
+        next = self.focus_next
+        last_visited = self
+        end = self.EndIteration
+        while 1:
+            # we need to be able to jump between focusables and others
+            while next is not None:  # if we hit a focusable, go this path
+                if next is self or next == end:
+                    return None  # make sure we don't loop forever
+                if next.is_focusable:
+                    return next
+                last_visited = next
+                next = next.focus_next
+
+            parent = last_visited.parent
+            if parent is not None:
+                children = parent.children
+                # assert(last_visited in last_visited.parent.children) fails
+                # sometimes, not sure why
+                try:
+                    child_idx = children.index(last_visited)
+                except ValueError:
+                    stack = [(parent, children[:])]
+                else:
+                    if not child_idx:
+                        last_visited = parent
+                        continue
+                    stack = [(parent, children[:child_idx])]
+            else:
+                # we cycle back from the very last deepest child to loop focus
+                stack = [(parent, children[:])]
+
+            # this way, avoids having to keep hash of already visited parents
+            # by keeping visited parent explicitly
+            while len(stack):
+                sub_parent, sub_stack = stack[-1]   # LIFO
+                # we reached empty children list, just check their parent
+                if not sub_stack:
+                    # hit focusable, walk down the other path
+                    if isinstance(sub_parent, FocusBehavior):
+                        next = sub_parent
+                        break
+                    stack.pop()
+                    continue
+
+                # within the sub stack, walk starting from last
+                c = sub_stack.pop()
+                clist = c.children[:]   # must copy list
+                if clist:
+                    stack.append((c, clist))
+                    continue
+                if isinstance(c, FocusBehavior):
+                    next = c
+                    break
+            last_visited = parent
+
+    def _get_focus_previous(self):
+        previous = self
+        end = self.EndIteration
+        # assume FocusBehavior can contain FocusBehavior so we first look in
+        # self.children and we expect to see self twice on stack when looped
+        count = 0
+        while 1:
+            # we need to be able to jump between focusables and others
+            while previous is not None:  # if we hit a focusable, go this path
+                if previous is self:
+                    if not count:   # we should see self once only,
+                        count += 1
+                    else:
+                        return None
+                elif previous == end:
+                    return None  # make sure we don't loop forever
+                elif previous.is_focusable:
+                    return previous
+                last_visited = previous
+                previous = previous.focus_previous
+                if not previous:
+                    # wherever, we always have to look at our children first
+                    # so now jump to the unfocusable path (walking children)
+                    stack = [(last_visited, deque(last_visited.children))]
+
+            while len(stack):
+                sub_parent, sub_stack = stack[-1]   # LIFO
+                if not sub_stack:
+                    # we only check sub_parent when adding
+                    stack.pop()
+                    continue
+
+                # within the sub stack, walk starting from first
+                c = sub_stack.popleft()
+                if isinstance(c, FocusBehavior):
+                    previous = c
+                    break
+                if c.children:
+                    stack.append((c, deque(c.children)))
+                    continue
+            if previous:
+                continue
+
+            # we looked through all children, go up one step
+            parent = last_visited.parent
+            if parent is not None:
+                children = parent.children
+                # assert(last_visited in last_visited.parent.children) fails
+                # sometimes, not sure why
+                try:
+                    child_idx = children.index(last_visited)
+                except ValueError:
+                    stack = [(parent, deque(children))]
+                else:
+                    if child_idx == len(children) - 1:
+                        last_visited = parent
+                        continue
+                    stack = [(parent, deque(children[child_idx + 1:]))]
+            else:
+                # we cycle back from the very last deepest child to loop focus
+                stack = [(parent, deque(children))]
+
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         '''The method bound to the keyboard when the instance has focus.
 
@@ -733,11 +806,11 @@ class FocusBehavior(object):
         key was consumed.
         '''
         if keycode[1] == 'tab':  # deal with cycle
-            attr = 'focus_previous' if ['shift'] == modifiers else 'focus_next'
-            next = getattr(self, attr)
-            while next and next is not self and not next.is_focusable:
-                next = getattr(next, attr)
-            if next and next is not self:
+            if ['shift'] == modifiers:
+                next = self._get_focus_previous()
+            else:
+                next = self._get_focus_next()
+            if next:
                 self.focused = False
                 next.focused = True
             return True
