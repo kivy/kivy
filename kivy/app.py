@@ -514,8 +514,10 @@ class App(EventDispatcher):
         '''.. versionadded:: 1.0.7
 
         This method is called when the user (or you) want to show the
-        application settings. This will be called only once when the user
-        first requests the application to display the settings.
+        application settings. It is called once when the settings panel
+        is first opened, after which the panel is cached. It may be
+        called again if the cached settings panel is removed by
+        :meth:`destroy_settings`.
 
         You can use this method to add settings panels and to
         customise the settings widget e.g. by changing the sidebar
@@ -862,7 +864,9 @@ class App(EventDispatcher):
 
     def open_settings(self, *largs):
         '''Open the application settings panel. It will be created the very
-        first time. The settings panel will be displayed with the
+        first time, or recreated if the previously cached panel has been
+        removed by :meth:`destroy_settings`. The settings panel will be 
+        displayed with the
         :meth:`display_settings` method, which by default adds the
         settings panel to the Window attached to your application. You
         should override that method if you want to display the
@@ -916,8 +920,11 @@ class App(EventDispatcher):
         return False
 
     def create_settings(self):
-        '''Create the settings panel. This method is called only one time per
-        application life-time and the result is cached internally.
+        '''Create the settings panel. This method will normally
+        be called only one time per
+        application life-time and the result is cached internally,
+        but it may be called again if the cached panel is removed
+        by :meth:`destroy_settings`.
 
         By default, it will build a settings panel according to
         :attr:`settings_cls`, call :meth:`build_settings`, add a Kivy panel if
