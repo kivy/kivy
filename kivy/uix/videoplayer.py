@@ -55,6 +55,26 @@ You can allow stretching by passing custom options to a
     player = VideoPlayer(source='myvideo.avi', state='play',
         options={'allow_stretch': True})
 
+End-of-stream behavior
+----------------------
+
+You can specify what happens when the video has finished playing by passing an
+*eos* (end of stream) directive to the underlying
+:class:`~kivy.core.video.VideoBase` class. *eos* can be one of 'stop', 'pause'
+or 'loop' and defaults to 'stop'. For example, in order to loop the video::
+
+    player = VideoPlayer(source='myvideo.avi', state='play',
+        options={'eos': 'loop'})
+
+.. note::
+
+    The *eos* property of the VideoBase class is a string specifying the
+    end-of-stream behavior. This property differs from the *eos*
+    properties of the :class:`VideoPlayer` and
+    :class:`~kivy.uix.video.Video` classes, whose *eos*
+    property is simply a boolean indicating that the end of the file has
+    been reached.
+
 '''
 
 __all__ = ('VideoPlayer', 'VideoPlayerAnnotation')
