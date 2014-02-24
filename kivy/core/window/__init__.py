@@ -795,7 +795,13 @@ class WindowBase(EventDispatcher):
                 stopTouchApp()
                 self.close()
                 return True
-    on_keyboard.exit_on_escape = Config.get('kivy', 'exit_on_escape')
+    if Config:
+        on_keyboard.exit_on_escape = Config.get('kivy', 'exit_on_escape')
+
+        def __exit(section, name, value):
+            WindowBase.on_keyboard.exit_on_escape = value
+
+        Config.add_callback(__exit, 'kivy', 'exit_on_escape')
 
     def on_key_down(self, key, scancode=None, codepoint=None,
                     modifier=None, **kwargs):
@@ -1040,8 +1046,6 @@ class WindowBase(EventDispatcher):
             self._system_keyboard.callback = None
             callback()
             return True
-Config.add_callback(lambda s, k, v: setattr(
-        WindowBase.on_keyboard, 'exit_on_escape', v), 'kivy', 'exit_on_escape')
 
 
 #: Instance of a :class:`WindowBase` implementation
