@@ -69,9 +69,9 @@ or 'loop' and defaults to 'stop'. For example, in order to loop the video::
 .. note::
 
     The *eos* property of the VideoBase class is a string specifying the
-    end-of-stream behavior. This property differs from the *eos*
+    end-of-stream behavior. This property differs from the `eos`
     properties of the :class:`VideoPlayer` and
-    :class:`~kivy.uix.video.Video` classes, whose *eos*
+    :class:`~kivy.uix.video.Video` classes, whose `eos`
     property is simply a boolean indicating that the end of the file has
     been reached.
 
