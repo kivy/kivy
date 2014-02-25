@@ -78,7 +78,8 @@ else:
             path = os.path.join(self.path, "device", "capabilities", "abs")
             line = read_line(path)
             capabilities = []
-            long_bit = getconf("LONG_BIT")
+            import struct
+            long_bit = struct.calcsize("P") * 8
             for i, word in enumerate(line.split(" ")):
                 word = int(word, 16)
                 subcapabilities = [bool(word & 1 << i)
@@ -90,10 +91,6 @@ else:
         def has_capability(self, capability):
             capabilities = self.get_capabilities()
             return len(capabilities) > capability and capabilities[capability]
-
-    def getconf(var):
-        output = Popen(["getconf", var], stdout=PIPE).communicate()[0]
-        return int(output)
 
     def get_inputs(path):
         global _cache_input
