@@ -250,7 +250,7 @@ if any('pyinstaller' in arg for arg in sys.argv):
 if not environ.get('KIVY_DOC_INCLUDE'):
     # Configuration management
     user_home_dir = expanduser('~')
-    if platform == 'android':
+    if platform == 'android' or platform == 'klaatu':
         user_home_dir = environ['ANDROID_APP_PATH']
     elif platform == 'ios':
         user_home_dir = join(expanduser('~'), 'Documents')
@@ -379,7 +379,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Modules.configure()
 
     # android hooks: force fullscreen and add android touch input provider
-    if platform in ('android', 'ios'):
+    if platform in ('android', 'ios', 'klaatu'):
         from kivy.config import Config
         Config.set('graphics', 'fullscreen', 'auto')
         Config.remove_section('input')
@@ -387,3 +387,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
     if platform == 'android':
         Config.set('input', 'androidtouch', 'android')
+        
+    if platform == 'klaatu':
+        Config.set('input', 'touch_dev', 'probesysfs,provider=mtdev')
