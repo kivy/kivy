@@ -51,7 +51,7 @@ if sys.platform == 'darwin':
 ndkplatform = environ.get('NDKPLATFORM')
 if ndkplatform is not None and environ.get('LIBLINK'):
     platform = 'android'
-if ndkplatform is not None and environ.get('PLATFORM_KLAATU'):
+if ndkplatform is not None and environ.get('KIVY_TARGET_KLAATU'):
     platform = 'klaatu'
 kivy_ios_root = environ.get('KIVYIOSROOT', None)
 if kivy_ios_root is not None:
