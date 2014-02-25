@@ -344,8 +344,8 @@ In your python code:
             self.ids.loki.text = "loki: >_<!!!"
 
 
-Templates
----------
+Dynamic Classes
+---------------
 Consider the code below:
 
 .. code-block:: kv
@@ -373,8 +373,7 @@ template instead, like so:
 
 .. code-block:: kv
 
-    [MyBigButt@Button]:
-        text: ctx.text if hasattr(ctx, 'text') else ''
+    <MyBigButt@Button>:
         text_size: self.size
         font_size: '25sp'
         markup: True
@@ -388,8 +387,9 @@ template instead, like so:
             text: "repeating the same thing over and over in a comp = fail"
         MyBigButt:
 
-`ctx` is a keyword inside a template that can be used to access the individual
-attributes of each instance of this template.
+This class, created just by the declaration of this rule, inherit from the
+Button class and allow to change default values and to create bindings for all
+its instances, without adding any new code on the Python side.
 
 Re-using styles in multiple widgets
 -----------------------------------
