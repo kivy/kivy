@@ -232,14 +232,14 @@ cdef class EventDispatcher(ObjectWithUid):
                     super(MyClass, self).__init__(**kwargs)
                     btn = Button(text='click me')
                     # Bind event to callback
-                    btn.bind(on_press=self.my_callback, 
-                        state=self.state_callback)
+                    btn.bind(on_press=self.on_press_callback, 
+                             state=self.state_callback)
                     self.add_widget(btn)
 
                 def state_callback(self, obj, value):
                     print obj, value
 
-                def my_callback(self, obj):
+                def on_press_callback(self, obj):
                     print('press on button', obj)
 
         '''
