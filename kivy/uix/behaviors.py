@@ -31,7 +31,7 @@ from kivy.metrics import sp
 from kivy.base import EventLoop
 from kivy.logger import Logger
 from functools import partial
-from collections import deque
+from kivy.uix.widget import walk, walk_reverse
 
 # When we are generating documentation, Config doesn't exist
 _scroll_timeout = _scroll_distance = 0
@@ -671,124 +671,35 @@ class FocusBehavior(object):
             self.focused = True
         return False
 
-    def _get_focus_next(self):
-        # layouts are displayed in reverse, we have to walk backwards
-        next = self.focus_next
-        last_visited = self
+    def _get_focus_next(self, focus_dir):
+        current = self
         end = self.EndIteration
+        walk_tree = walk if focus_dir is 'focus_next' else walk_reverse
+
         while 1:
-            # we need to be able to jump between focusables and others
-            while next is not None:  # if we hit a focusable, go this path
-                if next is self or next == end:
+            # if we hit a focusable, walk through focus_xxx
+            while getattr(current, focus_dir) is not None:
+                current = getattr(current, focus_dir)
+                if current is self or current is end:
                     return None  # make sure we don't loop forever
-                if next.is_focusable:
-                    return next
-                last_visited = next
-                next = next.focus_next
+                if current.is_focusable:
+                    return current
 
-            parent = last_visited.parent
-            if parent is not None:
-                children = parent.children
-                # assert(last_visited in last_visited.parent.children) fails
-                # sometimes, not sure why
-                try:
-                    child_idx = children.index(last_visited)
-                except ValueError:
-                    stack = [(parent, children[:])]
-                else:
-                    if not child_idx:
-                        last_visited = parent
-                        continue
-                    stack = [(parent, children[:child_idx])]
-            else:
-                # we cycle back from the very last deepest child to loop focus
-                stack = [(parent, children[:])]
-
-            # this way, avoids having to keep hash of already visited parents
-            # by keeping visited parent explicitly
-            while len(stack):
-                sub_parent, sub_stack = stack[-1]   # LIFO
-                # we reached empty children list, just check their parent
-                if not sub_stack:
-                    # hit focusable, walk down the other path
-                    if isinstance(sub_parent, FocusBehavior):
-                        next = sub_parent
-                        break
-                    stack.pop()
-                    continue
-
-                # within the sub stack, walk starting from last
-                c = sub_stack.pop()
-                clist = c.children[:]   # must copy list
-                if clist:
-                    stack.append((c, clist))
-                    continue
-                if isinstance(c, FocusBehavior):
-                    next = c
+            # hit unfocusable, walk widget tree
+            itr = walk_tree(current)
+            if focus_dir is 'focus_next':
+                next(itr)  # current is returned first  when walking forward
+            for current in itr:
+                if isinstance(current, FocusBehavior):
                     break
-            last_visited = parent
-
-    def _get_focus_previous(self):
-        previous = self
-        end = self.EndIteration
-        # assume FocusBehavior can contain FocusBehavior so we first look in
-        # self.children and we expect to see self twice on stack when looped
-        count = 0
-        while 1:
-            # we need to be able to jump between focusables and others
-            while previous is not None:  # if we hit a focusable, go this path
-                if previous is self:
-                    if not count:   # we should see self once only,
-                        count += 1
-                    else:
-                        return None
-                elif previous == end:
-                    return None  # make sure we don't loop forever
-                elif previous.is_focusable:
-                    return previous
-                last_visited = previous
-                previous = previous.focus_previous
-                if not previous:
-                    # wherever, we always have to look at our children first
-                    # so now jump to the unfocusable path (walking children)
-                    stack = [(last_visited, deque(last_visited.children))]
-
-            while len(stack):
-                sub_parent, sub_stack = stack[-1]   # LIFO
-                if not sub_stack:
-                    # we only check sub_parent when adding
-                    stack.pop()
-                    continue
-
-                # within the sub stack, walk starting from first
-                c = sub_stack.popleft()
-                if isinstance(c, FocusBehavior):
-                    previous = c
-                    break
-                if c.children:
-                    stack.append((c, deque(c.children)))
-                    continue
-            if previous:
-                continue
-
-            # we looked through all children, go up one step
-            parent = last_visited.parent
-            if parent is not None:
-                children = parent.children
-                # assert(last_visited in last_visited.parent.children) fails
-                # sometimes, not sure why
-                try:
-                    child_idx = children.index(last_visited)
-                except ValueError:
-                    stack = [(parent, deque(children))]
-                else:
-                    if child_idx == len(children) - 1:
-                        last_visited = parent
-                        continue
-                    stack = [(parent, deque(children[child_idx + 1:]))]
+            # why did we stop
+            if isinstance(current, FocusBehavior):
+                if current is self:
+                    return None
+                if current.is_focusable:
+                    return current
             else:
-                # we cycle back from the very last deepest child to loop focus
-                stack = [(parent, deque(children))]
+                return None
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         '''The method bound to the keyboard when the instance has focus.
@@ -807,9 +718,9 @@ class FocusBehavior(object):
         '''
         if keycode[1] == 'tab':  # deal with cycle
             if ['shift'] == modifiers:
-                next = self._get_focus_previous()
+                next = self._get_focus_next('focus_previous')
             else:
-                next = self._get_focus_next()
+                next = self._get_focus_next('focus_next')
             if next:
                 self.focused = False
                 next.focused = True
