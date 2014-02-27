@@ -348,13 +348,21 @@ class Label(Widget):
 
     :attr:`padding_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
+
+    .. versionchanged:: 1.8.1
+        `padding_x` has been fixed to work as expected.
+        In the past, the text was padded by the negative of its values.
     '''
 
     padding_y = NumericProperty(0)
     '''Vertical padding of the text inside the widget box.
 
-    :attr:`padding_x` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`padding_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
+
+    .. versionchanged:: 1.8.1
+        `padding_y` has been fixed to work as expected.
+        In the past, the text was padded by the negative of its values.
     '''
 
     padding = ReferenceListProperty(padding_x, padding_y)
