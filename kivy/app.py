@@ -556,6 +556,14 @@ class App(EventDispatcher):
         documentation for more information on how to create kv files. If your
         kv file contains a root widget, it will be used as self.root, the root
         widget for the application.
+
+        .. note::
+
+            This function is called from :meth:`run`, therefore, any widget
+            whose styling is defined in this kv file and is created before
+            :meth:`run` is called (e.g. in `__init__`), won't have its styling
+            applied. Note that :meth:`build` is called after :attr:`load_kv`
+            has been called.
         '''
         # Detect filename automatically if it was not specified.
         if filename:
@@ -865,7 +873,7 @@ class App(EventDispatcher):
     def open_settings(self, *largs):
         '''Open the application settings panel. It will be created the very
         first time, or recreated if the previously cached panel has been
-        removed by :meth:`destroy_settings`. The settings panel will be 
+        removed by :meth:`destroy_settings`. The settings panel will be
         displayed with the
         :meth:`display_settings` method, which by default adds the
         settings panel to the Window attached to your application. You
