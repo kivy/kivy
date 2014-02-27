@@ -87,8 +87,8 @@ class FocusApp(App):
         # exchange the links between the sides so that it'll skip to the other
         # side in the middle. Remember that children are displayed reversed
         # in layouts.
-        grid1.children[10].link_focus(next=grid2.children[9])
-        grid2.children[10].link_focus(next=grid1.children[9])
+        grid1.children[10].focus_next = grid2.children[9]
+        grid2.children[10].focus_next = grid1.children[9]
         return root
 
 

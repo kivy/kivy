@@ -25,7 +25,6 @@ __all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior',
 from kivy.clock import Clock
 from kivy.properties import OptionProperty, ObjectProperty,\
     NumericProperty, ReferenceListProperty, BooleanProperty, AliasProperty
-from weakref import ref
 from kivy.config import Config
 from kivy.metrics import sp
 from kivy.base import EventLoop
@@ -546,9 +545,29 @@ class FocusBehavior(object):
     False.
     '''
 
+    def _set_on_focus_next(self, instance, value):
+        ''' If changing code, ensure following code is not infinite loop:
+        widget.focus_next = widget
+        widget.focus_previous = widget
+        widget.focus_previous = widget2
+        '''
+        next = self._old_focus_next
+        if next is value:   # prevent infinite loop
+            return
+
+        if next is not None:
+            next.focus_previous = None
+        self._old_focus_next = value
+        if value:
+            if not isinstance(value, FocusBehavior) and\
+                value is not EndIteration:
+                raise ValueError('focus_next accepts only objects based'
+                                 ' on FocusBehavior')
+            value.focus_previous = self
+
     focus_next = ObjectProperty(None, allownone=True)
-    '''A weakref to the :class:`FocusBehavior` instance to acquire focus when
-    tab is pressed on this instance, if not None.
+    '''The :class:`FocusBehavior` instance to acquire focus when
+    tab is pressed when this instance has focus, if not None.
 
     When tab is pressed, focus cycles through all the :class:`FocusBehavior`
     widgets that are linked through :attr:`focus_next` and are focusable. If
@@ -558,18 +577,35 @@ class FocusBehavior(object):
 
     .. note:
 
-        :meth:`link_focus` and :meth:`unlink_focus` are preferred to change
-        this property in order to ensure that instances are properly linked.
-        When setting directly, every change in :attr:`focus_next` must be
-        accompanied by a corresponding change to :attr:`focus_previous` of the
-        other instance to point to this instance (or None).
+        Setting :attr:`focus_next` automatically sets :attr:`focus_previous`
+        of the other instance to point to this instance, if not None.
+        Similarly, if not None, it also sets the :attr:`focus_previous`
+        property of the instance previously in :attr:`focus_next` to None.
+        Therefore, it is only required to set one side of the
+        :attr:`focus_previous`, :attr:`focus_next`, links since the other side
+        will be set automatically.
 
     :attr:`focus_next` is a :class:`~kivy.properties.ObjectProperty`, defaults
     to None.
     '''
 
+    def _set_on_focus_previous(self, instance, value):
+        prev = self._old_focus_previous
+        if prev is value:
+            return
+
+        if prev is not None:
+            prev.focus_next = None
+        self._old_focus_previous = value
+        if value:
+            if not isinstance(value, FocusBehavior) and\
+                value is not EndIteration:
+                raise ValueError('focus_previous accepts only objects based'
+                                 ' on FocusBehavior')
+            value.focus_next = self
+
     focus_previous = ObjectProperty(None, allownone=True)
-    '''A weakref to the :class:`FocusBehavior` instance to acquire focus when
+    '''The :class:`FocusBehavior` instance to acquire focus when
     shift+tab is pressed on this instance, if not None.
 
     When shift+tab is pressed, focus cycles through all the
@@ -581,11 +617,13 @@ class FocusBehavior(object):
 
     .. note:
 
-        :meth:`link_focus` and :meth:`unlink_focus` are preferred to change
-        this property in order to ensure that instances are properly linked.
-        When setting directly, every change in :attr:`focus_previous` must be
-        accompanied by a corresponding change to :attr:`focus_next` of the
-        other instance to point to this instance (or None).
+        Setting :attr:`focus_previous` automatically sets :attr:`focus_next`
+        of the other instance to point to this instance, if not None.
+        Similarly, if not None, it also sets the :attr:`focus_next`
+        property of the instance previously in :attr:`focus_previous` to None.
+        Therefore, it is only required to set one side of the
+        :attr:`focus_previous`, :attr:`focus_next`, links since the other side
+        will be set automatically.
 
     :attr:`focus_previous` is a :class:`~kivy.properties.ObjectProperty`,
     defaults to None.
@@ -600,11 +638,16 @@ class FocusBehavior(object):
     '''
 
     def __init__(self, **kwargs):
+        self._old_focus_next = None
+        self._old_focus_previous = None
         super(FocusBehavior, self).__init__(**kwargs)
+
         self.bind(focused=self._on_focused, disabled=self._on_focusable,
                   is_focusable=self._on_focusable,
                   # don't be at mercy of child calling super
-                  on_touch_down=self._focus_on_touch_down)
+                  on_touch_down=self._focus_on_touch_down,
+                  focus_next=self._set_on_focus_next,
+                  focus_previous=self._set_on_focus_previous)
 
     def _on_focusable(self, instance, value):
         if self.disabled or not self.is_focusable:
@@ -745,59 +788,3 @@ class FocusBehavior(object):
             self.focused = False
             return True
         return False
-
-    def link_focus(self, previous=None, next=None):
-        '''Links the predecessor and successor :class:`FocusBehavior` instances
-        to gain focus when cycling focus with tab or shift+tab.
-
-        Focus order is determined by forward and backward links
-        (:attr:`focus_next`, and :attr:`focus_previous`) in each
-        FocusBehavior instance. Tab will cycle through the instances in a
-        forward direction, while shift+tab will cycle in the backward
-        direction. This method is the preferred way to set those links to
-        ensure it's set correctly.
-
-        :Parameters:
-            `previous`
-                If not None, a :class:`FocusBehavior` instance (or a
-                :attr:`~kivy.uix.widget.Widget.weakref` to it) that will gain
-                focus when shift+tab is pressed on this instance. Defaults to
-                None.
-            `next`
-                If not None, a :class:`FocusBehavior` instance (or a
-                :attr:`~kivy.uix.widget.Widget.weakref` to it) that will gain
-                focus when tab is pressed on this instance. Defaults to
-                None.
-
-        .. note::
-
-            This methods populates the :attr:`focus_next`, and
-            :attr:`focus_previous` attributes with a
-            :attr:`~kivy.uix.widget.Widget.weakref` to the instances.
-        '''
-        if next:
-            self.focus_next = next.proxy_ref
-            next.focus_previous = self.proxy_ref
-        if previous:
-            self.focus_previous = previous.proxy_ref
-            previous.fouc_next = self.proxy_ref
-
-    def unlink_focus(self, previous=False, next=True):
-        '''Severs the links between this instance and the predecessor and
-        successor :class:`FocusBehavior` instances that determine focus order.
-        See :meth:`link_focus`
-
-        :Parameters:
-            `previous`
-                bool, if True the link with the predecessor instance will be
-                severed. Defaults to False.
-            `next`
-                bool, if True the link with the successor instance will be
-                severed. Defaults to False.
-        '''
-        if next and self.focus_next:
-            self.focus_next.focus_previous = None
-            self.focus_next = None
-        if previous and self.focus_previous:
-            self.focus_previous.fouc_next = None
-            self.focus_previous = None
