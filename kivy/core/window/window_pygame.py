@@ -424,12 +424,10 @@ class WindowPygame(WindowBase):
             callback, target, input_type)
         if android and not self.allow_vkeyboard:
             android.show_keyboard(target, input_type)
-            self.trigger_keyboard_height()
         return keyboard
 
     def release_keyboard(self, *largs):
         super(WindowPygame, self).release_keyboard(*largs)
         if android:
             android.hide_keyboard()
-            self.trigger_keyboard_height()
         return True
