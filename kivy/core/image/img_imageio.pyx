@@ -120,6 +120,17 @@ cdef extern from "ImageIO/CGImageDestination.h":
         CGImageRef image, CFDictionaryRef properties)
     int CGImageDestinationFinalize(CGImageDestinationRef idst)
 
+cdef extern from "Accelerate/Accelerate.h":
+    ctypedef struct vImage_Buffer:
+        void *data
+        int width
+        int height
+        size_t rowBytes
+
+    int vImagePermuteChannels_ARGB8888(
+            vImage_Buffer *src, vImage_Buffer *dst, unsigned char *permuteMap,
+            int flags)
+
 
 def load_image_data(bytes _url):
     # load an image from the _url with CoreGraphics, and output an RGBA string.
@@ -133,28 +144,42 @@ def load_image_data(bytes _url):
     cdef size_t width = CGImageGetWidth(myImageRef)
     cdef size_t height = CGImageGetHeight(myImageRef)
     cdef CGRect rect = CGRectMake(0, 0, width, height)
-    cdef void * myData = calloc(width * 4, height)
     cdef CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB()
+    cdef vImage_Buffer src
+    cdef vImage_Buffer dest
+    dest.height = src.height = height
+    dest.width = src.width = width
+    dest.rowBytes = src.rowBytes = width * 4
+    src.data = calloc(width * 4, height)
+    dest.data = calloc(width * 4, height)
+
 
     # endianness:  kCGBitmapByteOrder32Little = (2 << 12)
     # (2 << 12) | kCGImageAlphaPremultipliedLast)
     cdef CGContextRef myBitmapContext = CGBitmapContextCreate(
-            myData, width, height, 8, width*4, space,
+            src.data, width, height, 8, width * 4, space,
             kCGBitmapByteOrder32Host | kCGImageAlphaNoneSkipFirst)
 
     CGContextSetBlendMode(myBitmapContext, kCGBlendModeCopy)
     CGContextDrawImage(myBitmapContext, rect, myImageRef)
-    r_data = PyString_FromStringAndSize(<char *> myData, width * height * 4)
 
-    # Release image ref to avoid memory leak
+    # convert to RGBA using Accelerate framework
+    cdef unsigned char *pmap = [2, 1, 0, 3]
+    vImagePermuteChannels_ARGB8888(&src, &dest, pmap, 0)
+
+    # get a python string
+    r_data = PyString_FromStringAndSize(<char *>dest.data, width * height * 4)
+
+    # release everything
     CFRelease(url)
     CGImageRelease(<CGImageRef>myImageSourceRef)
     CFRelease(myImageRef)
     CGContextRelease(myBitmapContext)
     CGColorSpaceRelease(space)
-    free(myData)
+    free(src.data)
+    free(dest.data)
 
-    return (width, height, 'bgra', r_data)
+    return (width, height, 'rgba', r_data)
 
 def save_image_rgba(filename, width, height, data):
     # compatibility, could be removed i guess
@@ -248,3 +273,4 @@ class ImageLoaderImageIO(ImageLoaderBase):
 
 # register
 ImageLoader.register(ImageLoaderImageIO)
+
