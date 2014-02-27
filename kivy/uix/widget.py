@@ -104,7 +104,94 @@ To draw a background in kv::
 These examples only scratch the surface. Please see the :mod:`kivy.graphics`
 documentation for more information.
 
+Widget event bubbling
+---------------------
+
+When you use the Kivy property changes to catch events, you sometimes
+need to be aware of the order in which these events are propogated. In Kivy,
+events bubble up from the most recently added widget and then backwards through
+it's children (from the most recently added back to the first child).
+
+In effect, this event model does not follow either of the conventional
+"bubble up" or "bubble down" approaches, but propogates events according to the
+natural order in which the widgets have been added. If you want to reverse this
+order, you can raise events in the children before the parent by using the
+`super` command. 
+
+Linguistically, this can be difficult to explain and sound complicated,
+but it's really quite simple. Lets look at an example. In our kv file::
+
+    <EventBubbler>:
+        Label:
+            text: '1'
+            on_touch_down: root.printme("label 1 on_touch_down")
+        Label:
+            text: '2'
+            on_touch_down: root.printme("label 2 on_touch_down")
+        BoxLayout:
+            on_touch_down: root.printme("BoxLayout on_touch_down")
+            Label:
+                text: '3'
+                on_touch_down: root.printme("label 3 on_touch_down")
+            Label:
+                text: '4'
+                on_touch_down: root.printme("label 4 on_touch_down")
+        MyBoxLayout:
+            # We use this class to demonsrate using 'super' to raise the child 
+            # events first
+            Label:
+                text: '5'
+                on_touch_down: root.printme("label 5 on_touch_down")
+            Label:
+                text: '6'
+                on_touch_down: root.printme("label 6 on_touch_down")
+
 .. highlight:: python
+
+In your Python file::
+
+    from kivy.app import App
+    from kivy.lang import Builder
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.properties import StringProperty
+
+
+    class EventBubbler(BoxLayout):
+
+        @staticmethod
+        def printme(msg):
+            print msg
+
+
+    class MyBoxLayout(BoxLayout):
+        def on_touch_down(self, touch):
+            print "Before super(MyBoxLayout, self).on_touch_down(touch)"
+            super(MyBoxLayout, self).on_touch_down(touch)
+            print "After super(MyBoxLayout, self).on_touch_down(touch)"
+
+
+    class BubbleApp(App):
+        def build(self):
+            return EventBubbler()
+
+    BubbleApp().run()
+
+This produces the following output::
+
+    >>> Before super(MyBoxLayout, self).on_touch_down(touch)
+    >>> label 6 on_touch_down
+    >>> label 5 on_touch_down
+    >>> After super(MyBoxLayout, self).on_touch_down(touch)
+    >>> BoxLayout on_touch_up
+    >>> label 4 on_touch_down
+    >>> label 3 on_touch_down
+    >>> label 2 on_touch_down
+    >>> label 1 on_touch_down
+
+Notice how using the `super` command raises the child events immediately
+when it is called. This approach gives you total control over the order in which
+Kivy's events are propogated.
+
 '''
 
 __all__ = ('Widget', 'WidgetException')
