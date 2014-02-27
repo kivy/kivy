@@ -2129,6 +2129,12 @@ class TextInput(Widget):
     :attr:`font_name`, :attr:`font_size`. Changing the line_height will have
     no impact.
 
+    .. note::
+
+        :attr:`line_height` is the height of a single line of text.
+        Use :attr:`minimum_height`, which also includes padding, to
+        get the height required to display the text properly.
+
     :attr:`line_height` is a :class:`~kivy.properties.NumericProperty`,
     read-only.
     '''
