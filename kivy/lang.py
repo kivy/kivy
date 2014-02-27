@@ -750,7 +750,12 @@ from kivy.compat import PY2, iteritems, iterkeys
 from kivy.context import register_context
 from kivy.resources import resource_find
 import kivy.metrics as Metrics
+import tokenize
+from tokenize import COMMENT, TokenError
+from io import StringIO, BytesIO
 
+
+tokenize_func = tokenize.generate_tokens if PY2 else tokenize.tokenize
 
 trace = Logger.trace
 global_idmap = {}
@@ -1238,9 +1243,18 @@ class Parser(object):
             stripped = line.strip()
             if stripped[:2] == '#:':
                 self.directives.append((ln, stripped[2:]))
-            if stripped[:1] == '#':
-                lines.remove((ln, line))
-            if not stripped:
+            if stripped and not stripped.startswith('#'):  # quick check
+                s = BytesIO(line) if type(line) is bytes else StringIO(line)
+                gen = tokenize_func(s.readline)
+                try:
+                    for ttype, _, (_, tcol), _, _ in gen:
+                        if ttype is COMMENT:
+                            lines[lines.index((ln, line))] = (ln,
+                            line[:tcol].rstrip())
+                            break
+                except TokenError, e:
+                    raise ParserException(self, ln, 'invalid syntax')
+            else:
                 lines.remove((ln, line))
 
     def parse_level(self, level, lines, spaces=0):
