@@ -1287,7 +1287,8 @@ class Parser(object):
                 x = content.split(':', 1)
                 if not len(x[0]):
                     raise ParserException(self, ln, 'Identifier missing')
-                if len(x) == 2 and len(x[1]):
+                if (len(x) == 2 and len(x[1]) and
+                    not x[1].lstrip().startswith('#')):
                     raise ParserException(self, ln,
                                           'Invalid data after declaration')
                 name = x[0]
