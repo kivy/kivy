@@ -151,7 +151,7 @@ Builder.load_string('''
     markup: True
     valign: 'top'
     font_size:
-        sp(self.document.base_font_size - self.section * (
+        sp(self.document.base_font_size - self.section * (\
         self.document.base_font_size / 31.0 * 2))
     size_hint_y: None
     height: self.texture_size[1] + dp(20)
