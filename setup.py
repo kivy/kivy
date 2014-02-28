@@ -497,7 +497,7 @@ if c_options['use_klaatu']:
     if environ.get('ANDROID_BUILD_TOP') and os.environ.get('ANDROID_PRODUCT_OUT'):
         klaatu_ldir = os.environ.get('ANDROID_PRODUCT_OUT') + '/system/lib'
     else:
-        klaatu_ldir = ''
+        klaatu_ldir = os.environ.get('KIVY_KLAATU_LDIR')
     sources['lib/klaatu/egl.pyx'] = merge(
             base_flags, gl_flags, {
                 'library_dirs' : [klaatu_ldir],
