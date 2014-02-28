@@ -1252,7 +1252,7 @@ class Parser(object):
                             lines[lines.index((ln, line))] = (ln,
                             line[:tcol].rstrip())
                             break
-                except TokenError, e:
+                except TokenError as e:
                     raise ParserException(self, ln, 'invalid syntax')
             else:
                 lines.remove((ln, line))
