@@ -183,8 +183,8 @@ class ListViewTestCase(unittest.TestCase):
         id: lvm
         size_hint: .8,.8
         adapter:
-            sla.SimpleListAdapter(
-            data=["Item #{0}".format(i) for i in range(100)],
+            sla.SimpleListAdapter(\
+            data=["Item #{0}".format(i) for i in range(100)],\
             cls=label.Label)
 """)
 
