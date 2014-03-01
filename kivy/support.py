@@ -158,7 +158,7 @@ def install_twisted_reactor(**kwargs):
         return
     twisted._kivy_twisted_reactor_installed = True
 
-    # dont let twisted handle signals, unless specifically requested
+    # don't let twisted handle signals, unless specifically requested
     kwargs.setdefault('installSignalHandlers', 0)
 
     # install threaded-select reactor, to use with own event loop
@@ -209,6 +209,6 @@ def install_twisted_reactor(**kwargs):
         Logger.info("Support: Shutting down twisted reactor")
         reactor._mainLoopShutdown()
 
-    # start and stop teh reactor along with kivy EventLoop
+    # start and stop the reactor along with kivy EventLoop
     EventLoop.bind(on_start=reactor_start)
     EventLoop.bind(on_stop=reactor_stop)
