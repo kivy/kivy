@@ -14,23 +14,23 @@ Innovative User Interfaces Made Easy.
 Introduction
 ------------
 
-Kivy is a Python library for development of multi-touch enabled media rich
+Kivy is a Python framework for the development of multi-touch enabled media rich
 applications. The aim is to allow for quick and easy interaction design and
-rapid prototyping, while making your code reusable and deployable.
+rapid prototyping whilst making your code reusable and deployable.
 
 Kivy is written in Python and Cython, based on OpenGL ES 2, supports various
-input devices and have an extensive widgets library. With the same codebase,
+input devices and has an extensive widget library. With the same codebase,
 you can target Windows, OSX, Linux, Android and iOS. All our widgets are built
 with multitouch support.
 
-Kivy is MIT licensed, actively developed by a great community, as well as all
-the projects managed by the Kivy organisation.
+Kivy is MIT licensed, actively developed by a great community and is supported
+by many projects managed by the Kivy organisation.
 
 Installation, Documentation, Examples
 -------------------------------------
 
 Extensive installation instructions as well as tutorials and general
-documentation, including an API reference can be found at: http://kivy.org/docs/
+documentation, including an API reference, can be found at: http://kivy.org/docs/
 
 An offline version in PDF format is also available.
 Kivy ships with a bunch of examples that can be found in the examples/ folder.
@@ -59,17 +59,17 @@ Have a look at our complementary projects:
   wait, it's done.
 - [Plyer](http://github.com/kivy/plyer): Library for accessing features of your
   hardware such as Accelerometer, Camera, 
-- [Pyjnius](http://github.com/kivy/pyjnius): Access dynamically to Java/Android
+- [Pyjnius](http://github.com/kivy/pyjnius): Dynamic access to the Java/Android
   API from Python, easy!
-- [Pyobjus](http://github.com/kivy/pyobjus): Access dynamically to
+- [Pyobjus](http://github.com/kivy/pyobjus): Dynamic acccess to the
   Objective-C/iOS API from Python (wip)
 - [Python for Android](http://github.com/kivy/python-for-android): Toolchain
-  for building and packaging Kivy application to Android APK.
+  for building and packaging Kivy applications into Android APK's.
 - [Kivy iOS](http://github.com/kivy/kivy-ios): Toolchain for building and
-  packaging Kivy application to iOS IPA.
-- [Audiostream](http://github.com/kivy/audiostream): Library to access directly
-  on the Microphone and Speaker, for iOS and Android.
-- [Garden](http://github.com/kivy-garden): Explore the User's widgets libraries
+  packaging Kivy applications into iOS IPA's.
+- [Audiostream](http://github.com/kivy/audiostream): Library for direct access
+  to the Microphone and Speaker, for iOS and Android.
+- [Garden](http://github.com/kivy-garden): Explore User's widgets and libraries
 
 
 
