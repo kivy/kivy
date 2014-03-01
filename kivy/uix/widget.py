@@ -188,6 +188,7 @@ This produces the following output::
     >>> label 2 on_touch_down
     >>> label 1 on_touch_down
 
+This order is the same for the `on_touch_move` and `on_touch_up` events.
 Notice how using the `super` command raises the child events immediately
 when it is called. This approach gives you total control over the order in which
 Kivy's events are propogated.
