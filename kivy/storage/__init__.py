@@ -40,8 +40,9 @@ For example, let's use a JsonStore::
     print('tito is', store.get('tito'))
 
     # or guess the key/entry for a part of the key
-    key, tshirtman = store.find(name='Gabriel')
-    print('tshirtman is', tshirtman)
+    for item in store.find(name='Gabriel'):
+        print('tshirtmans key is', item[0])
+        print('his values are', str(item[1]))
 
 Because the data is persistant, you can check later to see if the key exists::
 
