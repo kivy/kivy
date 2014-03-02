@@ -474,7 +474,7 @@ class Widget(WidgetBase):
         if not restrict:
             parent = self.parent
             try:
-                if parent is None:
+                if parent is None or not isinstance(parent, Widget):
                     raise ValueError
                 index = parent.children.index(self)
             except ValueError:
@@ -551,7 +551,7 @@ class Widget(WidgetBase):
         if go_up:
             root = self.parent
             try:
-                if root is None:
+                if root is None or not isinstance(root, Widget):
                     raise ValueError
                 index = root.children.index(self) + 1
             except ValueError:
