@@ -107,7 +107,7 @@ documentation for more information.
 .. highlight:: python
 '''
 
-__all__ = ('Widget', 'WidgetException', 'walk', 'walk_reverse')
+__all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
@@ -120,6 +120,7 @@ from kivy.lang import Builder
 from kivy.context import get_current_context
 from weakref import proxy
 from functools import partial
+from itertools import islice
 
 
 # references to all the destructors widgets (partial method with widget uid as
@@ -458,6 +459,172 @@ class Widget(WidgetBase):
         if self.parent:
             return self.parent.get_parent_window()
 
+    def _walk(self, restrict=False, loopback=False, index=None):
+        # we pass index only when we are going on the parent.
+        # so don't yield the parent as well.
+        if index is None:
+            index = len(self.children)
+            yield self
+
+        for child in reversed(self.children[:index]):
+            for walk_child in child._walk(restrict=True):
+                yield walk_child
+
+        # if we want to continue with our parent, just do it
+        if not restrict:
+            parent = self.parent
+            try:
+                if parent is None:
+                    raise ValueError
+                index = parent.children.index(self)
+            except ValueError:
+                # self is root, if wanted to loopback from first element then ->
+                if not loopback:
+                    return
+                # if we started with root (i.e. index==None), then we have to
+                # start from root again, so we return self again. Otherwise, we
+                # never returned it, so return it now starting with it
+                parent = self
+                index = None
+            for walk_child in parent._walk(loopback=loopback, index=index):
+                yield walk_child
+
+    def walk(self, restrict=False, loopback=False):
+        ''' Iterator that walks the widget tree starting with this widget and
+        goes forward returning widgets in the order in which layouts display
+        them.
+
+        :Parameters:
+            `restrict`:
+                If True, it will only iterate through the widget and its
+                children (or children of its children etc.). Defaults to False.
+            `loopback`:
+                If True, when the last widget in the tree is reached,
+                it'll loop back to the uppermost root and start walking until
+                we hit this widget again. Naturally, it can only loop back when
+                `restrict` is False. Defaults to False.
+
+        :return:
+            A generator that walks the tree, returning widgets in the
+            forward layout order.
+
+        For example, given a tree with the following structure::
+
+            GridLayout:
+                Button
+                BoxLayout:
+                    id: box
+                    Widget
+                    Button
+                Widget
+
+        walking this tree::
+
+            >>> # Call walk on box with loopback True, and restrict False
+            >>> [type(widget) for widget in box.walk(loopback=True)]
+            [<class 'BoxLayout'>, <class 'Widget'>, <class 'Button'>,
+                <class 'Widget'>, <class 'GridLayout'>, <class 'Button'>]
+            >>> # Now with loopback False, and restrict False
+            >>> [type(widget) for widget in box.walk()]
+            [<class 'BoxLayout'>, <class 'Widget'>, <class 'Button'>,
+                <class 'Widget'>]
+            >>> # Now with restrict True
+            >>> [type(widget) for widget in box.walk(restrict=True)]
+            [<class 'BoxLayout'>, <class 'Widget'>, <class 'Button'>]
+
+        .. versionadded:: 1.8.1
+        '''
+        gen = self._walk(restrict, loopback)
+        yield next(gen)
+        for node in gen:
+            if node is self:
+                return
+            yield node
+
+    def _walk_reverse(self, loopback=False, go_up=False):
+        # process is walk up level, walk down its children tree, then walk up
+        # next level etc.
+        # default just walk down the children tree
+        root = self
+        index = 0
+        # we need to go up a level before walking tree
+        if go_up:
+            root = self.parent
+            try:
+                if root is None:
+                    raise ValueError
+                index = root.children.index(self) + 1
+            except ValueError:
+                if not loopback:
+                    return
+                index = 0
+                go_up = False
+                root = self
+
+        # now walk children tree starting with last-most child
+        for child in islice(root.children, index, None):
+            for walk_child in child._walk_reverse(loopback=loopback):
+                yield walk_child
+        # we need to return ourself last, in all cases
+        yield root
+
+        # if going up, continue walking up the parent tree
+        if go_up:
+            for walk_child in root._walk_reverse(loopback=loopback,
+                                                 go_up=go_up):
+                yield walk_child
+
+    def walk_reverse(self, loopback=False):
+        ''' Iterator that walks the widget tree backwards starting with the
+        widget before this, and going backwards returning widgets in the
+        reverse order in which layouts display them.
+
+        This walks in the opposite direction of :meth:`walk`, so a list of the
+        tree generated with :meth:`walk` will be in reverse order compared
+        to the list generated with this, provided `loopback` is True.
+
+        :Parameters:
+            `loopback`:
+                If True, when the uppermost root in the tree is
+                reached, it'll loop back to the last widget and start walking
+                back until after we hit widget again. Defaults to False
+
+        :return:
+            A generator that walks the tree, returning widgets in the
+            reverse layout order.
+
+        For example, given a tree with the following structure::
+
+            GridLayout:
+                Button
+                BoxLayout:
+                    id: box
+                    Widget
+                    Button
+                Widget
+
+        walking this tree::
+
+            >>> # Call walk on box with loopback True
+            >>> [type(widget) for widget in box.walk_reverse(loopback=True)]
+            [<class 'Button'>, <class 'GridLayout'>, <class 'Widget'>,
+                <class 'Button'>, <class 'Widget'>, <class 'BoxLayout'>]
+            >>> # Now with loopback False
+            >>> [type(widget) for widget in box.walk_reverse()]
+            [<class 'Button'>, <class 'GridLayout'>]
+            >>> forward = [w for w in box.walk(loopback=True)]
+            >>> backward = [w for w in box.walk_reverse(loopback=True)]
+            >>> forward == backward[::-1]
+            True
+
+        .. versionadded:: 1.8.1
+
+        '''
+        for node in self._walk_reverse(loopback=loopback, go_up=True):
+            yield node
+            if node is self:
+                return
+
     def to_widget(self, x, y, relative=False):
         '''Convert the given coordinate from window to local widget
         coordinates. See :mod:`~kivy.uix.relativelayout` for details on the
@@ -767,158 +934,3 @@ class Widget(WidgetBase):
     :attr:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
-
-
-def walk(widget, loopback=True):
-    ''' Iterator that walks the widget tree starting with widget and going
-    forward returning widgets in the order in which layouts display them.
-
-    :Parameters:
-        `widget`: The widget with which to start walking the tree.
-        `loopback`: If True, when the last widget in the tree is reached, it'll
-            loop back to the uppermost root and start walking until
-            we hit widget again. Defaults to True.
-
-    :return: A generator that walks the tree, returning widgets in the
-        forward layout order.
-
-    .. versionadded:: 1.8.1
-
-    >>> g = GridLayout()
-    >>> g.add_widget(Button())
-    >>> b = BoxLayout()
-    >>> b.add_widget(Widget())
-    >>> b.add_widget(Button())
-    >>> g.add_widget(b)
-    >>> [type(n) for n in walk(b)]
-    [<class 'BoxLayout'>, <class 'Widget'>, <class 'Button'>,
-    <class 'GridLayout'>, <class 'Button'>]
-    '''
-    root = widget
-    yield widget
-    # we start with stepping into widget's own children
-    stack = [[widget, len(widget.children) - 1, widget.children]]
-
-    # going forward, at each step return parent before children, because we
-    # always return next element at same level before going deeper.
-    while 1:
-        while len(stack):   # walk this level and deeper
-            # layouts are displayed in reverse, we have to walk backwards
-            sub_parent, idx, sub_stack = stack[-1]
-            if idx < 0:
-                stack.pop()
-                continue
-
-            c = sub_stack[idx]
-            if c is widget:
-                return
-            yield c  # return parent before children
-
-            stack[-1][1] -= 1
-            clist = c.children
-            if clist:
-                stack.append([c, len(clist) - 1, clist])
-
-        # now go one level up
-        parent = root.parent
-        if parent is not None:
-            children = parent.children
-            # assert(root in root.parent.children) fails sometimes
-            try:
-                child_idx = children.index(root)
-                if child_idx:
-                    stack = [[parent, child_idx - 1, children]]
-                root = parent
-                continue
-            except ValueError:
-                pass
-
-        if not loopback:
-            return
-        # we cycle back from the very last deepest child to loop focus since
-        # we have no parent, start from highest root. Upto now, every root
-        # had a parent, which had root as child, so we will hit widget at some
-        # point, there's no risk of infinite loop (no outside tree jumps)
-        if root == widget:
-            return
-        yield root
-        stack = [[root, len(root.children) - 1, root.children]]
-
-
-def walk_reverse(widget, loopback=True):
-    ''' Iterator that walks the widget tree backwards starting with the widget
-    before widget, and going backwards returning widgets in the reverse order
-    in which layouts display them.
-
-    This walks in the opposite direction of :func:`walk`, so a list of the
-    widget tree generated with :func:`walk` will be in reverse order compared
-    with the list generated with this.
-
-    :Parameters:
-        `widget`: The widget with which to start walking the tree. The walk
-            starts with the widget previous to `widget`.
-        `loopback`: If True, when the uppermost root in the tree is reached,
-            it'll loop back to the last widget and start walking back until
-            after we hit widget again. Defaults to True.
-
-    :return: A generator that walks the tree, returning widgets in the
-        reverse layout order.
-
-    .. versionadded:: 1.8.1
-
-    >>> g = GridLayout()
-    >>> g.add_widget(Button())
-    >>> b = BoxLayout()
-    >>> b.add_widget(Widget())
-    >>> b.add_widget(Button())
-    >>> g.add_widget(b)
-    >>> [type(n) for n in walk_reverse(b)]
-    [<class 'Button'>, <class 'GridLayout'>, <class 'Button'>,
-    <class 'Widget'>, <class 'BoxLayout'>]
-    >>> [n for n in walk_reverse(b)][::-1] == [n for n in walk(b)]
-    True
-    '''
-    root = widget
-    while 1:
-        parent = root.parent
-        if parent is not None:
-            children = parent.children
-            # assert(root in root.parent.children) fails sometimes
-            try:
-                child_idx = children.index(root)
-                root = parent
-                if child_idx == len(children) - 1:
-                    yield parent
-                    if parent is widget:
-                        return
-                    continue
-                stack = [[parent, child_idx + 1, children]]
-            except ValueError:
-                if not loopback:
-                    return
-                stack = [[root, 0, root.children]]
-        else:
-            if not loopback:
-                return
-            # we cycle back from the very last deepest child to loop focus
-            stack = [[root, 0, root.children]]
-
-        # going back, at each step return deepest child before parent
-        while len(stack):
-            sub_parent, idx, sub_stack = stack[-1]
-            if idx >= len(sub_stack):   # no more children, do parent
-                yield sub_parent
-                if sub_parent is widget:
-                    return
-                stack.pop()
-                continue
-
-            c = sub_stack[idx]
-            stack[-1][1] += 1
-            clist = c.children
-            if clist:  # do children first
-                stack.append([c, 0, clist])
-            else:
-                yield c
-                if c is widget:
-                    return
