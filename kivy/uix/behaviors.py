@@ -30,7 +30,6 @@ from kivy.metrics import sp
 from kivy.base import EventLoop
 from kivy.logger import Logger
 from functools import partial
-from kivy.uix.widget import walk, walk_reverse
 
 # When we are generating documentation, Config doesn't exist
 _scroll_timeout = _scroll_distance = 0
@@ -450,7 +449,6 @@ class FocusBehavior(object):
 
 
     .. versionadded:: 1.8.1
-
         This code is still experimental, and its API is subject to change in a
         future version.
     '''
@@ -717,7 +715,7 @@ class FocusBehavior(object):
     def _get_focus_next(self, focus_dir):
         current = self
         end = self.EndIteration
-        walk_tree = walk if focus_dir is 'focus_next' else walk_reverse
+        walk_tree = 'walk' if focus_dir is 'focus_next' else 'walk_reverse'
 
         while 1:
             # if we hit a focusable, walk through focus_xxx
@@ -729,7 +727,7 @@ class FocusBehavior(object):
                     return current
 
             # hit unfocusable, walk widget tree
-            itr = walk_tree(current)
+            itr = getattr(current, walk_tree)(loopback=True)
             if focus_dir is 'focus_next':
                 next(itr)  # current is returned first  when walking forward
             for current in itr:

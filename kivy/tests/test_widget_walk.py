@@ -6,7 +6,6 @@ class FileWidgetWalk(unittest.TestCase):
     def test_walk_large_tree(self):
         from kivy.uix.boxlayout import BoxLayout
         from kivy.uix.label import Label
-        from kivy.uix.widget import walk, walk_reverse
         ''' the tree
         BoxLayout
             BoxLayout
@@ -55,16 +54,17 @@ class FileWidgetWalk(unittest.TestCase):
 
         for i in range(len(tree)):
             rotated = rotate(tree, i)   # shift list to start at i
-            walked = [n for n in walk(tree[i])]  # walk starting with i
-            walked_reversed = [n for n in walk_reverse(tree[i])]
+            # walk starting with i
+            walked = [n for n in tree[i].walk(loopback=True)]
+            walked_reversed = [n for n in tree[i].walk_reverse(loopback=True)]
 
             self.assertListEqual(rotated, walked)
             self.assertListEqual(walked, list(reversed(walked_reversed)))
 
     def test_walk_single(self):
         from kivy.uix.label import Label
-        from kivy.uix.widget import walk, walk_reverse
 
         label = Label()
-        self.assertListEqual([n for n in walk(label)], [label])
-        self.assertListEqual([n for n in walk_reverse(label)], [label])
+        self.assertListEqual([n for n in label.walk(loopback=True)], [label])
+        self.assertListEqual([n for n in label.walk_reverse(loopback=True)],
+                             [label])
