@@ -74,14 +74,14 @@ class FocusApp(App):
         # make elements 29, 9 un-focusable. The widgets are displayed in
         # reverse order, so 9 = 39 - 10
         grid2.children[30].text = grid1.children[14].text =\
-            grid2.children[10].text = grid1.children[34].text = 'Skip me'
-        grid2.children[10].is_focusable = False
+            grid2.children[15].text = grid1.children[34].text = 'Skip me'
+        grid2.children[15].is_focusable = False
         grid2.children[30].is_focusable = False
         # similarly, make 39 - 14 = 25, and 5 un-focusable
         grid1.children[14].is_focusable = False
         grid1.children[34].is_focusable = False
         # don't move focus passed this element
-        grid2.children[35].focus_next = FocusBehavior.EndIteration
+        grid2.children[35].focus_next = None
         grid2.children[35].text = 'Stop forward'
 
         # exchange the links between the sides so that it'll skip to the other
@@ -89,6 +89,8 @@ class FocusApp(App):
         # in layouts.
         grid1.children[10].focus_next = grid2.children[9]
         grid2.children[10].focus_next = grid1.children[9]
+        grid1.children[10].text = '-->'
+        grid2.children[10].text = '<--'
         return root
 
 

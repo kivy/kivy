@@ -412,10 +412,6 @@ class DragBehavior(object):
         return
 
 
-class EndIteration(object):
-    pass
-
-
 class FocusBehavior(object):
     '''Implements keyboard focus behavior. When combined with other
     FocusBehavior widgets it allows one to cycle focus among them by pressing
@@ -431,9 +427,11 @@ class FocusBehavior(object):
     In essence, focus is implemented as a doubly linked list, where each
     node holds a (weak) reference to the instance before it and after it,
     as visualized when cycling through the nodes using tab (forward) or
-    shift+tab (backward). If no previous or next widget is specified, the
-    children list and parent is walked to find the next focusable widget,
-    unless :attr:`EndIteration` is specified, in which case it stops.
+    shift+tab (backward). If previous or next widget is not specified,
+    :attr:`focus_next` and :attr:`focus_previous` default to the `'WalkTree'`
+    string which means that the children list and parents are walked to find
+    the next focusable widget, unless :attr:`focus_next` or
+    :attr:`focus_previous` is set to `None`, in which case focus stops there.
 
     For example, to cycle focus between :class:`~kivy.uix.button.Button`
     elements of a :class:`~kivy.uix.gridlayout.GridLayout`::
@@ -553,38 +551,38 @@ class FocusBehavior(object):
         if next is value:   # prevent infinite loop
             return
 
-        if next is not None:
-            next.focus_previous = None
+        if isinstance(next, FocusBehavior):
+            next.focus_previous = 'WalkTree'
         self._old_focus_next = value
-        if value:
-            if not isinstance(value, FocusBehavior) and\
-                value is not EndIteration:
-                raise ValueError('focus_next accepts only objects based'
-                                 ' on FocusBehavior')
-            value.focus_previous = self
+        if value is None or value is 'WalkTree':
+            return
+        if not isinstance(value, FocusBehavior):
+            raise ValueError('focus_next accepts only objects based'
+                             ' on FocusBehavior')
+        value.focus_previous = self
 
-    focus_next = ObjectProperty(None, allownone=True)
+    focus_next = ObjectProperty('WalkTree', allownone=True)
     '''The :class:`FocusBehavior` instance to acquire focus when
-    tab is pressed when this instance has focus, if not None.
+    tab is pressed when this instance has focus, if not `None` or `'WalkTree'`.
 
     When tab is pressed, focus cycles through all the :class:`FocusBehavior`
     widgets that are linked through :attr:`focus_next` and are focusable. If
-    :attr:`focus_next` is None, it instead walks the children lists to find
-    the next focusable widget. Finally, if :attr:`focus_next` is
-    :attr:`EndIteration`, focus won't move forward, but end here.
+    :attr:`focus_next` is the `'WalkTree'` string, it instead walks the
+    children lists to find the next focusable widget. Finally, if
+    :attr:`focus_next` is `None`, focus won't move forward, but end here.
 
     .. note:
 
         Setting :attr:`focus_next` automatically sets :attr:`focus_previous`
-        of the other instance to point to this instance, if not None.
-        Similarly, if not None, it also sets the :attr:`focus_previous`
-        property of the instance previously in :attr:`focus_next` to None.
-        Therefore, it is only required to set one side of the
-        :attr:`focus_previous`, :attr:`focus_next`, links since the other side
-        will be set automatically.
+        of the other instance to point to this instance, if not None or
+        `'WalkTree'`. Similarly, if it wasn't None or `'WalkTree'`, it also
+        sets the :attr:`focus_previous` property of the instance previously in
+        :attr:`focus_next` to `'WalkTree'`. Therefore, it is only required to
+        set one side of the :attr:`focus_previous`, :attr:`focus_next`, links
+        since the other side will be set automatically.
 
     :attr:`focus_next` is a :class:`~kivy.properties.ObjectProperty`, defaults
-    to None.
+    to the string object `'WalkTree'`.
     '''
 
     def _set_on_focus_previous(self, instance, value):
@@ -592,47 +590,39 @@ class FocusBehavior(object):
         if prev is value:
             return
 
-        if prev is not None:
-            prev.focus_next = None
+        if isinstance(prev, FocusBehavior):
+            prev.focus_next = 'WalkTree'
         self._old_focus_previous = value
-        if value:
-            if not isinstance(value, FocusBehavior) and\
-                value is not EndIteration:
-                raise ValueError('focus_previous accepts only objects based'
-                                 ' on FocusBehavior')
-            value.focus_next = self
+        if value is None or value is 'WalkTree':
+            return
+        if not isinstance(value, FocusBehavior):
+            raise ValueError('focus_previous accepts only objects based'
+                             ' on FocusBehavior')
+        value.focus_next = self
 
-    focus_previous = ObjectProperty(None, allownone=True)
+    focus_previous = ObjectProperty('WalkTree', allownone=True)
     '''The :class:`FocusBehavior` instance to acquire focus when
-    shift+tab is pressed on this instance, if not None.
+    shift+tab is pressed on this instance, if not None or `'WalkTree'`.
 
     When shift+tab is pressed, focus cycles through all the
     :class:`FocusBehavior` widgets that are linked through
     :attr:`focus_previous` and are focusable. If :attr:`focus_previous` is
-    None, it instead walks the children lists to find the previous focusable
-    widget. Finally, if :attr:`focus_previous` is :attr:`EndIteration`, focus
-    won't move backward, but end here.
+    the `'WalkTree'` string, it instead walks the children lists to find the
+    previous focusable widget. Finally, if :attr:`focus_previous` is `None`,
+    focus won't move backward, but end here.
 
     .. note:
 
         Setting :attr:`focus_previous` automatically sets :attr:`focus_next`
-        of the other instance to point to this instance, if not None.
-        Similarly, if not None, it also sets the :attr:`focus_next`
-        property of the instance previously in :attr:`focus_previous` to None.
-        Therefore, it is only required to set one side of the
-        :attr:`focus_previous`, :attr:`focus_next`, links since the other side
-        will be set automatically.
+        of the other instance to point to this instance, if not None or
+        `'WalkTree'`. Similarly, if it wasn't None or `'WalkTree'`, it also
+        sets the :attr:`focus_next` property of the instance previously in
+        :attr:`focus_previous` to `'WalkTree'`. Therefore, it is only required
+        to set one side of the :attr:`focus_previous`, :attr:`focus_next`,
+        links since the other side will be set automatically.
 
     :attr:`focus_previous` is a :class:`~kivy.properties.ObjectProperty`,
-    defaults to None.
-    '''
-
-    EndIteration = EndIteration
-    '''A value that can be used for :attr:`focus_next` and
-    :attr:`focus_previous` to signal for focus to not move forward or
-    backward. See :attr:`focus_next` and :attr:`focus_previous`.
-
-    It is a global value and is the same for all instances.
+    defaults to the string object `'WalkTree'`.
     '''
 
     def __init__(self, **kwargs):
@@ -714,14 +704,13 @@ class FocusBehavior(object):
 
     def _get_focus_next(self, focus_dir):
         current = self
-        end = self.EndIteration
         walk_tree = 'walk' if focus_dir is 'focus_next' else 'walk_reverse'
 
         while 1:
             # if we hit a focusable, walk through focus_xxx
-            while getattr(current, focus_dir) is not None:
+            while getattr(current, focus_dir) is not 'WalkTree':
                 current = getattr(current, focus_dir)
-                if current is self or current is end:
+                if current is self or current is None:
                     return None  # make sure we don't loop forever
                 if current.is_focusable:
                     return current
