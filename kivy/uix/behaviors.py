@@ -428,10 +428,11 @@ class FocusBehavior(object):
     node holds a (weak) reference to the instance before it and after it,
     as visualized when cycling through the nodes using tab (forward) or
     shift+tab (backward). If previous or next widget is not specified,
-    :attr:`focus_next` and :attr:`focus_previous` default to the `'WalkTree'`
-    string which means that the children list and parents are walked to find
+    :attr:`focus_next` and :attr:`focus_previous` default to `None`,
+    which means that the children list and parents are walked to find
     the next focusable widget, unless :attr:`focus_next` or
-    :attr:`focus_previous` is set to `None`, in which case focus stops there.
+    :attr:`focus_previous` is set to the `StopIteration` class, in which case
+    focus stops there.
 
     For example, to cycle focus between :class:`~kivy.uix.button.Button`
     elements of a :class:`~kivy.uix.gridlayout.GridLayout`::
@@ -552,37 +553,39 @@ class FocusBehavior(object):
             return
 
         if isinstance(next, FocusBehavior):
-            next.focus_previous = 'WalkTree'
+            next.focus_previous = None
         self._old_focus_next = value
-        if value is None or value is 'WalkTree':
+        if value is None or value is StopIteration:
             return
         if not isinstance(value, FocusBehavior):
             raise ValueError('focus_next accepts only objects based'
-                             ' on FocusBehavior')
+                             ' on FocusBehavior, or the StopIteration class.')
         value.focus_previous = self
 
-    focus_next = ObjectProperty('WalkTree', allownone=True)
+    focus_next = ObjectProperty(None, allownone=True)
     '''The :class:`FocusBehavior` instance to acquire focus when
-    tab is pressed when this instance has focus, if not `None` or `'WalkTree'`.
+    tab is pressed when this instance has focus, if not `None` or
+    `'StopIteration'`.
 
     When tab is pressed, focus cycles through all the :class:`FocusBehavior`
     widgets that are linked through :attr:`focus_next` and are focusable. If
-    :attr:`focus_next` is the `'WalkTree'` string, it instead walks the
-    children lists to find the next focusable widget. Finally, if
-    :attr:`focus_next` is `None`, focus won't move forward, but end here.
+    :attr:`focus_next` is `None`, it instead walks the children lists to find
+    the next focusable widget. Finally, if :attr:`focus_next` is
+    the `StopIteration` class, focus won't move forward, but end here.
 
     .. note:
 
         Setting :attr:`focus_next` automatically sets :attr:`focus_previous`
         of the other instance to point to this instance, if not None or
-        `'WalkTree'`. Similarly, if it wasn't None or `'WalkTree'`, it also
-        sets the :attr:`focus_previous` property of the instance previously in
-        :attr:`focus_next` to `'WalkTree'`. Therefore, it is only required to
-        set one side of the :attr:`focus_previous`, :attr:`focus_next`, links
-        since the other side will be set automatically.
+        `StopIteration`. Similarly, if it wasn't None or `StopIteration`, it
+        also sets the :attr:`focus_previous` property of the instance
+        previously in :attr:`focus_next` to `None`. Therefore, it is only
+        required to set one side of the :attr:`focus_previous`,
+        :attr:`focus_next`, links since the other side will be set
+        automatically.
 
     :attr:`focus_next` is a :class:`~kivy.properties.ObjectProperty`, defaults
-    to the string object `'WalkTree'`.
+    to `None`.
     '''
 
     def _set_on_focus_previous(self, instance, value):
@@ -591,38 +594,38 @@ class FocusBehavior(object):
             return
 
         if isinstance(prev, FocusBehavior):
-            prev.focus_next = 'WalkTree'
+            prev.focus_next = None
         self._old_focus_previous = value
-        if value is None or value is 'WalkTree':
+        if value is None or value is StopIteration:
             return
         if not isinstance(value, FocusBehavior):
             raise ValueError('focus_previous accepts only objects based'
-                             ' on FocusBehavior')
+                             ' on FocusBehavior, or the StopIteration class.')
         value.focus_next = self
 
-    focus_previous = ObjectProperty('WalkTree', allownone=True)
+    focus_previous = ObjectProperty(None, allownone=True)
     '''The :class:`FocusBehavior` instance to acquire focus when
-    shift+tab is pressed on this instance, if not None or `'WalkTree'`.
+    shift+tab is pressed on this instance, if not None or `StopIteration`.
 
     When shift+tab is pressed, focus cycles through all the
     :class:`FocusBehavior` widgets that are linked through
     :attr:`focus_previous` and are focusable. If :attr:`focus_previous` is
-    the `'WalkTree'` string, it instead walks the children lists to find the
-    previous focusable widget. Finally, if :attr:`focus_previous` is `None`,
-    focus won't move backward, but end here.
+    `None', it instead walks the children tree to find the
+    previous focusable widget. Finally, if :attr:`focus_previous` is the
+    `StopIteration` class, focus won't move backward, but end here.
 
     .. note:
 
         Setting :attr:`focus_previous` automatically sets :attr:`focus_next`
         of the other instance to point to this instance, if not None or
-        `'WalkTree'`. Similarly, if it wasn't None or `'WalkTree'`, it also
-        sets the :attr:`focus_next` property of the instance previously in
-        :attr:`focus_previous` to `'WalkTree'`. Therefore, it is only required
+        `StopIteration`. Similarly, if it wasn't None or `StopIteration`, it
+        also sets the :attr:`focus_next` property of the instance previously in
+        :attr:`focus_previous` to `None`. Therefore, it is only required
         to set one side of the :attr:`focus_previous`, :attr:`focus_next`,
         links since the other side will be set automatically.
 
     :attr:`focus_previous` is a :class:`~kivy.properties.ObjectProperty`,
-    defaults to the string object `'WalkTree'`.
+    defaults to  `None`.
     '''
 
     def __init__(self, **kwargs):
@@ -708,9 +711,9 @@ class FocusBehavior(object):
 
         while 1:
             # if we hit a focusable, walk through focus_xxx
-            while getattr(current, focus_dir) is not 'WalkTree':
+            while getattr(current, focus_dir) is not None:
                 current = getattr(current, focus_dir)
-                if current is self or current is None:
+                if current is self or current is StopIteration:
                     return None  # make sure we don't loop forever
                 if current.is_focusable:
                     return current

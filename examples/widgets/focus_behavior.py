@@ -81,7 +81,7 @@ class FocusApp(App):
         grid1.children[14].is_focusable = False
         grid1.children[34].is_focusable = False
         # don't move focus passed this element
-        grid2.children[35].focus_next = None
+        grid2.children[35].focus_next = StopIteration
         grid2.children[35].text = 'Stop forward'
 
         # exchange the links between the sides so that it'll skip to the other
