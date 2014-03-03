@@ -59,6 +59,8 @@ class SoundLoader:
         if rfn is not None:
             filename = rfn
         ext = filename.split('.')[-1].lower()
+        if '?' in ext:
+            ext = ext.split('?')[0]
         for classobj in SoundLoader._classes:
             if ext in classobj.extensions():
                 return classobj(source=filename)
