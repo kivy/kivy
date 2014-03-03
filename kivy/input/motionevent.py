@@ -373,7 +373,7 @@ class MotionEvent(MotionEventBase):
         if smode:
             if smode == 'pan':
                 self.y -= kheight
-            elif smode == 'resize':
+            elif smode == 'scale':
                 self.y += (kheight * (
                     (self.y - kheight) / (h - kheight))) - kheight
 

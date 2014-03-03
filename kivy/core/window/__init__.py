@@ -266,6 +266,8 @@ class WindowBase(EventDispatcher):
     def _get_size(self):
         r = self._rotation
         w, h = self._size
+        if self.softinput_mode == 'resize':
+            h -= self.keyboard_height
         if r in (0, 180):
             return w, h
         return h, w
@@ -374,7 +376,7 @@ class WindowBase(EventDispatcher):
     degrees.
     '''
 
-    softinput_mode = OptionProperty('', options=('', 'pan', 'resize'))
+    softinput_mode = OptionProperty('', options=('', 'pan', 'scale', 'resize'))
     '''This specifies the behavior of window contents on display of soft
     keyboard on mobile platform.
 
@@ -419,6 +421,8 @@ class WindowBase(EventDispatcher):
         self._size = size
 
     def _get_system_size(self):
+        if self.softinput_mode == 'resize':
+            return self._size[0], self._size[1] - self.keyboard_height
         return self._size
 
     system_size = AliasProperty(
@@ -746,17 +750,19 @@ class WindowBase(EventDispatcher):
         from math import radians
 
         w, h = self.system_size
+
+        smode = self.softinput_mode
+        kheight = self.keyboard_height
+
         w2, h2 = w / 2., h / 2.
         r = radians(self.rotation)
 
 
         x, y = 0, 0
         _h = h
-        smode = self.softinput_mode
-        kheight = self.keyboard_height
         if smode:
             y = kheight
-        if smode == 'resize':
+        if smode == 'scale':
             _h -= kheight
 
         # prepare the viewport
