@@ -368,10 +368,6 @@ class VKeyboard(Scatter):
             self.background_key_layer = Canvas()
             self.active_keys_layer = Canvas()
 
-        # prepare layout widget
-        self.refresh_keys_hint()
-        self.refresh_keys()
-
     def on_disabled(self, intance, value):
         self.refresh_keys()
 
