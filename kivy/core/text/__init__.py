@@ -89,8 +89,6 @@ class LabelBase(object):
 
     __slots__ = ('options', 'texture', '_label', '_text_size')
 
-    _cache_glyphs = {}
-
     _fonts = {}
 
     _fonts_cache = {}
@@ -120,16 +118,11 @@ class LabelBase(object):
             else:
                 options['text_size'] = text_size
 
-        text_width, text_height = options['text_size']
-        if text_width is not None:
-            self._text_size = (
-                text_width - options['padding_x'] * 2,
-                text_height)
-        else:
-            self._text_size = options['text_size']
-
+        self._text_size = options['text_size']
         self._text = options['text']
-        self._internal_height = 0
+        self._internal_width = self._internal_height = 0
+        self._cached_lines = []
+        self._cached_text_size = self._cached_padding = (0, 0)
 
         self.options = options
         self.texture = None
@@ -217,7 +210,8 @@ class LabelBase(object):
         if self.text_size[0] is None:
             width = 0
         else:
-            width = int(self.text_size[0])
+            width = max(0,
+                        int(self.text_size[0] - self.options['padding_x'] * 2))
 
         letters = '_..._' + text
         while textwidth(letters)[0] > width:
@@ -234,183 +228,53 @@ class LabelBase(object):
             segment = max_letters - 3  # length of '...'
             return type(text)('{0}...').format(text[:segment].strip())
 
-    def render(self, real=False):
-        '''Return a tuple (width, height) to create the image
-        with the user constraints.
-
-        2 differents methods are used:
-          * if the user does not set the width, split the line
-            and calculate max width + height
-          * if the user sets a width, blit per glyph
-        '''
-
+    def _render_real(self):
         options = self.options
         render_text = self._render_text
         get_extents = self.get_extents
-        uw, uh = self.text_size
-        max_lines = int(options.get('max_lines', 0))
-        w, h = 0, 0
-        x, y = 0, 0
-        if real:
-            self._render_begin()
-            halign = options['halign']
-            valign = options['valign']
-            if valign == 'bottom':
-                y = self.height - self._internal_height
-            elif valign == 'middle':
-                y = int((self.height - self._internal_height) / 2)
-        else:
-            self._internal_height = 0
+        uw, uh = self._cached_text_size
+        xpad, ypad = self._cached_padding
+        x, y = xpad, ypad   # pos in the texture
+        contentw = self._internal_width - 2 * xpad
+        split = re.split
+        pat = re.compile('( +)')
+        self._render_begin()
 
-        # no width specified, faster method
-        if uw is None:
-            index = 0
-            for line in self.text.split('\n'):
-                index += 1
-                if max_lines > 0 and index > max_lines:
-                    break
-                lw, lh = get_extents(line)
-                lh = lh * options['line_height']
-                if real:
-                    x = 0
-                    if halign[0] == 'c':
-                        # center
-                        x = int((self.width - lw) / 2.)
-                    elif halign[0] == 'r':
-                        # right
-                        x = int(self.width - lw)
-                    if len(line):
-                        render_text(line, x, y)
-                    y += int(lh)
-                else:
-                    w = max(w, int(lw))
-                    self._internal_height += int(lh)
-            h = self._internal_height if uh is None else uh
+        sw = get_extents(' ')[0]
+        halign = options['halign']
+        valign = options['valign']
+        if valign == 'bottom':
+            y = self.height - self._internal_height + ypad
+        elif valign == 'middle':
+            y = int((self.height - self._internal_height) / 2 + ypad)
 
-        # constraint
-        else:
-            # precalculate id/name
-            if not self.fontid in self._cache_glyphs:
-                self._cache_glyphs[self.fontid] = {}
-            cache = self._cache_glyphs[self.fontid]
+        for line, (lw, lh), is_last_line in self._cached_lines:
+            x = xpad
+            if halign[0] == 'c':  # center
+                x = int((self.width - lw) / 2.)
+            elif halign[0] == 'r':  # right
+                x = int(self.width - lw - xpad)
 
-            if not real:
-                # verify that each glyph have size
-                glyphs = list(set(self.text)) + ['.']
-                for glyph in glyphs:
-                    if not glyph in cache:
-                        cache[glyph] = get_extents(glyph)
+            # right left justify
+            # divide left over space between `spaces`
+            # TODO implement a better method of stretching glyphs?
+            just_space = 0
+            if halign[-1] == 'y' and line and not is_last_line:
+                n = int((contentw - lw) / sw)  # number spaces needed to fill
+                words = None
+                if n:
+                    words = split(pat, line)  # there's no trailing space
+                if words is not None and len(words) > 1:
+                    space = type(line)(' ')
+                    # words: every even index is spaces, just add ltr n spaces
+                    for i in range(n):
+                        idx = (2 * i + 1) % (len(words) - 1)
+                        words[idx] = words[idx] + space
+                    line = ''.join(words)
 
-            # Shorten the text that we actually display
-            text = self.text
-            if (options['shorten'] and get_extents(text)[0] > uw):
-                text = self.shorten(text)
-
-            # first, split lines
-            glyphs = []
-            lines = []
-            lw = lh = 0
-            for word in re.split(r'( |\n)', text):
-
-                # calculate the word width
-                ww, wh = 0, 0
-                if word == '':
-                    ww, wh = get_extents(' ')
-                for glyph in word:
-                    gw, gh = cache[glyph]
-                    ww += gw
-                    wh = max(gh, wh)
-                wh = wh * options['line_height']
-
-                # is the word fit on the uw ?
-                if ww > uw:
-                    lines.append(((ww, wh), 0, word))
-                    lw = lh = x = 0
-                    if max_lines > 0 and len(lines) >= max_lines:
-                        break
-                    continue
-
-                # get the maximum height for this line
-                lh = max(wh, lh)
-                # is the word fit on the line ?
-                if (word == '\n' or x + ww > uw) and lw != 0:
-                    # no, push actuals glyph
-                    # lw, lh), is_last_line, glyphs)
-                    last_line = 1 if word == '\n' else 0
-                    lines.append(((lw, lh), last_line, glyphs))
-                    glyphs = []
-
-                    # reset size
-                    lw = lh = x = 0
-
-                    # new line ? don't render
-                    if word == '\n' or word == ' ':
-                        continue
-
-                # advance the width
-                lw += ww
-                x += ww
-                lh = max(wh, lh)
-                glyphs += list(word)
-
-            # got some char left ?
-            if lw != 0:
-                lines.append(((lw, lh), 1, glyphs))
-
-            # ensure the number of lines is not more than the user asked
-            if max_lines > 0:
-                lines = lines[:max_lines]
-
-            if not real:
-                self._internal_height = sum([size[1] for size, last_line,
-                                            glyphs in lines])
-                ll_h = lines[-1][0][1]
-                lh_offset = ll_h - (ll_h / self.options['line_height'])
-                self._internal_height = self._internal_height - lh_offset
-                h = self._internal_height if uh is None else uh
-                w = uw
-            else:
-                # really render now.
-                for size, last_line, glyphs in lines:
-                    x = 0
-                    if halign[0] == 'c':
-                        # center
-                        x = int((self.width - size[0]) / 2.)
-                    elif halign[0] == 'r':
-                        # right
-                        x = int(self.width - size[0])
-
-                    # justification
-                    just_space = 0
-                    if halign[-1] == 'y':
-                        # justified
-                        if glyphs and not last_line:
-                            x = 0
-                            last_space = 1 if glyphs[-1] == ' ' else 0
-                            _spaces = glyphs.count(' ') - last_space
-                            # divide left over space between `spaces`
-                            # TODO implement a better method of stretching
-                            # glyphs?
-                            if _spaces:
-                                sw = cache[' '][0] if last_space else 0
-                                just_space = (((uw - size[0] + sw) * 1.) /
-                                              (_spaces * 1.))
-
-                    for glyph in glyphs:
-                        lw, lh = cache[glyph]
-                        if glyph == ' ':
-                            x += just_space
-                        elif glyph != '\n':
-                            render_text(glyph, x, y)
-                        x += lw
-                    y += size[1]
-
-        if not real:
-            # was only the first pass
-            # return with/height
-            w = int(max(w, 1))
-            h = int(max(h, 1))
-            return w, h
+            if len(line):
+                render_text(line, x, y)
+            y += lh
 
         # get data from provider
         data = self._render_end()
@@ -420,6 +284,178 @@ class LabelBase(object):
         # Don't blit that kind of data, otherwise, you have a little black bar.
         if data is not None and data.width > 1:
             self.texture.blit_data(data)
+
+    def render(self, real=False):
+        '''Return a tuple (width, height) to create the image
+        with the user constraints. (width, height) includes the padding.
+        '''
+        if real:
+            return self._render_real()
+
+        text = self.text.strip()
+        options = self.options
+        render_text = self._render_text
+        get_extents = self.get_extents
+        uw, uh = self.text_size
+        xpad, ypad = options['padding_x'], options['padding_y']
+        max_lines = int(options.get('max_lines', 0))
+        w, h = 0, 0   # width and height of the texture
+        x, y = xpad, ypad   # pos in the texture
+        # don't allow them to change before rendering for real
+        self._cached_padding = xpad, ypad
+        self._cached_text_size = uw, uh
+        if not text:
+            self._cached_lines = []
+            return 0, 0
+
+        # no width specified, find max width. For height, if not specified,
+        # do everything, otherwise stop when reached specified height
+        if uw is None:
+            h = ypad * 2
+            lines = text.split('\n')
+            for i in range(len(lines)):
+                if (max_lines > 0 and i + 1 > max_lines or uh is not None
+                    and h > uh):
+                    break
+                lw, lh = get_extents(lines[i])
+                lh = int(lh * options['line_height'])
+                if uh is not None and h + lh > uh:  # too high
+                    break
+                w = max(w, int(lw + 2 * xpad))
+                h += lh
+                lines[i] = (lines[i], (lw, lh), True)  # True == its line end
+            self._internal_height = h
+            self._cached_lines = lines[:i]
+            if uh is not None:  # texture size must be requested text_size
+                h = uh
+
+        else:  # constraint width
+            uw = max(0, uw - xpad * 2)  # actual w, h allowed for rendering
+            if uh is not None:
+                uh = max(0, uh - ypad * 2)
+
+            # Shorten the text that we actually display
+            if (options['shorten'] and get_extents(text)[0] > uw):
+                text = self.shorten(text)
+                lw, lh = get_extents(text)
+                lw += 2 * xpad
+                lh += 2 * ypad
+                self._cached_lines = [(text, (lw, lh), True)] if text else []
+                return lw, lh  # there's only one line, so we're done.
+
+            lines = []
+            h = 0
+            # split into lines and find how many real lines each line requires
+            for line in text.split('\n'):
+                if (uh is not None and h > uh or max_lines > 0 and
+                    len(lines) > max_lines):
+                    break
+
+                line = line.strip()
+                if line == '':  # just add empty line if empty
+                    lines.append(('', get_extents(''), True))
+                    h += lines[-1][1][1] * options['line_height']
+                    continue
+
+                # what we do is given the current text in this real line
+                # (starts empty), if we can fit another word, add it. Otherwise
+                # add it to a new line. But if a single word doen't fit on a
+                # single line, just split the word itself into multiple lines
+
+                # s is idx in line of start of this actual line, e is idx of
+                # next space, m is idx after s that still fits on this line
+                s = m = e = 0
+                while s != len(line):
+                    # find next space or end, if end don't keep checking
+                    if e != len(line):
+                        e = line.find(' ', m + 1)
+                        if e is -1:
+                            e = len(line)
+
+                    lwe, lhe = get_extents(line[s:e])  # does next word fit?
+                    if lwe > uw:  # too wide
+                        if s != m:
+                            # theres already some text, commit and go next line
+                            # make sure there are no trailing spaces, may occur
+                            # if many spaces is followed by word not fitting
+                            ln = line[s:m]
+                            if line[m - 1] == ' ':
+                                ln = ln.rstrip()
+                                lines.append((ln, get_extents(ln), False))
+                            else:
+                                lines.append((line[s:m], (lw, lh), False))
+                            h += lh * options['line_height']
+                            s = m
+
+                        # try to fit word on new line, if it doesn't fit we'll
+                        # have to break the word into as many lines needed
+                        s = s + e - s - len(line[s:e].lstrip())
+                        if s == e:  # if it was only a space, move on
+                            m = s
+                            continue
+
+                        # now break single word into as many lines needed
+                        m = s
+                        while s != e:
+                            # does remainder fit in single line?
+                            lwe, lhe = get_extents(line[s:e])
+                            if lwe <= uw:
+                                m = e
+                                break
+                            # if not, fit as much as possible into this line
+                            while (m != e and
+                                   get_extents(line[s:m + 1])[0] <= uw):
+                                m += 1
+                            # not enough room for even single char, skip it
+                            if m == s:
+                                s += 1
+                            else:
+                                lines.append((line[s:m],\
+                                get_extents(line[s:m]), m == len(line)))
+                                h += lines[-1][1][1] * options['line_height']
+                                s = m
+                            m = s
+                        m = s # done with long word, go back to normal
+
+                    else:   # the word fits
+                        # don't allow leading spaces on empty lines
+                        if m == s and line[s:e] == ' ':
+                            s = m = e
+                            continue
+                        m = e
+
+                    if m == len(line):  # we're done
+                        if s != len(line):
+                            lines.append((line[s:], (lwe, lhe), True))
+                            h += lhe * options['line_height']
+                        break
+                    lw, lh = lwe, lhe
+
+            # ensure the number of lines is not more than the user asked
+            # above, we might have gone a few lines over
+            if max_lines > 0:
+                lines = lines[:max_lines]
+            # now make sure we don't have lines outside specified height
+            if uh is not None:
+                lh = options['line_height']
+                i = h = 0
+                while i < len(lines) and h + lines[i][1][1] * lh <= uh:
+                    h += lines[i][1][1] * lh
+                    i += 1
+                lines = lines[:i]
+
+            self._internal_height = h + ypad * 2
+            # height must always be the requested size, if specified
+            h = self._internal_height if uh is None else uh + ypad * 2
+            w = uw + xpad * 2
+            self._cached_lines = lines
+
+        # was only the first pass
+        # return with/height
+        w = int(max(w, 1))
+        self._internal_width = w
+        h = int(max(h, 1))
+        return w, h
 
     def _texture_refresh(self, *l):
         self.refresh()
@@ -436,8 +472,7 @@ class LabelBase(object):
         # first pass, calculating width/height
         sz = self.render()
         self._size_texture = sz
-        self._size = (sz[0] - self.options['padding_x'] * 2,
-                      sz[1] - self.options['padding_y'] * 2)
+        self._size = (sz[0], sz[1])
 
         # if no text are rendered, return nothing.
         width, height = self._size
@@ -502,14 +537,16 @@ class LabelBase(object):
 
     @property
     def content_width(self):
-        '''Return the content width'''
+        '''Return the content width; i.e. the width of the text without
+        any padding.'''
         if self.texture is None:
             return 0
         return self.texture.width - 2 * self.options['padding_x']
 
     @property
     def content_height(self):
-        '''Return the content height'''
+        '''Return the content height; i.e. the height of the text without
+        any padding.'''
         if self.texture is None:
             return 0
         return self.texture.height - 2 * self.options['padding_y']
