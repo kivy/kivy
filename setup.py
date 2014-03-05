@@ -496,7 +496,6 @@ if c_options['use_rpi']:
 if c_options['use_x11']:
     sources['core/window/window_x11.pyx'] = merge(
         base_flags, gl_flags, {
-            #'depends': [
             # FIXME add an option to depend on them but not compile them
             # cause keytab is included in core, and core is included in
             # window_x11
