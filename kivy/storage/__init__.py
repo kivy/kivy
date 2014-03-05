@@ -49,7 +49,7 @@ Because the data is persistant, you can check later to see if the key exists::
     from kivy.storage.jsonstore import JsonStore
 
     store = JsonStore('hello.json')
-    if store.exists('tite'):
+    if store.exists('tito'):
         print('tite exists:', store.get('tito'))
         store.delete('tito')
 
