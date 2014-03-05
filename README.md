@@ -58,17 +58,17 @@ Have a look at our complementary projects:
   everything needed to package your application for iOS and Android. Ask him,
   wait, it's done.
 - [Plyer](http://github.com/kivy/plyer): Library for accessing features of your
-  hardware such as Accelerometer, Camera, 
+  hardware such as the Accelerometer, Camera etc.
 - [Pyjnius](http://github.com/kivy/pyjnius): Dynamic access to the Java/Android
-  API from Python, easy!
+  API from Python? Easy!
 - [Pyobjus](http://github.com/kivy/pyobjus): Dynamic acccess to the
-  Objective-C/iOS API from Python (wip)
+  Objective-C/iOS API from Python (wip).
 - [Python for Android](http://github.com/kivy/python-for-android): Toolchain
   for building and packaging Kivy applications into Android APK's.
 - [Kivy iOS](http://github.com/kivy/kivy-ios): Toolchain for building and
   packaging Kivy applications into iOS IPA's.
 - [Audiostream](http://github.com/kivy/audiostream): Library for direct access
-  to the Microphone and Speaker, for iOS and Android.
+  to the Microphone and Speaker (for iOS and Android).
 - [Garden](http://github.com/kivy-garden): Explore User's widgets and libraries
 
 
@@ -76,11 +76,11 @@ Have a look at our complementary projects:
 Licenses
 --------
 
-- Kivy is licensed under the terms of the MIT, check the LICENSE file.
+- Kivy is licensed under the terms of the MIT. Please refer to the LICENSE file.
 - The provided fonts DroidSans.ttf and DroidSansMono.ttf are licensed under
   the terms of the Apache 2.0 License. The license can be found at
   http://www.apache.org/licenses/LICENSE-2.0
-- The current UI design has been adapted from Moblintouch theme's SVGs, licensed
-  under the terms of the LGPL 2.1.
+- The current UI design has been adapted from Moblintouch theme's SVGs and is
+  licensed under the terms of the LGPL 2.1.
 
 
