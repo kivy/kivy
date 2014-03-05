@@ -89,6 +89,8 @@ class LabelBase(object):
 
     __slots__ = ('options', 'texture', '_label', '_text_size')
 
+    _cache_glyphs = {}
+
     _fonts = {}
 
     _fonts_cache = {}
@@ -316,6 +318,7 @@ class LabelBase(object):
             for i in range(len(lines)):
                 if (max_lines > 0 and i + 1 > max_lines or uh is not None
                     and h > uh):
+                    i -= 1
                     break
                 lw, lh = get_extents(lines[i])
                 lh = int(lh * options['line_height'])
@@ -325,7 +328,7 @@ class LabelBase(object):
                 h += lh
                 lines[i] = (lines[i], (lw, lh), True)  # True == its line end
             self._internal_height = h
-            self._cached_lines = lines[:i]
+            self._cached_lines = lines[:i + 1]
             if uh is not None:  # texture size must be requested text_size
                 h = uh
 
@@ -410,12 +413,12 @@ class LabelBase(object):
                             if m == s:
                                 s += 1
                             else:
-                                lines.append((line[s:m],\
+                                lines.append((line[s:m],
                                 get_extents(line[s:m]), m == len(line)))
                                 h += lines[-1][1][1] * options['line_height']
                                 s = m
                             m = s
-                        m = s # done with long word, go back to normal
+                        m = s  # done with long word, go back to normal
 
                     else:   # the word fits
                         # don't allow leading spaces on empty lines
