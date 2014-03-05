@@ -50,9 +50,10 @@ The JSON must be structured like this::
         ...
     }
 
-Then, you need to describe the keys in each row, for either a "normal"
-mode or a "shift" mode. Keys for this row data must be named
-`normal_<row>` and `shift_<row>`. Replace `row` with the row number.
+Then, you need to describe the keys in each row, for either a "normal",
+"shift" or a "special" (added in version 1.8.1) mode. Keys for this row data must be named
+`normal_<row>`, `shift_<row>` and `special_<row>`.
+Replace `row` with the row number.
 Inside each row, you will describe the key. A key is a 4 element list in
 the format::
 
@@ -80,6 +81,7 @@ Finally, complete the JSON::
 
         "shift_1": [ ... ],
         "normal_2": [ ... ],
+        "special_2": [ ... ],
         ...
     }
 
@@ -310,10 +312,11 @@ class VKeyboard(Scatter):
     '''
 
     # XXX internal variables
-    layout_mode = OptionProperty('normal', options=('normal', 'shift'))
+    layout_mode = OptionProperty('normal', options=('normal', 'shift', 'special'))
     layout_geometry = DictProperty({})
     have_capslock = BooleanProperty(False)
     have_shift = BooleanProperty(False)
+    have_special = BooleanProperty(False)
     active_keys = DictProperty({})
     font_size = NumericProperty('20dp')
     font_name = StringProperty('data/fonts/DejaVuSans.ttf')
@@ -337,6 +340,7 @@ class VKeyboard(Scatter):
             docked=self.setup_mode,
             have_shift=self._trigger_update_layout_mode,
             have_capslock=self._trigger_update_layout_mode,
+            have_special=self._trigger_update_layout_mode,
             layout_path=self._trigger_load_layouts,
             layout=self._trigger_load_layout)
         super(VKeyboard, self).__init__(**kwargs)
@@ -375,6 +379,8 @@ class VKeyboard(Scatter):
         # update mode according to capslock and shift key
         mode = self.have_capslock != self.have_shift
         mode = 'shift' if mode else 'normal'
+        if self.have_special:
+            mode = "special"
         if mode != self.layout_mode:
             self.layout_mode = mode
             self.refresh(False)
@@ -731,6 +737,8 @@ class VKeyboard(Scatter):
                 uid = -1
             elif special_char == 'shift':
                 self.have_shift = True
+            elif special_char == 'special':
+                self.have_special = True
             elif special_char == 'layout':
                 self.change_layout()
 
@@ -764,6 +772,8 @@ class VKeyboard(Scatter):
             self.active_keys.pop(uid, None)
             if special_char == 'shift':
                 self.have_shift = False
+            elif special_char == 'special':
+                self.have_special = False
             if special_char == 'capslock' and self.have_capslock:
                 self.active_keys[-1] = key
             self.refresh_active_keys_layer()
