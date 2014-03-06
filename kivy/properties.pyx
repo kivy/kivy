@@ -1386,17 +1386,18 @@ cdef class ConfigParserProperty(Property):
                 text: 'Name: {}'.format(self.name)
 
     A ConfigParserProperty can be assigned three types of values:
+
     * If it's a ConfigParser, like in the `init` function above, that
       ConfigParser becomes associated with this property.
     * If it's `None` and
       `allownone` was set to `True`, then the current property becomes
       dis-associated from the ConfigParser.
     * Finally, anything else gets converted into a string and assigned to the
-    corresponding section / key (provided a ConfigParser was associated with
-    this property). This is what happens in the kv code; the `name` key in
-    the `info` section of the parser becomes bound to the text property of the
-    textinput. Also, the text property of the info label becomes bound the same
-    key.
+      corresponding section / key (provided a ConfigParser was associated with
+      this property). This is what happens in the kv code; the `name` key in
+      the `info` section of the parser becomes bound to the text property of
+      the textinput. Also, the text property of the info label becomes bound
+      the same key.
 
     An example where changing the ConfigParser is useful: if different users
     use the same system, then when switching user, a new ConfigParser can be
@@ -1407,6 +1408,14 @@ cdef class ConfigParserProperty(Property):
     :meth:`~kivy.config.ConfigParser.read`, then for every property change,
     :meth:`~kivy.config.ConfigParser.write` will be called, keeping the file
     updated.
+
+    .. warning::
+
+        It is recommend that the config parser object be assigned to the
+        property after the kv tree has been constructed (e.g. schedule on next
+        frame from init). This is because the kv tree and its properties, when
+        constructed, are evaluated on its own order, therefore, any initial
+        values in the parser might be overwritten by objects it's bound to.
 
     :Parameters:
         `default`: object type
@@ -1459,6 +1468,7 @@ cdef class ConfigParserProperty(Property):
         self.key = ''
         self.val_type = None
         self.verify = None
+        self.last_value = None  # the last string value in the config for this
 
     def __init__(self, defaultvalue, section, key, **kw):
         # since a user can set value either to config parser or key value,
@@ -1497,14 +1507,18 @@ cdef class ConfigParserProperty(Property):
         if self.config is not None:
             self.config.adddefaultsection(self.section)
             self.config.setdefault(self.section, self.key, self.defaultvalue)
+
             ps = obj.__storage[self._name]
             ps.value = self.parse_str(self.config.get(self.section, self.key))
+            # in case the value changed, save it
+            self.config.set(self.section, self.key, ps.value)
+            self.last_value = self.config.get(self.section, self.key)
             self.config.add_callback(self.edit_setting, self.section, self.key)
             self.config.write()
 
     cpdef edit_setting(self, section, key, value):
         cdef object obj = self.obj()
-        if obj is None:
+        if obj is None or self.last_value == value:
             return
         self.set(obj, self.parse_str(value))
 
@@ -1548,9 +1562,15 @@ cdef class ConfigParserProperty(Property):
             self.config = value
             if self.config is not None:
                 self.config.adddefaultsection(self.section)
-                self.config.setdefault(self.section, self.key, self.defaultvalue)
-                value = self.parse_str(self.config.get(self.section, self.key))
-                self.config.add_callback(self.edit_setting, self.section, self.key)
+                self.config.setdefault(self.section, self.key,
+                                       self.defaultvalue)
+                value = self.parse_str(self.config.get(self.section,
+                                                       self.key))
+                # if the value changed, save since we might return early below
+                self.config.set(self.section, self.key, ps.value)
+                self.last_value = self.config.get(self.section, self.key)
+                self.config.add_callback(self.edit_setting, self.section,
+                                         self.key)
                 self.config.write()
             else:
                 return self.check(obj, None)
@@ -1581,6 +1601,7 @@ cdef class ConfigParserProperty(Property):
         ps.value = value
         if self.config is not None:
             self.config.set(self.section, self.key, value)
+            self.last_value = self.config.get(self.section, self.key)
             self.config.write()
         self.dispatch(obj)
         return True
