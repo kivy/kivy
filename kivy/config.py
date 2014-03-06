@@ -269,6 +269,17 @@ class ConfigParser(PythonConfigParser):
             raise Exception('You cannot specify a key without a section')
         self._callbacks.append((callback, section, key))
 
+    def remove_callback(self, callback, section=None, key=None):
+        '''Removes a callback added with :math:`add_callback`.
+        :meth:`remove_callback` must be called with the same parameters as
+        :math:`add_callback`.
+
+        Raises a `ValueError` if not found.
+
+        .. versionadded:: 1.8.1
+        '''
+        self._callbacks.remove((callback, section, key))
+
     def _do_callbacks(self, section, key, value):
         for callback, csection, ckey in self._callbacks:
             if csection is not None and csection != section:
