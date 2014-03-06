@@ -320,6 +320,7 @@ class VKeyboard(Scatter):
     active_keys = DictProperty({})
     font_size = NumericProperty('20dp')
     font_name = StringProperty('data/fonts/DejaVuSans.ttf')
+    repeat_touch = ObjectProperty(allownone=True)
 
     __events__ = ('on_key_down', 'on_key_up')
 
@@ -728,6 +729,10 @@ class VKeyboard(Scatter):
         # for caps lock or shift only:
         uid = touch.uid
         if special_char is not None:
+            # Do not repeat special keys
+            if special_char in ('capslock', 'shift', 'layout', 'special'):
+                Clock.unschedule(self._start_repeat_key)
+                self.repeat_touch = None
             if special_char == 'capslock':
                 self.have_capslock = not self.have_capslock
                 uid = -1
@@ -782,6 +787,12 @@ class VKeyboard(Scatter):
             ret.append('capslock')
         return ret
 
+    def _start_repeat_key(self, *kwargs):
+        Clock.schedule_interval(self._repeat_key, 0.05)
+
+    def _repeat_key(self, *kwargs):
+        self.process_key_on(self.repeat_touch)
+
     def on_touch_down(self, touch):
         x, y = touch.pos
         if not self.collide_point(x, y):
@@ -791,8 +802,13 @@ class VKeyboard(Scatter):
 
         x, y = self.to_local(x, y)
         if not self.collide_margin(x, y):
+            if self.repeat_touch is None:
+                Clock.schedule_once(self._start_repeat_key, 0.5)
+            self.repeat_touch = touch
+
             self.process_key_on(touch)
             touch.grab(self, exclusive=True)
+
         else:
             super(VKeyboard, self).on_touch_down(touch)
         return True
@@ -800,6 +816,12 @@ class VKeyboard(Scatter):
     def on_touch_up(self, touch):
         if touch.grab_current is self:
             self.process_key_up(touch)
+
+            Clock.unschedule(self._start_repeat_key)
+            if touch == self.repeat_touch:
+                Clock.unschedule(self._repeat_key)
+                self.repeat_touch = None
+
         return super(VKeyboard, self).on_touch_up(touch)
 
 
