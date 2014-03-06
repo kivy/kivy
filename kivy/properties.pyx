@@ -186,12 +186,13 @@ __all__ = ('Property',
            'NumericProperty', 'StringProperty', 'ListProperty',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
-           'DictProperty', 'VariableListProperty')
+           'DictProperty', 'VariableListProperty', 'ConfigParserProperty')
 
 include "graphics/config.pxi"
 
 from weakref import ref
 from kivy.compat import string_types
+from kivy.config import ConfigParser
 
 cdef float g_dpi = -1
 cdef float g_density = -1
@@ -1350,3 +1351,236 @@ cdef class VariableListProperty(Property):
     cdef float parse_list(self, EventDispatcher obj, value, str ext):
         return dpi2px(value, ext)
 
+
+cdef class ConfigParserProperty(Property):
+    ''' Property that allows one to listen to changes in a
+    :class:`~kivy.config.ConfigParser` as well as to bind the ConfigParser
+    fields to changes in other properties.
+
+    A ConfigParser is composed of sections, where each section has a number of
+    keys and values associated with these keys. ConfigParserProperty lets
+    you automatically listen to and change the values of specified keys based
+    on other kivy properties.
+
+    For example, say we want to have a TextInput which automatically writes
+    its text to a key named `name` in the `info` section of a ConfigParser.
+    In additon, we want the value of the key `name` to be displayed in a
+    label. In py::
+
+        class Info(Label):
+
+            name = ConfigParserProperty('', 'info', 'name')
+
+            def __init__(self, **kw):
+                super(Info, self).__init__(**kw)
+                config = ConfigParser()
+                self.name = config
+
+    then in kv::
+
+        BoxLayout:
+            TextInput:
+                id: textinput
+            Info:
+                name: textinput.text
+                text: 'Name: {}'.format(self.name)
+
+    A ConfigParserProperty can be assigned three types of values:
+    * If it's a ConfigParser, like in the `init` function above, that
+      ConfigParser becomes associated with this property.
+    * If it's `None` and
+      `allownone` was set to `True`, then the current property becomes
+      dis-associated from the ConfigParser.
+    * Finally, anything else gets converted into a string and assigned to the
+    corresponding section / key (provided a ConfigParser was associated with
+    this property). This is what happens in the kv code; the `name` key in
+    the `info` section of the parser becomes bound to the text property of the
+    textinput. Also, the text property of the info label becomes bound the same
+    key.
+
+    An example where changing the ConfigParser is useful: if different users
+    use the same system, then when switching user, a new ConfigParser can be
+    assigned to the properties and all the bound properties will be changed to
+    the current ConfigParser's values.
+
+    If a file has been opened for this ConfigParser using
+    :meth:`~kivy.config.ConfigParser.read`, then for every property change,
+    :meth:`~kivy.config.ConfigParser.write` will be called, keeping the file
+    updated.
+
+    :Parameters:
+        `default`: object type
+            Specifies the default value of the key. If None, or a
+            `ConfigParser` instance, it'll use it similar to the `config`
+            parameter and the default value will then be `''`. If the
+            parser associated with this property doesn't have this section
+            or key, it'll be added with this default value.
+        `section`: string type
+            The section in the ConfigParser where the key / value will be
+            written. Must be provided. If the section doesn't exist, it'll be
+            created.
+        `key`: string type
+            The key in section `section` where the value will be written to.
+            Must be provided. If the key doesn't exist, it'll be created and
+            the default value written to it, otherwise its value will be read.
+        `\*\*kwargs`: a list of keyword arguments
+            `config`: :class:`~kivy.config.ConfigParser` instance.
+                The ConfigParser instance to associate with the property if
+                not None. A `ConfigParser` can similarly be assigned directly
+                to the value of a property to associate it. Whenever
+                associated, if the section or key doesn't exist, the default
+                value will be used, otherwise, the existing value will be
+                loaded. Defaults to None.
+            `val_type`: a callable object
+                The key values are saved in the ConfigParser as strings. When
+                reading the ConfigParser, if this is not None, it will be
+                called with the string as input and it should return the
+                value converted to the proper type. For example, if the strings
+                represent ints, `val_type` can simply be `int`. If the
+                conversion raises a `ValueError`, `errorvalue` or
+                `errorhandler` will be used if provided. The `getboolean`
+                function of the ConfigParser might also be useful here to
+                convert to a boolean type.
+            `verify`: a callable object
+                Can be used to restrict the allowable values of the property
+                (it doesn't affect when the property is assigned None, or a
+                ConfigParser). For every value assigned to the property, if
+                this is specified `verify` is called with the value, and if it
+                returns `True` the value is accepted, otherwise, `errorvalue`
+                or `errorhandler` will be used if provided or an error is
+                raised.
+
+    .. versionadded:: 1.8.1
+    '''
+
+    def __cinit__(self):
+        self.config = None
+        self.section = ''
+        self.key = ''
+        self.val_type = None
+        self.verify = None
+
+    def __init__(self, defaultvalue, section, key, **kw):
+        # since a user can set value either to config parser or key value,
+        # also allow default value to be a config parser.
+        if isinstance(defaultvalue, ConfigParser) or defaultvalue is None:
+            self.config = defaultvalue
+            defaultvalue = ''
+        super(ConfigParserProperty, self).__init__(defaultvalue, **kw)
+        self.config = kw.get('config', self.config)
+        self.section = section
+        self.key = key
+        self.val_type = kw.get('val_type', None)
+        self.verify = kw.get('verify', None)
+
+
+        if not self.section:
+            raise ValueError('section must be specified')
+        if not self.key:
+            raise ValueError('key must be specified')
+        if self.config is not None and not isinstance(self.config,
+                                                      ConfigParser):
+            raise ValueError(
+                'config {} is not a ConfigParser instance'.format(self.config))
+        if self.val_type is not None and not callable(self.val_type):
+            raise ValueError(
+                'val_type {} is not callable'.format(self.val_type))
+        if self.verify is not None and not callable(self.verify):
+            raise ValueError(
+                'verify {} is not callable'.format(self.verify))
+
+    cpdef link(self, EventDispatcher obj, str name):
+        cdef PropertyStorage ps
+        Property.link(self, obj, name)
+        self.obj = ref(obj)
+
+        if self.config is not None:
+            self.config.adddefaultsection(self.section)
+            self.config.setdefault(self.section, self.key, self.defaultvalue)
+            ps = obj.__storage[self._name]
+            ps.value = self.parse_str(self.config.get(self.section, self.key))
+            self.config.add_callback(self.edit_setting, self.section, self.key)
+            self.config.write()
+
+    cpdef edit_setting(self, section, key, value):
+        cdef object obj = self.obj()
+        if obj is None:
+            return
+        self.set(obj, self.parse_str(value))
+
+    cdef object parse_str(self, object value):
+        cdef object val = value
+        cdef object obj = self.obj()
+        cdef object name = obj.__class__.__name__ if obj else ''
+
+        if self.val_type is not None:
+            try:
+                val = self.val_type(value)
+                if self.verify is not None and not self.verify(val):
+                    raise ValueError('{} is not allowed for {}.{}'. format(
+                        val, name, self.name))
+                return val
+            except ValueError, e:
+                if self.errorvalue_set == 1:
+                    val = self.errorvalue
+                elif self.errorhandler is not None:
+                    val = self.errorhandler(val)
+                else:
+                    raise e
+
+        if self.verify is not None:
+            if not self.verify(val):
+                raise ValueError('{} is not allowed for {}.{}'.format(val,
+                    name, self.name))
+        return val
+
+    cpdef set(self, EventDispatcher obj, value):
+        # this is called by the user, so value can be ConfigParser to mean
+        # use new parser, None, to remove parser if allowed, and anything else
+        cdef PropertyStorage ps = obj.__storage[self._name]
+
+        if isinstance(value, ConfigParser) or value is None:
+            if self.config is value:
+                return False
+            if self.config is not None:
+                self.config.remove_callback(self.edit_setting, self.section,
+                                            self.key)
+            self.config = value
+            if self.config is not None:
+                self.config.adddefaultsection(self.section)
+                self.config.setdefault(self.section, self.key, self.defaultvalue)
+                value = self.parse_str(self.config.get(self.section, self.key))
+                self.config.add_callback(self.edit_setting, self.section, self.key)
+                self.config.write()
+            else:
+                return self.check(obj, None)
+
+        realvalue = ps.value
+        if self.compare_value(realvalue, value):
+            return False
+
+        try:
+            if self.verify is not None and not self.verify(value):
+                raise ValueError('{} is not allowed for {}.{}'.
+                format(value, obj.__class__.__name__, self.name))
+        except ValueError, e:
+            if self.errorvalue_set == 1:
+                value = self.errorvalue
+            elif self.errorhandler is not None:
+                value = self.errorhandler(value)
+            else:
+                raise e
+            if isinstance(value, ConfigParser) or value is None:
+                raise ValueError('Error value, {}, is not allowed for {}.{}'.
+                format(value, obj.__class__.__name__, self.name))
+
+            if self.verify is not None and not self.verify(value):
+                raise ValueError('{} is not allowed for {}.{}'.
+                format(value, obj.__class__.__name__, self.name))
+
+        ps.value = value
+        if self.config is not None:
+            self.config.set(self.section, self.key, value)
+            self.config.write()
+        self.dispatch(obj)
+        return True
