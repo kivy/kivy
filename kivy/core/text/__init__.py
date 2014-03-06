@@ -213,27 +213,45 @@ class LabelBase(object):
         pass
 
     def shorten(self, text, margin=2):
+        # we need to make sure we return the same type text (unicode/bytes)
+        # as passed in
         # Just a tiny shortcut
         textwidth = self.get_extents
         if self.text_size[0] is None:
             width = 0
         else:
-            width = int(self.text_size[0])
+            width = int(self.text_size[0]) - margin
+        text = text.strip()
+        if textwidth(text)[0] <= width:
+            return text
 
-        letters = '_..._' + text
-        while textwidth(letters)[0] > width:
-            letters = letters[:letters.rfind(' ')]
+        char = type(text)
+        s = text.rsplit(' ', 1)
+        e = char('...')
+        # only suffix the last word if word is smaller than third of width
+        if not (len(s) == 1 or textwidth(s[1])[0] > width / 3):
+            e += s[1]
+        s = s[0]
+        we = textwidth(e)[0] + margin
+        letters = text if text.endswith(' ') else text + char(' ')
 
-        max_letters = len(letters) - 2
-        segment = (max_letters // 2)
+        e_sub = text.find(' ')
+        s_sub = 0
+        count = textwidth(letters[:e_sub])[0]
+        while (s_sub != len(letters) - 1 and e_sub != -1 and
+               count + we <= width):
+            s_sub = e_sub
+            e_sub = text.find(' ', s_sub + 1)
+            count = textwidth(letters[:e_sub])[0]
 
-        if segment - margin > 5:
-            segment -= margin
-            return type(text)('{0}...{1}').format(text[:segment].strip(),
-                                                  text[-segment:].strip())
-        else:
-            segment = max_letters - 3  # length of '...'
-            return type(text)('{0}...').format(text[:segment].strip())
+        if s_sub == 0:  # first word is too long, so only display part of it
+            i = 0
+            count = textwidth(letters[:3])[0]
+            while count + we <= width:
+                i += 3
+                count = textwidth(letters[:i + 3])[0]
+            return char('').join((letters[:i], e))
+        return char('').join((letters[:s_sub], e))
 
     def render(self, real=False):
         '''Return a tuple (width, height) to create the image
@@ -303,8 +321,8 @@ class LabelBase(object):
                         cache[glyph] = get_extents(glyph)
 
             # Shorten the text that we actually display
-            text = self.text
-            if (options['shorten'] and get_extents(text)[0] > uw):
+            text = self.text  # margins of 2?
+            if (options['shorten'] and get_extents(text)[0] > uw - 2):
                 text = self.shorten(text)
 
             # first, split lines
