@@ -416,7 +416,7 @@ class ShaderTransition(TransitionBase):
     fbo_alpha = BoundedNumericProperty(1, min=0, max=1)
     '''Sets the transparency of Fbo, accepts values between 0 and 1. 
 
-    :attr:`vs` is a :class:`~kivy.properties.BoundedNumericProperty`
+    :attr:`fbo_alpha` is a :class:`~kivy.properties.BoundedNumericProperty`
     and defaults to 1.'''
 
     def make_screen_fbo(self, screen):
