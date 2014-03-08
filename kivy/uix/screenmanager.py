@@ -150,7 +150,7 @@ from kivy.event import EventDispatcher
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import (StringProperty, ObjectProperty, AliasProperty,
                              NumericProperty, ListProperty, OptionProperty,
-                             BooleanProperty)
+                             BooleanProperty, BoundedNumericProperty)
 from kivy.animation import Animation, AnimationTransition
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
@@ -413,10 +413,16 @@ class ShaderTransition(TransitionBase):
     :attr:`vs` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.'''
 
+    fbo_alpha = BoundedNumericProperty(1, min=0, max=1)
+    '''Sets the transparency of Fbo, accepts values between 0 and 1. 
+
+    :attr:`vs` is a :class:`~kivy.properties.NumericProperty` and defaults to
+    1.'''
+
     def make_screen_fbo(self, screen):
         fbo = Fbo(size=screen.size)
         with fbo:
-            ClearColor(0, 0, 0, 1)
+            ClearColor(0, 0, 0, self.fbo_alpha)
             ClearBuffers()
         fbo.add(screen.canvas)
         with fbo.before:
