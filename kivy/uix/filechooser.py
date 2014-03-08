@@ -4,10 +4,6 @@ FileChooser
 
 .. versionadded:: 1.0.5
 
-.. warning::
-
-    This is experimental and subject to change as long as this warning notice
-    is present.
 
 .. versionchanged:: 1.2.0
     In the chooser template, the `controller` is not a direct reference anymore
@@ -38,6 +34,8 @@ __all__ = ('FileChooserListView', 'FileChooserIconView',
 
 from weakref import ref
 from time import time
+from kivy.compat import string_types
+from kivy.factory import Factory
 from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.logger import Logger
@@ -64,7 +62,7 @@ if platform == 'win':
     # Note: For some reason this doesn't work after a os.chdir(), no matter to
     #       what directory you change from where. Windows weirdness.
     try:
-        from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesEx, error
+        from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesExW, error
         _have_win32file = True
     except ImportError:
         Logger.error('filechooser: win32file module is missing')
@@ -78,7 +76,7 @@ def alphanumeric_folders_first(files, filesystem):
 
 class FileSystemAbstract(object):
     '''Class for implementing a File System view that can be used with the
-    :class:`FileChooser`.:data:`~FileChooser.file_system`.
+    :class:`FileChooser`.:attr:`~FileChooser.file_system`.
 
     .. versionadded:: 1.8.0
     '''
@@ -99,7 +97,7 @@ class FileSystemAbstract(object):
         pass
 
     def is_dir(self, fn):
-        '''Return True if the directory is hidden
+        '''Return True if the argument passed to this method is a directory
         '''
         pass
 
@@ -121,7 +119,7 @@ class FileSystemLocal(FileSystemAbstract):
             if not _have_win32file:
                 return False
             try:
-                return GetFileAttributesEx(fn)[0] & FILE_ATTRIBUTE_HIDDEN
+                return GetFileAttributesExW(fn)[0] & FILE_ATTRIBUTE_HIDDEN
             except error:
                 # This error can occured when a file is already accessed by
                 # someone else. So don't return to True, because we have lot
@@ -133,10 +131,6 @@ class FileSystemLocal(FileSystemAbstract):
 
     def is_dir(self, fn):
         return isdir(fn)
-
-
-class ForceUnicodeError(Exception):
-    pass
 
 
 class FileChooserProgressBase(FloatLayout):
@@ -151,7 +145,7 @@ class FileChooserProgressBase(FloatLayout):
     '''
 
     index = NumericProperty(0)
-    '''Current index of :data:`total` entries to be loaded.
+    '''Current index of :attr:`total` entries to be loaded.
     '''
 
     total = NumericProperty(1)
@@ -205,11 +199,19 @@ class FileChooserController(FloatLayout):
     '''
     _ENTRY_TEMPLATE = None
 
-    path = StringProperty('/')
+    path = StringProperty(u'/')
     '''
     :class:`~kivy.properties.StringProperty`, defaults to the current working
     directory as a unicode string. It specifies the path on the filesystem that
     this controller should refer to.
+
+    .. warning::
+
+        If a unicode path is specified, all the files returned will be in
+        unicode allowing the display of unicode files and paths. If a bytes
+        path is specified, only files and paths with ascii names will be
+        displayed properly: non-ascii filenames will be displayed and listed
+        with questions marks (?) instead of their unicode characters.
     '''
 
     filters = ListProperty([])
@@ -238,15 +240,16 @@ class FileChooserController(FloatLayout):
     #. Callbacks
 
         You can specify a function that will be called for each file. The
-        callback will be passed the folder and file name as the first and second
-        parameters respectively. It should return True to indicate a match and
-        False otherwise.
+        callback will be passed the folder and file name as the first
+        and second parameters respectively. It should return True to
+        indicate a match and False otherwise.
 
     .. versionchanged:: 1.4.0
         If the filter is a callable (function or method), it will be called
         with the path and the file name as arguments for each file in the
         directory.
-        The callable should returns True to indicate a match and False overwise.
+        The callable should returns True to indicate a match and False
+        overwise.
     '''
 
     filter_dirs = BooleanProperty(False)
@@ -264,8 +267,8 @@ class FileChooserController(FloatLayout):
 
     .. versionchanged:: 1.8.0
 
-        The signature needs now 2 arguments: first the list of files, second the
-        filesystem class to use.
+        The signature needs now 2 arguments: first the list of files,
+        second the filesystem class to use.
     '''
 
     files = ListProperty([])
@@ -311,15 +314,28 @@ class FileChooserController(FloatLayout):
     .. versionadded:: 1.2.0
 
     :class:`~kivy.properties.StringProperty`, defaults to None.
+
+    .. note::
+
+        Similar to :attr:`path`, if `rootpath` is specified, whether it's a
+        bytes or unicode string determines the type of the filenames and paths
+        read.
     '''
 
     progress_cls = ObjectProperty(FileChooserProgress)
-    '''Class to use for displaying a progress indicator for filechooser loading.
+    '''Class to use for displaying a progress indicator for filechooser
+    loading.
 
     .. versionadded:: 1.2.0
 
     :class:`~kivy.properties.ObjectProperty`, defaults to
     :class:`FileChooserProgress`.
+
+    .. versionchanged:: 1.8.0
+
+        If you set a string, the :class:`~kivy.factory.Factory` will be used to
+        resolve the class.
+
     '''
 
     file_encodings = ListProperty(['utf-8', 'latin1', 'cp1252'])
@@ -332,12 +348,16 @@ class FileChooserController(FloatLayout):
 
     .. versionadded:: 1.3.0
 
-    :class:`~kivy.properties.ListProperty`, defaults to ['utf-8', 'latin1',
-    'cp1252']
+    .. deprecated:: 1.8.0
+       This property is no longer used as the filechooser no longer decodes
+       the file names.
+
+    file_encodings is a :class:`~kivy.properties.ListProperty` and defaults to
+    ['utf-8', 'latin1', 'cp1252'],
     '''
 
     file_system = ObjectProperty(FileSystemLocal(),
-            baseclass=FileSystemAbstract)
+                                 baseclass=FileSystemAbstract)
     '''Implementation to access the file system. Must be an instance of
     FileSystemAbstract.
 
@@ -348,7 +368,7 @@ class FileChooserController(FloatLayout):
     '''
 
     __events__ = ('on_entry_added', 'on_entries_cleared',
-            'on_subentry_to_entry', 'on_remove_subentry', 'on_submit')
+                  'on_subentry_to_entry', 'on_remove_subentry', 'on_submit')
 
     def __init__(self, **kwargs):
         self._progress = None
@@ -385,11 +405,6 @@ class FileChooserController(FloatLayout):
             item.selected = item.path in self.selection
 
     def _save_previous_path(self, instance, value):
-        path = expanduser(value)
-        path = realpath(path)
-        if path != value:
-            self.path = path
-            return
         self._previous_path.append(value)
         self._previous_path = self._previous_path[-2:]
 
@@ -580,7 +595,10 @@ class FileChooserController(FloatLayout):
     def _show_progress(self):
         if self._progress:
             return
-        self._progress = self.progress_cls(path=self.path)
+        cls = self.progress_cls
+        if isinstance(cls, string_types):
+            cls = Factory.get(cls)
+        self._progress = cls(path=self.path)
         self._progress.value = 0
         self.add_widget(self._progress)
 
@@ -631,24 +649,18 @@ class FileChooserController(FloatLayout):
             self.files[:] = []
 
     def _add_files(self, path, parent=None):
-        force_unicode = self._force_unicode
-        # Make sure we're using unicode in case of non-ascii chars in
-        # filenames.  listdir() returns unicode if you pass it unicode.
-        try:
-            path = expanduser(path)
-            path = force_unicode(path)
-        except ForceUnicodeError:
-            pass
+        path = expanduser(path)
 
         files = []
         fappend = files.append
-        for fn in self.file_system.listdir(path):
+        for f in self.file_system.listdir(path):
             try:
-                fappend(force_unicode(fn))
-            except ForceUnicodeError:
-                pass
-        # In the following, use fully qualified filenames
-        files = [normpath(join(path, f)) for f in files]
+                # In the following, use fully qualified filenames
+                fappend(normpath(join(path, f)))
+            except UnicodeDecodeError:
+                Logger.exception('unable to decode <{}>'.format(f))
+            except UnicodeEncodeError:
+                Logger.exception('unable to encode <{}>'.format(f))
         # Apply filename filters
         files = self._apply_filters(files)
         # Sort the list of files
@@ -674,21 +686,6 @@ class FileChooserController(FloatLayout):
                    'sep': sep}
             entry = Builder.template(self._ENTRY_TEMPLATE, **ctx)
             yield index, total, entry
-
-    def _force_unicode(self, s):
-        # the idea is, whatever is the filename, unicode or str, even if the
-        # str can't be directly returned as a unicode, return something.
-        if type(s) is str:
-            return s
-        encodings = self.file_encodings
-        for encoding in encodings:
-            try:
-                return s.decode(encoding, 'strict')
-            except UnicodeDecodeError:
-                pass
-            except UnicodeEncodeError:
-                pass
-        raise ForceUnicodeError('Unable to decode %r' % s)
 
     def entry_subselect(self, entry):
         if not self.file_system.is_dir(entry.path):

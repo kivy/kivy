@@ -3,9 +3,17 @@
 Installation on Windows
 =======================
 
-For Windows, we provide what we call a 'portable package'. You don't have
-to install anything "system" wide. Just unzip & run:
+For Windows, we provide what we call a 'portable package'. This is the easiest
+way to get Kivy running as you don't have to install anything "system" wide.
+You can just unzip & run it.
 
+This installation method is simple because it bundles the Python interpreter
+together with the Kivy environment and libraries. If you wish to install Kivy
+into an existing Python environment or install the development environment,
+please see the :ref:`Other Environments <other_environments>` section below.
+
+Installing the portable version
+-------------------------------
 #. Download the latest version from http://kivy.org/#download
 
     .. image:: images/win-step1.png
@@ -171,7 +179,7 @@ If you want to use the latest development version of Kivy, you can follow these 
 #. Download and install Kivy for Windows as explained above
 #. Go into the portable Kivy directory. This contains the `kivy.bat` file and the `Python`, `kivy`, `Mingw` folders etc.
 #. Rename the kivy directory to kivy.stable
-#. Go to github, and download the `latest development version of Kivy <https://github.com/kivy/kivy/zipball/master>`_
+#. `Download the latest development version of Kivy from GitHub <https://github.com/kivy/kivy/archive/master.zip>`_
 #. Extract the zip into the Kivy portable directory
 #. Rename the directory named "kivy-<some hash>" to just "kivy"
 #. Launch kivy.bat
@@ -190,62 +198,16 @@ If you want to use the latest development version of Kivy, you can follow these 
     2. ``cd Python/Scripts``
     3. ``pip install --upgrade cython``
 
-Using an exisiting Python installation (64/32 bit)
---------------------------------------------------
+.. _other_environments:
 
-As an alternative to downloading the kivy distribuation zip file, you can
-install the kivy requirments into an existing 32 or 64 bit Python installation.
-For this example we'll assume you have Python installed in ``C:\dev\python27``:
+Other Environments
+------------------
 
-#.  You need a MinGW installation. You can use the MinGW directory included
-    in the kivy distribution or download a fresh MinGW. If you're compiling for 64
-    bit you'll need to the download the 64 bit MinGW.
-#.  If you want to use gstreamer, copy it from the kivy distribution directory.
-#.  Get the kivy.bat file from the kivy distribution, or alternativly set the
-    path and other environmental variables as in the kivy.bat file in order to have
-    a permenant setup. You'll have to execute the fowllowing instructions from this environemt.
+`Using Kivy with an existing Python installation
+<https://github.com/kivy/kivy/wiki/Using-Kivy-with-an-existing-Python-installation-on-Windows-%2864-or-32-bit%29>`_.
 
-    You'll need to edit the paths first to point to the correct python and MinGW
-    locations. If you started with a clean MinGW installation you'll also have to
-    add to the path the location of make.exe if you will be doing any kivy development.
-#.  Download and install distutils and pip. You can install both using the
-    ez_setup.py and get_pip.py files from http://www.pip-installer.org/en/latest/installing.html.
-#.  In ``C:\dev\python27\Lib\distutils`` create a empty ``distutils.cfg`` file.
-    In the file type::
-
-        [build]
-        compiler=mingw32
-
-#.  Download and install cython by typing::
-
-        pip install https://github.com/cython/cython/zipball/master
-
-#.  Download Glew 1.5.7 from http://sourceforge.net/projects/glew/files/glew/.
-    Install the Glew files into the following locations::
-
-        glew32.dll -> ``C:\dev\python27``
-        glew32.dll -> MinGW\lib
-        glew32.lib -> MinGW\lib
-        glew32s.lib -> MinGW\lib
-        glew.h -> MinGW\include\GL
-        glxew.h -> MinGW\include\GL
-
-#.  Download and install the precompiled Pygame 1.9.2 binaries from
-    http://www.lfd.uci.edu/~gohlke/pythonlibs/#pygame.
-#.  Finally, to install the latest kivy, type::
-
-        pip install https://github.com/kivy/kivy/zipball/master
-
-    Alternativly instead of the githup zipball you can point to a specific
-    kivy zip file. Also, if you have a development version of kivy and want
-    to continue working on it while still installing it you can use the pip
-    --editable switch e.g.::
-
-        pip install --editable C:\dev\kivy
-
-    This will put a link in the site-packages directory pointing to your kivy
-    source, so any changes in the source will be reflected in the install.
-    See here for more details: http://pythonhosted.org/setuptools/setuptools.html#development-mode.
+`Creating a 64 bit development environment with MinGW
+<https://github.com/kivy/kivy/wiki/Creating-a-64-bit-development-environment-with-MinGW-on-Windows>`_.
 
 .. _winpackagecontents:
 

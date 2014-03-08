@@ -36,7 +36,6 @@ A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
             Fired when selection changes
 
 .. versionchanged:: 1.6.0
-
     Added data = ListProperty([]), which was proably inadvertently deleted at
     some point. This means that whenever data changes an update will fire,
     instead of having to reset the data object (Adapter has data defined as
@@ -73,14 +72,14 @@ class ListAdapter(Adapter, EventDispatcher):
     :class:`~kivy.adapters.DictAdapter` redefines data as a
     :class:`~kivy.properties.DictProperty`.
 
-    :data:`data` is a :class:`~kivy.properties.ListProperty` and defaults
+    :attr:`data` is a :class:`~kivy.properties.ListProperty` and defaults
     to [].
     '''
 
     selection = ListProperty([])
     '''The selection list property is the container for selected items.
 
-    :data:`selection` is a :class:`~kivy.properties.ListProperty` and defaults
+    :attr:`selection` is a :class:`~kivy.properties.ListProperty` and defaults
     to [].
     '''
 
@@ -100,7 +99,7 @@ class ListAdapter(Adapter, EventDispatcher):
        * *multiple*, multi-touch / incremental addition to selection allowed;
          may be limited to a count by selection_limit
 
-    :data:`selection_mode` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`selection_mode` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'single'.
     '''
 
@@ -135,7 +134,7 @@ class ListAdapter(Adapter, EventDispatcher):
     operate on list selection, but having selection stored in the data
     ListProperty might prove convenient in some cases.
 
-    :data:`propagate_selection_to_data` is a
+    :attr:`propagate_selection_to_data` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to False.
     '''
 
@@ -147,7 +146,7 @@ class ListAdapter(Adapter, EventDispatcher):
     auto-initialized and always maintained, so any observing views
     may likewise be updated to stay in sync.
 
-    :data:`allow_empty_selection` is a
+    :attr:`allow_empty_selection` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to True.
     '''
 
@@ -157,7 +156,7 @@ class ListAdapter(Adapter, EventDispatcher):
     be set to 1, which is equivalent to single selection. If selection_limit is
     not set, the default value is -1, meaning that no limit will be enforced.
 
-    :data:`selection_limit` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`selection_limit` is a :class:`~kivy.properties.NumericProperty` and
     defaults to -1 (no limit).
     '''
 
@@ -169,7 +168,7 @@ class ListAdapter(Adapter, EventDispatcher):
     This dictionary works as a cache. get_view() only asks for a view from
     the adapter if one is not already stored for the requested index.
 
-    :data:`cached_views` is a :class:`~kivy.properties.DictProperty` and
+    :attr:`cached_views` is a :class:`~kivy.properties.DictProperty` and
     defaults to {}.
     '''
 

@@ -48,14 +48,14 @@ class Switch(Widget):
     active = BooleanProperty(False)
     '''Indicate whether the switch is active or inactive.
 
-    :data:`active` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    :attr:`active` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
     '''
 
     touch_control = ObjectProperty(None, allownone=True)
     '''(internal) Contains the touch that currently interacts with the switch.
 
-    :data:`touch_control` is an :class:`~kivy.properties.ObjectProperty`
+    :attr:`touch_control` is an :class:`~kivy.properties.ObjectProperty`
     and defaults to None.
     '''
 
@@ -64,7 +64,7 @@ class Switch(Widget):
     touch and the current position to determine if the swipe is from the left
     or right.
 
-    :data:`touch_distance` is a :class:`~kivy.properties.NumericProperty`
+    :attr:`touch_distance` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
     '''
 
@@ -72,7 +72,7 @@ class Switch(Widget):
     '''(internal) Contains the normalized position of the movable element
     inside the switch, in the 0-1 range.
 
-    :data:`active_norm_pos` is a :class:`~kivy.properties.NumericProperty`
+    :attr:`active_norm_pos` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
     '''
 
@@ -109,4 +109,3 @@ class Switch(Widget):
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     runTouchApp(Switch())
-

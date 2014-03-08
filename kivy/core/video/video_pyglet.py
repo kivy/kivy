@@ -100,5 +100,3 @@ class VideoPyglet(VideoBase):
         if self._player:
             self._player.volume = volume
             self.dispatch('on_frame')
-
-

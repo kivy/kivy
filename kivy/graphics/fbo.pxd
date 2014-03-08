@@ -6,10 +6,12 @@ cdef class Fbo(RenderContext):
     cdef int _width
     cdef int _height
     cdef int _depthbuffer_attached
+    cdef int _stencilbuffer_attached
     cdef int _push_viewport
     cdef float _clear_color[4]
     cdef GLuint buffer_id
     cdef GLuint depthbuffer_id
+    cdef GLuint stencilbuffer_id
     cdef GLint _viewport[4]
     cdef Texture _texture
     cdef int _is_bound

@@ -72,7 +72,7 @@ class BoxLayout(Layout):
     spacing = NumericProperty(0)
     '''Spacing between children, in pixels.
 
-    :data:`spacing` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`spacing` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 0.
     '''
 
@@ -84,10 +84,9 @@ class BoxLayout(Layout):
     padding_vertical] and a one argument form [padding].
 
     .. versionchanged:: 1.7.0
+        Replaced NumericProperty with VariableListProperty.
 
-    Replaced NumericProperty with VariableListProperty.
-
-    :data:`padding` is a :class:`~kivy.properties.VariableListProperty` and
+    :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [0, 0, 0, 0].
     '''
 
@@ -95,7 +94,7 @@ class BoxLayout(Layout):
         'horizontal', 'vertical'))
     '''Orientation of the layout.
 
-    :data:`orientation` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'horizontal'. Can be 'vertical' or 'horizontal'.
     '''
 

@@ -195,7 +195,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         else:
             is_double_tap = 'shift' in modifiers
             do_graphics = (not self.disable_multitouch) and (
-                    button != 'left' or 'ctrl' in modifiers)
+                button != 'left' or 'ctrl' in modifiers)
             cur = self.create_touch(rx, ry, is_double_tap, do_graphics, button)
             if 'alt' in modifiers:
                 self.alt_touch = cur
@@ -212,7 +212,8 @@ class MouseMotionEventProvider(MotionEventProvider):
         cur = self.current_drag
         if (cur and self.disable_multitouch) or (
                 button in ('left', 'scrollup', 'scrolldown', 'scrollleft',
-                   'scrollright') and cur and not ('ctrl' in modifiers)):
+                           'scrollright') and cur and not ('ctrl' in
+                                                           modifiers)):
             self.remove_touch(cur)
             self.current_drag = None
         if self.alt_touch:

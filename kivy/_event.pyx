@@ -17,7 +17,9 @@ __all__ = ('EventDispatcher', )
 
 from functools import partial
 from kivy.weakmethod import WeakMethod
-from kivy.properties cimport Property, PropertyStorage, ObjectProperty
+from kivy.compat import string_types
+from kivy.properties cimport Property, PropertyStorage, ObjectProperty, \
+    NumericProperty, StringProperty, ListProperty, DictProperty
 
 cdef int widget_uid = 0
 cdef dict cache_properties = {}
@@ -230,14 +232,14 @@ cdef class EventDispatcher(ObjectWithUid):
                     super(MyClass, self).__init__(**kwargs)
                     btn = Button(text='click me')
                     # Bind event to callback
-                    btn.bind(on_press=self.my_callback, 
-                        state=self.state_callback)
+                    btn.bind(on_press=self.on_press_callback, 
+                             state=self.state_callback)
                     self.add_widget(btn)
 
                 def state_callback(self, obj, value):
                     print obj, value
 
-                def my_callback(self, obj):
+                def on_press_callback(self, obj):
                     print('press on button', obj)
 
         '''
@@ -256,7 +258,7 @@ cdef class EventDispatcher(ObjectWithUid):
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions.
 
-        Same usage as :func:`bind`.
+        Same usage as :meth:`bind`.
         '''
         cdef Property prop
         for key, value in kwargs.iteritems():
@@ -389,10 +391,15 @@ cdef class EventDispatcher(ObjectWithUid):
             ret[x] = p[x]
         return ret
 
-    def create_property(self, name):
+    def create_property(self, name, value=None):
         '''Create a new property at runtime.
 
         .. versionadded:: 1.0.9
+
+        .. versionchanged:: 1.8.0
+            `value` parameter added, can be used to set the default value of the
+            property. Also, the type of the value is used to specialize the
+            created property.
 
         .. warning::
 
@@ -403,6 +410,9 @@ cdef class EventDispatcher(ObjectWithUid):
         :Parameters:
             `name`: string
                 Name of the property
+            `value`: object, optional
+                Default value of the property. Type is also used for creating a
+                more appropriate property types. Default to None.
 
         The class of the property cannot be specified, it will always be an
         :class:`~kivy.properties.ObjectProperty` class. The default value of the
@@ -414,7 +424,16 @@ cdef class EventDispatcher(ObjectWithUid):
         >>> print(mywidget.custom)
         True
         '''
-        prop = ObjectProperty(None)
+        if isinstance(value, (int, float)):
+            prop = NumericProperty(value)
+        elif isinstance(value, string_types):
+            prop = StringProperty(value)
+        elif isinstance(value, (list, tuple)):
+            prop = ListProperty(value)
+        elif isinstance(value, dict):
+            prop = DictProperty(value)
+        else:
+            prop = ObjectProperty(value)
         prop.link(self, name)
         prop.link_deps(self, name)
         self.__properties[name] = prop

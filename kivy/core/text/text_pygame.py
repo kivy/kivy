@@ -46,7 +46,7 @@ class LabelPygame(LabelBase):
             if ext.lower() == 'ttf':
                 # fontobject
                 fontobject = pygame.font.Font(fontname,
-                                int(self.options['font_size']))
+                                              int(self.options['font_size']))
 
             # fallback to search a system font
             if fontobject is None:
@@ -58,7 +58,7 @@ class LabelPygame(LabelBase):
 
                 # fontobject
                 fontobject = pygame.font.Font(font,
-                                int(self.options['font_size']))
+                                              int(self.options['font_size']))
             pygame_cache[fontid] = fontobject
             pygame_cache_order.append(fontid)
 
@@ -88,14 +88,15 @@ class LabelPygame(LabelBase):
         color[0], color[2] = color[2], color[0]
         try:
             text = font.render(text, True, color)
-            self._pygame_surface.blit(text, (x, y), None, pygame.BLEND_RGBA_ADD)
+            self._pygame_surface.blit(text, (x, y), None,
+                                      pygame.BLEND_RGBA_ADD)
         except pygame.error:
             pass
 
     def _render_end(self):
         w, h = self._size
         data = ImageData(w, h,
-            'rgba', self._pygame_surface.get_buffer().raw)
+                         'rgba', self._pygame_surface.get_buffer().raw)
 
         del self._pygame_surface
 

@@ -35,8 +35,8 @@ class InputPostprocDoubleTap(object):
     def find_double_tap(self, ref):
         '''Find a double tap touch within self.touches.
         The touch must be not a previous double tap and the distance must be
-        within the specified threshold. Additionally, the touch profiles must be
-        the same kind of touch.
+        within the specified threshold. Additionally, the touch profiles
+        must be the same kind of touch.
         '''
         ref_button = None
         if 'button' in ref.profile:

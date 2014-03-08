@@ -70,9 +70,9 @@
             size: self.width, 24
             source: 'atlas://data/images/defaulttheme/progressbar_background'
         BorderImage:
-            border: [int(min(self.width * (self.value / float(self.max)), 12))] * 4
+            border: [int(min(self.width * (self.value / float(self.max)) if self.max else 0, 12))] * 4
             pos: self.x, self.center_y - 12
-            size: self.width * (self.value / float(self.max)), 24
+            size: self.width * (self.value / float(self.max)) if self.max else 0, 24
             source: 'atlas://data/images/defaulttheme/progressbar'
 
 <SplitterStrip>:
@@ -190,6 +190,9 @@
         id: selectall
         text: 'Select All'
         on_release: root.do('selectall')
+
+<CodeInput>:
+    font_name: 'data/fonts/DroidSansMono.ttf'
 
 
 <TreeViewNode>:
@@ -796,7 +799,7 @@
 
 <Settings>:
     orientation: 'horizontal'
-    canvas:
+    canvas.before:
         Color:
             rgb: 0, 0, 0
         Rectangle:
@@ -884,7 +887,7 @@
         id: tp
         size: root.size
         pos: root.pos
-        do_default_tab: False
+        #do_default_tab: False
         background_color: (0,0,0,1)
     Button:
         id: button
@@ -901,12 +904,12 @@
         Color:
             rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if (self.do_scroll_y and self.viewport_size[1]>self.height) else 0]
         Rectangle:
-            pos: self.right - self.bar_width - self.bar_margin, self.y + self.height * self.vbar[0]
+            pos: (self.right - self.bar_width - self.bar_margin) if self.bar_pos_y == 'right' else (self.x + self.bar_margin), self.y + self.height * self.vbar[0]
             size: min(self.bar_width, self.width), self.height * self.vbar[1]
         Color:
             rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if (self.do_scroll_x and self.viewport_size[0] > self.width) else 0]
         Rectangle:
-            pos: self.x + self.width * self.hbar[0], self.y + self.bar_margin
+            pos: self.x + self.width * self.hbar[0], (self.y + self.bar_margin) if self.bar_pos_x == 'bottom' else (self.top - self.bar_margin - self.bar_width)
             size: self.width * self.hbar[1], min(self.bar_width, self.height)
 
 

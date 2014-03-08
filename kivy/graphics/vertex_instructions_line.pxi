@@ -37,11 +37,11 @@ cdef class Line(VertexInstruction):
     Actually, the line have 3 internal drawing mode that you should know about
     if you want to get the best performance of it:
 
-    #. If the :data:`width` is 1.0, then we will use standard GL_LINE drawing
-       from OpenGL. :data:`dash_length` and :data:`dash_offset` works, while
+    #. If the :attr:`width` is 1.0, then we will use standard GL_LINE drawing
+       from OpenGL. :attr:`dash_length` and :attr:`dash_offset` works, while
        properties for cap and joint have no sense for this.
-    #. If the :data:`width` is > 1.0, then we will use a custom drawing method,
-       based on triangles. :data:`dash_length` and :data:`dash_offset` is not
+    #. If the :attr:`width` is > 1.0, then we will use a custom drawing method,
+       based on triangles. :attr:`dash_length` and :attr:`dash_offset` is not
        working on that mode.
        Additionally, if the current color have an alpha < 1.0, stencil will be
        used internally to draw the line.
@@ -59,29 +59,29 @@ cdef class Line(VertexInstruction):
             next one, default 0, changing this makes it dashed.
         `width`: float
             Width of the line, default 1.0
-        `cap`: str, default to 'round'
-            See :data:`cap` for more information.
-        `joint`: str, default to 'round'
-            See :data:`joint` for more information.
-        `cap_precision`: int, default to 10
-            See :data:`cap_precision` for more information
-        `joint_precision`: int, default to 10
-            See :data:`joint_precision` for more information
-        `close`: bool, default to False
+        `cap`: str, defaults to 'round'
+            See :attr:`cap` for more information.
+        `joint`: str, defaults to 'round'
+            See :attr:`joint` for more information.
+        `cap_precision`: int, defaults to 10
+            See :attr:`cap_precision` for more information
+        `joint_precision`: int, defaults to 10
+            See :attr:`joint_precision` for more information
+        `close`: bool, defaults to False
             If True, the line will be closed.
         `circle`: list
-            If set, the :data:`points` will be set to build a circle. Check
-            :data:`circle` for more information.
+            If set, the :attr:`points` will be set to build a circle. Check
+            :attr:`circle` for more information.
         `ellipse`: list
-            If set, the :data:`points` will be set to build an ellipse. Check
-            :data:`ellipse` for more information.
+            If set, the :attr:`points` will be set to build an ellipse. Check
+            :attr:`ellipse` for more information.
         `rectangle`: list
-            If set, the :data:`points` will be set to build a rectangle. Check
-            :data:`rectangle` for more information.
+            If set, the :attr:`points` will be set to build a rectangle. Check
+            :attr:`rectangle` for more information.
         `bezier`: list
-            If set, the :data:`points` will be set to build a bezier line. Check
-            :data:`bezier` for more information.
-        `bezier_precision`: int, default to 180
+            If set, the :attr:`points` will be set to build a bezier line. Check
+            :attr:`bezier` for more information.
+        `bezier_precision`: int, defaults to 180
             Precision of the Bezier drawing.
 
     .. versionadded:: 1.0.8
@@ -693,7 +693,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property width:
-        '''Determine the width of the line, default to 1.0.
+        '''Determine the width of the line, defaults to 1.0.
 
         .. versionadded:: 1.4.1
         '''
@@ -707,7 +707,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property cap:
-        '''Determine the cap of the line, default to 'round'. Can be one of
+        '''Determine the cap of the line, defaults to 'round'. Can be one of
         'none', 'square' or 'round'
 
         .. versionadded:: 1.4.1
@@ -732,7 +732,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property joint:
-        '''Determine the join of the line, default to 'round'. Can be one of
+        '''Determine the join of the line, defaults to 'round'. Can be one of
         'none', 'round', 'bevel', 'miter'.
 
         .. versionadded:: 1.4.1
@@ -762,7 +762,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property cap_precision:
-        '''Number of iteration for drawing the "round" cap, default to 10.
+        '''Number of iteration for drawing the "round" cap, defaults to 10.
         The cap_precision must be at least 1.
 
         .. versionadded:: 1.4.1
@@ -778,7 +778,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property joint_precision:
-        '''Number of iteration for drawing the "round" joint, default to 10.
+        '''Number of iteration for drawing the "round" joint, defaults to 10.
         The joint_precision must be at least 1.
 
         .. versionadded:: 1.4.1
@@ -808,7 +808,7 @@ cdef class Line(VertexInstruction):
 
     property ellipse:
         '''Use this property to build an ellipse, without calculate the
-        :data:`points`. You can only set this property, not get it.
+        :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of (x, y, width, height, angle_start,
         angle_end, segments):
@@ -820,7 +820,7 @@ cdef class Line(VertexInstruction):
         * (optional) segments is the precision of the ellipse. The default
             value is calculated from the range between angle.
 
-        Note that it's up to you to :data:`close` the ellipse or not.
+        Note that it's up to you to :attr:`close` the ellipse or not.
 
         For example, for building a simple ellipse, in python::
 
@@ -861,6 +861,7 @@ cdef class Line(VertexInstruction):
             x, y, w, h, angle_start, angle_end, segments = args
             segments += 2
         else:
+            x = y = w = h = 0
             assert(0)
 
         if angle_end > angle_start:
@@ -890,7 +891,7 @@ cdef class Line(VertexInstruction):
 
     property circle:
         '''Use this property to build a circle, without calculate the
-        :data:`points`. You can only set this property, not get it.
+        :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of (center_x, center_y, radius, angle_start,
         angle_end, segments):
@@ -902,7 +903,7 @@ cdef class Line(VertexInstruction):
         * (optional) segments is the precision of the ellipse. The default
             value is calculated from the range between angle.
 
-        Note that it's up to you to :data:`close` the circle or not.
+        Note that it's up to you to :attr:`close` the circle or not.
 
         For example, for building a simple ellipse, in python::
 
@@ -943,6 +944,7 @@ cdef class Line(VertexInstruction):
             x, y, r, angle_start, angle_end, segments = args
             segments += 2
         else:
+            x = y = r = 0
             assert(0)
 
         if angle_end > angle_start:
@@ -968,7 +970,7 @@ cdef class Line(VertexInstruction):
 
     property rectangle:
         '''Use this property to build a rectangle, without calculating the
-        :data:`points`. You can only set this property, not get it.
+        :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of (x, y, width, height)
         angle_end, segments):
@@ -1009,6 +1011,7 @@ cdef class Line(VertexInstruction):
         if len(args) == 4:
             x, y, width, height = args
         else:
+            x = y = width = height = 0
             assert(0)
 
         self._points = [x, y, x + width, y, x + width, y + height, x, y + height]
@@ -1016,7 +1019,7 @@ cdef class Line(VertexInstruction):
 
     property bezier:
         '''Use this property to build a bezier line, without calculating the
-        :data:`points`. You can only set this property, not get it.
+        :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of 2n elements, n being the number of points.
 
@@ -1066,7 +1069,7 @@ cdef class Line(VertexInstruction):
 
     property bezier_precision:
         '''Number of iteration for drawing the bezier between 2 segments,
-        default to 180. The bezier_precision must be at least 1.
+        defaults to 180. The bezier_precision must be at least 1.
 
         .. versionadded:: 1.4.2
         '''

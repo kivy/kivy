@@ -6,8 +6,8 @@ The cache manager can be used to store python objects attached to a unique
 key. The cache can be controlled in two ways: with a object limit or a
 timeout.
 
-For example, we can create a new cache with a limit of 10 objects and a timeout
-of 5 seconds::
+For example, we can create a new cache with a limit of 10 objects and a
+timeout of 5 seconds::
 
     # register a new Cache
     Cache.register('mycache', limit=10, timeout=5)
@@ -56,7 +56,8 @@ class Cache(object):
             'limit': limit,
             'timeout': timeout}
         Cache._objects[category] = {}
-        Logger.debug('Cache: register <%s> with limit=%s, timeout=%ss' %
+        Logger.debug(
+            'Cache: register <%s> with limit=%s, timeout=%ss' %
             (category, str(limit), str(timeout)))
 
     @staticmethod
@@ -153,8 +154,8 @@ class Cache(object):
             `category` : str
                 Identifier of the category.
             `key` : str (optional)
-                Unique identifier of the object in the store. If this arguement
-                is not supplied, the entire category will be purged.
+                Unique identifier of the object in the store. If this
+                arguement is not supplied, the entire category will be purged.
         '''
         try:
             if key is not None:

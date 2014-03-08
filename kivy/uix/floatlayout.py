@@ -2,8 +2,8 @@
 Float Layout
 ============
 
-The :class:`FloatLayout` class honors only the :data:`Widget.pos_hint` and
-:data:`Widget.size_hint` attributes.
+The :class:`FloatLayout` class honors only the :attr:`Widget.pos_hint` and
+:attr:`Widget.size_hint` attributes.
 
 .. only:: html
 

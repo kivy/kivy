@@ -64,7 +64,7 @@ class Adapter(EventDispatcher):
     :class:`~.kivy.adapters.listadapter.ListAdapter`, data is a
     :class:`~kivy.properties.ListProperty`.
 
-    :data:`data` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`data` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -72,7 +72,7 @@ class Adapter(EventDispatcher):
     '''
     A class for instantiating a given view item (Use this or template).
 
-    :data:`cls` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`cls` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -80,7 +80,7 @@ class Adapter(EventDispatcher):
     '''
     A kv template for instantiating a given view item (Use this or cls).
 
-    :data:`template` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`template` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -92,7 +92,7 @@ class Adapter(EventDispatcher):
     If an args_converter is not provided, a default one is set that assumes
     simple content in the form of a list of strings.
 
-    :data:`args_converter` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`args_converter` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 

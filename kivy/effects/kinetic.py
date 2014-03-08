@@ -19,15 +19,15 @@ Conceptually, the usage could be::
 
 Over the time, you will start a movement of a value, update it, and stop the
 movement. At this time, you'll get the movement value into
-:data:`KineticEffect.value`. On the example i've typed manually, the computed
+:attr:`KineticEffect.value`. On the example i've typed manually, the computed
 velocity will be::
 
     >>> effect.velocity
     3.1619100231163046
 
 After multiple clock interaction, the velocity will decrease according to
-:data:`KineticEffect.friction`. The computed value will be stored in
-:data:`KineticEffect.value`. The output of this `value` could be::
+:attr:`KineticEffect.friction`. The computed value will be stored in
+:attr:`KineticEffect.value`. The output of this `value` could be::
 
     46.30038145219605
     54.58302451968686
@@ -52,45 +52,45 @@ class KineticEffect(EventDispatcher):
     velocity = NumericProperty(0)
     '''Velocity of the movement.
 
-    :data:`velocity` is a :class:`~kivy.properties.NumericProperty`, default to
-    0
+    :attr:`velocity` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     friction = NumericProperty(0.05)
     '''Friction to apply on the velocity
 
-    :data:`velocity` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.05
+    :attr:`velocity` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.05.
     '''
 
     value = NumericProperty(0)
     '''Value (during the movement and computed) of the effect.
 
-    :data:`velocity` is a :class:`~kivy.properties.NumericProperty`, default to
-    0
+    :attr:`velocity` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     is_manual = BooleanProperty(False)
     '''Indicate if a movement is in progress (True) or not (False).
 
-    :data:`velocity` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False
+    :attr:`velocity` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     max_history = NumericProperty(5)
     '''Save up to `max_history` movement value into the history. This is used
     for correctly calculating the velocity according to the movement.
 
-    :data:`max_history` is a :class:`~kivy.properties.NumericProperty`, default
-    to 5.
+    :attr:`max_history` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 5.
     '''
     min_distance = NumericProperty(.1)
     '''The minimal distance for a movement to have nonzero velocity.
 
     .. versionadded:: 1.8.0
 
-    :data:`min_distance` is :class:`~kivy.properties.NumericProperty`, default
-    to .1
+    :attr:`min_distance` is :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.1.
     '''
 
     min_velocity = NumericProperty(.5)
@@ -99,8 +99,8 @@ class KineticEffect(EventDispatcher):
 
     .. versionadded::1.8.0
 
-    :data:`min_velocity` is a :class:`~kivy.properties.NumericProperty`, default
-    to .5
+    :attr:`min_velocity` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.5.
     '''
 
     def __init__(self, **kwargs):
@@ -120,7 +120,7 @@ class KineticEffect(EventDispatcher):
         :Parameters:
             `val`: float or int
                 Value of the movement
-            `t`: float, default to None
+            `t`: float, defaults to None
                 Time when the movement happen. If no time is set, it will use
                 time.time()
         '''
@@ -162,15 +162,15 @@ class KineticEffect(EventDispatcher):
         self.trigger_velocity_update()
 
     def cancel(self):
-        '''Cancel a movement. This can be used in case of :meth:`stop` cannot be
-        called. It will reset :data:`is_manual` to False, and compute the
+        '''Cancel a movement. This can be used in case :meth:`stop` cannot be
+        called. It will reset :attr:`is_manual` to False, and compute the
         movement if the velocity is > 0.
         '''
         self.is_manual = False
         self.trigger_velocity_update()
 
     def update_velocity(self, dt):
-        '''(internal) Update the velocity according to a frametime and the
+        '''(internal) Update the velocity according to the frametime and
         friction.
         '''
         if abs(self.velocity) <= self.min_velocity:
@@ -180,4 +180,3 @@ class KineticEffect(EventDispatcher):
         self.velocity -= self.velocity * self.friction
         self.apply_distance(self.velocity * dt)
         self.trigger_velocity_update()
-

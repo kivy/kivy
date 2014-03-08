@@ -4,10 +4,6 @@ Tree View
 
 .. versionadded:: 1.0.4
 
-.. warning::
-
-    This widget is still experimental, and the API is subject to change in a
-    future version.
 
 :class:`TreeView` is a widget used to represent a tree structure. It is
 currently very basic, supporting a minimal feature set.
@@ -85,7 +81,7 @@ to populate the tree view::
 
 The root widget in the tree view is opened by default and has text set as
 'Root'. If you want to change that, you can use the
-:data:`TreeView.root_options`
+:attr:`TreeView.root_options`
 property. This will pass options to the root widget::
 
     tv = TreeView(root_options=dict(text='My root label'))
@@ -101,7 +97,7 @@ For a button node type, combine a :class:`~kivy.uix.button.Button` and a
         pass
 
 You must know that, for a given node, only the
-:data:`~kivy.uix.widget.Widget.size_hint_x` will be honored. The allocated
+:attr:`~kivy.uix.widget.Widget.size_hint_x` will be honored. The allocated
 width for the node will depend of the current width of the TreeView and the
 level of the node. For example, if a node is at level 4, the width
 allocated will be:
@@ -116,7 +112,7 @@ from kivy.clock import Clock
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty, ListProperty, ObjectProperty, \
-        AliasProperty, NumericProperty, ReferenceListProperty
+    AliasProperty, NumericProperty, ReferenceListProperty
 
 
 class TreeViewException(Exception):
@@ -138,7 +134,7 @@ class TreeViewNode(object):
     '''Boolean to indicate whether this node is a leaf or not. Used to adjust
     the graphical representation.
 
-    :data:`is_leaf` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    :attr:`is_leaf` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to True. It is automatically set to False when child is added.
     '''
 
@@ -151,7 +147,7 @@ class TreeViewNode(object):
         This property is automatically set by the :class:`TreeView`. You can
         read but not write it.
 
-    :data:`is_open` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    :attr:`is_open` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
     '''
 
@@ -159,7 +155,7 @@ class TreeViewNode(object):
     '''Boolean to indicate whether this node is already loaded or not. This
     property is used only if the :class:`TreeView` uses asynchronous loading.
 
-    :data:`is_loaded` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`is_loaded` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -172,7 +168,7 @@ class TreeViewNode(object):
         This property is automatically set by the :class:`TreeView`. You can
         read but not write it.
 
-    :data:`is_selected` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`is_selected` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -180,7 +176,7 @@ class TreeViewNode(object):
     '''Boolean used to indicate whether selection of the node is allowed or
      not.
 
-    :data:`no_selection` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`no_selection` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -194,31 +190,31 @@ class TreeViewNode(object):
         This property is automatically set by the :class:`TreeView`. You can
         read but not write it.
 
-    :data:`nodes` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`nodes` is a :class:`~kivy.properties.ListProperty` and defaults to
     [].
     '''
 
     parent_node = ObjectProperty(None, allownone=True)
-    '''Parent node. This attribute is needed because the :data:`parent` can be
+    '''Parent node. This attribute is needed because the :attr:`parent` can be
     None when the node is not displayed.
 
     .. versionadded:: 1.0.7
 
-    :data:`parent_node` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`parent_node` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 
     level = NumericProperty(-1)
     '''Level of the node.
 
-    :data:`level` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`level` is a :class:`~kivy.properties.NumericProperty` and defaults
     to -1.
     '''
 
     color_selected = ListProperty([.3, .3, .3, 1.])
     '''Background color of the node when the node is selected.
 
-    :data:`color_selected` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`color_selected` is a :class:`~kivy.properties.ListProperty` and
     defaults to [.1, .1, .1, 1].
     '''
 
@@ -226,21 +222,21 @@ class TreeViewNode(object):
     '''
     This property is set by the TreeView widget automatically and is read-only.
 
-    :data:`odd` is a :class:`~kivy.properties.BooleanProperty` and defaults to
+    :attr:`odd` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
     '''
 
     odd_color = ListProperty([1., 1., 1., .0])
     '''Background color of odd nodes when the node is not selected.
 
-    :data:`odd_color` is a :class:`~kivy.properties.ListProperty` and defaults
+    :attr:`odd_color` is a :class:`~kivy.properties.ListProperty` and defaults
     to [1., 1., 1., 0.].
     '''
 
     even_color = ListProperty([0.5, 0.5, 0.5, 0.1])
     '''Background color of even nodes when the node is not selected.
 
-    :data:`bg_color` is a :class:`~kivy.properties.ListProperty` ans defaults
+    :attr:`bg_color` is a :class:`~kivy.properties.ListProperty` ans defaults
     to [.5, .5, .5, .1].
     '''
 
@@ -323,6 +319,7 @@ class TreeView(Widget):
             nodes = parent.nodes
             if node in nodes:
                 nodes.remove(node)
+                self._selected_node = None
             parent.is_leaf = not bool(len(nodes))
             node.parent_node = None
             node.unbind(size=self._trigger_layout)
@@ -463,7 +460,8 @@ class TreeView(Widget):
             node.x = self.x + self.indent_start + level * self.indent_level
             node.top = y
             if node.size_hint_x:
-                node.width = (self.width - (node.x - self.x)) * node.size_hint_x
+                node.width = (self.width - (node.x - self.x)) \
+                    * node.size_hint_x
             y -= node.height
             if not node.is_open:
                 return y
@@ -490,7 +488,7 @@ class TreeView(Widget):
     #
     _root = ObjectProperty(None)
 
-    _selected_node = ObjectProperty(None)
+    _selected_node = ObjectProperty(None, allownone=True)
 
     #
     # Properties
@@ -501,7 +499,7 @@ class TreeView(Widget):
 
     .. versionadded:: 1.0.9
 
-    :data:`minimum_width` is a :class:`kivy.properties.NumericProperty` and
+    :attr:`minimum_width` is a :class:`kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -510,7 +508,7 @@ class TreeView(Widget):
 
     .. versionadded:: 1.0.9
 
-    :data:`minimum_height` is a :class:`kivy.properties.NumericProperty` and
+    :attr:`minimum_height` is a :class:`kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -519,8 +517,8 @@ class TreeView(Widget):
 
     .. versionadded:: 1.0.9
 
-    :data:`minimum_size` is a :class:`~kivy.properties.ReferenceListProperty`
-    of (:data:`minimum_width`, :data:`minimum_height`) properties.
+    :attr:`minimum_size` is a :class:`~kivy.properties.ReferenceListProperty`
+    of (:attr:`minimum_width`, :attr:`minimum_height`) properties.
     '''
 
     indent_level = NumericProperty('16dp')
@@ -528,19 +526,19 @@ class TreeView(Widget):
 
     Computation of spacing for each level of tree::
 
-        :data:`indent_start` + level * :data:`indent_level`
+        :attr:`indent_start` + level * :attr:`indent_level`
 
-    :data:`indent_level` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`indent_level` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 16.
     '''
 
     indent_start = NumericProperty('24dp')
     '''Indentation width of the level 0 / root node. This is mostly the initial
     size to accommodate a tree icon (collapsed / expanded). See
-    :data:`indent_level` for more information about the computation of level
+    :attr:`indent_level` for more information about the computation of level
     indentation.
 
-    :data:`indent_start` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`indent_start` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 24.
     '''
 
@@ -548,8 +546,8 @@ class TreeView(Widget):
     '''Use this property to show/hide the initial root node. If True, the root
     node will be appear as a closed node.
 
-    :data:`hide_root` is a :class:`~kivy.properties.BooleanProperty` and defaults
-    to False.
+    :attr:`hide_root` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     def get_selected_node(self):
@@ -559,7 +557,7 @@ class TreeView(Widget):
                                   bind=('_selected_node', ))
     '''Node selected by :meth:`TreeView.select_node` or by touch.
 
-    :data:`selected_node` is a :class:`~kivy.properties.AliasProperty` and
+    :attr:`selected_node` is a :class:`~kivy.properties.AliasProperty` and
     defaults to None. It is read-only.
     '''
 
@@ -571,25 +569,25 @@ class TreeView(Widget):
 
     By default, the root node widget is a :class:`TreeViewLabel` with text
     'Root'. If you want to change the default options passed to the widget
-    creation, use the :data:`root_options` property::
+    creation, use the :attr:`root_options` property::
 
         treeview = TreeView(root_options={
             'text': 'Root directory',
             'font_size': 15})
 
-    :data:`root_options` will change the properties of the
+    :attr:`root_options` will change the properties of the
     :class:`TreeViewLabel` instance. However, you cannot change the class used
     for root node yet.
 
-    :data:`root` is an :class:`~kivy.properties.AliasProperty` and defaults to
+    :attr:`root` is an :class:`~kivy.properties.AliasProperty` and defaults to
     None. It is read-only. However, the content of the widget can be changed.
     '''
 
     root_options = ObjectProperty({})
-    '''Default root options to pass for root widget. See :data:`root` property
+    '''Default root options to pass for root widget. See :attr:`root` property
     for more information about the usage of root_options.
 
-    :data:`root_options` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`root_options` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to {}.
     '''
 
@@ -604,8 +602,8 @@ class TreeView(Widget):
             for name in ('Item 1', 'Item 2'):
                 yield TreeViewLabel(text=name)
 
-    :data:`load_func` is a :class:`~kivy.properties.ObjectProperty` and defaults
-    to None.
+    :attr:`load_func` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
 

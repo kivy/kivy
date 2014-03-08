@@ -97,10 +97,10 @@ cdef class Instruction(ObjectWithUid):
             return False
 
     property proxy_ref:
-        '''Return a proxy reference to the Instruction, ie, without taking a
+        '''Return a proxy reference to the Instruction i.e. without creating a
         reference of the widget. See `weakref.proxy
         <http://docs.python.org/2/library/weakref.html?highlight=proxy#weakref.proxy>`_
-        for more information about it.
+        for more information.
 
         .. versionadded:: 1.7.2
         '''
@@ -111,8 +111,8 @@ cdef class Instruction(ObjectWithUid):
 
 
 cdef class InstructionGroup(Instruction):
-    '''Group of :class:`Instruction`. Adds the possibility of adding and
-    removing graphics instruction.
+    '''Group of :class:`Instructions <Instruction>`. Allows for the adding and
+    removing of graphics instruction.
     '''
     def __init__(self, **kwargs):
         Instruction.__init__(self, **kwargs)
@@ -152,7 +152,7 @@ cdef class InstructionGroup(Instruction):
         return
 
     cpdef insert(self, int index, Instruction c):
-        '''Insert a new :class:`Instruction` in our list at index.
+        '''Insert a new :class:`Instruction` into our list at index.
         '''
         c.rinsert(self, index)
         self.flag_update()
@@ -174,7 +174,7 @@ cdef class InstructionGroup(Instruction):
         return len(self.children)
 
     cpdef clear(self):
-        '''Remove all the :class:`Instruction`.
+        '''Remove all the :class:`Instructions <Instruction>`.
         '''
         cdef Instruction c
         for c in self.children[:]:
@@ -183,7 +183,8 @@ cdef class InstructionGroup(Instruction):
             self.remove(c)
 
     cpdef remove_group(self, str groupname):
-        '''Remove all :class:`Instruction` with a specific group name.
+        '''Remove all :class:`Instructions <Instruction>` with a specific group
+        name.
         '''
         cdef Instruction c
         for c in self.children[:]:
@@ -193,8 +194,8 @@ cdef class InstructionGroup(Instruction):
                 self.remove(c)
 
     cpdef get_group(self, str groupname):
-        '''Return an iterable with all the :class:`Instruction` with a specific
-        group name.
+        '''Return an iterable for all the :class:`Instructions <Instruction>`
+        with a specific group name.
         '''
         cdef Instruction c
         return [c for c in self.children if c.group == groupname]
@@ -294,7 +295,7 @@ cdef class VertexInstruction(Instruction):
             with self.canvas:
                 Rectangle(texture=texture, pos=self.pos, size=self.size)
 
-        Usually, you will use the :data:`source` attribute instead of the
+        Usually, you will use the :attr:`source` attribute instead of the
         texture.
         '''
         def __get__(self):
@@ -320,13 +321,13 @@ cdef class VertexInstruction(Instruction):
             <MyWidget>:
                 canvas:
                     Rectangle:
-                        source: 'myfilename.png'
+                        source: 'mylogo.png'
                         pos: self.pos
                         size: self.size
 
         .. note::
 
-            The filename will be searched with the
+            The filename will be searched for using the
             :func:`kivy.resources.resource_find` function.
 
         '''
@@ -346,14 +347,14 @@ cdef class VertexInstruction(Instruction):
 
             [u, v, u + w, v, u + w, y + h, u, y + h]
 
-        You can pass your own texture coordinates, if you want to achieve fancy
+        You can pass your own texture coordinates if you want to achieve fancy
         effects.
 
         .. warning::
 
-            The default value as mentioned before can be negative. Depending
+            The default values just mentioned can be negative. Depending
             on the image and label providers, the coordinates are flipped
-            vertically, because of the order in which the image is internally
+            vertically because of the order in which the image is internally
             stored. Instead of flipping the image data, we are just flipping
             the texture coordinates to be faster.
 
@@ -406,8 +407,8 @@ cdef class Callback(Instruction):
         Note that if you perform many and/or costly calls to callbacks, you
         might potentially slow down the rendering performance significantly.
 
-    The drawing of your canvas can not happen until something new happens. From
-    your callback, you can ask for an update::
+    The updating of your canvas does not occur until something new happens.
+    From your callback, you can ask for an update::
 
         with self.canvas:
             self.cb = Callback(self.my_callback)
@@ -419,13 +420,13 @@ cdef class Callback(Instruction):
     have been manipulated by the other toolkit, and as soon as program flow
     returns to Kivy, it will just break. You can have glitches, crashes, black
     holes might occur, etc.
-    To avoid that, you can activate the :data:`reset_context` option. It will
-    reset the OpenGL context state to make Kivy's rendering correct, after the
+    To avoid that, you can activate the :attr:`reset_context` option. It will
+    reset the OpenGL context state to make Kivy's rendering correct after the
     call to your callback.
 
     .. warning::
 
-        The :data:`reset_context` is not a full OpenGL reset. If you have issues
+        The :attr:`reset_context` is not a full OpenGL reset. If you have issues
         regarding that, please contact us.
 
     '''
@@ -508,7 +509,8 @@ cdef class Callback(Instruction):
 
 
 cdef class CanvasBase(InstructionGroup):
-    '''CanvasBase provides the context manager methods for :class:`Canvas`.'''
+    '''CanvasBase provides the context manager methods for the
+    :class:`Canvas`.'''
     def __enter__(self):
         pushActiveCanvas(self)
 
@@ -569,7 +571,7 @@ cdef class Canvas(CanvasBase):
             self.remove(c)
 
     cpdef draw(self):
-        '''Apply the instruction on our window.
+        '''Apply the instruction to our window.
         '''
         self.apply()
 
@@ -626,7 +628,7 @@ cdef class Canvas(CanvasBase):
             return self._after
 
     property has_before:
-        '''Property to see if the canvas.before is already created
+        '''Property to see if the :attr:`before` group has already been created.
 
         .. versionadded:: 1.7.0
         '''
@@ -634,7 +636,7 @@ cdef class Canvas(CanvasBase):
             return self._before is not None
 
     property has_after:
-        '''Property to see if the canvas.after is already created
+        '''Property to see if the :attr:`after` group has already been created.
 
         .. versionadded:: 1.7.0
         '''
@@ -643,17 +645,17 @@ cdef class Canvas(CanvasBase):
 
 
     property opacity:
-        '''Property for get/set the opacity value of the canvas.
+        '''Property to get/set the opacity value of the canvas.
 
         .. versionadded:: 1.4.1
 
         The opacity attribute controls the opacity of the canvas and its
         children.  Be careful, it's a cumulative attribute: the value is
-        multiplied to the current global opacity, and the result is applied to
+        multiplied to the current global opacity and the result is applied to
         the current context color.
 
-        For example: if your parent have an opacity of 0.5, and one children have an
-        opacity of 0.2, the real opacity of the children will be 0.5 * 0.2 = 0.1.
+        For example: if your parent has an opacity of 0.5 and a child has an
+        opacity of 0.2, the real opacity of the child will be 0.5 * 0.2 = 0.1.
 
         Then, the opacity is applied on the shader as::
 

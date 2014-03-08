@@ -28,8 +28,8 @@ class ImageLoaderPygame(ImageLoaderBase):
             return ('bmp', )
         # Note to self:try to learn to use loader preferences instead-
         # of this- remove gif support from pygame
-        return ('jpg', 'jpeg', 'png', 'bmp', 'pcx', 'tga', 'tiff', 'tif', 'lbm',
-               'pbm', 'ppm', 'xpm')
+        return ('jpg', 'jpeg', 'png', 'bmp', 'pcx', 'tga', 'tiff',
+                'tif', 'lbm', 'pbm', 'ppm', 'xpm')
 
     @staticmethod
     def can_save():
@@ -72,12 +72,12 @@ class ImageLoaderPygame(ImageLoaderBase):
         self.filename = filename
         data = pygame.image.tostring(im, fmt.upper())
         return [ImageData(im.get_width(), im.get_height(),
-            fmt, data, source=filename)]
+                fmt, data, source=filename)]
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels):
+    def save(filename, width, height, fmt, pixels, flipped):
         surface = pygame.image.fromstring(
-                pixels, (width, height), fmt.upper(), False)
+            pixels, (width, height), fmt.upper(), flipped)
         pygame.image.save(surface, filename)
         return True
 

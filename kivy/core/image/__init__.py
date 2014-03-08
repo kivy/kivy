@@ -6,9 +6,6 @@ Core classes for loading images and converting them to a
 :class:`~kivy.graphics.texture.Texture`. The raw image data can be keep in
 memory for further access.
 
-.. note::
-
-    Saving an image is not yet supported.
 '''
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
@@ -24,7 +21,7 @@ from kivy.utils import platform
 from kivy.compat import string_types
 import zipfile
 try:
-    import io as SIO
+    import cio as SIO
 except ImportError:
     import io as SIO
 
@@ -44,10 +41,9 @@ class ImageData(object):
     '''
 
     __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical')
-    _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra',
-            's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5',
-            'pvrtc_rgb2', 'pvrtc_rgb4', 'pvrtc_rgba2', 'pvrtc_rgba4',
-            'etc1_rgb8')
+    _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra', 's3tc_dxt1', 's3tc_dxt3',
+                       's3tc_dxt5', 'pvrtc_rgb2', 'pvrtc_rgb4', 'pvrtc_rgba2',
+                       'pvrtc_rgba4', 'etc1_rgb8')
 
     def __init__(self, width, height, fmt, data, source=None,
                  flip_vertical=True):
@@ -144,7 +140,7 @@ class ImageLoaderBase(object):
     '''Base to implement an image loader.'''
 
     __slots__ = ('_texture', '_data', 'filename', 'keep_data',
-                '_mipmap', '_nocache')
+                 '_mipmap', '_nocache')
 
     def __init__(self, filename, **kwargs):
         self._mipmap = kwargs.get('mipmap', False)
@@ -172,7 +168,7 @@ class ImageLoaderBase(object):
         self._textures = []
         if __debug__:
             Logger.trace('Image: %r, populate to textures (%d)' %
-                    (self.filename, len(self._data)))
+                         (self.filename, len(self._data)))
 
         for count in range(len(self._data)):
 
@@ -184,8 +180,11 @@ class ImageLoaderBase(object):
             # if not create it and append to the cache
             if texture is None:
                 imagedata = self._data[count]
+                imagedata.source = '{}{}|{}'.format(
+                    'zip|' if self.filename.endswith('.zip') else '',
+                     self._nocache, uid)
                 texture = Texture.create_from_data(
-                        imagedata, mipmap=self._mipmap)
+                    imagedata, mipmap=self._mipmap)
                 if not self._nocache:
                     Cache.append('kv.texture', uid, texture)
                 if imagedata.flip_vertical:
@@ -276,7 +275,7 @@ class ImageLoader(object):
                     if ext not in loader.extensions():
                         continue
                     Logger.debug('Image%s: Load <%s> from <%s>' %
-                            (loader.__name__[11:], zfilename, filename))
+                                 (loader.__name__[11:], zfilename, filename))
                     try:
                         im = loader(tmpfile, **kwargs)
                     except:
@@ -284,14 +283,15 @@ class ImageLoader(object):
                         continue
                     break
                 if im is not None:
-                    # append ImageData to local variable before it's overwritten
+                    # append ImageData to local variable before it's
+                    # overwritten
                     image_data.append(im._data[0])
                     image = im
                 #else: if not image file skip to next
             except:
-                Logger.warning('Image: Unable to load image' +
-                    '<%s> in zip <%s> trying to continue...'
-                    % (zfilename, filename))
+                Logger.warning('Image: Unable to load image'
+                               '<%s> in zip <%s> trying to continue...'
+                               % (zfilename, filename))
         z.close()
         if len(image_data) == 0:
             raise Exception('no images in zip <%s>' % filename)
@@ -354,6 +354,8 @@ class ImageLoader(object):
         if filename.startswith((('http://', 'https://'))):
             ext = ext.split('?')[0]
 
+        filename = resource_find(filename)
+
         # special case. When we are trying to load a "zip" file with image, we
         # will use the special zip_loader in ImageLoader. This might return a
         # sequence of images contained in the zip.
@@ -365,7 +367,7 @@ class ImageLoader(object):
                 if ext not in loader.extensions():
                     continue
                 Logger.debug('Image%s: Load <%s>' %
-                        (loader.__name__[11:], filename))
+                             (loader.__name__[11:], filename))
                 im = loader(filename, **kwargs)
                 break
             if im is None:
@@ -397,7 +399,7 @@ class Image(EventDispatcher):
             Scale of the image.
         `mipmap` : bool, defaults to False
             Create mipmap for the texture.
-        `anim_delay`: float, default to .25
+        `anim_delay`: float, defaults to .25
             Delay in seconds between each animation frame. Lower values means
             faster animation.
     '''
@@ -521,7 +523,8 @@ class Image(EventDispatcher):
                 Clock.schedule_interval(self._anim, self._anim_delay)
 
     anim_delay = property(_get_anim_delay, _set_anim_delay)
-    '''Delay between each animation frame. A lower value means faster animation.
+    '''Delay between each animation frame. A lower value means faster
+    animation.
 
     .. versionadded:: 1.0.8
     '''
@@ -567,7 +570,7 @@ class Image(EventDispatcher):
         :Parameters:
             `filename` : str
                 Filename of the image.
-            `keep_data` : bool, default to False
+            `keep_data` : bool, defaults to False
                 Keep the image data when the texture is created.
         '''
         kwargs.setdefault('keep_data', False)
@@ -584,7 +587,7 @@ class Image(EventDispatcher):
             self._size = (self.image.width, self.image.height)
 
     image = property(_get_image, _set_image,
-            doc='Get/set the data image object')
+                     doc='Get/set the data image object')
 
     def _get_filename(self):
         return self._filename
@@ -606,7 +609,7 @@ class Image(EventDispatcher):
             # if image.__class__ is core image then it's a texture
             # from atlas or other sources and has no data so skip
             if (image.__class__ != self.__class__ and
-                not image.keep_data and self._keep_data):
+                    not image.keep_data and self._keep_data):
                 self.remove_from_cache()
                 self._filename = ''
                 self._set_filename(value)
@@ -624,8 +627,8 @@ class Image(EventDispatcher):
         # if image not already in cache then load
         tmpfilename = self._filename
         image = ImageLoader.load(
-                self._filename, keep_data=self._keep_data,
-                mipmap=self._mipmap, nocache=self._nocache)
+            self._filename, keep_data=self._keep_data,
+            mipmap=self._mipmap, nocache=self._nocache)
         self._filename = tmpfilename
 
         # put the image into the cache if needed
@@ -638,7 +641,7 @@ class Image(EventDispatcher):
                 Cache.append('kv.image', uid, self.image)
 
     filename = property(_get_filename, _set_filename,
-            doc='Get/set the filename of image')
+                        doc='Get/set the filename of image')
 
     @property
     def size(self):
@@ -674,7 +677,7 @@ class Image(EventDispatcher):
         '''
         return self._nocache
 
-    def save(self, filename):
+    def save(self, filename, flipped=False):
         '''Save image texture to file.
 
         The filename should have the '.png' extension because the texture data
@@ -695,6 +698,11 @@ class Image(EventDispatcher):
             img.save('hello3.png')
 
         .. versionadded:: 1.7.0
+
+        .. versionchanged:: 1.8.0
+            Parameter `flipped` added to flip the image before saving, default
+            to False.
+
         '''
         pixels = None
         size = None
@@ -732,7 +740,7 @@ class Image(EventDispatcher):
             fmt = 'rgba'
         else:
             raise Exception('Unable to determine the format of the pixels')
-        return loader.save(filename, size[0], size[1], fmt, pixels)
+        return loader.save(filename, size[0], size[1], fmt, pixels, flipped)
 
     def read_pixel(self, x, y):
         '''For a given local x/y position, return the pixel color at that
@@ -791,8 +799,14 @@ image_libs += [
     ('pygame', 'img_pygame'),
     ('pil', 'img_pil'),
     ('gif', 'img_gif')]
-core_register_libs('image', image_libs)
+libs_loaded = core_register_libs('image', image_libs)
+
+from os import environ
+if not 'KIVY_DOC' in environ and not libs_loaded:
+    import sys
+
+    Logger.critical('App: Unable to get any Image provider, abort.')
+    sys.exit(1)
 
 # resolve binding.
 from kivy.graphics.texture import Texture, TextureRegion
-

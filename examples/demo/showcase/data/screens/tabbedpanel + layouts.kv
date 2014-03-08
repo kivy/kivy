@@ -1,40 +1,43 @@
 #:import random random.random
 
 ShowcaseScreen:
-    name: 'tabbedpanel'
+    name: 'TabbedPanel + Layouts'
     fullscreen: True
+    on_parent: if args[1] and tp.current_tab == tab_fl: app.showcase_floatlayout(fl)
 
     TabbedPanel:
+        id: tp
         do_default_tab: False
 
         TabbedPanelItem:
+            id: tab_fl
             text: 'FloatLayout'
-            on_state: if args[1] == 'down': app.showcase_floatlayout(fl)
+            on_release: app.showcase_floatlayout(fl)
             FloatLayout:
                 CFloatLayout:
                     id: fl
         TabbedPanelItem:
             text: 'BoxLayout'
-            on_state: if args[1] == 'down': app.showcase_boxlayout(box)
+            on_release: app.showcase_boxlayout(box)
             FloatLayout
                 CBoxLayout:
                     id: box
         TabbedPanelItem:
             text: 'GridLayout'
-            on_state: if args[1] == 'down': app.showcase_gridlayout(grid)
+            on_release: app.showcase_gridlayout(grid)
             FloatLayout
                 CGridLayout:
                     id: grid
                     rows: 3
         TabbedPanelItem:
-            on_state: if args[1] == 'down': app.showcase_stacklayout(stack)
+            on_release: app.showcase_stacklayout(stack)
             text: 'StackLayout'
             FloatLayout
                 CStackLayout:
                     id: stack
         TabbedPanelItem:
             text: 'AnchorLayout'
-            on_state: if args[1] == 'down': app.showcase_anchorlayout(anchor)
+            on_release: app.showcase_anchorlayout(anchor)
             FloatLayout
                 CAnchorLayout:
                     id: anchor
@@ -57,7 +60,7 @@ ShowcaseScreen:
 
 <BackgroundColor@Widget>
     pos_hint: {'center_x': .5, 'center_y': .5}
-    size_hint: .5, .5
+    size_hint: .9, .9
     canvas.before:
         Color:
             rgba: .2, .3, .4, 1

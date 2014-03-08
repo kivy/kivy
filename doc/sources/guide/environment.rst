@@ -59,32 +59,32 @@ selector to a specific implementation.
 KIVY_WINDOW
     Implementation to use for creating the Window
 
-    Values: pygame, x11, sdl
+    Values: pygame, x11, sdl, egl_rpi
 
 KIVY_TEXT
     Implementation to use for rendering text
 
-    Values: pil, pygame
+    Values: pil, pygame, sdlttf
 
 KIVY_VIDEO
     Implementation to use for rendering video
 
-    Values: gstreamer, pyglet, ffmpeg
+    Values: pygst, gstplayer, pyglet, ffmpeg, null
 
 KIVY_AUDIO
     Implementation to use for playing audio
 
-    Values: gstreamer, pygame
+    Values: gstplayer, pygst, sdl, pygame
 
 KIVY_IMAGE
     Implementation to use for reading image
 
-    Values: pil, pygame
+    Values: pil, pygame, imageio, tex, dds, gif
 
 KIVY_CAMERA
     Implementation to use for reading camera
 
-    Values: gstreamer, opencv, videocapture
+    Values: videocapture, avfoundation, pygst, opencv
 
 KIVY_SPELLING
     Implementation to use for spelling
@@ -94,24 +94,24 @@ KIVY_SPELLING
 KIVY_CLIPBOARD
     Implementation to use for clipboard management
 
-    Values: pygame, dummy
+    Values: pygame, dummy, android
 
 Metrics
 -------
 
 KIVY_DPI
-    If set, the value will be used for :data:`Metrics.dpi`.
+    If set, the value will be used for :attr:`Metrics.dpi`.
 
     .. versionadded:: 1.4.0
 
 KIVY_METRICS_DENSITY
-    If set, the value will be used for :data:`Metrics.density`.
+    If set, the value will be used for :attr:`Metrics.density`.
 
     .. versionadded:: 1.5.0
 
 KIVY_METRICS_FONTSCALE
 
-    If set, the value will be used for :data:`Metrics.fontscale`.
+    If set, the value will be used for :attr:`Metrics.fontscale`.
 
     .. versionadded:: 1.5.0
 

@@ -1,5 +1,4 @@
-'''
-Kivy Language
+'''Kivy Language
 =============
 
 The Kivy language is a language dedicated to describing user interface and
@@ -38,12 +37,16 @@ The language consists of several constructs that you can use:
         You can use the language to create your entire user interface.
         A kv file must contain only one root widget at most.
 
-    Templates
-        *(introduced in version 1.0.5.)*
-        Templates will be used to populate parts of your application, such as a
-        list's content. If you want to design the look of an entry in a list
-        (icon on the left, text on the right), you will use a template
-        for that.
+    Dynamic Classes
+        *(introduced in version 1.7.0)*
+        Dynamic classes let you create new widgets and rules on-the-fly,
+        without any Python declaration.
+
+    Templates (deprecated)
+        *(introduced in version 1.0.5, deprecated from version 1.7.0)*
+        Templates were used to populate parts of an application, such as
+        styling the content of a list (e.g. icon on the left, text on the
+        right). They are now deprecated by dynamic classes.
 
 
 Syntax of a kv File
@@ -54,14 +57,15 @@ Syntax of a kv File
 A Kivy language file must have ``.kv`` as filename extension.
 
 The content of the file should always start with the Kivy header, where
-`version` must be replaced with the Kivy language version you're using. For now,
-use 1.0::
+`version` must be replaced with the Kivy language version you're using.
+For now, use 1.0::
 
-    #:kivy `version`
+    #:kivy `1.0`
 
     # content here
 
-The `content` can contain rule definitions, a root widget and templates::
+The `content` can contain rule definitions, a root widget, dynamic class
+definitions and templates::
 
     # Syntax of a rule definition. Note that several Rules can share the same
     # definition (as in CSS). Note the braces: they are part of the definition.
@@ -75,12 +79,16 @@ The `content` can contain rule definitions, a root widget and templates::
     RootClassName:
         # .. definitions ..
 
+    # Syntax for creating a dynamic class
+    <NewWidget@BaseClass>:
+        # .. definitions ..
+
     # Syntax for create a template
     [TemplateName@BaseClass1,BaseClass2]:
         # .. definitions ..
 
-Regardless of whether it's a rule, root widget or template you're defining,
-the definition should look like this::
+Regardless of whether it's a rule, root widget, dynamic class or
+template you're defining, the definition should look like this::
 
     # With the braces it's a rule. Without them, it's a root widget.
     <ClassName>:
@@ -125,9 +133,14 @@ Here is a simple example of a kv file that contains a root widget::
     The indentation is not limited to 4 spaces anymore. The spacing must be a
     multiple of the number of spaces used on the first indented line.
 
+Both the :meth:`~BuilderBase.load_file` and the
+:meth:`~BuilderBase.load_string` methods
+return the root widget defined in your kv file/string. They will also add any
+class and template definitions to the :class:`~kivy.factory.Factory` for later
+usage.
 
-Value Expressions and Reserved Keywords
----------------------------------------
+Value Expressions, on_property Expressions, and Reserved Keywords
+-----------------------------------------------------------------
 
 When you specify a property's value, the value is evaluated as a Python
 expression. This expression can be static or dynamic, which means that
@@ -160,7 +173,7 @@ the value can use the values of other properties using reserved keywords.
         arguments passed to the callback.::
 
             TextInput:
-                on_focus: self.insert_text("Focus!" if args[1] else "No focus.")
+                on_focus: self.insert_text("Focus" if args[1] else "No focus")
 
 Furthermore, if a class definition contains an id, you can use it as a
 keyword::
@@ -172,8 +185,45 @@ keyword::
             text: 'The state of the other button is %s' % btn1.state
 
 Please note that the `id` will not be available in the widget instance:
-it is used exclusively for external references.
+it is used exclusively for external references. `id` is a weakref to the
+widget, and not the widget itself. The widget itself can be accessed
+with `id.__self__` (`btn1.__self__` in this case).
 
+Valid expressons
+~~~~~~~~~~~~~~~~
+
+There are two places that accept python statments in a kv file:
+after a property, which assigns to the property the result of the expression
+(such as the text of a button as shown above) and after a on_property, which
+executes the statement when the property is updated (such as on_state).
+
+In the former case, the
+`expression <http://docs.python.org/2/reference/expressions.html>`_ can only
+span a single line, cannot be extended to multiple lines using newline
+escaping, and must return a value. An example of a valid expression is
+``text: self.state and ('up' if self.state == 'normal' else 'down')``.
+
+In the latter case, multiple single line statements are valid including
+multi-line statements that escape their newline, as long as they don't
+add an indentation level.
+
+Examples of valid statements are::
+
+    on_press: if self.state == 'normal': print('normal')
+    on_state:
+        if self.state == 'normal': print('normal')
+        else: print('down')
+        if self.state == 'normal': \
+        print('multiline normal')
+        for i in range(10): print(i)
+        print([1,2,3,4,
+        5,6,7])
+
+An example of a invalid statement::
+
+    on_state:
+        if self.state == 'normal':
+            print('normal')
 
 Relation Between Values and Properties
 --------------------------------------
@@ -196,7 +246,7 @@ Here's a simple example that demonstrates this behaviour::
         text: str(self.state)
 
 In this example, the parser detects that `self.state` is a dynamic value (a
-property). The :data:`~kivy.uix.button.Button.state` property of the button
+property). The :attr:`~kivy.uix.button.Button.state` property of the button
 can change at any moment (when the user touches it).
 We now want this button to display its own state as text, even as the state
 changes. To do this, we use the state property of the Button and use it in the
@@ -284,7 +334,7 @@ declaration in the first place. The syntax of the dynamic classes is similar to
 the Rules, but you need to specify the base classes you want to
 subclass.
 
-The syntax look like:
+The syntax looks like:
 
 .. code-block:: kv
 
@@ -309,13 +359,25 @@ to subclass. The Python equivalent would have been:
     class NewWidget(ButtonBehavior, Label):
         pass
 
-Any new properties, usually added in python code, should be declared first.
-If the property doesn't exist in the dynamic class, it will be automatically
-created as an :class:`~kivy.properties.ObjectProperty`.
+Any new properties, usually added in python code, should be declared
+first.  If the property doesn't exist in the dynamic class, it will be
+automatically created as an :class:`~kivy.properties.ObjectProperty`
+(pre 1.8.0) or as an appropriate typed property (from version
+1.8.0).
 
-Let's illustrate the usage of theses dynamic classes with an implementation of a
-basic Image button. We could derive our classes from the Button and just
-add a property for the image filename:
+.. versionchanged:: 1.8.0
+
+    If the property value is an expression that can be evaluated right away (no
+    external binding), then the value will be used as default value of the
+    property, and the type of the value will be used for the specialization of
+    the Property class. In other terms: if you declare `hello: "world"`, a new
+    :class:`~kivy.properties.StringProperty` will be instanciated, with the
+    default value `"world"`. Lists, tuples, dictionaries and strings are
+    supported.
+
+Let's illustrate the usage of theses dynamic classes with an
+implementation of a basic Image button. We could derive our classes from
+the Button and just add a property for the image filename:
 
 .. code-block:: kv
 
@@ -344,6 +406,12 @@ In Python, you can create an instance of the dynamic class as follows:
     from kivy.factory import Factory
     button_inst = Factory.ImageButton()
 
+.. note::
+
+    Using dynamic classes, a child class can be declared before it's parent.
+    This however, leads to the unintuitive situation where the parent
+    properties/methods override those of the child. Be careful if you choose
+    to do this.
 
 .. _template_usage:
 
@@ -411,9 +479,9 @@ Template example
 ~~~~~~~~~~~~~~~~
 
 Most of time, when you are creating a screen in the kv lang, you use a lot of
-redefinitions. In our example, we'll create a Toolbar, based on a BoxLayout, and
-put in a few :class:`~kivy.uix.image.Image` widgets that will react to the
-*on_touch_down* event.:
+redefinitions. In our example, we'll create a Toolbar, based on a
+BoxLayout, and put in a few :class:`~kivy.uix.image.Image` widgets that
+will react to the *on_touch_down* event.:
 
 .. code-block:: kv
 
@@ -609,7 +677,56 @@ Set a key that will be available anywhere in the kv. For example:
         canvas:
             Color:
                 rgb: my_color if self.state == 'normal' else my_color_hl
+
+include <file>
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.8.1
+
+Syntax:
+
+.. code-block:: kv
+
+    #:include [force] <file>
+
+Includes an external kivy file. This allows you to split complex
+widgets into their own files. If the include is forced, the file
+will first be unloaded and then reloaded again. For example:
+
+.. code-block:: kv
+
+    # Test.kv
+    #:include mycomponent.kv
+    #:include force mybutton.kv
+
+    <Rule>:
+        state: 'normal'
+        MyButton:
+        MyComponent:
+
+
+.. code-block:: kv
+
+    # mycomponent.kv
+    #:include mybutton.kv
+
+    <MyComponent>:
+        MyButton:
+
+.. code-block:: kv
+
+    # mybutton.kv
+
+    <MyButton>:
+        canvas:
+            Color:
+                rgb: (1.0, 0.0, 0.0)
+            Rectangle:
+                pos: self.pos
+                size: (self.size[0]/4, self.size[1]/4)
+
 '''
+import os
 
 __all__ = ('Builder', 'BuilderBase', 'BuilderException',
            'Parser', 'ParserException')
@@ -631,6 +748,7 @@ from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.compat import PY2, iteritems, iterkeys
 from kivy.context import register_context
+from kivy.resources import resource_find
 import kivy.metrics as Metrics
 
 
@@ -642,6 +760,9 @@ Instruction = None
 
 # register cache for creating new classtype (template)
 Cache.register('kv.lang')
+
+# all previously included files
+__KV_INCLUDES__ = []
 
 # precompile regexp expression
 lang_str = re.compile('([\'"][^\'"]*[\'"])')
@@ -675,7 +796,7 @@ class ProxyApp(object):
             object.__setattr__(self, '_obj', app)
             # Clear cached application instance, when it stops
             app.bind(on_stop=lambda instance:
-                object.__setattr__(self, '_obj', None))
+                     object.__setattr__(self, '_obj', None))
         return app
 
     def __getattribute__(self, name):
@@ -877,8 +998,12 @@ class ParserRule(object):
             return
         self.cache_marked.append(cls)
         for name in self.properties:
-            if not hasattr(widget, name):
-                widget.create_property(name)
+            if hasattr(widget, name):
+                continue
+            value = self.properties[name].co_value
+            if type(value) is CodeType:
+                value = None
+            widget.create_property(name, value)
 
     def _forbid_selectors(self):
         c = self.name[0]
@@ -928,7 +1053,7 @@ class ParserRule(object):
                 rule, baseclasses = rule.split('@', 1)
                 if not re.match(lang_key, rule):
                     raise ParserException(self.ctx, self.line,
-                            'Invalid dynamic class name')
+                                          'Invalid dynamic class name')
 
                 # save the name in the dynamic classes dict.
                 self.ctx.dynamic_classes[rule] = baseclasses
@@ -993,6 +1118,7 @@ class Parser(object):
         self.parse(content)
 
     def execute_directives(self):
+        global __KV_INCLUDES__
         for ln, cmd in self.directives:
             cmd = cmd.strip()
             if __debug__:
@@ -1014,7 +1140,34 @@ class Parser(object):
                     Logger.exception('')
                     raise ParserException(self, ln, 'Invalid value')
                 global_idmap[name] = value
+            elif cmd[:8] == 'include ':
+                ref = cmd[8:].strip()
+                force_load = False
 
+                if ref[:6] == 'force ':
+                    ref = ref[6:].strip()
+                    force_load = True
+
+                if ref[-3:] != '.kv':
+                    Logger.warn('WARNING: {0} does not have a valid Kivy'
+                                'Language extension (.kv)'.format(ref))
+                    break
+                if ref in __KV_INCLUDES__:
+                    if not force_load:
+                        Logger.warn('WARNING: {0} has already been included!'
+                                    .format(ref))
+                        break
+                    else:
+                        Logger.debug('Reloading {0} because include was forced.'
+                                    .format(ref))
+                        Builder.unload_file(ref)
+                        Builder.load_file(ref)
+                if not os.path.isfile(ref):
+                    raise ParserException(self, ln, 'Invalid or unknown file: '
+                                                    '{0}'.format(ref))
+                Logger.debug('Including file: {0}'.format(0))
+                __KV_INCLUDES__.append(ref)
+                Builder.load_file(ref)
             elif cmd[:7] == 'import ':
                 package = cmd[7:].strip()
                 l = package.split(' ')
@@ -1134,7 +1287,8 @@ class Parser(object):
                 x = content.split(':', 1)
                 if not len(x[0]):
                     raise ParserException(self, ln, 'Identifier missing')
-                if len(x) == 2 and len(x[1]):
+                if (len(x) == 2 and len(x[1]) and
+                    not x[1].lstrip().startswith('#')):
                     raise ParserException(self, ln,
                                           'Invalid data after declaration')
                 name = x[0]
@@ -1159,7 +1313,7 @@ class Parser(object):
                 name = x[0]
                 if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+':
                     _objects, _lines = self.parse_level(
-                            level + 1, lines[i:], spaces)
+                        level + 1, lines[i:], spaces)
                     current_object.children = _objects
                     lines = _lines
                     i = 0
@@ -1196,7 +1350,7 @@ class Parser(object):
                 if current_property in (
                         'canvas', 'canvas.after', 'canvas.before'):
                     _objects, _lines = self.parse_level(
-                            level + 2, lines[i:], spaces)
+                        level + 2, lines[i:], spaces)
                     rl = ParserRule(self, ln, current_property, rlevel)
                     rl.children = _objects
                     if current_property == 'canvas':
@@ -1290,7 +1444,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
         return eval(value, idmap)
     except Exception as e:
         raise BuilderException(rule.ctx, rule.line,
-                '{}: {}'.format(e.__class__.__name__, e))
+                               '{}: {}'.format(e.__class__.__name__, e))
 
 
 class ParserSelector(object):
@@ -1361,13 +1515,15 @@ class BuilderBase(object):
         self.rulectx = {}
 
     def load_file(self, filename, **kwargs):
-        '''Insert a file into the language builder.
+        '''Insert a file into the language builder and return the root widget
+        (if defined) of the kv file.
 
         :parameters:
             `rulesonly`: bool, defaults to False
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
         '''
+        filename = resource_find(filename) or filename
         if __debug__:
             trace('Builder: load file %s' % filename)
         with open(filename, 'r') as fd:
@@ -1411,7 +1567,8 @@ class BuilderBase(object):
         Factory.unregister_from_filename(filename)
 
     def load_string(self, string, **kwargs):
-        '''Insert a string into the Language Builder.
+        '''Insert a string into the Language Builder and return the root widget
+        (if defined) of the kv string.
 
         :Parameters:
             `rulesonly`: bool, defaults to False
@@ -1424,8 +1581,8 @@ class BuilderBase(object):
         # put a warning if a file is loaded multiple times
         if fn in self.files:
             Logger.warning(
-                    'Lang: The file {} is loaded multiples times, '
-                    'you might have unwanted behaviors.'.format(fn))
+                'Lang: The file {} is loaded multiples times, '
+                'you might have unwanted behaviors.'.format(fn))
 
         try:
             # parse the string
@@ -1455,7 +1612,7 @@ class BuilderBase(object):
             # save the loaded files only if there is a root without
             # template/dynamic classes
             if fn and (parser.templates or
-                    parser.dynamic_classes or parser.rules):
+                       parser.dynamic_classes or parser.rules):
                 self.files.append(fn)
 
             if parser.root:
@@ -1585,13 +1742,14 @@ class BuilderBase(object):
                     for prule in crule.properties.values():
                         value = prule.co_value
                         if type(value) is CodeType:
-                                value = eval(value, idmap)
+                            value = eval(value, idmap)
                         ctx[prule.name] = value
                     for prule in crule.handlers:
                         value = eval(prule.value, idmap)
                         ctx[prule.name] = value
                 except Exception as e:
-                    raise BuilderException(prule.ctx, prule.line,
+                    raise BuilderException(
+                        prule.ctx, prule.line,
                         '{}: {}'.format(e.__class__.__name__, e))
 
                 # create the template with an explicit ctx
@@ -1640,7 +1798,8 @@ class BuilderBase(object):
         except Exception as e:
             if rule is not None:
                 raise BuilderException(rule.ctx, rule.line,
-                    '{}: {}'.format(e.__class__.__name__, e))
+                                       '{}: {}'.format(e.__class__.__name__,
+                                                       e))
             raise e
 
         # build handlers
@@ -1663,7 +1822,8 @@ class BuilderBase(object):
                         Factory.Widget.parent.dispatch(widget_set.__self__)
         except Exception as e:
             if crule is not None:
-                raise BuilderException(crule.ctx, crule.line,
+                raise BuilderException(
+                    crule.ctx, crule.line,
                     '{}: {}'.format(e.__class__.__name__, e))
             raise e
 
@@ -1702,8 +1862,9 @@ class BuilderBase(object):
 
     def unbind_widget(self, uid):
         '''(internal) Unbind all the handlers created by the rules of the
-        widget. The :data:`kivy.uix.widget.Widget.uid` is passed here instead of
-        the widget itself, because we are using it in the widget destructor.
+        widget. The :attr:`kivy.uix.widget.Widget.uid` is passed here
+        instead of the widget itself, because we are using it in the
+        widget destructor.
 
         .. versionadded:: 1.7.2
         '''
@@ -1742,8 +1903,9 @@ class BuilderBase(object):
                             key, value, prule, idmap, True)
                     setattr(instr, key, value)
             except Exception as e:
-                raise BuilderException(prule.ctx, prule.line,
-                        '{}: {}'.format(e.__class__.__name__, e))
+                raise BuilderException(
+                    prule.ctx, prule.line,
+                    '{}: {}'.format(e.__class__.__name__, e))
 
 #: Main instance of a :class:`BuilderBase`.
 Builder = register_context('Builder', BuilderBase)
@@ -1796,10 +1958,10 @@ if 'KIVY_PROFILE_LANG' in environ:
 
                 color = (255, 155, 155) if count else (255, 255, 255)
                 html += ['<tr style="background-color: rgb{}">'.format(color),
-                        '<td>', str(index + 1), '</td>',
-                        '<td>', str(count), '</td>',
-                        '<td><pre>', line, '</pre></td>',
-                        '</tr>']
+                         '<td>', str(index + 1), '</td>',
+                         '<td>', str(count), '</td>',
+                         '<td><pre>', line, '</pre></td>',
+                         '</tr>']
             html += ['</table>']
         html += ['</body></html>']
         with open('builder_stats.html', 'w') as fd:

@@ -4,12 +4,20 @@ Garden
 
 .. versionadded:: 1.7.0
 
+.. versionchanged:: 1.8.0
+
 Garden is a project to centralize addons for Kivy maintained by users. You can
 find more information at `Kivy Garden <http://kivy-garden.github.io/>`_. All
 the garden packages are centralized on the `kivy-garden Github
 <https://github.com/kivy-garden>`_ repository.
 
-We provide a tool (`kivy/tools/garden`) for managing garden packages::
+Garden is now distributed as a separate Python module, kivy-garden. You can
+install it with pip::
+
+    pip install kivy-garden
+
+The garden module does not initially include any packages. You can download
+them with the garden tool installed by the pip package::
 
     # Installing a garden package
     garden install graph
@@ -33,6 +41,10 @@ We provide a tool (`kivy/tools/garden`) for managing garden packages::
     garden --help
 
 All the garden packages are installed by default in `~/.kivy/garden`.
+
+.. Note:: In previous versions of Kivy, garden was a tool at 
+          kivy/tools/garden. This no longer exists, but the
+          kivy-garden module provides exactly the same functionality.
 
 Packaging
 ---------
@@ -82,10 +94,9 @@ class GardenImporter(object):
 
     def _load_module(self, fullname, moddir):
         mod = imp.load_module(fullname, None, moddir,
-                ('', '', imp.PKG_DIRECTORY))
+                              ('', '', imp.PKG_DIRECTORY))
         return mod
 
 
 # insert the garden importer as ultimate importer
 sys.meta_path.append(GardenImporter())
-

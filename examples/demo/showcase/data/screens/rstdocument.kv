@@ -1,9 +1,10 @@
 ShowcaseScreen:
-	name: 'rstdocument'
+	name: 'RstDocument'
 	fullscreen: True
+	on_parent: if not args[1]: textinput.focus = False
 
 	GridLayout:
-		cols: 2
+		cols: 2 if root.width > root.height else 1
 		spacing: '8dp'
 
 		TextInput:

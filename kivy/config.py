@@ -6,9 +6,10 @@ The :class:`Config` object is an instance of a modified Python ConfigParser.
 See the `ConfigParser documentation
 <http://docs.python.org/library/configparser.html>`_ for more information.
 
-Kivy has a configuration file which determines the default settings. In order to
-change these settings, you can alter this file manually or use the Config
-object. Please see the :ref:`Configure Kivy` section for more information.
+Kivy has a configuration file which determines the default settings. In
+order to change these settings, you can alter this file manually or use
+the Config object. Please see the :ref:`Configure Kivy` section for more
+information.
 
 Usage of the Config object
 --------------------------
@@ -25,7 +26,6 @@ Change the configuration and save it::
     >>> Config.write()
 
 .. versionchanged:: 1.7.1
-
     The ConfigParser should work correctly with utf-8 now. The values are
     converted from ascii to unicode only when needed. The method get() returns
     utf-8 strings.
@@ -153,25 +153,25 @@ Available configuration tokens
 
     `scroll_distance`: int
         Default value of the
-        :data:`~kivy.uix.scrollview.ScrollView.scroll_distance`
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_distance`
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
     `scroll_friction`: float
         Default value of the
-        :data:`~kivy.uix.scrollview.ScrollView.scroll_friction`
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_friction`
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
     `scroll_timeout`: int
         Default value of the
-        :data:`~kivy.uix.scrollview.ScrollView.scroll_timeout`
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_timeout`
         property used by the  :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
     `scroll_stoptime`: int
         Default value of the
-        :data:`~kivy.uix.scrollview.ScrollView.scroll_stoptime`
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_stoptime`
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
@@ -181,7 +181,7 @@ Available configuration tokens
 
     `scroll_moves`: int
         Default value of the
-        :data:`~kivy.uix.scrollview.ScrollView.scroll_moves`
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_moves`
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
@@ -196,27 +196,28 @@ Available configuration tokens
         modulename =
 
     Anything after the = will be passed to the module as arguments.
-    Check the specific module's documentation for a list of accepted arguments.
+    Check the specific module's documentation for a list of accepted
+    arguments.
 
 .. versionchanged:: 1.8.0
     `systemanddock` and `systemandmulti` has been added as possible values for
-    `keyboard_mode` in the kivy section. `exit_on_escape` has been added to the
-    kivy section.
+    `keyboard_mode` in the kivy section. `exit_on_escape` has been added
+    to the kivy section.
 
 .. versionchanged:: 1.2.0
     `resizable` has been added to graphics section.
 
 .. versionchanged:: 1.1.0
-    tuio is not listening by default anymore. Window icons are not copied to
+    tuio no longer listens by default. Window icons are not copied to
     user directory anymore. You can still set a new window icon by using the
     ``window_icon`` config setting.
 
 .. versionchanged:: 1.0.8
     `scroll_timeout`, `scroll_distance` and `scroll_friction` have been added.
-    `list_friction`, `list_trigger_distance` and `list_friction_bound` have been
-    removed. `keyboard_type` and `keyboard_layout` have been removed from
-    the widget. `keyboard_mode` and `keyboard_layout` have been added to the
-    kivy section.
+    `list_friction`, `list_trigger_distance` and `list_friction_bound`
+    have been removed. `keyboard_type` and `keyboard_layout` have been
+    removed from the widget. `keyboard_mode` and `keyboard_layout` have
+    been added to the kivy section.
 '''
 
 __all__ = ('Config', 'ConfigParser')
@@ -257,8 +258,8 @@ class ConfigParser(PythonConfigParser):
 
     def add_callback(self, callback, section=None, key=None):
         '''Add a callback to be called when a specific section/key changed. If
-        you don't specify a section or a key, it will call the callback for all
-        section/keys changes.
+        you don't specify a section or a key, it will call the callback
+        for all section/keys changes.
 
         Callbacks will receive 3 arguments: the section, key and value.
 
@@ -288,8 +289,8 @@ class ConfigParser(PythonConfigParser):
         # If we try to open directly the configuration file in utf-8,
         # we correctly get the unicode value by default.
         # But, when we try to save it again, all the values we didn't changed
-        # are still unicode, and then the PythonConfigParser internal do a str()
-        # conversion -> fail.
+        # are still unicode, and then the PythonConfigParser internal do
+        # a str() conversion -> fail.
         # Instead we currently to the conversion to utf-8 when value are
         # "get()", but we internally store them in ascii.
         #with codecs.open(filename, 'r', encoding='utf-8') as f:
@@ -386,9 +387,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Config.add_callback(logger_config_update, 'kivy', 'log_level')
 
     # Read config file if exist
-    if exists(kivy_config_fn) and \
-        'KIVY_USE_DEFAULTCONFIG' not in environ and \
-        'KIVY_NO_CONFIG' not in environ:
+    if (exists(kivy_config_fn) and
+            'KIVY_USE_DEFAULTCONFIG' not in environ and
+            'KIVY_NO_CONFIG' not in environ):
         try:
             Config.read(kivy_config_fn)
         except Exception as e:
@@ -415,7 +416,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         need_save = True
 
     while version < KIVY_CONFIG_VERSION:
-        Logger.debug('Config: Upgrading from %d to %d' % (version, version + 1))
+        Logger.debug('Config: Upgrading from %d to %d' %
+                     (version, version + 1))
 
         if version == 0:
 
@@ -463,7 +465,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('postproc', 'ignore', '[]')
             Config.setdefault('postproc', 'jitter_distance', '0')
             Config.setdefault('postproc', 'jitter_ignore_devices',
-                                   'mouse,mactouch,')
+                              'mouse,mactouch,')
             Config.setdefault('postproc', 'retain_distance', '50')
             Config.setdefault('postproc', 'retain_time', '0')
 
@@ -542,8 +544,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Logger.logfile_activated = bool(Config.getint('kivy', 'log_enable'))
 
     # If no configuration exist, write the default one.
-    if (not exists(kivy_config_fn) or need_save) and \
-        'KIVY_NO_CONFIG' not in environ:
+    if ((not exists(kivy_config_fn) or need_save) and
+            'KIVY_NO_CONFIG' not in environ):
         try:
             Config.filename = kivy_config_fn
             Config.write()

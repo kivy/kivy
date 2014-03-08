@@ -41,7 +41,7 @@ class ImageLoaderTex(ImageLoaderBase):
 
         images = [data]
         im = ImageData(width, height, str(info['format']), images[0],
-                source=filename)
+                       source=filename)
         '''
         if len(dds.images) > 1:
             images = dds.images

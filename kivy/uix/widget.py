@@ -17,9 +17,9 @@ This widget class is designed with a couple of principles in mind:
         widget class.
         Obviously you can still use all the available properties to do that, so
         that your representation properly reflects the widget's current state.
-        Every widget has its own :class:`~kivy.graphics.Canvas` that you can use
-        to draw. This separation allows Kivy to run your application in a very
-        efficient manner.
+        Every widget has its own :class:`~kivy.graphics.Canvas` that you
+        can use to draw. This separation allows Kivy to run your
+        application in a very efficient manner.
 
     Bounding Box / Collision
         Often you want to know if a certain point is within the bounds of your
@@ -62,7 +62,7 @@ When you read the documentation, all properties are described in the format::
 
 e.g.
 
-    :data:`~kivy.uix.label.Label.text` is a
+    :attr:`~kivy.uix.label.Label.text` is a
     :class:`~kivy.properties.StringProperty` and defaults to ''.
 
 If you want to be notified when the pos attribute changes, i.e. when the
@@ -74,7 +74,124 @@ widget moves, you can bind your own callback function like this::
     wid = Widget()
     wid.bind(pos=callback_pos)
 
-Read more about the :doc:`/api-kivy.properties`.
+Read more about :doc:`/api-kivy.properties`.
+
+Basic drawing
+-------------
+
+Widgets support a range of drawing instructions that you can use to customize
+the look of your widgets and layouts. For example, to draw a background image
+for your widget, you can do the following::
+
+    def redraw(self, args):
+        with self.canvas:
+            Rectangle(source="cover.jpg", pos=self.pos, size=self.size)
+
+    widget = Widget()
+    widget.bind(pos=redraw, size=redraw)
+
+.. highlight:: kv
+
+To draw a background in kv::
+
+    Widget:
+        canvas:
+            Rectangle:
+                source: "cover.jpg"
+                size: self.size
+                pos: self.pos
+
+These examples only scratch the surface. Please see the :mod:`kivy.graphics`
+documentation for more information.
+
+Widget event bubbling
+---------------------
+
+When you use the Kivy property changes to catch events, you sometimes
+need to be aware of the order in which these events are propogated. In Kivy,
+events bubble up from the most recently added widget and then backwards through
+it's children (from the most recently added back to the first child).
+
+In effect, this event model does not follow either of the conventional
+"bubble up" or "bubble down" approaches, but propogates events according to the
+natural order in which the widgets have been added. If you want to reverse this
+order, you can raise events in the children before the parent by using the
+`super` command. 
+
+Linguistically, this can be difficult to explain and sound complicated,
+but it's really quite simple. Lets look at an example. In our kv file::
+
+    <EventBubbler>:
+        Label:
+            text: '1'
+            on_touch_down: root.printme("label 1 on_touch_down")
+        Label:
+            text: '2'
+            on_touch_down: root.printme("label 2 on_touch_down")
+        BoxLayout:
+            on_touch_down: root.printme("BoxLayout on_touch_down")
+            Label:
+                text: '3'
+                on_touch_down: root.printme("label 3 on_touch_down")
+            Label:
+                text: '4'
+                on_touch_down: root.printme("label 4 on_touch_down")
+        MyBoxLayout:
+            # We use this class to demonsrate using 'super' to raise the child 
+            # events first
+            Label:
+                text: '5'
+                on_touch_down: root.printme("label 5 on_touch_down")
+            Label:
+                text: '6'
+                on_touch_down: root.printme("label 6 on_touch_down")
+
+.. highlight:: python
+
+In your Python file::
+
+    from kivy.app import App
+    from kivy.lang import Builder
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.properties import StringProperty
+
+
+    class EventBubbler(BoxLayout):
+
+        @staticmethod
+        def printme(msg):
+            print msg
+
+
+    class MyBoxLayout(BoxLayout):
+        def on_touch_down(self, touch):
+            print "Before super(MyBoxLayout, self).on_touch_down(touch)"
+            super(MyBoxLayout, self).on_touch_down(touch)
+            print "After super(MyBoxLayout, self).on_touch_down(touch)"
+
+
+    class BubbleApp(App):
+        def build(self):
+            return EventBubbler()
+
+    BubbleApp().run()
+
+This produces the following output::
+
+    >>> Before super(MyBoxLayout, self).on_touch_down(touch)
+    >>> label 6 on_touch_down
+    >>> label 5 on_touch_down
+    >>> After super(MyBoxLayout, self).on_touch_down(touch)
+    >>> BoxLayout on_touch_up
+    >>> label 4 on_touch_down
+    >>> label 3 on_touch_down
+    >>> label 2 on_touch_down
+    >>> label 1 on_touch_down
+
+This order is the same for the `on_touch_move` and `on_touch_up` events.
+Notice how using the `super` command raises the child events immediately
+when it is called. This approach gives you total control over the order in which
+Kivy's events are propogated.
 
 '''
 
@@ -113,7 +230,8 @@ class WidgetException(Exception):
 
 
 class WidgetMetaclass(type):
-    '''Metaclass to auto register new widget into :class:`~kivy.factory.Factory`
+    '''Metaclass to auto register new widget into
+    :class:`~kivy.factory.Factory`
 
     .. warning::
         This metaclass is used for Widget. Don't use it directly !
@@ -144,8 +262,8 @@ class Widget(WidgetBase):
         when contructing a simple class without subclassing :class:`Widget`.
 
     .. versionchanged:: 1.5.0
-        Constructor now accept on_* arguments to automatically bind callbacks to
-        properties or events, as the Kv language.
+        The constructor now accepts on_* arguments to automatically bind
+        callbacks to properties or events, as in the Kv language.
     '''
 
     __metaclass__ = WidgetMetaclass
@@ -270,7 +388,9 @@ class Widget(WidgetBase):
 
         :Parameters:
             `touch`: :class:`~kivy.input.motionevent.MotionEvent` class
-                Touch received
+                Touch received. The touch is in parent coordinates. See
+                :mod:`~kivy.uix.relativelayout` for a discussion on
+                coordinate systems.
 
         :Returns:
             bool. If True, the dispatching of the touch event will stop.
@@ -282,7 +402,7 @@ class Widget(WidgetBase):
                 return True
 
     def on_touch_move(self, touch):
-        '''Receive a touch move event.
+        '''Receive a touch move event. The touch is in parent coordinates.
 
         See :meth:`on_touch_down` for more information.
         '''
@@ -293,7 +413,7 @@ class Widget(WidgetBase):
                 return True
 
     def on_touch_up(self, touch):
-        '''Receive a touch up event.
+        '''Receive a touch up event. The touch is in parent coordinates.
 
         See :meth:`on_touch_down` for more information.
         '''
@@ -317,13 +437,17 @@ class Widget(WidgetBase):
             `widget`: :class:`Widget`
                 Widget to add to our list of children.
             `index`: int, defaults to 0
-                *(this attribute was added in 1.0.5)*
                 Index to insert the widget in the list
 
+                .. versionadded:: 1.0.5
+
+        >>> from kivy.uix.button import Button
+        >>> from kivy.uix.slider import Slider
         >>> root = Widget()
         >>> root.add_widget(Button())
         >>> slider = Slider()
         >>> root.add_widget(slider)
+
         '''
         if not isinstance(widget, Widget):
             raise WidgetException(
@@ -336,7 +460,7 @@ class Widget(WidgetBase):
         # check if widget is already a child of another widget
         if parent:
             raise WidgetException('Cannot add %r, it already has a parent %r'
-                % (widget, parent))
+                                  % (widget, parent))
         widget.parent = parent = self
         # child will be disabled if added to a disabled parent
         if parent.disabled:
@@ -372,6 +496,7 @@ class Widget(WidgetBase):
             `widget`: :class:`Widget`
                 Widget to remove from our children list.
 
+        >>> from kivy.uix.button import Button
         >>> root = Widget()
         >>> button = Button()
         >>> root.add_widget(button)
@@ -379,7 +504,6 @@ class Widget(WidgetBase):
         '''
         if widget not in self.children:
             return
-        parent = widget.parent
         self.children.remove(widget)
         self.canvas.remove(widget.canvas)
         widget.parent = None
@@ -388,7 +512,6 @@ class Widget(WidgetBase):
         '''Remove all widgets added to this widget.
 
         .. versionchanged:: 1.8.0
-
             `children` argument can be used to select the children we want to
             remove. It should be a list of children (or filtered list) of the
             current widget.
@@ -424,22 +547,27 @@ class Widget(WidgetBase):
 
     def to_widget(self, x, y, relative=False):
         '''Convert the given coordinate from window to local widget
-        coordinates.
+        coordinates. See :mod:`~kivy.uix.relativelayout` for details on the
+        coordinate systems.
         '''
         if self.parent:
             x, y = self.parent.to_widget(x, y)
         return self.to_local(x, y, relative=relative)
 
     def to_window(self, x, y, initial=True, relative=False):
-        '''Transform local coordinates to window coordinates.'''
+        '''Transform local coordinates to window coordinates. See
+        :mod:`~kivy.uix.relativelayout` for details on the coordinate systems.
+        '''
         if not initial:
             x, y = self.to_parent(x, y, relative=relative)
         if self.parent:
-            return self.parent.to_window(x, y, initial=False, relative=relative)
+            return self.parent.to_window(x, y, initial=False,
+                                         relative=relative)
         return (x, y)
 
     def to_parent(self, x, y, relative=False):
-        '''Transform local coordinates to parent coordinates.
+        '''Transform local coordinates to parent coordinates. See
+        :mod:`~kivy.uix.relativelayout` for details on the coordinate systems.
 
         :Parameters:
             `relative`: bool, defaults to False
@@ -451,7 +579,8 @@ class Widget(WidgetBase):
         return (x, y)
 
     def to_local(self, x, y, relative=False):
-        '''Transform parent coordinates to local coordinates.
+        '''Transform parent coordinates to local coordinates. See
+        :mod:`~kivy.uix.relativelayout` for details on the coordinate systems.
 
         :Parameters:
             `relative`: bool, defaults to False
@@ -465,21 +594,21 @@ class Widget(WidgetBase):
     x = NumericProperty(0)
     '''X position of the widget.
 
-    :data:`x` is a :class:`~kivy.properties.NumericProperty` and defaults to 0.
+    :attr:`x` is a :class:`~kivy.properties.NumericProperty` and defaults to 0.
     '''
 
     y = NumericProperty(0)
     '''Y position of the widget.
 
-    :data:`y` is a :class:`~kivy.properties.NumericProperty` and defaults to 0.
+    :attr:`y` is a :class:`~kivy.properties.NumericProperty` and defaults to 0.
     '''
 
     width = NumericProperty(100)
     '''Width of the widget.
 
-    :data:`width` is a :class:`~kivy.properties.NumericProperty` ans defaults
+    :attr:`width` is a :class:`~kivy.properties.NumericProperty` ans defaults
     to 100.
-    
+
     .. warning::
         Keep in mind that the `width` property is subject to layout logic and
         that this has not yet happened at the time of the widget's `__init__`
@@ -489,7 +618,7 @@ class Widget(WidgetBase):
     height = NumericProperty(100)
     '''Height of the widget.
 
-    :data:`height` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`height` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 100.
 
     .. warning::
@@ -501,15 +630,15 @@ class Widget(WidgetBase):
     pos = ReferenceListProperty(x, y)
     '''Position of the widget.
 
-    :data:`pos` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`x`, :data:`y`) properties.
+    :attr:`pos` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:attr:`x`, :attr:`y`) properties.
     '''
 
     size = ReferenceListProperty(width, height)
     '''Size of the widget.
 
-    :data:`size` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`width`, :data:`height`) properties.
+    :attr:`size` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:attr:`width`, :attr:`height`) properties.
     '''
 
     def get_right(self):
@@ -521,8 +650,8 @@ class Widget(WidgetBase):
     right = AliasProperty(get_right, set_right, bind=('x', 'width'))
     '''Right position of the widget.
 
-    :data:`right` is an :class:`~kivy.properties.AliasProperty` of
-    (:data:`x` + :data:`width`),
+    :attr:`right` is an :class:`~kivy.properties.AliasProperty` of
+    (:attr:`x` + :attr:`width`),
     '''
 
     def get_top(self):
@@ -534,8 +663,8 @@ class Widget(WidgetBase):
     top = AliasProperty(get_top, set_top, bind=('y', 'height'))
     '''Top position of the widget.
 
-    :data:`top` is an :class:`~kivy.properties.AliasProperty` of
-    (:data:`y` + :data:`height`),
+    :attr:`top` is an :class:`~kivy.properties.AliasProperty` of
+    (:attr:`y` + :attr:`height`),
     '''
 
     def get_center_x(self):
@@ -546,8 +675,8 @@ class Widget(WidgetBase):
     center_x = AliasProperty(get_center_x, set_center_x, bind=('x', 'width'))
     '''X center position of the widget.
 
-    :data:`center_x` is an :class:`~kivy.properties.AliasProperty` of
-    (:data:`x` + :data:`width` / 2.),
+    :attr:`center_x` is an :class:`~kivy.properties.AliasProperty` of
+    (:attr:`x` + :attr:`width` / 2.),
     '''
 
     def get_center_y(self):
@@ -558,15 +687,15 @@ class Widget(WidgetBase):
     center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'height'))
     '''Y center position of the widget.
 
-    :data:`center_y` is an :class:`~kivy.properties.AliasProperty` of
-    (:data:`y` + :data:`height` / 2.)
+    :attr:`center_y` is an :class:`~kivy.properties.AliasProperty` of
+    (:attr:`y` + :attr:`height` / 2.)
     '''
 
     center = ReferenceListProperty(center_x, center_y)
     '''Center position of the widget.
 
-    :data:`center` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`center_x`, :data:`center_y`)
+    :attr:`center` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:attr:`center_x`, :attr:`center_y`)
     '''
 
     cls = ListProperty([])
@@ -576,19 +705,19 @@ class Widget(WidgetBase):
     id = StringProperty(None, allownone=True)
     '''Unique identifier of the widget in the tree.
 
-    :data:`id` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`id` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
 
     .. warning::
 
-        If the :data:`id` is already used in the tree, an exception will
+        If the :attr:`id` is already used in the tree, an exception will
         be raised.
     '''
 
     children = ListProperty([])
     '''List of children of this widget.
 
-    :data:`children` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`children` is a :class:`~kivy.properties.ListProperty` and
     defaults to an empty list.
 
     Use :meth:`add_widget` and :meth:`remove_widget` for manipulating the
@@ -599,7 +728,7 @@ class Widget(WidgetBase):
     parent = ObjectProperty(None, allownone=True)
     '''Parent of this widget.
 
-    :data:`parent` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`parent` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
 
     The parent of a widget is set when the widget is added to another widget
@@ -615,34 +744,35 @@ class Widget(WidgetBase):
     The value is in percent as a float from 0. to 1., where 1. means the full
     size of his parent. 0.5 represents 50%.
 
-    :data:`size_hint_x` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`size_hint_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
     '''
 
     size_hint_y = NumericProperty(1, allownone=True)
     '''Y size hint.
 
-    :data:`size_hint_y` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`size_hint_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
 
-    See :data:`size_hint_x` for more information
+    See :attr:`size_hint_x` for more information
     '''
 
     size_hint = ReferenceListProperty(size_hint_x, size_hint_y)
     '''Size hint.
 
-    :data:`size_hint` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`size_hint_x`, :data:`size_hint_y`).
+    :attr:`size_hint` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:attr:`size_hint_x`, :attr:`size_hint_y`).
 
-    See :data:`size_hint_x` for more information
+    See :attr:`size_hint_x` for more information
     '''
 
     pos_hint = ObjectProperty({})
-    '''Position hint. This property allows you to set the position of the widget
-    inside its parent layout, in percent (similar to size_hint).
+    '''Position hint. This property allows you to set the position of
+    the widget inside its parent layout, in percent (similar to
+    size_hint).
 
-    For example, if you want to set the top of the widget to be at 90% height of
-    its parent layout, you can write:
+    For example, if you want to set the top of the widget to be at 90%
+    height of its parent layout, you can write:
 
         widget = Widget(pos_hint={'top': 0.9})
 
@@ -651,11 +781,12 @@ class Widget(WidgetBase):
 
     See :doc:`api-kivy.uix.floatlayout` for further reference.
 
-    Position hint is only used by the :class:`~kivy.uix.floatlayout.FloatLayout`
-    and :class:`~kivy.core.window.Window`.
+    Position hint is only used by the
+    :class:`~kivy.uix.floatlayout.FloatLayout` and
+    :class:`~kivy.core.window.Window`.
 
-    :data:`pos_hint` is an :class:`~kivy.properties.ObjectProperty` containing a
-    dict.
+    :attr:`pos_hint` is an :class:`~kivy.properties.ObjectProperty`
+    containing a dict.
     '''
 
     ids = DictProperty({})
@@ -664,7 +795,7 @@ class Widget(WidgetBase):
 
     .. versionadded:: 1.7.0
 
-    :data:`ids` is a :class:`~kivy.properties.DictProperty` and defaults to a
+    :attr:`ids` is a :class:`~kivy.properties.DictProperty` and defaults to a
     empty dict {}.
     '''
 
@@ -685,7 +816,7 @@ class Widget(WidgetBase):
 
         frag_color = color * vec4(1.0, 1.0, 1.0, opacity);
 
-    :data:`opacity` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`opacity` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.0.
     '''
 
@@ -720,6 +851,6 @@ class Widget(WidgetBase):
 
     .. versionadded:: 1.8.0
 
-    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''

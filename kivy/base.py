@@ -1,7 +1,14 @@
 # pylint: disable=W0611
 '''
+Kivy Base
+=========
+
+This module contains core Kivy functionality and is not intended for end users.
+Feel free to look though it, but calling any of these methods directly may well
+result in unpredicatable behavior.
+
 Event loop management
-=====================
+---------------------
 
 '''
 
@@ -27,7 +34,7 @@ from kivy.context import register_context
 EventLoop = None
 
 
-class ExceptionHandler:
+class ExceptionHandler(object):
     '''Base handler that catches exceptions in :func:`runTouchApp`.
     You can subclass and extend it as follows::
 
@@ -45,7 +52,9 @@ class ExceptionHandler:
         pass
 
     def handle_exception(self, exception):
-        '''Handle one exception, defaults to returning ExceptionManager.STOP.'''
+        '''Handle one exception, defaults to returning
+        ExceptionManager.STOP.
+        '''
         return ExceptionManager.RAISE
 
 
@@ -83,8 +92,8 @@ ExceptionManager = register_context('ExceptionManager', ExceptionManagerBase)
 
 
 class EventLoopBase(EventDispatcher):
-    '''Main event loop. This loop handles the updating of input 
-    and dispatching events.
+    '''Main event loop. This loop handles the updating of input and
+    dispatching events.
     '''
 
     __events__ = ('on_start', 'on_pause', 'on_stop')
@@ -110,7 +119,7 @@ class EventLoopBase(EventDispatcher):
     def ensure_window(self):
         '''Ensure that we have a window.
         '''
-        import kivy.core.window
+        import kivy.core.window  # NOQA
         if not self.window:
             Logger.critical('App: Unable to get a Window, abort.')
             sys.exit(1)
@@ -166,10 +175,10 @@ class EventLoopBase(EventDispatcher):
         '''Stop all input providers and call callbacks registered using
         EventLoop.add_stop_callback().'''
 
-        # XXX stop in reverse order that we started them!! (like push pop), very
-        # important because e.g. wm_touch and WM_PEN both store old window proc
-        # and the restore, if order is messed big problem happens, crashing
-        # badly without error
+        # XXX stop in reverse order that we started them!! (like push
+        # pop), very important because e.g. wm_touch and WM_PEN both
+        # store old window proc and the restore, if order is messed big
+        # problem happens, crashing badly without error
         for provider in reversed(self.input_providers[:]):
             provider.stop()
             if provider in self.input_providers_autoremove:
@@ -301,7 +310,7 @@ class EventLoopBase(EventDispatcher):
 
     def idle(self):
         '''This function is called after every frame. By default:
-        
+
            * it "ticks" the clock to the next frame.
            * it reads all input and dispatches events.
            * it dispatches `on_update`, `on_draw` and `on_flip` events to the

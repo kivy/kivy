@@ -60,7 +60,6 @@ property, here is a possible implementation in Python::
     class MyClass(object):
         def __init__(self, a=1):
             super(MyClass, self).__init__()
-            self._a = 0
             self.a_min = 0
             self.a_max = 100
             self.a = a
@@ -158,6 +157,29 @@ If you created the class yourself, you can use the 'on_<propname>' callback::
     property you are inheriting, you must not forget to call the superclass
     function too.
 
+Binding to properties of properties.
+------------------------------------
+
+When binding to a property of a property, for example binding to a numeric
+property of an object saved in a object property, updating the object property
+to point to a new object will not re-bind the numeric property to the
+new object. For example::
+
+    <MyWidget>:
+        Label:
+            id: first
+            text: 'First label'
+        Label:
+            id: second
+            text: 'Second label'
+        Button:
+            label: first
+            text: self.label.text
+            on_press: self.label = second
+
+When clicking on the button, although the label object property has changed
+to the second widget, the button text will not change because it is bound to
+the text property of the first label directly.
 '''
 
 __all__ = ('Property',
@@ -232,7 +254,7 @@ cdef class Property:
         a.hello = None # working too, because allownone is True.
 
     :Parameters:
-        `default`: 
+        `default`:
             Specifies the default value for the property.
         `\*\*kwargs`:
             If the parameters include `errorhandler`, this should be a callable
@@ -292,8 +314,8 @@ cdef class Property:
                 uid = NumericProperty(0)
 
         In this example, the uid will be a NumericProperty() instance, but the
-        property instance doesn't know its name. That's why :func:`link` is
-        used in Widget.__new__. The link function is also used to create the
+        property instance doesn't know its name. That's why :meth:`link` is
+        used in `Widget.__new__`. The link function is also used to create the
         storage space of the property for this specific widget instance.
         '''
         cdef PropertyStorage d = PropertyStorage()
@@ -664,8 +686,9 @@ class ObservableDict(dict):
         return result
 
     def setdefault(self, *largs):
-        dict.setdefault(self, *largs)
+        cdef object result = dict.setdefault(self, *largs)
         observable_dict_dispatch(self)
+        return result
 
     def update(self, *largs):
         dict.update(self, *largs)
@@ -857,7 +880,7 @@ cdef class BoundedNumericProperty(Property):
     def set_max(self, EventDispatcher obj, value):
         '''Change the maximum value acceptable for the BoundedNumericProperty,
         only for the `obj` instance. Set to None if you want to disable it.
-        Check :data:`set_min` for a usage example.
+        Check :attr:`set_min` for a usage example.
 
         .. warning::
 
@@ -878,7 +901,7 @@ cdef class BoundedNumericProperty(Property):
     def get_max(self, EventDispatcher obj):
         '''Return the maximum value acceptable for the BoundedNumericProperty
         in `obj`. Return None if no maximum value is set. Check
-        :data:`get_min` for a usage example.
+        :attr:`get_min` for a usage example.
 
         .. versionadded:: 1.1.0
         '''
@@ -1200,12 +1223,12 @@ cdef class AliasProperty(Property):
 cdef class VariableListProperty(Property):
     '''A ListProperty that allows you to work with a variable amount of
     list items and to expand them to the desired list size.
-    
+
     For example, GridLayout's padding used to just accept one numeric value
     which was applied equally to the left, top, right and bottom of the
     GridLayout. Now padding can be given one, two or four values, which are
     expanded into a length four list [left, top, right, bottom] and stored
-    in the property.    
+    in the property.
 
     :Parameters:
         `default`: a default list of values
@@ -1215,7 +1238,7 @@ cdef class VariableListProperty(Property):
             be expanded to match a list of this length.
         `\*\*kwargs`: a list of keyword arguments
             Not currently used.
-    
+
     Keeping in mind that the `default` list is expanded to a list of length 4,
     here are some examples of how VariabelListProperty's are handled.
 
