@@ -416,6 +416,8 @@ class ShaderTransition(TransitionBase):
     clearcolor = ListProperty([0, 0, 0, 1])
     '''Sets the color of Fbo ClearColor. 
 
+    .. versionadded:: 1.8.1
+
     :attr:`clearcolor` is a :class:`~kivy.properties.ListProperty`
     and defaults to [0, 0, 0, 1].'''
 
