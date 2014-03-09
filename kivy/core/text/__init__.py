@@ -273,7 +273,13 @@ class LabelBase(object):
                     for i in range(n):
                         idx = (2 * i + 1) % (len(words) - 1)
                         words[idx] = words[idx] + space
-                    line = ''.join(words)
+                    if contentw - n * sw - lw > 0:  # less than single space
+                        # render the last word at the edge
+                        render_text(words[-1], x + contentw -
+                                    get_extents(words[-1])[0], y)
+                        line = ''.join(words[:-2])
+                    else:
+                        line = ''.join(words)
 
             if len(line):
                 render_text(line, x, y)
