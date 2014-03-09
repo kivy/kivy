@@ -16,7 +16,7 @@ from kivy.core import core_select_lib
 from kivy.clock import Clock
 from kivy.config import Config
 from kivy.logger import Logger
-from kivy.base import EventLoop
+from kivy.base import EventLoop, stopTouchApp
 from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
@@ -299,7 +299,7 @@ class WindowBase(EventDispatcher):
     '''Color used to clear the window.
 
     ::
-    
+
         from kivy.core.window import Window
 
         # red background color
@@ -786,6 +786,22 @@ class WindowBase(EventDispatcher):
                            "codepoint instead, which has identical "
                            "semantics.")
 
+        # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
+        # TODO If just CMD+w is pressed, only the window should be closed.
+        is_osx = platform == 'darwin'
+        if self.on_keyboard.exit_on_escape:
+            if key == 27 or all([is_osx, key in [113, 119], modifier == 1024]):
+                stopTouchApp()
+                self.close()
+                return True
+    if Config:
+        on_keyboard.exit_on_escape = Config.get('kivy', 'exit_on_escape')
+
+        def __exit(section, name, value):
+            WindowBase.on_keyboard.exit_on_escape = value
+
+        Config.add_callback(__exit, 'kivy', 'exit_on_escape')
+
     def on_key_down(self, key, scancode=None, codepoint=None,
                     modifier=None, **kwargs):
         '''Event called when a key is down (same arguments as on_keyboard)'''
@@ -913,7 +929,7 @@ class WindowBase(EventDispatcher):
         '''.. versionadded:: 1.0.4
 
         Internal widget method to request the keyboard. This method is rarely
-        required by the end-user as it is handled automatically by the 
+        required by the end-user as it is handled automatically by the
         :class:`~kivy.uix.textinput.TextInput`. We expose it in case you want
         to handle the keyboard manually for unique input scenarios.
 
@@ -946,7 +962,7 @@ class WindowBase(EventDispatcher):
         :Return:
             An instance of :class:`Keyboard` containing the callback, target,
             and if the configuration allows it, a
-            :class:`~kivy.uix.vkeyboard.VKeyboard` instance attached as a 
+            :class:`~kivy.uix.vkeyboard.VKeyboard` instance attached as a
             *.widget* property.
 
         '''
