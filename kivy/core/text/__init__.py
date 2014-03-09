@@ -341,10 +341,13 @@ class LabelBase(object):
             if (options['shorten'] and get_extents(text)[0] > uw):
                 text = self.shorten(text)
                 lw, lh = get_extents(text)
-                lw += 2 * xpad
-                lh += 2 * ypad
-                self._cached_lines = [(text, (lw, lh), True)] if text else []
-                return lw, lh  # there's only one line, so we're done.
+                self._cached_lines = [(text, (lw + 2 * xpad, lh + 2 * ypad),
+                                       True)] if text else []
+                self._internal_width = uw + xpad * 2
+                self._internal_height = lh + 2 * ypad
+                # height must always be the requested size, if specified
+                h = self._internal_height if uh is None else lh + 2 * ypad
+                return self._internal_width, h
 
             lines = []
             h = 0
