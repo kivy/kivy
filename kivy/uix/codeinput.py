@@ -187,7 +187,7 @@ if __name__ == '__main__':
     class CodeInputTest(App):
         def build(self):
             return CodeInput(lexer=KivyLexer(),
-                             font_name='data/fonts/DroidSansMono.ttf',
+                             font_name='data/fonts/DejaVuSansMono.ttf',
                              font_size=12,
                              text='''
 #:kivy 1.0

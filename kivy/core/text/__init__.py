@@ -23,7 +23,9 @@ from kivy.core import core_select_lib
 from kivy.resources import resource_find
 from kivy.compat import PY2
 
-DEFAULT_FONT = 'DroidSans'
+from kivy.core.text.rtl_reshape import rtl_reshape
+
+DEFAULT_FONT = 'DejaVuSans'
 
 FONT_REGULAR = 0
 FONT_ITALIC = 1
@@ -501,20 +503,17 @@ class LabelBase(object):
     def _get_text(self):
         if PY2:
             try:
-                if type(self._text) is unicode:
-                    return self._text
-                return self._text.decode('utf8')
+                return rtl_reshape(self._text)
             except AttributeError:
                 # python 3 support
                 return str(self._text)
             except UnicodeDecodeError:
                 return self._text
         else:
-            return self._text
+            return rtl_reshape(self._text)
 
     def _set_text(self, text):
-        if text != self._text:
-            self._text = text
+        self._text = text
 
     text = property(_get_text, _set_text, doc='Get/Set the text')
     label = property(_get_text, _set_text, doc='Get/Set the text')
@@ -596,8 +595,10 @@ if 'KIVY_DOC' not in os.environ:
         sys.exit(1)
 
 # For the first initalization, register the default font
-    Label.register('DroidSans',
-                   'data/fonts/DroidSans.ttf',
-                   'data/fonts/DroidSans-Italic.ttf',
-                   'data/fonts/DroidSans-Bold.ttf',
-                   'data/fonts/DroidSans-BoldItalic.ttf')
+    Label.register('DejaVuSans',
+        'data/fonts/DejaVuSans.ttf')
+#    Label.register('DroidSans',
+#                   'data/fonts/DroidSans.ttf',
+#                   'data/fonts/DroidSans-Italic.ttf',
+#                   'data/fonts/DroidSans-Bold.ttf',
+#                   'data/fonts/DroidSans-BoldItalic.ttf')
