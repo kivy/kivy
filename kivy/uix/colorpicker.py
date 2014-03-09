@@ -75,7 +75,6 @@ class ColorWheel(Widget):
     '''Chromatic wheel for the ColorPicker.
 
     .. versionchanged:: 1.7.1
-
         `font_size`, `font_name` and `foreground_color` have been removed. The
         sizing is now the same as others widget, based on 'sp'. Orientation is
         also automatically determined according to the width/height ratio.

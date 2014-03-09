@@ -8,6 +8,17 @@ SPHINXOPTS    = -W
 SPHINXBUILD   = sphinx-build
 PAPER         =
 
+# platform indepnt path separator
+# only system calls need to use $(P), b/c on win system calls have issues with /
+ifdef ComSpec
+	PATHSEP2=\\
+	MKDIR=mkdir
+else
+	PATHSEP2=/
+	MKDIR=mkdir -p
+endif
+P=$(strip $(PATHSEP2))
+
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
@@ -26,17 +37,22 @@ help:
 	@echo "  linkcheck to check all external links for integrity"
 
 clean:
+# windows just doesn't support e.g. build\*
+ifdef ComSpec
+	-rmdir /s /q build
+else
 	-rm -rf build/*
+endif
 
 html:
-	mkdir -p build/html build/doctrees
+	$(MKDIR) build$(P)html build$(P)doctrees
 	$(PYTHON) autobuild.py
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."
 
 gettext:
-	mkdir -p build/html build/doctrees_gettext
+	$(MKDIR) build$(P)html build$(P)doctrees_gettext
 	$(PYTHON) autobuild.py
 	$(SPHINXBUILD) -b gettext $(ALLSPHINXOPTSGT) build/gettext
 	@echo
@@ -44,7 +60,7 @@ gettext:
 
 
 pickle:
-	mkdir -p build/pickle build/doctrees
+	$(MKDIR) build$(P)pickle build$(P)doctrees
 	$(PYTHON) autobuild.py
 	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) build/pickle
 	@echo
@@ -55,7 +71,7 @@ pickle:
 web: pickle
 
 htmlhelp:
-	mkdir -p build/htmlhelp build/doctrees
+	$(MKDIR) build$(P)htmlhelp build$(P)doctrees
 	$(PYTHON) autobuild.py
 	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) build/htmlhelp
 	@echo
@@ -63,7 +79,7 @@ htmlhelp:
 	      ".hhp project file in build/htmlhelp."
 
 latex:
-	mkdir -p build/latex build/doctrees
+	$(MKDIR) build$(P)latex build$(P)doctrees
 	$(PYTHON) autobuild.py
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) build/latex
 	@echo
@@ -72,14 +88,14 @@ latex:
 	      "run these through (pdf)latex."
 
 changes:
-	mkdir -p build/changes build/doctrees
+	$(MKDIR) build$(P)changes build$(P)doctrees
 	$(PYTHON) autobuild.py
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) build/changes
 	@echo
 	@echo "The overview file is in build/changes."
 
 linkcheck:
-	mkdir -p build/linkcheck build/doctrees
+	$(MKDIR) build$(P)linkcheck build$(P)doctrees
 	$(PYTHON) autobuild.py
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) build/linkcheck
 	@echo

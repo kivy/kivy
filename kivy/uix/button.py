@@ -44,7 +44,6 @@ class Button(ButtonBehavior, Label):
     '''Button class, see module documentation for more information.
 
     .. versionchanged:: 1.8.0
-
         The behavior / logic of the button has been moved to
         :class:`~kivy.uix.behaviors.ButtonBehaviors`.
 

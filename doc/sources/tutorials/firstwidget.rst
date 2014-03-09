@@ -29,7 +29,7 @@ so that you can later draw lines between those positions. So the points
 where the fingers were would be your *data* and the lines that you draw
 between them would be your *visual representation*.
 
-In Kivy, an applications user interface is composed of Widgets. Everything
+In Kivy, an application's user interface is composed of Widgets. Everything
 that you see on the screen is somehow drawn by a widget. Often you would
 like to be able to reuse code that you already wrote in a different
 context, which is why widgets typically represent one specific instance

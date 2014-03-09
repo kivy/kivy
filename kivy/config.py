@@ -26,7 +26,6 @@ Change the configuration and save it::
     >>> Config.write()
 
 .. versionchanged:: 1.7.1
-
     The ConfigParser should work correctly with utf-8 now. The values are
     converted from ascii to unicode only when needed. The method get() returns
     utf-8 strings.
@@ -209,7 +208,7 @@ Available configuration tokens
     `resizable` has been added to graphics section.
 
 .. versionchanged:: 1.1.0
-    tuio is not listening by default anymore. Window icons are not copied to
+    tuio no longer listens by default. Window icons are not copied to
     user directory anymore. You can still set a new window icon by using the
     ``window_icon`` config setting.
 

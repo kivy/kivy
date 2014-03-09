@@ -50,9 +50,10 @@ The JSON must be structured like this::
         ...
     }
 
-Then, you need to describe the keys in each row, for either a "normal"
-mode or a "shift" mode. Keys for this row data must be named
-`normal_<row>` and `shift_<row>`. Replace `row` with the row number.
+Then, you need to describe the keys in each row, for either a "normal",
+"shift" or a "special" (added in version 1.8.1) mode. Keys for this row data must be named
+`normal_<row>`, `shift_<row>` and `special_<row>`.
+Replace `row` with the row number.
 Inside each row, you will describe the key. A key is a 4 element list in
 the format::
 
@@ -80,6 +81,7 @@ Finally, complete the JSON::
 
         "shift_1": [ ... ],
         "normal_2": [ ... ],
+        "special_2": [ ... ],
         ...
     }
 
@@ -166,7 +168,6 @@ class VKeyboard(Scatter):
     in `[kivy]` section.
 
     .. versionchanged:: 1.8.0
-
         If layout is a .json filename, it will loaded and added to the
         available_layouts.
 
@@ -311,13 +312,15 @@ class VKeyboard(Scatter):
     '''
 
     # XXX internal variables
-    layout_mode = OptionProperty('normal', options=('normal', 'shift'))
+    layout_mode = OptionProperty('normal', options=('normal', 'shift', 'special'))
     layout_geometry = DictProperty({})
     have_capslock = BooleanProperty(False)
     have_shift = BooleanProperty(False)
+    have_special = BooleanProperty(False)
     active_keys = DictProperty({})
     font_size = NumericProperty('20dp')
     font_name = StringProperty('data/fonts/DejaVuSans.ttf')
+    repeat_touch = ObjectProperty(allownone=True)
 
     __events__ = ('on_key_down', 'on_key_up')
 
@@ -338,6 +341,7 @@ class VKeyboard(Scatter):
             docked=self.setup_mode,
             have_shift=self._trigger_update_layout_mode,
             have_capslock=self._trigger_update_layout_mode,
+            have_special=self._trigger_update_layout_mode,
             layout_path=self._trigger_load_layouts,
             layout=self._trigger_load_layout)
         super(VKeyboard, self).__init__(**kwargs)
@@ -365,10 +369,6 @@ class VKeyboard(Scatter):
             self.background_key_layer = Canvas()
             self.active_keys_layer = Canvas()
 
-        # prepare layout widget
-        self.refresh_keys_hint()
-        self.refresh_keys()
-
     def on_disabled(self, intance, value):
         self.refresh_keys()
 
@@ -376,6 +376,8 @@ class VKeyboard(Scatter):
         # update mode according to capslock and shift key
         mode = self.have_capslock != self.have_shift
         mode = 'shift' if mode else 'normal'
+        if self.have_special:
+            mode = "special"
         if mode != self.layout_mode:
             self.layout_mode = mode
             self.refresh(False)
@@ -727,11 +729,17 @@ class VKeyboard(Scatter):
         # for caps lock or shift only:
         uid = touch.uid
         if special_char is not None:
+            # Do not repeat special keys
+            if special_char in ('capslock', 'shift', 'layout', 'special'):
+                Clock.unschedule(self._start_repeat_key)
+                self.repeat_touch = None
             if special_char == 'capslock':
                 self.have_capslock = not self.have_capslock
                 uid = -1
             elif special_char == 'shift':
                 self.have_shift = True
+            elif special_char == 'special':
+                self.have_special = True
             elif special_char == 'layout':
                 self.change_layout()
 
@@ -765,6 +773,8 @@ class VKeyboard(Scatter):
             self.active_keys.pop(uid, None)
             if special_char == 'shift':
                 self.have_shift = False
+            elif special_char == 'special':
+                self.have_special = False
             if special_char == 'capslock' and self.have_capslock:
                 self.active_keys[-1] = key
             self.refresh_active_keys_layer()
@@ -777,6 +787,12 @@ class VKeyboard(Scatter):
             ret.append('capslock')
         return ret
 
+    def _start_repeat_key(self, *kwargs):
+        Clock.schedule_interval(self._repeat_key, 0.05)
+
+    def _repeat_key(self, *kwargs):
+        self.process_key_on(self.repeat_touch)
+
     def on_touch_down(self, touch):
         x, y = touch.pos
         if not self.collide_point(x, y):
@@ -786,8 +802,13 @@ class VKeyboard(Scatter):
 
         x, y = self.to_local(x, y)
         if not self.collide_margin(x, y):
+            if self.repeat_touch is None:
+                Clock.schedule_once(self._start_repeat_key, 0.5)
+            self.repeat_touch = touch
+
             self.process_key_on(touch)
             touch.grab(self, exclusive=True)
+
         else:
             super(VKeyboard, self).on_touch_down(touch)
         return True
@@ -795,6 +816,12 @@ class VKeyboard(Scatter):
     def on_touch_up(self, touch):
         if touch.grab_current is self:
             self.process_key_up(touch)
+
+            Clock.unschedule(self._start_repeat_key)
+            if touch == self.repeat_touch:
+                Clock.unschedule(self._repeat_key)
+                self.repeat_touch = None
+
         return super(VKeyboard, self).on_touch_up(touch)
 
 

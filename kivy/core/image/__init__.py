@@ -700,9 +700,9 @@ class Image(EventDispatcher):
         .. versionadded:: 1.7.0
 
         .. versionchanged:: 1.8.0
-
             Parameter `flipped` added to flip the image before saving, default
             to False.
+
         '''
         pixels = None
         size = None

@@ -66,7 +66,6 @@ True from your callback. ::
 
 
 .. versionchanged:: 1.5.0
-
     The ModalView can be closed by hitting the escape key on the
     keyboard if the :attr:`ModalView.auto_dismiss` property is True (the
     default).

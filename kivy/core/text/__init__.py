@@ -71,16 +71,17 @@ class LabelBase(object):
         `mipmap` : bool, defaults to False
             Create a mipmap for the texture
 
-    .. versionchanged:: 1.8.0
+    .. versionchanged:: 1.8.1
+        `padding_x` and `padding_y` has been fixed to work as expected.
+        In the past, the text was padded by the negative of their values.
 
+    .. versionchanged:: 1.8.0
         `max_lines` parameters has been added.
 
     .. versionchanged:: 1.0.8
-
         `size` have been deprecated and replaced with `text_size`.
 
     .. versionchanged:: 1.0.7
-
         The `valign` is now respected. This wasn't the case previously
         so you might have an issue in your application if you have not
         considered this.
