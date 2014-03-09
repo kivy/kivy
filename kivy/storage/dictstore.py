@@ -7,7 +7,11 @@ Use a Python dictionary as a store.
 
 __all__ = ('DictStore', )
 
-import cPickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
 from os.path import exists
 from kivy.compat import iteritems
 from kivy.storage import AbstractStore
@@ -30,14 +34,14 @@ class DictStore(AbstractStore):
         with open(self.filename, 'r') as fd:
             data = fd.read()
             if data:
-                self._data = cPickle.loads(data)
+                self._data = pickle.loads(data)
 
     def store_sync(self):
         if not self._is_changed:
             return
 
         with open(self.filename, 'w') as fd:
-            cPickle.dump(self._data, fd)
+            pickle.dump(self._data, fd)
 
         self._is_changed = False
 
