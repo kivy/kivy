@@ -273,7 +273,13 @@ class LabelBase(object):
                     for i in range(n):
                         idx = (2 * i + 1) % (len(words) - 1)
                         words[idx] = words[idx] + space
-                    line = ''.join(words)
+                    if contentw - n * sw - lw > 0:  # less than single space
+                        # render the last word at the edge
+                        render_text(words[-1], x + contentw -
+                                    get_extents(words[-1])[0], y)
+                        line = ''.join(words[:-2])
+                    else:
+                        line = ''.join(words)
 
             if len(line):
                 render_text(line, x, y)
@@ -342,10 +348,13 @@ class LabelBase(object):
             if (options['shorten'] and get_extents(text)[0] > uw):
                 text = self.shorten(text)
                 lw, lh = get_extents(text)
-                lw += 2 * xpad
-                lh += 2 * ypad
-                self._cached_lines = [(text, (lw, lh), True)] if text else []
-                return lw, lh  # there's only one line, so we're done.
+                self._cached_lines = [(text, (lw + 2 * xpad, lh + 2 * ypad),
+                                       True)] if text else []
+                self._internal_width = uw + xpad * 2
+                self._internal_height = lh + 2 * ypad
+                # height must always be the requested size, if specified
+                h = self._internal_height if uh is None else lh + 2 * ypad
+                return self._internal_width, h
 
             lines = []
             h = 0
