@@ -30,6 +30,7 @@ from kivy.metrics import sp
 from kivy.base import EventLoop
 from kivy.logger import Logger
 from functools import partial
+from weakref import ref
 
 # When we are generating documentation, Config doesn't exist
 _scroll_timeout = _scroll_distance = 0
