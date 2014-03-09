@@ -378,7 +378,7 @@ class Label(Widget):
 
     :attr:`halign` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'left'. Available options are : left, center, right and
-    justified.
+    justify.
 
     .. warning::
 
