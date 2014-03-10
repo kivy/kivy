@@ -24,5 +24,5 @@ See how kivy has been extended with :mod:`extensions <kivy.ext>` support.
 
 Familiarize yourself with the :mod:`kivy framework <kivy>`.
 
-Kivy is open source, so you can **contribute**. Take a look at the :doc:`/contribute`
-section for guidelines.
+Kivy is open source, so you can **contribute**. Take a look at the
+:doc:`/contribute` section for guidelines.
