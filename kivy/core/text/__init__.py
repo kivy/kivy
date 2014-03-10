@@ -263,9 +263,10 @@ class LabelBase(object):
             # TODO implement a better method of stretching glyphs?
             just_space = 0
             if halign[-1] == 'y' and line and not is_last_line:
-                n = int((contentw - lw) / sw)  # number spaces needed to fill
+                # number spaces needed to fill, and remainder
+                n, rem = divmod(contentw - lw, sw)
                 words = None
-                if n:
+                if n or rem:
                     words = split(pat, line)  # there's no trailing space
                 if words is not None and len(words) > 1:
                     space = type(line)(' ')
@@ -273,7 +274,7 @@ class LabelBase(object):
                     for i in range(n):
                         idx = (2 * i + 1) % (len(words) - 1)
                         words[idx] = words[idx] + space
-                    if contentw - n * sw - lw > 0:  # less than single space
+                    if rem:
                         # render the last word at the edge
                         render_text(words[-1], x + contentw -
                                     get_extents(words[-1])[0], y)
