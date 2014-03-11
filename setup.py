@@ -64,7 +64,7 @@ if exists('/opt/vc/include/bcm_host.h'):
 #
 c_options = OrderedDict()
 c_options['use_rpi'] = platform == 'rpi'
-c_options['use_opengl_es2'] = True
+c_options['use_opengl_es2'] = None
 c_options['use_opengl_debug'] = False
 c_options['use_glew'] = False
 c_options['use_sdl'] = False
@@ -73,15 +73,6 @@ c_options['use_mesagl'] = False
 c_options['use_x11'] = False
 c_options['use_gstreamer'] = False
 c_options['use_avfoundation'] = platform == 'darwin'
-
-if environ.get('GRAPHICS') is not None:
-    print('\nForcing to use this graphics system: %s' %repr(environ.get('GRAPHICS')))
-    if   environ.get('GRAPHICS') == "GL":
-        c_options['use_opengl_es2'] = False
-    elif environ.get('GRAPHICS') == "GLES":
-        c_options['use_opengl_es2'] = True
-    else:
-        print("WARNING: Unknown graphics system choosen - using defaults!")
 
 # now check if environ is changing the default values
 for key in list(c_options.keys()):
@@ -186,20 +177,21 @@ elif platform == 'win32':
     print('Windows platform detected, force GLEW usage.')
     c_options['use_glew'] = True
 else:
-    if environ.get('GRAPHICS') is None:
+    if c_options['use_opengl_es2'] is None:
         # searching GLES headers
         default_header_dirs = ['/usr/include', '/usr/local/include']
-        found = False
         for hdir in default_header_dirs:
             filename = join(hdir, 'GLES2', 'gl2.h')
             if exists(filename):
-                found = True
-                print('Found GLES 2.0 headers at {0}'.format(filename))
+                c_options['use_opengl_es2'] = True
+                print('NOTE: Found GLES 2.0 headers at {0}'.format(filename))
                 break
-        if not found:
-            print('WARNING: GLES 2.0 headers are not found')
-            print('Fallback to Desktop opengl headers.')
+        if not c_options['use_opengl_es2']:
+            print('NOTE: Not found GLES 2.0 headers at: %s' % repr(default_header_dirs))
+            print('      Please contact us if your distribution uses an alternative path for the headers.')
             c_options['use_opengl_es2'] = False
+
+print('\nUsing this graphics system: %s' % ["OpenGL", "OpenGL ES"][environ.get('GRAPHICS')] )
 
 # check if we are in a kivy-ios build
 if platform == 'ios':
