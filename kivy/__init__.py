@@ -179,14 +179,6 @@ def kivy_usage():
     print(kivy_usage.__doc__ % (basename(sys.argv[0])))
 
 
-# Start !
-if 'vim' in globals():
-    Logger.setLevel(level=LOG_LEVELS.get('critical'))
-else:
-    Logger.setLevel(level=LOG_LEVELS.get('info'))
-    Logger.info('Kivy v%s' % (__version__))
-    Logger.info('Python: v{}'.format(sys.version))
-
 #: Global settings options for kivy
 kivy_options = {
     'window': ('egl_rpi', 'pygame', 'sdl', 'x11'),
@@ -280,7 +272,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     # Set level of logger
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
     Logger.setLevel(level=level)
-    Logger.setLevel(level=LOG_LEVELS.get('debug'))
 
     # Can be overrided in command line
     if 'KIVY_UNITTEST' not in environ and 'KIVY_PACKAGING' not in environ:
@@ -388,3 +379,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
     if platform == 'android':
         Config.set('input', 'androidtouch', 'android')
+
+Logger.info('Kivy v%s' % (__version__))
+Logger.info('Python: v{}'.format(sys.version))
+

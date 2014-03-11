@@ -14,8 +14,8 @@ from android.runnable import run_on_ui_thread
 AndroidString = autoclass('java.lang.String')
 PythonActivity = autoclass('org.renpy.android.PythonActivity')
 Context = autoclass('android.content.Context')
-ClipData = autoclass('android.content.ClipData')
-ClipDescription = autoclass('android.content.ClipDescription')
+VER = autoclass('android.os.Build$VERSION')
+sdk = VER.SDK_INT
 
 
 class ClipboardAndroid(ClipboardBase):
@@ -56,19 +56,29 @@ class ClipboardAndroid(ClipboardBase):
     @_get_clipboard
     def _get(self, mimetype='text/plain'):
         clippy = PythonActivity._clipboard
-        primary_clip = clippy.getPrimaryClip()
-        if primary_clip and clippy.getPrimaryClipDescription().hasMimeType(
-                ClipDescription.MIMETYPE_TEXT_PLAIN):
-            data = primary_clip.getItemAt(0).getText().toString()
+        if sdk < 11:
+            data = clippy.getText().toString()
         else:
-            # TODO: non text data types Not yet implemented
-            data = ''
+            ClipDescription = autoclass('android.content.ClipDescription')
+            primary_clip = clippy.getPrimaryClip()
+            if primary_clip and clippy.getPrimaryClipDescription().hasMimeType(
+                    ClipDescription.MIMETYPE_TEXT_PLAIN):
+                data = primary_clip.getItemAt(0).getText().toString()
+            else:
+                # TODO: non text data types Not yet implemented
+                data = ''
         return data
 
     @_get_clipboard
     def _set(self, data, mimetype):
         clippy = PythonActivity._clipboard
-        new_clip = ClipData.newPlainText(AndroidString(""),
+
+        if sdk < 11:
+            #versions previous to honeycomb
+            clippy.setText(AndroidString(data))
+        else:
+            ClipData = autoclass('android.content.ClipData')
+            new_clip = ClipData.newPlainText(AndroidString(""),
                                          AndroidString(data))
-        # put text data onto clipboard
-        clippy.setPrimaryClip(new_clip)
+            # put text data onto clipboard
+            clippy.setPrimaryClip(new_clip)
