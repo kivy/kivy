@@ -133,6 +133,7 @@ class LabelBase(object):
         self._internal_width = self._internal_height = 0
         self._cached_lines = []
         self._cached_text_size = self._cached_padding = (0, 0)
+        self._cached_options = {}
 
         self.options = options
         self.texture = None
@@ -239,7 +240,7 @@ class LabelBase(object):
             return type(text)('{0}...').format(text[:segment].strip())
 
     def _render_real(self):
-        options = self.options
+        options = self._cached_options
         render_text = self._render_text
         get_extents = self.get_extents
         uw, uh = self._cached_text_size
