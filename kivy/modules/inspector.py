@@ -372,6 +372,7 @@ class Inspector(FloatLayout):
 
     def animation_close(self, instance, value):
         if self.activated is False:
+            self.inspect_enabled = False
             self.win.remove_widget(self)
             self.content.clear_widgets()
             treeview = self.treeview
