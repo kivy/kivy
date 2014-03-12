@@ -91,6 +91,7 @@ cdef class ConfigParserProperty(Property):
     cdef object val_type
     cdef object verify
     cdef object obj
-    cdef object last_value
-    cpdef edit_setting(self, section, key, value)
-    cdef object parse_str(self, object value)
+    cdef object last_value  # last string config value
+    cdef object config_name
+    cpdef _edit_setting(self, section, key, value)
+    cdef inline object _parse_str(self, object value)
