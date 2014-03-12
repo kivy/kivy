@@ -5,7 +5,6 @@ Stencil instructions
 .. versionadded:: 1.0.4
 
 .. versionchanged:: 1.3.0
-
     The stencil operation has been updated to resolve some issues that appeared
     when nested. You **must** now have a StencilUnUse and repeat the same
     operation as you did after StencilPush.

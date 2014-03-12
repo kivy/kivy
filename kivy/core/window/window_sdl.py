@@ -22,11 +22,6 @@ from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from collections import deque
 
-# When we are generating documentation, Config doesn't exist
-_exit_on_escape = True
-if Config:
-    _exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
-
 
 class SDLMotionEvent(MotionEvent):
     def depack(self, args):
@@ -285,17 +280,6 @@ class WindowSDL(WindowBase):
     #
     def _pygame_update_modifiers(self, mods=None):
         return
-
-    def on_keyboard(self, key, scancode=None, str=None, modifier=None):
-        # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
-        # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = sys.platform == 'darwin'
-        if _exit_on_escape and (key == 27 or (is_osx and key in (113, 119) and
-                                              modifier == 1024)):
-            stopTouchApp()
-            self.close()  # not sure what to do here
-            return True
-        super(WindowSDL, self).on_keyboard(key, scancode, str, modifier)
 
     def request_keyboard(self, callback, target, input_type='text'):
         self._sdl_keyboard = super(WindowSDL, self).request_keyboard(

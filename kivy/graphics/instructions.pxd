@@ -42,7 +42,6 @@ cdef class InstructionGroup(Instruction):
     cdef void reload(self)
     cpdef add(self, Instruction c)
     cpdef insert(self, int index, Instruction c)
-    cpdef index(self, Instruction c)
     cpdef remove(self, Instruction c)
     cpdef clear(self)
     cpdef remove_group(self, str groupname)

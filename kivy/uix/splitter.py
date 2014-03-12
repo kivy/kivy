@@ -94,7 +94,6 @@ class Splitter(BoxLayout):
     :class:`~kivy.uix.button.Button`.
 
     .. versionchanged:: 1.8.0
-
         If you set a string, the :class:`~kivy.factory.Factory` will be used to
         resolve the class.
 

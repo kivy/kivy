@@ -77,7 +77,6 @@ class Spinner(Button):
     defaults to :class:`SpinnerOption`.
 
     .. versionchanged:: 1.8.0
-
         If you set a string, the :class:`~kivy.factory.Factory` will be used to
         resolve the class.
 
@@ -90,7 +89,6 @@ class Spinner(Button):
     defaults to :class:`~kivy.uix.dropdown.DropDown`.
 
     .. versionchanged:: 1.8.0
-
         If you set a string, the :class:`~kivy.factory.Factory` will be used to
         resolve the class.
 

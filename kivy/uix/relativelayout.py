@@ -159,7 +159,6 @@ the bottom left corner of the widget in question.
 
 
 .. versionchanged:: 1.7.0
-
     Prior to version 1.7.0, the :class:`RelativeLayout` was implemented as a
     :class:`~kivy.uix.floatlayout.FloatLayout` inside a
     :class:`~kivy.uix.scatter.Scatter`. This behaviour/widget has

@@ -25,6 +25,11 @@ specific platform:
     :target: ../installation/installation-linux.html
     :class: gs-osimage gs-osimage-last
 
+.. image:: ../images/raspberrypi.png
+    :alt: Raspberry Pi
+    :target: ../installation/installation-rpi.html
+    :class: gs-osimage gs-osimage-last
+
 Development Version
 ~~~~~~~~~~~~~~~~~~~
 

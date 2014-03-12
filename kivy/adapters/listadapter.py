@@ -36,7 +36,6 @@ A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
             Fired when selection changes
 
 .. versionchanged:: 1.6.0
-
     Added data = ListProperty([]), which was proably inadvertently deleted at
     some point. This means that whenever data changes an update will fire,
     instead of having to reset the data object (Adapter has data defined as

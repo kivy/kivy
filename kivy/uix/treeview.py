@@ -319,6 +319,7 @@ class TreeView(Widget):
             nodes = parent.nodes
             if node in nodes:
                 nodes.remove(node)
+                self._selected_node = None
             parent.is_leaf = not bool(len(nodes))
             node.parent_node = None
             node.unbind(size=self._trigger_layout)
@@ -487,7 +488,7 @@ class TreeView(Widget):
     #
     _root = ObjectProperty(None)
 
-    _selected_node = ObjectProperty(None)
+    _selected_node = ObjectProperty(None, allownone=True)
 
     #
     # Properties
