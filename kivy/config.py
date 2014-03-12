@@ -306,7 +306,22 @@ class ConfigParser(PythonConfigParser):
         # "get()", but we internally store them in ascii.
         #with codecs.open(filename, 'r', encoding='utf-8') as f:
         #    self.readfp(f)
+        old_vals = {sect: {k: v for k, v in self.items(sect)} for sect in
+                    self.sections()}
         PythonConfigParser.read(self, filename)
+
+        # when reading new file, sections/keys are only increased, not removed
+        f = self._do_callbacks
+        for section in self.sections():
+            if section not in old_vals:  # new section
+                for k, v in self.items(section):
+                    f(section, k, v)
+                continue
+
+            old_keys = old_vals[section]
+            for k, v in self.items(section):  # just update new/changed keys
+                if k not in old_keys or v != old_keys[k]:
+                    f(section, k, v)
 
     def set(self, section, option, value):
         '''Functions similarly to PythonConfigParser's set method, except that
