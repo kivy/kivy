@@ -669,7 +669,7 @@ class App(EventDispatcher):
 
         :return: ConfigParser instance
         '''
-        self.config = config = ConfigParser()
+        self.config = config = ConfigParser(name='app')
         self.build_config(config)
         # if no sections are created, that's mean the user don't have
         # configuration.
@@ -686,7 +686,8 @@ class App(EventDispatcher):
                 config.read(filename)
             except:
                 Logger.error('App: Corrupted config file, ignored.')
-                self.config = config = ConfigParser()
+                config.name = ''
+                self.config = config = ConfigParser(app='app')
                 self.build_config(config)
                 pass
         else:
