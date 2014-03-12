@@ -77,6 +77,8 @@ cdef class EventDispatcher(ObjectWithUid):
         else:
             attrs_found = cp[__cls__]
 
+        self.__properties = attrs_found
+
         # First loop, link all the properties storage to our instance
         for k in attrs_found:
             attr = attrs_found[k]
@@ -86,8 +88,6 @@ cdef class EventDispatcher(ObjectWithUid):
         for k in attrs_found:
             attr = attrs_found[k]
             attr.link_deps(self, k)
-
-        self.__properties = attrs_found
 
         # Automatic registration of event types (instead of calling
         # self.register_event_type)
@@ -232,7 +232,7 @@ cdef class EventDispatcher(ObjectWithUid):
                     super(MyClass, self).__init__(**kwargs)
                     btn = Button(text='click me')
                     # Bind event to callback
-                    btn.bind(on_press=self.on_press_callback, 
+                    btn.bind(on_press=self.on_press_callback,
                              state=self.state_callback)
                     self.add_widget(btn)
 
@@ -328,10 +328,10 @@ cdef class EventDispatcher(ObjectWithUid):
 
     def setter(self, name):
         '''Return the setter of a property. Use: instance.setter('name').
-        The setter is a convenient callback function useful if you want 
-        to directly bind one property to another. 
+        The setter is a convenient callback function useful if you want
+        to directly bind one property to another.
         It returns a partial function that will accept
-        (obj, value) args and results in the property 'name' of instance 
+        (obj, value) args and results in the property 'name' of instance
         being set to value.
 
         .. versionadded:: 1.0.9
@@ -347,7 +347,7 @@ cdef class EventDispatcher(ObjectWithUid):
                     self.bind(number1=self.setter('number2'))
 
         This is equivalent to kv binding::
-        
+
             <ExampleWidget>:
                 number2: self.number1
 
@@ -434,9 +434,9 @@ cdef class EventDispatcher(ObjectWithUid):
             prop = DictProperty(value)
         else:
             prop = ObjectProperty(value)
-        prop.link(self, name)
-        prop.link_deps(self, name)
         self.__properties[name] = prop
         setattr(self.__class__, name, prop)
+        prop.link(self, name)
+        prop.link_deps(self, name)
 
 
