@@ -413,10 +413,18 @@ class ShaderTransition(TransitionBase):
     :attr:`vs` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.'''
 
+    clearcolor = ListProperty([0, 0, 0, 1])
+    '''Sets the color of Fbo ClearColor. 
+
+    .. versionadded:: 1.8.1
+
+    :attr:`clearcolor` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [0, 0, 0, 1].'''
+
     def make_screen_fbo(self, screen):
         fbo = Fbo(size=screen.size)
         with fbo:
-            ClearColor(0, 0, 0, 1)
+            ClearColor(*self.clearcolor)
             ClearBuffers()
         fbo.add(screen.canvas)
         with fbo.before:

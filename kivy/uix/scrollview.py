@@ -136,7 +136,6 @@ class ScrollView(StencilView):
     '''ScrollView class. See module documentation for more information.
 
     .. versionchanged:: 1.7.0
-
         `auto_scroll`, `scroll_friction`, `scroll_moves`, `scroll_stoptime' has
         been deprecated, use :attr:`effect_cls` instead.
     '''
@@ -353,7 +352,6 @@ class ScrollView(StencilView):
     defaults to :class:`DampedScrollEffect`.
 
     .. versionchanged:: 1.8.0
-
         If you set a string, the :class:`~kivy.factory.Factory` will be used to
         resolve the class.
 

@@ -466,7 +466,8 @@ if platform in ('darwin', 'ios'):
             '-framework', 'AudioToolbox',
             '-framework', 'CoreGraphics',
             '-framework', 'QuartzCore',
-            '-framework', 'ImageIO']}
+            '-framework', 'ImageIO',
+            '-framework', 'Accelerate']}
     else:
         osx_flags = {'extra_link_args': [
             '-framework', 'ApplicationServices']}
@@ -480,7 +481,7 @@ if c_options['use_avfoundation']:
         osx_flags = {
             'extra_link_args': ['-framework', 'AVFoundation'],
             'extra_compile_args': ['-ObjC++'],
-            'depends': ['core/camera/camera_avfoundation.m']}
+            'depends': ['core/camera/camera_avfoundation_implem.m']}
         sources['core/camera/camera_avfoundation.pyx'] = merge(
             base_flags, osx_flags)
     else:
@@ -495,9 +496,13 @@ if c_options['use_rpi']:
 if c_options['use_x11']:
     sources['core/window/window_x11.pyx'] = merge(
         base_flags, gl_flags, {
-            'depends': [
-                'core/window/window_x11_keytab.c',
-                'core/window/window_x11_core.c'],
+            # FIXME add an option to depend on them but not compile them
+            # cause keytab is included in core, and core is included in
+            # window_x11
+            #
+            #'depends': [
+            #    'core/window/window_x11_keytab.c',
+            #    'core/window/window_x11_core.c'],
             'libraries': ['Xrender', 'X11']})
 
 if c_options['use_gstreamer']:
@@ -535,20 +540,20 @@ def get_extensions_from_sources(sources):
     for pyx, flags in sources.items():
         is_graphics = pyx.startswith('graphics')
         pyx = expand(pyx)
+        depends = [expand(x) for x in flags.pop('depends', [])]
         if not have_cython:
             pyx = '%s.c' % pyx[:-4]
-            depends = []
-        else:
-            depends = [expand(x) for x in flags.pop('depends', [])]
         if is_graphics:
             depends = resolve_dependencies(pyx, depends)
+        f_depends = [x for x in depends if x.rsplit('.', 1)[-1] in (
+            'c', 'cpp', 'm')]
         module_name = get_modulename_from_file(pyx)
         flags_clean = {'depends': depends}
         for key, value in flags.items():
             if len(value):
                 flags_clean[key] = value
         ext_modules.append(CythonExtension(module_name,
-            [pyx], **flags_clean))
+            [pyx] + f_depends, **flags_clean))
     return ext_modules
 
 ext_modules = get_extensions_from_sources(sources)

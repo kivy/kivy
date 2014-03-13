@@ -84,8 +84,7 @@ class BoxLayout(Layout):
     padding_vertical] and a one argument form [padding].
 
     .. versionchanged:: 1.7.0
-
-    Replaced NumericProperty with VariableListProperty.
+        Replaced NumericProperty with VariableListProperty.
 
     :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [0, 0, 0, 0].

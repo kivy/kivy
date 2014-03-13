@@ -11,9 +11,12 @@ DEF LINE_MODE_POINTS = 0
 DEF LINE_MODE_ELLIPSE = 1
 DEF LINE_MODE_CIRCLE = 2
 DEF LINE_MODE_RECTANGLE = 3
-DEF LINE_MODE_BEZIER = 4
+DEF LINE_MODE_ROUNDED_RECTANGLE = 4
+DEF LINE_MODE_BEZIER = 5
 
 from kivy.graphics.stencil_instructions cimport StencilUse, StencilUnUse, StencilPush, StencilPop
+
+cdef float PI = 3.1415926535
 
 cdef inline int line_intersection(double x1, double y1, double x2, double y2,
         double x3, double y3, double x4, double y4, double *px, double *py):
@@ -150,6 +153,8 @@ cdef class Line(VertexInstruction):
             self.prebuild_circle()
         elif self._mode == LINE_MODE_RECTANGLE:
             self.prebuild_rectangle()
+        elif self._mode == LINE_MODE_ROUNDED_RECTANGLE:
+            self.prebuild_rounded_rectangle()
         elif self._mode == LINE_MODE_BEZIER:
             self.prebuild_bezier()
         if self._width == 1.0:
@@ -1015,6 +1020,99 @@ cdef class Line(VertexInstruction):
             assert(0)
 
         self._points = [x, y, x + width, y, x + width, y + height, x, y + height]
+        self._close = 1
+
+    property rounded_rectangle:
+        '''Use this property to build a rectangle, without calculating the
+        :attr:`points`. You can only set this property, not get it.
+
+        The argument must be a tuple of one of the following forms:
+        
+        * (x, y, width, height, corner_radius)
+        * (x, y, width, height, corner_radius, resolution)
+        * (x, y, width, height, corner_radius1, corner_radius2, corner_radius3, corner_radius4)
+        * (x, y, width, height, corner_radius1, corner_radius2, corner_radius3, corner_radius4, resolution)
+
+        * x and y represent the bottom-left position of the rectangle
+        * width and height represent the size
+        * corner_radius is the number of pixels between two borders and the center of the circle arc joining them
+        * resolution is the numper of line segment that will be used to draw the circle arc at each corner (default to 30)
+
+        The line is automatically closed.
+
+        Usage::
+
+            Line(rounded_rectangle=(0, 0, 200, 200, 10, 20, 30, 40, 100))
+
+        .. versionadded:: 1.8.1
+        '''
+        def __set__(self, args):
+            if args == None:
+                raise GraphicException(
+                    'Invlid rounded rectangle value: {0!r}'.format(args))
+            if len(args) not in (5, 6, 8, 9):
+                raise GraphicException('invalid number of arguments:'
+                        '{0} not in (5, 6, 8, 9)'.format(len(args)))
+            self._mode_args = tuple(args)
+            self._mode = LINE_MODE_ROUNDED_RECTANGLE
+            self.flag_update()
+
+    cdef void prebuild_rounded_rectangle(self):
+        cdef float a, px, py, x, y, w, h, c1, c2, c3, c4
+        cdef resolution = 30
+        cdef int l = len(self._mode_args)
+
+        self._points = []
+        a = -PI
+        x, y, w, h = self._mode_args [:4]
+
+        if l == 5:
+            c1 = c2 = c3 = c4 = self._mode_args[4]
+        elif l == 6:
+            c1 = c2 = c3 = c4 = self._mode_args[4]
+            resolution = self._mode_args[5]
+        elif l == 8:
+            c1, c2, c3, c4 = self._mode_args[4:]
+        elif l == 9:
+            c1, c2, c3, c4 = self._mode_args[4:8]
+            resolution = self._mode_args[8]
+
+        px = x + c1
+        py = y + c1
+
+        while a < - PI / 2.:
+            a += pi / resolution
+            self._points.extend([
+                px + cos(a) * c1,
+                py + sin(a) * c1])
+
+        px = x + w - c2
+        py = y + c2
+
+        while a < 0:
+            a += PI / resolution
+            self._points.extend([
+                px + cos(a) * c2,
+                py + sin(a) * c2])
+
+        px = x + w - c3
+        py = y + h - c3
+
+        while a < PI / 2.:
+            a += PI / resolution
+            self._points.extend([
+                px + cos(a) * c3,
+                py + sin(a) * c3])
+
+        px = x + c4
+        py = y + h - c4
+
+        while a < PI:
+            a += PI / resolution
+            self._points.extend([
+                px + cos(a) * c4,
+                py + sin(a) * c4])
+
         self._close = 1
 
     property bezier:

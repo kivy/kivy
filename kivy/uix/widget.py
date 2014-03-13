@@ -104,7 +104,95 @@ To draw a background in kv::
 These examples only scratch the surface. Please see the :mod:`kivy.graphics`
 documentation for more information.
 
+Widget event bubbling
+---------------------
+
+When you use the Kivy property changes to catch events, you sometimes
+need to be aware of the order in which these events are propogated. In Kivy,
+events bubble up from the most recently added widget and then backwards through
+it's children (from the most recently added back to the first child).
+
+In effect, this event model does not follow either of the conventional
+"bubble up" or "bubble down" approaches, but propogates events according to the
+natural order in which the widgets have been added. If you want to reverse this
+order, you can raise events in the children before the parent by using the
+`super` command. 
+
+Linguistically, this can be difficult to explain and sound complicated,
+but it's really quite simple. Lets look at an example. In our kv file::
+
+    <EventBubbler>:
+        Label:
+            text: '1'
+            on_touch_down: root.printme("label 1 on_touch_down")
+        Label:
+            text: '2'
+            on_touch_down: root.printme("label 2 on_touch_down")
+        BoxLayout:
+            on_touch_down: root.printme("BoxLayout on_touch_down")
+            Label:
+                text: '3'
+                on_touch_down: root.printme("label 3 on_touch_down")
+            Label:
+                text: '4'
+                on_touch_down: root.printme("label 4 on_touch_down")
+        MyBoxLayout:
+            # We use this class to demonsrate using 'super' to raise the child 
+            # events first
+            Label:
+                text: '5'
+                on_touch_down: root.printme("label 5 on_touch_down")
+            Label:
+                text: '6'
+                on_touch_down: root.printme("label 6 on_touch_down")
+
 .. highlight:: python
+
+In your Python file::
+
+    from kivy.app import App
+    from kivy.lang import Builder
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.properties import StringProperty
+
+
+    class EventBubbler(BoxLayout):
+
+        @staticmethod
+        def printme(msg):
+            print msg
+
+
+    class MyBoxLayout(BoxLayout):
+        def on_touch_down(self, touch):
+            print "Before super(MyBoxLayout, self).on_touch_down(touch)"
+            super(MyBoxLayout, self).on_touch_down(touch)
+            print "After super(MyBoxLayout, self).on_touch_down(touch)"
+
+
+    class BubbleApp(App):
+        def build(self):
+            return EventBubbler()
+
+    BubbleApp().run()
+
+This produces the following output::
+
+    >>> Before super(MyBoxLayout, self).on_touch_down(touch)
+    >>> label 6 on_touch_down
+    >>> label 5 on_touch_down
+    >>> After super(MyBoxLayout, self).on_touch_down(touch)
+    >>> BoxLayout on_touch_up
+    >>> label 4 on_touch_down
+    >>> label 3 on_touch_down
+    >>> label 2 on_touch_down
+    >>> label 1 on_touch_down
+
+This order is the same for the `on_touch_move` and `on_touch_up` events.
+Notice how using the `super` command raises the child events immediately
+when it is called. This approach gives you total control over the order in which
+Kivy's events are propogated.
+
 '''
 
 __all__ = ('Widget', 'WidgetException')
@@ -114,12 +202,14 @@ from kivy.factory import Factory
 from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
                              ReferenceListProperty, ObjectProperty,
                              ListProperty, DictProperty, BooleanProperty)
-from kivy.graphics import Canvas
+from kivy.graphics import (Canvas, PushMatrix, PopMatrix, Translate, Rectangle,
+                           Fbo, ClearColor, ClearBuffers)
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
 from weakref import proxy
 from functools import partial
+from itertools import islice
 
 
 # references to all the destructors widgets (partial method with widget uid as
@@ -142,11 +232,11 @@ class WidgetException(Exception):
 
 
 class WidgetMetaclass(type):
-    '''Metaclass to auto register new widget into
+    '''Metaclass to automatically register new widgets for the
     :class:`~kivy.factory.Factory`
 
     .. warning::
-        This metaclass is used for Widget. Don't use it directly !
+        This metaclass is used by the Widget. Do not use it directly !
     '''
     def __init__(mcs, name, bases, attrs):
         super(WidgetMetaclass, mcs).__init__(name, bases, attrs)
@@ -424,7 +514,6 @@ class Widget(WidgetBase):
         '''Remove all widgets added to this widget.
 
         .. versionchanged:: 1.8.0
-
             `children` argument can be used to select the children we want to
             remove. It should be a list of children (or filtered list) of the
             current widget.
@@ -435,6 +524,46 @@ class Widget(WidgetBase):
         remove_widget = self.remove_widget
         for child in children[:]:
             remove_widget(child)
+
+    def export_to_png(self, filename, *args):
+        '''Saves an image of the widget and its children in png format at the
+        specified filename. Works by removing the widget canvas from its
+        parent, rendering to an :class:`~kivy.graphics.fbo.Fbo`, and calling
+        :meth:`~kivy.graphics.texture.Texture.save`.
+
+        .. note:: The image includes only this widget and its
+                  children. If you want to include widgets elsewhere
+                  in the tree, you must call
+                  :meth:`~Widget.export_to_png` from their common parent,
+                  or use :meth:`~kivy.core.window.Window.screenshot`
+                  to capture the whole window.
+
+        .. note:: The image will be saved in png format, you should
+                  include the extension in your filename.
+
+        .. versionadded:: 1.8.1
+        '''
+
+        if self.parent is not None:
+            canvas_parent_index = self.parent.canvas.indexof(self.canvas)
+            self.parent.canvas.remove(self.canvas)
+
+        fbo = Fbo(size=self.size)
+
+        with fbo:
+            ClearColor(0, 0, 0, 1)
+            ClearBuffers()
+            Translate(-self.x, -self.y, 0)
+
+        fbo.add(self.canvas)
+        fbo.draw()
+        fbo.texture.save(filename)
+        fbo.remove(self.canvas)
+
+        if self.parent is not None:
+            self.parent.canvas.insert(canvas_parent_index, self.canvas)
+
+        return True
 
     def get_root_window(self):
         '''Return the root window.
@@ -457,6 +586,172 @@ class Widget(WidgetBase):
         '''
         if self.parent:
             return self.parent.get_parent_window()
+
+    def _walk(self, restrict=False, loopback=False, index=None):
+        # we pass index only when we are going on the parent.
+        # so don't yield the parent as well.
+        if index is None:
+            index = len(self.children)
+            yield self
+
+        for child in reversed(self.children[:index]):
+            for walk_child in child._walk(restrict=True):
+                yield walk_child
+
+        # if we want to continue with our parent, just do it
+        if not restrict:
+            parent = self.parent
+            try:
+                if parent is None or not isinstance(parent, Widget):
+                    raise ValueError
+                index = parent.children.index(self)
+            except ValueError:
+                # self is root, if wanted to loopback from first element then ->
+                if not loopback:
+                    return
+                # if we started with root (i.e. index==None), then we have to
+                # start from root again, so we return self again. Otherwise, we
+                # never returned it, so return it now starting with it
+                parent = self
+                index = None
+            for walk_child in parent._walk(loopback=loopback, index=index):
+                yield walk_child
+
+    def walk(self, restrict=False, loopback=False):
+        ''' Iterator that walks the widget tree starting with this widget and
+        goes forward returning widgets in the order in which layouts display
+        them.
+
+        :Parameters:
+            `restrict`:
+                If True, it will only iterate through the widget and its
+                children (or children of its children etc.). Defaults to False.
+            `loopback`:
+                If True, when the last widget in the tree is reached,
+                it'll loop back to the uppermost root and start walking until
+                we hit this widget again. Naturally, it can only loop back when
+                `restrict` is False. Defaults to False.
+
+        :return:
+            A generator that walks the tree, returning widgets in the
+            forward layout order.
+
+        For example, given a tree with the following structure::
+
+            GridLayout:
+                Button
+                BoxLayout:
+                    id: box
+                    Widget
+                    Button
+                Widget
+
+        walking this tree::
+
+            >>> # Call walk on box with loopback True, and restrict False
+            >>> [type(widget) for widget in box.walk(loopback=True)]
+            [<class 'BoxLayout'>, <class 'Widget'>, <class 'Button'>,
+                <class 'Widget'>, <class 'GridLayout'>, <class 'Button'>]
+            >>> # Now with loopback False, and restrict False
+            >>> [type(widget) for widget in box.walk()]
+            [<class 'BoxLayout'>, <class 'Widget'>, <class 'Button'>,
+                <class 'Widget'>]
+            >>> # Now with restrict True
+            >>> [type(widget) for widget in box.walk(restrict=True)]
+            [<class 'BoxLayout'>, <class 'Widget'>, <class 'Button'>]
+
+        .. versionadded:: 1.8.1
+        '''
+        gen = self._walk(restrict, loopback)
+        yield next(gen)
+        for node in gen:
+            if node is self:
+                return
+            yield node
+
+    def _walk_reverse(self, loopback=False, go_up=False):
+        # process is walk up level, walk down its children tree, then walk up
+        # next level etc.
+        # default just walk down the children tree
+        root = self
+        index = 0
+        # we need to go up a level before walking tree
+        if go_up:
+            root = self.parent
+            try:
+                if root is None or not isinstance(root, Widget):
+                    raise ValueError
+                index = root.children.index(self) + 1
+            except ValueError:
+                if not loopback:
+                    return
+                index = 0
+                go_up = False
+                root = self
+
+        # now walk children tree starting with last-most child
+        for child in islice(root.children, index, None):
+            for walk_child in child._walk_reverse(loopback=loopback):
+                yield walk_child
+        # we need to return ourself last, in all cases
+        yield root
+
+        # if going up, continue walking up the parent tree
+        if go_up:
+            for walk_child in root._walk_reverse(loopback=loopback,
+                                                 go_up=go_up):
+                yield walk_child
+
+    def walk_reverse(self, loopback=False):
+        ''' Iterator that walks the widget tree backwards starting with the
+        widget before this, and going backwards returning widgets in the
+        reverse order in which layouts display them.
+
+        This walks in the opposite direction of :meth:`walk`, so a list of the
+        tree generated with :meth:`walk` will be in reverse order compared
+        to the list generated with this, provided `loopback` is True.
+
+        :Parameters:
+            `loopback`:
+                If True, when the uppermost root in the tree is
+                reached, it'll loop back to the last widget and start walking
+                back until after we hit widget again. Defaults to False
+
+        :return:
+            A generator that walks the tree, returning widgets in the
+            reverse layout order.
+
+        For example, given a tree with the following structure::
+
+            GridLayout:
+                Button
+                BoxLayout:
+                    id: box
+                    Widget
+                    Button
+                Widget
+
+        walking this tree::
+
+            >>> # Call walk on box with loopback True
+            >>> [type(widget) for widget in box.walk_reverse(loopback=True)]
+            [<class 'Button'>, <class 'GridLayout'>, <class 'Widget'>,
+                <class 'Button'>, <class 'Widget'>, <class 'BoxLayout'>]
+            >>> # Now with loopback False
+            >>> [type(widget) for widget in box.walk_reverse()]
+            [<class 'Button'>, <class 'GridLayout'>]
+            >>> forward = [w for w in box.walk(loopback=True)]
+            >>> backward = [w for w in box.walk_reverse(loopback=True)]
+            >>> forward == backward[::-1]
+            True
+
+        .. versionadded:: 1.8.1
+
+        '''
+        for node in self._walk_reverse(loopback=loopback, go_up=True):
+            yield node
+            if node is self:
+                return
 
     def to_widget(self, x, y, relative=False):
         '''Convert the given coordinate from window to local widget
@@ -757,7 +1052,7 @@ class Widget(WidgetBase):
     disabled = BooleanProperty(False)
     '''Indicates whether this widget can interact with input or not.
 
-    .. Note::
+    .. note::
         1. Child Widgets, when added to a disabled widget, will be disabled
         automatically,
         2. Disabling/enabling a parent disables/enables all it's children.

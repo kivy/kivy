@@ -7,36 +7,60 @@ Use a Python dictionary as a store.
 
 __all__ = ('DictStore', )
 
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
+from os.path import exists
 from kivy.compat import iteritems
 from kivy.storage import AbstractStore
 
 
 class DictStore(AbstractStore):
-    '''Store implementation using a simple `dict`.
+    '''Store implementation using a pickled `dict`.
+    See the :mod:`kivy.storage` module documentation for more information.
     '''
-    def __init__(self, data=None, **kwargs):
+    def __init__(self, filename, data=None, **kwargs):
+        self.filename = filename
+        self._data = data or {}
+        self._is_changed = True
         super(DictStore, self).__init__(**kwargs)
-        if data is None:
-            data = {}
-        self.data = data
+
+    def store_load(self):
+        if not exists(self.filename):
+            return
+
+        with open(self.filename, 'r') as fd:
+            data = fd.read()
+            if data:
+                self._data = pickle.loads(data)
+
+    def store_sync(self):
+        if not self._is_changed:
+            return
+
+        with open(self.filename, 'w') as fd:
+            pickle.dump(self._data, fd)
+
+        self._is_changed = False
 
     def store_exists(self, key):
-        return key in self.data
+        return key in self._data
 
     def store_get(self, key):
-        return self.data[key]
+        return self._data[key]
 
     def store_put(self, key, value):
-        self.data[key] = value
+        self._data[key] = value
         return True
 
     def store_delete(self, key):
-        del self.data[key]
+        del self._data[key]
         return True
 
     def store_find(self, filters):
-        for key, values in iteritems(self.data):
+        for key, values in iteritems(self._data):
             found = True
             for fkey, fvalue in iteritems(filters):
                 if fkey not in values:
@@ -49,7 +73,7 @@ class DictStore(AbstractStore):
                 yield key, values
 
     def store_count(self):
-        return len(self.data)
+        return len(self._data)
 
     def store_keys(self):
-        return self.data.keys()
+        return self._data.keys()

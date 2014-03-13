@@ -20,11 +20,6 @@ from kivy.base import stopTouchApp, EventLoop
 from kivy.utils import platform
 from kivy.resources import resource_find
 
-# When we are generating documentation, Config doesn't exist
-_exit_on_escape = True
-if Config:
-    _exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
-
 try:
     android = None
     if platform == 'android':
@@ -255,22 +250,6 @@ class WindowPygame(WindowBase):
         pygame.image.save(surface, filename)
         Logger.debug('Window: Screenshot saved at <%s>' % filename)
         return filename
-
-    def on_keyboard(self, key, scancode=None, codepoint=None,
-                    modifier=None, **kwargs):
-
-        codepoint = codepoint or kwargs.get('unicode')
-        # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
-        # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = platform == 'darwin'
-        if _exit_on_escape and (key == 27 or
-                                (is_osx and key in (113, 119) and
-                                 modifier == 1024)):
-            stopTouchApp()
-            self.close()  # not sure what to do here
-            return True
-        super(WindowPygame, self).on_keyboard(
-            key, scancode, codepoint=codepoint, modifier=modifier)
 
     def flip(self):
         pygame.display.flip()
