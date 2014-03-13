@@ -70,6 +70,12 @@ class LabelBase(object):
             text. Works only if a limitation on text_size is set.
         `mipmap` : bool, defaults to False
             Create a mipmap for the texture
+        `strip` : bool, defaults to False
+            Whether each row of text has its leading and trailing spaces
+            stripped. If `halign` is `justify` it is implicitly True.
+
+    .. versionchanged:: 1.8.1
+        `strip` was added.
 
     .. versionchanged:: 1.8.1
         `padding_x` and `padding_y` has been fixed to work as expected.
@@ -101,12 +107,13 @@ class LabelBase(object):
     def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
                  bold=False, italic=False, halign='left', valign='bottom',
                  shorten=False, text_size=None, mipmap=False, color=None,
-                 line_height=1.0, **kwargs):
+                 line_height=1.0, strip=False, **kwargs):
 
         options = {'text': text, 'font_size': font_size,
                    'font_name': font_name, 'bold': bold, 'italic': italic,
                    'halign': halign, 'valign': valign, 'shorten': shorten,
-                   'mipmap': mipmap, 'line_height': line_height}
+                   'mipmap': mipmap, 'line_height': line_height,
+                   'strip': strip}
 
         options['color'] = color or (1, 1, 1, 1)
         options['padding'] = kwargs.get('padding', 0)
@@ -126,6 +133,7 @@ class LabelBase(object):
         self._internal_width = self._internal_height = 0
         self._cached_lines = []
         self._cached_text_size = self._cached_padding = (0, 0)
+        self._cached_options = {}
 
         self.options = options
         self.texture = None
@@ -232,7 +240,7 @@ class LabelBase(object):
             return type(text)('{0}...').format(text[:segment].strip())
 
     def _render_real(self):
-        options = self.options
+        options = self._cached_options
         render_text = self._render_text
         get_extents = self.get_extents
         uw, uh = self._cached_text_size
@@ -261,13 +269,13 @@ class LabelBase(object):
             # right left justify
             # divide left over space between `spaces`
             # TODO implement a better method of stretching glyphs?
-            just_space = 0
             if halign[-1] == 'y' and line and not is_last_line:
                 # number spaces needed to fill, and remainder
                 n, rem = divmod(contentw - lw, sw)
                 words = None
                 if n or rem:
-                    words = split(pat, line)  # there's no trailing space
+                    # there's no trailing space when justify is selected
+                    words = split(pat, line)
                 if words is not None and len(words) > 1:
                     space = type(line)(' ')
                     # words: every even index is spaces, just add ltr n spaces
@@ -302,18 +310,21 @@ class LabelBase(object):
         if real:
             return self._render_real()
 
-        text = self.text.strip()
-        options = self.options
+        self._cached_options = options = dict(self.options)
         render_text = self._render_text
         get_extents = self.get_extents
         uw, uh = self.text_size
         xpad, ypad = options['padding_x'], options['padding_y']
         max_lines = int(options.get('max_lines', 0))
+        strip = options['strip'] or options['halign'][-1] == 'y'
         w, h = 0, 0   # width and height of the texture
         x, y = xpad, ypad   # pos in the texture
         # don't allow them to change before rendering for real
         self._cached_padding = xpad, ypad
         self._cached_text_size = uw, uh
+        text = self.text
+        if strip:
+            text = text.strip()
         if not text:
             self._cached_lines = []
             return 0, 0
@@ -328,13 +339,14 @@ class LabelBase(object):
                     and h > uh):
                     i -= 1
                     break
-                lw, lh = get_extents(lines[i])
+                line = lines[i].strip() if strip else lines[i]
+                lw, lh = get_extents(line)
                 lh = int(lh * options['line_height'])
                 if uh is not None and h + lh > uh:  # too high
                     break
                 w = max(w, int(lw + 2 * xpad))
                 h += lh
-                lines[i] = (lines[i], (lw, lh), True)  # True == its line end
+                lines[i] = (line, (lw, lh), True)  # True == its line end
             self._internal_height = h
             self._cached_lines = lines[:i + 1]
             if uh is not None:  # texture size must be requested text_size
@@ -344,6 +356,7 @@ class LabelBase(object):
             uw = max(0, uw - xpad * 2)  # actual w, h allowed for rendering
             if uh is not None:
                 uh = max(0, uh - ypad * 2)
+            bare_size = get_extents('')
 
             # Shorten the text that we actually display
             if (options['shorten'] and get_extents(text)[0] > uw):
@@ -365,9 +378,10 @@ class LabelBase(object):
                     len(lines) > max_lines):
                     break
 
-                line = line.strip()
+                if strip:
+                    line = line.strip()
                 if line == '':  # just add empty line if empty
-                    lines.append(('', get_extents(''), True))
+                    lines.append(('', bare_size, True))
                     h += lines[-1][1][1] * options['line_height']
                     continue
 
@@ -393,7 +407,7 @@ class LabelBase(object):
                             # make sure there are no trailing spaces, may occur
                             # if many spaces is followed by word not fitting
                             ln = line[s:m]
-                            if line[m - 1] == ' ':
+                            if strip and ln[-1] == ' ':
                                 ln = ln.rstrip()
                                 lines.append((ln, get_extents(ln), False))
                             else:
@@ -403,8 +417,9 @@ class LabelBase(object):
 
                         # try to fit word on new line, if it doesn't fit we'll
                         # have to break the word into as many lines needed
-                        s = s + e - s - len(line[s:e].lstrip())
-                        if s == e:  # if it was only a space, move on
+                        if strip:
+                            s = e - len(line[s:e].lstrip())
+                        if s == e:  # if it was only a stripped space, move on
                             m = s
                             continue
 
@@ -433,7 +448,7 @@ class LabelBase(object):
 
                     else:   # the word fits
                         # don't allow leading spaces on empty lines
-                        if m == s and line[s:e] == ' ':
+                        if strip and m == s and line[s:e] == ' ':
                             s = m = e
                             continue
                         m = e
