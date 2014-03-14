@@ -53,10 +53,12 @@ class DictStore(AbstractStore):
 
     def store_put(self, key, value):
         self._data[key] = value
+        self._is_changed = True
         return True
 
     def store_delete(self, key):
         del self._data[key]
+        self._is_changed = True
         return True
 
     def store_find(self, filters):
