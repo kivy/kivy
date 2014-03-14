@@ -2,13 +2,13 @@
 Event dispatcher
 ================
 
-All objects that produce events in Kivy implement :class:`EventDispatcher`,
-providing a consistent interface for registering and manipulating event
+All objects that produce events in Kivy implement the :class:`EventDispatcher`
+which provides a consistent interface for registering and manipulating event
 handlers.
 
 .. versionchanged:: 1.0.9
-    Properties discovering and methods have been moved from
-    :class:`~kivy.uix.widget.Widget` to :class:`EventDispatcher`
+    Property discovery and methods have been moved from the
+    :class:`~kivy.uix.widget.Widget` to the :class:`EventDispatcher`.
 
 '''
 
@@ -17,7 +17,9 @@ __all__ = ('EventDispatcher', )
 
 from functools import partial
 from kivy.weakmethod import WeakMethod
-from kivy.properties cimport Property, PropertyStorage, ObjectProperty
+from kivy.compat import string_types
+from kivy.properties cimport Property, PropertyStorage, ObjectProperty, \
+    NumericProperty, StringProperty, ListProperty, DictProperty
 
 cdef int widget_uid = 0
 cdef dict cache_properties = {}
@@ -44,7 +46,7 @@ cdef class ObjectWithUid(object):
         self.uid = widget_uid
 
 cdef class EventDispatcher(ObjectWithUid):
-    '''Generic event dispatcher interface
+    '''Generic event dispatcher interface.
 
     See the module docstring for usage.
     '''
@@ -157,13 +159,13 @@ cdef class EventDispatcher(ObjectWithUid):
         '''Register an event type with the dispatcher.
 
         Registering event types allows the dispatcher to validate event handler
-        names as they are attached, and to search attached objects for suitable
+        names as they are attached and to search attached objects for suitable
         handlers. Each event type declaration must :
 
-            1. start with the prefix `on_`
-            2. have a default handler in the class
+            1. start with the prefix `on_`.
+            2. have a default handler in the class.
 
-        Example of creating custom event::
+        Example of creating a custom event::
 
             class MyWidget(Widget):
                 def __init__(self, **kwargs):
@@ -193,7 +195,7 @@ cdef class EventDispatcher(ObjectWithUid):
             self.__event_stack[event_type] = []
 
     def unregister_event_types(self, str event_type):
-        '''Unregister an event type in the dispatcher
+        '''Unregister an event type in the dispatcher.
         '''
         if event_type in self.__event_stack:
             del self.__event_stack[event_type]
@@ -206,7 +208,7 @@ cdef class EventDispatcher(ObjectWithUid):
         return event_type in self.__event_stack
 
     def bind(self, **kwargs):
-        '''Bind an event type or a property to a callback
+        '''Bind an event type or a property to a callback.
 
         Usage::
 
@@ -220,17 +222,24 @@ cdef class EventDispatcher(ObjectWithUid):
             # With event
             self.bind(on_press=self.my_press_callback)
 
+        Most callbacks are called with the arguments 'obj' and 'value'. Some
+        however, provide only one argument, 'obj' e.g. the *on_press* event.
+
         Usage in a class::
 
             class MyClass(BoxLayout):
-                def __init__(self):
-                    super(MyClass, self).__init__()
+                def __init__(self, **kwargs):
+                    super(MyClass, self).__init__(**kwargs)
                     btn = Button(text='click me')
                     # Bind event to callback
-                    btn.bind(on_press=self.my_callback)
+                    btn.bind(on_press=self.on_press_callback, 
+                             state=self.state_callback)
                     self.add_widget(btn)
 
-                def my_callback(self, obj):
+                def state_callback(self, obj, value):
+                    print obj, value
+
+                def on_press_callback(self, obj):
                     print('press on button', obj)
 
         '''
@@ -249,7 +258,7 @@ cdef class EventDispatcher(ObjectWithUid):
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions.
 
-        Same usage as :func:`bind`.
+        Same usage as :meth:`bind`.
         '''
         cdef Property prop
         for key, value in kwargs.iteritems():
@@ -267,8 +276,8 @@ cdef class EventDispatcher(ObjectWithUid):
                 prop.unbind(self, value)
 
     def get_property_observers(self, name):
-        ''' Returns a list of methods that are bound to the property/event.
-        passed as the argument::
+        ''' Returns a list of methods that are bound to the property/event
+        passed as the *name* argument::
 
             widget_instance.get_property_observers('on_release')
 
@@ -281,7 +290,7 @@ cdef class EventDispatcher(ObjectWithUid):
         return ps.observers
 
     def events(EventDispatcher self):
-        '''Return all the events in that class. Can be used for introspection.
+        '''Return all the events in the class. Can be used for introspection.
 
         .. versionadded:: 1.8.0
 
@@ -289,12 +298,12 @@ cdef class EventDispatcher(ObjectWithUid):
         return self.__event_stack.keys()
 
     def dispatch(self, str event_type, *largs):
-        '''Dispatch an event across all the handler added in bind().
-        As soon as a handler return True, the dispatching stop
+        '''Dispatch an event across all the handlers added in bind().
+        As soon as a handler returns True, the dispatching stops.
         '''
         cdef list event_stack = self.__event_stack[event_type]
         cdef object remove = event_stack.remove
-        for value in event_stack[:]:
+        for value in reversed(event_stack[:]):
             handler = value()
             if handler is None:
                 # handler have gone, must be removed
@@ -318,14 +327,30 @@ cdef class EventDispatcher(ObjectWithUid):
         return prop.get(dstinstance)
 
     def setter(self, name):
-        '''Return the setter of a property. Useful if you want to directly bind
-        a property to another.
+        '''Return the setter of a property. Use: instance.setter('name').
+        The setter is a convenient callback function useful if you want 
+        to directly bind one property to another. 
+        It returns a partial function that will accept
+        (obj, value) args and results in the property 'name' of instance 
+        being set to value.
 
         .. versionadded:: 1.0.9
 
-        For example, if you want to position one widget next to you::
+        For example, to bind number2 to number1 in python you would do::
 
-            self.bind(right=nextchild.setter('x'))
+            class ExampleWidget(Widget):
+                number1 = NumericProperty(None)
+                number2 = NumericProperty(None)
+
+                def __init__(self, **kwargs):
+                    super(ExampleWidget, self).__init__(**kwargs)
+                    self.bind(number1=self.setter('number2'))
+
+        This is equivalent to kv binding::
+        
+            <ExampleWidget>:
+                number2: self.number1
+
         '''
         return partial(self.__proxy_setter, self, name)
 
@@ -343,13 +368,13 @@ cdef class EventDispatcher(ObjectWithUid):
 
         :return:
 
-            A :class:`~kivy.properties.Property` derivated instance corresponding
-            to the name.
+            A :class:`~kivy.properties.Property` derived instance
+            corresponding to the name.
         '''
         return self.__properties[name]
 
     cpdef dict properties(EventDispatcher self):
-        '''Return all the properties in that class in a dictionnary of
+        '''Return all the properties in the class in a dictionary of
         key/property class. Can be used for introspection.
 
         .. versionadded:: 1.0.9
@@ -366,10 +391,15 @@ cdef class EventDispatcher(ObjectWithUid):
             ret[x] = p[x]
         return ret
 
-    def create_property(self, name):
+    def create_property(self, name, value=None):
         '''Create a new property at runtime.
 
         .. versionadded:: 1.0.9
+
+        .. versionchanged:: 1.8.0
+            `value` parameter added, can be used to set the default value of the
+            property. Also, the type of the value is used to specialize the
+            created property.
 
         .. warning::
 
@@ -380,6 +410,9 @@ cdef class EventDispatcher(ObjectWithUid):
         :Parameters:
             `name`: string
                 Name of the property
+            `value`: object, optional
+                Default value of the property. Type is also used for creating a
+                more appropriate property types. Default to None.
 
         The class of the property cannot be specified, it will always be an
         :class:`~kivy.properties.ObjectProperty` class. The default value of the
@@ -391,7 +424,16 @@ cdef class EventDispatcher(ObjectWithUid):
         >>> print(mywidget.custom)
         True
         '''
-        prop = ObjectProperty(None)
+        if isinstance(value, (int, float)):
+            prop = NumericProperty(value)
+        elif isinstance(value, string_types):
+            prop = StringProperty(value)
+        elif isinstance(value, (list, tuple)):
+            prop = ListProperty(value)
+        elif isinstance(value, dict):
+            prop = DictProperty(value)
+        else:
+            prop = ObjectProperty(value)
         prop.link(self, name)
         prop.link_deps(self, name)
         self.__properties[name] = prop

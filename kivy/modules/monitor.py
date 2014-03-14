@@ -8,6 +8,11 @@ application :
 * FPS
 * Graph of input events
 
+Usage
+-----
+
+For normal module usage, please see the :mod:`~kivy.modules` documentation.
+
 '''
 
 from kivy.uix.label import Label

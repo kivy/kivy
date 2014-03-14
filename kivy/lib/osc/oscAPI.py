@@ -108,7 +108,8 @@ else:
 def init() :
     '''instantiates address manager and outsocket as globals
     '''
-    assert('Not used anymore')
+    global outSocket
+    outSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 
 def bind(oscid, func, oscaddress):
@@ -260,7 +261,7 @@ def dontListen(id = None):
 if __name__ == '__main__':
     # example of how to use oscAPI
     init()
-    listen() # defaults to "127.0.0.1", 9001
+    oscid = listen() # defaults to "127.0.0.1", 9001
     time.sleep(5)
 
     # add addresses to callback manager
@@ -271,7 +272,7 @@ if __name__ == '__main__':
         print("the oscaddress is ", msg[0])
         print("the value is ", msg[2])
 
-    bind(printStuff, "/test")
+    bind(oscid, printStuff, "/test")
 
     #send normal msg, two ways
     sendMsg("/test", [1, 2, 3], "127.0.0.1", 9000)

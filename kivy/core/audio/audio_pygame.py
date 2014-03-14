@@ -8,7 +8,7 @@ from kivy.clock import Clock
 from kivy.utils import platform
 from kivy.core.audio import Sound, SoundLoader
 
-_platform = platform()
+_platform = platform
 try:
     if _platform == 'android':
         try:
@@ -30,7 +30,7 @@ mixer.set_num_channels(32)
 class SoundPygame(Sound):
 
     # XXX we don't set __slots__ here, to automaticly add
-    # a dictionnary. We need that to be able to use weakref for
+    # a dictionary. We need that to be able to use weakref for
     # SoundPygame object. Otherwise, it failed with:
     # TypeError: cannot create weak reference to 'SoundPygame' object
     # We use our clock in play() method.

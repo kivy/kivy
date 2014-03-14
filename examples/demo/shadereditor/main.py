@@ -1,3 +1,4 @@
+#!/usr/bin/kivy
 import kivy
 kivy.require('1.0.6')
 

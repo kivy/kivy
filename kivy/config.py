@@ -2,14 +2,19 @@
 Configuration object
 ====================
 
-:class:`Config` object is an instance of a modified Python ConfigParser.
-See `ConfigParser documentation
+The :class:`Config` object is an instance of a modified Python ConfigParser.
+See the `ConfigParser documentation
 <http://docs.python.org/library/configparser.html>`_ for more information.
 
-Usage of Config object
-----------------------
+Kivy has a configuration file which determines the default settings. In
+order to change these settings, you can alter this file manually or use
+the Config object. Please see the :ref:`Configure Kivy` section for more
+information.
 
-Read a configuration token from a particular section::
+Usage of the Config object
+--------------------------
+
+To read a configuration token from a particular section::
 
     >>> from kivy.config import Config
     >>> Config.getint('kivy', 'show_fps')
@@ -21,7 +26,6 @@ Change the configuration and save it::
     >>> Config.write()
 
 .. versionchanged:: 1.7.1
-
     The ConfigParser should work correctly with utf-8 now. The values are
     converted from ascii to unicode only when needed. The method get() returns
     utf-8 strings.
@@ -29,30 +33,37 @@ Change the configuration and save it::
 Available configuration tokens
 ------------------------------
 
+.. |log_levels| replace:: 'debug', 'info', 'warning', 'error' or 'critical'
+
 :kivy:
 
-    `desktop`: (0, 1)
-        Enable/disable specific features if True/False. For example enabling
+    `desktop`: int, 0 or 1
+        This option controls desktop OS specific features, such as enabling
         drag-able scroll-bar in scroll views, disabling of bubbles in
-        TextInput...  True etc.
-    `log_level`: (debug, info, warning, error, critical)
-        Set the minimum log level to use
+        TextInput etc. 0 is disabled, 1 is enabled.
+    `exit_on_escape`: int, 0 or 1
+        Enables exiting kivy when escape is pressed.
+        0 is disabled, 1 is enabled.
+    `log_level`: string, one of |log_levels|
+        Set the minimum log level to use.
     `log_dir`: string
-        Path of log directory
+        Path of log directory.
     `log_name`: string
-        Format string to use for the filename of log file
-    `log_enable`: (0, 1)
-        Activate file logging
-    `keyboard_mode`: ('', 'system', 'dock', 'multi', 'systemanddock',
-        'systemandmulti')
-        Keyboard mode to use. If empty, Kivy will decide for you what is the
-        best for your current platform. Otherwise, you can set one of 'system'
-        (real keyboard), 'dock' (one virtual keyboard docked in a screen side),
-        'multi' (one virtual keyboard everytime a widget ask for),
-        'systemanddock' (virtual docked keyboard plus input from real keyboard)
-        'systemandmulti' (analogous)
+        Format string to use for the filename of log file.
+    `log_enable`: int, 0 or 1
+        Activate file logging. 0 is disabled, 1 is enabled.
+    `keyboard_mode`: string
+        Specifies the keyboard mode to use. If can be one of the following:
+
+        * '' - Let Kivy choose the best option for your current platform.
+        * 'system' - real keyboard.
+        * 'dock' - one virtual keyboard docked to a screen side.
+        * 'multi' - one virtual keyboard for every widget request.
+        * 'systemanddock' - virtual docked keyboard plus input from real
+          keyboard.
+        * 'systemandmulti' - analogous.
     `keyboard_layout`: string
-        Identifier of the layout to use
+        Identifier of the layout to use.
     `window_icon`: string
         Path of the window icon. Use this if you want to replace the default
         pygame icon.
@@ -60,25 +71,25 @@ Available configuration tokens
 :postproc:
 
     `double_tap_time`: int
-        Time allowed for the detection of double tap, in milliseconds
+        Time allowed for the detection of double tap, in milliseconds.
     `double_tap_distance`: float
         Maximum distance allowed for a double tap, normalized inside the range
-        0 - 1000
+        0 - 1000.
     `triple_tap_time`: int
-        Time allowed for the detection of triple tap, in milliseconds
+        Time allowed for the detection of triple tap, in milliseconds.
     `triple_tap_distance`: float
         Maximum distance allowed for a triple tap, normalized inside the range
-        0 - 1000
+        0 - 1000.
     `retain_time`: int
-        Time allowed for a retain touch, in milliseconds
+        Time allowed for a retain touch, in milliseconds.
     `retain_distance`: int
         If the touch moves more than is indicated by retain_distance, it will
         not be retained. Argument should be an int between 0 and 1000.
     `jitter_distance`: int
         Maximum distance for jitter detection, normalized inside the range 0
-        - 1000
-    `jitter_ignore_devices`: string, seperated with comma
-        List of devices to ignore from jitter detection
+        - 1000.
+    `jitter_ignore_devices`: string, separated with commas
+        List of devices to ignore from jitter detection.
     `ignore`: list of tuples
         List of regions where new touches are ignored.
         This configuration token can be used to resolve hotspot problems
@@ -86,13 +97,13 @@ Available configuration tokens
 
             ignore = [(xmin, ymin, xmax, ymax), ...]
 
-        All the values must be inside 0 - 1 range.
+        All the values must be inside the range 0 - 1.
 
 :graphics:
 
-    `maxfps`: int, default to 60
+    `maxfps`: int, defaults to 60
         Maximum FPS allowed.
-    `fullscreen`: (0, 1, fake, auto)
+    `fullscreen`: int or string, one of 0, 1, 'fake' or 'auto'
         Activate fullscreen. If set to `1`, a resolution of `width`
         times `height` pixels will be used.
         If set to `auto`, your current display's resolution will be
@@ -100,32 +111,31 @@ Available configuration tokens
         If you want to place the window in another display,
         use `fake` and adjust `width`, `height`, `top` and `left`.
     `width`: int
-        Width of the :class:`~kivy.core.window.Window`, not used if in `auto
-        fullscreen`
+        Width of the :class:`~kivy.core.window.Window`, not used if
+        `fullscreen` is set to `auto`.
     `height`: int
-        Height of the :class:`~kivy.core.window.Window`, not used if in `auto
-        fullscreen`
-    `fbo`: (hardware, software, force-hardware)
-        Select the FBO backend to use.
-    `show_cursor`: (0, 1)
-        Show the cursor on the screen
-    `position`: (auto, custom)
+        Height of the :class:`~kivy.core.window.Window`, not used if
+        `fullscreen` is set to `auto`.
+    `fbo`: string, one of 'hardware', 'software' or 'force-hardware'
+        Selects the FBO backend to use.
+    `show_cursor`: int, one of 0 or 1
+        Show the cursor on the screen.
+    `position`: string, one of 'auto' or 'custom'
         Position of the window on your display. If `auto` is used, you have no
         control of the initial position: `top` and `left` are ignored.
     `top`: int
-        Top position of the :class:`~kivy.core.window.Window`
+        Top position of the :class:`~kivy.core.window.Window`.
     `left`: int
-        Left position of the :class:`~kivy.core.window.Window`
-    `rotation`: (0, 90, 180, 270)
-        Rotation of the :class:`~kivy.core.window.Window`
-    `resizable`: (0, 1)
+        Left position of the :class:`~kivy.core.window.Window`.
+    `rotation`: int, one of 0, 90, 180 or 270
+        Rotation of the :class:`~kivy.core.window.Window`.
+    `resizable`: int, one of 0 or 1
         If 0, the window will have a fixed size. If 1, the window will be
         resizable.
 
 :input:
 
-    Input section is particular. You can create new input device with this
-    syntax::
+    You can create new input devices using this syntax::
 
         # example of input provider instance
         yourid = providerid,parameters
@@ -136,35 +146,48 @@ Available configuration tokens
 
     .. seealso::
 
-        Check all the providers in kivy.input.providers for the syntax to use
+        Check the providers in kivy.input.providers for the syntax to use
         inside the configuration file.
 
 :widgets:
 
     `scroll_distance`: int
-        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_distance`
-        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Default value of the
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_distance`
+        property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
     `scroll_friction`: float
-        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_friction`
-        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Default value of the
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_friction`
+        property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
     `scroll_timeout`: int
-        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_timeout`
-        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Default value of the
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_timeout`
+        property used by the  :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
     `scroll_stoptime`: int
-        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_stoptime`
-        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Default value of the
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_stoptime`
+        property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
+        .. deprecated:: 1.7.0
+            Please use
+            :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
+
     `scroll_moves`: int
-        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_moves`
-        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Default value of the
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_moves`
+        property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
+
+        .. deprecated:: 1.7.0
+            Please use
+            :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
 
 :modules:
 
@@ -173,26 +196,28 @@ Available configuration tokens
         modulename =
 
     Anything after the = will be passed to the module as arguments.
-    Check the specific module's documentation for a list of accepted arguments.
+    Check the specific module's documentation for a list of accepted
+    arguments.
 
 .. versionchanged:: 1.8.0
-    `systemanddock` and `systemandmulti` has been added as possible value for
-    `keyboard_mode` in kivy section.
+    `systemanddock` and `systemandmulti` has been added as possible values for
+    `keyboard_mode` in the kivy section. `exit_on_escape` has been added
+    to the kivy section.
 
 .. versionchanged:: 1.2.0
-    `resizable` has been added to graphics section
+    `resizable` has been added to graphics section.
 
 .. versionchanged:: 1.1.0
-    tuio is not listening by default anymore. windows icons are not copied to
-    user directory anymore. You can still set a new window icon by using
+    tuio no longer listens by default. Window icons are not copied to
+    user directory anymore. You can still set a new window icon by using the
     ``window_icon`` config setting.
 
 .. versionchanged:: 1.0.8
     `scroll_timeout`, `scroll_distance` and `scroll_friction` have been added.
-    `list_friction`, `list_trigger_distance` and `list_friction_bound` have been
-    removed. `keyboard_type` and `keyboard_layout` have been removed from
-    widget.  `keyboard_mode` and `keyboard_layout` have been added to kivy
-    section.
+    `list_friction`, `list_trigger_distance` and `list_friction_bound`
+    have been removed. `keyboard_type` and `keyboard_layout` have been
+    removed from the widget. `keyboard_mode` and `keyboard_layout` have
+    been added to the kivy section.
 '''
 
 __all__ = ('Config', 'ConfigParser')
@@ -212,14 +237,14 @@ from kivy.compat import PY2, string_types
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 9
+KIVY_CONFIG_VERSION = 10
 
 #: Kivy configuration object
 Config = None
 
 
 class ConfigParser(PythonConfigParser):
-    '''Enhanced ConfigParser class, that supports addition of default
+    '''Enhanced ConfigParser class that supports the addition of default
     sections and default values.
 
     .. versionadded:: 1.0.7
@@ -233,8 +258,8 @@ class ConfigParser(PythonConfigParser):
 
     def add_callback(self, callback, section=None, key=None):
         '''Add a callback to be called when a specific section/key changed. If
-        you don't specify a section or a key, it will call the callback for all
-        section/keys.
+        you don't specify a section or a key, it will call the callback
+        for all section/keys changes.
 
         Callbacks will receive 3 arguments: the section, key and value.
 
@@ -254,7 +279,7 @@ class ConfigParser(PythonConfigParser):
 
     def read(self, filename):
         '''Read only one filename. In contrast to the original ConfigParser of
-        Python, this one is able to read only one file at a time. The latest
+        Python, this one is able to read only one file at a time. The last
         read file will be used for the :meth:`write` method.
         '''
         if not isinstance(filename, string_types):
@@ -264,8 +289,8 @@ class ConfigParser(PythonConfigParser):
         # If we try to open directly the configuration file in utf-8,
         # we correctly get the unicode value by default.
         # But, when we try to save it again, all the values we didn't changed
-        # are still unicode, and then the PythonConfigParser internal do a str()
-        # conversion -> fail.
+        # are still unicode, and then the PythonConfigParser internal do
+        # a str() conversion -> fail.
         # Instead we currently to the conversion to utf-8 when value are
         # "get()", but we internally store them in ascii.
         #with codecs.open(filename, 'r', encoding='utf-8') as f:
@@ -296,21 +321,21 @@ class ConfigParser(PythonConfigParser):
         return value
 
     def setdefaults(self, section, keyvalues):
-        '''Set a lot of keys/values in one section at the same time
+        '''Set a lot of keys/values in one section at the same time.
         '''
         self.adddefaultsection(section)
         for key, value in keyvalues.items():
             self.setdefault(section, key, value)
 
     def setdefault(self, section, option, value):
-        '''Set the default value of a particular option
+        '''Set the default value of a particular option.
         '''
         if self.has_option(section, option):
             return
         self.set(section, option, value)
 
     def getdefault(self, section, option, defaultvalue):
-        '''Get an option. If not found, it will return the default value
+        '''Get an option. If not found, it will return the default value.
         '''
         if not self.has_section(section):
             return defaultvalue
@@ -334,8 +359,8 @@ class ConfigParser(PythonConfigParser):
         self.add_section(section)
 
     def write(self):
-        '''Write the configuration to the latest file opened with :meth:`read`
-        method.
+        '''Write the configuration to the last file opened using the
+         :meth:`read` method.
 
         Return True if the write finished successfully.
         '''
@@ -362,9 +387,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Config.add_callback(logger_config_update, 'kivy', 'log_level')
 
     # Read config file if exist
-    if exists(kivy_config_fn) and \
-        'KIVY_USE_DEFAULTCONFIG' not in environ and \
-        'KIVY_NO_CONFIG' not in environ:
+    if (exists(kivy_config_fn) and
+            'KIVY_USE_DEFAULTCONFIG' not in environ and
+            'KIVY_NO_CONFIG' not in environ):
         try:
             Config.read(kivy_config_fn)
         except Exception as e:
@@ -391,7 +416,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         need_save = True
 
     while version < KIVY_CONFIG_VERSION:
-        Logger.debug('Config: Upgrading from %d to %d' % (version, version + 1))
+        Logger.debug('Config: Upgrading from %d to %d' %
+                     (version, version + 1))
 
         if version == 0:
 
@@ -424,10 +450,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             # activate native input provider in configuration
             # from 1.0.9, don't activate mactouch by default, or app are
             # unusable.
-            if platform() == 'win':
+            if platform == 'win':
                 Config.setdefault('input', 'wm_touch', 'wm_touch')
                 Config.setdefault('input', 'wm_pen', 'wm_pen')
-            elif platform() == 'linux':
+            elif platform == 'linux':
                 probesysfs = 'probesysfs'
                 if _is_rpi:
                     probesysfs += ',provider=hidinput'
@@ -439,7 +465,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('postproc', 'ignore', '[]')
             Config.setdefault('postproc', 'jitter_distance', '0')
             Config.setdefault('postproc', 'jitter_ignore_devices',
-                                   'mouse,mactouch,')
+                              'mouse,mactouch,')
             Config.setdefault('postproc', 'retain_distance', '50')
             Config.setdefault('postproc', 'retain_time', '0')
 
@@ -489,7 +515,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 7:
             # desktop bool indicating whether to use desktop specific features
-            is_desktop = int(platform() in ('win', 'macosx', 'linux'))
+            is_desktop = int(platform in ('win', 'macosx', 'linux'))
             Config.setdefault('kivy', 'desktop', is_desktop)
             Config.setdefault('postproc', 'triple_tap_distance', '20')
             Config.setdefault('postproc', 'triple_tap_time', '375')
@@ -497,6 +523,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif version == 8:
             if Config.getint('widgets', 'scroll_timeout') == 55:
                 Config.set('widgets', 'scroll_timeout', '250')
+
+        elif version == 9:
+            Config.setdefault('kivy', 'exit_on_escape', '1')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
@@ -515,8 +544,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Logger.logfile_activated = bool(Config.getint('kivy', 'log_enable'))
 
     # If no configuration exist, write the default one.
-    if (not exists(kivy_config_fn) or need_save) and \
-        'KIVY_NO_CONFIG' not in environ:
+    if ((not exists(kivy_config_fn) or need_save) and
+            'KIVY_NO_CONFIG' not in environ):
         try:
             Config.filename = kivy_config_fn
             Config.write()

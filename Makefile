@@ -81,7 +81,7 @@ clean:
 	-find . -iname '*.pyx' -exec sh -c 'echo `dirname {}`/`basename {} .pyx`.c' \; | xargs rm
 
 distclean: clean
-	-git clean -dxf
+	-git clean -dxf -e debian
 
 theming:
 	$(PYTHON) -m kivy.atlas kivy/data/images/defaulttheme 512 kivy/tools/theming/defaulttheme/*.png

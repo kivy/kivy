@@ -32,7 +32,7 @@ kivy test.py -w  <-- will run test.py as a python script with kivy ready to use
 Run a Kivy application without going to the command line
 ========================================================
 
-Two options :
+Three options :
 
 1. You can drag your python script on top the kivy.bat file and it will launch
 
@@ -42,12 +42,18 @@ Navigate to the folder that includes this README and select the kivy.bat file.
 Now all you have to do is double click (check do this always for this file type 
 to make this the default)
 
+3. Install the Python Launcher for Windows. (Comes with Python 3.3 -- See Python PEP-397)
+* in each of your main.py files, add a first line of:
+   #!/usr/bin/kivy
+* create a file named C:\Windows\py.ini containing something like:
+   [commands]
+   kivy="c:\<path>\<to>\<your>\kivy.bat"
 
 If you already have Python installed
 ====================================
 
 The portable Kivy version shouldn't cause any conflicts and cooperate fairly well 
-(at least if it's Python 2.6, otherwise some modules might cause problems if there
+(at least if it's Python 2.7, otherwise some modules might cause problems if there
 is entries on PYTHONPATH)
 
 
@@ -70,7 +76,7 @@ can type :
 
 And it will load the whole enviroment of Kivy. This will give you an access to:
 
-  * Python binaries (python, pythonw, easy_install)
+  * Python binaries (python, pythonw, easy_install, pip)
   * Cython binaries (cython)
   * Gstreamer binaries (gst-inspect, gst-launch, ...)
   * Pre-configured PYTHONPATH for gst and Kivy

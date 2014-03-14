@@ -32,10 +32,10 @@ example, we use 10 pixel spacing between children; the first button covers
     layout.add_widget(btn1)
     layout.add_widget(btn2)
 
-Position hint are also partially working, depending the orientation:
+Position hints are partially working, depending on the orientation:
 
-* If the orientation is `vertical`: `x`, `right` and `center_x` will be used
-* If the orientation is `horizontal`: `y`, `top` and `center_y` will be used
+* If the orientation is `vertical`: `x`, `right` and `center_x` will be used.
+* If the orientation is `horizontal`: `y`, `top` and `center_y` will be used.
 
 You can check the `examples/widgets/boxlayout_poshint.py` for a live example.
 
@@ -50,7 +50,7 @@ You can check the `examples/widgets/boxlayout_poshint.py` for a live example.
     btn3 = Button(text='World', size_hint=(.5, 1))
 
     The first button will be 200px wide as specified, the second and third
-    will be 300px each, e.g., (800-200)*0.5
+    will be 300px each, e.g. (800-200) * 0.5
 
 
 .. versionchanged:: 1.4.1
@@ -61,7 +61,8 @@ You can check the `examples/widgets/boxlayout_poshint.py` for a live example.
 __all__ = ('BoxLayout', )
 
 from kivy.uix.layout import Layout
-from kivy.properties import NumericProperty, OptionProperty, VariableListProperty
+from kivy.properties import (NumericProperty, OptionProperty,
+                             VariableListProperty)
 
 
 class BoxLayout(Layout):
@@ -71,8 +72,8 @@ class BoxLayout(Layout):
     spacing = NumericProperty(0)
     '''Spacing between children, in pixels.
 
-    :data:`spacing` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.
+    :attr:`spacing` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to 0.
     '''
 
     padding = VariableListProperty([0, 0, 0, 0])
@@ -83,19 +84,18 @@ class BoxLayout(Layout):
     padding_vertical] and a one argument form [padding].
 
     .. versionchanged:: 1.7.0
+        Replaced NumericProperty with VariableListProperty.
 
-    Replaced NumericProperty with VariableListProperty.
-
-    :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default to
-    [0, 0, 0, 0].
+    :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
+    defaults to [0, 0, 0, 0].
     '''
 
     orientation = OptionProperty('horizontal', options=(
         'horizontal', 'vertical'))
     '''Orientation of the layout.
 
-    :data:`orientation` is an :class:`~kivy.properties.OptionProperty`, default
-    to 'horizontal'. Can be 'vertical' or 'horizontal'.
+    :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'horizontal'. Can be 'vertical' or 'horizontal'.
     '''
 
     def __init__(self, **kwargs):
@@ -158,7 +158,7 @@ class BoxLayout(Layout):
                 if shw:
                     w = stretch_space * shw / stretch_weight_x
                 if shh:
-                    h = shh * (selfh - padding_y)
+                    h = max(0, shh * (selfh - padding_y))
 
                 for key, value in c.pos_hint.items():
                     posy = value * (selfh - padding_y)
@@ -189,7 +189,7 @@ class BoxLayout(Layout):
                 if shh:
                     h = stretch_space * shh / stretch_weight_y
                 if shw:
-                    w = shw * (selfw - padding_x)
+                    w = max(0, shw * (selfw - padding_x))
 
                 for key, value in c.pos_hint.items():
                     posx = value * (selfw - padding_x)

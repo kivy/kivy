@@ -10,7 +10,6 @@ __all__ = ('InputPostprocDoubleTap', )
 from time import time
 from kivy.config import Config
 from kivy.vector import Vector
-from kivy.clock import Clock
 
 
 class InputPostprocDoubleTap(object):
@@ -29,15 +28,15 @@ class InputPostprocDoubleTap(object):
     def __init__(self):
         dist = Config.getint('postproc', 'double_tap_distance')
         self.double_tap_distance = dist / 1000.0
-        time = Config.getint('postproc', 'double_tap_time')
-        self.double_tap_time = time / 1000.0
+        tap_time = Config.getint('postproc', 'double_tap_time')
+        self.double_tap_time = tap_time / 1000.0
         self.touches = {}
 
     def find_double_tap(self, ref):
         '''Find a double tap touch within self.touches.
         The touch must be not a previous double tap and the distance must be
-        within the specified threshold. Additionally, the touch profiles must be
-        the same kind of touch.
+        within the specified threshold. Additionally, the touch profiles
+        must be the same kind of touch.
         '''
         ref_button = None
         if 'button' in ref.profile:

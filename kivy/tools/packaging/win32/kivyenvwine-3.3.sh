@@ -32,11 +32,11 @@ export GST_REGISTRY=$KIVY_PORTABLE_ROOT/gstreamer/registry.bin
 echo GST_REGISTRY is $GST_REGISTRY
 echo ----------------------------------
 
-export GST_PLUGIN_PATH=$KIVY_PORTABLE_ROOT/gstreamer/lib/gstreamer-0.10
+export GST_PLUGIN_PATH=$KIVY_PORTABLE_ROOT/gstreamer/lib/gstreamer-1.0
 echo GST_PLUGIN_PATH is $GST_PLUGIN_PATH
 echo ----------------------------------
 
-export PATH=$KIVY_PORTABLE_ROOT:$KIVY_PORTABLE_ROOT/Python:$KIVY_PORTABLE_ROOT/Python/Scripts:$KIVY_PORTABLE_ROOT/gstreamer/bin:$KIVY_PORTABLE_ROOT/MinGW/bin:$PATH
+export PATH=$KIVY_PORTABLE_ROOT:$KIVY_PORTABLE_ROOT/tools:$KIVY_PORTABLE_ROOT/Python33:$KIVY_PORTABLE_ROOT/Python33/Scripts:$KIVY_PORTABLE_ROOT/gstreamer/bin:$KIVY_PORTABLE_ROOT/MinGW/bin:$PATH
 echo PATH is $PATH
 echo ----------------------------------
 

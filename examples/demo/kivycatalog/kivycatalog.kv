@@ -8,12 +8,12 @@
     state: ctx.state if hasattr(ctx, "state") else "normal"
 
 <Container>:
-	canvas.before:
-		Color:
-			rgb: 0, 0, 0
-		Rectangle:
-			pos: self.pos
-			size: self.size
+    canvas.before:
+        Color:
+            rgb: 0, 0, 0
+        Rectangle:
+            pos: self.pos
+            size: self.size
 
 <Catalog>:
     language_box: language_box
@@ -37,6 +37,21 @@
             text: 'Welcome'
             values: [screen.name for screen in screen_manager.screens]
             on_text: root.show_kv(*args)
+        Widget:
+        BoxLayout:
+            size_hint: None, 1
+            width: '150sp'
+            Label:
+                text: "Auto Reload"
+            CheckBox:
+                id: chkbx
+                active: True
+                size_hint_x: 1
+        Button:
+            size_hint: None, 1
+            width: '108sp'
+            text: 'Render Now'
+            on_release: root.change_kv(*args)
     BoxLayout:
         id: reactive_layout
         orientation: 'vertical' if self.width < self.height else 'horizontal'
@@ -53,35 +68,20 @@
                 mid_size = self.max_size/2
                 if args[1]: self.height = mid_size
                 if not args[1]: self.width = mid_size
-            BoxLayout:
-                id: bl
-                orientation: "vertical"
-                ScrollView:
-                    id: kr_scroll
-                    KivyRenderTextInput:
-                        catalog: root
-                        id: language_box
-                        auto_indent: True
-                        lexer: KivyLexer()
-                        size_hint: 1, None
-                        height: max(kr_scroll.height, self.minimum_height)
-                        font_name: "data/fonts/DroidSansMono.ttf"
-                        valign: "top"
-                        text: "This box will display the kivy language for whatever has been selected"
-                        on_text: root.schedule_reload()
-                        on_cursor: root.schedule_reload()
-                BoxLayout:
+            ScrollView:
+                id: kr_scroll
+                KivyRenderTextInput:
+                    catalog: root
+                    id: language_box
+                    auto_indent: True
+                    lexer: KivyLexer()
                     size_hint: 1, None
-                    height: '30sp'
-                    BoxLayout:
-                        CheckBox:
-                            id: chkbx
-                            active: True
-                        Label:
-                            text: "Auto Reload"
-                    Button:
-                        text: 'Render Now'
-                        on_release: root.change_kv(*args)
+                    height: max(kr_scroll.height, self.minimum_height)
+                    font_name: "data/fonts/DroidSansMono.ttf"
+                    valign: "top"
+                    text: "This box will display the kivy language for whatever has been selected"
+                    on_text: root.schedule_reload()
+                    on_cursor: root.schedule_reload()
         ScreenManager:
             id: screen_manager
             Screen:

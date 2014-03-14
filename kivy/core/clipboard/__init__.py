@@ -27,6 +27,7 @@ Usage example::
 __all__ = ('ClipboardBase', 'Clipboard')
 
 from kivy.core import core_select_lib
+from kivy.utils import platform
 
 
 class ClipboardBase(object):
@@ -48,8 +49,18 @@ class ClipboardBase(object):
 
 
 # load clipboard implementation
-Clipboard = core_select_lib('clipboard', (
-    ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'),
-    ('pygame', 'clipboard_pygame', 'ClipboardPygame'),
-    ('dummy', 'clipboard_dummy', 'ClipboardDummy')), True)
+_clipboards = []
+_platform = platform
+if _platform == 'android':
+    _clipboards.append(
+        ('android', 'clipboard_android', 'ClipboardAndroid'))
+elif _platform in ('macosx', 'linux', 'win'):
+    _clipboards.append(
+        ('pygame', 'clipboard_pygame', 'ClipboardPygame'),
+        ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
+_clipboards.append(
+    ('dummy', 'clipboard_dummy', 'ClipboardDummy'))
+Clipboard = core_select_lib('clipboard', _clipboards, True)
 
+del _clipboards
+del _platform
