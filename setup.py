@@ -68,7 +68,7 @@ c_options['use_opengl_es2'] = True
 c_options['use_opengl_debug'] = False
 c_options['use_glew'] = False
 c_options['use_sdl'] = False
-c_options['use_sdl2'] = false
+c_options['use_sdl2'] = False
 c_options['use_ios'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
@@ -390,11 +390,11 @@ def determine_sdl2():
             fn = join(d, '{}.h'.format(lib))
             if exists(fn):
                 found = True
-                print 'SDL2: found {} header at {}'.format(lib, fn)
+                print('SDL2: found {} header at {}'.format(lib, fn))
                 break
 
         if not found:
-            print 'SDL2: missing sub library {}'.format(lib)
+            print('SDL2: missing sub library {}'.format(lib))
             can_compile = False
 
     if not can_compile:
