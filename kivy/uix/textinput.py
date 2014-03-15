@@ -771,6 +771,7 @@ class TextInput(Widget):
         '''Return the (row, col) of the cursor from an (x, y) position.
         '''
         padding_top = self.padding[1]
+        padding_left = self.padding[0]
         l = self._lines
         dy = self.line_height + self.line_spacing
         cx = x - self.x
@@ -786,7 +787,7 @@ class TextInput(Widget):
         for i in range(1, len(l[cy]) + 1):
             if _get_text_width(l[cy][:i],
                                _tab_width,
-                               _label_cached) >= cx + scrl_x:
+                               _label_cached) + padding_left >= cx + scrl_x:
                 break
             dcx = i
         cx = dcx
