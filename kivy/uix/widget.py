@@ -232,11 +232,11 @@ class WidgetException(Exception):
 
 
 class WidgetMetaclass(type):
-    '''Metaclass to auto register new widget into
+    '''Metaclass to automatically register new widgets for the
     :class:`~kivy.factory.Factory`
 
     .. warning::
-        This metaclass is used for Widget. Don't use it directly !
+        This metaclass is used by the Widget. Do not use it directly !
     '''
     def __init__(mcs, name, bases, attrs):
         super(WidgetMetaclass, mcs).__init__(name, bases, attrs)
