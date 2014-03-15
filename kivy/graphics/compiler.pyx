@@ -49,9 +49,9 @@ used for the next compilation.
 Note to any Kivy contributor / internal developer:
 
 - All context instructions are checked to see if they change anything in the
-  cache
+  cache.
 - We must ensure that a context instruction is needed for our current Canvas.
-- We must ensure that we don't depend of any other canvas
+- We must ensure that we don't depend of any other canvas.
 - We must reset our cache if one of our children is another instruction group
   because we don't know whether it might do weird things or not.
 
