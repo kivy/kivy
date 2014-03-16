@@ -798,7 +798,7 @@ class WindowBase(EventDispatcher):
         on_keyboard.exit_on_escape = Config.get('kivy', 'exit_on_escape')
 
         def __exit(section, name, value):
-            WindowBase.on_keyboard.exit_on_escape = value
+            WindowBase.__dict__['on_keyboard'].exit_on_escape = value
 
         Config.add_callback(__exit, 'kivy', 'exit_on_escape')
 
