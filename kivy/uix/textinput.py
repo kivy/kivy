@@ -770,8 +770,8 @@ class TextInput(Widget):
     def get_cursor_from_xy(self, x, y):
         '''Return the (row, col) of the cursor from an (x, y) position.
         '''
-        padding_top = self.padding[1]
         padding_left = self.padding[0]
+        padding_top = self.padding[1]
         l = self._lines
         dy = self.line_height + self.line_spacing
         cx = x - self.x
