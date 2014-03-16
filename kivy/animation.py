@@ -77,6 +77,7 @@ already in place in the animation module.
 
 __all__ = ('Animation', 'AnimationTransition')
 
+from copy import deepcopy
 from math import sqrt, cos, sin, pi
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
@@ -275,7 +276,7 @@ class Animation(EventDispatcher):
         # get current values
         p = d['properties']
         for key, value in self._animated_properties.items():
-            p[key] = (getattr(widget, key), value)
+            p[key] = (deepcopy(getattr(widget, key)), value)
 
         # install clock
         self._clock_install()
