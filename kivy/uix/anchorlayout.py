@@ -83,11 +83,11 @@ class AnchorLayout(Layout):
             x, y = _x, _y
             w, h = c.size
             if c.size_hint[0]:
-                w = c.size_hint[0] * width
+                w = (c.size_hint[0] * width) - (2 * padding)
             elif not self.size_hint[0]:
                 width = max(width, c.width)
             if c.size_hint[1]:
-                h = c.size_hint[1] * height
+                h = (c.size_hint[1] * height) - (2 * padding)
             elif not self.size_hint[1]:
                 height = max(height, c.height)
 
