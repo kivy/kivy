@@ -1,10 +1,11 @@
 .. _lang:
 
-Kv language
-===========
+=============
+ Kv language
+=============
 
 Concept behind the language
----------------------------
+===========================
 
 As your application grow more complex, it's common that the construction of
 widget trees and explicit declaration of bindings, becomes verbose and hard to
@@ -17,7 +18,7 @@ prototyping and agile changes to your UI. It also facilitates a good
 separation between the logic of your application and it's User Interface.
 
 How to load KV
---------------
+==============
 
 There are two ways to load Kv code into your application:
 - By name convention:
@@ -41,7 +42,7 @@ There are two ways to load Kv code into your application:
     Builder.load_string(kv_string)
 
 Rule context
-------------
+============
 
 A Kv source constitutes of `rules`, which are used to describe the content
 of a Widget, you can have one `root` rule, and any number of `class` or
@@ -69,7 +70,7 @@ There are three keywords specific to Kv language:
 - `self`: always refer to the current widget
 
 Special syntaxes
-----------------
+================
 
 There are two special syntax to define values for the whole Kv context:
 
@@ -94,7 +95,7 @@ Is equivalent to::
 in python.
 
 Instantiate children
---------------------
+====================
 
 To declare the widget has a child widget, instance of some class, just declare
 this child inside the rule:
@@ -153,7 +154,7 @@ To have your display updated when your data change, you can now have just:
         cols: len(root.data)
 
 Event Bindings
---------------
+==============
 
 You can bind to events in Kv using the ":" syntax, that is, associating a
 callback to an event:
@@ -191,7 +192,7 @@ For example the TextInput class has a ``focus`` property whose auto-generated
 
 
 Extend canvas
--------------
+=============
 
 Kv lang can be used to define the canvas instructions of your widget like this:
 
@@ -209,7 +210,7 @@ And they get updated when properties values change.
 Of course you can use `canvas.before` and `canvas.after`.
 
 Referencing Widgets
--------------------
+===================
 
 In a widget tree there is often a need to access/reference other widgets.
 Kv Language provides a way to do this using id's. Think of them as class
@@ -271,7 +272,7 @@ in this case. The correct way to do this would be:
         label_widget: label_widget.__self__
 
 Accessing Widgets defined inside Kv lang in your python code
-------------------------------------------------------------
+============================================================
 
 Consider the code below in my.kv:
 
@@ -345,7 +346,7 @@ In your python code:
 
 
 Templates
----------
+=========
 Consider the code below:
 
 .. code-block:: kv
@@ -392,7 +393,7 @@ template instead, like so:
 attributes of each instance of this template.
 
 Re-using styles in multiple widgets
------------------------------------
+===================================
 
 Consider the code below in my.kv:
 
@@ -442,10 +443,10 @@ By separating the class names with a comma, all the classes listed in the
 declaration will have the same kv properties.
 
 Designing with the Kivy Language
---------------------------------
+================================
 
 The code goes in main.py
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
 Let's start with a little example. First, the Python file named `main.py`:
 
@@ -462,7 +463,7 @@ these properties. It will change the ``info`` text, and change text in the
 ``label_wid`` widget.
 
 The layout goes in controller.kv
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------
 
 Executing this application without a corresponding `.kv` file will work, but
 nothing will be shown on the screen. This is expected, because the

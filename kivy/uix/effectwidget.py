@@ -38,10 +38,12 @@ the widget.
 from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import StringProperty, ObjectProperty, ListProperty
+from kivy.properties import (StringProperty, ObjectProperty, ListProperty,
+                             NumericProperty)
 from kivy.graphics import (RenderContext, Fbo, Color, Rectangle,
                            Translate, PushMatrix, PopMatrix,
                            ClearColor, ClearBuffers)
+from kivy.event import EventDispatcher
 from kivy.base import EventLoop
 
 Builder.load_string('''
@@ -133,22 +135,15 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 
 effect_mix = '''
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
-{
-    return vec4(color.z, color.x, color.y, 1.0);
-}
-'''
-
-effect_flash = '''
-vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
-{
-    return color * abs(sin(time));
-}
+{{
+    return vec4(color.{}, color.{}, color.{}, 1.0);
+}}
 '''
 
 effect_blur_h = '''
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
-{
-    float dt = 0.5 * 1.0 / resolution.x;
+{{
+    float dt = ({} / 4.0) * 1.0 / resolution.x;
     vec4 sum = vec4(0.0);
     sum += texture2D(texture, vec2(tex_coords.x - 4.0*dt, tex_coords.y)) * 0.05;
     sum += texture2D(texture, vec2(tex_coords.x - 3.0*dt, tex_coords.y)) * 0.09;
@@ -160,13 +155,13 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
     sum += texture2D(texture, vec2(tex_coords.x + 3.0*dt, tex_coords.y)) * 0.09;
     sum += texture2D(texture, vec2(tex_coords.x + 4.0*dt, tex_coords.y)) * 0.05;
     return sum;
-}
+}}
 '''
 
 effect_blur_v = '''
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
-{
-    float dt = 0.5 * 1.0 / resolution.y;
+{{
+    float dt = ({} / 4.0) * 1.0 / resolution.x;
     vec4 sum = vec4(0.0);
     sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 4.0*dt)) * 0.05;
     sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 3.0*dt)) * 0.09;
@@ -178,7 +173,7 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
     sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 3.0*dt)) * 0.09;
     sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 4.0*dt)) * 0.05;
     return sum;
-}
+}}
 '''
 
 effect_postprocessing = '''
@@ -230,13 +225,13 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 
 effect_pixelate = '''
 vec4 effect(vec4 vcolor, sampler2D texture, vec2 texcoord, vec2 pixel_coords)
-{
-    vec2 pixelSize = 10.0 / resolution;
+{{
+    vec2 pixelSize = {} / resolution;
 
     vec2 xy = floor(texcoord/pixelSize)*pixelSize + pixelSize/2.0;
 
     return texture2D(texture, xy);
-}
+}}
 '''
 
 effect_waterpaint = '''
@@ -358,6 +353,125 @@ vec4 effect( vec4 color, sampler2D buf0, vec2 texCoords, vec2 coords)
 '''
 
 
+class EffectBase(EventDispatcher):
+    '''The base class for GLSL effects. It simply returns its input.
+
+    See module documentation for more details.
+
+    '''
+    glsl = StringProperty(effect_trivial)
+
+
+class EffectFromFile(EffectBase):
+    source = StringProperty('')
+
+    def on_source(self, instance, value):
+        if not value:
+            return
+        filename = resource_find(self.source)
+        if filename is None:
+            return Logger.error('Error reading file {filename}'.
+                                format(filename=self.source))
+        with open(filename) as fileh:
+            self.glsl = fileh.read()
+
+
+class MonochromeEffect(EffectBase):
+    '''Returns its input colours in monochrome.'''
+    def __init__(self, *args, **kwargs):
+        super(MonochromeEffect, self).__init__(*args, **kwargs)
+        self.glsl = effect_monochrome
+
+
+class InvertEffect(EffectBase):
+    '''Inverts the colours in the input.'''
+    def __init__(self, *args, **kwargs):
+        super(InvertEffect, self).__init__(*args, **kwargs)
+        self.glsl = effect_invert
+
+
+class ScanlinesEffect(EffectBase):
+    '''Adds scanlines to the input.'''
+    def __init__(self, *args, **kwargs):
+        super(ScanlinesEffect, self).__init__(*args, **kwargs)
+        self.glsl = effect_postprocessing
+
+
+class ChannelMixEffect(EffectBase):
+    '''Mixes the color channels of the input according to the order
+    property. Channels may be arbitrarily rearranged or repeated.'''
+
+    order = ListProperty([1, 2, 0])
+    '''The new sorted order of the rgb channels. Defaults to [1, 2, 0],
+    corresponding to (g, b, r).'''
+
+    def __init__(self, *args, **kwargs):
+        super(ChannelMixEffect, self).__init__(*args, **kwargs)
+        self.do_glsl()
+
+    def on_size(self, *args):
+        self.do_glsl()
+
+    def do_glsl(self):
+        letters = [{0: 'x', 1: 'y', 2: 'z'}[i] for i in self.order]
+        self.glsl = effect_mix.format(*letters)
+
+
+class PixelateEffect(EffectBase):
+    '''Pixelates the input according to its
+    :attr:`~PixelateEffect.pixel_size`'''
+    pixel_size = NumericProperty(10)
+
+    def __init__(self, *args, **kwargs):
+        super(PixelateEffect, self).__init__(*args, **kwargs)
+        self.do_glsl()
+
+    def on_pixel_size(self, *args):
+        self.do_glsl()
+
+    def do_glsl(self):
+        self.glsl = effect_pixelate.format(float(self.pixel_size))
+
+
+class HorizontalBlurEffect(EffectBase):
+    '''Blurs the input horizontally, with the width given by
+    :attr:`~HorizontalBlurEffect.size`.'''
+    size = NumericProperty(4.0)
+
+    def __init__(self, *args, **kwargs):
+        super(HorizontalBlurEffect, self).__init__(*args, **kwargs)
+        self.do_glsl()
+
+    def on_size(self, *args):
+        self.do_glsl()
+
+    def do_glsl(self):
+        self.glsl = effect_blur_h.format(float(self.size))
+
+
+class VerticalBlurEffect(EffectBase):
+    '''Blurs the input vertically, with the width given by
+    :attr:`~VerticalBlurEffect.width`.'''
+    size = NumericProperty(4.0)
+
+    def __init__(self, *args, **kwargs):
+        super(VerticalBlurEffect, self).__init__(*args, **kwargs)
+        self.do_glsl()
+
+    def on_size(self, *args):
+        self.do_glsl()
+
+    def do_glsl(self):
+        self.glsl = effect_blur_h.format(float(self.size))
+
+
+class FXAAEffect(EffectBase):
+    '''Applies very simple antialiasing via fxaa.'''
+    def __init__(self, *args, **kwargs):
+        super(FXAAEffect, self).__init__(*args, **kwargs)
+        self.glsl = effect_fxaa
+
+
 class EffectFbo(Fbo):
     def __init__(self, *args, **kwargs):
         super(EffectFbo, self).__init__(*args, **kwargs)
@@ -472,8 +586,9 @@ class EffectWidget(BoxLayout):
             fbo = self.fbo_list[i]
             fbo.texture_rectangle.texture = self.fbo_list[i - 1].texture
 
+        # Build effect shaders
         for effect, fbo in zip(self.effects, self.fbo_list):
-            fbo.set_fs(shader_header + shader_uniforms + effect +
+            fbo.set_fs(shader_header + shader_uniforms + effect.glsl +
                        shader_footer_effect)
 
         self.fbo_list[0].texture_rectangle.texture = self.fbo.texture
@@ -509,6 +624,3 @@ class EffectWidget(BoxLayout):
         super(EffectWidget, self).clear_widgets(children)
         self.canvas = c
 
-
-class BlurEffectWidget(EffectWidget):
-    effects = ListProperty([effect_blur_h, effect_blur_v])
