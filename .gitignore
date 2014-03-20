@@ -9,15 +9,16 @@ python
 deps.zip
 python.exe
 Kivy.dmg
-doc/sources/api-*.rst
-kivy/graphics/config.h
-kivy/lib/vidcore_lite/bcm.h
-kivy/graphics/config.pxi
+api-*.rst
+config.h
+bcm.h
+config.pxi
 .last_known_portable_deps_hash
 iosbuild
 MANIFEST
 
 *.c
+*.h
 *.so
 *.pyc
 *.pyd
