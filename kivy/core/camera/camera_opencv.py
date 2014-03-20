@@ -52,15 +52,16 @@ class CameraOpenCV(CameraBase):
 
         # Set preferred resolution
         cv.SetCaptureProperty(self._device, cv.CV_CAP_PROP_FRAME_WIDTH,
-                                self.resolution[0])
+                              self.resolution[0])
         cv.SetCaptureProperty(self._device, cv.CV_CAP_PROP_FRAME_HEIGHT,
-                                self.resolution[1])
+                              self.resolution[1])
 
         # and get frame to check if it's ok
         frame = hg.cvQueryFrame(self._device)
         # Just set the resolution to the frame we just got, but don't use
         # self.resolution for that as that would cause an infinite recursion
-        # with self.init_camera (but slowly as we'd have to always get a frame).
+        # with self.init_camera (but slowly as we'd have to always get a
+        # frame).
         self._resolution = (int(frame.width), int(frame.height))
 
         #get fps
@@ -100,4 +101,3 @@ class CameraOpenCV(CameraBase):
     def stop(self):
         super(CameraOpenCV, self).stop()
         Clock.unschedule(self._update)
-

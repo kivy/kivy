@@ -4,21 +4,17 @@ Accordion
 
 .. versionadded:: 1.0.8
 
-.. warning::
-
-    This widget is still experimental, and its API is subject to change in a
-    future version.
 
 .. image:: images/accordion.jpg
     :align: right
 
 The Accordion widget is a form of menu where the options are stacked either
-vertically or horizontally, and the item in focus/when touched opens up
-displaying his content.
+vertically or horizontally and the item in focus (when touched) opens up to
+display its content.
 
-The :class:`Accordion` will contain one or many :class:`AccordionItem`
-instances, that will contain one root content widget. You'll have a Tree like
-this:
+The :class:`Accordion` should contain one or many :class:`AccordionItem`
+instances, each of which should contain one root content widget. You'll end up
+with a Tree something like this:
 
 - Accordion
 
@@ -44,8 +40,8 @@ The current implementation divides the :class:`AccordionItem` into two parts:
 #. One container for the title bar
 #. One container for the content
 
-The title bar is made from a Kv template. We'll see how to create a new template
-to customize the design of the title bar.
+The title bar is made from a Kv template. We'll see how to create a new
+template to customize the design of the title bar.
 
 .. warning::
 
@@ -55,9 +51,9 @@ to customize the design of the title bar.
         [WARNING] [Accordion] need 440px, got 100px
         [WARNING] [Accordion] layout aborted.
 
-    That means you have too many children, and there is no more space to
-    display any content. This is "normal", and nothing will be done. Try to
-    increase the space for the accordion, and reduce the number of children. You
+    That means you have too many children and there is no more space to
+    display the content. This is "normal" and nothing will be done. Try to
+    increase the space for the accordion or reduce the number of children. You
     can also reduce the :attr:`Accordion.min_space`.
 
 Simple example
@@ -77,8 +73,8 @@ Or change the orientation to vertical::
 
     root = Accordion(orientation='vertical')
 
-AccordionItem is more configurable, and you can set your own title background
-when the item is collapsed or opened::
+The AccordionItem is more configurable and you can set your own title
+background when the item is collapsed or opened::
 
     item = AccordionItem(background_normal='image_when_collapsed.png',
         background_selected='image_when_selected.png')
@@ -105,8 +101,9 @@ class AccordionException(Exception):
 
 
 class AccordionItem(FloatLayout):
-    '''AccordionItem class, that must be used in conjunction with
-    :class:`Accordion` class. See module documentation for more information.
+    '''AccordionItem class that must be used in conjunction with the
+    :class:`Accordion` class. See the module documentation for more
+    information.
     '''
 
     title = StringProperty('')
@@ -115,19 +112,20 @@ class AccordionItem(FloatLayout):
     use that property as a text entry, or not. By default, it's used for the
     title text. See title_template and the example below.
 
-    :data:`title` is a :class:`~kivy.properties.StringProperty`, default to ''
+    :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults
+    to ''.
     '''
 
     title_template = StringProperty('AccordionItemTitle')
     '''Template to use for creating the title part of the accordion item. The
     default template is a simple Label, not customizable (except the text) that
-    supports vertical and horizontal orientation, and different backgrounds for
+    supports vertical and horizontal orientation and different backgrounds for
     collapse and selected mode.
 
-    It's better to create and use your own template, if the default template
+    It's better to create and use your own template if the default template
     does not suffice.
 
-    :data:`title` is a :class:`~kivy.properties.StringProperty`, default to
+    :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
     'AccordionItemTitle'. The current default template lives in the
     `kivy/data/style.kv` file.
 
@@ -160,75 +158,75 @@ class AccordionItem(FloatLayout):
     '''
 
     title_args = DictProperty({})
-    '''Default arguments that will be pass to the
+    '''Default arguments that will be passed to the
     :meth:`kivy.lang.Builder.template` method.
 
-    :data:`title_args` is a :class:`~kivy.properties.DictProperty`, default to
-    {}
+    :attr:`title_args` is a :class:`~kivy.properties.DictProperty` and defaults
+    to {}.
     '''
 
     collapse = BooleanProperty(True)
     '''Boolean to indicate if the current item is collapsed or not.
 
-    :data:`collapse` is a :class:`~kivy.properties.BooleanProperty`, default to
-    True
+    :attr:`collapse` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     collapse_alpha = NumericProperty(1.)
     '''Value between 0 and 1 to indicate how much the item is collasped (1) or
-    selected (0). It's mostly used for animation.
+    whether it is selected (0). It's mostly used for animation.
 
-    :data:`collapse_alpha` is a :class:`~kivy.properties.NumericProperty`,
-    default to 1.
+    :attr:`collapse_alpha` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 1.
     '''
 
     accordion = ObjectProperty(None)
     '''Instance of the :class:`Accordion` that the item belongs to.
 
-    :data:`accordion` is an :class:`~kivy.properties.ObjectProperty`, default to
-    None.
+    :attr:`accordion` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     background_normal = StringProperty(
         'atlas://data/images/defaulttheme/button')
-    '''Background image of the accordion item used for default graphical
-    representation, when the item is collapsed.
+    '''Background image of the accordion item used for the default graphical
+    representation when the item is collapsed.
 
-    :data:`background_normal` is an :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/button'
+    :attr:`background_normal` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'atlas://data/images/defaulttheme/button'.
     '''
 
     background_disabled_normal = StringProperty(
         'atlas://data/images/defaulttheme/button_disabled')
-    '''Background image of the accordion item used for default graphical
-    representation, when the item is collapsed and disabled.
+    '''Background image of the accordion item used for the default graphical
+    representation when the item is collapsed and disabled.
 
     .. versionadded:: 1.8.0
 
-    :data:`background__disabled_normal` is an
-    :class:`~kivy.properties.StringProperty`, default to
-    'atlas://data/images/defaulttheme/button_disabled'
+    :attr:`background__disabled_normal` is a
+    :class:`~kivy.properties.StringProperty` and defaults to
+    'atlas://data/images/defaulttheme/button_disabled'.
     '''
 
     background_selected = StringProperty(
         'atlas://data/images/defaulttheme/button_pressed')
-    '''Background image of the accordion item used for default graphical
-    representation, when the item is selected (not collapsed).
+    '''Background image of the accordion item used for the default graphical
+    representation when the item is selected (not collapsed).
 
-    :data:`background_normal` is an :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/button_pressed'
+    :attr:`background_normal` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'atlas://data/images/defaulttheme/button_pressed'.
     '''
 
     background_disabled_selected = StringProperty(
         'atlas://data/images/defaulttheme/button_disabled_pressed')
-    '''Background image of the accordion item used for default graphical
-    representation, when the item is selected (not collapsed) and disabled.
+    '''Background image of the accordion item used for the default graphical
+    representation when the item is selected (not collapsed) and disabled.
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled_selected` is an
-    :class:`~kivy.properties.StringProperty`, default to
-    'atlas://data/images/defaulttheme/button_disabled_pressed'
+    :attr:`background_disabled_selected` is a
+    :class:`~kivy.properties.StringProperty` and defaults to
+    'atlas://data/images/defaulttheme/button_disabled_pressed'.
     '''
 
     orientation = OptionProperty('vertical', options=(
@@ -246,12 +244,12 @@ class AccordionItem(FloatLayout):
     '''
 
     container = ObjectProperty(None)
-    '''(internal) Property that will be set to the container of children, inside
+    '''(internal) Property that will be set to the container of children inside
     the AccordionItem representation.
     '''
 
     container_title = ObjectProperty(None)
-    '''(internal) Property that will be set to the container of title, inside
+    '''(internal) Property that will be set to the container of title inside
     the AccordionItem representation.
     '''
 
@@ -325,16 +323,18 @@ class Accordion(Widget):
         'horizontal', 'vertical'))
     '''Orientation of the layout.
 
-    :data:`orientation` is an :class:`~kivy.properties.OptionProperty`, default
-    to 'horizontal'. Can take a value of 'vertical' or 'horizontal'.
+    :attr:`orientation` is an :class:`~kivy.properties.OptionProperty`
+    and defaults to 'horizontal'. Can take a value of 'vertical' or
+    'horizontal'.
+
     '''
 
     anim_duration = NumericProperty(.25)
-    '''Duration of the animation in seconds, when a new accordion item is
+    '''Duration of the animation in seconds when a new accordion item is
     selected.
 
-    :data:`anim_duration` is a :class:`~kivy.properties.NumericProperty`,
-    default to .25 (250ms)
+    :attr:`anim_duration` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to .25 (250ms).
     '''
 
     anim_func = ObjectProperty('out_expo')
@@ -342,17 +342,17 @@ class Accordion(Widget):
     :class:`kivy.animation.AnimationTransition` for more information about
     available animation functions.
 
-    :data:`anim_func` is a :class:`~kivy.properties.ObjectProperty`,
-    default to 'out_expo'. You can set a string or a function to use as an
+    :attr:`anim_func` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to 'out_expo'. You can set a string or a function to use as an
     easing function.
     '''
 
     min_space = NumericProperty('44dp')
-    '''Minimum space to use for title of each item. This value is automatically
-    set on each children, each time the layout happens.
+    '''Minimum space to use for the title of each item. This value is
+    automatically set for each child every time the layout event occurs.
 
-    :data:`min_space` is a :class:`~kivy.properties.NumericProperty`, default to
-    44 (px).
+    :attr:`min_space` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 44 (px).
     '''
 
     def __init__(self, **kwargs):
@@ -364,7 +364,6 @@ class Accordion(Widget):
             size=self._trigger_layout,
             pos=self._trigger_layout,
             min_space=self._trigger_layout)
-
 
     def add_widget(self, widget, *largs):
         if not isinstance(widget, AccordionItem):
@@ -379,9 +378,7 @@ class Accordion(Widget):
             raise AccordionException(
                 'Accordion: instance not found in children')
         for widget in self.children:
-            if widget == instance:
-                continue
-            widget.collapse = True
+            widget.collapse = widget is not instance
         self._trigger_layout()
 
     def _do_layout(self, dt):
@@ -459,6 +456,11 @@ if __name__ == '__main__':
     btn = Button(text='Toggle layout')
     btn.bind(on_release=toggle_layout)
 
+    def select_2nd_item(*l):
+        acc.select(acc.children[-2])
+    btn2 = Button(text='Select 2nd item')
+    btn2.bind(on_release=select_2nd_item)
+
     from kivy.uix.slider import Slider
     slider = Slider()
 
@@ -470,6 +472,7 @@ if __name__ == '__main__':
     root = BoxLayout(spacing=20, padding=20)
     controls = BoxLayout(orientation='vertical', size_hint_x=.3)
     controls.add_widget(btn)
+    controls.add_widget(btn2)
     controls.add_widget(slider)
     root.add_widget(controls)
     root.add_widget(acc)

@@ -15,6 +15,9 @@ from kivy.base import stopTouchApp, EventLoop, ExceptionManager
 from kivy.utils import platform
 from os import environ
 
+cdef extern from "window_x11_core.c":
+    pass
+
 cdef extern from "X11/Xutil.h":
     int KeyPress
     int KeyRelease
@@ -47,7 +50,7 @@ cdef extern from "X11/Xutil.h":
         XButtonEvent xbutton
 
 cdef extern int x11_create_window(int width, int height, int x, int y, \
-        int resizable, int fullscreen, int border, char *title)
+        int resizable, int fullscreen, int border, int above, char *title)
 cdef extern void x11_gl_swap()
 cdef extern int x11_idle()
 cdef extern int x11_get_width()
@@ -143,6 +146,7 @@ class WindowX11(WindowBase):
 
         fullscreen = False
         border = True
+        above = False
         size = list(self.system_size)
         if self.fullscreen == 'fake':
             fullscreen = True
@@ -160,9 +164,12 @@ class WindowX11(WindowBase):
 
         if 'KIVY_WINDOW_NO_BORDER' in environ:
             border = False
+            
+        if 'KIVY_WINDOW_ABOVE' in environ:
+            above = True
 
         if x11_create_window(size[0], size[1], pos[0], pos[1],
-                resizable, fullscreen, border, <char *><bytes>self.title) < 0:
+                resizable, fullscreen, border, above, <char *><bytes>self.title) < 0:
             Logger.critical('WinX11: Unable to create the window')
             return
 
@@ -201,7 +208,7 @@ class WindowX11(WindowBase):
         codepoint = codepoint or kwargs.get('unicode')
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = platform() == 'darwin'
+        is_osx = platform == 'darwin'
         if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
             stopTouchApp()
             self.close()  # not sure what to do here

@@ -50,6 +50,7 @@ Please refer to the installation instructions for your specific platform:
     installation-macosx
     installation-linux
     installation-android
+    installation-rpi
     troubleshooting-macosx
 
 
@@ -86,7 +87,7 @@ For other versions of Ubuntu, this one should work::
 
     $ sudo apt-get install python-setuptools python-pygame python-opengl \
       python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
-      build-essential libgl1-mesa-dev libgles2-mesa-dev python-pip
+      build-essential libgl1-mesa-dev libgles2-mesa-dev zlib1g-dev python-pip
 
 Kivy requires a recent version of Cython, so it's better to use the last
 version published on pypi::
@@ -123,6 +124,14 @@ following shortcut to compile (does the same as the last command)::
 
     $ make
 
+.. warning::
+
+  By default, versions 2.7 to 2.7.2 of Python use the gcc compiler which ships
+  with earlier versions of XCode. As of version 4.2, only the clang compiler
+  is shipped with XCode by default. This means that if you build using XCode
+  4.2 or above, you need to ensure you have at least Python 2.7.3 installed,
+  but prefferably the latest version (2.7.5 at the time of writing).
+    
 If you want to modify the Kivy code itself, set up the `PYTHONPATH environment
 variable
 <http://docs.python.org/tutorial/modules.html#the-module-search-path>`_ to

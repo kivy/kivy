@@ -4,9 +4,9 @@ Url Request
 
 .. versionadded:: 1.0.8
 
-You can use the :class:`UrlRequest` to make asynchronous requests on the web and
-get the result when the request is completed. The spirit is the same as the XHR
-object in Javascript.
+You can use the :class:`UrlRequest` to make asynchronous requests on the
+web and get the result when the request is completed. The spirit is the
+same as the XHR object in Javascript.
 
 The content is also decoded if the Content-Type is
 application/json and the result automatically passed through json.loads.
@@ -19,9 +19,9 @@ The syntax to create a request::
 
 
 Only the first argument is mandatory: the rest are optional.
-By default, a "GET" request will be sent. If the :data:`UrlRequest.req_body` is
+By default, a "GET" request will be sent. If the :attr:`UrlRequest.req_body` is
 not None, a "POST" request will be sent. It's up to you to adjust
-:data:`UrlRequest.req_headers` to suite your requirements.
+:attr:`UrlRequest.req_headers` to suite your requirements.
 
 
 Example of fetching twitter trends::
@@ -50,6 +50,7 @@ Example of Posting data (adapted from httplib example)::
     req = UrlRequest('bugs.python.org', on_success=bug_posted, req_body=params,
             req_headers=headers)
 
+If you want a synchronous request, you can call the wait() method.
 
 '''
 
@@ -117,7 +118,7 @@ class UrlRequest(Thread):
             instead of a GET.
         `req_headers`: dict, defaults to None
             Custom headers to add to the request.
-        `chunk_size`: int, default to 8192
+        `chunk_size`: int, defaults to 8192
             Size of each chunk to read, used only when `on_progress` callback
             has been set. If you decrease it too much, a lot of on_progress
             callbacks will be fired and will slow down your download. If you
@@ -130,8 +131,8 @@ class UrlRequest(Thread):
         `decode`: bool, defaults to True
             If False, skip decoding of the response.
         `debug`: bool, defaults to False
-            If True, it will use the Logger.debug to print information about url
-            access/progression/errors.
+            If True, it will use the Logger.debug to print information
+            about url access/progression/errors.
         `file_path`: str, defaults to None
             If set, the result of the UrlRequest will be written to this path
             instead of in memory.
@@ -144,9 +145,10 @@ class UrlRequest(Thread):
     '''
 
     def __init__(self, url, on_success=None, on_redirect=None,
-            on_failure=None, on_error=None, on_progress=None, req_body=None,
-            req_headers=None, chunk_size=8192, timeout=None, method=None,
-            decode=True, debug=False, file_path=None):
+                 on_failure=None, on_error=None, on_progress=None,
+                 req_body=None, req_headers=None, chunk_size=8192,
+                 timeout=None, method=None, decode=True, debug=False,
+                 file_path=None):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -247,6 +249,8 @@ class UrlRequest(Thread):
 
         # reconstruct path to pass on the request
         path = parse.path
+        if parse.params:
+            path += ';' + parse.params
         if parse.query:
             path += '?' + parse.query
         if parse.fragment:
@@ -306,6 +310,8 @@ class UrlRequest(Thread):
                 trigger()
         else:
             result = resp.read()
+            if isinstance(result, bytes):
+                result = result.decode('utf-8')
         req.close()
 
         # return everything
@@ -350,9 +356,9 @@ class UrlRequest(Thread):
             except IndexError:
                 return
             if resp:
-                # XXX usage of dict can be dangerous if multiple headers are set
-                # even if it's invalid. But it look like it's ok ?
-                # http://stackoverflow.com/questions/2454494/..
+                # XXX usage of dict can be dangerous if multiple headers
+                # are set even if it's invalid. But it look like it's ok
+                # ?  http://stackoverflow.com/questions/2454494/..
                 # ..urllib2-multiple-set-cookie-headers-in-response
                 self._resp_headers = dict(resp.getheaders())
                 self._resp_status = resp.status
@@ -362,8 +368,8 @@ class UrlRequest(Thread):
                 if status_class in (1, 2):
                     if self._debug:
                         Logger.debug('UrlRequest: {0} Download finished with'
-                                ' {1} datalen'.format(
-                                id(self), len(data)))
+                                     ' {1} datalen'.format(id(self),
+                                                           len(data)))
                     self._is_finished = True
                     self._result = data
                     if self.on_success:
@@ -374,7 +380,7 @@ class UrlRequest(Thread):
                 elif status_class == 3:
                     if self._debug:
                         Logger.debug('UrlRequest: {} Download '
-                                'redirected'.format(id(self)))
+                                     'redirected'.format(id(self)))
                     self._is_finished = True
                     self._result = data
                     if self.on_redirect:
@@ -385,7 +391,8 @@ class UrlRequest(Thread):
                 elif status_class in (4, 5):
                     if self._debug:
                         Logger.debug('UrlRequest: {} Download failed with '
-                                'http error {}'.format(id(self), resp.status))
+                                     'http error {}'.format(id(self),
+                                                            resp.status))
                     self._is_finished = True
                     self._result = data
                     if self.on_failure:
@@ -396,7 +403,7 @@ class UrlRequest(Thread):
             elif result == 'error':
                 if self._debug:
                     Logger.debug('UrlRequest: {0} Download error '
-                            '<{1}>'.format(id(self), data))
+                                 '<{1}>'.format(id(self), data))
                 self._is_finished = True
                 self._error = data
                 if self.on_error:
@@ -406,8 +413,8 @@ class UrlRequest(Thread):
 
             elif result == 'progress':
                 if self._debug:
-                    Logger.debug('UrlRequest: {0} Download progress {1}'.format(
-                        id(self), data))
+                    Logger.debug('UrlRequest: {0} Download progress '
+                                 '{1}'.format(id(self), data))
                 if self.on_progress:
                     func = self.on_progress()
                     if func:
@@ -457,15 +464,14 @@ class UrlRequest(Thread):
         on_progress callback is set.)
         '''
         return self._chunk_size
-        '''If you want a synchronous request, you can call the wait() method.
 
     def wait(self, delay=0.5):
-        wait for the request to be finished (until :data:`resp_status` is not
+        '''Wait for the request to finish (until :attr:`resp_status` is not
         None)
 
         .. note::
             This method is intended to be used in the main thread, and the
-            callback will be dispatched from the same thread as the thread
+            callback will be dispatched from the same thread
             from which you're calling.
 
         .. versionadded:: 1.1.0
@@ -488,7 +494,7 @@ if __name__ == '__main__':
         pprint(error)
 
     req = UrlRequest('http://api.twitter.com/1/trends.json',
-            on_success, on_error)
+                     on_success, on_error)
     while not req.is_finished:
         sleep(1)
         Clock.tick()

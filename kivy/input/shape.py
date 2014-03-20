@@ -25,4 +25,3 @@ class ShapeRect(Shape):
 
         #: Height of the rect
         self.height = 0
-

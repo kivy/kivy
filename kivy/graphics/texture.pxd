@@ -11,12 +11,13 @@ cdef class Texture:
     cdef GLuint _target
     cdef GLuint _id
     cdef int _mipmap
-    cdef str _wrap
-    cdef str _min_filter
-    cdef str _mag_filter
+    cdef object _wrap
+    cdef object _min_filter
+    cdef object _mag_filter
     cdef int _rectangle
-    cdef str _colorfmt
-    cdef str _bufferfmt
+    cdef object _colorfmt
+    cdef object _icolorfmt
+    cdef object _bufferfmt
     cdef float _uvx
     cdef float _uvy
     cdef float _uvw
@@ -28,9 +29,9 @@ cdef class Texture:
     cdef object _callback
 
     cdef void update_tex_coords(self)
-    cdef void set_min_filter(self, str x)
-    cdef void set_mag_filter(self, str x)
-    cdef void set_wrap(self, str x)
+    cdef void set_min_filter(self, x)
+    cdef void set_mag_filter(self, x)
+    cdef void set_wrap(self, x)
     cdef void reload(self)
     cdef void _reload_propagate(self, Texture texture)
     cdef void allocate(self)

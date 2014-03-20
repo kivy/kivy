@@ -106,7 +106,7 @@ Touch events
 ------------
 
 A touch event is a specialized :class:`~kivy.input.motionevent.MotionEvent`
-where the property :data:`~kivy.input.motionevent.MotionEvent.is_touch`
+where the property :attr:`~kivy.input.motionevent.MotionEvent.is_touch`
 evaluates to True. For all touch events, you automatically have the X and Y
 positions available, scaled to the Window width and height. In other words, all
 touch events have the ``'pos'`` profile.

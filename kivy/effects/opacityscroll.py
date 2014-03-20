@@ -21,7 +21,7 @@ class OpacityScrollEffect(DampedScrollEffect):
 
     def on_overscroll(self, *args):
         if self.target_widget and self.target_widget.height != 0:
-            alpha = 1.0 - abs(self.overscroll / float(self.target_widget.height))
+            alpha = (1.0 -
+                     abs(self.overscroll / float(self.target_widget.height)))
             self.target_widget.opacity = min(1, alpha)
         self.trigger_velocity_update()
-

@@ -1,7 +1,7 @@
 '''
 Support for WM_PEN messages (Windows platform)
 ==============================================
-''' 
+'''
 
 __all__ = ('WM_PenProvider', 'WM_Pen')
 
@@ -32,9 +32,9 @@ if 'KIVY_DOC' in os.environ:
 else:
     from collections import deque
     from ctypes.wintypes import (ULONG, UINT, WPARAM, LPARAM,
-                                 HANDLE, BOOL, POINTER)
+                                 HANDLE, BOOL)
     from ctypes import (Structure, windll, byref, c_int16,
-                        c_int, WINFUNCTYPE)
+                        c_int, WINFUNCTYPE, POINTER)
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory
 

@@ -5,16 +5,16 @@ Damped scroll effect
 .. versionadded:: 1.7.0
 
 This damped scroll effect will use the
-:data:`~kivy.effects.scroll.ScrollEffect.overscroll` to calculate the scroll
+:attr:`~kivy.effects.scroll.ScrollEffect.overscroll` to calculate the scroll
 value, and slows going back to the upper or lower limit.
 
 '''
 
-__all__ = ('DampedScrollEffect', )
+__all__ = ('DampedScrollEffect',)
 
 
 from kivy.effects.scroll import ScrollEffect
-from kivy.properties import NumericProperty
+from kivy.properties import NumericProperty, BooleanProperty
 from kivy.metrics import sp
 
 
@@ -26,33 +26,68 @@ class DampedScrollEffect(ScrollEffect):
     edge_damping = NumericProperty(0.25)
     '''Edge damping.
 
-    :data:`edge_damping` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`edge_damping` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.25
     '''
 
     spring_constant = NumericProperty(2.0)
     '''Spring constant.
 
-    :data:`spring_constant` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`spring_constant` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 2.0
     '''
 
+    min_overscroll = NumericProperty(.5)
+    '''An overscroll less than this amount will be normalized to 0.
+
+    .. versionadded:: 1.8.0
+
+    :attr:`min_overscroll` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to .5.
+    '''
+
+    round_value = BooleanProperty(True)
+    '''If True, when the motion stops, :attr:`value` is rounded to the nearest
+    integer.
+
+    .. versionadded:: 1.8.0
+
+    :attr:`round_value` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
+    '''
     def update_velocity(self, dt):
-        if abs(self.velocity) <= 0.5 and self.overscroll == 0:
+        if abs(self.velocity) <= self.min_velocity and self.overscroll == 0:
             self.velocity = 0
-            self.value = round(self.value)
+            # why does this need to be rounded? For now refactored it.
+            if self.round_value:
+                self.value = round(self.value)
             return
 
         total_force = self.velocity * self.friction
-        if abs(self.overscroll) > 0.5:
+        if abs(self.overscroll) > self.min_overscroll:
             total_force += self.velocity * self.edge_damping
             total_force += self.overscroll * self.spring_constant
         else:
             self.overscroll = 0
 
+        stop_overscroll = ''
+        if not self.is_manual:
+            if self.overscroll > 0 and self.velocity < 0:
+                stop_overscroll = 'max'
+            elif self.overscroll < 0 and self.velocity > 0:
+                stop_overscroll = 'min'
+
         self.velocity = self.velocity - total_force
         if not self.is_manual:
             self.apply_distance(self.velocity * dt)
+            if stop_overscroll == 'min' and self.value > self.min:
+                self.value = self.min
+                self.velocity = 0
+                return
+            if stop_overscroll == 'max' and self.value < self.max:
+                self.value = self.max
+                self.velocity = 0
+                return
         self.trigger_velocity_update()
 
     def on_value(self, *args):
@@ -76,6 +111,3 @@ class DampedScrollEffect(ScrollEffect):
         if os:
             distance /= 1. + os / sp(200.)
         super(DampedScrollEffect, self).apply_distance(distance)
-
-
-

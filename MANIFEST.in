@@ -1,7 +1,7 @@
 include *AUTHORS *LICENSE
 recursive-include doc *
 recursive-include examples *
-recursive-include kivy/data *.png *.jpg *.ttf *.kv *.fs *.vs *.json *.gif *.atlas
+recursive-include kivy/data *.png *.jpg *.ttf *.kv *.fs *.vs *.json *.gif *.atlas *.ico
 recursive-include kivy/tools *.png *.txt *.bat *.sh *.py
 recursive-include kivy/tests *.py *.png
 recursive-include kivy *.pyd *.pyx *.c *.pxi *.h *.pxd

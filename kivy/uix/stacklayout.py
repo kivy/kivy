@@ -14,15 +14,19 @@ Stack Layout
 
 .. versionadded:: 1.0.5
 
-:class:`StackLayout` arranges children vertically or horizontally, as many
-as the layout can fit.
+The :class:`StackLayout` arranges children vertically or horizontally, as many
+as the layout can fit. The size of the individual children widgets do not
+have to be uniform.
 
+For example, to display widgets that get progressively larger in width::
 
-.. warning:
+    root = StackLayout()
+    for i in range(25):
+        btn = Button(text=str(i), width=40 + i * 5, size_hint=(None, 0.15))
+        root.add_widget(btn)
 
-    This is experimental and subject to change as long as this warning notice is
-    present.
-
+.. image:: images/stacklayout_sizing.png
+    :align: left
 '''
 
 __all__ = ('StackLayout', )
@@ -39,40 +43,42 @@ class StackLayout(Layout):
     spacing = VariableListProperty([0, 0], length=2)
     '''Spacing between children: [spacing_horizontal, spacing_vertical].
 
-    spacing also accepts a one argument form [spacing].
+    spacing also accepts a single argument form [spacing].
 
-    :data:`spacing` is a :class:`~kivy.properties.VariableListProperty`, default to
-    [0, 0].
+    :attr:`spacing` is a
+    :class:`~kivy.properties.VariableListProperty` and defaults to [0, 0].
+
     '''
 
     padding = VariableListProperty([0, 0, 0, 0])
-    '''Padding between layout box and children: [padding_left, padding_top,
-    padding_right, padding_bottom].
+    '''Padding between the layout box and it's children: [padding_left,
+    padding_top, padding_right, padding_bottom].
 
     padding also accepts a two argument form [padding_horizontal,
-    padding_vertical] and a one argument form [padding].
+    padding_vertical] and a single argument form [padding].
 
     .. versionchanged:: 1.7.0
+        Replaced the NumericProperty with a VariableListProperty.
 
-    Replaced NumericProperty with VariableListProperty.
-
-    :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default to
+    :attr:`padding` is a
+    :class:`~kivy.properties.VariableListProperty` and defaults to
     [0, 0, 0, 0].
+
     '''
 
     orientation = OptionProperty('lr-tb', options=(
-        'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt', 'bt-lr', 'rl-bt', 'bt-rl'))
+        'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt', 'bt-lr', 'rl-bt',
+        'bt-rl'))
     '''Orientation of the layout.
 
-    :data:`orientation` is an :class:`~kivy.properties.OptionProperty`, default
-    to 'lr-tb'.
+    :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'lr-tb'.
 
-    Valid orientations are: 'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt',
-    'bt-lr', 'rl-bt', 'bt-rl'
+    Valid orientations are 'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt',
+    'bt-lr', 'rl-bt' and 'bt-rl'.
 
     .. versionchanged:: 1.5.0
-
-        :data:`orientation` now correctly handles all valid combinations of
+        :attr:`orientation` now correctly handles all valid combinations of
         'lr','rl','tb','bt'. Before this version only 'lr-tb' and
         'tb-lr' were supported, and 'tb-lr' was misnamed and placed
         widgets from bottom to top and from right to left (reversed compared
@@ -80,37 +86,41 @@ class StackLayout(Layout):
 
     .. note::
 
-        lr mean Left to Right.
-        rl mean Right to Left.
-        tb mean Top to Bottom.
-        bt mean Bottom to Top.
+        'lr' means Left to Right.
+        'rl' means Right to Left.
+        'tb' means Top to Bottom.
+        'bt' means Bottom to Top.
     '''
 
     minimum_width = NumericProperty(0)
-    '''Minimum width needed to contain all children.
+    '''Minimum width needed to contain all children. It is automatically set
+    by the layout.
 
     .. versionadded:: 1.0.8
 
-    :data:`minimum_width` is a :class:`kivy.properties.NumericProperty`, default
-    to 0.
+    :attr:`minimum_width` is a :class:`kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     minimum_height = NumericProperty(0)
-    '''Minimum height needed to contain all children.
+    '''Minimum height needed to contain all children. It is automatically set
+    by the layout.
 
     .. versionadded:: 1.0.8
 
-    :data:`minimum_height` is a :class:`kivy.properties.NumericProperty`,
-    default to 0.
+    :attr:`minimum_height` is a :class:`kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     minimum_size = ReferenceListProperty(minimum_width, minimum_height)
-    '''Minimum size needed to contain all children.
+    '''Minimum size needed to contain all children. It is automatically set
+    by the layout.
 
     .. versionadded:: 1.0.8
 
-    :data:`minimum_size` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`minimum_width`, :data:`minimum_height`) properties.
+    :attr:`minimum_size` is a
+    :class:`~kivy.properties.ReferenceListProperty` of
+    (:attr:`minimum_width`, :attr:`minimum_height`) properties.
     '''
 
     def __init__(self, **kwargs):
