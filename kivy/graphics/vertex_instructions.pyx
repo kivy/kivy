@@ -82,10 +82,10 @@ cdef class Bezier(VertexInstruction):
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
         `segments`: int, defaults to 180
-            Define how many segments are needed for drawing the ellipse.
+            Define how many segments are needed for drawing the curve.
             The drawing will be smoother if you have many segments.
         `loop`: bool, defaults to False
-            Set the bezier curve to join last point to first.
+            Set the bezier curve to join the last point to the first.
         `dash_length`: int
             Length of a segment (if dashed), defaults to 1.
         `dash_offset`: int
@@ -236,7 +236,7 @@ cdef class Bezier(VertexInstruction):
             self.flag_update()
 
     property dash_length:
-        '''Property for getting/stting the length of the dashes in the curve.
+        '''Property for getting/setting the length of the dashes in the curve.
         '''
         def __get__(self):
             return self._dash_length

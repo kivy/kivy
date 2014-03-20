@@ -254,9 +254,9 @@ cdef class Fbo(RenderContext):
         operations will act inside the Framebuffer, until :meth:`release` is
         called.
 
-        The bind/release operation are automatically done when you add graphics
-        object in it. But if you want to manipulate a Framebuffer yourself, you
-        can use it like this::
+        The bind/release operations are automatically called when you add
+        graphics objects into it. If you want to manipulate a Framebuffer
+        yourself, you can use it like this::
 
             self.fbo = FBO()
             self.fbo.bind()
@@ -306,7 +306,7 @@ cdef class Fbo(RenderContext):
     cpdef clear_buffer(self):
         '''Clear the framebuffer with the :attr:`clear_color`.
 
-        You need to bound the framebuffer yourself before calling this
+        You need to bind the framebuffer yourself before calling this
         method::
 
             fbo.bind()
@@ -343,7 +343,7 @@ cdef class Fbo(RenderContext):
             callback()(self)
 
     def add_reload_observer(self, callback):
-        '''Add a callback to be called after the whole graphics context have
+        '''Add a callback to be called after the whole graphics context has
         been reloaded. This is where you can reupload your custom data in GPU.
 
         .. versionadded:: 1.2.0
