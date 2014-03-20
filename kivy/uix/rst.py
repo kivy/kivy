@@ -516,6 +516,9 @@ class RstDocument(ScrollView):
         super(RstDocument, self).__init__(**kwargs)
 
     def on_source(self, instance, value):
+        if not value:
+            self.text = ''
+            return
         if self.document_root is None:
             # set the documentation root to the directory name of the
             # first tile
@@ -544,8 +547,6 @@ class RstDocument(ScrollView):
         The result will be stored in :attr:`toctrees` with the ``filename`` as
         key.
         '''
-        if filename in self.toctrees:
-            return
 
         with open(filename, 'rb') as fd:
             text = fd.read().decode(encoding, errors)
