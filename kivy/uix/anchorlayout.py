@@ -28,18 +28,22 @@ To draw a button in the lower-right corner::
 __all__ = ('AnchorLayout', )
 
 from kivy.uix.layout import Layout
-from kivy.properties import NumericProperty, OptionProperty
+from kivy.properties import OptionProperty, VariableListProperty
 
 
 class AnchorLayout(Layout):
     '''Anchor layout class. See the module documentation for more information.
     '''
 
-    padding = NumericProperty(0)
-    '''Padding between the widget box and it's children, in pixels.
+    padding = VariableListProperty([0, 0, 0, 0])
+    '''Padding between the widget box and it's children, in pixels:
+    [padding_left,padding_top, padding_right, padding_bottom].
 
-    :attr:`padding` is a :class:`~kivy.properties.NumericProperty` and defaults
-    to 0.
+    padding also accepts a two argument form [padding_horizontal,
+    padding_vertical] and a one argument form [padding].
+
+    :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
+    defaults to [0, 0, 0, 0].
     '''
 
     anchor_x = OptionProperty('center', options=(
@@ -83,11 +87,11 @@ class AnchorLayout(Layout):
             x, y = _x, _y
             w, h = c.size
             if c.size_hint[0]:
-                w = (c.size_hint[0] * width) - (2 * padding)
+                w = c.size_hint[0] * width - 2 * (padding[0] + padding[2])
             elif not self.size_hint[0]:
                 width = max(width, c.width)
             if c.size_hint[1]:
-                h = (c.size_hint[1] * height) - (2 * padding)
+                h = c.size_hint[1] * height - 2 * (padding[1] + padding[3])
             elif not self.size_hint[1]:
                 height = max(height, c.height)
 
