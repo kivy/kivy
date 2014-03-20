@@ -87,24 +87,24 @@ class AnchorLayout(Layout):
             x, y = _x, _y
             w, h = c.size
             if c.size_hint[0]:
-                w = c.size_hint[0] * width - 2 * (padding[0] + padding[2])
+                w = c.size_hint[0] * width - (padding[0] + padding[2])
             elif not self.size_hint[0]:
                 width = max(width, c.width)
             if c.size_hint[1]:
-                h = c.size_hint[1] * height - 2 * (padding[1] + padding[3])
+                h = c.size_hint[1] * height - (padding[1] + padding[3])
             elif not self.size_hint[1]:
                 height = max(height, c.height)
 
             if anchor_x == 'left':
-                x = x + padding
+                x = x + padding[0]
             if anchor_x == 'right':
-                x = x + width - (w + padding)
+                x = x + width - (w + padding[2])
             if self.anchor_x == 'center':
                 x = x + (width / 2) - (w / 2)
             if anchor_y == 'bottom':
-                y = y + padding
+                y = y + padding[1]
             if anchor_y == 'top':
-                y = y + height - (h + padding)
+                y = y + height - (h + padding[3])
             if anchor_y == 'center':
                 y = y + (height / 2) - (h / 2)
 
