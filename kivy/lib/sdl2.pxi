@@ -17,6 +17,8 @@ cdef extern from "SDL.h":
      
     ctypedef enum:
         SDL_PIXELFORMAT_ARGB8888
+        SDL_PIXELFORMAT_RGBA8888
+        SDL_PIXELFORMAT_RGB888
 
     ctypedef enum SDL_GLattr:
         SDL_GL_RED_SIZE
@@ -179,20 +181,6 @@ cdef extern from "SDL.h":
         SDL_WINDOWEVENT_FOCUS_LOST     #< Window has lost keyboard focus */
         SDL_WINDOWEVENT_CLOSE           #< The window manager requests that the
                                         # window be closed */
-
-    ctypedef enum SDL_WindowFlags:
-        SDL_WINDOW_FULLSCREEN = 0x00000001
-        SDL_WINDOW_OPENGL = 0x00000002
-        SDL_WINDOW_SHOWN = 0x00000004
-        SDL_WINDOW_HIDDEN = 0x00000008
-        SDL_WINDOW_BORDERLESS = 0x00000010
-        SDL_WINDOW_RESIZABLE = 0x00000020
-        SDL_WINDOW_MINIMIZED = 0x00000040
-        SDL_WINDOW_MAXIMIZED = 0x00000080
-        SDL_WINDOW_INPUT_GRABBED = 0x00000100
-        SDL_WINDOW_INPUT_FOCUS = 0x00000200
-        SDL_WINDOW_MOUSE_FOCUS = 0x00000400
-        SDL_WINDOW_FOREIGN = 0x00000800
 
     ctypedef enum SDL_RendererFlip:
         SDL_FLIP_NONE = 0x00000000
@@ -426,6 +414,7 @@ cdef extern from "SDL.h":
     cdef int SDL_SetTextureBlendMode(SDL_Texture * texture, SDL_BlendMode blendMode)
     cdef int SDL_GetTextureBlendMode(SDL_Texture * texture, SDL_BlendMode *blendMode)
     cdef SDL_Surface * SDL_CreateRGBSurfaceFrom(void *pixels, int width, int height, int depth, int pitch, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
+    cdef SDL_Surface* SDL_ConvertSurface(SDL_Surface* src, SDL_PixelFormat* fmt, Uint32 flags)
     cdef int SDL_Init(Uint32 flags)
     cdef void SDL_Quit()
     cdef int SDL_EnableUNICODE(int enable)
@@ -556,9 +545,17 @@ cdef extern from "SDL.h":
     Uint16 AUDIO_F32    #AUDIO_F32LSB
 
 cdef extern from "SDL_image.h":
+    ctypedef enum IMG_InitFlags:
+        IMG_INIT_JPG
+        IMG_INIT_PNG
+        IMG_INIT_TIF
+        IMG_INIT_WEBP
+    cdef int IMG_Init(IMG_InitFlags flags)
+    cdef char *IMG_GetError()
     cdef SDL_Surface *IMG_Load(char *file)
     cdef SDL_Surface *IMG_Load_RW(SDL_RWops *src, int freesrc)
     cdef SDL_Surface *IMG_LoadTyped_RW(SDL_RWops *src, int freesrc, char *type)
+
 
 cdef extern from "SDL_ttf.h":
     ctypedef struct TTF_Font

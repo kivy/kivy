@@ -796,6 +796,7 @@ if platform in ('macosx', 'ios'):
 image_libs += [
     ('tex', 'img_tex'),
     ('dds', 'img_dds'),
+    ('sdl2', 'img_sdl2'),
     ('pygame', 'img_pygame'),
     ('pil', 'img_pil'),
     ('gif', 'img_gif')]

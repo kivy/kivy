@@ -493,7 +493,9 @@ if c_options['use_sdl']:
 if c_options['use_sdl2']:
     sdl2_flags = determine_sdl2()
     if sdl2_flags:
-        sources['core/window/window_sdl2.pyx'] = merge(
+        sources['core/window/_window_sdl2.pyx'] = merge(
+            base_flags, gl_flags, sdl2_flags)
+        sources['core/image/_img_sdl2.pyx'] = merge(
             base_flags, gl_flags, sdl2_flags)
 
 if platform in ('darwin', 'ios'):
