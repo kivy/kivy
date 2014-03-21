@@ -2125,6 +2125,15 @@ class TextInput(Widget):
     read-only.
     '''
 
+    cursor_color = ListProperty([1, 0, 0, 1])
+    '''Current color of the cursor, in (r, g, b, a) format.
+
+    .. versionadded:: 1.8.1
+
+    :attr:`cursor_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [1, 0, 0, 1].
+    '''
+
     line_height = NumericProperty(1)
     '''Height of a line. This property is automatically computed from the
     :attr:`font_name`, :attr:`font_size`. Changing the line_height will have
