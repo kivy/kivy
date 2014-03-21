@@ -133,9 +133,22 @@ class Splitter(BoxLayout):
     '''(internal) Specifies the distance that the slider has travelled
     across its parent, used to automatically maintain a sensible
     position if the parent is resized.
+
+    :attr:`_parent_proportion` is a
+    :class:`~kivy.properties.NumericProperty` and defaults to 0.
+
+    '''
+
+    _bound_parent = ObjectProperty(None, allownone=True)
+    '''(internal) References the widget whose size is currently being
+    tracked by :attr:`_parent_proportion`.
+
+    :attr:`_parent_proportion` is a
+    :class:`~kivy.properties.ObjectProperty` and defaults to None.
     '''
 
     keep_within_parent = BooleanProperty(True)
+
     '''If True, will limit the splitter to stay within its parent widget.
 
     :attr:`keep_within_parent` is a
@@ -229,6 +242,23 @@ class Splitter(BoxLayout):
     def on_press(self):
         pass
 
+    def on_parent(self, instance, new_parent):
+        if self._bound_parent is not None:
+            self._bound_parent.unbind(size=self.rescale_parent_proportion)
+        if self.parent is not None:
+            new_parent.bind(size=self.rescale_parent_proportion)
+        self._bound_parent = new_parent
+        self.rescale_parent_proportion()
+
+    def rescale_parent_proportion(self, *args):
+        parent_proportion = self._parent_proportion
+        if self.sizable_from in ('top', 'bottom'):
+            new_height = parent_proportion * self.parent.height
+            self.height = max(self.min_size, min(new_height, self.max_size))
+        else:
+            new_width = parent_proportion * self.parent.width
+            self.width = max(self.min_size, min(new_width, self.max_size))
+
     def _do_size(self, instance, value):
         if self.sizable_from[0] in ('l', 'r'):
             self.width = max(self.min_size, min(self.width, self.max_size))
@@ -261,8 +291,7 @@ class Splitter(BoxLayout):
             height = self.height
             self.height = max(min_size, min(height, max_size))
 
-            self._parent_proportion = (self.y - self.parent.y +
-                                       self.height / self.parent.height)
+            self._parent_proportion = self.height / self.parent.height
         else:
             diff_x = (touch.dx)
             if self.keep_within_parent:
@@ -282,6 +311,8 @@ class Splitter(BoxLayout):
 
             width = self.width
             self.width = max(min_size, min(width, max_size))
+
+            self._parent_proportion = self.width / self.parent.width
 
     def strip_up(self, instance, touch):
         if touch.grab_current is not instance:
