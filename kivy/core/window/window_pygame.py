@@ -401,7 +401,11 @@ class WindowPygame(WindowBase):
         keyboard = super(WindowPygame, self).request_keyboard(
             callback, target, input_type)
         if android and not self.allow_vkeyboard:
-            android.show_keyboard(target, input_type)
+            try:
+                android.show_keyboard(target, input_type)
+            except TypeError:
+            # show keyboard took no args prior to API-11
+                android.show_keyboard()  # api < 11
         return keyboard
 
     def release_keyboard(self, *largs):
