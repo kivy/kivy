@@ -148,11 +148,22 @@ class Splitter(BoxLayout):
     '''
 
     keep_within_parent = BooleanProperty(True)
-
     '''If True, will limit the splitter to stay within its parent widget.
 
     :attr:`keep_within_parent` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to False.
+    '''
+
+    rescale_with_parent = BooleanProperty(False)
+    '''If True, will automatically change size to take up the same
+    proportion of the parent widget when it is resized, while
+    staying within :attr:`min_size` and :attr:`max_size`. As long as
+    these attributes can be satisfied, this stops the
+    :class:`Splitter` from exceeding the parent size during rescaling.
+
+    :attr:`keep_within_parent` is a
+    :class:`~kivy.properties.BooleanProperty` and defaults to False.
+
     '''
 
     __events__ = ('on_press', 'on_release')
@@ -251,13 +262,14 @@ class Splitter(BoxLayout):
         self.rescale_parent_proportion()
 
     def rescale_parent_proportion(self, *args):
-        parent_proportion = self._parent_proportion
-        if self.sizable_from in ('top', 'bottom'):
-            new_height = parent_proportion * self.parent.height
-            self.height = max(self.min_size, min(new_height, self.max_size))
-        else:
-            new_width = parent_proportion * self.parent.width
-            self.width = max(self.min_size, min(new_width, self.max_size))
+        if self.rescale_with_parent:
+            parent_proportion = self._parent_proportion
+            if self.sizable_from in ('top', 'bottom'):
+                new_height = parent_proportion * self.parent.height
+                self.height = max(self.min_size, min(new_height, self.max_size))
+            else:
+                new_width = parent_proportion * self.parent.width
+                self.width = max(self.min_size, min(new_width, self.max_size))
 
     def _do_size(self, instance, value):
         if self.sizable_from[0] in ('l', 'r'):
