@@ -130,6 +130,7 @@ class Splitter(BoxLayout):
     '''
 
     _parent_proportion = NumericProperty(0.)
+
     '''(internal) Specifies the distance that the slider has travelled
     across its parent, used to automatically maintain a sensible
     position if the parent is resized.
@@ -163,7 +164,6 @@ class Splitter(BoxLayout):
 
     :attr:`keep_within_parent` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to False.
-
     '''
 
     __events__ = ('on_press', 'on_release')
