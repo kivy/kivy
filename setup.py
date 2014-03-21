@@ -495,6 +495,8 @@ if c_options['use_sdl2']:
     if sdl2_flags:
         sources['core/window/window_sdl2.pyx'] = merge(
             base_flags, gl_flags, sdl2_flags)
+        sources['core/clipboard/_clipboard_sdl2.px'] = merge(
+            base_flags gl_flags, sdl2_flags)
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image

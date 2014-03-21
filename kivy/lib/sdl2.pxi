@@ -462,6 +462,9 @@ cdef extern from "SDL.h":
     cdef int SDL_RenderReadPixels(SDL_Renderer * renderer, SDL_Rect * rect, Uint32 format, void *pixels, int pitch) nogil
     cdef int SDL_PushEvent(SDL_Event * event) nogil
 
+    cdef void SDL_SetClipboardText(char * text)
+    cdef const char * SDL_GetClipboardText()
+    cdef SDL_bool SDL_HasClipboardText()
     cdef int SDL_GetNumVideoDrivers()
     cdef const char *SDL_GetVideoDriver(int index)
     cdef int SDL_VideoInit(const char *driver_name)
