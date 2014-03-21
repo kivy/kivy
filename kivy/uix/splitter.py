@@ -48,7 +48,7 @@ from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.uix.button import Button
 from kivy.properties import (OptionProperty, NumericProperty, ObjectProperty,
-                             ListProperty)
+                             ListProperty, BooleanProperty)
 from kivy.uix.boxlayout import BoxLayout
 
 
@@ -127,6 +127,19 @@ class Splitter(BoxLayout):
 
     :attr:`max_size` is a :class:`~kivy.properties.NumericProperty`
     and defaults to `500pt`.
+    '''
+
+    _parent_proportion = NumericProperty(0.)
+    '''(internal) Specifies the distance that the slider has travelled
+    across its parent, used to automatically maintain a sensible
+    position if the parent is resized.
+    '''
+
+    keep_within_parent = BooleanProperty(True)
+    '''If True, will limit the splitter to stay within its parent widget.
+
+    :attr:`keep_within_parent` is a
+    :class:`~kivy.properties.BooleanProperty` and defaults to False.
     '''
 
     __events__ = ('on_press', 'on_release')
@@ -225,32 +238,45 @@ class Splitter(BoxLayout):
     def strip_move(self, instance, touch):
         if touch.grab_current is not instance:
             return False
-        sign = 1
         max_size = self.max_size
         min_size = self.min_size
         sz_frm = self.sizable_from[0]
 
         if sz_frm in ('t', 'b'):
             diff_y = (touch.dy)
+            if self.keep_within_parent:
+                if sz_frm == 't' and (self.top + diff_y) > self.parent.top:
+                    diff_y = self.parent.top - self.top
+                elif sz_frm == 'b' and (self.y + diff_y) < self.parent.y:
+                    diff_y = self.parent.y - self.y
             if sz_frm == 'b':
-                sign = -1
+                diff_y *= -1
             if self.size_hint_y:
                 self.size_hint_y = None
             if self.height > 0:
-                self.height += sign * diff_y
+                self.height += diff_y
             else:
                 self.height = 1
 
             height = self.height
             self.height = max(min_size, min(height, max_size))
+
+            self._parent_proportion = (self.y - self.parent.y +
+                                       self.height / self.parent.height)
         else:
             diff_x = (touch.dx)
+            if self.keep_within_parent:
+                if sz_frm == 'l' and (self.x + diff_x) < self.parent.x:
+                    diff_x = self.parent.x - self.x
+                elif (sz_frm == 'r' and
+                      (self.right + diff_x) > self.parent.right):
+                    diff_x = self.parent.right - self.right
             if sz_frm == 'l':
-                sign = -1
+                diff_x *= -1
             if self.size_hint_x:
                 self.size_hint_x = None
             if self.width > 0:
-                self.width += sign * (diff_x)
+                self.width += diff_x
             else:
                 self.width = 1
 
