@@ -91,6 +91,10 @@ cdef extern from "CoreGraphics/CGColorSpace.h":
     CGColorSpaceRef CGColorSpaceCreateDeviceRGB()
     void CGColorSpaceRelease(CGColorSpaceRef cs)
 
+cdef extern from "CoreGraphics/CGAffineTransform.h":
+    ctypedef void *CGAffineTransform
+    CGAffineTransform CGAffineTransformMake (float, float, float, float, float, float)
+
 cdef extern from "CoreGraphics/CGContext.h": 
     ctypedef void *CGContextRef
     void CGContextRelease(CGContextRef c)
@@ -98,6 +102,7 @@ cdef extern from "CoreGraphics/CGContext.h":
     int kCGBlendModeCopy
     int kCGBlendModeNormal
     void CGContextSetBlendMode(CGContextRef, int)
+    void CGContextConcatCTM (CGContextRef, CGAffineTransform)
 
 cdef extern from "CoreGraphics/CGBitmapContext.h":
     CGImageRef CGBitmapContextCreateImage(CGColorSpaceRef)
@@ -181,11 +186,11 @@ def load_image_data(bytes _url):
 
     return (width, height, 'rgba', r_data)
 
-def save_image_rgba(filename, width, height, data):
+def save_image_rgba(filename, width, height, data, flipped):
     # compatibility, could be removed i guess
-    save_image(filename, width, height, 'rgba', data)
+    save_image(filename, width, height, 'rgba', data, flipped)
 
-def save_image(filename, width, height, fmt, data):
+def save_image(filename, width, height, fmt, data, flipped):
     # save a RGBA string into filename using CoreGraphics
 
     # FIXME only png output are accepted.
@@ -218,6 +223,10 @@ def save_image(filename, width, height, fmt, data):
         fmt_length * width, # bytesPerRow
         colorSpace,
         kCGImageAlphaNoneSkipLast)
+
+    cdef CGAffineTransform flipMatrix = CGAffineTransformMake(1, 0, 0, -1, 0, height)
+    if flipped:
+        CGContextConcatCTM(bitmapContext, flipMatrix)
 
     cdef CGImageRef cgImage = CGBitmapContextCreateImage(bitmapContext)
     cdef char *cfilename = <char *><bytes>filename
@@ -267,8 +276,8 @@ class ImageLoaderImageIO(ImageLoaderBase):
         return True
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels):
-        save_image(filename, width, height, fmt, pixels)
+    def save(filename, width, height, fmt, pixels, flipped):
+        save_image(filename, width, height, fmt, pixels, flipped)
         return True
 
 # register
