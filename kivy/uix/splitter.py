@@ -138,6 +138,7 @@ class Splitter(BoxLayout):
     :attr:`_parent_proportion` is a
     :class:`~kivy.properties.NumericProperty` and defaults to 0.
 
+    .. versionadded:: 1.8.1
     '''
 
     _bound_parent = ObjectProperty(None, allownone=True)
@@ -146,6 +147,8 @@ class Splitter(BoxLayout):
 
     :attr:`_parent_proportion` is a
     :class:`~kivy.properties.ObjectProperty` and defaults to None.
+
+    .. versionadded:: 1.8.1
     '''
 
     keep_within_parent = BooleanProperty(True)
@@ -153,6 +156,8 @@ class Splitter(BoxLayout):
 
     :attr:`keep_within_parent` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to False.
+
+    .. versionadded:: 1.8.1
     '''
 
     rescale_with_parent = BooleanProperty(False)
@@ -164,6 +169,8 @@ class Splitter(BoxLayout):
 
     :attr:`keep_within_parent` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to False.
+
+    .. versionadded:: 1.8.1
     '''
 
     __events__ = ('on_press', 'on_release')
