@@ -151,7 +151,7 @@ class Splitter(BoxLayout):
     .. versionadded:: 1.8.1
     '''
 
-    keep_within_parent = BooleanProperty(True)
+    keep_within_parent = BooleanProperty(False)
     '''If True, will limit the splitter to stay within its parent widget.
 
     :attr:`keep_within_parent` is a
