@@ -1130,8 +1130,8 @@ class TextInput(Widget):
                               on_touch_move=self._handle_move,
                               on_release=self._handle_released)
         else:
-            win.remove_widget(self._handle_left)
-            win.remove_widget(self._handle_right)
+            if self._handle_left.parent:
+                return
             if not self.parent:
                 return
 
