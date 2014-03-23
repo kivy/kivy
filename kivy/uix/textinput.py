@@ -1036,8 +1036,10 @@ class TextInput(Widget):
         handle_left = self._handle_left
         handle_middle = self._handle_middle
 
+        x, y = self.to_window(*self.pos)
         cursor = get_cursor(
-            touch.x, touch.y + instance._touch_diff + (self.line_height / 2))
+            touch.x - x,
+            touch.y + instance._touch_diff + (self.line_height / 2))
 
         if instance != touch.grab_current:
             return
