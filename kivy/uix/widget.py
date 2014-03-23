@@ -116,7 +116,7 @@ In effect, this event model does not follow either of the conventional
 "bubble up" or "bubble down" approaches, but propogates events according to the
 natural order in which the widgets have been added. If you want to reverse this
 order, you can raise events in the children before the parent by using the
-`super` command. 
+`super` command.
 
 Linguistically, this can be difficult to explain and sound complicated,
 but it's really quite simple. Lets look at an example. In our kv file::
@@ -137,7 +137,7 @@ but it's really quite simple. Lets look at an example. In our kv file::
                 text: '4'
                 on_touch_down: root.printme("label 4 on_touch_down")
         MyBoxLayout:
-            # We use this class to demonsrate using 'super' to raise the child 
+            # We use this class to demonsrate using 'super' to raise the child
             # events first
             Label:
                 text: '5'
@@ -531,15 +531,18 @@ class Widget(WidgetBase):
         parent, rendering to an :class:`~kivy.graphics.fbo.Fbo`, and calling
         :meth:`~kivy.graphics.texture.Texture.save`.
 
-        .. note:: The image includes only this widget and its
-                  children. If you want to include widgets elsewhere
-                  in the tree, you must call
-                  :meth:`~Widget.export_to_png` from their common parent,
-                  or use :meth:`~kivy.core.window.Window.screenshot`
-                  to capture the whole window.
+        .. note::
 
-        .. note:: The image will be saved in png format, you should
-                  include the extension in your filename.
+            The image includes only this widget and its children. If you want to
+            include widgets elsewhere in the tree, you must call
+            :meth:`~Widget.export_to_png` from their common parent, or use
+            :meth:`~kivy.core.window.Window.screenshot` to capture the whole
+            window.
+
+        .. note::
+
+            The image will be saved in png format, you should include the
+            extension in your filename.
 
         .. versionadded:: 1.8.1
         '''
