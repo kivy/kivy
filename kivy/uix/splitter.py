@@ -143,7 +143,7 @@ class Splitter(BoxLayout):
     '''(internal) References the widget whose size is currently being
     tracked by :attr:`_parent_proportion`.
 
-    :attr:`_parent_proportion` is a
+    :attr:`_bound_parent` is a
     :class:`~kivy.properties.ObjectProperty` and defaults to None.
 
     .. versionadded:: 1.8.1
