@@ -159,7 +159,7 @@
             size: self.size
             source: (self.background_disabled_active if self.disabled else self.background_active) if self.focus else (self.background_disabled_normal if self.disabled else self.background_normal)
         Color:
-            rgba: (1, 0, 0, 1 if self.focus and not self.cursor_blink else 0)
+            rgba: (self.cursor_color if self.focus and not self.cursor_blink else (0, 0, 0, 0))
         Rectangle:
             pos: [int(x) for x in self.cursor_pos]
             size: 1, -self.line_height
