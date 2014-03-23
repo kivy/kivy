@@ -1013,14 +1013,20 @@ class TextInput(Widget):
 
     def _handle_pressed(self, instance):
         self._hide_cut_copy_paste()
+        sf, st = self._selection_from, self.selection_to
+        if sf > st:
+            self._selection_from , self._selection_to = st, sf
 
     def _handle_released(self, instance):
-        if self.selection_to != self.selection_from:
-            self._update_selection()
-            self._show_cut_copy_paste(
-                (instance.x + ((1 if instance is self._handle_left else - 1)
-                 * self._bubble.width / 2) if self._bubble else 0,
-                 instance.y + self.line_height), self._win)
+        sf, st = self._selection_from, self.selection_to
+        if sf == st:
+            self._hide_handles()
+            return
+        self._update_selection()
+        self._show_cut_copy_paste(
+            (instance.x + ((1 if instance is self._handle_left else - 1)
+                * self._bubble.width / 2) if self._bubble else 0,
+                instance.y + self.line_height), self._win)
 
     def _handle_move(self, instance, touch):
         if touch.grab_current != instance:
@@ -1040,41 +1046,45 @@ class TextInput(Widget):
             self.cursor = cursor
             self._position_handles('middle')
             return
+
+        ci = self.cursor_index(cursor=cursor)
+
+        sf, st = self._selection_from, self.selection_to
+
         if instance == handle_left:
-            self._selection_from = self.cursor_index(cursor=cursor)
+            self._selection_from = ci
         elif instance == handle_right:
             self._selection_to = self.cursor_index(cursor=cursor)
         self._trigger_update_graphics()
         Clock.schedule_once(lambda dt: self._position_handles())
 
     def _position_handles(self, mode='both'):
-        group = self.canvas.get_group('selection')
         lh = self.line_height
+        to_win = self.to_window
 
         if mode[0] == 'm':
             handle_middle = self._handle_middle
             hp_mid = self.cursor_pos
-            pos = self.to_window(*hp_mid)
+            pos = to_win(*hp_mid)
             handle_middle.x = pos[0] - handle_middle.width / 2
             handle_middle.top = pos[1] - lh
             return
 
+        group = self.canvas.get_group('selection')
         self._win.remove_widget(self._handle_middle)
 
-        if mode[0] != 'm':
-            handle_left = self._handle_left
-            hp_left = group[2].pos
-            handle_left.pos = self.to_window(*hp_left)
-            handle_left.x -= handle_left.width
-            handle_left.y -= handle_left.height
+        handle_left = self._handle_left
+        hp_left = group[2].pos
+        handle_left.pos = to_win(*hp_left)
+        handle_left.x -= handle_left.width
+        handle_left.y -= handle_left.height
 
-        #if mode[0] in ('b', 'r'):
-            handle_right = self._handle_right
-            last_rect = group[-1]
-            hp_right = last_rect.pos[0], last_rect.pos[1]
-            handle_right.pos = self.to_window(*hp_right)
-            handle_right.x += last_rect.size[0]
-            handle_right.y -= handle_right.height
+        handle_right = self._handle_right
+        last_rect = group[-1]
+        hp_right = last_rect.pos[0], last_rect.pos[1]
+        x, y = to_win(*hp_right)
+        handle_right.x =  x + last_rect.size[0]
+        handle_right.y = y - handle_right.height
 
     def _hide_handles(self, win=None):
         win = win or self._win
