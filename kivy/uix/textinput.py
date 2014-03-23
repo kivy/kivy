@@ -1233,7 +1233,7 @@ class TextInput(Widget):
                 return
             else:
                 #XXX where do `value` comes from?
-                Clock.schedule_once(partial(self.on_focus, self, value), 0)
+                Clock.schedule_once(partial(self.on_focus, self, largs), 0)
             return
 
     def on_focus(self, instance, value, *largs):
