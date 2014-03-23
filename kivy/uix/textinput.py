@@ -154,6 +154,7 @@ from kivy.utils import boundary, platform
 
 from kivy.core.text import Label
 from kivy.graphics import Color, Rectangle
+from kivy.graphics.texture import Texture
 
 from kivy.uix.widget import Widget
 from kivy.uix.bubble import Bubble
@@ -1766,6 +1767,13 @@ class TextInput(Widget):
             label = None
             label_len = len(ntext)
             ld = None
+
+            # check for blank line
+            if not ntext:
+                texture  = Texture.create(size=(1, 1))
+                Cache_append('textinput.label', cid, texture)
+                return texture
+
             while True:
                 try:
                     label = Label(text=ntext[:label_len], **kw)
