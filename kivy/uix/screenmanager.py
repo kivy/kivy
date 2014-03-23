@@ -355,7 +355,7 @@ class TransitionBase(EventDispatcher):
         self.manager.real_remove_widget(screen)
 
     def on_complete(self):
-        pass
+        self.remove_screen(self.screen_out)
 
     def on_progress(self, progression):
         pass
@@ -368,7 +368,6 @@ class TransitionBase(EventDispatcher):
 
     def _on_complete(self, *l):
         self.is_active = False
-        self.remove_screen(self.screen_out)
         self.dispatch('on_complete')
         self.screen_in.dispatch('on_enter')
         self.screen_out.dispatch('on_leave')
