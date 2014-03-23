@@ -884,7 +884,7 @@ class ScreenManager(FloatLayout):
         return bool([s for s in self.screens if s.name == name])
 
     def __next__(self):
-        '''Return the name of the next screen from the screen list.
+        '''Py2K backwards compatability without six or other lib.
         '''
         screens = self.screens
         if not screens:
@@ -897,7 +897,7 @@ class ScreenManager(FloatLayout):
             return
 
     def next(self):
-        ''' Py2K backwards compatability without six or other lib'''
+        '''Return the name of the next screen from the screen list.'''
         return self.__next__()
 
     def previous(self):
