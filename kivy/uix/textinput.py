@@ -1131,6 +1131,7 @@ class TextInput(Widget):
                               on_release=self._handle_released)
         else:
             if self._handle_left.parent:
+                self._position_handles()
                 return
             if not self.parent:
                 return
@@ -2370,7 +2371,7 @@ class TextInput(Widget):
     def on_selection_text(self, instance, value):
         if value:
             Clock.unschedule(self._show_handles)
-            Clock.schedule_once(self._show_handles, .1)
+            Clock.schedule_once(self._show_handles, .05)
 
     focus = BooleanProperty(False)
     '''If focus is True, the keyboard will be requested and you can start
