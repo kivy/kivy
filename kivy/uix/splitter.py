@@ -1,5 +1,4 @@
-'''
-Splitter
+'''Splitter
 ======
 
 .. versionadded:: 1.5.0
@@ -8,10 +7,10 @@ Splitter
     :align: right
 
 The :class:`Splitter` is a widget that helps you re-size it's child
-widget/layout by letting you re-size it via
-dragging the boundary or double tapping the boundary. This widget is similar to
-the :class:`~kivy.uix.scrollview.ScrollView` in that it allows only one child
-widget.
+widget/layout by letting you re-size it via dragging the boundary or
+double tapping the boundary. This widget is similar to the
+:class:`~kivy.uix.scrollview.ScrollView` in that it allows only one
+child widget.
 
 Usage::
 
@@ -180,7 +179,8 @@ class Splitter(BoxLayout):
         self._strip = None
         super(Splitter, self).__init__(**kwargs)
         self.bind(max_size=self._do_size,
-                  min_size=self._do_size)
+                  min_size=self._do_size,
+                  parent=self._rebind_parent)
 
     def on_sizable_from(self, instance, sizable_from):
         if not instance._container:
@@ -260,7 +260,7 @@ class Splitter(BoxLayout):
     def on_press(self):
         pass
 
-    def on_parent(self, instance, new_parent):
+    def _rebind_parent(self, instance, new_parent):
         if self._bound_parent is not None:
             self._bound_parent.unbind(size=self.rescale_parent_proportion)
         if self.parent is not None:
