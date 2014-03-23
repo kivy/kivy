@@ -1020,8 +1020,8 @@ class TextInput(Widget):
     def _handle_released(self, instance):
         sf, st = self._selection_from, self.selection_to
         if sf == st:
-            self._hide_handles()
             return
+
         self._update_selection()
         self._show_cut_copy_paste(
             (instance.x + ((1 if instance is self._handle_left else - 1)
@@ -1048,13 +1048,12 @@ class TextInput(Widget):
             return
 
         ci = self.cursor_index(cursor=cursor)
-
         sf, st = self._selection_from, self.selection_to
 
         if instance == handle_left:
             self._selection_from = ci
         elif instance == handle_right:
-            self._selection_to = self.cursor_index(cursor=cursor)
+            self._selection_to = ci
         self._trigger_update_graphics()
         Clock.schedule_once(lambda dt: self._position_handles())
 
@@ -1104,10 +1103,11 @@ class TextInput(Widget):
             anim.bind(on_complete=lambda *args: win.remove_widget(bubble))
             anim.start(bubble)
 
-    def _show_handles(self, win):
+    def _show_handles(self, dt):
         if not self.use_handles:
             return
 
+        win = self._win
         if not win:
             self._set_window()
             win = self._win
@@ -2369,7 +2369,8 @@ class TextInput(Widget):
 
     def on_selection_text(self, instance, value):
         if value:
-            self._show_handles(self._win)
+            Clock.unschedule(self._show_handles)
+            Clock.schedule_once(self._show_handles, .1)
 
     focus = BooleanProperty(False)
     '''If focus is True, the keyboard will be requested and you can start
