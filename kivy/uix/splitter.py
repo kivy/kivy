@@ -129,7 +129,6 @@ class Splitter(BoxLayout):
     '''
 
     _parent_proportion = NumericProperty(0.)
-
     '''(internal) Specifies the distance that the slider has travelled
     across its parent, used to automatically maintain a sensible
     position if the parent is resized.
