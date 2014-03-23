@@ -740,7 +740,7 @@ class Image(EventDispatcher):
             fmt = 'rgba'
         else:
             raise Exception('Unable to determine the format of the pixels')
-        Logger.debug('Calling <%s>.save: Vertical flip <%s>' % (str(loader), str(flipped)))
+        Logger.debug('Image%s: Saving with vertical flip <%s>' % (loader.__name__[11:], str(flipped)))
         return loader.save(filename, size[0], size[1], fmt, pixels, flipped)
 
     def read_pixel(self, x, y):

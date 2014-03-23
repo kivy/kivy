@@ -102,7 +102,7 @@ cdef extern from "CoreGraphics/CGContext.h":
     int kCGBlendModeCopy
     int kCGBlendModeNormal
     void CGContextSetBlendMode(CGContextRef, int)
-    void CGContextConcatCTM (CGContextRef, CGAffineTransform)
+    void CGContextConcatCTM(CGContextRef, CGAffineTransform)
 
 cdef extern from "CoreGraphics/CGBitmapContext.h":
     CGImageRef CGBitmapContextCreateImage(CGColorSpaceRef)
@@ -224,10 +224,6 @@ def save_image(filename, width, height, fmt, data, flipped):
         colorSpace,
         kCGImageAlphaNoneSkipLast)
 
-    cdef CGAffineTransform flipMatrix = CGAffineTransformMake(1, 0, 0, -1, 0, height)
-    if flipped:
-        CGContextConcatCTM(bitmapContext, flipMatrix)
-
     cdef CGImageRef cgImage = CGBitmapContextCreateImage(bitmapContext)
     cdef char *cfilename = <char *><bytes>filename
 
@@ -241,8 +237,34 @@ def save_image(filename, width, height, fmt, data, flipped):
     cdef CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url,
             ctype, 1, NULL)
 
-    # release everything
-    CGImageDestinationAddImage(dest, cgImage, NULL)
+    # copy the image into a transformed context
+    cdef CGContextRef flippedContext
+    cdef CGImageRef newImageRef
+
+    if flipped:
+        flippedContext = CGBitmapContextCreate(
+                                    NULL, width, height,
+                                    8, # bitsPerComponent
+                                    fmt_length * width, # bytesPerRow
+                                    colorSpace,
+                                    kCGImageAlphaNoneSkipLast)
+
+        CGContextConcatCTM(flippedContext, CGAffineTransformMake(1.0, 0.0, 
+                                                                0.0, -1.0, 
+                                                                0.0, height))
+
+        CGContextDrawImage(flippedContext, 
+                            CGRectMake(0, 0, width, height), 
+                            cgImage)
+
+        newImageRef = CGBitmapContextCreateImage(flippedContext)
+        CGImageDestinationAddImage(dest, newImageRef, NULL)
+        CFRelease(newImageRef)
+        CFRelease(flippedContext)
+    else:
+        CGImageDestinationAddImage(dest, cgImage, NULL)
+        
+    #Release everything
     CFRelease(cgImage)
     CFRelease(bitmapContext)
     CFRelease(colorSpace)
