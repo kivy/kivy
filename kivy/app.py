@@ -580,15 +580,15 @@ class App(EventDispatcher):
             kv_directory = self.kv_directory or default_kv_directory
             clsname = self.__class__.__name__.lower()
             if (clsname.endswith('app') and
-                    not isfile(join(kv_directory, '%s.kv' % clsname))):
+                    not isfile(join(kv_directory, u'%s.kv' % clsname))):
                 clsname = clsname[:-3]
-            filename = join(kv_directory, '%s.kv' % clsname)
+            filename = join(kv_directory, u'%s.kv' % clsname)
 
         # Load KV file
-        Logger.debug('App: Loading kv <{0}>'.format(filename))
+        Logger.debug(u'App: Loading kv <{0}>'.format(filename))
         rfilename = resource_find(filename)
         if rfilename is None or not exists(rfilename):
-            Logger.debug('App: kv <%s> not found' % filename)
+            Logger.debug(u'App: kv <%s> not found' % filename)
             return False
         root = Builder.load_file(rfilename)
         if root:
@@ -649,9 +649,9 @@ class App(EventDispatcher):
         '''
 
         if platform == 'android':
-            defaultpath = '/sdcard/.%(appname)s.ini'
+            defaultpath = u'/sdcard/.%(appname)s.ini'
         elif platform == 'ios':
-            defaultpath = '~/Documents/%(appname)s.ini'
+            defaultpath = u'~/Documents/%(appname)s.ini'
         elif platform == 'win':
             defaultpath = defaultpath.replace('/', sep)
         return expanduser(defaultpath) % {
@@ -680,17 +680,17 @@ class App(EventDispatcher):
         filename = self.get_application_config()
         if filename is None:
             return config
-        Logger.debug('App: Loading configuration <{0}>'.format(filename))
+        Logger.debug(u'App: Loading configuration <{0}>'.format(filename))
         if exists(filename):
             try:
                 config.read(filename)
             except:
-                Logger.error('App: Corrupted config file, ignored.')
+                Logger.error(u'App: Corrupted config file, ignored.')
                 self.config = config = ConfigParser()
                 self.build_config(config)
                 pass
         else:
-            Logger.debug('App: First configuration, create <{0}>'.format(
+            Logger.debug(u'App: First configuration, create <{0}>'.format(
                 filename))
             config.filename = filename
             config.write()
@@ -737,15 +737,26 @@ class App(EventDispatcher):
         '''
         data_dir = ""
         if platform == 'ios':
-            data_dir = join('~/Documents', self.name)
+            data_dir = join(u'~/Documents', self.name)
         elif platform == 'android':
-            data_dir = join('/sdcard', self.name)
+            data_dir = join(u'/sdcard', self.name)
         elif platform == 'win':
-            data_dir = os.path.join(os.environ['APPDATA'], self.name)
+            # http://pydoc.net/Python/dnuos/1.0b4/dnuos.appdata/
+            # http://stackoverflow.com/questions/2608200/problems-with-umlauts-in-python-appdata-environvent-variable
+            try:
+                from win32com.shell import shellcon, shell
+                path = shell.SHGetFolderPath(0, shellcon.CSIDL_APPDATA, 0, 0)
+            except ImportError:
+                path = os.environ['APPDATA']
+            try:
+                path = unicode(path)
+            except UnicodeError:
+                pass
+            data_dir = os.path.join(path, self.name)
         elif platform == 'macosx':
-            data_dir = '~/Library/Application Support/{}'.format(self.name)
+            data_dir = u'~/Library/Application Support/{}'.format(self.name)
         else:  # _platform == 'linux' or anything else...:
-            data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
+            data_dir = os.environ.get('XDG_CONFIG_HOME', u'~/.config')
             data_dir = join(data_dir, self.name)
         data_dir = expanduser(data_dir)
         if not exists(data_dir):
