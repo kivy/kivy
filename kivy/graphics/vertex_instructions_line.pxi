@@ -398,18 +398,18 @@ cdef class Line(VertexInstruction):
             iv += 1
             vertices[iv].x = x2
             vertices[iv].y = y2
-            vertices[iv].s0 = 0
+            vertices[iv].s0 = 1
             vertices[iv].t0 = 0
             iv += 1
             vertices[iv].x = x3
             vertices[iv].y = y3
-            vertices[iv].s0 = 0
-            vertices[iv].t0 = 0
+            vertices[iv].s0 = 1
+            vertices[iv].t0 = 1
             iv += 1
             vertices[iv].x = x4
             vertices[iv].y = y4
             vertices[iv].s0 = 0
-            vertices[iv].t0 = 0
+            vertices[iv].t0 = 1
             iv += 1
 
             # joint generation
@@ -587,8 +587,8 @@ cdef class Line(VertexInstruction):
             for i in xrange(0, self._cap_precision - 1):
                 vertices[iv].x = cx + cos(a1 + step * i) * w
                 vertices[iv].y = cy + sin(a1 + step * i) * w
-                vertices[iv].s0 = 0
-                vertices[iv].t0 = 0
+                vertices[iv].s0 = 1
+                vertices[iv].t0 = 1
                 if i == 0:
                     indices[ii] = siv
                     indices[ii + 1] = 0
