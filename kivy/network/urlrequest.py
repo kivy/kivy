@@ -310,6 +310,8 @@ class UrlRequest(Thread):
                 trigger()
         else:
             result = resp.read()
+            if isinstance(result, bytes):
+                result = result.decode('utf-8')
         req.close()
 
         # return everything
