@@ -449,12 +449,12 @@ custom class you have defined and registered with the system.
 An args_converter needs to be constructed that goes along with such a kv
 template. For example, to use the kv template above::
 
-    list_item_args_converter = \
+    list_item_args_converter = \\
             lambda row_index, rec: {'text': rec['text'],
                                     'is_selected': rec['is_selected'],
                                     'size_hint_y': None,
                                     'height': 25}
-    integers_dict = \
+    integers_dict = \\
         { str(i): {'text': str(i), 'is_selected': False} for i in range(100)}
 
     dict_adapter = DictAdapter(sorted_keys=[str(i) for i in range(100)],
