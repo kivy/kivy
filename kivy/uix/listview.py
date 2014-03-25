@@ -284,8 +284,8 @@ the cls or template.
 
 .. note::
 
-    Only the ListItemLabel, ListItemButton or custom classes like them, and
-    neither the bare Label nor Button classes, are to be used in the listview
+    Only the ListItemLabel, ListItemButton or custom classes like them (and
+    not the simple Label or Button classes) are to be used in the listview
     system.
 
 .. warning::
