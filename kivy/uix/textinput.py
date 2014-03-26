@@ -373,8 +373,14 @@ class TextInput(Widget):
 
         self.bind(pos=self._trigger_update_graphics)
 
+        self._trigger_position_handles = Clock.create_trigger(
+            self._position_handles)
+        self._trigger_show_handles = Clock.create_trigger(
+            self._show_handles, .05)
         self._trigger_refresh_line_options()
         self._trigger_refresh_text()
+
+        self.bind(pos=self._trigger_position_handles)
 
         # when the gl context is reloaded, trigger the text rendering again.
         _textinput_list.append(ref(self, TextInput._reload_remove_observer))
@@ -1008,7 +1014,7 @@ class TextInput(Widget):
                                        on_release=self._handle_released)
                 if not self._handle_middle.parent and self.text:
                     self._win.add_widget(handle_middle)
-                self._position_handles('middle')
+                self._position_handles(mode='middle')
             return True
 
     def _handle_pressed(self, instance):
@@ -1036,17 +1042,17 @@ class TextInput(Widget):
         handle_left = self._handle_left
         handle_middle = self._handle_middle
 
-        x, y = self.to_window(*self.pos)
+        x, y = self.to_widget(*touch.pos)
         cursor = get_cursor(
-            touch.x - x,
-            touch.y + instance._touch_diff + (self.line_height / 2))
+            x,
+            y + instance._touch_diff + (self.line_height / 2))
 
         if instance != touch.grab_current:
             return
 
         if instance == handle_middle:
             self.cursor = cursor
-            self._position_handles('middle')
+            self._position_handles(mode='middle')
             return
 
         ci = self.cursor_index(cursor=cursor)
@@ -1057,21 +1063,28 @@ class TextInput(Widget):
         elif instance == handle_right:
             self._selection_to = ci
         self._trigger_update_graphics()
-        Clock.schedule_once(lambda dt: self._position_handles())
+        self._trigger_position_handles()
 
-    def _position_handles(self, mode='both'):
+    def _position_handles(self, *args, **kwargs):
+        if not self.text:
+            return
+        mode = kwargs.get('mode', 'both')
+
         lh = self.line_height
         to_win = self.to_window
 
-        if mode[0] == 'm':
-            handle_middle = self._handle_middle
+        handle_middle = self._handle_middle
+        if handle_middle:
             hp_mid = self.cursor_pos
             pos = to_win(*hp_mid)
             handle_middle.x = pos[0] - handle_middle.width / 2
             handle_middle.top = pos[1] - lh
+        if mode[0] == 'm':
             return
 
         group = self.canvas.get_group('selection')
+        if not group:
+            return
         self._win.remove_widget(self._handle_middle)
 
         handle_left = self._handle_left
@@ -1106,7 +1119,7 @@ class TextInput(Widget):
             anim.start(bubble)
 
     def _show_handles(self, dt):
-        if not self.use_handles:
+        if not self.use_handles or not self.text:
             return
 
         win = self._win
@@ -1138,7 +1151,7 @@ class TextInput(Widget):
             if not self.parent:
                 return
 
-        Clock.schedule_once(lambda dt: self._position_handles())
+        self._trigger_position_handles()
         if self.selection_from != self.selection_to:
             self._handle_left.opacity = self._handle_right.opacity = 0
             win.add_widget(self._handle_left)
@@ -2371,9 +2384,8 @@ class TextInput(Widget):
     '''
 
     def on_selection_text(self, instance, value):
-        if value:
-            Clock.unschedule(self._show_handles)
-            Clock.schedule_once(self._show_handles, .05)
+        if value and self.use_handles:
+            self._trigger_show_handles()
 
     focus = BooleanProperty(False)
     '''If focus is True, the keyboard will be requested and you can start
