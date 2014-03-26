@@ -1089,6 +1089,8 @@ class TextInput(Widget):
         self._win.remove_widget(self._handle_middle)
 
         handle_left = self._handle_left
+        if not handle_left:
+            return
         hp_left = group[2].pos
         handle_left.pos = to_win(*hp_left)
         handle_left.x -= handle_left.width
@@ -1707,6 +1709,7 @@ class TextInput(Widget):
                                padding_left, padding_right, x,
                                canvas_add, selection_color)
             y -= dy
+        self._trigger_position_handles()
 
     def _draw_selection(self, *largs):
         pos, size, line_num, (s1c, s1r), (s2c, s2r),\
