@@ -380,7 +380,8 @@ class TextInput(Widget):
         self._trigger_refresh_line_options()
         self._trigger_refresh_text()
 
-        self.bind(pos=self._trigger_position_handles)
+        self.bind(pos=self._trigger_position_handles,
+                  size=self._trigger_position_handles)
 
         # when the gl context is reloaded, trigger the text rendering again.
         _textinput_list.append(ref(self, TextInput._reload_remove_observer))
