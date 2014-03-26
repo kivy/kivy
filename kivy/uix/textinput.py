@@ -1709,7 +1709,7 @@ class TextInput(Widget):
                                padding_left, padding_right, x,
                                canvas_add, selection_color)
             y -= dy
-        self._trigger_position_handles()
+        self._position_handles('both')
 
     def _draw_selection(self, *largs):
         pos, size, line_num, (s1c, s1r), (s2c, s2r),\
