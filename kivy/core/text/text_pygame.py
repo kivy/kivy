@@ -69,7 +69,9 @@ class LabelPygame(LabelBase):
         while len(pygame_cache_order) > 64:
             popid = pygame_cache_order.pop(0)
             del pygame_cache[popid]
-            del pygame_font_handles[popid]
+            font_handle = pygame_font_handles.pop(popid)
+            if font_handle is not None:
+                font_handle.close()
 
         return pygame_cache[fontid]
 
