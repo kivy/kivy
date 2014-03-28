@@ -182,7 +182,7 @@ class ImageLoaderBase(object):
                 imagedata = self._data[count]
                 imagedata.source = '{}{}|{}'.format(
                     'zip|' if self.filename.endswith('.zip') else '',
-                     self._nocache, uid)
+                        self._nocache, uid)
                 texture = Texture.create_from_data(
                     imagedata, mipmap=self._mipmap)
                 if not self._nocache:
@@ -740,7 +740,6 @@ class Image(EventDispatcher):
             fmt = 'rgba'
         else:
             raise Exception('Unable to determine the format of the pixels')
-        Logger.debug('Image%s: Saving with vertical flip <%s>' % (loader.__name__[11:], str(flipped)))
         return loader.save(filename, size[0], size[1], fmt, pixels, flipped)
 
     def read_pixel(self, x, y):
