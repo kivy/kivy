@@ -145,16 +145,16 @@ Ubuntu
 ------
 ::
 
-    $ sudo apt-get install python-setuptools python-pygame python-opengl \
+    $ sudo apt-get install pkg-config python-setuptools python-pygame python-opengl \
       python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
       build-essential libgl1-mesa-dev libgles2-mesa-dev cython
 
 
 *Upgrade Cython ( <= Oneiric [11.10] )*
 
-:Using our PPA: ::
+:Using Cython's daily PPA: ::
 
-    $ sudo add-apt-repository ppa:kivy-team/kivy-daily
+    $ sudo add-apt-repository ppa:cython-dev/master-ppa
     $ sudo apt-get update
     $ sudo apt-get install cython
 

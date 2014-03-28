@@ -284,8 +284,8 @@ the cls or template.
 
 .. note::
 
-    Only the ListItemLabel, ListItemButton or custom classes like them, and
-    neither the bare Label nor Button classes, are to be used in the listview
+    Only the ListItemLabel, ListItemButton or custom classes like them (and
+    not the simple Label or Button classes) are to be used in the listview
     system.
 
 .. warning::
@@ -449,12 +449,12 @@ custom class you have defined and registered with the system.
 An args_converter needs to be constructed that goes along with such a kv
 template. For example, to use the kv template above::
 
-    list_item_args_converter = \
+    list_item_args_converter = \\
             lambda row_index, rec: {'text': rec['text'],
                                     'is_selected': rec['is_selected'],
                                     'size_hint_y': None,
                                     'height': 25}
-    integers_dict = \
+    integers_dict = \\
         { str(i): {'text': str(i), 'is_selected': False} for i in range(100)}
 
     dict_adapter = DictAdapter(sorted_keys=[str(i) for i in range(100)],
@@ -600,7 +600,7 @@ class SelectableView(object):
     '''The index into the underlying data list or the data item this view
     represents.
 
-    :data:`index` is a :class:`~kivy.properties.NumericProperty`, default
+    :attr:`index` is a :class:`~kivy.properties.NumericProperty`, default
     to -1.
     '''
 
@@ -608,7 +608,7 @@ class SelectableView(object):
     '''A SelectableView instance carries this property, which should be kept
     in sync with the equivalent property in the data item it represents.
 
-    :data:`is_selected` is a :class:`~kivy.properties.BooleanProperty`, default
+    :attr:`is_selected` is a :class:`~kivy.properties.BooleanProperty`, default
     to False.
     '''
 
@@ -637,13 +637,13 @@ class ListItemButton(SelectableView, Button):
 
     selected_color = ListProperty([1., 0., 0., 1])
     '''
-    :data:`selected_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`selected_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [1., 0., 0., 1].
     '''
 
     deselected_color = ListProperty([0., 1., 0., 1])
     '''
-    :data:`selected_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`selected_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [0., 1., 0., 1].
     '''
 
@@ -717,19 +717,19 @@ class CompositeListItem(SelectableView, BoxLayout):
     '''ListItem sublasses Button, which has background_color, but
     for a composite list item, we must add this property.
 
-    :data:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [1, 1, 1, 1].
     '''
 
     selected_color = ListProperty([1., 0., 0., 1])
     '''
-    :data:`selected_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`selected_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [1., 0., 0., 1].
     '''
 
     deselected_color = ListProperty([.33, .33, .33, 1])
     '''
-    :data:`deselected_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`deselected_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [.33, .33, .33, 1].
     '''
 
@@ -737,7 +737,7 @@ class CompositeListItem(SelectableView, BoxLayout):
     '''Which component view class, if any, should represent for the
     composite list item in __repr__()?
 
-    :data:`representing_cls` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`representing_cls` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 
@@ -865,7 +865,7 @@ class ListView(AbstractView, EventDispatcher):
     :class:`~kivy.uix.widget.Widget` instance is also added as needed,
     depending on the row height calculations.
 
-    :data:`container` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`container` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 
@@ -873,7 +873,7 @@ class ListView(AbstractView, EventDispatcher):
     '''The row_height property is calculated on the basis of the height of the
     container and the count of items.
 
-    :data:`row_height` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`row_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to None.
     '''
 
@@ -882,7 +882,7 @@ class ListView(AbstractView, EventDispatcher):
     :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` with this list
     of strings, and use it to manage a no-selection list.
 
-    :data:`item_strings` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`item_strings` is a :class:`~kivy.properties.ListProperty` and
     defaults to [].
     '''
 
@@ -892,7 +892,7 @@ class ListView(AbstractView, EventDispatcher):
     scrolling is False before calling populate(). scroll_to() dispatches a
     scrolling_complete event, which sets scrolling back to False.
 
-    :data:`scrolling` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`scrolling` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -901,7 +901,7 @@ class ListView(AbstractView, EventDispatcher):
     _count = NumericProperty(0)
 
     _wstart = NumericProperty(0)
-    _wend = NumericProperty(None, allownone=True)
+    _wend = NumericProperty(-1)
 
     __events__ = ('on_scroll_complete', )
 
@@ -979,7 +979,7 @@ class ListView(AbstractView, EventDispatcher):
         self.populate()
 
     def _reset_spopulate(self, *args):
-        self._wend = None
+        self._wend = -1
         self.populate()
         # simulate the scroll again, only if we already scrolled before
         # the position might not be the same, mostly because we don't know the
@@ -1001,7 +1001,7 @@ class ListView(AbstractView, EventDispatcher):
         container.clear_widgets()
 
         # guess only ?
-        if iend is not None:
+        if iend is not None and iend != -1:
 
             # fill with a "padding"
             fh = 0

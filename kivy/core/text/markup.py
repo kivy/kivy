@@ -26,10 +26,10 @@ The following tags are availables:
     Change the text color
 ``[ref=<str>][/ref]``
     Add an interactive zone. The reference + all the word box inside the
-    reference will be available in :data:`MarkupLabel.refs`
+    reference will be available in :attr:`MarkupLabel.refs`
 ``[anchor=<str>]``
     Put an anchor in the text. You can get the position of your anchor within
-    the text with :data:`MarkupLabel.anchors`
+    the text with :attr:`MarkupLabel.anchors`
 ``[sub][/sub]``
     Display the text at a subscript position relative to the text before it.
 ``[sup][/sup]``

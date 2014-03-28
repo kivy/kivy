@@ -70,10 +70,10 @@ class FactoryBase(object):
         class definition in a module.
 
         .. versionchanged:: 1.7.0
-            :data:`baseclasses` and :data:`filename` added
+            :attr:`baseclasses` and :attr:`filename` added
 
         .. versionchanged:: 1.0.5
-            :data:`is_template` has been added in 1.0.5.
+            :attr:`is_template` has been added in 1.0.5.
         '''
         if cls is None and module is None and baseclasses is None:
             raise ValueError(

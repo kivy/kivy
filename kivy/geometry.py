@@ -68,6 +68,7 @@ def minimum_bounding_circle(points):
         A tuple that defines the circle:
             * The first element in the returned tuple is the center (x, y)
             * The second the radius (float)
+
     '''
     points = [Vector(p[0], p[1]) for p in points]
 

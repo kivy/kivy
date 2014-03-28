@@ -112,7 +112,7 @@ class AccordionItem(FloatLayout):
     use that property as a text entry, or not. By default, it's used for the
     title text. See title_template and the example below.
 
-    :data:`title` is a :class:`~kivy.properties.StringProperty` and defaults
+    :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults
     to ''.
     '''
 
@@ -125,7 +125,7 @@ class AccordionItem(FloatLayout):
     It's better to create and use your own template if the default template
     does not suffice.
 
-    :data:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
     'AccordionItemTitle'. The current default template lives in the
     `kivy/data/style.kv` file.
 
@@ -161,14 +161,14 @@ class AccordionItem(FloatLayout):
     '''Default arguments that will be passed to the
     :meth:`kivy.lang.Builder.template` method.
 
-    :data:`title_args` is a :class:`~kivy.properties.DictProperty` and defaults
+    :attr:`title_args` is a :class:`~kivy.properties.DictProperty` and defaults
     to {}.
     '''
 
     collapse = BooleanProperty(True)
     '''Boolean to indicate if the current item is collapsed or not.
 
-    :data:`collapse` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`collapse` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
@@ -176,14 +176,14 @@ class AccordionItem(FloatLayout):
     '''Value between 0 and 1 to indicate how much the item is collasped (1) or
     whether it is selected (0). It's mostly used for animation.
 
-    :data:`collapse_alpha` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`collapse_alpha` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
     '''
 
     accordion = ObjectProperty(None)
     '''Instance of the :class:`Accordion` that the item belongs to.
 
-    :data:`accordion` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`accordion` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 
@@ -192,7 +192,7 @@ class AccordionItem(FloatLayout):
     '''Background image of the accordion item used for the default graphical
     representation when the item is collapsed.
 
-    :data:`background_normal` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`background_normal` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/button'.
     '''
 
@@ -203,7 +203,7 @@ class AccordionItem(FloatLayout):
 
     .. versionadded:: 1.8.0
 
-    :data:`background__disabled_normal` is a
+    :attr:`background__disabled_normal` is a
     :class:`~kivy.properties.StringProperty` and defaults to
     'atlas://data/images/defaulttheme/button_disabled'.
     '''
@@ -213,7 +213,7 @@ class AccordionItem(FloatLayout):
     '''Background image of the accordion item used for the default graphical
     representation when the item is selected (not collapsed).
 
-    :data:`background_normal` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`background_normal` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/button_pressed'.
     '''
 
@@ -224,7 +224,7 @@ class AccordionItem(FloatLayout):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled_selected` is a
+    :attr:`background_disabled_selected` is a
     :class:`~kivy.properties.StringProperty` and defaults to
     'atlas://data/images/defaulttheme/button_disabled_pressed'.
     '''
@@ -323,7 +323,7 @@ class Accordion(Widget):
         'horizontal', 'vertical'))
     '''Orientation of the layout.
 
-    :data:`orientation` is an :class:`~kivy.properties.OptionProperty`
+    :attr:`orientation` is an :class:`~kivy.properties.OptionProperty`
     and defaults to 'horizontal'. Can take a value of 'vertical' or
     'horizontal'.
 
@@ -333,7 +333,7 @@ class Accordion(Widget):
     '''Duration of the animation in seconds when a new accordion item is
     selected.
 
-    :data:`anim_duration` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`anim_duration` is a :class:`~kivy.properties.NumericProperty` and
     defaults to .25 (250ms).
     '''
 
@@ -342,7 +342,7 @@ class Accordion(Widget):
     :class:`kivy.animation.AnimationTransition` for more information about
     available animation functions.
 
-    :data:`anim_func` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`anim_func` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to 'out_expo'. You can set a string or a function to use as an
     easing function.
     '''
@@ -351,7 +351,7 @@ class Accordion(Widget):
     '''Minimum space to use for the title of each item. This value is
     automatically set for each child every time the layout event occurs.
 
-    :data:`min_space` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`min_space` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 44 (px).
     '''
 

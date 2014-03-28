@@ -295,7 +295,7 @@ cdef class VertexInstruction(Instruction):
             with self.canvas:
                 Rectangle(texture=texture, pos=self.pos, size=self.size)
 
-        Usually, you will use the :data:`source` attribute instead of the
+        Usually, you will use the :attr:`source` attribute instead of the
         texture.
         '''
         def __get__(self):
@@ -420,13 +420,13 @@ cdef class Callback(Instruction):
     have been manipulated by the other toolkit, and as soon as program flow
     returns to Kivy, it will just break. You can have glitches, crashes, black
     holes might occur, etc.
-    To avoid that, you can activate the :data:`reset_context` option. It will
+    To avoid that, you can activate the :attr:`reset_context` option. It will
     reset the OpenGL context state to make Kivy's rendering correct after the
     call to your callback.
 
     .. warning::
 
-        The :data:`reset_context` is not a full OpenGL reset. If you have issues
+        The :attr:`reset_context` is not a full OpenGL reset. If you have issues
         regarding that, please contact us.
 
     '''

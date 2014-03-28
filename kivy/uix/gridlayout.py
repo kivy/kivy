@@ -18,7 +18,7 @@ The :class:`GridLayout` arranges children in a matrix. It takes the available
 space and divides it into columns and rows, then adds widgets to the resulting
 "cells".
 
-.. versionadded:: 1.0.7
+.. versionchanged:: 1.0.7
     The implementation has changed to use the widget size_hint for calculating
     column/row sizes. `uniform_width` and `uniform_height` have been removed
     and other properties have added to give you more control.
@@ -31,7 +31,7 @@ column/row. Each child is automatically assigned a position determined by the
 layout configuration and the child's index in the children list.
 
 A GridLayout must always have at least one input constraint:
-:data:`GridLayout.cols` or :data:`GridLayout.rows`. If you do not specify cols
+:attr:`GridLayout.cols` or :attr:`GridLayout.rows`. If you do not specify cols
 or rows, the Layout will throw an exception.
 
 Column Width and Row Height
@@ -39,14 +39,14 @@ Column Width and Row Height
 
 The column width/row height are determined in 3 steps:
 
-    - The initial size is given by the :data:`col_default_width` and
-      :data:`row_default_height` properties. To customize the size of a single
-      column or row, use :data:`cols_minimum` or :data:`rows_minimum`.
+    - The initial size is given by the :attr:`col_default_width` and
+      :attr:`row_default_height` properties. To customize the size of a single
+      column or row, use :attr:`cols_minimum` or :attr:`rows_minimum`.
     - The `size_hint_x`/`size_hint_y` of the children are taken into account.
       If no widgets have a size hint, the maximum size is used for all
       children.
-    - You can force the default size by setting the :data:`col_force_default`
-      or :data:`row_force_default` property. This will force the layout to
+    - You can force the default size by setting the :attr:`col_force_default`
+      or :attr:`row_force_default` property. This will force the layout to
       ignore the `width` and `size_hint` properties of children and use the
       default size.
 
@@ -119,7 +119,7 @@ class GridLayout(Layout):
 
     spacing also accepts a one argument form [spacing].
 
-    :data:`spacing` is a
+    :attr:`spacing` is a
     :class:`~kivy.properties.VariableListProperty` and defaults to [0, 0].
     '''
 
@@ -131,34 +131,31 @@ class GridLayout(Layout):
     padding_vertical] and a one argument form [padding].
 
     .. versionchanged:: 1.7.0
+        Replaced NumericProperty with VariableListProperty.
 
-    Replaced NumericProperty with VariableListProperty.
-
-    :data:`padding` is a :class:`~kivy.properties.VariableListProperty` and
+    :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [0, 0, 0, 0].
     '''
 
     cols = BoundedNumericProperty(None, min=0, allownone=True)
     '''Number of columns in the grid.
 
-    .. versionadded:: 1.0.8
-
+    .. versionchanged:: 1.0.8
         Changed from a NumericProperty to BoundedNumericProperty. You can no
         longer set this to a negative value.
 
-    :data:`cols` is a :class:`~kivy.properties.NumericProperty` and defaults to
+    :attr:`cols` is a :class:`~kivy.properties.NumericProperty` and defaults to
     0.
     '''
 
     rows = BoundedNumericProperty(None, min=0, allownone=True)
     '''Number of rows in the grid.
 
-    .. versionadded:: 1.0.8
-
+    .. versionchanged:: 1.0.8
         Changed from a NumericProperty to a BoundedNumericProperty. You can no
         longer set this to a negative value.
 
-    :data:`rows` is a :class:`~kivy.properties.NumericProperty` and defaults to
+    :attr:`rows` is a :class:`~kivy.properties.NumericProperty` and defaults to
     0.
     '''
 
@@ -167,7 +164,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.7
 
-    :data:`col_default_width` is a :class:`~kivy.properties.NumericProperty`
+    :attr:`col_default_width` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
     '''
 
@@ -176,7 +173,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.7
 
-    :data:`row_default_height` is a :class:`~kivy.properties.NumericProperty`
+    :attr:`row_default_height` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
     '''
 
@@ -186,7 +183,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.7
 
-    :data:`col_force_default` is a :class:`~kivy.properties.BooleanProperty`
+    :attr:`col_force_default` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to False.
     '''
 
@@ -196,7 +193,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.7
 
-    :data:`row_force_default` is a :class:`~kivy.properties.BooleanProperty`
+    :attr:`row_force_default` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to False.
     '''
 
@@ -205,7 +202,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.7
 
-    :data:`cols_minimum` is a :class:`~kivy.properties.DictProperty` and
+    :attr:`cols_minimum` is a :class:`~kivy.properties.DictProperty` and
     defaults to {}.
     '''
 
@@ -214,7 +211,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.7
 
-    :data:`rows_minimum` is a :class:`~kivy.properties.DictProperty` and
+    :attr:`rows_minimum` is a :class:`~kivy.properties.DictProperty` and
     defaults to {}.
     '''
 
@@ -223,7 +220,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.8
 
-    :data:`minimum_width` is a :class:`kivy.properties.NumericProperty` and
+    :attr:`minimum_width` is a :class:`kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -232,7 +229,7 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.8
 
-    :data:`minimum_height` is a :class:`kivy.properties.NumericProperty` and
+    :attr:`minimum_height` is a :class:`kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -241,9 +238,9 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.8
 
-    :data:`minimum_size` is a
+    :attr:`minimum_size` is a
     :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`minimum_width`, :data:`minimum_height`) properties.
+    (:attr:`minimum_width`, :attr:`minimum_height`) properties.
     '''
 
     def __init__(self, **kwargs):

@@ -37,7 +37,7 @@ class SimpleListAdapter(Adapter):
     there is an args_converter, the data objects will be passed to it for
     instantiating the item view class instances.
 
-    :data:`data` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`data` is a :class:`~kivy.properties.ListProperty` and
     defaults to [].
     '''
 

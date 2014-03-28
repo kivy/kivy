@@ -5,14 +5,13 @@ Stencil instructions
 .. versionadded:: 1.0.4
 
 .. versionchanged:: 1.3.0
-
     The stencil operation has been updated to resolve some issues that appeared
     when nested. You **must** now have a StencilUnUse and repeat the same
     operation as you did after StencilPush.
 
 Stencil instructions permit you to draw and use the current drawing as a mask.
-Even if you don't have as much control as pure OpenGL, you can still do fancy
-things :=)
+They don't give as much control as pure OpenGL, but you can still do fancy
+things!
 
 The stencil buffer can be controlled using these 3 instructions:
 
@@ -25,7 +24,7 @@ The stencil buffer can be controlled using these 3 instructions:
     - :class:`StencilPop` : pop the current stencil layer.
 
 
-Here is a global scheme to respect::
+You should always respect this scheme:
 
 .. code-block:: kv
 
@@ -53,7 +52,7 @@ Limitations
 -----------
 
 - Drawing in PHASE 1 and PHASE 3 must not collide or you
-  will get unexpected result.
+  will get unexpected results
 - The stencil is activated as soon as you perform a StencilPush
 - The stencil is deactivated as soon as you've correctly popped all the stencil
   layers

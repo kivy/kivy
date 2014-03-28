@@ -19,9 +19,9 @@ The syntax to create a request::
 
 
 Only the first argument is mandatory: the rest are optional.
-By default, a "GET" request will be sent. If the :data:`UrlRequest.req_body` is
+By default, a "GET" request will be sent. If the :attr:`UrlRequest.req_body` is
 not None, a "POST" request will be sent. It's up to you to adjust
-:data:`UrlRequest.req_headers` to suite your requirements.
+:attr:`UrlRequest.req_headers` to suite your requirements.
 
 
 Example of fetching twitter trends::
@@ -310,6 +310,8 @@ class UrlRequest(Thread):
                 trigger()
         else:
             result = resp.read()
+            if isinstance(result, bytes):
+                result = result.decode('utf-8')
         req.close()
 
         # return everything
@@ -464,7 +466,7 @@ class UrlRequest(Thread):
         return self._chunk_size
 
     def wait(self, delay=0.5):
-        '''Wait for the request to finish (until :data:`resp_status` is not
+        '''Wait for the request to finish (until :attr:`resp_status` is not
         None)
 
         .. note::

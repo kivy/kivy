@@ -39,7 +39,7 @@ key will defocus the textinput and emit on_text_validate event)::
     textinput = TextInput(text='Hello world', multiline=False)
     textinput.bind(on_text_validate=on_enter)
 
-The textinput's text is stored on its :data:`TextInput.text` property. To run a
+The textinput's text is stored on its :attr:`TextInput.text` property. To run a
 callback when the text changes::
 
     def on_text(instance, value):
@@ -72,8 +72,38 @@ Selection
 
 The selection is automatically updated when the cursor position changes.
 You can get the currently selected text from the
-:data:`TextInput.selection_text` property.
+:attr:`TextInput.selection_text` property.
 
+Filtering
+---------
+
+You can control which text can be added to the :class:`TextInput` by
+overwriting :meth:`TextInput.insert_text`.Every string that is typed, pasted
+or inserted by any other means to the :class:`TextInput` is passed through
+this function. By overwriting it you can reject or change unwanted characters.
+
+For example, to write only in capitalized characters::
+
+    class CapitalInput(TextInput):
+
+        def insert_text(self, substring, from_undo=False):
+            s = substring.upper()
+            return super(CapitalInput, self).insert_text(s,\
+ from_undo=from_undo)
+
+Or to only allow floats (0 - 9 and a single period)::
+
+    class FloatInput(TextInput):
+
+        pat = re.compile('[^0-9]')
+        def insert_text(self, substring, from_undo=False):
+            pat = self.pat
+            if '.' in self.text:
+                s = re.sub(pat, '', substring)
+            else:
+                s = '.'.join([re.sub(pat, '', s) for s in\
+ substring.split('.', 1)])
+            return super(FloatInput, self).insert_text(s, from_undo=from_undo)
 
 Default shortcuts
 -----------------
@@ -124,6 +154,7 @@ from kivy.utils import boundary, platform
 
 from kivy.core.text import Label
 from kivy.graphics import Color, Rectangle
+from kivy.graphics.texture import Texture
 
 from kivy.uix.widget import Widget
 from kivy.uix.bubble import Bubble
@@ -309,6 +340,8 @@ class TextInput(Widget):
         self._line_options = None
         self._keyboard = None
         self._keyboard_mode = Config.get('kivy', 'keyboard_mode')
+        self._command_mode = False
+        self._command = ''
         self.reset_undo()
         self._touch_count = 0
         self.interesting_keys = {
@@ -341,8 +374,15 @@ class TextInput(Widget):
 
         self.bind(pos=self._trigger_update_graphics)
 
+        self._trigger_position_handles = Clock.create_trigger(
+            self._position_handles)
+        self._trigger_show_handles = Clock.create_trigger(
+            self._show_handles, .05)
         self._trigger_refresh_line_options()
         self._trigger_refresh_text()
+
+        self.bind(pos=self._trigger_position_handles,
+                  size=self._trigger_position_handles)
 
         # when the gl context is reloaded, trigger the text rendering again.
         _textinput_list.append(ref(self, TextInput._reload_remove_observer))
@@ -454,9 +494,41 @@ class TextInput(Widget):
         '''Insert new text at the current cursor position. Override this
         function in order to pre-process text for input validation.
         '''
-        if self.readonly:
+        if self.readonly or not substring:
             return
+
         self._hide_handles(self._win)
+
+        # check for command modes
+        if ord(substring[0]) == 1:
+            self._command_mode = True
+            self._command = ''
+        if ord(substring[0]) == 2:
+            self._command_mode = False
+            self._command = self._command[1:]
+
+        if self._command_mode:
+            self._command += substring
+            return
+
+        _command = self._command
+        if _command and ord(substring[0]) == 2:
+            from_undo = True
+            _command, data = _command.split(':')
+            self._command = ''
+            if _command == 'DEL':
+                count = int(data)
+                end = self.cursor_index()
+                self._selection_from = max(end - count, 0)
+                self._selection_to = end
+                self._selection = True
+                self.delete_selection(from_undo=True)
+                return
+            elif _command == 'INSERT':
+                substring = data
+            elif _command == 'INSERTN':
+                from_undo = False
+                substring = data
 
         if not from_undo and self.multiline and self.auto_indent \
                 and substring == u'\n':
@@ -706,6 +778,7 @@ class TextInput(Widget):
     def get_cursor_from_xy(self, x, y):
         '''Return the (row, col) of the cursor from an (x, y) position.
         '''
+        padding_left = self.padding[0]
         padding_top = self.padding[1]
         l = self._lines
         dy = self.line_height + self.line_spacing
@@ -722,7 +795,7 @@ class TextInput(Widget):
         for i in range(1, len(l[cy]) + 1):
             if _get_text_width(l[cy][:i],
                                _tab_width,
-                               _label_cached) >= cx + scrl_x:
+                               _label_cached) + padding_left >= cx + scrl_x:
                 break
             dcx = i
         cx = dcx
@@ -943,19 +1016,25 @@ class TextInput(Widget):
                                        on_release=self._handle_released)
                 if not self._handle_middle.parent and self.text:
                     self._win.add_widget(handle_middle)
-                self._position_handles('middle')
+                self._position_handles(mode='middle')
             return True
 
     def _handle_pressed(self, instance):
         self._hide_cut_copy_paste()
+        sf, st = self._selection_from, self.selection_to
+        if sf > st:
+            self._selection_from , self._selection_to = st, sf
 
     def _handle_released(self, instance):
-        if self.selection_to != self.selection_from:
-            self._update_selection()
-            self._show_cut_copy_paste(
-                (instance.x + ((1 if instance is self._handle_left else - 1)
-                 * self._bubble.width / 2) if self._bubble else 0,
-                 instance.y + self.line_height), self._win)
+        sf, st = self._selection_from, self.selection_to
+        if sf == st:
+            return
+
+        self._update_selection()
+        self._show_cut_copy_paste(
+            (instance.x + ((1 if instance is self._handle_left else - 1)
+                * self._bubble.width / 2) if self._bubble else 0,
+                instance.y + self.line_height), self._win)
 
     def _handle_move(self, instance, touch):
         if touch.grab_current != instance:
@@ -965,51 +1044,65 @@ class TextInput(Widget):
         handle_left = self._handle_left
         handle_middle = self._handle_middle
 
+        x, y = self.to_widget(*touch.pos)
         cursor = get_cursor(
-            touch.x, touch.y + instance._touch_diff + (self.line_height / 2))
+            x,
+            y + instance._touch_diff + (self.line_height / 2))
 
         if instance != touch.grab_current:
             return
 
         if instance == handle_middle:
             self.cursor = cursor
-            self._position_handles('middle')
+            self._position_handles(mode='middle')
             return
+
+        ci = self.cursor_index(cursor=cursor)
+        sf, st = self._selection_from, self.selection_to
+
         if instance == handle_left:
-            self._selection_from = self.cursor_index(cursor=cursor)
+            self._selection_from = ci
         elif instance == handle_right:
-            self._selection_to = self.cursor_index(cursor=cursor)
+            self._selection_to = ci
         self._trigger_update_graphics()
-        Clock.schedule_once(lambda dt: self._position_handles())
+        self._trigger_position_handles()
 
-    def _position_handles(self, mode='both'):
-        group = self.canvas.get_group('selection')
+    def _position_handles(self, *args, **kwargs):
+        if not self.text:
+            return
+        mode = kwargs.get('mode', 'both')
+
         lh = self.line_height
+        to_win = self.to_window
 
-        if mode[0] == 'm':
-            handle_middle = self._handle_middle
+        handle_middle = self._handle_middle
+        if handle_middle:
             hp_mid = self.cursor_pos
-            pos = self.to_window(*hp_mid)
+            pos = to_win(*hp_mid)
             handle_middle.x = pos[0] - handle_middle.width / 2
             handle_middle.top = pos[1] - lh
+        if mode[0] == 'm':
             return
 
+        group = self.canvas.get_group('selection')
+        if not group:
+            return
         self._win.remove_widget(self._handle_middle)
 
-        if mode[0] != 'm':
-            handle_left = self._handle_left
-            hp_left = group[2].pos
-            handle_left.pos = self.to_window(*hp_left)
-            handle_left.x -= handle_left.width
-            handle_left.y -= handle_left.height
+        handle_left = self._handle_left
+        if not handle_left:
+            return
+        hp_left = group[2].pos
+        handle_left.pos = to_win(*hp_left)
+        handle_left.x -= handle_left.width
+        handle_left.y -= handle_left.height
 
-        #if mode[0] in ('b', 'r'):
-            handle_right = self._handle_right
-            last_rect = group[-1]
-            hp_right = last_rect.pos[0], last_rect.pos[1]
-            handle_right.pos = self.to_window(*hp_right)
-            handle_right.x += last_rect.size[0]
-            handle_right.y -= handle_right.height
+        handle_right = self._handle_right
+        last_rect = group[-1]
+        hp_right = last_rect.pos[0], last_rect.pos[1]
+        x, y = to_win(*hp_right)
+        handle_right.x =  x + last_rect.size[0]
+        handle_right.y = y - handle_right.height
 
     def _hide_handles(self, win=None):
         win = win or self._win
@@ -1029,9 +1122,15 @@ class TextInput(Widget):
             anim.bind(on_complete=lambda *args: win.remove_widget(bubble))
             anim.start(bubble)
 
-    def _show_handles(self, win):
-        if not self.use_handles:
+    def _show_handles(self, dt):
+        if not self.use_handles or not self.text:
             return
+
+        win = self._win
+        if not win:
+            self._set_window()
+            win = self._win
+
         handle_right = self._handle_right
         handle_left = self._handle_left
         if self._handle_left is None:
@@ -1050,12 +1149,13 @@ class TextInput(Widget):
                               on_touch_move=self._handle_move,
                               on_release=self._handle_released)
         else:
-            win.remove_widget(self._handle_left)
-            win.remove_widget(self._handle_right)
+            if self._handle_left.parent:
+                self._position_handles()
+                return
             if not self.parent:
                 return
 
-        Clock.schedule_once(lambda dt: self._position_handles())
+        self._trigger_position_handles()
         if self.selection_from != self.selection_to:
             self._handle_left.opacity = self._handle_right.opacity = 0
             win.add_widget(self._handle_left)
@@ -1150,7 +1250,7 @@ class TextInput(Widget):
                 return
             else:
                 #XXX where do `value` comes from?
-                Clock.schedule_once(partial(self.on_focus, self, value), 0)
+                Clock.schedule_once(partial(self.on_focus, self, largs), 0)
             return
 
     def on_focus(self, instance, value, *largs):
@@ -1610,6 +1710,7 @@ class TextInput(Widget):
                                padding_left, padding_right, x,
                                canvas_add, selection_color)
             y -= dy
+        self._position_handles('both')
 
     def _draw_selection(self, *largs):
         pos, size, line_num, (s1c, s1r), (s2c, s2r),\
@@ -1696,6 +1797,13 @@ class TextInput(Widget):
             label = None
             label_len = len(ntext)
             ld = None
+
+            # check for blank line
+            if not ntext:
+                texture  = Texture.create(size=(1, 1))
+                Cache_append('textinput.label', cid, texture)
+                return texture
+
             while True:
                 try:
                     label = Label(text=ntext[:label_len], **kw)
@@ -1930,7 +2038,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.3.0
 
-    :data:`readonly` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`readonly` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -1939,7 +2047,7 @@ class TextInput(Widget):
     the "enter" keypress will defocus the textinput instead of adding a new
     line.
 
-    :data:`multiline` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`multiline` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
@@ -1948,26 +2056,26 @@ class TextInput(Widget):
 
     .. versionadded:: 1.2.0
 
-    :data:`password` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`password` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
     keyboard_suggestions = BooleanProperty(True)
     '''If True provides auto suggestions on top of keyboard.
-    This will only work if :data:`input_type` is set to `text`.
+    This will only work if :attr:`input_type` is set to `text`.
 
      .. versionadded:: 1.8.0
 
-     :data:`keyboard_suggestions` is a
+     :attr:`keyboard_suggestions` is a
      :class:`~kivy.properties.BooleanProperty` defaults to True.
     '''
 
     cursor_blink = BooleanProperty(False)
     '''This property is used to blink the cursor graphic. The value of
-    :data:`cursor_blink` is automatically computed. Setting a value on it will
+    :attr:`cursor_blink` is automatically computed. Setting a value on it will
     have no impact.
 
-    :data:`cursor_blink` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`cursor_blink` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -2023,7 +2131,7 @@ class TextInput(Widget):
     area will be automatically updated to ensure that the cursor is
     visible inside the viewport.
 
-    :data:`cursor` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`cursor` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_cursor_col(self):
@@ -2032,7 +2140,7 @@ class TextInput(Widget):
     cursor_col = AliasProperty(_get_cursor_col, None, bind=('cursor', ))
     '''Current column of the cursor.
 
-    :data:`cursor_col` is an :class:`~kivy.properties.AliasProperty` to
+    :attr:`cursor_col` is an :class:`~kivy.properties.AliasProperty` to
     cursor[0], read-only.
     '''
 
@@ -2042,7 +2150,7 @@ class TextInput(Widget):
     cursor_row = AliasProperty(_get_cursor_row, None, bind=('cursor', ))
     '''Current row of the cursor.
 
-    :data:`cursor_row` is an :class:`~kivy.properties.AliasProperty` to
+    :attr:`cursor_row` is an :class:`~kivy.properties.AliasProperty` to
     cursor[1], read-only.
     '''
 
@@ -2051,16 +2159,31 @@ class TextInput(Widget):
         'scroll_x', 'scroll_y'))
     '''Current position of the cursor, in (x, y).
 
-    :data:`cursor_pos` is an :class:`~kivy.properties.AliasProperty`,
+    :attr:`cursor_pos` is an :class:`~kivy.properties.AliasProperty`,
     read-only.
+    '''
+
+    cursor_color = ListProperty([1, 0, 0, 1])
+    '''Current color of the cursor, in (r, g, b, a) format.
+
+    .. versionadded:: 1.8.1
+
+    :attr:`cursor_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [1, 0, 0, 1].
     '''
 
     line_height = NumericProperty(1)
     '''Height of a line. This property is automatically computed from the
-    :data:`font_name`, :data:`font_size`. Changing the line_height will have
+    :attr:`font_name`, :attr:`font_size`. Changing the line_height will have
     no impact.
 
-    :data:`line_height` is a :class:`~kivy.properties.NumericProperty`,
+    .. note::
+
+        :attr:`line_height` is the height of a single line of text.
+        Use :attr:`minimum_height`, which also includes padding, to
+        get the height required to display the text properly.
+
+    :attr:`line_height` is a :class:`~kivy.properties.NumericProperty`,
     read-only.
     '''
 
@@ -2068,7 +2191,7 @@ class TextInput(Widget):
     '''By default, each tab will be replaced by four spaces on the text
     input widget. You can set a lower or higher value.
 
-    :data:`tab_width` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`tab_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 4.
     '''
 
@@ -2077,11 +2200,11 @@ class TextInput(Widget):
 
     padding_x also accepts a one argument form [padding_horizontal].
 
-    :data:`padding_x` is a :class:`~kivy.properties.VariableListProperty` and
+    :attr:`padding_x` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
-        Use :data:`padding` instead.
+        Use :attr:`padding` instead.
     '''
 
     def on_padding_x(self, instance, value):
@@ -2093,11 +2216,11 @@ class TextInput(Widget):
 
     padding_y also accepts a one argument form [padding_vertical].
 
-    :data:`padding_y` is a :class:`~kivy.properties.VariableListProperty` and
+    :attr:`padding_y` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
-        Use :data:`padding` instead.
+        Use :attr:`padding` instead.
     '''
 
     def on_padding_y(self, instance, value):
@@ -2112,10 +2235,9 @@ class TextInput(Widget):
     padding_vertical] and a one argument form [padding].
 
     .. versionchanged:: 1.7.0
+        Replaced AliasProperty with VariableListProperty.
 
-    Replaced AliasProperty with VariableListProperty.
-
-    :data:`padding` is a :class:`~kivy.properties.VariableListProperty` and
+    :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [6, 6, 6, 6].
     '''
 
@@ -2124,15 +2246,15 @@ class TextInput(Widget):
     updated when the cursor is moved or text changed. If there is no
     user input, the scroll_x and scroll_y properties may be changed.
 
-    :data:`scroll_x` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`scroll_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
     scroll_y = NumericProperty(0)
-    '''Y scrolling value of the viewport. See :data:`scroll_x` for more
+    '''Y scrolling value of the viewport. See :attr:`scroll_x` for more
     information.
 
-    :data:`scroll_y` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`scroll_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -2144,21 +2266,21 @@ class TextInput(Widget):
         The color should always have an "alpha" component less than 1
         since the selection is drawn after the text.
 
-    :data:`selection_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`selection_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [0.1843, 0.6549, 0.8313, .5].
     '''
 
     border = ListProperty([16, 16, 16, 16])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
-    graphics instruction. Used with :data:`background_normal` and
-    :data:`background_active`. Can be used for a custom background.
+    graphics instruction. Used with :attr:`background_normal` and
+    :attr:`background_active`. Can be used for a custom background.
 
     .. versionadded:: 1.4.1
 
     It must be a list of four values: (top, right, bottom, left). Read the
     BorderImage instruction for more information about how to use it.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty` and defaults
+    :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults
     to (16, 16, 16, 16).
     '''
 
@@ -2168,7 +2290,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.4.1
 
-    :data:`background_normal` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`background_normal` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/textinput'.
     '''
 
@@ -2178,7 +2300,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled_normal` is a
+    :attr:`background_disabled_normal` is a
     :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/textinput_disabled'.
     '''
@@ -2189,7 +2311,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.4.1
 
-    :data:`background_active` is a
+    :attr:`background_active` is a
     :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/textinput_active'.
     '''
@@ -2200,7 +2322,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled_active` is a
+    :attr:`background_disabled_active` is a
     :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/textinput_disabled_active'.
     '''
@@ -2210,7 +2332,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.2.0
 
-    :data:`background_color` is a :class:`~kivy.properties.ListProperty`
+    :attr:`background_color` is a :class:`~kivy.properties.ListProperty`
     and defaults to [1, 1, 1, 1] (white).
     '''
 
@@ -2219,7 +2341,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.2.0
 
-    :data:`foreground_color` is a :class:`~kivy.properties.ListProperty`
+    :attr:`foreground_color` is a :class:`~kivy.properties.ListProperty`
     and defaults to [0, 0, 0, 1] (black).
     '''
 
@@ -2228,7 +2350,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`disabled_foreground_color` is a
+    :attr:`disabled_foreground_color` is a
     :class:`~kivy.properties.ListProperty` and
     defaults to [0, 0, 0, 5] (50% transparent black).
     '''
@@ -2238,7 +2360,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.7.0
 
-    :data:`use_bubble` is a :class:`~kivy.properties.BooleanProperty`
+    :attr:`use_bubble` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True on mobile OS's, False on desktop OS's.
     '''
 
@@ -2247,7 +2369,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`use_handles` is a :class:`~kivy.properties.BooleanProperty`
+    :attr:`use_handles` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True on mobile OS's, False on desktop OS's.
     '''
 
@@ -2259,9 +2381,8 @@ class TextInput(Widget):
     the cursor index where the selection started.
 
     .. versionchanged:: 1.4.0
-
-    :data:`selection_from` is an :class:`~kivy.properties.AliasProperty` and
-    defaults to None, readonly.
+        :attr:`selection_from` is an :class:`~kivy.properties.AliasProperty` and
+        defaults to None, readonly.
     '''
 
     def get_sel_to(self):
@@ -2272,27 +2393,26 @@ class TextInput(Widget):
     the cursor index where the selection started.
 
     .. versionchanged:: 1.4.0
-
-    :data:`selection_to` is an :class:`~kivy.properties.AliasProperty` and
-    defaults to None, readonly.
+        :attr:`selection_to` is an :class:`~kivy.properties.AliasProperty` and
+        defaults to None, readonly.
     '''
 
     selection_text = StringProperty(u'')
     '''Current content selection.
 
-    :data:`selection_text` is a :class:`~kivy.properties.StringProperty`
+    :attr:`selection_text` is a :class:`~kivy.properties.StringProperty`
     and defaults to '', readonly.
     '''
 
     def on_selection_text(self, instance, value):
-        if value:
-            self._show_handles(self._win)
+        if value and self.use_handles:
+            self._trigger_show_handles()
 
     focus = BooleanProperty(False)
     '''If focus is True, the keyboard will be requested and you can start
     entering text into the textinput.
 
-    :data:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
 
     .. Note::
@@ -2337,7 +2457,7 @@ class TextInput(Widget):
 
         widget = TextInput(text=u'My unicode string')
 
-    :data:`text` a :class:`~kivy.properties.StringProperty`.
+    :attr:`text` a :class:`~kivy.properties.StringProperty`.
     '''
 
     font_name = StringProperty('DroidSans')
@@ -2358,14 +2478,14 @@ class TextInput(Widget):
 
         .. |unicodechar| image:: images/unicode-char.png
 
-    :data:`font_name` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`font_name` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'DroidSans'.
     '''
 
     font_size = NumericProperty('15sp')
     '''Font size of the text in pixels.
 
-    :data:`font_size` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 10.
     '''
 
@@ -2376,7 +2496,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.6.0
 
-    :data:`hint_text` a :class:`~kivy.properties.StringProperty` and defaults
+    :attr:`hint_text` a :class:`~kivy.properties.StringProperty` and defaults
     to ''.
     '''
 
@@ -2385,7 +2505,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.6.0
 
-    :data:`hint_text_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`hint_text_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [0.5, 0.5, 0.5, 1.0] (grey).
     '''
 
@@ -2394,7 +2514,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.7.0
 
-    :data:`auto_indent` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`auto_indent` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -2403,7 +2523,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`allow_copy` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`allow_copy` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
@@ -2419,7 +2539,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`minimum_height` is a readonly
+    :attr:`minimum_height` is a readonly
     :class:`~kivy.properties.AliasProperty`.
     '''
 
@@ -2428,7 +2548,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`line_spacing` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`line_spacing` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
@@ -2439,7 +2559,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
+    :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
     defaults to 'text'. Can be one of 'text', 'number', 'url', 'mail',
     'datetime', 'tel', 'address'.
     '''
@@ -2451,7 +2571,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`handle_image_middle` is a :class:`~kivy.properties.StringProperty`
+    :attr:`handle_image_middle` is a :class:`~kivy.properties.StringProperty`
     and defaults to 'atlas://data/images/defaulttheme/selector_middle'.
     '''
 
@@ -2465,7 +2585,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`handle_image_left` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`handle_image_left` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/selector_left'.
     '''
 
@@ -2479,7 +2599,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`handle_image_right` is a
+    :attr:`handle_image_right` is a
     :class:`~kivy.properties.StringProperty` and defaults to
     'atlas://data/images/defaulttheme/selector_right'.
     '''
@@ -2496,7 +2616,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`keyboard_mode` is an :class:`~kivy.properties.OptionsProperty` and
+    :attr:`keyboard_mode` is an :class:`~kivy.properties.OptionsProperty` and
     defaults to 'auto'. Can be one of 'auto' or 'managed'.
     '''
 

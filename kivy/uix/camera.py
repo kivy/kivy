@@ -49,14 +49,14 @@ class Camera(Image):
         # and later
         cam.play = True
 
-    :data:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
+    :attr:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     True.
     '''
 
     index = NumericProperty(-1)
     '''Index of the used camera, starting from 0.
 
-    :data:`index` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`index` is a :class:`~kivy.properties.NumericProperty` and defaults
     to -1 to allow auto selection.
     '''
 
@@ -75,7 +75,7 @@ class Camera(Image):
         Depending on the implementation, the camera may not respect this
         property.
 
-    :data:`resolution` is a :class:`~kivy.properties.ListProperty` and defaults
+    :attr:`resolution` is a :class:`~kivy.properties.ListProperty` and defaults
     to [-1, -1].
     '''
 

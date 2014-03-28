@@ -43,8 +43,9 @@ if 'KIVY_DOC' in os.environ:
 
 else:
     from ctypes.wintypes import (ULONG, HANDLE, DWORD, LONG, UINT,
-                                 WPARAM, LPARAM, POINTER, BOOL)
-    from ctypes import windll, WINFUNCTYPE, c_int, Structure, sizeof, byref
+                                 WPARAM, LPARAM, BOOL)
+    from ctypes import (windll, WINFUNCTYPE, POINTER,
+                        c_int, Structure, sizeof, byref)
     from collections import deque
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory

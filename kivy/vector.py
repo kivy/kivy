@@ -104,7 +104,7 @@ class Vector(list):
         self[0] = x
 
     x = property(_get_x, _set_x)
-    ''':data:`x` represents the first element in the list.
+    ''':attr:`x` represents the first element in the list.
 
     >>> v = Vector(12, 23)
     >>> v[0]
@@ -120,7 +120,7 @@ class Vector(list):
         self[1] = y
 
     y = property(_get_y, _set_y)
-    ''':data:`y` represents the second element in the list.
+    ''':attr:`y` represents the second element in the list.
 
     >>> v = Vector(12, 23)
     >>> v[1]
@@ -194,6 +194,12 @@ class Vector(list):
             return Vector(list(map(lambda x, y: x / y, self, val)))
         except Exception:
             return Vector([x / val for x in self])
+
+    def __rtruediv__(self, val):
+        try:
+            return Vector(*val) / self
+        except Exception:
+            return Vector(val, val) / self
 
     def __rdiv__(self, val):
         try:

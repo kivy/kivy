@@ -26,9 +26,9 @@ You can tweak the loader to provide a better user experience or more
 performance, depending of the images you are going to load. Take a look at the
 parameters:
 
-- :data:`Loader.num_workers` - define the number of threads to start for
+- :attr:`Loader.num_workers` - define the number of threads to start for
   loading images.
-- :data:`Loader.max_upload_per_frame` - define the maximum image uploads in
+- :attr:`Loader.max_upload_per_frame` - define the maximum image uploads in
   GPU to do per frame.
 
 '''
@@ -47,6 +47,7 @@ from time import sleep
 from os.path import join
 from os import write, close, unlink, environ
 import threading
+import mimetypes
 
 # Register a cache for loader
 Cache.register('kv.loader', limit=500, timeout=60)
@@ -149,7 +150,7 @@ class LoaderBase(object):
     As a matter of fact, a Full-HD RGB image will take ~6MB in memory,
     so it may take time. If you have activated mipmap=True too, then the
     GPU must calculate the mipmap of these big images too, in real time.
-    Then it may be best to reduce the :data:`max_upload_per_frame` to 1
+    Then it may be best to reduce the :attr:`max_upload_per_frame` to 1
     or 2. If you want to get rid of that (or reduce it a lot), take a
     look at the DDS format.
 
@@ -280,8 +281,14 @@ class LoaderBase(object):
         temporary file, and pass it to _load_local().'''
         if PY2:
             import urllib2 as urllib_request
+
+            def gettype(info):
+                return info.gettype()
         else:
             import urllib.request as urllib_request
+
+            def gettype(info):
+                return info.get_content_type()
         proto = filename.split(':', 1)[0]
         if proto == 'smb':
             try:
@@ -296,9 +303,6 @@ class LoaderBase(object):
         data = fd = _out_osfd = None
         try:
             _out_filename = ''
-            suffix = '.%s' % (filename.split('.')[-1])
-            _out_osfd, _out_filename = tempfile.mkstemp(
-                prefix='kivyloader', suffix=suffix)
 
             if proto == 'smb':
                 # read from samba shares
@@ -306,6 +310,25 @@ class LoaderBase(object):
             else:
                 # read from internet
                 fd = urllib_request.urlopen(filename)
+
+            if '#.' in filename:
+                # allow extension override from URL fragment
+                suffix = '.' + filename.split('#.')[-1]
+            else:
+                ctype = gettype(fd.info())
+                suffix = mimetypes.guess_extension(ctype)
+                if not suffix:
+                    # strip query string and split on path
+                    parts = filename.split('?')[0].split('/')[1:]
+                    while len(parts) > 1 and not parts[0]:
+                        # strip out blanks from '//'
+                        parts = parts[1:]
+                    if len(parts) > 1 and '.' in parts[-1]:
+                        # we don't want '.com', '.net', etc. as the extension
+                        suffix = '.' + parts[-1].split('.')[-1]
+            _out_osfd, _out_filename = tempfile.mkstemp(
+                prefix='kivyloader', suffix=suffix)
+
             idata = fd.read()
             fd.close()
             fd = None
@@ -322,7 +345,7 @@ class LoaderBase(object):
             for imdata in data._data:
                 imdata.source = filename
         except Exception:
-            Logger.exception('Failed to load image <%s>' % filename)
+            Logger.exception('Loader: Failed to load image <%s>' % filename)
             # close file when remote file not found or download error
             try:
                 close(_out_osfd)

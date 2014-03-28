@@ -17,8 +17,8 @@ MIN_REQUIRED_GL_VERSION = (2, 0)
 def msgbox(message):
     if sysplatform == 'win32':
         import ctypes
-        ctypes.windll.user32.MessageBoxA(
-                None, message, 'Kivy Fatal Error', 0)
+        ctypes.windll.user32.MessageBoxW(
+                None, message, u"Kivy Fatal Error", 0)
         exit(1)
 
 if 'KIVY_DOC' not in environ:

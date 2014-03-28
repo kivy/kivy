@@ -14,28 +14,37 @@ the :class:`AsyncImage` subclass::
 
     aimg = AsyncImage(source='http://mywebsite.com/logo.png')
 
+This can be useful as it prevents your application from waiting until the image
+is loaded. If you want to display large images or retrieve them from URL's,
+using :class:`AsyncImage` will allow these resources to be retrieved on a
+background thread without blocking your application.
+
 Alignment
 ---------
 
 By default, the image is centered and fits inside the widget bounding box.
-If you don't want that, you can inherit from Image and create your own style.
+If you don't want that, you can set `allow_stretch` to True and `keep_ratio`
+to False.
 
-For example, if you want your image to be the same size as your widget, you
-could do::
+You can also inherit from Image and create your own style.
+
+
+For example, if you want your image to be greater than,the size of your widget,
+you could do::
 
     class FullImage(Image):
         pass
 
 And in your kivy language file::
 
-    <FullImage>:
+    <-FullImage>:
         canvas:
             Color:
                 rgb: (1, 1, 1)
             Rectangle:
                 texture: self.texture
-                size: self.size
-                pos: self.pos
+                size: self.width + 20, self.height + 20
+                pos: self.x - 10, self.y - 10
 
 '''
 
@@ -57,7 +66,7 @@ class Image(Widget):
     source = StringProperty(None)
     '''Filename / source of your image.
 
-    :data:`source` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`source` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
     '''
 
@@ -68,7 +77,7 @@ class Image(Widget):
     :class:`~kivy.graphics.texture.Texture` or a
     :class:`~kivy.graphics.texture.TextureRegion` object.
 
-    :data:`texture` is a :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`texture` is a :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -78,7 +87,7 @@ class Image(Widget):
     .. warning::
 
         The texture size is set after the texture property. So if you listen to
-        the change on :data:`texture`, the property texture_size will not be
+        the change on :attr:`texture`, the property texture_size will not be
         up-to-date. Use self.texture.size instead.
     '''
 
@@ -93,14 +102,14 @@ class Image(Widget):
 
     .. versionadded:: 1.0.7
 
-    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    :attr:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
     '''
 
     image_ratio = AliasProperty(get_image_ratio, None, bind=('texture', ))
     '''Ratio of the image (width / float(height).
 
-    :data:`image_ratio` is a :class:`~kivy.properties.AliasProperty` and is
+    :attr:`image_ratio` is a :class:`~kivy.properties.AliasProperty` and is
     read-only.
     '''
 
@@ -111,7 +120,7 @@ class Image(Widget):
 
     .. versionadded:: 1.0.6
 
-    :data:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
     [1, 1, 1, 1].
     '''
 
@@ -122,7 +131,7 @@ class Image(Widget):
 
     .. versionadded:: 1.0.7
 
-    :data:`allow_stretch` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`allow_stretch` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -135,7 +144,7 @@ class Image(Widget):
 
     .. versionadded:: 1.0.8
 
-    :data:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
@@ -145,7 +154,7 @@ class Image(Widget):
 
     .. versionadded:: 1.3.0
 
-    :data:`keep_data` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`keep_data` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -155,7 +164,7 @@ class Image(Widget):
 
     .. versionadded:: 1.0.8
 
-    :data:`anim_delay` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`anim_delay` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.25 (4 FPS).
     '''
 
@@ -166,7 +175,7 @@ class Image(Widget):
 
     .. versionadded:: 1.6.0
 
-    :data:`nocache` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    :attr:`nocache` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
     '''
 
@@ -204,7 +213,7 @@ class Image(Widget):
     This size will always fit the widget size and will preserve the image
     ratio.
 
-    :data:`norm_image_size` is a :class:`~kivy.properties.AliasProperty` and is
+    :attr:`norm_image_size` is a :class:`~kivy.properties.AliasProperty` and is
     read-only.
     '''
 

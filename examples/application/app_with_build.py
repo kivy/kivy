@@ -2,7 +2,7 @@
 Application example using build() + return
 ==========================================
 
-An application can be build if you return a widget on build(), or if you set
+An application can be built if you return a widget on build(), or if you set
 self.root.
 '''
 

@@ -9,11 +9,9 @@ from copy import deepcopy
 import os
 from os.path import join, dirname, sep, exists, basename
 from os import walk, environ
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from distutils.core import setup
 from distutils.extension import Extension
+from collections import OrderedDict
 
 if sys.version > '3':
     PY3 = True
@@ -31,10 +29,11 @@ def pkgconfig(*packages, **kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
     cmd = 'pkg-config --libs --cflags {}'.format(' '.join(packages))
     for token in getoutput(cmd).split():
-        flag = flag_map.get(token[:2])
+        ext = token[:2].decode('utf-8')
+        flag = flag_map.get(ext)
         if not flag:
             continue
-        kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
+        kw.setdefault(flag, []).append(token[2:].decode('utf-8'))
     return kw
 
 
@@ -63,17 +62,17 @@ if exists('/opt/vc/include/bcm_host.h'):
 # -----------------------------------------------------------------------------
 # Detect options
 #
-c_options = {
-    'use_rpi': platform == 'rpi',
-    'use_opengl_es2': True,
-    'use_opengl_debug': False,
-    'use_glew': False,
-    'use_sdl': False,
-    'use_ios': False,
-    'use_mesagl': False,
-    'use_x11': False,
-    'use_gstreamer': False,
-    'use_avfoundation': platform == 'darwin'}
+c_options = OrderedDict()
+c_options['use_rpi'] = platform == 'rpi'
+c_options['use_opengl_es2'] = True
+c_options['use_opengl_debug'] = False
+c_options['use_glew'] = False
+c_options['use_sdl'] = False
+c_options['use_ios'] = False
+c_options['use_mesagl'] = False
+c_options['use_x11'] = False
+c_options['use_gstreamer'] = False
+c_options['use_avfoundation'] = platform == 'darwin'
 
 # now check if environ is changing the default values
 for key in list(c_options.keys()):
@@ -275,10 +274,10 @@ def determine_base_flags():
             sdk_mac_ver = '.'.join(_platform.mac_ver()[0].split('.')[:2])
             print('Xcode detected at {}, and using MacOSX{} sdk'.format(
                     xcode_dev, sdk_mac_ver))
-            sysroot = join(xcode_dev,
+            sysroot = join(xcode_dev.decode('utf-8'),
                     'Platforms/MacOSX.platform/Developer/SDKs',
                     'MacOSX{}.sdk'.format(sdk_mac_ver),
-                    '/System/Library/Frameworks')
+                    'System/Library/Frameworks')
         else:
             sysroot = ('/System/Library/Frameworks/'
                        'ApplicationServices.framework/Frameworks')
@@ -467,7 +466,8 @@ if platform in ('darwin', 'ios'):
             '-framework', 'AudioToolbox',
             '-framework', 'CoreGraphics',
             '-framework', 'QuartzCore',
-            '-framework', 'ImageIO']}
+            '-framework', 'ImageIO',
+            '-framework', 'Accelerate']}
     else:
         osx_flags = {'extra_link_args': [
             '-framework', 'ApplicationServices']}
@@ -481,7 +481,7 @@ if c_options['use_avfoundation']:
         osx_flags = {
             'extra_link_args': ['-framework', 'AVFoundation'],
             'extra_compile_args': ['-ObjC++'],
-            'depends': ['core/camera/camera_avfoundation.m']}
+            'depends': ['core/camera/camera_avfoundation_implem.m']}
         sources['core/camera/camera_avfoundation.pyx'] = merge(
             base_flags, osx_flags)
     else:
@@ -496,9 +496,13 @@ if c_options['use_rpi']:
 if c_options['use_x11']:
     sources['core/window/window_x11.pyx'] = merge(
         base_flags, gl_flags, {
-            'depends': [
-                'core/window/window_x11_keytab.c',
-                'core/window/window_x11_core.c'],
+            # FIXME add an option to depend on them but not compile them
+            # cause keytab is included in core, and core is included in
+            # window_x11
+            #
+            #'depends': [
+            #    'core/window/window_x11_keytab.c',
+            #    'core/window/window_x11_core.c'],
             'libraries': ['Xrender', 'X11']})
 
 if c_options['use_gstreamer']:
@@ -536,20 +540,20 @@ def get_extensions_from_sources(sources):
     for pyx, flags in sources.items():
         is_graphics = pyx.startswith('graphics')
         pyx = expand(pyx)
+        depends = [expand(x) for x in flags.pop('depends', [])]
         if not have_cython:
             pyx = '%s.c' % pyx[:-4]
-            depends = []
-        else:
-            depends = [expand(x) for x in flags.pop('depends', [])]
         if is_graphics:
             depends = resolve_dependencies(pyx, depends)
+        f_depends = [x for x in depends if x.rsplit('.', 1)[-1] in (
+            'c', 'cpp', 'm')]
         module_name = get_modulename_from_file(pyx)
         flags_clean = {'depends': depends}
         for key, value in flags.items():
             if len(value):
                 flags_clean[key] = value
         ext_modules.append(CythonExtension(module_name,
-            [pyx], **flags_clean))
+            [pyx] + f_depends, **flags_clean))
     return ext_modules
 
 ext_modules = get_extensions_from_sources(sources)
@@ -657,8 +661,9 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: BSD :: FreeBSD',
         'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Artistic Software',
         'Topic :: Games/Entertainment',
         'Topic :: Multimedia :: Graphics :: 3D Rendering',

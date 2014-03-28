@@ -59,7 +59,7 @@ class Spinner(Button):
     values = ListProperty()
     '''Values that can be selected by the user. It must be a list of strings.
 
-    :data:`values` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`values` is a :class:`~kivy.properties.ListProperty` and defaults to
     [].
     '''
 
@@ -73,11 +73,10 @@ class Spinner(Button):
     - a `text` property, used to display the value.
     - an `on_release` event, used to trigger the option when pressed/touched.
 
-    :data:`option_cls` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`option_cls` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to :class:`SpinnerOption`.
 
     .. versionchanged:: 1.8.0
-
         If you set a string, the :class:`~kivy.factory.Factory` will be used to
         resolve the class.
 
@@ -86,11 +85,10 @@ class Spinner(Button):
     dropdown_cls = ObjectProperty(DropDown)
     '''Class used to display the dropdown list when the Spinner is pressed.
 
-    :data:`dropdown_cls` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`dropdown_cls` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to :class:`~kivy.uix.dropdown.DropDown`.
 
     .. versionchanged:: 1.8.0
-
         If you set a string, the :class:`~kivy.factory.Factory` will be used to
         resolve the class.
 
@@ -99,7 +97,7 @@ class Spinner(Button):
     is_open = BooleanProperty(False)
     '''By default, the spinner is not open. Set to True to open it.
 
-    :data:`is_open` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`is_open` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
 
     .. versionadded:: 1.4.0

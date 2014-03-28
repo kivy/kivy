@@ -185,7 +185,7 @@ cpdef int gl_has_texture_native_format(fmt):
     1
 
     '''
-    if fmt in ('rgb', 'rgba', 'luminance', 'luminance_alpha'):
+    if fmt in ('rgb', 'rgba', 'luminance', 'luminance_alpha', 'red', 'rg'):
         return 1
     if fmt in ('palette4_rgb8', 'palette4_rgba8', 'palette4_r5_g6_b5', 'palette4_rgba4', 'palette4_rgb5_a1', 'palette8_rgb8', 'palette8_rgba8', 'palette8_r5_g6_b5', 'palette8_rgba4', 'palette8_rgb5_a1'):
         return gl_has_extension('OES_compressed_paletted_texture')

@@ -14,14 +14,14 @@ some OpenGL capabilities might not be available (BGRA support, NPOT support,
 etc.)
 
 You cannot instanciate this class yourself. You must use the function
-:func:`Texture.create` to create a new texture::
+:meth:`Texture.create` to create a new texture::
 
     texture = Texture.create(size=(640, 480))
 
 When you create a texture, you should be aware of the default color
 and buffer format:
 
-    - the color/pixel format (:data:`Texture.colorfmt`) that can be one of
+    - the color/pixel format (:attr:`Texture.colorfmt`) that can be one of
       'rgb', 'rgba', 'luminance', 'luminance_alpha', 'bgr' or 'bgra'.
       The default value is 'rgb'
     - the buffer format determines how a color component is stored into memory.
@@ -33,7 +33,7 @@ So, if you want to create an RGBA texture::
     texture = Texture.create(size=(640, 480), colorfmt='rgba')
 
 You can use your texture in almost all vertex instructions with the
-:data:`kivy.graphics.VertexIntruction.texture` parameter. If you want to use
+:attr:`kivy.graphics.VertexIntruction.texture` parameter. If you want to use
 your texture in kv lang, you can save it in an
 :class:`~kivy.properties.ObjectProperty` inside your widget.
 
@@ -42,7 +42,7 @@ Blitting custom data
 --------------------
 
 You can create your own data and blit it to the texture using
-:func:`Texture.blit_data`::
+:meth:`Texture.blit_data`::
 
     # create a 64x64 texture, defaults to rgb / ubyte
     texture = Texture.create(size=(64, 64))
@@ -98,10 +98,10 @@ Mipmapping        Supported     Partially     No
 Wrap mode         Supported     Supported     No
 ================= ============= ============= =================================
 
-If you create a NPOT texture, we first check whether your hardware 
+If you create a NPOT texture, we first check whether your hardware
 supports it by checking the extensions GL_ARB_texture_non_power_of_two or
 OES_texture_npot. If none of theses are available, we create the nearest
-POT texture that can contain your NPOT texture. The :func:`Texture.create` will
+POT texture that can contain your NPOT texture. The :meth:`Texture.create` will
 return a :class:`TextureRegion` instead.
 
 
@@ -162,7 +162,7 @@ If the OpenGL context is lost, the Texture must be reloaded. Textures that have
 a source are automatically reloaded but generated textures must
 be reloaded by the user.
 
-Use the :func:`Texture.add_reload_observer` to add a reloading function that
+Use the :meth:`Texture.add_reload_observer` to add a reloading function that
 will be automatically called when needed::
 
     def __init__(self, **kwargs):
@@ -212,27 +212,31 @@ cdef int TI_NEED_PIXELS     = 1 << 5
 
 
 # compatibility layer
-cdef GLuint GL_BGR = 0x80E0
-cdef GLuint GL_BGRA = 0x80E1
-cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1
-cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2
-cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3
-cdef GLuint GL_ETC1_RGB8_OES = 0x8D64
-cdef GLuint GL_PALETTE4_RGB8_OES = 0x8B90
-cdef GLuint GL_PALETTE4_RGBA8_OES = 0x8B91
-cdef GLuint GL_PALETTE4_R5_G6_B5_OES = 0x8B92
-cdef GLuint GL_PALETTE4_RGBA4_OES = 0x8B93
-cdef GLuint GL_PALETTE4_RGB5_A1_OES = 0x8B94
-cdef GLuint GL_PALETTE8_RGB8_OES = 0x8B95
-cdef GLuint GL_PALETTE8_RGBA8_OES = 0x8B96
-cdef GLuint GL_PALETTE8_R5_G6_B5_OES = 0x8B97
-cdef GLuint GL_PALETTE8_RGBA4_OES = 0x8B98
-cdef GLuint GL_PALETTE8_RGB5_A1_OES = 0x8B99
-cdef GLuint GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 0x8C00
-cdef GLuint GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG = 0x8C01
-cdef GLuint GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02
-cdef GLuint GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = 0x8C03
-
+DEF GL_BGR = 0x80E0
+DEF GL_BGRA = 0x80E1
+DEF GL_COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1
+DEF GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2
+DEF GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3
+DEF GL_ETC1_RGB8_OES = 0x8D64
+DEF GL_PALETTE4_RGB8_OES = 0x8B90
+DEF GL_PALETTE4_RGBA8_OES = 0x8B91
+DEF GL_PALETTE4_R5_G6_B5_OES = 0x8B92
+DEF GL_PALETTE4_RGBA4_OES = 0x8B93
+DEF GL_PALETTE4_RGB5_A1_OES = 0x8B94
+DEF GL_PALETTE8_RGB8_OES = 0x8B95
+DEF GL_PALETTE8_RGBA8_OES = 0x8B96
+DEF GL_PALETTE8_R5_G6_B5_OES = 0x8B97
+DEF GL_PALETTE8_RGBA4_OES = 0x8B98
+DEF GL_PALETTE8_RGB5_A1_OES = 0x8B99
+DEF GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 0x8C00
+DEF GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG = 0x8C01
+DEF GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02
+DEF GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = 0x8C03
+DEF GL_RED = 0x1903
+DEF GL_RG = 0x8227
+DEF GL_R8 = 0x8229
+DEF GL_RG8 = 0x822B
+DEF GL_RGBA8 =  0x8058
 
 cdef dict _gl_color_fmt = {
     'rgba': GL_RGBA, 'bgra': GL_BGRA, 'rgb': GL_RGB, 'bgr': GL_BGR,
@@ -254,13 +258,14 @@ cdef dict _gl_color_fmt = {
     'pvrtc_rgba2': GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG,
     'pvrtc_rgba4': GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG,
     'pvrtc_rgb2': GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG,
-    'pvrtc_rgb4': GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG }
-
+    'pvrtc_rgb4': GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG,
+    'red': GL_RED, 'rg': GL_RG,
+    'r8': GL_R8, 'rg8': GL_RG8, 'rgba8': GL_RGBA8}
 
 cdef dict _gl_buffer_fmt = {
     'ubyte': GL_UNSIGNED_BYTE, 'ushort': GL_UNSIGNED_SHORT,
     'uint': GL_UNSIGNED_INT, 'byte': GL_BYTE,
-    'short': GL_SHORT, 'int': GL_INT, 'float': GL_FLOAT }
+    'short': GL_SHORT, 'int': GL_INT, 'float': GL_FLOAT}
 
 
 cdef dict _gl_buffer_size = {
@@ -376,9 +381,9 @@ cdef inline int _gl_format_size(GLuint x):
         return 3
     elif x in (GL_RGBA, GL_BGRA):
         return 4
-    elif x == GL_LUMINANCE_ALPHA:
+    elif x in (GL_LUMINANCE_ALPHA, GL_RG):
         return 2
-    elif x == GL_LUMINANCE:
+    elif x in (GL_LUMINANCE, GL_RED):
         return 1
     elif x in (GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
             GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
@@ -457,7 +462,7 @@ cdef inline void _gl_prepare_pixels_upload(int width) nogil:
 
 
 cdef Texture _texture_create(int width, int height, colorfmt, bufferfmt,
-                     int mipmap, int allocate, object callback):
+                     int mipmap, int allocate, object callback, object icolorfmt):
     '''Create the OpenGL texture.
     '''
     cdef GLuint target = GL_TEXTURE_2D
@@ -492,7 +497,7 @@ cdef Texture _texture_create(int width, int height, colorfmt, bufferfmt,
     colorfmt = _convert_gl_format(colorfmt)
     texture = Texture(texture_width, texture_height, target,
                       colorfmt=colorfmt, bufferfmt=bufferfmt, mipmap=mipmap,
-                      callback=callback)
+                      callback=callback, icolorfmt=icolorfmt)
     if allocate or make_npot:
         texture.flags |= TI_NEED_ALLOCATE
 
@@ -515,15 +520,20 @@ cdef Texture _texture_create(int width, int height, colorfmt, bufferfmt,
 
 
 def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
-    callback=None):
+    callback=None, icolorfmt=None):
     '''Create a texture based on size.
 
     :Parameters:
         `size`: tuple, defaults to (128, 128)
             Size of the texture.
         `colorfmt`: str, defaults to 'rgba'
-            Internal color format of the texture. Can be 'rgba' or 'rgb',
-            'luminance' or 'luminance_alpha'.
+            Color format of the texture. Can be 'rgba' or 'rgb',
+            'luminance' or 'luminance_alpha'. On desktop, additionnal values are
+            available: 'red', 'rg'.
+        `icolorfmt`: str, default to the value of `colorfmt`
+            Internal format storage of the texture. Can be 'rgba' or 'rgb',
+            'luminance' or 'luminance_alpha'. On desktop, additionnal values are
+            available: 'r8', 'rg8', 'rgba8'.
         `bufferfmt`: str, defaults to 'ubyte'
             Internal buffer format of the texture. Can be 'ubyte', 'ushort',
             'uint', 'bute', 'short', 'int' or 'float'.
@@ -534,7 +544,7 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
             needed in the texture.
 
     .. versionchanged:: 1.7.0
-        :data:`callback` has been added
+        :attr:`callback` has been added
     '''
     cdef int width = 128, height = 128, allocate = 1
     if size is not None:
@@ -545,8 +555,10 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
         bufferfmt = 'ubyte'
     if callback is not None:
         allocate = 0
+    if icolorfmt is None:
+        icolorfmt = colorfmt
     return _texture_create(width, height, colorfmt, bufferfmt, mipmap,
-            allocate, callback)
+            allocate, callback, icolorfmt)
 
 
 def texture_create_from_data(im, mipmap=False):
@@ -578,7 +590,7 @@ def texture_create_from_data(im, mipmap=False):
         allocate = 1
         no_blit = 1
     texture = _texture_create(width, height, im.fmt, 'ubyte', mipmap, allocate,
-                             None)
+                             None, im.fmt)
     if texture is None:
         return None
 
@@ -600,7 +612,8 @@ cdef class Texture:
     create_from_data = staticmethod(texture_create_from_data)
 
     def __init__(self, width, height, target, texid=0, colorfmt='rgb',
-            bufferfmt='ubyte', mipmap=False, source=None, callback=None):
+            bufferfmt='ubyte', mipmap=False, source=None, callback=None,
+            icolorfmt='rgb'):
         self.observers = []
         self._width         = width
         self._height        = height
@@ -617,6 +630,7 @@ cdef class Texture:
         self._uvh           = 1.
         self._colorfmt      = colorfmt
         self._bufferfmt     = bufferfmt
+        self._icolorfmt     = icolorfmt
         self._source        = source
         self._nofree        = 0
         self._callback      = callback
@@ -657,7 +671,7 @@ cdef class Texture:
 
     def remove_reload_observer(self, callback):
         '''Remove a callback from the observer list, previously added by
-        :func:`add_reload_observer`.
+        :meth:`add_reload_observer`.
 
         .. versionadded:: 1.2.0
 
@@ -668,7 +682,7 @@ cdef class Texture:
                 continue
 
     cdef void allocate(self):
-        cdef int glfmt, iglbufferfmt, datasize, dataerr = 0
+        cdef int iglfmt, glfmt, iglbufferfmt, datasize, dataerr = 0
         cdef void *data = NULL
         cdef int is_npot = 0
 
@@ -678,6 +692,7 @@ cdef class Texture:
 
         # prepare information needed for nogil
         glfmt = _color_fmt_to_gl(self._colorfmt)
+        iglfmt = _color_fmt_to_gl(self._icolorfmt)
         iglbufferfmt = _buffer_fmt_to_gl(self._bufferfmt)
         datasize = self._width * self._height * \
                 _gl_format_size(glfmt) * _buffer_type_to_gl_size(self._bufferfmt)
@@ -693,7 +708,7 @@ cdef class Texture:
                 _gl_prepare_pixels_upload(self._width)
 
                 # do the initial upload with fake data
-                glTexImage2D(self._target, 0, glfmt, self._width, self._height,
+                glTexImage2D(self._target, 0, iglfmt, self._width, self._height,
                         0, glfmt, iglbufferfmt, data)
 
                 # free the data !
@@ -805,7 +820,11 @@ cdef class Texture:
                     mipmap_generation=True):
         '''Blit a buffer into the texture.
 
-        .. versionadded:: 1.0.7 added mipmap_level + mipmap_generation
+        .. note::
+
+            Unless the canvas will be updated due to other changes,
+            :meth:`~kivy.graphics.instructions.Canvas.ask_update` should be
+            called in order to update the texture.
 
         :Parameters:
             `pbuffer` : str
@@ -824,6 +843,11 @@ cdef class Texture:
                 Indicate which mipmap level we are going to update.
             `mipmap_generation`: bool, defaults to False
                 Indicate if we need to regenerate the mipmap from level 0.
+
+        .. versionadded:: 1.0.7
+
+            added `mipmap_level` and `mipmap_generation`
+
         '''
         cdef GLuint target = self._target
         if colorfmt is None:
@@ -846,7 +870,7 @@ cdef class Texture:
         data, colorfmt = _convert_buffer(data, colorfmt)
 
         # prepare nogil
-        cdef int iglfmt = _color_fmt_to_gl(self._colorfmt)
+        cdef int iglfmt = _color_fmt_to_gl(self._icolorfmt)
         cdef int glfmt = _color_fmt_to_gl(colorfmt)
         cdef long datasize = len(pbuffer)
         cdef int x = pos[0]
@@ -913,7 +937,7 @@ cdef class Texture:
                 if self._proxyimage.loaded:
                     self._on_proxyimage_loaded(self._proxyimage)
                 return
-            
+
             mipmap = 0 if mipmap == 'False' else 1
             if count == '0':
                 if proto =='zip' or filename.endswith('.gif'):
@@ -933,7 +957,7 @@ cdef class Texture:
             else:
                 item_no = int(count) - 1
                 texture = self._sequenced_textures[filename][item_no]
-                
+
 
         self._reload_propagate(texture)
 
@@ -966,7 +990,6 @@ cdef class Texture:
         .. versionadded:: 1.7.0
 
         .. versionchanged:: 1.8.0
-
             Parameter `flipped` added, default to True. All the OpenGL Texture
             are readed from bottom / left, it need to be flipped before saving.
             If you don't want to flip the image, set flipped to False.

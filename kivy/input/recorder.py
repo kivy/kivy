@@ -118,49 +118,49 @@ class Recorder(EventDispatcher):
     '''Window instance to attach the recorder. If None, it will use the
     default instance.
 
-    :data:`window` is a :class:`~kivy.properties.ObjectProperty` and
+    :attr:`window` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 
     counter = NumericProperty(0)
     '''Number of events recorded in the last session.
 
-    :data:`counter` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`counter` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 0, read-only.
     '''
 
     play = BooleanProperty(False)
     '''Boolean to start/stop the replay of the current file (if it exists).
 
-    :data:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
+    :attr:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
     '''
 
     record = BooleanProperty(False)
     '''Boolean to start/stop the recording of input events.
 
-    :data:`record` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    :attr:`record` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
     '''
 
     filename = StringProperty('recorder.kvi')
     '''Filename to save the output of the recorder.
 
-    :data:`filename` is a :class:`~kivy.properties.StringProperty` and defaults
+    :attr:`filename` is a :class:`~kivy.properties.StringProperty` and defaults
     to 'recorder.kvi'.
     '''
 
     record_attrs = ListProperty(['is_touch', 'sx', 'sy'])
     '''Attributes to record from the motion event.
 
-    :data:`record_attrs` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`record_attrs` is a :class:`~kivy.properties.ListProperty` and
     defaults to ['is_touch', 'sx', 'sy'].
     '''
 
     record_profile_mask = ListProperty(['pos'])
     '''Profile to save in the fake motion event when replayed.
 
-    :data:`record_profile_mask` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`record_profile_mask` is a :class:`~kivy.properties.ListProperty` and
     defaults to ['pos'].
     '''
 

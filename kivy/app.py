@@ -7,7 +7,7 @@ Think of it as your main entry point into the Kivy run loop.  In most
 cases, you subclass this class and make your own app. You create an
 instance of your specific app class and then, when you are ready to
 start the application's life cycle, you call your instance's
-:func:`App.run` method.
+:meth:`App.run` method.
 
 
 Creating an Application
@@ -16,7 +16,7 @@ Creating an Application
 Method using build() override
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To initialize your app with a widget tree, override the :func:`~App.build`
+To initialize your app with a widget tree, override the :meth:`~App.build`
 method in your app class and return the widget tree you constructed.
 
 Here's an example of a very simple application that just shows a button:
@@ -50,7 +50,7 @@ Contents of 'main.py':
 
 See :file:`kivy/examples/application/app_with_kv.py`.
 
-The relation between main.py and test.kv is explained in :func:`App.load_kv`.
+The relation between main.py and test.kv is explained in :meth:`App.load_kv`.
 
 
 Application configuration
@@ -134,7 +134,7 @@ config. We could create a JSON like this::
     ]
 
 Then, we can create a panel using this JSON to automatically create all the
-options and link them to our :data:`App.config` ConfigParser instance::
+options and link them to our :attr:`App.config` ConfigParser instance::
 
     class TestApp(App):
         # ...
@@ -271,7 +271,7 @@ Pause mode
 
 On tablets and phones, the user can switch at any moment to another
 application.  By default, your application will close and the
-:func:`App.on_stop` event will be fired.
+:meth:`App.on_stop` event will be fired.
 
 If you support Pause mode, when switching to another application, your
 application will wait indefinitely until the user
@@ -285,11 +285,11 @@ The currently implemented Pause mechanism is:
     #. Kivy checks every frame if Pause mode is activated by the Operating
        System due to the user switching to another application, a phone
        shutdown or any other reason.
-    #. :func:`App.on_pause` is called:
-    #. If False is returned (default case), then :func:`App.on_stop` is
+    #. :meth:`App.on_pause` is called:
+    #. If False is returned (default case), then :meth:`App.on_stop` is
        called.
     #. Otherwise the application will sleep until the OS resumes our App
-    #. When the app is resumed, :func:`App.on_resume` is called.
+    #. When the app is resumed, :meth:`App.on_resume` is called.
     #. If our app memory has been reclaimed by the OS, then nothing will be
        called.
 
@@ -349,18 +349,11 @@ class App(EventDispatcher):
             you have no guarantee that this event will be fired after the
             `on_pause` event has been called.
 
-    :Parameters:
-        `kv_directory`: <path>, defaults to None
-            If a kv_directory is set, it will be used to get the initial kv
-            file. By default, the file is assumed to be in the same directory
-            as the current App definition file.
-        `kv_file`: <filename>, defaults to None
-            If a kv_file is set, it will be loaded when the application
-            starts. The loading of the "default" kv file will be
-            prevented.
-
     .. versionchanged:: 1.7.0
         Parameter `kv_file` added.
+
+    .. versionchanged:: 1.8.0
+        Parameters `kv_file` and `kv_directory` are now properties of App.
     '''
 
     title = StringProperty(None)
@@ -374,7 +367,6 @@ class App(EventDispatcher):
     .. versionadded:: 1.0.5
 
     .. versionchanged:: 1.8.0
-
         `title` is now a :class:`~kivy.properties.StringProperty`. Don't set the
         title in the class as previously stated in the documentation.
 
@@ -404,7 +396,6 @@ class App(EventDispatcher):
     .. versionadded:: 1.0.5
 
     .. versionchanged:: 1.8.0
-
         `icon` is now a :class:`~kivy.properties.StringProperty`. Don't set the
         icon in the class as previously stated in the documentation.
 
@@ -445,6 +436,25 @@ class App(EventDispatcher):
     string, the :class:`~kivy.factory.Factory` will be used to resolve the
     class.
 
+    '''
+
+    kv_directory = StringProperty(None)
+    '''Path of the directory where application kv is stored, defaults to None
+
+    .. versionadded:: 1.8.0
+
+    If a kv_directory is set, it will be used to get the initial kv file. By
+    default, the file is assumed to be in the same directory as the current App
+    definition file.
+    '''
+
+    kv_file = StringProperty(None)
+    '''Filename of the Kv file to load, defaults to None.
+
+    .. versionadded:: 1.8.0
+
+    If a kv_file is set, it will be loaded when the application starts. The
+    loading of the "default" kv file will be prevented.
     '''
 
     # Return the current running App instance
@@ -504,8 +514,10 @@ class App(EventDispatcher):
         '''.. versionadded:: 1.0.7
 
         This method is called when the user (or you) want to show the
-        application settings. This will be called only once when the user
-        first requests the application to display the settings.
+        application settings. It is called once when the settings panel
+        is first opened, after which the panel is cached. It may be
+        called again if the cached settings panel is removed by
+        :meth:`destroy_settings`.
 
         You can use this method to add settings panels and to
         customise the settings widget e.g. by changing the sidebar
@@ -544,6 +556,14 @@ class App(EventDispatcher):
         documentation for more information on how to create kv files. If your
         kv file contains a root widget, it will be used as self.root, the root
         widget for the application.
+
+        .. note::
+
+            This function is called from :meth:`run`, therefore, any widget
+            whose styling is defined in this kv file and is created before
+            :meth:`run` is called (e.g. in `__init__`), won't have its styling
+            applied. Note that :meth:`build` is called after :attr:`load_kv`
+            has been called.
         '''
         # Detect filename automatically if it was not specified.
         if filename:
@@ -556,8 +576,8 @@ class App(EventDispatcher):
             except TypeError:
                 # if it's a builtin module.. use the current dir.
                 default_kv_directory = '.'
-            kv_directory = self.options.get('kv_directory',
-                                            default_kv_directory)
+
+            kv_directory = self.kv_directory or default_kv_directory
             clsname = self.__class__.__name__.lower()
             if (clsname.endswith('app') and
                     not isfile(join(kv_directory, '%s.kv' % clsname))):
@@ -566,10 +586,11 @@ class App(EventDispatcher):
 
         # Load KV file
         Logger.debug('App: Loading kv <{0}>'.format(filename))
-        if not exists(filename):
+        rfilename = resource_find(filename)
+        if rfilename is None or not exists(rfilename):
             Logger.debug('App: kv <%s> not found' % filename)
             return False
-        root = Builder.load_file(filename)
+        root = Builder.load_file(rfilename)
         if root:
             self.root = root
         return True
@@ -623,8 +644,8 @@ class App(EventDispatcher):
         Some notes:
 
         - The tilda '~' will be expanded to the user directory.
-        - %(appdir)s will be replaced with the application :data:`directory`
-        - %(appname)s will be replaced with the application :data:`name`
+        - %(appdir)s will be replaced with the application :attr:`directory`
+        - %(appname)s will be replaced with the application :attr:`name`
         '''
 
         if platform == 'android':
@@ -749,7 +770,7 @@ class App(EventDispatcher):
         '''
         if not self.built:
             self.load_config()
-            self.load_kv(filename=self.options.get('kv_file'))
+            self.load_kv(filename=self.kv_file)
             root = self.build()
             if root:
                 self.root = root
@@ -851,7 +872,9 @@ class App(EventDispatcher):
 
     def open_settings(self, *largs):
         '''Open the application settings panel. It will be created the very
-        first time. The settings panel will be displayed with the
+        first time, or recreated if the previously cached panel has been
+        removed by :meth:`destroy_settings`. The settings panel will be
+        displayed with the
         :meth:`display_settings` method, which by default adds the
         settings panel to the Window attached to your application. You
         should override that method if you want to display the
@@ -905,12 +928,15 @@ class App(EventDispatcher):
         return False
 
     def create_settings(self):
-        '''Create the settings panel. This method is called only one time per
-        application life-time and the result is cached internally.
+        '''Create the settings panel. This method will normally
+        be called only one time per
+        application life-time and the result is cached internally,
+        but it may be called again if the cached panel is removed
+        by :meth:`destroy_settings`.
 
         By default, it will build a settings panel according to
-        :data:`settings_cls`, call :meth:`build_settings`, add a Kivy panel if
-        :data:`use_kivy_settings` is True, and bind to
+        :attr:`settings_cls`, call :meth:`build_settings`, add a Kivy panel if
+        :attr:`use_kivy_settings` is True, and bind to
         on_close/on_config_change.
 
         If you want to plug your own way of doing settings, without the Kivy

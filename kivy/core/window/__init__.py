@@ -16,7 +16,7 @@ from kivy.core import core_select_lib
 from kivy.clock import Clock
 from kivy.config import Config
 from kivy.logger import Logger
-from kivy.base import EventLoop
+from kivy.base import EventLoop, stopTouchApp
 from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
@@ -150,14 +150,14 @@ class Keyboard(EventDispatcher):
 
     def string_to_keycode(self, value):
         '''Convert a string to a keycode number according to the
-        :data:`Keyboard.keycodes`. If the value is not found in the
+        :attr:`Keyboard.keycodes`. If the value is not found in the
         keycodes, it will return -1.
         '''
         return Keyboard.keycodes.get(value, -1)
 
     def keycode_to_string(self, value):
         '''Convert a keycode number to a string according to the
-        :data:`Keyboard.keycodes`. If the value is not found in the
+        :attr:`Keyboard.keycodes`. If the value is not found in the
         keycodes, it will return ''.
         '''
         keycodes = list(Keyboard.keycodes.values())
@@ -201,23 +201,23 @@ class WindowBase(EventDispatcher):
             Fired when the keyboard is used for input.
 
             .. versionchanged:: 1.3.0
+                The *unicode* parameter has been deprecated in favor of
+                codepoint, and will be removed completely in future versions.
 
-            The *unicode* parameter has been deprecated in favor of
-            codepoint, and will be removed completely in future versions.
         `on_key_down`: key, scancode, codepoint
             Fired when a key pressed.
 
             .. versionchanged:: 1.3.0
+                The *unicode* parameter has been deprecated in favor of
+                codepoint, and will be removed completely in future versions.
 
-            The *unicode* parameter has been deprecated in favor of
-            codepoint, and will be removed completely in future versions.
         `on_key_up`: key, scancode, codepoint
             Fired when a key is released.
 
             .. versionchanged:: 1.3.0
+                The *unicode* parameter has be deprecated in favor of
+                codepoint, and will be removed completely in future versions.
 
-            The *unicode* parameter has be deprecated in favor of
-            codepoint, and will be removed completely in future versions.
         `on_dropfile`: str
             Fired when a file is dropped on the application.
     '''
@@ -234,10 +234,10 @@ class WindowBase(EventDispatcher):
     children = ListProperty([])
     '''List of the children of this window.
 
-    :data:`children` is a :class:`~kivy.properties.ListProperty` instance and
+    :attr:`children` is a :class:`~kivy.properties.ListProperty` instance and
     defaults to an empty list.
 
-    Use :func:`add_widget` and :func:`remove_widget` to manipulate the list of
+    Use :meth:`add_widget` and :meth:`remove_widget` to manipulate the list of
     children. Don't manipulate the list directly unless you know what you are
     doing.
     '''
@@ -245,7 +245,7 @@ class WindowBase(EventDispatcher):
     parent = ObjectProperty(None, allownone=True)
     '''Parent of this window.
 
-    :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance and
+    :attr:`parent` is a :class:`~kivy.properties.ObjectProperty` instance and
     defaults to None. When created, the parent is set to the window itself.
     You must take care of it if you are doing a recursive check.
     '''
@@ -279,7 +279,7 @@ class WindowBase(EventDispatcher):
         else:
             return False
     size = AliasProperty(_get_size, _set_size, bind=('_size', ))
-    '''Get the rotated size of the window. If :data:`rotation` is set, then the
+    '''Get the rotated size of the window. If :attr:`rotation` is set, then the
     size will change to reflect the rotation.
     '''
 
@@ -298,7 +298,8 @@ class WindowBase(EventDispatcher):
                                bind=('_clearcolor', ))
     '''Color used to clear the window.
 
-  ::
+    ::
+
         from kivy.core.window import Window
 
         # red background color
@@ -308,7 +309,6 @@ class WindowBase(EventDispatcher):
         Window.clearcolor = None
 
     .. versionchanged:: 1.7.2
-
         The clearcolor default value is now: (0, 0, 0, 1).
 
     '''
@@ -323,7 +323,7 @@ class WindowBase(EventDispatcher):
     width = AliasProperty(_get_width, None, bind=('_rotation', '_size'))
     '''Rotated window width.
 
-    :data:`width` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`width` is a :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_height(self):
@@ -336,7 +336,7 @@ class WindowBase(EventDispatcher):
     height = AliasProperty(_get_height, None, bind=('_rotation', '_size'))
     '''Rotated window height.
 
-    :data:`height` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`height` is a :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_center(self):
@@ -345,7 +345,7 @@ class WindowBase(EventDispatcher):
     center = AliasProperty(_get_center, None, bind=('width', 'height'))
     '''Center of the rotated window.
 
-    :data:`center` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`center` is a :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_rotation(self):
@@ -786,6 +786,23 @@ class WindowBase(EventDispatcher):
                            "codepoint instead, which has identical "
                            "semantics.")
 
+        # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
+        # TODO If just CMD+w is pressed, only the window should be closed.
+        is_osx = platform == 'darwin'
+        if self.on_keyboard.exit_on_escape:
+            if key == 27 or all([is_osx, key in [113, 119], modifier == 1024]):
+                stopTouchApp()
+                self.close()
+                return True
+    if Config:
+        on_keyboard.exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
+
+        def __exit(section, name, value):
+            WindowBase.__dict__['on_keyboard'].exit_on_escape = \
+                Config.getboolean('kivy', 'exit_on_escape')
+
+        Config.add_callback(__exit, 'kivy', 'exit_on_escape')
+
     def on_key_down(self, key, scancode=None, codepoint=None,
                     modifier=None, **kwargs):
         '''Event called when a key is down (same arguments as on_keyboard)'''
@@ -826,7 +843,7 @@ class WindowBase(EventDispatcher):
         .. warning::
 
             This value is not cross-platform. Use
-            :data:`kivy.base.EventLoop.dpi` instead.
+            :attr:`kivy.base.EventLoop.dpi` instead.
         '''
         return 96.
 
@@ -912,38 +929,42 @@ class WindowBase(EventDispatcher):
     def request_keyboard(self, callback, target, input_type='text'):
         '''.. versionadded:: 1.0.4
 
-        Internal widget method to request the keyboard. This method is
-        not intented to be used by the end-user. If you want to use the
-        real keyboard (not the virtual keyboard), you don't want to share it
-        with another widget.
+        Internal widget method to request the keyboard. This method is rarely
+        required by the end-user as it is handled automatically by the
+        :class:`~kivy.uix.textinput.TextInput`. We expose it in case you want
+        to handle the keyboard manually for unique input scenarios.
 
         A widget can request the keyboard, indicating a callback to call
-        when the keyboard will be released (or taken by another widget).
+        when the keyboard is released (or taken by another widget).
 
         :Parameters:
             `callback`: func
                 Callback that will be called when the keyboard is
-                closed. It can be because somebody else requested the
-                keyboard, or if the user closed it.
+                closed. This can be because somebody else requested the
+                keyboard or the user closed it.
             `target`: Widget
-                Attach the keyboard to the specified target. Ensure you have a
-                target attached if you're using the keyboard in a multi user
-                mode.
+                Attach the keyboard to the specified `target`. This should be
+                the widget that requested the keyboard. Ensure you have a
+                different target attached to each keyboard if you're working in
+                a multi user mode.
+
+                .. versionadded:: 1.0.8
+
             `input_type`: string
                 Choose the type of soft keyboard to request. Can be one of
                 'text', 'number', 'url', 'mail', 'datetime', 'tel', 'address'.
+
+                .. note::
+
+                    `input_type` is currently only honored on mobile devices.
 
                 .. versionadded:: 1.8.0
 
         :Return:
             An instance of :class:`Keyboard` containing the callback, target,
-            and if the configuration allowed it, a VKeyboard instance.
-
-        .. versionchanged:: 1.0.8
-
-            `target` has been added, and must be the widget source that
-            requested the keyboard. If set, the widget must have one method
-            named `on_keyboard_text` that will be called by the vkeyboard.
+            and if the configuration allows it, a
+            :class:`~kivy.uix.vkeyboard.VKeyboard` instance attached as a
+            *.widget* property.
 
         '''
 
@@ -1004,7 +1025,7 @@ class WindowBase(EventDispatcher):
         '''.. versionadded:: 1.0.4
 
         Internal method for the widget to release the real-keyboard. Check
-        :func:`request_keyboard` to understand how it works.
+        :meth:`request_keyboard` to understand how it works.
         '''
         if self.allow_vkeyboard:
             key = 'single' if self.single_vkeyboard else target

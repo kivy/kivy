@@ -17,7 +17,6 @@ You should not use the Sound class directly. The class returned by
 type, so it might return different Sound classes depending the file type.
 
 .. versionchanged:: 1.8.0
-
     There is now 2 distinct Gstreamer implementation: one using Gi/Gst working
     for both Python 2+3 with Gstreamer 1.0, and one using PyGST working
     only for Python 2 + Gstreamer 0.10.
@@ -60,6 +59,8 @@ class SoundLoader:
         if rfn is not None:
             filename = rfn
         ext = filename.split('.')[-1].lower()
+        if '?' in ext:
+            ext = ext.split('?')[0]
         for classobj in SoundLoader._classes:
             if ext in classobj.extensions():
                 return classobj(source=filename)
@@ -86,7 +87,7 @@ class Sound(EventDispatcher):
 
     .. versionadded:: 1.3.0
 
-    :data:`source` is a :class:`~kivy.properties.StringProperty` that defaults
+    :attr:`source` is a :class:`~kivy.properties.StringProperty` that defaults
     to None and is read-only. Use the :meth:`SoundLoader.load` for loading
     audio.
     '''
@@ -96,7 +97,7 @@ class Sound(EventDispatcher):
 
     .. versionadded:: 1.3.0
 
-    :data:`volume` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`volume` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.
     '''
 
@@ -105,14 +106,14 @@ class Sound(EventDispatcher):
 
     .. versionadded:: 1.3.0
 
-    :data:`state` is a read-only :class:`~kivy.properties.OptionProperty`.'''
+    :attr:`state` is a read-only :class:`~kivy.properties.OptionProperty`.'''
 
     loop = BooleanProperty(False)
     '''Set to True if the sound should automatically loop when it finishes.
 
     .. versionadded:: 1.8.0
 
-    :data:`loop` is a :class:`~kivy.properties.BooleanProperty` and defaults to
+    :attr:`loop` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.'''
 
     #
@@ -123,7 +124,7 @@ class Sound(EventDispatcher):
     status = AliasProperty(_get_status, None, bind=('state', ))
     '''
     .. deprecated:: 1.3.0
-        Use :data:`state` instead.
+        Use :attr:`state` instead.
     '''
 
     def _get_filename(self):
@@ -131,7 +132,7 @@ class Sound(EventDispatcher):
     filename = AliasProperty(_get_filename, None, bind=('source', ))
     '''
     .. deprecated:: 1.3.0
-        Use :data:`source` instead.
+        Use :attr:`source` instead.
     '''
 
     __events__ = ('on_play', 'on_stop')

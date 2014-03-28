@@ -62,7 +62,7 @@ if platform == 'win':
     # Note: For some reason this doesn't work after a os.chdir(), no matter to
     #       what directory you change from where. Windows weirdness.
     try:
-        from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesEx, error
+        from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesExW, error
         _have_win32file = True
     except ImportError:
         Logger.error('filechooser: win32file module is missing')
@@ -76,7 +76,7 @@ def alphanumeric_folders_first(files, filesystem):
 
 class FileSystemAbstract(object):
     '''Class for implementing a File System view that can be used with the
-    :class:`FileChooser`.:data:`~FileChooser.file_system`.
+    :class:`FileChooser`.:attr:`~FileChooser.file_system`.
 
     .. versionadded:: 1.8.0
     '''
@@ -119,7 +119,7 @@ class FileSystemLocal(FileSystemAbstract):
             if not _have_win32file:
                 return False
             try:
-                return GetFileAttributesEx(fn)[0] & FILE_ATTRIBUTE_HIDDEN
+                return GetFileAttributesExW(fn)[0] & FILE_ATTRIBUTE_HIDDEN
             except error:
                 # This error can occured when a file is already accessed by
                 # someone else. So don't return to True, because we have lot
@@ -131,10 +131,6 @@ class FileSystemLocal(FileSystemAbstract):
 
     def is_dir(self, fn):
         return isdir(fn)
-
-
-class ForceUnicodeError(Exception):
-    pass
 
 
 class FileChooserProgressBase(FloatLayout):
@@ -149,7 +145,7 @@ class FileChooserProgressBase(FloatLayout):
     '''
 
     index = NumericProperty(0)
-    '''Current index of :data:`total` entries to be loaded.
+    '''Current index of :attr:`total` entries to be loaded.
     '''
 
     total = NumericProperty(1)
@@ -203,11 +199,19 @@ class FileChooserController(FloatLayout):
     '''
     _ENTRY_TEMPLATE = None
 
-    path = StringProperty('/')
+    path = StringProperty(u'/')
     '''
     :class:`~kivy.properties.StringProperty`, defaults to the current working
     directory as a unicode string. It specifies the path on the filesystem that
     this controller should refer to.
+
+    .. warning::
+
+        If a unicode path is specified, all the files returned will be in
+        unicode allowing the display of unicode files and paths. If a bytes
+        path is specified, only files and paths with ascii names will be
+        displayed properly: non-ascii filenames will be displayed and listed
+        with questions marks (?) instead of their unicode characters.
     '''
 
     filters = ListProperty([])
@@ -310,6 +314,12 @@ class FileChooserController(FloatLayout):
     .. versionadded:: 1.2.0
 
     :class:`~kivy.properties.StringProperty`, defaults to None.
+
+    .. note::
+
+        Similar to :attr:`path`, if `rootpath` is specified, whether it's a
+        bytes or unicode string determines the type of the filenames and paths
+        read.
     '''
 
     progress_cls = ObjectProperty(FileChooserProgress)
@@ -338,8 +348,12 @@ class FileChooserController(FloatLayout):
 
     .. versionadded:: 1.3.0
 
-    :class:`~kivy.properties.ListProperty`, defaults to ['utf-8', 'latin1',
-    'cp1252']
+    .. deprecated:: 1.8.0
+       This property is no longer used as the filechooser no longer decodes
+       the file names.
+
+    file_encodings is a :class:`~kivy.properties.ListProperty` and defaults to
+    ['utf-8', 'latin1', 'cp1252'],
     '''
 
     file_system = ObjectProperty(FileSystemLocal(),
@@ -391,11 +405,6 @@ class FileChooserController(FloatLayout):
             item.selected = item.path in self.selection
 
     def _save_previous_path(self, instance, value):
-        path = expanduser(value)
-        path = realpath(path)
-        if path != value:
-            self.path = path
-            return
         self._previous_path.append(value)
         self._previous_path = self._previous_path[-2:]
 
@@ -640,24 +649,18 @@ class FileChooserController(FloatLayout):
             self.files[:] = []
 
     def _add_files(self, path, parent=None):
-        force_unicode = self._force_unicode
-        # Make sure we're using unicode in case of non-ascii chars in
-        # filenames.  listdir() returns unicode if you pass it unicode.
-        try:
-            path = expanduser(path)
-            path = force_unicode(path)
-        except ForceUnicodeError:
-            pass
+        path = expanduser(path)
 
         files = []
         fappend = files.append
-        for fn in self.file_system.listdir(path):
+        for f in self.file_system.listdir(path):
             try:
-                fappend(force_unicode(fn))
-            except ForceUnicodeError:
-                pass
-        # In the following, use fully qualified filenames
-        files = [normpath(join(path, f)) for f in files]
+                # In the following, use fully qualified filenames
+                fappend(normpath(join(path, f)))
+            except UnicodeDecodeError:
+                Logger.exception('unable to decode <{}>'.format(f))
+            except UnicodeEncodeError:
+                Logger.exception('unable to encode <{}>'.format(f))
         # Apply filename filters
         files = self._apply_filters(files)
         # Sort the list of files
@@ -683,21 +686,6 @@ class FileChooserController(FloatLayout):
                    'sep': sep}
             entry = Builder.template(self._ENTRY_TEMPLATE, **ctx)
             yield index, total, entry
-
-    def _force_unicode(self, s):
-        # the idea is, whatever is the filename, unicode or str, even if the
-        # str can't be directly returned as a unicode, return something.
-        if type(s) is str:
-            return s
-        encodings = self.file_encodings
-        for encoding in encodings:
-            try:
-                return s.decode(encoding, 'strict')
-            except UnicodeDecodeError:
-                pass
-            except UnicodeEncodeError:
-                pass
-        raise ForceUnicodeError('Unable to decode %r' % s)
 
     def entry_subselect(self, entry):
         if not self.file_system.is_dir(entry.path):

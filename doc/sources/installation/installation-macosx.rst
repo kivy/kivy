@@ -63,7 +63,7 @@ after you have dragged the Kivy.app into the Applications folder. To test if it 
         
     #. In there, type::
 
-           $ import kivy
+           >>> import kivy
            
        If it just goes to the next line without errors, it worked.
        

@@ -148,6 +148,8 @@ Builder.load_string('''
         # Bottom Bar
         BoxLayout:
             ScrollView:
+                scroll_type: ['bars', 'content']
+                bar_width: 10
                 TreeView:
                     id: treeview
                     size_hint_y: None
@@ -370,6 +372,7 @@ class Inspector(FloatLayout):
 
     def animation_close(self, instance, value):
         if self.activated is False:
+            self.inspect_enabled = False
             self.win.remove_widget(self)
             self.content.clear_widgets()
             treeview = self.treeview
@@ -557,8 +560,8 @@ class Inspector(FloatLayout):
 
 def create_inspector(win, ctx, *l):
     '''Create an Inspector instance attached to the *ctx* and bound to the
-    Windows :py:func:`~kivy.core.window.WindowBase.on_keyboard` event for
-    capturing the keyboard shortcut.
+    Windows :meth:`~kivy.core.window.WindowBase.on_keyboard` event for capturing
+    the keyboard shortcut.
 
         :Parameters:
             `win`: A :class:`Window <kivy.core.window.WindowBase>`

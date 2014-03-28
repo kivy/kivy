@@ -37,7 +37,7 @@ class DictAdapter(ListAdapter):
     lookup of the data, using keys from sorted_keys, will be passed
     to it for instantiation of list item view class instances.
 
-    :data:`sorted_keys` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`sorted_keys` is a :class:`~kivy.properties.ListProperty` and
     defaults to [].
     '''
 
@@ -47,7 +47,7 @@ class DictAdapter(ListAdapter):
 
     The values can be strings, class instances, dicts, etc.
 
-    :data:`data` is a :class:`~kivy.properties.DictProperty` and defaults
+    :attr:`data` is a :class:`~kivy.properties.DictProperty` and defaults
     to None.
     '''
 

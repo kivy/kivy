@@ -175,7 +175,7 @@ cdef class Color(ContextInstruction):
         c = Color(1, 0, 0)
         # create blue color
         c = Color(0, 1, 0)
-            # create blue color with 50% alpha
+        # create blue color with 50% alpha
         c = Color(0, 1, 0, .5)
 
         # using hsv mode
@@ -200,7 +200,6 @@ cdef class Color(ContextInstruction):
                 # using hsv mode
                 Color:
                     hsv: 0, 1, 1
-
                 # using hsv mode + alpha
                 Color:
                     hsv: 0, 1, 1
@@ -602,7 +601,7 @@ cdef class Rotate(Transform):
 
         .. deprecated:: 1.7.0
 
-            The set() method doesn't use the new :data:`origin` property.
+            The set() method doesn't use the new :attr:`origin` property.
         '''
         self._angle = angle
         self._axis = (ax, ay, az)
@@ -621,7 +620,7 @@ cdef class Rotate(Transform):
         self.matrix = matrix
 
     property angle:
-        '''Property for getting/settings the angle of the rotation.
+        '''Property for getting/setting the angle of the rotation.
         '''
         def __get__(self):
             return self._angle
@@ -630,7 +629,7 @@ cdef class Rotate(Transform):
             self.compute()
 
     property axis:
-        '''Property for getting/settings the axis of the rotation.
+        '''Property for getting/setting the axis of the rotation.
 
         The format of the axis is (x, y, z).
         '''

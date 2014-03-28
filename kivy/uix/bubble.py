@@ -93,19 +93,19 @@ class Bubble(GridLayout):
     background_color = ListProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a).
 
-    :data:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [1, 1, 1, 1].
     '''
 
     border = ListProperty([16, 16, 16, 16])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
-    graphics instruction. Used with the :data:`background_image`.
+    graphics instruction. Used with the :attr:`background_image`.
     It should be used when using custom backgrounds.
 
     It must be a list of 4 values: (top, right, bottom, left). Read the
     BorderImage instructions for more information about how to use it.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults to
     (16, 16, 16, 16)
     '''
 
@@ -113,7 +113,7 @@ class Bubble(GridLayout):
         'atlas://data/images/defaulttheme/bubble')
     '''Background image of the bubble.
 
-    :data:`background_image` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`background_image` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/bubble'.
     '''
 
@@ -121,7 +121,7 @@ class Bubble(GridLayout):
         'atlas://data/images/defaulttheme/bubble_arrow')
     ''' Image of the arrow pointing to the bubble.
 
-    :data:`arrow_image` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`arrow_image` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/bubble_arrow'.
     '''
 
@@ -130,7 +130,7 @@ class Bubble(GridLayout):
 
     .. versionadded:: 1.8.0
 
-    :data:`show_arrow` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`show_arrow` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to `True`.
     '''
 
@@ -142,14 +142,14 @@ class Bubble(GridLayout):
     Can be one of: left_top, left_mid, left_bottom top_left, top_mid, top_right
     right_top, right_mid, right_bottom bottom_left, bottom_mid, bottom_right.
 
-    :data:`arrow_pos` is a :class:`~kivy.properties.OptionProperty` and
+    :attr:`arrow_pos` is a :class:`~kivy.properties.OptionProperty` and
     defaults to 'bottom_mid'.
     '''
 
     content = ObjectProperty(None)
     '''This is the object where the main content of the bubble is held.
 
-    :data:`content` is a :class:`~kivy.properties.ObjectProperty` and
+    :attr:`content` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to 'None'.
     '''
 
@@ -158,7 +158,7 @@ class Bubble(GridLayout):
     '''This specifies the manner in which the children inside bubble
     are arranged. Can be one of 'vertical' or 'horizontal'.
 
-    :data:`orientation` is a :class:`~kivy.properties.OptionProperty` and
+    :attr:`orientation` is a :class:`~kivy.properties.OptionProperty` and
     defaults to 'horizontal'.
     '''
 
@@ -167,7 +167,7 @@ class Bubble(GridLayout):
 
     .. versionadded:: 1.6.0
 
-    :data:`limit_to` is a :class:`~kivy.properties.ObjectProperty` and
+    :attr:`limit_to` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to 'None'.
     '''
 

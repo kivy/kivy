@@ -22,11 +22,11 @@ throughout the widget tree.
 
 1. The :class:`MotionEvent` 's are gathered from input providers.
 2. All the :class:`MotionEvent` 's are dispatched from
-    :py:func:`~kivy.core.window.WindowBase.on_motion`.
+    :meth:`~kivy.core.window.WindowBase.on_motion`.
 3. If a :class:`MotionEvent` has a `pos` profile, we dispatch it through
-    :py:func:`~kivy.core.window.WindowBase.on_touch_down`,
-    :py:func:`~kivy.core.window.WindowBase.on_touch_move` and
-    :py:func:`~kivy.core.window.WindowBase.on_touch_up`.
+    :meth:`~kivy.core.window.WindowBase.on_touch_down`,
+    :meth:`~kivy.core.window.WindowBase.on_touch_move` and
+    :meth:`~kivy.core.window.WindowBase.on_touch_up`.
 
 Listening to a Motion Event
 ---------------------------
@@ -163,7 +163,7 @@ class MotionEvent(MotionEventBase):
         #: `pos` is :attr:`profile`.
         self.is_touch = False
 
-        #: Attributes to push by default, when we use :func:`push` : x, y, z,
+        #: Attributes to push by default, when we use :meth:`push` : x, y, z,
         #: dx, dy, dz, ox, oy, oz, px, py, pz.
         self.push_attrs_stack = []
         self.push_attrs = ('x', 'y', 'z', 'dx', 'dy', 'dz', 'ox', 'oy', 'oz',
@@ -182,7 +182,7 @@ class MotionEvent(MotionEventBase):
         self.grab_state = False
 
         #: Used to determine which widget the touch is being dispatched to.
-        #: Check the :func:`grab` function for more information.
+        #: Check the :meth:`grab` function for more information.
         self.grab_current = None
 
         #: Profiles currently used in the touch

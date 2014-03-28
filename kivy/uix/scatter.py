@@ -14,9 +14,13 @@ properties.
 That specific behavior makes the scatter unique, but there are some
 advantages / constraints that you should consider:
 
-#. The children are positionned relative to 0, 0. The scatter position has
-   no impact of the position of children. This applies to the size too.
-#. If you want to resize the scatter, use scale, not size. (read #1.)
+#. The children are positioned relative to the scatter similar to a
+   RelativeLayout (see :mod:`~kivy.uix.relativelayout`). So when dragging the
+   scatter, the position of the children don't change, only the position of
+   the scatter.
+#. The scatter size has no impact on the size of the children.
+#. If you want to resize the scatter, use scale, not size. (read #2.). Scale
+   transforms both the scatter and its children, but does not change size.
 #. The scatter is not a layout. You must manage the size of the children
    yourself.
 
@@ -59,7 +63,7 @@ Allow only translation on x axis::
 Automatic Bring to Front
 ------------------------
 
-If the :data:`Scatter.auto_bring_to_front` property is True, the scatter
+If the :attr:`Scatter.auto_bring_to_front` property is True, the scatter
 widget will be removed and re-added to the parent when it is touched
 (brought to front, above all other widgets in the parent). This is useful
 when you are manipulating several scatter widgets and don't want the active
@@ -114,21 +118,21 @@ class Scatter(Widget):
     '''If True, the widget will be automatically pushed on the top of parent
     widget list for drawing.
 
-    :data:`auto_bring_to_front` is a :class:`~kivy.properties.BooleanProperty`
+    :attr:`auto_bring_to_front` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True.
     '''
 
     do_translation_x = BooleanProperty(True)
     '''Allow translation on the X axis.
 
-    :data:`do_translation_x` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`do_translation_x` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
     do_translation_y = BooleanProperty(True)
     '''Allow translation on Y axis.
 
-    :data:`do_translation_y` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`do_translation_y` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
@@ -145,15 +149,15 @@ class Scatter(Widget):
         bind=('do_translation_x', 'do_translation_y'))
     '''Allow translation on the X or Y axis.
 
-    :data:`do_translation` is an :class:`~kivy.properties.AliasProperty` of
-    (:data:`do_translation_x` + :data:`do_translation_y`)
+    :attr:`do_translation` is an :class:`~kivy.properties.AliasProperty` of
+    (:attr:`do_translation_x` + :attr:`do_translation_y`)
     '''
 
     translation_touches = BoundedNumericProperty(1, min=1)
     '''Determine whether translation is triggered by a single or multiple
-    touches. This only has effect when :data:`do_translation` = True.
+    touches. This only has effect when :attr:`do_translation` = True.
 
-    :data:`translation_touches` is a :class:`~kivy.properties.NumericProperty`
+    :attr:`translation_touches` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 1.
 
     .. versionadded:: 1.7.0
@@ -162,14 +166,14 @@ class Scatter(Widget):
     do_rotation = BooleanProperty(True)
     '''Allow rotation.
 
-    :data:`do_rotation` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`do_rotation` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
     do_scale = BooleanProperty(True)
     '''Allow scaling.
 
-    :data:`do_scale` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`do_scale` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
@@ -185,28 +189,28 @@ class Scatter(Widget):
     scale_min = NumericProperty(0.01)
     '''Minimum scaling factor allowed.
 
-    :data:`scale_min` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`scale_min` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.01.
     '''
 
     scale_max = NumericProperty(1e20)
     '''Maximum scaling factor allowed.
 
-    :data:`scale_max` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`scale_max` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1e20.
     '''
 
     transform = ObjectProperty(Matrix())
     '''Transformation matrix.
 
-    :data:`transform` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`transform` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to the identity matrix.
     '''
 
     transform_inv = ObjectProperty(Matrix())
     '''Inverse of the transformation matrix.
 
-    :data:`transform_inv` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`transform_inv` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to the identity matrix.
     '''
 
@@ -230,7 +234,7 @@ class Scatter(Widget):
         ((x, y), (w, h))
         # x, y = lower left corner
 
-    :data:`bbox` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`bbox` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_rotation(self):
@@ -248,7 +252,7 @@ class Scatter(Widget):
         'x', 'y', 'transform'))
     '''Rotation value of the scatter.
 
-    :data:`rotation` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`rotation` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_scale(self):
@@ -276,7 +280,7 @@ class Scatter(Widget):
     scale = AliasProperty(_get_scale, _set_scale, bind=('x', 'y', 'transform'))
     '''Scale value of the scatter.
 
-    :data:`scale` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`scale` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_center(self):
@@ -415,24 +419,29 @@ class Scatter(Widget):
         if len(self._touches) == 1:
             return changed
 
-        # we have more than one touch...
-        points = [Vector(self._last_touch_pos[t]) for t in self._touches]
+        # we have more than one touch... list of last known pos
+        points = [Vector(self._last_touch_pos[t]) for t in self._touches
+                  if t is not touch]
+        # add current touch last
+        points.append(Vector(touch.pos))
 
         # we only want to transform if the touch is part of the two touches
-        # furthest apart! So first we find anchor, the point to transform
-        # around as the touch farthest away from touch
-        anchor = max(points, key=lambda p: p.distance(touch.pos))
+        # farthest apart! So first we find anchor, the point to transform
+        # around as another touch farthest away from current touch's pos
+        anchor = max(points[:-1], key=lambda p: p.distance(touch.pos))
 
         # now we find the touch farthest away from anchor, if its not the
         # same as touch. Touch is not one of the two touches used to transform
         farthest = max(points, key=anchor.distance)
-        if points.index(farthest) != self._touches.index(touch):
+        if farthest is not points[-1]:
             return changed
 
         # ok, so we have touch, and anchor, so we can actually compute the
         # transformation
         old_line = Vector(*touch.ppos) - anchor
         new_line = Vector(*touch.pos) - anchor
+        if not old_line.length():   # div by zero
+            return changed
 
         angle = radians(new_line.angle(old_line)) * self.do_rotation
         self.apply_transform(Matrix().rotate(angle, 0, 0, 1), anchor=anchor)

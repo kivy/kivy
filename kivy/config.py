@@ -22,11 +22,10 @@ To read a configuration token from a particular section::
 
 Change the configuration and save it::
 
-    >>> Config.set('kivy', 'retain_time', '50')
+    >>> Config.set('postproc', 'retain_time', '50')
     >>> Config.write()
 
 .. versionchanged:: 1.7.1
-
     The ConfigParser should work correctly with utf-8 now. The values are
     converted from ascii to unicode only when needed. The method get() returns
     utf-8 strings.
@@ -154,25 +153,25 @@ Available configuration tokens
 
     `scroll_distance`: int
         Default value of the
-        :data:`~kivy.uix.scrollview.ScrollView.scroll_distance`
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_distance`
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
     `scroll_friction`: float
         Default value of the
-        :data:`~kivy.uix.scrollview.ScrollView.scroll_friction`
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_friction`
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
     `scroll_timeout`: int
         Default value of the
-        :data:`~kivy.uix.scrollview.ScrollView.scroll_timeout`
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_timeout`
         property used by the  :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
     `scroll_stoptime`: int
         Default value of the
-        :data:`~kivy.uix.scrollview.ScrollView.scroll_stoptime`
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_stoptime`
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
@@ -182,7 +181,7 @@ Available configuration tokens
 
     `scroll_moves`: int
         Default value of the
-        :data:`~kivy.uix.scrollview.ScrollView.scroll_moves`
+        :attr:`~kivy.uix.scrollview.ScrollView.scroll_moves`
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
@@ -209,7 +208,7 @@ Available configuration tokens
     `resizable` has been added to graphics section.
 
 .. versionchanged:: 1.1.0
-    tuio is not listening by default anymore. Window icons are not copied to
+    tuio no longer listens by default. Window icons are not copied to
     user directory anymore. You can still set a new window icon by using the
     ``window_icon`` config setting.
 
