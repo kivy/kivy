@@ -30,6 +30,7 @@ kivy/core/window/sdl.c
 python
 python.exe
 .idea
+dist
 
 MANIFEST
 
@@ -46,3 +47,11 @@ kivy/lib/vidcore_lite/bcm.c
 kivy/lib/vidcore_lite/bcm.h
 
 kivy/lib/vidcore_lite/egl.c
+
+# PyDev
+.project
+.pydevproject
+
+# Virtualenv
+venv
+
