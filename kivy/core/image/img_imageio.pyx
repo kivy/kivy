@@ -93,7 +93,7 @@ cdef extern from "CoreGraphics/CGColorSpace.h":
 
 cdef extern from "CoreGraphics/CGAffineTransform.h":
     ctypedef void *CGAffineTransform
-    CGAffineTransform CGAffineTransformMake (float, float, float, float, float, float)
+    CGAffineTransform CGAffineTransformMake(float a, float b, float c, float d, float tx, float ty)
 
 cdef extern from "CoreGraphics/CGContext.h": 
     ctypedef void *CGContextRef
@@ -102,7 +102,7 @@ cdef extern from "CoreGraphics/CGContext.h":
     int kCGBlendModeCopy
     int kCGBlendModeNormal
     void CGContextSetBlendMode(CGContextRef, int)
-    void CGContextConcatCTM(CGContextRef, CGAffineTransform)
+    void CGContextConcatCTM(CGContextRef fc, CGAffineTransform matrix)
 
 cdef extern from "CoreGraphics/CGBitmapContext.h":
     CGImageRef CGBitmapContextCreateImage(CGColorSpaceRef)
@@ -259,16 +259,17 @@ def save_image(filename, width, height, fmt, data, flipped):
 
         newImageRef = CGBitmapContextCreateImage(flippedContext)
         CGImageDestinationAddImage(dest, newImageRef, NULL)
+        CGImageDestinationFinalize(dest)
         CFRelease(newImageRef)
         CFRelease(flippedContext)
     else:
         CGImageDestinationAddImage(dest, cgImage, NULL)
-        
+        CGImageDestinationFinalize(dest)
+            
     #Release everything
     CFRelease(cgImage)
     CFRelease(bitmapContext)
     CFRelease(colorSpace)
-    CGImageDestinationFinalize(dest)
     free(pixels)
 
 class ImageLoaderImageIO(ImageLoaderBase):
@@ -298,7 +299,7 @@ class ImageLoaderImageIO(ImageLoaderBase):
         return True
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels, flipped):
+    def save(filename, width, height, fmt, pixels, flipped=False):
         save_image(filename, width, height, fmt, pixels, flipped)
         return True
 
