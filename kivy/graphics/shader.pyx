@@ -536,7 +536,7 @@ cdef class Shader:
         # XXX Also, we cannot use directly msg as a python string, as some
         # others drivers doesn't include a \0 (which is great.)
         cdef bytes ret = msg[:length]
-        return ret.split('\0')[0].decode('utf-8')
+        return ret.split(b'\0')[0].decode('utf-8')
 
     cdef void process_message(self, str ctype, message):
         message = message.strip()

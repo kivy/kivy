@@ -414,7 +414,7 @@ class LabelBase(object):
     def _get_text(self):
         if PY2:
             try:
-                if type(self._text) is unicode:
+                if isinstance(self._text, unicode):
                     return self._text
                 return self._text.decode('utf8')
             except AttributeError:

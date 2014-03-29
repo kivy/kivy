@@ -45,7 +45,7 @@ file is named `main.py`. Replace both path/filename according to your system.
 #. Go to the pyinstaller directory, and create the initial specs::
 
     cd pyinstaller-2.0
-    kivy pyinstaller.py --name touchtracer ../kivy/examples/demo/touchtracer/main.py
+    kivy pyinstaller.py --windowed --name touchtracer ../kivy/examples/demo/touchtracer/main.py
 
 #. The specs file is named `touchtracer/touchtracer.spec` and located inside the
    pyinstaller directory. Now we need to edit the spec file to add kivy hooks
