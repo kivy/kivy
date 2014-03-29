@@ -78,6 +78,9 @@ class LabelPygame(LabelBase):
     def get_extents(self, text):
         return self._get_font().size(text)
 
+    def get_cached_extents(self):
+        return self._get_font().size
+
     def _render_begin(self):
         self._pygame_surface = pygame.Surface(self._size, pygame.SRCALPHA, 32)
         self._pygame_surface.fill((0, 0, 0, 0))
