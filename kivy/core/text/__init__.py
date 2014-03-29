@@ -130,10 +130,8 @@ class LabelBase(object):
 
         self._text_size = options['text_size']
         self._text = options['text']
-        self._internal_width = self._internal_height = 0
+        self._internal_size = 0, 0
         self._cached_lines = []
-        self._cached_text_size = self._cached_padding = (0, 0)
-        self._cached_options = {}
 
         self.options = options
         self.texture = None
@@ -239,32 +237,295 @@ class LabelBase(object):
             segment = max_letters - 3  # length of '...'
             return type(text)('{0}...').format(text[:segment].strip())
 
+    def layout_text(self, text, lines, size, options, get_extents,
+                    pos_cache=None):
+        '''if start of line and space, if trip it's removed
+        the last line, unless it ends with a new line won't be stripped on
+        right
+        lines is list of [line1, line2, ...]. Each line:
+        [[x, y, width, height], is_last_line, [word1, word2, ...]]
+        where each word is (opts, (lw, lh), text)
+        note that lh is the actual height of the line, while height is the
+        height of the line including multiplied by 'line_height'.
+
+        options must contain 'space_width'. This is in case we have to walk
+        back to prev lines with different options.
+
+        size, takes the previous size and increments by the text added
+        height be larger than text_size, or smaller. width is always <=.
+        size includes padding
+        Note, this is not part of the external API and may change in the
+        future.
+        '''
+
+        uw, uh = options['text_size']
+        xpad, ypad = options['padding_x'], options['padding_y']
+        max_lines = int(options.get('max_lines', 0))
+        line_height = options['line_height']
+        strip = options['strip'] or options['halign'][-1] == 'y'
+        w, h = size   # width and height of the texture so far
+        if not text:
+            return size
+
+        if not h:
+            h = ypad * 2
+        new_lines = text.split('\n')
+        n = len(new_lines) - 1
+
+        # no width specified, find max width. For height, if not specified,
+        # do everything, otherwise stop when reached specified height
+        if uw is None:
+            s = 0
+            # there's a last line to which the first new line must be appended
+            if lines:
+                s = 1
+                line_size, words = lines[-1][0], lines[-1][2]
+                val = new_lines[0]
+                if strip:
+                    if not line_size[2]:  # prev width is zero, strip leading
+                        val = val.lstrip()
+                    if len(new_lines) > 1:  # ends this line so right strip
+                        val = val.rstrip()
+                lw, lh = get_extents(val)
+                lh = int(lh * line_height)
+
+                # when adding to existing line, don't check uh
+                words.append((options, (lw, lh), val))
+                old_lh = line_size[3]
+                line_size[2] += lw
+                line_size[3] = max(lh, line_size[3])
+                w = max(w, line_size[2])
+                h += line_size[3] - old_lh
+
+            # now do the remaining lines
+            for i in range(s, len(new_lines)):
+                # always compute first line, even if it won't be displayed
+                if (max_lines > 0 and len(lines) + i + 1 > max_lines or
+                    uh is not None and h > uh and i):
+                    i -= 1
+                    break
+                line = new_lines[i]
+                # the last line is only stripped from left
+                if strip:
+                    if i < n:
+                        line = line.strip()
+                    else:
+                        line = line.lstrip()
+                lw, lh = get_extents(line)
+                lh = int(lh * line_height)
+                if uh is not None and h + lh > uh and i:  # too high
+                    break
+                w = max(w, int(lw + 2 * xpad))
+                h += lh
+                new_lines[i] = [[0, 0, lw, lh], True,
+                                (options, (lw, lh), line)]
+            lines.extend(new_lines[s:i + 1])
+            return w, h
+
+        # constraint width ############################################
+        uw = max(0, uw - xpad * 2)  # actual w, h allowed for rendering
+        bare_size = get_extents('')
+
+        def add_line(text, lw, lh):
+            ''' Adds to the current _line the text, increases that line's w/h
+            by required amount, increases global h by required amount and
+            returns new empty line and global w, h.
+            '''
+            _line[2].append((options, (lw, lh), text))
+            _line[0][3] = max(int(_line[2][-1][1][1] * line_height), isize[1])
+            _line[0][2] += _line[2][-1][1][0]
+            lines.append(_line)
+            hh = h + _line[0][3] - isize[1]
+            isize[0] = isize[1] = 0  # after first new line, it's always zero
+            return [[0, 0, 0, 0], False, []], max(w, _line[0][2]), hh
+
+        # split into lines and find how many real lines each line requires
+        for i in range(len(new_lines)):
+            if (max_lines > 0 and len(lines) > max_lines or uh is not None and
+                h > uh and len(lines) > 1):
+                break
+
+            # for the first new line, we have to append to last passed in line
+            if i or not len(lines):
+                _line = [[0, 0, 0, 0], False, []]
+            else:
+                _line = lines.pop()
+            isize = _line[0][2:]  # initial size of line in case we appending
+            line = new_lines[i]
+            if strip:
+                if i:
+                    line = line.lstrip()
+                if i < n:
+                    line = line.rstrip()
+            if line == '':  # just add empty line if empty
+                _line[1] = True
+                _line, w, h = add_line('', *bare_size)
+                continue
+
+            # what we do is given the current text in this real line
+            # (starts empty), if we can fit another word, add it. Otherwise
+            # add it to a new line. But if a single word doen't fit on a
+            # single line, just split the word itself into multiple lines
+
+            # s is idx in line of start of this actual line, e is idx of
+            # next space, m is idx after s that still fits on this line
+            s = m = e = 0
+            while s != len(line):
+                # find next space or end, if end don't keep checking
+                if e != len(line):
+                    e = line.find(' ', m + 1)
+                    if e is -1:
+                        e = len(line)
+
+                lwe, lhe = get_extents(line[s:e])  # does next word fit?
+                if lwe + isize[0] > uw:  # too wide
+                    _do_last_line = False
+                    if s != m:
+                        # theres already some text, commit and go next line
+                        # make sure there are no trailing spaces on prev line,
+                        # may occur if spaces is followed by word not fitting
+                        ln = line[s:m]
+                        if strip and ln[-1] == ' ':
+                            ln = ln.rstrip()
+                            if ln:
+                                _line, w, h = add_line(ln, *get_extents(ln))
+                            else:
+                                _do_last_line = isize[0]  # used as bool
+                        else:
+                            _line, w, h = add_line(line[s:m], lw, lh)
+                        s = m
+                    elif isize[0]:
+                        _do_last_line = True
+
+                    if _do_last_line:
+                        ''' still need to check if the line ended in spaces
+                        from before (e.g. line was broken with diff opts, some
+                        ending in spaces) so walk back the words of this line
+                        until it doesn't end in space. Still, nothing else can
+                        be appended to this line anymore.
+                        '''
+                        while (_line[2] and (_line[2][-1][2].endswith(' ') or
+                               _line[2][-1][2] == '')):
+                            last_word = _line[2].pop()
+
+                            if last_word[2] == '':  # empty str, pop it
+                                _line[0][2] -= last_word[1][0]  # likely 0
+                                continue
+
+                            stripped = last_word[2].rstrip()  # ends with space
+                            # subtract ending space length
+                            diff = ((len(last_word[2]) - stripped) *
+                                    last_word[0]['space_width'])
+                            _line[0][2] = max(0, _line[0][2] - diff)  # line w
+                            _line[2].append((   # re-add last word
+                            last_word[0],
+                            (max(0, last_word[1][0] - diff), last_word[1][1]),
+                            stripped))
+                        # now add the line to lines
+                        lines.append(_line)
+                        h += _line[0][3] - isize[1]
+                        w = max(w, _line[0][2])
+                        isize[0] = isize[1] = 0
+                        _line = [[0, 0, 0, 0], False, []]
+
+                    # try to fit word on new line, if it doesn't fit we'll
+                    # have to break the word into as many lines needed
+                    if strip:
+                        s = e - len(line[s:e].lstrip())
+                    if s == e:  # if it was only a stripped space, move on
+                        m = s
+                        continue
+
+                    # now break single word into as many lines needed
+                    m = s
+                    while s != e:
+                        # does remainder fit in single line?
+                        lwe, lhe = get_extents(line[s:e])
+                        if lwe + isize[0] <= uw:
+                            m = e
+                            break
+                        # if not, fit as much as possible into this line
+                        while (m != e and
+                               get_extents(line[s:m + 1])[0] + isize[0] <= uw):
+                            m += 1
+                        # not enough room for even single char, skip it
+                        if m == s:
+                            s += 1
+                        else:
+                            _line[1] = m == len(line)  # is last line?
+                            _line, w, h = add_line(line[s:m],
+                                                   *get_extents(line[s:m]))
+                            s = m
+                        m = s
+                    m = s  # done with long word, go back to normal
+
+                else:   # the word fits
+                    # don't allow leading spaces on empty lines
+                    if strip and m == s and line[s:e] == ' ' and not isize[0]:
+                        s = m = e
+                        continue
+                    m = e
+
+                if m == len(line):  # we're done
+                    if s != len(line):
+                        _line[1] = True  # line end
+                        _line, w, h = add_line(line[s:], lwe, lhe)
+                    break
+                lw, lh = lwe, lhe  # save current lw/lh, then fit more in line
+
+        # ensure the number of lines is not more than the user asked
+        # above, we might have gone a few lines over
+        if max_lines > 0:
+            del lines[max_lines:]
+        # now make sure we don't have lines outside specified height
+        if uh is not None and h > uh:
+            h, i = ypad * 2, 0
+            while i < len(lines) and h + lines[i][0][3] <= uh:
+                h += lines[i][0][3]
+                i += 1
+            del lines[max(1, i):]
+
+        w += xpad * 2
+        return w, h
+
     def _render_real(self):
-        options = self._cached_options
+        lines = self._cached_lines
+        if not lines:
+            self._render_begin()
+            data = self._render_end()
+            assert(data)
+            if data is not None and data.width > 1:
+                self.texture.blit_data(data)
+            return
+
+        options = lines[0][2][0][0]  # first options, first line, first word
         render_text = self._render_text
         get_extents = self.get_extents
-        uw, uh = self._cached_text_size
-        xpad, ypad = self._cached_padding
+        uw, uh = options['text_size']
+        xpad, ypad = options['padding_x'], options['padding_y']
         x, y = xpad, ypad   # pos in the texture
-        contentw = self._internal_width - 2 * xpad
+        iw, ih = self._internal_size
+        w, h = self.size
+        contentw = iw - 2 * xpad
+        sw = options['space_width']
+        halign = options['halign']
+        valign = options['valign']
         split = re.split
         pat = re.compile('( +)')
         self._render_begin()
 
-        sw = get_extents(' ')[0]
-        halign = options['halign']
-        valign = options['valign']
         if valign == 'bottom':
-            y = self.height - self._internal_height + ypad
+            y = h - ih + ypad
         elif valign == 'middle':
-            y = int((self.height - self._internal_height) / 2 + ypad)
+            y = int((h - ih) / 2 + ypad)
 
-        for line, (lw, lh), is_last_line in self._cached_lines:
+        for line_size, is_last_line, ((_, (lw, lh), line),) in\
+            self._cached_lines:  # for plain label, each line is only one str
             x = xpad
             if halign[0] == 'c':  # center
-                x = int((self.width - lw) / 2.)
+                x = int((w - lw) / 2.)
             elif halign[0] == 'r':  # right
-                x = int(self.width - lw - xpad)
+                x = int(w - lw - xpad)
 
             # right left justify
             # divide left over space between `spaces`
@@ -291,6 +552,7 @@ class LabelBase(object):
                         line = ''.join(words)
 
             if len(line):
+                line_size[:2] = x, y
                 render_text(line, x, y)
             y += lh
 
@@ -310,180 +572,26 @@ class LabelBase(object):
         if real:
             return self._render_real()
 
-        self._cached_options = options = dict(self.options)
-        render_text = self._render_text
-        get_extents = self.get_extents
-        uw, uh = self.text_size
-        xpad, ypad = options['padding_x'], options['padding_y']
-        max_lines = int(options.get('max_lines', 0))
-        strip = options['strip'] or options['halign'][-1] == 'y'
-        w, h = 0, 0   # width and height of the texture
-        x, y = xpad, ypad   # pos in the texture
-        # don't allow them to change before rendering for real
-        self._cached_padding = xpad, ypad
-        self._cached_text_size = uw, uh
+        options = dict(self.options)
+        options.update({'space_width': self.get_extents(' ')[0]})
+        options['strip'] = strip = (options['strip'] or
+                                    options['halign'][-1] == 'y')
+        uw, uh = options['text_size'] = self._text_size
         text = self.text
         if strip:
             text = text.strip()
+        if uw is not None and options['shorten']:
+            text = self.shorten(text)
+        self._cached_lines = lines = []
         if not text:
-            self._cached_lines = []
             return 0, 0
 
-        # no width specified, find max width. For height, if not specified,
-        # do everything, otherwise stop when reached specified height
-        if uw is None:
-            h = ypad * 2
-            lines = text.split('\n')
-            for i in range(len(lines)):
-                if (max_lines > 0 and i + 1 > max_lines or uh is not None
-                    and h > uh):
-                    i -= 1
-                    break
-                line = lines[i].strip() if strip else lines[i]
-                lw, lh = get_extents(line)
-                lh = int(lh * options['line_height'])
-                if uh is not None and h + lh > uh:  # too high
-                    break
-                w = max(w, int(lw + 2 * xpad))
-                h += lh
-                lines[i] = (line, (lw, lh), True)  # True == its line end
-            self._internal_height = h
-            self._cached_lines = lines[:i + 1]
-            if uh is not None:  # texture size must be requested text_size
-                h = uh
-
-        else:  # constraint width
-            uw = max(0, uw - xpad * 2)  # actual w, h allowed for rendering
-            if uh is not None:
-                uh = max(0, uh - ypad * 2)
-            bare_size = get_extents('')
-
-            # Shorten the text that we actually display
-            if (options['shorten'] and get_extents(text)[0] > uw):
-                text = self.shorten(text)
-                lw, lh = get_extents(text)
-                self._cached_lines = [(text, (lw + 2 * xpad, lh + 2 * ypad),
-                                       True)] if text else []
-                self._internal_width = uw + xpad * 2
-                self._internal_height = lh + 2 * ypad
-                # height must always be the requested size, if specified
-                h = self._internal_height if uh is None else lh + 2 * ypad
-                return self._internal_width, h
-
-            lines = []
-            h = 0
-            # split into lines and find how many real lines each line requires
-            for line in text.split('\n'):
-                if (uh is not None and h > uh or max_lines > 0 and
-                    len(lines) > max_lines):
-                    break
-
-                if strip:
-                    line = line.strip()
-                if line == '':  # just add empty line if empty
-                    lines.append(('', bare_size, True))
-                    h += lines[-1][1][1] * options['line_height']
-                    continue
-
-                # what we do is given the current text in this real line
-                # (starts empty), if we can fit another word, add it. Otherwise
-                # add it to a new line. But if a single word doen't fit on a
-                # single line, just split the word itself into multiple lines
-
-                # s is idx in line of start of this actual line, e is idx of
-                # next space, m is idx after s that still fits on this line
-                s = m = e = 0
-                while s != len(line):
-                    # find next space or end, if end don't keep checking
-                    if e != len(line):
-                        e = line.find(' ', m + 1)
-                        if e is -1:
-                            e = len(line)
-
-                    lwe, lhe = get_extents(line[s:e])  # does next word fit?
-                    if lwe > uw:  # too wide
-                        if s != m:
-                            # theres already some text, commit and go next line
-                            # make sure there are no trailing spaces, may occur
-                            # if many spaces is followed by word not fitting
-                            ln = line[s:m]
-                            if strip and ln[-1] == ' ':
-                                ln = ln.rstrip()
-                                lines.append((ln, get_extents(ln), False))
-                            else:
-                                lines.append((line[s:m], (lw, lh), False))
-                            h += lh * options['line_height']
-                            s = m
-
-                        # try to fit word on new line, if it doesn't fit we'll
-                        # have to break the word into as many lines needed
-                        if strip:
-                            s = e - len(line[s:e].lstrip())
-                        if s == e:  # if it was only a stripped space, move on
-                            m = s
-                            continue
-
-                        # now break single word into as many lines needed
-                        m = s
-                        while s != e:
-                            # does remainder fit in single line?
-                            lwe, lhe = get_extents(line[s:e])
-                            if lwe <= uw:
-                                m = e
-                                break
-                            # if not, fit as much as possible into this line
-                            while (m != e and
-                                   get_extents(line[s:m + 1])[0] <= uw):
-                                m += 1
-                            # not enough room for even single char, skip it
-                            if m == s:
-                                s += 1
-                            else:
-                                lines.append((line[s:m],
-                                get_extents(line[s:m]), m == len(line)))
-                                h += lines[-1][1][1] * options['line_height']
-                                s = m
-                            m = s
-                        m = s  # done with long word, go back to normal
-
-                    else:   # the word fits
-                        # don't allow leading spaces on empty lines
-                        if strip and m == s and line[s:e] == ' ':
-                            s = m = e
-                            continue
-                        m = e
-
-                    if m == len(line):  # we're done
-                        if s != len(line):
-                            lines.append((line[s:], (lwe, lhe), True))
-                            h += lhe * options['line_height']
-                        break
-                    lw, lh = lwe, lhe
-
-            # ensure the number of lines is not more than the user asked
-            # above, we might have gone a few lines over
-            if max_lines > 0:
-                lines = lines[:max_lines]
-            # now make sure we don't have lines outside specified height
-            if uh is not None:
-                lh = options['line_height']
-                i = h = 0
-                while i < len(lines) and h + lines[i][1][1] * lh <= uh:
-                    h += lines[i][1][1] * lh
-                    i += 1
-                lines = lines[:i]
-
-            self._internal_height = h + ypad * 2
-            # height must always be the requested size, if specified
-            h = self._internal_height if uh is None else uh + ypad * 2
-            w = uw + xpad * 2
-            self._cached_lines = lines
-
-        # was only the first pass
-        # return with/height
-        w = int(max(w, 1))
-        self._internal_width = w
-        h = int(max(h, 1))
+        w, h = self.layout_text(text, lines, (0, 0), options, self.get_extents)
+        self._internal_size = w, h
+        if uw:
+            w = uw
+        if uh:
+            h = uh
         return w, h
 
     def _texture_refresh(self, *l):
