@@ -8,5 +8,6 @@ cdef class LayoutWord:
 
 cdef class LayoutLine:
     cdef public int x, y, w, h
-    cdef public int is_last_line
+    cdef public int line_wrap  # whether this line wraps from last line
+    cdef public int is_last_line  # in a paragraph
     cdef public list words

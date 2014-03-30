@@ -133,7 +133,7 @@ class LabelBase(object):
 
         self._text_size = options['text_size']
         self._text = options['text']
-        self._internal_size = 0, 0
+        self._internal_size = 0, 0  # the real computed text size (inclds pad)
         self._cached_lines = []
 
         self.options = options
@@ -264,7 +264,12 @@ class LabelBase(object):
 
     def _render_real(self):
         lines = self._cached_lines
-        if not lines:
+        options = None
+        for line in lines:
+            if len(line.words):  # get opts from first line, first word
+                options = line.words[0].options
+                break
+        if not options:  # there was no text to render
             self._render_begin()
             data = self._render_end()
             assert(data)
@@ -272,15 +277,14 @@ class LabelBase(object):
                 self.texture.blit_data(data)
             return
 
-        options = lines[0].words[0].options  # 1st opt, first line, first word
         render_text = self._render_text
         get_extents = self.get_cached_extents()
         uw, uh = options['text_size']
         xpad, ypad = options['padding_x'], options['padding_y']
         x, y = xpad, ypad   # pos in the texture
-        iw, ih = self._internal_size
+        iw, ih = self._internal_size  # the real size of text, not texture
+        rw = iw - 2 * xpad  # real width of just text
         w, h = self.size
-        contentw = iw - 2 * xpad
         sw = options['space_width']
         halign = options['halign']
         valign = options['valign']
@@ -304,14 +308,14 @@ class LabelBase(object):
             if halign[0] == 'c':  # center
                 x = int((w - lw) / 2.)
             elif halign[0] == 'r':  # right
-                x = int(w - lw - xpad)
+                x = max(0, int(w - lw - xpad))
 
             # right left justify
             # divide left over space between `spaces`
             # TODO implement a better method of stretching glyphs?
             if halign[-1] == 'y' and line and not layout_line.is_last_line:
                 # number spaces needed to fill, and remainder
-                n, rem = divmod(contentw - lw, sw)
+                n, rem = divmod(max(rw - lw, 0), sw)
                 n = int(n)
                 words = None
                 if n or rem:
@@ -329,13 +333,13 @@ class LabelBase(object):
                         word = LayoutWord(last_word.options, ext[0], ext[1],
                                           words[-1])
                         layout_line.words.append(word)
-                        render_text(words[-1], x + contentw - ext[0], y)
-                        last_word.lw = contentw - ext[0]  # word was stretched
+                        last_word.lw = rw - ext[0]  # word was stretched
+                        render_text(words[-1], x + last_word.lw, y)
                         last_word.text = line = ''.join(words[:-2])
                     else:
-                        last_word.lw = contentw  # word was stretched
+                        last_word.lw = rw  # word was stretched
                         last_word.text = line = ''.join(words)
-                    layout_line.w = contentw  # the line occupies full width
+                    layout_line.w = iw  # the line occupies full width
 
 
             if len(line):
@@ -374,13 +378,38 @@ class LabelBase(object):
         if not text:
             return 0, 0
 
-        w, h = layout_text(text, lines, (0, 0), options,
-                           self.get_cached_extents())
+        if uh is not None and options['valign'][-1] == 'e':  # middle
+            center = -1  # pos of newline
+            if len(text) > 1:
+                middle = int(len(text) // 2)
+                l, r = text.rfind('\n', 0, middle), text.find('\n', middle)
+                if l != -1 and r != -1:
+                    center = l if center - l <= r - center else r
+                elif l != -1:
+                    center = l
+                elif r != -1:
+                    center = r
+            # if a newline split text, render from center down and up til uh
+            if center != -1:
+                # layout from center down until half uh
+                w, h, clipped = layout_text(text[center + 1:], lines, (0, 0),
+                (uw, uh / 2), options, self.get_cached_extents(), True)
+                # now layout from center upwards until uh is reached
+                w, h, clipped = layout_text(text[:center + 1], lines, (w, h),
+                (uw, uh), options, self.get_cached_extents(), False)
+            else:  # if there's no new line, layout everything
+                w, h, clipped = layout_text(text, lines, (0, 0), (uw, None),
+                options, self.get_cached_extents(), True)
+        else:  # top or bottom
+            w, h, clipped = layout_text(text, lines, (0, 0), (uw, uh), options,
+                self.get_cached_extents(), options['valign'][-1] == 'p')
         self._internal_size = w, h
         if uw:
             w = uw
         if uh:
             h = uh
+        if h > 1 and w < 2:
+            w = 2
         return w, h
 
     def _texture_refresh(self, *l):

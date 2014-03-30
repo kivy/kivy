@@ -22,38 +22,46 @@ cdef class LayoutWord:
 
 cdef class LayoutLine:
 
-    def __cinit__(self, int x, int y, int w, int h, int is_last_line,
-                  list words):
+    def __cinit__(self, int x=0, int y=0, int w=0, int h=0, int is_last_line=0,
+                  int line_wrap=0, list words=None):
         self.x = x
         self.y = y
         self.w = w
         self.h = h
         self.is_last_line = is_last_line
+        self.line_wrap = line_wrap
+        if words is None:
+            words = []
         self.words = words
 
 
 cdef inline LayoutLine add_line(text, int lw, int lh, LayoutLine _line,
                                 list lines, dict options, int line_height,
-                                int *w, int *h, int *iw, int *ih):
+                                int xpad, int *w, int *h, int *iw, int *ih,
+                                int pos):
         ''' Adds to the current _line the text, increases that line's w/h
         by required amount, increases global h by required amount and
         returns new empty line and global w, h.
         '''
-        _line.words.append(LayoutWord(options, lw, lh, text))
+        if len(text):
+            _line.words.append(LayoutWord(options, lw, lh, text))
         _line.h = max(int(lh * line_height), ih[0])
         _line.w += lw
         # if we're appending to existing line, ih is last line height
         h[0] = h[0] + _line.h - ih[0]
         ih[0] = iw[0] = 0  # after first new line, it's always zero
-        w[0] = max(w[0], _line.w)
-        lines.append(_line)
-        return LayoutLine(0, 0, 0, 0, False, [])
+        w[0] = max(w[0], _line.w + 2 * xpad)
+        if pos == -1:
+            lines.append(_line)
+        else:
+            lines.insert(pos, _line)
+        return LayoutLine()
 
-def layout_text(object text, list lines, tuple size, dict options,
-                      object get_extents, pos_cache=None):
+def layout_text(object text, list lines, tuple size, tuple text_size,
+                dict options, object get_extents, int append_down):
     '''if start of line and space, if trip it's removed
     the last line, unless it ends with a new line won't be stripped on
-    right
+    right. same if not append_down and line starts with
     lines is list of LayoutLine object; [LayoutLine1, LayoutLine2, ...].
     Each line:
     note that lh is the actual height of the line, while height is the
@@ -68,6 +76,10 @@ def layout_text(object text, list lines, tuple size, dict options,
 
     Note, this is not part of the external API and may change in the
     future.
+
+    when append_down is False, the added text is appended before the exiting
+    layout processed lines. In addition, the last line of the new lines
+    is appended to the first line of processed lines.
     '''
 
     cdef int uw, uh
@@ -78,15 +90,14 @@ def layout_text(object text, list lines, tuple size, dict options,
     cdef int w = size[0], h = size[1]  # width and height of the texture so far
     cdef list new_lines
     cdef int s, lw, lh, old_lh, i, n, ih, iw, m, e, lwe, lhe, _do_last_line
-    cdef int diff, lhh, lww, k, bare_w, bare_h
-    cdef object line, ln, stripped, val
+    cdef int diff, lhh, lww, k, bare_w, bare_h, dwn = append_down, pos = 0
+    cdef object line, ln, stripped, val, indices
     cdef LayoutLine _line
     cdef LayoutWord last_word
-    val = options['text_size']
-    uw = val[0] if val[0] is not None else -1
-    uh = val[1] if val[1] is not None else -1
+    uw = text_size[0] if text_size[0] is not None else -1
+    uh = text_size[1] if text_size[1] is not None else -1
     if not text:
-        return size
+        return size[0], size[1], False
 
     if not h:
         h = ypad * 2
@@ -97,69 +108,99 @@ def layout_text(object text, list lines, tuple size, dict options,
     # do everything, otherwise stop when reached specified height
     if uw == -1:
         s = 0
-        # there's a last line to which the first new line must be appended
-        if lines:
-            s = 1
-            _line = lines[-1]
-            val = new_lines[0]
+        k = n
+        pos = len(lines)  # always include first line, start w/ no lines added
+        # there's a last line to which first (last) new line must be appended
+        if pos:
+            if dwn:
+                _line = lines[-1]
+                val = new_lines[0]
+                s = 1
+            else:
+                _line = lines[0]
+                val = new_lines[-1]
+                k = n - 1
             if strip:
                 if not _line.w:  # prev width is zero, strip leading
                     val = val.lstrip()
-                if n > 1:  # ends this line so right strip
+                # ends this line so right strip
+                if dwn and n > 1 or not dwn and pos > 1:
                     val = val.rstrip()
             lw, lh = get_extents(val)
 
             # when adding to existing line, don't check uh
-            _line.words.append(LayoutWord(options, lw, lh, val))
+            if len(val):
+                _line.words.append(LayoutWord(options, lw, lh, val))
             old_lh = _line.h
             _line.w += lw
             _line.h = max(int(lh * line_height), _line.h)
-            w = max(w, _line.w)
+            w = max(w, _line.w + 2 * xpad)
             h += _line.h - old_lh
 
         # now do the remaining lines
-        for i in range(s, n):
-            k = len(lines)
+        indices = range(s, k) if dwn else reversed(range(s, k))
+        for i in indices:
             # always compute first line, even if it won't be displayed
-            if (max_lines > 0 and k + i + 1 - s > max_lines or
-                uh != -1 and h > uh and i):
-                i -= 1
+            if (max_lines > 0 and pos + 1 > max_lines or pos and
+                uh != -1 and h > uh):
+                i += -1 if dwn else 1
                 break
             line = new_lines[i]
             # the last line is only stripped from left
             if strip:
-                if i < n - 1:
+                if dwn and i < n - 1 or not dwn and i > s:
                     line = line.strip()
                 else:
                     line = line.lstrip()
             lw, lh = get_extents(line)
             lhh = int(lh * line_height)
-            if uh != -1 and h + lhh > uh and i:  # too high
-                i -= 1
+            if uh != -1 and h + lhh > uh and pos:  # too high
+                i += -1 if dwn else 1
                 break
+            pos += 1
             w = max(w, int(lw + 2 * xpad))
             h += lhh
-            new_lines[i] = LayoutLine(0, 0, lw, lhh, True,
+            new_lines[i] = LayoutLine(0, 0, lw, lhh, 1, 0,
                             [LayoutWord(options, lw, lh, line)])
-        lines.extend(new_lines[s:i + 1])
-        return w, h
+
+        if dwn:
+            lines.extend(new_lines[s:i + 1])
+            val = i != k - 1
+        else:
+            if k != i:
+                lines.extend([None, ] * (k - i))
+                lines[(k - i):] = lines[:len(lines) - (k - i)]
+                lines[:(k - i)] = new_lines[i:k]
+                val = i != 0
+        return w, h, val
 
     # constraint width ############################################
     uw = max(0, uw - xpad * 2)  # actual w, h allowed for rendering
     bare_w, bare_h = get_extents('')
+    if dwn:
+        pos = -1  # don't use pos when going down b/c we append at end of lines
 
-    # split into lines and find how many real lines each line requires
-    for i in range(n):
+    # split into lines and find how many line wraps each line requires
+    indices = range(n) if dwn else reversed(range(n))
+    for i in indices:
         k = len(lines)
         if (max_lines > 0 and k > max_lines or uh != -1 and
             h > uh and k > 1):
             break
 
-        # for the first new line, we have to append to last passed in line
-        if i or not k:
-            _line = LayoutLine(0, 0, 0, 0, False, [])
+        if not dwn:  # new line will be appended at top, unless changed below
+            pos = 0
+        # for the first (last if not down) new line, append it to previous line
+        if (i and dwn or not dwn and i != n - 1) or not k:
+            _line = LayoutLine()
         else:
-            _line = lines.pop()
+            if dwn:  # take last line
+                _line = lines.pop()
+            else:  # we need to append right before 1st line ends
+                while pos + 1 < k and not lines[pos + 1].line_wrap:
+                    pos += 1
+                _line = lines.pop(pos)
+
         iw, ih = _line.w, _line.h  # initial size of line in case we appending
         line = new_lines[i]
         if strip:
@@ -171,7 +212,7 @@ def layout_text(object text, list lines, tuple size, dict options,
         if not k:  # just add empty line if empty
             _line.is_last_line = True
             _line = add_line('', bare_w, bare_h, _line, lines,
-                             options, line_height, &w, &h, &iw, &ih)
+                             options, line_height, xpad, &w, &h, &iw, &ih, pos)
             continue
 
         # what we do is given the current text in this real line
@@ -202,15 +243,23 @@ def layout_text(object text, list lines, tuple size, dict options,
                         if ln:
                             lww, lhh = get_extents(ln)
                             _line = add_line(ln, lww, lhh, _line, lines,
-                                options, line_height, &w, &h, &iw, &ih)
+                                options, line_height, xpad, &w, &h, &iw, &ih,
+                                pos)
+                            _line.line_wrap = 1
+                            if not dwn:
+                                pos += 1
                         else:
                             _do_last_line = iw
                     else:
-                        _line = add_line(line[s:m], lw, lh, _line,
-                        lines, options, line_height, &w, &h, &iw, &ih)
+                        _line = add_line(line[s:m], lw, lh, _line, lines,
+                        options, line_height, xpad, &w, &h, &iw, &ih, pos)
+                        _line.line_wrap = 1
+                        if not dwn:
+                            pos += 1
                     s = m
                 elif iw:
                     _do_last_line = 1
+
                 if _do_last_line:
                     ''' still need to check if the line ended in spaces
                     from before (e.g. line was broken with diff opts, some
@@ -235,11 +284,16 @@ def layout_text(object text, list lines, tuple size, dict options,
                         last_word.options, max(0, last_word.w - diff),
                         last_word.h, stripped))
                     # now add the line to lines
-                    lines.append(_line)
+                    if dwn:
+                        lines.append(_line)
+                    else:
+                        lines.insert(pos, _line)
+                        pos += 1
                     h += _line.h - ih
-                    w = max(w, _line.w)
+                    w = max(w, _line.w + 2 * xpad)
                     iw = ih = 0
-                    _line = LayoutLine(0, 0, 0, 0, False, [])
+                    _line = LayoutLine()
+                    _line.line_wrap = 1
 
                 # try to fit word on new line, if it doesn't fit we'll
                 # have to break the word into as many lines needed
@@ -268,7 +322,10 @@ def layout_text(object text, list lines, tuple size, dict options,
                         _line.is_last_line = m == k  # is last line?
                         lww, lhh = get_extents(line[s:m])
                         _line = add_line(line[s:m], lww, lhh, _line, lines,
-                            options, line_height, &w, &h, &iw, &ih)
+                            options, line_height, xpad, &w, &h, &iw, &ih, pos)
+                        _line.line_wrap = 1
+                        if not dwn:
+                            pos += 1
                         s = m
                     m = s
                 m = s  # done with long word, go back to normal
@@ -284,22 +341,36 @@ def layout_text(object text, list lines, tuple size, dict options,
                 if s != k:
                     _line.is_last_line = True  # line end
                     _line = add_line(line[s:], lwe, lhe, _line, lines, options,
-                                     line_height, &w, &h, &iw, &ih)
+                                     line_height, xpad, &w, &h, &iw, &ih, pos)
                 break
             lw, lh = lwe, lhe  # save current lw/lh, then fit more in line
 
+    val = dwn and i != n - 1 or not dwn and i
     # ensure the number of lines is not more than the user asked
     # above, we might have gone a few lines over
-    if max_lines > 0:
-        del lines[max_lines:]
+    if max_lines > 0 and len(lines) > max_lines:
+        val = True
+        if dwn:
+            del lines[max_lines:]
+        else:
+            del lines[:max(0, len(lines) - max_lines)]
     # now make sure we don't have lines outside specified height
     k = len(lines)
-    if uh != -1 and h > uh:
-        h, i = ypad * 2, 0
-        while i < k and h + lines[i].h <= uh:
-            h += lines[i].h
-            i += 1
-        del lines[max(1, i):]
+    if k > 1 and uh != -1 and h > uh:
+        val = True
+        if dwn:
+            h = ypad * 2 + lines[0].h
+            i = 1  # ith line may not fit anymore, 0:i lines do fit
+            while i < k and h + lines[i].h <= uh:
+                h += lines[i].h
+                i += 1
+            del lines[i:]
+        else:
+            h = ypad * 2 + lines[-1].h
+            i = k - 2  # ith line may not fit anymore, i+1:end lines do fit
+            while i >= 0 and h + lines[i].h <= uh:
+                h += lines[i].h
+                i -= 1
+            del lines[:i + 1]
 
-    w += xpad * 2
-    return w, h
+    return w, h, val
