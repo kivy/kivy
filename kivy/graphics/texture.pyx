@@ -731,6 +731,12 @@ cdef class Texture:
         self._uvh = -self._uvh
         self.update_tex_coords()
 
+    cpdef flip_horizontal(self):
+        '''Flip tex_coords for horizontal display.'''
+        self._uvx += self._uvw
+        self._uvw = -self._uvw
+        self.update_tex_coords()
+
     cpdef get_region(self, x, y, width, height):
         '''Return a part of the texture defined by the rectangular arguments
         (x, y, width, height). Returns a :class:`TextureRegion` instance.'''
