@@ -732,7 +732,11 @@ cdef class Texture:
         self.update_tex_coords()
 
     cpdef flip_horizontal(self):
-        '''Flip tex_coords for horizontal display.'''
+        '''Flip tex_coords for horizontal display.
+
+        .. versionadded:: 1.8.1
+
+        '''
         self._uvx += self._uvw
         self._uvw = -self._uvw
         self.update_tex_coords()
