@@ -20,7 +20,7 @@ import os
 from kivy import kivy_data_dir
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
-from kivy.core.text.text_layout import layout_text
+from kivy.core.text.text_layout import layout_text, LayoutWord
 from kivy.resources import resource_find
 from kivy.compat import PY2
 
@@ -117,9 +117,11 @@ class LabelBase(object):
                    'strip': strip}
 
         options['color'] = color or (1, 1, 1, 1)
-        options['padding'] = kwargs.get('padding', 0)
-        options['padding_x'] = kwargs.get('padding_x', options['padding'])
-        options['padding_y'] = kwargs.get('padding_y', options['padding'])
+        options['padding'] = kwargs.get('padding', (0, 0))
+        if not isinstance(options['padding'], (list, tuple)):
+            options['padding'] = (options['padding'], options['padding'])
+        options['padding_x'] = kwargs.get('padding_x', options['padding'][0])
+        options['padding_y'] = kwargs.get('padding_y', options['padding'][1])
 
         if 'size' in kwargs:
             options['text_size'] = kwargs['size']
@@ -292,13 +294,12 @@ class LabelBase(object):
             y = int((h - ih) / 2 + ypad)
 
         for layout_line in lines:  # for plain label each line has only one str
-            lw = lh = 0
+            lw, lh = layout_line.w, layout_line.h
             line = ''
+            assert len(layout_line.words) < 2
             if len(layout_line.words):
-                layout_word = layout_line.words[0]
-                lw = layout_word.lw
-                lh = layout_word.lh
-                line = layout_word.text
+                last_word = layout_line.words[0]
+                line = last_word.text
             x = xpad
             if halign[0] == 'c':  # center
                 x = int((w - lw) / 2.)
@@ -311,6 +312,7 @@ class LabelBase(object):
             if halign[-1] == 'y' and line and not layout_line.is_last_line:
                 # number spaces needed to fill, and remainder
                 n, rem = divmod(contentw - lw, sw)
+                n = int(n)
                 words = None
                 if n or rem:
                     # there's no trailing space when justify is selected
@@ -322,12 +324,19 @@ class LabelBase(object):
                         idx = (2 * i + 1) % (len(words) - 1)
                         words[idx] = words[idx] + space
                     if rem:
-                        # render the last word at the edge
-                        render_text(words[-1], x + contentw -
-                                    get_extents(words[-1])[0], y)
-                        line = ''.join(words[:-2])
+                        # render the last word at the edge, also add it to line
+                        ext = get_extents(words[-1])
+                        word = LayoutWord(last_word.options, ext[0], ext[1],
+                                          words[-1])
+                        layout_line.words.append(word)
+                        render_text(words[-1], x + contentw - ext[0], y)
+                        last_word.lw = contentw - ext[0]  # word was stretched
+                        last_word.text = line = ''.join(words[:-2])
                     else:
-                        line = ''.join(words)
+                        last_word.lw = contentw  # word was stretched
+                        last_word.text = line = ''.join(words)
+                    layout_line.w = contentw  # the line occupies full width
+
 
             if len(line):
                 layout_line.x = x

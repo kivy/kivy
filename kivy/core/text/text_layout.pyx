@@ -42,6 +42,7 @@ cdef inline LayoutLine add_line(text, int lw, int lh, LayoutLine _line,
         _line.words.append(LayoutWord(options, lw, lh, text))
         _line.h = max(int(lh * line_height), ih[0])
         _line.w += lw
+        # if we're appending to existing line, ih is last line height
         h[0] = h[0] + _line.h - ih[0]
         ih[0] = iw[0] = 0  # after first new line, it's always zero
         w[0] = max(w[0], _line.w)
@@ -107,13 +108,12 @@ def layout_text(object text, list lines, tuple size, dict options,
                 if n > 1:  # ends this line so right strip
                     val = val.rstrip()
             lw, lh = get_extents(val)
-            lh = int(lh * line_height)
 
             # when adding to existing line, don't check uh
             _line.words.append(LayoutWord(options, lw, lh, val))
             old_lh = _line.h
             _line.w += lw
-            _line.h = max(lh, _line.h)
+            _line.h = max(int(lh * line_height), _line.h)
             w = max(w, _line.w)
             h += _line.h - old_lh
 
@@ -121,7 +121,7 @@ def layout_text(object text, list lines, tuple size, dict options,
         for i in range(s, n):
             k = len(lines)
             # always compute first line, even if it won't be displayed
-            if (max_lines > 0 and k + i + 1 > max_lines or
+            if (max_lines > 0 and k + i + 1 - s > max_lines or
                 uh != -1 and h > uh and i):
                 i -= 1
                 break
@@ -133,12 +133,13 @@ def layout_text(object text, list lines, tuple size, dict options,
                 else:
                     line = line.lstrip()
             lw, lh = get_extents(line)
-            lh = int(lh * line_height)
-            if uh != -1 and h + lh > uh and i:  # too high
+            lhh = int(lh * line_height)
+            if uh != -1 and h + lhh > uh and i:  # too high
+                i -= 1
                 break
             w = max(w, int(lw + 2 * xpad))
-            h += lh
-            new_lines[i] = LayoutLine(0, 0, lw, lh, True,
+            h += lhh
+            new_lines[i] = LayoutLine(0, 0, lw, lhh, True,
                             [LayoutWord(options, lw, lh, line)])
         lines.extend(new_lines[s:i + 1])
         return w, h
