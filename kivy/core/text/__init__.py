@@ -17,6 +17,7 @@ __all__ = ('LabelBase', 'Label')
 
 import re
 import os
+from copy import copy
 from kivy import kivy_data_dir
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
@@ -364,7 +365,7 @@ class LabelBase(object):
         if real:
             return self._render_real()
 
-        options = dict(self.options)
+        options = copy(self.options)
         options.update({'space_width': self.get_extents(' ')[0]})
         options['strip'] = strip = (options['strip'] or
                                     options['halign'][-1] == 'y')
@@ -393,16 +394,16 @@ class LabelBase(object):
             if center != -1:
                 # layout from center down until half uh
                 w, h, clipped = layout_text(text[center + 1:], lines, (0, 0),
-                (uw, uh / 2), options, self.get_cached_extents(), True)
+                (uw, uh / 2), options, self.get_cached_extents(), True, True)
                 # now layout from center upwards until uh is reached
                 w, h, clipped = layout_text(text[:center + 1], lines, (w, h),
-                (uw, uh), options, self.get_cached_extents(), False)
+                (uw, uh), options, self.get_cached_extents(), False, True)
             else:  # if there's no new line, layout everything
                 w, h, clipped = layout_text(text, lines, (0, 0), (uw, None),
-                options, self.get_cached_extents(), True)
+                options, self.get_cached_extents(), True, True)
         else:  # top or bottom
             w, h, clipped = layout_text(text, lines, (0, 0), (uw, uh), options,
-                self.get_cached_extents(), options['valign'][-1] == 'p')
+                self.get_cached_extents(), options['valign'][-1] == 'p', True)
         self._internal_size = w, h
         if uw:
             w = uw

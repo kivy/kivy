@@ -140,6 +140,7 @@ kv = '''
             text: 'shorten'
         TBoolButton:
             text: 'strip'
+            state: 'down'
         ToggleButton:
             size_hint: None, None
             size: 100, 50
