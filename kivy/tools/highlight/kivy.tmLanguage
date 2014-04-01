@@ -42,7 +42,7 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(.*?):</string>
+			<string>(.*?):$</string>
 			<key>name</key>
 			<string>entity.name.section.kivy</string>
 		</dict>
