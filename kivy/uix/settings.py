@@ -851,6 +851,11 @@ class Settings(BoxLayout):
     :Events:
         `on_config_change`: ConfigParser instance, section, key, value
             Fired when section/key/value of a ConfigParser changes.
+
+            .. warning:
+
+                value will be str/unicode type, regardless of the setting
+                type (numeric, boolean, etc)
         `on_close`
             Fired by the default panel when the Close button is pressed.
 
