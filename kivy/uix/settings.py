@@ -489,7 +489,6 @@ class SettingPath(SettingItem):
 
         # all done, open the popup !
         popup.open()
-        textinput.focus = True
 
 
 class SettingNumeric(SettingString):
