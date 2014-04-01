@@ -36,7 +36,7 @@ cdef class LayoutLine:
 
 
 cdef inline LayoutLine add_line(object text, int lw, int lh, LayoutLine line,
-        list lines, dict options, int line_height, int xpad, int *w, int *h,
+        list lines, dict options, float line_height, int xpad, int *w, int *h,
         int pos, int strip):
         ''' Adds to the current line the text if lw is not zero. Increases that
         line's w/h by required amount, increases global h/w by required amount
@@ -95,7 +95,7 @@ cdef inline void final_strip(LayoutLine line):
 
 cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
     int uh, dict options, object get_extents, int dwn, int complete,
-    int xpad, int max_lines, int line_height, int strip):
+    int xpad, int max_lines, float line_height, int strip):
     ''' Layout when the width is unrestricted; text_size[0] is None.
     It's  a bit faster.
     '''
@@ -216,7 +216,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
     cdef int uw, uh,  _do_last_line, lwe, lhe, ends_line, is_last_line
     cdef int xpad = options['padding_x'], ypad = options['padding_y']
     cdef int max_lines = int(options.get('max_lines', 0))
-    cdef int line_height = options['line_height']
+    cdef float line_height = options['line_height']
     cdef int strip = options['strip'] or options['halign'][-1] == 'y'
     cdef int w = size[0], h = size[1]  # width and height of the texture so far
     cdef list new_lines
