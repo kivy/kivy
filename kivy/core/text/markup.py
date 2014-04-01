@@ -46,6 +46,7 @@ from kivy.properties import dpi2px
 from kivy.parser import parse_color
 from kivy.logger import Logger
 from kivy.core.text import Label, LabelBase
+from kivy.core.text.text_layout import layout_text
 from copy import copy
 from math import ceil
 
@@ -65,6 +66,7 @@ class MarkupLabel(MarkupLabelBase):
         self._style_stack = {}
         self._refs = {}
         super(MarkupLabel, self).__init__(*largs, **kwargs)
+        self._internal_size = 0, 0
 
     @property
     def refs(self):
@@ -119,14 +121,18 @@ class MarkupLabel(MarkupLabelBase):
         # split markup, words, and lines
         # result: list of word with position and width/height
         # during the first pass, we don't care about h/valign
-        self._lines = lines = []
+        self._cached_lines = lines = []
         self._refs = {}
         self._anchors = {}
+        w = h = 0
+        uw, uh = self.text_size
         spush = self._push_style
         spop = self._pop_style
         options = self.options
         options['_ref'] = None
         options['script'] = 'normal'
+        uhh = None if uh is not None and options['valign'][-1] != 'p' else uh
+        options['strip'] = options['strip'] or options['halign'][-1] == 'y'
         for item in self.markup:
             if item == '[b]':
                 spush('bold')
@@ -195,209 +201,129 @@ class MarkupLabel(MarkupLabelBase):
             elif item[:8] == '[anchor=':
                 ref = item[8:-1]
                 if len(lines):
-                    x, y = lines[-1][0:2]
+                    x, y = lines[-1].x, lines[-1].y
                 else:
                     x = y = 0
                 self._anchors[ref] = x, y
             else:
                 item = item.replace('&bl;', '[').replace(
                     '&br;', ']').replace('&amp;', '&')
-                self._pre_render_label(item, options, lines)
+                opts = copy(options)
+                extents = self.get_cached_extents()
+                opts['space_width'] = extents(' ')[0]
+                w, h, clipped = layout_text(item, lines, (w, h), (uw, uhh),
+                    opts, extents, True, False)
 
-        # calculate the texture size
-        w, h = self.text_size
-        if h is None or h < 0:
-            h = None
-        if w is None or w < 0:
-            w = None
-        if w is None:
-            if not lines:
-                w = 1
-            else:
-                w = max([line[0] for line in lines])
-        if h is None:
-            if not lines:
-                h = 1
-            else:
-                h = sum([line[1] for line in lines])
-        return int(ceil(w)), int(ceil(h))
+        if len(lines):  # remove any trailing spaces from the last line
+            w, h, clipped = layout_text('', lines, (w, h), (uw, uhh),
+                copy(options), self.get_cached_extents(), True, True)
 
-    def _pre_render_label(self, word, options, lines):
-        # precalculate id/name
-        if not self.fontid in self._cache_glyphs:
-            self._cache_glyphs[self.fontid] = {}
-        cache = self._cache_glyphs[self.fontid]
+        # when valign is not top, for markup we layout everything (text_size[1]
+        # is temporarily set to None) and after layout cut to size if too tall
+        if uh != uhh and h > uh and len(lines) > 1:
+            if options['valign'][-1] == 'm':  # bottom
+                i = 0
+                while i < len(lines) - 1 and h > uh:
+                    h -= lines[i].h
+                    i += 1
+                del lines[:i]
+            else:  # middle
+                i = 0
+                top = int(h / 2. + uh / 2.)  # remove extra top portion
+                while i < len(lines) - 1 and h > top:
+                    h -= lines[i].h
+                    i += 1
+                del lines[:i]
+                i = len(lines) - 1  # remove remaining bottom portion
+                while i and h > uh:
+                    h -= lines[i].h
+                    i -= 1
+                del lines[i + 1:]
 
-        # verify that each glyph have size
-        glyphs = list(set(word))
-        glyphs.append(' ')
-        get_extents = self.get_extents
-        for glyph in glyphs:
-            if not glyph in cache:
-                cache[glyph] = get_extents(glyph)
-
-        # get last line information
-        if len(lines):
-            line = lines[-1]
-        else:
-            # line-> line width, line height, is_last_line,
-            # is_first_line, words words -> (w, h, word)...
-            line = [0, 0, 0, 1, []]
-            lines.append(line)
-
-        # extract user limitation
-        uw, uh = self.text_size
-
-        # split the word
-        default_line_height = get_extents(' ')[1] * self.options['line_height']
-        for part in re.split(r'( |\n)', word):
-
-            if part == '':
-                continue
-
-            if part == '\n':
-                # put a new line!
-                line = [0, default_line_height, 0, 1, []]
-                # skip last line for justification.
-                if lines:
-                    lines[-1][2] = 1
-                    lines[-1]
-                lines.append(line)
-                continue
-
-            # get current line information
-            lw, lh = line[:2]
-
-            # calculate the size of the part
-            # (extract all extents of the part,
-            # calculate width through extents due to kerning
-            # and get the maximum height)
-            pg = [cache[g] for g in part]
-            pw = get_extents(part)[0]
-            ph = max([g[1] for g in pg])
-            ph = ph * self.options['line_height']
-            options = copy(options)
-
-            # check if the part can be put in the line
-            if uw is None or lw + pw < uw:
-                # no limitation or part can be contained in the line
-                # then append the part to the line
-                line[4].append((pw, ph, part, options))
-                # and update the line size
-                line[0] += pw
-                line[1] = max(line[1], ph)
-            else:
-                # part can't be put in the line, do a new one...
-                line = [pw, ph, 0, 0, [(pw, ph, part, options)]]
-                lines.append(line)
-        # set last_line to be skipped for justification
-        lines[-1][2] = 1
+        self._internal_size = w, h
+        if uw:
+            w = uw
+        if uh:
+            h = uh
+        if h > 1 and w < 2:
+            w = 2
+        if w < 1:
+            w = 1
+        if h < 1:
+            h = 1
+        return w, h
 
     def _real_render(self):
-        # use the lines to do the rendering !
+        lines = self._cached_lines
+        options = None
+        for line in lines:
+            if len(line.words):  # get opts from first line, first word
+                options = line.words[0].options
+                break
+        if not options:  # there was no text to render
+            self._render_begin()
+            data = self._render_end()
+            assert(data)
+            if data is not None and data.width > 1:
+                self.texture.blit_data(data)
+            return
+
+        old_opts = self.options
+        render_text = self._render_text
+        xpad, ypad = options['padding_x'], options['padding_y']
+        x, y = xpad, ypad   # pos in the texture
+        iw, ih = self._internal_size  # the real size of text, not texture
+        w, h = self.size
+        halign = options['halign']
+        valign = options['valign']
+        refs = self._refs
         self._render_begin()
 
-        r = self._render_text
+        if valign == 'bottom':
+            y = h - ih + ypad
+        elif valign == 'middle':
+            y = int((h - ih) / 2 + ypad)
 
-        # convert halign/valign to int, faster comparison
-        av = {'top': 0, 'middle': 1, 'bottom': 2}[self.options['valign']]
-        ah = {'left': 0, 'center': 1, 'right': 2,
-              'justify': 3, }[self.options['halign']]
-
-        y = 0
-        w, h = self._size
-        refs = self._refs
-        _lines = self._lines
-        txt_height = sum(line[1] for line in _lines)
-
-        for line in _lines:
-            lh = line[1]
-            lw = line[0]
-            last_line = line[2]
-            first_line = line[3]
-
-            # horizontal alignement
-            if ah in (0, 3):
-                # left
-                x = 0
-            elif ah == 1:
-                # center
-                x = int((w - lw) / 2)
-            else:
-                x = w - lw
-
-            # vertical alignment
-            if y == 0:
-                if av == 1:
-                    # center
-                    y = int((h - txt_height) / 2)
-                elif av == 2:
-                    # bottom
-                    y = h - (txt_height)
-
-             # justification
-            just_space = 0
-            first_space = 0
-            if ah > 2:
-                # justified
-                if line[4] and not last_line:
-                    x = first_space = last_space = space_width = _spaces = 0
-                    for pw, ph, word, options in line[4]:
-                        _spaces += 1 if word == ' ' else 0
-
-                    if word == ' ':
-                        last_space = 1
-                        space_width = pw
-                    if line[4][0][2][0] == ' ':
-                        first_space = 1
-                        space_width += pw
-                    _spaces -= last_space + first_space
-
-                    # divide left over space between `spaces`
-                    if _spaces:
-                        just_space = (((w - lw + space_width) * 1.)
-                                      / (_spaces * 1.))
-
-            # previous part height/pos = 0
+        for layout_line in lines:  # for plain label each line has only one str
+            lw, lh = layout_line.w, layout_line.h
+            x = xpad
+            if halign[0] == 'c':  # center
+                x = int((w - lw) / 2.)
+            elif halign[0] == 'r':  # right
+                x = max(0, int(w - lw - xpad))
+            layout_line.x = x
+            layout_line.y = y
             psp = pph = 0
-            for pw, ph, part, options in line[4]:
-                self.options = options
-                if not first_line and first_space:
-                    first_line = 1
-                    continue
-                if part == ' ':
-                    x += just_space
-
+            for word in layout_line.words:
+                options = self.options = word.options
                 # calculate sub/super script pos
                 if options['script'] == 'superscript':
                     script_pos = max(0, psp if psp else self.get_descent())
                     psp = script_pos
-                    pph = ph
+                    pph = word.lh
                 elif options['script'] == 'subscript':
-                    script_pos = min(lh - ph,
-                                     ((psp + pph) - ph) if pph else (lh - ph))
-                    pph = ph
+                    script_pos = min(lh - word.lh, ((psp + pph) - word.lh)
+                                     if pph else (lh - word.lh))
+                    pph = word.lh
                     psp = script_pos
                 else:
-                    script_pos = (lh - ph) / 1.25
+                    script_pos = (lh - word.lh) / 1.25
                     psp = pph = 0
-                r(part, x, y + script_pos)
+                render_text(word.text, x, y + script_pos)
 
                 # should we record refs ?
                 ref = options['_ref']
                 if ref is not None:
                     if not ref in refs:
                         refs[ref] = []
-                    refs[ref].append((x, y, x + pw, y + ph))
-
-                x += pw
-            y += line[1]
+                    refs[ref].append((x, y, x + word.lw, y + word.lh))
+                x += word.lw
+            y += lh
 
         # get data from provider
         data = self._render_end()
         assert(data)
 
-        # update texture
         # If the text is 1px width, usually, the data is black.
         # Don't blit that kind of data, otherwise, you have a little black bar.
         if data is not None and data.width > 1:

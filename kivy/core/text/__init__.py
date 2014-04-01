@@ -366,7 +366,7 @@ class LabelBase(object):
             return self._render_real()
 
         options = copy(self.options)
-        options.update({'space_width': self.get_extents(' ')[0]})
+        options['space_width'] = self.get_extents(' ')[0]
         options['strip'] = strip = (options['strip'] or
                                     options['halign'][-1] == 'y')
         uw, uh = options['text_size'] = self._text_size

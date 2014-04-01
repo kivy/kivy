@@ -188,6 +188,8 @@ class Label(Widget):
             mrkup = self._label.__class__ is CoreMarkupLabel
             if mrkup:
                 text = self._label.text
+                if self.halign[-1] == 'y' or self.strip:
+                    text = text.strip()
                 self._label.text = ''.join(('[color=',
                                             get_hex_from_color(self.color),
                                             ']', text, '[/color]'))

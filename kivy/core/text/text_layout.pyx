@@ -89,8 +89,8 @@ cdef inline void final_strip(LayoutLine line):
                 last_word.options['space_width'])
         line.w = max(0, line.w - diff)  # line w
         line.words.append(LayoutWord(   # re-add last word
-        last_word.options, max(0, last_word.w - diff),
-        last_word.h, stripped))
+        last_word.options, max(0, last_word.lw - diff),
+        last_word.lh, stripped))
 
 
 cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
@@ -351,17 +351,15 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
                         m += 1
                     # not enough room for even single char, skip it
                     if m == s:
-                        s += 1
-                    else:
-                        _line.is_last_line = m == k  # is last line?
-                        lww, lhh = get_extents(line[s:m])
-                        _line = add_line(line[s:m], lww, lhh, _line, lines,
-                            options, line_height, xpad, &w, &h, pos, 0)
-                        _line.line_wrap = 1
-                        if not dwn:
-                            pos += 1
-                        s = m
-                    m = s
+                        m += 1
+                    _line.is_last_line = m == k  # is last line?
+                    lww, lhh = get_extents(line[s:m])
+                    _line = add_line(line[s:m], lww, lhh, _line, lines,
+                        options, line_height, xpad, &w, &h, pos, 0)
+                    _line.line_wrap = 1
+                    if not dwn:
+                        pos += 1
+                    s = m
                 m = s  # done with long word, go back to normal
 
             else:   # the word fits

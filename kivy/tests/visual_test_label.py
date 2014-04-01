@@ -67,7 +67,6 @@ kv = '''
                     size_hint: None, None
                     size: self.texture_size
                     id: label
-                    on_valign: print(self.valign)
                     text: record.text
                     dummy: 0
                     canvas:
@@ -129,11 +128,13 @@ kv = '''
         TSpinner:
             name: 'halign'
             values: ['left', 'center', 'right', 'justify']
+            text: 'left'
         TLabel:
             text: 'valign: '
         TSpinner:
             name: 'valign'
-            values: ['bottom', 'middle', 'top']
+            values: ['top', 'middle', 'bottom']
+            text: 'bottom'
         TBoolButton:
             text: 'markup'
         TBoolButton:
