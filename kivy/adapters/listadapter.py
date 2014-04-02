@@ -24,9 +24,6 @@ args_converter properties and adds others that control selection behaviour:
   True, and only user or programmatic action will change selection, it can
   be empty.
 
-If you wish to have a bare-bones list adapter, without selection, use a
-:class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`.
-
 A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
 :class:`~kivy.adapters.listadapter.ListAdapter`. They both dispatch the
 *on_selection_change* event.
@@ -36,6 +33,7 @@ A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
             Fired when selection changes
 
 .. versionchanged:: 1.6.0
+
     Added data = ListProperty([]), which was proably inadvertently deleted at
     some point. This means that whenever data changes an update will fire,
     instead of having to reset the data object (Adapter has data defined as
@@ -47,18 +45,12 @@ A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
 __all__ = ('ListAdapter', )
 
 import inspect
-from kivy.event import EventDispatcher
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.models import SelectableDataItem
-from kivy.properties import ListProperty
-from kivy.properties import DictProperty
-from kivy.properties import BooleanProperty
-from kivy.properties import OptionProperty
-from kivy.properties import NumericProperty
-from kivy.lang import Builder
+from kivy.properties import ListProperty, OptionProperty, DictProperty, BooleanProperty, OptionProperty, NumericProperty
 
 
-class ListAdapter(Adapter, EventDispatcher):
+class ListAdapter(Adapter):
     '''
     A base class for adapters interfacing with lists, dictionaries or other
     collection type data, adding selection, view creation and management
@@ -83,16 +75,12 @@ class ListAdapter(Adapter, EventDispatcher):
     to [].
     '''
 
-    selection_mode = OptionProperty('single',
-            options=('none', 'single', 'multiple'))
+    selection_mode = OptionProperty('single', options=('none', 'single', 'multiple'))
     '''Selection modes:
 
        * *none*, use the list as a simple list (no select action). This option
          is here so that selection can be turned off, momentarily or
          permanently, for an existing list adapter.
-         A :class:`~kivy.adapters.listadapter.ListAdapter` is not meant to be
-         used as a primary no-selection list adapter.  Use a
-         :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` for that.
 
        * *single*, multi-touch/click ignored. Single item selection only.
 
@@ -173,93 +161,95 @@ class ListAdapter(Adapter, EventDispatcher):
     '''
 
     __events__ = ('on_selection_change', )
+            
+    def on_data(self, instance, value):
+        instance.delete_cache()
+        selection = instance.selection
+        
+        if len(selection) > 0:
+            selection[:] = []
+        
+    def on_selection(self, instance, value):
+        if not value and not instance.allow_empty_selection:
+            v = instance.get_view(0) # Select the first item if we have it.
 
-    def __init__(self, **kwargs):
-        super(ListAdapter, self).__init__(**kwargs)
+            if v is not None:
+                instance.handle_selection(v)
+                
+    def on_allow_empty_selection(self, instance, value):
+        instance.dispatch('on_selection', instance, instance.selection)
 
-        self.bind(selection_mode=self.selection_mode_changed,
-                  allow_empty_selection=self.check_for_empty_selection,
-                  data=self.update_for_new_data)
-
-        self.update_for_new_data()
+    def on_selection_mode(self, instance, mode):
+        if mode == 'none':
+            instance.deselect_all()
+        else:
+            instance.dispatch('on_selection', instance, instance.selection)
 
     def delete_cache(self, *args):
-        self.cached_views = {}
-
-    def get_count(self):
-        return len(self.data)
-
+        self.cached_views.clear()
+        
     def get_data_item(self, index):
-        if index < 0 or index >= len(self.data):
-            return None
-        return self.data[index]
+        data = self.data
 
-    def selection_mode_changed(self, *args):
-        if self.selection_mode == 'none':
-            for selected_view in self.selection:
-                self.deselect_item_view(selected_view)
-        else:
-            self.check_for_empty_selection()
+        if (0 <= index < len(data)):
+            return data[index]
 
     def get_view(self, index):
-        if index in self.cached_views:
-            return self.cached_views[index]
-        item_view = self.create_view(index)
-        if item_view:
-            self.cached_views[index] = item_view
-        return item_view
+        cached_views = self.cached_views
+
+        if index in cached_views:
+            return cached_views[index]
+        else:
+            item_view = self.create_view(index)
+
+            if item_view:
+                cached_views[index] = item_view
+
+            return item_view
 
     def create_view(self, index):
         '''This method is more complicated than the one in
-        :class:`kivy.adapters.adapter.Adapter` and
-        :class:`kivy.adapters.simplelistadapter.SimpleListAdapter`, because
+        :class:`kivy.adapters.adapter.Adapter` because
         here we create bindings for the data item and its children back to
         self.handle_selection(), and do other selection-related tasks to keep
         item views in sync with the data.
         '''
+        
         item = self.get_data_item(index)
-        if item is None:
-            return None
-
-        item_args = self.args_converter(index, item)
-
-        item_args['index'] = index
-
-        if self.cls:
+        
+        if item is not None:
+            item_args = self.args_converter(index, item)
+            item_args['index'] = index
             view_instance = self.cls(**item_args)
-        else:
-            view_instance = Builder.template(self.template, **item_args)
+            
+            if self.selection_mode <> 'none':
+                view_instance.bind(on_release=self.handle_selection)
+    
+                if self.propagate_selection_to_data:
+                    # The data item must be a subclass of SelectableDataItem, or must
+                    # have an is_selected boolean or function, so it has is_selected
+                    # available.  If is_selected is unavailable on the data item, an
+                    # exception is raised.
+                    #
+                    if isinstance(item, SelectableDataItem):
+                        if item.is_selected:
+                            self.handle_selection(view_instance)
+                    elif type(item) == dict and 'is_selected' in item:
+                        if item['is_selected']:
+                            self.handle_selection(view_instance)
+                    elif hasattr(item, 'is_selected'):
+                        if (inspect.isfunction(item.is_selected)
+                                or inspect.ismethod(item.is_selected)):
+                            if item.is_selected():
+                                self.handle_selection(view_instance)
+                        else:
+                            if item.is_selected:
+                                self.handle_selection(view_instance)
+                    else:
+                        msg = "ListAdapter: unselectable data item for {0}"
+                        raise Exception(msg.format(index))
 
-        if self.propagate_selection_to_data:
-            # The data item must be a subclass of SelectableDataItem, or must
-            # have an is_selected boolean or function, so it has is_selected
-            # available.  If is_selected is unavailable on the data item, an
-            # exception is raised.
-            #
-            if isinstance(item, SelectableDataItem):
-                if item.is_selected:
-                    self.handle_selection(view_instance)
-            elif type(item) == dict and 'is_selected' in item:
-                if item['is_selected']:
-                    self.handle_selection(view_instance)
-            elif hasattr(item, 'is_selected'):
-                if (inspect.isfunction(item.is_selected)
-                        or inspect.ismethod(item.is_selected)):
-                    if item.is_selected():
-                        self.handle_selection(view_instance)
-                else:
-                    if item.is_selected:
-                        self.handle_selection(view_instance)
-            else:
-                msg = "ListAdapter: unselectable data item for {0}"
-                raise Exception(msg.format(index))
-
-        view_instance.bind(on_release=self.handle_selection)
-
-        for child in view_instance.children:
-            child.bind(on_release=self.handle_selection)
-
-        return view_instance
+                return view_instance
 
     def on_selection_change(self, *args):
         '''on_selection_change() is the default handler for the
@@ -268,34 +258,17 @@ class ListAdapter(Adapter, EventDispatcher):
         pass
 
     def handle_selection(self, view, hold_dispatch=False, *args):
-        if view not in self.selection:
-            if self.selection_mode in ['none', 'single'] and \
-                    len(self.selection) > 0:
-                for selected_view in self.selection:
-                    self.deselect_item_view(selected_view)
-            if self.selection_mode != 'none':
-                if self.selection_mode == 'multiple':
-                    if self.allow_empty_selection:
-                        # If < 0, selection_limit is not active.
-                        if self.selection_limit < 0:
-                            self.select_item_view(view)
-                        else:
-                            if len(self.selection) < self.selection_limit:
-                                self.select_item_view(view)
-                    else:
-                        self.select_item_view(view)
-                else:
+        if self.selection_mode <> 'none':
+
+            if view not in self.selection:
+
+                if self.selection_mode == 'single':
+                    self.deselect_all()
+                if ((self.selection_limit < 0) or (len(self.selection) < self.selection_limit)):
                     self.select_item_view(view)
-        else:
-            self.deselect_item_view(view)
-            if self.selection_mode != 'none':
-                # If the deselection makes selection empty, the following call
-                # will check allows_empty_selection, and if False, will
-                # select the first item. If view happens to be the first item,
-                # this will be a reselection, and the user will notice no
-                # change, except perhaps a flicker.
-                #
-                self.check_for_empty_selection()
+
+            else:
+                self.deselect_item_view(view)
 
         if not hold_dispatch:
             self.dispatch('on_selection_change')
@@ -319,7 +292,7 @@ class ListAdapter(Adapter, EventDispatcher):
                 item.is_selected = value
 
     def select_item_view(self, view):
-        view.select()
+        #view.select()
         view.is_selected = True
         self.selection.append(view)
 
@@ -347,7 +320,7 @@ class ListAdapter(Adapter, EventDispatcher):
             extend: boolean for whether or not to extend the existing list
         '''
         if not extend:
-            self.selection = []
+            self.selection[:] = []
 
         for view in view_list:
             self.handle_selection(view, hold_dispatch=True)
@@ -355,7 +328,7 @@ class ListAdapter(Adapter, EventDispatcher):
         self.dispatch('on_selection_change')
 
     def deselect_item_view(self, view):
-        view.deselect()
+        #view.deselect()
         view.is_selected = False
         self.selection.remove(view)
 
@@ -378,26 +351,13 @@ class ListAdapter(Adapter, EventDispatcher):
 
         self.dispatch('on_selection_change')
 
-    # [TODO] Could easily add select_all() and deselect_all().
+    def deselect_all(self, *args):
+        selection = self.selection[:]
 
-    def update_for_new_data(self, *args):
-        self.delete_cache()
-        self.initialize_selection()
+        for each_view in xrange(len(selection)):
+            selection.pop().is_selected = False
 
-    def initialize_selection(self, *args):
-        if len(self.selection) > 0:
-            self.selection = []
-            self.dispatch('on_selection_change')
-
-        self.check_for_empty_selection()
-
-    def check_for_empty_selection(self, *args):
-        if not self.allow_empty_selection:
-            if len(self.selection) == 0:
-                # Select the first item if we have it.
-                v = self.get_view(0)
-                if v is not None:
-                    self.handle_selection(v)
+    # [TODO] Could easily add select_all().
 
     # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,
     #        scroll_to_sel_middle.
