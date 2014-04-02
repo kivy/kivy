@@ -12,9 +12,9 @@ Storage
 Usage
 -----
 
-The idea behind the Storage module is to be able to load/store
-keys-value pairs.  The default model is abstract so you cannot use it
-directly. We provide some implementations such as:
+The idea behind the Storage module is to be able to load/store any number of
+keys/value pairs via an indexed key. The default model is abstract so you
+cannot use it directly. We provide some implementations such as:
 
 - :class:`kivy.storage.dictstore.DictStore`: use a python dict as a store
 - :class:`kivy.storage.jsonstore.JsonStore`: use a JSON file as a store
@@ -33,16 +33,19 @@ For example, let's use a JsonStore::
     store = JsonStore('hello.json')
 
     # put some values
-    store.put('tito', name='Mathieu', age=30)
+    store.put('tito', name='Mathieu', org='kivy')
     store.put('tshirtman', name='Gabriel', age=27)
 
-    # get from a key
-    print('tito is', store.get('tito'))
+    # using the same index key erases all previously added key/value pairs
+    store.put('tito', name='Mathieu', age=30)
+
+    # get a value using a index key and key
+    print('tito is', store.get('tito')['age'])
 
     # or guess the key/entry for a part of the key
     for item in store.find(name='Gabriel'):
-        print('tshirtmans key is', item[0])
-        print('his values are', str(item[1]))
+        print('tshirtmans index key is', item[0])
+        print('his key value pairs are', str(item[1]))
 
 Because the data is persistant, you can check later to see if the key exists::
 
