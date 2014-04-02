@@ -133,7 +133,7 @@ class AbstractStore(EventDispatcher):
         self.store_load()
 
     def exists(self, key):
-        '''Check if a key exist in the store.
+        '''Check if a key exists in the store.
         '''
         return self.store_exists(key)
 
@@ -152,7 +152,7 @@ class AbstractStore(EventDispatcher):
                        key=key, callback=callback)
 
     def get(self, key):
-        '''Get the value stored at `key`. If the key is not found, a
+        '''Get the key/value pairs stored at `key`. If the key is not found, a
         `KeyError` exception will be thrown.
         '''
         return self.store_get(key)
@@ -171,7 +171,8 @@ class AbstractStore(EventDispatcher):
         self._schedule(self.store_get_async, key=key, callback=callback)
 
     def put(self, key, **values):
-        '''Put a new key/value in the storage
+        '''Put new key/value pairs (given in *values*) into the storage. Any
+        existing key/value pairs will be removed.
         '''
         need_sync = self.store_put(key, values)
         if need_sync:
@@ -217,11 +218,12 @@ class AbstractStore(EventDispatcher):
                        callback=callback)
 
     def find(self, **filters):
-        '''Return all the entries matching the filters. The entries are given
-        through a generator as a list of (key, entry) pairs::
+        '''Return all the entries matching the filters. The entries are
+        returned through a generator as a list of (key, entry) pairs
+        where *entry* is a dict of key/value pairs ::
 
             for key, entry in store.find(name='Mathieu'):
-                print('entry:', key, '->', value)
+                print('key:', key, ', entry:', entry)
 
         Because it's a generator, you cannot directly use it as a list. You can
         do::
@@ -252,22 +254,22 @@ class AbstractStore(EventDispatcher):
                        callback=callback, filters=filters)
 
     def keys(self):
-        '''Return a list of all the keys in the storage
+        '''Return a list of all the keys in the storage.
         '''
         return self.store_keys()
 
     def async_keys(self, callback):
-        '''Asynchronously return all the keys in the storage
+        '''Asynchronously return all the keys in the storage.
         '''
         self._schedule(self.store_keys_async, callback=callback)
 
     def count(self):
-        '''Return the number of entries in the storage
+        '''Return the number of entries in the storage.
         '''
         return self.store_count()
 
     def async_count(self, callback):
-        '''Asynchronously return the number of entries in the storage
+        '''Asynchronously return the number of entries in the storage.
         '''
         self._schedule(self.store_count_async, callback=callback)
 
