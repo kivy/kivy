@@ -16,11 +16,27 @@ python dictionary of records. It extends the list-like capabilities of the
 If you wish to have a bare-bones list adapter, without selection, use the
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`.
 
+.. versionchanged:: 1.8.0
+
+    Changed sorted_keys to an :class:`~kivy.properties.AliasProperty`. 
+    Since it's solely dependent on :attr:`data`, 
+    an :class:`~kivy.properties.AliasProperty` simplifies things.
+    Did not allow setting of :attr:`sorted_keys` in the interest of
+    consolidation.
+    
+    Changed :attr:`get_data_item` for readability.
+    
+    Changed :attr:`data` to initialize to an empty dictionary, `{}`.
+    
+    Removed `initialize_sorted_keys` and `update_for_new_data`.
+    
+    Removed mention of "if no args_converter".
+
 '''
 
 __all__ = ('DictAdapter', )
 
-from kivy.properties import ListProperty, DictProperty
+from kivy.properties import AliasProperty, DictProperty
 from kivy.adapters.listadapter import ListAdapter
 
 
@@ -30,70 +46,43 @@ class DictAdapter(ListAdapter):
     the :class:`~kivy.adapters.listadapter.ListAdapter`.
     '''
 
-    sorted_keys = ListProperty([])
-    '''The sorted_keys list property contains a list of hashable objects (can
-    be strings) that will be used directly if no args_converter function is
-    provided. If there is an args_converter, the record received from a
-    lookup of the data, using keys from sorted_keys, will be passed
-    to it for instantiation of list item view class instances.
-
-    :attr:`sorted_keys` is a :class:`~kivy.properties.ListProperty` and
-    defaults to [].
-    '''
-
-    data = DictProperty(None)
+    data = DictProperty({})
     '''A dict that indexes records by keys that are equivalent to the keys in
     sorted_keys, or they are a superset of the keys in sorted_keys.
 
     The values can be strings, class instances, dicts, etc.
 
     :attr:`data` is a :class:`~kivy.properties.DictProperty` and defaults
-    to None.
+    to {}.
     '''
+    
+    def _get_sorted_keys(self):
+        return sorted(self.data, key=self.data.get)
+        
+    sorted_keys = AliasProperty(_get_sorted_keys, None, bind=('data',))
+    '''The sorted_keys list property contains a list of hashable objects (can
+    be strings). If there is an args_converter, the record received from a
+    lookup of the data, using keys from sorted_keys, will be passed
+    to it for instantiation of list item view class instances.
 
-    def __init__(self, **kwargs):
-        if 'sorted_keys' in kwargs:
-            if type(kwargs['sorted_keys']) not in (tuple, list):
-                msg = 'DictAdapter: sorted_keys must be tuple or list'
-                raise Exception(msg)
-        else:
-            self.sorted_keys = sorted(kwargs['data'].keys())
-
-        super(DictAdapter, self).__init__(**kwargs)
-
-        self.bind(sorted_keys=self.initialize_sorted_keys)
+    :attr:`sorted_keys` is a :class:`~kivy.properties.AliasProperty`.
+    '''
 
     def bind_triggers_to_view(self, func):
         self.bind(sorted_keys=func)
         self.bind(data=func)
-
-    # self.data is paramount to self.sorted_keys. If sorted_keys is reset to
-    # mismatch data, force a reset of sorted_keys to data.keys(). So, in order
-    # to do a complete reset of data and sorted_keys, data must be reset
-    # first, followed by a reset of sorted_keys, if needed.
-    def initialize_sorted_keys(self, *args):
-        stale_sorted_keys = False
-        for key in self.sorted_keys:
-            if not key in self.data:
-                stale_sorted_keys = True
-                break
-        if stale_sorted_keys:
-            self.sorted_keys = sorted(self.data.keys())
-        self.delete_cache()
-        self.initialize_selection()
-
-    # Override ListAdapter.update_for_new_data().
-    def update_for_new_data(self, *args):
-        self.initialize_sorted_keys()
 
     # Note: this is not len(self.data).
     def get_count(self):
         return len(self.sorted_keys)
 
     def get_data_item(self, index):
-        if index < 0 or index >= len(self.sorted_keys):
+        sorted_keys = self.sorted_keys
+
+        if (0 <= index < len(sorted_keys)):
+            return self.data[sorted_keys[index]]
+        else:
             return None
-        return self.data[self.sorted_keys[index]]
 
     # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,
     #        scroll_to_sel_middle.
