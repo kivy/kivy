@@ -591,11 +591,11 @@ class WindowBase(EventDispatcher):
         '''Clear the window with the background color'''
         # XXX FIXME use late binding
         from kivy.graphics.opengl import glClearColor, glClear, \
-            GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT
+            GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_STENCIL_BUFFER_BIT
         cc = self._clearcolor
         if cc is not None:
             glClearColor(*cc)
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
 
     def set_title(self, title):
         '''Set the window title.
