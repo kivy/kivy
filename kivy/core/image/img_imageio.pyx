@@ -30,9 +30,6 @@ cdef unsigned int kCFStringEncodingUTF8 = 0x08000100
 cdef extern from "stdlib.h":
     void* calloc(size_t, size_t)
 
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
-
 cdef extern from "CoreGraphics/CGDataProvider.h":
     ctypedef void *CFDataRef
     unsigned char *CFDataGetBytePtr(CFDataRef)
@@ -173,7 +170,7 @@ def load_image_data(bytes _url):
     vImagePermuteChannels_ARGB8888(&src, &dest, pmap, 0)
 
     # get a python string
-    r_data = PyString_FromStringAndSize(<char *>dest.data, width * height * 4)
+    r_data = (<char *>dest.data)[:width * height * 4]
 
     # release everything
     CFRelease(url)
