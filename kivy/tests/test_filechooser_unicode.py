@@ -26,9 +26,9 @@ class FileChooserUnicodeTestCase(unittest.TestCase):
 
         # this will test creating unicode and bytes filesnames
         ufiles = [u'कीवीtestu',
-                  u'कीवीtestu' + unicode_char(0xFFFF),
-                  u'कीवीtestu' + unicode_char(0xFFFF - 1),
-                  u'कीवीtestu' + unicode_char(0xFF)]
+                  u'कीवीtestu' + unicode_char(0xEEEE),
+                  u'कीवीtestu' + unicode_char(0xEEEE - 1),
+                  u'कीवीtestu' + unicode_char(0xEE)]
         # don't use non-ascii directly because that will test source file
         # text conversion, not path issues :)
         bfiles = [b'\xc3\xa0\xc2\xa4\xe2\x80\xa2\xc3\xa0\xc2\xa5\xe2\x82\xac\

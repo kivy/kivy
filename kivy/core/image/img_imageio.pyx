@@ -91,6 +91,10 @@ cdef extern from "CoreGraphics/CGColorSpace.h":
     CGColorSpaceRef CGColorSpaceCreateDeviceRGB()
     void CGColorSpaceRelease(CGColorSpaceRef cs)
 
+cdef extern from "CoreGraphics/CGAffineTransform.h":
+    ctypedef void *CGAffineTransform
+    CGAffineTransform CGAffineTransformMake(float a, float b, float c, float d, float tx, float ty)
+
 cdef extern from "CoreGraphics/CGContext.h": 
     ctypedef void *CGContextRef
     void CGContextRelease(CGContextRef c)
@@ -98,6 +102,7 @@ cdef extern from "CoreGraphics/CGContext.h":
     int kCGBlendModeCopy
     int kCGBlendModeNormal
     void CGContextSetBlendMode(CGContextRef, int)
+    void CGContextConcatCTM(CGContextRef fc, CGAffineTransform matrix)
 
 cdef extern from "CoreGraphics/CGBitmapContext.h":
     CGImageRef CGBitmapContextCreateImage(CGColorSpaceRef)
@@ -181,11 +186,11 @@ def load_image_data(bytes _url):
 
     return (width, height, 'rgba', r_data)
 
-def save_image_rgba(filename, width, height, data):
+def save_image_rgba(filename, width, height, data, flipped):
     # compatibility, could be removed i guess
-    save_image(filename, width, height, 'rgba', data)
+    save_image(filename, width, height, 'rgba', data, flipped)
 
-def save_image(filename, width, height, fmt, data):
+def save_image(filename, width, height, fmt, data, flipped):
     # save a RGBA string into filename using CoreGraphics
 
     # FIXME only png output are accepted.
@@ -232,12 +237,39 @@ def save_image(filename, width, height, fmt, data):
     cdef CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url,
             ctype, 1, NULL)
 
-    # release everything
-    CGImageDestinationAddImage(dest, cgImage, NULL)
+    # copy the image into a transformed context
+    cdef CGContextRef flippedContext
+    cdef CGImageRef newImageRef
+
+    if flipped:
+        flippedContext = CGBitmapContextCreate(
+                                    NULL, width, height,
+                                    8, # bitsPerComponent
+                                    fmt_length * width, # bytesPerRow
+                                    colorSpace,
+                                    kCGImageAlphaNoneSkipLast)
+
+        CGContextConcatCTM(flippedContext, CGAffineTransformMake(1.0, 0.0, 
+                                                                0.0, -1.0, 
+                                                                0.0, height))
+
+        CGContextDrawImage(flippedContext, 
+                            CGRectMake(0, 0, width, height), 
+                            cgImage)
+
+        newImageRef = CGBitmapContextCreateImage(flippedContext)
+        CGImageDestinationAddImage(dest, newImageRef, NULL)
+        CGImageDestinationFinalize(dest)
+        CFRelease(newImageRef)
+        CFRelease(flippedContext)
+    else:
+        CGImageDestinationAddImage(dest, cgImage, NULL)
+        CGImageDestinationFinalize(dest)
+            
+    #Release everything
     CFRelease(cgImage)
     CFRelease(bitmapContext)
     CFRelease(colorSpace)
-    CGImageDestinationFinalize(dest)
     free(pixels)
 
 class ImageLoaderImageIO(ImageLoaderBase):
@@ -267,8 +299,8 @@ class ImageLoaderImageIO(ImageLoaderBase):
         return True
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels):
-        save_image(filename, width, height, fmt, pixels)
+    def save(filename, width, height, fmt, pixels, flipped=False):
+        save_image(filename, width, height, fmt, pixels, flipped)
         return True
 
 # register

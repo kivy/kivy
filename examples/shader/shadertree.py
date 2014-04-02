@@ -97,6 +97,7 @@ void main() {
 }
 '''
 
+
 class ShaderWidget(FloatLayout):
 
     # property to set the source code for fragment shader
@@ -132,7 +133,7 @@ class ShaderWidget(FloatLayout):
 
     def update_glsl(self, *largs):
         self.canvas['time'] = Clock.get_boottime()
-        self.canvas['resolution'] = map(float, self.size)
+        self.canvas['resolution'] = [float(v) for v in self.size]
 
     def on_fs(self, instance, value):
         # set the fragment shader to our source code
@@ -191,6 +192,7 @@ class ShaderTreeApp(App):
         # shader
         btn = Button(text='Change fragment shader', size_hint=(1, None),
                      height=50)
+
         def change(*largs):
             sw.fs = available_shaders[self.shader_index]
             self.shader_index = (self.shader_index + 1) % len(available_shaders)

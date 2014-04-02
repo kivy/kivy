@@ -204,18 +204,153 @@ Mageia 1 onwards
     # pip install --upgrade cython
     # pip install pygments
 
-*Installation*
-==============
+
+*Installation in a Virtual Environment with System Site Packages*
+=================================================================
+
+This is a recommended compromise between installing Kivy and its dependencies 
+system wide and installing as much as possible into a virtual environment. 
 
 
+Ubuntu 12.04 with Python 2.7
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you're installing Kivy for the first time, do::
 
-    $ sudo easy_install kivy
+Install System-wide Dependencies
+--------------------------------
 
-If you already installed kivy before, you can upgrade it with::
+Note that these commands will remove any pre-existing versions of 
+python-virtualenv and replace it with the current version. It will also remove 
+cython, numpy, and pygame installed from your Linux distro's repository and 
+replace them with current versions from pip or the pygame Mercurial repository. 
 
-    $ sudo easy_install --upgrade kivy
+::
+
+    # Install necessary system packages
+    sudo apt-get install -y build-essential mercurial git python2.7 \
+    python-setuptools python-dev ffmpeg libsdl-image1.2-dev \
+    libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsmpeg-dev libsdl1.2-dev \
+    libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
+    
+    # Bootstrap a current Python environment
+	sudo apt-get remove --purge -y python-virtualenv python-pip
+	sudo easy_install-2.7 -U pip
+	sudo pip2.7 install -U virtualenv
+	
+	# Install current version of Cython
+	sudo apt-get remove --purge -y cython
+	sudo pip2.7 install -U cython
+	
+	# Install other PyGame dependencies
+	sudo apt-get remove --purge -y python-numpy
+	sudo pip2.7 install -U numpy
+	
+	# Install PyGame
+	sudo apt-get remove --purge python-pygame
+	hg clone https://bitbucket.org/pygame/pygame
+	cd pygame
+	python2.7 setup.py build
+	sudo python2.7 setup.py install
+	cd ..
+	sudo rm -rf pygame
+
+
+Create a Kivy Virtualenv
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+	# Create a vitualenv
+	rm -rf venv
+	virtualenv -p python2.7 --system-site-packages venv
+	
+	# Install stable version of Kivy into the virtualenv
+	venv/bin/pip install kivy
+	# For the development version of Kivy, use the following command instead
+	# venv/bin/pip install git+https://github.com/kivy/kivy.git@master
+	
+	# Install development version of buildozer into the virtualenv
+	venv/bin/pip install git+https://github.com/kivy/buildozer.git@master
+	
+	# Install development version of plyer into the virtualenv
+	venv/bin/pip install git+https://github.com/kivy/plyer.git@master
+	
+	# Install a couple of dependencies for KivyCatalog
+	venv/bin/pip install -U pygments docutils
+
+
+Ubuntu 12.04 with Python 3.3
+----------------------------
+
+
+Install System-wide Dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Note that these commands will remove any pre-existing versions of 
+python-virtualenv and replace it with the current version. It will also remove 
+cython, numpy, and pygame installed from your Linux distro's repository and 
+replace them with current versions from pip or the pygame Mercurial repository. 
+
+::
+
+    # Bootstrap Python3.3
+	sudo apt-get install python-software-properties
+	sudo add-apt-repository ppa:fkrull/deadsnakes
+	sudo apt-get update
+	
+	# Install necessary system packages
+	sudo apt-get install -y build-essential mercurial git python3.3 \
+	python3.3-dev ffmpeg libsdl-image1.2-dev libsdl-mixer1.2-dev \
+	libsdl-ttf2.0-dev libsmpeg-dev libsdl1.2-dev libportmidi-dev \
+	libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
+	
+	# Bootstrap current setuptools
+	wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -O - | sudo python3.3
+	
+	# Bootstrap a current Python environment
+	sudo apt-get remove --purge -y python-virtualenv python-pip
+	sudo easy_install-3.3 -U pip
+	sudo pip3.3 install -U virtualenv
+	
+	# Install current version of Cython
+	sudo apt-get remove --purge -y cython
+	sudo pip3.3 install -U cython
+	
+	# Install other PyGame dependencies
+	sudo apt-get remove --purge -y python-numpy
+	sudo pip3.3 install -U numpy
+	
+	# Install PyGame
+	hg clone https://bitbucket.org/pygame/pygame
+	cd pygame
+	python3.3 setup.py build
+	sudo python3.3 setup.py install
+	cd ..
+	sudo rm -rf pygame
+
+
+Create a Kivy Virtualenv
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+	# Create a vitualenv
+	rm -rf venv
+	virtualenv -p python3.3 --system-site-packages venv
+	
+	# Install stable version of Kivy into the virtualenv
+	venv/bin/pip install kivy
+	# For the development version of Kivy, use the following command instead
+	# venv/bin/pip install git+https://github.com/kivy/kivy.git@master
+	
+	# Install development version of buildozer into the virtualenv
+	#venv/bin/pip install git+https://github.com/kivy/buildozer.git@master
+	
+	# Install development version of plyer into the virtualenv
+	venv/bin/pip install git+https://github.com/kivy/plyer.git@master
+	
+	# Install a couple of dependencies for KivyCatalog
+	venv/bin/pip install -U pygments docutils
 
 
 .. _linux-run-app:

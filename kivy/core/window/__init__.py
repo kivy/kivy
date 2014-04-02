@@ -795,10 +795,11 @@ class WindowBase(EventDispatcher):
                 self.close()
                 return True
     if Config:
-        on_keyboard.exit_on_escape = Config.get('kivy', 'exit_on_escape')
+        on_keyboard.exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
 
         def __exit(section, name, value):
-            WindowBase.on_keyboard.exit_on_escape = value
+            WindowBase.__dict__['on_keyboard'].exit_on_escape = \
+                Config.getboolean('kivy', 'exit_on_escape')
 
         Config.add_callback(__exit, 'kivy', 'exit_on_escape')
 
