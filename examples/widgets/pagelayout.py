@@ -19,7 +19,7 @@ PageLayout:
 
         Button:
             text: 'test'
-            on_press: print "test"
+            on_press: print("test")
 
     BoxLayout:
         orientation: 'vertical'
@@ -51,7 +51,7 @@ PageLayout:
             source: 'http://kivy.org/slides/kivyandroid-thumb.jpg'
         Button:
             text: 'test'
-            on_press: print "test last page"
+            on_press: print("test last page")
         AsyncImage:
             source: 'http://kivy.org/slides/kivypictures-thumb.jpg'
         Widget

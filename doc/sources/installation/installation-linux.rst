@@ -213,11 +213,11 @@ system wide and installing as much as possible into a virtual environment.
 
 
 Ubuntu 12.04 with Python 2.7
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Install System-wide Dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------
 
 Note that these commands will remove any pre-existing versions of 
 python-virtualenv and replace it with the current version. It will also remove 
