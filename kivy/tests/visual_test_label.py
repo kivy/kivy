@@ -2,7 +2,11 @@ from kivy.app import runTouchApp
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import StringProperty
 from kivy.lang import Builder
+from kivy.utils import get_hex_from_color, get_random_color
 import timeit
+import re
+import random
+from functools import partial
 
 
 def test_layout_perf(label, repeat):
@@ -61,37 +65,40 @@ kv = '''
         tab_width: self.width / 11 * 3
         TabbedPanelItem:
             text: 'Label'
-            ScrollView:
-                id: scrollview
-                Label:
-                    size_hint: None, None
-                    size: self.texture_size
-                    id: label
-                    text: record.text
-                    dummy: 0
-                    canvas:
-                        Color:
-                            rgba: 0, 1, 0, 0.5
-                        Rectangle:
-                            pos: self.pos
-                            size: self.width, self.padding_y
-                        Rectangle:
-                            pos: self.x, self.y + self.height - self.padding_y
-                            size: self.width, self.padding_y
-                        Color:
-                            rgba: 0, 0, 1, 0.5
-                        Rectangle:
-                            pos: self.pos
-                            size: self.padding_x, self.height
-                        Rectangle:
-                            pos: self.x + self.width - self.padding_x, self.y
-                            size: self.padding_x, self.height
-        TabbedPanelItem:
-            text: 'Enter text'
-            TextInput:
-                id: record
-                text: label.text
-                text: root.text
+            BoxLayout:
+                ScrollView:
+                    id: scrollview
+                    Label:
+                        size_hint: None, None
+                        size: self.texture_size
+                        id: label
+                        text: record.text
+                        dummy: 0
+                        canvas:
+                            Color:
+                                rgba: 0, 1, 0, 0.5
+                            Rectangle:
+                                pos: self.pos
+                                size: self.width, self.padding_y
+                            Rectangle:
+                                pos: self.x, self.y + self.height -\
+                                self.padding_y
+                                size: self.width, self.padding_y
+                            Color:
+                                rgba: 0, 0, 1, 0.5
+                            Rectangle:
+                                pos: self.pos
+                                size: self.padding_x, self.height
+                            Rectangle:
+                                pos: self.x + self.width - self.padding_x,\
+                                self.y
+                                size: self.padding_x, self.height
+                Splitter:
+                    sizable_from: 'left'
+                    TextInput:
+                        id: record
+                        text: label.text
+                        text: root.text
         TabbedPanelItem:
             text: 'Test performance'
             BoxLayout:
@@ -139,6 +146,18 @@ kv = '''
             text: 'markup'
         TBoolButton:
             text: 'shorten'
+        TextInput:
+            size_hint: None, None
+            size: 100, 50
+            hint_text: 'split_str'
+            on_text_validate: label.split_str = self.text
+            multiline: False
+        TLabel:
+            text: 'shorten_from: '
+        TSpinner:
+            name: 'shorten_from'
+            values: ['left', 'center', 'right']
+            text: 'right'
         TBoolButton:
             text: 'strip'
             state: 'down'
@@ -234,11 +253,35 @@ Never to return.
 "And the papers?" asked the King hoarsely. "All is lost."
 '''
 
+words = re.split('( +|\\n+)', text)
+
+
+def annotate(pre, post, callable, words):
+    state = False
+    i = random.randint(0, 4)
+    while i < len(words):
+        if ' ' in words[i] or '\n' in words[i]:  # skip spaces
+            i += 1
+            continue
+        if not state:
+            words[i] = pre.format(callable(), words[i])
+        else:
+            words[i] = post.format(words[i])
+        state = not state
+        i += random.randint(1, 7)
+
+annotate('[size={0}]{1}', '{0}[/size]', partial(random.randint, 8, 24), words)
+annotate('[b]{1}', '{0}[/b]', str, words)
+annotate('[i]{1}', '{0}[/i]', str, words)
+annotate('[color={0}]{1}', '{0}[/color]',
+         lambda: get_hex_from_color(get_random_color()), words)
+annotated_text = ''.join(words)
+
 
 class LabelTest(GridLayout):
 
     text = StringProperty(text)
-    sized_text = StringProperty('')
+    sized_text = StringProperty(annotated_text)
 
 
 if __name__ in ('__main__', ):
