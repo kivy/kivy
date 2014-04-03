@@ -13,7 +13,7 @@ Usage
 -----
 
 The idea behind the Storage module is to be able to load/store any number of
-keys/value pairs via an indexed key. The default model is abstract so you
+key/value pairs via an indexed key. The default model is abstract so you
 cannot use it directly. We provide some implementations such as:
 
 - :class:`kivy.storage.dictstore.DictStore`: use a python dict as a store
