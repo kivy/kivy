@@ -587,18 +587,20 @@ class MarkupLabel(MarkupLabelBase):
                     assert next(f)[:-1] == (w1, e1)
                     assert next(f_inv)[:-1] == (w2, s2)
                     while True:
-                        ww1, ee1, l1 = next(f)  # hypothesize that next fits
-                        if l2 + l1 > uw:
-                            break
-                        w1, e1 = ww1, ee1
-                        if (w1, e1) == (w2, s2):
-                            break
-                        ww2, ss2, l2 = next(f_inv)
-                        if l2 + l1 > uw:
-                            break
-                        w2, s2 = ww2, ss2
-                        if (w1, e1) == (w2, s2):
-                            break
+                        if l1 <= l2:
+                            ww1, ee1, l1 = next(f)  # hypothesize that next fit
+                            if l2 + l1 > uw:
+                                break
+                            w1, e1 = ww1, ee1
+                            if (w1, e1) == (w2, s2):
+                                break
+                        else:
+                            ww2, ss2, l2 = next(f_inv)
+                            if l2 + l1 > uw:
+                                break
+                            w2, s2 = ww2, ss2
+                            if (w1, e1) == (w2, s2):
+                                break
         else:  # left
             line1 = [elps]
             if clipped1 or clipped2 or l1 + l2 > uw:

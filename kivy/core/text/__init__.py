@@ -327,20 +327,22 @@ class LabelBase(object):
                     ee1 = f(e1 + 1)
             else:
                 while True:
-                    ee1 = f(e1 + 1)
-                    l1 = textwidth(text[:ee1])[0]
-                    if l2 + l1 > uw:
-                        break
-                    e1 = ee1
-                    if e1 == s2:
-                        break
-                    ss2 = f_rev(0, s2 - offset)
-                    l2 = textwidth(text[ss2 + 1:])[0]
-                    if l2 + l1 > uw:
-                        break
-                    s2 = ss2
-                    if e1 == s2:
-                        break
+                    if l1 <= l2:
+                        ee1 = f(e1 + 1)
+                        l1 = textwidth(text[:ee1])[0]
+                        if l2 + l1 > uw:
+                            break
+                        e1 = ee1
+                        if e1 == s2:
+                            break
+                    else:
+                        ss2 = f_rev(0, s2 - offset)
+                        l2 = textwidth(text[ss2 + 1:])[0]
+                        if l2 + l1 > uw:
+                            break
+                        s2 = ss2
+                        if e1 == s2:
+                            break
         else:  # left
             # no split, or the last word doesn't even fit
             if s2 != -1:
@@ -408,12 +410,10 @@ class LabelBase(object):
         for layout_line in lines:  # for plain label each line has only one str
             lw, lh = layout_line.w, layout_line.h
             line = ''
-            word_h = lh
             assert len(layout_line.words) < 2
             if len(layout_line.words):
                 last_word = layout_line.words[0]
                 line = last_word.text
-                word_h = last_word.lh
             x = xpad
             if halign[0] == 'c':  # center
                 x = int((w - lw) / 2.)
@@ -455,8 +455,7 @@ class LabelBase(object):
             if len(line):
                 layout_line.x = x
                 layout_line.y = y
-                script_pos = (lh - word_h) / 1.25
-                render_text(line, x, y + script_pos)
+                render_text(line, x, y)
             y += lh
 
         # get data from provider
