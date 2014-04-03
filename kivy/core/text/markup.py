@@ -411,15 +411,15 @@ class MarkupLabel(MarkupLabelBase):
                 i = f()
                 while i != -1:
                     self.options = word.options
-                    yield w, i, total_w +\
-                    self.get_extents(word.text[i + 1:])[0]
+                    yield (w, i, total_w +
+                           self.get_extents(word.text[i + 1:])[0])
                     if i:
                         i = f(0, i - offset)
                     else:
                         if not c:
                             self.options = word.options
-                            yield w, -1, total_w +\
-                            self.get_extents(word.text)[0]
+                            yield (w, -1, total_w +
+                                   self.get_extents(word.text)[0])
                         break
                 self.options = word.options
                 total_w += self.get_extents(word.text)[0]
@@ -509,7 +509,7 @@ class MarkupLabel(MarkupLabelBase):
         ssize = textwidth(' ')
         c = old_opts['split_str']
         line_height = old_opts['line_height']
-        xpad, ypad = old_opts['padding_x'], old_opts['padding_x']
+        xpad, ypad = old_opts['padding_x'], old_opts['padding_y']
         dir = old_opts['shorten_from'][0]
 
         # flatten lines into single line
@@ -559,7 +559,7 @@ class MarkupLabel(MarkupLabelBase):
                 s = self.get_extents(last_text)
                 line1.append(LayoutWord(last_word.options, s[0], s[1],
                                         last_text))
-            elif (w1, e1) == (-1, -1) :  # this shouldn't occur
+            elif (w1, e1) == (-1, -1):  # this shouldn't occur
                 line1 = line
             if line1:
                 line1.append(elps)
@@ -610,7 +610,7 @@ class MarkupLabel(MarkupLabelBase):
                 line1.append(LayoutWord(first_word.options, s[0], s[1],
                                         first_text))
                 line1.extend(line[w2 + 1:])
-            elif (w1, e1) == (-1, -1) :  # this shouldn't occur
+            elif (w1, e1) == (-1, -1):  # this shouldn't occur
                 line1 = line
             if len(line1) != 1:
                 lw = sum([word.lw for word in line1])
