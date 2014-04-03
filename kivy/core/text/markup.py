@@ -133,6 +133,7 @@ class MarkupLabel(MarkupLabelBase):
         options = self.options
         options['_ref'] = None
         options['script'] = 'normal'
+        xpad = options['padding_x']
         uhh = (None if uh is not None and options['valign'][-1] != 'p' or
                options['shorten'] else uh)
         options['strip'] = options['strip'] or options['halign'][-1] == 'y'
@@ -249,7 +250,101 @@ class MarkupLabel(MarkupLabelBase):
 
         # now justify the text
         if options['halign'][-1] == 'y' and uw is not None:
-            pass
+            # XXX: update refs to justified pos
+            # when justify, each line shouldv'e been stripped already
+            split = partial(re.split, re.compile('( +)'))
+            uww = uw - 2 * xpad
+            chr = type(self.text)
+            space = chr(' ')
+            empty = chr('')
+
+            for i in range(len(lines)):
+                line = lines[i]
+                words = line.words
+                # if there's nothing to justify, we're done
+                if (not line.w or int(uww - line.w) <= 0 or not len(words) or
+                    line.is_last_line):
+                    continue
+
+                done = False
+                parts = [None, ] * len(words)  # contains words split by space
+                idxs = [None, ] * len(words)  # indices of the space in parts
+                # break each word into spaces and add spaces until it's full
+                # do first round of split in case we don't need to split all
+                for w in range(len(words)):
+                    word = words[w]
+                    sw = word.options['space_width']
+                    p = parts[w] = split(word.text)
+                    idxs[w] = [v for v in range(len(p)) if
+                               p[v].startswith(' ')]
+                    # now we have the indices of the spaces in split list
+                    for k in idxs[w]:
+                        # try to add single space at each space
+                        if line.w + sw > uww:
+                            done = True
+                            break
+                        line.w += sw
+                        word.lw += sw
+                        p[k] += space
+                    if done:
+                        break
+
+                # there's not a single space in the line?
+                if not any(idxs):
+                    continue
+
+                # now keep adding spaces to already split words until done
+                while not done:
+                    for w in range(len(words)):
+                        if not idxs[w]:
+                            continue
+                        word = words[w]
+                        sw = word.options['space_width']
+                        p = parts[w]
+                        for k in idxs[w]:
+                            # try to add single space at each space
+                            if line.w + sw > uww:
+                                done = True
+                                break
+                            line.w += sw
+                            word.lw += sw
+                            p[k] += space
+                        if done:
+                            break
+
+                # if not completely full, push last words to right edge
+                diff = int(uww - line.w)
+                if diff > 0:
+                    # find the last word that had a space
+                    for w in range(len(words) - 1, -1, -1):
+                        if not idxs[w]:
+                            continue
+                        break
+                    old_opts = self.options
+                    self.options = word.options
+                    word = words[w]
+                    # split that word into left/right and push right till uww
+                    l_text = empty.join(parts[w][:idxs[w][-1]])
+                    r_text = empty.join(parts[w][idxs[w][-1]:])
+                    left = LayoutWord(word.options,
+                        self.get_extents(l_text)[0], word.lh, l_text)
+                    right = LayoutWord(word.options,
+                        self.get_extents(r_text)[0], word.lh, r_text)
+                    left.lw = max(left.lw, word.lw + diff - right.lw)
+                    self.options = old_opts
+
+                    # now put words back together with right/left inserted
+                    for k in range(len(words)):
+                        if idxs[k]:
+                            words[k].text = empty.join(parts[k])
+                    words[w] = right
+                    words.insert(w, left)
+                else:
+                    for k in range(len(words)):
+                        if idxs[k]:
+                            words[k].text = empty.join(parts[k])
+                line.w = uww
+                w = max(w, uww)
 
         self._internal_size = w, h
         if uw:
@@ -514,9 +609,12 @@ class MarkupLabel(MarkupLabelBase):
 
         # flatten lines into single line
         line = []
+        last_w = 0
         for l in range(len(lines)):
-            if l:  # concatenate lines with a space
+            # concatenate (non-empty) inside lines with a space
+            if last_w and lines[l].w:
                 line.append(LayoutWord(old_opts, ssize[0], ssize[1], chr(' ')))
+            last_w = lines[l].w or last_w
             for word in lines[l].words:
                 if word.lw:
                     line.append(word)

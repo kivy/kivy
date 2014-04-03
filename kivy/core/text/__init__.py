@@ -393,7 +393,8 @@ class LabelBase(object):
         xpad, ypad = options['padding_x'], options['padding_y']
         x, y = xpad, ypad   # pos in the texture
         iw, ih = self._internal_size  # the real size of text, not texture
-        rw = iw - 2 * xpad  # real width of just text
+        if uw is not None:
+            uww = uw - 2 * xpad  # real width of just text
         w, h = self.size
         sw = options['space_width']
         halign = options['halign']
@@ -423,9 +424,10 @@ class LabelBase(object):
             # right left justify
             # divide left over space between `spaces`
             # TODO implement a better method of stretching glyphs?
-            if halign[-1] == 'y' and line and not layout_line.is_last_line:
+            if (uw is not None and halign[-1] == 'y' and line and not
+                layout_line.is_last_line):
                 # number spaces needed to fill, and remainder
-                n, rem = divmod(max(rw - lw, 0), sw)
+                n, rem = divmod(max(uww - lw, 0), sw)
                 n = int(n)
                 words = None
                 if n or rem:
@@ -443,13 +445,13 @@ class LabelBase(object):
                         word = LayoutWord(last_word.options, ext[0], ext[1],
                                           words[-1])
                         layout_line.words.append(word)
-                        last_word.lw = rw - ext[0]  # word was stretched
+                        last_word.lw = uww - ext[0]  # word was stretched
                         render_text(words[-1], x + last_word.lw, y)
                         last_word.text = line = ''.join(words[:-2])
                     else:
-                        last_word.lw = rw  # word was stretched
+                        last_word.lw = uww  # word was stretched
                         last_word.text = line = ''.join(words)
-                    layout_line.w = iw  # the line occupies full width
+                    layout_line.w = uww  # the line occupies full width
 
 
             if len(line):
