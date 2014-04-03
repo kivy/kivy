@@ -17,6 +17,7 @@ __all__ = ('LabelBase', 'Label')
 
 import re
 import os
+from functools import partial
 from copy import copy
 from kivy import kivy_data_dir
 from kivy.graphics.texture import Texture
@@ -67,6 +68,15 @@ class LabelBase(object):
             contents as much as possible if a `size` is given.
             Setting this to True without an appropriately set size will lead to
             unexpected results.
+        `shorten_from`: bool, defaults to `center`
+            The side from which we should shorten the text from, can be left,
+            right, or center. E.g. if left, the ellipsis will appear towards
+            the left side and it will display as much text starting from the
+            right as possible.
+        `split_str`: string, defaults to ` ` (space)
+            The string to use to split the words by when shortening. If empty,
+            we can split after every character filling up the line as much as
+            possible.
         `max_lines`: int, defaults to 0 (unlimited)
             If set, this indicate how maximum line are allowed to render the
             text. Works only if a limitation on text_size is set.
@@ -75,6 +85,9 @@ class LabelBase(object):
         `strip` : bool, defaults to False
             Whether each row of text has its leading and trailing spaces
             stripped. If `halign` is `justify` it is implicitly True.
+
+    .. versionchanged:: 1.8.1
+        `shorten_from` and `split_str` were added.
 
     .. versionchanged:: 1.8.1
         `strip` was added.
@@ -98,7 +111,7 @@ class LabelBase(object):
 
     __slots__ = ('options', 'texture', '_label', '_text_size')
 
-    _cache_glyphs = {}
+    _cached_lines = []
 
     _fonts = {}
 
@@ -109,13 +122,15 @@ class LabelBase(object):
     def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
                  bold=False, italic=False, halign='left', valign='bottom',
                  shorten=False, text_size=None, mipmap=False, color=None,
-                 line_height=1.0, strip=False, **kwargs):
+                 line_height=1.0, strip=False, shorten_from='center',
+                 split_str=' ', **kwargs):
 
         options = {'text': text, 'font_size': font_size,
                    'font_name': font_name, 'bold': bold, 'italic': italic,
                    'halign': halign, 'valign': valign, 'shorten': shorten,
                    'mipmap': mipmap, 'line_height': line_height,
-                   'strip': strip}
+                   'strip': strip, 'shorten_from': shorten_from,
+                   'split_str': split_str}
 
         options['color'] = color or (1, 1, 1, 1)
         options['padding'] = kwargs.get('padding', (0, 0))
@@ -240,28 +255,120 @@ class LabelBase(object):
         pass
 
     def shorten(self, text, margin=2):
-        # Just a tiny shortcut
-        textwidth = self.get_extents
-        if self.text_size[0] is None:
-            width = 0
-        else:
-            width = max(0,
-                        int(self.text_size[0] - self.options['padding_x'] * 2))
+        ''' Shortens the text to fit into a single line by the width specified
+        by :attr:`text_size`[0]. If :attr:`text_size`[0] is None, it returns
+        text text unchanged.
 
-        letters = '_..._' + text
-        while textwidth(letters)[0] > width:
-            letters = letters[:letters.rfind(' ')]
+        :attr:`split_str` and :attr:`shorten_from` determines how the text is
+        shortened.
 
-        max_letters = len(letters) - 2
-        segment = (max_letters // 2)
+        :params:
 
-        if segment - margin > 5:
-            segment -= margin
-            return type(text)('{0}...{1}').format(text[:segment].strip(),
-                                                  text[-segment:].strip())
-        else:
-            segment = max_letters - 3  # length of '...'
-            return type(text)('{0}...').format(text[:segment].strip())
+            `text` str, the text to be shortened.
+            `margin` int, the amount of space to leave between the margins
+            and the text. This is in addition to :attr:`padding_x`.
+
+        :retruns:
+            the text shortened to fit into a single line.
+        '''
+        textwidth = self.get_cached_extents()
+        uw = self.text_size[0]
+        if uw is None or not text:
+            return text
+
+        opts = self.options
+        uw = max(0, int(uw - opts['padding_x'] * 2 - margin))
+        # if larger, it won't fit so don't even try extents
+        chr = type(text)
+        text = text.replace(chr('\n'), chr(' '))
+        if len(text) <= uw and textwidth(text)[0] <= uw:
+            return text
+        c = opts['split_str']
+        offset = 0 if len(c) else 1
+        dir = opts['shorten_from'][0]
+        elps = textwidth('...')[0]
+        if elps > uw:
+            if textwidth('..')[0] <= uw:
+                return '..'
+            else:
+                return '.'
+        uw -= elps
+
+        f = partial(text.find, c)
+        f_rev = partial(text.rfind, c)
+        # now find the first and last word
+        e1, s2 = f(), f_rev()
+
+        if dir != 'l':  # center or right
+            # no split, or the first word doesn't even fit
+            if e1 != -1:
+                l1 = textwidth(text[:e1])[0]
+                l2 = textwidth(text[s2 + 1:])[0]
+            if e1 == -1 or l1 + l2 > uw:
+                if e1 != -1 and l1 <= uw:
+                    return chr('{0}...').format(text[:e1])
+                m = 1
+                # just break first word fitting what we can
+                while m <= len(text) and textwidth(text[:m])[0] <= uw:
+                    m += 1
+                return chr('{0}...').format(text[:m - 1])
+
+            # both word fits, and there's at least on split_str
+            if s2 == e1:  # there's only on split_str
+                return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
+
+            # both the first and last word fits, and they start/end at diff pos
+            if dir == 'r':
+                ee1 = f(e1 + 1)
+                while l2 + textwidth(text[:ee1])[0] <= uw:
+                    e1 = ee1
+                    if e1 == s2:
+                        break
+                    ee1 = f(e1 + 1)
+            else:
+                while True:
+                    ee1 = f(e1 + 1)
+                    l1 = textwidth(text[:ee1])[0]
+                    if l2 + l1 > uw:
+                        break
+                    e1 = ee1
+                    if e1 == s2:
+                        break
+                    ss2 = f_rev(0, s2 - offset)
+                    l2 = textwidth(text[ss2 + 1:])[0]
+                    if l2 + l1 > uw:
+                        break
+                    s2 = ss2
+                    if e1 == s2:
+                        break
+        else:  # left
+            # no split, or the last word doesn't even fit
+            if s2 != -1:
+                l2 = textwidth(text[s2 + 1:])[0]
+                l1 = textwidth(text[:max(0, e1)])[0]
+            # if split_str
+            if s2 == -1 or l2 + l1 > uw:
+                if s2 != -1 and l2 <= uw:
+                    return chr('...{0}').format(text[s2 + 1:])
+                m = len(text) - 1
+                # just break first word fitting what we can
+                while m >= 0 and textwidth(text[m:])[0] <= uw:
+                    m -= 1
+                return chr('...{0}').format(text[m + 1:])
+
+            # both word fits, and there's at least on split_str
+            if s2 == e1:  # there's only on split_str
+                return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
+
+            # both the first and last word fits, and they start/end at diff pos
+            ss2 = f_rev(0, s2 - offset)
+            while l1 + textwidth(text[ss2 + 1:])[0] <= uw:
+                s2 = ss2
+                if s2 == e1:
+                    break
+                ss2 = f_rev(0, s2 - offset)
+
+        return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
 
     def _render_real(self):
         lines = self._cached_lines
@@ -301,10 +408,12 @@ class LabelBase(object):
         for layout_line in lines:  # for plain label each line has only one str
             lw, lh = layout_line.w, layout_line.h
             line = ''
+            word_h = lh
             assert len(layout_line.words) < 2
             if len(layout_line.words):
                 last_word = layout_line.words[0]
                 line = last_word.text
+                word_h = last_word.lh
             x = xpad
             if halign[0] == 'c':  # center
                 x = int((w - lw) / 2.)
@@ -346,7 +455,8 @@ class LabelBase(object):
             if len(line):
                 layout_line.x = x
                 layout_line.y = y
-                render_text(line, x, y)
+                script_pos = (lh - word_h) / 1.25
+                render_text(line, x, y + script_pos)
             y += lh
 
         # get data from provider

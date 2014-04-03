@@ -46,9 +46,10 @@ from kivy.properties import dpi2px
 from kivy.parser import parse_color
 from kivy.logger import Logger
 from kivy.core.text import Label, LabelBase
-from kivy.core.text.text_layout import layout_text
+from kivy.core.text.text_layout import layout_text, LayoutWord, LayoutLine
 from copy import copy
 from math import ceil
+from functools import partial
 
 # We need to do this trick when documentation is generated
 MarkupLabelBase = Label
@@ -67,6 +68,7 @@ class MarkupLabel(MarkupLabelBase):
         self._refs = {}
         super(MarkupLabel, self).__init__(*largs, **kwargs)
         self._internal_size = 0, 0
+        self._cached_lines = []
 
     @property
     def refs(self):
@@ -131,7 +133,8 @@ class MarkupLabel(MarkupLabelBase):
         options = self.options
         options['_ref'] = None
         options['script'] = 'normal'
-        uhh = None if uh is not None and options['valign'][-1] != 'p' else uh
+        uhh = (None if uh is not None and options['valign'][-1] != 'p' or
+               options['shorten'] else uh)
         options['strip'] = options['strip'] or options['halign'][-1] == 'y'
         for item in self.markup:
             if item == '[b]':
@@ -218,9 +221,13 @@ class MarkupLabel(MarkupLabelBase):
             w, h, clipped = layout_text('', lines, (w, h), (uw, uhh),
                 copy(options), self.get_cached_extents(), True, True)
 
+        if options['shorten']:
+            options['_ref'] = None  # no refs for you!
+            w, h, lines = self.shorten_post(lines, w, h)
+            self._cached_lines = lines
         # when valign is not top, for markup we layout everything (text_size[1]
         # is temporarily set to None) and after layout cut to size if too tall
-        if uh != uhh and h > uh and len(lines) > 1:
+        elif uh != uhh and h > uh and len(lines) > 1:
             if options['valign'][-1] == 'm':  # bottom
                 i = 0
                 while i < len(lines) - 1 and h > uh:
@@ -239,6 +246,10 @@ class MarkupLabel(MarkupLabelBase):
                     h -= lines[i].h
                     i -= 1
                 del lines[i + 1:]
+
+        # now justify the text
+        if options['halign'][-1] == 'y' and uw is not None:
+            pass
 
         self._internal_size = w, h
         if uw:
@@ -309,7 +320,8 @@ class MarkupLabel(MarkupLabelBase):
                 else:
                     script_pos = (lh - word.lh) / 1.25
                     psp = pph = 0
-                render_text(word.text, x, y + script_pos)
+                if len(word.text):
+                    render_text(word.text, x, y + script_pos)
 
                 # should we record refs ?
                 ref = options['_ref']
@@ -320,6 +332,7 @@ class MarkupLabel(MarkupLabelBase):
                 x += word.lw
             y += lh
 
+        self.options = old_opts
         # get data from provider
         data = self._render_end()
         assert(data)
@@ -328,3 +341,318 @@ class MarkupLabel(MarkupLabelBase):
         # Don't blit that kind of data, otherwise, you have a little black bar.
         if data is not None and data.width > 1:
             self.texture.blit_data(data)
+
+    def shorten_post(self, lines, w, h, margin=2):
+        ''' Shortens the text to a single line according to the label options.
+
+        This function operates on a text that has already been laid out because
+        for markup, parts of text can have different size and options.
+
+        If :attr:`text_size`[0] is None, the lines are returned unchanged.
+        Otherwise, the lines are converted to a single line fitting within the
+        constrained width, :attr:`text_size`[0].
+
+        :params:
+
+            `lines`: list of `LayoutLine` instances describing the text.
+            `w`: int, the width of the text in lines, including padding.
+            `h`: int, the height of the text in lines, including padding.
+            `margin` int, the additional space left on the sides.  This is in
+                addition to :attr:`padding_x`.
+
+        :returns:
+            3-tuple of (xw, h, lines), where w, and h is similar to the input
+            and contains the resulting width / height of the text, including
+            padding. lines, is a list containing a single `LayoutLine`, which
+            contains the words for the line.
+        '''
+
+        def n(line, c):
+            ''' A function similar to text.find, except it's an iterator that
+            returns successive occurrences of string c in list line. line is
+            not a string, but a list of LayoutWord instances that we walk
+            from left to right returning the indices of c in the words as we
+            encounter them. Note that the options can be different among the
+            words.
+
+            :returns:
+                3-tuple: the index of the word in line, the index of the
+                occurrence in word, and the extents (width) of the combined
+                words until this occurrence, not including the occurrence char.
+                If no more are found it returns (-1, -1, total_w) where total_w
+                is the full width of all the words.
+            '''
+            total_w = 0
+            for w in range(len(line)):
+                word = line[w]
+                if not word.lw:
+                    continue
+                f = partial(word.text.find, c)
+                i = f()
+                while i != -1:
+                    self.options = word.options
+                    yield w, i, total_w + self.get_extents(word.text[:i])[0]
+                    i = f(i + 1)
+                self.options = word.options
+                total_w += self.get_extents(word.text)[0]
+            yield -1, -1, total_w  # this should never be reached, really
+
+        def p(line, c):
+            ''' Similar to the `n` function, except it returns occurrences of c
+            from right to left in the list, line, similar to rfind.
+            '''
+            total_w = 0
+            offset = 0 if len(c) else 1
+            for w in range(len(line) - 1, -1, -1):
+                word = line[w]
+                if not word.lw:
+                    continue
+                f = partial(word.text.rfind, c)
+                i = f()
+                while i != -1:
+                    self.options = word.options
+                    yield w, i, total_w +\
+                    self.get_extents(word.text[i + 1:])[0]
+                    if i:
+                        i = f(0, i - offset)
+                    else:
+                        if not c:
+                            self.options = word.options
+                            yield w, -1, total_w +\
+                            self.get_extents(word.text)[0]
+                        break
+                self.options = word.options
+                total_w += self.get_extents(word.text)[0]
+            yield -1, -1, total_w  # this should never be reached, really
+
+        def n_restricted(line, uw, c):
+            ''' Similar to the function `n`, except it only returns the first
+            occurrence and it's not an iterator. Furthermore, if the first
+            occurrence doesn't fit within width uw, it returns the index of
+            whatever amount of text will still fit in uw.
+
+            :returns:
+                similar to the function `n`, except it's a 4-tuple, with the
+                last element a boolean, indicating if we had to clip the text
+                to fit in uw (True) or if the whole text until the first
+                occurrence fitted in uw (False).
+            '''
+            total_w = 0
+            if not len(line):
+                return 0, 0, 0
+            for w in range(len(line)):
+                word = line[w]
+                f = partial(word.text.find, c)
+                self.options = word.options
+                extents = self.get_cached_extents()
+                i = f()
+                if i != -1:
+                    ww = extents(word.text[:i])[0]
+
+                if i != -1 and total_w + ww <= uw:  # found and it fits
+                    return w, i, total_w + ww, False
+                elif i == -1:
+                    ww = extents(word.text)[0]
+                    if total_w + ww <= uw:  # wasn't found and all fits
+                        total_w += ww
+                        continue
+                    i = len(word.text)
+
+                # now just find whatever amount of the word does fit
+                e = 0
+                while e != i and total_w + extents(word.text[:e])[0] <= uw:
+                    e += 1
+                e = max(0, e - 1)
+                return w, e, total_w + extents(word.text[:e])[0], True
+
+            return -1, -1, total_w, False
+
+        def p_restricted(line, uw, c):
+            ''' Similar to `n_restricted`, except it returns the first
+            occurrence starting from the right, like `p`.
+            '''
+            total_w = 0
+            if not len(line):
+                return 0, 0, 0
+            for w in range(len(line) - 1, -1, -1):
+                word = line[w]
+                f = partial(word.text.rfind, c)
+                self.options = word.options
+                extents = self.get_cached_extents()
+                i = f()
+                if i != -1:
+                    ww = extents(word.text[i + 1:])[0]
+
+                if i != -1 and total_w + ww <= uw:  # found and it fits
+                    return w, i, total_w + ww, False
+                elif i == -1:
+                    ww = extents(word.text)[0]
+                    if total_w + ww <= uw:  # wasn't found and all fits
+                        total_w += ww
+                        continue
+
+                # now just find whatever amount of the word does fit
+                s = len(word.text) - 1
+                while s >= 0 and total_w + extents(word.text[s:])[0] <= uw:
+                    s -= 1
+                return w, s, total_w + extents(word.text[s + 1:])[0], True
+
+            return -1, -1, total_w, False
+
+        textwidth = self.get_cached_extents()
+        uw = self.text_size[0]
+        if uw is None:
+            return w, h, lines
+        old_opts = copy(self.options)
+        uw = max(0, int(uw - old_opts['padding_x'] * 2 - margin))
+        chr = type(self.text)
+        ssize = textwidth(' ')
+        c = old_opts['split_str']
+        line_height = old_opts['line_height']
+        xpad, ypad = old_opts['padding_x'], old_opts['padding_x']
+        dir = old_opts['shorten_from'][0]
+
+        # flatten lines into single line
+        line = []
+        for l in range(len(lines)):
+            if l:  # concatenate lines with a space
+                line.append(LayoutWord(old_opts, ssize[0], ssize[1], chr(' ')))
+            for word in lines[l].words:
+                if word.lw:
+                    line.append(word)
+
+        # if that fits, just return the flattened line
+        lw = sum([word.lw for word in line])
+        if lw <= uw:
+            lh = max([word.lh for word in line]) * line_height
+            return lw + 2 * xpad, lh + 2 * ypad, [LayoutLine(0, 0,
+            lw, lh, 1, 0, line)]
+
+        # find the size of ellipsis that'll fit
+        elps_s = textwidth('...')
+        if elps_s[0] > uw:  # even ellipsis didn't fit...
+            s = textwidth('..')
+            if s[0] <= uw:
+                return (s[0] + 2 * xpad, s[1] * line_height + 2 * ypad,
+                    [LayoutLine(0, 0, s[0], s[1], 1, 0, [LayoutWord(old_opts,
+                    s[0], s[1], '..')])])
+            else:
+                s = textwidth('.')
+                return (s[0] + 2 * xpad, s[1] * line_height + 2 * ypad,
+                    [LayoutLine(0, 0, s[0], s[1], 1, 0, [LayoutWord(old_opts,
+                    s[0], s[1], '.')])])
+        elps = LayoutWord(old_opts, elps_s[0], elps_s[1], '...')
+        uw -= elps_s[0]
+
+        # now find the first left and right words that fit
+        w1, e1, l1, clipped1 = n_restricted(line, uw, c)
+        w2, s2, l2, clipped2 = p_restricted(line, uw, c)
+
+        if dir != 'l':  # center or right
+            line1 = None
+            if clipped1 or clipped2 or l1 + l2 > uw:
+                # if either was clipped or both don't fit, just take first
+                line1 = line[:w1]
+                last_word = line[w1]
+                last_text = last_word.text[:e1]
+                self.options = last_word.options
+                s = self.get_extents(last_text)
+                line1.append(LayoutWord(last_word.options, s[0], s[1],
+                                        last_text))
+            elif (w1, e1) == (-1, -1) :  # this shouldn't occur
+                line1 = line
+            if line1:
+                line1.append(elps)
+                lw = sum([word.lw for word in line1])
+                lh = max([word.lh for word in line1]) * line_height
+                self.options = old_opts
+                return lw + 2 * xpad, lh + 2 * ypad, [LayoutLine(0, 0,
+                    lw, lh, 1, 0, line1)]
+
+            # now we know that both the first and last word fit, and that
+            # there's at least one instances of the split_str in the line
+            if (w1, e1) != (w2, s2):  # more than one split_str
+                if dir == 'r':
+                    f = n(line, c)  # iterator
+                    assert next(f)[:-1] == (w1, e1)  # first word should match
+                    ww1, ee1, l1 = next(f)
+                    while l2 + l1 <= uw:
+                        w1, e1 = ww1, ee1
+                        ww1, ee1, l1 = next(f)
+                        if (w1, e1) == (w2, s2):
+                            break
+                else:   # center
+                    f = n(line, c)  # iterator
+                    f_inv = p(line, c)  # iterator
+                    assert next(f)[:-1] == (w1, e1)
+                    assert next(f_inv)[:-1] == (w2, s2)
+                    while True:
+                        ww1, ee1, l1 = next(f)  # hypothesize that next fits
+                        if l2 + l1 > uw:
+                            break
+                        w1, e1 = ww1, ee1
+                        if (w1, e1) == (w2, s2):
+                            break
+                        ww2, ss2, l2 = next(f_inv)
+                        if l2 + l1 > uw:
+                            break
+                        w2, s2 = ww2, ss2
+                        if (w1, e1) == (w2, s2):
+                            break
+        else:  # left
+            line1 = [elps]
+            if clipped1 or clipped2 or l1 + l2 > uw:
+                # if either was clipped or both don't fit, just take last
+                first_word = line[w2]
+                first_text = first_word.text[s2 + 1:]
+                self.options = first_word.options
+                s = self.get_extents(first_text)
+                line1.append(LayoutWord(first_word.options, s[0], s[1],
+                                        first_text))
+                line1.extend(line[w2 + 1:])
+            elif (w1, e1) == (-1, -1) :  # this shouldn't occur
+                line1 = line
+            if len(line1) != 1:
+                lw = sum([word.lw for word in line1])
+                lh = max([word.lh for word in line1]) * line_height
+                self.options = old_opts
+                return lw + 2 * xpad, lh + 2 * ypad, [LayoutLine(0, 0,
+                    lw, lh, 1, 0, line1)]
+
+            # now we know that both the first and last word fit, and that
+            # there's at least one instances of the split_str in the line
+            if (w1, e1) != (w2, s2):  # more than one split_str
+                f_inv = p(line, c)  # iterator
+                assert next(f_inv)[:-1] == (w2, s2)  # last word should match
+                ww2, ss2, l2 = next(f_inv)
+                while l2 + l1 <= uw:
+                    w2, s2 = ww2, ss2
+                    ww2, ss2, l2 = next(f_inv)
+                    if (w1, e1) == (w2, s2):
+                        break
+
+        # now add back the left half
+        line1 = line[:w1]
+        last_word = line[w1]
+        last_text = last_word.text[:e1]
+        self.options = last_word.options
+        s = self.get_extents(last_text)
+        if len(last_text):
+            line1.append(LayoutWord(last_word.options, s[0], s[1], last_text))
+        line1.append(elps)
+
+        # now add back the right half
+        first_word = line[w2]
+        first_text = first_word.text[s2 + 1:]
+        self.options = first_word.options
+        s = self.get_extents(first_text)
+        if len(first_text):
+            line1.append(LayoutWord(first_word.options, s[0], s[1],
+                                    first_text))
+        line1.extend(line[w2 + 1:])
+
+        lw = sum([word.lw for word in line1])
+        lh = max([word.lh for word in line1]) * line_height
+        self.options = old_opts
+        return lw + 2 * xpad, lh + 2 * ypad, [LayoutLine(0, 0,
+            lw, lh, 1, 0, line1)]
