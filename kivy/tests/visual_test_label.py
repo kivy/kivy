@@ -24,7 +24,8 @@ def test_layout_real_perf(label, repeat):
         return 'None'
     old_text = label._label.texture
     label._label.texture = label._label.texture_1px
-    res = str(timeit.Timer(label._label._render_real).repeat(1, repeat))
+    res = str(timeit.Timer(partial(label._label.render, True)).repeat(1,
+                                                                      repeat))
     label._label.texture = old_text
     return res
 
