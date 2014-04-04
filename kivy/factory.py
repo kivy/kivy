@@ -79,6 +79,21 @@ class FactoryBase(object):
             raise ValueError(
                 'You must specify either cls= or module= or baseclasses =')
         if classname in self.classes:
+            info = self.classes[classname]
+            bases = ['', '']
+            # compare previous to current declaration, log when ignored change
+            for _base, _cls, i in ((baseclasses, cls, 0),
+                                (info['baseclasses'], info['cls'], 1)):
+                if _base is None and _cls is None:
+                    return
+                if _base is None:
+                    _base = '+'.join([base.__name__ for base in
+                                      _cls.__bases__])
+                bases[i] = _base
+            if bases[0] != bases[1]:
+                Logger.warning('Ignored class "{}" re-declaration with '
+                'different bases. Previous is "{}", new is "{}"'.format(
+                classname, bases[1], bases[0]))
             return
         self.classes[classname] = {
             'module': module,
