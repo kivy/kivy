@@ -14,6 +14,7 @@ except:
     raise
 
 pygame_cache = {}
+pygame_font_handles = {}
 pygame_cache_order = []
 
 # init pygame font
@@ -40,12 +41,13 @@ class LabelPygame(LabelBase):
         fontid = self._get_font_id()
         if fontid not in pygame_cache:
             # try first the file if it's a filename
-            fontobject = None
+            font_handle = fontobject = None
             fontname = self.options['font_name_r']
             ext = fontname.split('.')[-1]
             if ext.lower() == 'ttf':
                 # fontobject
-                fontobject = pygame.font.Font(fontname,
+                font_handle = open(fontname, 'rb')
+                fontobject = pygame.font.Font(font_handle,
                                               int(self.options['font_size']))
 
             # fallback to search a system font
@@ -60,12 +62,16 @@ class LabelPygame(LabelBase):
                 fontobject = pygame.font.Font(font,
                                               int(self.options['font_size']))
             pygame_cache[fontid] = fontobject
+            pygame_font_handles[fontid] = font_handle
             pygame_cache_order.append(fontid)
 
         # to prevent too much file open, limit the number of opened fonts to 64
         while len(pygame_cache_order) > 64:
             popid = pygame_cache_order.pop(0)
             del pygame_cache[popid]
+            font_handle = pygame_font_handles.pop(popid)
+            if font_handle is not None:
+                font_handle.close()
 
         return pygame_cache[fontid]
 
