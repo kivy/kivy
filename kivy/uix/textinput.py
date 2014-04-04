@@ -141,6 +141,7 @@ import sys
 from functools import partial
 from os import environ
 from weakref import ref
+import string
 
 from kivy.animation import Animation
 from kivy.base import EventLoop
@@ -490,12 +491,32 @@ class TextInput(Widget):
                 substring += indent
         return substring
 
+    def _insert_filter_text(self, substring, mode):
+        chr = type(substring)
+        if mode == 'int':
+            return re.sub(self._insert_int_pat, chr(''), substring)
+        elif mode == 'float':
+            if '.' in self.text:
+                return re.sub(self._insert_int_pat, chr(''), substring)
+            else:
+                return '.'.join([re.sub(self._insert_int_pat, chr(''), k) for k
+                                 in substring.split(chr('.'), 1)])
+        elif mode == 'printable':
+            return re.sub(self._insert_printable_pat, chr(''), substring)
+        return substring
+
     def insert_text(self, substring, from_undo=False):
         '''Insert new text at the current cursor position. Override this
         function in order to pre-process text for input validation.
         '''
         if self.readonly or not substring:
             return
+
+        mode = self.input_filter
+        if mode is not None:
+            substring = self._insert_filter_text(substring, mode)
+            if not substring:
+                return
 
         self._hide_handles(self._win)
 
@@ -1023,7 +1044,7 @@ class TextInput(Widget):
         self._hide_cut_copy_paste()
         sf, st = self._selection_from, self.selection_to
         if sf > st:
-            self._selection_from , self._selection_to = st, sf
+            self._selection_from, self._selection_to = st, sf
 
     def _handle_released(self, instance):
         sf, st = self._selection_from, self.selection_to
@@ -1101,7 +1122,7 @@ class TextInput(Widget):
         last_rect = group[-1]
         hp_right = last_rect.pos[0], last_rect.pos[1]
         x, y = to_win(*hp_right)
-        handle_right.x =  x + last_rect.size[0]
+        handle_right.x = x + last_rect.size[0]
         handle_right.y = y - handle_right.height
 
     def _hide_handles(self, win=None):
@@ -1800,7 +1821,7 @@ class TextInput(Widget):
 
             # check for blank line
             if not ntext:
-                texture  = Texture.create(size=(1, 1))
+                texture = Texture.create(size=(1, 1))
                 Cache_append('textinput.label', cid, texture)
                 return texture
 
@@ -2032,6 +2053,8 @@ class TextInput(Widget):
     _lines = ListProperty([])
     _hint_text_lines = ListProperty([])
     _editable = BooleanProperty(True)
+    _insert_int_pat = re.compile('[^0-9]')
+    _insert_printable_pat = re.compile('[^{}]'.format(string.printable))
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
@@ -2562,6 +2585,20 @@ class TextInput(Widget):
     :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
     defaults to 'text'. Can be one of 'text', 'number', 'url', 'mail',
     'datetime', 'tel', 'address'.
+    '''
+
+    input_filter = OptionProperty(None, options=('int', 'float', 'printable'),
+                                  allownone=True)
+    ''' Filters the input to only allow characters according to the option
+    selected, if not None. If None, no filtering is applied.
+
+    .. versionadded:: 1.8.1
+
+    :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
+    defaults to `None`. Can be one of `None`, `'int'`, `'float'`, or
+    `'printable'`. `int` will only allow numbers while `float` also allows a
+    single period. `printable` will only allow ASCII characters which are
+    considered printable.
     '''
 
     handle_image_middle = StringProperty(
