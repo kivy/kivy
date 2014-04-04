@@ -25,8 +25,12 @@ Installing the portable version
         :scale: 75%
 
 #. In the folder where you unzipped the package, you have a script called `kivy.bat`.
-   Use this file for launching any kivy application as described below
-
+   Use this file for launching any kivy application as described below.
+   
+   .. note::
+       Launching the kivy.bat file will open a command window already set up to run kivy's
+       Python. The environment settings are only changed for this command window and will
+       not effect the system environment.
 
 .. _windows-run-app:
 
