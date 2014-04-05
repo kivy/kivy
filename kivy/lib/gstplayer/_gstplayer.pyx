@@ -85,8 +85,7 @@ cdef extern from 'gst/gst.h':
 
 cdef extern from '_gstplayer.h':
     void g_object_set_void(GstElement *element, char *name, void *value)
-    void g_object_set_double(GstElement *element, char *name, double value) nogil
-    double g_object_get_double(GstElement *element, char *name) nogil
+    void g_object_set_double(GstElement *element, char *name, double value)
     void g_object_set_caps(GstElement *element, char *value)
     void g_object_set_int(GstElement *element, char *name, int value)
     gulong c_appsink_set_sample_callback(GstElement *appsink,
@@ -361,12 +360,11 @@ cdef class GstPlayer:
             return duration
 
         # preroll
-        cdef double volume = g_object_get_double(self.playbin, 'volume')
-        g_object_set_double(self.playbin, 'volume', 0)
         gst_element_set_state(self.pipeline, GST_STATE_PAUSED)
+        gst_element_get_state(self.pipeline, &state, NULL,
+                <GstClockTime>GST_SECOND)
         gst_element_query_duration(self.playbin, GST_FORMAT_TIME, &duration)
         gst_element_set_state(self.pipeline, GST_STATE_READY)
-        g_object_set_double(self.playbin, 'volume', volume)
         return duration
 
     cdef gint64 _get_position(self) nogil:
