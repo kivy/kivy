@@ -2476,6 +2476,10 @@ class TextInput(Widget):
 
         if self._get_text(encode=False) == text:
             return
+        mode = self.input_filter
+        if mode is not None:
+            text = self._insert_filter_text(text, mode)
+
         self._refresh_text(text)
         self.cursor = self.get_cursor_from_index(len(text))
 
