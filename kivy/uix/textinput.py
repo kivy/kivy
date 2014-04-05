@@ -2594,7 +2594,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.1
 
-    :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
+    :attr:`input_filter` is an :class:`~kivy.properties.OptionsProperty` and
     defaults to `None`. Can be one of `None`, `'int'`, `'float'`, or
     `'printable'`. `int` will only allow numbers while `float` also allows a
     single period. `printable` will only allow ASCII characters which are
