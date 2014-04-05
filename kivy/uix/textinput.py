@@ -493,16 +493,23 @@ class TextInput(Widget):
 
     def _insert_filter_text(self, substring, mode):
         chr = type(substring)
+        if chr is bytes:
+            int_pat = self._insert_int_patb
+            print_pat = self._insert_printable_patb
+        else:
+            int_pat = self._insert_int_patu
+            print_pat = self._insert_printable_patu
+
         if mode == 'int':
-            return re.sub(self._insert_int_pat, chr(''), substring)
+            return re.sub(int_pat, chr(''), substring)
         elif mode == 'float':
             if '.' in self.text:
-                return re.sub(self._insert_int_pat, chr(''), substring)
+                return re.sub(int_pat, chr(''), substring)
             else:
-                return '.'.join([re.sub(self._insert_int_pat, chr(''), k) for k
+                return '.'.join([re.sub(int_pat, chr(''), k) for k
                                  in substring.split(chr('.'), 1)])
         elif mode == 'printable':
-            return re.sub(self._insert_printable_pat, chr(''), substring)
+            return re.sub(print_pat, chr(''), substring)
         return substring
 
     def insert_text(self, substring, from_undo=False):
@@ -2053,8 +2060,11 @@ class TextInput(Widget):
     _lines = ListProperty([])
     _hint_text_lines = ListProperty([])
     _editable = BooleanProperty(True)
-    _insert_int_pat = re.compile('[^0-9]')
-    _insert_printable_pat = re.compile('[^{}]'.format(string.printable))
+    _insert_int_patu = re.compile(u'[^0-9]')
+    _insert_printable_patu = re.compile(u'[^{}]'.format(string.printable))
+    _insert_int_patb = re.compile(b'[^0-9]')
+    _insert_printable_patb = re.compile(u'[^{}]'.format(string.printable
+                                                        ).encode())
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
