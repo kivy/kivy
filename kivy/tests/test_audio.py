@@ -6,8 +6,8 @@ Audio tests
 import unittest
 import os
 
-SAMPLE_FILE = os.path.join(os.path.dirname(__file__), 'sample1.mp3')
-SAMPLE_LENGTH = 1.44
+SAMPLE_FILE = os.path.join(os.path.dirname(__file__), 'sample1.ogg')
+SAMPLE_LENGTH = 1.402
 DELTA = SAMPLE_LENGTH * 0.01
 
 
