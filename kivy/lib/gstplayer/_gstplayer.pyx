@@ -85,7 +85,8 @@ cdef extern from 'gst/gst.h':
 
 cdef extern from '_gstplayer.h':
     void g_object_set_void(GstElement *element, char *name, void *value)
-    void g_object_set_double(GstElement *element, char *name, double value)
+    void g_object_set_double(GstElement *element, char *name, double value) nogil
+    double g_object_get_double(GstElement *element, char *name) nogil
     void g_object_set_caps(GstElement *element, char *value)
     void g_object_set_int(GstElement *element, char *name, int value)
     gulong c_appsink_set_sample_callback(GstElement *appsink,
@@ -322,14 +323,18 @@ cdef class GstPlayer:
     def get_duration(self):
         cdef float duration
         with nogil:
-            duration = self._get_duration() / float(GST_SECOND)
-        return duration
+            duration = self._get_duration()
+        if duration == -1:
+            return -1
+        return duration / float(GST_SECOND)
 
     def get_position(self):
         cdef float position
         with nogil:
-            position = self._get_position() / float(GST_SECOND)
-        return position
+            position = self._get_position()
+        if position == -1:
+            return -1
+        return position / float(GST_SECOND)
 
     def seek(self, float percent):
         with nogil:
@@ -340,21 +345,37 @@ cdef class GstPlayer:
     #
 
     cdef gint64 _get_duration(self) nogil:
-        cdef gint64 duration = 0
+        cdef gint64 duration = -1
+        cdef GstState state
         if self.playbin == NULL:
             return -1
-        if not gst_element_query_duration(
-                self.playbin, GST_FORMAT_TIME, &duration):
-            return -1
+
+        # check the state
+        gst_element_get_state(self.pipeline, &state, NULL,
+                <GstClockTime>GST_SECOND)
+
+        # if we are already prerolled, we can read the duration
+        if state == GST_STATE_PLAYING or state == GST_STATE_PAUSED:
+            gst_element_set_state(self.pipeline, GST_STATE_PAUSED)
+            gst_element_query_duration(self.playbin, GST_FORMAT_TIME, &duration)
+            return duration
+
+        # preroll
+        cdef double volume = g_object_get_double(self.playbin, 'volume')
+        g_object_set_double(self.playbin, 'volume', 0)
+        gst_element_set_state(self.pipeline, GST_STATE_PAUSED)
+        gst_element_query_duration(self.playbin, GST_FORMAT_TIME, &duration)
+        gst_element_set_state(self.pipeline, GST_STATE_READY)
+        g_object_set_double(self.playbin, 'volume', volume)
         return duration
 
     cdef gint64 _get_position(self) nogil:
         cdef gint64 position = 0
         if self.playbin == NULL:
-            return -1
+            return 0
         if not gst_element_query_position(
                 self.playbin, GST_FORMAT_TIME, &position):
-            return -1
+            return 0
         return position
 
     cdef void _seek(self, float percent) nogil:
