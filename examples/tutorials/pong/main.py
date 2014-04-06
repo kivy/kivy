@@ -51,10 +51,12 @@ class PongGame(Widget):
             self.ball.velocity_y *= -1
 
         #went of to a side to score point?
-        if self.ball.x < self.x:
+        # restricting the area in which ball can move. 
+        # Doing so we can remove the issue of trembling of the ball through the edges.
+        if self.ball.x < self.player1.width-5:   
             self.player2.score += 1
             self.serve_ball(vel=(4, 0))
-        if self.ball.x > self.width:
+        if self.ball.x > self.width-self.player2.width-40:
             self.player1.score += 1
             self.serve_ball(vel=(-4, 0))
 
