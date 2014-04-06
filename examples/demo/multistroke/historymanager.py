@@ -6,9 +6,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.graphics import Color, Line, Rectangle
-from kivy.vector import Vector
-from kivy.properties import (ObjectProperty, StringProperty, BooleanProperty,
-        NumericProperty)
+from kivy.properties import ObjectProperty, BooleanProperty, NumericProperty
 
 # local libraries
 from helpers import InformationPopup

@@ -3,22 +3,17 @@ from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.properties import NumericProperty, StringProperty
 from kivy.properties import ListProperty, ObjectProperty
-
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-from kivy.uix.textinput import TextInput
 from kivy.uix.filechooser import FileChooserListView
 from kivy.graphics import Rectangle, Color
 from kivy.multistroke import Recognizer
+from string import lower as string_lower
 
 # local libraries
 from helpers import InformationPopup
 
-# for string.lower
-import string
 
 __all__ = ('GestureDatabase', 'GestureDatabaseItem')
 
@@ -107,7 +102,7 @@ class GestureDatabase(GridLayout):
 
         self.selected_count = 0
         self.ids.gesture_list.clear_widgets()
-        for k in sorted(self.gdict, key=string.lower):
+        for k in sorted(self.gdict, key=string_lower):
             gitem = GestureDatabaseItem(name=k, gesture_list=self.gdict[k])
             gitem.bind(on_select=self.select_item)
             gitem.bind(on_deselect=self.deselect_item)

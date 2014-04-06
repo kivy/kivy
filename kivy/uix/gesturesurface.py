@@ -20,7 +20,7 @@ from kivy.clock import Clock
 from kivy.vector import Vector
 from kivy.uix.floatlayout import FloatLayout
 from kivy.graphics import Color, Line, Rectangle
-from kivy.properties import (ObjectProperty, NumericProperty, BooleanProperty,
+from kivy.properties import (NumericProperty, BooleanProperty,
         DictProperty, ListProperty)
 from colorsys import hsv_to_rgb
 
