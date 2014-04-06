@@ -43,7 +43,7 @@ class GestureHistoryManager(GridLayout):
         gesture_obj = self.selected._result_obj._gesture_obj
 
         # Reanalyze the candidate strokes using current database
-        res = self.recognizer.recognize(gesture_obj.get_candidate(), 
+        res = self.recognizer.recognize(gesture_obj.get_candidate(),
                 max_gpf=100)
 
         # Tag the result with the gesture object (it didn't change)

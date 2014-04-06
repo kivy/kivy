@@ -28,14 +28,14 @@ Ncandidate = [
     Vector(160, 271), Vector(160, 263), Vector(158, 257), Vector(156, 249),
     Vector(146, 187), Vector(144, 181), Vector(144, 175), Vector(142, 167),
     Vector(140, 113), Vector(140, 107), Vector(140, 103), Vector(140, 99),
-    Vector(140, 85),  Vector(138, 85),  Vector(138, 87),  Vector(138, 89),
+    Vector(140, 85), Vector(138, 85), Vector(138, 87), Vector(138, 89),
     Vector(166, 151), Vector(176, 171), Vector(188, 189), Vector(200, 205),
     Vector(238, 263), Vector(242, 269), Vector(244, 273), Vector(246, 277),
     Vector(252, 289), Vector(254, 291), Vector(256, 291), Vector(258, 291),
     Vector(260, 281), Vector(260, 275), Vector(260, 267), Vector(260, 255),
     Vector(254, 189), Vector(254, 175), Vector(254, 161), Vector(254, 147),
-    Vector(260, 103), Vector(260, 101), Vector(260, 99),  Vector(260, 95),
-    Vector(260, 93),  Vector(260, 91),  Vector(260, 89)
+    Vector(260, 103), Vector(260, 101), Vector(260, 99), Vector(260, 95),
+    Vector(260, 93), Vector(260, 91), Vector(260, 89)
 ]
 
 
@@ -46,13 +46,13 @@ class MultistrokeTestCase(unittest.TestCase):
         best_score = 0
         counter = 0
 
-        self.Tinvar = MultistrokeGesture('T', [TGesture], 
+        self.Tinvar = MultistrokeGesture('T', [TGesture],
             orientation_sensitive=False)
-        self.Tbound = MultistrokeGesture('T', [TGesture], 
+        self.Tbound = MultistrokeGesture('T', [TGesture],
             orientation_sensitive=True)
-        self.Ninvar = MultistrokeGesture('N', [NGesture], 
+        self.Ninvar = MultistrokeGesture('N', [NGesture],
             orientation_sensitive=False)
-        self.Nbound = MultistrokeGesture('N', [NGesture], 
+        self.Nbound = MultistrokeGesture('N', [NGesture],
             orientation_sensitive=True)
 
 # -----------------------------------------------------------------------------
@@ -347,34 +347,34 @@ class MultistrokeTestCase(unittest.TestCase):
 # ------------------------------------------------------------------------
     def test_protractor_invariant(self):
         gdb = Recognizer(db=[self.Tinvar, self.Ninvar])
-        r = gdb.recognize([NGesture], orientation_sensitive=False, 
+        r = gdb.recognize([NGesture], orientation_sensitive=False,
             max_gpf=0)
         self.assertEqual(r.best['name'], 'N')
         self.assertTrue(r.best['score'] == 1.0)
 
-        r = gdb.recognize([NGesture], orientation_sensitive=True, 
+        r = gdb.recognize([NGesture], orientation_sensitive=True,
             max_gpf=0)
         self.assertEqual(r.best['name'], None)
         self.assertEqual(r.best['score'], 0)
 
-        r = gdb.recognize([Ncandidate], orientation_sensitive=False, 
+        r = gdb.recognize([Ncandidate], orientation_sensitive=False,
             max_gpf=0)
         self.assertEqual(r.best['name'], 'N')
         self.assertTrue(r.best['score'] > 0.94 and r.best['score'] < 0.95)
 
     def test_protractor_bound(self):
         gdb = Recognizer(db=[self.Tbound, self.Nbound])
-        r = gdb.recognize([NGesture], orientation_sensitive=True, 
+        r = gdb.recognize([NGesture], orientation_sensitive=True,
             max_gpf=0)
         self.assertEqual(r.best['name'], 'N')
         self.assertTrue(r.best['score'] >= 0.99)
 
-        r = gdb.recognize([NGesture], orientation_sensitive=False, 
+        r = gdb.recognize([NGesture], orientation_sensitive=False,
             max_gpf=0)
         self.assertEqual(r.best['name'], None)
         self.assertEqual(r.best['score'], 0)
 
-        r = gdb.recognize([Ncandidate], orientation_sensitive=True, 
+        r = gdb.recognize([Ncandidate], orientation_sensitive=True,
             max_gpf=0)
         self.assertEqual(r.best['name'], 'N')
         self.assertTrue(r.best['score'] > 0.94 and r.best['score'] < 0.95)
