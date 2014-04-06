@@ -260,7 +260,7 @@ class GestureSurface(FloatLayout):
             :attr:`use_random_color` is a
             :class:`~kivy.properties.BooleanProperty` and defaults to False
 
-        `line_with`
+        `line_width`
             Line width used for tracing touches on the surface. Set to 0
             if you only want to detect gestures without drawing anything.
             If you use 1.0, OpenGL GL_LINE is used for drawing; values > 1

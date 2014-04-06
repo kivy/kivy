@@ -648,20 +648,42 @@ class ProgressTracker(EventDispatcher):
             Fired when the search is completed, for whatever reason.
             (use `ProgressTracker.status` to find out)
 
-    :Status values:
-        `search`
-            Currently working
-        `stop`
-            Was stopped by the user (:meth:`stop` called)
-        `timeout`
-            A timeout occured (specified as `timeout=` to recognize())
-        `goodscore`
-            The search was stopped early because a gesture with a high enough
-            score was found (specified as `goodscore=` to recognize())
-        `complete`
-            The search is complete (all gestures matching filters were tested)
+    :Attributes:
+        `results`
+            A dictionary of all results (so far). The key is the name of the
+            gesture (ie :attr:`UnistrokeTemplate.name` usually inherited from
+            :class:`MultistrokeGesture`). Each item in the dictionary is a
+            dict with the following entries:
+
+                `name`
+                    Name of the matched template (redundant)
+                `score`
+                    Computed score from 1.0 (perfect match) to 0.0
+                `dist`
+                    Cosine distance from candidate to template (low=closer)
+                `gesture`
+                    The :class:`MultistrokeGesture` object matched
+                `best_template`
+                    Index of the best matching template (in
+                    :attr:`MultistrokeGesture.templates`)
+                `template_results`
+                    Dict where key = template index, value = distance
+                    FIXME: This should probably be a list
+
+        `status`
+            `search`
+                Currently working
+            `stop`
+                Was stopped by the user (:meth:`stop` called)
+            `timeout`
+                A timeout occured (specified as `timeout=` to recognize())
+            `goodscore`
+                The search was stopped early because a gesture with a high enough
+                score was found (specified as `goodscore=` to recognize())
+            `complete`
+                The search is complete (all gestures matching filters were tested)
     '''
-    def __init__(self, candidate, tasks):
+    def __init__(self, candidate, tasks, **kwargs):
         self.status = 'search'
         self.candidate = candidate
         self.results = {}
@@ -677,11 +699,12 @@ class ProgressTracker(EventDispatcher):
 
         # fired locally
         self.register_event_type('on_result')
-        super(ProgressTracker, self).__init__()
+        super(ProgressTracker, self).__init__(**kwargs)
 
     @property
     def progress(self):
-        '''Returns the progress as a float, 0 is 0% done, 1 is 100%'''
+        '''Returns the progress as a float, 0 is 0% done, 1 is 100%. This
+        is a Python property.'''
         if not self.tasks:
             return 1
         return self._completed / float(self.tasks)
@@ -691,7 +714,7 @@ class ProgressTracker(EventDispatcher):
         '''Return the best match found by recognize() so far. It returns a
         dictionary with three keys, 'name', 'dist' and 'score' representing
         the template's name, distance (from candidate path) and the
-        computed score value.'''
+        computed score value. This is a Python property.'''
         results = self.results  # to avoid too many self. lookups
         if not results:
             return {'name': None, 'dist': None, 'score': 0}
@@ -875,12 +898,18 @@ class MultistrokeGesture(object):
     def match_candidate(self, cand, **kwargs):
         '''Match a given candidate against this MultistrokeGesture object. Will
         test against all templates and report results as a list of four
-        items::
+        items:
 
-            - best matching template's index (in self.templates)
-            - the computed distance from the template to the candidate path
-            - a dict of {tpl_idx: distance} for all matched templates
-            - a counter for the number of performed matching operations
+            `index 0`
+                Best matching template's index (in self.templates)
+            `index 1`
+                Computed distance from the template to the candidate path
+            `index 2`
+                Dict of {tpl_idx: distance} for all matched templates.
+                FIXME: This should probably be a list
+            `index 3`
+                Counter for the number of performed matching operations, ie
+                templates matched against the candidate
         '''
         best_d = float('infinity')
         best_tpl = None
@@ -949,11 +978,13 @@ class MultistrokeGesture(object):
 
         See section 4.1: "$N Algorithm" of the linked paper for details.
 
-        Warning :: Using heap permute for gestures with more than 3 strokes
-                   can result in very large number of templates (a 9-stroke
-                   gesture = 38 million templates). If you are dealing with
-                   these types of gestures, you should manually compose
-                   all the desired stroke orders.
+        .. Warning ::
+
+            Using heap permute for gestures with more than 3 strokes
+            can result in very large number of templates (a 9-stroke
+            gesture = 38 million templates). If you are dealing with
+            these types of gestures, you should manually compose
+            all the desired stroke orders.
         '''
         # Seed with index of each stroke
         self._order = [i for i in xrange(0, len(self.strokes))]
