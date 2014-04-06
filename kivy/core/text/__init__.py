@@ -87,10 +87,7 @@ class LabelBase(object):
             stripped. If `halign` is `justify` it is implicitly True.
 
     .. versionchanged:: 1.8.1
-        `shorten_from` and `split_str` were added.
-
-    .. versionchanged:: 1.8.1
-        `strip` was added.
+        `strip`, `shorten_from`, and `split_str` were added.
 
     .. versionchanged:: 1.8.1
         `padding_x` and `padding_y` has been fixed to work as expected.

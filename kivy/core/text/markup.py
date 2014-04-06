@@ -126,6 +126,7 @@ class MarkupLabel(MarkupLabelBase):
         self._cached_lines = lines = []
         self._refs = {}
         self._anchors = {}
+        clipped = False
         w = h = 0
         uw, uh = self.text_size
         spush = self._push_style
@@ -202,14 +203,14 @@ class MarkupLabel(MarkupLabelBase):
                 options['_ref'] = ref
             elif item == '[/ref]':
                 spop('_ref')
-            elif item[:8] == '[anchor=':
+            elif not clipped and item[:8] == '[anchor=':
                 ref = item[8:-1]
                 if len(lines):
                     x, y = lines[-1].x, lines[-1].y
                 else:
                     x = y = 0
                 self._anchors[ref] = x, y
-            else:
+            elif not clipped:
                 item = item.replace('&bl;', '[').replace(
                     '&br;', ']').replace('&amp;', '&')
                 opts = copy(options)
