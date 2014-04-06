@@ -64,7 +64,7 @@ if exists('/opt/vc/include/bcm_host.h'):
 #
 c_options = OrderedDict()
 c_options['use_rpi'] = platform == 'rpi'
-c_options['use_opengl_es2'] = True
+c_options['use_opengl_es2'] = None
 c_options['use_opengl_debug'] = False
 c_options['use_glew'] = False
 c_options['use_sdl'] = False
@@ -177,19 +177,21 @@ elif platform == 'win32':
     print('Windows platform detected, force GLEW usage.')
     c_options['use_glew'] = True
 else:
-    # searching GLES headers
-    default_header_dirs = ['/usr/include', '/usr/local/include']
-    found = False
-    for hdir in default_header_dirs:
-        filename = join(hdir, 'GLES2', 'gl2.h')
-        if exists(filename):
-            found = True
-            print('Found GLES 2.0 headers at {0}'.format(filename))
-            break
-    if not found:
-        print('WARNING: GLES 2.0 headers are not found')
-        print('Fallback to Desktop opengl headers.')
-        c_options['use_opengl_es2'] = False
+    if c_options['use_opengl_es2'] is None:
+        # searching GLES headers
+        default_header_dirs = ['/usr/include', '/usr/local/include']
+        for hdir in default_header_dirs:
+            filename = join(hdir, 'GLES2', 'gl2.h')
+            if exists(filename):
+                c_options['use_opengl_es2'] = True
+                print('NOTE: Found GLES 2.0 headers at {0}'.format(filename))
+                break
+        if not c_options['use_opengl_es2']:
+            print('NOTE: Not found GLES 2.0 headers at: %s' % repr(default_header_dirs))
+            print('      Please contact us if your distribution uses an alternative path for the headers.')
+            c_options['use_opengl_es2'] = False
+
+print('\nUsing this graphics system: %s' % ["OpenGL", "OpenGL ES"][environ.get('GRAPHICS')] )
 
 # check if we are in a kivy-ios build
 if platform == 'ios':
