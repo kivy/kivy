@@ -123,6 +123,23 @@ Fedora
 #. Install **python-Kivy** and optionally the examples, as found in **python-Kivy-examples**
 
 
+Gentoo
+------
+
+#. There is a kivy ebuild (kivy stable version)
+
+   emerge Kivy
+
+#. available USE-flags are:
+
+   `cairo: Standard flag, let kivy use cairo graphical libraries.`
+   `camera: Install libraries needed to support camera.`
+   `doc: Standard flag, will make you build the documentation localy.`
+   `examples: Standard flag, will give you kivy examples programs.`
+   `garden: Install garden tool to manage user maintained widgets.`
+   `gstreamer: Standard flag, kivy will be able to use audio/video streaming libraries.`
+   `spell: Standard flag, provide enchant to use spelling in kivy apps.`
+
 Using software bundles ( also known as tarballs )
 =================================================
 
