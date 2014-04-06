@@ -662,13 +662,14 @@ class ProgressTracker(EventDispatcher):
                 `dist`
                     Cosine distance from candidate to template (low=closer)
                 `gesture`
-                    The :class:`MultistrokeGesture` object matched
+                    The :class:`MultistrokeGesture` object that was matched
                 `best_template`
                     Index of the best matching template (in
                     :attr:`MultistrokeGesture.templates`)
                 `template_results`
-                    Dict where key = template index, value = distance
-                    FIXME: This should probably be a list
+                    List of distances for all templates. The list index
+                    corresponds to a :class:`UnistrokeTemplate` index in
+                    gesture.templates.
 
         `status`
             `search`
@@ -678,10 +679,12 @@ class ProgressTracker(EventDispatcher):
             `timeout`
                 A timeout occured (specified as `timeout=` to recognize())
             `goodscore`
-                The search was stopped early because a gesture with a high enough
-                score was found (specified as `goodscore=` to recognize())
+                The search was stopped early because a gesture with a high
+                enough score was found (specified as `goodscore=` to
+                recognize())
             `complete`
-                The search is complete (all gestures matching filters were tested)
+                The search is complete (all gestures matching filters were
+                tested)
     '''
     def __init__(self, candidate, tasks, **kwargs):
         self.status = 'search'
@@ -732,10 +735,10 @@ class ProgressTracker(EventDispatcher):
 
     def _add_result(self, gesture, dist, tpl, res):
         # Add a result; used internally by the recognize() function
-        if tpl in res:
+        if tpl <= len(res):
             n = gesture.templates[tpl].name
         else:
-            return 0
+            return 0.
 
         if n not in self.results or dist < self.results[n]['dist']:
             self.results[n] = {
@@ -754,7 +757,7 @@ class ProgressTracker(EventDispatcher):
             self.dispatch('on_result', self.results[n])
             return self.results[n]['score']
         else:
-            return 0
+            return 0.
 
     def on_complete(self):
         pass
@@ -905,8 +908,9 @@ class MultistrokeGesture(object):
             `index 1`
                 Computed distance from the template to the candidate path
             `index 2`
-                Dict of {tpl_idx: distance} for all matched templates.
-                FIXME: This should probably be a list
+                List of distances for all templates. The list index
+                corresponds to a :class:`UnistrokeTemplate` index in
+                self.templates.
             `index 3`
                 Counter for the number of performed matching operations, ie
                 templates matched against the candidate
@@ -914,7 +918,7 @@ class MultistrokeGesture(object):
         best_d = float('infinity')
         best_tpl = None
         mos = 0
-        out = {}
+        out = []
 
         if (self.stroke_sens and len(self.strokes) != len(cand.strokes)):
             return (best_tpl, best_d, out, mos)
@@ -953,7 +957,7 @@ class MultistrokeGesture(object):
 
             # Get the distance between cand/tpl paths
             d = get_distance(cand, tpl, numpoints=n)
-            out[idx] = d
+            out.append(d)
 
             if d < best_d:
                 best_d = d
