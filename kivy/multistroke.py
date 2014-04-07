@@ -246,16 +246,16 @@ class Recognizer(EventDispatcher):
 
             `force_priority_sort`
                 Can be used to override the default sort behavior. Normally
-                :class:`MultistrokeGesture` objects are evaluated in priority
-                order in special circumstances (priority is used, or goodscore
-                is set for a call to :meth:`Recognizer.recognize`). Setting
-                this to True will force evaluation in priority order, False
-                will force evaluation in the order gestures were added. None
-                means decide automatically (the default).
+                :class:`MultistrokeGesture` objects are returned in priority
+                order if the `priority` option is used. Setting this to True
+                will return gestures sorted in priority order, False will
+                return in the order gestures were added. None means decide
+                automatically (the default).
 
-                .. Note :: Load the MultistrokeGestures in priority order and
-                           set this to False for faster evaluation with
-                           `priority` or `goodscore`.
+                .. Note ::
+                    For improved performance, you can load your
+                    :class:`MultistrokeGesture` database in priority order and
+                    set this to False when calling :meth:`Recognizer.recognize`
 
             `db`
                 Can be set if you want to filter a different list of objects
@@ -485,9 +485,9 @@ class Recognizer(EventDispatcher):
             `goodscore`
                 If this is set (between 0.0 - 1.0) and a gesture score is
                 equal to or higher than the specified value, the search is
-                immediately halted and the match(es) returned. Default
-                is None (disabled). When this option is used, the matching is
-                performed according to gesture priority.
+                immediately halted and the on_search_complete event is
+                fired (+ the on_complete event of the associated
+                :class:`ProgressTracker` instance). Default is None (disabled).
 
             `timeout`
                 Specifies a timeout (in seconds) for when the search is
@@ -526,7 +526,6 @@ class Recognizer(EventDispatcher):
         GPF = kwargs.get('max_gpf', DEFAULT_GPF)
 
         # Obtain a list of MultistrokeGesture objects matching filter arguments
-        kwargs.setdefault('force_priority_sort', (goodscore and True or None))
         tasklist = self.filter(**kwargs)
 
         # Initialize the candidate and result objects
@@ -817,10 +816,10 @@ class MultistrokeGesture(object):
             `permute` flag to False.
         `priority`
             Determines when :func:`Recognizer.recognize` will attempt to match
-            this template, lower priorities are evaluated first (if `goodscore`
-            or a priority `filter` is used). You should use lower priority on
-            gestures that are more likely to match. For example, set the user's
-            templates at lower priority than generic ones. Default is 100.
+            this template, lower priorities are evaluated first (only if
+            a priority `filter` is used). You should use lower priority on
+            gestures that are more likely to match. For example, set user
+            templates at lower number than generic templates. Default is 100.
         `numpoints`
             Determines the number of points this gesture should be resampled to
             (for matching purposes). The default is 16.
