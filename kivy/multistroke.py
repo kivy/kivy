@@ -122,7 +122,7 @@ __all__ = ('Recognizer', 'ProgressTracker', 'MultistrokeGesture',
 import pickle
 import base64
 import zlib
-import re
+from re import match as re_match
 from collections import deque
 from math import sqrt, pi, radians, acos, atan, atan2, pow, floor
 from math import sin as math_sin, cos as math_cos
@@ -262,15 +262,40 @@ class Recognizer(EventDispatcher):
                 than :attr:`Recognizer.db`. You probably don't want to do this;
                 it is used internally by :meth:`import_gesture`).
         '''
+        have_filters = False
 
-        # Wrap arguments as needed. Probably wrong way to do it.
-        priority = kwargs.get('priority', None)
-        min_p, max_p = self._get_priority(priority)
+        kwargs_get = kwargs.get
 
-        name = self._get_list(kwargs.get('name', None), 'str')
-        numstrokes = self._get_list(kwargs.get('numstrokes', None), 'int')
-        numpoints = self._get_list(kwargs.get('numpoints', None), 'int')
-        orientation_sens = kwargs.get('orientation_sensitive', None)
+        name = kwargs_get('name', None)
+        if name is not None:
+            have_filters = True
+            if not isinstance(name, list):
+                name = [name]
+
+        priority = kwargs_get('priority', None)
+        min_p, max_p = None, None
+        if priority is not None:
+            have_filters = True
+            if isinstance(priority, list):
+                min_p, max_p = priority
+            elif isinstance(priority, int):
+                min_p, max_p = None, priority
+
+        numstrokes = kwargs_get('numstrokes', None)
+        if numstrokes is not None:
+            have_filters = True
+            if not isinstance(numstrokes, list):
+                numstrokes = [numstrokes]
+
+        numpoints = kwargs_get('numpoints', None)
+        if numpoints is not None:
+            have_filters = True
+            if not isinstance(numpoints, list):
+                numpoints = [numpoints]
+
+        orientation_sens = kwargs_get('orientation_sensitive', None)
+        if orientation_sens is not None:
+            have_filters = True
 
         # Prepare a correctly sorted tasklist
         force_priority_sort = kwargs.get('force_priority_sort', None)
@@ -285,6 +310,11 @@ class Recognizer(EventDispatcher):
 
         # Now test each gesture in the database against filter criteria
         out = deque()
+        if not have_filters:
+            out.extend(tasklist)
+            return out
+
+        out_append = out.append
         for gesture in tasklist:
 
             if (orientation_sens is not None and
@@ -305,11 +335,11 @@ class Recognizer(EventDispatcher):
 
             if name:
                 for f in name:
-                    if re.match(f, gesture.name):
-                        out.append(gesture)
+                    if re_match(f, gesture.name):
+                        out_append(gesture)
                         break
             else:
-                out.append(gesture)
+                out_append(gesture)
 
         return out
 
@@ -592,24 +622,6 @@ class Recognizer(EventDispatcher):
             cand.skip_invariant = True
 
         return cand
-
-    # FIXME: better way?
-    def _get_priority(self, p):
-        if isinstance(p, list):
-            return (int(p[0]), int(p[1]))
-        elif p is not None:
-            return (None, int(p))
-        else:
-            return (None, None)
-
-    # FIXME: better way?
-    def _get_list(self, l, type):
-        if l.__class__.__name__ == type:
-            return [l]
-        elif isinstance(l, list):
-            return l
-        else:
-            return None
 
     # Default event handlers
     def on_search_start(self, result):
