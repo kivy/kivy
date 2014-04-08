@@ -4,7 +4,8 @@ Priority: optional
 Maintainer: Thomas-Karl Pietrowski <thopiekar@googlemail.com>
 Uploaders: Kivy Launchpad-Team <ubuntu@kivy.org>
 Build-Depends: debhelper (>= 7.0.50~), cdbs, pkg-config,
-               python-all-dev (>= 2.7),   python3-all-dev,
+               python-all-dev (>= 2.7),
+               python3-all-dev (>= 3.3) | python3.4-dev | python3.3-dev,
                python-nose,               python3-nose,
                python-coverage,
                python-sphinx,             python3-sphinx,
@@ -157,7 +158,7 @@ Depends: ${misc:Depends},
          python3-kivy-common (= ${binary:Version}),
          python3-kivy-bin (= ${binary:Version}),
          python3-docutils,
-         python-pygame,
+         python3-pygame,
          python3-pygments,
          python-gst0.10
 Provides: ${python3:Provides}
