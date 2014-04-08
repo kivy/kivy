@@ -365,11 +365,12 @@ class Recognizer(EventDispatcher):
         io = StringIO(zlib.decompress(base64.b64decode(data)))
         p = pickle.Unpickler(io)
         multistrokes = []
+        ms_append = multistrokes.append
         for multistroke in p.load():
             strokes = multistroke['strokes']
             multistroke['strokes'] = [[Vector(
                 x, y) for x, y in line] for line in strokes]
-            multistrokes.append(MultistrokeGesture(**multistroke))
+            ms_append(MultistrokeGesture(**multistroke))
         return multistrokes
 
     # FIXME: use a try block, maybe shelve or something
@@ -1020,36 +1021,40 @@ class MultistrokeGesture(object):
 
     def _heap_permute(self, n):
         # Heap Permute algorithm
+        self_order = self._order
         if n == 1:
-            self._orders.append(self._order[:])
+            self._orders.append(self_order[:])
         else:
             i = 0
             for i in xrange(0, n):
                 self._heap_permute(n - 1)
                 if n % 2 == 1:
-                    tmp = self._order[0]
-                    self._order[0] = self._order[n - 1]
-                    self._order[n - 1] = tmp
+                    tmp = self_order[0]
+                    self_order[0] = self_order[n - 1]
+                    self_order[n - 1] = tmp
                 else:
-                    tmp = self._order[i]
-                    self._order[i] = self._order[n - 1]
-                    self._order[n - 1] = tmp
+                    tmp = self_order[i]
+                    self_order[i] = self_order[n - 1]
+                    self_order[n - 1] = tmp
 
     def _make_unistrokes(self):
         # Create unistroke permutations from self.strokes
         unistrokes = []
+        unistrokes_append = unistrokes.append
+        self_strokes = self.strokes
         for r in self._orders:
             b = 0
             while b < pow(2, len(r)):  # use b's bits for directions
                 unistroke = []
+                unistroke_append = unistroke.append
                 for i in xrange(0, len(r)):
-                    pts = self.strokes[r[i]][:]
+                    pts = self_strokes[r[i]][:]
                     if (b >> i) & 1 == 1:  # is b's bit at index i 1?
                         pts.reverse()
-                    unistroke.append(None)
+                    unistroke_append(None)
                     unistroke[-1:] = pts
 
-                unistrokes.append(unistroke)
+                unistrokes_append(unistroke)
                 b += 1
         return unistrokes
 
@@ -1223,10 +1228,10 @@ class Candidate(object):
         n = kwargs.get('numpoints', self.numpoints)
 
         # angle_between_unit_vectors() inlined here for performance
-        v1 = self.get_start_unit_vector(n, tpl.orientation_sens)
-        v2 = tpl.get_start_unit_vector(n)
+        v1x, v1y = self.get_start_unit_vector(n, tpl.orientation_sens)
+        v2x, v2y = tpl.get_start_unit_vector(n)
 
-        n = (v1.x * v2.x + v1.y * v2.y)
+        n = (v1x * v2x + v1y * v2y)
         # FIXME: Domain error on float representation of 1.0 (exact match)
         # (see comments in MultistrokeGesture.get_distance())
         if n >= 1:
@@ -1286,17 +1291,19 @@ def resample(points, n):
     newpoints_len = 1
     workpoints_len = len(points)
 
+    new_append = newpoints.append
+    work_insert = workpoints.insert
     while i < len(workpoints):
         p1 = workpoints[i - 1]
         p2 = workpoints[i]
         d = distance(p1, p2)
 
         if D + d >= interval:
-            qx = p1.x + ((interval - D) / d) * (p2.x - p1.x)
-            qy = p1.y + ((interval - D) / d) * (p2.y - p1.y)
+            qx = p1[0] + ((interval - D) / d) * (p2[0] - p1[0])
+            qy = p1[1] + ((interval - D) / d) * (p2[1] - p1[1])
             q = Vector(qx, qy)
-            newpoints.append(q)
-            workpoints.insert(i, q)  # q is the next i
+            new_append(q)
+            work_insert(i, q)  # q is the next i
             newpoints_len += 1
             workpoints_len += 1
             D = 0.0
@@ -1306,29 +1313,29 @@ def resample(points, n):
         i += 1
 
     # rounding error; insert the last point
-    if len(newpoints) < n:
-        newpoints.append(points[-1])
+    if newpoints_len < n:
+        new_append(points[-1])
 
     return newpoints
 
 
 def indicative_angle(points):
-    c = centroid(points)
-    return atan2(c.y - points[0].y, c.x - points[0].x)
+    cx, cy = centroid(points)
+    return atan2(cy - points[0][1], cx - points[0][0])
 
 
 def rotate_by(points, radians):
     # Rotate points around centroid
-    c = centroid(points)
+    cx, cy = centroid(points)
     cos = math_cos(radians)
     sin = math_sin(radians)
     newpoints = []
+    newpoints_append = newpoints.append
 
-    cx, cy = c.x, c.y
     for i in xrange(0, len(points)):
-        qx = (points[i].x - cx) * cos - (points[i].y - cy) * sin + cx
-        qy = (points[i].x - cx) * sin + (points[i].y - cy) * cos + cy
-        newpoints.append(Vector(qx, qy))
+        qx = (points[i][0] - cx) * cos - (points[i][1] - cy) * sin + cx
+        qy = (points[i][0] - cx) * sin + (points[i][1] - cy) * cos + cy
+        newpoints_append(Vector(qx, qy))
 
     return newpoints
 
@@ -1342,24 +1349,32 @@ def scale_dim(points, size, oneDratio):
     # 1D or 2D gesture test
     uniformly = min(bbox_w / bbox_h, bbox_h / bbox_w) <= oneDratio
 
+    if uniformly:
+        qx_size = size / max(bbox_w, bbox_h)
+        qy_size = size / max(bbox_w, bbox_h)
+    else:
+        qx_size = size / bbox_w
+        qy_size = size / bbox_h
+
     newpoints = []
+    newpoints_append = newpoints.append
+
     for p in points:
-        qx = (uniformly and p.x * (size / max(bbox_w, bbox_h)) or
-              p.x * (size / bbox_w))
-        qy = (uniformly and p.y * (size / max(bbox_w, bbox_h)) or
-              p.y * (size / bbox_h))
-        newpoints.append(Vector(qx, qy))
+        qx = p[0] * qx_size
+        qy = p[1] * qy_size
+        newpoints_append(Vector(qx, qy))
 
     return newpoints
 
 
 def translate_to(points, pt):
     # Translate points around centroid
-    c = centroid(points)
+    cx, cy = centroid(points)
+    ptx, pty = pt
     newpoints = []
     for p in points:
-        qx = p.x + pt.x - c.x
-        qy = p.y + pt.y - c.y
+        qx = p[0] + ptx - cx
+        qy = p[1] + pty - cy
         newpoints.append(Vector(qx, qy))
     return newpoints
 
@@ -1370,7 +1385,7 @@ def vectorize(points, use_bounded_rotation_invariance):
     sin = 0.0
 
     if use_bounded_rotation_invariance:
-        ang = atan2(points[0].y, points[0].x)
+        ang = atan2(points[0][1], points[0][0])
         bo = (pi / 4.) * floor((ang + pi / 8.) / (pi / 4.))
         cos = math_cos(bo - ang)
         sin = math_sin(bo - ang)
@@ -1378,11 +1393,13 @@ def vectorize(points, use_bounded_rotation_invariance):
     sum = 0.0
     vector = []
     vector_len = 0
-    for p in points:
-        newx = p.x * cos - p.y * sin
-        newy = p.y * cos + p.x * sin
-        vector.append(newx)
-        vector.append(newy)
+    vector_append = vector.append
+
+    for px, py in points:
+        newx = px * cos - py * sin
+        newy = py * cos + px * sin
+        vector_append(newx)
+        vector_append(newy)
         vector_len += 2
         sum += newx ** 2 + newy ** 2
 
@@ -1399,8 +1416,8 @@ def centroid(points):
     points_len = len(points)
 
     for i in xrange(0, points_len):
-        x += points[i].x
-        y += points[i].y
+        x += points[i][0]
+        y += points[i][1]
 
     x /= points_len
     y /= points_len
@@ -1414,8 +1431,7 @@ def bounding_box(points):
     maxx = float('-infinity')
     maxy = float('-infinity')
 
-    for p in points:
-        px, py = p.x, p.y
+    for px, py in points:
         if px < minx:
             minx = px
         if px > maxx:
@@ -1436,13 +1452,12 @@ def path_length(points):
 
 
 def distance(p1, p2):
-    dx = p2.x - p1.x
-    dy = p2.y - p1.y
+    dx = p2[0] - p1[0]
+    dy = p2[1] - p1[1]
     return sqrt(dx ** 2 + dy ** 2)
 
 
 def start_unit_vector(points, index):
-    v = Vector(points[index].x - points[0].x, points[index].y - points[0].y)
-    vx, vy = v.x, v.y
+    vx, vy = points[index][0] - points[0][0], points[index][1] - points[0][1]
     length = sqrt(vx ** 2 + vy ** 2)
     return Vector(vx / length, vy / length)
