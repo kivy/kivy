@@ -4,7 +4,6 @@ Priority: optional
 Maintainer: Thomas-Karl Pietrowski <thopiekar@googlemail.com>
 Uploaders: Kivy Launchpad-Team <ubuntu@kivy.org>
 Build-Depends: debhelper (>= 7.0.50~), cdbs, pkg-config,
-               python (>= 2.7),           python3,
                python-all-dev (>= 2.7),   python3-all-dev,
                python-nose,               python3-nose,
                python-coverage,
