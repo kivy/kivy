@@ -202,8 +202,7 @@ from kivy.factory import Factory
 from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
                              ReferenceListProperty, ObjectProperty,
                              ListProperty, DictProperty, BooleanProperty)
-from kivy.graphics import (Canvas, PushMatrix, PopMatrix, Translate, Rectangle,
-                           Fbo, ClearColor, ClearBuffers)
+from kivy.graphics import Canvas, Translate, Fbo, ClearColor, ClearBuffers
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context

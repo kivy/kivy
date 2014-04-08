@@ -22,21 +22,29 @@ class DictStore(AbstractStore):
     See the :mod:`kivy.storage` module documentation for more information.
     '''
     def __init__(self, filename, data=None, **kwargs):
-        self.filename = filename
-        self._data = data or {}
+        if isinstance(filename, dict):
+            # backward compatibility, first argument was a dict.
+            self.filename = None
+            self._data = filename
+        else:
+            self.filename = filename
+            self._data = data or {}
         self._is_changed = True
         super(DictStore, self).__init__(**kwargs)
 
     def store_load(self):
+        if self.filename is None:
+            return
         if not exists(self.filename):
             return
-
         with open(self.filename, 'r') as fd:
             data = fd.read()
             if data:
                 self._data = pickle.loads(data)
 
     def store_sync(self):
+        if self.filename is None:
+            return
         if not self._is_changed:
             return
 

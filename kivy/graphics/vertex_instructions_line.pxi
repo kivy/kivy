@@ -648,7 +648,7 @@ cdef class Line(VertexInstruction):
                 self._bymax = vertices[i].y
 
         self.batch.set_data(vertices, <int>vertices_count,
-		                   indices, <int>indices_count)
+                           indices, <int>indices_count)
 
         free(vertices)
         free(indices)
@@ -1073,7 +1073,7 @@ cdef class Line(VertexInstruction):
             resolution = self._mode_args[5]
         elif l == 8:
             c1, c2, c3, c4 = self._mode_args[4:]
-        elif l == 9:
+        else:  # l == 9, but else make the compiler happy about uninitialization
             c1, c2, c3, c4 = self._mode_args[4:8]
             resolution = self._mode_args[8]
 

@@ -56,7 +56,7 @@ document.
 __all__ = ('RstDocument', )
 
 import os
-from os.path import dirname, join, exists
+from os.path import dirname, join, exists, abspath
 from kivy.clock import Clock
 from kivy.compat import PY2
 from kivy.properties import ObjectProperty, NumericProperty, \
@@ -516,10 +516,12 @@ class RstDocument(ScrollView):
         super(RstDocument, self).__init__(**kwargs)
 
     def on_source(self, instance, value):
+        if not value:
+            return
         if self.document_root is None:
             # set the documentation root to the directory name of the
             # first tile
-            self.document_root = dirname(value)
+            self.document_root = abspath(dirname(value))
         self._load_from_source()
 
     def on_text(self, instance, value):
@@ -544,8 +546,6 @@ class RstDocument(ScrollView):
         The result will be stored in :attr:`toctrees` with the ``filename`` as
         key.
         '''
-        if filename in self.toctrees:
-            return
 
         with open(filename, 'rb') as fd:
             text = fd.read().decode(encoding, errors)
@@ -620,11 +620,10 @@ class RstDocument(ScrollView):
         .. versionadded:: 1.3.0
         '''
         # check if it's a file ?
-        if self.document_root is not None and ref.endswith('.rst'):
-            filename = join(self.document_root, ref)
-            if exists(filename):
-                self.source = filename
-                return
+        if ref.endswith('.rst'):
+            # whether it's a valid or invalid file, let source deal with it
+            self.source = ref
+            return
 
         # get the association
         ref = self.refs_assoc.get(ref, ref)

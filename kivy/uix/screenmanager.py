@@ -481,6 +481,11 @@ class NoTransition(TransitionBase):
 
     duration = NumericProperty(0.0)
 
+    def on_complete(self):
+        self.screen_in.pos = self.manager.pos
+        self.screen_out.pos = self.manager.pos
+        super(NoTransition, self).on_complete()
+
 
 class SlideTransition(TransitionBase):
     '''Slide Transition, can be used to show a new screen from any direction:
