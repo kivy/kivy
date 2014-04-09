@@ -124,10 +124,9 @@ class GestureContainer(EventDispatcher):
         else:
             self.color = (1.0, 1.0, 1.0)
 
-        # Key is touch.uid; value is the point list and canvas Line item
-        # .lines is only used if GestureSurface.line_width > 0
+        # Key is touch.uid; value is a kivy.graphics.Line(); it's used even
+        # if line_width is 0 (ie not actually drawn anywhere)
         self._strokes = {}
-        self._lines = {}
 
         # Make sure the bbox is up to date with the first touch position
         self.update_bbox(touch)
@@ -145,7 +144,8 @@ class GestureContainer(EventDispatcher):
         cand = []
         append = cand.append
         for tuid, l in self._strokes.items():
-            append([Vector(*pts) for pts in zip(l[::2], l[1::2])])
+            lpts = l.points
+            append([Vector(*pts) for pts in zip(lpts[::2], lpts[1::2])])
 
         self._candidate = cand
         self._cache_time = self._update_time
@@ -179,12 +179,12 @@ class GestureContainer(EventDispatcher):
         self.height = bb['maxy'] - bb['miny']
         self._update_time = Clock.get_time()
 
-    def add_stroke(self, touch, points):
+    def add_stroke(self, touch, line):
         '''Associate a list of points with a touch.uid; the line itself is
         created by the caller, but subsequent move/up events look it
         up via us. This is done to avoid problems during merge.'''
         self._update_time = Clock.get_time()
-        self._strokes[str(touch.uid)] = points
+        self._strokes[str(touch.uid)] = line
         self.active_strokes += 1
 
     def complete_stroke(self):
@@ -208,7 +208,7 @@ class GestureContainer(EventDispatcher):
         '''Returns True if the gesture consists only of single-point strokes,
         we must discard it in this case, or an exception will be raised'''
         for tuid, l in self._strokes.items():
-            if len(l) > 2:
+            if len(l.points) > 2:
                 return False
         return True
 
@@ -391,9 +391,7 @@ class GestureSurface(FloatLayout):
             g.update_bbox(touch)
 
         # Add the new point to gesture stroke list and update the canvas line
-        g._strokes[str(touch.uid)].extend([touch.x, touch.y])
-        if self.line_width:
-            g._lines[str(touch.uid)].points += (touch.x, touch.y)
+        g._strokes[str(touch.uid)].points += (touch.x, touch.y)
 
         # Draw the gesture bounding box; if it is a single press that
         # does not trigger a move event, we would miss it otherwise.
@@ -449,23 +447,26 @@ class GestureSurface(FloatLayout):
     def init_stroke(self, g, touch):
         l = [touch.x, touch.y]
         col = g.color
+
+        new_line = Line(
+            points=l,
+            width=self.line_width,
+            group=g.id)
+        g._strokes[str(touch.uid)] = new_line
+
         if self.line_width:
-            with self.canvas:
-                Color(col[0], col[1], col[2], mode='rgb', group=g.id)
-                g._lines[str(touch.uid)] = Line(
-                    points=l,
-                    width=self.line_width,
-                    group=g.id)
+            canvas_add = self.canvas.add
+            canvas_add(Color(col[0], col[1], col[2], mode='rgb', group=g.id))
+            canvas_add(new_line)
 
         # Update the bbox in case; this will normally be done in on_touch_move,
         # but we want to update it also for a single press, force that here:
         g.update_bbox(touch)
-
         if self.draw_bbox:
             self._update_canvas_bbox(g)
 
         # Register the stroke in GestureContainer so we can look it up later
-        g.add_stroke(touch, l)
+        g.add_stroke(touch, new_line)
 
     def get_gesture(self, touch):
         '''Returns GestureContainer associated with given touch'''
@@ -510,21 +511,23 @@ class GestureSurface(FloatLayout):
 
         # Now transfer the coordinates from old to new gesture;
         # FIXME: This can probably be copied more efficiently?
-        canvas = self.canvas
         astrokes = a._strokes
-        alines = a._lines
         lw = self.line_width
         a_id = a.id
         col = a.color
 
-        canvas.remove_group(b.id)
-        for uid, old_stroke in b._strokes.items():
-            astrokes[uid] = old_stroke
+        self.canvas.remove_group(b.id)
+        canv_add = self.canvas.add
+        for uid, old in b._strokes.items():
+            # FIXME: Can't figure out how to change group= for existing Line()
+            new_line = Line(
+                points=old.points,
+                width=old.width,
+                group=a_id)
+            astrokes[uid] = new_line
             if lw:
-                with canvas:
-                    Color(col[0], col[1], col[2], mode='rgb', group=a_id)
-                    alines[uid] = Line(points=old_stroke, group=a_id,
-                            width=lw)
+                canv_add(Color(col[0], col[1], col[2], mode='rgb', group=a_id))
+                canv_add(new_line)
 
         b.active = False
         b.was_merged = True
