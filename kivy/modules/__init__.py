@@ -260,8 +260,11 @@ class ModuleBase:
         self.mods[name]['context'].config = config
 
         # call configure if module have one
-        if hasattr(self.mods[name]['module'], 'configure'):
-            self.mods[name]['module'].configure(config)
+        try:
+            if hasattr(self.mods[name]['module'], 'configure'):
+                self.mods[name]['module'].configure(config)
+        except:
+            Logger.exception(u'Modules: Error configure Module <%s>' % name)
 
     def usage_list(self):
         print()
