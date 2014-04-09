@@ -31,7 +31,7 @@ class Converter(object):
                 ('iPhone (iOS >= 6.1)', '{}-57.png', 57),
                 ('iPhone @2 (iOS >= 6.1)', '{}-57@2x.png', 114),
                 ('iPad (iOS >= 6.1)', '{}-72.png', 72),
-                ('iPad @2 (iOS >= 6.1)', '{}72@2x.png', 114),
+                ('iPad @2 (iOS >= 6.1)', '{}-72@2x.png', 114),
                 # iTunes artwork (ad-hoc)
                 ('iTunes Artwork (ad-hoc)', 'iTunesArtwork', 512),
                 ('iTunes Artwork @2 (ad-hoc)', 'iTunesArtwork@2x', 1024),
@@ -84,7 +84,7 @@ class Converter(object):
             dest_dir = realpath(join(args.dir, directory_name))
             if not exists(dest_dir):
                 makedirs(dest_dir)
-            icon_fn = join(dest_dir, pattern_fn.format(base_fn))
+            icon_fn = join(dest_dir, pattern_fn.format('Icon'))
             self.convert_to(source, icon_fn, size)
 
     def convert_to(self, source, icon_fn, size):

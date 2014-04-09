@@ -6,10 +6,10 @@ The :class:`Widget` class is the base class required to create a Widget.
 This widget class is designed with a couple of principles in mind:
 
     Event Driven
-        The widget interaction is built on top of events that occur.
-        If a property changes, the widget can do something. If nothing changes
-        in the widget, nothing will be done. That's the main goal of the
-        :class:`~kivy.properties.Property` class.
+        Widget interaction is built on top of events that occur. If a property
+        changes, the widget can respond to the change in the 'on_<propname>'
+        callback. If nothing changes, nothing will be done. That's the main goal
+        of the :class:`~kivy.properties.Property` class.
 
     Separate the widget and its graphical representation
         Widgets don't have a `draw()` method. This is done on purpose: The idea
@@ -29,7 +29,7 @@ This widget class is designed with a couple of principles in mind:
         will return True if the point you pass it is inside the axis-aligned
         bounding box defined by the widget's position and size.
         If a simple AABB is not sufficient, you can override the method to
-        perform the collision checks with more complex shapes, e.g., a polygon.
+        perform the collision checks with more complex shapes, e.g. a polygon.
         You can also check if a widget collides with another widget with
         :meth:`Widget.collide_widget`.
 
@@ -202,8 +202,7 @@ from kivy.factory import Factory
 from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
                              ReferenceListProperty, ObjectProperty,
                              ListProperty, DictProperty, BooleanProperty)
-from kivy.graphics import (Canvas, PushMatrix, PopMatrix, Translate, Rectangle,
-                           Fbo, ClearColor, ClearBuffers)
+from kivy.graphics import Canvas, Translate, Fbo, ClearColor, ClearBuffers
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
