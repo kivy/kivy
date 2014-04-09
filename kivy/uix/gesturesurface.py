@@ -29,10 +29,6 @@ __all__ = ('GestureSurface', 'GestureContainer')
 # Clock undershoot margin
 UNDERSHOOT_MARGIN = 0.1
 
-# We add this amounnt of pixels to a gesture's bounding box to detect
-# collisions (in both directions)
-FUZZY_BBOX = 35
-
 
 class GestureContainer(EventDispatcher):
     '''Container object that stores information about a gesture. It has
@@ -194,16 +190,6 @@ class GestureContainer(EventDispatcher):
         self._update_time = Clock.get_time()
         self.active_strokes -= 1
 
-    def collide_point(self, x, y):
-        '''Check if point collides with gesture; add some fuzzyness to merge
-        stroke when they get in close proximity.'''
-        bb = self.bbox
-        minx = bb['minx'] - FUZZY_BBOX
-        miny = bb['miny'] - FUZZY_BBOX
-        maxx = bb['maxx'] + FUZZY_BBOX
-        maxy = bb['maxy'] + FUZZY_BBOX
-        return minx <= x <= maxx and miny <= y <= maxy
-
     def single_points_test(self):
         '''Returns True if the gesture consists only of single-point strokes,
         we must discard it in this case, or an exception will be raised'''
@@ -235,6 +221,13 @@ class GestureSurface(FloatLayout):
 
             :attr:`max_strokes` is a
             :class:`~kivy.properties.NumericProperty` and defaults to 2.0
+
+        `bbox_margin`
+            Bounding box margin for detecting gesture collisions, in
+            pixels.
+
+            :attr:`bbox_margin` is a
+            :class:`~kivy.properties.NumericProperty` and defaults to 30
 
         `draw_timeout`
             Number of seconds to keep lines/bbox on canvas after the
@@ -318,6 +311,7 @@ class GestureSurface(FloatLayout):
     temporal_window = NumericProperty(2.0)
     draw_timeout = NumericProperty(3.0)
     max_strokes = NumericProperty(4)
+    bbox_margin = NumericProperty(30)
 
     line_width = NumericProperty(2)
     color = ListProperty([1., 1., 1.])
@@ -476,15 +470,19 @@ class GestureSurface(FloatLayout):
         raise Exception('get_gesture() failed to identify ' + str(touch.uid))
 
     def find_colliding_gesture(self, touch):
-        '''Checks if a touch x/y collides with the (fuzzy) bounding box of
-        another gesture. If so, return it's id (otherwise return touch id)
+        '''Checks if a touch x/y collides with the bounding box of an existing
+        gesture. If so, return it (otherwise returns None)
         '''
-        # FIXME: is the temporal window test correct/needed?
-        twin = self.temporal_window
-        pos = touch.pos
+        touch_x, touch_y = touch.pos
         for g in self._gestures:
             if g.active and not g.handles(touch) and g.accept_stroke():
-                if g.collide_point(*pos) or not twin:
+                bb = g.bbox
+                margin = self.bbox_margin
+                minx = bb['minx'] - margin
+                miny = bb['miny'] - margin
+                maxx = bb['maxx'] + margin
+                maxy = bb['maxy'] + margin
+                if minx <= touch_x <= maxx and miny <= touch_y <= maxy:
                     return g
         return None
 
