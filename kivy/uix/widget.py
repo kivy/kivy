@@ -982,7 +982,7 @@ class Widget(WidgetBase):
     size_hint).
 
     For example, if you want to set the top of the widget to be at 90%
-    height of its parent layout, you can write:
+    height of its parent layout, you can write::
 
         widget = Widget(pos_hint={'top': 0.9})
 

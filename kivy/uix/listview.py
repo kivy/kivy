@@ -589,8 +589,8 @@ from math import ceil, floor
 
 class SelectableView(object):
     '''The :class:`~kivy.uix.listview.SelectableView` mixin is used to design
-    list item and other classes that are to be instantiated by an adapter to be
-    used in a listview.  The :class:`~kivy.adapters.listadapter.ListAdapter`
+    list items and other classes that are to be instantiated by an adapter for
+    use in a listview. The :class:`~kivy.adapters.listadapter.ListAdapter`
     and :class:`~kivy.adapters.dictadapter.DictAdapter` adapters are
     selection-enabled. select() and deselect() are to be overridden with
     display code to mark items as selected or not, if desired.
