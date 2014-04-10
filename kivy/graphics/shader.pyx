@@ -168,7 +168,10 @@ cdef class Shader:
         Logger.info("Shadeerrrrr: register_shader")
         get_context().register_shader(self)
         Logger.info("Shadeerrrrr: glCreateProgram")
-        self.program = glCreateProgram()
+        try:
+            self.program = glCreateProgram()
+        except:
+            Logger.exception("ERRORRRR")
         Logger.info("Shadeerrrrr: glCreateProgram end")
         if source:
             self.source = source
