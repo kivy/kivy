@@ -277,13 +277,17 @@ class TreeView(Widget):
         self._trigger_layout()
 
     def add_node(self, node, parent=None):
-        '''Add a new node in the tree.
+        '''Add a new node to the tree.
 
         :Parameters:
             `node`: instance of a :class:`TreeViewNode`
                 Node to add into the tree
             `parent`: instance of a :class:`TreeViewNode`, defaults to None
-                Parent node to attach the new node
+                Parent node to attach the new node. If `None`, it is added to
+                the :attr:`root` node.
+
+        :returns:
+            the node `node`.
         '''
         # check if the widget is "ok" for a node
         if not isinstance(node, TreeViewNode):
@@ -302,13 +306,14 @@ class TreeView(Widget):
         return node
 
     def remove_node(self, node):
-        '''Remove a node in a tree.
+        '''Removes a node from the tree.
 
         .. versionadded:: 1.0.7
 
         :Parameters:
             `node`: instance of a :class:`TreeViewNode`
-                Node to remove from the tree
+                Node to remove from the tree. If `node` is :attr:`root`, it is
+                not removed.
         '''
         # check if the widget is "ok" for a node
         if not isinstance(node, TreeViewNode):
@@ -363,7 +368,9 @@ class TreeView(Widget):
                 return node
 
     def iterate_open_nodes(self, node=None):
-        '''Generator to iterate over expanded nodes.
+        '''Generator to iterate over all the expended nodes starting from
+        `node` and down. If `node` is `None`, the generator start with
+        :attr:`root`.
 
         To get all the open nodes::
 
@@ -387,7 +394,9 @@ class TreeView(Widget):
                 yield ynode
 
     def iterate_all_nodes(self, node=None):
-        '''Generator to iterate over all nodes, expanded or not.
+        '''Generator to iterate over all nodes from `node` and down whether
+        expanded or not. If `node` is `None`, the generator start with
+        :attr:`root`.
         '''
         if not node:
             node = self.root
@@ -524,9 +533,9 @@ class TreeView(Widget):
     indent_level = NumericProperty('16dp')
     '''Width used for the indentation of each level except the first level.
 
-    Computation of spacing for each level of tree::
+    Computation of indent for each level of the tree is::
 
-        :attr:`indent_start` + level * :attr:`indent_level`
+        indent = indent_start + level * indent_level
 
     :attr:`indent_level` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 16.

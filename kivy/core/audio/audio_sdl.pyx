@@ -83,6 +83,14 @@ cdef class MixContainer:
         self.chunk = NULL
         self.channel = -1
 
+    def __dealloc__(self):
+        if self.chunk != NULL:
+            if Mix_GetChunk(self.channel) == self.chunk:
+                Mix_HaltChannel(self.channel)
+            Mix_FreeChunk(self.chunk)
+            self.chunk = NULL
+
+
 class SoundSDL(Sound):
 
     @staticmethod

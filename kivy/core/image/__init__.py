@@ -182,7 +182,7 @@ class ImageLoaderBase(object):
                 imagedata = self._data[count]
                 imagedata.source = '{}{}|{}'.format(
                     'zip|' if self.filename.endswith('.zip') else '',
-                     self._nocache, uid)
+                    self._nocache, uid)
                 texture = Texture.create_from_data(
                     imagedata, mipmap=self._mipmap)
                 if not self._nocache:

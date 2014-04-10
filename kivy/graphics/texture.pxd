@@ -37,6 +37,7 @@ cdef class Texture:
     cdef void allocate(self)
 
     cpdef flip_vertical(self)
+    cpdef flip_horizontal(self)
     cpdef get_region(self, x, y, width, height)
     cpdef bind(self)
 

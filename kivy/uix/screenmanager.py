@@ -481,6 +481,11 @@ class NoTransition(TransitionBase):
 
     duration = NumericProperty(0.0)
 
+    def on_complete(self):
+        self.screen_in.pos = self.manager.pos
+        self.screen_out.pos = self.manager.pos
+        super(NoTransition, self).on_complete()
+
 
 class SlideTransition(TransitionBase):
     '''Slide Transition, can be used to show a new screen from any direction:
@@ -884,7 +889,7 @@ class ScreenManager(FloatLayout):
         return bool([s for s in self.screens if s.name == name])
 
     def __next__(self):
-        '''Return the name of the next screen from the screen list.
+        '''Py2K backwards compatability without six or other lib.
         '''
         screens = self.screens
         if not screens:
@@ -897,7 +902,7 @@ class ScreenManager(FloatLayout):
             return
 
     def next(self):
-        ''' Py2K backwards compatability without six or other lib'''
+        '''Return the name of the next screen from the screen list.'''
         return self.__next__()
 
     def previous(self):

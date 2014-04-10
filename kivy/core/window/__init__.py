@@ -591,11 +591,11 @@ class WindowBase(EventDispatcher):
         '''Clear the window with the background color'''
         # XXX FIXME use late binding
         from kivy.graphics.opengl import glClearColor, glClear, \
-            GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT
+            GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_STENCIL_BUFFER_BIT
         cc = self._clearcolor
         if cc is not None:
             glClearColor(*cc)
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
 
     def set_title(self, title):
         '''Set the window title.
@@ -795,10 +795,11 @@ class WindowBase(EventDispatcher):
                 self.close()
                 return True
     if Config:
-        on_keyboard.exit_on_escape = Config.get('kivy', 'exit_on_escape')
+        on_keyboard.exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
 
         def __exit(section, name, value):
-            WindowBase.on_keyboard.exit_on_escape = value
+            WindowBase.__dict__['on_keyboard'].exit_on_escape = \
+                Config.getboolean('kivy', 'exit_on_escape')
 
         Config.add_callback(__exit, 'kivy', 'exit_on_escape')
 

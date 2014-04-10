@@ -172,26 +172,38 @@ except ImportError:
 
 # Detect which opengl version headers to use
 if platform in ('android', 'darwin', 'ios', 'rpi'):
-    pass
+    c_options['use_opengl_es2'] = True
 elif platform == 'win32':
     print('Windows platform detected, force GLEW usage.')
     c_options['use_glew'] = True
+    c_options['use_opengl_es2'] = False
 else:
     if c_options['use_opengl_es2'] is None:
-        # searching GLES headers
-        default_header_dirs = ['/usr/include', '/usr/local/include']
-        for hdir in default_header_dirs:
-            filename = join(hdir, 'GLES2', 'gl2.h')
-            if exists(filename):
-                c_options['use_opengl_es2'] = True
-                print('NOTE: Found GLES 2.0 headers at {0}'.format(filename))
-                break
-        if not c_options['use_opengl_es2']:
-            print('NOTE: Not found GLES 2.0 headers at: %s' % repr(default_header_dirs))
-            print('      Please contact us if your distribution uses an alternative path for the headers.')
+        GLES = environ.get('GRAPHICS') == 'GLES'
+        OPENGL = environ.get('GRAPHICS') == 'OPENGL'
+        if GLES:
+            c_options['use_opengl_es2'] = True
+        elif OPENGL:
             c_options['use_opengl_es2'] = False
+        else:
+            # auto detection of GLES headers
+            default_header_dirs = ['/usr/include', '/usr/local/include']
+            c_options['use_opengl_es2'] = False
+            for hdir in default_header_dirs:
+                filename = join(hdir, 'GLES2', 'gl2.h')
+                if exists(filename):
+                    c_options['use_opengl_es2'] = True
+                    print('NOTE: Found GLES 2.0 headers at {0}'.format(
+                        filename))
+                    break
+            if not c_options['use_opengl_es2']:
+                print('NOTE: Not found GLES 2.0 headers at: {}'.format(
+                    default_header_dirs))
+                print('      Please contact us if your distribution '
+                    'uses an alternative path for the headers.')
 
-print('\nUsing this graphics system: %s' % ["OpenGL", "OpenGL ES"][environ.get('GRAPHICS')] )
+print('Using this graphics system: {}'.format(
+    ['OpenGL', 'OpenGL ES 2'][int(c_options['use_opengl_es2'] or False)]))
 
 # check if we are in a kivy-ios build
 if platform == 'ios':

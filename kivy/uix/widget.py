@@ -6,10 +6,10 @@ The :class:`Widget` class is the base class required to create a Widget.
 This widget class is designed with a couple of principles in mind:
 
     Event Driven
-        The widget interaction is built on top of events that occur.
-        If a property changes, the widget can do something. If nothing changes
-        in the widget, nothing will be done. That's the main goal of the
-        :class:`~kivy.properties.Property` class.
+        Widget interaction is built on top of events that occur. If a property
+        changes, the widget can respond to the change in the 'on_<propname>'
+        callback. If nothing changes, nothing will be done. That's the main goal
+        of the :class:`~kivy.properties.Property` class.
 
     Separate the widget and its graphical representation
         Widgets don't have a `draw()` method. This is done on purpose: The idea
@@ -29,7 +29,7 @@ This widget class is designed with a couple of principles in mind:
         will return True if the point you pass it is inside the axis-aligned
         bounding box defined by the widget's position and size.
         If a simple AABB is not sufficient, you can override the method to
-        perform the collision checks with more complex shapes, e.g., a polygon.
+        perform the collision checks with more complex shapes, e.g. a polygon.
         You can also check if a widget collides with another widget with
         :meth:`Widget.collide_widget`.
 
@@ -116,7 +116,7 @@ In effect, this event model does not follow either of the conventional
 "bubble up" or "bubble down" approaches, but propogates events according to the
 natural order in which the widgets have been added. If you want to reverse this
 order, you can raise events in the children before the parent by using the
-`super` command. 
+`super` command.
 
 Linguistically, this can be difficult to explain and sound complicated,
 but it's really quite simple. Lets look at an example. In our kv file::
@@ -137,7 +137,7 @@ but it's really quite simple. Lets look at an example. In our kv file::
                 text: '4'
                 on_touch_down: root.printme("label 4 on_touch_down")
         MyBoxLayout:
-            # We use this class to demonsrate using 'super' to raise the child 
+            # We use this class to demonsrate using 'super' to raise the child
             # events first
             Label:
                 text: '5'
@@ -202,8 +202,7 @@ from kivy.factory import Factory
 from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
                              ReferenceListProperty, ObjectProperty,
                              ListProperty, DictProperty, BooleanProperty)
-from kivy.graphics import (Canvas, PushMatrix, PopMatrix, Translate, Rectangle,
-                           Fbo, ClearColor, ClearBuffers)
+from kivy.graphics import Canvas, Translate, Fbo, ClearColor, ClearBuffers
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
@@ -531,15 +530,18 @@ class Widget(WidgetBase):
         parent, rendering to an :class:`~kivy.graphics.fbo.Fbo`, and calling
         :meth:`~kivy.graphics.texture.Texture.save`.
 
-        .. note:: The image includes only this widget and its
-                  children. If you want to include widgets elsewhere
-                  in the tree, you must call
-                  :meth:`~Widget.export_to_png` from their common parent,
-                  or use :meth:`~kivy.core.window.Window.screenshot`
-                  to capture the whole window.
+        .. note::
 
-        .. note:: The image will be saved in png format, you should
-                  include the extension in your filename.
+            The image includes only this widget and its children. If you want to
+            include widgets elsewhere in the tree, you must call
+            :meth:`~Widget.export_to_png` from their common parent, or use
+            :meth:`~kivy.core.window.Window.screenshot` to capture the whole
+            window.
+
+        .. note::
+
+            The image will be saved in png format, you should include the
+            extension in your filename.
 
         .. versionadded:: 1.8.1
         '''
@@ -980,7 +982,7 @@ class Widget(WidgetBase):
     size_hint).
 
     For example, if you want to set the top of the widget to be at 90%
-    height of its parent layout, you can write:
+    height of its parent layout, you can write::
 
         widget = Widget(pos_hint={'top': 0.9})
 
