@@ -170,7 +170,7 @@ cdef class Shader:
 
         ret = glGetError()
         if ret:
-            Logger.error('Shader: GL error %d' % error)
+            Logger.error('Shader: GL error %d' % ret)
             raise Exception('Shader didnt link, check info log.')
 
         self.program = glCreateProgram()
