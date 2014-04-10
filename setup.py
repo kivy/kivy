@@ -70,7 +70,7 @@ c_options['use_glew'] = False
 c_options['use_sdl'] = False
 c_options['use_ios'] = False
 c_options['use_mesagl'] = False
-c_options['use_x11'] = False
+c_options['use_x11'] = True
 c_options['use_gstreamer'] = False
 c_options['use_avfoundation'] = platform == 'darwin'
 
