@@ -43,7 +43,7 @@ class GestureHistoryManager(GridLayout):
         gesture_obj = self.selected._result_obj._gesture_obj
 
         # Reanalyze the candidate strokes using current database
-        res = self.recognizer.recognize(gesture_obj.get_candidate(),
+        res = self.recognizer.recognize(gesture_obj.get_vectors(),
                 max_gpf=100)
 
         # Tag the result with the gesture object (it didn't change)
@@ -78,7 +78,7 @@ class GestureHistoryManager(GridLayout):
         strokelen = ids.stroke_sens.value
         angle_sim = ids.angle_sim.value
 
-        cand = self.selected._result_obj._gesture_obj.get_candidate()
+        cand = self.selected._result_obj._gesture_obj.get_vectors()
 
         if permute and len(cand) > MAX_PERMUTE_STROKES:
             self.infopopup.text = "Can't heap permute %d-stroke gesture " % (
@@ -244,7 +244,7 @@ class GestureVisualizer(Widget):
 
         self.canvas.remove_group('gesture')
 
-        cand = g.get_candidate()
+        cand = g.get_vectors()
         col = g.color
         for stroke in cand:
             out = []

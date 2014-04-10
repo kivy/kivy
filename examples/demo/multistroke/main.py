@@ -41,7 +41,7 @@ class MultistrokeApp(App):
         self.surface.add_widget(g._result_label)
 
     def handle_gesture_complete(self, surface, g, *l):
-        result = self.recognizer.recognize(g.get_candidate())
+        result = self.recognizer.recognize(g.get_vectors())
         result._gesture_obj = g
         result.bind(on_complete=self.handle_recognize_complete)
 

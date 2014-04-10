@@ -111,14 +111,14 @@ class GestureContainer(EventDispatcher):
         self._cache_time = 0
 
         # We can cache the candidate here to save zip()/Vector instantiation
-        self._candidate = None
+        self._vectors = None
 
         # The color is applied to all canvas items of this gesture
         col = kwargs.get('color', None)
         if col is not None:
             self.color = col
         else:
-            self.color = (1.0, 1.0, 1.0)
+            self.color = [1.0, 1.0, 1.0]
 
         # Key is touch.uid; value is a kivy.graphics.Line(); it's used even
         # if line_width is 0 (ie not actually drawn anywhere)
@@ -127,25 +127,25 @@ class GestureContainer(EventDispatcher):
         # Make sure the bbox is up to date with the first touch position
         self.update_bbox(touch)
 
-    def get_candidate(self, **kwargs):
+    def get_vectors(self, **kwargs):
         '''Return strokes in a format that is acceptable for
-        `kivy.multistroke.Recognizer` as a gesture candidate. The result is
-        cached automatically; the cache is invalidated at the start and end
-        of a stroke and if `update_bbox` is called. If you are going to analyze
-        the gesture mid-stroke, you need to set the `no_cache` argument to True,
-        this will recalculate the candidate with available data.'''
+        `kivy.multistroke.Recognizer` as a gesture candidate or template. The
+        result is cached automatically; the cache is invalidated at the start
+        and end of a stroke and if `update_bbox` is called. If you are going
+        to analyze a gesture mid-stroke, you may need to set the `no_cache`
+        argument to True.'''
         if self._cache_time == self._update_time and not kwargs.get('no_cache'):
-            return self._candidate
+            return self._vectors
 
-        cand = []
-        append = cand.append
+        vecs = []
+        append = vecs.append
         for tuid, l in self._strokes.items():
             lpts = l.points
             append([Vector(*pts) for pts in zip(lpts[::2], lpts[1::2])])
 
-        self._candidate = cand
+        self._vectors = vecs
         self._cache_time = self._update_time
-        return cand
+        return vecs
 
     def handles(self, touch):
         '''Returns True if this container handles the given touch'''
@@ -294,7 +294,7 @@ class GestureSurface(FloatLayout):
             Fired when a set of strokes is considered a complete gesture,
             this happens when `temporal_window` expires or `max_strokes
             is reached. Typically you will bind to this event and use
-            the provided `GestureContainer`'s get_candidate() method to
+            the provided `GestureContainer`s get_vectors() method to
             match against your gesture database.
 
         `on_gesture_cleanup` :class:`GestureContainer`
