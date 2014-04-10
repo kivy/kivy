@@ -175,7 +175,7 @@ cdef class Shader:
 
         self.program = glCreateProgram()
 
-        Logger.info("Shadeerrrrr: glCreateProgram end")
+        Logger.info("Shadeerrrrr: glCreateProgram end {}".format(self.program))
         if source:
             self.source = source
         else:
