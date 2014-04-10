@@ -36,9 +36,9 @@ Single file glsl shader programs
 
 .. versionadded:: 1.6.0
 
-To simplify shader management, the vertex and fragment shaders can be loaded 
-automatically from a single glsl source file (plain text). The file should 
-contain sections identified by a line starting with '---vertex' and 
+To simplify shader management, the vertex and fragment shaders can be loaded
+automatically from a single glsl source file (plain text). The file should
+contain sections identified by a line starting with '---vertex' and
 '---fragment' respectively (case insensitive), e.g.::
 
     // anything before a meaningful section such as this comment are ignored
@@ -165,7 +165,9 @@ cdef class Shader:
         self.uniform_values = dict()
 
     def __init__(self, str vs=None, str fs=None, str source=None):
+        Logger.info("Shadeerrrrr: register_shader")
         get_context().register_shader(self)
+        Logger.info("Shadeerrrrr: glCreateProgram")
         self.program = glCreateProgram()
         if source:
             self.source = source
