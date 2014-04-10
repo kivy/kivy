@@ -64,8 +64,7 @@ include "common.pxi"
 
 from os.path import join
 from kivy.graphics.c_opengl cimport *
-IF USE_OPENGL_DEBUG == 1:
-    from kivy.graphics.c_opengl_debug cimport *
+from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.vertex cimport vertex_attr_t
 from kivy.graphics.transformation cimport Matrix
 from kivy.graphics.context cimport get_context
