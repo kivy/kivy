@@ -717,6 +717,7 @@ cdef class RenderContext(Canvas):
         self.bind_texture = dict()
 
     def __init__(self, *args, **kwargs):
+        Logger.info("RenderContextTTTTTTTTTTT: init")
         Canvas.__init__(self, **kwargs)
         vs_src = kwargs.get('vs', None)
         fs_src = kwargs.get('fs', None)
