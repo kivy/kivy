@@ -27,14 +27,14 @@ parser.add_argument('--major_version', dest='major_version', default=3,
 parser.add_argument('--min_minor', dest='min_minor', default=0, type=int,
                     help='minimum minor version of the python interpreters to be listed (default: 0)')
 args = parser.parse_args()
-keyword = "python%s" %(args.major_version)
+keyword = "python%s." %(args.major_version)
 
 interpreters = []
 for path in os.environ["PATH"].split(":"):
     if os.path.isdir(path):
         for executable in os.listdir(path):
-            if keyword in executable[:len(keyword)] and len(executable[len(keyword)-1:]) is 3: # expecting version appended as 'x.y'
+            if keyword in executable[:len(keyword)] and len(executable[len(keyword):]) is 1: # expecting version appended as 'x.y'
                 if int(executable[len(keyword)-1:].split(".")[1]) >= args.min_minor:
                     interpreters.append(executable)
-
+interpreters.sort()
 print(' '.join(interpreters))
