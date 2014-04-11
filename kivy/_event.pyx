@@ -311,6 +311,11 @@ cdef class EventDispatcher(ObjectWithUid):
         :Parameters:
             `event_type`: str
                 the event name to dispatch.
+
+        .. versionchanged:: 1.8.1
+            keyword arguments collection and forwarding was added. Before, only
+            positional arguments would be collected and forwarded.
+
         '''
         cdef list event_stack = self.__event_stack[event_type]
         cdef object remove = event_stack.remove
