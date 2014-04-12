@@ -268,9 +268,12 @@ class ClockEvent(object):
 
     def cancel(self):
         if self._is_triggered:
-            events = self.clock._events
+            clock = self.clock
+            events = clock._events
             cid = self.cid
             if cid in events and self in events[cid]:
+                if clock._current_event is self:
+                    clock._current_event = None
                 events[cid].remove(self)
         self._is_triggered = False
 
