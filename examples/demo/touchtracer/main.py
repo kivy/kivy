@@ -36,7 +36,6 @@ class Touchtracer(FloatLayout):
         if 'pressure' in touch.profile:
             ud['pressure'] = touch.pressure
             pointsize = (touch.pressure * 100000) ** 2
-        print(pointsize)
         ud['color'] =  random()
 
         with self.canvas:
@@ -69,7 +68,6 @@ class Touchtracer(FloatLayout):
             if not .95 < (touch.pressure / ud['pressure']) < 1.05:
                 g = ud['group']
                 pointsize = (touch.pressure * 100000) ** 2
-                print(pointsize)
                 with self.canvas:
                     Color(ud['color'], 1, 1, mode='hsv', group=g)
                     ud['lines'].append(
