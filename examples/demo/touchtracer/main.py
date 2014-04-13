@@ -1,4 +1,6 @@
 #!/usr/bin/kivy
+__version__ = '1.0'
+
 import kivy
 kivy.require('1.0.6')
 
@@ -36,7 +38,7 @@ class Touchtracer(FloatLayout):
         if 'pressure' in touch.profile:
             ud['pressure'] = touch.pressure
             pointsize = (touch.pressure * 100000) ** 2
-        ud['color'] =  random()
+        ud['color'] = random()
 
         with self.canvas:
             Color(ud['color'], 1, 1, mode='hsv', group=g)
@@ -59,8 +61,16 @@ class Touchtracer(FloatLayout):
         ud['lines'][0].pos = touch.x, 0
         ud['lines'][1].pos = 0, touch.y
 
-        points = ud['lines'][-1].points
-        oldx, oldy = points[-2], points[-1]
+        index = -1
+
+        while True:
+            try:
+                points = ud['lines'][index].points
+                oldx, oldy = points[-2], points[-1]
+                break
+            except:
+                index -= 1
+
         points = calculate_points(oldx, oldy, touch.x, touch.y)
 
         # if pressure changed create a new point instruction
@@ -71,7 +81,7 @@ class Touchtracer(FloatLayout):
                 with self.canvas:
                     Color(ud['color'], 1, 1, mode='hsv', group=g)
                     ud['lines'].append(
-                        Point(points=(touch.x, touch.y), source='particle.png',
+                        Point(points=(), source='particle.png',
                               pointsize=pointsize, group=g))
 
         if points:
