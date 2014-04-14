@@ -14,6 +14,7 @@ from distutils.core import setup
 from distutils.extension import Extension
 from distutils.version import LooseVersion
 from collections import OrderedDict
+from subprocess import check_output
 from time import sleep
 
 
@@ -314,7 +315,7 @@ else:
             c_options['use_opengl_es2'] = False
         else:
             # auto detection of GLES headers
-            default_header_dirs = ['/usr/include', '/usr/local/include']
+            default_header_dirs = ['/usr/include', join(environ.get('LOCALBASE', '/usr/local'), 'include')]
             c_options['use_opengl_es2'] = False
             for hdir in default_header_dirs:
                 filename = join(hdir, 'GLES2', 'gl2.h')
@@ -461,6 +462,9 @@ def determine_base_flags():
         flags['include_dirs'] += [sysroot]
         flags['extra_compile_args'] += ['-isysroot', sysroot]
         flags['extra_link_args'] += ['-isysroot', sysroot]
+    elif platform.startswith('freebsd'):
+        flags['include_dirs'] += [join(environ.get('LOCALBASE', '/usr/local'), 'include')]
+        flags['extra_link_args'] += ['-L', join(environ.get('LOCALBASE', '/usr/local'), 'lib')]
     elif platform == 'darwin':
         v = os.uname()
         if v[2] >= '13.0.0':
@@ -494,8 +498,6 @@ def determine_gl_flags():
         flags['extra_link_args'] = ['-framework', 'OpenGL', '-arch', osx_arch]
         flags['extra_compile_args'] = ['-arch', osx_arch]
     elif platform.startswith('freebsd'):
-        flags['include_dirs'] = ['/usr/local/include']
-        flags['extra_link_args'] = ['-L', '/usr/local/lib']
         flags['libraries'] = ['GL']
     elif platform.startswith('openbsd'):
         flags['include_dirs'] = ['/usr/X11R6/include']
