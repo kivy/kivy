@@ -717,14 +717,21 @@ cdef class RenderContext(Canvas):
         self.bind_texture = dict()
 
     def __init__(self, *args, **kwargs):
+        Logger.info("RenderContextTTTTTTTTTTT: init")
         Canvas.__init__(self, **kwargs)
+        Logger.info("RenderContextTTTTTTTTTTT: Canvas.__init__")
         vs_src = kwargs.get('vs', None)
         fs_src = kwargs.get('fs', None)
+        Logger.info("RenderContextTTTTTTTTTTT: vs_src + fs_src")
         self._shader = Shader(vs_src, fs_src)
+        Logger.info("RenderContextTTTTTTTTTTT: self._shader")
 
         # load default texture image
+        Logger.info("RenderContextTTTTTTTTTTT: filename")
         filename = join(kivy_shader_dir, 'default.png')
+        Logger.info("RenderContextTTTTTTTTTTT: filename {}".format(filename))
         tex = Cache.get('kv.texture', filename)
+        Logger.info("RenderContextTTTTTTTTTTT: Cache.get")
         if not tex:
             tex = Image(filename).texture
             Cache.append('kv.texture', filename, tex)

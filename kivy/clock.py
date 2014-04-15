@@ -191,16 +191,22 @@ try:
     else:
         if platform == 'darwin':
             _libc = ctypes.CDLL('libc.dylib')
+            _libc.usleep.argtypes = [ctypes.c_ulong]
+            _libc_usleep = _libc.usleep
+
+            class _ClockBase(object):
+                def usleep(self, microseconds):
+                    _libc_usleep(int(microseconds))
+
+            _default_time = time.time
         else:
-            _libc = ctypes.CDLL('libc.so')
-        _libc.usleep.argtypes = [ctypes.c_ulong]
-        _libc_usleep = _libc.usleep
+            #_libc = ctypes.CDLL('libc.so')
+            _default_time = time.time
+            _default_sleep = time.sleep
 
-        class _ClockBase(object):
-            def usleep(self, microseconds):
-                _libc_usleep(int(microseconds))
-
-        _default_time = time.time
+            class _ClockBase(object):
+                def usleep(self, microseconds):
+                    _default_sleep(microseconds / 1000000.)
 
 except (OSError, ImportError):
     # ImportError: ctypes is not available on python-for-android.

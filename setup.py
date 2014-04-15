@@ -65,12 +65,12 @@ if exists('/opt/vc/include/bcm_host.h'):
 c_options = OrderedDict()
 c_options['use_rpi'] = platform == 'rpi'
 c_options['use_opengl_es2'] = None
-c_options['use_opengl_debug'] = False
+c_options['use_opengl_debug'] = True
 c_options['use_glew'] = False
 c_options['use_sdl'] = False
 c_options['use_ios'] = False
 c_options['use_mesagl'] = False
-c_options['use_x11'] = False
+c_options['use_x11'] = True
 c_options['use_gstreamer'] = False
 c_options['use_avfoundation'] = platform == 'darwin'
 

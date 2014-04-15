@@ -36,9 +36,9 @@ Single file glsl shader programs
 
 .. versionadded:: 1.6.0
 
-To simplify shader management, the vertex and fragment shaders can be loaded 
-automatically from a single glsl source file (plain text). The file should 
-contain sections identified by a line starting with '---vertex' and 
+To simplify shader management, the vertex and fragment shaders can be loaded
+automatically from a single glsl source file (plain text). The file should
+contain sections identified by a line starting with '---vertex' and
 '---fragment' respectively (case insensitive), e.g.::
 
     // anything before a meaningful section such as this comment are ignored
@@ -64,8 +64,7 @@ include "common.pxi"
 
 from os.path import join
 from kivy.graphics.c_opengl cimport *
-IF USE_OPENGL_DEBUG == 1:
-    from kivy.graphics.c_opengl_debug cimport *
+from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.vertex cimport vertex_attr_t
 from kivy.graphics.transformation cimport Matrix
 from kivy.graphics.context cimport get_context
@@ -165,8 +164,18 @@ cdef class Shader:
         self.uniform_values = dict()
 
     def __init__(self, str vs=None, str fs=None, str source=None):
+        Logger.info("Shadeerrrrr: register_shader")
         get_context().register_shader(self)
+        Logger.info("Shadeerrrrr: glCreateProgram")
+
+        ret = glGetError()
+        if ret:
+            Logger.error('Shader: GL error %d' % ret)
+            raise Exception('Shader didnt link, check info log.')
+
         self.program = glCreateProgram()
+
+        Logger.info("Shadeerrrrr: glCreateProgram end {}".format(self.program))
         if source:
             self.source = source
         else:
