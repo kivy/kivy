@@ -327,6 +327,7 @@ from kivy.lang import Builder
 from kivy.resources import resource_find
 from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
+from kivy.thememanager import switch_theme
 from kivy.properties import ObjectProperty, StringProperty
 
 
@@ -456,6 +457,8 @@ class App(EventDispatcher):
     If a kv_file is set, it will be loaded when the application starts. The
     loading of the "default" kv file will be prevented.
     '''
+
+    theme = StringProperty(None)
 
     # Return the current running App instance
     _running_app = None
@@ -769,6 +772,9 @@ class App(EventDispatcher):
         '''Launches the app in standalone mode.
         '''
         if not self.built:
+            if self.theme:
+                switch_theme(self.theme)
+
             self.load_config()
             self.load_kv(filename=self.kv_file)
             root = self.build()
