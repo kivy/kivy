@@ -10,6 +10,9 @@ Installation on MacOSX
     components yourself. We suggest using
     `homebrew <http://mxcl.github.com/homebrew/>`_ to do that.
 
+    There can be a limitation on some OS X with more than one monitor.
+    The application will crash when you try to start it on the second monitor.
+
 For Mac OS X 10.7 and later, we provide a Kivy.app with all dependencies
 bundled. Download it from our `Download Page <http://kivy.org/#download>`_.
 It comes as a .dmg 
