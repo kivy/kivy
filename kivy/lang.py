@@ -749,6 +749,7 @@ from kivy import kivy_data_dir, require
 from kivy.compat import PY2, iteritems, iterkeys
 from kivy.context import register_context
 from kivy.resources import resource_find
+from kivy.event import EventDispatcher
 import kivy.metrics as Metrics
 
 
@@ -1431,7 +1432,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                 f = idmap[k[0]]
                 for x in k[1:-1]:
                     f = getattr(f, x)
-                if hasattr(f, 'bind'):
+                if isinstance(f, EventDispatcher):
                     f.bind(**{k[-1]: fn})
                     # make sure _handlers doesn't keep widgets alive
                     _handlers[uid].append([get_proxy(f), k[-1], fn])
