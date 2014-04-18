@@ -595,7 +595,8 @@ class WindowBase(EventDispatcher):
         cc = self._clearcolor
         if cc is not None:
             glClearColor(*cc)
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
+                    GL_STENCIL_BUFFER_BIT)
 
     def set_title(self, title):
         '''Set the window title.
@@ -640,6 +641,8 @@ class WindowBase(EventDispatcher):
                 The Motion Event currently dispatched.
         '''
         if me.is_touch:
+            w, h = self.system_size
+            me.scale_for_screen(w, h, rotation=self._rotation)
             if etype == 'begin':
                 self.dispatch('on_touch_down', me)
             elif etype == 'update':
@@ -649,27 +652,36 @@ class WindowBase(EventDispatcher):
 
     def on_touch_down(self, touch):
         '''Event called when a touch down event is initiated.
+
+        .. versionchanged:: 1.8.1
+            The touch `pos` is now transformed to window coordinates before
+            this method is called. Before, the touch `pos` coordinate would be
+            `(0, 0)` when this method was called.
         '''
-        w, h = self.system_size
-        touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in self.children[:]:
             if w.dispatch('on_touch_down', touch):
                 return True
 
     def on_touch_move(self, touch):
         '''Event called when a touch event moves (changes location).
+
+        .. versionchanged:: 1.8.1
+            The touch `pos` is now transformed to window coordinates before
+            this method is called. Before, the touch `pos` coordinate would be
+            `(0, 0)` when this method was called.
         '''
-        w, h = self.system_size
-        touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in self.children[:]:
             if w.dispatch('on_touch_move', touch):
                 return True
 
     def on_touch_up(self, touch):
         '''Event called when a touch event is released (terminated).
+
+        .. versionchanged:: 1.8.1
+            The touch `pos` is now transformed to window coordinates before
+            this method is called. Before, the touch `pos` coordinate would be
+            `(0, 0)` when this method was called.
         '''
-        w, h = self.system_size
-        touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in self.children[:]:
             if w.dispatch('on_touch_up', touch):
                 return True
