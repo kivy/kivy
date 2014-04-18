@@ -35,6 +35,8 @@ If you still receive build errors, check your Homebrew is in a healthy state::
 
     brew doctor
 
+For further help, please refer to the `Homebrew wiki <https://github.com/Homebrew/homebrew/wiki>`_.
+    
 The last, final and desperate step to get things working might be to remove
 Homebrew altogether, get the lastest version, install that and then re-install
 the dependencies.
