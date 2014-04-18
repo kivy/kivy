@@ -36,7 +36,7 @@ from kivy.properties import BooleanProperty, ObjectProperty
 
 
 class CheckBox(Widget):
-    '''CheckXox class, see module documentation for more information.
+    '''CheckBox class, see module documentation for more information.
     '''
 
     active = BooleanProperty(False)
