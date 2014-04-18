@@ -278,9 +278,10 @@ class ImageLoaderImageIO(ImageLoaderBase):
         # FIXME check which one are available on osx
         return ('bmp', 'bufr', 'cur', 'dcx', 'fits', 'fl', 'fpx', 'gbr',
                 'gd', 'gif', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
-                'jpeg', 'jpg', 'mcidas', 'mic', 'mpeg', 'msp', 'pcd',
-                'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi', 'spider',
-                'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm', 'xv')
+                'jpeg', 'jpg', 'jpe', 'mcidas', 'mic', 'mpeg', 'msp',
+                'pcd', 'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi',
+                'spider', 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm',
+                'xv')
 
     def load(self, filename):
         # FIXME: if the filename is unicode, the loader is failing.
