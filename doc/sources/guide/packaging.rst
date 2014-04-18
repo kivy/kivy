@@ -10,5 +10,6 @@ Packaging your application
     packaging-macosx
     packaging-android
     packaging-ios
+    packaging-ios-prerequisites
     android
 
