@@ -133,3 +133,6 @@ Yes, check:
 
 - `Defletouch on iTunes <http://itunes.apple.com/us/app/deflectouch/id505729681>`_, 
 - `ProcessCraft on iTunes <http://itunes.apple.com/us/app/processcraft/id526377075>`_
+
+For a more complete list, visit the
+`Kivy wiki <https://github.com/kivy/kivy/wiki/List-of-Kivy-Projects>`_.
