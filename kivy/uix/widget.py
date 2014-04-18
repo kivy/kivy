@@ -84,10 +84,12 @@ the look of your widgets and layouts. For example, to draw a background image
 for your widget, you can do the following::
 
     def redraw(self, args):
-        with self.canvas:
-            Rectangle(source="cover.jpg", pos=self.pos, size=self.size)
+        self.bg_rect.size = self.size
+        self.bg_rect.pos = self.pos
 
     widget = Widget()
+    with self.canvas:
+        self.bg_rect = Rectangle(source="cover.jpg", pos=self.pos, size=self.size)
     widget.bind(pos=redraw, size=redraw)
 
 .. highlight:: kv

@@ -16,9 +16,9 @@ from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 class ImageLoaderPIL(ImageLoaderBase):
     '''Image loader based on the PIL library.
 
-    .. versionadded::
+    .. versionadded:: 1.0.8
 
-        In 1.0.8, support for GIF animation was added.
+        Support for GIF animation added.
 
         Gif animation has a lot of issues(transparency/color depths... etc).
         In order to keep it simple, what is implimented here is what is
