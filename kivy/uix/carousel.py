@@ -128,7 +128,7 @@ class Carousel(StencilView):
     index = AliasProperty(_get_index, _set_index, bind=('_index', 'slides'))
     '''Get/Set the current visible slide based on the index.
 
-    :attr:`index` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`index` is a :class:`~kivy.properties.AliasProperty` and defaults
     to 0 (the first item).
     '''
 
@@ -190,9 +190,9 @@ class Carousel(StencilView):
     '''The next slide in the Carousel. It is None if the current slide is
     the last slide in the Carousel. If :attr:`orientation` is 'horizontal',
     the next slide is to the right. If :attr:`orientation` is 'vertical',
-    the previous slide is towards the top.
+    the next slide is towards the bottom.
 
-    :attr:`previous_slide` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`next_slide` is a :class:`~kivy.properties.AliasProperty`.
 
     .. versionchanged:: 1.5.0
         The property doesn't expose the container used for storing the slide.
@@ -211,8 +211,8 @@ class Carousel(StencilView):
     '''
 
     scroll_distance = NumericProperty('20dp')
-    '''Distance to move before scrolling the :class:`ScrollView` in pixels. As
-    soon as the distance has been traveled, the :class:`ScrollView` will start
+    '''Distance to move before scrolling the :class:`Carousel` in pixels. As
+    soon as the distance has been traveled, the :class:`Carousel` will start
     to scroll, and no touch event will go to children.
     It is advisable that you base this value on the dpi of your target device's
     screen.
