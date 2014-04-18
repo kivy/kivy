@@ -31,7 +31,8 @@ use `Homebrew <http://mxcl.github.com/homebrew/>`_ to install thoses dependencie
     sudo easy_install pip
     sudo pip install cython
 
-Ensure that everything is ok before starting the second step!
+For more detail, see :ref:`IOS Prerequisites <packaging_ios_prerequisites>`.
+Just ensure that everything is ok before starting the second step!
 
 .. _Compile the distribution:
 
