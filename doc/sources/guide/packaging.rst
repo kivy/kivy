@@ -11,5 +11,6 @@ Packaging your application
     packaging-android
     packaging-ios
     packaging-ios-prerequisites
+    packaging-ios-compile
     android
 
