@@ -15,20 +15,6 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
 
-# from kivy.uix.effectwidget import (effect_monochrome,
-#                                    effect_red,
-#                                    effect_blue,
-#                                    effect_green,
-#                                    effect_invert,
-#                                    effect_mix,
-#                                    effect_blur_h,
-#                                    effect_blur_v,
-#                                    effect_postprocessing,
-#                                    effect_pixelate,
-#                                    effect_waterpaint,
-#                                    effect_fxaa,
-#                                    effect_plasma)
-
 from kivy.uix.effectwidget import (MonochromeEffect,
                                    InvertEffect,
                                    ScanlinesEffect,
@@ -38,17 +24,23 @@ from kivy.uix.effectwidget import (MonochromeEffect,
                                    PixelateEffect,
                                    HorizontalBlurEffect,
                                    VerticalBlurEffect)
-                                   
 
 
 class ComparisonWidget(EffectWidget):
     pass
 
+
+class ComparisonWidget(EffectWidget):
+    pass
+
+
 class EffectSpinner(Spinner):
     pass
 
+
 class SpinnerRow(BoxLayout):
     effectwidget = ObjectProperty()
+
     def update_effectwidget(self, *args):
         effects = []
         for child in self.children[::-1]:
@@ -73,8 +65,10 @@ class SpinnerRow(BoxLayout):
                 effects.append(ScanlinesEffect())
             if text == 'pixelate':
                 effects.append(PixelateEffect())
+
         if self.effectwidget:
             self.effectwidget.effects = effects
+
 
 example = Builder.load_string('''
 #:import Vector kivy.vector.Vector
@@ -159,7 +153,6 @@ BoxLayout:
         'invert', 'mix',
         'blur_h', 'blur_v',
         'postprocessing', 'pixelate',]
-        
 ''')
 
 
