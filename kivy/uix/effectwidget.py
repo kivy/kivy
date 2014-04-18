@@ -145,15 +145,24 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {{
     float dt = ({} / 4.0) * 1.0 / resolution.x;
     vec4 sum = vec4(0.0);
-    sum += texture2D(texture, vec2(tex_coords.x - 4.0*dt, tex_coords.y)) * 0.05;
-    sum += texture2D(texture, vec2(tex_coords.x - 3.0*dt, tex_coords.y)) * 0.09;
-    sum += texture2D(texture, vec2(tex_coords.x - 2.0*dt, tex_coords.y)) * 0.12;
-    sum += texture2D(texture, vec2(tex_coords.x - dt, tex_coords.y)) * 0.15;
-    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y)) * 0.16;
-    sum += texture2D(texture, vec2(tex_coords.x + dt, tex_coords.y)) * 0.15;
-    sum += texture2D(texture, vec2(tex_coords.x + 2.0*dt, tex_coords.y)) * 0.12;
-    sum += texture2D(texture, vec2(tex_coords.x + 3.0*dt, tex_coords.y)) * 0.09;
-    sum += texture2D(texture, vec2(tex_coords.x + 4.0*dt, tex_coords.y)) * 0.05;
+    sum += texture2D(texture, vec2(tex_coords.x - 4.0*dt, tex_coords.y))
+                     * 0.05;
+    sum += texture2D(texture, vec2(tex_coords.x - 3.0*dt, tex_coords.y))
+                     * 0.09;
+    sum += texture2D(texture, vec2(tex_coords.x - 2.0*dt, tex_coords.y))
+                     * 0.12;
+    sum += texture2D(texture, vec2(tex_coords.x - dt, tex_coords.y))
+                     * 0.15;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y))
+                     * 0.16;
+    sum += texture2D(texture, vec2(tex_coords.x + dt, tex_coords.y))
+                     * 0.15;
+    sum += texture2D(texture, vec2(tex_coords.x + 2.0*dt, tex_coords.y))
+                     * 0.12;
+    sum += texture2D(texture, vec2(tex_coords.x + 3.0*dt, tex_coords.y))
+                     * 0.09;
+    sum += texture2D(texture, vec2(tex_coords.x + 4.0*dt, tex_coords.y))
+                     * 0.05;
     return sum;
 }}
 '''
@@ -161,17 +170,27 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 effect_blur_v = '''
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {{
-    float dt = ({} / 4.0) * 1.0 / resolution.x;
+    float dt = ({} / 4.0)
+                     * 1.0 / resolution.x;
     vec4 sum = vec4(0.0);
-    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 4.0*dt)) * 0.05;
-    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 3.0*dt)) * 0.09;
-    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 2.0*dt)) * 0.12;
-    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - dt)) * 0.15;
-    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y)) * 0.16;
-    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + dt)) * 0.15;
-    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 2.0*dt)) * 0.12;
-    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 3.0*dt)) * 0.09;
-    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 4.0*dt)) * 0.05;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 4.0*dt))
+                     * 0.05;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 3.0*dt))
+                     * 0.09;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - 2.0*dt))
+                     * 0.12;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y - dt))
+                     * 0.15;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y))
+                     * 0.16;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + dt))
+                     * 0.15;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 2.0*dt))
+                     * 0.12;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 3.0*dt))
+                     * 0.09;
+    sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 4.0*dt))
+                     * 0.05;
     return sum;
 }}
 '''
@@ -232,65 +251,6 @@ vec4 effect(vec4 vcolor, sampler2D texture, vec2 texcoord, vec2 pixel_coords)
 
     return texture2D(texture, xy);
 }}
-'''
-
-effect_waterpaint = '''
-/*
-Themaister's Waterpaint shader
-
-Placed in the public domain.
-
-(From this thread: http://board.byuu.org/viewtopic.php?p=30483#p30483
-PD declaration here: http://board.byuu.org/viewtopic.php?p=30542#p30542 )
-modified by slime73 for use with love2d and mari0
-*/
-
-vec4 compress(vec4 in_color, float threshold, float ratio)
-{
-    vec4 diff = in_color - vec4(threshold);
-    diff = clamp(diff, 0.0, 100.0);
-    return in_color - (diff * (1.0 - 1.0/ratio));
-}
-
-vec4 effect( vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
-{
-    vec2 textureSize = resolution;
-
-    float x = 0.5 * (1.0 / textureSize.x);
-    float y = 0.5 * (1.0 / textureSize.y);
-
-    vec2 dg1 = vec2( x, y);
-    vec2 dg2 = vec2(-x, y);
-    vec2 dx = vec2(x, 0.0);
-    vec2 dy = vec2(0.0, y);
-
-    vec3 c00 = texture2D(texture, tex_coords - dg1).xyz;
-    vec3 c01 = texture2D(texture, tex_coords - dx).xyz;
-    vec3 c02 = texture2D(texture, tex_coords + dg2).xyz;
-    vec3 c10 = texture2D(texture, tex_coords - dy).xyz;
-    vec3 c11 = texture2D(texture, tex_coords).xyz;
-    vec3 c12 = texture2D(texture, tex_coords + dy).xyz;
-    vec3 c20 = texture2D(texture, tex_coords - dg2).xyz;
-    vec3 c21 = texture2D(texture, tex_coords + dx).xyz;
-    vec3 c22 = texture2D(texture, tex_coords + dg1).xyz;
-
-    vec2 texsize = textureSize;
-
-    vec3 first = mix(c00, c20, fract(tex_coords.x * texsize.x + 0.5));
-    vec3 second = mix(c02, c22, fract(tex_coords.x * texsize.x + 0.5));
-
-    vec3 mid_horiz = mix(c01, c21, fract(tex_coords.x * texsize.x + 0.5));
-    vec3 mid_vert = mix(c10, c12, fract(tex_coords.y * texsize.y + 0.5));
-
-    vec3 res = mix(first, second, fract(tex_coords.y * texsize.y + 0.5));
-    vec4 final = vec4(0.26 * (res + mid_horiz + mid_vert) + 3.5 * abs(res -
-                      mix(mid_horiz, mid_vert, 0.5)), 1.0);
-
-    final = compress(final, 0.8, 5.0);
-    final.a = 1.0;
-
-    return final;
-}
 '''
 
 effect_fxaa = '''
@@ -360,6 +320,63 @@ class EffectBase(EventDispatcher):
 
     '''
     glsl = StringProperty(effect_trivial)
+
+    fbo = ObjectProperty(None, allownone=True)
+
+    def __init__(self, *args, **kwargs):
+        super(EffectBase, self).__init__(*args, **kwargs)
+        self.bind(fbo=self.set_fbo_shader)
+        self.bind(glsl=self.set_fbo_shader)
+
+    def set_fbo_shader(self, *args):
+        if self.fbo is None:
+            return
+        self.fbo.set_fs(shader_header + shader_uniforms + self.glsl +
+                        shader_footer_effect)
+
+
+class MonochromeEffect(EffectBase):
+    '''Returns its input colours in monochrome.'''
+    def __init__(self, *args, **kwargs):
+        super(MonochromeEffect, self).__init__(*args, **kwargs)
+        self.glsl = effect_monochrome
+
+
+class InvertEffect(EffectBase):
+    '''Inverts the colours in the input.'''
+    def __init__(self, *args, **kwargs):
+        super(InvertEffect, self).__init__(*args, **kwargs)
+        self.glsl = effect_invert
+
+
+class MixEffect(EffectBase):
+    '''Mixes the color channels of the input, (r, g, b) to (b, r, g).'''
+    def __init__(self, *args, **kwargs):
+        super(MixEffect, self).__init__(*args, **kwargs)
+        self.glsl = effect_mix
+
+
+class ScanlinesEffect(EffectBase):
+    '''Adds scanlines to the input.'''
+    def __init__(self, *args, **kwargs):
+        super(ScanlinesEffect, self).__init__(*args, **kwargs)
+        self.glsl = effect_postprocessing
+
+
+class PixelateEffect(EffectBase):
+    '''Pixelates the input according to its
+    :attr:`~PixelateEffect.pixel_size`'''
+    pixel_size = NumericProperty(10)
+
+    def __init__(self, *args, **kwargs):
+        super(PixelateEffect, self).__init__(*args, **kwargs)
+        self.do_glsl()
+
+    def on_pixel_size(self, *args):
+        self.do_glsl()
+
+    def do_glsl(self):
+        self.glsl = effect_pixelate.format(self.pixel_size)
 
 
 class EffectFromFile(EffectBase):
@@ -503,6 +520,9 @@ class EffectWidget(BoxLayout):
     # One extra Fbo for each effect
     fbo_list = ListProperty([])
 
+    # Effects whose glsl we bound to
+    _bound_effects = ListProperty([])
+
     def __init__(self, **kwargs):
         # Make sure opengl context exists
         EventLoop.ensure_window()
@@ -588,11 +608,30 @@ class EffectWidget(BoxLayout):
 
         # Build effect shaders
         for effect, fbo in zip(self.effects, self.fbo_list):
-            fbo.set_fs(shader_header + shader_uniforms + effect.glsl +
-                       shader_footer_effect)
+            effect.fbo = fbo
+            # fbo.set_fs(shader_header + shader_uniforms + effect.glsl +
+            #            shader_footer_effect)
 
         self.fbo_list[0].texture_rectangle.texture = self.fbo.texture
         self.texture = self.fbo_list[-1].texture
+
+    def _update_glsl_bindings(self):
+        '''(internal) Bind to the glsl of each effect, or
+        unbind if the effect has been removed.'''
+        bound_effects = self._bound_effects
+        effects = self.effects
+
+        for effect in bound_effects:
+            if effect not in effects:
+                effect.unbind(glsl=self.refresh_fbo_setup)
+        # Remove separately to avoid modifying list during iteration
+        bound_effects = [effect for effect in bound_effects if
+                         effect in effects]
+
+        for effect in effects:
+            if effect not in bound_effects:
+                bound_effects.append(effect)
+                effect.bind(glsl=self.refresh_fbo_setup)
 
     def on_fs(self, instance, value):
         # set the fragment shader to our source code
@@ -623,4 +662,3 @@ class EffectWidget(BoxLayout):
         self.canvas = self.fbo
         super(EffectWidget, self).clear_widgets(children)
         self.canvas = c
-
