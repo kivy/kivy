@@ -15,7 +15,7 @@ The basic usage is as follows::
 
     w = EffectWidget()
     w.add_widget(Button(text='Hello!')
-    w.effects = [InvertEffect()]
+    w.effects = [InvertEffect(), HorizontalBlurEffect(size=2.0)]
 
 The effects can be a list of effects of any length, and they will be
 applied sequentially.
@@ -481,7 +481,7 @@ class ChannelMixEffect(EffectBase):
         super(ChannelMixEffect, self).__init__(*args, **kwargs)
         self.do_glsl()
 
-    def on_size(self, *args):
+    def on_order(self, *args):
         self.do_glsl()
 
     def do_glsl(self):
@@ -523,7 +523,7 @@ class HorizontalBlurEffect(EffectBase):
 
 class VerticalBlurEffect(EffectBase):
     '''Blurs the input vertically, with the width given by
-    :attr:`~VerticalBlurEffect.width`.'''
+    :attr:`~VerticalBlurEffect.size`.'''
     size = NumericProperty(4.0)
 
     def __init__(self, *args, **kwargs):
@@ -545,21 +545,34 @@ class FXAAEffect(EffectBase):
 
 
 class EffectFbo(Fbo):
+    '''An :class:`~kivy.graphics.Fbo` with extra facility to
+    attempt setting a new shader, see :meth:`set_fs`.
+    '''
     def __init__(self, *args, **kwargs):
         super(EffectFbo, self).__init__(*args, **kwargs)
         self.texture_rectangle = None
 
     def set_fs(self, value):
-        # set the fragment shader to our source code
+        '''Attempt to set the fragment shader to the given value.
+        If setting the shader fails, resets the old one and raises an
+        exception.
+        '''
         shader = self.shader
         old_value = shader.fs
         shader.fs = value
         if not shader.success:
             shader.fs = old_value
-            raise Exception('failed')
+            raise Exception('Setting new shader failed.')
 
 
 class EffectWidget(BoxLayout):
+    '''
+    Widget with the ability to apply a series of graphical effects to
+    its children. See module documentation for full information on
+    setting effects and creating your own.
+
+    .. versionadded:: 1.8.1
+    '''
 
     fs = StringProperty(None)
 
