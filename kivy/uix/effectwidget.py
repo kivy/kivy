@@ -599,8 +599,6 @@ class EffectWidget(BoxLayout):
     texture is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
-    # Rectangle clearing Fbo
-    fbo_rectangle = ObjectProperty(None)
 
     effects = ListProperty([])
     '''List of all the effects to be applied.
@@ -619,6 +617,8 @@ class EffectWidget(BoxLayout):
     '''(internal) list of effect classes that have been given an fbo to
     manage. This is necessary so that the fbo can be removed it the
     effect is no longer in use.
+
+    _bound_effects is a :class:`ListProperty` and defaults to [].
     '''
 
     def __init__(self, **kwargs):
@@ -644,17 +644,17 @@ class EffectWidget(BoxLayout):
 
         Clock.schedule_interval(self._update_glsl, 0)
 
-        self.refresh_fbo_setup()
-        Clock.schedule_interval(self.update_fbos, 0)
+        self.bind(pos=self._update_translation,
+                  size=self.refresh_fbo_setup,
+                  effects=self.refresh_fbo_setup)
 
-    def on_pos(self, *args):
+        self.refresh_fbo_setup()
+
+    def _update_translation(self, *args):
+        '''(internal) Makes sure everything is translated correctly to
+        appear in the fbo.'''
         self.fbo_translation.x = -self.x
         self.fbo_translation.y = -self.y
-
-    def on_size(self, *args):
-        self.fbo.size = self.size
-        self.fbo_rectangle.size = self.size
-        self.refresh_fbo_setup()
 
     def _update_glsl(self, *largs):
         '''(internal) Passes new time and resolution uniform
@@ -668,14 +668,11 @@ class EffectWidget(BoxLayout):
             fbo['time'] = time
             fbo['resolution'] = resolution
 
-    def on_effects(self, *args):
-        self.refresh_fbo_setup()
-
-    def update_fbos(self, *args):
-        for fbo in self.fbo_list:
-            fbo.ask_update()
-
     def refresh_fbo_setup(self, *args):
+        '''(internal) Creates and assigns one :class:`~kivy.graphics.Fbo`
+        per effect, and makes sure all sizes etc. are correct and
+        consistent.
+        '''
         # Add/remove fbos until there is one per effect
         while len(self.fbo_list) < len(self.effects):
             with self.canvas:
@@ -719,15 +716,6 @@ class EffectWidget(BoxLayout):
 
         self.fbo_list[0].texture_rectangle.texture = self.fbo.texture
         self.texture = self.fbo_list[-1].texture
-
-    def on_fs(self, instance, value):
-        # set the fragment shader to our source code
-        shader = self.canvas.shader
-        old_value = shader.fs
-        shader.fs = value
-        if not shader.success:
-            shader.fs = old_value
-            raise Exception('failed')
 
     def add_widget(self, widget):
         # Add the widget to our Fbo instead of the normal canvas
