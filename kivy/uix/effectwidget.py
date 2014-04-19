@@ -95,6 +95,9 @@ would invert the input color but set alpha to 1.0::
         return vec4(1.0 - color.xyz, 1.0);
     }
 
+Advanced Effects
+----------------
+
 '''
 
 from kivy.clock import Clock
@@ -107,6 +110,7 @@ from kivy.graphics import (RenderContext, Fbo, Color, Rectangle,
                            ClearColor, ClearBuffers)
 from kivy.event import EventDispatcher
 from kivy.base import EventLoop
+from kivy.resources import resource_find
 
 Builder.load_string('''
 <EffectWidget>:
@@ -383,12 +387,15 @@ class EffectBase(EventDispatcher):
     '''
     glsl = StringProperty(effect_trivial)
 
+    source = StringProperty('')
+
     fbo = ObjectProperty(None, allownone=True)
 
     def __init__(self, *args, **kwargs):
         super(EffectBase, self).__init__(*args, **kwargs)
         self.bind(fbo=self.set_fbo_shader)
         self.bind(glsl=self.set_fbo_shader)
+        self.bind(source=self._load_from_source)
 
     def set_fbo_shader(self, *args):
         if self.fbo is None:
@@ -396,17 +403,14 @@ class EffectBase(EventDispatcher):
         self.fbo.set_fs(shader_header + shader_uniforms + self.glsl +
                         shader_footer_effect)
 
-
-class EffectFromFile(EffectBase):
-    source = StringProperty('')
-
-    def on_source(self, instance, value):
-        if not value:
+    def _load_from_source(self, *args):
+        source = self.source
+        if not source:
             return
-        filename = resource_find(self.source)
+        filename = resource_find(source)
         if filename is None:
             return Logger.error('Error reading file {filename}'.
-                                format(filename=self.source))
+                                format(filename=source))
         with open(filename) as fileh:
             self.glsl = fileh.read()
 
