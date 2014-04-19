@@ -156,39 +156,11 @@ void main (void){
 }
 '''
 
-effect_trivial = '''
-vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
-{
-    return color;
-}
-'''
-
 effect_monochrome = '''
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {
     float mag = 1.0/3.0 * (color.x + color.y + color.z);
     return vec4(mag, mag, mag, color.w);
-}
-'''
-
-effect_red = '''
-vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
-{
-    return vec4(color.x, 0.0, 0.0, 1.0);
-}
-'''
-
-effect_green = '''
-vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
-{
-    return vec4(0.0, color.y, 0.0, 1.0);
-}
-'''
-
-effect_blue = '''
-vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
-{
-    return vec4(0.0, 0.0, color.z, 1.0);
 }
 '''
 
@@ -288,23 +260,6 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
     //col = mix( col, oricol, clamp(-2.0+2.0*q.x+3.0*comp,0.0,1.0) );
 
     return vec4(col,1.0);
-}
-'''
-
-effect_plasma = '''
-vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
-{
-   float x = coords.x;
-   float y = coords.y;
-   float mov0 = x+y+cos(sin(time)*2.)*100.+sin(x/100.)*1000.;
-   float mov1 = y / resolution.y / 0.2 + time;
-   float mov2 = x / resolution.x / 0.2;
-   float c1 = abs(sin(mov1+time)/2.+mov2/2.-mov1-mov2+time);
-   float c2 = abs(sin(c1+sin(mov0/1000.+time)+sin(y/40.+time)+
-                  sin((x+y)/100.)*3.));
-   float c3 = abs(sin(c2+cos(mov1+mov2+c2)+cos(mov2)+sin(x/1000.)));
-   return vec4( 0.5*(c1 + color.z), 0.5*(c2 + color.x),
-                0.5*(c3 + color.y), 1.0);
 }
 '''
 
