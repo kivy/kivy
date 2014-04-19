@@ -26,6 +26,17 @@ full glsl shader, you provide a single function that takes
 some inputs based on the screen (current pixel color, current widget
 texture etc.). See the sections below for more information.
 
+.. note:: It is not efficient to resize an :class:`EffectWidget`, as
+          the :class:`~kivy.graphics.Fbo`s are recreated every time.
+          If you need to resize frequently, consider doing things a
+          different way.
+
+.. note:: Although some effects have adjustable parameters, it is
+          *not* efficient to animate these, as the entire
+          shader is reconstructed every time. You should use glsl
+          uniform variables instead. The :class:`AdvancedEffectBase`
+          may make this easier, see below.
+
 Provided Effects
 ----------------
 
@@ -42,30 +53,47 @@ effect documentation for more details.
 - :class:`VerticalBlurEffect` - Gaussuan blurs vertically.
 - :class:`FXAAEffect` - applies a very basic AA.
 
-
 Creating Effects
 ----------------
 
-An effect is a string representing part of a glsl fragment shader. It
+Effects are designed to make it easy to create and use your own
+transformations. You do this by creating and using an instance of
+:class:`EffectBase` with your own custom :attr:`EffectBase.glsl`
+property.
+
+The glsl property is a string representing part of a glsl fragment
+shader. You can include as many functions as you like (the string
+is simply spliced into the whole shader), but it
 must implement a function :code:`effect` as below::
 
     vec4 effect( vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
     {
-        ...
+        // ... your code here
+        return something;  // must be a vec4 representing the new color
     }
 
-The parameters are:
+The full shader will calculate the normal pixel colour at each point,
+then call your :code:`effect` function to transform it. The
+parameters are:
 
 - **color**: The normal colour of the current pixel (i.e. texture
-  sampled at tex_coords)
-- **texture**: The texture containing the widget's normal background
-- **tex_coords**: The normal texture_coords used to access texture
+  sampled at tex_coords).
+- **texture**: The texture containing the widget's normal background.
+- **tex_coords**: The normal texture_coords used to access texture.
 - **coords**: The pixel indices of the current pixel.
 
 The shader code also has access to two useful uniform variables,
 :code:`time` containing the time (in seconds) since the program start,
 and :code:`resolution` containing the shape (x pixels, y pixels) of
 the widget.
+
+For instance, the following simple string (taken from the `InvertEffect`)
+would invert the input color but set alpha to 1.0::
+
+    vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
+    {
+        return vec4(1.0 - color.xyz, 1.0);
+    }
 
 '''
 
