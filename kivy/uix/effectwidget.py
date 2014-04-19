@@ -1,16 +1,50 @@
 '''EffectWidget
 ============
 
-(highly experimental)
+..versionadded:: 1.8.1
 
-Experiment to make an EffectWidget, exposing part of the shader
-pipeline so users can write and easily apply their own glsl effects.
+The :class:`EffectWidget` is able to apply a variety of fancy
+graphical effects to
+its children. It works by rendering to a series of
+:class:`~kivy.graphics.Fbo`s with custom opengl fragment shaders.
+As such, effects can freely do almost anything, from inverting the
+colors of the widget, to antialiasing, to emulating the appearance of a
+crt monitor!
 
-Basic idea: Take implementation inspiration from shadertree example,
-draw children to Fbo and apply custom shader to a RenderContext.
+The basic usage is as follows::
 
-Effects
--------
+    w = EffectWidget()
+    w.add_widget(Button(text='Hello!')
+    w.effects = [InvertEffect()]
+
+The effects can be a list of effects of any length, and they will be
+applied sequentially.
+
+The module comes with a range of prebuilt effects, but the interface
+is designed to make it easy to create your own. Instead of writing a
+full glsl shader, you provide a single function that takes
+some inputs based on the screen (current pixel color, current widget
+texture etc.). See the sections below for more information.
+
+Provided Effects
+----------------
+
+The module comes with several pre-written effects. Some have
+adjustable properties (e.g. blur radius), see the individual
+effect documentation for more details.
+
+- :class:`MonochromeEffect` - makes the widget grayscale.
+- :class:`InvertEffect` - inverts the widget colors.
+- :class:`MixEffect` - swaps around color channels.
+- :class:`ScanlinesEffect` - displays flickering scanlines.
+- :class:`PixelateEffect` - pixelates the image.
+- :class:`HorizontalBlurEffect` - Gaussuan blurs horizontally.
+- :class:`VerticalBlurEffect` - Gaussuan blurs vertically.
+- :class:`FXAAEffect` - applies a very basic AA.
+
+
+Creating Effects
+----------------
 
 An effect is a string representing part of a glsl fragment shader. It
 must implement a function :code:`effect` as below::
@@ -335,50 +369,6 @@ class EffectBase(EventDispatcher):
                         shader_footer_effect)
 
 
-class MonochromeEffect(EffectBase):
-    '''Returns its input colours in monochrome.'''
-    def __init__(self, *args, **kwargs):
-        super(MonochromeEffect, self).__init__(*args, **kwargs)
-        self.glsl = effect_monochrome
-
-
-class InvertEffect(EffectBase):
-    '''Inverts the colours in the input.'''
-    def __init__(self, *args, **kwargs):
-        super(InvertEffect, self).__init__(*args, **kwargs)
-        self.glsl = effect_invert
-
-
-class MixEffect(EffectBase):
-    '''Mixes the color channels of the input, (r, g, b) to (b, r, g).'''
-    def __init__(self, *args, **kwargs):
-        super(MixEffect, self).__init__(*args, **kwargs)
-        self.glsl = effect_mix
-
-
-class ScanlinesEffect(EffectBase):
-    '''Adds scanlines to the input.'''
-    def __init__(self, *args, **kwargs):
-        super(ScanlinesEffect, self).__init__(*args, **kwargs)
-        self.glsl = effect_postprocessing
-
-
-class PixelateEffect(EffectBase):
-    '''Pixelates the input according to its
-    :attr:`~PixelateEffect.pixel_size`'''
-    pixel_size = NumericProperty(10)
-
-    def __init__(self, *args, **kwargs):
-        super(PixelateEffect, self).__init__(*args, **kwargs)
-        self.do_glsl()
-
-    def on_pixel_size(self, *args):
-        self.do_glsl()
-
-    def do_glsl(self):
-        self.glsl = effect_pixelate.format(self.pixel_size)
-
-
 class EffectFromFile(EffectBase):
     source = StringProperty('')
 
@@ -520,7 +510,7 @@ class EffectWidget(BoxLayout):
     # One extra Fbo for each effect
     fbo_list = ListProperty([])
 
-    # Effects whose glsl we bound to
+    # Effects that we gave an fbo
     _bound_effects = ListProperty([])
 
     def __init__(self, **kwargs):
@@ -590,6 +580,12 @@ class EffectWidget(BoxLayout):
             old_fbo = self.fbo_list.pop()
             self.canvas.remove(old_fbo)
 
+        # Remove fbos from unused effects
+        for effect in self._bound_effects:
+            if effect not in self.effects:
+                effect.fbo = None
+        self._bound_effects = self.effects
+
         # Do resizing etc.
         self.fbo.size = self.size
         self.fbo_rectangle.size = self.size
@@ -609,29 +605,9 @@ class EffectWidget(BoxLayout):
         # Build effect shaders
         for effect, fbo in zip(self.effects, self.fbo_list):
             effect.fbo = fbo
-            # fbo.set_fs(shader_header + shader_uniforms + effect.glsl +
-            #            shader_footer_effect)
 
         self.fbo_list[0].texture_rectangle.texture = self.fbo.texture
         self.texture = self.fbo_list[-1].texture
-
-    def _update_glsl_bindings(self):
-        '''(internal) Bind to the glsl of each effect, or
-        unbind if the effect has been removed.'''
-        bound_effects = self._bound_effects
-        effects = self.effects
-
-        for effect in bound_effects:
-            if effect not in effects:
-                effect.unbind(glsl=self.refresh_fbo_setup)
-        # Remove separately to avoid modifying list during iteration
-        bound_effects = [effect for effect in bound_effects if
-                         effect in effects]
-
-        for effect in effects:
-            if effect not in bound_effects:
-                bound_effects.append(effect)
-                effect.bind(glsl=self.refresh_fbo_setup)
 
     def on_fs(self, instance, value):
         # set the fragment shader to our source code
