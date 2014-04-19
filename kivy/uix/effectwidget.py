@@ -156,6 +156,14 @@ void main (void){
 }
 '''
 
+
+effect_trivial = '''
+vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
+{
+    return color;
+}
+'''
+
 effect_monochrome = '''
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {
@@ -340,11 +348,31 @@ class EffectBase(EventDispatcher):
     See module documentation for more details.
 
     '''
+
     glsl = StringProperty(effect_trivial)
+    '''The glsl string defining your effect function, see module
+    documentation for more details.
+
+    :attr:`glsl` is a :class:`~kivy.properties.StringProperty` and
+    defaults to
+    a trivial effect that returns its input.
+    '''
 
     source = StringProperty('')
+    '''The (optional) filename from which to load the :attr:`glsl`
+    string.
+
+    :attr:`source` is a :class:`~kivy.properties.StringProperty and
+    defaults to ''.
+    '''
 
     fbo = ObjectProperty(None, allownone=True)
+    '''The fbo currently using this effect. The :class:`EffectBase
+    automatically handles this.
+
+    :attr:`fbo` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
+    '''
 
     def __init__(self, *args, **kwargs):
         super(EffectBase, self).__init__(*args, **kwargs)
@@ -353,12 +381,19 @@ class EffectBase(EventDispatcher):
         self.bind(source=self._load_from_source)
 
     def set_fbo_shader(self, *args):
+        '''Sets the :class:`~kivy.graphics.Fbo`'s shader by splicing
+        the :attr:`glsl` string into a full fragment shader.
+
+        The full shader is made up of :code:`shader_header +
+        shader_uniforms + self.glsl + shader_footer_effect`.
+        '''
         if self.fbo is None:
             return
         self.fbo.set_fs(shader_header + shader_uniforms + self.glsl +
                         shader_footer_effect)
 
     def _load_from_source(self, *args):
+        '''(internal) Loads the glsl string from a source file.'''
         source = self.source
         if not source:
             return
@@ -386,7 +421,14 @@ class AdvancedEffectBase(EventDispatcher):
     You must still manually declare your uniform variables at the top
     of your glsl string.
     '''
+
     uniforms = DictProperty({})
+    '''A dictionary of uniform variable names and their values. These
+    are automatically uploaded to the :attr:`fbo` shader if appropriate.
+
+    uniforms is a :class:`~kivy.properties.DictProperty` and
+    defaults to {}.
+    '''
 
     def __init__(self, *args, **kwargs):
         super(AdvancedEffectBase, self).__init__(*args, **kwargs)
@@ -429,8 +471,11 @@ class ChannelMixEffect(EffectBase):
     property. Channels may be arbitrarily rearranged or repeated.'''
 
     order = ListProperty([1, 2, 0])
-    '''The new sorted order of the rgb channels. Defaults to [1, 2, 0],
-    corresponding to (g, b, r).'''
+    '''The new sorted order of the rgb channels.
+
+    order is a :class:`~kivy.properties.ListProperty` and defaults to
+    [1, 2, 0], corresponding to (g, b, r).
+    '''
 
     def __init__(self, *args, **kwargs):
         super(ChannelMixEffect, self).__init__(*args, **kwargs)
@@ -447,7 +492,15 @@ class ChannelMixEffect(EffectBase):
 class PixelateEffect(EffectBase):
     '''Pixelates the input according to its
     :attr:`~PixelateEffect.pixel_size`'''
+
     pixel_size = NumericProperty(10)
+    '''
+    Sets the size of a new 'pixel' in the effect, in terms of number of
+    'real' pixels.
+
+    pixel_size is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 10.
+    '''
 
     def __init__(self, *args, **kwargs):
         super(PixelateEffect, self).__init__(*args, **kwargs)
@@ -463,7 +516,13 @@ class PixelateEffect(EffectBase):
 class HorizontalBlurEffect(EffectBase):
     '''Blurs the input horizontally, with the width given by
     :attr:`~HorizontalBlurEffect.size`.'''
+
     size = NumericProperty(4.0)
+    '''The blur width in pixels.
+
+    size is a :class:`~kivy.properties.NumericProperty` and defaults to
+    4.0.
+    '''
 
     def __init__(self, *args, **kwargs):
         super(HorizontalBlurEffect, self).__init__(*args, **kwargs)
@@ -479,7 +538,13 @@ class HorizontalBlurEffect(EffectBase):
 class VerticalBlurEffect(EffectBase):
     '''Blurs the input vertically, with the width given by
     :attr:`~VerticalBlurEffect.size`.'''
+
     size = NumericProperty(4.0)
+    '''The blur width in pixels.
+
+    size is a :class:`~kivy.properties.NumericProperty` and defaults to
+    4.0.
+    '''
 
     def __init__(self, *args, **kwargs):
         super(VerticalBlurEffect, self).__init__(*args, **kwargs)
@@ -525,26 +590,36 @@ class EffectWidget(BoxLayout):
     Widget with the ability to apply a series of graphical effects to
     its children. See module documentation for full information on
     setting effects and creating your own.
-
-    .. versionadded:: 1.8.1
     '''
 
-    fs = StringProperty(None)
-
-    # Texture of the final Fbo
     texture = ObjectProperty(None)
+    '''The output texture of our final :class:`~kivy.graphics.Fbo` after
+    all effects have been applied.
 
+    texture is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
+    '''
     # Rectangle clearing Fbo
     fbo_rectangle = ObjectProperty(None)
 
-    # List of effect strings
     effects = ListProperty([])
+    '''List of all the effects to be applied.
 
-    # One extra Fbo for each effect
+    effects is a :class:`ListProperty` and defaults to [].
+    '''
+
     fbo_list = ListProperty([])
+    '''(internal) list of all the fbos that are being used to apply
+    the effects.
 
-    # Effects that we gave an fbo
+    fbo_list is a :class:`ListProperty` and defaults to [].
+    '''
+
     _bound_effects = ListProperty([])
+    '''(internal) list of effect classes that have been given an fbo to
+    manage. This is necessary so that the fbo can be removed it the
+    effect is no longer in use.
+    '''
 
     def __init__(self, **kwargs):
         # Make sure opengl context exists
@@ -567,7 +642,7 @@ class EffectWidget(BoxLayout):
 
         super(EffectWidget, self).__init__(**kwargs)
 
-        Clock.schedule_interval(self.update_glsl, 0)
+        Clock.schedule_interval(self._update_glsl, 0)
 
         self.refresh_fbo_setup()
         Clock.schedule_interval(self.update_fbos, 0)
@@ -581,7 +656,10 @@ class EffectWidget(BoxLayout):
         self.fbo_rectangle.size = self.size
         self.refresh_fbo_setup()
 
-    def update_glsl(self, *largs):
+    def _update_glsl(self, *largs):
+        '''(internal) Passes new time and resolution uniform
+        variables to the shader.
+        '''
         time = Clock.get_boottime()
         resolution = [float(size) for size in self.size]
         self.canvas['time'] = time
