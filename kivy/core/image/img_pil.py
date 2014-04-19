@@ -40,9 +40,10 @@ class ImageLoaderPIL(ImageLoaderBase):
         # See http://www.pythonware.com/library/pil/handbook/index.htm
         return ('bmp', 'bufr', 'cur', 'dcx', 'fits', 'fl', 'fpx', 'gbr',
                 'gd', 'gif', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
-                'jpeg', 'jpg', 'mcidas', 'mic', 'mpeg', 'msp', 'pcd',
-                'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi', 'spider',
-                'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm', 'xv')
+                'jpeg', 'jpg', 'jpe', 'mcidas', 'mic', 'mpeg', 'msp',
+                'pcd', 'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi',
+                'spider', 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm',
+                'xv')
 
     def _img_correct(self, _img_tmp):
         '''Convert image to the correct format and orientation.
