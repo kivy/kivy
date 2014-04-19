@@ -35,7 +35,7 @@ texture etc.). See the sections below for more information.
           *not* efficient to animate these, as the entire
           shader is reconstructed every time. You should use glsl
           uniform variables instead. The :class:`AdvancedEffectBase`
-          may make this easier, see below.
+          may make this easier.
 
 Provided Effects
 ----------------
@@ -95,8 +95,8 @@ would invert the input color but set alpha to 1.0::
         return vec4(1.0 - color.xyz, 1.0);
     }
 
-Advanced Effects
-----------------
+You can also set the glsl by automatically loading the string from a
+file, simply set the :attr:`EffectBase.source` property of an effect.
 
 '''
 
@@ -104,7 +104,7 @@ from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import (StringProperty, ObjectProperty, ListProperty,
-                             NumericProperty)
+                             NumericProperty, DictProperty)
 from kivy.graphics import (RenderContext, Fbo, Color, Rectangle,
                            Translate, PushMatrix, PopMatrix,
                            ClearColor, ClearBuffers)
@@ -413,6 +413,39 @@ class EffectBase(EventDispatcher):
                                 format(filename=source))
         with open(filename) as fileh:
             self.glsl = fileh.read()
+
+
+class AdvancedEffectBase(EventDispatcher):
+    '''An :class:`EffectBase` with additional behavior to easily
+    set and update uniform variables in your shader.
+
+    This class is provided for convenience if implementing your own
+    effects, it is not used by any of those provided with Kivy.
+
+    In addition to your base glsl string that must be provided as
+    normal, the :class:`AdvancedEffectBase` has an extra property
+    :attr:`uniforms`, a dictionary of name-value pairs. Whenever
+    a value is changed, the new values for the uniform variable with
+    the given name are uploaded to the shader.
+
+    You must still manually declare your uniform variables at the top
+    of your glsl string.
+    '''
+    uniforms = DictProperty({})
+
+    def __init__(self, *args, **kwargs):
+        super(AdvancedEffectBase, self).__init__(*args, **kwargs)
+        self.bind(uniforms=self._update_uniforms)
+
+    def _update_uniforms(self, *args):
+        if self.fbo is None:
+            return
+        for key, value in self.uniforms.items():
+            self.fbo[key] = value
+
+    def set_fbo_shader(self, *args):
+        super(AdvancedEffectWidget, self).set_fbo_shader(*args)
+        self._update_uniforms()
 
 
 class MonochromeEffect(EffectBase):
