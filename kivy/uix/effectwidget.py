@@ -112,6 +112,12 @@ from kivy.event import EventDispatcher
 from kivy.base import EventLoop
 from kivy.resources import resource_find
 
+__all__ = ('EffectWidget', 'EffectBase', 'AdvancedEffectBase',
+           'MonochromeEffect', 'InvertEffect', 'MixEffect',
+           'ScanlinesEffect', 'PixelateEffect',
+           'HorizontalBlurEffect', 'VerticalBlurEffect',
+           'FXAAEffect')
+
 Builder.load_string('''
 <EffectWidget>:
     canvas:
