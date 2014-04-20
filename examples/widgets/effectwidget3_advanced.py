@@ -32,8 +32,7 @@ class TouchEffect(AdvancedEffectBase):
         self.uniforms = {'touch': [0.0, 0.0]}
 
     def on_touch(self, *args, **kwargs):
-        if self.fbo:
-            self.fbo['touch'] = [float(i) for i in self.touch]
+        self.uniforms['touch'] = [float(i) for i in self.touch]
 
 
 class TouchWidget(EffectWidget):
