@@ -41,14 +41,14 @@ The first time you run it, the script will download the latest versions of
 the packages kivy-ios uses. This means it might fail if any packages are not
 available or cannot be downloaded.
 
-These downloaded packages are stored in a hidden *.cache* subfolder. It may
-happen that an interrupted download will leave corrupt files in your cache.
-Additionally, the build process will also create various other subfolders,
-such as *build* and *tmp*, in your *kivy-ios* folder.
+These downloaded packages are stored in a hidden *.cache* subfolder. The build
+process then extracts these files to a *tmp* subfolder, builds the packages and
+places the build in the *build* subfolder. Be careful: if this process is
+interrupted, it might leave corrupt files in any of these locations.
  
 If you wish to force a fresh build of all the packages, you should delete all
-of these other folders (including *.cache*, but not *src* and *tools*) and
-re-run the 'build_all.sh' script.
+of these other folders (*.cache*, *tmp* and *build*) and re-run the
+'build_all.sh' script.
 
 Troubleshooting
 ---------------
