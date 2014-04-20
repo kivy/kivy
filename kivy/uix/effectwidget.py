@@ -398,7 +398,7 @@ class EffectBase(EventDispatcher):
             self.glsl = fileh.read()
 
 
-class AdvancedEffectBase(EventDispatcher):
+class AdvancedEffectBase(EffectBase):
     '''An :class:`EffectBase` with additional behavior to easily
     set and update uniform variables in your shader.
 
