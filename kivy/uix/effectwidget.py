@@ -101,13 +101,11 @@ file, simply set the :attr:`EffectBase.source` property of an effect.
 '''
 
 from kivy.clock import Clock
-from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import (StringProperty, ObjectProperty, ListProperty,
                              NumericProperty, DictProperty)
 from kivy.graphics import (RenderContext, Fbo, Color, Rectangle,
-                           Translate, PushMatrix, PopMatrix,
-                           ClearColor, ClearBuffers)
+                           Translate, PushMatrix, PopMatrix)
 from kivy.event import EventDispatcher
 from kivy.base import EventLoop
 from kivy.resources import resource_find
@@ -117,17 +115,6 @@ __all__ = ('EffectWidget', 'EffectBase', 'AdvancedEffectBase',
            'ScanlinesEffect', 'PixelateEffect',
            'HorizontalBlurEffect', 'VerticalBlurEffect',
            'FXAAEffect')
-
-Builder.load_string('''
-<EffectWidget>:
-    canvas:
-        Color:
-            rgba: 1, 1, 1, 1
-        Rectangle:
-            texture: self.texture
-            pos: self.pos
-            size: self.size
-''')
 
 shader_header = '''
 #ifdef GL_ES
