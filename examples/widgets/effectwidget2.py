@@ -21,15 +21,9 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 '''
 
 
-class NewEffect(EffectBase):
-    def __init__(self, *args, **kwargs):
-        super(NewEffect, self).__init__(*args, **kwargs)
-        self.glsl = effect_string
-
-
 class DemoEffect(EffectWidget):
     def __init__(self, *args, **kwargs):
-        self.effect_reference = NewEffect()
+        self.effect_reference = EffectBase(glsl=effect_string)
         super(DemoEffect, self).__init__(*args, **kwargs)
 
 
