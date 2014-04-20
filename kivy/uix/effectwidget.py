@@ -447,7 +447,7 @@ class AdvancedEffectBase(EventDispatcher):
             self.fbo[key] = value
 
     def set_fbo_shader(self, *args):
-        super(AdvancedEffectWidget, self).set_fbo_shader(*args)
+        super(AdvancedEffectBase, self).set_fbo_shader(*args)
         self._update_uniforms()
 
 
