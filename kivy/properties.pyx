@@ -180,6 +180,10 @@ new object. For example::
 When clicking on the button, although the label object property has changed
 to the second widget, the button text will not change because it is bound to
 the text property of the first label directly.
+
+In `1.8.1`, the ``rebind`` option has been introduced that will allow the
+automatic updating of the ``text`` when ``label`` is changed, provided it
+was enabled. See :class:`ObjectProperty`.
 '''
 
 __all__ = ('Property',
@@ -286,7 +290,6 @@ cdef class Property:
         self.allownone = <int>kw.get('allownone', 0)
         self.errorvalue = kw.get('errorvalue', None)
         self.errorhandler = kw.get('errorhandler', None)
-        self.rebind = False
 
         if 'errorvalue' in kw:
             self.errorvalue_set = 1
@@ -705,7 +708,11 @@ cdef class DictProperty(Property):
     :Parameters:
         `default`: dict, defaults to None
             Specifies the default value of the property.
+        `rebind`: bool, defaults to False
+            See :class:`ObjectProperty` for details.
 
+    .. versionchanged:: 1.8.1
+        `rebind` has been introduced.
     '''
     def __init__(self, defaultvalue=None, rebind=False, **kw):
         defaultvalue = defaultvalue or {}
@@ -737,13 +744,39 @@ cdef class ObjectProperty(Property):
     :Parameters:
         `default`: object type
             Specifies the default value of the property.
+        `rebind`: bool, defaults to False
+            Whether kv rules using this object as an intermediate attribute
+            in a kv rule, will update the bound property when this object
+            changes.
+
+            That is the standard behavior is that if there's a kv rule
+            ``text: self.a.b.c.d``, where ``a``, ``b``, and ``c`` are
+            properties with ``rebind`` ``False`` and ``d`` is a
+            :class:`StringProperty`. Then when the rule is applied, ``text``
+            becomes bound only to ``d``. If ``a``, ``b``, or ``c`` change,
+            ``text`` still remains bound to ``d``. Furthermore, if any of them
+            were ``None`` when the rule was initially evaluated, e.g. ``b`` was
+            ``None``; then ``text`` is bound to ``b`` and will not become bound
+            to ``d`` even when ``b`` is changed to not be ``None``.
+
+            By setting ``rebind`` to ``True``, however, the rule will be
+            re-evaluated and all the properties rebound when that intermediate
+            property changes. E.g. in the example above, whenever ``b`` changes
+            or becomes not ``None`` if it was ``None`` before, ``text`` is
+            evaluated again and becomes rebound to ``d``. The overall result is
+            that ``text`` is now bound to all the properties among ``a``,
+            ``b``, or ``c`` that have ``rebind`` set to ``True``.
         `\*\*kwargs`: a list of keyword arguments
-            If kwargs includes a `baseclass` argument, this value will
-            be used for validation: `isinstance(value, kwargs['baseclass'])`.
+            `baseclass`
+                If kwargs includes a `baseclass` argument, this value will be
+                used for validation: `isinstance(value, kwargs['baseclass'])`.
 
     .. warning::
 
         To mark the property as changed, you must reassign a new python object.
+
+    .. versionchanged:: 1.8.1
+        `rebind` has been introduced.
 
     .. versionchanged:: 1.7.0
 
@@ -1171,6 +1204,11 @@ cdef class AliasProperty(Property):
         `cache`: boolean
             If True, the value will be cached, until one of the binded elements
             will changes
+        `rebind`: bool, defaults to False
+            See :class:`ObjectProperty` for details.
+
+    .. versionchanged:: 1.8.1
+        `rebind` has been introduced.
 
     .. versionchanged:: 1.4.0
         Parameter `cache` added.
