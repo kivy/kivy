@@ -286,6 +286,7 @@ cdef class Property:
         self.allownone = <int>kw.get('allownone', 0)
         self.errorvalue = kw.get('errorvalue', None)
         self.errorhandler = kw.get('errorhandler', None)
+        self.rebind = False
 
         if 'errorvalue' in kw:
             self.errorvalue_set = 1
@@ -706,10 +707,11 @@ cdef class DictProperty(Property):
             Specifies the default value of the property.
 
     '''
-    def __init__(self, defaultvalue=None, **kw):
+    def __init__(self, defaultvalue=None, rebind=False, **kw):
         defaultvalue = defaultvalue or {}
 
         super(DictProperty, self).__init__(defaultvalue, **kw)
+        self.rebind = rebind
 
     cpdef link(self, EventDispatcher obj, str name):
         Property.link(self, obj, name)
@@ -747,9 +749,10 @@ cdef class ObjectProperty(Property):
 
         `baseclass` parameter added.
     '''
-    def __init__(self, defaultvalue=None, **kw):
+    def __init__(self, defaultvalue=None, rebind=False, **kw):
         self.baseclass = kw.get('baseclass', object)
         super(ObjectProperty, self).__init__(defaultvalue, **kw)
+        self.rebind = rebind
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
@@ -1178,10 +1181,11 @@ cdef class AliasProperty(Property):
         self.use_cache = 0
         self.bind_objects = list()
 
-    def __init__(self, getter, setter, **kwargs):
+    def __init__(self, getter, setter, rebind=False, **kwargs):
         Property.__init__(self, None, **kwargs)
         self.getter = getter
         self.setter = setter
+        self.rebind = rebind
         v = kwargs.get('bind')
         self.bind_objects = list(v) if v is not None else []
         if kwargs.get('cache'):
