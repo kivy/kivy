@@ -919,6 +919,9 @@ class ParserRuleProperty(object):
         # now, detect obj.prop
         # first, remove all the string from the value
         tmp = sub(lang_str, '', value)
+        idx = tmp.find('#')
+        if idx != -1:
+            tmp = tmp[:idx]
         # detect key.value inside value, and split them
         wk = list(set(findall(lang_keyvalue, tmp)))
         if len(wk):

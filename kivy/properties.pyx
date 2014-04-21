@@ -1324,7 +1324,7 @@ cdef class VariableListProperty(Property):
             return x
 
         tp = type(x)
-        if tp is list or tp is tuple:
+        if isinstance(x, (list, tuple)):
             l = len(x)
             if l == 1:
                 y = self._convert_numeric(obj, x[0])

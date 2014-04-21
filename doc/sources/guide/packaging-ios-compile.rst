@@ -23,7 +23,7 @@ The kivy-ios package provides a generic script, "tools/build_all.sh", that
 creates a complete distribution for you.
 
 You may want edit/copy this file in order to customize your distribution for
-two reasons::
+various reasons::
 
 * Minimize the size of your package by removing unused libraries
 * Customize the packing by adding/removing script items
@@ -31,8 +31,24 @@ two reasons::
 
 The minimizing and customizing options are obviously desirable and relativly
 simple as the build script is a standard
-`bash shell script <http://en.wikipedia.org/wiki/Bash_%28Unix_shell%29>`_. The
-third option may require an explanation.
+`bash shell script <http://en.wikipedia.org/wiki/Bash_%28Unix_shell%29>`_.
+
+The build process
+-----------------
+
+Initially, your kivy-ios checkout will contain two folders: *tools* and *src*.
+The first time you run it, the script will download the latest versions of
+the packages kivy-ios uses. This means it might fail if any packages are not
+available or cannot be downloaded.
+
+These downloaded packages are stored in a hidden *.cache* subfolder. The build
+process then extracts these files to a *tmp* subfolder, builds the packages and
+places the build in the *build* subfolder. Be careful: if this process is
+interrupted, it might leave corrupt files in any of these locations.
+ 
+If you wish to force a fresh build of all the packages, you should delete all
+of these other folders (*.cache*, *tmp* and *build*) and re-run the
+'build_all.sh' script.
 
 Troubleshooting
 ---------------
