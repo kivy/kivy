@@ -43,11 +43,11 @@ the dependencies.
 
     `How to Uninstall and Remove Homebrew for Mac OSX <http://www.curvve.com/blog/guides/2013/uninstall-homebrew-mac-osx/>`_
 
-GCC Compiler issues
+Clang Compiler issues
 ===================
 
 Some dependencies for compiling cython with pip on OSX may fail to compile with
-the clang (Apple's C) compiler displaying the message::
+the Clang (Apple's C) compiler displaying the message::
 
     clang: error: unknown argument: '-mno-fused-madd' [-Wunused-command-line-argument-hard-error-in-future]
     clang: note: this will be a hard error (cannot be downgraded to a warning) in the future
