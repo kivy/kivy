@@ -11,6 +11,25 @@ accuracy of text rendering may vary.
 .. versionchanged:: 1.0.7
     The :class:`LabelBase` does not generate any texture if the text has a
     width <= 1.
+
+This is the backend layer for getting text out of different text providers,
+you should only be using this directly if your needs aren't fulfilled by
+:class:`~kivy.uix.label.Label`.
+
+Usage example::
+
+    from kivy.core.label import Label as CoreLabel
+    
+    ...
+    ...
+    my_label = CoreLabel()
+    my_label.text = 'hello'
+    # label is usully not drawn till absolutely needed, force it to draw.
+    my_label.refresh()
+    # Now access the texture of the label and use it where ever,
+    # however you may please.
+    hello_texture = my_label.texture
+
 '''
 
 __all__ = ('LabelBase', 'Label')
