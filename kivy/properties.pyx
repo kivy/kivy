@@ -1157,7 +1157,9 @@ cdef class AliasProperty(Property):
         `getter`: function
             Function to use as a property getter
         `setter`: function
-            Function to use as a property setter
+            Function to use as a property setter. Properties listening to the
+            alias property won't be updated when the property is set (e.g.
+            `right = 10`), unless the `setter` returns `True`.
         `bind`: list/tuple
             Properties to observe for changes, as property name strings
         `cache`: boolean
