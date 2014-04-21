@@ -427,7 +427,7 @@ cdef class Property:
         cdef PropertyStorage ps = obj.__storage[self._name]
         if len(ps.observers):
             value = ps.value
-            for observer in ps.observers:
+            for observer in ps.observers[:]:
                 observer(obj, value)
 
 
