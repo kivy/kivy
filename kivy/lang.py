@@ -1425,21 +1425,105 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
 
     fn = delayed_call_fn if delayed else call_fn
 
+    def update_intermediates(base, keys, bound, s, *args):
+        ''' Function that is called when an intermediate property is updated
+        and `rebind` of that property is True. In that case, we unbind
+        all bound funcs that were bound to attrs of the old value of the
+        property and rebind to the new value of the property.
+
+        For example, if the rule is `self.a.b.c.d`, then when b is changed, we
+        unbind from `b`, `c` and `d`, if they were bound before (they were not
+        None and `rebind` of the respective properties was True) and we rebind
+        to the new values of the attrs `b`, `c``, `d` that are not None and
+        `rebind` is True.
+
+        :Parameters:
+            `base`
+                A (proxied) ref to the base widget, `self` in the example
+                above.
+            `keys`
+                A list of the name off the attrs of `base` being watched. In
+                the example above it'd be `['a', 'b', 'c', 'd']`.
+            `bound`
+                A list 3-tuples, each tuple being (widget, attr, callback)
+                representing callback functions bound to the attributed `attr`
+                of `widget`. The callback maybe be None, in which case the attr
+                was not bound, but is there to be able to walk the attr tree.
+                E.g. in the example above, if `b` was not an eventdispatcher,
+                `(_b_ref_, `c`, None)` would be added to the list so we can get
+                to `c` and `d`, which may be eventdispatchers and their attrs.
+            `s`
+                The index in `keys` of the of the attr that needs to be
+                updated. That is all the keys from `s` and further will be
+                rebound, since the `s` key was changed. In bound, the
+                corresponding index is `s - 1`. If `s` is None, we start from
+                1 (first attr).
+        '''
+        # first remove all the old bound functions from `i` and down.
+        i = s if s is not None else 1
+        j = i - 1
+        for f, k, fun in bound[j:]:
+            if fun is None:
+                continue
+            try:
+                f.unbind(**{k: fun})
+            except ReferenceError:
+                pass
+        del bound[j:]
+
+        # find the first attr from which we need to start rebinding.
+        if len(bound):
+            f = bound[-1][0]
+        else:  # if it's the very first attr, we start with the base.
+            f = base
+
+        try:
+            # bind all attrs, except last to update_intermediates
+            for k in range(i, len(keys) - 1):
+                is_ev = isinstance(f, EventDispatcher)
+                try:
+                    # if we need to dynamically rebind, bindm otherwise just
+                    # add the attr to the list
+                    if is_ev and f.property(keys[k]).rebind:
+                        p = partial(update_intermediates, base, keys, bound, k)
+                        bound.append([get_proxy(f), keys[k], p])
+                        f.bind(**{keys[k]: p})
+                        # during the bind, the watched keys could have changed
+                        # value, calling update_intermediates and changing
+                        # the last attr, so we have to read the last attr again
+                        f = bound[-1][0]
+                    else:
+                        bound.append([get_proxy(f) if is_ev else f, keys[k],
+                                      None])
+                except KeyError:  # in case the property is not kivy property
+                    bound.append([get_proxy(f), keys[k], None])
+                f = getattr(f, keys[k])
+            # for the last attr we bind directly to the setting function,
+            # because that attr sets the value of the rule.
+            if isinstance(f, EventDispatcher):
+                f.bind(**{keys[-1]: fn})
+                bound.append([get_proxy(f), keys[-1], fn])
+        except KeyError:
+            pass
+        except AttributeError:
+            pass
+        except ReferenceError:
+            pass
+        # except for the initial binding, when we rebind we have to update the
+        # rule with the most recent value, otherwise, the value might be wrong
+        # and wouldn't be updated since we might not have tracked it before.
+        # This only happens for a callback when rebind was True for the prop.
+        if s is not None:
+            fn()
+
     # bind every key.value
     if rule.watched_keys is not None:
-        for k in rule.watched_keys:
-            try:
-                f = idmap[k[0]]
-                for x in k[1:-1]:
-                    f = getattr(f, x)
-                if isinstance(f, EventDispatcher):
-                    f.bind(**{k[-1]: fn})
-                    # make sure _handlers doesn't keep widgets alive
-                    _handlers[uid].append([get_proxy(f), k[-1], fn])
-            except KeyError:
-                continue
-            except AttributeError:
-                continue
+        for keys in rule.watched_keys:
+            bound = []
+            update_intermediates(get_proxy(idmap[keys[0]]), keys, bound, None)
+            # even if it's empty now, in the future, through dynamic rebinding
+            # it might have things.
+            _handlers[uid].append(bound)
 
     try:
         return eval(value, idmap)
@@ -1871,12 +1955,15 @@ class BuilderBase(object):
         '''
         if uid not in _handlers:
             return
-        for f, k, fn in _handlers[uid]:
-            try:
-                f.unbind(**{k: fn})
-            except ReferenceError:
-                # proxy widget is already gone, that's cool :)
-                pass
+        for callbacks in _handlers[uid]:
+            for f, k, fn in callbacks:
+                if fn is None:  # it's not a kivy prop.
+                    continue
+                try:
+                    f.unbind(**{k: fn})
+                except ReferenceError:
+                    # proxy widget is already gone, that's cool :)
+                    pass
         del _handlers[uid]
 
     def _build_canvas(self, canvas, widget, rule, rootrule):
