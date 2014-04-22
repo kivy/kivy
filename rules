@@ -13,12 +13,12 @@ export DH_VERBOSE=1
 	dh $@ --with python2,python3
 
 override_dh_auto_build:
-	for PYX in $(shell pyversions -i) $(shell debian/pyxversions --min_minor=3) ; do \
+	for PYX in $(shell pyversions -i) $(shell py3versions -r) ; do \
 	    $$PYX setup.py build_ext --inplace ; \
 	done
 
 override_dh_auto_install:
-	for PYX in $(shell pyversions -i) $(shell debian/pyxversions --min_minor=3) ; do \
+	for PYX in $(shell pyversions -i) $(shell py3versions -r) ; do \
 	    $$PYX setup.py install --root=$(CURDIR)/debian/tmp --prefix=/usr --install-layout=deb ; \
 	done
 
