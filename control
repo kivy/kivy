@@ -4,10 +4,7 @@ Priority: optional
 Maintainer: Thomas-Karl Pietrowski <thopiekar@googlemail.com>
 Uploaders: Kivy Launchpad-Team <ubuntu@kivy.org>
 Build-Depends: debhelper (>= 7.0.50~), pkg-config,
-               python-all-dev (>= 2.7),
-               python3-deadsnakes-all-dev | python3-all-dev,
-               python3.4-dev | python3.3-dev,
-               python3.3-dev | python3.4-dev,
+               python-all-dev (>= 2.7),   python3-deadsnakes-all-dev | python3-all-dev,
                python-pygame,
                python-nose,               python3-nose,
                python-coverage,
