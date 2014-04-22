@@ -44,7 +44,7 @@ the dependencies.
     `How to Uninstall and Remove Homebrew for Mac OSX <http://www.curvve.com/blog/guides/2013/uninstall-homebrew-mac-osx/>`_
 
 Clang Compiler issues
-===================
+=====================
 
 Some dependencies for compiling cython with pip on OSX may fail to compile with
 the Clang (Apple's C) compiler displaying the message::
