@@ -554,7 +554,7 @@ class VerticalBlurEffect(EffectBase):
         self.do_glsl()
 
     def do_glsl(self):
-        self.glsl = effect_blur_h.format(float(self.size))
+        self.glsl = effect_blur_v.format(float(self.size))
 
 
 class FXAAEffect(EffectBase):
