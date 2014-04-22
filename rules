@@ -30,9 +30,9 @@ override_dh_install:
 	dh_install --fail-missing  --sourcedir debian/tmp
 
 override_dh_installdocs:
-	cd doc && PYTHONPATH=.. make html
-	cd doc && PYTHONPATH=.. make latex
-	cd doc/build/latex && make all-pdf || eval "echo 'WARNING: PDF build returnd exit code $?. The *.pdf-file might be missing!'"
+	cd doc && PYTHONPATH=.. make html  || eval "echo 'NOTICE: HTML build returnd exit code $?'"
+	cd doc && PYTHONPATH=.. make latex || eval "echo 'NOTICE: LATEX build returnd exit code $?'"
+	cd doc/build/latex && make all-pdf || eval "echo 'WARNING: PDF build returnd exit code $?'"
 	
 	echo "Listing files in latex's build dir..."
 	ls   doc/build/latex
