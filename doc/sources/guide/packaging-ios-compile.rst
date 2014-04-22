@@ -3,7 +3,7 @@
 Compiling for IOS
 =================
 
-(work in progess - not referenced from external links)
+(work in progess)
 
 Creating your distribution
 --------------------------
@@ -53,12 +53,27 @@ of these other folders (*.cache*, *tmp* and *build*) and re-run the
 Troubleshooting
 ---------------
 
-The kivy-ios project is still a "work-in-progress" and uses many libraries which
+The kivy-ios project uses many libraries which
 may change and break things independently of kivy. It may thus sometimes be
 necessary to remove any packages which do not compile in order to complete your
-build.
+build or isolate the offending package.
 
-# TODO: Add instructions on steps editing/isolating errors
+The 'build-all.sh' script assembles many sub-scripts into one, comprehensive
+build script. If you open this file, you will see something similar to::
 
-If you encounter an issue which you cannot resolve, remember you can always
+    #!/bin/bash
+    
+    . $(dirname $0)/environment.sh
+    
+    try $(dirname $0)/build-libffi.sh
+    try $(dirname $0)/build-python.sh
+    try $(dirname $0)/reduce-python.sh
+    ...
+
+You can comment out problematic scripts using the hash (#) symbol. Some scripts
+are essential (e.g. *build-python.sh*), but others can be safely removed if your
+application does not require them.
+    
+We hope you never have to care about this, but if you encounter an error which
+you cannot resolve, this may help. Remember, you can always
 :ref:`contact us <contact>` for help.
