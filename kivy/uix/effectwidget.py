@@ -66,7 +66,7 @@ shader. You can include as many functions as you like (the string
 is simply spliced into the whole shader), but it
 must implement a function :code:`effect` as below::
 
-    vec4 effect( vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
+    vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
     {
         // ... your code here
         return something;  // must be a vec4 representing the new color
@@ -547,7 +547,7 @@ class VerticalBlurEffect(EffectBase):
         self.do_glsl()
 
     def do_glsl(self):
-        self.glsl = effect_blur_h.format(float(self.size))
+        self.glsl = effect_blur_v.format(float(self.size))
 
 
 class FXAAEffect(EffectBase):
