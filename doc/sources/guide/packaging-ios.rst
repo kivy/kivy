@@ -48,7 +48,9 @@ Open a terminal, and type::
 If you don't want to compile all the things needed for kivy, edit and change
 `tools/build-all.sh` to your needs.
 
-Most of the python distribution will be packed into a `python27.zip`.
+Most of the python distribution will be packed into a `python27.zip`. If you
+experience any issues or would like more detail on this process, please refer
+to :ref:`Compiling for IOS <packaging_ios_compile>`.
 
 .. _Create an Xcode project:
 
