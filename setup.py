@@ -68,6 +68,7 @@ c_options['use_opengl_es2'] = None
 c_options['use_opengl_debug'] = False
 c_options['use_glew'] = False
 c_options['use_sdl'] = False
+c_options['use_sd2'] = False
 c_options['use_ios'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
@@ -383,6 +384,38 @@ def determine_sdl():
             '-framework', 'ApplicationServices']
     return flags
 
+def determine_sdl2():
+    flags = {}
+    if not c_options['use_sdl2']:
+        return flags
+
+    flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
+    flags['include_dirs'] = ['/usr/local/include/SDL2', '/usr/include/SDL2']
+    flags['extra_link_args'] = []
+    flags['extra_compile_args'] = []
+    flags['extra_link_args'] += ['-L/usr/local/lib/']
+
+    # ensure headers for all the SDL2 and sub libraries are available
+    libs_to_check = ['SDL', 'SDL_mixer', 'SDL_ttf', 'SDL_image']
+    can_compile = True
+    for lib in libs_to_check:
+        found = False
+        for d in flags['include_dirs']:
+            fn = join(d, '{}.h'.format(lib))
+            if exists(fn):
+                found = True
+                print 'SDL2: found {} header at {}'.format(lib, fn)
+                break
+
+        if not found:
+            print 'SDL2: missing sub library {}'.format(lib)
+            can_compile = False
+
+    if not can_compile:
+        c_options['use_sdl2'] = False
+        return {}
+
+    return flags
 
 base_flags = determine_base_flags()
 gl_flags = determine_gl_flags()
@@ -470,6 +503,12 @@ if c_options['use_sdl']:
         base_flags, gl_flags, sdl_flags)
     sources['core/audio/audio_sdl.pyx'] = merge(
         base_flags, sdl_flags)
+
+if c_options['use_sdl2']:
+    sdl2_flags = determine_sdl2()
+    if sdl2_flags:
+        sources['core/window/window_sdl2.pyx'] = merge(
+            base_flags, gl_flags, sdl2_flags)
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image
