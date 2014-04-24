@@ -49,7 +49,7 @@ We also have an IRC channel (expect responses mostly in the day hours of CET):
 * Server  : irc.freenode.net
 * Channel : #kivy
 
-Others projects
+Other projects
 ---------------
 
 Have a look at our complementary projects:
@@ -61,7 +61,7 @@ Have a look at our complementary projects:
   hardware such as the Accelerometer, Camera etc.
 - [Pyjnius](http://github.com/kivy/pyjnius): Dynamic access to the Java/Android
   API from Python? Easy!
-- [Pyobjus](http://github.com/kivy/pyobjus): Dynamic acccess to the
+- [Pyobjus](http://github.com/kivy/pyobjus): Dynamic access to the
   Objective-C/iOS API from Python (wip).
 - [Python for Android](http://github.com/kivy/python-for-android): Toolchain
   for building and packaging Kivy applications into Android APK's.
@@ -76,11 +76,13 @@ Have a look at our complementary projects:
 Licenses
 --------
 
-- Kivy is licensed under the terms of the MIT. Please refer to the LICENSE file.
-- The provided fonts DroidSans.ttf and DroidSansMono.ttf are licensed under
-  the terms of the Apache 2.0 License. The license can be found at
-  http://www.apache.org/licenses/LICENSE-2.0
-- The current UI design has been adapted from Moblintouch theme's SVGs and is
-  licensed under the terms of the LGPL 2.1.
+- Kivy is released under the terms of the MIT License. Please refer to the
+  LICENSE file.
+- The provided fonts DroidSans.ttf and DroidSansMono.ttf are licensed and
+  distributed under the terms of the
+  [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+- The current UI design has been adapted from Moblintouch theme's SVGs
+  and is licensed under the terms of the
+  [LGPLv2.1](http://www.gnu.org/licenses/old-licenses/lgpl-2.1).
 
 
