@@ -722,7 +722,8 @@ class App(EventDispatcher):
 
         Different platforms have different conventions with regards to where
         the user can store data such as preferences, saved games and settings.
-        This function implements these conventions.
+        This function implements these conventions. The <app_name> directory
+        is created when the property is called, unless it already exists.
 
         On iOS, `~/Documents<app_name>` is returned (which is inside the
         apps sandbox).
