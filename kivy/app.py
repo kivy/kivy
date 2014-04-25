@@ -726,7 +726,7 @@ class App(EventDispatcher):
         is created when the property is called, unless it already exists.
 
         On iOS, `~/Documents<app_name>` is returned (which is inside the
-        apps sandbox).
+        app's sandbox).
 
         On Android, `/sdcard/<app_name>` is returned.
 
