@@ -1,12 +1,13 @@
-'''EffectWidget
+'''
+EffectWidget
 ============
 
-..versionadded:: 1.8.1
+.. versionadded:: 1.8.1
 
 The :class:`EffectWidget` is able to apply a variety of fancy
 graphical effects to
 its children. It works by rendering to a series of
-:class:`~kivy.graphics.Fbo`s with custom opengl fragment shaders.
+:class:`~kivy.graphics.Fbo` instances with custom opengl fragment shaders.
 As such, effects can freely do almost anything, from inverting the
 colors of the widget, to antialiasing, to emulating the appearance of a
 crt monitor!
@@ -27,7 +28,7 @@ some inputs based on the screen (current pixel color, current widget
 texture etc.). See the sections below for more information.
 
 .. note:: It is not efficient to resize an :class:`EffectWidget`, as
-          the :class:`~kivy.graphics.Fbo`s are recreated every time.
+          each :class:`~kivy.graphics.Fbo` is recreated every time.
           If you need to resize frequently, consider doing things a
           different way.
 
@@ -46,7 +47,7 @@ effect documentation for more details.
 
 - :class:`MonochromeEffect` - makes the widget grayscale.
 - :class:`InvertEffect` - inverts the widget colors.
-- :class:`MixEffect` - swaps around color channels.
+- :class:`ChannelMixEffect` - swaps around color channels.
 - :class:`ScanlinesEffect` - displays flickering scanlines.
 - :class:`PixelateEffect` - pixelates the image.
 - :class:`HorizontalBlurEffect` - Gaussuan blurs horizontally.
@@ -111,7 +112,7 @@ from kivy.base import EventLoop
 from kivy.resources import resource_find
 
 __all__ = ('EffectWidget', 'EffectBase', 'AdvancedEffectBase',
-           'MonochromeEffect', 'InvertEffect', 'MixEffect',
+           'MonochromeEffect', 'InvertEffect', 'ChannelMixEffect',
            'ScanlinesEffect', 'PixelateEffect',
            'HorizontalBlurEffect', 'VerticalBlurEffect',
            'FXAAEffect')
@@ -355,12 +356,12 @@ class EffectBase(EventDispatcher):
     '''The (optional) filename from which to load the :attr:`glsl`
     string.
 
-    :attr:`source` is a :class:`~kivy.properties.StringProperty and
+    :attr:`source` is a :class:`~kivy.properties.StringProperty` and
     defaults to ''.
     '''
 
     fbo = ObjectProperty(None, allownone=True)
-    '''The fbo currently using this effect. The :class:`EffectBase
+    '''The fbo currently using this effect. The :class:`EffectBase`
     automatically handles this.
 
     :attr:`fbo` is a :class:`~kivy.properties.ObjectProperty` and
@@ -594,7 +595,8 @@ class EffectWidget(BoxLayout):
     '''
 
     effects = ListProperty([])
-    '''List of all the effects to be applied.
+    '''List of all the effects to be applied. These should all be
+    instances of :class:`EffectBase`.
 
     effects is a :class:`ListProperty` and defaults to [].
     '''
