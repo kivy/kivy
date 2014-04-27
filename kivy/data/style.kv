@@ -290,23 +290,34 @@
                     on_node_expand: root.entry_subselect(args[1])
                     on_node_collapse: root.close_subselection(args[1])
 
-[FileListEntry@FloatLayout+TreeViewNode]:
+<FileListEntry@FloatLayout+TreeViewNode>:
     locked: False
     entries: []
-    path: ctx.path
+    path: None
+    controller: None
+    get_nice_size: None
+    name: ''
+    isdir: False
+    path: './'
+    parent: None
+    sep: '/'
     # FIXME: is_selected is actually a read_only treeview property. In this
     # case, however, we're doing this because treeview only has single-selection
     # hardcoded in it. The fix to this would be to update treeview to allow
     # multiple selection.
-    is_selected: self.path in ctx.controller().selection
+    is_selected: self.path in self.controller().selection if self.controller else False
 
     orientation: 'horizontal'
     size_hint_y: None
-    height: '24dp'
+    height: '32dp'
     # Don't allow expansion of the ../ node
-    is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
-    on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
-    on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
+    is_leaf: not self.isdir or self.name.endswith('..' + self.sep) or self.locked
+    on_touch_down:
+        if self.controller:\
+        self.collide_point(*args[1].pos) and self.controller().entry_touched(self, args[1])
+    on_touch_up:
+        if self.controller:\
+        self.collide_point(*args[1].pos) and self.controller().entry_released(self, args[1])
     BoxLayout:
         pos: root.pos
         Label:
@@ -314,12 +325,12 @@
             text_size: self.width, None
             halign: 'left'
             shorten: True
-            text: ctx.name
+            text: root.name
         Label:
             text_size: self.width, None
             size_hint_x: None
             halign: 'right'
-            text: '{}'.format(ctx.get_nice_size())
+            text: '{}'.format(root.get_nice_size()) if root.get_nice_size else ''
 
 
 <FileChooserIconView>:
@@ -345,14 +356,26 @@
                 spacing: '10dp'
                 padding: '10dp'
 
-[FileIconEntry@Widget]:
+<FileIconEntry@Widget>:
     locked: False
-    path: ctx.path
-    selected: self.path in ctx.controller().selection
+    entries: []
+    path: None
+    controller: None
+    get_nice_size: None
+    name: ''
+    isdir: False
+    path: './'
+    parent: None
+    sep: '/'
+    selected: False
     size_hint: None, None
 
-    on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
-    on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
+    on_touch_down:
+        if self.controller:\
+        self.collide_point(*args[1].pos) and self.controller().entry_touched(self, args[1])
+    on_touch_up:
+        if self.controller:\
+        self.collide_point(*args[1].pos) and self.controller().entry_released(self, args[1])
     size: '100dp', '100dp'
 
     canvas:
@@ -366,10 +389,10 @@
 
     Image:
         size: '48dp', '48dp'
-        source: 'atlas://data/images/defaulttheme/filechooser_%s' % ('folder' if ctx.isdir else 'file')
+        source: 'atlas://data/images/defaulttheme/filechooser_%s' % ('folder' if root.isdir else 'file')
         pos: root.x + dp(24), root.y + dp(40)
     Label:
-        text: ctx.name
+        text: root.name
         text_size: (root.width, self.height)
         halign: 'center'
         shorten: True
@@ -377,7 +400,7 @@
         pos: root.x, root.y + dp(16)
 
     Label:
-        text: '{}'.format(ctx.get_nice_size())
+        text: '{}'.format(root.get_nice_size()) if root.get_nice_size else ''
         font_size: '11sp'
         color: .8, .8, .8, 1
         size: '100dp', '16sp'

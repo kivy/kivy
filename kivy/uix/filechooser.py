@@ -634,9 +634,14 @@ class FileChooserController(FloatLayout):
         # generate an entries to go back to previous
         if not is_root and not have_parent:
             back = '..' + sep
-            pardir = Builder.template(self._ENTRY_TEMPLATE, **dict(
-                name=back, size='', path=back, controller=ref(self),
-                isdir=True, parent=None, sep=sep, get_nice_size=lambda: ''))
+            pardir = Factory.get(self._ENTRY_TEMPLATE)()
+            pardir.name=back
+            pardir.path = back
+            pardir.controller = ref(self)
+            pardir.isdir = True
+            pardir.parent = None
+            pardir.sep = sep
+            pardir.get_nice_size = lambda: ''
             yield 0, 1, pardir
 
         # generate all the entries for files
@@ -676,14 +681,15 @@ class FileChooserController(FloatLayout):
                 # Use a closure for lazy-loading here
                 return self.get_nice_size(fn)
 
-            ctx = {'name': basename(fn),
-                   'get_nice_size': get_nice_size,
-                   'path': fn,
-                   'controller': wself,
-                   'isdir': self.file_system.is_dir(fn),
-                   'parent': parent,
-                   'sep': sep}
-            entry = Builder.template(self._ENTRY_TEMPLATE, **ctx)
+            entry = Factory.get(self._ENTRY_TEMPLATE)()
+            entry.name = basename(fn)
+            entry.get_nice_size = get_nice_size
+            entry.path = fn
+            entry.controller = wself
+            entry.isdir = self.file_system.is_dir(fn)
+            entry.parent = parent
+            entry.sep = sep
+
             yield index, total, entry
 
     def entry_subselect(self, entry):
