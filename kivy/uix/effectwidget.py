@@ -38,6 +38,10 @@ texture etc.). See the sections below for more information.
           uniform variables instead. The :class:`AdvancedEffectBase`
           may make this easier.
 
+.. note:: The :class:`EffectWidget` *cannot* draw outside its own
+          widget area (pos -> pos + size), any child widgets
+          overlapping the boundary will be cut off at this point.
+
 Provided Effects
 ----------------
 
