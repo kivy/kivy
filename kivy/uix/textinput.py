@@ -495,10 +495,8 @@ class TextInput(Widget):
         chr = type(substring)
         if chr is bytes:
             int_pat = self._insert_int_patb
-            print_pat = self._insert_printable_patb
         else:
             int_pat = self._insert_int_patu
-            print_pat = self._insert_printable_patu
 
         if mode == 'int':
             return re.sub(int_pat, chr(''), substring)
@@ -508,8 +506,6 @@ class TextInput(Widget):
             else:
                 return '.'.join([re.sub(int_pat, chr(''), k) for k
                                  in substring.split(chr('.'), 1)])
-        elif mode == 'printable':
-            return re.sub(print_pat, chr(''), substring)
         return substring
 
     def insert_text(self, substring, from_undo=False):
@@ -2061,10 +2057,7 @@ class TextInput(Widget):
     _hint_text_lines = ListProperty([])
     _editable = BooleanProperty(True)
     _insert_int_patu = re.compile(u'[^0-9]')
-    _insert_printable_patu = re.compile(u'[^{}]'.format(string.printable))
     _insert_int_patb = re.compile(b'[^0-9]')
-    _insert_printable_patb = re.compile(u'[^{}]'.format(string.printable
-                                                        ).encode())
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
@@ -2601,7 +2594,7 @@ class TextInput(Widget):
     'datetime', 'tel', 'address'.
     '''
 
-    input_filter = OptionProperty(None, options=('int', 'float', 'printable'),
+    input_filter = OptionProperty(None, options=('int', 'float'),
                                   allownone=True)
     ''' Filters the input to only allow characters according to the option
     selected, if not None. If None, no filtering is applied.
@@ -2609,10 +2602,9 @@ class TextInput(Widget):
     .. versionadded:: 1.8.1
 
     :attr:`input_filter` is an :class:`~kivy.properties.OptionsProperty` and
-    defaults to `None`. Can be one of `None`, `'int'`, `'float'`, or
-    `'printable'`. `int` will only allow numbers while `float` also allows a
-    single period. `printable` will only allow ASCII characters which are
-    considered printable.
+    defaults to `None`. Can be one of `None`, `'int'`, or `'float'`. `int`
+    will only allow numbers while `float` also allows a
+    single period.
     '''
 
     handle_image_middle = StringProperty(
