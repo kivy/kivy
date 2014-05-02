@@ -413,10 +413,18 @@ class ShaderTransition(TransitionBase):
     :attr:`vs` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.'''
 
+    clearcolor = ListProperty([0, 0, 0, 1])
+    '''Sets the color of Fbo ClearColor. 
+
+    .. versionadded:: 1.8.1
+
+    :attr:`clearcolor` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [0, 0, 0, 1].'''
+
     def make_screen_fbo(self, screen):
         fbo = Fbo(size=screen.size)
         with fbo:
-            ClearColor(0, 0, 0, 1)
+            ClearColor(*self.clearcolor)
             ClearBuffers()
         fbo.add(screen.canvas)
         with fbo.before:
@@ -472,6 +480,11 @@ class NoTransition(TransitionBase):
     '''
 
     duration = NumericProperty(0.0)
+
+    def on_complete(self):
+        self.screen_in.pos = self.manager.pos
+        self.screen_out.pos = self.manager.pos
+        super(NoTransition, self).on_complete()
 
 
 class SlideTransition(TransitionBase):
@@ -876,7 +889,7 @@ class ScreenManager(FloatLayout):
         return bool([s for s in self.screens if s.name == name])
 
     def __next__(self):
-        '''Return the name of the next screen from the screen list.
+        '''Py2K backwards compatability without six or other lib.
         '''
         screens = self.screens
         if not screens:
@@ -889,7 +902,7 @@ class ScreenManager(FloatLayout):
             return
 
     def next(self):
-        ''' Py2K backwards compatability without six or other lib'''
+        '''Return the name of the next screen from the screen list.'''
         return self.__next__()
 
     def previous(self):

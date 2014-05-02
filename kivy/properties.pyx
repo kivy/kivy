@@ -90,14 +90,14 @@ handle the error gracefully within the property. An errorvalue is a substitute
 for the invalid value. An errorhandler is a callable (single argument function
 or lambda) which can return a valid substitute.
 
-errorhandler parameter::
+errorvalue parameter::
 
     # simply returns 0 if the value exceeds the bounds
     bnp = BoundedNumericProperty(0, min=-500, max=500, errorvalue=0)
 
-errorvalue parameter::
+errorhandler parameter::
 
-    # returns a the boundary value when exceeded
+    # returns the boundary value when exceeded
     bnp = BoundedNumericProperty(0, min=-500, max=500,
         errorhandler=lambda x: 500 if x > 500 else -500)
 
@@ -1283,7 +1283,7 @@ cdef class VariableListProperty(Property):
             return x
 
         tp = type(x)
-        if tp is list or tp is tuple:
+        if isinstance(x, (list, tuple)):
             l = len(x)
             if l == 1:
                 y = self._convert_numeric(obj, x[0])

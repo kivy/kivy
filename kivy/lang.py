@@ -749,6 +749,7 @@ from kivy import kivy_data_dir, require
 from kivy.compat import PY2, iteritems, iterkeys
 from kivy.context import register_context
 from kivy.resources import resource_find
+from kivy.event import EventDispatcher
 import kivy.metrics as Metrics
 
 
@@ -918,6 +919,9 @@ class ParserRuleProperty(object):
         # now, detect obj.prop
         # first, remove all the string from the value
         tmp = sub(lang_str, '', value)
+        idx = tmp.find('#')
+        if idx != -1:
+            tmp = tmp[:idx]
         # detect key.value inside value, and split them
         wk = list(set(findall(lang_keyvalue, tmp)))
         if len(wk):
@@ -1431,7 +1435,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                 f = idmap[k[0]]
                 for x in k[1:-1]:
                     f = getattr(f, x)
-                if hasattr(f, 'bind'):
+                if isinstance(f, EventDispatcher):
                     f.bind(**{k[-1]: fn})
                     # make sure _handlers doesn't keep widgets alive
                     _handlers[uid].append([get_proxy(f), k[-1], fn])

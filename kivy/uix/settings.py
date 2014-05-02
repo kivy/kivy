@@ -1,4 +1,5 @@
-'''Settings
+'''
+Settings
 ========
 
 .. versionadded:: 1.0.7
@@ -382,9 +383,10 @@ class SettingString(SettingItem):
     def _create_popup(self, instance):
         # create popup layout
         content = BoxLayout(orientation='vertical', spacing='5dp')
+        popup_width = min(0.95 * Window.width, dp(500))
         self.popup = popup = Popup(
             title=self.title, content=content, size_hint=(None, None),
-            size=('400dp', '250dp'))
+            size=(popup_width, '250dp'))
 
         # create the textinput used for numeric input
         self.textinput = textinput = TextInput(
@@ -547,9 +549,10 @@ class SettingOptions(SettingItem):
     def _create_popup(self, instance):
         # create the popup
         content = BoxLayout(orientation='vertical', spacing='5dp')
+        popup_width = min(0.95 * Window.width, dp(500))
         self.popup = popup = Popup(
             content=content, title=self.title, size_hint=(None, None),
-            size=('400dp', '400dp'))
+            size=(popup_width, '400dp'))
         popup.height = len(self.options) * dp(55) + dp(150)
 
         # add all the options
@@ -851,6 +854,11 @@ class Settings(BoxLayout):
     :Events:
         `on_config_change`: ConfigParser instance, section, key, value
             Fired when section/key/value of a ConfigParser changes.
+
+            .. warning:
+
+                value will be str/unicode type, regardless of the setting
+                type (numeric, boolean, etc)
         `on_close`
             Fired by the default panel when the Close button is pressed.
 

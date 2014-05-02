@@ -28,7 +28,7 @@ class ImageLoaderPygame(ImageLoaderBase):
             return ('bmp', )
         # Note to self:try to learn to use loader preferences instead-
         # of this- remove gif support from pygame
-        return ('jpg', 'jpeg', 'png', 'bmp', 'pcx', 'tga', 'tiff',
+        return ('jpg', 'jpeg', 'jpe', 'png', 'bmp', 'pcx', 'tga', 'tiff',
                 'tif', 'lbm', 'pbm', 'ppm', 'xpm')
 
     @staticmethod

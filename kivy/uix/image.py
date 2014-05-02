@@ -23,24 +23,28 @@ Alignment
 ---------
 
 By default, the image is centered and fits inside the widget bounding box.
-If you don't want that, you can inherit from Image and create your own style.
+If you don't want that, you can set `allow_stretch` to True and `keep_ratio`
+to False.
 
-For example, if you want your image to be the same size as your widget, you
-could do::
+You can also inherit from Image and create your own style.
+
+
+For example, if you want your image to be greater than,the size of your widget,
+you could do::
 
     class FullImage(Image):
         pass
 
 And in your kivy language file::
 
-    <FullImage>:
+    <-FullImage>:
         canvas:
             Color:
                 rgb: (1, 1, 1)
             Rectangle:
                 texture: self.texture
-                size: self.size
-                pos: self.pos
+                size: self.width + 20, self.height + 20
+                pos: self.x - 10, self.y - 10
 
 '''
 

@@ -528,7 +528,15 @@ cdef class Shader:
         cdef GLsizei length
         msg[0] = '\0'
         glGetProgramInfoLog(shader, 2048, &length, msg)
-        return msg[:length]
+        # XXX don't use the msg[:length] as a string directly, or the unicode
+        # will fail on shitty driver. Ie, some Intel drivers return a static
+        # unitialized string of length 40, with just a content of "Success.\n\0"
+        # Trying to decode data after \0 will just fail. So use bytes, and
+        # convert only the part before \0.
+        # XXX Also, we cannot use directly msg as a python string, as some
+        # others drivers doesn't include a \0 (which is great.)
+        cdef bytes ret = msg[:length]
+        return ret.split(b'\0')[0].decode('utf-8')
 
     cdef void process_message(self, str ctype, message):
         message = message.strip()

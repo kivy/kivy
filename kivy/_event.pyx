@@ -232,7 +232,7 @@ cdef class EventDispatcher(ObjectWithUid):
                     super(MyClass, self).__init__(**kwargs)
                     btn = Button(text='click me')
                     # Bind event to callback
-                    btn.bind(on_press=self.on_press_callback, 
+                    btn.bind(on_press=self.on_press_callback,
                              state=self.state_callback)
                     self.add_widget(btn)
 
@@ -297,9 +297,25 @@ cdef class EventDispatcher(ObjectWithUid):
         '''
         return self.__event_stack.keys()
 
-    def dispatch(self, str event_type, *largs):
+    def dispatch(self, str event_type, *largs, **kwargs):
         '''Dispatch an event across all the handlers added in bind().
         As soon as a handler returns True, the dispatching stops.
+
+        The function collects all the positional and keyword arguments and
+        passes them on to the handlers.
+
+        .. note::
+            The handlers are called in reverse order than they were registered
+            with :meth:`bind`.
+
+        :Parameters:
+            `event_type`: str
+                the event name to dispatch.
+
+        .. versionchanged:: 1.8.1
+            keyword arguments collection and forwarding was added. Before, only
+            positional arguments would be collected and forwarded.
+
         '''
         cdef list event_stack = self.__event_stack[event_type]
         cdef object remove = event_stack.remove
@@ -309,11 +325,11 @@ cdef class EventDispatcher(ObjectWithUid):
                 # handler have gone, must be removed
                 remove(value)
                 continue
-            if handler(self, *largs):
+            if handler(self, *largs, **kwargs):
                 return True
 
         handler = getattr(self, event_type)
-        return handler(*largs)
+        return handler(*largs, **kwargs)
 
     #
     # Properties
@@ -328,10 +344,10 @@ cdef class EventDispatcher(ObjectWithUid):
 
     def setter(self, name):
         '''Return the setter of a property. Use: instance.setter('name').
-        The setter is a convenient callback function useful if you want 
-        to directly bind one property to another. 
+        The setter is a convenient callback function useful if you want
+        to directly bind one property to another.
         It returns a partial function that will accept
-        (obj, value) args and results in the property 'name' of instance 
+        (obj, value) args and results in the property 'name' of instance
         being set to value.
 
         .. versionadded:: 1.0.9
@@ -347,7 +363,7 @@ cdef class EventDispatcher(ObjectWithUid):
                     self.bind(number1=self.setter('number2'))
 
         This is equivalent to kv binding::
-        
+
             <ExampleWidget>:
                 number2: self.number1
 

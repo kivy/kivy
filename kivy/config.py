@@ -22,7 +22,7 @@ To read a configuration token from a particular section::
 
 Change the configuration and save it::
 
-    >>> Config.set('kivy', 'retain_time', '50')
+    >>> Config.set('postproc', 'retain_time', '50')
     >>> Config.write()
 
 .. versionchanged:: 1.7.1

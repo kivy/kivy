@@ -15,7 +15,9 @@ application/json and the result automatically passed through json.loads.
 The syntax to create a request::
 
     from kivy.network.urlrequest import UrlRequest
-    req = UrlRequest(url, on_success, on_error, req_body, req_headers)
+    req = UrlRequest(url, on_success, on_redirect, on_failure, on_error,
+                     on_progress, req_body, req_headers, chunk_size,
+                     timeout, method, decode, debug, file_path)
 
 
 Only the first argument is mandatory: the rest are optional.
@@ -24,16 +26,15 @@ not None, a "POST" request will be sent. It's up to you to adjust
 :attr:`UrlRequest.req_headers` to suite your requirements.
 
 
-Example of fetching twitter trends::
+Example of fetching weather in Paris::
 
-    def got_twitter_trends(req, result):
-        trends = result[0]['trends']
-        print('Last %d twitter trends:' % len(trends))
-        for trend in trends:
-            print(' - ', trend['name'])
+    def got_weather(req, results):
+        for key, value in results['weather'][0].items():
+            print(key, ': ', value)
 
-    req = UrlRequest('https://api.twitter.com/1/trends/1.json',
-            got_twitter_trends)
+    req = UrlRequest(
+        'http://api.openweathermap.org/data/2.5/weather?q=Paris,fr',
+        got_weather)
 
 Example of Posting data (adapted from httplib example)::
 
@@ -310,6 +311,8 @@ class UrlRequest(Thread):
                 trigger()
         else:
             result = resp.read()
+            if isinstance(result, bytes):
+                result = result.decode('utf-8')
         req.close()
 
         # return everything

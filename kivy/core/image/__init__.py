@@ -182,7 +182,7 @@ class ImageLoaderBase(object):
                 imagedata = self._data[count]
                 imagedata.source = '{}{}|{}'.format(
                     'zip|' if self.filename.endswith('.zip') else '',
-                     self._nocache, uid)
+                    self._nocache, uid)
                 texture = Texture.create_from_data(
                     imagedata, mipmap=self._mipmap)
                 if not self._nocache:
@@ -378,14 +378,16 @@ class ImageLoader(object):
 class Image(EventDispatcher):
     '''Load an image and store the size and texture.
 
-    .. versionadded::
-        In 1.0.7, the mipmap attribute has been added. The texture_mipmap and
-        texture_rectangle have been deleted.
+    .. versionadded:: 1.0.7
 
-    .. versionadded::
-        In 1.0.8, an Image widget can change its texture. A new event
-        'on_texture' has been introduced. New methods for handling sequenced
-        animation have been added.
+        `mipmap` attribute has been added. The `texture_mipmap` and
+        `texture_rectangle` have been deleted.
+
+    .. versionadded:: 1.0.8
+
+        An Image widget can change its texture. A new event 'on_texture' has
+        been introduced. New methods for handling sequenced animation have been
+        added.
 
     :Parameters:
         `arg` : can be a string (str), Texture or Image object.

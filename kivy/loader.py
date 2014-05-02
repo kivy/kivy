@@ -281,8 +281,14 @@ class LoaderBase(object):
         temporary file, and pass it to _load_local().'''
         if PY2:
             import urllib2 as urllib_request
+
+            def gettype(info):
+                return info.gettype()
         else:
             import urllib.request as urllib_request
+
+            def gettype(info):
+                return info.get_content_type()
         proto = filename.split(':', 1)[0]
         if proto == 'smb':
             try:
@@ -305,17 +311,21 @@ class LoaderBase(object):
                 # read from internet
                 fd = urllib_request.urlopen(filename)
 
-            ctype = fd.info().gettype()
-            suffix = mimetypes.guess_extension(ctype)
-            if not suffix:
-                # strip query string and split on path
-                parts = filename.split('?')[0].split('/')[1:]
-                while len(parts) > 1 and not parts[0]:
-                    # strip out blanks from '//'
-                    parts = parts[1:]
-                if len(parts) > 1 and '.' in parts[-1]:
-                    # we don't want '.com', '.net', etc. as the extension
-                    suffix = '.' + parts[-1].split('.')[-1]
+            if '#.' in filename:
+                # allow extension override from URL fragment
+                suffix = '.' + filename.split('#.')[-1]
+            else:
+                ctype = gettype(fd.info())
+                suffix = mimetypes.guess_extension(ctype)
+                if not suffix:
+                    # strip query string and split on path
+                    parts = filename.split('?')[0].split('/')[1:]
+                    while len(parts) > 1 and not parts[0]:
+                        # strip out blanks from '//'
+                        parts = parts[1:]
+                    if len(parts) > 1 and '.' in parts[-1]:
+                        # we don't want '.com', '.net', etc. as the extension
+                        suffix = '.' + parts[-1].split('.')[-1]
             _out_osfd, _out_filename = tempfile.mkstemp(
                 prefix='kivyloader', suffix=suffix)
 

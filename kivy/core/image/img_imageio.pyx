@@ -30,9 +30,6 @@ cdef unsigned int kCFStringEncodingUTF8 = 0x08000100
 cdef extern from "stdlib.h":
     void* calloc(size_t, size_t)
 
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
-
 cdef extern from "CoreGraphics/CGDataProvider.h":
     ctypedef void *CFDataRef
     unsigned char *CFDataGetBytePtr(CFDataRef)
@@ -91,6 +88,10 @@ cdef extern from "CoreGraphics/CGColorSpace.h":
     CGColorSpaceRef CGColorSpaceCreateDeviceRGB()
     void CGColorSpaceRelease(CGColorSpaceRef cs)
 
+cdef extern from "CoreGraphics/CGAffineTransform.h":
+    ctypedef void *CGAffineTransform
+    CGAffineTransform CGAffineTransformMake(float a, float b, float c, float d, float tx, float ty)
+
 cdef extern from "CoreGraphics/CGContext.h": 
     ctypedef void *CGContextRef
     void CGContextRelease(CGContextRef c)
@@ -98,6 +99,7 @@ cdef extern from "CoreGraphics/CGContext.h":
     int kCGBlendModeCopy
     int kCGBlendModeNormal
     void CGContextSetBlendMode(CGContextRef, int)
+    void CGContextConcatCTM(CGContextRef fc, CGAffineTransform matrix)
 
 cdef extern from "CoreGraphics/CGBitmapContext.h":
     CGImageRef CGBitmapContextCreateImage(CGColorSpaceRef)
@@ -168,7 +170,7 @@ def load_image_data(bytes _url):
     vImagePermuteChannels_ARGB8888(&src, &dest, pmap, 0)
 
     # get a python string
-    r_data = PyString_FromStringAndSize(<char *>dest.data, width * height * 4)
+    r_data = (<char *>dest.data)[:width * height * 4]
 
     # release everything
     CFRelease(url)
@@ -181,11 +183,11 @@ def load_image_data(bytes _url):
 
     return (width, height, 'rgba', r_data)
 
-def save_image_rgba(filename, width, height, data):
+def save_image_rgba(filename, width, height, data, flipped):
     # compatibility, could be removed i guess
-    save_image(filename, width, height, 'rgba', data)
+    save_image(filename, width, height, 'rgba', data, flipped)
 
-def save_image(filename, width, height, fmt, data):
+def save_image(filename, width, height, fmt, data, flipped):
     # save a RGBA string into filename using CoreGraphics
 
     # FIXME only png output are accepted.
@@ -232,12 +234,39 @@ def save_image(filename, width, height, fmt, data):
     cdef CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url,
             ctype, 1, NULL)
 
-    # release everything
-    CGImageDestinationAddImage(dest, cgImage, NULL)
+    # copy the image into a transformed context
+    cdef CGContextRef flippedContext
+    cdef CGImageRef newImageRef
+
+    if flipped:
+        flippedContext = CGBitmapContextCreate(
+                                    NULL, width, height,
+                                    8, # bitsPerComponent
+                                    fmt_length * width, # bytesPerRow
+                                    colorSpace,
+                                    kCGImageAlphaNoneSkipLast)
+
+        CGContextConcatCTM(flippedContext, CGAffineTransformMake(1.0, 0.0, 
+                                                                0.0, -1.0, 
+                                                                0.0, height))
+
+        CGContextDrawImage(flippedContext, 
+                            CGRectMake(0, 0, width, height), 
+                            cgImage)
+
+        newImageRef = CGBitmapContextCreateImage(flippedContext)
+        CGImageDestinationAddImage(dest, newImageRef, NULL)
+        CGImageDestinationFinalize(dest)
+        CFRelease(newImageRef)
+        CFRelease(flippedContext)
+    else:
+        CGImageDestinationAddImage(dest, cgImage, NULL)
+        CGImageDestinationFinalize(dest)
+            
+    #Release everything
     CFRelease(cgImage)
     CFRelease(bitmapContext)
     CFRelease(colorSpace)
-    CGImageDestinationFinalize(dest)
     free(pixels)
 
 class ImageLoaderImageIO(ImageLoaderBase):
@@ -249,9 +278,10 @@ class ImageLoaderImageIO(ImageLoaderBase):
         # FIXME check which one are available on osx
         return ('bmp', 'bufr', 'cur', 'dcx', 'fits', 'fl', 'fpx', 'gbr',
                 'gd', 'gif', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
-                'jpeg', 'jpg', 'mcidas', 'mic', 'mpeg', 'msp', 'pcd',
-                'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi', 'spider',
-                'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm', 'xv')
+                'jpeg', 'jpg', 'jpe', 'mcidas', 'mic', 'mpeg', 'msp',
+                'pcd', 'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi',
+                'spider', 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm',
+                'xv')
 
     def load(self, filename):
         # FIXME: if the filename is unicode, the loader is failing.
@@ -267,8 +297,8 @@ class ImageLoaderImageIO(ImageLoaderBase):
         return True
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels):
-        save_image(filename, width, height, fmt, pixels)
+    def save(filename, width, height, fmt, pixels, flipped=False):
+        save_image(filename, width, height, fmt, pixels, flipped)
         return True
 
 # register

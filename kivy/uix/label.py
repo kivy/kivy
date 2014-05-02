@@ -123,7 +123,7 @@ class Label(Widget):
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
                         'halign', 'valign', 'padding_x', 'padding_y',
                         'text_size', 'shorten', 'mipmap', 'markup',
-                        'line_height', 'max_lines')
+                        'line_height', 'max_lines', 'strip')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -378,7 +378,7 @@ class Label(Widget):
 
     :attr:`halign` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'left'. Available options are : left, center, right and
-    justified.
+    justify.
 
     .. warning::
 
@@ -559,4 +559,16 @@ class Label(Widget):
 
     :attr:`max_lines` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
+    '''
+
+    strip = BooleanProperty(True)
+    '''Whether leading and trailing spaces should be stripped from each
+    displayed line. If True, every line will start at the right or left edge,
+    depending on :attr:`halign`. If :attr:`halign` is `justify` it is
+    implicitly True.
+
+    .. versionadded:: 1.8.1
+
+    :attr:`strip` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
