@@ -1,0 +1,9 @@
+doc-warnings: yes
+test-warnings: no
+strictness: veryhigh
+max-line-length: 80
+autodetect: yes
+ignore-paths:
+    - docs
+    - kivy/libs
+    - examples

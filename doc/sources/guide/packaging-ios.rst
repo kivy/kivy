@@ -31,7 +31,8 @@ use `Homebrew <http://mxcl.github.com/homebrew/>`_ to install thoses dependencie
     sudo easy_install pip
     sudo pip install cython
 
-Ensure that everything is ok before starting the second step!
+For more detail, see :ref:`IOS Prerequisites <packaging_ios_prerequisites>`.
+Just ensure that everything is ok before starting the second step!
 
 .. _Compile the distribution:
 
@@ -47,7 +48,9 @@ Open a terminal, and type::
 If you don't want to compile all the things needed for kivy, edit and change
 `tools/build-all.sh` to your needs.
 
-Most of the python distribution will be packed into a `python27.zip`.
+Most of the python distribution will be packed into a `python27.zip`. If you
+experience any issues or would like more detail on this process, please refer
+to :ref:`Compiling for IOS <packaging_ios_compile>`.
 
 .. _Create an Xcode project:
 
@@ -133,3 +136,6 @@ Yes, check:
 
 - `Defletouch on iTunes <http://itunes.apple.com/us/app/deflectouch/id505729681>`_, 
 - `ProcessCraft on iTunes <http://itunes.apple.com/us/app/processcraft/id526377075>`_
+
+For a more complete list, visit the
+`Kivy wiki <https://github.com/kivy/kivy/wiki/List-of-Kivy-Projects>`_.

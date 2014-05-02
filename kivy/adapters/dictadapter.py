@@ -77,6 +77,9 @@ class DictAdapter(ListAdapter):
             if not key in self.data:
                 stale_sorted_keys = True
                 break
+        else:
+            if len(self.sorted_keys) != len(self.data):
+                stale_sorted_keys = True
         if stale_sorted_keys:
             self.sorted_keys = sorted(self.data.keys())
         self.delete_cache()

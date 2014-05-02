@@ -35,13 +35,13 @@ You should always respect this scheme:
     StencilUse
 
     # PHASE 2: all the drawing here will be automatically clipped by the
-    mask created in PHASE 1.
+    # mask created in PHASE 1.
 
     StencilUnUse
 
     # PHASE 3: drawing instructions wil now be drawn without clipping but the
-    mask will still be on the stack. You can return to PHASE 2 at any
-    time by issuing another *StencilUse* command.
+    # mask will still be on the stack. You can return to PHASE 2 at any
+    # time by issuing another *StencilUse* command.
 
     StencilPop
 
