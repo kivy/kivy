@@ -52,7 +52,7 @@ class SoundGstplayer(Sound):
             self.player.stop()
             self.player.play()
         else:
-            self.player.stop()
+            self.stop()
 
     def load(self):
         self.unload()
