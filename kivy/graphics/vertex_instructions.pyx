@@ -370,7 +370,8 @@ cdef class Mesh(VertexInstruction):
 
     property mode:
         '''VBO Mode used for drawing vertices/indices. Can be one of 'points',
-        'line_strip', 'line_loop', 'lines', 'triangle_strip' or 'triangle_fan'.
+        'line_strip', 'line_loop', 'lines', 'triangles', 'triangle_strip' or 
+        'triangle_fan'.
         '''
         def __get__(self):
             self.batch.get_mode()
