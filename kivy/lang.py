@@ -1597,11 +1597,12 @@ class BuilderBase(object):
                 self.templates[name] = (cls, template, fn)
                 Factory.register(name,
                                  cls=partial(self.template, name),
-                                 is_template=True)
+                                 is_template=True, warn=True)
 
             # register all the dynamic classes
             for name, baseclasses in iteritems(parser.dynamic_classes):
-                Factory.register(name, baseclasses=baseclasses, filename=fn)
+                Factory.register(name, baseclasses=baseclasses, filename=fn,
+                                 warn=True)
 
             # create root object is exist
             if kwargs['rulesonly'] and parser.root:

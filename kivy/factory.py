@@ -65,9 +65,13 @@ class FactoryBase(object):
             return False
 
     def register(self, classname, cls=None, module=None, is_template=False,
-                 baseclasses=None, filename=None):
+                 baseclasses=None, filename=None, warn=False):
         '''Register a new classname referring to a real class or
-        class definition in a module.
+        class definition in a module. Warn, if True will emit a warning message
+        when a class is re-declared.
+
+        .. versionchanged:: 1.8.1
+            `warn` was added.
 
         .. versionchanged:: 1.7.0
             :attr:`baseclasses` and :attr:`filename` added
@@ -79,21 +83,14 @@ class FactoryBase(object):
             raise ValueError(
                 'You must specify either cls= or module= or baseclasses =')
         if classname in self.classes:
-            info = self.classes[classname]
-            bases = ['', '']
-            # compare previous to current declaration, log when ignored change
-            for _base, _cls, i in ((baseclasses, cls, 0),
-                                (info['baseclasses'], info['cls'], 1)):
-                if _base is None and _cls is None:
-                    return
-                if _base is None:
-                    _base = '+'.join([base.__name__ for base in
-                                      _cls.__bases__])
-                bases[i] = _base
-            if bases[0] != bases[1]:
-                Logger.warning('Ignored class "{}" re-declaration with '
-                'different bases. Previous is "{}", new is "{}"'.format(
-                classname, bases[1], bases[0]))
+            if warn:
+                info = self.classes[classname]
+                Logger.warning('Factory: Ignored class "{}" re-declaration. '
+                'Current -  module: {}, cls: {}, baseclass: {}, filename: {}. '
+                'Ignored -  module: {}, cls: {}, baseclass: {}, filename: {}.'.
+                format(classname, info['module'], info['cls'],
+                       info['baseclasses'], info['filename'], module, cls,
+                       baseclasses, filename))
             return
         self.classes[classname] = {
             'module': module,
