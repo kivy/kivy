@@ -197,6 +197,13 @@ class WindowBase(EventDispatcher):
             Fired when the :class:`Window` is being rotated.
         `on_close`:
             Fired when the :class:`Window` is closed.
+        `on_request_close`:
+            Fired when the event loop wants to close the window, or if the
+            escape key is pressed and `exit_on_escape` is `True`. If a function
+            bound to this event returns `True`, the window will not be closed.
+            If the the event is triggered because of the keyboard escape key,
+            the keyword argument `source` is dispatched along with a value of
+            `keyboard` to the bound functions.
         `on_keyboard`: key, scancode, codepoint, modifier
             Fired when the keyboard is used for input.
 
@@ -220,6 +227,9 @@ class WindowBase(EventDispatcher):
 
         `on_dropfile`: str
             Fired when a file is dropped on the application.
+
+        .. versionchanged:: 1.8.1
+            `on_request_close` has been added.
     '''
 
     __instance = None
@@ -406,7 +416,8 @@ class WindowBase(EventDispatcher):
     __events__ = ('on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
                   'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
                   'on_mouse_down', 'on_mouse_move', 'on_mouse_up',
-                  'on_keyboard', 'on_key_down', 'on_key_up', 'on_dropfile')
+                  'on_keyboard', 'on_key_down', 'on_key_up', 'on_dropfile',
+                  'on_request_close')
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -761,6 +772,19 @@ class WindowBase(EventDispatcher):
         Modules.unregister_window(self)
         EventLoop.remove_event_listener(self)
 
+    def on_request_close(self, *largs, **kwargs):
+        '''Event called before we close the window. If a bound function returns
+        `True`, the window will not be closed. If the the event is triggered
+        because of the keyboard escape key, the keyword argument `source` is
+        dispatched along with a value of `keyboard` to the bound functions.
+
+        .. warning::
+            When the bound function returns True the window will not be closed,
+            so use with care because the user would not be able to close the
+            program, even if the red X is clicked.
+        '''
+        pass
+
     def on_mouse_down(self, x, y, button, modifiers):
         '''Event called when the mouse is used (pressed/released)'''
         pass
@@ -791,9 +815,10 @@ class WindowBase(EventDispatcher):
         is_osx = platform == 'darwin'
         if self.on_keyboard.exit_on_escape:
             if key == 27 or all([is_osx, key in [113, 119], modifier == 1024]):
-                stopTouchApp()
-                self.close()
-                return True
+                if not self.dispatch('on_request_close', source='keyboard'):
+                    stopTouchApp()
+                    self.close()
+                    return True
     if Config:
         on_keyboard.exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
 
