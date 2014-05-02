@@ -193,6 +193,8 @@ include "graphics/config.pxi"
 from weakref import ref
 from kivy.compat import string_types
 from kivy.config import ConfigParser
+from functools import partial
+from kivy.clock import Clock
 
 cdef float g_dpi = -1
 cdef float g_density = -1
@@ -1529,8 +1531,8 @@ cdef class ConfigParserProperty(Property):
             #self.dispatch(obj)  # we need to dispatch, so not overwitten
         elif self.config_name:
             # ConfigParser will set_config when one named config is created
-            ConfigParser._register_named_property(self.config_name,
-                                                  (self.obj, self.name))
+            Clock.schedule_once(partial(ConfigParser._register_named_property,
+            self.config_name, (self.obj, self.name)), 0)
 
     cpdef _edit_setting(self, section, key, value):
         # callback of ConfigParser
