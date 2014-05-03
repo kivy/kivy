@@ -20,12 +20,13 @@ from kivy.base import EventLoop, stopTouchApp
 from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
-    NumericProperty, OptionProperty, StringProperty
+    NumericProperty, OptionProperty, StringProperty, BooleanProperty
 from kivy.utils import platform, reify
 from kivy.context import get_current_context
 
 # late import
 VKeyboard = None
+android = None
 
 
 class Keyboard(EventDispatcher):
@@ -130,6 +131,9 @@ class Keyboard(EventDispatcher):
     def _on_window_key_down(self, instance, keycode, scancode, text,
                             modifiers):
         keycode = (keycode, self.keycode_to_string(keycode))
+        if text == '\x04':
+            Window.trigger_keyboard_height()
+            return
         return self.dispatch('on_key_down', keycode, text, modifiers)
 
     def _on_window_key_up(self, instance, keycode, *largs):
@@ -262,6 +266,8 @@ class WindowBase(EventDispatcher):
     def _get_size(self):
         r = self._rotation
         w, h = self._size
+        if self.softinput_mode == 'resize':
+            h -= self.keyboard_height
         if r in (0, 180):
             return w, h
         return h, w
@@ -369,10 +375,53 @@ class WindowBase(EventDispatcher):
     degrees.
     '''
 
+    softinput_mode = OptionProperty('', options=('', 'pan', 'scale', 'resize'))
+    '''This specifies the behavior of window contents on display of soft
+    keyboard on mobile platform.
+
+    ..versionadded::1.8.1
+
+    :attr:`softinput_mode` is a :class:`OptionProperty` defaults to None.
+
+    '''
+
+    _keyboard_changed = BooleanProperty(False)
+
+    def _upd_kbd_height(self, *kargs):
+        self._keyboard_changed = not self._keyboard_changed
+
+    def _get_ios_kheight(self):
+        return 0
+
+    def _get_android_kheight(self):
+        global android
+        if not android:
+            import android
+        return android.get_keyboard_height()
+
+    def _get_kheight(self):
+        if platform == 'android':
+            return self._get_android_kheight()
+        if platform == 'ios':
+            return self._get_ios_kheight()
+        return 0
+
+    keyboard_height = AliasProperty(_get_kheight, None,
+                                    bind=('_keyboard_changed',))
+    '''Rerturns the height of the softkeyboard/IME on mobile platforms.
+    Will return 0 if not on mobile platform or if IME is not active.
+
+    ..versionadded:: 1.8.1
+
+    :attr:`keyboard_height` is a read only :class:`AliasProperty` defaults to 0.
+    '''
+
     def _set_system_size(self, size):
         self._size = size
 
     def _get_system_size(self):
+        if self.softinput_mode == 'resize':
+            return self._size[0], self._size[1] - self.keyboard_height
         return self._size
 
     system_size = AliasProperty(
@@ -428,6 +477,10 @@ class WindowBase(EventDispatcher):
         self.trigger_create_window = Clock.create_trigger(
             self.create_window, -1)
 
+        # Create a trigger for updating the keyboard height
+        self.trigger_keyboard_height = Clock.create_trigger(
+            self._upd_kbd_height, .5)
+
         # set the default window parameter according to the configuration
         if 'fullscreen' not in kwargs:
             fullscreen = Config.get('graphics', 'fullscreen')
@@ -462,6 +515,12 @@ class WindowBase(EventDispatcher):
                 'fullscreen', 'position', 'top',
                 'left', '_size', 'system_size'):
             self.bind(**{prop: self.trigger_create_window})
+
+        self.bind(size=self.trigger_keyboard_height,
+                  rotation=self.trigger_keyboard_height)
+
+        self.bind(softinput_mode=lambda *dt: self.update_viewport(),
+                  keyboard_height=lambda *dt: self.update_viewport())
 
         # init privates
         self._system_keyboard = Keyboard(window=self)
@@ -651,7 +710,9 @@ class WindowBase(EventDispatcher):
         '''Event called when a touch down event is initiated.
         '''
         w, h = self.system_size
-        touch.scale_for_screen(w, h, rotation=self._rotation)
+        touch.scale_for_screen(w, h, rotation=self._rotation,
+                               smode=self.softinput_mode,
+                               kheight=self.keyboard_height)
         for w in self.children[:]:
             if w.dispatch('on_touch_down', touch):
                 return True
@@ -660,7 +721,9 @@ class WindowBase(EventDispatcher):
         '''Event called when a touch event moves (changes location).
         '''
         w, h = self.system_size
-        touch.scale_for_screen(w, h, rotation=self._rotation)
+        touch.scale_for_screen(w, h, rotation=self._rotation,
+                               smode=self.softinput_mode,
+                               kheight=self.keyboard_height)
         for w in self.children[:]:
             if w.dispatch('on_touch_move', touch):
                 return True
@@ -669,7 +732,9 @@ class WindowBase(EventDispatcher):
         '''Event called when a touch event is released (terminated).
         '''
         w, h = self.system_size
-        touch.scale_for_screen(w, h, rotation=self._rotation)
+        touch.scale_for_screen(w, h, rotation=self._rotation,
+                               smode=self.softinput_mode,
+                               kheight=self.keyboard_height)
         for w in self.children[:]:
             if w.dispatch('on_touch_up', touch):
                 return True
@@ -684,11 +749,23 @@ class WindowBase(EventDispatcher):
         from math import radians
 
         w, h = self.system_size
+
+        smode = self.softinput_mode
+        kheight = self.keyboard_height
+
         w2, h2 = w / 2., h / 2.
         r = radians(self.rotation)
 
+
+        x, y = 0, 0
+        _h = h
+        if smode:
+            y = kheight
+        if smode == 'scale':
+            _h -= kheight
+
         # prepare the viewport
-        glViewport(0, 0, w, h)
+        glViewport(x, y, w, _h)
 
         # do projection matrix
         projection_mat = Matrix()
@@ -1046,7 +1123,6 @@ class WindowBase(EventDispatcher):
             self._system_keyboard.callback = None
             callback()
             return True
-
 
 #: Instance of a :class:`WindowBase` implementation
 Window = core_select_lib('window', (
