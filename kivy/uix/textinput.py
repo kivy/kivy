@@ -189,6 +189,9 @@ _is_desktop = False
 if Config:
     _is_desktop = Config.getboolean('kivy', 'desktop')
 
+# delayed import
+android = autoclass = cast = None
+
 # register an observer to clear the textinput cache when OpenGL will reload
 if 'KIVY_DOC' not in environ:
 
@@ -529,6 +532,18 @@ class TextInput(Widget):
             elif _command == 'INSERTN':
                 from_undo = False
                 substring = data
+            elif _command == 'SEL':
+                count, _sel_start, _sel_end = map(int, data.split(','))
+                end = self.cursor_index()
+                count, _sel_start, _sel_end = (count,
+                                               _sel_start,
+                                               _sel_end)
+                _start = max((end - count), 0)
+                print 'start: ', _start, 'end', end, 'count', count
+                self._selection_from =  _start + _sel_start
+                self._selection_to = _start + _sel_end
+                self._selection = True
+                return
 
         if not from_undo and self.multiline and self.auto_indent \
                 and substring == u'\n':
@@ -1257,6 +1272,7 @@ class TextInput(Widget):
         self._set_window(*largs)
 
         if value:
+            self.on_cursor(self, self.cursor)
             if self.keyboard_mode != 'managed':
                 self._bind_keyboard()
         else:
@@ -1428,6 +1444,24 @@ class TextInput(Widget):
         # the graphics.
         self._cursor_blink_time = Clock.get_time()
         self._trigger_update_graphics()
+
+        try:
+            global android, autoclass, cast
+            if not android:
+                import android
+                from jnius import autoclass, cast
+            sfv = autoclass('org.renpy.android.SDLSurfaceView')
+            String = autoclass('java.lang.String')
+            try:
+                line = self._lines[value[1]]
+                tbf, taf = line[:value[0]], line[value[0]:]
+            except IndexError:
+                line = ""
+                tbf = taf = ""
+            sfv.updateTextFromCursor(String(tbf), String(taf))
+        except ImportError, AttributeError:
+            # not on android
+            pass
 
     def _delete_line(self, idx):
         # Delete current line, and fix cursor position
