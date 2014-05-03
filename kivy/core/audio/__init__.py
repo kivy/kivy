@@ -199,6 +199,7 @@ except ImportError:
     #audio_libs += [('gi', 'audio_gi')]
     if PY2:
         audio_libs += [('pygst', 'audio_pygst')]
+audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]
 audio_libs += [('sdl', 'audio_sdl')]
 audio_libs += [('pygame', 'audio_pygame')]
 
