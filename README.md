@@ -1,30 +1,24 @@
-[![Stories in Ready](https://badge.waffle.io/kivy/kivy.png?label=ready)](https://waffle.io/kivy/kivy)
 Kivy
 ====
 
+<img align="right" height="256" src="https://raw.githubusercontent.com/kivy/kivy/master/kivy/data/logo/kivy-icon-256.png"/>
+
 Innovative User Interfaces Made Easy.
 
-- Website: http://kivy.org/
-- Documentation: http://kivy.org/docs/
+Kivy is a [Python](https://www.python.org) framework for the development of
+multi-touch enabled media rich applications. The aim is to allow for quick and
+easy interaction design and rapid prototyping whilst making your code reusable
+and deployable.
 
-[![Kivy's Coverage](https://coveralls.io/repos/kivy/kivy/badge.png?branch=master)](https://coveralls.io/r/kivy/kivy?branch=master)
-[![Kivy's Trending](https://d2weczhvl823v0.cloudfront.net/kivy/kivy/trend.png)](https://bitdeli.com/free)
-
-
-Introduction
-------------
-
-Kivy is a Python framework for the development of multi-touch enabled media rich
-applications. The aim is to allow for quick and easy interaction design and
-rapid prototyping whilst making your code reusable and deployable.
-
-Kivy is written in Python and Cython, based on OpenGL ES 2, supports various
-input devices and has an extensive widget library. With the same codebase,
-you can target Windows, OSX, Linux, Android and iOS. All our widgets are built
-with multitouch support.
+Kivy is written in Python and [Cython](http://cython.org/), based on OpenGL ES
+2, supports various input devices and has an extensive widget library. With the
+same codebase, you can target Windows, OSX, Linux, Android and iOS. All our
+widgets are built with multitouch support.
 
 Kivy is MIT licensed, actively developed by a great community and is supported
 by many projects managed by the Kivy organisation.
+
+[![Kivy's Coverage](https://coveralls.io/repos/kivy/kivy/badge.png?branch=master)](https://coveralls.io/r/kivy/kivy?branch=master)
 
 Installation, Documentation, Examples
 -------------------------------------
