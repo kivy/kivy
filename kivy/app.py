@@ -669,7 +669,13 @@ class App(EventDispatcher):
 
         :return: ConfigParser instance
         '''
-        self.config = config = ConfigParser()
+        try:
+            config = ConfigParser.get_configparser('app')
+        except KeyError:
+            config = None
+        if config is None:
+            config = ConfigParser(name='app')
+        self.config = config
         self.build_config(config)
         # if no sections are created, that's mean the user don't have
         # configuration.
@@ -686,7 +692,14 @@ class App(EventDispatcher):
                 config.read(filename)
             except:
                 Logger.error('App: Corrupted config file, ignored.')
-                self.config = config = ConfigParser()
+                config.name = ''
+                try:
+                    config = ConfigParser.get_configparser('app')
+                except KeyError:
+                    config = None
+                if config is None:
+                    config = ConfigParser(name='app')
+                self.config = config
                 self.build_config(config)
                 pass
         else:
