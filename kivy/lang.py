@@ -779,6 +779,24 @@ _delayed_calls = []
 _handlers = {}
 
 
+class Observable(object):
+    '''A lightweight class allowing to get an object be bound to action
+    in kv, without using as much resources as EventDispatcher
+
+    .. versionadded:: 1.8.1
+    '''
+
+    def bind(self, **kwargs):
+        '''This method is to be overriden by your subclass
+
+        kwargs will contains callables to call when your observables are
+        updated, so you can trigger a reevaluation of the expression
+        when you need it, just calling all the callbacks that are
+        relevant.
+        '''
+        pass
+
+
 class ProxyApp(object):
     # proxy app object
     # taken from http://code.activestate.com/recipes/496741-object-proxying/
@@ -1435,7 +1453,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                 f = idmap[k[0]]
                 for x in k[1:-1]:
                     f = getattr(f, x)
-                if isinstance(f, EventDispatcher):
+                if isinstance(f, (Observable, EventDispatcher)):
                     f.bind(**{k[-1]: fn})
                     # make sure _handlers doesn't keep widgets alive
                     _handlers[uid].append([get_proxy(f), k[-1], fn])
