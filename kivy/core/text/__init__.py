@@ -253,7 +253,7 @@ class LabelBase(object):
         .. warning::
 
             This method returns a size measuring function that is valid
-            for the font settings used at the time :meth:`get_cached_extents
+            for the font settings used at the time :meth:`get_cached_extents`
             was called. Any change in the font settings will render the
             returned function incorrect. You should only use this if you know
             what you're doing.
