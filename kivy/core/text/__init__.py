@@ -19,7 +19,7 @@ you should only be using this directly if your needs aren't fulfilled by
 Usage example::
 
     from kivy.core.label import Label as CoreLabel
-    
+
     ...
     ...
     my_label = CoreLabel()
@@ -273,7 +273,7 @@ class LabelBase(object):
 
     def shorten(self, text, margin=2):
         ''' Shortens the text to fit into a single line by the width specified
-        by :attr:`text_size`[0]. If :attr:`text_size`[0] is None, it returns
+        by :attr:`text_size` [0]. If :attr:`text_size` [0] is None, it returns
         text text unchanged.
 
         :attr:`split_str` and :attr:`shorten_from` determines how the text is

@@ -444,9 +444,9 @@ class MarkupLabel(MarkupLabelBase):
         This function operates on a text that has already been laid out because
         for markup, parts of text can have different size and options.
 
-        If :attr:`text_size`[0] is None, the lines are returned unchanged.
+        If :attr:`text_size` [0] is None, the lines are returned unchanged.
         Otherwise, the lines are converted to a single line fitting within the
-        constrained width, :attr:`text_size`[0].
+        constrained width, :attr:`text_size` [0].
 
         :params:
 
@@ -454,7 +454,7 @@ class MarkupLabel(MarkupLabelBase):
             `w`: int, the width of the text in lines, including padding.
             `h`: int, the height of the text in lines, including padding.
             `margin` int, the additional space left on the sides.  This is in
-                addition to :attr:`padding_x`.
+            addition to :attr:`padding_x`.
 
         :returns:
             3-tuple of (xw, h, lines), where w, and h is similar to the input
