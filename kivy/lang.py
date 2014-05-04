@@ -728,8 +728,8 @@ will first be unloaded and then reloaded again. For example:
 '''
 import os
 
-__all__ = ('Builder', 'BuilderBase', 'BuilderException',
-           'Parser', 'ParserException')
+__all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException', 'Parser',
+           'ParserException')
 
 import codecs
 import re
