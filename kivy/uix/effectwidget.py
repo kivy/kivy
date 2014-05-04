@@ -4,6 +4,9 @@ EffectWidget
 
 .. versionadded:: 1.8.1
 
+    This code is still experimental, and its API is subject to change in a
+    future version.
+
 The :class:`EffectWidget` is able to apply a variety of fancy
 graphical effects to
 its children. It works by rendering to a series of
