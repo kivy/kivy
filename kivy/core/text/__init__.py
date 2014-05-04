@@ -251,6 +251,7 @@ class LabelBase(object):
             (36, 18)
 
         .. warning::
+
             This method returns a size measuring function that is valid
             for the font settings used at the time :meth:`get_cached_extents
             was called. Any change in the font settings will render the
