@@ -11,6 +11,9 @@ order to change these settings, you can alter this file manually or use
 the Config object. Please see the :ref:`Configure Kivy` section for more
 information.
 
+Note: To avoid instances where a blank screen appears before resizing, kivy.config
+should be imported right after kivy.app ,or before any modules affecting the window.
+
 Usage of the Config object
 --------------------------
 
