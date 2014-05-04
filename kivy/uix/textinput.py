@@ -147,6 +147,10 @@ FL_IS_NEWLINE = 0x01
 Clipboard = None
 _platform = platform
 
+if _platform == 'android':
+    from jnius import autoclass, cast
+    surfaceview = autoclass('org.renpy.android.SDLSurfaceView')
+
 # for reloading, we need to keep a list of textinput to retrigger the rendering
 _textinput_list = []
 
@@ -157,9 +161,6 @@ _is_osx = sys.platform == 'darwin'
 _is_desktop = False
 if Config:
     _is_desktop = Config.getboolean('kivy', 'desktop')
-
-# delayed import
-android = autoclass = cast = None
 
 # register an observer to clear the textinput cache when OpenGL will reload
 if 'KIVY_DOC' not in environ:
@@ -463,49 +464,6 @@ class TextInput(Widget):
             return
 
         self._hide_handles(self._win)
-
-        # check for command modes
-        if ord(substring[0]) == 1:
-            self._command_mode = True
-            self._command = ''
-        if ord(substring[0]) == 2:
-            self._command_mode = False
-            self._command = self._command[1:]
-
-        if self._command_mode:
-            self._command += substring
-            return
-
-        _command = self._command
-        if _command and ord(substring[0]) == 2:
-            from_undo = True
-            _command, data = _command.split(':')
-            self._command = ''
-            if _command == 'DEL':
-                count = int(data)
-                end = self.cursor_index()
-                self._selection_from = max(end - count, 0)
-                self._selection_to = end
-                self._selection = True
-                self.delete_selection(from_undo=True)
-                return
-            elif _command == 'INSERT':
-                substring = data
-            elif _command == 'INSERTN':
-                from_undo = False
-                substring = data
-            elif _command == 'SEL':
-                count, _sel_start, _sel_end = map(int, data.split(','))
-                end = self.cursor_index()
-                count, _sel_start, _sel_end = (count,
-                                               _sel_start,
-                                               _sel_end)
-                _start = max((end - count), 0)
-                print 'start: ', _start, 'end', end, 'count', count
-                self._selection_from =  _start + _sel_start
-                self._selection_to = _start + _sel_end
-                self._selection = True
-                return
 
         if not from_undo and self.multiline and self.auto_indent \
                 and substring == u'\n':
@@ -917,6 +875,7 @@ class TextInput(Widget):
             return False
         if not self.focus:
             self.focus = True
+
         touch.grab(self)
         self._touch_count += 1
         if touch.is_double_tap:
@@ -943,7 +902,6 @@ class TextInput(Widget):
         if not self._selection_touch:
             self.cancel_selection()
             self._selection_touch = touch
-            self._selection_from = self._selection_to = self.cursor_index()
             self._update_selection()
         return False
 
@@ -972,6 +930,17 @@ class TextInput(Widget):
 
         if not self.focus:
             return False
+
+        #if _platform == 'android':
+            #try:
+                #col, row = self.cursor
+                #line = self._lines[row]
+                #tbf, taf = line[:col], line[col:]
+            #except IndexError:
+                #line = ""
+                #tbf = taf = ""
+            #surfaceview.updateTextFromCursor(tbf, taf, 1);
+
         if self._selection_touch is touch:
             self._selection_to = self.cursor_index()
             self._update_selection(True)
@@ -1047,7 +1016,10 @@ class TextInput(Widget):
 
         if mode[0] != 'm':
             handle_left = self._handle_left
-            hp_left = group[2].pos
+            try:
+                hp_left = group[2].pos
+            except IndexError:
+                return
             handle_left.pos = self.to_window(*hp_left)
             handle_left.x -= handle_left.width
             handle_left.y -= handle_left.height
@@ -1384,23 +1356,14 @@ class TextInput(Widget):
         self._cursor_blink_time = Clock.get_time()
         self._trigger_update_graphics()
 
-        try:
-            global android, autoclass, cast
-            if not android:
-                import android
-                from jnius import autoclass, cast
-            sfv = autoclass('org.renpy.android.SDLSurfaceView')
-            String = autoclass('java.lang.String')
+        if _platform == 'android':
             try:
                 line = self._lines[value[1]]
                 tbf, taf = line[:value[0]], line[value[0]:]
             except IndexError:
                 line = ""
                 tbf = taf = ""
-            sfv.updateTextFromCursor(String(tbf), String(taf))
-        except ImportError, AttributeError:
-            # not on android
-            pass
+            surfaceview.updateTextFromCursor(tbf, taf, 0);
 
     def _delete_line(self, idx):
         # Delete current line, and fix cursor position
@@ -1859,6 +1822,7 @@ class TextInput(Widget):
 
     def _key_down(self, key, repeat=False):
         displayed_str, internal_str, internal_action, scale = key
+
         if internal_action is None:
             if self._selection:
                 self.delete_selection()
@@ -1928,6 +1892,50 @@ class TextInput(Widget):
             self._hide_handles(self._win)
             self._hide_cut_copy_paste()
             self._win.remove_widget(self._handle_middle)
+
+            # check for command modes
+            if ord(text[0]) == 1:
+                self._command_mode = True
+                self._command = ''
+            if ord(text[0]) == 2:
+                self._command_mode = False
+                self._command = self._command[1:]
+
+            if self._command_mode:
+                self._command += text
+                return
+
+            _command = self._command
+            if _command and ord(text) == 2:
+                from_undo = True
+                _command, data = _command.split(':')
+                self._command = ''
+                if self._selection:
+                    self.delete_selection()
+                if _command == 'DEL':
+                    count = int(data)
+                    if not count:
+                        self.delete_selection(from_undo=True)
+                    end = self.cursor_index()
+                    self._selection_from = max(end - count, 0)
+                    self._selection_to = end
+                    self._selection = True
+                    self.delete_selection(from_undo=True)
+                    return
+                elif _command == 'INSERT':
+                    self.insert_text(data, from_undo)
+                elif _command == 'INSERTN':
+                    from_undo = False
+                    self.insert_text(data, from_undo)
+                elif _command == 'SELWORD':
+                    self.dispatch('on_double_tap')
+                elif _command == 'SEL':
+                    if data == '0':
+                        Clock.schedule_once(lambda dt: self.cancel_selection())
+                elif _command == 'CURCOL':
+                    self.cursor = int(data), self.cursor_row
+                return
+
             if is_shortcut:
                 if key == ord('x'):  # cut selection
                     self._cut(self.selection_text)
