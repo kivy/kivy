@@ -31,6 +31,7 @@ from kivy.base import EventLoop
 from kivy.logger import Logger
 from functools import partial
 from weakref import ref
+from kivy.core.window import Window
 from time import clock
 import string
 
@@ -641,10 +642,9 @@ class FocusBehavior(object):
 
         self.bind(focused=self._on_focused, disabled=self._on_focusable,
                   is_focusable=self._on_focusable,
-                  # don't be at mercy of child calling super
-                  on_touch_down=self._focus_on_touch_down,
                   focus_next=self._set_on_focus_next,
                   focus_previous=self._set_on_focus_previous)
+        Window.bind(on_touch_down=self._focus_on_touch_down)
 
     def _on_focusable(self, instance, value):
         if self.disabled or not self.is_focusable:
@@ -705,11 +705,11 @@ class FocusBehavior(object):
         self.focused = False
 
     def _focus_on_touch_down(self, instance, touch):
-        if not self.disabled and self.is_focusable and\
-            self.collide_point(*touch.pos) and ('button' not in touch.profile
-            or not touch.button.startswith('scroll')):
-            self.focused = True
-        return False
+        pos = self.to_widget(*touch.pos)
+        if (not self.disabled and self.is_focusable and
+            ('button' not in touch.profile or
+             not touch.button.startswith('scroll'))):
+            self.focused = self.collide_point(*pos)
 
     def _get_focus_next(self, focus_dir):
         current = self
