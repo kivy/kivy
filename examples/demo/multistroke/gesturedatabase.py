@@ -162,7 +162,7 @@ class GestureDatabase(GridLayout):
             self.recognizer.import_gesture(filename=f)
         self.import_gdb()
         self.info_popup.text = ("Imported %d gestures.\n" %
-            (len(self.recognizer.db) - count))
+                                (len(self.recognizer.db) - count))
         self.import_popup.dismiss()
         self.info_popup.open()
 

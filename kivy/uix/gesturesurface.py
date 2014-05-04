@@ -22,7 +22,7 @@ from kivy.vector import Vector
 from kivy.uix.floatlayout import FloatLayout
 from kivy.graphics import Color, Line, Rectangle
 from kivy.properties import (NumericProperty, BooleanProperty,
-        DictProperty, ListProperty)
+                             DictProperty, ListProperty)
 from colorsys import hsv_to_rgb
 
 # Clock undershoot margin, FIXME: this is probably too high?
@@ -419,14 +419,14 @@ class GestureSurface(FloatLayout):
             col = hsv_to_rgb(random(), 1., 1.)
 
         g = GestureContainer(touch, max_strokes=self.max_strokes,
-            line_width=self.line_width, color=col)
+                             line_width=self.line_width, color=col)
 
         # Create the bounding box Rectangle for the gesture
         if self.draw_bbox:
             bb = g.bbox
             with self.canvas:
                 Color(col[0], col[1], col[2], self.bbox_alpha, mode='rgba',
-                        group=g.id)
+                      group=g.id)
 
                 g._bbrect = Rectangle(
                     group=g.id,
@@ -541,7 +541,7 @@ class GestureSurface(FloatLayout):
         bb = g.bbox
         g._bbrect.pos = (bb['minx'], bb['miny'])
         g._bbrect.size = (bb['maxx'] - bb['minx'],
-                         bb['maxy'] - bb['miny'])
+                          bb['maxy'] - bb['miny'])
 
 # -----------------------------------------------------------------------------
 # Timeout callbacks

@@ -117,7 +117,7 @@ Some of the code is derived from the JavaScript implementation here:
 '''
 
 __all__ = ('Recognizer', 'ProgressTracker', 'MultistrokeGesture',
-    'UnistrokeTemplate', 'Candidate')
+           'UnistrokeTemplate', 'Candidate')
 
 import pickle
 import base64
@@ -858,9 +858,9 @@ class MultistrokeGesture(object):
                 self.permute()
             else:
                 self.templates = [UnistrokeTemplate(name,
-                    points=[i for sub in strokes for i in sub],
-                    numpoints=self.numpoints,
-                    orientation_sensitive=self.orientation_sens)]
+                                  points=[i for sub in strokes for i in sub],
+                                  numpoints=self.numpoints,
+                                  orientation_sensitive=self.orientation_sens)]
 
     def angle_similarity_threshold(self):
         return radians(self.angle_similarity)

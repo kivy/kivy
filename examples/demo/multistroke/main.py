@@ -37,7 +37,7 @@ class MultistrokeApp(App):
 
         text = '[b]Discarded:[/b] Not enough input'
         g._result_label = Label(text=text, markup=True, size_hint=(None, None),
-            center=(g.bbox['minx'], g.bbox['miny']))
+                                center=(g.bbox['minx'], g.bbox['miny']))
         self.surface.add_widget(g._result_label)
 
     def handle_gesture_complete(self, surface, g, *l):
@@ -57,23 +57,23 @@ class MultistrokeApp(App):
             text = '[b]No match[/b]'
         else:
             text = 'Name: [b]%s[/b]\nScore: [b]%f[/b]\nDistance: [b]%f[/b]' % (
-                    best['name'], best['score'], best['dist'])
+                   best['name'], best['score'], best['dist'])
 
         g = result._gesture_obj
         g._result_label = Label(text=text, markup=True, size_hint=(None, None),
-            center=(g.bbox['minx'], g.bbox['miny']))
+                                center=(g.bbox['minx'], g.bbox['miny']))
         self.surface.add_widget(g._result_label)
 
     def build(self):
         # Setting NoTransition breaks the "history" screen! Possibly related
         # to some inexplicable rendering bugs on my particular system
         self.manager = ScreenManager(transition=SlideTransition(
-                duration=.15))
+                                     duration=.15))
         self.recognizer = Recognizer()
 
         # Setup the GestureSurface and bindings to our Recognizer
         surface = GestureSurface(line_width=2, draw_bbox=True,
-                use_random_color=True)
+                                 use_random_color=True)
         surface_screen = Screen(name='surface')
         surface_screen.add_widget(surface)
         self.manager.add_widget(surface_screen)

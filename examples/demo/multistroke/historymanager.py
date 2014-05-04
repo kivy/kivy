@@ -28,8 +28,8 @@ class GestureHistoryManager(GridLayout):
     def __init__(self, **kwargs):
         super(GestureHistoryManager, self).__init__(**kwargs)
         self.gesturesettingsform = GestureSettingsForm()
-        self.gesturesettingsform.rrdetails.bind(
-                on_reanalyze_selected=self.reanalyze_selected)
+        rr = self.gesturesettingsform.rrdetails
+        rr.bind(on_reanalyze_selected=self.reanalyze_selected)
         self.infopopup = InformationPopup()
         self.recognizer = App.get_running_app().recognizer
 
@@ -44,7 +44,7 @@ class GestureHistoryManager(GridLayout):
 
         # Reanalyze the candidate strokes using current database
         res = self.recognizer.recognize(gesture_obj.get_vectors(),
-                max_gpf=100)
+                                        max_gpf=100)
 
         # Tag the result with the gesture object (it didn't change)
         res._gesture_obj = gesture_obj
@@ -81,8 +81,8 @@ class GestureHistoryManager(GridLayout):
         cand = self.selected._result_obj._gesture_obj.get_vectors()
 
         if permute and len(cand) > MAX_PERMUTE_STROKES:
-            self.infopopup.text = "Can't heap permute %d-stroke gesture " % (
-                    len(cand))
+            t = "Can't heap permute %d-stroke gesture " % (len(cand))
+            self.infopopup.text = t
             self.infopopup.auto_dismiss = True
             self.infopopup.open()
             return
@@ -124,7 +124,7 @@ class GestureHistoryManager(GridLayout):
 
         # Create a GestureVisualizer that draws the gesture on canvas
         visualizer = GestureVisualizer(result._gesture_obj,
-            size_hint=(None, None), size=(150, 150))
+                                       size_hint=(None, None), size=(150, 150))
 
         # Tag it with the result object so AddGestureForm.load_visualizer
         # has the results to build labels in the scrollview
