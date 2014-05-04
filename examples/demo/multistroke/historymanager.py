@@ -1,3 +1,5 @@
+__all__ = ('GestureHistoryManager', 'GestureVisualizer')
+
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.lang import Builder
@@ -16,8 +18,6 @@ from settings import MultistrokeSettingsContainer
 # refuse heap permute for gestures with more strokes than 3
 # (you can increase it, but 4 strokes = 384 templates, 5 = 3840)
 MAX_PERMUTE_STROKES = 3
-
-__all__ = ('GestureHistoryManager', 'GestureVisualizer')
 
 Builder.load_file('historymanager.kv')
 

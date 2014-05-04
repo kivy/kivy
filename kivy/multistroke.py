@@ -57,14 +57,14 @@ various aspects of the recognition process ::
     gdb = Recognizer()
 
     def search_start(gdb, pt):
-        print "A search is starting with %d tasks" % (pt.tasks)
+        print("A search is starting with %d tasks" % (pt.tasks))
 
     def search_stop(gdb, pt):
         # This will call max() on the result dictonary, so it's best to store
         # it instead of calling it 3 times consecutively
         best = pt.best
-        print "Search ended (%s). Best is %s (score %f, distance %f)" % (
-            pt.status, best['name'], best['score'], best['dist'] )
+        print("Search ended (%s). Best is %s (score %f, distance %f)" % (
+            pt.status, best['name'], best['score'], best['dist'] ))
 
     # Bind your callbacks to track all matching operations
     gdb.bind(on_search_start=search_start)
@@ -95,11 +95,11 @@ value (also a :class:`ProgressTracker` instance) ::
         [Vector(88, 9), Vector(85, 95)]])
 
     progress.bind(on_progress=my_other_callback)
-    print progress.progress # = 0
+    print(progress.progress) # = 0
 
     # [ assuming a kivy.clock.Clock.tick() here ]
 
-    print result.progress # = 1
+    print(result.progress) # = 1
 
 Algorithm details
 -----------------

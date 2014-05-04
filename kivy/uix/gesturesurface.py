@@ -13,6 +13,7 @@ Gesture Surface
 See :file:`kivy/examples/demo/multistroke/main.py` for a complete application
 example.
 '''
+__all__ = ('GestureSurface', 'GestureContainer')
 
 from random import random
 from kivy.event import EventDispatcher
@@ -24,9 +25,7 @@ from kivy.properties import (NumericProperty, BooleanProperty,
         DictProperty, ListProperty)
 from colorsys import hsv_to_rgb
 
-__all__ = ('GestureSurface', 'GestureContainer')
-
-# Clock undershoot margin
+# Clock undershoot margin, FIXME: this is probably too high?
 UNDERSHOOT_MARGIN = 0.1
 
 

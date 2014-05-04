@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+__all__ = ('GestureDatabase', 'GestureDatabaseItem')
+
 from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.properties import NumericProperty, StringProperty
@@ -14,8 +15,6 @@ from string import lower as string_lower
 # local libraries
 from helpers import InformationPopup
 
-
-__all__ = ('GestureDatabase', 'GestureDatabaseItem')
 
 Builder.load_file('gesturedatabase.kv')
 

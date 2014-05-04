@@ -1,10 +1,10 @@
+__all__ = ('InformationPopup', )
+
 from kivy.uix.popup import Popup
 from kivy.properties import StringProperty
 from kivy.factory import Factory
 from kivy.lang import Builder
 from kivy.clock import Clock
-
-__all__ = ('InformationPopup', )
 
 Builder.load_string('''
 <InformationPopup>:
