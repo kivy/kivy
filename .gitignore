@@ -14,6 +14,8 @@ doc/build
 doc/sources/api-*.rst
 kivy/*.c
 kivy/*.pyd
+kivy/core/text/text_layout.c
+kivy/core/text/text_layout.pyd
 kivy/graphics/*.c
 kivy/graphics/*.pyd
 kivy/graphics/config.h

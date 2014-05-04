@@ -19,6 +19,7 @@ from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
 from kivy.utils import platform
 from kivy.resources import resource_find
+from kivy.clock import Clock
 
 try:
     android = None

@@ -728,8 +728,8 @@ will first be unloaded and then reloaded again. For example:
 '''
 import os
 
-__all__ = ('Builder', 'BuilderBase', 'BuilderException',
-           'Parser', 'ParserException')
+__all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException', 'Parser',
+           'ParserException')
 
 import codecs
 import re
@@ -777,6 +777,24 @@ _delayed_calls = []
 # all the widget handlers, used to correctly unbind all the callbacks then the
 # widget is deleted
 _handlers = {}
+
+
+class Observable(object):
+    '''A lightweight class allowing to get an object be bound to action
+    in kv, without using as much resources as EventDispatcher
+
+    .. versionadded:: 1.8.1
+    '''
+
+    def bind(self, **kwargs):
+        '''This method is to be overriden by your subclass
+
+        kwargs will contains callables to call when your observables are
+        updated, so you can trigger a reevaluation of the expression
+        when you need it, just calling all the callbacks that are
+        relevant.
+        '''
+        pass
 
 
 class ProxyApp(object):
@@ -1435,7 +1453,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                 f = idmap[k[0]]
                 for x in k[1:-1]:
                     f = getattr(f, x)
-                if isinstance(f, EventDispatcher):
+                if isinstance(f, (Observable, EventDispatcher)):
                     f.bind(**{k[-1]: fn})
                     # make sure _handlers doesn't keep widgets alive
                     _handlers[uid].append([get_proxy(f), k[-1], fn])
@@ -1601,11 +1619,12 @@ class BuilderBase(object):
                 self.templates[name] = (cls, template, fn)
                 Factory.register(name,
                                  cls=partial(self.template, name),
-                                 is_template=True)
+                                 is_template=True, warn=True)
 
             # register all the dynamic classes
             for name, baseclasses in iteritems(parser.dynamic_classes):
-                Factory.register(name, baseclasses=baseclasses, filename=fn)
+                Factory.register(name, baseclasses=baseclasses, filename=fn,
+                                 warn=True)
 
             # create root object is exist
             if kwargs['rulesonly'] and parser.root:
