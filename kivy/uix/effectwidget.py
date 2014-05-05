@@ -594,6 +594,11 @@ class EffectWidget(RelativeLayout):
     '''
 
     background_color = ListProperty((1, 1, 1, 1))
+    '''This defines the background color to be used for the fbo in the
+    EffectWidget.
+
+    :attr:`background_color` is a :class:`ListProperty` defaults to (1, 1, 1, 1)
+    '''
 
     texture = ObjectProperty(None)
     '''The output texture of our final :class:`~kivy.graphics.Fbo` after
