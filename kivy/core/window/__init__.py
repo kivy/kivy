@@ -442,9 +442,8 @@ class WindowBase(EventDispatcher):
     '''
 
     fullscreen = OptionProperty(False, options=(True, False, 'auto', 'fake'))
-    '''If True, the window will be put in fullscreen mode, "auto". That means
-    the screen size will not change and will use the current size to set
-    the app fullscreen.
+    '''This property sets the fullscreen mode of the window. Available options
+    are: True, False, 'auto', 'fake'.
 
     .. versionadded:: 1.2.0
     '''
