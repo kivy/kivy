@@ -339,7 +339,7 @@ class WindowBase(EventDispatcher):
     width = AliasProperty(_get_width, None, bind=('_rotation', '_size'))
     '''Rotated window width.
 
-    :attr:`width` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`width` is a read-only :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_height(self):
@@ -352,7 +352,7 @@ class WindowBase(EventDispatcher):
     height = AliasProperty(_get_height, None, bind=('_rotation', '_size'))
     '''Rotated window height.
 
-    :attr:`height` is a :class:`~kivy.properties.AliasProperty`.
+    :attr:`height` is a read-only :class:`~kivy.properties.AliasProperty`.
     '''
 
     def _get_center(self):
@@ -423,7 +423,7 @@ class WindowBase(EventDispatcher):
 
     ..versionadded:: 1.8.1
 
-    :attr:`keyboard_height` is a read only :class:`AliasProperty` defaults to 0.
+    :attr:`keyboard_height` is a read-only :class:`AliasProperty` defaults to 0.
     '''
 
     def _set_system_size(self, size):
