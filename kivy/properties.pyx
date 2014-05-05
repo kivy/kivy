@@ -486,8 +486,8 @@ cdef class NumericProperty(Property):
                     obj.__class__.__name__,
                     self.name, x))
             return self.parse_list(obj, x[0], <str>x[1])
-        elif tp is str:
-            return self.parse_str(obj, x)
+        elif isinstance(x, string_types):
+            return self.parse_str(obj, str(x))
         else:
             raise ValueError('%s.%s have an invalid format (got %r)' % (
                 obj.__class__.__name__,
@@ -1319,7 +1319,7 @@ cdef class VariableListProperty(Property):
                 elif self.length == 2:
                     err = '%s.%s must have 1 or 2 components (got %r)'
                 raise ValueError(err % (obj.__class__.__name__, self.name, x))
-        elif tp is int or tp is long or tp is float or tp is str:
+        elif tp is int or tp is long or tp is float or isinstance(x, string_types):
             y = self._convert_numeric(obj, x)
             if self.length == 4:
                 return [y, y, y, y]
@@ -1340,8 +1340,8 @@ cdef class VariableListProperty(Property):
                     obj.__class__.__name__,
                     self.name, x))
             return self.parse_list(obj, x[0], <str>x[1])
-        elif tp is str:
-            return self.parse_str(obj, x)
+        elif isinstance(x, string_types):
+            return self.parse_str(obj, str(x))
         else:
             raise ValueError('%s.%s have an invalid format (got %r)' % (
                 obj.__class__.__name__,
