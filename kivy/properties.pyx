@@ -485,18 +485,18 @@ cdef class NumericProperty(Property):
                 raise ValueError('%s.%s must have 2 components (got %r)' % (
                     obj.__class__.__name__,
                     self.name, x))
-            return self.parse_list(obj, x[0], <str>x[1])
+            return self.parse_list(obj, x[0], x[1])
         elif isinstance(x, string_types):
-            return self.parse_str(obj, str(x))
+            return self.parse_str(obj, x)
         else:
             raise ValueError('%s.%s have an invalid format (got %r)' % (
                 obj.__class__.__name__,
                 self.name, x))
 
     cdef float parse_str(self, EventDispatcher obj, value):
-        return self.parse_list(obj, value[:-2], <str>value[-2:])
+        return self.parse_list(obj, value[:-2], value[-2:])
 
-    cdef float parse_list(self, EventDispatcher obj, value, str ext):
+    cdef float parse_list(self, EventDispatcher obj, value, ext):
         cdef PropertyStorage ps = obj.__storage[self._name]
         ps.numeric_fmt = ext
         return dpi2px(value, ext)
@@ -1339,18 +1339,18 @@ cdef class VariableListProperty(Property):
                 raise ValueError('%s.%s must have 2 components (got %r)' % (
                     obj.__class__.__name__,
                     self.name, x))
-            return self.parse_list(obj, x[0], <str>x[1])
+            return self.parse_list(obj, x[0], x[1])
         elif isinstance(x, string_types):
-            return self.parse_str(obj, str(x))
+            return self.parse_str(obj, x)
         else:
             raise ValueError('%s.%s have an invalid format (got %r)' % (
                 obj.__class__.__name__,
                 self.name, x))
 
     cdef float parse_str(self, EventDispatcher obj, value):
-        return self.parse_list(obj, value[:-2], <str>value[-2:])
+        return self.parse_list(obj, value[:-2], value[-2:])
 
-    cdef float parse_list(self, EventDispatcher obj, value, str ext):
+    cdef float parse_list(self, EventDispatcher obj, value, ext):
         return dpi2px(value, ext)
 
 
