@@ -60,17 +60,6 @@ kivy.require('1.0.9')
 import weakref
 from kivy.animation import Animation
 from kivy.logger import Logger
-from kivy.uix.widget import Widget
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.uix.togglebutton import ToggleButton
-from kivy.uix.textinput import TextInput
-from kivy.uix.image import Image
-from kivy.uix.treeview import TreeViewNode
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.modalview import ModalView
 from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix, \
     Translate, Rotate, Scale
 from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
@@ -78,10 +67,12 @@ from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
     ReferenceListProperty, AliasProperty, VariableListProperty
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
+from kivy.factory import Factory
 from functools import partial
 from itertools import chain
 from kivy.lang import Builder
 from kivy.vector import Vector
+
 
 Builder.load_string('''
 <Inspector>:
@@ -175,7 +166,7 @@ Builder.load_string('''
 ''')
 
 
-class TreeViewProperty(BoxLayout, TreeViewNode):
+class TreeViewProperty(Factory.BoxLayout, Factory.TreeViewNode):
 
     widget_ref = ObjectProperty(None, allownone=True)
 
@@ -197,7 +188,7 @@ class TreeViewProperty(BoxLayout, TreeViewNode):
     refresh = BooleanProperty(False)
 
 
-class Inspector(FloatLayout):
+class Inspector(Factory.FloatLayout):
 
     widget = ObjectProperty(None, allownone=True)
 
@@ -265,9 +256,10 @@ class Inspector(FloatLayout):
         # reverse the loop - look at children on top first and
         # modalviews before others
         win_children = self.win.children
+        mv = Factory.ModalView
         children = chain(
-            (c for c in reversed(win_children) if isinstance(c, ModalView)),
-            (c for c in reversed(win_children) if not isinstance(c, ModalView))
+            (c for c in reversed(win_children) if isinstance(c, mv)),
+            (c for c in reversed(win_children) if not isinstance(c, mv))
         )
         for child in children:
             if child is self:
@@ -470,22 +462,24 @@ class Inspector(FloatLayout):
                 dtype = 'list'
 
         if isinstance(prop, NumericProperty) or dtype == 'numeric':
-            content = TextInput(text=str(value) or '', multiline=False)
+            content = Factory.TextInput(text=str(value) or '', multiline=False)
             content.bind(text=partial(
                 self.save_property_numeric, widget, key, index))
         elif isinstance(prop, StringProperty) or dtype == 'string':
-            content = TextInput(text=value or '', multiline=True)
+            content = Factory.TextInput(text=value or '', multiline=True)
             content.bind(text=partial(
                 self.save_property_text, widget, key, index))
         elif (isinstance(prop, ListProperty) or
               isinstance(prop, ReferenceListProperty) or
               isinstance(prop, VariableListProperty) or
               dtype == 'list'):
-            content = GridLayout(cols=1, size_hint_y=None)
+            content = Factory.GridLayout(cols=1, size_hint_y=None)
             content.bind(minimum_height=content.setter('height'))
+            but = Factory.Button
+            widg = Factory.Widget
             for i, item in enumerate(value):
-                button = Button(text=repr(item), size_hint_y=None, height=44)
-                if isinstance(item, Widget):
+                button = but(text=repr(item), size_hint_y=None, height=44)
+                if isinstance(item, widg):
                     button.bind(on_release=partial(self.highlight_widget, item,
                                                    False))
                 else:
@@ -493,10 +487,11 @@ class Inspector(FloatLayout):
                                                    item, key, i))
                 content.add_widget(button)
         elif isinstance(prop, OptionProperty):
-            content = GridLayout(cols=1, size_hint_y=None)
+            content = Factory.GridLayout(cols=1, size_hint_y=None)
             content.bind(minimum_height=content.setter('height'))
+            tb = Factory.ToggleButton
             for option in prop.options:
-                button = ToggleButton(
+                button = tb(
                     text=option,
                     state='down' if option == value else 'normal',
                     group=repr(content.uid), size_hint_y=None,
@@ -505,17 +500,17 @@ class Inspector(FloatLayout):
                     self.save_property_option, widget, key))
                 content.add_widget(button)
         elif isinstance(prop, ObjectProperty):
-            if isinstance(value, Widget):
-                content = Button(text=repr(value))
+            if isinstance(value, Factory.Widget):
+                content = Factory.Button(text=repr(value))
                 content.bind(on_release=partial(self.highlight_widget, value))
             elif isinstance(value, Texture):
-                content = Image(texture=value)
+                content = Factory.Image(texture=value)
             else:
-                content = Label(text=repr(value))
+                content = Factory.Label(text=repr(value))
 
         elif isinstance(prop, BooleanProperty):
             state = 'down' if value else 'normal'
-            content = ToggleButton(text=key, state=state)
+            content = Factory.ToggleButton(text=key, state=state)
             content.bind(on_release=partial(self.save_property_boolean, widget,
                                             key, index))
 
