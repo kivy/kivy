@@ -123,7 +123,8 @@ class Label(Widget):
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
                         'halign', 'valign', 'padding_x', 'padding_y',
                         'text_size', 'shorten', 'mipmap', 'markup',
-                        'line_height', 'max_lines', 'strip')
+                        'line_height', 'max_lines', 'strip', 'shorten_from',
+                        'split_str')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -188,6 +189,8 @@ class Label(Widget):
             mrkup = self._label.__class__ is CoreMarkupLabel
             if mrkup:
                 text = self._label.text
+                if self.halign[-1] == 'y' or self.strip:
+                    text = text.strip()
                 self._label.text = ''.join(('[color=',
                                             get_hex_from_color(self.color),
                                             ']', text, '[/color]'))
@@ -474,6 +477,38 @@ class Label(Widget):
 
     :attr:`shorten` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
+    '''
+
+    shorten_from = OptionProperty('center', options=['left', 'center',
+                                                     'right'])
+    '''The side from which we should shorten the text from, can be left,
+    right, or center.
+
+    For example, if left, the ellipsis will appear towards the left side and we
+    will display as much text starting from the right as possible. Similar to
+    :attr:`shorten`, this option only applies when :attr:`text_size` [0] is
+    not None, In this case, the string is shortened to fit within the specified
+    width.
+
+    .. versionadded:: 1.8.1
+
+    :attr:`shorten_from` is a :class:`~kivy.properties.OptionProperty` and
+    defaults to `center`.
+    '''
+
+    split_str = StringProperty(' ')
+    '''The string used to split the :attr`text` when shortening the string when
+    :attr:`shorten` is True.
+
+    For example, if it's a space, the string will be broken into words and as
+    much words that can fit in a single line will be displayed. If
+    :attr:`shorten_from` is the empty string, `''`, we split on every character
+    fitting as much text as possible into the line.
+
+    .. versionadded:: 1.8.1
+
+    :attr:`shorten_from` is a :class:`~kivy.properties.StringProperty` and
+    defaults to ` ` (single space).
     '''
 
     markup = BooleanProperty(False)

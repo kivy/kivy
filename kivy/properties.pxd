@@ -83,3 +83,15 @@ cdef class VariableListProperty(Property):
     cdef _convert_numeric(self, EventDispatcher obj, x)
     cdef float parse_str(self, EventDispatcher obj, value)
     cdef float parse_list(self, EventDispatcher obj, value, str ext)
+
+cdef class ConfigParserProperty(Property):
+    cdef object config
+    cdef object section
+    cdef object key
+    cdef object val_type
+    cdef object verify
+    cdef object obj
+    cdef object last_value  # last string config value
+    cdef object config_name
+    cpdef _edit_setting(self, section, key, value)
+    cdef inline object _parse_str(self, object value)

@@ -268,9 +268,12 @@ class ClockEvent(object):
 
     def cancel(self):
         if self._is_triggered:
-            events = self.clock._events
+            clock = self.clock
+            events = clock._events
             cid = self.cid
             if cid in events and self in events[cid]:
+                if clock._current_event is self:
+                    clock._current_event = None
                 events[cid].remove(self)
         self._is_triggered = False
 
@@ -330,7 +333,7 @@ class ClockBase(_ClockBase):
     __slots__ = ('_dt', '_last_fps_tick', '_last_tick', '_fps', '_rfps',
                  '_start_tick', '_fps_counter', '_rfps_counter', '_events',
                  '_frames', '_frames_displayed',
-                 '_max_fps', 'max_iteration')
+                 '_max_fps', 'max_iteration', '_current_event')
 
     MIN_SLEEP = 0.005
     SLEEP_UNDERSHOOT = MIN_SLEEP - 0.001
@@ -348,6 +351,7 @@ class ClockBase(_ClockBase):
         self._frames_displayed = 0
         self._events = {}
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
+        self._current_event = None
 
         #: .. versionadded:: 1.0.5
         #:     When a schedule_once is used with -1, you can add a limit on
@@ -508,12 +512,16 @@ class ClockBase(_ClockBase):
             if cid in events:
                 for event in events[cid][:]:
                     if event is callback:
+                        if self._current_event is event:
+                            self._current_event = None
                         events[cid].remove(event)
         else:
             cid = _hash(callback)
             if cid in events:
                 for event in events[cid][:]:
                     if event.get_callback() == callback:
+                        if self._current_event is event:
+                            self._current_event = None
                         events[cid].remove(event)
 
     def _release_references(self):
@@ -534,10 +542,14 @@ class ClockBase(_ClockBase):
         events = self._events
         for cid in list(events.keys())[:]:
             for event in events[cid][:]:
-                if event.tick(self._last_tick) is False:
-                    # event may be already removed by the callback
-                    if event in events[cid]:
-                        events[cid].remove(event)
+                # event may be already removed from original list
+                if event in events[cid]:
+                    self._current_event = event
+                    if event.tick(self._last_tick) is False:
+                        # if event removed by callback, _current_event is None
+                        if self._current_event is event:
+                            events[cid].remove(event)
+        self._current_event = None
 
     def _process_events_before_frame(self):
         found = True

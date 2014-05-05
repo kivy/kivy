@@ -346,7 +346,8 @@ class MotionEvent(MotionEventBase):
         self.time_update = time()
         self.depack(args)
 
-    def scale_for_screen(self, w, h, p=None, rotation=0):
+    def scale_for_screen(self, w, h, p=None, rotation=0,
+                         smode='None', kheight=0):
         '''Scale position for the screen
         '''
         sx, sy = self.sx, self.sy
@@ -368,6 +369,14 @@ class MotionEvent(MotionEventBase):
 
         if p:
             self.z = self.sz * float(p)
+
+        if smode:
+            if smode == 'pan':
+                self.y -= kheight
+            elif smode == 'scale':
+                self.y += (kheight * (
+                    (self.y - kheight) / (h - kheight))) - kheight
+
         if self.ox is None:
             self.px = self.ox = self.x
             self.py = self.oy = self.y

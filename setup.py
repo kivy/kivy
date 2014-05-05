@@ -460,7 +460,8 @@ sources = {
     'graphics/transformation.pyx': merge(base_flags, gl_flags),
     'graphics/vbo.pyx': merge(base_flags, gl_flags),
     'graphics/vertex.pyx': merge(base_flags, gl_flags),
-    'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags)}
+    'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags),
+    'core/text/text_layout.pyx': base_flags}
 
 if c_options['use_sdl']:
     sdl_flags = determine_sdl()

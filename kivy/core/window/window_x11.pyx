@@ -164,7 +164,7 @@ class WindowX11(WindowBase):
 
         if 'KIVY_WINDOW_NO_BORDER' in environ:
             border = False
-            
+
         if 'KIVY_WINDOW_ABOVE' in environ:
             above = True
 
@@ -195,8 +195,8 @@ class WindowX11(WindowBase):
 
     def _mainloop(self):
         EventLoop.idle()
-        if x11_idle() == 0:
-            EventLoop.quit = True
+        if x11_idle() == 0 and not self.dispatch('on_request_close'):
+                EventLoop.quit = True
 
     def flip(self):
         x11_gl_swap()
@@ -210,9 +210,10 @@ class WindowX11(WindowBase):
         # TODO If just CMD+w is pressed, only the window should be closed.
         is_osx = platform == 'darwin'
         if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
-            stopTouchApp()
-            self.close()  # not sure what to do here
-            return True
+            if not self.dispatch('on_request_close', source='keyboard'):
+                stopTouchApp()
+                self.close()  # not sure what to do here
+                return True
         super(WindowX11, self).on_keyboard(key, scancode,
             codepoint=codepoint, modifier=modifier)
 
