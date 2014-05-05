@@ -322,6 +322,7 @@ class TextInput(FocusBehavior, Widget):
                   'on_quad_touch')
 
     def __init__(self, **kwargs):
+        self.is_focusable = kwargs.get('is_focusable', True)
         self._win = None
         self._cursor_blink_time = Clock.get_time()
         self._cursor = [0, 0]
