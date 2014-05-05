@@ -491,23 +491,6 @@ class TextInput(Widget):
                 substring += indent
         return substring
 
-    def _insert_filter_text(self, substring, mode):
-        chr = type(substring)
-        if chr is bytes:
-            int_pat = self._insert_int_patb
-        else:
-            int_pat = self._insert_int_patu
-
-        if mode == 'int':
-            return re.sub(int_pat, chr(''), substring)
-        elif mode == 'float':
-            if '.' in self.text:
-                return re.sub(int_pat, chr(''), substring)
-            else:
-                return '.'.join([re.sub(int_pat, chr(''), k) for k
-                                 in substring.split(chr('.'), 1)])
-        return substring
-
     def insert_text(self, substring, from_undo=False):
         '''Insert new text at the current cursor position. Override this
         function in order to pre-process text for input validation.
@@ -517,7 +500,22 @@ class TextInput(Widget):
 
         mode = self.input_filter
         if mode is not None:
-            substring = self._insert_filter_text(substring, mode)
+            chr = type(substring)
+            if chr is bytes:
+                int_pat = self._insert_int_patb
+            else:
+                int_pat = self._insert_int_patu
+
+            if mode == 'int':
+                substring = re.sub(int_pat, chr(''), substring)
+            elif mode == 'float':
+                if '.' in self.text:
+                    substring = re.sub(int_pat, chr(''), substring)
+                else:
+                    substring = '.'.join([re.sub(int_pat, chr(''), k) for k
+                                          in substring.split(chr('.'), 1)])
+            else:
+                substring = mode(substring, from_undo)
             if not substring:
                 return
 
@@ -2469,9 +2467,6 @@ class TextInput(Widget):
 
         if self._get_text(encode=False) == text:
             return
-        mode = self.input_filter
-        if mode is not None:
-            text = self._insert_filter_text(text, mode)
 
         self._refresh_text(text)
         self.cursor = self.get_cursor_from_index(len(text))
@@ -2594,17 +2589,19 @@ class TextInput(Widget):
     'datetime', 'tel', 'address'.
     '''
 
-    input_filter = OptionProperty(None, options=('int', 'float'),
-                                  allownone=True)
-    ''' Filters the input to only allow characters according to the option
-    selected, if not None. If None, no filtering is applied.
+    input_filter = ObjectProperty(None, allownone=True)
+    ''' Filters the input according to the specified mode, if not None. If
+    None, no filtering is applied.
 
     .. versionadded:: 1.8.1
 
-    :attr:`input_filter` is an :class:`~kivy.properties.OptionsProperty` and
-    defaults to `None`. Can be one of `None`, `'int'`, or `'float'`. `int`
-    will only allow numbers while `float` also allows a
-    single period.
+    :attr:`input_filter` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to `None`. Can be one of `None`, `'int'` (string), or `'float'`
+    (string), or a callable. If it is `'int'`, it will only accept numbers.
+    If it is `'float'` it will also accept a single period. Finally, if it is
+    a callable it will be called with two parameter; the string to be added
+    and a bool indicating whether the string is a result of undo (True). The
+    callable should return a new substring that will be used instead.
     '''
 
     handle_image_middle = StringProperty(
