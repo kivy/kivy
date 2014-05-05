@@ -253,14 +253,14 @@ class Recognizer(EventDispatcher):
                 automatically (the default).
 
                 .. Note ::
-                    For improved performance, you can load your
-                    :class:`MultistrokeGesture` database in priority order and
-                    set this to False when calling :meth:`Recognizer.recognize`
+                    For improved performance, you can load your gesture
+                    database in priority order and set this to False when
+                    calling :meth:`Recognizer.recognize`
 
             `db`
                 Can be set if you want to filter a different list of objects
                 than :attr:`Recognizer.db`. You probably don't want to do this;
-                it is used internally by :meth:`import_gesture`).
+                it is used internally by :meth:`import_gesture`.
         '''
         have_filters = False
 
