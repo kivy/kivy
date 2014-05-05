@@ -113,7 +113,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties import (StringProperty, ObjectProperty, ListProperty,
                              NumericProperty, DictProperty)
 from kivy.graphics import (RenderContext, Fbo, Color, Rectangle,
-                           Translate, PushMatrix, PopMatrix)
+                           Translate, PushMatrix, PopMatrix, ClearColor, ClearBuffers)
 from kivy.event import EventDispatcher
 from kivy.base import EventLoop
 from kivy.resources import resource_find
@@ -644,6 +644,8 @@ class EffectWidget(RelativeLayout):
             PushMatrix()
             self.fbo_translation = Translate(-self.x, -self.y, 0)
         with self.fbo:
+            ClearBuffers()
+            ClearColor(1, 1, 1, 1)
             Color(*self.background_color)
             self.fbo_rectangle = Rectangle(size=self.size)
         with self.fbo.after:
@@ -687,6 +689,8 @@ class EffectWidget(RelativeLayout):
             with self.canvas:
                 new_fbo = EffectFbo(size=self.size)
             with new_fbo:
+                ClearBuffers()
+                ClearColor(1, 1, 1, 1)
                 Color(*self.background_color)
                 new_fbo.texture_rectangle = Rectangle(
                     size=self.size)
