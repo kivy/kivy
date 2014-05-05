@@ -270,6 +270,8 @@ class WindowPygame(WindowBase):
 
             # kill application (SIG_TERM)
             if event.type == pygame.QUIT:
+                if self.dispatch('on_request_close'):
+                    continue
                 EventLoop.quit = True
                 self.close()
 

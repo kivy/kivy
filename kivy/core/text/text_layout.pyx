@@ -47,7 +47,7 @@ cdef class LayoutLine:
     contained in the line ended with a newline. That is only the case if
     :attr:`is_last_line` is True. For example a single real line of text can
     be split across multiple :class:`LayoutLine` instances if the whole line
-     doesn't fit in the constrained width.
+    doesn't fit in the constrained width.
 
     :Parameters:
         `x`: int
@@ -336,7 +336,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
         >>> w, h, clipped
         (46, 90, False)
         # now add text from bottom up, and constrain witdh only be 100
-        >>> w, h, clipped = layout_text('\nyay, more text\n', lines, (w, h),
+        >>> w, h, clipped = layout_text('\\nyay, more text\\n', lines, (w, h),
         ... (100, None), l.options, l.get_cached_extents(), False, True)
         >>> w, h, clipped
         (77, 120, 0)

@@ -9,7 +9,7 @@ import random
 from functools import partial
 
 
-def test_layout_perf(label, repeat):
+def layout_perf(label, repeat):
     if repeat:
         repeat = int(repeat)
     else:
@@ -17,7 +17,7 @@ def test_layout_perf(label, repeat):
     return str(timeit.Timer(label._label.render).repeat(1, repeat))
 
 
-def test_layout_real_perf(label, repeat):
+def layout_real_perf(label, repeat):
     if repeat:
         repeat = int(repeat)
     else:
@@ -31,8 +31,8 @@ def test_layout_real_perf(label, repeat):
 
 
 kv = '''
-#:import tlp visual_test_label.test_layout_perf
-#:import tlrp visual_test_label.test_layout_real_perf
+#:import tlp visual_test_label.layout_perf
+#:import tlrp visual_test_label.layout_real_perf
 
 <TSliderButton@ToggleButton>:
     size_hint: None, None

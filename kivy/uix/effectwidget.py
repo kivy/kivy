@@ -4,6 +4,9 @@ EffectWidget
 
 .. versionadded:: 1.8.1
 
+    This code is still experimental, and its API is subject to change in a
+    future version.
+
 The :class:`EffectWidget` is able to apply a variety of fancy
 graphical effects to
 its children. It works by rendering to a series of
@@ -106,7 +109,7 @@ file, simply set the :attr:`EffectBase.source` property of an effect.
 '''
 
 from kivy.clock import Clock
-from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties import (StringProperty, ObjectProperty, ListProperty,
                              NumericProperty, DictProperty)
 from kivy.graphics import (RenderContext, Fbo, Color, Rectangle,
@@ -583,11 +586,18 @@ class EffectFbo(Fbo):
             raise Exception('Setting new shader failed.')
 
 
-class EffectWidget(BoxLayout):
+class EffectWidget(RelativeLayout):
     '''
     Widget with the ability to apply a series of graphical effects to
     its children. See module documentation for full information on
     setting effects and creating your own.
+    '''
+
+    background_color = ListProperty((1, 1, 1, 1))
+    '''This defines the background color to be used for the fbo in the
+    EffectWidget.
+
+    :attr:`background_color` is a :class:`ListProperty` defaults to (1, 1, 1, 1)
     '''
 
     texture = ObjectProperty(None)
@@ -634,7 +644,7 @@ class EffectWidget(BoxLayout):
             PushMatrix()
             self.fbo_translation = Translate(-self.x, -self.y, 0)
         with self.fbo:
-            Color(0, 0, 0)
+            Color(*self.background_color)
             self.fbo_rectangle = Rectangle(size=self.size)
         with self.fbo.after:
             PopMatrix()
@@ -677,7 +687,7 @@ class EffectWidget(BoxLayout):
             with self.canvas:
                 new_fbo = EffectFbo(size=self.size)
             with new_fbo:
-                Color(1, 1, 1, 1)
+                Color(*self.background_color)
                 new_fbo.texture_rectangle = Rectangle(
                     size=self.size)
 

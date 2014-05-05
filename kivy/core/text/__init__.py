@@ -19,7 +19,7 @@ you should only be using this directly if your needs aren't fulfilled by
 Usage example::
 
     from kivy.core.label import Label as CoreLabel
-    
+
     ...
     ...
     my_label = CoreLabel()
@@ -251,8 +251,9 @@ class LabelBase(object):
             (36, 18)
 
         .. warning::
+
             This method returns a size measuring function that is valid
-            for the font settings used at the time :meth:`get_cached_extents
+            for the font settings used at the time :meth:`get_cached_extents`
             was called. Any change in the font settings will render the
             returned function incorrect. You should only use this if you know
             what you're doing.
@@ -272,7 +273,7 @@ class LabelBase(object):
 
     def shorten(self, text, margin=2):
         ''' Shortens the text to fit into a single line by the width specified
-        by :attr:`text_size`[0]. If :attr:`text_size`[0] is None, it returns
+        by :attr:`text_size` [0]. If :attr:`text_size` [0] is None, it returns
         text text unchanged.
 
         :attr:`split_str` and :attr:`shorten_from` determines how the text is

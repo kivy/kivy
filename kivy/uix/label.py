@@ -486,7 +486,7 @@ class Label(Widget):
 
     For example, if left, the ellipsis will appear towards the left side and we
     will display as much text starting from the right as possible. Similar to
-    :attr:`shorten`, this option only applies when :attr:`text_size`[0] is
+    :attr:`shorten`, this option only applies when :attr:`text_size` [0] is
     not None, In this case, the string is shortened to fit within the specified
     width.
 

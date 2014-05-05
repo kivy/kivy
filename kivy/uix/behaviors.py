@@ -31,7 +31,7 @@ from kivy.base import EventLoop
 from kivy.logger import Logger
 from functools import partial
 from weakref import ref
-from kivy.core.window import Keyboard, Window
+from kivy.core.window import Window
 from time import clock
 import string
 
