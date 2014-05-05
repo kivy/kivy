@@ -14,7 +14,7 @@ class SelectableGrid(CompoundSelectionBehavior, GridLayout):
                       on_key_up=self.select_with_key_up)
 
         def print_selection(*l):
-            print [x.text for x in self.selected_nodes]
+            print(x.text for x in self.selected_nodes)
         self.bind(selected_nodes=print_selection)
 
     def goto_node(self, key, last_node, last_node_idx):
