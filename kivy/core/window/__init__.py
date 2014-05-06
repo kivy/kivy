@@ -443,7 +443,8 @@ class WindowBase(EventDispatcher):
 
     fullscreen = OptionProperty(False, options=(True, False, 'auto', 'fake'))
     '''This property sets the fullscreen mode of the window. Available options
-    are: True, False, 'auto', 'fake'.
+    are: True, False, 'auto', 'fake'. Check the :mod:`~kivy.config`
+    documentation for a more detailed explanation on the values.
 
     .. versionadded:: 1.2.0
     '''
