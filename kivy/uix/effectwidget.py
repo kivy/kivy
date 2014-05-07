@@ -644,9 +644,9 @@ class EffectWidget(RelativeLayout):
             PushMatrix()
             self.fbo_translation = Translate(-self.x, -self.y, 0)
         with self.fbo:
-            ClearBuffers()
             ClearColor(1, 1, 1, 1)
             Color(*self.background_color)
+            ClearBuffers()
             self.fbo_rectangle = Rectangle(size=self.size)
         with self.fbo.after:
             PopMatrix()
@@ -689,11 +689,10 @@ class EffectWidget(RelativeLayout):
             with self.canvas:
                 new_fbo = EffectFbo(size=self.size)
             with new_fbo:
-                ClearBuffers()
                 ClearColor(1, 1, 1, 1)
                 Color(*self.background_color)
-                new_fbo.texture_rectangle = Rectangle(
-                    size=self.size)
+                ClearBuffers()
+                new_fbo.texture_rectangle = Rectangle(size=self.size)
 
                 new_fbo.texture_rectangle.size = self.size
             self.fbo_list.append(new_fbo)
