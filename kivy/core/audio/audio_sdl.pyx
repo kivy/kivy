@@ -24,6 +24,7 @@ cdef extern from "SDL.h":
 cdef extern from "SDL_mixer.h":
     ctypedef struct Mix_Chunk:
         int volume
+        unsigned int alen
 
     void Mix_ChannelFinished((void)(int))
 
@@ -36,10 +37,12 @@ cdef extern from "SDL_mixer.h":
     int Mix_HaltChannel(int)
     Mix_Chunk *Mix_GetChunk(int)
     int Mix_Playing(int)
+    int Mix_QuerySpec(int *, unsigned short *, int *)
 
     int MIX_DEFAULT_FORMAT
     int MIX_DEFAULT_FREQUENCY
     int AUDIO_S16SYS
+    unsigned short AUDIO_S8, AUDIO_U8
     
 cdef int mix_is_init = 0
 
@@ -115,6 +118,20 @@ class SoundSDL(Sound):
         else:
             self.stop()
         return False
+
+    def _get_length(self):
+        cdef MixContainer mc = self.mc
+        cdef int freq, channels, mixerbytes, numsamples
+        cdef unsigned short fmt
+        if mc.chunk == NULL:
+            return 0
+        Mix_QuerySpec(&freq, &fmt, &channels)
+        if fmt == AUDIO_S8 or fmt == AUDIO_U8:
+            mixerbytes = 1
+        else:
+            mixerbytes = 2
+        numsamples = mc.chunk.alen / mixerbytes / channels
+        return <double>numsamples / <double>channels
 
     def play(self):
         cdef MixContainer mc = self.mc
