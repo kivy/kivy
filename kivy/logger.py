@@ -151,8 +151,8 @@ class FileHandler(logging.Handler):
             _dir = log_dir
         else:
             _dir = os.path.join(_dir, log_dir)
-            if not os.path.exists(_dir):
-                os.mkdir(_dir)
+        if not os.path.exists(_dir):
+            os.makedirs(_dir)
 
         self.purge_logs(_dir)
 
