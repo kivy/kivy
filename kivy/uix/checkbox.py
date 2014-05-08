@@ -87,11 +87,11 @@ class CheckBox(Widget):
                 continue
             widget.active = False
 
-    def _toggle_active(self):
+    def _set_active(self):
         self._release_group(self)
-        self.active = not self.active
+        self.active = True
 
-    def _release(self):
+    def _toggle(self):
         self.active = not self.active
 
     def on_touch_down(self, touch):
@@ -99,11 +99,11 @@ class CheckBox(Widget):
             return
         if self.disabled:
             return True
-        if self.group is None or self.group == '':
-            self._release()
-        elif self.group:
-            if not self.active:
-                self._toggle_active()
+
+        if not self.group:
+            self._toggle()
+        elif not self.active:
+            self._set_active()
         return True
 
     @staticmethod
