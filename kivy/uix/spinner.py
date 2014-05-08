@@ -116,6 +116,7 @@ class Spinner(Button):
     def _build_dropdown(self, *largs):
         if self._dropdown:
             self._dropdown.unbind(on_select=self._on_dropdown_select)
+            self._dropdown.unbind(on_dismiss=self._toggle_dropdown)
             self._dropdown.dismiss()
             self._dropdown = None
         cls = self.dropdown_cls
@@ -123,6 +124,7 @@ class Spinner(Button):
             cls = Factory.get(cls)
         self._dropdown = cls()
         self._dropdown.bind(on_select=self._on_dropdown_select)
+        self._dropdown.bind(on_dismiss=self._toggle_dropdown)
         self._update_dropdown()
 
     def _update_dropdown(self, *largs):
