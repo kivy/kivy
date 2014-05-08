@@ -485,8 +485,8 @@ cdef class NumericProperty(Property):
                 raise ValueError('%s.%s must have 2 components (got %r)' % (
                     obj.__class__.__name__,
                     self.name, x))
-            return self.parse_list(obj, x[0], <str>x[1])
-        elif tp is str:
+            return self.parse_list(obj, x[0], x[1])
+        elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
             raise ValueError('%s.%s have an invalid format (got %r)' % (
@@ -494,9 +494,9 @@ cdef class NumericProperty(Property):
                 self.name, x))
 
     cdef float parse_str(self, EventDispatcher obj, value):
-        return self.parse_list(obj, value[:-2], <str>value[-2:])
+        return self.parse_list(obj, value[:-2], value[-2:])
 
-    cdef float parse_list(self, EventDispatcher obj, value, str ext):
+    cdef float parse_list(self, EventDispatcher obj, value, ext):
         cdef PropertyStorage ps = obj.__storage[self._name]
         ps.numeric_fmt = ext
         return dpi2px(value, ext)
@@ -1319,7 +1319,7 @@ cdef class VariableListProperty(Property):
                 elif self.length == 2:
                     err = '%s.%s must have 1 or 2 components (got %r)'
                 raise ValueError(err % (obj.__class__.__name__, self.name, x))
-        elif tp is int or tp is long or tp is float or tp is str:
+        elif tp is int or tp is long or tp is float or isinstance(x, string_types):
             y = self._convert_numeric(obj, x)
             if self.length == 4:
                 return [y, y, y, y]
@@ -1339,8 +1339,8 @@ cdef class VariableListProperty(Property):
                 raise ValueError('%s.%s must have 2 components (got %r)' % (
                     obj.__class__.__name__,
                     self.name, x))
-            return self.parse_list(obj, x[0], <str>x[1])
-        elif tp is str:
+            return self.parse_list(obj, x[0], x[1])
+        elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
             raise ValueError('%s.%s have an invalid format (got %r)' % (
@@ -1348,9 +1348,9 @@ cdef class VariableListProperty(Property):
                 self.name, x))
 
     cdef float parse_str(self, EventDispatcher obj, value):
-        return self.parse_list(obj, value[:-2], <str>value[-2:])
+        return self.parse_list(obj, value[:-2], value[-2:])
 
-    cdef float parse_list(self, EventDispatcher obj, value, str ext):
+    cdef float parse_list(self, EventDispatcher obj, value, ext):
         return dpi2px(value, ext)
 
 

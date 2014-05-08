@@ -391,3 +391,27 @@ class PropertiesTestCase(unittest.TestCase):
 
         bnp.set(wid, -10)
         self.assertEqual(bnp.get(wid), -5)
+
+    def test_numeric_string_with_units_check(self):
+        from kivy.properties import NumericProperty
+
+        a = NumericProperty()
+        a.link(wid, 'a')
+        a.link_deps(wid, 'a')
+        self.assertEqual(a.get(wid), 0)
+
+        a.set(wid, '55dp')
+        self.assertEqual(a.get(wid), 55)
+        self.assertEqual(a.get_format(wid), 'dp')
+
+        a.set(wid, u'55dp')
+        self.assertEqual(a.get(wid), 55)
+        self.assertEqual(a.get_format(wid), 'dp')
+
+        a.set(wid, '99in')
+        self.assertEqual(a.get(wid), 9504.0)
+        self.assertEqual(a.get_format(wid), 'in')
+
+        a.set(wid, u'99in')
+        self.assertEqual(a.get(wid), 9504.0)
+        self.assertEqual(a.get_format(wid), 'in')
