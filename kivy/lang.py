@@ -1454,7 +1454,7 @@ def update_intermediates(base, keys, bound, s, fn, *args):
             1 (first attr).
     '''
     # first remove all the old bound functions from `i` and down.
-    i = s if s is not None else 1
+    i = s or 1
     j = i - 1
     for f, k, fun in bound[j:]:
         if fun is None:
@@ -1470,33 +1470,35 @@ def update_intermediates(base, keys, bound, s, fn, *args):
         f = bound[-1][0]
     else:  # if it's the very first attr, we start with the base.
         f = base
+    append = bound.append
 
     try:
         # bind all attrs, except last to update_intermediates
-        for k in range(i, len(keys) - 1):
+        k = i
+        for val in keys[i:-1]:
             is_ev = isinstance(f, (Observable, EventDispatcher))
             try:
                 # if we need to dynamically rebind, bindm otherwise just
                 # add the attr to the list
-                if is_ev and f.property(keys[k]).rebind:
+                if is_ev and f.property(val).rebind:
                     p = partial(update_intermediates, base, keys, bound, k, fn)
-                    bound.append([get_proxy(f), keys[k], p])
-                    f.bind(**{keys[k]: p})
+                    append([get_proxy(f), val, p])
+                    f.bind(**{val: p})
                     # during the bind, the watched keys could have changed
                     # value, calling update_intermediates and changing
                     # the last attr, so we have to read the last attr again
                     f = bound[-1][0]
                 else:
-                    bound.append([get_proxy(f) if is_ev else f, keys[k],
-                                  None])
+                    append([get_proxy(f) if is_ev else f, val, None])
             except (KeyError, AttributeError):  # in case property is not kivy
-                bound.append([get_proxy(f), keys[k], None])
-            f = getattr(f, keys[k])
+                append([get_proxy(f), val, None])
+            f = getattr(f, val)
+            k += 1
         # for the last attr we bind directly to the setting function,
         # because that attr sets the value of the rule.
         if isinstance(f, (Observable, EventDispatcher)):
             f.bind(**{keys[-1]: fn})
-            bound.append([get_proxy(f), keys[-1], fn])
+            append([get_proxy(f), keys[-1], fn])
     except KeyError:
         pass
     except AttributeError:
