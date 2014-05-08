@@ -626,7 +626,7 @@ class MarkupLabel(MarkupLabelBase):
         # if that fits, just return the flattened line
         lw = sum([word.lw for word in line])
         if lw <= uw:
-            lh = max([word.lh for word in line]) * line_height
+            lh = max([word.lh for word in line] + [0]) * line_height
             return lw + 2 * xpad, lh + 2 * ypad, [LayoutLine(0, 0,
             lw, lh, 1, 0, line)]
 
