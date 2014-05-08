@@ -579,6 +579,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.uix.abstractview import AbstractView
 from kivy.properties import ObjectProperty, DictProperty, \
@@ -706,9 +707,9 @@ class ListItemLabel(SelectableView, Label):
         return '<%s text=%s>' % (self.__class__.__name__, self.text)
 
 
-class CompositeListItem(SelectableView, BoxLayout):
+class CompositeListItem(SelectableView, GridLayout):
     ''':class:`~kivy.uix.listview.CompositeListItem` mixes
-    :class:`~kivy.uix.listview.SelectableView` with :class:`BoxLayout` for a
+    :class:`~kivy.uix.listview.SelectableView` with :class:`GridLayout` for a
     generic container-style list item, to be used in
     :class:`~kivy.uix.listview.ListView`.
     '''
@@ -742,6 +743,7 @@ class CompositeListItem(SelectableView, BoxLayout):
     '''
 
     def __init__(self, **kwargs):
+        self.rows = 1
         super(CompositeListItem, self).__init__(**kwargs)
 
         # Example data:
