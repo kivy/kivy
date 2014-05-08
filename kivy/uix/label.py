@@ -183,8 +183,8 @@ class Label(Widget):
         will be updated in this order.
         '''
         self.texture = None
-        if ((self.halign[-1] == 'y' or self.strip) and
-            self._label.text.strip() == ''):
+        if (not self._label.text or (self.halign[-1] == 'y' or self.strip) and
+            not self._label.text.strip()):
             self.texture_size = (0, 0)
         else:
             mrkup = self._label.__class__ is CoreMarkupLabel
