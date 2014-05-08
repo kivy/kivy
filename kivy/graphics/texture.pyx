@@ -933,11 +933,12 @@ cdef class Texture:
             if source.startswith('zip|'):
                 proto = 'zip'
                 source = source[4:]
-            no_cache, filename, mipmap, count = source.split('|')
-            source = '{}|{}|{}'.format(filename, mipmap, count)
+            chr = type(source)
+            no_cache, filename, mipmap, count = source.split(chr('|'))
+            source = chr('{}|{}|{}').format(filename, mipmap, count)
 
             if not proto:
-                proto = filename.split(':', 1)[0]
+                proto = filename.split(chr(':'), 1)[0]
 
             if proto in ('http', 'https', 'ftp', 'smb'):
                 from kivy.loader import Loader

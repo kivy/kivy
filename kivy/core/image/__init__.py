@@ -179,15 +179,17 @@ class ImageLoaderBase(object):
 
             # first, check if a texture with the same name already exist in the
             # cache
-            uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
+            chr = type(self.filename)
+            uid = chr('%s|%s|%s') % (self.filename, self._mipmap, count)
             texture = Cache.get('kv.texture', uid)
 
             # if not create it and append to the cache
             if texture is None:
                 imagedata = self._data[count]
-                imagedata.source = '{}{}|{}'.format(
+                source = '{}{}|'.format(
                     'zip|' if self.filename.endswith('.zip') else '',
-                    self._nocache, uid)
+                    self._nocache)
+                imagedata.source = chr(source) + uid
                 texture = Texture.create_from_data(
                     imagedata, mipmap=self._mipmap)
                 if not self._nocache:
