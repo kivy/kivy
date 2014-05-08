@@ -657,6 +657,13 @@ class App(EventDispatcher):
         return expanduser(defaultpath) % {
             'appname': self.name, 'appdir': self.directory}
 
+    def get_root_window(self):
+        '''.. versionadded:: 1.8.1
+
+        Returns the window instance used by the :meth:`run` method.
+        '''
+        return self._app_window
+
     def load_config(self):
         '''(internal) This function is used for returning a ConfigParser with
         the application configuration. It's doing 3 things:
