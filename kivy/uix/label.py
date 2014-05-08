@@ -183,12 +183,16 @@ class Label(Widget):
         will be updated in this order.
         '''
         self.texture = None
-        if self._label.text.strip() == '':
+        if ((self.halign[-1] == 'y' or self.strip) and
+            self._label.text.strip() == ''):
             self.texture_size = (0, 0)
         else:
             mrkup = self._label.__class__ is CoreMarkupLabel
             if mrkup:
                 text = self._label.text
+                # we must strip here, otherwise, if the last line is empty,
+                # markup will retain the last empty line since it only strips
+                # line by line within markup
                 if self.halign[-1] == 'y' or self.strip:
                     text = text.strip()
                 self._label.text = ''.join(('[color=',
@@ -596,14 +600,14 @@ class Label(Widget):
     defaults to 0.
     '''
 
-    strip = BooleanProperty(True)
-    '''Whether leading and trailing spaces should be stripped from each
-    displayed line. If True, every line will start at the right or left edge,
-    depending on :attr:`halign`. If :attr:`halign` is `justify` it is
+    strip = BooleanProperty(False)
+    '''Whether leading and trailing spaces and newlines should be stripped from
+    each displayed line. If True, every line will start at the right or left
+    edge, depending on :attr:`halign`. If :attr:`halign` is `justify` it is
     implicitly True.
 
     .. versionadded:: 1.8.1
 
     :attr:`strip` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to True.
+    defaults to False.
     '''

@@ -131,7 +131,7 @@ class MarkupLabel(MarkupLabelBase):
         uw, uh = self.text_size
         spush = self._push_style
         spop = self._pop_style
-        options = self.options
+        opts = options = self.options
         options['_ref'] = None
         options['script'] = 'normal'
         xpad = options['padding_x']
@@ -220,8 +220,11 @@ class MarkupLabel(MarkupLabelBase):
                     opts, extents, True, False)
 
         if len(lines):  # remove any trailing spaces from the last line
+            old_opts = self.options
+            self.options = copy(opts)
             w, h, clipped = layout_text('', lines, (w, h), (uw, uhh),
-                copy(options), self.get_cached_extents(), True, True)
+                self.options, self.get_cached_extents(), True, True)
+            self.options = old_opts
 
         if options['shorten']:
             options['_ref'] = None  # no refs for you!
