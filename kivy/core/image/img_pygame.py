@@ -7,6 +7,7 @@ __all__ = ('ImageLoaderPygame', )
 from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
+from os.path import isfile
 
 try:
     import pygame
@@ -37,11 +38,17 @@ class ImageLoaderPygame(ImageLoaderBase):
 
     def load(self, filename):
         try:
-            try:
-                im = pygame.image.load(filename)
-            except UnicodeEncodeError:
-                if PY2:
-                    im = pygame.image.load(filename.encode('utf8'))
+            f = filename
+            if isfile(filename):
+                f = self._file_handle = open(filename, 'rb')
+            elif isinstance(filename, bytes):
+                try:
+                    fname = filename.decode()
+                    if isfile(fname):
+                        f = self._file_handle = open(fname, 'rb')
+                except UnicodeDecodeError:
+                    pass
+            im = pygame.image.load(f)
         except:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise

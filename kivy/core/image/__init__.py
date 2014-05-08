@@ -140,7 +140,7 @@ class ImageLoaderBase(object):
     '''Base to implement an image loader.'''
 
     __slots__ = ('_texture', '_data', 'filename', 'keep_data',
-                 '_mipmap', '_nocache')
+                 '_mipmap', '_nocache', '_file_handle')
 
     def __init__(self, filename, **kwargs):
         self._mipmap = kwargs.get('mipmap', False)
@@ -149,6 +149,11 @@ class ImageLoaderBase(object):
         self.filename = filename
         self._data = self.load(filename)
         self._textures = None
+        self._file_handle = None
+
+    def __del__(self):
+        if self._file_handle is not None:
+            self._file_handle.close()
 
     def load(self, filename):
         '''Load an image'''
