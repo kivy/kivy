@@ -600,14 +600,14 @@ class Label(Widget):
     defaults to 0.
     '''
 
-    strip = BooleanProperty(True)
-    '''Whether leading and trailing spaces should be stripped from each
-    displayed line. If True, every line will start at the right or left edge,
-    depending on :attr:`halign`. If :attr:`halign` is `justify` it is
+    strip = BooleanProperty(False)
+    '''Whether leading and trailing spaces and newlines should be stripped from
+    each displayed line. If True, every line will start at the right or left
+    edge, depending on :attr:`halign`. If :attr:`halign` is `justify` it is
     implicitly True.
 
     .. versionadded:: 1.8.1
 
     :attr:`strip` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to True.
+    defaults to False.
     '''
