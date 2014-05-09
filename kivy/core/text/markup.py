@@ -609,7 +609,8 @@ class MarkupLabel(MarkupLabelBase):
         c = old_opts['split_str']
         line_height = old_opts['line_height']
         xpad, ypad = old_opts['padding_x'], old_opts['padding_y']
-        dir = old_opts['shorten_from'][0]
+        shorten_from = old_opts['shorten_from']
+        dir = shorten_from[0]
 
         # flatten lines into single line
         line = []
@@ -654,6 +655,14 @@ class MarkupLabel(MarkupLabelBase):
             line1 = None
             if clipped1 or clipped2 or l1 + l2 > uw:
                 # if either was clipped or both don't fit, just take first
+                if len(c):
+                    self.options = old_opts
+                    old_opts['split_str'] = ''
+                    old_opts['shorten_from'] = 'center'
+                    res = self.shorten_post(lines, w, h, margin)
+                    self.options['split_str'] = c
+                    self.options['shorten_from'] = shorten_from
+                    return res
                 line1 = line[:w1]
                 last_word = line[w1]
                 last_text = last_word.text[:e1]
@@ -707,6 +716,14 @@ class MarkupLabel(MarkupLabelBase):
             line1 = [elps]
             if clipped1 or clipped2 or l1 + l2 > uw:
                 # if either was clipped or both don't fit, just take last
+                if len(c):
+                    self.options = old_opts
+                    old_opts['split_str'] = ''
+                    old_opts['shorten_from'] = 'center'
+                    res = self.shorten_post(lines, w, h, margin)
+                    self.options['split_str'] = c
+                    self.options['shorten_from'] = shorten_from
+                    return res
                 first_word = line[w2]
                 first_text = first_word.text[s2 + 1:]
                 self.options = first_word.options
