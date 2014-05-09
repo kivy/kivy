@@ -302,8 +302,7 @@ class LabelBase(object):
             return text
         c = opts['split_str']
         offset = 0 if len(c) else 1
-        shorten_dir = opts['shorten_from']
-        dir = shorten_dir[0]
+        dir = opts['shorten_from'][0]
         elps = textwidth('...')[0]
         if elps > uw:
             if textwidth('..')[0] <= uw:
@@ -325,9 +324,7 @@ class LabelBase(object):
             if e1 == -1 or l1 + l2 > uw:
                 if len(c):
                     opts['split_str'] = ''
-                    opts['shorten_from'] = 'center'
                     res = self.shorten(text, margin)
-                    opts['shorten_from'] = shorten_dir
                     opts['split_str'] = c
                     return res
                 # at this point we do char by char so e1 must be zero
@@ -374,9 +371,7 @@ class LabelBase(object):
             if s2 == -1 or l2 + l1 > uw:
                 if len(c):
                     opts['split_str'] = ''
-                    opts['shorten_from'] = 'center'
                     res = self.shorten(text, margin)
-                    opts['shorten_from'] = shorten_dir
                     opts['split_str'] = c
                     return res
 

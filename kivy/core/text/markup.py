@@ -614,8 +614,7 @@ class MarkupLabel(MarkupLabelBase):
         c = old_opts['split_str']
         line_height = old_opts['line_height']
         xpad, ypad = old_opts['padding_x'], old_opts['padding_y']
-        shorten_from = old_opts['shorten_from']
-        dir = shorten_from[0]
+        dir = old_opts['shorten_from'][0]
 
         # flatten lines into single line
         line = []
@@ -664,10 +663,8 @@ class MarkupLabel(MarkupLabelBase):
                 if len(c):
                     self.options = old_opts
                     old_opts['split_str'] = ''
-                    old_opts['shorten_from'] = 'center'
                     res = self.shorten_post(lines, w, h, margin)
                     self.options['split_str'] = c
-                    self.options['shorten_from'] = shorten_from
                     return res
                 line1 = line[:w1]
                 last_word = line[w1]
@@ -725,10 +722,8 @@ class MarkupLabel(MarkupLabelBase):
                 if len(c):
                     self.options = old_opts
                     old_opts['split_str'] = ''
-                    old_opts['shorten_from'] = 'center'
                     res = self.shorten_post(lines, w, h, margin)
                     self.options['split_str'] = c
-                    self.options['shorten_from'] = shorten_from
                     return res
                 first_word = line[w2]
                 first_text = first_word.text[s2 + 1:]
