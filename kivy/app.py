@@ -657,10 +657,11 @@ class App(EventDispatcher):
         return expanduser(defaultpath) % {
             'appname': self.name, 'appdir': self.directory}
 
-    def get_root_window(self):
+    @property
+    def root_window(self):
         '''.. versionadded:: 1.8.1
 
-        Returns the window instance used by the :meth:`run` method.
+        Returns the root window instance used by :meth:`run`.
         '''
         return self._app_window
 
