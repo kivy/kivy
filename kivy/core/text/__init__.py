@@ -87,12 +87,12 @@ class LabelBase(object):
             contents as much as possible if a `size` is given.
             Setting this to True without an appropriately set size will lead to
             unexpected results.
-        `shorten_from`: bool, defaults to `center`
+        `shorten_from`: str, defaults to `center`
             The side from which we should shorten the text from, can be left,
             right, or center. E.g. if left, the ellipsis will appear towards
             the left side and it will display as much text starting from the
             right as possible.
-        `split_str`: string, defaults to ` ` (space)
+        `split_str`: string, defaults to `' '` (space)
             The string to use to split the words by when shortening. If empty,
             we can split after every character filling up the line as much as
             possible.
@@ -302,7 +302,8 @@ class LabelBase(object):
             return text
         c = opts['split_str']
         offset = 0 if len(c) else 1
-        dir = opts['shorten_from'][0]
+        shorten_dir = opts['shorten_from']
+        dir = shorten_dir[0]
         elps = textwidth('...')[0]
         if elps > uw:
             if textwidth('..')[0] <= uw:
@@ -322,13 +323,17 @@ class LabelBase(object):
                 l1 = textwidth(text[:e1])[0]
                 l2 = textwidth(text[s2 + 1:])[0]
             if e1 == -1 or l1 + l2 > uw:
-                if e1 != -1 and l1 <= uw:
+                if len(c):
+                    opts['split_str'] = ''
+                    opts['shorten_from'] = 'center'
+                    res = self.shorten(text, margin)
+                    opts['shorten_from'] = shorten_dir
+                    opts['split_str'] = c
+                    return res
+                # at this point we do char by char so e1 must be zero
+                if l1 <= uw:
                     return chr('{0}...').format(text[:e1])
-                m = 1
-                # just break first word fitting what we can
-                while m <= len(text) and textwidth(text[:m])[0] <= uw:
-                    m += 1
-                return chr('{0}...').format(text[:m - 1])
+                return chr('...')
 
             # both word fits, and there's at least on split_str
             if s2 == e1:  # there's only on split_str
@@ -363,17 +368,19 @@ class LabelBase(object):
         else:  # left
             # no split, or the last word doesn't even fit
             if s2 != -1:
-                l2 = textwidth(text[s2 + 1:])[0]
+                l2 = textwidth(text[s2 + (1 if len(c) else -1):])[0]
                 l1 = textwidth(text[:max(0, e1)])[0]
             # if split_str
             if s2 == -1 or l2 + l1 > uw:
-                if s2 != -1 and l2 <= uw:
-                    return chr('...{0}').format(text[s2 + 1:])
-                m = len(text) - 1
-                # just break first word fitting what we can
-                while m >= 0 and textwidth(text[m:])[0] <= uw:
-                    m -= 1
-                return chr('...{0}').format(text[m + 1:])
+                if len(c):
+                    opts['split_str'] = ''
+                    opts['shorten_from'] = 'center'
+                    res = self.shorten(text, margin)
+                    opts['shorten_from'] = shorten_dir
+                    opts['split_str'] = c
+                    return res
+
+                return chr('...')
 
             # both word fits, and there's at least on split_str
             if s2 == e1:  # there's only on split_str
@@ -469,7 +476,6 @@ class LabelBase(object):
                         last_word.lw = uww  # word was stretched
                         last_word.text = line = ''.join(words)
                     layout_line.w = uww  # the line occupies full width
-
 
             if len(line):
                 layout_line.x = x
