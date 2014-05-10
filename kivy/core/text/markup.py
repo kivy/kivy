@@ -134,6 +134,11 @@ class MarkupLabel(MarkupLabelBase):
         opts = options = self.options
         options['_ref'] = None
         options['script'] = 'normal'
+        shorten = options['shorten']
+        # if shorten, then don't split lines to fit uw, because it will be
+        # flattened later when shortening and broken up lines if broken
+        # mid-word will have space mid-word when lines are joined
+        uw_temp = None if shorten else uw
         xpad = options['padding_x']
         uhh = (None if uh is not None and options['valign'][-1] != 'p' or
                options['shorten'] else uh)
@@ -216,17 +221,17 @@ class MarkupLabel(MarkupLabelBase):
                 opts = copy(options)
                 extents = self.get_cached_extents()
                 opts['space_width'] = extents(' ')[0]
-                w, h, clipped = layout_text(item, lines, (w, h), (uw, uhh),
-                    opts, extents, True, False)
+                w, h, clipped = layout_text(item, lines, (w, h),
+                    (uw_temp, uhh), opts, extents, True, False)
 
         if len(lines):  # remove any trailing spaces from the last line
             old_opts = self.options
             self.options = copy(opts)
-            w, h, clipped = layout_text('', lines, (w, h), (uw, uhh),
+            w, h, clipped = layout_text('', lines, (w, h), (uw_temp, uhh),
                 self.options, self.get_cached_extents(), True, True)
             self.options = old_opts
 
-        if options['shorten']:
+        if shorten:
             options['_ref'] = None  # no refs for you!
             w, h, lines = self.shorten_post(lines, w, h)
             self._cached_lines = lines
@@ -616,10 +621,11 @@ class MarkupLabel(MarkupLabelBase):
         last_w = 0
         for l in range(len(lines)):
             # concatenate (non-empty) inside lines with a space
-            if last_w and lines[l].w:
+            this_line = lines[l]
+            if last_w and this_line.w and not this_line.line_wrap:
                 line.append(LayoutWord(old_opts, ssize[0], ssize[1], chr(' ')))
-            last_w = lines[l].w or last_w
-            for word in lines[l].words:
+            last_w = this_line.w or last_w
+            for word in this_line.words:
                 if word.lw:
                     line.append(word)
 
@@ -654,6 +660,12 @@ class MarkupLabel(MarkupLabelBase):
             line1 = None
             if clipped1 or clipped2 or l1 + l2 > uw:
                 # if either was clipped or both don't fit, just take first
+                if len(c):
+                    self.options = old_opts
+                    old_opts['split_str'] = ''
+                    res = self.shorten_post(lines, w, h, margin)
+                    self.options['split_str'] = c
+                    return res
                 line1 = line[:w1]
                 last_word = line[w1]
                 last_text = last_word.text[:e1]
@@ -707,6 +719,12 @@ class MarkupLabel(MarkupLabelBase):
             line1 = [elps]
             if clipped1 or clipped2 or l1 + l2 > uw:
                 # if either was clipped or both don't fit, just take last
+                if len(c):
+                    self.options = old_opts
+                    old_opts['split_str'] = ''
+                    res = self.shorten_post(lines, w, h, margin)
+                    self.options['split_str'] = c
+                    return res
                 first_word = line[w2]
                 first_text = first_word.text[s2 + 1:]
                 self.options = first_word.options

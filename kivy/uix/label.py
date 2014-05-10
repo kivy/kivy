@@ -501,18 +501,18 @@ class Label(Widget):
     '''
 
     split_str = StringProperty(' ')
-    '''The string used to split the :attr`text` when shortening the string when
-    :attr:`shorten` is True.
+    '''The string used to split the :attr`text` while shortening the string
+    when :attr:`shorten` is True.
 
     For example, if it's a space, the string will be broken into words and as
-    much words that can fit in a single line will be displayed. If
+    many whole words that can fit into a single line will be displayed. If
     :attr:`shorten_from` is the empty string, `''`, we split on every character
     fitting as much text as possible into the line.
 
     .. versionadded:: 1.8.1
 
-    :attr:`shorten_from` is a :class:`~kivy.properties.StringProperty` and
-    defaults to ` ` (single space).
+    :attr:`split_str` is a :class:`~kivy.properties.StringProperty` and
+    defaults to `' '` (single space).
     '''
 
     markup = BooleanProperty(False)
