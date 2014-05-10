@@ -134,6 +134,11 @@ cdef inline void final_strip(LayoutLine line):
     cdef LayoutWord last_word
     cdef object stripped
 
+    # XXX: here we strip any trailing spaces reducing the width of the line
+    # however, the height is not reduced, even if the part that might be larger
+    # is removed, potentially reducing the height of the line. It is not likely
+    # a issue, but can be 'fixed' at the cost of re-computing line height
+
     while (len(line.words) and (line.words[-1].text.endswith(' ') or
                                 line.words[-1].text == '')):
         last_word = line.words.pop()

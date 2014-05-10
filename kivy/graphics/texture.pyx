@@ -53,7 +53,7 @@ You can create your own data and blit it to the texture using
     buf = [int(x * 255 / size) for x in xrange(size)]
 
     # then, convert the array to a ubyte string
-    buf = ''.join(map(chr, buf))
+    buf = b''.join(map(chr, buf))
 
     # then blit the buffer
     texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
@@ -837,7 +837,7 @@ cdef class Texture:
             called in order to update the texture.
 
         :Parameters:
-            `pbuffer` : str
+            `pbuffer` : bytes
                 Image data.
             `size` : tuple, defaults to texture size
                 Size of the image (width, height)

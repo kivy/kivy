@@ -183,12 +183,16 @@ class Label(Widget):
         will be updated in this order.
         '''
         self.texture = None
-        if self._label.text.strip() == '':
+        if (not self._label.text or (self.halign[-1] == 'y' or self.strip) and
+            not self._label.text.strip()):
             self.texture_size = (0, 0)
         else:
             mrkup = self._label.__class__ is CoreMarkupLabel
             if mrkup:
                 text = self._label.text
+                # we must strip here, otherwise, if the last line is empty,
+                # markup will retain the last empty line since it only strips
+                # line by line within markup
                 if self.halign[-1] == 'y' or self.strip:
                     text = text.strip()
                 self._label.text = ''.join(('[color=',
@@ -472,8 +476,9 @@ class Label(Widget):
     shorten = BooleanProperty(False)
     '''
     Indicates whether the label should attempt to shorten its textual contents
-    as much as possible if a `text_size` is given. Setting this to True without
-    an appropriately set `text_size` will lead to unexpected results.
+    as much as possible if a :attr:`text_size` is given. Setting this to True
+    without an appropriately set :attr:`text_size` will lead to unexpected
+    results.
 
     :attr:`shorten` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
@@ -497,18 +502,18 @@ class Label(Widget):
     '''
 
     split_str = StringProperty(' ')
-    '''The string used to split the :attr`text` when shortening the string when
-    :attr:`shorten` is True.
+    '''The string used to split the :attr:`text` while shortening the string
+    when :attr:`shorten` is True.
 
     For example, if it's a space, the string will be broken into words and as
-    much words that can fit in a single line will be displayed. If
+    many whole words that can fit into a single line will be displayed. If
     :attr:`shorten_from` is the empty string, `''`, we split on every character
     fitting as much text as possible into the line.
 
     .. versionadded:: 1.8.1
 
-    :attr:`shorten_from` is a :class:`~kivy.properties.StringProperty` and
-    defaults to ` ` (single space).
+    :attr:`split_str` is a :class:`~kivy.properties.StringProperty` and
+    defaults to `' '` (single space).
     '''
 
     markup = BooleanProperty(False)
@@ -596,14 +601,14 @@ class Label(Widget):
     defaults to 0.
     '''
 
-    strip = BooleanProperty(True)
-    '''Whether leading and trailing spaces should be stripped from each
-    displayed line. If True, every line will start at the right or left edge,
-    depending on :attr:`halign`. If :attr:`halign` is `justify` it is
+    strip = BooleanProperty(False)
+    '''Whether leading and trailing spaces and newlines should be stripped from
+    each displayed line. If True, every line will start at the right or left
+    edge, depending on :attr:`halign`. If :attr:`halign` is `justify` it is
     implicitly True.
 
     .. versionadded:: 1.8.1
 
     :attr:`strip` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to True.
+    defaults to False.
     '''

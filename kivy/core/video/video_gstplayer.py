@@ -65,7 +65,6 @@ class VideoGstplayer(VideoBase):
         self.player_callback = partial(_on_gstplayer_buffer, wk_self)
         self.player = GstPlayer(uri, self.player_callback,
                                 self._on_gst_eos_sync, _on_gstplayer_message)
-        self.player.set_volume(self.volume)
         self.player.load()
 
     def unload(self):
@@ -86,6 +85,7 @@ class VideoGstplayer(VideoBase):
 
     def play(self):
         super(VideoGstplayer, self).play()
+        self.player.set_volume(self.volume)
         self.player.play()
 
     def seek(self, percent):
