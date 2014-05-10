@@ -291,9 +291,9 @@ class GestureSurface(FloatLayout):
 
         `on_gesture_complete` :class:`GestureContainer`
             Fired when a set of strokes is considered a complete gesture,
-            this happens when `temporal_window` expires or `max_strokes
+            this happens when `temporal_window` expires or `max_strokes`
             is reached. Typically you will bind to this event and use
-            the provided `GestureContainer`s get_vectors() method to
+            the provided `GestureContainer` get_vectors() method to
             match against your gesture database.
 
         `on_gesture_cleanup` :class:`GestureContainer`
