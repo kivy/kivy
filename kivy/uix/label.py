@@ -476,8 +476,9 @@ class Label(Widget):
     shorten = BooleanProperty(False)
     '''
     Indicates whether the label should attempt to shorten its textual contents
-    as much as possible if a `text_size` is given. Setting this to True without
-    an appropriately set `text_size` will lead to unexpected results.
+    as much as possible if a :attr:`text_size` is given. Setting this to True
+    without an appropriately set :attr:`text_size` will lead to unexpected
+    results.
 
     :attr:`shorten` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
@@ -501,7 +502,7 @@ class Label(Widget):
     '''
 
     split_str = StringProperty(' ')
-    '''The string used to split the :attr`text` while shortening the string
+    '''The string used to split the :attr:`text` while shortening the string
     when :attr:`shorten` is True.
 
     For example, if it's a space, the string will be broken into words and as
