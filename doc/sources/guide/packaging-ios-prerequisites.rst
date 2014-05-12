@@ -10,6 +10,20 @@ The following guide assumes:
     
 Your experience may vary with different versions.
 
+Getting started
+---------------
+
+In order to submit any application to the iTunes store, you will need an
+`iOS Developer License <https://developer.apple.com/programs/ios/>`_. For
+testing, you will need an actual device as kivy does not yet support the
+iOS emulators that Apple supplies.
+
+Please note that in order to test on the device, you need to register these
+devices and install your "provisioning profile" on them. Please refer to the
+Apple's
+`Getting started <https://developer.apple.com/programs/ios/gettingstarted/>`_
+guide for more information.
+
 Homebrew
 --------
 
