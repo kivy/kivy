@@ -192,6 +192,7 @@ __all__ = ('Texture', 'TextureRegion')
 include "config.pxi"
 include "common.pxi"
 include "opengl_utils_def.pxi"
+include "img_tools.pxi"
 
 from array import array
 from kivy.weakmethod import WeakMethod
@@ -410,42 +411,6 @@ cdef inline str _convert_gl_format(x):
     elif x == 'bgra':
         return 'rgba'
     return x
-
-
-cdef inline _convert_buffer(bytes data, fmt):
-    cdef bytes ret_buffer
-    cdef str ret_format
-
-    # if native support of this format is available, use it
-    if gl_has_texture_native_format(fmt):
-        return data, fmt
-
-    # no native support, can we at least convert it ?
-    if not gl_has_texture_conversion(fmt):
-        raise Exception('Unimplemented texture conversion for %s' % fmt)
-
-    # do appropriate conversion, since we accepted it
-    ret_format = fmt
-    ret_buffer = data
-
-    # BGR -> RGB
-    if fmt == 'bgr':
-        ret_format = 'rgb'
-        a = array('b', data)
-        a[0::3], a[2::3] = a[2::3], a[0::3]
-        ret_buffer = a.tostring()
-
-    # BGRA -> RGBA
-    elif fmt == 'bgra':
-        ret_format = 'rgba'
-        a = array('b', data)
-        a[0::4], a[2::4] = a[2::4], a[0::4]
-        ret_buffer = a.tostring()
-
-    else:
-        assert False, 'Non implemented texture conversion !' % fmt
-
-    return ret_buffer, ret_format
 
 
 cdef inline void _gl_prepare_pixels_upload(int width) nogil:
