@@ -31,13 +31,25 @@ cdef extern from "string.h":
 from cpython.array cimport array, clone
 
 
-# these functions below, take a data element; if the data implements the
-# buffer interface, the data is returned unchanged, otherwise, a python
-# array is created from the data and returned.
-# in both cases, the second parameter is initialized with a pointer to the
-# starting address of the returned buffer
-# The return value is a tuple, of (original data, array), where in the first
-# case, array is None.
+'''
+These functions below, take a data element; if the data implements the
+buffer interface, the data is returned unchanged, otherwise, a python
+array is created from the data and returned.
+
+in both cases, the second parameter is initialized with a pointer to the
+starting address of the returned buffer
+
+The return value is a tuple, of (original data, array), where in the first
+case, array is None.
+
+The method used below (a untyped python array + array.data.as_floats pointer)
+results in the fastest list to array creation and usage. Even malloc isn't
+faster. Note, using memoryview (which we avoided for this case) is relatively
+slow in cython.
+
+When the user passes in a memoryview type, we have no choice but to use the
+memoryview passed in, though.
+'''
 cdef inline _ensure_float_view(data, float **f):
     cdef array arr
     cdef list src

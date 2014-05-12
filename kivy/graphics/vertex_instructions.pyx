@@ -285,17 +285,28 @@ cdef class Mesh(VertexInstruction):
     .. versionadded:: 1.1.0
 
     :Parameters:
-        `vertices`: list
+        `vertices`: iterable
             List of vertices in the format (x1, y1, u1, v1, x2, y2, u2, v2...).
-        `indices`: list
+        `indices`: iterable
             List of indices in the format (i1, i2, i3...).
         `mode`: str
             Mode of the vbo. Check :attr:`mode` for more information. Defaults to
             'points'.
 
+    .. versionchanged:: 1.8.1
+        Before, `vertices` and `indices` would always be converted to a list,
+        now, they are only converted to a list if they do not implement the
+        buffer interface. So e.g. numpy arrays, python arrays etc. are used
+        in place, without creating any additional copies. However, the
+        buffers cannot be readonly (even though they are not changed, due to
+        a cython limitation) and must be contiguous in memory.
     '''
-    cdef list _vertices
-    cdef list _indices
+    cdef object _vertices  # the object the user passed in
+    cdef object _indices
+    cdef object _fvertices  # a buffer interface passed by user, or created
+    cdef object _lindices
+    cdef float *_pvertices  # the pointer to the start of buffer interface data
+    cdef unsigned short *_pindices
     cdef VertexFormat vertex_format
 
     def __init__(self, **kwargs):
@@ -311,37 +322,16 @@ cdef class Mesh(VertexInstruction):
         self.mode = kwargs.get('mode') or 'points'
 
     cdef void build(self):
-        cdef int i
         cdef long vcount = len(self._vertices)
         cdef long icount = len(self._indices)
-        cdef float *vertices = NULL
-        cdef unsigned short *indices = NULL
-        cdef list lvertices = self._vertices
-        cdef list lindices = self._indices
         cdef vsize = self.batch.vbo.vertex_format.vsize
 
         if vcount == 0 or icount == 0:
             self.batch.clear_data()
             return
 
-        vertices = <float *>malloc(vcount * sizeof(float))
-        if vertices == NULL:
-            raise MemoryError('vertices')
-
-        indices = <unsigned short *>malloc(icount * sizeof(unsigned short))
-        if indices == NULL:
-            free(vertices)
-            raise MemoryError('indices')
-
-        for i in xrange(vcount):
-            vertices[i] = lvertices[i]
-        for i in xrange(icount):
-            indices[i] = lindices[i]
-
-        self.batch.set_data(vertices, <int>(vcount / vsize), indices, <int>icount)
-
-        free(vertices)
-        free(indices)
+        self.batch.set_data(&self._pvertices[0], <int>(vcount / vsize),
+                            &self._pindices[0], <int>icount)
 
     property vertices:
         '''List of x, y, u, v coordinates used to construct the Mesh. Right now,
@@ -351,7 +341,8 @@ cdef class Mesh(VertexInstruction):
         def __get__(self):
             return self._vertices
         def __set__(self, value):
-            self._vertices = list(value)
+            self._vertices, self._fvertices = _ensure_float_view(value,
+                &self._pvertices)
             self.flag_update()
 
     property indices:
@@ -361,16 +352,13 @@ cdef class Mesh(VertexInstruction):
         def __get__(self):
             return self._indices
         def __set__(self, value):
-            if len(value) > 65535:
-                raise GraphicException(
-                    'Cannot upload more than 65535 indices'
-                    '(OpenGL ES 2 limitation)')
-            self._indices = list(value)
+            self._indices, self._lindices = _ensure_ushort_view(value,
+                &self._pindices)
             self.flag_update()
 
     property mode:
         '''VBO Mode used for drawing vertices/indices. Can be one of 'points',
-        'line_strip', 'line_loop', 'lines', 'triangles', 'triangle_strip' or 
+        'line_strip', 'line_loop', 'lines', 'triangles', 'triangle_strip' or
         'triangle_fan'.
         '''
         def __get__(self):
