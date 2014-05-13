@@ -864,6 +864,7 @@ cdef class Texture:
 
         '''
         cdef GLuint target = self._target
+        cdef int glbufferfmt
         if colorfmt is None:
             colorfmt = 'rgb'
         if bufferfmt is None:
@@ -872,7 +873,7 @@ cdef class Texture:
             pos = (0, 0)
         if size is None:
             size = self.size
-        bufferfmt = _buffer_fmt_to_gl(bufferfmt)
+        glbufferfmt = _buffer_fmt_to_gl(bufferfmt)
 
         # bind the texture, and create anything that should be created at this
         # time.
@@ -881,16 +882,32 @@ cdef class Texture:
         # need conversion, do check here because it seems to be faster ?
         if not gl_has_texture_native_format(colorfmt):
             pbuffer, colorfmt = convert_to_gl_format(pbuffer, colorfmt)
-        cdef char [:] view
+        cdef char [:] char_view
+        cdef short [:] short_view
+        cdef int [:] int_view
+        cdef float [:] float_view
         cdef char *cdata
         cdef long datasize
         if isinstance(pbuffer, bytes):  # if it's bytes, just use memory
             cdata = <bytes>pbuffer  # explicit bytes
             datasize = len(pbuffer)
         else:   # if it's a memoryview or buffer type, use start of memory
-            view = pbuffer
-            cdata = &view[0]
-            datasize = view.nbytes
+            if glbufferfmt == GL_UNSIGNED_BYTE or glbufferfmt == GL_BYTE:
+                char_view = pbuffer
+                cdata = &char_view[0]
+                datasize = char_view.nbytes
+            elif glbufferfmt == GL_SHORT or glbufferfmt == GL_UNSIGNED_SHORT:
+                short_view = pbuffer
+                cdata = <char *>&short_view[0]
+                datasize = short_view.nbytes
+            elif glbufferfmt == GL_INT or glbufferfmt == GL_UNSIGNED_INT:
+                int_view = pbuffer
+                cdata = <char *>&int_view[0]
+                datasize = int_view.nbytes
+            elif glbufferfmt == GL_FLOAT:
+                float_view = pbuffer
+                cdata = <char *>&float_view[0]
+                datasize = float_view.nbytes
 
         # prepare nogil
         cdef int iglfmt = _color_fmt_to_gl(self._icolorfmt)
@@ -899,7 +916,6 @@ cdef class Texture:
         cdef int y = pos[1]
         cdef int w = size[0]
         cdef int h = size[1]
-        cdef int glbufferfmt = bufferfmt
         cdef int is_allocated = self._is_allocated
         cdef int is_compressed = _is_compressed_fmt(colorfmt)
         cdef int _mipmap_generation = mipmap_generation and self._mipmap

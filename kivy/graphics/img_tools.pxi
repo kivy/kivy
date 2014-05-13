@@ -12,6 +12,8 @@ cdef inline convert_to_gl_format(data, fmt):
     buffer interface. If the data format is supported by opengl, the data
     is returned unchanged. Otherwise, the data is converted to a supported
     format, when possible, and returned as a python array object.
+
+    Note that conversion is currently only supported for bytes data.
     '''
     cdef array ret_array
     cdef char *src_buffer
