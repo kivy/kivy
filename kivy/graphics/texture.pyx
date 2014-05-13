@@ -196,6 +196,7 @@ include "opengl_utils_def.pxi"
 from array import array
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
+from kivy.graphics.carray cimport BaseArray, Memory
 
 from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
@@ -412,8 +413,8 @@ cdef inline str _convert_gl_format(x):
     return x
 
 
-cdef inline _convert_buffer(bytes data, fmt):
-    cdef bytes ret_buffer
+cdef inline _convert_buffer(object data, fmt):
+    cdef object ret_buffer
     cdef str ret_format
 
     # if native support of this format is available, use it
@@ -875,19 +876,37 @@ cdef class Texture:
         self.bind()
 
         # need conversion ?
-        cdef bytes data
-        data = pbuffer
-        data, colorfmt = _convert_buffer(data, colorfmt)
+        cdef object data
+        cdef long datasize
+        cdef BaseArray basearray
+        cdef Memory memory
+        cdef char *cdata
+
+        if isinstance(pbuffer, BaseArray):
+            # base array doesn't support conversion, yet
+            basearray = pbuffer
+            cdata = <char *>basearray.mem.data
+            datasize = basearray.mem.size
+        elif isinstance(pbuffer, Memory):
+            # we are using a pure memory block, no conversion yet
+            memory = pbuffer
+            cdata = <char *>memory.data
+            datasize = memory.size
+        elif isinstance(pbuffer, bytes) or isinstance(pbuffer, bytearray):
+            # using a standard python string
+            data, colorfmt = _convert_buffer(pbuffer, colorfmt)
+            datasize = len(pbuffer)
+            cdata = <char *>data
+        else:
+            raise TypeError('Buffer cannot be converted to image data.')
 
         # prepare nogil
         cdef int iglfmt = _color_fmt_to_gl(self._icolorfmt)
         cdef int glfmt = _color_fmt_to_gl(colorfmt)
-        cdef long datasize = len(pbuffer)
         cdef int x = pos[0]
         cdef int y = pos[1]
         cdef int w = size[0]
         cdef int h = size[1]
-        cdef char *cdata = <char *>data
         cdef int glbufferfmt = bufferfmt
         cdef int is_allocated = self._is_allocated
         cdef int is_compressed = _is_compressed_fmt(colorfmt)
