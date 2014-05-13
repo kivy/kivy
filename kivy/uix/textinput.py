@@ -414,7 +414,7 @@ class TextInput(FocusBehavior, Widget):
             self.focus = value
 
         def handle_readonly(instance, value):
-            if value and not _is_desktop:
+            if value and (not _is_desktop or not self.allow_copy):
                 self.is_focusable = False
 
         self.bind(padding=self._update_text_options,
