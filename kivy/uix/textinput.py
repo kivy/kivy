@@ -2650,12 +2650,11 @@ class TextInput(FocusBehavior, Widget):
     defaults to 'auto'. Can be one of 'auto' or 'managed'.
 
     .. versionchanged:: 1.8.1
-        This property doesn't control the keyboard anymore.
-        :class:`TextInput` now inherits from
-        :class:`~kivy.uix.behaviors.FocusBehavior` which uses the
-        :attr:`keyboard` attribute for similar functionality.
+        This property is redundant because :class:`TextInput` now inherits from
+        :class:`~kivy.uix.behaviors.FocusBehavior` which has its own
+        :attr:`~kivy.uix.behaviors.FocusBehavior.keyboard_mode`.
 
-        This property will be removed in 2.0.
+        This property will be removed from the :class:`TextInput` in 2.0.
     '''
 
     def show_keyboard(self):
@@ -2663,28 +2662,28 @@ class TextInput(FocusBehavior, Widget):
         Convenience function to show the keyboard in managed mode
 
         .. versionchanged:: 1.8.1
-            This method doesn't control the keyboard anymore.
-            :class:`TextInput` now inherits from
-            :class:`~kivy.uix.behaviors.FocusBehavior` which uses the
-            :attr:`keyboard` attribute for similar functionality.
 
-            This method will be removed in 2.0.
+            This method is redundant because :class:`TextInput` now inherits
+            from :class:`~kivy.uix.behaviors.FocusBehavior` which has its own
+            :meth:`~kivy.uix.behaviors.FocusBehavior.show_keyboard`.
+
+            This property will be removed from the :class:`TextInput` in 2.0.
         """
-        pass
+        super(TextInput, self).show_keyboard()
 
     def hide_keyboard(self):
         """
         Convenience function to hide the keyboard in managed mode
 
         .. versionchanged:: 1.8.1
-            This method doesn't control the keyboard anymore.
-            :class:`TextInput` now inherits from
-            :class:`~kivy.uix.behaviors.FocusBehavior` which uses the
-            :attr:`keyboard` attribute for similar functionality.
 
-            This method will be removed in 2.0.
+            This method is redundant because :class:`TextInput` now inherits
+            from :class:`~kivy.uix.behaviors.FocusBehavior` which has its own
+            :meth:`~kivy.uix.behaviors.FocusBehavior.hide_keyboard`.
+
+            This property will be removed from the :class:`TextInput` in 2.0.
         """
-        pass
+        super(TextInput, self).hide_keyboard()
 
     write_tab = BooleanProperty(True)
     '''Whether the tab key should move focus to the next widget or if it should
