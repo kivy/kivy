@@ -57,7 +57,7 @@ the dependencies.
 
     `How to Uninstall and Remove Homebrew for Mac OSX <http://www.curvve.com/blog/guides/2013/uninstall-homebrew-mac-osx/>`_
 
-Clang Compiler issues
+Clang compiler issues
 =====================
 
 Some dependencies for compiling cython with pip on OSX may fail to compile with
@@ -74,4 +74,12 @@ Here is a workaround::
 
 The -E flag passes the environment to the sudo shell.
 
+Further reading
+---------------
 
+Kivy iOS support is a work-in-progress and we are busy trying to improve
+and document this process. Until such time as this is complete, you may
+find the following links useful.
+
+* `iOS Tips <https://groups.google.com/forum/#!topic/kivy-users/X8sItpeoZPQ>`_
+* `HTTPS (SSL) support <https://groups.google.com/forum/#!searchin/kivy-users/iOS/kivy-users/Qt4x2dB0Xpw/u8jlTMS8Y1MJ>`_
