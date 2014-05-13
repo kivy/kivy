@@ -669,6 +669,16 @@ class FocusBehavior(object):
     defaults to  `None`.
     '''
 
+    keyboard_mode = OptionProperty('auto', options=('auto', 'managed'))
+    '''How the keyboard visibility should be managed (auto will have standard
+    behaviour to show/hide on focus, managed requires setting keyboard_visible
+    manually, or calling the helper functions ``show_keyboard()``
+    and ``hide_keyboard()``.
+
+    :attr:`keyboard_mode` is an :class:`~kivy.properties.OptionsProperty` and
+    defaults to 'auto'. Can be one of 'auto' or 'managed'.
+    '''
+
     def __init__(self, **kwargs):
         self._old_focus_next = None
         self._old_focus_previous = None
@@ -685,10 +695,11 @@ class FocusBehavior(object):
             self.focused = False
 
     def _on_focused(self, instance, value, *largs):
-        if value:
-            self._bind_keyboard()
-        else:
-            self._unbind_keyboard()
+        if self.keyboard_mode == 'auto':
+            if value:
+                self._bind_keyboard()
+            else:
+                self._unbind_keyboard()
 
     def _ensure_keyboard(self):
         if self._keyboard is None:
@@ -822,6 +833,20 @@ class FocusBehavior(object):
             self.focused = False
             return True
         return False
+
+    def show_keyboard(self):
+        '''
+        Convenience function to show the keyboard in managed mode.
+        '''
+        if self.keyboard_mode == 'managed':
+            self._bind_keyboard()
+
+    def hide_keyboard(self):
+        '''
+        Convenience function to hide the keyboard in managed mode.
+        '''
+        if self.keyboard_mode == 'managed':
+            self._unbind_keyboard()
 
 
 class CompoundSelectionBehavior(object):
