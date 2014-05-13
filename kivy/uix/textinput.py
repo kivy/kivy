@@ -376,6 +376,10 @@ class TextInput(FocusBehavior, Widget):
         def set_focus(instance, value):
             self.focus = value
 
+        def handle_readonly(instance, value):
+            if value and not _is_desktop:
+                self.is_focusable = False
+
         self.bind(padding=self._update_text_options,
                   tab_width=self._update_text_options,
                   font_size=self._update_text_options,
@@ -384,7 +388,8 @@ class TextInput(FocusBehavior, Widget):
                   password=self._update_text_options)
 
         self.bind(pos=self._trigger_update_graphics, focus=set_focused,
-                  focused=set_focus)
+                  focused=set_focus, readonly=handle_readonly)
+        handle_readonly(self, self.readonly)
 
         self._trigger_position_handles = Clock.create_trigger(
             self._position_handles)
