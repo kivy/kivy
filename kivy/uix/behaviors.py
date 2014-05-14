@@ -650,6 +650,7 @@ class FocusBehavior(object):
         self._old_focus_previous = None
         super(FocusBehavior, self).__init__(**kwargs)
 
+        self._keyboard_mode = Config.get('kivy', 'keyboard_mode')
         self.bind(focused=self._on_focused, disabled=self._on_focusable,
                   is_focusable=self._on_focusable,
                   focus_next=self._set_on_focus_next,
@@ -720,7 +721,10 @@ class FocusBehavior(object):
         if (not self.disabled and self.is_focusable and
             ('button' not in touch.profile or
              not touch.button.startswith('scroll'))):
-            self.focused = self.collide_point(*pos)
+            if self.collide_point(*pos):
+                self.focused = True
+            elif self._keyboard_mode != 'multi':
+                self.focused = False
 
     def _get_focus_next(self, focus_dir):
         current = self
