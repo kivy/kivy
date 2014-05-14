@@ -336,6 +336,11 @@ class TextInput(FocusBehavior, Widget):
         on the next clock cycle using
         :meth:`~kivy.clock.ClockBase.schedule_once`.
 
+    .. note::
+        `keyboard_mode`, `show_keyboard`, and `hide_keyboard` have been removed
+        from :class:`TextInput` since they are now inherited from
+        :class:`~kivy.uix.behaviors.FocusBehavior`.
+
     .. versionchanged:: 1.8.1
         :class:`TextInput` now inherits from
         :class:`~kivy.uix.behaviors.FocusBehavior`.
@@ -2637,53 +2642,6 @@ class TextInput(FocusBehavior, Widget):
     def on_handle_image_right(self, instance, value):
         if self._handle_right:
             self._handle_right.source = value
-
-    keyboard_mode = OptionProperty('auto', options=('auto', 'managed'))
-    '''How the keyboard visibility should be managed (auto will have standard
-    behaviour to show/hide on focus, managed requires setting keyboard_visible
-    manually, or calling the helper functions ``show_keyboard()``
-    and ``hide_keyboard()``.
-
-    .. versionadded:: 1.8.0
-
-    :attr:`keyboard_mode` is an :class:`~kivy.properties.OptionsProperty` and
-    defaults to 'auto'. Can be one of 'auto' or 'managed'.
-
-    .. versionchanged:: 1.8.1
-        This property is redundant because :class:`TextInput` now inherits from
-        :class:`~kivy.uix.behaviors.FocusBehavior` which has its own
-        :attr:`~kivy.uix.behaviors.FocusBehavior.keyboard_mode`.
-
-        This property will be removed from the :class:`TextInput` in 2.0.
-    '''
-
-    def show_keyboard(self):
-        """
-        Convenience function to show the keyboard in managed mode
-
-        .. versionchanged:: 1.8.1
-
-            This method is redundant because :class:`TextInput` now inherits
-            from :class:`~kivy.uix.behaviors.FocusBehavior` which has its own
-            :meth:`~kivy.uix.behaviors.FocusBehavior.show_keyboard`.
-
-            This property will be removed from the :class:`TextInput` in 2.0.
-        """
-        super(TextInput, self).show_keyboard()
-
-    def hide_keyboard(self):
-        """
-        Convenience function to hide the keyboard in managed mode
-
-        .. versionchanged:: 1.8.1
-
-            This method is redundant because :class:`TextInput` now inherits
-            from :class:`~kivy.uix.behaviors.FocusBehavior` which has its own
-            :meth:`~kivy.uix.behaviors.FocusBehavior.hide_keyboard`.
-
-            This property will be removed from the :class:`TextInput` in 2.0.
-        """
-        super(TextInput, self).hide_keyboard()
 
     write_tab = BooleanProperty(True)
     '''Whether the tab key should move focus to the next widget or if it should
