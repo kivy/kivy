@@ -220,10 +220,13 @@ cdef class EventDispatcher(ObjectWithUid):
             self.bind(x=my_x_callback, width=my_width_callback)
 
             # With event
-            self.bind(on_press=self.my_press_callback)
+            def my_press_callback(obj):
+                print('event on object', obj)
+            self.bind(on_press=my_press_callback)
 
-        Most callbacks are called with the arguments 'obj' and 'value'. Some
-        however, provide only one argument, 'obj' e.g. the *on_press* event.
+        In general, property callbacks are called with 2 arguments (the
+        object and the property's new value) and event callbacks with
+        one argument (the object). The example above illustrates this.
 
         Usage in a class::
 
