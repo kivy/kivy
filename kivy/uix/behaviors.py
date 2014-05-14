@@ -38,10 +38,12 @@ import string
 # When we are generating documentation, Config doesn't exist
 _scroll_timeout = _scroll_distance = 0
 _is_desktop = False
+_keyboard_mode = 'system'
 if Config:
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
     _scroll_distance = Config.getint('widgets', 'scroll_distance')
     _is_desktop = Config.getboolean('kivy', 'desktop')
+    _keyboard_mode = Config.get('kivy', 'keyboard_mode')
 
 
 class ButtonBehavior(object):
@@ -645,12 +647,27 @@ class FocusBehavior(object):
     defaults to 'auto'. Can be one of 'auto' or 'managed'.
     '''
 
+    unfocus_on_touch = BooleanProperty(_keyboard_mode != 'multi')
+    '''Whether a instance should lose focus when clicked outside the instance.
+
+    When a user clicks on a widget that is focus aware and shares the same
+    keyboard as the this widget (which in the case of only one keyboard, are
+    all focus aware widgets), then as the other widgets gains focus, this
+    widget loses focus. In addition to that, if this property is `True`,
+    clicking on any widget other than this widget, will remove focus form this
+    widget.
+
+    :attr:`unfocus_on_touch` is a :class:`~kivy.properties.BooleanProperty`,
+    defaults to `False` if the `keyboard_mode` in :attr:`~kivy.config.Config`
+    is `'multi'`, otherwise it defaults to `True`.
+    '''
+
     def __init__(self, **kwargs):
         self._old_focus_next = None
         self._old_focus_previous = None
         super(FocusBehavior, self).__init__(**kwargs)
 
-        self._keyboard_mode = Config.get('kivy', 'keyboard_mode')
+        self._keyboard_mode = _keyboard_mode
         self.bind(focused=self._on_focused, disabled=self._on_focusable,
                   is_focusable=self._on_focusable,
                   focus_next=self._set_on_focus_next,
@@ -723,7 +740,7 @@ class FocusBehavior(object):
              not touch.button.startswith('scroll'))):
             if self.collide_point(*pos):
                 self.focused = True
-            elif self._keyboard_mode != 'multi':
+            elif self.unfocus_on_touch:
                 self.focused = False
 
     def _get_focus_next(self, focus_dir):
