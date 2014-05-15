@@ -113,7 +113,8 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties import (StringProperty, ObjectProperty, ListProperty,
                              NumericProperty, DictProperty)
 from kivy.graphics import (RenderContext, Fbo, Color, Rectangle,
-                           Translate, PushMatrix, PopMatrix, ClearColor, ClearBuffers)
+                           Translate, PushMatrix, PopMatrix, ClearColor,
+                           ClearBuffers)
 from kivy.event import EventDispatcher
 from kivy.base import EventLoop
 from kivy.resources import resource_find
@@ -593,11 +594,12 @@ class EffectWidget(RelativeLayout):
     setting effects and creating your own.
     '''
 
-    background_color = ListProperty((1, 1, 1, 1))
+    background_color = ListProperty((0, 0, 0, 1))
     '''This defines the background color to be used for the fbo in the
     EffectWidget.
 
-    :attr:`background_color` is a :class:`ListProperty` defaults to (1, 1, 1, 1)
+    :attr:`background_color` is a :class:`ListProperty` defaults to
+    (0, 0, 0, 1)
     '''
 
     texture = ObjectProperty(None)
