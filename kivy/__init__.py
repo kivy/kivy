@@ -387,6 +387,3 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 Logger.info('Kivy v%s' % (__version__))
 Logger.info('Python: v{}'.format(sys.version))
 
-        
-
->>>>>>> kivatu/master
