@@ -91,6 +91,20 @@ def strtotuple(s):
     return r
 
 
+def get_rgba(r, g, b, a):
+    
+    '''Transform rgba values in range 0-255 to a kivy :class:
+       '~kivy.graphics.Color'
+       
+       >>> get_rgba(97, 248, 35, 255)
+       '(0.3803921568627451, 0.9725490196078431, 0.13725490196078433, 1.0)'
+       
+    .. version added:: 1.8.1
+    '''
+    
+    return (r / 255.0, g / 255.0, b / 255.0, a / 255.0)
+    
+    
 def get_color_from_hex(s):
     '''Transform from hex string color to kivy color'''
     if s.startswith('#'):
