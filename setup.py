@@ -177,13 +177,8 @@ except ImportError:
     print('User distribution detected, avoid portable command.')
 
 # Detect which opengl version headers to use
-<<<<<<< HEAD
-if platform in ('android', 'darwin', 'ios', 'rpi'):
-    c_options['use_opengl_es2'] = True
-=======
 if platform in ('android', 'klaatu', 'darwin', 'ios', 'rpi'):
-    pass
->>>>>>> kivatu/master
+    c_options['use_opengl_es2'] = True
 elif platform == 'win32':
     print('Windows platform detected, force GLEW usage.')
     c_options['use_glew'] = True
