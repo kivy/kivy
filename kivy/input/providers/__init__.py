@@ -15,6 +15,12 @@ import kivy.input.providers.mouse
 
 platform = core_platform
 
+if platform == 'klaatu':
+    import kivy.input.providers.mtdev
+    import kivy.input.providers.hidinput
+    import kivy.input.providers.probesysfs
+
+
 if platform == 'win' or 'KIVY_DOC' in os.environ:
     try:
         import kivy.input.providers.wm_touch

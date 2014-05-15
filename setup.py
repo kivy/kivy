@@ -53,17 +53,22 @@ if sys.platform == 'darwin':
 ndkplatform = environ.get('NDKPLATFORM')
 if ndkplatform is not None and environ.get('LIBLINK'):
     platform = 'android'
+if ndkplatform is not None and environ.get('KIVY_TARGET_KLAATU'):
+    platform = 'klaatu'
 kivy_ios_root = environ.get('KIVYIOSROOT', None)
 if kivy_ios_root is not None:
     platform = 'ios'
 if exists('/opt/vc/include/bcm_host.h'):
     platform = 'rpi'
 
+print('\nPlatform: ', platform)
 # -----------------------------------------------------------------------------
 # Detect options
 #
+
 c_options = OrderedDict()
 c_options['use_rpi'] = platform == 'rpi'
+c_options['use_klaatu'] =  platform == 'klaatu'
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_debug'] = False
 c_options['use_glew'] = False
@@ -73,6 +78,7 @@ c_options['use_mesagl'] = False
 c_options['use_x11'] = False
 c_options['use_gstreamer'] = False
 c_options['use_avfoundation'] = platform == 'darwin'
+
 
 # now check if environ is changing the default values
 for key in list(c_options.keys()):
@@ -86,7 +92,7 @@ for key in list(c_options.keys()):
 # Cython check
 # on python-for-android and kivy-ios, cython usage is external
 have_cython = False
-if platform in ('ios', 'android'):
+if platform in ('ios', 'android', 'klaatu'):
     print('\nCython check avoided.')
 else:
     try:
@@ -171,8 +177,13 @@ except ImportError:
     print('User distribution detected, avoid portable command.')
 
 # Detect which opengl version headers to use
+<<<<<<< HEAD
 if platform in ('android', 'darwin', 'ios', 'rpi'):
     c_options['use_opengl_es2'] = True
+=======
+if platform in ('android', 'klaatu', 'darwin', 'ios', 'rpi'):
+    pass
+>>>>>>> kivatu/master
 elif platform == 'win32':
     print('Windows platform detected, force GLEW usage.')
     c_options['use_glew'] = True
@@ -318,7 +329,7 @@ def determine_gl_flags():
         flags['include_dirs'] = ['/usr/X11R6/include']
         flags['extra_link_args'] = ['-L', '/usr/X11R6/lib']
         flags['libraries'] = ['GL']
-    elif platform == 'android':
+    elif platform == 'android' or platform == 'klaatu' :
         flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
         flags['extra_link_args'] = ['-L', join(ndkplatform, 'usr', 'lib')]
         flags['libraries'] = ['GLESv2']
@@ -507,7 +518,16 @@ if c_options['use_rpi']:
             base_flags, gl_flags)
     sources['lib/vidcore_lite/bcm.pyx'] = merge(
             base_flags, gl_flags)
-
+if c_options['use_klaatu']:
+    if environ.get('ANDROID_BUILD_TOP') and os.environ.get('ANDROID_PRODUCT_OUT'):
+        klaatu_ldir = os.environ.get('ANDROID_PRODUCT_OUT') + '/system/lib'
+    else:
+        klaatu_ldir = os.environ.get('KIVY_KLAATU_LDIR')
+    sources['lib/klaatu/egl.pyx'] = merge(
+            base_flags, gl_flags, {
+                'library_dirs' : [klaatu_ldir],
+                'libraries': ['EGL', 'klaatu_window']
+            })
 if c_options['use_x11']:
     sources['core/window/window_x11.pyx'] = merge(
         base_flags, gl_flags, {
@@ -626,6 +646,7 @@ setup(
         'kivy.lib',
         'kivy.lib.osc',
         'kivy.lib.gstplayer',
+        'kivy.lib.klaatu',
         'kivy.lib.vidcore_lite',
         'kivy.modules',
         'kivy.network',
