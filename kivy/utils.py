@@ -91,18 +91,29 @@ def strtotuple(s):
     return r
 
 
-def get_rgba(r, g, b, a):
+def get_rgb(color):
     
-    '''Transform rgba values in range 0-255 to a kivy :class:
+    '''Transform rgb values in range 0-255 to a kivy :class:
        '~kivy.graphics.Color'
+       Method accepts rgb and rgba values as tuples and returns a tuple
        
-       >>> get_rgba(97, 248, 35, 255)
+       >>>get_rgba((97, 248, 35, 255))
        '(0.3803921568627451, 0.9725490196078431, 0.13725490196078433, 1.0)'
        
     .. version added:: 1.8.1
     '''
+
+    if type(color) is not tuple:
+        raise Exception('Color parameter must be of type "tuple" not "%s"' % \
+                        type(color))
+    elif len(color) < 3:
+        raise Exception('Color parameter must include at least 3 integers')
+    try:
+        k_color = tuple(x / 255. for x in color)
+    except:
+        raise
     
-    return (r / 255.0, g / 255.0, b / 255.0, a / 255.0)
+    return k_color
     
     
 def get_color_from_hex(s):
