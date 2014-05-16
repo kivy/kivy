@@ -201,6 +201,8 @@ Example::
     ev.bind(on_test=my_callback)
     ev.do_something('test')
 
+Pleases refer to the :meth:`kivy.event.EventDispatcher.bind` method
+documentation for more examples on how to attach callbacks.
 
 Introduction to Properties
 --------------------------
