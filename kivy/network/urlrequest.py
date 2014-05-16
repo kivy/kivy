@@ -313,8 +313,12 @@ class UrlRequest(Thread):
                 trigger()
         else:
             result = resp.read()
-            if isinstance(result, bytes):
-                result = result.decode('utf-8')
+            try:
+                if isinstance(result, bytes):
+                    result = result.decode('utf-8')
+            except UnicodeDecodeError:
+                # if it's an image? decoding would not work
+                pass
         req.close()
 
         # return everything
