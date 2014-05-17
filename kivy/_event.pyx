@@ -247,8 +247,8 @@ cdef class EventDispatcher(ObjectWithUid):
                     super(DemoBox, self).__init__(**kwargs)
                     self.orientation = "vertical"
 
-                    # We start with standard binding to a standard event. The only argument
-                    # passed to the callback is the object on which the event has occurred.
+                    # We start with binding to a normal event. The only argument
+                    # passed to the callback is the object which we have bound to.
                     btn = Button(text="Normal binding to event")
                     btn.bind(on_press=self.on_event)
 
