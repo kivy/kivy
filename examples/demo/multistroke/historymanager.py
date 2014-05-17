@@ -195,7 +195,9 @@ class GestureSettingsForm(BoxLayout):
             scrollv.scroll_y = 1
             return
 
-        for one in sorted(r.iteritems(), key=lambda (x, y): y['score'],
+        # Changes for Python 3 Compatibility
+        # Previous Code:   for one in sorted(r.iteritems(), key=lambda (x, y): y['score'],
+        for one in sorted(r.iteritems(), key=lambda visualizer_result_tuple: visualizer_result_tuple[1]['score'],
                           reverse=True):
             data = one[1]
             lbl = RecognizerResultLabel(
