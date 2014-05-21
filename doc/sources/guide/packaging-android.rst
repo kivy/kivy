@@ -133,14 +133,6 @@ http://developer.android.com/guide/publishing/app-signing.html
 The release binary will be generated in
 bin/KivyTouchtracer-1.1.0-release-unsigned.apk (for the previous touchtracer example.)
 
-.. _kivy_android_vm:
-
-Kivy Android Virtual Machine
-----------------------------
-
-We provide a VirtualBox Image with python-for-android along with
-the Android SDK and NDK preinstalled to ease your installation woes. You can
-download it from `here <http://kivy.org/#download>`_.
 
 Once the VM is loaded, you can follow the instructions from
 :ref:`Packaging your application into APK`. You don't need to download
