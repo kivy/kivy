@@ -138,11 +138,13 @@ class UrlRequest(Thread):
             If set, the result of the UrlRequest will be written to this path
             instead of in memory.
 
-    .. versionadded:: 1.8.0
+    .. versionchanged:: 1.8.0
+
         Parameter `decode` added.
         Parameter `file_path` added.
         Parameter `on_redirect` added.
         Parameter `on_failure` added.
+
     '''
 
     def __init__(self, url, on_success=None, on_redirect=None,
