@@ -326,26 +326,21 @@ In Python::
                                pos=layout_instance.pos)
 
 Unfortunately, this will only draw a rectangle at the layout's initial position
-and size. To make sure the rect is drawn inside the layout, when layout size/pos
-changes, we need to listen to any changes and update the rectangles size and pos.
+and size. To make sure the rect is drawn inside the layout, when the layout
+size/pos changes, we need to listen to any changes and update the rectangles
+size and pos. We can do that as follows::
 
-Here is an example that paints a green background for a FloatLayout. In Python,
-we need to explicitely handle pos and size changes which the kv does
-automatically::
+    with layout_instance.canvas.before:
+        Color(0, 1, 0, 1) # green; colors range from 0-1 instead of 0-255
+        self.rect = Rectangle(size=layout_instance.size,
+                               pos=layout_instance.pos)
 
-    def draw_green(instance, value):
-        # If we have already created a rect, change it, else create and attach it
-        if hasattr(instance, "rect"):
-            instance.rect.pos = instance.pos
-            instance.rect.size = instance.size
-        else:
-            with instance.canvas.before:
-                Color(0, 1, 0, 1)
-                instance.rect = Rectangle(size=instance.size,
-                                          pos=instance.pos)
+    def update_rect(instance, value):
+        instance.rect.pos = instance.pos
+        instance.rect.size = instance.size
 
     # listen to size and position changes
-    self.bind(pos=draw_green, size=draw_green)
+    layout_instance.bind(pos=update_rect, size=update_rect)
 
 In kv:
 
@@ -364,9 +359,7 @@ The kv declaration sets an implicit binding: the last two kv lines ensure that
 the |pos| and |size| values of the rectangle will update when the |pos| of the
 |FloatLayout| changes.
 
-Now we put the snippets above into the shell of Kivy App. In the Python example
-above, each pos/size change results in a "hasattr" call. Here we provide a more
-optimal example using a dedicated "_update_rect" callback.
+Now we put the snippets above into the shell of Kivy App.
 
 Pure Python way::
 
