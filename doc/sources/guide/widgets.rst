@@ -334,12 +334,11 @@ in Python, we clear the canvas first, otherwise each movement/re-size will
 just add new instructions without removing the old. This results in green
 blocks wherever the canvas has been.::
 
-    
     def draw_green(instance, value):
-      instance.canvas.before.clear()
-      with instance.canvas.before:
-        Color(0, 1, 0, 1)
-        Rectangle(size=instance.size, pos=instance.pos)
+        instance.canvas.before.clear()
+        with instance.canvas.before:
+          Color(0, 1, 0, 1)
+          Rectangle(size=instance.size, pos=instance.pos)
 
     # listen to size and position changes
     self.bind(pos=draw_green, size=draw_green)
