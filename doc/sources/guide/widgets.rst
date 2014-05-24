@@ -364,7 +364,9 @@ The kv declaration sets an implicit binding: the last two kv lines ensure that
 the |pos| and |size| values of the rectangle will update when the |pos| of the
 |FloatLayout| changes.
 
-Now we put the snippets above into the shell of Kivy App.
+Now we put the snippets above into the shell of Kivy App. In the Python example
+above, each pos/size change results in a "hasattr" call. Here we provide a more
+optimal example using a dedicated "_update_rect" callback.
 
 Pure Python way::
 
