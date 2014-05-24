@@ -329,16 +329,20 @@ Unfortunately, this will only draw a rectangle at the layout's initial position
 and size. To make sure the rect is drawn inside the layout, when layout size/pos
 changes, we need to listen to any changes and update the rectangles size and pos.
 
-Here is an example that paints a green background for a FloatLayout. Note that,
-in Python, we clear the canvas first, otherwise each movement/re-size will
-just add new instructions without removing the old. This results in green
-blocks wherever the canvas has been.::
+Here is an example that paints a green background for a FloatLayout. In Python,
+we need to explicitely handle pos and size changes which the kv does
+automatically::
 
     def draw_green(instance, value):
-        instance.canvas.before.clear()
-        with instance.canvas.before:
-          Color(0, 1, 0, 1)
-          Rectangle(size=instance.size, pos=instance.pos)
+        # If we have already created a rect, change it, else create and attach it
+        if hasattr(instance, "rect"):
+            instance.rect.pos = instance.pos
+            instance.rect.size = instance.size
+        else:
+            with instance.canvas.before:
+                Color(0, 1, 0, 1)
+                instance.rect = Rectangle(size=instance.size,
+                                          pos=instance.pos)
 
     # listen to size and position changes
     self.bind(pos=draw_green, size=draw_green)
