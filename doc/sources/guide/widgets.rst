@@ -318,6 +318,8 @@ instance easily, as with adding a colored background:
 
 In Python::
 
+    from kivy.graphics import Color, Rectangle
+
     with layout_instance.canvas.before:
         Color(0, 1, 0, 1) # green; colors range from 0-1 instead of 0-255
         self.rect = Rectangle(size=layout_instance.size,
@@ -325,25 +327,27 @@ In Python::
 
 Unfortunately, this will only draw a rectangle at the layout's initial position
 and size. To make sure the rect is drawn inside the layout, when layout size/pos
-changes, we need to listen to any changes and update the rectangle size and pos
-like so::
+changes, we need to listen to any changes and update the rectangles size and pos.
+
+Here is an example that paints a green background for a FloatLayout. Note that,
+in Python, we clear the canvas first, otherwise each movement/re-size will
+just add new instructions without removing the old. This results in green
+blocks wherever the canvas has been.::
+
+    
+    def draw_green(instance, value):
+      instance.canvas.before.clear()
+      with instance.canvas.before:
+        Color(0, 1, 0, 1)
+        Rectangle(size=instance.size, pos=instance.pos)
 
     # listen to size and position changes
-    layout_instance.bind(
-                        size=self._update_rect,
-                        pos=self._update_rect)
-    
-    ...
-    def _update_rect(self, instance, value):
-        self.rect.pos = instance.pos
-        self.rect.size = instance.size
+    self.bind(pos=draw_green, size=draw_green)
 
 In kv:
 
 .. code-block:: kv
 
-    ...
-    ...
     FloatLayout:
         canvas.before:
             Color:
