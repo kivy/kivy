@@ -603,6 +603,7 @@ Then, when we put this snippet into a Kivy app::
     class RootWidget(FloatLayout):
         pass
 
+
     class MainApp(App):
 
         def build(self):
@@ -667,15 +668,18 @@ We use this to display an animated background::
                 halign: 'justify'
     ''')
 
+
     class CustomLayout(GridLayout):
 
         background_image = ObjectProperty(
-                                        Image(
-                                            source='../examples/widgets/sequenced_images/data/images/button_white_animated.zip',
-                                            anim_delay=.1))
+            Image(
+                source='../examples/widgets/sequenced_images/data/images/button_white_animated.zip',
+                anim_delay=.1))
+
 
     class RootWidget(FloatLayout):
         pass
+
 
     class MainApp(App):
 
