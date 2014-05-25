@@ -1136,8 +1136,6 @@ class AdaptersTestCase(unittest.TestCase):
         dict_adapter.sorted_keys = ['dog']
         self.assertEqual(pet_listener.current_pets, ['dog'])
 
-    from nose.tools import nottest #test
-
     def test_dict_adapter_reset_data(self):
         class PetListener(object):
             def __init__(self, pet):
