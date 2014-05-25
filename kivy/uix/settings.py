@@ -535,29 +535,18 @@ class SettingColor(SettingItem):
     to None.
     '''
 
-    textinput = ObjectProperty(None)
-    '''(internal) Used to store the current textinput from the popup and
-    to listen for changes.
-
-    :attr:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
-    to None.
-    '''
-
     def on_panel(self, instance, value):
         if value is None:
             return
         self.bind(on_release=self._create_popup)
 
     def _dismiss(self, *largs):
-        if self.textinput:
-            self.textinput.focus = False
         if self.popup:
             self.popup.dismiss()
         self.popup = None
 
     def _validate(self, instance):
         self._dismiss()
-        #value = self.textinput.text.strip()
         value = utils.get_hex_from_color(self.colorpicker.color)
         self.value = value
 
