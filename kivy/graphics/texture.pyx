@@ -1152,7 +1152,7 @@ cdef class Texture:
 
     property pixels:
         '''Get the pixels texture, in RGBA format only, unsigned byte. The
-        origin of the image is at bottom / left.
+        origin of the image is at bottom left.
 
         .. versionadded:: 1.7.0
         '''
