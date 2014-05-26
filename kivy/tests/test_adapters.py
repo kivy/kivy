@@ -1136,8 +1136,6 @@ class AdaptersTestCase(unittest.TestCase):
         dict_adapter.sorted_keys = ['dog']
         self.assertEqual(pet_listener.current_pets, ['dog'])
 
-    from nose.tools import nottest #test
-
     def test_dict_adapter_reset_data(self):
         class PetListener(object):
             def __init__(self, pet):
@@ -1175,14 +1173,14 @@ class AdaptersTestCase(unittest.TestCase):
                         'dog': {'text': 'dog', 'is_selected': False}}
         dict_adapter.data = cat_dog_data
         # sorted_keys should remain ['dog'], as it still matches data.
-        ###self.assertEqual(dict_adapter.sorted_keys, ['dog'])  #<<<<<<<<<<<<<<<<<<<<fails here ['cat', 'dog'] != ['dog']
+        self.assertEqual(dict_adapter.sorted_keys, ['dog'])
         dict_adapter.sorted_keys = ['cat']
         self.assertEqual(pet_listener.current_pet, ['cat'])
 
         # Make some utility calls for coverage:
 
         # 1, because get_count() does len(self.sorted_keys).
-        ###self.assertEqual(dict_adapter.get_count(), 1)   #<<<<<<<<<<<<<<<<<<<<<fails here 2!=1
+        self.assertEqual(dict_adapter.get_count(), 1)
 
         # Bad index:
         self.assertIsNone(dict_adapter.get_data_item(-1))
@@ -1259,8 +1257,6 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertTrue(apple_view.is_selected)
         self.assertTrue(apple_data_item['is_selected'])
 
-
-    #@nottest
     def test_dict_adapter_sorted_keys(self):
 
         list_item_args_converter = \
@@ -1293,7 +1289,7 @@ class AdaptersTestCase(unittest.TestCase):
 
         dict_adapter.sorted_keys = ['Lemon', 'Pear', 'Tangerine']
 
-        ###self.assertEqual(len(dict_adapter.sorted_keys), 3)  # <<<<<<<<<<<<<<<<< fails here 20 != 3
+        self.assertEqual(len(dict_adapter.sorted_keys), 3)
 
         self.assertEqual(sorted(dict_adapter.data),
             ['Apple', 'Avocado', 'Banana', 'Cantaloupe', 'Cherry', 'Grape',
@@ -1302,13 +1298,13 @@ class AdaptersTestCase(unittest.TestCase):
              'Strawberry', 'Tangerine', 'Watermelon'])
 
         lemon_view = dict_adapter.get_view(0)
-        ###self.assertEqual(lemon_view.text, 'Lemon')  # <<<<<<<<<<<<<<<<<<< fails here 'Apple' != 'Lemon'
+        self.assertEqual(lemon_view.text, 'Lemon')
 
         pear_view = dict_adapter.get_view(1)
-        ###self.assertEqual(pear_view.text, 'Pear') #<<<<<<<<<<<<<<<<<<<<<< fails here 'Avocado' != 'Pear'
+        self.assertEqual(pear_view.text, 'Pear')
 
         tangerine_view = dict_adapter.get_view(2)
-        ###self.assertEqual(tangerine_view.text, 'Tangerine') #<<<<<<<<<<<<<<<< fails here 'Banana' != 'Tangerine'
+        self.assertEqual(tangerine_view.text, 'Tangerine')
 
     def test_dict_adapter_operations_trimming(self):
         alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
