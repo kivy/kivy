@@ -108,7 +108,7 @@ software.
 NPOT texture
 ------------
 
-.. versionadded:: 1.0.7
+.. versionchanged:: 1.0.7
 
     If your hardware supports NPOT, no POT is created.
 
@@ -1028,6 +1028,7 @@ cdef class Texture:
         .. versionadded:: 1.7.0
 
         .. versionchanged:: 1.8.0
+
             Parameter `flipped` added, default to True. All the OpenGL Texture
             are readed from bottom / left, it need to be flipped before saving.
             If you don't want to flip the image, set flipped to False.
@@ -1179,7 +1180,7 @@ cdef class Texture:
 
     property pixels:
         '''Get the pixels texture, in RGBA format only, unsigned byte. The
-        origin of the image is at bottom / left.
+        origin of the image is at bottom left.
 
         .. versionadded:: 1.7.0
         '''

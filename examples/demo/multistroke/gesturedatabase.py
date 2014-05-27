@@ -147,7 +147,7 @@ class GestureDatabase(GridLayout):
             self.info_popup.text = 'Missing filename'
             self.info_popup.open()
             return
-        elif not string.lower(path).endswith('.kg'):
+        elif not string_lower(path).endswith('.kg'):
             path += '.kg'
 
         self.save_selection_to_file(path)

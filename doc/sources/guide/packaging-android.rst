@@ -7,9 +7,10 @@ Create a package for Android
 You can create a package for android using the `python-for-android
 <https://github.com/kivy/python-for-android>`_ project. This page explains how to
 download and use it directly on your own machine (see
-:ref:`Packaging your application into APK`), use the prebuilt :ref:`testdrive` virtual
-machine image, or use the :ref:`buildozer` tool to automate the entire
-process. You can also see :ref:`Packaging your application for Kivy Launcher` to run kivy
+:ref:`Packaging your application into APK`), use the prebuilt
+:ref:`Kivy Android VM <kivy_android_vm>` image, or
+use the :ref:`buildozer` tool to automate the entire process. You can also see
+:ref:`Packaging your application for Kivy Launcher` to run kivy
 programs without compiling them.
 
 .. _Packaging your application into APK:
@@ -132,14 +133,6 @@ http://developer.android.com/guide/publishing/app-signing.html
 The release binary will be generated in
 bin/KivyTouchtracer-1.1.0-release-unsigned.apk (for the previous touchtracer example.)
 
-.. _testdrive:
-
-TestDrive
----------
-
-We provide a VirtualBox Image with python-for-android along with
-the Android SDK and NDK preinstalled to ease your installation woes. You can
-download it from `here <http://kivy.org/#download>`_.
 
 Once the VM is loaded, you can follow the instructions from
 :ref:`Packaging your application into APK`. You don't need to download
