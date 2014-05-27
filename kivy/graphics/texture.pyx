@@ -855,7 +855,8 @@ cdef class Texture:
             `mipmap_generation`: bool, defaults to False
                 Indicate if we need to regenerate the mipmap from level 0.
 
-        .. versionadded:: 1.0.7
+        .. versionchanged:: 1.0.7
+
             added `mipmap_level` and `mipmap_generation`
 
         .. versionchanged:: 1.8.1
