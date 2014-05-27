@@ -107,12 +107,17 @@ class Scatter(Widget):
         `on_transform_with_touch`:
             Fired when the scatter has been transformed by user touch
             or multitouch, such as panning or zooming.
+        `on_bring_to_front`:
+            Fired when the scatter is brought to front
+
+    .. versionchanged:: 1.8.1
+        Event `on_bring_to_front` added.
 
     .. versionchanged:: 1.8.0
         Event `on_transform_with_touch` added.
     '''
 
-    __events__ = ('on_transform_with_touch',)
+    __events__ = ('on_transform_with_touch', 'on_bring_to_front')
 
     auto_bring_to_front = BooleanProperty(True)
     '''If True, the widget will be automatically pushed on the top of parent
@@ -458,12 +463,15 @@ class Scatter(Widget):
             changed = True
         return changed
 
-    def _bring_to_front(self):
+    def _bring_to_front(self, touch):
         # auto bring to front
         if self.auto_bring_to_front and self.parent:
             parent = self.parent
+            if parent.children[0] is self:
+                return
             parent.remove_widget(self)
             parent.add_widget(self)
+            self.dispatch('on_bring_to_front', touch)
 
     def on_touch_down(self, touch):
         x, y = touch.x, touch.y
@@ -478,7 +486,7 @@ class Scatter(Widget):
         touch.apply_transform_2d(self.to_local)
         if super(Scatter, self).on_touch_down(touch):
             touch.pop()
-            self._bring_to_front()
+            self._bring_to_front(touch)
             return True
         touch.pop()
 
@@ -495,7 +503,7 @@ class Scatter(Widget):
                 return False
 
         # grab the touch so we get all it later move events for sure
-        self._bring_to_front()
+        self._bring_to_front(touch)
         touch.grab(self)
         self._touches.append(touch)
         self._last_touch_pos[touch] = touch.pos
@@ -534,6 +542,18 @@ class Scatter(Widget):
             `touch`: the touch object which triggered the transformation.
 
         .. versionadded:: 1.8.0
+        '''
+        pass
+
+    def on_bring_to_front(self, touch):
+        '''
+        Called when a touch event causes the scatter to be brought to
+        front of the parent (only if :attr:`auto_bring_to_front` is True)
+
+        :Parameters:
+            `touch`: the touch object which brought the scatter to front.
+
+        .. versionadded:: 1.8.1
         '''
         pass
 
