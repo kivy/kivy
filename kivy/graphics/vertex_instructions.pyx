@@ -50,7 +50,7 @@ This module includes all the classes for drawing simple vertex objects.
 '''
 
 __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
-           'Point', 'Mesh', 'GraphicException', 'Bezier')
+           'Point', 'Mesh', 'GraphicException', 'Bezier', 'SmoothLine')
 
 
 include "config.pxi"
