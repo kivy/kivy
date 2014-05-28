@@ -22,7 +22,7 @@ This section describes how to download and use python-for-android directly.
 
 You'll need:
 
-- A linux computer or virtual machine
+- A linux computer or a :ref:`virtual machine <kivy_android_vm>`
 - Java
 - Python 2.7 (not 2.6.)
 - Jinja2 (python module)
