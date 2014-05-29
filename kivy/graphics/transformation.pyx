@@ -190,6 +190,22 @@ cdef class Matrix:
             double near, double far, int perspective):
         '''Create a clip matrix (inplace).
 
+        :Parameters:
+            `left`: float
+				???
+            `right`: float
+				???
+			`bottom`: float
+				???
+			`top`: float
+				???
+			`near`: float
+				???
+			`far`: float
+				???
+			`perpective`: int
+				???
+
         .. versionchanged:: 1.6.0
             Enable support for perspective parameter.
         '''
@@ -242,6 +258,26 @@ cdef class Matrix:
           double centerx, double centery, double centerz,
           double upx, double upy, double upz):
         '''Returns a new lookat Matrix (similar to gluLookAt)
+
+        :Parameters:
+			`eyex`: float
+				???			
+			`eyey`: float
+				???
+			`eyez`: float
+				???
+			`centerx`: float
+				???
+			`centery`: float
+				???
+			`centerz`: float
+				???
+          	`upx`: float
+				???
+			`upy`: float
+				???
+			`upz`: float
+				???
 
         .. versionadded:: 1.6.0
         '''
