@@ -205,3 +205,23 @@ The file `android.txt` must contain::
     author=<Your Name>
     orientation=<portrait|landscape>
 
+Targetting Android
+------------------
+
+Kivy is designed to operate identically across platforms and as a result, makes
+some clear design decisions. It includes it's own set of widgets and by default,
+builds an APK with all the required core dependencies and libraries.
+
+If you do not intend to support other operating systems, there are a few
+projects that can help you access native Android functionality and even decrease
+your APK size. The following projects can get you started.
+
+* `Pyjyius <https://github.com/kivy/pyjnius>`_: Access Java classes from Python!
+* `Kivy Android Nativer <https://github.com/knappador/kivy-android-nativer>`_:
+  Access native Kivy widgets, Twitter, Facebook, Billing, Toast and more.
+* `Kivy Dailog <https://github.com/knappador/kivy-dialog>`_:
+  Build dialogs using Android API with PyJNIus.
+
+You can find more Android related projects in `Knappadors Github Resposities <https://github.com/knappador?tab=repositories>`_.
+
+    
