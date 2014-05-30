@@ -12,6 +12,9 @@ currently support:
 - clip matrix (with or without perspective)
 - transformation matrix for 3d touch
 
+For more information on transformation matrices, please see the
+`OpenGL Matrices Tutorial <http://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/>`_.
+
 .. versionchanged:: 1.6.0
    Added :meth:`Matrix.perspective`, :meth:`Matrix.look_at` and
    :meth:`Matrix.transpose`.
@@ -58,18 +61,17 @@ cdef class Matrix:
 
     cpdef Matrix rotate(Matrix self, double angle, double x, double y, double z):
         '''Rotate the matrix through the angle around the axis (x, y, z)
-		(inplace).
+        (inplace).
 
         :Parameters:
-			`angle`: float
-				The angle through which to rotate the matrix
+            `angle`: float
+                The angle through which to rotate the matrix
             `x`: float
                 X position of the point
             `y`: float
                 Y position of the point
-			`z`: float
+            `z`: float
                 Z position of the point
-
         '''
         cdef double d, c, s, co, ox, oy, oz, f1, f2, f3, f4, f5, f6, f7, f8, f9
         with nogil:
@@ -122,12 +124,12 @@ cdef class Matrix:
 
         :Parameters:
             `x`: float
-       			The scale factor along the X axis         
+                The scale factor along the X axis         
             `y`: float
                 The scale factor along the Y axis
-			`z`: float
-        		The scale factor along the Z axis        
-		'''
+            `z`: float
+                The scale factor along the Z axis        
+        '''
         with nogil:
             self.mat[ 0] *= x;
             self.mat[ 5] *= y;
@@ -139,12 +141,12 @@ cdef class Matrix:
 
         :Parameters:
             `x`: float
-       			The translation factor along the X axis         
+                The translation factor along the X axis         
             `y`: float
                 The translation factor along the Y axis
-			`z`: float
-        		The translation factor along the Z axis
-		'''
+            `z`: float
+                The translation factor along the Z axis
+            '''
         with nogil:
             self.mat[12] += x
             self.mat[13] += y
@@ -157,13 +159,13 @@ cdef class Matrix:
 
         :Parameters:
             `fovy`: float
-				???
+                "Field Of View" angle
             `aspect`: float
-				???
-			`zNear`: float
-				???
-			`zFar`: float
-				???
+                Aspect ratio
+            `zNear`: float
+                Near clipping plane
+            `zFar`: float
+                Far clippin plane
 
         .. versionadded:: 1.6.0
         '''
@@ -192,19 +194,19 @@ cdef class Matrix:
 
         :Parameters:
             `left`: float
-				???
+                Co-ordinate
             `right`: float
-				???
-			`bottom`: float
-				???
-			`top`: float
-				???
-			`near`: float
-				???
-			`far`: float
-				???
-			`perpective`: int
-				???
+                Co-ordinate
+            `bottom`: float
+                Co-ordinate
+            `top`: float
+                Co-ordinate
+            `near`: float
+                Co-ordinate
+            `far`: float
+                Co-ordinate
+            `perpective`: int
+                Co-ordinate
 
         .. versionchanged:: 1.6.0
             Enable support for perspective parameter.
@@ -257,27 +259,28 @@ cdef class Matrix:
     cpdef look_at(Matrix self, double eyex, double eyey, double eyez,
           double centerx, double centery, double centerz,
           double upx, double upy, double upz):
-        '''Returns a new lookat Matrix (similar to gluLookAt)
+        '''Returns a new lookat Matrix (similar to
+        `gluLookAt <http://www.opengl.org/sdk/docs/man2/xhtml/gluLookAt.xml>`_).
 
         :Parameters:
-			`eyex`: float
-				???			
-			`eyey`: float
-				???
-			`eyez`: float
-				???
-			`centerx`: float
-				???
-			`centery`: float
-				???
-			`centerz`: float
-				???
-          	`upx`: float
-				???
-			`upy`: float
-				???
-			`upz`: float
-				???
+            `eyex`: float
+                Eyes X co-ordinate
+            `eyey`: float
+                Eyes Y co-ordinate
+            `eyez`: float
+                Eyes Z co-ordinate
+            `centerx`: float
+                The X position of the reference point
+            `centery`: float
+                The Y position of the reference point
+            `centerz`: float
+                The Z position of the reference point
+            `upx`: float
+                The X value up vector.
+            `upy`: float
+                The Y value up vector.
+            `upz`: float
+                The Z value up vector.
 
         .. versionadded:: 1.6.0
         '''
@@ -453,6 +456,10 @@ cdef class Matrix:
         the result (not inplace)::
 
             m.multiply(n) -> n * m
+            
+        :Parameters:
+            `ma`: Matrix
+                The matrix to multiply by
         '''
         cdef Matrix mr = Matrix()
         cdef double *a = <double *>ma.mat
@@ -480,6 +487,26 @@ cdef class Matrix:
     cpdef project(Matrix self, double objx, double objy, double objz, Matrix model, Matrix proj,
             double vx, double vy, double vw, double vh):
         '''Project a point from 3d space into a 2d viewport.
+        
+        :Parameters:
+            `objx`: float
+                Points X co-ordinate
+            `objy`: float
+                Points Y co-ordinate
+            `objz`: float
+                Points Z co-ordinate
+            `model`: Matrix
+                The model matrix
+            `proj`: Matrix
+                The projection matrix
+            `vx`: float
+                Viewports X co-ordinate
+            `vy`: float
+                Viewports y co-ordinate
+            `vw`: float
+                Viewports width
+            `vh`: float
+                Viewports height
 
         .. versionadded:: 1.7.0
         '''
