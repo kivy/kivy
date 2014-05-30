@@ -12,6 +12,9 @@ currently support:
 - clip matrix (with or without perspective)
 - transformation matrix for 3d touch
 
+Fore more information on the Transformation Matrix, please see the
+`OpenGL Matrices Trutorial <http://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/>`_.
+
 .. versionchanged:: 1.6.0
    Added :meth:`Matrix.perspective`, :meth:`Matrix.look_at` and
    :meth:`Matrix.transpose`.
@@ -156,9 +159,13 @@ cdef class Matrix:
 
         :Parameters:
             `fovy`: float
+                "Field Of View" angle
             `aspect`: float
+                Aspect ratio
             `zNear`: float
+                Near clipping plane
             `zFar`: float
+                Far clippin plane
 
         .. versionadded:: 1.6.0
         '''
@@ -187,12 +194,19 @@ cdef class Matrix:
 
         :Parameters:
             `left`: float
+                Co-ordinate
             `right`: float
+                Co-ordinate
             `bottom`: float
+                Co-ordinate
             `top`: float
+                Co-ordinate
             `near`: float
+                Co-ordinate
             `far`: float
+                Co-ordinate
             `perpective`: int
+                Co-ordinate
 
         .. versionchanged:: 1.6.0
             Enable support for perspective parameter.
@@ -245,18 +259,28 @@ cdef class Matrix:
     cpdef look_at(Matrix self, double eyex, double eyey, double eyez,
           double centerx, double centery, double centerz,
           double upx, double upy, double upz):
-        '''Returns a new lookat Matrix (similar to gluLookAt)
+        '''Returns a new lookat Matrix (similar to
+        `gluLookAt <http://www.opengl.org/sdk/docs/man2/xhtml/gluLookAt.xml>`_).
 
         :Parameters:
             `eyex`: float
+                Eyes X co-ordinate
             `eyey`: float
+                Eyes Y co-ordinate
             `eyez`: float
+                Eyes Z co-ordinate
             `centerx`: float
+                The X position of the reference point
             `centery`: float
+                The Y position of the reference point
             `centerz`: float
-            `upx` float
+                The Z position of the reference point
+            `upx`: float
+                The X value up vector.
             `upy`: float
+                The Y value up vector.
             `upz`: float
+                The Z value up vector.
 
         .. versionadded:: 1.6.0
         '''
@@ -435,6 +459,7 @@ cdef class Matrix:
             
         :Parameters:
             `ma`: Matrix
+                The matrix to multiply by
         '''
         cdef Matrix mr = Matrix()
         cdef double *a = <double *>ma.mat
@@ -465,14 +490,23 @@ cdef class Matrix:
         
         :Parameters:
             `objx`: float
+                Points X co-ordinate
             `objy`: float
+                Points Y co-ordinate
             `objz`: float
+                Points Z co-ordinate
             `model`: Matrix
+                The model matrix
             `proj`: Matrix
+                The projection matrix
             `vx`: float
+                Viewports X co-ordinate
             `vy`: float
+                Viewports y co-ordinate
             `vw`: float
+                Viewports width
             `vh`: float
+                Viewports height
 
         .. versionadded:: 1.7.0
         '''
