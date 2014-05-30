@@ -4,10 +4,10 @@
 Transformation
 ==============
 
-This module contains a Matrix class used for our Graphics calculation. We
+This module contains a Matrix class used for our Graphics calculations. We
 currently support:
 
-- rotation, translation and scaling matrix
+- rotation, translation and scaling matrices
 - multiplication matrix
 - clip matrix (with or without perspective)
 - transformation matrix for 3d touch
@@ -57,7 +57,19 @@ cdef class Matrix:
         self.identity()
 
     cpdef Matrix rotate(Matrix self, double angle, double x, double y, double z):
-        '''Rotate the matrix with the angle around the axis (x, y, z).
+        '''Rotate the matrix through the angle around the axis (x, y, z)
+		(inplace).
+
+        :Parameters:
+			`angle`: float
+				The angle through which to rotate the matrix
+            `x`: float
+                X position of the point
+            `y`: float
+                Y position of the point
+			`z`: float
+                Z position of the point
+
         '''
         cdef double d, c, s, co, ox, oy, oz, f1, f2, f3, f4, f5, f6, f7, f8, f9
         with nogil:
@@ -107,7 +119,15 @@ cdef class Matrix:
     cpdef Matrix scale(Matrix self, double x, double y, double z):
         '''Scale the current matrix by the specified factors over
         each dimension (inplace).
-        '''
+
+        :Parameters:
+            `x`: float
+       			The scale factor along the X axis         
+            `y`: float
+                The scale factor along the Y axis
+			`z`: float
+        		The scale factor along the Z axis        
+		'''
         with nogil:
             self.mat[ 0] *= x;
             self.mat[ 5] *= y;
@@ -116,7 +136,15 @@ cdef class Matrix:
 
     cpdef Matrix translate(Matrix self, double x, double y, double z):
         '''Translate the matrix.
-        '''
+
+        :Parameters:
+            `x`: float
+       			The translation factor along the X axis         
+            `y`: float
+                The translation factor along the Y axis
+			`z`: float
+        		The translation factor along the Z axis
+		'''
         with nogil:
             self.mat[12] += x
             self.mat[13] += y
@@ -126,6 +154,16 @@ cdef class Matrix:
     cpdef Matrix perspective(Matrix self, double fovy, double aspect,
             double zNear, double zFar):
         '''Creates a perspective matrix (inplace).
+
+        :Parameters:
+            `fovy`: float
+				???
+            `aspect`: float
+				???
+			`zNear`: float
+				???
+			`zFar`: float
+				???
 
         .. versionadded:: 1.6.0
         '''
@@ -151,6 +189,22 @@ cdef class Matrix:
             double bottom, double top,
             double near, double far, int perspective):
         '''Create a clip matrix (inplace).
+
+        :Parameters:
+            `left`: float
+				???
+            `right`: float
+				???
+			`bottom`: float
+				???
+			`top`: float
+				???
+			`near`: float
+				???
+			`far`: float
+				???
+			`perpective`: int
+				???
 
         .. versionchanged:: 1.6.0
             Enable support for perspective parameter.
@@ -204,6 +258,26 @@ cdef class Matrix:
           double centerx, double centery, double centerz,
           double upx, double upy, double upz):
         '''Returns a new lookat Matrix (similar to gluLookAt)
+
+        :Parameters:
+			`eyex`: float
+				???			
+			`eyey`: float
+				???
+			`eyez`: float
+				???
+			`centerx`: float
+				???
+			`centery`: float
+				???
+			`centerz`: float
+				???
+          	`upx`: float
+				???
+			`upy`: float
+				???
+			`upz`: float
+				???
 
         .. versionadded:: 1.6.0
         '''
