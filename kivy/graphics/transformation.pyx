@@ -156,13 +156,9 @@ cdef class Matrix:
 
         :Parameters:
             `fovy`: float
-                ???
             `aspect`: float
-                ???
             `zNear`: float
-                ???
             `zFar`: float
-                ???
 
         .. versionadded:: 1.6.0
         '''
@@ -191,19 +187,12 @@ cdef class Matrix:
 
         :Parameters:
             `left`: float
-                ???
             `right`: float
-                ???
             `bottom`: float
-                ???
             `top`: float
-                ???
             `near`: float
-                ???
             `far`: float
-                ???
             `perpective`: int
-                ???
 
         .. versionchanged:: 1.6.0
             Enable support for perspective parameter.
@@ -260,23 +249,14 @@ cdef class Matrix:
 
         :Parameters:
             `eyex`: float
-                ???
             `eyey`: float
-                ???
             `eyez`: float
-                ???
             `centerx`: float
-                ???
             `centery`: float
-                ???
             `centerz`: float
-                ???
             `upx` float
-                ???
             `upy`: float
-                ???
             `upz`: float
-                ???
 
         .. versionadded:: 1.6.0
         '''
@@ -452,6 +432,9 @@ cdef class Matrix:
         the result (not inplace)::
 
             m.multiply(n) -> n * m
+            
+        :Parameters:
+            `ma`: Matrix
         '''
         cdef Matrix mr = Matrix()
         cdef double *a = <double *>ma.mat
@@ -479,6 +462,17 @@ cdef class Matrix:
     cpdef project(Matrix self, double objx, double objy, double objz, Matrix model, Matrix proj,
             double vx, double vy, double vw, double vh):
         '''Project a point from 3d space into a 2d viewport.
+        
+        :Parameters:
+            `objx`: float
+            `objy`: float
+            `objz`: float
+            `model`: Matrix
+            `proj`: Matrix
+            `vx`: float
+            `vy`: float
+            `vw`: float
+            `vh`: float
 
         .. versionadded:: 1.7.0
         '''
