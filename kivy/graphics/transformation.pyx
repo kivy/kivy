@@ -12,7 +12,7 @@ currently support:
 - clip matrix (with or without perspective)
 - transformation matrix for 3d touch
 
-Fore more information on transformation matrices, please see the
+For more information on transformation matrices, please see the
 `OpenGL Matrices Tutorial <http://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/>`_.
 
 .. versionchanged:: 1.6.0
