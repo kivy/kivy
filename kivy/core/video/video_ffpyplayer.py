@@ -102,7 +102,6 @@ class VideoFFPy(VideoBase):
         self._thread = None
         self._next_frame = None
         self._ffplayer_need_quit = False
-        self.quitted = False
         self._log_callback_set = False
         self._callback_ref = WeakMethod(self._player_callback)
         self._trigger = Clock.create_trigger(self._redraw)
@@ -123,7 +122,6 @@ class VideoFFPy(VideoBase):
             return
         if selector == 'quit':
             def close(*args):
-                self.quitted = True
                 self.unload()
             Clock.schedule_once(close, 0)
 
@@ -160,6 +158,10 @@ class VideoFFPy(VideoBase):
             self.position = 0
 
         self.dispatch('on_eos')
+
+    @mainthread
+    def _change_state(self, state):
+        self._state = state
 
     def _redraw(self, *args):
         if not self._ffplayer:
@@ -213,8 +215,46 @@ class VideoFFPy(VideoBase):
         sleep = time.sleep
         trigger = self._trigger
         did_dispatch_eof = False
-        while self._ffplayer is ffplayer and not self._ffplayer_need_quit:
+
+        # fast path, if the source video is yuv420p, we'll use a glsl shader for
+        # buffer conversion to rgba
+        while not self._ffplayer_need_quit:
+            src_pix_fmt = ffplayer.get_metadata().get('src_pix_fmt')
+            if not src_pix_fmt:
+                sleep(0.005)
+                continue
+
+            if src_pix_fmt == 'yuv420p':
+                self._out_fmt = 'yuv420p'
+                ffplayer.set_output_pix_fmt(self._out_fmt)
+            self._ffplayer.toggle_pause()
+            break
+
+        if self._ffplayer_need_quit:
+            return
+
+        # wait until loaded or failed, shouldn't take long, but just to make
+        # sure metadata is available.
+        s = time.clock()
+        while not self._ffplayer_need_quit:
+            if ffplayer.get_metadata()['src_vid_size'] != (0, 0):
+                break
+            # XXX if will fail later then?
+            if time.clock() - s > 10.:
+                break
+            sleep(0.005)
+
+        if self._ffplayer_need_quit:
+            return
+
+        # we got all the informations, now, get the frames :)
+        self._change_state('playing')
+
+        while not self._ffplayer_need_quit:
+            t1 = time.time()
             frame, val = ffplayer.get_frame()
+            t2 = time.time()
+            print 'GET FRAME in {:.6f}'.format(t2 - t1)
             if val == 'eof':
                 sleep(0.2)
                 if not did_dispatch_eof:
@@ -252,6 +292,7 @@ class VideoFFPy(VideoBase):
             self._ffplayer.toggle_pause()
             self._state = 'playing'
             return
+
         self.load()
         self._out_fmt = 'rgba'
         ff_opts = {
@@ -265,45 +306,19 @@ class VideoFFPy(VideoBase):
 
         self._thread = Thread(target=self._next_frame_run, name='Next frame')
         self._thread.start()
-        player = self._ffplayer
-
-        # fast path, if the source video is yuv420p, we'll use a glsl shader for
-        # buffer conversion to rgba
-        while True:
-            src_pix_fmt = player.get_metadata().get('src_pix_fmt')
-            if not src_pix_fmt:
-                time.sleep(0.005)
-                continue
-
-            if src_pix_fmt == 'yuv420p':
-                self._out_fmt = 'yuv420p'
-                player.set_output_pix_fmt(self._out_fmt)
-            self._ffplayer.toggle_pause()
-            break
-
-        # wait until loaded or failed, shouldn't take long, but just to make
-        # sure metadata is available.
-        s = time.clock()
-        while (player.get_metadata()['src_vid_size'] == (0, 0)
-               and not self.quitted and time.clock() - s < 10.):
-            time.sleep(0.005)
-
-        self._state = 'playing'
 
     def load(self):
         self.unload()
 
     def unload(self):
         Clock.unschedule(self._redraw)
+        self._ffplayer_need_quit = True
         if self._thread:
-            self._ffplayer_need_quit = True
             self._thread.join()
-            self._ffplayer_need_quit = False
             self._thread = None
         if self._ffplayer:
             self._ffplayer = None
-        self._ffplayer_need_quit = False
         self._next_frame = None
         self._size = (0, 0)
         self._state = ''
-        self.quitted = False
+        self._ffplayer_need_quit = False
