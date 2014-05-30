@@ -12,8 +12,8 @@ currently support:
 - clip matrix (with or without perspective)
 - transformation matrix for 3d touch
 
-Fore more information on the Transformation Matrix, please see the
-`OpenGL Matrices Trutorial <http://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/>`_.
+Fore more information on transformation matrices, please see the
+`OpenGL Matrices Tutorial <http://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/>`_.
 
 .. versionchanged:: 1.6.0
    Added :meth:`Matrix.perspective`, :meth:`Matrix.look_at` and
