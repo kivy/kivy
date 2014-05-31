@@ -760,10 +760,8 @@
                 # white border to see that there's a color tile at dark colors e.g. black
                 Color:
                     rgba: (1,1,1,1.)
-                Rectangle:
-                    pos: (self.pos[0] - 1, self.pos[1] - 1)
-                    size: (self.width + 2, self.height + 2)
-
+                Line:
+                    rectangle: self.x,self.y,self.width,self.height
                 Color: 
                     rgba: get_color(root.value) if root.value else (1,1,1,1.) 
                 Rectangle:
