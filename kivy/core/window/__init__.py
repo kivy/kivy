@@ -129,7 +129,10 @@ class Keyboard(EventDispatcher):
 
     def _on_window_key_down(self, instance, keycode, scancode, text,
                             modifiers):
+        
         keycode = (keycode, self.keycode_to_string(keycode))
+        if text == '\x04':
+            return
         return self.dispatch('on_key_down', keycode, text, modifiers)
 
     def _on_window_key_up(self, instance, keycode, *largs):
@@ -492,7 +495,7 @@ class WindowBase(EventDispatcher):
 
         # mark as initialized
         self.initialized = True
-
+    
     def toggle_fullscreen(self):
         '''Toggle fullscreen on window'''
         pass
