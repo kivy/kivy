@@ -526,6 +526,8 @@ class SettingColor(SettingItem):
     It is visualized with a :class:`~kivy.uix.label.Label` widget and a colored canvas rectangle 
     that, when clicked, will open a :class:`~kivy.uix.popup.Popup` with a
     :class:`~kivy.uix.colorpicker.ColorPicker` so the user can choose a color.
+
+    .. versionadded:: 1.8.1
     '''
 
     popup = ObjectProperty(None, allownone=True)
