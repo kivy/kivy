@@ -10,7 +10,7 @@ before the children are drawn and the previous matrix is restored when the
 drawing is finished. That makes it possible to perform rotation, scaling and
 translation over the entire children tree without changing any widget
 properties.
-
+/
 That specific behavior makes the scatter unique, but there are some
 advantages / constraints that you should consider:
 
@@ -388,14 +388,21 @@ class Scatter(Widget):
         state).
 
         :Parameters:
-            `trans`: transformation matrix from transformation lib.
-                Transformation to be applied to the scatter widget.
+            `trans`: :class:`Matrix <~kivy.graphics.transformation.Matrix>`
+                Transformation matix to be applied to the scatter widget.
             `anchor`: tuple, defaults to (0, 0).
                 The point to use as the origin of the transformation
                 (uses local widget space).
             `post_multiply`: bool, defaults to False.
                 If True, the transform matrix is post multiplied
                 (as if applied before the current transform).
+
+         Usage example::
+
+            from kivy.graphics.transformation import Matrix
+            mat = Matrix().scale(3, 3, 3)
+            scatter_instance.apply_transform(mat)
+
         '''
         t = Matrix().translate(anchor[0], anchor[1], 0)
         t = t.multiply(trans)
