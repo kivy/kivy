@@ -587,7 +587,7 @@ class Scatter(Widget):
 
 
 class ScatterPlane(Scatter):
-    '''This is essentially an unbounded Scatter widget: it's a convenience
+    '''This is essentially an unbounded Scatter widget. It's a convenience
        class to make it easier to handle infinite planes.
     '''
 
