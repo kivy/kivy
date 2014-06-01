@@ -397,7 +397,7 @@ class Scatter(Widget):
                 If True, the transform matrix is post multiplied
                 (as if applied before the current transform).
 
-         Usage example::
+        Usage example::
 
             from kivy.graphics.transformation import Matrix
             mat = Matrix().scale(3, 3, 3)
