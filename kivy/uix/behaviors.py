@@ -644,7 +644,7 @@ class FocusBehavior(object):
     defaults to 'auto'. Can be one of 'auto' or 'managed'.
     '''
 
-    unfocus_on_touch = BooleanProperty(_keyboard_mode != 'multi')
+    unfocus_on_touch = BooleanProperty(_keyboard_mode not in ('multi', 'systemandmulti'))
     '''Whether a instance should lose focus when clicked outside the instance.
 
     When a user clicks on a widget that is focus aware and shares the same
@@ -656,7 +656,7 @@ class FocusBehavior(object):
 
     :attr:`unfocus_on_touch` is a :class:`~kivy.properties.BooleanProperty`,
     defaults to `False` if the `keyboard_mode` in :attr:`~kivy.config.Config`
-    is `'multi'`, otherwise it defaults to `True`.
+    is `'multi'` or `'systemandmulti'`, otherwise it defaults to `True`.
     '''
 
     def __init__(self, **kwargs):
