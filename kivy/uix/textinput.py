@@ -1245,6 +1245,17 @@ class TextInput(FocusBehavior, Widget):
             _textinput_list.remove(wr)
 
     def on_focused(self, instance, value, *largs):
+        self.focus = value
+
+        win = self._win
+        if not win:
+            self._win = win = EventLoop.window
+        if not win:
+            Logger.warning('Textinput: unable to get root window')
+            return
+        self.cancel_selection()
+        self._hide_cut_copy_paste(win)
+
         if value:
             if (not (self.readonly or self.disabled) or _is_desktop and
                 self._keyboard_mode == 'system'):
@@ -1253,15 +1264,9 @@ class TextInput(FocusBehavior, Widget):
             else:
                 self._editable = False
         else:
-            win = self._win
-            if not win:
-                self._win = win = EventLoop.window
-            self.cancel_selection()
             Clock.unschedule(self._do_blink_cursor)
-            self._hide_cut_copy_paste(win)
             self._hide_handles(win)
             self._win = None
-        self.focus = value
 
     def _ensure_clipboard(self):
         global Clipboard
