@@ -378,9 +378,6 @@ class TextInput(FocusBehavior, Widget):
         def set_focused(instance, value):
             self.focused = value
 
-        def set_focus(instance, value):
-            self.focus = value
-
         def handle_readonly(instance, value):
             if value and (not _is_desktop or not self.allow_copy):
                 self.is_focusable = False
@@ -393,7 +390,7 @@ class TextInput(FocusBehavior, Widget):
                   password=self._update_text_options)
 
         self.bind(pos=self._trigger_update_graphics, focus=set_focused,
-                  focused=set_focus, readonly=handle_readonly)
+                  readonly=handle_readonly)
         handle_readonly(self, self.readonly)
 
         self._trigger_position_handles = Clock.create_trigger(
@@ -1264,6 +1261,7 @@ class TextInput(FocusBehavior, Widget):
             self._hide_cut_copy_paste(win)
             self._hide_handles(win)
             self._win = None
+        self.focus = value
 
     def _ensure_clipboard(self):
         global Clipboard
