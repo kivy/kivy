@@ -785,7 +785,7 @@ class FocusBehavior(object):
                 current = getattr(current, focus_dir)
                 if current is self or current is StopIteration:
                     return None  # make sure we don't loop forever
-                if current.is_focusable:
+                if current.is_focusable and not current.disabled:
                     return current
 
             # hit unfocusable, walk widget tree
@@ -799,7 +799,7 @@ class FocusBehavior(object):
             if isinstance(current, FocusBehavior):
                 if current is self:
                     return None
-                if current.is_focusable:
+                if current.is_focusable and not current.disabled:
                     return current
             else:
                 return None
