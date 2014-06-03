@@ -1,4 +1,14 @@
 # pylint: disable=W0611
+'''
+Android Joystick Input Provider
+===============================
+
+This module is based on the PyGame JoyStick input provider, For more
+information, please refer to
+`<http://www.pygame.org/docs/ref/joystick.html>`_
+
+
+'''
 __all__ = ('AndroidMotionEventProvider', )
 
 import os
