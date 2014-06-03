@@ -7,9 +7,10 @@ Create a package for Android
 You can create a package for android using the `python-for-android
 <https://github.com/kivy/python-for-android>`_ project. This page explains how to
 download and use it directly on your own machine (see
-:ref:`Packaging your application into APK`), use the prebuilt :ref:`testdrive` virtual
-machine image, or use the :ref:`buildozer` tool to automate the entire
-process. You can also see :ref:`Packaging your application for Kivy Launcher` to run kivy
+:ref:`Packaging your application into APK`), use the prebuilt
+:ref:`Kivy Android VM <kivy_android_vm>` image, or
+use the :ref:`buildozer` tool to automate the entire process. You can also see
+:ref:`Packaging your application for Kivy Launcher` to run kivy
 programs without compiling them.
 
 .. _Packaging your application into APK:
@@ -132,14 +133,6 @@ http://developer.android.com/guide/publishing/app-signing.html
 The release binary will be generated in
 bin/KivyTouchtracer-1.1.0-release-unsigned.apk (for the previous touchtracer example.)
 
-.. _testdrive:
-
-TestDrive
----------
-
-We provide a VirtualBox Image with python-for-android along with
-the Android SDK and NDK preinstalled to ease your installation woes. You can
-download it from `here <http://kivy.org/#download>`_.
 
 Once the VM is loaded, you can follow the instructions from
 :ref:`Packaging your application into APK`. You don't need to download
@@ -212,3 +205,23 @@ The file `android.txt` must contain::
     author=<Your Name>
     orientation=<portrait|landscape>
 
+Targetting Android
+------------------
+
+Kivy is designed to operate identically across platforms and as a result, makes
+some clear design decisions. It includes it's own set of widgets and by default,
+builds an APK with all the required core dependencies and libraries.
+
+If you do not intend to support other operating systems, there are a few
+projects that can help you access native Android functionality and even decrease
+your APK size. The following projects can get you started.
+
+* `Pyjyius <https://github.com/kivy/pyjnius>`_: Access Java classes from Python!
+* `Kivy Android Nativer <https://github.com/knappador/kivy-android-nativer>`_:
+  Access native Kivy widgets, Twitter, Facebook, Billing, Toast and more.
+* `Kivy Dailog <https://github.com/knappador/kivy-dialog>`_:
+  Build dialogs using Android API with PyJNIus.
+
+You can find more Android related projects in `Knappadors Github Resposities <https://github.com/knappador?tab=repositories>`_.
+
+    

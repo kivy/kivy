@@ -293,7 +293,7 @@ class ConfigParser(PythonConfigParser, object):
     def remove_callback(self, callback, section=None, key=None):
         '''Removes a callback added with :meth:`add_callback`.
         :meth:`remove_callback` must be called with the same parameters as
-        :math:`add_callback`.
+        :meth:`add_callback`.
 
         Raises a `ValueError` if not found.
 

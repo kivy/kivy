@@ -9,6 +9,7 @@ Packaging your application
     packaging-windows
     packaging-macosx
     packaging-android
+    packaging-android-vm
     packaging-ios
     packaging-ios-prerequisites
     packaging-ios-compile

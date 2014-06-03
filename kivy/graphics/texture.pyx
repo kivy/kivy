@@ -42,18 +42,20 @@ Blitting custom data
 --------------------
 
 You can create your own data and blit it to the texture using
-:meth:`Texture.blit_data`::
+:meth:`Texture.blit_buffer`.
+
+For example, to blit immutable bytes data::
 
     # create a 64x64 texture, defaults to rgb / ubyte
     texture = Texture.create(size=(64, 64))
 
-    # create 64x64 rgb tab, and fill with value from 0 to 255
+    # create 64x64 rgb tab, and fill with values from 0 to 255
     # we'll have a gradient from black to white
     size = 64 * 64 * 3
-    buf = [int(x * 255 / size) for x in xrange(size)]
+    buf = [int(x * 255 / size) for x in range(size)]
 
     # then, convert the array to a ubyte string
-    buf = ''.join(map(chr, buf))
+    buf = b''.join(map(chr, buf))
 
     # then blit the buffer
     texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
@@ -62,6 +64,34 @@ You can create your own data and blit it to the texture using
     # if self is a widget, you can do this
     with self.canvas:
         Rectangle(texture=texture, pos=self.pos, size=(64, 64))
+
+Since 1.8.1, you can blit data stored in a instance that implements the python
+buffer interface, or a memoryview thereof, such as numpy arrays, python
+`array.array`, a `bytearray`, or a cython array. This is beneficial if you
+expect to blit similar data, with perhaps a few changes in the data.
+
+When using a bytes representation of the data, for every change you have to
+regenerate the bytes instance, from perhaps a list, which is very inefficient.
+When using a buffer object, you can simply edit parts of the original data.
+Similarly, unless starting with a bytes object, converting to bytes requires a
+full copy, however, when using a buffer instance, no memory is copied, except
+to upload it to the GPU.
+
+Continuing with the example above::
+
+    from array import array
+
+    size = 64 * 64 * 3
+    buf = [int(x * 255 / size) for x in range(size)]
+    # initialize the array with the buffer values
+    arr = array('B', buf)
+    # now blit the array
+    texture.blit_buffer(arr, colorfmt='rgb', bufferfmt='ubyte')
+
+    # now change some elements in the original array
+    arr[24] = arr[50] = 99
+    # blit again the buffer
+    texture.blit_buffer(arr, colorfmt='rgb', bufferfmt='ubyte')
 
 
 BGR/BGRA support
@@ -78,7 +108,7 @@ software.
 NPOT texture
 ------------
 
-.. versionadded:: 1.0.7
+.. versionchanged:: 1.0.7
 
     If your hardware supports NPOT, no POT is created.
 
@@ -192,8 +222,8 @@ __all__ = ('Texture', 'TextureRegion')
 include "config.pxi"
 include "common.pxi"
 include "opengl_utils_def.pxi"
+include "img_tools.pxi"
 
-from array import array
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
 
@@ -410,42 +440,6 @@ cdef inline str _convert_gl_format(x):
     elif x == 'bgra':
         return 'rgba'
     return x
-
-
-cdef inline _convert_buffer(bytes data, fmt):
-    cdef bytes ret_buffer
-    cdef str ret_format
-
-    # if native support of this format is available, use it
-    if gl_has_texture_native_format(fmt):
-        return data, fmt
-
-    # no native support, can we at least convert it ?
-    if not gl_has_texture_conversion(fmt):
-        raise Exception('Unimplemented texture conversion for %s' % fmt)
-
-    # do appropriate conversion, since we accepted it
-    ret_format = fmt
-    ret_buffer = data
-
-    # BGR -> RGB
-    if fmt == 'bgr':
-        ret_format = 'rgb'
-        a = array('b', data)
-        a[0::3], a[2::3] = a[2::3], a[0::3]
-        ret_buffer = a.tostring()
-
-    # BGRA -> RGBA
-    elif fmt == 'bgra':
-        ret_format = 'rgba'
-        a = array('b', data)
-        a[0::4], a[2::4] = a[2::4], a[0::4]
-        ret_buffer = a.tostring()
-
-    else:
-        assert False, 'Non implemented texture conversion !' % fmt
-
-    return ret_buffer, ret_format
 
 
 cdef inline void _gl_prepare_pixels_upload(int width) nogil:
@@ -837,8 +831,15 @@ cdef class Texture:
             called in order to update the texture.
 
         :Parameters:
-            `pbuffer` : str
-                Image data.
+            `pbuffer` : bytes, or a class that implements the buffer interface\
+ (including memoryview).
+                A buffer containing the image data. It can be either a bytes
+                object or a instance of a class that implements the python
+                buffer interface, e.g. `array.array`, `bytearray`, numpy arrays
+                etc. If it's not a bytes object, the underlying buffer must
+                be contiguous, have only one dimension and must not be
+                readonly, even though the data is not modified, due to a cython
+                limitation. See module description for usage details.
             `size` : tuple, defaults to texture size
                 Size of the image (width, height)
             `colorfmt` : str, defaults to 'rgb'
@@ -854,12 +855,17 @@ cdef class Texture:
             `mipmap_generation`: bool, defaults to False
                 Indicate if we need to regenerate the mipmap from level 0.
 
-        .. versionadded:: 1.0.7
+        .. versionchanged:: 1.0.7
 
             added `mipmap_level` and `mipmap_generation`
 
+        .. versionchanged:: 1.8.1
+            `pbuffer` can now be any class instance that implements the python
+            buffer interface and / or memoryviews thereof.
+
         '''
         cdef GLuint target = self._target
+        cdef int glbufferfmt
         if colorfmt is None:
             colorfmt = 'rgb'
         if bufferfmt is None:
@@ -868,27 +874,49 @@ cdef class Texture:
             pos = (0, 0)
         if size is None:
             size = self.size
-        bufferfmt = _buffer_fmt_to_gl(bufferfmt)
+        glbufferfmt = _buffer_fmt_to_gl(bufferfmt)
 
         # bind the texture, and create anything that should be created at this
         # time.
         self.bind()
 
-        # need conversion ?
-        cdef bytes data
-        data = pbuffer
-        data, colorfmt = _convert_buffer(data, colorfmt)
+        # need conversion, do check here because it seems to be faster ?
+        if not gl_has_texture_native_format(colorfmt):
+            pbuffer, colorfmt = convert_to_gl_format(pbuffer, colorfmt)
+        cdef char [:] char_view
+        cdef short [:] short_view
+        cdef int [:] int_view
+        cdef float [:] float_view
+        cdef char *cdata
+        cdef long datasize
+        if isinstance(pbuffer, bytes):  # if it's bytes, just use memory
+            cdata = <bytes>pbuffer  # explicit bytes
+            datasize = len(pbuffer)
+        else:   # if it's a memoryview or buffer type, use start of memory
+            if glbufferfmt == GL_UNSIGNED_BYTE or glbufferfmt == GL_BYTE:
+                char_view = pbuffer
+                cdata = &char_view[0]
+                datasize = char_view.nbytes
+            elif glbufferfmt == GL_SHORT or glbufferfmt == GL_UNSIGNED_SHORT:
+                short_view = pbuffer
+                cdata = <char *>&short_view[0]
+                datasize = short_view.nbytes
+            elif glbufferfmt == GL_INT or glbufferfmt == GL_UNSIGNED_INT:
+                int_view = pbuffer
+                cdata = <char *>&int_view[0]
+                datasize = int_view.nbytes
+            elif glbufferfmt == GL_FLOAT:
+                float_view = pbuffer
+                cdata = <char *>&float_view[0]
+                datasize = float_view.nbytes
 
         # prepare nogil
         cdef int iglfmt = _color_fmt_to_gl(self._icolorfmt)
         cdef int glfmt = _color_fmt_to_gl(colorfmt)
-        cdef long datasize = len(pbuffer)
         cdef int x = pos[0]
         cdef int y = pos[1]
         cdef int w = size[0]
         cdef int h = size[1]
-        cdef char *cdata = <char *>data
-        cdef int glbufferfmt = bufferfmt
         cdef int is_allocated = self._is_allocated
         cdef int is_compressed = _is_compressed_fmt(colorfmt)
         cdef int _mipmap_generation = mipmap_generation and self._mipmap
@@ -1000,6 +1028,7 @@ cdef class Texture:
         .. versionadded:: 1.7.0
 
         .. versionchanged:: 1.8.0
+
             Parameter `flipped` added, default to True. All the OpenGL Texture
             are readed from bottom / left, it need to be flipped before saving.
             If you don't want to flip the image, set flipped to False.
@@ -1151,7 +1180,7 @@ cdef class Texture:
 
     property pixels:
         '''Get the pixels texture, in RGBA format only, unsigned byte. The
-        origin of the image is at bottom / left.
+        origin of the image is at bottom left.
 
         .. versionadded:: 1.7.0
         '''

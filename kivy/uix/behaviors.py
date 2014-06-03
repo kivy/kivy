@@ -454,6 +454,9 @@ class FocusBehavior(object):
 
 
     .. versionadded:: 1.8.1
+
+    .. warning::
+
         This code is still experimental, and its API is subject to change in a
         future version.
     '''
@@ -876,6 +879,9 @@ class CompoundSelectionBehavior(object):
     to :meth:`select_with_touch` to pass on the touch events.
 
     .. versionadded:: 1.8.1
+
+    .. warning::
+
         This code is still experimental, and its API is subject to change in a
         future version.
     '''

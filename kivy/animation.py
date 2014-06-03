@@ -275,7 +275,12 @@ class Animation(EventDispatcher):
         # get current values
         p = d['properties']
         for key, value in self._animated_properties.items():
-            p[key] = (getattr(widget, key), value)
+            original_value = getattr(widget, key)
+            if isinstance(original_value, (tuple, list)):
+                original_value = original_value[:]
+            elif isinstance(original_value, dict):
+                original_value = original_value.copy()
+            p[key] = (original_value, value)
 
         # install clock
         self._clock_install()

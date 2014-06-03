@@ -113,7 +113,8 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties import (StringProperty, ObjectProperty, ListProperty,
                              NumericProperty, DictProperty)
 from kivy.graphics import (RenderContext, Fbo, Color, Rectangle,
-                           Translate, PushMatrix, PopMatrix)
+                           Translate, PushMatrix, PopMatrix, ClearColor,
+                           ClearBuffers)
 from kivy.event import EventDispatcher
 from kivy.base import EventLoop
 from kivy.resources import resource_find
@@ -593,11 +594,12 @@ class EffectWidget(RelativeLayout):
     setting effects and creating your own.
     '''
 
-    background_color = ListProperty((1, 1, 1, 1))
+    background_color = ListProperty((0, 0, 0, 1))
     '''This defines the background color to be used for the fbo in the
     EffectWidget.
 
-    :attr:`background_color` is a :class:`ListProperty` defaults to (1, 1, 1, 1)
+    :attr:`background_color` is a :class:`ListProperty` defaults to
+    (0, 0, 0, 1)
     '''
 
     texture = ObjectProperty(None)
@@ -644,7 +646,9 @@ class EffectWidget(RelativeLayout):
             PushMatrix()
             self.fbo_translation = Translate(-self.x, -self.y, 0)
         with self.fbo:
+            ClearColor(1, 1, 1, 1)
             Color(*self.background_color)
+            ClearBuffers()
             self.fbo_rectangle = Rectangle(size=self.size)
         with self.fbo.after:
             PopMatrix()
@@ -687,9 +691,10 @@ class EffectWidget(RelativeLayout):
             with self.canvas:
                 new_fbo = EffectFbo(size=self.size)
             with new_fbo:
+                ClearColor(1, 1, 1, 1)
                 Color(*self.background_color)
-                new_fbo.texture_rectangle = Rectangle(
-                    size=self.size)
+                ClearBuffers()
+                new_fbo.texture_rectangle = Rectangle(size=self.size)
 
                 new_fbo.texture_rectangle.size = self.size
             self.fbo_list.append(new_fbo)
