@@ -3,7 +3,7 @@
 Android Joystick Input Provider
 ===============================
 
-This module is based on the PyGame JoyStick input provider, For more
+This module is based on the PyGame JoyStick Input Provider. For more
 information, please refer to
 `<http://www.pygame.org/docs/ref/joystick.html>`_
 
@@ -11,7 +11,7 @@ information, please refer to
 '''
 __all__ = ('AndroidMotionEventProvider', )
 
-import os
+import os
 
 try:
     import android  # NOQA
