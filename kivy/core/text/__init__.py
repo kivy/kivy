@@ -540,7 +540,7 @@ class LabelBase(object):
             h = uh
         if h > 1 and w < 2:
             w = 2
-        return w, h
+        return int(w), int(h)
 
     def _texture_refresh(self, *l):
         self.refresh()
