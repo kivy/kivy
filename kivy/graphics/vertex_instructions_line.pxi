@@ -1193,6 +1193,10 @@ cdef class SmoothLine(Line):
     - dash is not supported
     - line under 1px width are not supported, it will look the same
 
+	.. warning::
+
+		This is an unfinished work, experimental, subject to crash.
+
     .. versionadded:: 1.8.1
     '''
 
@@ -1294,8 +1298,6 @@ cdef class SmoothLine(Line):
 
                 ad_angle = abs(pi - abs(angle - last_angle))
 
-                print 'ad_angle', ad_angle
-
             a1 = av_angle - PI2
             a2 = av_angle + PI2
             '''
@@ -1307,8 +1309,8 @@ cdef class SmoothLine(Line):
             osin1 = sin(a1) * owidth
             ocos2 = cos(a2) * owidth
             osin2 = sin(a2) * owidth
-            '''
             print 'angle diff', ad_angle
+            '''
             #l = width
             #ol = owidth
 
@@ -1332,7 +1334,8 @@ cdef class SmoothLine(Line):
                     bx + cos(la2) * width,
                     by + sin(la2) * width,
                     &rx, &ry) == 0:
-                    print 'ERROR LINE INTERSECTION 1'
+                    #print 'ERROR LINE INTERSECTION 1'
+					pass
 
                 l = sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
 
@@ -1346,7 +1349,8 @@ cdef class SmoothLine(Line):
                     bx + cos(ra2) * owidth,
                     by + sin(ra2) * owidth,
                     &rx, &ry) == 0:
-                    print 'ERROR LINE INTERSECTION 2'
+                    #print 'ERROR LINE INTERSECTION 2'
+					pass
 
                 ol = sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
 
@@ -1457,7 +1461,7 @@ cdef class SmoothLine(Line):
             tindices[17] = i7
             tindices = tindices + 18
 
-        print 'tindices', <long>tindices, <long>indices, (<long>tindices - <long>indices) / sizeof(unsigned short)
+        #print 'tindices', <long>tindices, <long>indices, (<long>tindices - <long>indices) / sizeof(unsigned short)
 
 
         self.batch.set_data(vertices, <int>vcount, indices, <int>icount)
