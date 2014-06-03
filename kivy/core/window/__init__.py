@@ -387,8 +387,17 @@ class WindowBase(EventDispatcher):
 
     softinput_mode = OptionProperty('', options=('', 'pan', 'scale', 'resize'))
     '''This specifies the behavior of window contents on display of soft
-    keyboard on mobile platform.
-
+    keyboard on mobile platform. Can be one of '', 'pan', 'scale', 'resize'.
+    
+    When '' The main window is left as it is allowing the user to use
+    :attr:`keyboard_height` to manage the window contents the way they want.
+    
+    when 'pan' The main window pans moving the bottom part of the window to be
+    always on top of the keyboard.
+    
+    when 'resize' The window is resized and the contents scaled to fit the
+    remaining space.
+    
     ..versionadded::1.8.1
 
     :attr:`softinput_mode` is a :class:`OptionProperty` defaults to None.
