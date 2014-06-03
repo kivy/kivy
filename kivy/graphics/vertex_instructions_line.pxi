@@ -1193,9 +1193,9 @@ cdef class SmoothLine(Line):
     - dash is not supported
     - line under 1px width are not supported, it will look the same
 
-	.. warning::
+    .. warning::
 
-		This is an unfinished work, experimental, subject to crash.
+        This is an unfinished work, experimental, subject to crash.
 
     .. versionadded:: 1.8.1
     '''
@@ -1335,7 +1335,7 @@ cdef class SmoothLine(Line):
                     by + sin(la2) * width,
                     &rx, &ry) == 0:
                     #print 'ERROR LINE INTERSECTION 1'
-					pass
+                    pass
 
                 l = sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
 
@@ -1350,7 +1350,7 @@ cdef class SmoothLine(Line):
                     by + sin(ra2) * owidth,
                     &rx, &ry) == 0:
                     #print 'ERROR LINE INTERSECTION 2'
-					pass
+                    pass
 
                 ol = sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
 
