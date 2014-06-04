@@ -11,6 +11,12 @@ For installing distribution relative packages .deb/.rpm/...
 Ubuntu / Kubuntu / Xubuntu / Lubuntu (Oneiric and above)
 --------------------------------------------------------
 
+0. In case you want to use Python3, add this Pygame PPA before
+    ``$ sudo add-apt-repository ppa:thopiekar/pygame``
+    
+    ** These Pygame packages are neither provided nor supported by the Kivy project.
+    ** Please contact the creator of the package(s) or maintainer of the sourcecode for further help.
+
 #. Add one of the PPAs as you prefer
 
     :stable builds:
