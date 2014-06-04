@@ -17,6 +17,7 @@ class ImageLoaderTex(ImageLoaderBase):
         return ('tex', )
 
     def load(self, filename):
+        fd = None
         try:
             fd = open(filename, 'rb')
             if fd.read(4) != 'KTEX':
@@ -35,6 +36,9 @@ class ImageLoaderTex(ImageLoaderBase):
         except:
             Logger.warning('Image: Image <%s> is corrupted' % filename)
             raise
+        finally:
+            if fd:
+                fd.close()
 
         width, height = info['image_size']
         tw, th = info['texture_size']

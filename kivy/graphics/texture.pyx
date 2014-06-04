@@ -224,6 +224,7 @@ include "common.pxi"
 include "opengl_utils_def.pxi"
 include "img_tools.pxi"
 
+import os
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
 
@@ -231,6 +232,50 @@ from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.opengl_utils cimport *
+
+
+cdef extern from "sys/mman.h":
+    void *mmap(void *start, int length, int prot, int flags, int fd, int offset)
+    int munmap(void *addr, int length)
+    cdef int PROT_READ
+    cdef int MAP_PRIVATE
+
+cdef class Mmap:
+    def __init__(self, filename, datasize):
+        self.fd = -1
+        self.ptr = NULL
+        self.filename = filename
+        self.datasize = datasize
+
+    def __dealloc__(self):
+        if self.ptr != NULL:
+            print 'munmap() (dealloc)', <long>self.ptr
+            munmap(self.ptr, self.datasize)
+            self.ptr = NULL
+        if self.fd != -1:
+            os.close(self.fd)
+            self.fd = -1
+
+    cdef void *mmap(self):
+        if self.ptr:
+            return self.ptr
+        flags = os.O_RDONLY
+        if hasattr(os, 'O_BINARY'):
+            flags |= os.O_BINARY
+        self.fd = os.open(<bytes>self.filename.encode('utf-8'), flags)
+        self.ptr = mmap(NULL, self.datasize, PROT_READ, MAP_PRIVATE, self.fd, 0)
+        print 'mmap()', <long>self.ptr
+        return self.ptr
+
+    def close(self):
+        if self.ptr != NULL:
+            print 'munmap() (close)', <long>self.ptr
+            munmap(self.ptr, self.datasize)
+            self.ptr = NULL
+        if self.fd != -1:
+            os.close(self.fd)
+            self.fd = -1
+
 
 # update flags
 cdef int TI_MIN_FILTER      = 1 << 0
@@ -594,6 +639,7 @@ def texture_create_from_data(im, mipmap=False):
 
     return texture
 
+        
 
 cdef class Texture:
     '''Handle an OpenGL texture. This class can be used to create simple
@@ -889,9 +935,14 @@ cdef class Texture:
         cdef float [:] float_view
         cdef char *cdata
         cdef long datasize
+        cdef Mmap cdata_mmap
         if isinstance(pbuffer, bytes):  # if it's bytes, just use memory
             cdata = <bytes>pbuffer  # explicit bytes
             datasize = len(pbuffer)
+        elif isinstance(pbuffer, Mmap):
+            cdata_mmap = pbuffer
+            cdata = <char *>cdata_mmap.mmap()
+            datasize = cdata_mmap.datasize
         else:   # if it's a memoryview or buffer type, use start of memory
             if glbufferfmt == GL_UNSIGNED_BYTE or glbufferfmt == GL_BYTE:
                 char_view = pbuffer

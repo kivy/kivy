@@ -10,6 +10,7 @@ memory for further access.
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
 
+import os
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
 from kivy.logger import Logger
@@ -63,8 +64,12 @@ class ImageData(object):
         self.flip_vertical = flip_vertical
 
     def release_data(self):
+        from kivy.graphics.texture import Mmap
         mm = self.mipmaps
         for item in mm.values():
+            data = item[2]
+            if isinstance(data, Mmap):
+                data.close()
             item[2] = None
 
     @property
@@ -446,7 +451,7 @@ class Image(EventDispatcher):
             raise Exception('Unable to load image type {0!r}'.format(arg))
 
         # check if the image hase sequences for animation in it
-        self._img_iterate()
+        # self._img_iterate()
 
     def remove_from_cache(self):
         '''Remove the Image from cache. This facilitates re-loading of
@@ -708,7 +713,9 @@ class Image(EventDispatcher):
         '''
         pixels = None
         size = None
-        loaders = [x for x in ImageLoader.loaders if x.can_save()]
+        ext = filename.rsplit('.', 1)[-1].lower()
+        loaders = [x for x in ImageLoader.loaders if x.can_save() and ext in
+                x.extensions()]
         if not loaders:
             return False
         loader = loaders[0]
@@ -717,7 +724,7 @@ class Image(EventDispatcher):
             # we might have a ImageData object to use
             data = self.image._data[0]
             if data.data is not None:
-                if data.fmt not in ('rgba', 'rgb'):
+                if data.fmt in ('rgba', 'rgb'):
                     # fast path, use the "raw" data when keep_data is used
                     size = data.width, data.height
                     pixels = data.data
@@ -796,6 +803,7 @@ image_libs = []
 if platform in ('macosx', 'ios'):
     image_libs += [('imageio', 'img_imageio')]
 image_libs += [
+    ('rgb', 'img_rgb'),
     ('tex', 'img_tex'),
     ('dds', 'img_dds'),
     ('pygame', 'img_pygame'),

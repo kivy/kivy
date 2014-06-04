@@ -1,5 +1,12 @@
 from c_opengl cimport GLuint
 
+cdef class Mmap:
+    cdef int fd
+    cdef void *ptr
+    cdef object filename
+    cdef int datasize
+    cdef void *mmap(self)
+
 cdef class Texture:
     cdef object __weakref__
     cdef unsigned int flags
