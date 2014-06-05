@@ -388,7 +388,7 @@ class Scatter(Widget):
         state).
 
         :Parameters:
-            `trans`: :class:`Matrix <~kivy.graphics.transformation.Matrix>`
+            `trans`: :class:`~kivy.graphics.transformation.Matrix`.
                 Transformation matix to be applied to the scatter widget.
             `anchor`: tuple, defaults to (0, 0).
                 The point to use as the origin of the transformation
