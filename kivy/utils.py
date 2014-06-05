@@ -21,6 +21,7 @@ from re import match, split
 
 _platform_android = None
 _platform_ios = None
+_platform_klaatu = None
 
 
 def boundary(value, minvalue, maxvalue):
@@ -267,7 +268,7 @@ class Platform(object):
     def _get_platform(self):
         if self._platform is not None:
             return self._platform
-        global _platform_ios, _platform_android
+        global _platform_ios, _platform_android, _platform_klaatu
 
         if _platform_android is None:
             # ANDROID_ARGUMENT and ANDROID_PRIVATE are 2 environment variables
@@ -276,10 +277,15 @@ class Platform(object):
 
         if _platform_ios is None:
             _platform_ios = (environ.get('KIVY_BUILD', '') == 'ios')
+            
+        if _platform_klaatu is None:
+            _platform_klaatu = 'KIVY_PLATFORM_KLAATU' in environ
 
+        if _platform_klaatu is True:
+            return 'klaatu'
         # On android, _sys_platform return 'linux2', so prefer to check the
         # import of Android module than trying to rely on _sys_platform.
-        if _platform_android is True:
+        elif _platform_android is True:
             return 'android'
         elif _platform_ios is True:
             return 'ios'

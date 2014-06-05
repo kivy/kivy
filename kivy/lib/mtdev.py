@@ -14,7 +14,11 @@ from ctypes import cdll, Structure, c_ulong, c_int, c_ushort, \
                    c_void_p, pointer, POINTER, byref
 
 # load library
-libmtdev = cdll.LoadLibrary('libmtdev.so.1')
+try:
+    libmtdev = cdll.LoadLibrary('libmtdev.so.1')
+except OSError:
+    # android does not support versioned sonames
+    libmtdev = cdll.LoadLibrary('libmtdev.so')
 
 # from linux/input.h
 MTDEV_CODE_SLOT          = 0x2f  # MT slot being modified
