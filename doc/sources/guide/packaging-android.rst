@@ -205,6 +205,8 @@ The file `android.txt` must contain::
     author=<Your Name>
     orientation=<portrait|landscape>
 
+.. _targetting_android:
+
 Targetting Android
 ------------------
 
