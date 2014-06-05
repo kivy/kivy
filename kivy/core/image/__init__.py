@@ -776,8 +776,8 @@ class Image(EventDispatcher):
         assert data.fmt in ImageData._supported_fmts
         size = 3 if data.fmt in ('rgb', 'bgr') else 4
         index = y * data.width * size + x * size
-        raw = data.data[index:index + size]
-        color = [ord(c) / 255.0 for c in raw]
+        raw = bytearray(data.data[index:index + size])
+        color = [c / 255.0 for c in raw]
 
         # conversion for BGR->RGB, BGR->RGBA format
         if data.fmt in ('bgr', 'bgra'):
