@@ -257,7 +257,8 @@ class Scatter(Widget):
         'x', 'y', 'transform'))
     '''Rotation value of the scatter.
 
-    :attr:`rotation` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`rotation` is an :class:`~kivy.properties.AliasProperty` and defaults
+    to 0.0.
     '''
 
     def _get_scale(self):
@@ -285,7 +286,8 @@ class Scatter(Widget):
     scale = AliasProperty(_get_scale, _set_scale, bind=('x', 'y', 'transform'))
     '''Scale value of the scatter.
 
-    :attr:`scale` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`scale` is an :class:`~kivy.properties.AliasProperty` and defaults to
+    1.0.
     '''
 
     def _get_center(self):
