@@ -210,6 +210,13 @@ class Scatter(Widget):
 
     :attr:`transform` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to the identity matrix.
+
+    .. note::
+
+        This matrix reflects the current state of the transformation matrix
+        but setting it directly will not trigger a re-rendering. To apply a
+        transformation, please use the :attr:`~Scatter.apply_transform` method.
+
     '''
 
     transform_inv = ObjectProperty(Matrix())
