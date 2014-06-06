@@ -388,7 +388,7 @@ class Scatter(Widget):
         '''
         Transforms the scatter by applying the "trans" transformation
         matrix (on top of its current transformation state). The resultant
-        matrix can be found in the :attr:`Matrix.transform` property.
+        matrix can be found in the :attr:`~Scatter.transform` property.
 
         :Parameters:
             `trans`: :class:`~kivy.graphics.transformation.Matrix`.
