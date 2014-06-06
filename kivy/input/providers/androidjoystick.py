@@ -11,7 +11,7 @@ information, please refer to
 '''
 __all__ = ('AndroidMotionEventProvider', )
 
-import os
+import os
 
 try:
     import android  # NOQA
