@@ -214,8 +214,9 @@ class Scatter(Widget):
     .. note::
 
         This matrix reflects the current state of the transformation matrix
-        but setting it directly will not trigger a re-rendering. To apply a
-        transformation, please use the :attr:`~Scatter.apply_transform` method.
+        but setting it directly will override previously applied
+        transformations. To apply a transformation considering context,
+        please use the :attr:`~Scatter.apply_transform` method.
 
     '''
 
