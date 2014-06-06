@@ -386,8 +386,9 @@ class Scatter(Widget):
 
     def apply_transform(self, trans, post_multiply=False, anchor=(0, 0)):
         '''
-        Transforms the scatter by trans (on top of its current transformation
-        state).
+        Transforms the scatter by applying the "trans" transformation
+        matrix (on top of its current transformation state). The resultant
+        matrix can be found in the :attr:`Matrix.transform` property.
 
         :Parameters:
             `trans`: :class:`~kivy.graphics.transformation.Matrix`.
