@@ -177,14 +177,14 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 effect_invert = '''
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {
-    return vec4(1.0 - color.xyz, 1.0);
+    return vec4(1.0 - color.xyz, color.w);
 }
 '''
 
 effect_mix = '''
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {{
-    return vec4(color.{}, color.{}, color.{}, 1.0);
+    return vec4(color.{}, color.{}, color.{}, color.w);
 }}
 '''
 
@@ -211,7 +211,7 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
                      * 0.09;
     sum += texture2D(texture, vec2(tex_coords.x + 4.0*dt, tex_coords.y))
                      * 0.05;
-    return sum;
+    return vec4(sum.xyz, color.w);
 }}
 '''
 
@@ -239,7 +239,7 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
                      * 0.09;
     sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 4.0*dt))
                      * 0.05;
-    return sum;
+    return vec4(sum.xys, sum);
 }}
 '''
 
@@ -269,7 +269,7 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
     float comp = smoothstep( 0.2, 0.7, sin(time) );
     //col = mix( col, oricol, clamp(-2.0+2.0*q.x+3.0*comp,0.0,1.0) );
 
-    return vec4(col,1.0);
+    return vec4(col, color.w);
 }
 '''
 
