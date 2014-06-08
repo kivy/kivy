@@ -77,7 +77,8 @@ Examples
 
 .. |gst_dir| replace:: ./examples/gestures
 .. |gst_file| replace:: gesture_board.py
-.. |gst_desc| replace:: A clean board to try out **gestures**
+.. |gst_desc| replace:: A clean board to try out
+                        :mod:`gestures <kivy.gesture>`
 
 .. |kv_dir| replace:: ./examples/guide/designwithkv
 .. |kv_file| replace:: main.py
