@@ -65,8 +65,9 @@ Examples
 .. |tch_dir| replace:: ./examples/demo/touchtracer
 .. |tch_file| replace:: main.py
 .. |tch_desc| replace:: Draw lines under every detected touch
-.. |tch_desc2| replace:: A good place to understand
-                         **how touch events work in kivy**
+.. |tch_desc2| replace:: A good place to understand how
+                         :mod:`touch events <kivy.input.motionevent>`
+                         work in kivy
 
 .. |tws_dir| replace:: ./examples/frameworks/twisted
 .. |tws_file| replace:: echo_client_app.py
