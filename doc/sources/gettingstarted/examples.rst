@@ -31,27 +31,29 @@ Examples
 .. |can_file2| replace:: canvas_stress.py
 .. |can_desc2| replace:: Stress test :class:`Canvas <kivy.graphics.Canvas>`
 .. |can_file3| replace:: mesh.py
-.. |can_desc3| replace:: How to use :class:`Mesh <kivy.graphics.Mesh>` in kivy
+.. |can_desc3| replace:: How to use the
+                         :class:`Mesh <kivy.graphics.Mesh>` in kivy
 .. |can_file4| replace:: multitexture.py
 .. |can_desc4| replace:: How to handle multiple textures with a
                          :class:`Shader <kivy.graphics.shader.Shader>`
 .. |can_file5| replace:: stencil_canvas.py
-.. |can_desc5| replace:: How to use
+.. |can_desc5| replace:: How to use the
                          :mod:`Stencil <kivy.graphics.stencil_instructions>` 
                          on the widget canvas
 .. |dem_dir| replace:: ./examples/demo:
 .. |dem_file| replace:: camera_puzzle.py
-.. |dem_desc| replace:: A puzzle using :class:`Camera <kivy.uix.camera.Camera>`
-                        output
+.. |dem_desc| replace:: A puzzle using the
+                        :class:`Camera <kivy.uix.camera.Camera>` output
 
 .. |pic_dir| replace:: ./examples/demo/pictures
 .. |pic_file| replace:: main.py
-.. |pic_desc| replace:: Highlights usage of :class:`Image <kivy.uix.image>` and
+.. |pic_desc| replace:: Highlights usage of the
+                        :class:`Image <kivy.uix.image>` and
                         :class:`Scatter <kivy.uix.scatter>` Widgets
 
 .. |sed_dir| replace:: ./examples/demo/shadereditor
 .. |sed_file| replace:: main.py
-.. |sed_desc| replace:: How to use 
+.. |sed_desc| replace:: How to use the
                         :class:`fragment and vertex shaders <kivy.graphics.shader.Shader>`.
 
 .. |sho_dir| replace:: ../examples/demo/showcase
