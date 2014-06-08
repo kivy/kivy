@@ -51,7 +51,8 @@ Examples
 
 .. |sed_dir| replace:: ./examples/demo/shadereditor
 .. |sed_file| replace:: main.py
-.. |sed_desc| replace:: How to use **fragment and vertex shaders**
+.. |sed_desc| replace:: How to use 
+                        :class:`fragment and vertex shaders <kivy.graphics.shader.Shader>`.
 
 .. |sho_dir| replace:: ../examples/demo/showcase
 .. |sho_file| replace:: main.py
