@@ -14,9 +14,9 @@ Examples
 .. |app_file1| replace:: app_with_build.py
 .. |app_desc1| replace:: Application example using :py:meth:`~kivy.app.App.build`
 .. |app_file2| replace:: app_with_kv.py
-.. |app_desc2| replace:: Application from a **.kv**
+.. |app_desc2| replace:: Application from a :mod:`.kv <kivy.lang>` file
 .. |app_file3| replace:: app_with_kv_in_template1.py
-.. |app_desc3| replace:: Application from a **kv_directory**
+.. |app_desc3| replace:: Application from a :mod:`kv_directory <kivy.lang>`
 
 .. |aud_dir| replace:: ./examples/audio:
 .. |aud_file| replace:: main.py
