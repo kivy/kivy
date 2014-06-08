@@ -7,12 +7,14 @@ Examples
 
 .. |ani_dir| replace:: ./examples/animation
 .. |ani_file| replace:: animate.py
-.. |ani_desc| replace:: Widget animation using :class:`Animation <kivy.animation.Animation>`
+.. |ani_desc| replace:: Widget animation using
+                        :class:`Animation <kivy.animation.Animation>`
 
 
 .. |app_dir| replace:: ./examples/application
 .. |app_file1| replace:: app_with_build.py
-.. |app_desc1| replace:: Application example using :py:meth:`~kivy.app.App.build`
+.. |app_desc1| replace:: Application example using
+                         :py:meth:`~kivy.app.App.build`
 .. |app_file2| replace:: app_with_kv.py
 .. |app_desc2| replace:: Application from a :mod:`.kv <kivy.lang>` file
 .. |app_file3| replace:: app_with_kv_in_template1.py
@@ -20,17 +22,19 @@ Examples
 
 .. |aud_dir| replace:: ./examples/audio:
 .. |aud_file| replace:: main.py
-.. |aud_desc| replace:: How to Play **Audio**.
+.. |aud_desc| replace:: How to play :mod:`Audio <kivy.core.audio>`.
 
 .. |can_dir| replace:: ./examples/canvas
 .. |can_file1| replace:: bezier.py
-.. |can_desc1| replace:: How to draw :class:`Bezier <kivy.graphics.Bezier>` Lines
+.. |can_desc1| replace:: How to draw
+                         :class:`Bezier <kivy.graphics.Bezier>` Lines
 .. |can_file2| replace:: canvas_stress.py
 .. |can_desc2| replace:: Stress test :class:`Canvas <kivy.graphics.Canvas>`
 .. |can_file3| replace:: mesh.py
 .. |can_desc3| replace:: How to use :class:`Mesh <kivy.graphics.Mesh>` in kivy
 .. |can_file4| replace:: multitexture.py
-.. |can_desc4| replace:: How to handle **multiple textures with shader**
+.. |can_desc4| replace:: How to handle multiple textures with a
+                         :class:`Shader <kivy.graphics.shader.Shader>`
 .. |can_file5| replace:: stencil_canvas.py
 .. |can_desc5| replace:: How to use :class:`Stencil <kivy.uix.stencil>` on widget canvas
 
