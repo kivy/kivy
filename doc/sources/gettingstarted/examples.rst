@@ -58,7 +58,9 @@ Examples
 
 .. |sho_dir| replace:: ../examples/demo/showcase
 .. |sho_file| replace:: main.py
-.. |sho_desc| replace:: Showcase of **widgets and layouts** used in kivy
+.. |sho_desc| replace:: Showcase of the
+                        :class:`widgets <kivy.uix.widget.Widget>` and 
+                        :mod:`layouts <kivy.uix.layout>` available in kivy
 
 .. |tch_dir| replace:: ./examples/demo/touchtracer
 .. |tch_file| replace:: main.py
