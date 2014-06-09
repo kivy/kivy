@@ -1,7 +1,7 @@
 Examples
 --------
 
-.. container:: title.
+.. container:: title
 
     Follow through the examples.
 
