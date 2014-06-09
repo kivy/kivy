@@ -142,7 +142,9 @@ Examples
 .. |wdg_desc3| replace:: Usage and Showcase of :class:`Bubble <kivy.uix.bubble>`
                          Widget
 .. |wdg_file4| replace:: customcollide.py
-.. |wdg_desc4| replace:: Test for **collision** with custom shaped widget
+.. |wdg_desc4| replace:: Test for 
+                         :attr:`collision <kivy.uix.widget.Widget.collide_point>`
+                         with custom shaped widget
 .. |wdg_file5| replace:: fbowidget.py
 .. |wdg_desc5| replace:: Usage of :class:`FBO <kivy.graphics.fbo>` to speed up
                          graphics
