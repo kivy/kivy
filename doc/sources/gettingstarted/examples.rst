@@ -10,7 +10,6 @@ Examples
 .. |ani_desc| replace:: Widget animation using
                         :class:`Animation <kivy.animation.Animation>`
 
-
 .. |app_dir| replace:: ./examples/application
 .. |app_file1| replace:: app_with_build.py
 .. |app_desc1| replace:: Application example using
@@ -101,11 +100,16 @@ Examples
 
 .. |kin_dir| replace::  ./examples/kinect
 .. |kin_file| replace:: main.py
-.. |kin_desc| replace:: How to use **kinect** for input
+.. |kin_desc| replace:: How to use the
+                        `kinect <http://en.wikipedia.org/wiki/kinect>`
+                        for input
 
 .. |kvd_dir| replace::  ./examples/kv
 .. |kvd_file| replace:: kvrun.py
-.. |kvd_desc| replace:: Load kv files, use **kv lang to load different widgets**
+.. |kvd_desc| replace:: Load kv files, use 
+                        :mod:`kv lang <kivy.lang>`
+                        to load different
+                        :class:`widgets <kivy.uix.widget.Widget>`.
 
 .. |rst_dir| replace::  ./examples/RST_Editor
 .. |rst_file| replace:: main.py
