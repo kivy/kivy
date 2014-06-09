@@ -1,7 +1,7 @@
 Examples
 --------
 
-.. container:: title
+.. container:: title.
 
     Follow through the examples.
 
@@ -53,7 +53,8 @@ Examples
 .. |sed_dir| replace:: ./examples/demo/shadereditor
 .. |sed_file| replace:: main.py
 .. |sed_desc| replace:: How to use the
-                        :class:`fragment and vertex shaders <kivy.graphics.shader.Shader>`.
+                        :class:`fragment and vertex shaders
+                        <kivy.graphics.shader.Shader>`.
 
 .. |sho_dir| replace:: ../examples/demo/showcase
 .. |sho_file| replace:: main.py
@@ -119,7 +120,8 @@ Examples
 .. |sdr_dir| replace::  ./examples/shader
 .. |sdr_file| replace:: plasma.py
 .. |sdr_file1| replace:: shadertree.py
-.. |sdr_desc| replace:: How to use different **Shaders**
+.. |sdr_desc| replace:: How to use different
+                        :class:`Shaders <kivy.graphics.shader.Shader>`.
 
 .. |png_dir| replace::  ./examples/tutorials/pong
 .. |png_file| replace:: main.py
