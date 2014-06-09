@@ -104,12 +104,14 @@ from kivy.graphics.instructions cimport Instruction
 
 cdef int _stencil_level = 0
 cdef int _stencil_in_push = 0
+cdef list _stencil_op_stack = []
 
 
 cdef dict _gl_stencil_op = {
     'never': GL_NEVER, 'less': GL_LESS, 'equal': GL_EQUAL,
     'lequal': GL_LEQUAL, 'greater': GL_GREATER, 'notequal': GL_NOTEQUAL,
-    'gequal': GL_GEQUAL, 'always': GL_ALWAYS }
+    'gequal': GL_GEQUAL, 'always': GL_ALWAYS, 'incr': GL_INCR,
+    'decr': GL_DECR, 'keep': GL_KEEP }
 
 
 cdef inline int _stencil_op_to_gl(x):
@@ -120,6 +122,13 @@ cdef inline int _stencil_op_to_gl(x):
         return _gl_stencil_op[x]
     except KeyError:
         raise Exception('Unknow <%s> stencil op' % x)
+
+
+cdef inline str _stencil_gl_to_op(x):
+    '''Return the GL numeric value from a stencil operator
+    '''
+    index = _gl_stencil_op.values().index(x)
+    return _gl_stencil_op.keys()[index]
 
 
 cdef class StencilPush(Instruction):
@@ -138,31 +147,38 @@ cdef class StencilPush(Instruction):
             glStencilMask(0xff)
             glClearStencil(0)
             glClear(GL_STENCIL_BUFFER_BIT)
+            glEnable(GL_STENCIL_TEST)
+            glStencilFunc(GL_ALWAYS, 0, 0)
+            glStencilOp(GL_INCR, GL_INCR, GL_INCR)
+            glColorMask(0, 0, 0, 0)
+        else:
+            glStencilOp(GL_DECR, GL_DECR, GL_DECR)
+
         if _stencil_level > 128:
             raise Exception('Cannot push more than 128 level of stencil.'
                             ' (stack overflow)')
-
-        glEnable(GL_STENCIL_TEST)
-        glStencilFunc(GL_ALWAYS, 0, 0)
-        glStencilOp(GL_INCR, GL_INCR, GL_INCR)
-        glColorMask(0, 0, 0, 0)
 
 cdef class StencilPop(Instruction):
     '''Pop the stencil stack. See the module documentation for more information.
     '''
     cdef void apply(self):
-        global _stencil_level, _stencil_in_push
+        global _stencil_level, _stencil_in_push, _stencil_op_stack
         if _stencil_level == 0:
             raise Exception('Too much StencilPop (stack underflow)')
         _stencil_level -= 1
         _stencil_in_push = 0
-        glColorMask(1, 1, 1, 1)
+
+        if _stencil_op_stack:
+            glStencilFunc(_stencil_op_stack[-1], _stencil_level, 0xff)
+        else:
+            glStencilFunc(GL_ALWAYS, 0, 0)
+
         if _stencil_level == 0:
+            glColorMask(1, 1, 1, 1)
             glDisable(GL_STENCIL_TEST)
             return
-        # reset for previous
-        glStencilFunc(GL_EQUAL, _stencil_level, 0xff)
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+        else:
+            glStencilOp(GL_DECR, GL_DECR, GL_DECR)
 
 
 cdef class StencilUse(Instruction):
@@ -177,8 +193,10 @@ cdef class StencilUse(Instruction):
             self._op = GL_EQUAL
 
     cdef void apply(self):
-        global _stencil_in_push
+        global _stencil_in_push, _stencil_op_stack
         _stencil_in_push = 0
+        _stencil_op_stack.append(self._op)
+        print "pushing %s op" % _stencil_gl_to_op(self._op)
         glColorMask(1, 1, 1, 1)
         glStencilFunc(self._op, _stencil_level, 0xff)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
@@ -194,8 +212,7 @@ cdef class StencilUse(Instruction):
         '''
 
         def __get__(self):
-            index = _gl_stencil_op.values().index(self._op)
-            return _gl_stencil_op.keys()[index]
+            return _stencil_gl_to_op(self._op)
 
         def __set__(self, x):
             cdef int op = _stencil_op_to_gl(x)
@@ -204,10 +221,15 @@ cdef class StencilUse(Instruction):
                 self.flag_update()
 
 
+
 cdef class StencilUnUse(Instruction):
     '''Use current stencil buffer to unset the mask.
     '''
     cdef void apply(self):
-        glStencilFunc(GL_ALWAYS, 0, 0)
+        cdef int op
+        global _stencil_op_stack, _stencil_level
+
+        op = _stencil_op_stack.pop()
+        print "popped %s op" % _stencil_gl_to_op(op)
+
         glStencilOp(GL_DECR, GL_DECR, GL_DECR)
-        glColorMask(0, 0, 0, 0)
