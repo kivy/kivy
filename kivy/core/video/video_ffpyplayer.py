@@ -254,7 +254,7 @@ class VideoFFPy(VideoBase):
             t1 = time.time()
             frame, val = ffplayer.get_frame()
             t2 = time.time()
-            print 'GET FRAME in {:.6f}'.format(t2 - t1)
+            print('GET FRAME in {:.6f}'.format(t2 - t1))
             if val == 'eof':
                 sleep(0.2)
                 if not did_dispatch_eof:
