@@ -876,10 +876,7 @@ class ParserException(Exception):
             self.filename, self.line + 1, sc, message)
         if cause:
             message += '\n' + ''.join(traceback.format_tb(cause))
-        try:
-            sys.exc_clear()
-        except:
-            pass
+
         super(ParserException, self).__init__(message)
 
 
