@@ -99,12 +99,10 @@ Examples
 .. |qst_file| replace:: main.py
 .. |qst_desc| replace:: Programming Guide example
 
+.. _kinect: http://en.wikipedia.org/wiki/kinect
 .. |kin_dir| replace::  ./examples/kinect
 .. |kin_file| replace:: main.py
-.. |kin_desc| replace:: How to use the
-                        `kinect <http://en.wikipedia.org/wiki/kinect>`
-                        for input
-
+.. |kin_desc| replace:: How to use the `kinect`_ for input
 .. |kvd_dir| replace::  ./examples/kv
 .. |kvd_file| replace:: kvrun.py
 .. |kvd_desc| replace:: Load kv files, use 
