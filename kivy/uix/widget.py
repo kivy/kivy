@@ -399,7 +399,7 @@ class Widget(WidgetBase):
             bool. If True, the dispatching of the touch event will stop.
         '''
         if self.disabled and self.collide_point(*touch.pos):
-            return False
+            return True
         for child in self.children[:]:
             if child.dispatch('on_touch_down', touch):
                 return True
