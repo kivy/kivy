@@ -196,8 +196,9 @@ Examples
                           :class:`VideoPlayer <kivy.uix.videoplayer>` Widget
 .. |seq_dir| replace::  ./examples/widgets/sequenced_images:
 .. |seq_file| replace:: main.py
-.. |seq_desc| replace:: Showcase usage of **sequenced images**: gif, images in
-                        .zip
+.. _gifs: http://en.wikipedia.org/wiki/Graphics_Interchange_Format 
+.. |seq_desc| replace:: Showcase usage of sequenced images using
+                        `gifs`_ and images in .zip file
 
 +------------+---------------+------------------------+
 |  Directory |   Filename/s  |  Example Description   |
