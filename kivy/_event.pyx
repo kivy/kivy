@@ -38,10 +38,10 @@ cdef class ObjectWithUid(object):
     def __cinit__(self):
         global widget_uid
 
-        # XXX for the moment, we need to create a uniq id for properties.
+        # XXX for the moment, we need to create a unique id for properties.
         # Properties need a identifier to the class instance. hash() and id()
         # are longer than using a custom __uid. I hope we can figure out a way
-        # of doing that without require any python code. :)
+        # of doing that without using any python code. :)
         widget_uid += 1
         self.uid = widget_uid
 
@@ -72,7 +72,7 @@ cdef class EventDispatcher(ObjectWithUid):
                 if not isinstance(uattr, Property):
                     continue
                 if k == 'touch_down' or k == 'touch_move' or k == 'touch_up':
-                    raise Exception('The property <%s> have a forbidden name' % k)
+                    raise Exception('The property <%s> has a forbidden name' % k)
                 attrs_found[k] = uattr
         else:
             attrs_found = cp[__cls__]
@@ -82,7 +82,7 @@ cdef class EventDispatcher(ObjectWithUid):
             attr = attrs_found[k]
             attr.link(self, k)
 
-        # Second loop, resolve all the reference
+        # Second loop, resolve all the references
         for k in attrs_found:
             attr = attrs_found[k]
             attr.link_deps(self, k)
@@ -110,7 +110,7 @@ cdef class EventDispatcher(ObjectWithUid):
                         raise Exception('{} is not an event name in {}'.format(
                             event, __cls__.__name__))
 
-                    # Ensure the user have at least declare the default handler
+                    # Ensure that the user has at least declared the default handler
                     if not hasattr(self, event):
                         raise Exception(
                             'Missing default handler <%s> in <%s>' % (
@@ -160,7 +160,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
         Registering event types allows the dispatcher to validate event handler
         names as they are attached and to search attached objects for suitable
-        handlers. Each event type declaration must :
+        handlers. Each event type declaration must:
 
             1. start with the prefix `on_`.
             2. have a default handler in the class.
@@ -184,7 +184,7 @@ cdef class EventDispatcher(ObjectWithUid):
         if event_type[:3] != 'on_':
             raise Exception('A new event must start with "on_"')
 
-        # Ensure the user have at least declare the default handler
+        # Ensure that the user has at least declared the default handler
         if not hasattr(self, event_type):
             raise Exception(
                 'Missing default handler <%s> in <%s>' % (
@@ -252,12 +252,12 @@ cdef class EventDispatcher(ObjectWithUid):
                     btn = Button(text="Normal binding to event")
                     btn.bind(on_press=self.on_event)
 
-                    # Next, we bind to a standard property change event. These typically
-                    # pass 2 arguments: the object and the value
+                    # Next, we bind to a standard property change event. This typically
+                    # passes 2 arguments: the object and the value
                     btn2 = Button(text="Normal binding to a property change")
                     btn2.bind(state=self.on_property)
 
-                    # Here we use anonymous functions (a.k.a lambda's) to perform binding.
+                    # Here we use anonymous functions (a.k.a lambdas) to perform binding.
                     # Their advantage is that you can avoid declaring new functions i.e.
                     # they offer a concise way to "redirect" callbacks.
                     btn3 = Button(text="Using anonymous functions.")
@@ -273,8 +273,8 @@ cdef class EventDispatcher(ObjectWithUid):
 
                     # Lastly, we show how to use partial functions. They are sometimes
                     # difficult to grasp, but provide a very flexible and powerful way to
-                    # re-use functions.
-                    btn5 = Button(text="Using partial functions. For hardcore's.")
+                    # reuse functions.
+                    btn5 = Button(text="Using partial functions. For hardcores.")
                     btn5.bind(on_press=partial(self.on_anything, "1", "2", monthy="python"))
 
                     for but in [btn, btn2, btn3, btn4, btn5]:
@@ -368,7 +368,7 @@ cdef class EventDispatcher(ObjectWithUid):
                 the event name to dispatch.
 
         .. versionchanged:: 1.8.1
-            keyword arguments collection and forwarding was added. Before, only
+            Keyword arguments collection and forwarding was added. Before, only
             positional arguments would be collected and forwarded.
 
         '''
@@ -377,7 +377,7 @@ cdef class EventDispatcher(ObjectWithUid):
         for value in reversed(event_stack[:]):
             handler = value()
             if handler is None:
-                # handler have gone, must be removed
+                # handler has gone, must be removed
                 remove(value)
                 continue
             if handler(self, *largs, **kwargs):
@@ -482,8 +482,8 @@ cdef class EventDispatcher(ObjectWithUid):
             `name`: string
                 Name of the property
             `value`: object, optional
-                Default value of the property. Type is also used for creating a
-                more appropriate property types. Default to None.
+                Default value of the property. Type is also used for creating
+                more appropriate property types. Defaults to None.
 
         The class of the property cannot be specified, it will always be an
         :class:`~kivy.properties.ObjectProperty` class. The default value of the
