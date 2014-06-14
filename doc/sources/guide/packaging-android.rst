@@ -223,6 +223,9 @@ your APK size. The following projects can get you started.
   Access native Kivy widgets, Twitter, Facebook, Billing, Toast and more.
 * `Kivy Dailog <https://github.com/knappador/kivy-dialog>`_:
   Build dialogs using Android API with PyJNIus.
+* `Native Android Webview
+  <https://github.com/kivy/kivy/wiki/Android-native-embedded-browser>`_:
+  Embed a native Android browser inside a Kivy app.
 
 You can find more Android related projects in `Knappadors Github Resposities <https://github.com/knappador?tab=repositories>`_.
 
