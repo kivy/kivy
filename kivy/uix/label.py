@@ -545,6 +545,9 @@ class Label(Widget):
         {'hello': ((64, 0, 78, 16), )}
 
     You know that the reference "hello" has a bounding box at (x1, y1, x2, y2).
+    These co-ordinates are relative to the top left corner of the text, with
+    the y value increasing downwards.
+
     The current Label implementation uses these references if they exist in
     your markup text, automatically doing the collision with the touch and
     dispatching an `on_ref_press` event.
@@ -567,6 +570,8 @@ class Label(Widget):
     .. versionadded:: 1.1.0
 
     Position of all the ``[anchor=xxx]`` markup in the text.
+    These co-ordinates are relative to the top left corner of the text, with
+    the y value increasing downwards.
 
     You can place anchors in your markup text as follows::
 
