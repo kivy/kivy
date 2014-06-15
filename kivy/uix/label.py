@@ -141,6 +141,13 @@ The following example marks the anchors and references contained in a label::
                                   size=(box[2] - box[0],
                                         box[1] - box[3]))
 
+        def build(self):
+            label = Label(
+                text='[anchor=a]a\\nChars [anchor=b]b\\n[ref=myref]ref[/ref]',
+                markup=True)
+            Clock.schedule_once(lambda dt: self.show_marks(label), 1)
+            return label
+
     TestApp().run()
 
 '''
