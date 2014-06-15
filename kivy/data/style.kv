@@ -113,6 +113,9 @@
             pos: self.center_x - self.norm_image_size[0] / 2., self.center_y - self.norm_image_size[1] / 2.
 
 <EffectWidget>:
+    canvas.before:
+        Translate:
+            xy: -self.x, -self.y
     canvas:
         Color:
             rgba: 1, 1, 1, 1

@@ -183,8 +183,8 @@ class Label(Widget):
         will be updated in this order.
         '''
         self.texture = None
-        if ((self.halign[-1] == 'y' or self.strip) and
-            self._label.text.strip() == ''):
+        if (not self._label.text or (self.halign[-1] == 'y' or self.strip) and
+            not self._label.text.strip()):
             self.texture_size = (0, 0)
         else:
             mrkup = self._label.__class__ is CoreMarkupLabel
@@ -476,8 +476,9 @@ class Label(Widget):
     shorten = BooleanProperty(False)
     '''
     Indicates whether the label should attempt to shorten its textual contents
-    as much as possible if a `text_size` is given. Setting this to True without
-    an appropriately set `text_size` will lead to unexpected results.
+    as much as possible if a :attr:`text_size` is given. Setting this to True
+    without an appropriately set :attr:`text_size` will lead to unexpected
+    results.
 
     :attr:`shorten` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
@@ -501,18 +502,18 @@ class Label(Widget):
     '''
 
     split_str = StringProperty(' ')
-    '''The string used to split the :attr`text` when shortening the string when
-    :attr:`shorten` is True.
+    '''The string used to split the :attr:`text` while shortening the string
+    when :attr:`shorten` is True.
 
     For example, if it's a space, the string will be broken into words and as
-    much words that can fit in a single line will be displayed. If
+    many whole words that can fit into a single line will be displayed. If
     :attr:`shorten_from` is the empty string, `''`, we split on every character
     fitting as much text as possible into the line.
 
     .. versionadded:: 1.8.1
 
-    :attr:`shorten_from` is a :class:`~kivy.properties.StringProperty` and
-    defaults to ` ` (single space).
+    :attr:`split_str` is a :class:`~kivy.properties.StringProperty` and
+    defaults to `' '` (single space).
     '''
 
     markup = BooleanProperty(False)
@@ -537,7 +538,7 @@ class Label(Widget):
 
     For example, if you wrote::
 
-        Check out my [ref=hello]link[/hello]
+        Check out my [ref=hello]link[/ref]
 
     The refs will be set with::
 

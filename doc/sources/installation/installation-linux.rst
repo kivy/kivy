@@ -8,8 +8,15 @@ Using software packages
 
 For installing distribution relative packages .deb/.rpm/...
 
-Ubuntu / Kubuntu / Xubuntu / Lubuntu (Oneiric and above)
+Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
 --------------------------------------------------------
+
+0. In case you want to use Python3, add this Pygame PPA before
+
+    ``$ sudo add-apt-repository ppa:thopiekar/pygame``
+    
+    ** These Pygame packages are neither provided nor supported by the Kivy project.
+    ** Please contact the creator of the package(s) or maintainer of the sourcecode for further help.
 
 #. Add one of the PPAs as you prefer
 
@@ -18,39 +25,36 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Oneiric and above)
     :nightly builds:
         $ sudo add-apt-repository ppa:kivy-team/kivy-daily
 
-    **Notice for Lucid users**: Support has been dropped in stable PPA
-    as Python 2.7 is required and only 2.6 is available. You can find
-    Python 2.7 in the daily PPA, but manual installation is needed.
-    
-    **Notice for Oneiric users**: Oneiric is supported but uses Python2.6
-    as the default interpreter. Don't forget to set python2.7 as the
-    interpreter for your project. "python", which is linked to "python2.6",
-    won't work.
-
 #. Update your packagelist using your package manager
-#. Install **python-kivy** and optionally the examples, found in **python-kivy-examples**
+#. Install Kivy
+
+    :Python2 - **python-kivy**:
+        $ sudo apt-get install python-kivy
+    :Python3 - **python3-kivy**:
+        $ sudo apt-get install python3-kivy
+    :optionally the examples - **kivy-examples**:
+        $ sudo apt-get install kivy-examples
 
 Debian
 ------
 
 #. Add one of the PPAs to your sources.list in apt manually or via Synaptic
 
+    * Jessie:
+        
+        :stable builds:
+            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu trusty main
+        :daily builds:
+            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu trusty main
+
     * Wheezy:
         
         :stable builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
+            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu saucy main
         :daily builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu oneiric main
+            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu saucy main
 
         **Notice**: Don't forget to use the python2.7 interpreter
-            
-
-    * Sqeeze: 
-
-        Update to Wheezy or install Kivy 1.5.1 from stable PPA:
-
-        :stable builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
 
 #. Add the GPG key to your apt keyring by executing
 
@@ -62,8 +66,8 @@ Debian
     
     ``apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6``
 
-#. Refresh your package list and install **python-kivy** and optionally the examples
-   found in **python-kivy-examples**
+#. Refresh your package list and install **python-kivy** and/or **python3-kivy** and optionally the examples
+   found in **kivy-examples**
 
 Linux Mint
 ----------
@@ -83,6 +87,9 @@ Bodhi Linux
         Ubuntu 10.04 LTS aka Lucid (No packages, just manual install)
     :Bodhi 2:
         Ubuntu 12.04 LTS aka Precise
+    :Bodhi 3:
+        Ubuntu 14.04 LTS aka Trusty
+    
 
 2. Continue as described for Ubuntu above, depending on which version your installation is based on.
 
