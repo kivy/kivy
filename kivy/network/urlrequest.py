@@ -23,9 +23,9 @@ The syntax to create a request::
 Only the first argument is mandatory: the rest are optional.
 By default, a "GET" request will be sent. If the :attr:`UrlRequest.req_body` is
 not None, a "POST" request will be sent. It's up to you to adjust
-:attr:`UrlRequest.req_headers` to suite your requirements and the response
-to the request will be accessible as the parameter called "result" on the callback
-function of the on_success event.
+:attr:`UrlRequest.req_headers` to suit your requirements and the response
+to the request will be accessible as the parameter called "result" on
+the callback function of the on_success event.
 
 
 Example of fetching weather in Paris::
