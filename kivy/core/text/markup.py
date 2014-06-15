@@ -230,6 +230,7 @@ class MarkupLabel(MarkupLabelBase):
 
         if shorten:
             options['_ref'] = None  # no refs for you!
+            options['_anchor'] = None
             w, h, lines = self.shorten_post(lines, w, h)
             self._cached_lines = lines
         # when valign is not top, for markup we layout everything (text_size[1]
