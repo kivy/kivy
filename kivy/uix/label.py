@@ -538,7 +538,7 @@ class Label(Widget):
 
     For example, if you wrote::
 
-        Check out my [ref=hello]link[/hello]
+        Check out my [ref=hello]link[/ref]
 
     The refs will be set with::
 
