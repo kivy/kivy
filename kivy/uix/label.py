@@ -598,9 +598,11 @@ class Label(Widget):
 
         {'hello': ((64, 0, 78, 16), )}
 
-    You know that the reference "hello" has a bounding box at (x1, y1, x2, y2).
+    The references marked "hello" have a bounding box at (x1, y1, x2, y2).
     These co-ordinates are relative to the top left corner of the text, with
-    the y value increasing downwards.
+    the y value increasing downwards. You can define multiple refs with the same
+    name: each occurence will be added as another (x1, y1, x2, y2) tuple to
+    this list.
 
     The current Label implementation uses these references if they exist in
     your markup text, automatically doing the collision with the touch and
