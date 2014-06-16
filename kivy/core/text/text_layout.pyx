@@ -378,6 +378,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
     cdef int lhh, lww, k, bare_h, dwn = append_down, pos = 0
     cdef object line, ln, val, indices
     cdef LayoutLine _line
+    cdef int is_space = 0
     uw = text_size[0] if text_size[0] is not None else -1
     uh = text_size[1] if text_size[1] is not None else -1
 
@@ -451,7 +452,16 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
                     s = m = s + 1
                     # trailing spaces were stripped, so end is always not space
                     continue
-                e = line.find(' ', m + 1)
+
+                # when not stripping, if we found a space last, don't jump to
+                # the next space, but instead move pos to after this space, to
+                # allow fitting this space on the current line
+                if strip or not is_space:
+                    e = line.find(' ', m + 1)
+                    is_space = 1
+                else:
+                    e = m + 1
+                    is_space = 0
                 if e is -1:
                     e = k
 

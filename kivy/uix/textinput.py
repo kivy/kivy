@@ -2559,7 +2559,7 @@ class TextInput(Widget):
     minimum_height = AliasProperty(_get_min_height, None,
                                    bind=('_lines', 'line_spacing', 'padding',
                                          'font_size', 'font_name', 'password',
-                                         'hint_text'))
+                                         'hint_text', 'line_height'))
     '''Minimum height of the content inside the TextInput.
 
     .. versionadded:: 1.8.0

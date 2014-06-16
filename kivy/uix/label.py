@@ -236,12 +236,16 @@ class Label(Widget):
         After this function call, the :attr:`texture` and :attr:`texture_size`
         will be updated in this order.
         '''
+        mrkup = self._label.__class__ is CoreMarkupLabel
         self.texture = None
+
         if (not self._label.text or (self.halign[-1] == 'y' or self.strip) and
             not self._label.text.strip()):
             self.texture_size = (0, 0)
+            if mrkup:
+                self.refs, self._label._refs = {}, {}
+                self.anchors, self._label._anchors = {}, {}
         else:
-            mrkup = self._label.__class__ is CoreMarkupLabel
             if mrkup:
                 text = self._label.text
                 # we must strip here, otherwise, if the last line is empty,
