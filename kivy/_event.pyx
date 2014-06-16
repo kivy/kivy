@@ -18,8 +18,9 @@ __all__ = ('EventDispatcher', )
 from functools import partial
 from kivy.weakmethod import WeakMethod
 from kivy.compat import string_types
-from kivy.properties cimport Property, PropertyStorage, ObjectProperty, \
-    NumericProperty, StringProperty, ListProperty, DictProperty
+from kivy.properties cimport (Property, PropertyStorage, ObjectProperty,
+    NumericProperty, StringProperty, ListProperty, DictProperty,
+    BooleanProperty)
 
 cdef int widget_uid = 0
 cdef dict cache_properties = {}
@@ -472,6 +473,10 @@ cdef class EventDispatcher(ObjectWithUid):
             property. Also, the type of the value is used to specialize the
             created property.
 
+        .. versionchanged:: 1.8.1
+            In the past, if `value` was of type `bool`, a `NumericProperty`
+            would be created, now a `BooleanProperty` is created.
+
         .. warning::
 
             This function is designed for the Kivy language, don't use it in
@@ -485,17 +490,15 @@ cdef class EventDispatcher(ObjectWithUid):
                 Default value of the property. Type is also used for creating
                 more appropriate property types. Defaults to None.
 
-        The class of the property cannot be specified, it will always be an
-        :class:`~kivy.properties.ObjectProperty` class. The default value of the
-        property will be None, until you set a new value.
-
         >>> mywidget = Widget()
         >>> mywidget.create_property('custom')
         >>> mywidget.custom = True
         >>> print(mywidget.custom)
         True
         '''
-        if isinstance(value, (int, float)):
+        if isinstance(value, bool):
+            prop = BooleanProperty(value)
+        elif isinstance(value, (int, float)):
             prop = NumericProperty(value)
         elif isinstance(value, string_types):
             prop = StringProperty(value)
