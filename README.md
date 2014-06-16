@@ -18,7 +18,7 @@ widgets are built with multitouch support.
 Kivy is MIT licensed, actively developed by a great community and is supported
 by many projects managed by the Kivy organisation.
 
-[![Kivy's Coverage](https://coveralls.io/repos/kivy/kivy/badge.png?branch=master)](https://coveralls.io/r/kivy/kivy?branch=master)
+[![Kivy's Coverage](https://coveralls.io/repos/kivy/kivy/badge.png?branch=master)](https://coveralls.io/r/kivy/kivy?branch=master) [![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=42681)](https://www.bountysource.com/trackers/42681-kivy?utm_source=42681&utm_medium=shield&utm_campaign=TRACKER_BADGE)
 
 Installation, Documentation, Examples
 -------------------------------------
