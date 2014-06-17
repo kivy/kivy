@@ -34,10 +34,14 @@ Available configuration tokens
 ------------------------------
 
 .. |log_levels| replace:: 'debug', 'info', 'warning', 'error' or 'critical'
+asdfasdfasdfasdfasdfasdf
 
+:K:::::::----``````
 :kivy:
 
-    `default_font` : 'Droid Sans'
+    `default_font`: string
+        Use to override the default font, also enabling you to ommit Kivy's
+        built-in kivy/data/fonts directory when packaging Kivy applications.
     `desktop`: int, 0 or 1
         This option controls desktop OS specific features, such as enabling
         drag-able scroll-bar in scroll views, disabling of bubbles in
