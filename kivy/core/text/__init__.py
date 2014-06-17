@@ -39,13 +39,20 @@ import os
 from functools import partial
 from copy import copy
 from kivy import kivy_data_dir
+from kivy.config import Config
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
 from kivy.core.text.text_layout import layout_text, LayoutWord
 from kivy.resources import resource_find
 from kivy.compat import PY2
 
-DEFAULT_FONT = 'DroidSans'
+
+
+# When we are generating documentation, Config doesn't exist
+_default_font = 'DroidSans'
+if Config:
+    _default_font = Config.get('kivy', 'default_font')
+
 
 FONT_REGULAR = 0
 FONT_ITALIC = 1
@@ -63,7 +70,7 @@ class LabelBase(object):
     :Parameters:
         `font_size`: int, defaults to 12
             Font size of the text
-        `font_name`: str, defaults to DEFAULT_FONT
+        `font_name`: str, defaults to 'DroidSans' through Config
             Font name of the text
         `bold`: bool, defaults to False
             Activate "bold" text style
@@ -135,7 +142,7 @@ class LabelBase(object):
 
     _texture_1px = None
 
-    def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
+    def __init__(self, text='', font_size=12, font_name=_default_font,
                  bold=False, italic=False, halign='left', valign='bottom',
                  shorten=False, text_size=None, mipmap=False, color=None,
                  line_height=1.0, strip=False, shorten_from='center',
@@ -676,9 +683,10 @@ if 'KIVY_DOC' not in os.environ:
         Logger.critical('App: Unable to get a Text provider, abort.')
         sys.exit(1)
 
-# For the first initalization, register the default font
-    Label.register('DroidSans',
-                   'data/fonts/DroidSans.ttf',
-                   'data/fonts/DroidSans-Italic.ttf',
-                   'data/fonts/DroidSans-Bold.ttf',
-                   'data/fonts/DroidSans-BoldItalic.ttf')
+    # If the user has not changed config default, register the defualt font.
+    if _default_font == 'DroidSans':
+        Label.register('DroidSans',
+                       'data/fonts/DroidSans.ttf',
+                       'data/fonts/DroidSans-Italic.ttf',
+                       'data/fonts/DroidSans-Bold.ttf',
+                       'data/fonts/DroidSans-BoldItalic.ttf')

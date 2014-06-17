@@ -155,6 +155,7 @@ The following example marks the anchors and references contained in a label::
 __all__ = ('Label', )
 
 from functools import partial
+from kivy.config import Config
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel
@@ -163,6 +164,12 @@ from kivy.properties import StringProperty, OptionProperty, \
     NumericProperty, BooleanProperty, ReferenceListProperty, \
     ListProperty, ObjectProperty, DictProperty
 from kivy.utils import get_hex_from_color
+
+# When we are generating documentation, Config doesn't exist
+_default_font = 'DroidSans'
+if Config:
+    _default_font = Config.get('kivy', 'default_font')
+
 
 
 class Label(Widget):
@@ -344,7 +351,7 @@ class Label(Widget):
     defaults to (None, None), meaning no size restriction by default.
     '''
 
-    font_name = StringProperty('DroidSans')
+    font_name = StringProperty(_default_font)
     '''Filename of the font to use. The path can be absolute or relative.
     Relative paths are resolved by the :func:`~kivy.resources.resource_find`
     function.
