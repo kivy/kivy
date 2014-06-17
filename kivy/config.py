@@ -37,6 +37,7 @@ Available configuration tokens
 
 :kivy:
 
+    `default_font` : 'Droid Sans'
     `desktop`: int, 0 or 1
         This option controls desktop OS specific features, such as enabling
         drag-able scroll-bar in scroll views, disabling of bubbles in
@@ -237,7 +238,7 @@ from kivy.compat import PY2, string_types
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 10
+KIVY_CONFIG_VERSION = 11
 
 #: Kivy configuration object
 Config = None
@@ -526,6 +527,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 9:
             Config.setdefault('kivy', 'exit_on_escape', '1')
+
+        elif version == 10:
+            Config.setdefault('kivy', 'default_font', 'DroidSans')        
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
