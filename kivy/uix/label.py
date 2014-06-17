@@ -306,7 +306,7 @@ class Label(Widget):
         .. |unicodechar| image:: images/unicode-char.png
 
     :attr:`font_name` is a :class:`~kivy.properties.StringProperty` and
-    defaults to 'DroidSans'.
+    defaults to 'DroidSans' via `~kivy.config`.
     '''
 
     font_size = NumericProperty('15sp')
