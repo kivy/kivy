@@ -139,7 +139,7 @@ cdef class StencilPush(Instruction):
             glClearStencil(0)
             glClear(GL_STENCIL_BUFFER_BIT)
         if _stencil_level > 128:
-            raise Exception('Cannot push more than 128 level of stencil.'
+            raise Exception('Cannot push more than 8 level of stencil.'
                             ' (stack overflow)')
 
         glEnable(GL_STENCIL_TEST)

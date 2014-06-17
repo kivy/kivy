@@ -428,8 +428,7 @@ graphics_dependencies = {
     'texture.pxd': ['c_opengl.pxd'],
     'texture.pyx': [
         'config.pxi', 'common.pxi', 'opengl_utils_def.pxi', 'context.pxd',
-        'c_opengl.pxd', 'c_opengl_debug.pxd', 'opengl_utils.pxd',
-        'img_tools.pxi'],
+        'c_opengl.pxd', 'c_opengl_debug.pxd', 'opengl_utils.pxd'],
     'vbo.pxd': ['buffer.pxd', 'c_opengl.pxd', 'vertex.pxd'],
     'vbo.pyx': [
         'config.pxi', 'common.pxi', 'c_opengl_debug.pxd', 'context.pxd',
@@ -461,8 +460,7 @@ sources = {
     'graphics/transformation.pyx': merge(base_flags, gl_flags),
     'graphics/vbo.pyx': merge(base_flags, gl_flags),
     'graphics/vertex.pyx': merge(base_flags, gl_flags),
-    'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags),
-    'core/text/text_layout.pyx': base_flags}
+    'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags)}
 
 if c_options['use_sdl']:
     sdl_flags = determine_sdl()

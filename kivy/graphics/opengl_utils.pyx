@@ -103,12 +103,7 @@ cpdef int gl_has_capability(int cap):
     # ok, never been initialized, do it now.
     if cap == c_GLCAP_BGRA:
         msg = 'BGRA texture support'
-        if _platform == 'ios':
-            value = gl_has_extension('APPLE_texture_format_BGRA8888')
-        else:
-            value = gl_has_extension('EXT_bgra')
-        if not value:
-            value = gl_has_extension('EXT_texture_format_BGRA888')
+        value = gl_has_extension('EXT_bgra')
 
     elif cap == c_GLCAP_NPOT:
         msg = 'NPOT texture support'

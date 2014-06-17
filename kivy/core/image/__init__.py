@@ -378,12 +378,12 @@ class ImageLoader(object):
 class Image(EventDispatcher):
     '''Load an image and store the size and texture.
 
-    .. versionchanged:: 1.0.7
+    .. versionadded:: 1.0.7
 
         `mipmap` attribute has been added. The `texture_mipmap` and
         `texture_rectangle` have been deleted.
 
-    .. versionchanged:: 1.0.8
+    .. versionadded:: 1.0.8
 
         An Image widget can change its texture. A new event 'on_texture' has
         been introduced. New methods for handling sequenced animation have been

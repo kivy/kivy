@@ -101,7 +101,7 @@ cdef class Context:
             self.trigger_gl_dealloc()
 
     cdef void dealloc_shader(self, Shader shader):
-        if shader.program == 0:
+        if shader.program == -1:
             return
         if shader.vertex_shader is not None:
             glDetachShader(shader.program, shader.vertex_shader.shader)
@@ -152,7 +152,7 @@ cdef class Context:
 
     def remove_reload_observer(self, callback, before=False):
         '''(internal) Remove a callback from the observer list previously added by
-        :meth:`add_reload_observer`.
+        :meth:`add_reload_observer`. 
         '''
         lst = self.observers_before if before else self.observers
         for cb in lst[:]:

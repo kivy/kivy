@@ -36,9 +36,9 @@ Single file glsl shader programs
 
 .. versionadded:: 1.6.0
 
-To simplify shader management, the vertex and fragment shaders can be loaded
-automatically from a single glsl source file (plain text). The file should
-contain sections identified by a line starting with '---vertex' and
+To simplify shader management, the vertex and fragment shaders can be loaded 
+automatically from a single glsl source file (plain text). The file should 
+contain sections identified by a line starting with '---vertex' and 
 '---fragment' respectively (case insensitive), e.g.::
 
     // anything before a meaningful section such as this comment are ignored
@@ -158,7 +158,7 @@ cdef class Shader:
     '''
     def __cinit__(self):
         self._success = 0
-        self.program = 0
+        self.program = -1
         self.vertex_shader = None
         self.fragment_shader = None
         self.uniform_locations = dict()

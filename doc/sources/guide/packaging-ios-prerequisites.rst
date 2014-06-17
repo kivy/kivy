@@ -10,20 +10,6 @@ The following guide assumes:
     
 Your experience may vary with different versions.
 
-Getting started
----------------
-
-In order to submit any application to the iTunes store, you will need an
-`iOS Developer License <https://developer.apple.com/programs/ios/>`_. For
-testing, you will need an actual device as kivy does not yet support the
-iOS emulators that Apple supplies.
-
-Please note that in order to test on the device, you need to register these
-devices and install your "provisioning profile" on them. Please refer to the
-Apple's
-`Getting started <https://developer.apple.com/programs/ios/gettingstarted/>`_
-guide for more information.
-
 Homebrew
 --------
 
@@ -56,4 +42,22 @@ Homebrew altogether, get the lastest version, install that and then re-install
 the dependencies.
 
     `How to Uninstall and Remove Homebrew for Mac OSX <http://www.curvve.com/blog/guides/2013/uninstall-homebrew-mac-osx/>`_
+
+Clang Compiler issues
+=====================
+
+Some dependencies for compiling cython with pip on OSX may fail to compile with
+the Clang (Apple's C) compiler displaying the message::
+
+    clang: error: unknown argument: '-mno-fused-madd' [-Wunused-command-line-argument-hard-error-in-future]
+    clang: note: this will be a hard error (cannot be downgraded to a warning) in the future
+    error: command 'cc' failed with exit status 1
+
+Here is a workaround::
+
+    export CFLAGS=-Qunused-arguments
+    sudo -E pip install cython
+
+The -E flag passes the environment to the sudo shell.
+
 

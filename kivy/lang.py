@@ -728,13 +728,12 @@ will first be unloaded and then reloaded again. For example:
 '''
 import os
 
-__all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException', 'Parser',
-           'ParserException')
+__all__ = ('Builder', 'BuilderBase', 'BuilderException',
+           'Parser', 'ParserException')
 
 import codecs
 import re
 import sys
-import traceback
 from re import sub, findall
 from os import environ
 from os.path import join
@@ -778,24 +777,6 @@ _delayed_calls = []
 # all the widget handlers, used to correctly unbind all the callbacks then the
 # widget is deleted
 _handlers = {}
-
-
-class Observable(object):
-    '''A lightweight class allowing to get an object be bound to action
-    in kv, without using as much resources as EventDispatcher
-
-    .. versionadded:: 1.8.1
-    '''
-
-    def bind(self, **kwargs):
-        '''This method is to be overriden by your subclass
-
-        kwargs will contains callables to call when your observables are
-        updated, so you can trigger a reevaluation of the expression
-        when you need it, just calling all the callbacks that are
-        relevant.
-        '''
-        pass
 
 
 class ProxyApp(object):
@@ -857,7 +838,7 @@ class ParserException(Exception):
     '''Exception raised when something wrong happened in a kv file.
     '''
 
-    def __init__(self, context, line, message, cause=None):
+    def __init__(self, context, line, message):
         self.filename = context.filename or '<inline>'
         self.line = line
         sourcecode = context.sourcecode
@@ -874,9 +855,6 @@ class ParserException(Exception):
 
         message = 'Parser: File "%s", line %d:\n%s\n%s' % (
             self.filename, self.line + 1, sc, message)
-        if cause:
-            message += '\n' + ''.join(traceback.format_tb(cause))
-        sys.exc_clear()
         super(ParserException, self).__init__(message)
 
 
@@ -1457,7 +1435,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                 f = idmap[k[0]]
                 for x in k[1:-1]:
                     f = getattr(f, x)
-                if isinstance(f, (Observable, EventDispatcher)):
+                if isinstance(f, EventDispatcher):
                     f.bind(**{k[-1]: fn})
                     # make sure _handlers doesn't keep widgets alive
                     _handlers[uid].append([get_proxy(f), k[-1], fn])
@@ -1469,10 +1447,8 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     try:
         return eval(value, idmap)
     except Exception as e:
-        tb = sys.exc_info()[2]
         raise BuilderException(rule.ctx, rule.line,
-                               '{}: {}'.format(e.__class__.__name__, e),
-                               cause=tb)
+                               '{}: {}'.format(e.__class__.__name__, e))
 
 
 class ParserSelector(object):
@@ -1625,12 +1601,11 @@ class BuilderBase(object):
                 self.templates[name] = (cls, template, fn)
                 Factory.register(name,
                                  cls=partial(self.template, name),
-                                 is_template=True, warn=True)
+                                 is_template=True)
 
             # register all the dynamic classes
             for name, baseclasses in iteritems(parser.dynamic_classes):
-                Factory.register(name, baseclasses=baseclasses, filename=fn,
-                                 warn=True)
+                Factory.register(name, baseclasses=baseclasses, filename=fn)
 
             # create root object is exist
             if kwargs['rulesonly'] and parser.root:
@@ -1777,10 +1752,9 @@ class BuilderBase(object):
                         value = eval(prule.value, idmap)
                         ctx[prule.name] = value
                 except Exception as e:
-                    tb = sys.exc_info()[2]
                     raise BuilderException(
                         prule.ctx, prule.line,
-                        '{}: {}'.format(e.__class__.__name__, e), cause=tb)
+                        '{}: {}'.format(e.__class__.__name__, e))
 
                 # create the template with an explicit ctx
                 child = cls(**ctx)
@@ -1827,10 +1801,9 @@ class BuilderBase(object):
                     setattr(widget_set, key, value)
         except Exception as e:
             if rule is not None:
-                tb = sys.exc_info()[2]
                 raise BuilderException(rule.ctx, rule.line,
                                        '{}: {}'.format(e.__class__.__name__,
-                                                       e), cause=tb)
+                                                       e))
             raise e
 
         # build handlers
@@ -1853,10 +1826,9 @@ class BuilderBase(object):
                         Factory.Widget.parent.dispatch(widget_set.__self__)
         except Exception as e:
             if crule is not None:
-                tb = sys.exc_info()[2]
                 raise BuilderException(
                     crule.ctx, crule.line,
-                    '{}: {}'.format(e.__class__.__name__, e), cause=tb)
+                    '{}: {}'.format(e.__class__.__name__, e))
             raise e
 
         # rule finished, forget it
@@ -1935,10 +1907,9 @@ class BuilderBase(object):
                             key, value, prule, idmap, True)
                     setattr(instr, key, value)
             except Exception as e:
-                tb = sys.exc_info()[2]
                 raise BuilderException(
                     prule.ctx, prule.line,
-                    '{}: {}'.format(e.__class__.__name__, e), cause=tb)
+                    '{}: {}'.format(e.__class__.__name__, e))
 
 #: Main instance of a :class:`BuilderBase`.
 Builder = register_context('Builder', BuilderBase)
