@@ -23,7 +23,9 @@ The syntax to create a request::
 Only the first argument is mandatory: the rest are optional.
 By default, a "GET" request will be sent. If the :attr:`UrlRequest.req_body` is
 not None, a "POST" request will be sent. It's up to you to adjust
-:attr:`UrlRequest.req_headers` to suite your requirements.
+:attr:`UrlRequest.req_headers` to suit your requirements and the response
+to the request will be accessible as the parameter called "result" on
+the callback function of the on_success event.
 
 
 Example of fetching weather in Paris::
@@ -138,11 +140,13 @@ class UrlRequest(Thread):
             If set, the result of the UrlRequest will be written to this path
             instead of in memory.
 
-    .. versionadded:: 1.8.0
+    .. versionchanged:: 1.8.0
+
         Parameter `decode` added.
         Parameter `file_path` added.
         Parameter `on_redirect` added.
         Parameter `on_failure` added.
+
     '''
 
     def __init__(self, url, on_success=None, on_redirect=None,
@@ -311,8 +315,12 @@ class UrlRequest(Thread):
                 trigger()
         else:
             result = resp.read()
-            if isinstance(result, bytes):
-                result = result.decode('utf-8')
+            try:
+                if isinstance(result, bytes):
+                    result = result.decode('utf-8')
+            except UnicodeDecodeError:
+                # if it's an image? decoding would not work
+                pass
         req.close()
 
         # return everything

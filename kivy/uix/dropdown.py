@@ -268,6 +268,8 @@ class DropDown(ScrollView):
             return True
         if self.collide_point(*touch.pos):
             return True
+        if self.attach_to and self.attach_to.collide_point(*touch.pos):
+            return True
         if self.auto_dismiss:
             self.dismiss()
 

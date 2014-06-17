@@ -25,7 +25,9 @@ type, so it might return different Sound classes depending the file type.
 
 .. note::
 
-    Recording audio is not supported.
+    The core audio library does not support recording audio. If you require
+    this functionality, please refer to the 
+    `audiostream <https://github.com/kivy/audiostream>`_ extension.
 
 '''
 
@@ -199,6 +201,7 @@ except ImportError:
     #audio_libs += [('gi', 'audio_gi')]
     if PY2:
         audio_libs += [('pygst', 'audio_pygst')]
+audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]
 audio_libs += [('sdl', 'audio_sdl')]
 audio_libs += [('pygame', 'audio_pygame')]
 

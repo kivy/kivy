@@ -52,17 +52,19 @@ class SoundGstplayer(Sound):
             self.player.stop()
             self.player.play()
         else:
-            self.player.stop()
+            self.stop()
 
     def load(self):
         self.unload()
         uri = self._get_uri()
         self.player = GstPlayer(uri, None, self._on_gst_eos_sync,
                                 _on_gstplayer_message)
-        self.player.set_volume(self.volume)
         self.player.load()
 
     def play(self):
+        # we need to set the volume everytime, it seems that stopping + playing
+        # the sound reset the volume.
+        self.player.set_volume(self.volume)
         self.player.play()
         super(SoundGstplayer, self).play()
 

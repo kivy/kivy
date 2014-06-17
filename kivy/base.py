@@ -234,7 +234,10 @@ class EventLoopBase(EventDispatcher):
             if wid != root_window and root_window is not None:
                 me.push()
                 w, h = root_window.system_size
-                me.scale_for_screen(w, h, rotation=root_window.rotation)
+                kheight = root_window.keyboard_height
+                smode = root_window.softinput_mode
+                me.scale_for_screen(w, h, rotation=root_window.rotation,
+                                    smode=smode, kheight=kheight)
                 parent = wid.parent
                 # and do to_local until the widget
                 try:
@@ -244,9 +247,9 @@ class EventLoopBase(EventDispatcher):
                         me.apply_transform_2d(wid.to_widget)
                         me.apply_transform_2d(wid.to_parent)
                 except AttributeError:
-                    # when using innerwindow, an app have grab the touch
+                    # when using inner window, an app have grab the touch
                     # but app is removed. the touch can't access
-                    # to one of the parent. (ie, self.parent will be None)
+                    # to one of the parent. (i.e, self.parent will be None)
                     # and BAM the bug happen.
                     me.pop()
                     continue

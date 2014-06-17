@@ -138,7 +138,7 @@ class FileHandler(logging.Handler):
             for filename in l:
                 unlink(filename['fn'])
 
-        print('Purge finished !')
+        print('Purge finished!')
 
     def _configure(self):
         from time import strftime
@@ -147,12 +147,12 @@ class FileHandler(logging.Handler):
         log_name = Config.get('kivy', 'log_name')
 
         _dir = kivy.kivy_home_dir
-        if len(log_dir) and log_dir[0] == '/':
+        if log_dir and os.path.isabs(log_dir):
             _dir = log_dir
         else:
             _dir = os.path.join(_dir, log_dir)
-            if not os.path.exists(_dir):
-                os.mkdir(_dir)
+        if not os.path.exists(_dir):
+            os.makedirs(_dir)
 
         self.purge_logs(_dir)
 
@@ -305,7 +305,8 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
         use_color = (
             os.name != 'nt' and
             os.environ.get('KIVY_BUILD') not in ('android', 'ios') and
-            os.environ.get('TERM') in ('xterm', 'rxvt', 'rxvt-unicode'))
+            os.environ.get('TERM') in (
+                'xterm', 'rxvt', 'rxvt-unicode', 'xterm-256color'))
         color_fmt = formatter_message(
             '[%(levelname)-18s] %(message)s', use_color)
         formatter = ColoredFormatter(color_fmt, use_color=use_color)

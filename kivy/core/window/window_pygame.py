@@ -19,6 +19,7 @@ from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
 from kivy.utils import platform
 from kivy.resources import resource_find
+from kivy.clock import Clock
 
 try:
     android = None
@@ -269,6 +270,8 @@ class WindowPygame(WindowBase):
 
             # kill application (SIG_TERM)
             if event.type == pygame.QUIT:
+                if self.dispatch('on_request_close'):
+                    continue
                 EventLoop.quit = True
                 self.close()
 

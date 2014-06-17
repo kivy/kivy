@@ -11,6 +11,10 @@ order to change these settings, you can alter this file manually or use
 the Config object. Please see the :ref:`Configure Kivy` section for more
 information.
 
+Note: To avoid instances where a blank screen appears before resizing,
+kivy.config should be imported right after kivy.app ,or before any modules
+affecting the window.
+
 Usage of the Config object
 --------------------------
 
@@ -233,28 +237,46 @@ from kivy.logger import Logger, logger_config_update
 from collections import OrderedDict
 from kivy.utils import platform
 from kivy.compat import PY2, string_types
+from weakref import ref
 
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
 KIVY_CONFIG_VERSION = 11
 
-#: Kivy configuration object
 Config = None
+'''Kivy configuration object. Its :attr:`~kivy.config.ConfigParser.name` is
+`'kivy'`
+'''
 
 
-class ConfigParser(PythonConfigParser):
+class ConfigParser(PythonConfigParser, object):
     '''Enhanced ConfigParser class that supports the addition of default
     sections and default values.
+
+    By default, the kivy ConfigParser instance, :attr:`~kivy.config.Config`,
+    is given the name `'kivy'` and the ConfigParser instance used by App,
+    :meth:`~kivy.app.App.build_settings`, is given the name `'app'`.
+
+    :Parameters:
+        `name`: string
+            The name of the instance. See :attr:`name`. Defaults to `''`.
+
+    ..versionchanged:: 1.8.1
+        Each ConfigParser can now be named, :attr:`name`. You can get the
+        ConfigParser associated with a name using :meth:`get_configparser`.
+        In addition, you can now control the config values with
+        :class:`~kivy.properties.ConfigParserProperty`.
 
     .. versionadded:: 1.0.7
     '''
 
-    def __init__(self):
+    def __init__(self, name=''):
         PythonConfigParser.__init__(self)
         self._sections = OrderedDict()
         self.filename = None
         self._callbacks = []
+        self.name = name
 
     def add_callback(self, callback, section=None, key=None):
         '''Add a callback to be called when a specific section/key changed. If
@@ -269,6 +291,17 @@ class ConfigParser(PythonConfigParser):
             raise Exception('You cannot specify a key without a section')
         self._callbacks.append((callback, section, key))
 
+    def remove_callback(self, callback, section=None, key=None):
+        '''Removes a callback added with :meth:`add_callback`.
+        :meth:`remove_callback` must be called with the same parameters as
+        :meth:`add_callback`.
+
+        Raises a `ValueError` if not found.
+
+        .. versionadded:: 1.8.1
+        '''
+        self._callbacks.remove((callback, section, key))
+
     def _do_callbacks(self, section, key, value):
         for callback, csection, ckey in self._callbacks:
             if csection is not None and csection != section:
@@ -281,6 +314,10 @@ class ConfigParser(PythonConfigParser):
         '''Read only one filename. In contrast to the original ConfigParser of
         Python, this one is able to read only one file at a time. The last
         read file will be used for the :meth:`write` method.
+
+        .. versionchanged:: 1.8.1
+            :meth:`read` now calls the callbacks if read changed any values.
+
         '''
         if not isinstance(filename, string_types):
             raise Exception('Only one filename is accepted ({})'.format(
@@ -295,7 +332,22 @@ class ConfigParser(PythonConfigParser):
         # "get()", but we internally store them in ascii.
         #with codecs.open(filename, 'r', encoding='utf-8') as f:
         #    self.readfp(f)
+        old_vals = {sect: {k: v for k, v in self.items(sect)} for sect in
+                    self.sections()}
         PythonConfigParser.read(self, filename)
+
+        # when reading new file, sections/keys are only increased, not removed
+        f = self._do_callbacks
+        for section in self.sections():
+            if section not in old_vals:  # new section
+                for k, v in self.items(section):
+                    f(section, k, v)
+                continue
+
+            old_keys = old_vals[section]
+            for k, v in self.items(section):  # just update new/changed keys
+                if k not in old_keys or v != old_keys[k]:
+                    f(section, k, v)
 
     def set(self, section, option, value):
         '''Functions similarly to PythonConfigParser's set method, except that
@@ -374,6 +426,116 @@ class ConfigParser(PythonConfigParser):
             return False
         return True
 
+    @staticmethod
+    def _register_named_property(name, widget_ref, *largs):
+        ''' Called by the ConfigParserProperty to register a property which
+        was created with a config name instead of a config object.
+
+        When a ConfigParser with this name is later created, the properties
+        are then notified that this parser now exists so they can use it.
+        If the parser already exists, the property is notified here. See
+        :meth:`~kivy.properties.ConfigParserProperty.set_config`.
+
+        :Parameters:
+            `name`: a non-empty string
+                The name of the ConfigParser that is associated with the
+                property. See :attr:`name`.
+            `widget_ref`: 2-tuple.
+                The first element is a reference to the widget containing the
+                property, the second element is the name of the property. E.g.:
+
+                    class House(Widget):
+                        address = ConfigParserProperty('', 'info', 'street',
+                            'directory')
+
+                Then, the first element is a ref to a House instance, and the
+                second is `'address'`.
+        '''
+        configs = ConfigParser._named_configs
+        try:
+            config, props = configs[name]
+        except KeyError:
+            configs[name] = (None, [widget_ref])
+            return
+
+        props.append(widget_ref)
+        if config:
+            config = config()
+        widget = widget_ref[0]()
+
+        if config and widget:  # associate this config with property
+            widget.property(widget_ref[1]).set_config(config)
+
+    @staticmethod
+    def get_configparser(name):
+        '''Returns the :class:`ConfigParser` instance whose name is `name`, or
+        None if not found.
+
+        :Parameters:
+            `name`: string
+                The name of the :class:`ConfigParser` instance to return.
+        '''
+        try:
+            config = ConfigParser._named_configs[name][0]
+            return config() if config else None
+        except KeyError:
+            return None
+
+    # keys are configparser names, values are 2-tuple of (ref(configparser),
+    # widget_ref), where widget_ref is same as in _register_named_property
+    _named_configs = {}
+    _name = ''
+
+    @property
+    def name(self):
+        ''' The name associated with this ConfigParser instance, if not `''`.
+        Defaults to `''`. It can be safely dynamically changed or set to `''`.
+
+        When a ConfigParser is given a name, that config object can be
+        retrieved using :meth:`get_configparser`. In addition, that config
+        instance can also be used with a
+        :class:`~kivy.properties.ConfigParserProperty` instance that set its
+        `config` value to this name.
+
+        Setting more than one ConfigParser with the same name will raise a
+        `ValueError`.
+        '''
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        old_name = self._name
+        if value is old_name:
+            return
+        self._name = value
+        configs = ConfigParser._named_configs
+
+        if old_name:  # disconnect this parser from previously connected props
+            _, props = configs.get(old_name, (None, []))
+            for widget, prop in props:
+                widget = widget()
+                if widget:
+                    widget.property(prop).set_config(None)
+            configs[old_name] = (None, props)
+
+        if not value:
+            return
+
+        # if given new name, connect it with property that used this name
+        try:
+            config, props = configs[value]
+        except KeyError:
+            configs[value] = (ref(self), [])
+            return
+
+        if config is not None:
+            raise ValueError('A parser named {} already exists'.format(value))
+        for widget, prop in props:
+            widget = widget()
+            if widget:
+                widget.property(prop).set_config(self)
+        configs[value] = (ref(self), props)
+
 
 if not environ.get('KIVY_DOC_INCLUDE'):
 
@@ -383,7 +545,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     #
 
     # Create default configuration
-    Config = ConfigParser()
+    Config = ConfigParser(name='kivy')
     Config.add_callback(logger_config_update, 'kivy', 'log_level')
 
     # Read config file if exist
