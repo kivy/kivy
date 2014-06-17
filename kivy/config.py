@@ -34,9 +34,7 @@ Available configuration tokens
 ------------------------------
 
 .. |log_levels| replace:: 'debug', 'info', 'warning', 'error' or 'critical'
-asdfasdfasdfasdfasdfasdf
 
-:K:::::::----``````
 :kivy:
 
     `default_font`: string
