@@ -390,7 +390,7 @@ class Recognizer(EventDispatcher):
         This method accepts optional :meth:`Recognizer.filter` arguments.
         '''
         io = BytesIO()
-        p = pickle.Pickler(io)
+        p = pickle.Pickler(io, protocol=0)
         multistrokes = []
         defaults = {'priority': 100, 'numpoints': 16, 'stroke_sens': True,
                     'orientation_sens': False, 'angle_similarity': 30.0}

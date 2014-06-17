@@ -100,7 +100,7 @@ class GestureDatabase(GridLayout):
 
         self.selected_count = 0
         self.ids.gesture_list.clear_widgets()
-        for k in sorted(self.gdict, key=str.lower):
+        for k in sorted(self.gdict, key=lambda n: n.lower()):
             gitem = GestureDatabaseItem(name=k, gesture_list=self.gdict[k])
             gitem.bind(on_select=self.select_item)
             gitem.bind(on_deselect=self.deselect_item)
