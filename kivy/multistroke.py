@@ -126,11 +126,15 @@ from re import match as re_match
 from collections import deque
 from math import sqrt, pi, radians, acos, atan, atan2, pow, floor
 from math import sin as math_sin, cos as math_cos
-from cStringIO import StringIO
 from kivy.vector import Vector
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty
+from kivy.compat import PY2
+from io import BytesIO
+
+if not PY2:
+    xrange = range
 
 # Default number of gesture matches per frame
 # FIXME: relevant number
@@ -362,7 +366,8 @@ class Recognizer(EventDispatcher):
         :class:`MultistrokeGesture` objects. This is used internally by
         :meth:`import_gesture`, you normally don't need to call this
         directly.'''
-        io = StringIO(zlib.decompress(base64.b64decode(data)))
+        io = BytesIO(zlib.decompress(base64.b64decode(data)))
+
         p = pickle.Unpickler(io)
         multistrokes = []
         ms_append = multistrokes.append
@@ -384,24 +389,25 @@ class Recognizer(EventDispatcher):
 
         This method accepts optional :meth:`Recognizer.filter` arguments.
         '''
-        io = StringIO()
+        io = BytesIO()
         p = pickle.Pickler(io)
         multistrokes = []
         defaults = {'priority': 100, 'numpoints': 16, 'stroke_sens': True,
                     'orientation_sens': False, 'angle_similarity': 30.0}
+        dkeys = defaults.keys()
+
         for multistroke in self.filter(**kwargs):
+            m = dict(defaults)
             m = {'name': multistroke.name}
-            for attr, value in defaults.iteritems():
-                current = getattr(multistroke, attr)
-                if current != value:
-                    m[attr] = current
+            for attr in dkeys:
+                m[attr] = getattr(multistroke, attr)
             m['strokes'] = tuple([(p.x, p.y) for p in line]
                                  for line in multistroke.strokes)
             multistrokes.append(m)
         p.dump(multistrokes)
 
         if filename:
-            f = open(filename, 'w')
+            f = open(filename, 'wb')
             f.write(base64.b64encode(zlib.compress(io.getvalue(), 9)))
             f.close()
         else:
@@ -419,7 +425,8 @@ class Recognizer(EventDispatcher):
         if none are specified then all gestures in specified data are
         imported.'''
         if filename is not None:
-            data = file(filename).read()
+            with open(filename, "rb") as infile:
+                data = infile.read()
         elif data is None:
             raise MultistrokeError('import_gesture needs data= or filename=')
 
@@ -1458,6 +1465,7 @@ def distance(p1, p2):
 
 
 def start_unit_vector(points, index):
-    vx, vy = points[index][0] - points[0][0], points[index][1] - points[0][1]
+    i = int(index)
+    vx, vy = points[i][0] - points[0][0], points[i][1] - points[0][1]
     length = sqrt(vx ** 2 + vy ** 2)
     return Vector(vx / length, vy / length)
