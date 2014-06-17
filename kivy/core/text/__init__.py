@@ -41,9 +41,8 @@ from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
 from kivy.resources import resource_find
 from kivy.compat import PY2
-from kivy.config import Config
 
-DEFAULT_FONT = Config.get('kivy', 'default_font')
+DEFAULT_FONT = 'DroidSans'
 
 FONT_REGULAR = 0
 FONT_ITALIC = 1
@@ -640,8 +639,7 @@ if 'KIVY_DOC' not in os.environ:
         Logger.critical('App: Unable to get a Text provider, abort.')
         sys.exit(1)
 
-# If the font was not overriden in Config, register the default
-if DEFAULT_FONT == 'DroidSans':
+# For the first initalization, register the default font
     Label.register('DroidSans',
                    'data/fonts/DroidSans.ttf',
                    'data/fonts/DroidSans-Italic.ttf',
