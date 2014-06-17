@@ -264,27 +264,32 @@ class CallbackManager:
 
     def dispatch(self, message, source = None):
         """Sends decoded OSC data to an appropriate calback"""
-        try:
-            if type(message[0]) == str :
-                # got a single message
+        if type(message[0]) == list :
+            # smells like nested messages
+            for msg in message :
+                self.dispatch(msg, source)
+        elif type(message[0]) == str :
+            # got a single message
+            try:
                 address = message[0]
-                self.callbacks[address](message, source)
-
-            elif type(message[0]) == list :
-                # smells like nested messages
-                for msg in message :
-                    self.dispatch(msg, source)
-
-        except KeyError as e:
-            # address not found
-            print('address %s not found ' % address)
-            pprint.pprint(message)
-        except IndexError as e:
-            print('got malformed OSC message')
-            pass
-        except None as e:
-            print("Exception in", address, "callback :", e)
-
+                callbackfunction = self.callbacks[address]
+            except KeyError as e:
+                # address not found
+                print('address %s not found ' % address)
+                pprint.pprint(message)
+            except IndexError as e:
+                print('got malformed OSC message')
+            else:
+                try:
+                    callbackfunction(message, source)
+                except Exception as e:
+                    import traceback
+                    print('OSC callback %s caused an error: %s' % (address, e))
+                    traceback.print_exc()
+                    print('---------------------')
+                    raise
+        else:
+            raise ValueError("OSC message not recognized", message)
         return
 
     def add(self, callback, name):
