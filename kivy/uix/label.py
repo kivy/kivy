@@ -101,6 +101,7 @@ For prettier rendering, you could add a color for the reference. Replace the
 __all__ = ('Label', )
 
 from functools import partial
+from kivy.config import Config
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel
@@ -110,6 +111,7 @@ from kivy.properties import StringProperty, OptionProperty, \
     ListProperty, ObjectProperty, DictProperty
 from kivy.utils import get_hex_from_color
 
+DEFAULT_FONT = Config.get('kivy', 'default_font')
 
 class Label(Widget):
     '''Label class, see module documentation for more information.
@@ -280,7 +282,7 @@ class Label(Widget):
     defaults to (None, None), meaning no size restriction by default.
     '''
 
-    font_name = StringProperty('DroidSans')
+    font_name = StringProperty(DEFAULT_FONT)
     '''Filename of the font to use. The path can be absolute or relative.
     Relative paths are resolved by the :func:`~kivy.resources.resource_find`
     function.
