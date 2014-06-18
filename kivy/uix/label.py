@@ -538,6 +538,10 @@ class Label(Widget):
     without an appropriately set :attr:`text_size` will lead to unexpected
     results.
 
+    :attr:`shorten_from` and :attr:`split_str` control the direction from
+    which the :attr:`text` is split, as well as where in the :attr:`text` we
+    are allowed to split.
+
     :attr:`shorten` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
     '''
@@ -559,7 +563,7 @@ class Label(Widget):
     defaults to `center`.
     '''
 
-    split_str = StringProperty(' ')
+    split_str = StringProperty('')
     '''The string used to split the :attr:`text` while shortening the string
     when :attr:`shorten` is True.
 
@@ -571,7 +575,7 @@ class Label(Widget):
     .. versionadded:: 1.8.1
 
     :attr:`split_str` is a :class:`~kivy.properties.StringProperty` and
-    defaults to `' '` (single space).
+    defaults to `''` (the empty string).
     '''
 
     markup = BooleanProperty(False)
