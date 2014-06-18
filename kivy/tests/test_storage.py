@@ -9,17 +9,9 @@ import unittest
 class StorageTestCase(unittest.TestCase):
     def test_dict_storage(self):
         from kivy.storage.dictstore import DictStore
-        from tempfile import mkstemp
-        from os import unlink, close
-
-        try:
-            tmpfd, tmpfn = mkstemp('.dict')
-            close(tmpfd)
-
-            self._do_store_test_empty(DictStore(tmpfn))
-            self._do_store_test_filled(DictStore(tmpfn))
-        finally:
-            unlink(tmpfn)
+        data = {}
+        self._do_store_test_empty(DictStore(data))
+        self._do_store_test_filled(DictStore(data))
 
     def test_json_storage(self):
         from kivy.storage.jsonstore import JsonStore
@@ -69,7 +61,7 @@ class StorageTestCase(unittest.TestCase):
         self.assertTrue(len(list(store.find(attr1='Common'))) == 3)
         self.assertTrue(len(list(store.find(attr2='bleh'))) == 2)
         self.assertTrue(
-            len(list(store.find(attr1='Common', attr2='bleh'))) == 2)
+                len(list(store.find(attr1='Common', attr2='bleh'))) == 2)
         self.assertTrue(len(list(store.find(name='Name2', attr2='bleh'))) == 1)
         self.assertTrue(len(list(store.find(name='Name1', attr2='bleh'))) == 0)
 

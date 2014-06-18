@@ -141,7 +141,6 @@ import sys
 from functools import partial
 from os import environ
 from weakref import ref
-import string
 
 from kivy.animation import Animation
 from kivy.base import EventLoop
@@ -497,27 +496,6 @@ class TextInput(Widget):
         '''
         if self.readonly or not substring:
             return
-
-        mode = self.input_filter
-        if mode is not None:
-            chr = type(substring)
-            if chr is bytes:
-                int_pat = self._insert_int_patb
-            else:
-                int_pat = self._insert_int_patu
-
-            if mode == 'int':
-                substring = re.sub(int_pat, chr(''), substring)
-            elif mode == 'float':
-                if '.' in self.text:
-                    substring = re.sub(int_pat, chr(''), substring)
-                else:
-                    substring = '.'.join([re.sub(int_pat, chr(''), k) for k
-                                          in substring.split(chr('.'), 1)])
-            else:
-                substring = mode(substring, from_undo)
-            if not substring:
-                return
 
         self._hide_handles(self._win)
 
@@ -1045,7 +1023,7 @@ class TextInput(Widget):
         self._hide_cut_copy_paste()
         sf, st = self._selection_from, self.selection_to
         if sf > st:
-            self._selection_from, self._selection_to = st, sf
+            self._selection_from , self._selection_to = st, sf
 
     def _handle_released(self, instance):
         sf, st = self._selection_from, self.selection_to
@@ -1123,7 +1101,7 @@ class TextInput(Widget):
         last_rect = group[-1]
         hp_right = last_rect.pos[0], last_rect.pos[1]
         x, y = to_win(*hp_right)
-        handle_right.x = x + last_rect.size[0]
+        handle_right.x =  x + last_rect.size[0]
         handle_right.y = y - handle_right.height
 
     def _hide_handles(self, win=None):
@@ -1822,7 +1800,7 @@ class TextInput(Widget):
 
             # check for blank line
             if not ntext:
-                texture = Texture.create(size=(1, 1))
+                texture  = Texture.create(size=(1, 1))
                 Cache_append('textinput.label', cid, texture)
                 return texture
 
@@ -2054,8 +2032,6 @@ class TextInput(Widget):
     _lines = ListProperty([])
     _hint_text_lines = ListProperty([])
     _editable = BooleanProperty(True)
-    _insert_int_patu = re.compile(u'[^0-9]')
-    _insert_int_patb = re.compile(b'[^0-9]')
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
@@ -2467,7 +2443,6 @@ class TextInput(Widget):
 
         if self._get_text(encode=False) == text:
             return
-
         self._refresh_text(text)
         self.cursor = self.get_cursor_from_index(len(text))
 
@@ -2559,7 +2534,7 @@ class TextInput(Widget):
     minimum_height = AliasProperty(_get_min_height, None,
                                    bind=('_lines', 'line_spacing', 'padding',
                                          'font_size', 'font_name', 'password',
-                                         'hint_text', 'line_height'))
+                                         'hint_text'))
     '''Minimum height of the content inside the TextInput.
 
     .. versionadded:: 1.8.0
@@ -2587,21 +2562,6 @@ class TextInput(Widget):
     :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
     defaults to 'text'. Can be one of 'text', 'number', 'url', 'mail',
     'datetime', 'tel', 'address'.
-    '''
-
-    input_filter = ObjectProperty(None, allownone=True)
-    ''' Filters the input according to the specified mode, if not None. If
-    None, no filtering is applied.
-
-    .. versionadded:: 1.8.1
-
-    :attr:`input_filter` is an :class:`~kivy.properties.ObjectProperty` and
-    defaults to `None`. Can be one of `None`, `'int'` (string), or `'float'`
-    (string), or a callable. If it is `'int'`, it will only accept numbers.
-    If it is `'float'` it will also accept a single period. Finally, if it is
-    a callable it will be called with two parameter; the string to be added
-    and a bool indicating whether the string is a result of undo (True). The
-    callable should return a new substring that will be used instead.
     '''
 
     handle_image_middle = StringProperty(

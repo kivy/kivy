@@ -78,7 +78,6 @@ from docutils.parsers.rst import roles
 from docutils import nodes, frontend, utils
 from docutils.parsers.rst import Directive, directives
 from docutils.parsers.rst.roles import set_classes
-from kivy.parser import parse_color
 
 
 #
@@ -161,7 +160,7 @@ Builder.load_string('''
 
     canvas:
         Color:
-            rgba: parse_color(self.document.underline_color)
+            rgba: parse_color('204a9699')
         Rectangle:
             pos: self.x, self.y + 5
             size: self.width, 1
@@ -501,15 +500,6 @@ class RstDocument(ScrollView):
 
     :attr:`toctrees` is a :class:`~kivy.properties.DictProperty` and defaults
     to {}.
-    '''
-
-    underline_color = StringProperty('204a9699')
-    '''underline color of the titles, expressed in html color notation
-
-    :attr:`underline_color` is a
-    :class:`~kivy.properties.StringProperty` and defaults to '204a9699'.
-
-    .. versionadded: 1.8.1
     '''
 
     # internals.

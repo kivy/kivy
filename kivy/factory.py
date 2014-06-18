@@ -65,13 +65,9 @@ class FactoryBase(object):
             return False
 
     def register(self, classname, cls=None, module=None, is_template=False,
-                 baseclasses=None, filename=None, warn=False):
+                 baseclasses=None, filename=None):
         '''Register a new classname referring to a real class or
-        class definition in a module. Warn, if True will emit a warning message
-        when a class is re-declared.
-
-        .. versionchanged:: 1.8.1
-            `warn` was added.
+        class definition in a module.
 
         .. versionchanged:: 1.7.0
             :attr:`baseclasses` and :attr:`filename` added
@@ -83,14 +79,6 @@ class FactoryBase(object):
             raise ValueError(
                 'You must specify either cls= or module= or baseclasses =')
         if classname in self.classes:
-            if warn:
-                info = self.classes[classname]
-                Logger.warning('Factory: Ignored class "{}" re-declaration. '
-                'Current -  module: {}, cls: {}, baseclass: {}, filename: {}. '
-                'Ignored -  module: {}, cls: {}, baseclass: {}, filename: {}.'.
-                format(classname, info['module'], info['cls'],
-                       info['baseclasses'], info['filename'], module, cls,
-                       baseclasses, filename))
             return
         self.classes[classname] = {
             'module': module,

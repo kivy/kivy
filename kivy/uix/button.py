@@ -87,9 +87,8 @@ class Button(ButtonBehavior, Label):
 
     .. versionadded:: 1.8.0
 
-    :attr:`background_disabled_normal` is a
-    :class:`~kivy.properties.StringProperty` and defaults to
-    'atlas://data/images/defaulttheme/button_disabled'.
+    :attr:`background_normal` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'atlas://data/images/defaulttheme/button_disabled'.
     '''
 
     background_disabled_down = StringProperty(
@@ -99,9 +98,8 @@ class Button(ButtonBehavior, Label):
 
     .. versionadded:: 1.8.0
 
-    :attr:`background_disabled_down` is a
-    :class:`~kivy.properties.StringProperty` and defaults to
-    'atlas://data/images/defaulttheme/button_disabled_pressed'.
+    :attr:`background_down` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'atlas://data/images/defaulttheme/button_disabled_pressed'.
     '''
 
     border = ListProperty([16, 16, 16, 16])

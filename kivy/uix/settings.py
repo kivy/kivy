@@ -359,8 +359,8 @@ class SettingString(SettingItem):
     '''(internal) Used to store the current textinput from the popup and
     to listen for changes.
 
-    :attr:`textinput` is an :class:`~kivy.properties.ObjectProperty` and
-    defaults to None.
+    :attr:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
     '''
 
     def on_panel(self, instance, value):
@@ -436,8 +436,8 @@ class SettingPath(SettingItem):
     '''(internal) Used to store the current textinput from the popup and
     to listen for changes.
 
-    :attr:`textinput` is an :class:`~kivy.properties.ObjectProperty` and
-    defaults to None.
+    :attr:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
     '''
 
     def on_panel(self, instance, value):
@@ -666,7 +666,7 @@ class InterfaceWithSidebar(BoxLayout):
     '''(internal) A reference to the panel display widget (a
     :class:`ContentPanel`).
 
-    :attr:`content` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`menu` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
 
     '''

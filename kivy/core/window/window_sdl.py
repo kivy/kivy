@@ -124,10 +124,9 @@ class WindowSDL(WindowBase):
 
             action, args = event[0], event[1:]
             if action == 'quit':
-                if not self.dispatch('on_request_close'):
-                    EventLoop.quit = True
-                    self.close()
-                    break
+                EventLoop.quit = True
+                self.close()
+                break
 
             elif action in ('fingermotion', 'fingerdown', 'fingerup'):
                 # for finger, pass the raw event to SDL motion event provider
@@ -248,10 +247,9 @@ class WindowSDL(WindowBase):
 
             action, args = event[0], event[1:]
             if action == 'quit':
-                if not self.dispatch('on_request_close'):
-                    EventLoop.quit = True
-                    self.close()
-                    break
+                EventLoop.quit = True
+                self.close()
+                break
             elif action == 'windowrestored':
                 break
 
