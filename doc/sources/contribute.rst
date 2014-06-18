@@ -298,9 +298,7 @@ If you updated your kivy install, and have some trouble compiling docs, run::
 
     make clean force html
 
-The docs will be generated in ``docs/build/html``. For more information on
-docstring formatting, please refer to the official 
-`Sphinx Documentation <http://sphinx-doc.org/>`_.
+The docs will be generated in ``docs/build/html``.
 
 Unit tests contributions
 ------------------------

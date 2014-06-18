@@ -90,15 +90,6 @@ You can customize the build in many ways:
 #. Indicate a launch image in portrait/landscape for iPad with and without
    retina display.
 
-Launch Images are supported. By default, XCode want you to build an `Image Sets
-<https://developer.apple.com/library/ios/recipes/xcode_help-image_catalog-1.0/Recipe.html>`_.
-This is your responsability to fill all the images needed for the Sets,
-depending of your target. However, Kivy use SDL, and as soon as the application
-starts the SDL main, the launch image will disapear. To prevent that, you need
-to have 2 files named `Default.png` and `Default-Landscape.png`, and put them
-in the `Resources` folder in Xcode (not in your application folder)
-
-
 .. _Known issues:
 
 Known issues
@@ -143,7 +134,7 @@ Have you already submited a Kivy application to the App store ?
 
 Yes, check:
 
-- `Defletouch on iTunes <http://itunes.apple.com/us/app/deflectouch/id505729681>`_,
+- `Defletouch on iTunes <http://itunes.apple.com/us/app/deflectouch/id505729681>`_, 
 - `ProcessCraft on iTunes <http://itunes.apple.com/us/app/processcraft/id526377075>`_
 
 For a more complete list, visit the

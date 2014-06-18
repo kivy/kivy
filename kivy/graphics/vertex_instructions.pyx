@@ -50,7 +50,7 @@ This module includes all the classes for drawing simple vertex objects.
 '''
 
 __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
-           'Point', 'Mesh', 'GraphicException', 'Bezier', 'SmoothLine')
+           'Point', 'Mesh', 'GraphicException', 'Bezier')
 
 
 include "config.pxi"
@@ -214,7 +214,7 @@ cdef class Bezier(VertexInstruction):
         .. warning::
 
             This will always reconstruct the whole graphic from the new points
-            list. It can be very CPU intensive.
+            list. It can be very CPU expensive.
         '''
         def __get__(self):
             return self._points
@@ -851,8 +851,7 @@ cdef class BorderImage(Rectangle):
 cdef class Ellipse(Rectangle):
     '''A 2D ellipse.
 
-    .. versionchanged:: 1.0.7
-
+    .. versionadded:: 1.0.7
         Added angle_start and angle_end.
 
     :Parameters:

@@ -39,9 +39,6 @@ class LabelPIL(LabelBase):
         w, h = font.getsize(text)
         return w, h
 
-    def get_cached_extents(self):
-        return self._select_font().getsize
-
     def _render_begin(self):
         # create a surface, context, font...
         self._pil_im = Image.new('RGBA', self._size)

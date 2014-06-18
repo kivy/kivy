@@ -13,20 +13,20 @@ accuracy of text rendering may vary.
     width <= 1.
 
 This is the backend layer for getting text out of different text providers,
-you should only be using this directly if your needs aren't fulfilled by the
+you should only be using this directly if your needs aren't fulfilled by
 :class:`~kivy.uix.label.Label`.
 
 Usage example::
 
     from kivy.core.label import Label as CoreLabel
-
+    
     ...
     ...
     my_label = CoreLabel()
     my_label.text = 'hello'
-    # the label is usually not drawn until needed, so force it to draw.
+    # label is usully not drawn till absolutely needed, force it to draw.
     my_label.refresh()
-    # Now access the texture of the label and use it wherever and
+    # Now access the texture of the label and use it where ever,
     # however you may please.
     hello_texture = my_label.texture
 
@@ -36,12 +36,9 @@ __all__ = ('LabelBase', 'Label')
 
 import re
 import os
-from functools import partial
-from copy import copy
 from kivy import kivy_data_dir
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
-from kivy.core.text.text_layout import layout_text, LayoutWord
 from kivy.resources import resource_find
 from kivy.compat import PY2
 
@@ -87,15 +84,6 @@ class LabelBase(object):
             contents as much as possible if a `size` is given.
             Setting this to True without an appropriately set size will lead to
             unexpected results.
-        `shorten_from`: str, defaults to `center`
-            The side from which we should shorten the text from, can be left,
-            right, or center. E.g. if left, the ellipsis will appear towards
-            the left side and it will display as much text starting from the
-            right as possible.
-        `split_str`: string, defaults to `' '` (space)
-            The string to use to split the words by when shortening. If empty,
-            we can split after every character filling up the line as much as
-            possible.
         `max_lines`: int, defaults to 0 (unlimited)
             If set, this indicate how maximum line are allowed to render the
             text. Works only if a limitation on text_size is set.
@@ -106,7 +94,7 @@ class LabelBase(object):
             stripped. If `halign` is `justify` it is implicitly True.
 
     .. versionchanged:: 1.8.1
-        `strip`, `shorten_from`, and `split_str` were added.
+        `strip` was added.
 
     .. versionchanged:: 1.8.1
         `padding_x` and `padding_y` has been fixed to work as expected.
@@ -127,7 +115,7 @@ class LabelBase(object):
 
     __slots__ = ('options', 'texture', '_label', '_text_size')
 
-    _cached_lines = []
+    _cache_glyphs = {}
 
     _fonts = {}
 
@@ -138,22 +126,18 @@ class LabelBase(object):
     def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
                  bold=False, italic=False, halign='left', valign='bottom',
                  shorten=False, text_size=None, mipmap=False, color=None,
-                 line_height=1.0, strip=False, shorten_from='center',
-                 split_str=' ', **kwargs):
+                 line_height=1.0, strip=False, **kwargs):
 
         options = {'text': text, 'font_size': font_size,
                    'font_name': font_name, 'bold': bold, 'italic': italic,
                    'halign': halign, 'valign': valign, 'shorten': shorten,
                    'mipmap': mipmap, 'line_height': line_height,
-                   'strip': strip, 'shorten_from': shorten_from,
-                   'split_str': split_str}
+                   'strip': strip}
 
         options['color'] = color or (1, 1, 1, 1)
-        options['padding'] = kwargs.get('padding', (0, 0))
-        if not isinstance(options['padding'], (list, tuple)):
-            options['padding'] = (options['padding'], options['padding'])
-        options['padding_x'] = kwargs.get('padding_x', options['padding'][0])
-        options['padding_y'] = kwargs.get('padding_y', options['padding'][1])
+        options['padding'] = kwargs.get('padding', 0)
+        options['padding_x'] = kwargs.get('padding_x', options['padding'])
+        options['padding_y'] = kwargs.get('padding_y', options['padding'])
 
         if 'size' in kwargs:
             options['text_size'] = kwargs['size']
@@ -165,8 +149,10 @@ class LabelBase(object):
 
         self._text_size = options['text_size']
         self._text = options['text']
-        self._internal_size = 0, 0  # the real computed text size (inclds pad)
+        self._internal_width = self._internal_height = 0
         self._cached_lines = []
+        self._cached_text_size = self._cached_padding = (0, 0)
+        self._cached_options = {}
 
         self.options = options
         self.texture = None
@@ -239,29 +225,6 @@ class LabelBase(object):
         text'''
         return (0, 0)
 
-    def get_cached_extents(self):
-        '''Returns a cached version of the :meth:`get_extents` function.
-
-        ::
-
-            >>> func = self._get_cached_extents()
-            >>> func
-            <built-in method size of pygame.font.Font object at 0x01E45650>
-            >>> func('a line')
-            (36, 18)
-
-        .. warning::
-
-            This method returns a size measuring function that is valid
-            for the font settings used at the time :meth:`get_cached_extents`
-            was called. Any change in the font settings will render the
-            returned function incorrect. You should only use this if you know
-            what you're doing.
-
-        .. versionadded:: 1.8.1
-        '''
-        return self.get_extents
-
     def _render_begin(self):
         pass
 
@@ -272,182 +235,62 @@ class LabelBase(object):
         pass
 
     def shorten(self, text, margin=2):
-        ''' Shortens the text to fit into a single line by the width specified
-        by :attr:`text_size` [0]. If :attr:`text_size` [0] is None, it returns
-        text text unchanged.
+        # Just a tiny shortcut
+        textwidth = self.get_extents
+        if self.text_size[0] is None:
+            width = 0
+        else:
+            width = max(0,
+                        int(self.text_size[0] - self.options['padding_x'] * 2))
 
-        :attr:`split_str` and :attr:`shorten_from` determines how the text is
-        shortened.
+        letters = '_..._' + text
+        while textwidth(letters)[0] > width:
+            letters = letters[:letters.rfind(' ')]
 
-        :params:
+        max_letters = len(letters) - 2
+        segment = (max_letters // 2)
 
-            `text` str, the text to be shortened.
-            `margin` int, the amount of space to leave between the margins
-            and the text. This is in addition to :attr:`padding_x`.
-
-        :retruns:
-            the text shortened to fit into a single line.
-        '''
-        textwidth = self.get_cached_extents()
-        uw = self.text_size[0]
-        if uw is None or not text:
-            return text
-
-        opts = self.options
-        uw = max(0, int(uw - opts['padding_x'] * 2 - margin))
-        # if larger, it won't fit so don't even try extents
-        chr = type(text)
-        text = text.replace(chr('\n'), chr(' '))
-        if len(text) <= uw and textwidth(text)[0] <= uw:
-            return text
-        c = opts['split_str']
-        offset = 0 if len(c) else 1
-        dir = opts['shorten_from'][0]
-        elps = textwidth('...')[0]
-        if elps > uw:
-            if textwidth('..')[0] <= uw:
-                return '..'
-            else:
-                return '.'
-        uw -= elps
-
-        f = partial(text.find, c)
-        f_rev = partial(text.rfind, c)
-        # now find the first and last word
-        e1, s2 = f(), f_rev()
-
-        if dir != 'l':  # center or right
-            # no split, or the first word doesn't even fit
-            if e1 != -1:
-                l1 = textwidth(text[:e1])[0]
-                l2 = textwidth(text[s2 + 1:])[0]
-            if e1 == -1 or l1 + l2 > uw:
-                if len(c):
-                    opts['split_str'] = ''
-                    res = self.shorten(text, margin)
-                    opts['split_str'] = c
-                    return res
-                # at this point we do char by char so e1 must be zero
-                if l1 <= uw:
-                    return chr('{0}...').format(text[:e1])
-                return chr('...')
-
-            # both word fits, and there's at least on split_str
-            if s2 == e1:  # there's only on split_str
-                return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
-
-            # both the first and last word fits, and they start/end at diff pos
-            if dir == 'r':
-                ee1 = f(e1 + 1)
-                while l2 + textwidth(text[:ee1])[0] <= uw:
-                    e1 = ee1
-                    if e1 == s2:
-                        break
-                    ee1 = f(e1 + 1)
-            else:
-                while True:
-                    if l1 <= l2:
-                        ee1 = f(e1 + 1)
-                        l1 = textwidth(text[:ee1])[0]
-                        if l2 + l1 > uw:
-                            break
-                        e1 = ee1
-                        if e1 == s2:
-                            break
-                    else:
-                        ss2 = f_rev(0, s2 - offset)
-                        l2 = textwidth(text[ss2 + 1:])[0]
-                        if l2 + l1 > uw:
-                            break
-                        s2 = ss2
-                        if e1 == s2:
-                            break
-        else:  # left
-            # no split, or the last word doesn't even fit
-            if s2 != -1:
-                l2 = textwidth(text[s2 + (1 if len(c) else -1):])[0]
-                l1 = textwidth(text[:max(0, e1)])[0]
-            # if split_str
-            if s2 == -1 or l2 + l1 > uw:
-                if len(c):
-                    opts['split_str'] = ''
-                    res = self.shorten(text, margin)
-                    opts['split_str'] = c
-                    return res
-
-                return chr('...')
-
-            # both word fits, and there's at least on split_str
-            if s2 == e1:  # there's only on split_str
-                return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
-
-            # both the first and last word fits, and they start/end at diff pos
-            ss2 = f_rev(0, s2 - offset)
-            while l1 + textwidth(text[ss2 + 1:])[0] <= uw:
-                s2 = ss2
-                if s2 == e1:
-                    break
-                ss2 = f_rev(0, s2 - offset)
-
-        return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
+        if segment - margin > 5:
+            segment -= margin
+            return type(text)('{0}...{1}').format(text[:segment].strip(),
+                                                  text[-segment:].strip())
+        else:
+            segment = max_letters - 3  # length of '...'
+            return type(text)('{0}...').format(text[:segment].strip())
 
     def _render_real(self):
-        lines = self._cached_lines
-        options = None
-        for line in lines:
-            if len(line.words):  # get opts from first line, first word
-                options = line.words[0].options
-                break
-        if not options:  # there was no text to render
-            self._render_begin()
-            data = self._render_end()
-            assert(data)
-            if data is not None and data.width > 1:
-                self.texture.blit_data(data)
-            return
-
+        options = self._cached_options
         render_text = self._render_text
-        get_extents = self.get_cached_extents()
-        uw, uh = options['text_size']
-        xpad, ypad = options['padding_x'], options['padding_y']
+        get_extents = self.get_extents
+        uw, uh = self._cached_text_size
+        xpad, ypad = self._cached_padding
         x, y = xpad, ypad   # pos in the texture
-        iw, ih = self._internal_size  # the real size of text, not texture
-        if uw is not None:
-            uww = uw - 2 * xpad  # real width of just text
-        w, h = self.size
-        sw = options['space_width']
-        halign = options['halign']
-        valign = options['valign']
+        contentw = self._internal_width - 2 * xpad
         split = re.split
         pat = re.compile('( +)')
         self._render_begin()
 
+        sw = get_extents(' ')[0]
+        halign = options['halign']
+        valign = options['valign']
         if valign == 'bottom':
-            y = h - ih + ypad
+            y = self.height - self._internal_height + ypad
         elif valign == 'middle':
-            y = int((h - ih) / 2 + ypad)
+            y = int((self.height - self._internal_height) / 2 + ypad)
 
-        for layout_line in lines:  # for plain label each line has only one str
-            lw, lh = layout_line.w, layout_line.h
-            line = ''
-            assert len(layout_line.words) < 2
-            if len(layout_line.words):
-                last_word = layout_line.words[0]
-                line = last_word.text
+        for line, (lw, lh), is_last_line in self._cached_lines:
             x = xpad
             if halign[0] == 'c':  # center
-                x = int((w - lw) / 2.)
+                x = int((self.width - lw) / 2.)
             elif halign[0] == 'r':  # right
-                x = max(0, int(w - lw - xpad))
+                x = int(self.width - lw - xpad)
 
             # right left justify
             # divide left over space between `spaces`
             # TODO implement a better method of stretching glyphs?
-            if (uw is not None and halign[-1] == 'y' and line and not
-                layout_line.is_last_line):
+            if halign[-1] == 'y' and line and not is_last_line:
                 # number spaces needed to fill, and remainder
-                n, rem = divmod(max(uww - lw, 0), sw)
-                n = int(n)
+                n, rem = divmod(contentw - lw, sw)
                 words = None
                 if n or rem:
                     # there's no trailing space when justify is selected
@@ -459,22 +302,14 @@ class LabelBase(object):
                         idx = (2 * i + 1) % (len(words) - 1)
                         words[idx] = words[idx] + space
                     if rem:
-                        # render the last word at the edge, also add it to line
-                        ext = get_extents(words[-1])
-                        word = LayoutWord(last_word.options, ext[0], ext[1],
-                                          words[-1])
-                        layout_line.words.append(word)
-                        last_word.lw = uww - ext[0]  # word was stretched
-                        render_text(words[-1], x + last_word.lw, y)
-                        last_word.text = line = ''.join(words[:-2])
+                        # render the last word at the edge
+                        render_text(words[-1], x + contentw -
+                                    get_extents(words[-1])[0], y)
+                        line = ''.join(words[:-2])
                     else:
-                        last_word.lw = uww  # word was stretched
-                        last_word.text = line = ''.join(words)
-                    layout_line.w = uww  # the line occupies full width
+                        line = ''.join(words)
 
             if len(line):
-                layout_line.x = x
-                layout_line.y = y
                 render_text(line, x, y)
             y += lh
 
@@ -494,52 +329,180 @@ class LabelBase(object):
         if real:
             return self._render_real()
 
-        options = copy(self.options)
-        options['space_width'] = self.get_extents(' ')[0]
-        options['strip'] = strip = (options['strip'] or
-                                    options['halign'][-1] == 'y')
-        uw, uh = options['text_size'] = self._text_size
+        self._cached_options = options = dict(self.options)
+        render_text = self._render_text
+        get_extents = self.get_extents
+        uw, uh = self.text_size
+        xpad, ypad = options['padding_x'], options['padding_y']
+        max_lines = int(options.get('max_lines', 0))
+        strip = options['strip'] or options['halign'][-1] == 'y'
+        w, h = 0, 0   # width and height of the texture
+        x, y = xpad, ypad   # pos in the texture
+        # don't allow them to change before rendering for real
+        self._cached_padding = xpad, ypad
+        self._cached_text_size = uw, uh
         text = self.text
         if strip:
             text = text.strip()
-        if uw is not None and options['shorten']:
-            text = self.shorten(text)
-        self._cached_lines = lines = []
         if not text:
+            self._cached_lines = []
             return 0, 0
 
-        if uh is not None and options['valign'][-1] == 'e':  # middle
-            center = -1  # pos of newline
-            if len(text) > 1:
-                middle = int(len(text) // 2)
-                l, r = text.rfind('\n', 0, middle), text.find('\n', middle)
-                if l != -1 and r != -1:
-                    center = l if center - l <= r - center else r
-                elif l != -1:
-                    center = l
-                elif r != -1:
-                    center = r
-            # if a newline split text, render from center down and up til uh
-            if center != -1:
-                # layout from center down until half uh
-                w, h, clipped = layout_text(text[center + 1:], lines, (0, 0),
-                (uw, uh / 2), options, self.get_cached_extents(), True, True)
-                # now layout from center upwards until uh is reached
-                w, h, clipped = layout_text(text[:center + 1], lines, (w, h),
-                (uw, uh), options, self.get_cached_extents(), False, True)
-            else:  # if there's no new line, layout everything
-                w, h, clipped = layout_text(text, lines, (0, 0), (uw, None),
-                options, self.get_cached_extents(), True, True)
-        else:  # top or bottom
-            w, h, clipped = layout_text(text, lines, (0, 0), (uw, uh), options,
-                self.get_cached_extents(), options['valign'][-1] == 'p', True)
-        self._internal_size = w, h
-        if uw:
-            w = uw
-        if uh:
-            h = uh
-        if h > 1 and w < 2:
-            w = 2
+        # no width specified, find max width. For height, if not specified,
+        # do everything, otherwise stop when reached specified height
+        if uw is None:
+            h = ypad * 2
+            lines = text.split('\n')
+            for i in range(len(lines)):
+                if (max_lines > 0 and i + 1 > max_lines or uh is not None
+                    and h > uh):
+                    i -= 1
+                    break
+                line = lines[i].strip() if strip else lines[i]
+                lw, lh = get_extents(line)
+                lh = int(lh * options['line_height'])
+                if uh is not None and h + lh > uh:  # too high
+                    break
+                w = max(w, int(lw + 2 * xpad))
+                h += lh
+                lines[i] = (line, (lw, lh), True)  # True == its line end
+            self._internal_height = h
+            self._cached_lines = lines[:i + 1]
+            if uh is not None:  # texture size must be requested text_size
+                h = uh
+
+        else:  # constraint width
+            uw = max(0, uw - xpad * 2)  # actual w, h allowed for rendering
+            if uh is not None:
+                uh = max(0, uh - ypad * 2)
+            bare_size = get_extents('')
+
+            # Shorten the text that we actually display
+            if (options['shorten'] and get_extents(text)[0] > uw):
+                text = self.shorten(text)
+                lw, lh = get_extents(text)
+                self._cached_lines = [(text, (lw + 2 * xpad, lh + 2 * ypad),
+                                       True)] if text else []
+                self._internal_width = uw + xpad * 2
+                self._internal_height = lh + 2 * ypad
+                # height must always be the requested size, if specified
+                h = self._internal_height if uh is None else lh + 2 * ypad
+                return self._internal_width, h
+
+            lines = []
+            h = 0
+            # split into lines and find how many real lines each line requires
+            for line in text.split('\n'):
+                if (uh is not None and h > uh or max_lines > 0 and
+                    len(lines) > max_lines):
+                    break
+
+                if strip:
+                    line = line.strip()
+                if line == '':  # just add empty line if empty
+                    lines.append(('', bare_size, True))
+                    h += lines[-1][1][1] * options['line_height']
+                    continue
+
+                # what we do is given the current text in this real line
+                # (starts empty), if we can fit another word, add it. Otherwise
+                # add it to a new line. But if a single word doen't fit on a
+                # single line, just split the word itself into multiple lines
+
+                # s is idx in line of start of this actual line, e is idx of
+                # next space, m is idx after s that still fits on this line
+                s = m = e = 0
+                while s != len(line):
+                    # find next space or end, if end don't keep checking
+                    if e != len(line):
+                        e = line.find(' ', m + 1)
+                        if e is -1:
+                            e = len(line)
+
+                    lwe, lhe = get_extents(line[s:e])  # does next word fit?
+                    if lwe > uw:  # too wide
+                        if s != m:
+                            # theres already some text, commit and go next line
+                            # make sure there are no trailing spaces, may occur
+                            # if many spaces is followed by word not fitting
+                            ln = line[s:m]
+                            if strip and ln[-1] == ' ':
+                                ln = ln.rstrip()
+                                lines.append((ln, get_extents(ln), False))
+                            else:
+                                lines.append((line[s:m], (lw, lh), False))
+                            h += lh * options['line_height']
+                            s = m
+
+                        # try to fit word on new line, if it doesn't fit we'll
+                        # have to break the word into as many lines needed
+                        if strip:
+                            s = e - len(line[s:e].lstrip())
+                        if s == e:  # if it was only a stripped space, move on
+                            m = s
+                            continue
+
+                        # now break single word into as many lines needed
+                        m = s
+                        while s != e:
+                            # does remainder fit in single line?
+                            lwe, lhe = get_extents(line[s:e])
+                            if lwe <= uw:
+                                m = e
+                                break
+                            # if not, fit as much as possible into this line
+                            while (m != e and
+                                   get_extents(line[s:m + 1])[0] <= uw):
+                                m += 1
+                            # not enough room for even single char, skip it
+                            if m == s:
+                                s += 1
+                            else:
+                                lines.append((line[s:m],
+                                get_extents(line[s:m]), m == len(line)))
+                                h += lines[-1][1][1] * options['line_height']
+                                s = m
+                            m = s
+                        m = s  # done with long word, go back to normal
+
+                    else:   # the word fits
+                        # don't allow leading spaces on empty lines
+                        if strip and m == s and line[s:e] == ' ':
+                            s = m = e
+                            continue
+                        m = e
+
+                    if m == len(line):  # we're done
+                        if s != len(line):
+                            lines.append((line[s:], (lwe, lhe), True))
+                            h += lhe * options['line_height']
+                        break
+                    lw, lh = lwe, lhe
+
+            # ensure the number of lines is not more than the user asked
+            # above, we might have gone a few lines over
+            if max_lines > 0:
+                lines = lines[:max_lines]
+            # now make sure we don't have lines outside specified height
+            if uh is not None:
+                lh = options['line_height']
+                i = h = 0
+                while i < len(lines) and h + lines[i][1][1] * lh <= uh:
+                    h += lines[i][1][1] * lh
+                    i += 1
+                lines = lines[:i]
+
+            self._internal_height = h + ypad * 2
+            # height must always be the requested size, if specified
+            h = self._internal_height if uh is None else uh + ypad * 2
+            w = uw + xpad * 2
+            self._cached_lines = lines
+
+        # was only the first pass
+        # return with/height
+        w = int(max(w, 1))
+        self._internal_width = w
+        h = int(max(h, 1))
         return w, h
 
     def _texture_refresh(self, *l):

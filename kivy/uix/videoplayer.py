@@ -649,7 +649,4 @@ class VideoPlayer(GridLayout):
 if __name__ == '__main__':
     import sys
     from kivy.base import runTouchApp
-    player = VideoPlayer(source=sys.argv[1])
-    runTouchApp(player)
-    if player:
-        player.state = 'stop'
+    runTouchApp(VideoPlayer(source=sys.argv[1]))
