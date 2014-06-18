@@ -278,6 +278,7 @@ cdef class GstPlayer:
     def stop(self):
         if self.pipeline != NULL:
             with nogil:
+                gst_element_set_state(self.pipeline, GST_STATE_NULL)
                 gst_element_set_state(self.pipeline, GST_STATE_READY)
 
     def pause(self):
