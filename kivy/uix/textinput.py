@@ -141,7 +141,6 @@ import sys
 from functools import partial
 from os import environ
 from weakref import ref
-import string
 
 from kivy.animation import Animation
 from kivy.base import EventLoop
@@ -1643,16 +1642,19 @@ class TextInput(Widget):
                 tcx, tcy = 0, 0
 
                 # adjust size/texcoord according to viewport
-                if vw < tw:
+                if viewport_pos:
+                    tcx, tcy = viewport_pos
+                    tcx = tcx / tw * (ow)
+                    tcy = tcy / th * oh
+                if tw - viewport_pos[0] < vw:
+                    tcw = tcw - tcx
+                    size[0] = tcw * size[0]
+                elif vw < tw:
                     tcw = (vw / tw) * tcw
                     size[0] = vw
                 if vh < th:
                     tch = (vh / th) * tch
                     size[1] = vh
-                if viewport_pos:
-                    tcx, tcy = viewport_pos
-                    tcx = tcx / tw * (ow)
-                    tcy = tcy / th * oh
 
                 # cropping
                 mlh = lh
