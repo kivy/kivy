@@ -1191,7 +1191,7 @@ cdef class SmoothLine(Line):
     - no cap or joint are supported
     - it use a custom texture with premultiplied alpha
     - dash is not supported
-    - line under 1px width are not supported, it will look the same
+    - line under 1px width are not supported, it will look the same
 
     .. warning::
 
