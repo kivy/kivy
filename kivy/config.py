@@ -426,6 +426,15 @@ class ConfigParser(PythonConfigParser, object):
             return False
         return True
 
+    def upgrade(self, default_config_file):
+        '''Upgrade the configuration based on a new default config file.
+        '''
+        pcp = PythonConfigParser()
+        pcp.read(default_config_file)
+        for section in pcp.sections():
+            self.setdefaults(section, dict(pcp.items(section)))
+        self.write()
+
     @staticmethod
     def _register_named_property(name, widget_ref, *largs):
         ''' Called by the ConfigParserProperty to register a property which
