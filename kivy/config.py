@@ -365,6 +365,12 @@ class ConfigParser(PythonConfigParser, object):
         self._do_callbacks(section, option, value)
         return ret
 
+    def setall(self, section, keyvalues):
+        '''Set a lot of keys/values in one section at the same time.
+        '''
+        for key, value in keyvalues.items():
+            self.set(section, key, value)
+
     def get(self, section, option, **kwargs):
         value = PythonConfigParser.get(self, section, option, **kwargs)
         if PY2:
@@ -373,7 +379,7 @@ class ConfigParser(PythonConfigParser, object):
         return value
 
     def setdefaults(self, section, keyvalues):
-        '''Set a lot of keys/values in one section at the same time.
+        '''Set a lot of keys/value defaults in one section at the same time.
         '''
         self.adddefaultsection(section)
         for key, value in keyvalues.items():
@@ -426,13 +432,15 @@ class ConfigParser(PythonConfigParser, object):
             return False
         return True
 
-    def upgrade(self, default_config_file):
+    def update_config(self, filename, overwrite=False):
         '''Upgrade the configuration based on a new default config file.
+           Overwrite any existing values if overwrite is True.
         '''
         pcp = PythonConfigParser()
-        pcp.read(default_config_file)
+        pcp.read(filename)
+        confset = self.setall if overwrite else self.setdefaults
         for section in pcp.sections():
-            self.setdefaults(section, dict(pcp.items(section)))
+            confset(section, dict(pcp.items(section)))
         self.write()
 
     @staticmethod
