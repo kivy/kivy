@@ -320,7 +320,11 @@ class MotionEvent(MotionEventBase):
             raise Exception('Grab works only for Touch MotionEvents.')
         if self.grab_exclusive_class is not None:
             raise Exception('Cannot grab the touch, touch is exclusive')
-        class_instance = weakref.ref(class_instance)
+        try:
+            class_instance = weakref.ref(class_instance)
+        except TypeError:
+            # handle weakproxy objects which cannot be weakref'd
+            class_instance = weakref.ref(class_instance.__self__)
         if exclusive:
             self.grab_exclusive_class = class_instance
         self.grab_list.append(class_instance)
