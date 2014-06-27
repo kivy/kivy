@@ -122,7 +122,8 @@ from kivy.uix.stencilview import StencilView
 from kivy.metrics import sp
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
-    ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty
+    ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty, \
+    BoundedNumericProperty
 
 
 # When we are generating documentation, Config doesn't exist
@@ -292,6 +293,16 @@ class ScrollView(StencilView):
 
     :attr:`bar_color` is a :class:`~kivy.properties.ListProperty` and defaults
     to [.7, .7, .7, .9].
+    '''
+
+    bar_inactive_alpha = BoundedNumericProperty(.2, min=0, max=1)
+    '''Alpha value of the scroll bar, when no scroll is happening. Accepts
+    values between 0 and 1.
+
+    .. versionadded:: 1.8.1
+
+    :attr:`bar_inactive_alpha` is a
+    :class:`~kivy.properties.BoundedNumericProperty` and defaults to 0.2.
     '''
 
     bar_width = NumericProperty('2dp')
@@ -803,7 +814,7 @@ class ScrollView(StencilView):
     def _start_decrease_alpha(self, *l):
         self.bar_alpha = 1.
         # show bars if scroll_type != content
-        bar_alpha = .2 if self.scroll_type != ['content'] else 0
+        bar_alpha = self.bar_inactive_alpha if self.scroll_type != ['content'] else 0
         Animation(bar_alpha=bar_alpha, d=.5, t='out_quart').start(self)
 
     #
