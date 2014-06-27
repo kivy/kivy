@@ -811,7 +811,6 @@ class ScrollView(StencilView):
         Clock.schedule_once(self._start_color_change, .5)
 
     def _start_color_change(self, *l):
-        self._bar_color = self.bar_color
         # show bars if scroll_type != content
         bar_color = [0, 0, 0, 0]
         if self.scroll_type != ['content']:
