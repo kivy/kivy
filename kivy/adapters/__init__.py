@@ -6,7 +6,9 @@ Adapters
 
 An adapter is an intermediating controller-type class that builds views
 for top-level widgets, interacting with data as prescribed by parameters.
-On the view side is :class:`AbstractView`, which is the base view for
+Kivy adapters are modelled on the
+`Adapter design pattern <http://en.wikipedia.org/wiki/Adapter_pattern>`_.
+On the view side is an :class:`AbstractView`, which is the base view for a
 :class:`ListView`.
 
 - **Adapters**: The base :class:`Adapter` is subclassed by
