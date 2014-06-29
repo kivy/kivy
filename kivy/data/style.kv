@@ -914,7 +914,7 @@
 <ScrollView>:
     canvas.after:
         Color:
-            rgba: self._bar_color if (self.do_scroll_y and self.viewport_size[1]>self.height) else [0, 0, 0, 0]
+            rgba: self._bar_color if (self.do_scroll_y and self.viewport_size[1] > self.height) else [0, 0, 0, 0]
         Rectangle:
             pos: (self.right - self.bar_width - self.bar_margin) if self.bar_pos_y == 'right' else (self.x + self.bar_margin), self.y + self.height * self.vbar[0]
             size: min(self.bar_width, self.width), self.height * self.vbar[1]
