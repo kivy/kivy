@@ -808,9 +808,9 @@ class ScrollView(StencilView):
         self.unbind(bar_inactive_color=self.change_bar_color)
         self.bind(bar_color=self.change_bar_color)
         self._bar_color = self.bar_color
-        Clock.unschedule(self._trigger_inactive_color)
+        Clock.unschedule(self._bind_inactive_bar_color)
         Animation.stop_all(self, '_bar_color')
-        Clock.schedule_once(self._trigger_inactive_color, .5)
+        Clock.schedule_once(self._bind_inactive_bar_color, .5)
 
     def _bind_inactive_bar_color(self, *l):
         self.unbind(bar_color=self.change_bar_color)
