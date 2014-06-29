@@ -1507,9 +1507,7 @@ class TextInput(Widget):
         for x in _lines:
             lbl = _create_label(x)
             _lines_labels.append(lbl)
-            _line_rects.append(
-                Rectangle(size=(lbl.size if lbl else (0, 0))))
-            lbl = None
+            _line_rects.append(Rectangle(size=lbl.texture.size))
 
         if mode == 'all':
             self._lines_labels = _lines_labels
@@ -1529,13 +1527,9 @@ class TextInput(Widget):
                 len_lines, _lines_flags, _lines, _lines_labels,
                 _line_rects)
 
-        line_label = _lines_labels[0]
         min_line_ht = self._label_cached.get_extents('_')[1]
-        if line_label is None:
-            self.line_height = max(1, min_line_ht)
-        else:
-            # with markup texture can be of height `1`
-            self.line_height = max(line_label.height, min_line_ht)
+        # with markup texture can be of height `1`
+        self.line_height = max(_lines_labels[0].texture.height, min_line_ht)
         #self.line_spacing = 2
         # now, if the text change, maybe the cursor is not at the same place as
         # before. so, try to set the cursor on the good place
@@ -1613,11 +1607,11 @@ class TextInput(Widget):
         if not self.focus and (not self._lines or (
                 not self._lines[0] and len(self._lines) == 1)):
             rects = self._hint_text_rects
-            labels = self._hint_text_labels
+            labels = [lbl.texture for lbl in self._hint_text_labels]
             lines = self._hint_text_lines
         else:
             rects = self._lines_rects
-            labels = self._lines_labels
+            labels = [lbl.texture for lbl in self._lines_labels]
             lines = self._lines
         padding_left, padding_top, padding_right, padding_bottom = self.padding
         x = self.x + padding_left
@@ -1627,9 +1621,6 @@ class TextInput(Widget):
         for line_num, value in enumerate(lines):
             if miny <= y <= maxy + dy:
                 texture = labels[line_num]
-                if not texture:
-                    y -= dy
-                    continue
                 size = list(texture.size)
                 texc = texture.tex_coords[:]
 
@@ -1812,21 +1803,21 @@ class TextInput(Widget):
             ntext = u'*' * len(ntext)
         kw = self._get_line_options()
         cid = '%s\0%s' % (ntext, str(kw))
-        texture = Cache_get('textinput.label', cid)
+        label = Cache_get('textinput.label', cid)
 
-        if not texture:
+        if label is None:
             # FIXME right now, we can't render very long line...
             # if we move on "VBO" version as fallback, we won't need to
             # do this.  try to found the maximum text we can handle
-            label = None
             label_len = len(ntext)
             ld = None
 
             # check for blank line
             if not ntext:
-                texture = Texture.create(size=(1, 1))
-                Cache_append('textinput.label', cid, texture)
-                return texture
+                if TextInput._label_1px is None:
+                    label = TextInput._label_1px = Label(size=(0, 0))
+                    label.refresh()
+                return TextInput._label_1px
 
             while True:
                 try:
@@ -1849,9 +1840,8 @@ class TextInput(Widget):
                     continue
 
             # ok, we found it.
-            texture = label.texture
-            Cache_append('textinput.label', cid, texture)
-        return texture
+            Cache_append('textinput.label', cid, label)
+        return label
 
     def _tokenize(self, text):
         # Tokenize a text string from some delimiters
@@ -2039,8 +2029,7 @@ class TextInput(Widget):
             lbl = _create_label(x, hint=True)
             _hint_text_labels.append(lbl)
             _hint_text_rects.append(
-                Rectangle(size=(lbl.size if lbl else (0, 0))))
-            lbl = None
+                Rectangle(size=lbl.texture.size))
 
         self._hint_text_lines = _lines
         self._hint_text_labels = _hint_text_labels
@@ -2058,6 +2047,7 @@ class TextInput(Widget):
     _editable = BooleanProperty(True)
     _insert_int_patu = re.compile(u'[^0-9]')
     _insert_int_patb = re.compile(b'[^0-9]')
+    _label_1px = None
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
