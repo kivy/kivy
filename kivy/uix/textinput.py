@@ -1421,9 +1421,9 @@ class TextInput(Widget):
         kw = self._get_line_options()
 
         try:
-            cid = u'{}\0{}'.format(text, kw)
+            cid = u'{}\0{}\0{}'.format(text, self.password, kw)
         except UnicodeDecodeError:
-            cid = '{}\0{}'.format(text, kw)
+            cid = '{}\0{}\0{}'.format(text, self.password, kw)
 
         width = Cache_get('textinput.width', cid)
         if width:
