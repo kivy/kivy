@@ -805,11 +805,11 @@ class ScrollView(StencilView):
 
         # New in 1.2.0, show bar when scrolling happens and (changed in 1.8.1)
         # fade to bar_inactive_color when no scroll is happening.
+        Clock.unschedule(self._bind_inactive_bar_color)
         self.unbind(bar_inactive_color=self._change_bar_color)
+        Animation.stop_all(self, '_bar_color')
         self.bind(bar_color=self._change_bar_color)
         self._bar_color = self.bar_color
-        Clock.unschedule(self._bind_inactive_bar_color)
-        Animation.stop_all(self, '_bar_color')
         Clock.schedule_once(self._bind_inactive_bar_color, .5)
 
     def _bind_inactive_bar_color(self, *l):
