@@ -13,7 +13,7 @@ the base view for a :class:`~kivy.uix.listview.ListView`.
 
 - **Adapters**: The base :class:`Adapter` is subclassed by
   :class:`SimpleListAdapter` and by :class:`ListAdapter`. Further,
-  :class:`DictAdapter` is subclass of :class:`ListAdapter`.
+  :class:`DictAdapter` is a subclass of :class:`ListAdapter`.
 
     :doc:`api-kivy.adapters.adapter`,
     :doc:`api-kivy.adapters.simplelistadapter`,
