@@ -48,7 +48,7 @@ transition options and remove the previous one by using
 
     sm.switch_to(screens[0])
     # later
-    sm.swith_to(screens[1], direction='right')
+    sm.switch_to(screens[1], direction='right')
 
 The default :attr:`ScreenManager.transition` is a :class:`SlideTransition` with
 options :attr:`~SlideTransition.direction` and
