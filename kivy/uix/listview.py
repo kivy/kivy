@@ -440,8 +440,8 @@ own template, mix it in as follows::
     """)
 
 A class called CustomListItem will be instantiated for each list item. Note
-that it is a layout, BoxLayout, and is thus a kind of container. It contains a
-:class:`~kivy.uix.listview.ListItemButton` instance.
+that it is a :class:`~kivy.uix.boxlayout.BoxLayout` and is thus a kind of
+container. It contains a :class:`~kivy.uix.listview.ListItemButton` instance.
 
 Using the power of the Kivy language (kv), you can easily build composite list
 items -- in addition to ListItemButton, you could have a ListItemLabel, or a
