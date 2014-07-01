@@ -403,7 +403,7 @@ first appears, the first item, 'cat', will already be selected. The list
 adapter will instantiate a :class:`~kivy.uix.listview.ListItemButton` class
 instance for each data item, using the assigned args_converter.
 
-The list_vew would be added to a view with add_widget() after the last line,
+The list_view would be added to a view with add_widget() after the last line,
 where it is created. See the basic example at the top of this documentation for
 an example of add_widget() use in the context of a sample app.
 
