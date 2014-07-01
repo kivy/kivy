@@ -18,22 +18,24 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
     ** These Pygame packages are neither provided nor supported by the Kivy project.
     ** Please contact the creator of the package(s) or maintainer of the sourcecode for further help.
 
-#. Add one of the PPAs as you prefer
+#. Add the PPA
 
-    :stable builds:
-        $ sudo add-apt-repository ppa:kivy-team/kivy
-    :nightly builds:
-        $ sudo add-apt-repository ppa:kivy-team/kivy-daily
+    ``$ sudo add-apt-repository ppa:kivy-team/kivy``
+
+    ** To use the nightly builds, add **ppa:kivy-team/kivy-daily** instead
 
 #. Update your packagelist using your package manager
+
+    ``$ sudo apt-get update``
+
 #. Install Kivy
 
     :Python2 - **python-kivy**:
-        $ sudo apt-get install python-kivy
+        ``$ sudo apt-get install python-kivy``
     :Python3 - **python3-kivy**:
-        $ sudo apt-get install python3-kivy
+        ``$ sudo apt-get install python3-kivy``
     :optionally the examples - **kivy-examples**:
-        $ sudo apt-get install kivy-examples
+        ``$ sudo apt-get install kivy-examples``
 
 Debian
 ------
