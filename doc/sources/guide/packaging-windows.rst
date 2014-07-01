@@ -52,18 +52,24 @@ the main file is named `main.py`.
     from kivy.tools.packaging.pyinstaller_hooks import install_hooks
     install_hooks(globals())
 
-   In the `Analysis()` function, remove the `hookspath=None` parameter.
+#. In the `Analysis()` function, remove the `hookspath=None` parameter.
    If you don't do this, the kivy package hook will not be used at all.
 
-   Then you need to change the `COLLECT()` call to add the data for touchtracer
-   (`touchtracer.kv`, `particle.png`, ...). Change the line to add a `Tree()`
-   object. This Tree will search and add every file found in the touchtracer
-   directory to your final package::
+#. You now need to enable the data files to be packaged into the output. At the top of
+   your spec file, add a function to collect the kv and png files::
+   
+	   def addDataFiles():
+		allFiles = Tree('../kivy/examples/demo/touchtracer/')
+		extraDatas = []
+		for file in allFiles:
+			if file[0].endswith('.kv') | file[0].endswith('.png'):
+				print "Adding datafile: " + file[0]
+				extraDatas.append(file)
+		return extraDatas
 
-    coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
-                   a.binaries,
-                   #...
-                   )
+   After the call to the Analysis function, append the data to it::
+	
+		a.datas += addDataFiles()
 
 #. We are done. Your spec is ready to be executed!
 
