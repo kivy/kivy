@@ -14,7 +14,9 @@ Requirements
 ------------
 
     * Latest Kivy (the whole portable package, not only the github sourcecode)
-    * `PyInstaller 2.1 <http://www.pyinstaller.org/#Downloads>`_
+    * `PyInstaller 2.1 <http://www.pyinstaller.org/#Downloads>`_::
+	
+		pip install pyinstaller
 
 .. _Create-the-spec-file:
 
