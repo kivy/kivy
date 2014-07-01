@@ -31,14 +31,14 @@ the main file is named `main.py`.
 #. Go to the pyinstaller 2.1 directory and create the initial spec::
 
     cd pyinstaller-2.1
-    python pyinstaller.py --name touchtracer ..\kivy\examples\demo\touchtracer\main.py
+    pyinstaller --name touchtracer ..\kivy\examples\demo\touchtracer\main.py
 
    You can also add an `icon.ico` file to the application folder in order to create an icon
    for the executable. If you don't have a .ico file available, you can convert your
    `icon.png` file to ico using the web app `ConvertICO <http://www.convertico.com>`_.
    Save the `icon.ico` in the touchtracer directory and type::
 
-    python pyinstaller.py --name touchtracer --icon ..\kivy\examples\demo\touchtracer\icon.ico ..\kivy\examples\demo\touchtracer\main.py
+    pyinstaller --name touchtracer --icon ..\kivy\examples\demo\touchtracer\icon.ico ..\kivy\examples\demo\touchtracer\main.py
 
    For more options, please consult the
    `PyInstaller 2 Manual <http://www.pyinstaller.org/export/v2.1/project/doc/Manual.html?format=raw>`_.
@@ -76,7 +76,7 @@ Build the spec
 #. Go to the pyinstaller directory, and build the spec::
 
     cd pyinstaller-2.1
-    python pyinstaller.py touchtracer\touchtracer.spec
+    pyinstaller touchtracer\touchtracer.spec
 
 #. The package will be in the `touchtracer\\dist\\touchtracer` directory.
 
@@ -112,7 +112,7 @@ Following is an example of how to bundle the videoplayer at `kivy/examples/widge
 From kivy.bat::
 
     cd pyinstaller-2.1
-    python pyinstaller.py --name gstvideo ..\kivy\examples\widgets\videoplayer.py
+    pyinstaller --name gstvideo ..\kivy\examples\widgets\videoplayer.py
 
 Now edit the spec file. At the top of the file add::
 
@@ -140,7 +140,7 @@ to::
 This will include gstreamer and the example video files in examples/widgets.
 To build, run::
 
-    python pyinstaller.py gstvideo/gstvideo.spec
+    pyinstaller gstvideo/gstvideo.spec
 
 Then you should find gstvideo.exe in PyInstaller-2.1/gstvideo/dist/gstvideo,
 which when run will play a video.
