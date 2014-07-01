@@ -407,9 +407,9 @@ The list_view would be added to a view with add_widget() after the last line,
 where it is created. See the basic example at the top of this documentation for
 an example of add_widget() use in the context of a sample app.
 
-You may also use the provided :class:`SelectableDataItem` mixin to make a
-custom class. Instead of the "manually-constructed" DataItem class above,
-we could do::
+You may also use the provided :class:`~kivy.adapters.models.SelectableDataItem`
+mixin to make a custom class. Instead of the "manually-constructed" DataItem
+class above, we could do::
 
     from kivy.adapters.models import SelectableDataItem
 
@@ -417,8 +417,8 @@ we could do::
         # Add properties here.
         pass
 
-:class:`SelectableDataItem` is a simple mixin class that has an is_selected
-property.
+:class:`~kivy.adapters.models.SelectableDataItem` is a simple mixin class that
+has an is_selected property.
 
 Using an Item View Template
 ---------------------------
