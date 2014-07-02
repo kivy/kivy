@@ -78,6 +78,17 @@ Build the spec
 
 #. The package will be in the `touchtracer\\dist\\touchtracer` directory.
 
+.. warning::
+
+    If you have other installed versions of Python, these sometimes add their
+    own PYTHONPATH environment variable. This can result in PyInstaller failing 
+    to resolve Kivy dependencies and your exe throwing "no module name XX"
+    errors. Possible solutions are using
+    `Buildozer <https://github.com/kivy/buildozer>`_ in a
+    `virtualenv <http://virtualenv.readthedocs.org/en/latest/>`_, using
+    virtualenv for all you python installs, using a clean
+    Windows installation/virtual machine or (not recommended)
+    removing other Python installations.
 
 Including Gstreamer
 -------------------
