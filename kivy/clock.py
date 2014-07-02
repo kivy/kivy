@@ -164,7 +164,6 @@ from kivy.context import register_context
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
 from kivy.logger import Logger
-from collections import defaultdict
 import time
 
 try:
@@ -217,15 +216,7 @@ except (OSError, ImportError):
 
 
 def _hash(cb):
-    try:
-        return cb.__name__
-    except:
-        # if a callback with partial is used... use func
-        try:
-            return cb.func.__name__
-        except:
-            # nothing work, use default hash.
-            return 'default'
+    return (id(cb) & 0xFF00) >> 8
 
 
 class ClockEvent(object):
@@ -350,7 +341,7 @@ class ClockBase(_ClockBase):
         self._last_fps_tick = None
         self._frames = 0
         self._frames_displayed = 0
-        self._events = defaultdict(list)
+        self._events = [[] for i in range(256)]
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
 
         #: .. versionadded:: 1.0.5
@@ -495,37 +486,27 @@ class ClockBase(_ClockBase):
         if isinstance(callback, ClockEvent):
             callback.cancel()
         else:
-            events = self._events
-            cid = _hash(callback)
-            if cid in events:
-                if all:
-                    for ev in events[cid][:]:
-                        if ev.get_callback() is callback:
-                            ev.cancel()
-                else:
-                    for ev in events[cid][:]:
-                        if ev.get_callback() is callback:
-                            ev.cancel()
-                            break
+            if all:
+                for ev in self._events[_hash(callback)][:]:
+                    if ev.get_callback() is callback:
+                        ev.cancel()
+            else:
+                for ev in self._events[_hash(callback)][:]:
+                    if ev.get_callback() is callback:
+                        ev.cancel()
+                        break
 
     def _release_references(self):
         # call that function to release all the direct reference to any
         # callback and replace it with a weakref
         events = self._events
-        for events in self._events.values():
+        for events in self._events:
             for event in events[:]:
                 if event.callback is not None:
                     event.release()
 
-    def _remove_empty(self):
-        # remove empty entry in the event list
-        events = self._events
-        for cid in list(events.keys())[:]:
-            if not events[cid]:
-                del events[cid]
-
     def _process_events(self):
-        for events in self._events.values():
+        for events in self._events:
             remove = events.remove
             for event in events[:]:
                 # event may be already removed from original list
@@ -547,7 +528,7 @@ class ClockBase(_ClockBase):
 
             # search event that have timeout = -1
             found = False
-            for events in self._events.values():
+            for events in self._events:
                 remove = events.remove
                 for event in events[:]:
                     if event.timeout != -1:
