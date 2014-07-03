@@ -383,7 +383,7 @@ class Vector(list):
         py = (u * (y3 - y4) - (y1 - y2) * v) / denom
         #Here are the new bits
         c1 = (x1 <= px <= x2) or (x2 <= px <= x1)
-        c2 = (y1 <= py <= y2) or (y2 <= py <= y2)
+        c2 = (y1 <= py <= y2) or (y2 <= py <= y1)
         c3 = (x3 <= px <= x4) or (x4 <= px <= x3)
         c4 = (y3 <= py <= y4) or (y4 <= py <= y3)
 

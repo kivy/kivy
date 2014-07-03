@@ -89,7 +89,8 @@ for your widget, you can do the following::
 
     widget = Widget()
     with self.canvas:
-        self.bg_rect = Rectangle(source="cover.jpg", pos=self.pos, size=self.size)
+        self.bg_rect = Rectangle(source="cover.jpg", pos=self.pos, \
+size=self.size)
     widget.bind(pos=redraw, size=redraw)
 
 .. highlight:: kv
@@ -259,6 +260,13 @@ class Widget(WidgetBase):
         `on_touch_up`:
             Fired when an existing touch disappears
 
+    ..warning::
+        Adding a `__del__` method to a class derived from Widget with python
+        prior to 3.4, will disable automatic garbage collection for instances
+        of that class. That is because Widget creates ref cycles, thereby
+        removing it from garbage collection as described
+        `here <https://docs.python.org/2/library/gc.html#gc.garbage>`_.
+
     .. versionchanged:: 1.0.9
         Everything related to event properties has been moved to the
         :class:`~kivy.event.EventDispatcher`. Event properties can now be used
@@ -399,7 +407,7 @@ class Widget(WidgetBase):
             bool. If True, the dispatching of the touch event will stop.
         '''
         if self.disabled and self.collide_point(*touch.pos):
-            return False
+            return True
         for child in self.children[:]:
             if child.dispatch('on_touch_down', touch):
                 return True

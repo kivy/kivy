@@ -239,7 +239,7 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
                      * 0.09;
     sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 4.0*dt))
                      * 0.05;
-    return vec4(sum.xys, sum);
+    return vec4(sum.xyz, color.w);
 }}
 '''
 

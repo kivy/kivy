@@ -474,18 +474,17 @@ class App(EventDispatcher):
         #: Options passed to the __init__ of the App
         self.options = kwargs
 
-        #: Instance to the :class:`~kivy.config.ConfigParser` of the
-        #: application
-        #: configuration. Can be used to query some config token in the
-        #: build()
+        #: Returns an instance of the :class:`~kivy.config.ConfigParser` for
+        #: the application configuration. You can use this to query some config
+        #: tokens in the :meth:`build` method.
         self.config = None
 
-        #: Root widget set by the :meth:`build` method or by the
+        #: The *root* widget returned by the :meth:`build` method or by the
         #: :meth:`load_kv` method if the kv file contains a root widget.
         self.root = None
 
     def build(self):
-        '''Initializes the application; will be called only once.
+        '''Initializes the application; it will be called only once.
         If this method returns a widget (tree), it will be used as the root
         widget and added to the window.
 

@@ -82,7 +82,7 @@ Examples
 
 .. |kv_dir| replace:: ./examples/guide/designwithkv
 .. |kv_file| replace:: main.py
-.. |kv_desc| replace:: Programming Guide examples about how to :doc:`design with
+.. |kv_desc| replace:: Programming Guide examples on how to :doc:`design with
                        kv lang </guide/lang>`
 
 .. |fwd_dir| replace:: ./examples/tutorials/firstwidget
@@ -97,7 +97,8 @@ Examples
 
 .. |qst_dir| replace:: ./examples/guide/quickstart
 .. |qst_file| replace:: main.py
-.. |qst_desc| replace:: Programming Guide example
+.. |qst_desc| replace:: Programming Guide example:
+                        :doc:`Create an application </guide/basic>`
 
 .. _kinect: http://en.wikipedia.org/wiki/kinect
 .. |kin_dir| replace::  ./examples/kinect
@@ -195,8 +196,9 @@ Examples
                           :class:`VideoPlayer <kivy.uix.videoplayer>` Widget
 .. |seq_dir| replace::  ./examples/widgets/sequenced_images:
 .. |seq_file| replace:: main.py
-.. |seq_desc| replace:: Showcase usage of **sequenced images**: gif, images in
-                        .zip
+.. _gifs: http://en.wikipedia.org/wiki/Graphics_Interchange_Format 
+.. |seq_desc| replace:: Showcase usage of sequenced images using
+                        `gifs`_ and images in .zip file
 
 +------------+---------------+------------------------+
 |  Directory |   Filename/s  |  Example Description   |
