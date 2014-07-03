@@ -1508,9 +1508,7 @@ class TextInput(Widget):
         for x in _lines:
             lbl = _create_label(x)
             _lines_labels.append(lbl)
-            _line_rects.append(
-                Rectangle(size=(lbl.size if lbl else (0, 0))))
-            lbl = None
+            _line_rects.append(Rectangle(size=lbl.size))
 
         if mode == 'all':
             self._lines_labels = _lines_labels
@@ -1530,13 +1528,9 @@ class TextInput(Widget):
                 len_lines, _lines_flags, _lines, _lines_labels,
                 _line_rects)
 
-        line_label = _lines_labels[0]
         min_line_ht = self._label_cached.get_extents('_')[1]
-        if line_label is None:
-            self.line_height = max(1, min_line_ht)
-        else:
-            # with markup texture can be of height `1`
-            self.line_height = max(line_label.height, min_line_ht)
+        # with markup texture can be of height `1`
+        self.line_height = max(_lines_labels[0].height, min_line_ht)
         #self.line_spacing = 2
         # now, if the text change, maybe the cursor is not at the same place as
         # before. so, try to set the cursor on the good place
@@ -1628,9 +1622,6 @@ class TextInput(Widget):
         for line_num, value in enumerate(lines):
             if miny <= y <= maxy + dy:
                 texture = labels[line_num]
-                if not texture:
-                    y -= dy
-                    continue
                 size = list(texture.size)
                 texc = texture.tex_coords[:]
 
@@ -1815,7 +1806,7 @@ class TextInput(Widget):
         cid = '%s\0%s' % (ntext, str(kw))
         texture = Cache_get('textinput.label', cid)
 
-        if not texture:
+        if texture is None:
             # FIXME right now, we can't render very long line...
             # if we move on "VBO" version as fallback, we won't need to
             # do this.  try to found the maximum text we can handle
@@ -2039,9 +2030,7 @@ class TextInput(Widget):
         for x in _lines:
             lbl = _create_label(x, hint=True)
             _hint_text_labels.append(lbl)
-            _hint_text_rects.append(
-                Rectangle(size=(lbl.size if lbl else (0, 0))))
-            lbl = None
+            _hint_text_rects.append(Rectangle(size=lbl.size))
 
         self._hint_text_lines = _lines
         self._hint_text_labels = _hint_text_labels
