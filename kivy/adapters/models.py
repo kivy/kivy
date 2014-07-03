@@ -48,8 +48,6 @@ __all__ = ('SelectableDataItem', )
 class SelectableDataItem(object):
     '''
     A mixin class containing requirements for selection operations.
-
-    This is the is_selected boolean property.
     '''
 
     def __init__(self, **kwargs):
@@ -59,7 +57,8 @@ class SelectableDataItem(object):
 
     @property
     def is_selected(self):
-        """Is the data item selected"""
+        """A boolean property indicating whether the data item is selected or
+        not."""
         return self._is_selected
 
     @is_selected.setter

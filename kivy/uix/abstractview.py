@@ -17,7 +17,7 @@ operating as a cache.
 __all__ = ('AbstractView', )
 
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import ObjectProperty, DictProperty
+from kivy.properties import ObjectProperty
 
 
 class AbstractView(FloatLayout):

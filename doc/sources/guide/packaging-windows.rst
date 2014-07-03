@@ -22,7 +22,7 @@ Create the spec file
 --------------------
 
 For this example, we'll package the touchtracer example and embed a custom icon.
-The touchtracer example is the `kivy\examples\demo\touchtracer` directory and
+The touchtracer example is the `kivy\\examples\\demo\\touchtracer` directory and
 the main file is named `main.py`.
 
 #. Double click on the Kivy.bat and a console will open.
@@ -76,8 +76,18 @@ Build the spec
     cd pyinstaller-2.1
     python pyinstaller.py touchtracer\touchtracer.spec
 
-#. The package will be in the `touchtracer\dist\touchtracer` directory.
+#. The package will be in the `touchtracer\\dist\\touchtracer` directory.
 
+.. warning::
+
+    In rare cases, other installed versions of Python can interfere with 
+    PyInstaller resolving Kivy dependencies, leading to "no module name XX"
+    errors. Possible solutions are using
+    `Buildozer <https://github.com/kivy/buildozer>`_ in a
+    `virtualenv <http://virtualenv.readthedocs.org/en/latest/>`_, using
+    virtualenv for all you python installs, using a clean
+    Windows installation/virtual machine or (not recommended) temporarily 
+    altering/removing the PYTHONPATH Windows environment variable.
 
 Including Gstreamer
 -------------------
