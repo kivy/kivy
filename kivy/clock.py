@@ -154,6 +154,54 @@ Even if x and y changes within one frame, the callback is only run once.
     :meth:`ClockBase.create_trigger` also has a timeout parameter that
     behaves exactly like :meth:`ClockBase.schedule_once`.
 
+Threading
+----------
+
+.. versionadded:: 1.8.1
+
+Often, other threads are used to schedule callbacks with kivy's main thread
+using :class:`ClockBase`. Therefore, it's important to know what is thread safe
+and what isn't.
+
+All the :class:`ClockBase` and :class:`ClockEvent` methods are safe with
+respect to kivy's thread. That is, it's always safe to call these methods
+from a single thread that is not the kivy thread. However, there are no
+guarantees as to the order in which these callbacks will be executed.
+
+Calling a previously created trigger from two different threads (even if one
+of them is the kivy thread), or calling the trigger and its
+:meth:`ClockEvent.cancel` method from two different threads at the same time is
+not safe. That is, although no exception will be raised, there no guarantees
+that calling the trigger from two different threads will not result in the
+callback being executed twice, or not executed at all. Similarly, such issues
+might arise when calling the trigger and canceling it with
+:meth:`ClockBase.unschedule` or :meth:`ClockEvent.cancel` from two threads
+simultaneously.
+
+Therefore, it is safe to call :meth:`ClockBase.create_trigger`,
+:meth:`ClockBase.schedule_once`, :meth:`ClockBase.schedule_interval`, or
+call or cancel a previously created trigger from an external thread.
+The following code, though, is not safe because it calls or cancels
+from two threads simultaneously without any locking mechanism::
+
+    event = Clock.create_trigger(func)
+
+    # in thread 1
+    event()
+    # in thread 2
+    event()
+    # now, the event may be scheduled twice or once
+
+    # the following is also unsafe
+    # in thread 1
+    event()
+    # in thread 2
+    event.cancel()
+    # now, the event may or may not be scheduled and a subsequent call
+    # may schedule it twice
+
+Note, in the code above, thread 1 or thread 2 could be the kivy thread, not
+just an external thread.
 '''
 
 __all__ = ('Clock', 'ClockBase', 'ClockEvent', 'mainthread')
@@ -220,6 +268,15 @@ def _hash(cb):
 
 
 class ClockEvent(object):
+    ''' A class that describes a callback scheduled with kivy's :attr:`Clock`.
+    This class is never created by the user; instead, kivy creates and returns
+    an instance of this class when scheduling a callback.
+
+    .. warning::
+        Most of the methods of this class are internal and can change without
+        notice. The only exception are the :meth:`cancel` and
+        :meth:`__call__` methods.
+    '''
 
     def __init__(self, clock, loop, callback, timeout, starttime, cid,
                  trigger=False):
@@ -236,6 +293,9 @@ class ClockEvent(object):
             clock._events[cid].append(self)
 
     def __call__(self, *largs):
+        ''' Schedules the callback associated with this instance.
+        If the callback is already scheduled, it will not be scheduled again.
+        '''
         # if the event is not yet triggered, do it !
         if self._is_triggered is False:
             self._is_triggered = True
@@ -258,6 +318,8 @@ class ClockEvent(object):
         return self._is_triggered
 
     def cancel(self):
+        ''' Cancels the callback if it was scheduled to be called.
+        '''
         if self._is_triggered:
             self._is_triggered = False
             try:
@@ -449,6 +511,11 @@ class ClockBase(_ClockBase):
         '''Create a Trigger event. Check module documentation for more
         information.
 
+        :returns:
+
+            A :class:`ClockEvent` instance. To schedule the callback of this
+            instance, you can call it.
+
         .. versionadded:: 1.0.5
         '''
         ev = ClockEvent(self, False, callback, timeout, 0, _hash(callback))
@@ -459,10 +526,15 @@ class ClockBase(_ClockBase):
         '''Schedule an event in <timeout> seconds. If <timeout> is unspecified
         or 0, the callback will be called after the next frame is rendered.
 
+        :returns:
+
+            A :class:`ClockEvent` instance. As opposed to
+            :meth:`create_trigger` which only creates the trigger event, this
+            method also schedules it.
+
         .. versionchanged:: 1.0.5
             If the timeout is -1, the callback will be called before the next
             frame (at :meth:`tick_draw`).
-
         '''
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
@@ -472,7 +544,14 @@ class ClockBase(_ClockBase):
         return event
 
     def schedule_interval(self, callback, timeout):
-        '''Schedule an event to be called every <timeout> seconds.'''
+        '''Schedule an event to be called every <timeout> seconds.
+
+        :returns:
+
+            A :class:`ClockEvent` instance. As opposed to
+            :meth:`create_trigger` which only creates the trigger event, this
+            method also schedules it.
+        '''
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
         event = ClockEvent(
@@ -480,8 +559,24 @@ class ClockBase(_ClockBase):
             True)
         return event
 
-    def unschedule(self, callback, all=False):
+    def unschedule(self, callback, all=True):
         '''Remove a previously scheduled event.
+
+        :parameters:
+
+            `callback`: :class:`ClockEvent` or a callable.
+                If it's a :class:`ClockEvent` instance, then the callback
+                associated with this event will be canceled if it is
+                scheduled. If it's a callable, then the callable will be
+                unscheduled if it is scheduled.
+            `all`: bool
+                If True and if `callback` is a callable, all instances of this
+                callable will be unscheduled (i.e. if this callable was
+                scheduled multiple times). Defaults to `True`.
+
+        .. versionchnaged:: 1.8.1
+            The all parameter was added. Before, it behaved as if `all` was
+            `True`.
         '''
         if isinstance(callback, ClockEvent):
             callback.cancel()
