@@ -201,6 +201,7 @@ if 'KIVY_DOC' not in environ:
                 _textinput_list.remove(wr)
             else:
                 textinput._trigger_refresh_text()
+                textinput._refresh_hint_text()
 
     from kivy.graphics.context import get_context
     get_context().add_reload_observer(_textinput_clear_cache, True)
