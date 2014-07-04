@@ -207,11 +207,11 @@ The file `android.txt` must contain::
 
 .. _targetting_android:
 
-Targetting Android
+Targeting Android
 ------------------
 
 Kivy is designed to operate identically across platforms and as a result, makes
-some clear design decisions. It includes it's own set of widgets and by default,
+some clear design decisions. It includes its own set of widgets and by default,
 builds an APK with all the required core dependencies and libraries.
 
 If you do not intend to support other operating systems, there are a few
