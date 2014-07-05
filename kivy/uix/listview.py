@@ -13,7 +13,8 @@ The :class:`~kivy.uix.listview.ListView` widget provides a scrollable/pannable
 viewport that is clipped to the scrollview's bounding box which contains
 list item view instances.
 
-The :class:`~kivy.uix.listview.ListView` implements an :class:`AbstractView` as
+The :class:`~kivy.uix.listview.ListView` implements an
+:class:`~kivy.uix.abstractview.AbstractView` as
 a vertical, scrollable list. The :class:`AbstractView` has one property:
 :class:`~kivy.adapters.adapter`.
 The :class:`~kivy.uix.listview.ListView` sets an adapter to one of a
@@ -402,13 +403,13 @@ first appears, the first item, 'cat', will already be selected. The list
 adapter will instantiate a :class:`~kivy.uix.listview.ListItemButton` class
 instance for each data item, using the assigned args_converter.
 
-The list_vew would be added to a view with add_widget() after the last line,
+The list_view would be added to a view with add_widget() after the last line,
 where it is created. See the basic example at the top of this documentation for
 an example of add_widget() use in the context of a sample app.
 
-You may also use the provided :class:`SelectableDataItem` mixin to make a
-custom class. Instead of the "manually-constructed" DataItem class above,
-we could do::
+You may also use the provided :class:`~kivy.adapters.models.SelectableDataItem`
+mixin to make a custom class. Instead of the "manually-constructed" DataItem
+class above, we could do::
 
     from kivy.adapters.models import SelectableDataItem
 
@@ -416,8 +417,8 @@ we could do::
         # Add properties here.
         pass
 
-:class:`SelectableDataItem` is a simple mixin class that has an is_selected
-property.
+:class:`~kivy.adapters.models.SelectableDataItem` is a simple mixin class that
+has an is_selected property.
 
 Using an Item View Template
 ---------------------------
@@ -439,8 +440,8 @@ own template, mix it in as follows::
     """)
 
 A class called CustomListItem will be instantiated for each list item. Note
-that it is a layout, BoxLayout, and is thus a kind of container. It contains a
-:class:`~kivy.uix.listview.ListItemButton` instance.
+that it is a :class:`~kivy.uix.boxlayout.BoxLayout` and is thus a kind of
+container. It contains a :class:`~kivy.uix.listview.ListItemButton` instance.
 
 Using the power of the Kivy language (kv), you can easily build composite list
 items -- in addition to ListItemButton, you could have a ListItemLabel, or a

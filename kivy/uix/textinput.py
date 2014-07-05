@@ -141,7 +141,6 @@ import sys
 from functools import partial
 from os import environ
 from weakref import ref
-import string
 
 from kivy.animation import Animation
 from kivy.base import EventLoop
@@ -203,6 +202,7 @@ if 'KIVY_DOC' not in environ:
                 _textinput_list.remove(wr)
             else:
                 textinput._trigger_refresh_text()
+                textinput._refresh_hint_text()
 
     from kivy.graphics.context import get_context
     get_context().add_reload_observer(_textinput_clear_cache, True)
@@ -1377,9 +1377,9 @@ class TextInput(FocusBehavior, Widget):
         kw = self._get_line_options()
 
         try:
-            cid = u'{}\0{}'.format(text, kw)
+            cid = u'{}\0{}\0{}'.format(text, self.password, kw)
         except UnicodeDecodeError:
-            cid = '{}\0{}'.format(text, kw)
+            cid = '{}\0{}\0{}'.format(text, self.password, kw)
 
         width = Cache_get('textinput.width', cid)
         if width:
@@ -1463,9 +1463,7 @@ class TextInput(FocusBehavior, Widget):
         for x in _lines:
             lbl = _create_label(x)
             _lines_labels.append(lbl)
-            _line_rects.append(
-                Rectangle(size=(lbl.size if lbl else (0, 0))))
-            lbl = None
+            _line_rects.append(Rectangle(size=lbl.size))
 
         if mode == 'all':
             self._lines_labels = _lines_labels
@@ -1485,13 +1483,9 @@ class TextInput(FocusBehavior, Widget):
                 len_lines, _lines_flags, _lines, _lines_labels,
                 _line_rects)
 
-        line_label = _lines_labels[0]
         min_line_ht = self._label_cached.get_extents('_')[1]
-        if line_label is None:
-            self.line_height = max(1, min_line_ht)
-        else:
-            # with markup texture can be of height `1`
-            self.line_height = max(line_label.height, min_line_ht)
+        # with markup texture can be of height `1`
+        self.line_height = max(_lines_labels[0].height, min_line_ht)
         #self.line_spacing = 2
         # now, if the text change, maybe the cursor is not at the same place as
         # before. so, try to set the cursor on the good place
@@ -1583,9 +1577,6 @@ class TextInput(FocusBehavior, Widget):
         for line_num, value in enumerate(lines):
             if miny <= y <= maxy + dy:
                 texture = labels[line_num]
-                if not texture:
-                    y -= dy
-                    continue
                 size = list(texture.size)
                 texc = texture.tex_coords[:]
 
@@ -1598,16 +1589,19 @@ class TextInput(FocusBehavior, Widget):
                 tcx, tcy = 0, 0
 
                 # adjust size/texcoord according to viewport
-                if vw < tw:
+                if viewport_pos:
+                    tcx, tcy = viewport_pos
+                    tcx = tcx / tw * (ow)
+                    tcy = tcy / th * oh
+                if tw - viewport_pos[0] < vw:
+                    tcw = tcw - tcx
+                    size[0] = tcw * size[0]
+                elif vw < tw:
                     tcw = (vw / tw) * tcw
                     size[0] = vw
                 if vh < th:
                     tch = (vh / th) * tch
                     size[1] = vh
-                if viewport_pos:
-                    tcx, tcy = viewport_pos
-                    tcx = tcx / tw * (ow)
-                    tcy = tcy / th * oh
 
                 # cropping
                 mlh = lh
@@ -1767,7 +1761,7 @@ class TextInput(FocusBehavior, Widget):
         cid = '%s\0%s' % (ntext, str(kw))
         texture = Cache_get('textinput.label', cid)
 
-        if not texture:
+        if texture is None:
             # FIXME right now, we can't render very long line...
             # if we move on "VBO" version as fallback, we won't need to
             # do this.  try to found the maximum text we can handle
@@ -1995,9 +1989,7 @@ class TextInput(FocusBehavior, Widget):
         for x in _lines:
             lbl = _create_label(x, hint=True)
             _hint_text_labels.append(lbl)
-            _hint_text_rects.append(
-                Rectangle(size=(lbl.size if lbl else (0, 0))))
-            lbl = None
+            _hint_text_rects.append(Rectangle(size=lbl.size))
 
         self._hint_text_lines = _lines
         self._hint_text_labels = _hint_text_labels
@@ -2524,7 +2516,7 @@ class TextInput(FocusBehavior, Widget):
     minimum_height = AliasProperty(_get_min_height, None,
                                    bind=('_lines', 'line_spacing', 'padding',
                                          'font_size', 'font_name', 'password',
-                                         'hint_text'))
+                                         'hint_text', 'line_height'))
     '''Minimum height of the content inside the TextInput.
 
     .. versionadded:: 1.8.0

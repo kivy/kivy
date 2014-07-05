@@ -9,17 +9,15 @@ Scatter has its own matrix transformation: the modelview matrix is changed
 before the children are drawn and the previous matrix is restored when the
 drawing is finished. That makes it possible to perform rotation, scaling and
 translation over the entire children tree without changing any widget
-properties.
-/
-That specific behavior makes the scatter unique, but there are some
+properties. That specific behavior makes the scatter unique, but there are some
 advantages / constraints that you should consider:
 
 #. The children are positioned relative to the scatter similar to a
    RelativeLayout (see :mod:`~kivy.uix.relativelayout`). So when dragging the
    scatter, the position of the children don't change, only the position of
-   the scatter.
-#. The scatter size has no impact on the size of the children.
-#. If you want to resize the scatter, use scale, not size. (read #2.). Scale
+   the scatter does.
+#. The scatter size has no impact on the size of it's children.
+#. If you want to resize the scatter, use scale, not size (read #2). Scale
    transforms both the scatter and its children, but does not change size.
 #. The scatter is not a layout. You must manage the size of the children
    yourself.
@@ -32,9 +30,9 @@ manually, you will need to use :meth:`~kivy.uix.widget.Widget.to_parent` and
 Usage
 -----
 
-By default, the widget does not have a graphical representation. It is a
-container only. The idea is to combine Scatter with another widget, for
-example :class:`~kivy.uix.image.Image`::
+By default, the Scatter does not have a graphical representation: it is a
+container only. The idea is to combine the Scatter with another widget, for
+example an :class:`~kivy.uix.image.Image`::
 
     scatter = Scatter()
     image = Image(source='sun.jpg')
@@ -44,7 +42,7 @@ Control Interactions
 --------------------
 
 By default, all interactions are enabled. You can selectively disable
-them using the do_{rotation, translation, scale} properties.
+them using the do_rotation, do_translation and do_scale properties.
 
 Disable rotation::
 
@@ -81,8 +79,8 @@ You can also limit the minimum and maximum scale allowed::
 
     scatter = Scatter(scale_min=.5, scale_max=3.)
 
-Behaviors
----------
+Behavior
+--------
 
 .. versionchanged:: 1.1.0
     If no control interactions are enabled, then the touch handler will never
@@ -108,7 +106,7 @@ class Scatter(Widget):
             Fired when the scatter has been transformed by user touch
             or multitouch, such as panning or zooming.
         `on_bring_to_front`:
-            Fired when the scatter is brought to front
+            Fired when the scatter is brought to the front.
 
     .. versionchanged:: 1.8.1
         Event `on_bring_to_front` added.
@@ -159,7 +157,7 @@ class Scatter(Widget):
     '''
 
     translation_touches = BoundedNumericProperty(1, min=1)
-    '''Determine whether translation is triggered by a single or multiple
+    '''Determine whether translation was triggered by a single or multiple
     touches. This only has effect when :attr:`do_translation` = True.
 
     :attr:`translation_touches` is a :class:`~kivy.properties.NumericProperty`
@@ -210,6 +208,14 @@ class Scatter(Widget):
 
     :attr:`transform` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to the identity matrix.
+
+    .. note::
+
+        This matrix reflects the current state of the transformation matrix
+        but setting it directly will erase previously applied
+        transformations. To apply a transformation considering context,
+        please use the :attr:`~Scatter.apply_transform` method.
+
     '''
 
     transform_inv = ObjectProperty(Matrix())
@@ -257,7 +263,8 @@ class Scatter(Widget):
         'x', 'y', 'transform'))
     '''Rotation value of the scatter.
 
-    :attr:`rotation` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`rotation` is an :class:`~kivy.properties.AliasProperty` and defaults
+    to 0.0.
     '''
 
     def _get_scale(self):
@@ -285,7 +292,8 @@ class Scatter(Widget):
     scale = AliasProperty(_get_scale, _set_scale, bind=('x', 'y', 'transform'))
     '''Scale value of the scatter.
 
-    :attr:`scale` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`scale` is an :class:`~kivy.properties.AliasProperty` and defaults to
+    1.0.
     '''
 
     def _get_center(self):
@@ -384,11 +392,12 @@ class Scatter(Widget):
 
     def apply_transform(self, trans, post_multiply=False, anchor=(0, 0)):
         '''
-        Transforms the scatter by trans (on top of its current transformation
-        state).
+        Transforms the scatter by applying the "trans" transformation
+        matrix (on top of its current transformation state). The resultant
+        matrix can be found in the :attr:`~Scatter.transform` property.
 
         :Parameters:
-            `trans`: :class:`Matrix <~kivy.graphics.transformation.Matrix>`
+            `trans`: :class:`~kivy.graphics.transformation.Matrix`.
                 Transformation matix to be applied to the scatter widget.
             `anchor`: tuple, defaults to (0, 0).
                 The point to use as the origin of the transformation
@@ -554,7 +563,7 @@ class Scatter(Widget):
 
     def on_bring_to_front(self, touch):
         '''
-        Called when a touch event causes the scatter to be brought to
+        Called when a touch event causes the scatter to be brought to the
         front of the parent (only if :attr:`auto_bring_to_front` is True)
 
         :Parameters:

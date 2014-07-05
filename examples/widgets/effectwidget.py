@@ -74,17 +74,57 @@ example = Builder.load_string('''
 #:import Vector kivy.vector.Vector
 BoxLayout:
     orientation: 'vertical'
-    BoxLayout:
+    FloatLayout:
         ComparisonWidget:
+            pos_hint: {'x': 0, 'y': 0}
+            size_hint: 0.5, 1
             id: effect1
         ComparisonWidget:
+            pos_hint: {'x': pos_slider.value, 'y': 0}
+            size_hint: 0.5, 1
             id: effect2
+            background_color: (rs.value, gs.value, bs.value, als.value)
     SpinnerRow:
         effectwidget: effect1
         text: 'left effects'
     SpinnerRow:
         effectwidget: effect2
         text: 'right effects'
+    BoxLayout:
+        size_hint_y: None
+        height: sp(40)
+        Label:
+            text: 'control overlap:'
+        Slider:
+            min: 0
+            max: 0.5
+            value: 0.5
+            id: pos_slider
+    BoxLayout:
+        size_hint_y: None
+        height: sp(40)
+        Label:
+            text: 'right bg r,g,b,a'
+        Slider:
+            min: 0
+            max: 1
+            value: 0
+            id: rs
+        Slider:
+            min: 0
+            max: 1
+            value: 0
+            id: gs
+        Slider:
+            min: 0
+            max: 1
+            value: 0
+            id: bs
+        Slider:
+            min: 0
+            max: 1
+            value: 0
+            id: als
 
 
 <ComparisonWidget>:

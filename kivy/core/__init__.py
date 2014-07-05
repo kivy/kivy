@@ -20,6 +20,8 @@ opening a new Bug report instead of relying on your library.
 
 
 import os
+import sys
+import traceback
 import kivy
 from kivy.logger import Logger
 
@@ -33,6 +35,7 @@ def core_select_lib(category, llist, create_instance=False, base='kivy.core'):
         return
     category = category.lower()
     libs_ignored = []
+    errs = []
     for option, modulename, classname in llist:
         try:
             # module activated in config ?
@@ -63,12 +66,14 @@ def core_select_lib(category, llist, create_instance=False, base='kivy.core'):
             return cls
 
         except ImportError as e:
+            errs.append((option, e, sys.exc_info()[2]))
             libs_ignored.append(modulename)
             Logger.debug('{0}: Ignored <{1}> (import error)'.format(
                 category.capitalize(), option))
             Logger.trace('', exc_info=e)
 
         except CoreCriticalException as e:
+            errs.append((option, e, sys.exc_info()[2]))
             Logger.error('{0}: Unable to use {1}'.format(
                 category.capitalize(), option))
             Logger.error(
@@ -77,14 +82,17 @@ def core_select_lib(category, llist, create_instance=False, base='kivy.core'):
             raise
 
         except Exception as e:
+            errs.append((option, e, sys.exc_info()[2]))
             libs_ignored.append(modulename)
             Logger.trace('{0}: Unable to use {1}'.format(
                 category.capitalize(), option, category))
             Logger.trace('', exc_info=e)
 
+    err = '\n'.join(['{} - {}: {}\n{}'.format(opt, e.__class__.__name__, e,
+                   ''.join(traceback.format_tb(tb))) for opt, e, tb in errs])
     Logger.critical(
-        '{0}: Unable to find any valuable {1} provider at all!'.format(
-            category.capitalize(), category.capitalize()))
+        '{0}: Unable to find any valuable {0} provider at all!\n{1}'.format(
+            category.capitalize(), err))
 
 
 def core_register_libs(category, libs, base='kivy.core'):

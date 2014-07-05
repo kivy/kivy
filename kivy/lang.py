@@ -734,6 +734,7 @@ __all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException', 'Parser',
 import codecs
 import re
 import sys
+import traceback
 from re import sub, findall
 from os import environ
 from os.path import join
@@ -856,7 +857,7 @@ class ParserException(Exception):
     '''Exception raised when something wrong happened in a kv file.
     '''
 
-    def __init__(self, context, line, message):
+    def __init__(self, context, line, message, cause=None):
         self.filename = context.filename or '<inline>'
         self.line = line
         sourcecode = context.sourcecode
@@ -873,6 +874,9 @@ class ParserException(Exception):
 
         message = 'Parser: File "%s", line %d:\n%s\n%s' % (
             self.filename, self.line + 1, sc, message)
+        if cause:
+            message += '\n' + ''.join(traceback.format_tb(cause))
+        sys.exc_clear()
         super(ParserException, self).__init__(message)
 
 
@@ -1465,8 +1469,10 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     try:
         return eval(value, idmap)
     except Exception as e:
+        tb = sys.exc_info()[2]
         raise BuilderException(rule.ctx, rule.line,
-                               '{}: {}'.format(e.__class__.__name__, e))
+                               '{}: {}'.format(e.__class__.__name__, e),
+                               cause=tb)
 
 
 class ParserSelector(object):
@@ -1771,9 +1777,10 @@ class BuilderBase(object):
                         value = eval(prule.value, idmap)
                         ctx[prule.name] = value
                 except Exception as e:
+                    tb = sys.exc_info()[2]
                     raise BuilderException(
                         prule.ctx, prule.line,
-                        '{}: {}'.format(e.__class__.__name__, e))
+                        '{}: {}'.format(e.__class__.__name__, e), cause=tb)
 
                 # create the template with an explicit ctx
                 child = cls(**ctx)
@@ -1820,9 +1827,10 @@ class BuilderBase(object):
                     setattr(widget_set, key, value)
         except Exception as e:
             if rule is not None:
+                tb = sys.exc_info()[2]
                 raise BuilderException(rule.ctx, rule.line,
                                        '{}: {}'.format(e.__class__.__name__,
-                                                       e))
+                                                       e), cause=tb)
             raise e
 
         # build handlers
@@ -1845,9 +1853,10 @@ class BuilderBase(object):
                         Factory.Widget.parent.dispatch(widget_set.__self__)
         except Exception as e:
             if crule is not None:
+                tb = sys.exc_info()[2]
                 raise BuilderException(
                     crule.ctx, crule.line,
-                    '{}: {}'.format(e.__class__.__name__, e))
+                    '{}: {}'.format(e.__class__.__name__, e), cause=tb)
             raise e
 
         # rule finished, forget it
@@ -1926,9 +1935,10 @@ class BuilderBase(object):
                             key, value, prule, idmap, True)
                     setattr(instr, key, value)
             except Exception as e:
+                tb = sys.exc_info()[2]
                 raise BuilderException(
                     prule.ctx, prule.line,
-                    '{}: {}'.format(e.__class__.__name__, e))
+                    '{}: {}'.format(e.__class__.__name__, e), cause=tb)
 
 #: Main instance of a :class:`BuilderBase`.
 Builder = register_context('Builder', BuilderBase)

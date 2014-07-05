@@ -49,7 +49,7 @@ with `git clone` though, as python-for-android is already installed
 and set up in the virtual machine home directory.
 
 Hints and tips
-==============
+--------------
 
 #. Shared folders
 
