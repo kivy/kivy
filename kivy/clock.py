@@ -264,6 +264,8 @@ except (OSError, ImportError):
 
 
 def _hash(cb):
+    if hasattr(cb, '__self__') and cb.__self__ is not None:
+        return (id(cb.__self__) & 0xFF00) >> 8
     return (id(cb) & 0xFF00) >> 8
 
 
@@ -583,11 +585,11 @@ class ClockBase(_ClockBase):
         else:
             if all:
                 for ev in self._events[_hash(callback)][:]:
-                    if ev.get_callback() is callback:
+                    if ev.get_callback() == callback:
                         ev.cancel()
             else:
                 for ev in self._events[_hash(callback)][:]:
-                    if ev.get_callback() is callback:
+                    if ev.get_callback() == callback:
                         ev.cancel()
                         break
 
