@@ -971,6 +971,8 @@ class TextInput(FocusBehavior, Widget):
         touch_pos = touch.pos
         if not self.collide_point(*touch_pos):
             return False
+        if super(TextInput, self).on_touch_down(touch):
+            return True
         touch.grab(self)
         self._touch_count += 1
         if touch.is_double_tap:
