@@ -499,6 +499,7 @@ class FocusBehavior(object):
     _requested_keyboard = False
     _keyboard = ObjectProperty(None, allownone=True)
     _keyboards = {}
+    _processed_touches = []
 
     def _set_keyboard(self, value):
         focused = self.focused
@@ -706,7 +707,6 @@ class FocusBehavior(object):
                   is_focusable=self._on_focusable,
                   focus_next=self._set_on_focus_next,
                   focus_previous=self._set_on_focus_previous)
-        Window.bind(on_touch_down=self._focus_on_touch_down)
 
     def _on_focusable(self, instance, value):
         if self.disabled or not self.is_focusable:
@@ -767,15 +767,31 @@ class FocusBehavior(object):
     def _keyboard_released(self):
         self.focused = False
 
-    def _focus_on_touch_down(self, instance, touch):
-        pos = self.to_widget(*touch.pos)
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return
+        if super(FocusBehavior, self).on_touch_down(touch):
+            return True
         if (not self.disabled and self.is_focusable and
             ('button' not in touch.profile or
-             not touch.button.startswith('scroll'))):
-            if self.collide_point(*pos):
-                self.focused = True
-            elif self.unfocus_on_touch:
-                self.focused = False
+             not touch.button.startswith('scroll')) and
+            self.collide_point(*touch.pos)):
+            self.focused = True
+            FocusBehavior._processed_touches.append(touch)
+            return True
+
+    @staticmethod
+    def _handle_post_on_touch_up(touch):
+        ''' Called by window after each touch has finished.
+        '''
+        touches = FocusBehavior._processed_touches
+        if touch in touches:
+            touches.remove(touch)
+            return
+        for focusable in FocusBehavior._keyboards.values():
+            if focusable is None or not focusable.unfocus_on_touch:
+                continue
+            focusable.focused = False
 
     def _get_focus_next(self, focus_dir):
         current = self
