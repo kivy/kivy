@@ -356,7 +356,6 @@ cdef class GstPlayer:
 
         # if we are already prerolled, we can read the duration
         if state == GST_STATE_PLAYING or state == GST_STATE_PAUSED:
-            gst_element_set_state(self.pipeline, GST_STATE_PAUSED)
             gst_element_query_duration(self.playbin, GST_FORMAT_TIME, &duration)
             return duration
 
