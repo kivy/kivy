@@ -32,10 +32,10 @@ pass an instance to the :class:`InteractiveLauncher` constructor.::
     launcher = InteractiveLauncher(MyApp())
     launcher.run()
 
-The script will return, allowing an interpreter shell to continue running and
-inspection or modification of the :class:`App` can be done safely through the
-InteractiveLauncher instance or the provided :class:`SafeMembrane` class
-instances.
+After pressing a key, the script will return. This allows the interpreter to
+continue running. Inspection or modification of the :class:`App` can be done
+safely through the InteractiveLauncher instance or the provided
+:class:`SafeMembrane` class instances.
 
 .. note::
 
