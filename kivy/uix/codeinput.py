@@ -91,7 +91,7 @@ class CodeInput(TextInput):
             ntext = u'*' * len(ntext)
         ntext = self._get_bbcode(ntext)
         kw = self._get_line_options()
-        cid = '%s\0%s' % (ntext, str(kw))
+        cid = u'{}\0{}\0{}'.format(ntext, self.password, kw)
         texture = Cache_get('textinput.label', cid)
 
         if texture is None:
@@ -128,9 +128,7 @@ class CodeInput(TextInput):
             return width
         lbl = self._create_line_label(text)
         width = lbl.width
-        Cache_append(
-            'textinput.width',
-            text + u'_' + repr(self._get_line_options()), width)
+        Cache_append('textinput.width', cid, width)
         return width
 
     def _get_bbcode(self, ntext):
