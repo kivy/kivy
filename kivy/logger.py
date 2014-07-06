@@ -140,7 +140,7 @@ class FileHandler(logging.Handler):
 
         print('Purge finished!')
 
-    def _configure(self):
+    def _configure(self, *largs, **kwargs):
         from time import strftime
         from kivy.config import Config
         log_dir = Config.get('kivy', 'log_dir')
@@ -167,7 +167,11 @@ class FileHandler(logging.Handler):
             if n > 10000:  # prevent maybe flooding ?
                 raise Exception('Too many logfile, remove them')
 
+        if FileHandler.filename == filename and FileHandler.fd is not None:
+            return
         FileHandler.filename = filename
+        if FileHandler.fd is not None:
+            FileHandler.fd.close()
         FileHandler.fd = open(filename, 'w')
 
         Logger.info('Logger: Record log in %s' % filename)
@@ -199,6 +203,9 @@ class FileHandler(logging.Handler):
         if FileHandler.fd is None:
             try:
                 self._configure()
+                from kivy.config import Config
+                Config.add_callback(self._configure, 'kivy', 'log_dir')
+                Config.add_callback(self._configure, 'kivy', 'log_name')
             except Exception:
                 # deactivate filehandler...
                 FileHandler.fd = False
