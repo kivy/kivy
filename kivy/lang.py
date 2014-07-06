@@ -1547,12 +1547,17 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     # bind every key.value
     if rule.watched_keys is not None:
         for keys in rule.watched_keys:
-            bound = []
-            update_intermediates(get_proxy(idmap[keys[0]]), keys, bound, None,
-                                 fn)
-            # even if it's empty now, in the future, through dynamic rebinding
-            # it might have things.
-            _handlers[uid].append(bound)
+            try:
+                bound = []
+                update_intermediates(get_proxy(idmap[keys[0]]), keys, bound,
+                                     None, fn)
+                # even if it's empty now, in the future, through dynamic
+                # rebinding it might have things.
+                _handlers[uid].append(bound)
+            except KeyError:
+                continue
+            except AttributeError:
+                continue
 
     try:
         return eval(value, idmap)
