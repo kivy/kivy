@@ -55,6 +55,8 @@ Debian
             deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu saucy main
 
         **Notice**: Don't forget to use the python2.7 interpreter
+        
+        **Notice**: Wheezy does not provide python3.3 - so no way to install python3-kivy package.
 
 #. Add the GPG key to your apt keyring by executing
 
