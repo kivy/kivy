@@ -10,7 +10,9 @@ from kivy.uix.popup import Popup
 from kivy.uix.filechooser import FileChooserListView
 from kivy.graphics import Rectangle, Color
 from kivy.multistroke import Recognizer
-from string import lower as string_lower
+from kivy.compat import PY2
+if PY2:
+    import string
 
 # local libraries
 from helpers import InformationPopup
@@ -101,7 +103,7 @@ class GestureDatabase(GridLayout):
 
         self.selected_count = 0
         self.ids.gesture_list.clear_widgets()
-        for k in sorted(self.gdict, key=string_lower):
+        for k in sorted(self.gdict, key=string.lower):
             gitem = GestureDatabaseItem(name=k, gesture_list=self.gdict[k])
             gitem.bind(on_select=self.select_item)
             gitem.bind(on_deselect=self.deselect_item)
