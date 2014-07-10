@@ -35,28 +35,26 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
     :optionally the examples - **kivy-examples**:
         $ sudo apt-get install kivy-examples
 
-Debian
-------
+Debian  (Jessie or newer)
+-------------------------
 
 #. Add one of the PPAs to your sources.list in apt manually or via Synaptic
 
-    * Jessie:
+    * Jessie/Testing:
         
         :stable builds:
             deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu trusty main
         :daily builds:
             deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu trusty main
 
-    * Wheezy:
+    * Sid/Unstable:
         
         :stable builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu saucy main
+            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu utopic main
         :daily builds:
-            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu saucy main
+            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu utopic main
 
-        **Notice**: Don't forget to use the python2.7 interpreter
-        
-        **Notice**: Wheezy does not provide python3.3 - so no way to install python3-kivy package.
+        **Notice**: Wheezy is not supported - You'll need to upgrade to Jessie at least!
 
 #. Add the GPG key to your apt keyring by executing
 
