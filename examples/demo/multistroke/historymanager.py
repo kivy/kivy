@@ -9,6 +9,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.graphics import Color, Line, Rectangle
 from kivy.properties import ObjectProperty, BooleanProperty, NumericProperty
+from kivy.compat import PY2
 
 # local libraries
 from helpers import InformationPopup
@@ -195,7 +196,12 @@ class GestureSettingsForm(BoxLayout):
             scrollv.scroll_y = 1
             return
 
-        for one in sorted(r.iteritems(), key=lambda (x, y): y['score'],
+        if PY2:
+            d = r.iteritems
+        else:
+            d = r.items
+
+        for one in sorted(d(), key=lambda x: x[1]['score'],
                           reverse=True):
             data = one[1]
             lbl = RecognizerResultLabel(
