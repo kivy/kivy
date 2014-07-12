@@ -99,7 +99,7 @@ class WindowSDL(WindowBase):
         filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
         if filename is None:
             return None
-        from kivy.core.gl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+        from kivy.graphics.opengl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
         width, height = self.size
         data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
         data = str(buffer(data))
