@@ -445,8 +445,6 @@ class Image(EventDispatcher):
         else:
             raise Exception('Unable to load image type {0!r}'.format(arg))
 
-        # check if the image hase sequences for animation in it
-        self._img_iterate()
 
     def remove_from_cache(self):
         '''Remove the Image from cache. This facilitates re-loading of
