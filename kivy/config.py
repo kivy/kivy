@@ -121,6 +121,17 @@ Available configuration tokens
         Left position of the :class:`~kivy.core.window.Window`.
     `maxfps`: int, defaults to 60
         Maximum FPS allowed.
+    'multisamples': int, defaults to 2
+        Sets the `MultiSample Anti-Aliasing (MSAA)
+        <http://en.wikipedia.org/wiki/Multisample_anti-aliasing>`_ level.
+        Increasing this value results in smooother graphics but at the cost of
+        processing time.
+
+        .. warning::
+        
+           This feature is limited by device hardware support and will have no
+           effect on devices which do not support the level of MSAA requested.
+           
     `position`: string, one of 'auto' or 'custom'
         Position of the window on your display. If `auto` is used, you have no
         control of the initial position: `top` and `left` are ignored.
