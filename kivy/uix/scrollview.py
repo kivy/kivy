@@ -598,7 +598,7 @@ class ScrollView(StencilView):
                     e.velocity = 0
                 touch.ud[self._get_uid('svavoid')] = True
                 e.trigger_velocity_update()
-                return True
+            return True
 
         # no mouse scrolling, so the user is going to drag the scrollview with
         # this touch.
@@ -766,7 +766,6 @@ class ScrollView(StencilView):
         else:
             sy = 1
         return sx, sy
-
 
     def update_from_scroll(self, *largs):
         '''Force the reposition of the content, according to current value of
