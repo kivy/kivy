@@ -644,7 +644,7 @@ class ListItemButton(SelectableView, Button):
 
     deselected_color = ListProperty([0., 1., 0., 1])
     '''
-    :attr:`selected_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`deselected_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [0., 1., 0., 1].
     '''
 
