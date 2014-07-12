@@ -151,6 +151,7 @@ from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.metrics import inch
 from kivy.utils import boundary, platform
+from kivy.uix.behaviors import FocusBehavior
 
 from kivy.core.text import Label
 from kivy.graphics import Color, Rectangle
@@ -290,7 +291,7 @@ class TextInputCutCopyPaste(Bubble):
             anim.start(self.but_selectall)
 
 
-class TextInput(Widget):
+class TextInput(FocusBehavior, Widget):
     '''TextInput class. See module documentation for more information.
 
     :Events:
@@ -310,6 +311,15 @@ class TextInput(Widget):
             behavior selects the whole text. More info at
             :meth:`on_quad_touch`.
 
+    .. note::
+        `keyboard_mode`, `show_keyboard`, and `hide_keyboard` have been removed
+        from :class:`TextInput` since they are now inherited from
+        :class:`~kivy.uix.behaviors.FocusBehavior`.
+
+    .. versionchanged:: 1.8.1
+        :class:`TextInput` now inherits from
+        :class:`~kivy.uix.behaviors.FocusBehavior`.
+
     .. versionchanged:: 1.7.0
         `on_double_tap`, `on_triple_tap` and `on_quad_touch` events added.
     '''
@@ -318,6 +328,7 @@ class TextInput(Widget):
                   'on_quad_touch')
 
     def __init__(self, **kwargs):
+        self.is_focusable = kwargs.get('is_focusable', True)
         self._win = None
         self._cursor_blink_time = Clock.get_time()
         self._cursor = [0, 0]
@@ -339,7 +350,6 @@ class TextInput(Widget):
         self._hint_text_rects = []
         self._label_cached = None
         self._line_options = None
-        self._keyboard = None
         self._keyboard_mode = Config.get('kivy', 'keyboard_mode')
         self._command_mode = False
         self._command = ''
@@ -366,6 +376,13 @@ class TextInput(Widget):
         self.bind(font_size=self._trigger_refresh_line_options,
                   font_name=self._trigger_refresh_line_options)
 
+        def set_focused(instance, value):
+            self.focused = value
+
+        def handle_readonly(instance, value):
+            if value and (not _is_desktop or not self.allow_copy):
+                self.is_focusable = False
+
         self.bind(padding=self._update_text_options,
                   tab_width=self._update_text_options,
                   font_size=self._update_text_options,
@@ -373,7 +390,9 @@ class TextInput(Widget):
                   size=self._update_text_options,
                   password=self._update_text_options)
 
-        self.bind(pos=self._trigger_update_graphics)
+        self.bind(pos=self._trigger_update_graphics, focus=set_focused,
+                  readonly=handle_readonly)
+        handle_readonly(self, self.readonly)
 
         self._trigger_position_handles = Clock.create_trigger(
             self._position_handles)
@@ -387,10 +406,6 @@ class TextInput(Widget):
 
         # when the gl context is reloaded, trigger the text rendering again.
         _textinput_list.append(ref(self, TextInput._reload_remove_observer))
-
-    def on_disabled(self, instance, value):
-        if value:
-            self.focus = False
 
     def on_text_validate(self):
         pass
@@ -955,14 +970,9 @@ class TextInput(Widget):
             return
         touch_pos = touch.pos
         if not self.collide_point(*touch_pos):
-            if self._keyboard_mode == 'multi':
-                if self.readonly:
-                    self.focus = False
-            else:
-                self.focus = False
             return False
-        if not self.focus:
-            self.focus = True
+        if super(TextInput, self).on_touch_down(touch):
+            return True
         touch.grab(self)
         self._touch_count += 1
         if touch.is_double_tap:
@@ -1258,76 +1268,29 @@ class TextInput(Widget):
         if wr in _textinput_list:
             _textinput_list.remove(wr)
 
-    def _set_window(self, *largs):
+    def on_focused(self, instance, value, *largs):
+        self.focus = value
+
         win = self._win
         if not win:
             self._win = win = EventLoop.window
         if not win:
-            # we got argument, it could be the previous schedule
-            # cancel focus.
-            if len(largs):
-                Logger.warning('Textinput: '
-                               'Cannot focus the element, unable to get '
-                               'root window')
-                return
-            else:
-                #XXX where do `value` comes from?
-                Clock.schedule_once(partial(self.on_focus, self, largs), 0)
+            Logger.warning('Textinput: unable to get root window')
             return
-
-    def on_focus(self, instance, value, *largs):
-        self._set_window(*largs)
+        self.cancel_selection()
+        self._hide_cut_copy_paste(win)
 
         if value:
-            if self.keyboard_mode != 'managed':
-                self._bind_keyboard()
+            if (not (self.readonly or self.disabled) or _is_desktop and
+                self._keyboard_mode == 'system'):
+                Clock.schedule_interval(self._do_blink_cursor, 1 / 2.)
+                self._editable = True
+            else:
+                self._editable = False
         else:
-            if self.keyboard_mode != 'managed':
-                self._unbind_keyboard()
-
-    def _unbind_keyboard(self):
-        self._set_window()
-        win = self._win
-        if self._keyboard:
-            keyboard = self._keyboard
-            keyboard.unbind(
-                on_key_down=self._keyboard_on_key_down,
-                on_key_up=self._keyboard_on_key_up)
-            keyboard.release()
-            self._keyboard = None
-
-        self.cancel_selection()
-        Clock.unschedule(self._do_blink_cursor)
-        self._hide_cut_copy_paste(win)
-        self._hide_handles(win)
-        self._win = None
-
-    def _bind_keyboard(self):
-        self._set_window()
-        win = self._win
-        self._editable = editable = (not (self.readonly or self.disabled) or
-                                     _is_desktop and
-                                     self._keyboard_mode == 'system')
-
-        if not _is_desktop and not editable:
-            return
-
-        keyboard = win.request_keyboard(
-            self._keyboard_released, self, input_type=self.input_type)
-        self._keyboard = keyboard
-        if editable:
-            keyboard.bind(
-                on_key_down=self._keyboard_on_key_down,
-                on_key_up=self._keyboard_on_key_up)
-            Clock.schedule_interval(self._do_blink_cursor, 1 / 2.)
-        else:
-            # in non-editable mode, we still want shortcut (as copy)
-            keyboard.bind(
-                on_key_down=self._keyboard_on_key_down)
-
-    def on_readonly(self, instance, value):
-        if not value:
-            self.focus = False
+            Clock.unschedule(self._do_blink_cursor)
+            self._hide_handles(win)
+            self._win = None
 
     def _ensure_clipboard(self):
         global Clipboard
@@ -1410,12 +1373,6 @@ class TextInput(Widget):
             self.delete_selection()
             self.insert_text(data)
         data = None
-
-    def _keyboard_released(self):
-        # Callback called when the real keyboard is taken by someone else
-        # called by the window if the keyboard is taken by somebody else
-        # FIXME: handle virtual keyboard.
-        self.focus = False
 
     def _get_text_width(self, text, tab_width, _label_cached):
         # Return the width of a text, according to the current line options
@@ -1956,7 +1913,7 @@ class TextInput(Widget):
             if self._selection:
                 self._update_selection(True)
 
-    def _keyboard_on_key_down(self, window, keycode, text, modifiers):
+    def keyboard_on_key_down(self, window, keycode, text, modifiers):
         # Keycodes on OSX:
         ctrl, cmd = 64, 1024
         key, key_str = keycode
@@ -1966,13 +1923,17 @@ class TextInput(Widget):
             _is_osx and modifiers == ['meta']))
         is_interesting_key = key in (list(self.interesting_keys.keys()) + [27])
 
+        if not self.write_tab and super(TextInput,
+            self).keyboard_on_key_down(window, keycode, text, modifiers):
+            return True
+
         if not self._editable:
             # duplicated but faster testing for non-editable keys
             if text and not is_interesting_key:
                 if is_shortcut and key == ord('c'):
                     self._copy(self.selection_text)
             elif key == 27:
-                self.focus = False
+                self.focused = False
             return True
 
         if text and not is_interesting_key:
@@ -2000,7 +1961,7 @@ class TextInput(Widget):
             return
 
         if key == 27:  # escape
-            self.focus = False
+            self.focused = False
             return True
         elif key == 9:  # tab
             self.insert_text(u'\t')
@@ -2011,7 +1972,7 @@ class TextInput(Widget):
             key = (None, None, k, 1)
             self._key_down(key)
 
-    def _keyboard_on_key_up(self, window, keycode):
+    def keyboard_on_key_up(self, window, keycode):
         key, key_str = keycode
         k = self.interesting_keys.get(key)
         if k:
@@ -2436,6 +2397,12 @@ class TextInput(Widget):
             show selection when TextInput is focused, you should delay
             (use Clock.schedule) the call to the functions for selecting
             text (select_all, select_text).
+
+    ..versionchanged:: 1.8.1
+        :class:`TextInput` now inherits from
+        :class:`~kivy.uix.behaviors.FocusBehavior` and :attr:`focus` is now
+        an alias for :attr:`focused`. Setting either one will also set the
+        other.
     '''
 
     def _get_text(self, encode=True):
@@ -2640,31 +2607,16 @@ class TextInput(Widget):
         if self._handle_right:
             self._handle_right.source = value
 
-    keyboard_mode = OptionProperty('auto', options=('auto', 'managed'))
-    '''How the keyboard visibility should be managed (auto will have standard
-    behaviour to show/hide on focus, managed requires setting keyboard_visible
-    manually, or calling the helper functions ``show_keyboard()``
-    and ``hide_keyboard()``.
+    write_tab = BooleanProperty(True)
+    '''Whether the tab key should move focus to the next widget or if it should
+    enter a tab in the :class:`TextInput`. If `True` a tab will be written,
+    otherwise, focus will move to the next widget.
 
-    .. versionadded:: 1.8.0
+    .. versionadded:: 1.8.1
 
-    :attr:`keyboard_mode` is an :class:`~kivy.properties.OptionsProperty` and
-    defaults to 'auto'. Can be one of 'auto' or 'managed'.
+    :attr:`write_tab` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to `True`.
     '''
-
-    def show_keyboard(self):
-        """
-        Convenience function to show the keyboard in managed mode
-        """
-        if self.keyboard_mode == "managed":
-            self._bind_keyboard()
-
-    def hide_keyboard(self):
-        """
-        Convenience function to hide the keyboard in managed mode
-        """
-        if self.keyboard_mode == "managed":
-            self._unbind_keyboard()
 
 
 if __name__ == '__main__':

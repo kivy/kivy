@@ -23,6 +23,7 @@ from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
     NumericProperty, OptionProperty, StringProperty, BooleanProperty
 from kivy.utils import platform, reify
 from kivy.context import get_current_context
+from kivy.uix.behaviors import FocusBehavior
 
 # late import
 VKeyboard = None
@@ -730,6 +731,7 @@ class WindowBase(EventDispatcher):
                 self.dispatch('on_touch_move', me)
             elif etype == 'end':
                 self.dispatch('on_touch_up', me)
+                FocusBehavior._handle_post_on_touch_up(me)
 
     def on_touch_down(self, touch):
         '''Event called when a touch down event is initiated.
