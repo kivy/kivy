@@ -12,12 +12,9 @@ platform you're working on, they can be a pain to install. For
 Windows and MacOS X, we provide a portable package that you can just
 unzip and use.
 
-.. toctree::
-    :maxdepth: 1
-
-    /installation/installation-windows.rst
-    /installation/installation-macosx.rst
-    /installation/installation-linux.rst
+* :ref:`installation_windows`
+* :ref:`installation_macosx`
+* :ref:`installation_linux`
 
 If you want to install everything yourself, ensure that you have at
 least `Cython <http://cython.org>`_ and `Pygame <http://pygame.org>`_. A
@@ -50,17 +47,17 @@ Here is an example of a minimal application::
 
     import kivy
     kivy.require('1.0.6') # replace with your current kivy version !
-    
+
     from kivy.app import App
     from kivy.uix.label import Label
-    
-    
+
+
     class MyApp(App):
-    
+
         def build(self):
             return Label(text='Hello world')
-    
-    
+
+
     if __name__ == '__main__':
         MyApp().run()
 
@@ -177,10 +174,10 @@ Lets extend this application a bit, say a simple UserName/Password page.
     from kivy.uix.gridlayout import GridLayout
     from kivy.uix.label import Label
     from kivy.uix.textinput import TextInput
-    
-    
+
+
     class LoginScreen(GridLayout):
-    
+
         def __init__(self, **kwargs):
             super(LoginScreen, self).__init__(**kwargs)
             self.cols = 2
@@ -190,14 +187,14 @@ Lets extend this application a bit, say a simple UserName/Password page.
             self.add_widget(Label(text='password'))
             self.password = TextInput(password=True, multiline=False)
             self.add_widget(self.password)
-    
-    
+
+
     class MyApp(App):
 
         def build(self):
             return LoginScreen()
-    
-    
+
+
     if __name__ == '__main__':
         MyApp().run()
 
