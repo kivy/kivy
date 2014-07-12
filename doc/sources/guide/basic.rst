@@ -167,8 +167,6 @@ Customize the application
 Lets extend this application a bit, say a simple UserName/Password page.
 
 .. code-block:: python
-   :emphasize-lines: 2,4,7,9-17,23
-   :linenos:
 
     from kivy.app import App
     from kivy.uix.gridlayout import GridLayout
