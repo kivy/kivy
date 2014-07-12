@@ -124,7 +124,7 @@ Available configuration tokens
     'multisamples': int, defaults to 2
         Sets the `MultiSample Anti-Aliasing (MSAA)
         <http://en.wikipedia.org/wiki/Multisample_anti-aliasing>`_ level.
-        Increasing this value results in smooother graphics but at the cost of
+        Increasing this value results in smoother graphics but at the cost of
         processing time.
 
         .. warning::
