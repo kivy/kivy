@@ -127,7 +127,7 @@ Available configuration tokens
         Increasing this value results in smoother graphics but at the cost of
         processing time.
 
-        .. warning::
+        .. note::
         
            This feature is limited by device hardware support and will have no
            effect on devices which do not support the level of MSAA requested.
