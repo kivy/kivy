@@ -330,6 +330,7 @@ class TextInput(Widget):
         self._handle_left = None
         self._handle_right = None
         self._handle_middle = None
+        self._insertion_queue = []
         self._bubble = None
         self._lines_flags = []
         self._lines_labels = []
@@ -562,7 +563,7 @@ class TextInput(Widget):
         text = self._lines[cr]
         len_str = len(substring)
         new_text = text[:cc] + substring + text[cc:]
-        self._set_line_text(cr, new_text)
+        set_text = partial(self._set_line_text, cr, new_text)
 
         wrap = (self._get_text_width(
             new_text,
@@ -581,7 +582,12 @@ class TextInput(Widget):
             self._refresh_text_from_property('insert', start, finish, lines,
                                              lineflags, len_lines)
 
+        # the new cursor position might not be available right now.
+        # set it after the graphics have been updated.
         self.cursor = self.get_cursor_from_index(ci + len_str)
+
+        set_text()
+
         # handle undo and redo
         self._set_unredo_insert(ci, ci + len_str, substring, from_undo)
 
@@ -695,6 +701,7 @@ class TextInput(Widget):
             - do nothing, if we are at the start.
 
         '''
+        print 'bkspc'
         if self.readonly:
             return
         cc, cr = self.cursor
@@ -710,14 +717,14 @@ class TextInput(Widget):
         if cc == 0:
             substring = u'\n' if _lines_flags[cr] else u' '
             new_text = text_last_line + text
-            self._set_line_text(cr - 1, new_text)
             self._delete_line(cr)
+            set_text = partial(self._set_line_text, cr - 1, new_text)
             start = cr - 1
         else:
             #ch = text[cc-1]
             substring = text[cc - 1]
             new_text = text[:cc - 1] + text[cc:]
-            self._set_line_text(cr, new_text)
+            set_text = partial(self._set_line_text, cr, new_text)
 
         # refresh just the current line instead of the whole text
         start, finish, lines, lineflags, len_lines =\
@@ -728,6 +735,8 @@ class TextInput(Widget):
                                          lineflags, len_lines)
 
         self.cursor = self.get_cursor_from_index(cursor_index - 1)
+
+        set_text()
         # handle undo and redo
         self._set_undo_redo_bkspc(
             cursor_index,
@@ -847,9 +856,7 @@ class TextInput(Widget):
         if not self._selection:
             return
         v = self._get_text(encode=False)
-        a, b = self._selection_from, self._selection_to
-        if a > b:
-            a, b = b, a
+        a, b = self._get_ordered_selection()
         self.cursor = cursor = self.get_cursor_from_index(a)
         start = cursor
         finish = self.get_cursor_from_index(b)
@@ -883,9 +890,7 @@ class TextInput(Widget):
         '''Update selection text and order of from/to if finished is True.
         Can be called multiple times until finished is True.
         '''
-        a, b = self._selection_from, self._selection_to
-        if a > b:
-            a, b = b, a
+        a, b = self._get_ordered_selection()
         self._selection_finished = finished
         _selection_text = self._get_text(encode=False)[a:b]
         self.selection_text = ("" if not self.allow_copy else
@@ -1583,6 +1588,10 @@ class TextInput(Widget):
         Clock.unschedule(self._update_graphics)
         Clock.schedule_once(self._update_graphics, -1)
 
+    def _get_ordered_selection(self):
+        a, b = self._selection_from, self._selection_to
+        return min(a, b), max(a, b)
+
     def _update_graphics(self, *largs):
         # Update all the graphics according to the current internal values.
         #
@@ -1697,9 +1706,7 @@ class TextInput(Widget):
         miny = self.y + padding_bottom
         maxy = _top - padding_top
         draw_selection = self._draw_selection
-        a, b = self._selection_from, self._selection_to
-        if a > b:
-            a, b = b, a
+        a, b = self._get_ordered_selection()
         get_cursor_from_index = self.get_cursor_from_index
         s1c, s1r = get_cursor_from_index(a)
         s2c, s2r = get_cursor_from_index(b)
@@ -1995,6 +2002,7 @@ class TextInput(Widget):
             else:
                 if self._selection:
                     self.delete_selection()
+                print 'inserting text'
                 self.insert_text(text)
             #self._recalc_size()
             return
