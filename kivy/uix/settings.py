@@ -79,6 +79,7 @@ corresponding properties of that class.
     options        :class:`SettingOptions`
     string         :class:`SettingString`
     path           :class:`SettingPath` (new from 1.1.0)
+    color          :class:`SettingColor` (new from 1.8.1)
     ============== =================================================
 
 In the JSON example above, the first element is of type "title". It will
