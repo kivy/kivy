@@ -65,10 +65,10 @@ settings. Here is an example::
         }
     ]
 
-Each element in the root list represents a setting that the user can configure.
-Only the "type" key is mandatory: an instance of the associated class will be
-created and used for the setting - other keys are assigned to corresponding
-properties of that class.
+Each element in the root list represents a setting that the user can
+configure. Only the "type" key is mandatory: an instance of the associated
+class will be created and used for the setting - other keys are assigned to
+corresponding properties of that class.
 
     ============== =================================================
      Type           Associated class
@@ -81,10 +81,10 @@ properties of that class.
     path           :class:`SettingPath` (new from 1.1.0)
     ============== =================================================
 
-In the JSON example above, the first element is of type "title". It will create
-a new instance of :class:`SettingTitle` and apply the rest of the key/value
-pairs to the properties of that class, i.e. "title": "Windows" sets the
-:attr:`SettingTitle.title` property to "Windows".
+In the JSON example above, the first element is of type "title". It will
+create a new instance of :class:`SettingTitle` and apply the rest of the
+key/value pairs to the properties of that class, i.e. "title": "Windows" sets
+the :attr:`SettingTitle.title` property to "Windows".
 
 To load the JSON example to a :class:`Settings` instance, use the
 :meth:`Settings.add_json_panel` method. It will automatically instantiate a
@@ -210,8 +210,8 @@ class SettingItem(FloatLayout):
     title = StringProperty('<No title set>')
     '''Title of the setting, defaults to '<No title set>'.
 
-    :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
-    '<No title set>'.
+    :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults
+    to '<No title set>'.
     '''
 
     desc = StringProperty(None, allownone=True)
@@ -267,8 +267,8 @@ class SettingItem(FloatLayout):
     As soon as the content object is set, any further call to add_widget will
     call the content.add_widget. This is automatically set.
 
-    :attr:`content` is an :class:`~kivy.properties.ObjectProperty` and defaults
-    to None.
+    :attr:`content` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     selected_alpha = NumericProperty(0)
@@ -321,9 +321,10 @@ class SettingItem(FloatLayout):
 
 
 class SettingBoolean(SettingItem):
-    '''Implementation of a boolean setting on top of a :class:`SettingItem`. It
-    is visualized with a :class:`~kivy.uix.switch.Switch` widget. By default,
-    0 and 1 are used for values: you can change them by setting :attr:`values`.
+    '''Implementation of a boolean setting on top of a :class:`SettingItem`.
+    It is visualized with a :class:`~kivy.uix.switch.Switch` widget.
+    By default, 0 and 1 are used for values: you can change them by setting
+    :attr:`values`.
     '''
 
     values = ListProperty(['0', '1'])
@@ -497,8 +498,9 @@ class SettingPath(SettingItem):
 
 class SettingColor(SettingItem):
     '''Implementation of a color setting on top of a :class:`SettingItem`.
-    It is visualized with a :class:`~kivy.uix.label.Label` widget and a colored canvas rectangle 
-    that, when clicked, will open a :class:`~kivy.uix.popup.Popup` with a
+    It is visualized with a :class:`~kivy.uix.label.Label` widget and a
+    colored canvas rectangle that, when clicked, will open a
+    :class:`~kivy.uix.popup.Popup` with a
     :class:`~kivy.uix.colorpicker.ColorPicker` so the user can choose a color.
 
     .. versionadded:: 1.8.1
@@ -534,7 +536,8 @@ class SettingColor(SettingItem):
             title=self.title, content=content, size_hint=(None, 0.9),
             width=popup_width)
 
-        self.colorpicker = colorpicker = ColorPicker(color=utils.get_color_from_hex(self.value))
+        self.colorpicker = colorpicker = \
+            ColorPicker(color=utils.get_color_from_hex(self.value))
         colorpicker.bind(on_color=self._validate)
 
         self.colorpicker = colorpicker
@@ -1026,7 +1029,7 @@ class Settings(BoxLayout):
 
         for setting in data:
             # determine the type and the class to use
-            if not 'type' in setting:
+            if 'type' not in setting:
                 raise ValueError('One setting are missing the "type" element')
             ttype = setting['type']
             cls = self._types.get(ttype)
@@ -1277,28 +1280,25 @@ if __name__ == '__main__':
     from kivy.app import App
 
     class SettingsApp(App):
-        
         demo_json_settings = json.dumps([
-                {'type': 'color',
-                 'title': 'Test color',
-                 'desc': 'Your choosen Color',
-                 'section': 'color_selection',
-                 'key': 'testcolor'}
-            ])
+            {
+                'type': 'color',
+                'title': 'Test color',
+                'desc': 'Your choosen Color',
+                'section': 'color_selection',
+                'key': 'testcolor'
+            }])
 
         def build(self):
             s = Settings()
             s.add_kivy_panel()
-            s.add_json_panel('Color settings', 
+            s.add_json_panel('Color settings',
                              self.config,
                              data=self.demo_json_settings)
             s.bind(on_close=self.stop)
             return s
 
         def build_config(self, config):
-            config.setdefaults('color_selection', {
-                'testcolor': '#FF0000' 
-                })
-
+            config.setdefaults('color_selection', {'testcolor': '#FF0000'})
 
     SettingsApp().run()
