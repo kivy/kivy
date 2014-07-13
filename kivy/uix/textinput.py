@@ -1499,7 +1499,9 @@ class TextInput(Widget):
         if len(largs) > 1:
             mode, start, finish, _lines, _lines_flags, len_lines = largs
             #start = max(0, start)
+            cursor = None
         else:
+            cursor = self.cursor_index()
             _lines, self._lines_flags = self._split_smart(text)
         _lines_labels = []
         _line_rects = []
@@ -1535,7 +1537,8 @@ class TextInput(Widget):
         # now, if the text change, maybe the cursor is not at the same place as
         # before. so, try to set the cursor on the good place
         row = self.cursor_row
-        self.cursor = self.get_cursor_from_index(self.cursor_index())
+        self.cursor = self.get_cursor_from_index(self.cursor_index()
+                                                 if cursor is None else cursor)
         # if we back to a new line, reset the scroll, otherwise, the effect is
         # ugly
         if self.cursor_row != row:
