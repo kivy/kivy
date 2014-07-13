@@ -499,6 +499,15 @@ class TextInput(Widget):
         if self.readonly or not substring:
             return
 
+        # lock insertion till this insertion is completed
+        _insertion_queue = self._insertion_queue
+        if _insertion_queue:
+            # insert new string in queue
+            _insertion_queue.append(substring)
+            return
+        # insert current substring
+        _insertion_queue.append(substring)
+
         mode = self.input_filter
         if mode is not None:
             chr = type(substring)
@@ -563,7 +572,7 @@ class TextInput(Widget):
         text = self._lines[cr]
         len_str = len(substring)
         new_text = text[:cc] + substring + text[cc:]
-        set_text = partial(self._set_line_text, cr, new_text)
+        self._set_line_text(cr, new_text)
 
         wrap = (self._get_text_width(
             new_text,
@@ -586,10 +595,15 @@ class TextInput(Widget):
         # set it after the graphics have been updated.
         self.cursor = self.get_cursor_from_index(ci + len_str)
 
-        set_text()
-
         # handle undo and redo
         self._set_unredo_insert(ci, ci + len_str, substring, from_undo)
+        
+        #remove current item from queue
+        self._insertion_queue = self._insertion_queue[1:]
+        if self._insertion_queue:
+            item = self._insertion_queue[0]
+            self._insertion_queue = self._insertion_queue[1:]
+            self.insert_text(item)
 
     def _get_line_from_cursor(self, start, new_text):
         # get current paragraph from cursor position
@@ -701,7 +715,6 @@ class TextInput(Widget):
             - do nothing, if we are at the start.
 
         '''
-        print 'bkspc'
         if self.readonly:
             return
         cc, cr = self.cursor
@@ -2002,7 +2015,6 @@ class TextInput(Widget):
             else:
                 if self._selection:
                     self.delete_selection()
-                print 'inserting text'
                 self.insert_text(text)
             #self._recalc_size()
             return
