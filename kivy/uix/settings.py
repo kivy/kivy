@@ -80,10 +80,14 @@ corresponding properties of that class.
     options        :class:`SettingOptions`
     string         :class:`SettingString`
     path           :class:`SettingPath`
+    color          :class:`SettingColor`
     ============== =================================================
 
     .. versionadded:: 1.1.0
         Added :attr:`SettingPath` type
+
+    .. versionadded:: 1.9.2
+        Added :attr:`SettingColor` type
 
 In the JSON example above, the first element is of type "title". It will create
 a new instance of :class:`SettingTitle` and apply the rest of the key-value
