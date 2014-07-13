@@ -40,6 +40,8 @@ MotionEvent from the :class:`~kivy.core.window.Window` to your own callback::
 
     Window.bind(on_motion=on_motion)
 
+You can also listen to changes of the mouse position by watching
+:attr:`~kivy.core.window.WindowBase.mouse_pos`.
 
 Profiles
 --------
