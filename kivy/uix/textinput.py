@@ -310,6 +310,18 @@ class TextInput(Widget):
             behavior selects the whole text. More info at
             :meth:`on_quad_touch`.
 
+    .. warning::
+        When changing the a :class:`TextInput` parameter that requires
+        re-drawing, e.g. modifying :attr:`text`, the updates occur on the next
+        clock cycle and not instantly. This might cause any changes to the
+        :class:`TextInput` that occur between the modification and the next
+        cycle to be ignored, or to use the previous values. For example, after
+        a update to :attr:`text`, changing the cursor in the same clock frame
+        will move it using the previous text and will likely end up in a
+        incorrect position. The solution is to schedule any updates to occur
+        on the next clock cycle using e.g.
+        :meth:`~kivy.clock.ClockBase.schedule_once`.
+
     .. versionchanged:: 1.7.0
         `on_double_tap`, `on_triple_tap` and `on_quad_touch` events added.
     '''
