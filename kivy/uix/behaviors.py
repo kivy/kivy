@@ -109,8 +109,6 @@ class ButtonBehavior(object):
 
     def on_touch_up(self, touch):
         super_result = super(ButtonBehavior, self).on_touch_up(touch)
-        if super_result:
-            return True
         if touch.grab_current is not self:
             return super_result
         assert(self in touch.ud)
