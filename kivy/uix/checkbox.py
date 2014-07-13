@@ -30,7 +30,6 @@ An example usage::
 
 __all__ = ('CheckBox', )
 
-from weakref import ref
 from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty
 from kivy.uix.behaviors import ToggleButtonBehavior
