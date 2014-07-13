@@ -101,15 +101,18 @@ class ButtonBehavior(object):
         return True
 
     def on_touch_move(self, touch):
-        if touch.grab_current is self:
-            return True
         if super(ButtonBehavior, self).on_touch_move(touch):
             return True
+        if touch.grab_current is self:
+            return True 
         return self in touch.ud
 
     def on_touch_up(self, touch):
+        super_result = super(ButtonBehavior, self).on_touch_up(touch)
+        if super_result:
+            return True
         if touch.grab_current is not self:
-            return super(ButtonBehavior, self).on_touch_up(touch)
+            return super_result
         assert(self in touch.ud)
         touch.ungrab(self)
         self.last_touch = touch
