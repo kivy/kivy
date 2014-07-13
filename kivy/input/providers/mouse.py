@@ -33,7 +33,14 @@ You can now selectively control whether a click initiated as described above
 will emulate multi-touch. If the touch has been initiated in the above manner
 (e.g. right mouse button), multitouch_sim will be added to touch's profile,
 and property `multitouch_sim` to the touch. By default `multitouch_sim` is
-False. If before mouse release (e.g. in on_touch_down/move) `multitouch_sim`
+True and multitouch will be emulated for that touch. However, if
+`multitouch_on_demand` is added to the config::
+
+   [input]
+   mouse = mouse,multitouch_on_demand
+
+then `multitouch_sim` defaults to `False`. In that case, if before mouse
+release (e.g. in on_touch_down/move) `multitouch_sim`
 is set to True, the touch will simulate multi-touch. For example::
 
     if 'multitouch_sim' in touch.profile:
@@ -124,6 +131,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.alt_touch = None
         self.disable_on_activity = False
         self.disable_multitouch = False
+        self.multitouch_on_demenad = False
 
         # split arguments
         args = args.split(',')
@@ -135,6 +143,8 @@ class MouseMotionEventProvider(MotionEventProvider):
                 self.disable_on_activity = True
             elif arg == 'disable_multitouch':
                 self.disable_multitouch = True
+            elif arg == 'multitouch_on_demand':
+                self.multitouch_on_demenad = True
             else:
                 Logger.error('Mouse: unknown parameter <%s>' % arg)
 
@@ -183,7 +193,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         id = 'mouse' + str(self.counter)
         args = [rx, ry, button]
         if do_graphics:
-            args += [False]
+            args += [not self.multitouch_on_demenad]
         self.current_drag = cur = MouseMotionEvent(self.device, id=id,
                                                    args=args)
         cur.is_double_tap = is_double_tap
