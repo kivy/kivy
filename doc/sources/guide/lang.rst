@@ -314,8 +314,8 @@ hold the instance of the :class:`~kivy.uix.TextInput` referenced by the id
 
     txt_inpt: txt_inpt
 
-Thus; self.txt_inpt from this point onwards holds the instance to the widget
-referenced by the id `txt_input` and can be used anywhere in the class like in
+From this point onwards, `self.txt_inpt` holds a reference to the widget
+identified by the id `txt_input` and can be used anywhere in the class, as in
 the function `check_status`. In contrast to this method you could also just pass
 the `id` to the function that needs to use it, like in case of `f_but` in the
 code above.
