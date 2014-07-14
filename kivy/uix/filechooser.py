@@ -547,6 +547,9 @@ class FileChooserController(FloatLayout):
             except StopIteration:
                 finished = True
                 break
+            except TypeError:  # in case _gitems_gen is None
+                finished = True
+                break
 
         # if this wasn't enough for creating all the entries, show a progress
         # bar, and report the activity to the user.
