@@ -344,9 +344,8 @@ In your python code:
             self.ids.loki.text = "loki: >_<!!!"
 
 When your kv file is parsed, kivy collects all the widgets tagged with id's
-and places them in this `self.ids` :class:`~kivy.properties.ObservableDict`
-property. That means you can also iterate over these widgets and access them
-dictionary style::
+and places them in this `self.ids` dictionary type property. That means you
+can also iterate over these widgets and access them dictionary style::
 
     for key, val in self.ids.items():
         print("key={0}, val={1}".format(key, val))
