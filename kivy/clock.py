@@ -3,9 +3,12 @@ Clock object
 ============
 
 The :class:`Clock` object allows you to schedule a function call in the
-future; once or repeatedly at specified intervals::
+future; once or repeatedly at specified intervals. You can get the time
+elapsed between the scheduling and the calling of the callback via the
+`dt` argument::
 
-    def my_callback(dt):
+    # dt means delta-time
+    def my_callback(dt): 
         pass
 
     # call my_callback every 0.5 seconds
