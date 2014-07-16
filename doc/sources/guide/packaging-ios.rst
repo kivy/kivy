@@ -66,6 +66,9 @@ name without any spaces or illegal characters::
 
     $ tools/create-xcode-project.sh test /path/to/your/appdir
 
+.. Note::
+    You must use a fully qualified path to your application directory.
+
 Now you can open the Xcode project::
 
     $ open app-test/test.xcodeproj
