@@ -334,7 +334,11 @@ class MotionEvent(MotionEventBase):
     def ungrab(self, class_instance):
         '''Ungrab a previously grabbed touch
         '''
-        class_instance = weakref.ref(class_instance)
+        try:
+            class_instance = weakref.ref(class_instance)
+        except TypeError:
+            # handle weakproxy objects which cannot be weakref'd
+            class_instance = weakref.ref(class_instance.__self__)
         if self.grab_exclusive_class == class_instance:
             self.grab_exclusive_class = None
         if class_instance in self.grab_list:
