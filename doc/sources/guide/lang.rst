@@ -53,8 +53,8 @@ App instance::
 
     Widget:
 
-A `class` rule, declared by the name of the class between `< >` and
-followed by `:`, defines how any instance of that widget class will be
+A `class` rule, declared by the name of a widget class between `< >` and
+followed by `:`, defines how any instance of that class will be
 graphically represented::
 
     <MyWidget>:
