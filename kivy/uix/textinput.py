@@ -1121,6 +1121,9 @@ class TextInput(Widget):
         group = self.canvas.get_group('selection')
         if not group:
             return
+
+        if not self._win:
+            self._set_window()
         self._win.remove_widget(self._handle_middle)
 
         handle_left = self._handle_left
