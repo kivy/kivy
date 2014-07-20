@@ -533,37 +533,6 @@ class TextInput(Widget):
 
         self._hide_handles(self._win)
 
-        # check for command modes
-        if ord(substring[0]) == 1:
-            self._command_mode = True
-            self._command = ''
-        if ord(substring[0]) == 2:
-            self._command_mode = False
-            self._command = self._command[1:]
-
-        if self._command_mode:
-            self._command += substring
-            return
-
-        _command = self._command
-        if _command and ord(substring[0]) == 2:
-            from_undo = True
-            _command, data = _command.split(':')
-            self._command = ''
-            if _command == 'DEL':
-                count = int(data)
-                end = self.cursor_index()
-                self._selection_from = max(end - count, 0)
-                self._selection_to = end
-                self._selection = True
-                self.delete_selection(from_undo=True)
-                return
-            elif _command == 'INSERT':
-                substring = data
-            elif _command == 'INSERTN':
-                from_undo = False
-                substring = data
-
         if not from_undo and self.multiline and self.auto_indent \
                 and substring == u'\n':
             substring = self._auto_indent(substring)
@@ -1994,6 +1963,51 @@ class TextInput(Widget):
             self._hide_handles(self._win)
             self._hide_cut_copy_paste()
             self._win.remove_widget(self._handle_middle)
+
+            # check for command modes
+            if ord(text[0]) == 1:
+                self._command_mode = True
+                self._command = ''
+            if ord(text[0]) == 2:
+                self._command_mode = False
+                self._command = self._command[1:]
+ 
+            if self._command_mode:
+                self._command += text
+                return
+ 
+            _command = self._command
+            if _command and ord(text) == 2:
+                from_undo = True
+                _command, data = _command.split(':')
+                self._command = ''
+                if self._selection:
+                    self.delete_selection()
+                if _command == 'DEL':
+                    count = int(data)
+                    if not count:
+                        self.delete_selection(from_undo=True)
+                    end = self.cursor_index()
+                    self._selection_from = max(end - count, 0)
+                    self._selection_to = end
+                    self._selection = True
+                    self.delete_selection(from_undo=True)
+                    return
+                elif _command == 'INSERT':
+                    self.insert_text(data, from_undo)
+                elif _command == 'INSERTN':
+                    from_undo = False
+                    self.insert_text(data, from_undo)
+                elif _command == 'SELWORD':
+                    self.dispatch('on_double_tap')
+                elif _command == 'SEL':
+                    if data == '0':
+                        Clock.schedule_once(lambda dt: self.cancel_selection())
+                elif _command == 'CURCOL':
+                    self.cursor = int(data), self.cursor_row
+                return
+ 
+
             if is_shortcut:
                 if key == ord('x'):  # cut selection
                     self._cut(self.selection_text)
