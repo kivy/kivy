@@ -797,6 +797,7 @@ image_libs += [
     ('tex', 'img_tex'),
     ('dds', 'img_dds'),
     ('pygame', 'img_pygame'),
+    ('ffpy', 'img_ffpyplayer'),
     ('pil', 'img_pil'),
     ('gif', 'img_gif')]
 libs_loaded = core_register_libs('image', image_libs)
