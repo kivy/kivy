@@ -464,6 +464,10 @@ class WindowBase(EventDispatcher):
     .. versionadded:: 1.2.0
     '''
 
+    @property
+    def __self__(self):
+        return self
+
     top = NumericProperty(None, allownone=True)
     left = NumericProperty(None, allownone=True)
     position = OptionProperty('auto', options=['auto', 'custom'])
