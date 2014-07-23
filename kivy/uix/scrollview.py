@@ -616,8 +616,10 @@ class ScrollView(StencilView):
 
         if self.do_scroll_x and self.effect_x and not ud['in_bar_x']:
             self.effect_x.start(touch.x)
+            self._scroll_x_mouse = self.scroll_x
         if self.do_scroll_y and self.effect_y and not ud['in_bar_y']:
             self.effect_y.start(touch.y)
+            self._scroll_y_mouse = self.scroll_y
 
         if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
             return
