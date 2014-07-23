@@ -57,6 +57,7 @@ class InputPostprocCalibration(object):
     def __init__(self):
         super(InputPostprocCalibration, self).__init__()
         self.devices = {}
+        self.frame = 0
         if not Config.has_section('postproc:calibration'):
             return
         default_params = {'xoffset': 0, 'yoffset': 0, 'xratio': 1, 'yratio': 1}
@@ -74,11 +75,23 @@ class InputPostprocCalibration(object):
             self.devices[device_key] = params
 
     def process(self, events):
+        # avoid doing any processing if there is no device to calibrate at all.
+        if not self.devices:
+            return events
+
+        self.frame += 1
+        frame = self.frame
         for etype, event in events:
             if event.device not in self.devices:
+                continue
+            # some providers use the same event to update and end
+            if 'calibration:frame' not in event.ud:
+                event.ud['calibration:frame'] = frame
+            elif event.ud['calibration:frame'] == frame:
                 continue
             params = self.devices[event.device]
             event.sx = event.sx * params['xratio'] + params['xoffset']
             event.sy = event.sy * params['yratio'] + params['yoffset']
+            event.ud['calibration:frame'] = frame
         return events
 
