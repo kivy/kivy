@@ -610,6 +610,22 @@ cdef class ListProperty(Property):
         `default`: list, defaults to []
             Specifies the default value of the property.
 
+    .. warning::
+
+        When assigning a list to a :class:`ListProperty`, the list stored in
+        the property is a copy of the list and not the original list. This can
+        be demonstrated with the following example::
+
+            >>> class MyWidget(Widget):
+            >>>     my_list = ListProperty([])
+
+            >>> widget = MyWidget()
+            >>> my_list = widget.my_list = [1, 5, 7]
+            >>> print my_list is widget.my_list
+            False
+            >>> my_list.append(10)
+            >>> print(my_list, widget.my_list)
+            [1, 5, 7, 10], [1, 5, 7]
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or []
@@ -713,6 +729,12 @@ cdef class DictProperty(Property):
 
     .. versionchanged:: 1.8.1
         `rebind` has been introduced.
+
+    .. warning::
+
+        Similar to :class:`ListProperty`, when assigning a dict to a
+        :class:`DictProperty`, the dict stored in the property is a copy of the
+        dict and not the original dict. See :class:`ListProperty` for details.
     '''
     def __init__(self, defaultvalue=None, rebind=False, **kw):
         defaultvalue = defaultvalue or {}
