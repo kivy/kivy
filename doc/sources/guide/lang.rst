@@ -393,9 +393,9 @@ template instead, like so:
             text: "repeating the same thing over and over in a comp = fail"
         MyBigButt:
 
-This class, created just by the declaration of this rule, inherit from the
-Button class and allow to change default values and to create bindings for all
-its instances, without adding any new code on the Python side.
+This class, created just by the declaration of this rule, inherits from the
+Button class and allows us to change default values and create bindings for all
+its instances without adding any new code on the Python side.
 
 Re-using styles in multiple widgets
 -----------------------------------
