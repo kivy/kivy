@@ -463,13 +463,13 @@ Let's start with a little example. First, the Python file named `main.py`:
 .. include:: ../../../examples/guide/designwithkv/main.py
    :literal:
 
-In this example, we are creating a Controller class, with 2 properties:
+In this example, we are creating a Controller class with 2 properties:
 
     * ``info`` for receving some text
     * ``label_wid`` for receving the label widget
 
-In addition, we are creating a ``do_action()`` method, that will use both of
-these properties. It will change the ``info`` text, and change text in the
+In addition, we are creating a ``do_action()`` method that will use both of
+these properties. It will change the ``info`` text and change text in the
 ``label_wid`` widget.
 
 The layout goes in controller.kv
