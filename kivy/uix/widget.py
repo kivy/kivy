@@ -1017,6 +1017,46 @@ class Widget(WidgetBase):
 
     :attr:`ids` is a :class:`~kivy.properties.DictProperty` and defaults to a
     empty dict {}.
+
+    The :attr:`ids` are populated for each root level widget definition. For
+    example::
+
+        # in kv
+        <MyWidget@Widget>:
+            id: my_widget
+            Label:
+                id: label_widget
+                Widget:
+                    id: inner_widget
+                    Label:
+                        id: inner_label
+            TextInput:
+                id: text_input
+            OtherWidget:
+                id: other_widget
+
+
+        <OtherWidget@Widget>
+            id: other_widget
+            Label:
+                id: other_label
+                TextInput:
+                    id: other_textinput
+
+    Then, in python::
+
+        >>> widget = MyWidget()
+        >>> print(widget.ids)
+        {'other_widget': <weakproxy at 041CFED0 to OtherWidget at 041BEC38>,
+        'inner_widget': <weakproxy at 04137EA0 to Widget at 04138228>,
+        'inner_label': <weakproxy at 04143540 to Label at 04138260>,
+        'label_widget': <weakproxy at 04137B70 to Label at 040F97A0>,
+        'text_input': <weakproxy at 041BB5D0 to TextInput at 041BEC00>}
+        >>> print(widget.ids['other_widget'].ids)
+        {'other_textinput': <weakproxy at 041DBB40 to TextInput at 041BEF48>,
+        'other_label': <weakproxy at 041DB570 to Label at 041BEEA0>}
+        >>> print(widget.ids['label_widget'].ids)
+        {}
     '''
 
     opacity = NumericProperty(1.0)
