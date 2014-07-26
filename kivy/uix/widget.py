@@ -246,6 +246,7 @@ class Widget(WidgetBase):
 
     __metaclass__ = WidgetMetaclass
     __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
+    _proxy_ref = None
 
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.
@@ -285,8 +286,9 @@ class Widget(WidgetBase):
 
         .. versionadded:: 1.7.2
         '''
-        if hasattr(self, '_proxy_ref'):
-            return self._proxy_ref
+        _proxy_ref = self._proxy_ref
+        if _proxy_ref is not None:
+            return _proxy_ref
 
         f = partial(_widget_destructor, self.uid)
         self._proxy_ref = _proxy_ref = proxy(self, f)
