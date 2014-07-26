@@ -345,15 +345,17 @@ cdef class Property:
         '''Add a new observer to be called only when the value is changed.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        if observer not in ps.observers:
-            ps.observers.append(observer)
+        cdef tuple callback = (observer, )
+        if callback not in ps.observers:
+            ps.observers.append(callback)
 
     cpdef unbind(self, EventDispatcher obj, observer):
         '''Remove the observer from our widget observer list.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
+        cdef tuple item
         for item in ps.observers[:]:
-            if item == observer:
+            if item[0] == observer:
                 ps.observers.remove(item)
 
     def __set__(self, EventDispatcher obj, val):
@@ -440,10 +442,14 @@ cdef class Property:
 
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
+        cdef tuple item
         if len(ps.observers):
             value = ps.value
-            for observer in ps.observers[:]:
-                observer(obj, value)
+            for item in ps.observers[:]:
+                if len(item) == 1:
+                    item[0](obj, value)
+                else:
+                    item[0](obj, value, *item[1])
 
 
 cdef class NumericProperty(Property):

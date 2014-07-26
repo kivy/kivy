@@ -1431,7 +1431,7 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
     exec(__kvlang__.co_value, idmap)
 
 
-def update_intermediates(base, keys, bound, s, fn, *args):
+def update_intermediates(instance, value, base, keys, bound, s, fn):
     ''' Function that is called when an intermediate property is updated
     and `rebind` of that property is True. In that case, we unbind
     all bound funcs that were bound to attrs of the old value of the
@@ -1468,11 +1468,11 @@ def update_intermediates(base, keys, bound, s, fn, *args):
     # first remove all the old bound functions from `i` and down.
     i = s or 1
     j = i - 1
-    for f, k, fun in bound[j:]:
+    for f, k, fun, largs in bound[j:]:
         if fun is None:
             continue
         try:
-            f.unbind(**{k: fun})
+            f._unbind_with_args(k, fun, *largs)
         except ReferenceError:
             pass
     del bound[j:]
@@ -1488,29 +1488,29 @@ def update_intermediates(base, keys, bound, s, fn, *args):
         # bind all attrs, except last to update_intermediates
         k = i
         for val in keys[i:-1]:
-            is_ev = isinstance(f, (Observable, EventDispatcher))
+            is_ev = isinstance(f, EventDispatcher)
             try:
                 # if we need to dynamically rebind, bindm otherwise just
                 # add the attr to the list
                 if is_ev and f.property(val).rebind:
-                    p = partial(update_intermediates, base, keys, bound, k, fn)
-                    append([f.proxy_ref, val, p])
-                    f.bind(**{val: p})
+                    #p = partial(update_intermediates, base, keys, bound, k, fn)
+                    append([f.proxy_ref, val, update_intermediates, (base, keys, bound, k, fn)])
+                    f._bind_with_args(val, update_intermediates, base, keys, bound, k, fn)
                     # during the bind, the watched keys could have changed
                     # value, calling update_intermediates and changing
                     # the last attr, so we have to read the last attr again
                     f = bound[-1][0]
                 else:
-                    append([f.proxy_ref if is_ev else f, val, None])
+                    append([f.proxy_ref if is_ev else f, val, None, ()])
             except (KeyError, AttributeError):  # in case property is not kivy
-                append([f.proxy_ref, val, None])
+                append([f.proxy_ref, val, None, ()])
             f = getattr(f, val)
             k += 1
         # for the last attr we bind directly to the setting function,
         # because that attr sets the value of the rule.
-        if isinstance(f, (Observable, EventDispatcher)):
+        if isinstance(f, EventDispatcher):
             f.bind(**{keys[-1]: fn})
-            append([f.proxy_ref, keys[-1], fn])
+            append([f.proxy_ref, keys[-1], fn, ()])
     except KeyError:
         pass
     except AttributeError:
@@ -1557,7 +1557,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
         for keys in rule.watched_keys:
             try:
                 bound = []
-                update_intermediates(idmap[keys[0]].proxy_ref, keys, bound,
+                update_intermediates(None, None, idmap[keys[0]].proxy_ref, keys, bound,
                                      None, fn)
                 # even if it's empty now, in the future, through dynamic
                 # rebinding it might have things.
@@ -2004,11 +2004,11 @@ class BuilderBase(object):
         if uid not in _handlers:
             return
         for callbacks in _handlers[uid]:
-            for f, k, fn in callbacks:
+            for f, k, fn, largs in callbacks:
                 if fn is None:  # it's not a kivy prop.
                     continue
                 try:
-                    f.unbind(**{k: fn})
+                    f._unbind_with_args(k, fn, *largs)
                 except ReferenceError:
                     # proxy widget is already gone, that's cool :)
                     pass
