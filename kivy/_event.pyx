@@ -311,6 +311,21 @@ cdef class EventDispatcher(ObjectWithUid):
                 prop = self.__properties[key]
                 prop.bind(self, value)
 
+    def _bind_with_args(self, name, func, *largs):
+        cdef PropertyStorage ps = self.__storage[name]
+        ps.observers.append((func, largs))
+
+    def _unbind_with_args(self, name, func, *largs):
+        cdef PropertyStorage ps = self.__storage[name]
+        cdef list observers = ps.observers
+        cdef tuple item, src_item = (func, largs)
+        cdef int i
+
+        for i, item in enumerate(observers):
+            if item == src_item:
+                del observers[i]
+                break
+
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions.
 
