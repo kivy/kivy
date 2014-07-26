@@ -453,7 +453,7 @@ Designing with the Kivy Language
 One of aims of the Kivy language is to
 `Separate the concerns <https://en.wikipedia.org/wiki/Separation_of_concerns>`_
 of presentation and logic. The presentation (layout) side is addressed by your
-kv file and logic by your py file.
+kv file and the logic by your py file.
 
 The code goes in py files
 ~~~~~~~~~~~~~~~~~~~~~~~~~
