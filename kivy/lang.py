@@ -801,6 +801,10 @@ class Observable(object):
         '''
         pass
 
+    @property
+    def proxy_ref(self):
+        return self
+
 
 class ProxyApp(object):
     # proxy app object
