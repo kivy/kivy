@@ -1494,23 +1494,23 @@ def update_intermediates(base, keys, bound, s, fn, *args):
                 # add the attr to the list
                 if is_ev and f.property(val).rebind:
                     p = partial(update_intermediates, base, keys, bound, k, fn)
-                    append([get_proxy(f), val, p])
+                    append([f.proxy_ref, val, p])
                     f.bind(**{val: p})
                     # during the bind, the watched keys could have changed
                     # value, calling update_intermediates and changing
                     # the last attr, so we have to read the last attr again
                     f = bound[-1][0]
                 else:
-                    append([get_proxy(f) if is_ev else f, val, None])
+                    append([f.proxy_ref if is_ev else f, val, None])
             except (KeyError, AttributeError):  # in case property is not kivy
-                append([get_proxy(f), val, None])
+                append([f.proxy_ref, val, None])
             f = getattr(f, val)
             k += 1
         # for the last attr we bind directly to the setting function,
         # because that attr sets the value of the rule.
         if isinstance(f, (Observable, EventDispatcher)):
             f.bind(**{keys[-1]: fn})
-            append([get_proxy(f), keys[-1], fn])
+            append([f.proxy_ref, keys[-1], fn])
     except KeyError:
         pass
     except AttributeError:
@@ -1557,7 +1557,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
         for keys in rule.watched_keys:
             try:
                 bound = []
-                update_intermediates(get_proxy(idmap[keys[0]]), keys, bound,
+                update_intermediates(idmap[keys[0]].proxy_ref, keys, bound,
                                      None, fn)
                 # even if it's empty now, in the future, through dynamic
                 # rebinding it might have things.
