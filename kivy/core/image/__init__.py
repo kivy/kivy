@@ -40,13 +40,13 @@ class ImageData(object):
     The container will always have at least the mipmap level 0.
     '''
 
-    __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical')
+    __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical', 'source_image')
     _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra', 's3tc_dxt1', 's3tc_dxt3',
                        's3tc_dxt5', 'pvrtc_rgb2', 'pvrtc_rgb4', 'pvrtc_rgba2',
                        'pvrtc_rgba4', 'etc1_rgb8')
 
     def __init__(self, width, height, fmt, data, source=None,
-                 flip_vertical=True):
+                 flip_vertical=True, source_image=None):
         assert fmt in ImageData._supported_fmts
 
         #: Decoded image format, one of a available texture format
@@ -62,10 +62,14 @@ class ImageData(object):
         #: Indicate if the texture will need to be vertically flipped
         self.flip_vertical = flip_vertical
 
+        # the original image, which we might need to save if it is a memoryview
+        self.source_image = source_image
+
     def release_data(self):
         mm = self.mipmaps
         for item in mm.values():
             item[2] = None
+            self.source_image = None
 
     @property
     def width(self):
@@ -445,7 +449,6 @@ class Image(EventDispatcher):
         else:
             raise Exception('Unable to load image type {0!r}'.format(arg))
 
-
     def remove_from_cache(self):
         '''Remove the Image from cache. This facilitates re-loading of
         images from disk in case the image content has changed.
@@ -797,6 +800,7 @@ image_libs += [
     ('tex', 'img_tex'),
     ('dds', 'img_dds'),
     ('pygame', 'img_pygame'),
+    ('ffpy', 'img_ffpyplayer'),
     ('pil', 'img_pil'),
     ('gif', 'img_gif')]
 libs_loaded = core_register_libs('image', image_libs)
