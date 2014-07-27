@@ -777,7 +777,7 @@ lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 lang_tr = re.compile('(_\()')
 
 # delayed calls are canvas expression triggered during an loop
-_delayed_calls = []
+_delayed_calls = {}
 
 # all the widget handlers, used to correctly unbind all the callbacks then the
 # widget is deleted
@@ -1431,7 +1431,22 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
     exec(__kvlang__.co_value, idmap)
 
 
-def update_intermediates(instance, value, base, keys, bound, s, fn):
+def call_fn(instance, v, element, key, value, rule, idmap):
+    if __debug__:
+        trace('Builder: call_fn %s, key=%s, value=%r, %r' % (
+            element, key, value, rule.value))
+    rule.count += 1
+    e_value = eval(value, idmap)
+    if __debug__:
+        trace('Builder: call_fn => value=%r' % (e_value, ))
+    setattr(element, key, e_value)
+
+
+def delayed_call_fn(instance, v, element, key, value, rule, idmap, hhash):
+    _delayed_calls[hhash] = (element, key, value, rule, idmap)
+
+
+def update_intermediates(instance, value, base, keys, bound, s, fn, args):
     ''' Function that is called when an intermediate property is updated
     and `rebind` of that property is True. In that case, we unbind
     all bound funcs that were bound to attrs of the old value of the
@@ -1464,6 +1479,8 @@ def update_intermediates(instance, value, base, keys, bound, s, fn):
             rebound, since the `s` key was changed. In bound, the
             corresponding index is `s - 1`. If `s` is None, we start from
             1 (first attr).
+        `fn`
+            The function to be called args, `args` on bound callback.
     '''
     # first remove all the old bound functions from `i` and down.
     i = s or 1
@@ -1493,9 +1510,10 @@ def update_intermediates(instance, value, base, keys, bound, s, fn):
                 # if we need to dynamically rebind, bindm otherwise just
                 # add the attr to the list
                 if is_ev and f.property(val).rebind:
-                    #p = partial(update_intermediates, base, keys, bound, k, fn)
-                    append([f.proxy_ref, val, update_intermediates, (base, keys, bound, k, fn)])
-                    f._bind_with_args(val, update_intermediates, base, keys, bound, k, fn)
+                    append([f.proxy_ref, val, update_intermediates,
+                            (base, keys, bound, k, fn, args)])
+                    f._bind_with_args(val, update_intermediates, base, keys,
+                                      bound, k, fn, args)
                     # during the bind, the watched keys could have changed
                     # value, calling update_intermediates and changing
                     # the last attr, so we have to read the last attr again
@@ -1509,8 +1527,8 @@ def update_intermediates(instance, value, base, keys, bound, s, fn):
         # for the last attr we bind directly to the setting function,
         # because that attr sets the value of the rule.
         if isinstance(f, EventDispatcher):
-            f.bind(**{keys[-1]: fn})
-            append([f.proxy_ref, keys[-1], fn, ()])
+            f._bind_with_args(keys[-1], fn, *args)
+            append([f.proxy_ref, keys[-1], fn, args])
     except KeyError:
         pass
     except AttributeError:
@@ -1537,28 +1555,23 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     idmap.update(global_idmap)
     idmap['self'] = iself.proxy_ref
 
-    def call_fn(*args):
-        if __debug__:
-            trace('Builder: call_fn %s, key=%s, value=%r, %r' % (
-                element, key, value, rule.value))
-        rule.count += 1
-        e_value = eval(value, idmap)
-        if __debug__:
-            trace('Builder: call_fn => value=%r' % (e_value, ))
-        setattr(element, key, e_value)
-
-    def delayed_call_fn(*args):
-        _delayed_calls.append(call_fn)
-
-    fn = delayed_call_fn if delayed else call_fn
+    # we need a hash for when delayed, so we don't execute duplicate canvas
+    # callbacks from the same handler during a sync op
+    if delayed:
+        fn = delayed_call_fn
+        handler_hash = element.uid, key, value, rule
+        args = element, key, value, rule, idmap, handler_hash
+    else:
+        fn = call_fn
+        args = element, key, value, rule, idmap
 
     # bind every key.value
     if rule.watched_keys is not None:
         for keys in rule.watched_keys:
             try:
                 bound = []
-                update_intermediates(None, None, idmap[keys[0]].proxy_ref, keys, bound,
-                                     None, fn)
+                update_intermediates(None, None, idmap[keys[0]].proxy_ref,
+                                     keys, bound, None, fn, args)
                 # even if it's empty now, in the future, through dynamic
                 # rebinding it might have things.
                 _handlers[uid].append(bound)
@@ -1985,11 +1998,11 @@ class BuilderBase(object):
 
         .. versionadded:: 1.7.0
         '''
-        l = set(_delayed_calls)
-        del _delayed_calls[:]
-        for func in l:
+        l = _delayed_calls.values()
+        _delayed_calls.clear()
+        for args in l:
             try:
-                func(None, None)
+                call_fn(None, None, *args)
             except ReferenceError:
                 continue
 
