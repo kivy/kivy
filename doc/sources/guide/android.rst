@@ -4,29 +4,41 @@
 Kivy on Android
 ===============
 
-Kivy runs on Android, but you need a phone with OpenGL ES 2.0 (Android 2.2 minimum). This is standard on modern devices.
+You can run Kivy applications on Android, on (more or less) any device
+with OpenGL ES 2.0 (Android 2.2 minimum). This is standard on modern
+devices, `Google reports
+<https://developer.android.com/about/dashboards/index.html>`_ the
+requirement is met by 99.9% of devices.
 
-Requirements for an Android application
----------------------------------------
+Package for Android
+-------------------
 
-To create an application for the Android platform, you must have a
-file named `main.py` in the root directory of your application.
-
-Create an APK
--------------
-
-The whole process is described in the :ref:`packaging_android` documentation.
+The Kivy project provides all the necessary tools to package your app
+on Android, including building your own standalone APK that may be
+distributed on a market like the Play store. This is covered fully in
+the :ref:`packaging_android` documentation.
 
 
 Debugging your application on the Android platform
 --------------------------------------------------
 
-The `Android SDK <http://developer.android.com/sdk/index.html>`_ includes a tool named adb.
-Connect your device, and run::
+You can view the normal output of your code (stdout, stderr), as well
+as the normal Kivy logs, through the Android logcat stream. This is
+accessed through adb, provided by the `Android SDK
+<http://developer.android.com/sdk/index.html>`_. You may need to
+enable adb in your device's developer options, then connect your device
+to your computer and run::
 
     adb logcat
 
-You'll see all the logs including your stdout/stderr, Kivy logger. 
+You'll see all the logs including your stdout/stderr and Kivy
+logger.
+
+If you packaged your app with Buildozer, the `adb` tool may not be in
+your :code:`$PATH` and the above command may not work. You can instead run
+:code:`buildozer logcat` to run the version installed by Buildozer, or
+find the SDK tools at
+:code:`$HOME/.buildozer/android/platform`.
 
 You can also run and debug your application using the `Kivy Launcher`_.
 If you run your application this way, you will find log files inside the 
