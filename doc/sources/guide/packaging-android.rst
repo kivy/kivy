@@ -184,7 +184,7 @@ is an Android application that runs any Kivy examples stored on your
 SD Card. 
 To install the Kivy launcher, you must:
 
-#. Go to the `Kivy Launcher <https://market.android.com/details?id=org.kivy.pygame>`_
+#. Go to the `Kivy Launcher page <https://market.android.com/details?id=org.kivy.pygame>`_
    on the Google Play Store
 #. Click on Install
 #. Select your phone... And you're done!
@@ -233,7 +233,7 @@ trying the Kivy launcher. You can run them as below::
 .. _release_on_the_market:
 
 Release on the market
---------------------
+---------------------
 
 If you have built your own APK with Buildozer or with
 python-for-android, you can create a release version that may be
