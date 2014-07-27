@@ -262,7 +262,7 @@ class Widget(WidgetBase):
 
     .. warning::
         Adding a `__del__` method to a class derived from Widget with python
-        prior to 3.4, will disable automatic garbage collection for instances
+        prior to 3.4 will disable automatic garbage collection for instances
         of that class. This is because the Widget class creates reference
         cycles, thereby `preventing garbage collection 
         <https://docs.python.org/2/library/gc.html#gc.garbage>`_.
