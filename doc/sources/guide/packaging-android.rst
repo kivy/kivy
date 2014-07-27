@@ -263,9 +263,6 @@ Kivy is designed to operate identically across platforms and as a result, makes
 some clear design decisions. It includes its own set of widgets and by default,
 builds an APK with all the required core dependencies and libraries.
 
-If you do not intend to support other operating systems, there are a few
-projects that can help you access native Android functionality and even decrease
-your APK size. Please refer to the "Mobiles" section of our
-`Kivy Wiki <https://github.com/kivy/kivy/wiki>`_ for more information.
-
-    
+It is possible to target specific Android features, both directly and
+in a (somewhat) cross-platform way. See the Using Android APIs section
+of the `Kivy on Android documentation </guide/android>` for more details.

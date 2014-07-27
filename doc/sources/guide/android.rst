@@ -69,6 +69,9 @@ For new users, we recommend using :ref:`Plyer`. For more advanced
 access or for APIs not currently wrapped, you can use :ref:`Pyjnius`
 directly.
 
+User contributed Android code and examples may be available on the
+`Kivy wiki <https://github.com/kivy/kivy/wiki#mobiles>`_.
+
 .. _plyer:
 
 Plyer
