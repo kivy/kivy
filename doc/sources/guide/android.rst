@@ -122,9 +122,9 @@ Here is a simple example showing pyjnius' ability to access
 the normal Android vibration API, the same result of the plyer code
 above::
 
-    from jnius import PythonJavaClass, java_method, autoclass, cast
-
     # 'autoclass' takes a java class and gives it a Python wrapper
+    from jnius import autoclass
+
     # Context is a normal java class in the Android API
     Context = autoclass('android.content.Context')
 
