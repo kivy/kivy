@@ -688,6 +688,9 @@ class Image(EventDispatcher):
         been heavilly tested so some providers might break when using it.
         Any other extensions are not officially supported.
 
+        The flipped parameter flips the saved image vertically, and
+        defaults to True.
+
         Example::
 
             # Save an core image object
