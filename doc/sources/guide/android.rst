@@ -10,7 +10,9 @@ devices; Google reports the requirement is met by `99.9% of devices
 <https://developer.android.com/about/dashboards/index.html>`_.
 
 Kivy APKs are normal Android apps that you can distribute like any
-other, including on stores like the Play store.
+other, including on stores like the Play store. They behave
+properly when paused or restarted, may utilise Android services, and
+have access to most of the normal java API as described below.
 
 Follow the instructions below to learn how to :ref:`package your app
 for Android <package_for_android>`, :ref:`debug your code on the
@@ -161,64 +163,23 @@ still occasionally be useful. The available functions are given in the
 This includes code for billing/IAP and creating/accessing Android
 services, which is not yet available in the other tools above.
 
-Status of the Project
----------------------
+Status of the Project and Tested Devices
+----------------------------------------
 
-The project is now stable, using `Python for Android
-<http://github.com/kivy/python-for-android/>`_.
+These sections previously described the existence of Kivy's Android
+build tools, with their limitations and some devices that were known
+to work.
 
-We made that project to be able to:
+The Android tools are now quite stable, and should work with
+practically any device; our main technical requirement is OpenGL ES
+2.0 and Android 2.2 minimum. These are very standard now - Kivy has
+even been run on an Android smartwatch!
 
-- create custom Python versions including only wanted modules
-- handle multitouch events in Kivy
-- create a python module for accessing features specific to Android
-- handle sleep/wakeup properly
+A current technical limitation is that the Android build tools compile
+only ARM APKs, which will not run on Android devices with x86
+processors (these are currently rare). This should be patched soon.
 
-Tested Devices
---------------
-
-These Android devices have been confirmed to work with Kivy. If your
-device is not on the list, that does not mean that it is not supported.
-If that is the case, please try running Kivy and if it succeeds, let us
-know so that we can update this list. Note, however, that your device has
-to support at least OpenGL 2.0 ES.
-
-Phones
-~~~~~~
-- HTC HD2 with NexusHD2-ICS-CM9-HWA Rom (CyanogenMod 9.1.0 -stable-leo) Android 4.0.4
-- HTC Desire
-- HTC Desire Z
-- HTC Desire HD (works with no issues when upgraded to 4.x roms, has random bugs with 2.3)
-- HTC Desire SV (Kivy apps run, but there are issues running some apps via the
-  Kivy Launcher)
-- LG (Google) Nexus 4
-- LG Optimus S
-- LG Optimus V
-- Motorola Droid 1
-- Motorola Droid 2
-- Micromax Canvas 2
-- Samsung Galaxy S (mostly works, seems to have some weird OpenGL behaviour,
-  most notably the kivy splash screen doesn't work)
-- Samsumg Galaxy Pocket S5300
-- Samsung Galaxy SII (I9100)
-- Samsung Galaxy SIII (I9300)
-- Samsung Galaxy S4 (I9500)
-- Samsung Galaxy Note GT-N7000
-- Samsung Galaxy Note (N7000)
-- Samsung Galaxy Note II (N7100)
-- Xperia 10 (custom ROM 2.1 + GLES 2.0 support)
-
-
-Tablets
-~~~~~~~
-- Asus EeePad Transformer
-- Asus (Google) Nexus 7 2013
-- Kindle Fire 2nd generation
-- Motorola Xoom
-- Samsung Galaxy Note 8.0” (N5100)
-- Samsung Galaxy Note 10.1 (N8000) (Kivy Launcher does not install)
-- Samsung Galaxy Tab (P1000)
-- Samsung Galaxy Tab 7.0 Plus (P6200)
-- Samsung Galaxy Tab 2 7.0 (P3100)
-- Samsung Galaxy Tab 10.1” (P7500)
+As Kivy works fine on most devices, the list of supported
+phones/tablets has been retired - all Android devices are likely to
+work if they meet the conditions above.
 
