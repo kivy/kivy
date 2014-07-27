@@ -139,7 +139,7 @@ case, though Plyer does not wrap every API available to pyjnius.
 Pyjnius also has powerful abilities to implement java interfaces,
 which is important for wrapping some APIs, but these are not
 documented here - you can see pyjnius' `own documentation
-<<http://pyjnius.readthedocs.org/en/latest/>`__.
+<http://pyjnius.readthedocs.org/en/latest/>`__.
 
 Status of the Project
 ---------------------
