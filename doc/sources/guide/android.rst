@@ -67,7 +67,9 @@ sensors to sending messages through SMS or email.
 
 For new users, we recommend using :ref:`Plyer`. For more advanced
 access or for APIs not currently wrapped, you can use :ref:`Pyjnius`
-directly.
+directly. Kivy apps also have available the :ref:`android module
+<android_module>` of
+python-for-android.
 
 User contributed Android code and examples may be available on the
 `Kivy wiki <https://github.com/kivy/kivy/wiki#mobiles>`_.
@@ -143,6 +145,21 @@ Pyjnius also has powerful abilities to implement java interfaces,
 which is important for wrapping some APIs, but these are not
 documented here - you can see pyjnius' `own documentation
 <http://pyjnius.readthedocs.org/en/latest/>`__.
+
+.. _android_module:
+
+Android module
+~~~~~~~~~~~~~~
+
+Python-for-android includes a python module (actually cython wrapping
+java) to access a limited set of Android APIs. This has been largely
+superseded by the more flexible Pyjnius and Plyer as above, but may
+still occasionally be useful. The available functions are given in the
+`python-for-android documentation
+<http://python-for-android.readthedocs.org/en/latest/android/>`_.
+
+This includes code for billing/IAP and creating/accessing Android
+services, which is not yet available in the other tools above.
 
 Status of the Project
 ---------------------
