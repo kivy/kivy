@@ -6,9 +6,16 @@ Kivy on Android
 
 You can run Kivy applications on Android, on (more or less) any device
 with OpenGL ES 2.0 (Android 2.2 minimum). This is standard on modern
-devices, `Google reports
-<https://developer.android.com/about/dashboards/index.html>`_ the
-requirement is met by 99.9% of devices.
+devices; Google reports the requirement is met by `99.9% of devices
+<https://developer.android.com/about/dashboards/index.html>`_.
+
+Kivy APKs are normal Android apps that you can distribute like any
+other, including on stores like the Play store.
+
+Follow the instructions below to learn how to :ref:`package your app
+for Android <package_for_android>`.
+
+.. _package_for_android:
 
 Package for Android
 -------------------
@@ -18,6 +25,8 @@ on Android, including building your own standalone APK that may be
 distributed on a market like the Play store. This is covered fully in
 the :ref:`packaging_android` documentation.
 
+
+.. _debug_android:
 
 Debugging your application on the Android platform
 --------------------------------------------------
