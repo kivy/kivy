@@ -48,8 +48,11 @@ You'll see all the logs including your stdout/stderr and Kivy
 logger.
 
 If you packaged your app with Buildozer, the `adb` tool may not be in
-your :code:`$PATH` and the above command may not work. You can instead run
-:code:`buildozer logcat` to run the version installed by Buildozer, or
+your :code:`$PATH` and the above command may not work. You can instead run::
+
+    buildozer logcat 
+
+to run the version installed by Buildozer, or
 find the SDK tools at
 :code:`$HOME/.buildozer/android/platform`.
 
