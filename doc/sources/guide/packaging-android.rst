@@ -52,15 +52,17 @@ configuration. You should edit it appropriately with your app name
 etc. You can set variables to control most or all of the parameters
 passed to python-for-android.
 
-Afterwards, plug in your android device and run::
+Finally, plug in your android device and run::
 
     buildozer android debug deploy run
 
 to build, push and automatically run the apk on your device. 
 
-You can check the buildozer README at
-`<https://github.com/kivy/buildozer>`_ for more documentation of
-buildozer's capabilities.
+Buildozer has many available options and tools to help you, the steps
+above are just the simplest way to build and run your
+APK. The full documentation is available `here
+<http://buildozer.readthedocs.org/en/latest/>`_. You can also check
+the Buildozer README at `<https://github.com/kivy/buildozer>`_.
 
 .. _Packaging your application into APK:
 
