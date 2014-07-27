@@ -22,6 +22,11 @@ Kivy applications can be :ref:`released on an Android market
 <release_on_the_market>` such as the Play store, with a few extra
 steps to create a fully signed APK.
 
+The Kivy project includes tools for accessing Android APIs to
+accomplish vibration, sensor access, texting etc. These, along with
+information on debugging on the device, are documented at the
+:doc:`main Android page </guide/packaging-android>`.
+
 .. _Buildozer:
 
 Buildozer
