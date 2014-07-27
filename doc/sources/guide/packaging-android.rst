@@ -25,7 +25,7 @@ steps to create a fully signed APK.
 The Kivy project includes tools for accessing Android APIs to
 accomplish vibration, sensor access, texting etc. These, along with
 information on debugging on the device, are documented at the
-:doc:`main Android page </guide/packaging-android>`.
+:doc:`main Android page </guide/android>`.
 
 .. _Buildozer:
 
