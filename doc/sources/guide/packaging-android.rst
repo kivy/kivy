@@ -265,4 +265,4 @@ builds an APK with all the required core dependencies and libraries.
 
 It is possible to target specific Android features, both directly and
 in a (somewhat) cross-platform way. See the Using Android APIs section
-of the `Kivy on Android documentation </guide/android>` for more details.
+of the :doc:`Kivy on Android documentation </guide/android>` for more details.
