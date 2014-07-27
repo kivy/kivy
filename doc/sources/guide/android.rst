@@ -72,11 +72,10 @@ sensors to sending messages through SMS or email.
 
 For new users, we recommend using :ref:`Plyer`. For more advanced
 access or for APIs not currently wrapped, you can use :ref:`Pyjnius`
-directly. Kivy apps also have available the :ref:`android module
-<android_module>` of
-python-for-android.
+directly. Kivy also supplies an :ref:`android module
+<android_module>` for basic Android functionality.
 
-User contributed Android code and examples may be available on the
+User contributed Android code and examples are available on the
 `Kivy wiki <https://github.com/kivy/kivy/wiki#mobiles>`_.
 
 .. _plyer:
