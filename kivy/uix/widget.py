@@ -260,7 +260,7 @@ class Widget(WidgetBase):
         `on_touch_up`:
             Fired when an existing touch disappears
 
-    ..warning::
+    .. warning::
         Adding a `__del__` method to a class derived from Widget with python
         prior to 3.4, will disable automatic garbage collection for instances
         of that class. That is because Widget creates ref cycles, thereby
