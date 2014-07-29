@@ -11,7 +11,7 @@ devices; Google reports the requirement is met by `99.9% of devices
 
 Kivy APKs are normal Android apps that you can distribute like any
 other, including on stores like the Play store. They behave
-properly when paused or restarted, may utilise Android services, and
+properly when paused or restarted, may utilise Android services and
 have access to most of the normal java API as described below.
 
 Follow the instructions below to learn how to :ref:`package your app
@@ -173,13 +173,13 @@ build tools, with their limitations and some devices that were known
 to work.
 
 The Android tools are now quite stable, and should work with
-practically any device; our main technical requirement is OpenGL ES
-2.0 and Android 2.2 minimum. These are very standard now - Kivy has
+practically any device; our minimum requirements are OpenGL ES
+2.0 and Android 2.2. These are very common now - Kivy has
 even been run on an Android smartwatch!
 
 A current technical limitation is that the Android build tools compile
 only ARM APKs, which will not run on Android devices with x86
-processors (these are currently rare). This should be patched soon.
+processors (these are currently rare). This should be added soon.
 
 As Kivy works fine on most devices, the list of supported
 phones/tablets has been retired - all Android devices are likely to
