@@ -117,7 +117,7 @@ Pyjnius can be obtained from `github
 <https://github.com/kivy/pyjnius>`_, and has its `own documentation
 <http://pyjnius.readthedocs.org/en/latest/>`__.
 
-Here is a simple example showing pyjnius' ability to access
+Here is a simple example showing Pyjnius' ability to access
 the normal Android vibration API, the same result of the plyer code
 above::
 
@@ -140,14 +140,14 @@ above::
     vibrator.vibrate(10000)  # The value is in milliseconds - this is 10s
 
 This code directly follows the java API functions to call the
-vibrator, with pyjnius automatically translating the api to Python
+vibrator, with Pyjnius automatically translating the api to Python
 code and our calls back to the equivalent java. It is much more
 verbose and java-like than Plyer's version, for no benefit in this
-case, though Plyer does not wrap every API available to pyjnius.
+case, though Plyer does not wrap every API available to Pyjnius.
 
 Pyjnius also has powerful abilities to implement java interfaces,
 which is important for wrapping some APIs, but these are not
-documented here - you can see pyjnius' `own documentation
+documented here - you can see Pyjnius' `own documentation
 <http://pyjnius.readthedocs.org/en/latest/>`__.
 
 .. _android_module:
