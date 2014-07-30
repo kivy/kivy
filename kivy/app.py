@@ -488,8 +488,9 @@ class App(EventDispatcher):
         If this method returns a widget (tree), it will be used as the root
         widget and added to the window.
 
-        :return: None or a root :class:`~kivy.uix.widget.Widget` instance
-                 if no self.root exists.'''
+        :return:
+            None or a root :class:`~kivy.uix.widget.Widget` instance
+            if no self.root exists.'''
 
         if not self.root:
             return Widget()
@@ -676,7 +677,8 @@ class App(EventDispatcher):
             #. If it exists, it loads the application configuration file,
                otherwise it creates one.
 
-        :return: ConfigParser instance
+        :return:
+            :class:`~kivy.config.ConfigParser` instance
         '''
         try:
             config = ConfigParser.get_configparser('app')
@@ -903,7 +905,8 @@ class App(EventDispatcher):
         should override that method if you want to display the
         settings panel differently.
 
-        :return: True if the settings has been opened.
+        :return:
+            True if the settings has been opened.
 
         '''
         if self._app_settings is None:
@@ -940,7 +943,8 @@ class App(EventDispatcher):
     def close_settings(self, *largs):
         '''Close the previously opened settings panel.
 
-        :return: True if the settings has been closed.
+        :return:
+            True if the settings has been closed.
         '''
         win = self._app_window
         settings = self._app_settings
