@@ -522,7 +522,7 @@ class App(EventDispatcher):
         customise the settings widget e.g. by changing the sidebar
         width. See the module documentation for full details.
 
-        :parameter:
+        :Parameters:
             `settings`: :class:`~kivy.uix.settings.Settings`
                 Settings instance for adding panels
 
