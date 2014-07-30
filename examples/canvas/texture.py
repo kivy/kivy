@@ -26,7 +26,6 @@ class TextureAccessibleWidget(Widget):
     def on_texture_wrap(self, instance, value):
         self.texture.wrap = value
 
-
 root = Builder.load_string('''
 <TextureAccessibleWidget>:
     on_touch_down: print self.canvas.children
@@ -34,7 +33,7 @@ root = Builder.load_string('''
         Rectangle:
             pos: self.pos
             size: self.size
-            source: 'colours2.png'
+            source: 'texture_example_image.png'
             tex_coords: root.tex_coords
 
 <SliderWithValue@BoxLayout>:
@@ -127,7 +126,6 @@ BoxLayout:
         Button:
             text: 'mirrored_repeat'
             on_press: taw.texture_wrap = 'mirrored_repeat'
-    
 ''')
 
 runTouchApp(root)
