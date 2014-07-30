@@ -18,18 +18,18 @@ class TextureAccessibleWidget(Widget):
 
     def __init__(self, **kwargs):
         super(TextureAccessibleWidget, self).__init__(**kwargs)
-        print 'children', self.canvas.children
-        # self.texture = self.canvas.children[-1].texture
-        # self.texture.wrap = 'repeat'
+        Clock.schedule_once(self.texture_init, 0)
 
-    def update(self, dt):
-        tcs = self.tex_coords
-        for i in range(0, 8, 2):
-            self.tex_coords[i] += dt/3.
+    def texture_init(self, *args):
+        self.texture = self.canvas.children[-1].texture
+
+    def on_texture_wrap(self, instance, value):
+        self.texture.wrap = value
 
 
 root = Builder.load_string('''
 <TextureAccessibleWidget>:
+    on_touch_down: print self.canvas.children
     canvas:
         Rectangle:
             pos: self.pos
@@ -90,10 +90,12 @@ BoxLayout:
                 text: 'size'
                 text_size: self.size
                 halign: 'right'
+                valign: 'middle'
             Label:
                 text: 'tex_coords'
                 text_size: self.size
                 halign: 'left'
+                valign: 'middle'
         BoxLayout:
             orientation: 'vertical'
             SliderWithValue:
