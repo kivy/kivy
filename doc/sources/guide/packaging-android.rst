@@ -264,5 +264,5 @@ some clear design decisions. It includes its own set of widgets and by default,
 builds an APK with all the required core dependencies and libraries.
 
 It is possible to target specific Android features, both directly and
-in a (somewhat) cross-platform way. See the Using Android APIs section
+in a (somewhat) cross-platform way. See the `Using Android APIs` section
 of the :doc:`Kivy on Android documentation </guide/android>` for more details.
