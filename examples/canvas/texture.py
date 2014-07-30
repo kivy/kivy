@@ -113,6 +113,11 @@ BoxLayout:
     BoxLayout:
         size_hint_y: None
         height: dp(50)
+        Label:
+            text: 'texture wrap:'
+            text_size: self.size
+            valign: 'middle'
+            halign: 'center'
         Button:
             text: 'clamp_to_edge'
             on_press: taw.texture_wrap = 'clamp_to_edge'
