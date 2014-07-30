@@ -504,8 +504,9 @@ class App(EventDispatcher):
         automatically saved in the file returned by
         :meth:`get_application_config`.
 
-        :param config: Use this to add defaults section / key / value items
-        :type config: :class:`~kivy.config.ConfigParser`
+        :Parameters:
+            `config`: :class:`~kivy.config.ConfigParser`
+                Use this to add default section / key / value items
 
         '''
 
@@ -921,9 +922,10 @@ class App(EventDispatcher):
 
         You should return True if the display is successful, otherwise False.
 
-        :param settings: A :class:`~kivy.uix.settings.Settings`
-                         instance. You should define how to display it.
-        :type config: :class:`~kivy.uix.settings.Settings`
+        :Parameters:
+            `settings`: :class:`~kivy.uix.settings.Settings`
+                You can modify this object in order to modify the settings
+                display.
 
         '''
         win = self._app_window
