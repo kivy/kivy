@@ -338,6 +338,8 @@ cdef class Property:
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
         cdef tuple callback = (observer, )
+
+        # see dispatch - callback is a 1-tuple
         if callback not in ps.observers:
             ps.observers.append(callback)
 
@@ -434,14 +436,19 @@ cdef class Property:
 
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        cdef tuple item
+        cdef tuple item, args
         if len(ps.observers):
             value = ps.value
             for item in ps.observers[:]:
+                # if bound with bind, it's a 1-tuple of the callback
                 if len(item) == 1:
                     item[0](obj, value)
+
+                # if bound with fast_bind, it's a 2-tuple of callback, args
                 else:
-                    item[0](obj, value, *item[1])
+                    args = item[1]
+                    args = args + (obj, value)
+                    item[0](*args)
 
 
 cdef class NumericProperty(Property):
