@@ -300,31 +300,17 @@ cdef class EventDispatcher(ObjectWithUid):
                 DemoApp().run()
         '''
         cdef Property prop
+        cdef tuple handler
         for key, value in kwargs.iteritems():
             if key[:3] == 'on_':
                 if key not in self.__event_stack:
                     continue
                 # convert the handler to a weak method
-                handler = WeakMethod(value)
+                handler = (WeakMethod(value), )
                 self.__event_stack[key].append(handler)
             else:
                 prop = self.__properties[key]
                 prop.bind(self, value)
-
-    def _bind_with_args(self, name, func, *largs):
-        cdef PropertyStorage ps = self.__storage[name]
-        ps.observers.append((func, largs))
-
-    def _unbind_with_args(self, name, func, *largs):
-        cdef PropertyStorage ps = self.__storage[name]
-        cdef list observers = ps.observers
-        cdef tuple item, src_item = (func, largs)
-        cdef int i
-
-        for i, item in enumerate(observers):
-            if item == src_item:
-                del observers[i]
-                break
 
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions.
@@ -332,19 +318,84 @@ cdef class EventDispatcher(ObjectWithUid):
         Same usage as :meth:`bind`.
         '''
         cdef Property prop
+        cdef tuple handler
         for key, value in kwargs.iteritems():
             if key[:3] == 'on_':
                 if key not in self.__event_stack:
                     continue
+
                 # we need to execute weak method to be able to compare
                 for handler in self.__event_stack[key]:
-                    if handler() != value:
+                    # we only unbind here if bound with normal bind
+                    if len(handler) != 1 or handler[0]() != value:
                         continue
                     self.__event_stack[key].remove(handler)
                     break
             else:
                 prop = self.__properties[key]
                 prop.unbind(self, value)
+
+    def fast_bind(self, name, func, *largs):
+        '''A method for faster binding. This method is meant to only be used
+        internally and it performs less error checking. It can be used
+        externally, as long as the following warnings are heeded.
+
+        Compared to :meth:`bind`, it does not check that the name is valid,
+        or that this function and args has not been bound before to this
+        name. It is assumed that the combination of function + positional args
+        has not been bound to this name before.
+
+        In addition, although :meth:`bind` creates a :class:`WeakMethod` for
+        the callback function, this method stores the function directly,
+        without any proxying.
+
+        Anything bound with this method, must be unbound with
+        :meth:`fast_unbind`; :meth:`unbind` will not unbind it.
+
+        The method passes on the caught positional arguments to the callback,
+        removing the need to call partial. When calling back, the
+        instance/value, or dispatched parameters are passed on after the
+        positional arguments provided here.
+
+        .. versionadded:: 1.8.2
+        '''
+        cdef PropertyStorage ps
+        cdef tuple handler = (func, largs)
+
+        if name[:3] == 'on_':
+            self.__event_stack[name].append(handler)
+        else:
+            ps = self.__storage[name]
+            ps.observers.append(handler)
+
+    def fast_unbind(self, name, func, *largs):
+        '''Similar to :meth:`fast_bind`.
+
+        Compared to :meth:`unbind`, it doesn't check that `name` is valid.
+        Similarly, when unbinding from a property :meth:`unbind` will unbind
+        all callback that match the callback, while this method will only
+        unbind the first (as it is assumed that the combination of func and
+        args are uniquely bound).
+
+        To unbind, the same positional arguments passed to :meth:`fast_bind`
+        must be passed on to unbind.
+
+        .. versionadded:: 1.8.2
+        '''
+        cdef PropertyStorage ps
+        cdef list observers
+        cdef tuple item, src_item = (func, largs)
+        cdef int i
+
+        if name[:3] == 'on_':
+            self.__event_stack[name].remove(src_item)
+        else:
+            ps = self.__storage[name]
+            observers = ps.observers
+            for i, item in enumerate(observers):
+                if item == src_item:
+                    del observers[i]
+                    break
 
     def get_property_observers(self, name):
         ''' Returns a list of methods that are bound to the property/event
@@ -354,11 +405,15 @@ cdef class EventDispatcher(ObjectWithUid):
 
         .. versionadded:: 1.8.0
 
+        .. versionchanged:: 1.8.2
+            To keep compatibility, callbacks bound with :meth:`fast_bind` will
+            also only return the callback function and not their provided args.
+
         '''
         if name[:3] == 'on_':
-            return self.__event_stack[name]
+            return [item[0] for item in self.__event_stack[name]]
         cdef PropertyStorage ps = self.__storage[name]
-        return ps.observers
+        return [item[0] for item in ps.observers]
 
     def events(EventDispatcher self):
         '''Return all the events in the class. Can be used for introspection.
@@ -389,15 +444,26 @@ cdef class EventDispatcher(ObjectWithUid):
 
         '''
         cdef list event_stack = self.__event_stack[event_type]
-        cdef object remove = event_stack.remove
-        for value in reversed(event_stack[:]):
-            handler = value()
-            if handler is None:
-                # handler has gone, must be removed
-                remove(value)
-                continue
-            if handler(self, *largs, **kwargs):
-                return True
+        cdef tuple item, args_list, args
+        cdef object handler, remove = event_stack.remove
+
+        for item in reversed(event_stack[:]):
+            # dispatch callback from a normal bind
+            if len(item) == 1:
+                handler = item[0]()
+                if handler is None:
+                    # handler has gone, must be removed
+                    remove(item)
+                    continue
+                if handler(self, *largs, **kwargs):
+                    return True
+
+            # dispatch callback from a fast bind
+            else:
+                args = item[1]
+                args_list = args + largs  # largs goes at the end
+                if item[0](*args_list, **kwargs):
+                    return True
 
         handler = getattr(self, event_type)
         return handler(*largs, **kwargs)
@@ -527,5 +593,3 @@ cdef class EventDispatcher(ObjectWithUid):
         prop.link_deps(self, name)
         self.__properties[name] = prop
         setattr(self.__class__, name, prop)
-
-
