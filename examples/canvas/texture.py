@@ -28,7 +28,6 @@ class TextureAccessibleWidget(Widget):
 
 root = Builder.load_string('''
 <TextureAccessibleWidget>:
-    on_touch_down: print self.canvas.children
     canvas:
         Rectangle:
             pos: self.pos
