@@ -48,7 +48,6 @@ class TakePictureApp(App):
         activity.bind(on_activity_result=self.on_activity_result)
 
     def get_filename(self):
-        #print( Environment.getExternalStorageDirectory().getPath() )
         while True:
             self.index += 1
             fn = Environment.getExternalStorageDirectory().getPath()+'/takepicture{}.jpg'.format(self.index)
