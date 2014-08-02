@@ -387,6 +387,18 @@ cdef class EventDispatcher(Observable):
         instance/value, or dispatched parameters are passed on after the
         positional arguments provided here.
 
+        .. note::
+            Since the kv lang uses this method to bind, one has to implement
+            this method, instead of :meth:`bind` when creating a non
+            :class:`EventDispatcher` based class (e.g. based on
+            :class:`Observable`) used with the kv lang. A simple method is to
+            make `fast_bind` call `bind` e.g.::
+
+                def fast_bind(self, name, func, *largs):
+                    self.bind(**{name: partial(func, *largs)})
+
+            Then one can use this partial function with fast_unbind.
+
         .. versionadded:: 1.8.2
         '''
         cdef PropertyStorage ps
