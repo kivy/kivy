@@ -1046,10 +1046,11 @@ class TextInput(Widget):
             return
 
         self._update_selection()
+        print instance.pos
         self._show_cut_copy_paste(
-            (instance.x + ((1 if instance is self._handle_left else - 1)
-                * self._bubble.width / 2) if self._bubble else 0,
-                instance.y + self.line_height), self._win)
+            (instance.x + ((1 if instance is self._handle_left else -1)
+                * self._bubble.width / 2) if self._bubble else instance.x,
+                instance.top + self.line_height), self._win, pos_in_window=True)
 
     def _handle_move(self, instance, touch):
         if touch.grab_current != instance:
@@ -1173,7 +1174,7 @@ class TextInput(Widget):
             anim.start(self._handle_left)
 
     def _show_cut_copy_paste(self, pos, win, parent_changed=False,
-                             mode='', *l):
+                             mode='', pos_in_window=False, *l):
         # Show a bubble with cut copy and paste buttons
         if not self.use_bubble:
             return
@@ -1196,7 +1197,7 @@ class TextInput(Widget):
         lh, ls = self.line_height, self.line_spacing
 
         x, y = pos
-        t_pos = self.to_window(x, y)
+        t_pos = (x, y) if pos_in_window else self.to_window(x, y)
         bubble_size = bubble.size
         win_size = win.size
         bubble.pos = (t_pos[0] - bubble_size[0] / 2., t_pos[1] + inch(.25))
