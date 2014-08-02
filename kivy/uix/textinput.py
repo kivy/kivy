@@ -288,6 +288,18 @@ class TextInputCutCopyPaste(Bubble):
             anim.bind(on_complete=lambda *args:
                       self.on_parent(self, self.parent))
             anim.start(self.but_selectall)
+            return
+
+        self.hide()
+
+    def hide(self):
+        parent = self.parent
+        if not parent:
+            return
+
+        anim = Animation(opacity=0, d=.225)
+        anim.bind(on_complete=lambda *args: parent.remove_widget(self))
+        anim.start(self)
 
 
 class TextInput(Widget):
@@ -1118,16 +1130,6 @@ class TextInput(Widget):
         self._win.remove_widget(self._handle_left)
         self._win.remove_widget(self._handle_middle)
 
-    def _hide_cut_copy_paste(self, win=None):
-        win = win or self._win
-        if win is None:
-            return
-        bubble = self._bubble
-        if bubble is not None:
-            anim = Animation(opacity=0, d=.225)
-            anim.bind(on_complete=lambda *args: win.remove_widget(bubble))
-            anim.start(bubble)
-
     def _show_handles(self, dt):
         if not self.use_handles or not self.text:
             return
@@ -1181,6 +1183,8 @@ class TextInput(Widget):
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
             self.bind(parent=partial(self._show_cut_copy_paste,
                                      pos, win, True))
+            self._win.bind(size=lambda *args: self._hide_cut_copy_paste(win))
+            self.bind(cursor_pos=lambda *args: self._hide_cut_copy_paste(win))
         else:
             win.remove_widget(bubble)
             if not self.parent:
@@ -1231,6 +1235,14 @@ class TextInput(Widget):
         bubble.opacity = 0
         win.add_widget(bubble)
         Animation(opacity=1, d=.225).start(bubble)
+
+
+    def _hide_cut_copy_paste(self, win=None):
+        bubble = self._bubble
+        if not bubble:
+            return
+        
+        bubble.hide()
 
     #
     # Private
@@ -1947,6 +1959,7 @@ class TextInput(Widget):
         # Keycodes on OSX:
         ctrl, cmd = 64, 1024
         key, key_str = keycode
+        win = self._win
 
         # This allows *either* ctrl *or* cmd, but not both.
         is_shortcut = (modifiers == ['ctrl'] or (
@@ -1963,8 +1976,9 @@ class TextInput(Widget):
             return True
 
         if text and not is_interesting_key:
-            self._hide_handles(self._win)
-            self._hide_cut_copy_paste()
+
+            self._hide_handles(win)
+            self._hide_cut_copy_paste(win)
             self._win.remove_widget(self._handle_middle)
 
             # check for command modes
@@ -2030,6 +2044,10 @@ class TextInput(Widget):
                 self.insert_text(text)
             #self._recalc_size()
             return
+
+        if is_interesting_key:
+            self._hide_cut_copy_paste(win)
+            self._hide_handles(win)
 
         if key == 27:  # escape
             self.focus = False
