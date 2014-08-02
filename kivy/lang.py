@@ -741,7 +741,8 @@ from os.path import join
 from copy import copy
 from types import CodeType
 from functools import partial
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
+
 from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.utils import QueryDict
@@ -1427,7 +1428,7 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
     exec(__kvlang__.co_value, idmap)
 
 
-def call_fn(instance, v, element, key, value, rule, idmap):
+def call_fn(element, key, value, rule, idmap, instance, v):
     if __debug__:
         trace('Builder: call_fn %s, key=%s, value=%r, %r' % (
             element, key, value, rule.value))
@@ -1438,11 +1439,11 @@ def call_fn(instance, v, element, key, value, rule, idmap):
     setattr(element, key, e_value)
 
 
-def delayed_call_fn(instance, v, element, key, value, rule, idmap, hhash):
+def delayed_call_fn(element, key, value, rule, idmap, hhash, instance, v):
     _delayed_calls[hhash] = (element, key, value, rule, idmap)
 
 
-def update_intermediates(instance, value, base, keys, bound, s, fn, args):
+def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     ''' Function that is called when an intermediate property is updated
     and `rebind` of that property is True. In that case, we unbind
     all bound funcs that were bound to attrs of the old value of the
@@ -1485,7 +1486,7 @@ def update_intermediates(instance, value, base, keys, bound, s, fn, args):
         if fun is None:
             continue
         try:
-            f._unbind_with_args(k, fun, *largs)
+            f.fast_unbind(k, fun, *largs)
         except ReferenceError:
             pass
     del bound[j:]
@@ -1501,15 +1502,15 @@ def update_intermediates(instance, value, base, keys, bound, s, fn, args):
         # bind all attrs, except last to update_intermediates
         k = i
         for val in keys[i:-1]:
-            is_ev = isinstance(f, EventDispatcher)
+            is_ev = isinstance(f, Observable)
             try:
                 # if we need to dynamically rebind, bindm otherwise just
                 # add the attr to the list
                 if is_ev and f.property(val).rebind:
                     append([f.proxy_ref, val, update_intermediates,
                             (base, keys, bound, k, fn, args)])
-                    f._bind_with_args(val, update_intermediates, base, keys,
-                                      bound, k, fn, args)
+                    f.fast_bind(val, update_intermediates, base, keys, bound,
+                                k, fn, args)
                     # during the bind, the watched keys could have changed
                     # value, calling update_intermediates and changing
                     # the last attr, so we have to read the last attr again
@@ -1522,31 +1523,20 @@ def update_intermediates(instance, value, base, keys, bound, s, fn, args):
             k += 1
         # for the last attr we bind directly to the setting function,
         # because that attr sets the value of the rule.
-        if isinstance(f, EventDispatcher):
-            f._bind_with_args(keys[-1], fn, *args)
+        if isinstance(f, Observable):
+            f.fast_bind(keys[-1], fn, *args)
             append([f.proxy_ref, keys[-1], fn, args])
-    except KeyError:
-        pass
-    except AttributeError:
-        pass
-    except ReferenceError:
+    except (KeyError, AttributeError, ReferenceError):
         pass
     # except for the initial binding, when we rebind we have to update the
     # rule with the most recent value, otherwise, the value might be wrong
     # and wouldn't be updated since we might not have tracked it before.
     # This only happens for a callback when rebind was True for the prop.
     if s is not None:
-        fn()
+        fn(*args + (None, None))
 
 
 def create_handler(iself, element, key, value, rule, idmap, delayed=False):
-    locals()['__kvlang__'] = rule
-
-    # create an handler
-    uid = iself.uid
-    if uid not in _handlers:
-        _handlers[uid] = []
-
     idmap = copy(idmap)
     idmap.update(global_idmap)
     idmap['self'] = iself.proxy_ref
@@ -1566,11 +1556,11 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
         for keys in rule.watched_keys:
             try:
                 bound = []
-                update_intermediates(None, None, idmap[keys[0]].proxy_ref,
-                                     keys, bound, None, fn, args)
+                update_intermediates(idmap[keys[0]].proxy_ref, keys, bound,
+                                     None, fn, args, None, None)
                 # even if it's empty now, in the future, through dynamic
                 # rebinding it might have things.
-                _handlers[uid].append(bound)
+                _handlers[iself.uid].append(bound)
             except KeyError:
                 continue
             except AttributeError:
@@ -1956,8 +1946,7 @@ class BuilderBase(object):
                     idmap = copy(global_idmap)
                     idmap.update(rctx['ids'])
                     idmap['self'] = widget_set.proxy_ref
-                    widget_set.bind(**{key: partial(custom_callback,
-                                                    crule, idmap)})
+                    widget_set.fast_bind(key, custom_callback, crule, idmap)
                     #hack for on_parent
                     if crule.name == 'on_parent':
                         Factory.Widget.parent.dispatch(widget_set.__self__)
@@ -1997,8 +1986,9 @@ class BuilderBase(object):
         l = _delayed_calls.values()
         _delayed_calls.clear()
         for args in l:
+            # is this try/except still needed?
             try:
-                call_fn(None, None, *args)
+                call_fn(*args + (None, None))
             except ReferenceError:
                 continue
 
@@ -2017,7 +2007,7 @@ class BuilderBase(object):
                 if fn is None:  # it's not a kivy prop.
                     continue
                 try:
-                    f._unbind_with_args(k, fn, *largs)
+                    f.fast_unbind(k, fn, *largs)
                 except ReferenceError:
                     # proxy widget is already gone, that's cool :)
                     pass
