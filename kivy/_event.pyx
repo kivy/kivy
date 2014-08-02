@@ -10,6 +10,9 @@ handlers.
     Property discovery and methods have been moved from the
     :class:`~kivy.uix.widget.Widget` to the :class:`EventDispatcher`.
 
+.. versionchanged:: 1.8.2
+    :class:`EventDispatcher` now inherits from :class:`Observable`, which
+    defines the methods required to create a bindable object.
 '''
 
 __all__ = ('EventDispatcher', )
@@ -35,6 +38,7 @@ def _get_bases(cls):
         for cbase in _get_bases(base):
             yield cbase
 
+
 cdef class ObjectWithUid(object):
     def __cinit__(self):
         global widget_uid
@@ -46,7 +50,33 @@ cdef class ObjectWithUid(object):
         widget_uid += 1
         self.uid = widget_uid
 
-cdef class EventDispatcher(ObjectWithUid):
+
+cdef class Observable(ObjectWithUid):
+    ''':class:`Observable` is a stub class defining the methods required
+    for binding. :class:`EventDispatcher` is (the) one example of a class that
+    implements the binding interface. See :class:`EventDispatcher` for details.
+
+    .. versionadded:: 1.8.2
+    '''
+
+    def bind(self, **kwargs):
+        pass
+
+    def unbind(self, **kwargs):
+        pass
+
+    def fast_bind(self, name, func, *largs):
+        pass
+
+    def fast_unbind(self, name, func, *largs):
+        pass
+
+    property proxy_ref:
+        def __get__(self):
+            return self
+
+
+cdef class EventDispatcher(Observable):
     '''Generic event dispatcher interface.
 
     See the module docstring for usage.

@@ -751,8 +751,8 @@ from kivy import kivy_data_dir, require
 from kivy.compat import PY2, iteritems, iterkeys
 from kivy.context import register_context
 from kivy.resources import resource_find
-from kivy.event import EventDispatcher
 import kivy.metrics as Metrics
+from kivy._event import Observable
 
 
 trace = Logger.trace
@@ -778,29 +778,7 @@ _delayed_calls = {}
 
 # all the widget handlers, used to correctly unbind all the callbacks then the
 # widget is deleted
-_handlers = {}
-
-
-class Observable(object):
-    '''A lightweight class allowing to get an object be bound to action
-    in kv, without using as much resources as EventDispatcher
-
-    .. versionadded:: 1.8.1
-    '''
-
-    def bind(self, **kwargs):
-        '''This method is to be overriden by your subclass
-
-        kwargs will contains callables to call when your observables are
-        updated, so you can trigger a reevaluation of the expression
-        when you need it, just calling all the callbacks that are
-        relevant.
-        '''
-        pass
-
-    @property
-    def proxy_ref(self):
-        return self
+_handlers = defaultdict(list)
 
 
 class ProxyApp(object):
