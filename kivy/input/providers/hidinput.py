@@ -1,3 +1,4 @@
+# coding utf-8
 '''
 Native support for HID input from the linux kernel
 ==================================================
@@ -192,20 +193,20 @@ else:
         0x38: ('alt', ),
         0x39: ('spacebar', ),
         0x45: ('numlock', ),
-        0x47: ('7', 'home'),
-        0x4b: ('4', 'left'),
-        0x4f: ('1', 'end'),
-        0x48: ('8', 'up'),
-        0x4c: ('5', ),
-        0x50: ('2', 'down'),
-        0x52: ('0', 'ins'),
-        0x37: ('*', ),
-        0x49: ('9', 'pageup'),
-        0x4d: ('6', 'right'),
-        0x51: ('3', 'pagedown'),
-        0x53: ('.', 'del'),
-        0x4a: ('-', ),
-        0x4e: ('+', ),
+        0x47: ('numpad7', 'home'),
+        0x4b: ('numpad4', 'left'),
+        0x4f: ('numpad1', 'end'),
+        0x48: ('numpad8', 'up'),
+        0x4c: ('numpad5', ),
+        0x50: ('numpad2', 'down'),
+        0x52: ('numpad0', 'ins'),
+        0x37: ('numpadmul', ),
+        0x49: ('numpad9', 'pageup'),
+        0x4d: ('numpad6', 'right'),
+        0x51: ('numpad3', 'pagedown'),
+        0x53: ('numpaddecimal', 'del'),
+        0x4a: ('numpadsubstract', ),
+        0x4e: ('numpadadd', ),
         0x01: ('escape', ),
         0x3b: ('f1', ),
         0x3c: ('f2', ),
@@ -221,6 +222,54 @@ else:
         0x58: ('f12', ),
         0x54: ('Alt+SysRq', ),
         0x46: ('ScrollLock', ),
+
+        # TODO combinations
+        # e0-37    PrtScr
+        # e0-46    Ctrl+Break
+        # e0-5b    LWin (USB: LGUI)
+        # e0-5c    RWin (USB: RGUI)
+        # e0-5d    Menu
+        # e0-5f    Sleep
+        # e0-5e    Power
+        # e0-63    Wake
+        # e0-38    RAlt
+        # e0-1d    RCtrl
+        # e0-52    Insert
+        # e0-53    Delete
+        # e0-47    Home
+        # e0-4f    End
+        # e0-49    PgUp
+        # e0-51    PgDn
+        # e0-4b    Left
+        # e0-48    Up
+        # e0-50    Down
+        # e0-4d    Right
+        # e0-35    KP-/
+        # e0-1c    KP-Enter
+        # e1-1d-45 77      Pause
+    }
+
+    keys_str = {
+        'spacebar': ' ',
+        'tab': '	',
+        'shift': '',
+        'alt': '',
+        'ctrl': '',
+        'escape': '',
+        'numpad1': '1',
+        'numpad2': '2',
+        'numpad3': '3',
+        'numpad4': '4',
+        'numpad5': '5',
+        'numpad6': '6',
+        'numpad7': '7',
+        'numpad8': '8',
+        'numpad9': '9',
+        'numpad0': '0',
+        'numpadmul': '*',
+        'numpaddivide': '/',
+        'numpadadd': '+',
+        'numpadsubstract': '-',
     }
 
     # sizeof(struct input_event)
@@ -408,10 +457,10 @@ else:
                             if l == 'shift':
                                 Window._modifiers.append('shift')
                             print ev_code, l
-                            Window.dispatch('on_key_down', Keyboard.keycodes[l.lower()], ev_code, l, Window._modifiers)
+                            Window.dispatch('on_key_down', Keyboard.keycodes[l.lower()], ev_code, keys_str.get(l, l), Window._modifiers)
                         if ev_value == 0:
                             l = keyboard_keys[ev_code][-1 if 'shift' in Window._modifiers else 0]
-                            Window.dispatch('on_key_up', Keyboard.keycodes[l.lower()], ev_code, l, Window._modifiers)
+                            Window.dispatch('on_key_up', Keyboard.keycodes[l.lower()], ev_code, keys_str.get(l, l), Window._modifiers)
                             if l == 'shift':
                                 Window._modifiers.remove('shift')
                         # if ev_value == 2:
