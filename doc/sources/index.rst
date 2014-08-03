@@ -48,5 +48,5 @@ For a list of authors, please see the file AUTHORS that accompanies the
 Kivy source code distribution (next to LICENSE).
 
 
-Kivy -- Copyright 2010-2013, The Kivy Authors. All rights reserved.
+Kivy -- Copyright 2010-2014, The Kivy Authors. All rights reserved.
 
