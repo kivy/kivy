@@ -1046,7 +1046,6 @@ class TextInput(Widget):
             return
 
         self._update_selection()
-        print instance.pos
         self._show_cut_copy_paste(
             (instance.x + ((1 if instance is self._handle_left else -1)
                 * self._bubble.width / 2) if self._bubble else instance.x,
