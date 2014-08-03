@@ -234,7 +234,8 @@ class TextInputCutCopyPaste(Bubble):
         Clock.schedule_interval(self._check_parent, .5)
 
     def on_textinput(self, instance, value):
-        if value and not Clipboard and _platform == 'android':
+        global Clipboard
+        if value and not Clipboard and not _is_desktop:
             value._ensure_clipboard()
 
     def _check_parent(self, dt):
@@ -278,9 +279,9 @@ class TextInputCutCopyPaste(Bubble):
         if action == 'cut':
             textinput._cut(textinput.selection_text)
         elif action == 'copy':
-            textinput._copy(textinput.selection_text)
+            textinput.copy()
         elif action == 'paste':
-            textinput._paste()
+            textinput.paste()
         elif action == 'selectall':
             textinput.select_all()
             self.mode = ''
@@ -1301,9 +1302,9 @@ class TextInput(Widget):
     def _bind_keyboard(self):
         self._set_window()
         win = self._win
-        self._editable = editable = (not (self.readonly or self.disabled) or
-                                     _is_desktop and
-                                     self._keyboard_mode == 'system')
+        self._editable = editable = (
+            not (self.readonly or self.disabled) or
+            _is_desktop and self._keyboard_mode == 'system')
 
         if not _is_desktop and not editable:
             return
@@ -1327,21 +1328,8 @@ class TextInput(Widget):
 
     def _ensure_clipboard(self):
         global Clipboard
-        if hasattr(self, '_clip_mime_type'):
-            return
-        if Clipboard is None:
-            from kivy.core.clipboard import Clipboard  # NOQA
-
-        if _platform == 'win':
-            self._clip_mime_type = 'text/plain;charset=utf-8'
-            # windows clipboard uses a utf-16 encoding
-            self._encoding = 'utf-16'
-        elif _platform == 'linux':
-            self._clip_mime_type = 'UTF8_STRING'
-            self._encoding = 'utf-8'
-        else:
-            self._clip_mime_type = 'text/plain'
-            self._encoding = 'utf-8'
+        if not Clipboard:
+            from kivy.core.clipboard import Clipboard
 
     def cut(self):
         ''' Copy current selection to clipboard then delete it from TextInput.
@@ -1352,7 +1340,8 @@ class TextInput(Widget):
         self._cut(self.selection_text)
 
     def _cut(self, data):
-        self._copy(data)
+        self._ensure_clipboard()
+        Clipboard.copy(data)
         self.delete_selection()
 
     def copy(self, data=''):
@@ -1363,19 +1352,11 @@ class TextInput(Widget):
         .. versionadded:: 1.8.0
 
         '''
-        if data:
-            self._copy(data)
-            return
-        if self.selection_text:
-            self._copy(self.selection_text)
-
-    def _copy(self, data):
-        # explicitly terminate strings with a null character
-        # so as to avoid putting spurious data after the end.
-        # MS windows issue.
         self._ensure_clipboard()
-        data = data.encode(self._encoding) + b'\x00'
-        Clipboard.put(data, self._clip_mime_type)
+        if data:
+            return Clipboard.copy(data)
+        if self.selection_text:
+            return Clipboard.copy(self.selection_text)
 
     def paste(self):
         ''' Insert text from system :class:`~kivy.core.clipboard.Clipboard`
@@ -1385,27 +1366,10 @@ class TextInput(Widget):
         .. versionadded:: 1.8.0
 
         '''
-        self._paste()
-
-    def _paste(self):
         self._ensure_clipboard()
-        _clip_types = Clipboard.get_types()
-
-        mime_type = self._clip_mime_type
-        if mime_type not in _clip_types:
-            mime_type = 'text/plain'
-
-        data = Clipboard.get(mime_type)
-        if data is not None:
-            # decode only if we don't have unicode
-            # we would still need to decode from utf-16 (windows)
-            # data is of type bytes in PY3
-            data = data.decode(self._encoding, 'ignore')
-            # remove null strings mostly a windows issue
-            data = data.replace(u'\x00', u'')
-            self.delete_selection()
-            self.insert_text(data)
-        data = None
+        data = Clipboard.paste()
+        self.delete_selection()
+        self.insert_text(data)
 
     def _keyboard_released(self):
         # Callback called when the real keyboard is taken by someone else
@@ -1970,7 +1934,7 @@ class TextInput(Widget):
             # duplicated but faster testing for non-editable keys
             if text and not is_interesting_key:
                 if is_shortcut and key == ord('c'):
-                    self._copy(self.selection_text)
+                    self.copy()
             elif key == 27:
                 self.focus = False
             return True
@@ -2029,9 +1993,9 @@ class TextInput(Widget):
                 if key == ord('x'):  # cut selection
                     self._cut(self.selection_text)
                 elif key == ord('c'):  # copy selection
-                    self._copy(self.selection_text)
+                    self.copy()
                 elif key == ord('v'):  # paste selection
-                    self._paste()
+                    self.paste()
                 elif key == ord('a'):  # select all
                     self.select_all()
                 elif key == ord('z'):  # undo
