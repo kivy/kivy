@@ -332,7 +332,7 @@ class TextInput(Widget):
         a update to the :attr:`text`, changing the cursor in the same clock
         frame will move it using the previous text and will likely end up in an
         incorrect position. The solution is to schedule any updates to occur
-        on the next clock cycle using 
+        on the next clock cycle using
         :meth:`~kivy.clock.ClockBase.schedule_once`.
 
     .. versionchanged:: 1.7.0
@@ -947,6 +947,7 @@ class TextInput(Widget):
     def on_touch_down(self, touch):
         if self.disabled:
             return
+
         touch_pos = touch.pos
         if not self.collide_point(*touch_pos):
             if self._keyboard_mode == 'multi':
@@ -957,6 +958,31 @@ class TextInput(Widget):
             return False
         if not self.focus:
             self.focus = True
+
+        # Check for scroll wheel
+        if 'button' in touch.profile and touch.button.startswith('scroll'):
+            scroll_type = touch.button[6:]
+            if scroll_type == 'up':
+                if self.multiline:
+                    if self.scroll_y <= 0:
+                        return
+                    self.scroll_y -= self.line_height
+                else:
+                    if self.scroll_x <= 0:
+                        return
+                    self.scroll_x -= self.line_height
+            if scroll_type == 'down':
+                if self.multiline:
+                    if (self._lines_rects[-1].pos[1] > self.y +
+                        self.line_height):
+                        return
+                    self.scroll_y += self.line_height
+                else:
+                    if (self.scroll_x + self.width >=
+                        self._lines_rects[-1].texture.size[0]):
+                        return
+                    self.scroll_x += self.line_height
+
         touch.grab(self)
         self._touch_count += 1
         if touch.is_double_tap:
@@ -1012,6 +1038,7 @@ class TextInput(Widget):
 
         if not self.focus:
             return False
+
         if self._selection_touch is touch:
             self._selection_to = self.cursor_index()
             self._update_selection(True)
@@ -1237,12 +1264,11 @@ class TextInput(Widget):
         win.add_widget(bubble)
         Animation(opacity=1, d=.225).start(bubble)
 
-
     def _hide_cut_copy_paste(self, win=None):
         bubble = self._bubble
         if not bubble:
             return
-        
+
         bubble.hide()
 
     #
@@ -1952,11 +1978,11 @@ class TextInput(Widget):
             if ord(text[0]) == 2:
                 self._command_mode = False
                 self._command = self._command[1:]
- 
+
             if self._command_mode:
                 self._command += text
                 return
- 
+
             _command = self._command
             if _command and ord(text) == 2:
                 from_undo = True
@@ -1987,7 +2013,6 @@ class TextInput(Widget):
                 elif _command == 'CURCOL':
                     self.cursor = int(data), self.cursor_row
                 return
- 
 
             if is_shortcut:
                 if key == ord('x'):  # cut selection
@@ -2300,7 +2325,7 @@ class TextInput(Widget):
     defaults to [0.1843, 0.6549, 0.8313, .5].
     '''
 
-    border = ListProperty([16, 16, 16, 16])
+    border = ListProperty([4, 4, 4, 4])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
     graphics instruction. Used with :attr:`background_normal` and
     :attr:`background_active`. Can be used for a custom background.
@@ -2311,7 +2336,7 @@ class TextInput(Widget):
     BorderImage instruction for more information about how to use it.
 
     :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults
-    to (16, 16, 16, 16).
+    to (4, 4, 4, 4).
     '''
 
     background_normal = StringProperty(
