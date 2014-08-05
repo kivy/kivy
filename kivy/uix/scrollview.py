@@ -630,7 +630,6 @@ class ScrollView(StencilView):
 
         ud[uid] = {
             'mode': 'unknown',
-            'cancel': False,
             'dx': 0,
             'dy': 0,
             'user_stopped': False,
@@ -670,18 +669,21 @@ class ScrollView(StencilView):
         if touch.grab_current is not self:
             return True
 
+        touch.ud['sv.handled'] = {'x': False, 'y': False}
         if self.dispatch('on_scroll_move', touch):
             return True
 
     def on_scroll_move(self, touch):
         if self._get_uid('svavoid') in touch.ud:
-            return
+            return False
 
         touch.push()
         touch.apply_transform_2d(self.to_local)
         if self.dispatch_children('on_scroll_move', touch):
             return True
         touch.pop()
+
+        rv = True
 
         uid = self._get_uid()
         if not uid in touch.ud:
@@ -690,15 +692,10 @@ class ScrollView(StencilView):
         ud = touch.ud[uid]
         mode = ud['mode']
 
-        if ud['cancel']:
-            ud['user_stopped'] = True
-            self.on_scroll_stop(touch, False)
-            touch.ud[self._get_uid('svavoid')] = True
-            return False
-
         # check if the minimum distance has been travelled
         if mode == 'unknown' or mode == 'scroll':
-            if self.do_scroll_x and self.effect_x:
+            if not touch.ud['sv.handled']['x'] and self.do_scroll_x \
+                    and self.effect_x:
                 width = self.width
                 if touch.ud.get('in_bar_x', False):
                     dx = touch.dx / float(width - width * self.hbar[1])
@@ -708,8 +705,11 @@ class ScrollView(StencilView):
                     if self.scroll_type != ['bars']:
                         self.effect_x.update(touch.x)
                 if self.scroll_x < 0 or self.scroll_x > 1:
-                    ud['cancel'] = True
-            if self.do_scroll_y and self.effect_y:
+                    rv = False
+                else:
+                    touch.ud['sv.handled']['x'] = True
+            if not touch.ud['sv.handled']['y'] and self.do_scroll_y \
+                    and self.effect_y:
                 height = self.height
                 if touch.ud.get('in_bar_y', False):
                     dy = touch.dy / float(height - height * self.vbar[1])
@@ -719,7 +719,9 @@ class ScrollView(StencilView):
                     if self.scroll_type != ['bars']:
                         self.effect_y.update(touch.y)
                 if self.scroll_y < 0 or self.scroll_y > 1:
-                    ud['cancel'] = True
+                    rv = False
+                else:
+                    touch.ud['sv.handled']['y'] = True
 
         if mode == 'unknown':
             ud['dx'] += abs(touch.dx)
@@ -752,7 +754,7 @@ class ScrollView(StencilView):
             ud['time'] = touch.time_update
             ud['user_stopped'] = True
 
-        return True
+        return rv
 
     def on_touch_up(self, touch):
         if self._touch is not touch and self.uid not in touch.ud:

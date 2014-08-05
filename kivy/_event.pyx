@@ -373,28 +373,28 @@ cdef class EventDispatcher(ObjectWithUid):
             positional arguments would be collected and forwarded.
 
         '''
-        cdef list event_stack
-        cdef object remove
-        if event_type in self.__event_stack:
-            event_stack = self.__event_stack[event_type]
-            remove = event_stack.remove
-            for value in reversed(event_stack[:]):
-                handler = value()
-                if handler is None:
-                    # handler has gone, must be removed
-                    remove(value)
-                    continue
-                if handler(self, *largs, **kwargs):
-                    return True
+        cdef list event_stack = self.__event_stack[event_type]
+        cdef object remove = event_stack.remove
+        for value in reversed(event_stack[:]):
+            handler = value()
+            if handler is None:
+                # handler has gone, must be removed
+                remove(value)
+                continue
+            if handler(self, *largs, **kwargs):
+                return True
 
-            handler = getattr(self, event_type)
-            return handler(*largs, **kwargs)
-        else:
-            return self.dispatch_children(event_type, *largs, **kwargs)
+        handler = getattr(self, event_type)
+        return handler(*largs, **kwargs)
+
+    def dispatch_generic(self, str event_type, *largs, **kwargs):
+        if event_type in self.__event_stack:
+            return self.dispatch(event_type, *largs, **kwargs)
+        return self.dispatch_children(event_type, *largs, **kwargs)
 
     def dispatch_children(self, str event_type, *largs, **kwargs):
         for child in self.children[:]:
-            if child.dispatch(event_type, *largs, **kwargs):
+            if child.dispatch_generic(event_type, *largs, **kwargs):
                 return True
 
     #
