@@ -264,7 +264,7 @@ class Widget(WidgetBase):
         Adding a `__del__` method to a class derived from Widget with python
         prior to 3.4 will disable automatic garbage collection for instances
         of that class. This is because the Widget class creates reference
-        cycles, thereby `preventing garbage collection 
+        cycles, thereby `preventing garbage collection
         <https://docs.python.org/2/library/gc.html#gc.garbage>`_.
 
     .. versionchanged:: 1.0.9
@@ -441,7 +441,7 @@ class Widget(WidgetBase):
     #
     # Tree management
     #
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, index=0, canvas=None):
         '''Add a new widget as a child of this widget.
 
         :Parameters:
@@ -451,6 +451,11 @@ class Widget(WidgetBase):
                 Index to insert the widget in the list
 
                 .. versionadded:: 1.0.5
+            `canvas`: str, defaults to None
+                Canvas to add widget's canvas to. Can be 'before', 'after' or
+                None for the default canvas.
+
+                .. versionadded:: 1.9.0
 
         >>> from kivy.uix.button import Button
         >>> from kivy.uix.slider import Slider
@@ -477,9 +482,12 @@ class Widget(WidgetBase):
         if parent.disabled:
             widget.disabled = True
 
+        canvas = self.canvas.before if canvas == 'before' else \
+            self.canvas.after if canvas == 'after' else self.canvas
+
         if index == 0 or len(self.children) == 0:
             self.children.insert(0, widget)
-            self.canvas.add(widget.canvas)
+            canvas.add(widget.canvas)
         else:
             canvas = self.canvas
             children = self.children
@@ -516,7 +524,12 @@ class Widget(WidgetBase):
         if widget not in self.children:
             return
         self.children.remove(widget)
-        self.canvas.remove(widget.canvas)
+        if widget.canvas in self.canvas.children:
+            self.canvas.remove(widget.canvas)
+        elif widget.canvas in self.canvas.after.children:
+            self.canvas.after.remove(widget.canvas)
+        elif widget.canvas in self.canvas.before.children:
+            self.canvas.before.remove(widget.canvas)
         widget.parent = None
 
     def clear_widgets(self, children=None):
