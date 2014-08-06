@@ -63,7 +63,7 @@ polygon, to more complex ones, like meshes or bezier curves::
 
        # lets draw a semi-transparent red square
        Color(1, 0, 0, .5, mode='rgba')
-       Rect(pos=self.pos, size=self.size)
+       Rectangle(pos=self.pos, size=self.size)
 
 Manipulating instructions
 -------------------------
