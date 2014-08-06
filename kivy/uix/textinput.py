@@ -962,7 +962,7 @@ class TextInput(Widget):
         # Check for scroll wheel
         if 'button' in touch.profile and touch.button.startswith('scroll'):
             scroll_type = touch.button[6:]
-            if scroll_type == 'up':
+            if scroll_type == 'down':
                 if self.multiline:
                     if self.scroll_y <= 0:
                         return
@@ -971,7 +971,7 @@ class TextInput(Widget):
                     if self.scroll_x <= 0:
                         return
                     self.scroll_x -= self.line_height
-            if scroll_type == 'down':
+            if scroll_type == 'up':
                 if self.multiline:
                     if (self._lines_rects[-1].pos[1] > self.y +
                         self.line_height):
