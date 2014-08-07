@@ -194,6 +194,8 @@ class ToggleButtonBehavior(ButtonBehavior):
             widget.state = 'normal'
 
     def _do_press(self):
+        if self.group and self.state == 'down':
+            return
         self._release_group(self)
         self.state = 'normal' if self.state == 'down' else 'down'
 
