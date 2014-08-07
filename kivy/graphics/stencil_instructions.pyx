@@ -334,5 +334,5 @@ cdef class StencilUnUse(Instruction):
     '''
     cdef void apply(self):
         glStencilFunc(GL_ALWAYS, 0, 0)
-        #glStencilOp(GL_DECR, GL_DECR, GL_DECR)
+        glStencilOp(GL_DECR, GL_DECR, GL_DECR)
         glColorMask(0, 0, 0, 0)
