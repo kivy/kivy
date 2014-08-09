@@ -425,6 +425,8 @@ graphics_dependencies = {
     'stencil_instructions.pxd': ['instructions.pxd'],
     'stencil_instructions.pyx': [
         'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd'],
+    'scissor_instructions.pyx': [
+        'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd'],
     'texture.pxd': ['c_opengl.pxd'],
     'texture.pyx': [
         'config.pxi', 'common.pxi', 'opengl_utils_def.pxi', 'context.pxd',
@@ -457,6 +459,7 @@ sources = {
     'graphics/opengl_utils.pyx': merge(base_flags, gl_flags),
     'graphics/shader.pyx': merge(base_flags, gl_flags),
     'graphics/stencil_instructions.pyx': merge(base_flags, gl_flags),
+    'graphics/scissor_instructions.pyx': merge(base_flags, gl_flags),
     'graphics/texture.pyx': merge(base_flags, gl_flags),
     'graphics/transformation.pyx': merge(base_flags, gl_flags),
     'graphics/vbo.pyx': merge(base_flags, gl_flags),
