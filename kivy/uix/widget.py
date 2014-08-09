@@ -113,87 +113,41 @@ Widget touch event bubbling
 When you catch touch events between multiple widgets, you often
 need to be aware of the order in which these events are propogated. In Kivy,
 events bubble up from the most recently added widget and then backwards through
-it's children (from the most recently added back to the first child).
+it's children (from the most recently added back to the first child). This order
+is the same for the `on_touch_move` and `on_touch_up` events.
 
-In effect, this event model does not follow either of the conventional
-"bubble up" or "bubble down" approaches, but propogates events according to the
-natural order in which the widgets have been added. If you want to reverse this
-order, you can raise events in the children before the parent by using the
-`super` command.
+If you want to reverse this order, you can raise events in the children before
+the parent by using the `super` command. For example:
 
-Lets look at an example. In our kv file::
+.. code-block:: python
 
-    <EventBubbler>:
-        Label:
-            text: '1'
-            on_touch_down: root.printme("label 1 on_touch_down")
-        Label:
-            text: '2'
-            on_touch_down: root.printme("label 2 on_touch_down")
-        BoxLayout:
-            on_touch_down: root.printme("BoxLayout on_touch_down")
-            Label:
-                text: '3'
-                on_touch_down: root.printme("label 3 on_touch_down")
-            Label:
-                text: '4'
-                on_touch_down: root.printme("label 4 on_touch_down")
-        MyBoxLayout:
-            # We use this class to demonsrate using 'super' to raise the child
-            # events first
-            Label:
-                text: '5'
-                on_touch_down: root.printme("label 5 on_touch_down")
-            Label:
-                text: '6'
-                on_touch_down: root.printme("label 6 on_touch_down")
-
-.. highlight:: python
-
-In your Python file::
-
-    from kivy.app import App
-    from kivy.lang import Builder
-    from kivy.uix.boxlayout import BoxLayout
-    from kivy.properties import StringProperty
-
-
-    class EventBubbler(BoxLayout):
-
-        @staticmethod
-        def printme(msg):
-            print msg
-
-
-    class MyBoxLayout(BoxLayout):
+    class MyWidget(Widget):
         def on_touch_down(self, touch):
-            print "Before super(MyBoxLayout, self).on_touch_down(touch)"
-            super(MyBoxLayout, self).on_touch_down(touch)
-            print "After super(MyBoxLayout, self).on_touch_down(touch)"
+            super(MyWidget, self).on_touch_down(touch)
+            # Do stuff here
 
+In general, this would seldom be the best approach as every event bubbles all
+the way through event time and there is no way of determining if it has been
+handled. In order to stop this the event bubbling, one of these methods must
+return `True`. At this point, Kivy assumes the event has been handled and
+propogation stops.
 
-    class BubbleApp(App):
-        def build(self):
-            return EventBubbler()
+This means that the recommended approach is to let the event bubble naturally
+but swallow the event if it has been handled. For example:
 
-    BubbleApp().run()
+.. code-block:: python
 
-This produces the following output::
+    class MyWidget(Widget):
+        def on_touch_down(self, touch):
+            If <some_condition>:
+                # Do stuff here and kill the event
+                return True
+            else:
+                # Continue normal event bubbling
+                return super(MyWidget, self).on_touch_down(touch)
 
-    >>> Before super(MyBoxLayout, self).on_touch_down(touch)
-    >>> label 6 on_touch_down
-    >>> label 5 on_touch_down
-    >>> After super(MyBoxLayout, self).on_touch_down(touch)
-    >>> BoxLayout on_touch_up
-    >>> label 4 on_touch_down
-    >>> label 3 on_touch_down
-    >>> label 2 on_touch_down
-    >>> label 1 on_touch_down
-
-This order is the same for the `on_touch_move` and `on_touch_up` events.
-Notice how using the `super` command raises the child events immediately
-when it is called. This approach gives you total control over the order in which
-Kivy's events are propogated.
+This approach gives you good control over exactly how events and dispatched
+and managed.
 
 '''
 
