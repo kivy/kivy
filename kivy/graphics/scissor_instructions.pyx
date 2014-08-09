@@ -7,6 +7,9 @@ IF USE_OPENGL_DEBUG == 1:
 from kivy.graphics.instructions cimport Instruction
 
 cdef class Rect:
+    '''Rect class used internally by ScissorStack and ScissorPush to determine
+    correct clipping area.
+    '''
     cdef int _x
     cdef int _y
     cdef int _width
@@ -32,6 +35,10 @@ cdef class Rect:
 
 
 cdef class ScissorStack:
+    '''Class used internally to keep track of the current state of 
+    glScissors regions. Do not instantiate, prefer to inspect the module's
+    scissor_stack.
+    '''
     cdef list _stack
 
     def __init__(self):
@@ -56,11 +63,18 @@ scissor_stack = ScissorStack()
 
 
 cdef class ScissorPush(Instruction):
+    '''Push the scissor stack. Provide kwargs of 'x', 'y', 'width', 'height' 
+    to control the area and position of the scissoring region. Defaults to 
+    0, 0, 100, 100
+
+    Scissor works by clipping all drawing outside of a rectangle starting at
+    int x, int y position and having sides of int width by int height in Window
+    space coordinates
+    '''
     cdef int _x
     cdef int _y
     cdef int _width
     cdef int _height
-    cdef bint _on
     cdef Rect _rect
 
     property x:
@@ -84,7 +98,7 @@ cdef class ScissorPush(Instruction):
             return self._width
         def __set__(self, value):
             self._width = value
-            self._rect = Rect(self._y, self._y, self._width, self._height)
+            self._rect = Rect(self._x, self._y, self._width, self._height)
             self.flag_update()
 
     property height:
@@ -92,7 +106,7 @@ cdef class ScissorPush(Instruction):
             return self._height
         def __set__(self, value):
             self._height = value
-            self._rect = Rect(self._y, self._y, self._width, self._height)
+            self._rect = Rect(self._x, self._y, self._width, self._height)
             self.flag_update()
 
     property pos:
@@ -146,6 +160,9 @@ cdef class ScissorPush(Instruction):
                 new_scissor_rect._width, new_scissor_rect._height)
 
 cdef class ScissorPop(Instruction):
+    '''Pop the scissor stack. Call after ScissorPush, once you have completed
+    the drawing you wish to be clipped.
+    '''
 
     cdef void apply(self):
         scissor_stack.pop()

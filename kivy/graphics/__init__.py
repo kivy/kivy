@@ -99,6 +99,7 @@ from kivy.graphics.stencil_instructions import StencilPop, StencilPush, \
     StencilUse, StencilUnUse
 from kivy.graphics.gl_instructions import ClearColor, ClearBuffers
 from kivy.graphics.fbo import Fbo
+from kivy.graphics.scissor_instructions import  ScissorPush, ScissorPop
 
 # very hacky way to avoid pyflakes warning...
 __all__ = (Bezier.__name__, BindTexture.__name__, BorderImage.__name__,
