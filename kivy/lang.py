@@ -207,7 +207,9 @@ In the latter case, multiple single line statements are valid including
 multi-line statements that escape their newline, as long as they don't
 add an indentation level.
 
-Examples of valid statements are::
+Examples of valid statements are:
+
+.. code-block:: python
 
     on_press: if self.state == 'normal': print('normal')
     on_state:
@@ -219,8 +221,10 @@ Examples of valid statements are::
         print([1,2,3,4,
         5,6,7])
 
-An example of a invalid statement::
+An example of a invalid statement:
 
+.. code-block:: python
+ 
     on_state:
         if self.state == 'normal':
             print('normal')
