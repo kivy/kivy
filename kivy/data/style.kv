@@ -235,18 +235,12 @@
 
 <StencilView>:
     canvas.before:
-        StencilPush
-        Rectangle:
+        ScissorPush:
             pos: self.pos
             size: self.size
-        StencilUse
 
     canvas.after:
-        StencilUnUse
-        Rectangle:
-            pos: self.pos
-            size: self.size
-        StencilPop
+        ScissorPop
 
 
 <FileChooserListView>:
