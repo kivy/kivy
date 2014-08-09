@@ -310,6 +310,8 @@ class Widget(WidgetBase):
         :Returns:
             bool, True if the point is inside the bounding box.
 
+    .. code-block:: python
+
         >>> Widget(pos=(10, 10), size=(50, 50)).collide_point(40, 40)
         True
         '''
@@ -325,6 +327,8 @@ class Widget(WidgetBase):
 
         :Returns:
             bool, True if the other widget collides with this widget.
+
+    .. code-block:: python
 
         >>> wid = Widget(size=(50, 50))
         >>> wid2 = Widget(size=(50, 50), pos=(25, 25))
@@ -404,6 +408,8 @@ class Widget(WidgetBase):
                 Index to insert the widget in the list
 
                 .. versionadded:: 1.0.5
+            
+    .. code-block:: python
 
         >>> from kivy.uix.button import Button
         >>> from kivy.uix.slider import Slider
@@ -459,6 +465,8 @@ class Widget(WidgetBase):
         :Parameters:
             `widget`: :class:`Widget`
                 Widget to remove from our children list.
+    
+    .. code-block:: python
 
         >>> from kivy.uix.button import Button
         >>> root = Widget()
@@ -611,7 +619,9 @@ class Widget(WidgetBase):
                     Button
                 Widget
 
-        walking this tree::
+        walking this tree:
+
+        .. code-block:: python
 
             >>> # Call walk on box with loopback True, and restrict False
             >>> [type(widget) for widget in box.walk(loopback=True)]
@@ -696,7 +706,9 @@ class Widget(WidgetBase):
                     Button
                 Widget
 
-        walking this tree::
+        walking this tree:
+        
+        .. code-block:: python
 
             >>> # Call walk on box with loopback True
             >>> [type(widget) for widget in box.walk_reverse(loopback=True)]
@@ -996,7 +1008,9 @@ class Widget(WidgetBase):
                 TextInput:
                     id: other_textinput
 
-    Then, in python::
+    Then, in python:
+
+    .. code-block:: python
 
         >>> widget = MyWidget()
         >>> print(widget.ids)
@@ -1025,7 +1039,9 @@ class Widget(WidgetBase):
     For example, if the parent has an opacity of 0.5 and a child has an
     opacity of 0.2, the real opacity of the child will be 0.5 * 0.2 = 0.1.
 
-    Then, the opacity is applied by the shader as::
+    Then, the opacity is applied by the shader as:
+
+    .. code-block:: python
 
         frag_color = color * vec4(1.0, 1.0, 1.0, opacity);
 
