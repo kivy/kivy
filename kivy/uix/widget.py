@@ -107,10 +107,10 @@ To draw a background in kv::
 These examples only scratch the surface. Please see the :mod:`kivy.graphics`
 documentation for more information.
 
-Widget event bubbling
----------------------
+Widget touch event bubbling
+---------------------------
 
-When you use the Kivy property changes to catch events, you sometimes
+When you catch touch events between multiple widgets, you often
 need to be aware of the order in which these events are propogated. In Kivy,
 events bubble up from the most recently added widget and then backwards through
 it's children (from the most recently added back to the first child).
@@ -121,8 +121,7 @@ natural order in which the widgets have been added. If you want to reverse this
 order, you can raise events in the children before the parent by using the
 `super` command.
 
-Linguistically, this can be difficult to explain and sound complicated,
-but it's really quite simple. Lets look at an example. In our kv file::
+Lets look at an example. In our kv file::
 
     <EventBubbler>:
         Label:
