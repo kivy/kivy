@@ -14,7 +14,7 @@ integer values not floats.
 
 The following code will draw a circle ontop of our widget while clipping
 the circle so it does not expand beyond the widget borders. 
-.. codeblock:: python
+.. code-block:: python
     with self.canvas.after:
         #If our widget is inside another widget that modified the coordinates
         #spacing (such as ScrollView) we will want to convert to Window coords
