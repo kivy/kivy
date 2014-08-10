@@ -5,7 +5,7 @@ Stencil instructions
 .. versionadded:: 1.9.1
 
 
-Stencil instructions clip your drawing area into a rectangular reason.
+Stencil instructions clip your drawing area into a rectangular region.
 
 The stencil buffer can be controlled with 2 instructions:
 
@@ -13,6 +13,22 @@ The stencil buffer can be controlled with 2 instructions:
 - class:`ScissorPop`: Ends clipping
 The area provided to clip is in screenspace pixels and must be provided as
 integer values not floats. 
+
+.. codeblock:: python
+    with self.canvas.after:
+        #If our widget is inside another widget that modified the coordinates
+        #spacing (such as ScrollView) we will want to convert to Window coords
+        x,y = self.to_window(*self.pos)
+        width, height = self.size
+        #We must convert from the possible float values provided by kivy 
+        #widgets to an integer screenspace, in python3 round returns an int so
+        #the cast will be unnecessary.
+        ScissorPush(x=int(round(x)), y=int(round(y)),
+            width=int(round(width)), height=int(round(height)))
+        self.col_instruction = Color(rgba=(1., 0., 0., .5))
+        self.ellipse = Ellipse(size=(width*2., height*2.),
+            pos=self.center)
+        ScissorPop()
 '''
 include "config.pxi"
 include "opcodes.pxi"
