@@ -456,7 +456,7 @@ else:
                             l = keyboard_keys[ev_code][-1 if 'shift' in Window._modifiers else 0]
                             if l == 'shift':
                                 Window._modifiers.append('shift')
-                            print ev_code, l
+                            print(ev_code, l)
                             Window.dispatch('on_key_down', Keyboard.keycodes[l.lower()], ev_code, keys_str.get(l, l), Window._modifiers)
                         if ev_value == 0:
                             l = keyboard_keys[ev_code][-1 if 'shift' in Window._modifiers else 0]
