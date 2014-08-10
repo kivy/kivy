@@ -107,6 +107,8 @@ To draw a background in kv::
 These examples only scratch the surface. Please see the :mod:`kivy.graphics`
 documentation for more information.
 
+.. _widget-event-bubbling:
+
 Widget touch event bubbling
 ---------------------------
 
