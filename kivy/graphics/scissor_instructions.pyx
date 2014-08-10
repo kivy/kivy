@@ -14,6 +14,8 @@ The stencil buffer can be controlled with 2 instructions:
 The area provided to clip is in screenspace pixels and must be provided as
 integer values not floats. 
 
+The following code will draw a circle ontop of our widget while clipping
+the circle so it does not expand beyond the widget borders. 
 .. codeblock:: python
     with self.canvas.after:
         #If our widget is inside another widget that modified the coordinates
@@ -22,11 +24,11 @@ integer values not floats.
         width, height = self.size
         #We must convert from the possible float values provided by kivy 
         #widgets to an integer screenspace, in python3 round returns an int so
-        #the cast will be unnecessary.
+        #the int cast will be unnecessary.
         ScissorPush(x=int(round(x)), y=int(round(y)),
             width=int(round(width)), height=int(round(height)))
-        self.col_instruction = Color(rgba=(1., 0., 0., .5))
-        self.ellipse = Ellipse(size=(width*2., height*2.),
+        Color(rgba=(1., 0., 0., .5))
+        Ellipse(size=(width*2., height*2.),
             pos=self.center)
         ScissorPop()
 '''
