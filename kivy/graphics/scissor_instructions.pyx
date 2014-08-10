@@ -1,3 +1,19 @@
+'''
+Stencil instructions
+====================
+
+.. versionadded:: 1.9.1
+
+
+Stencil instructions clip your drawing area into a rectangular reason.
+
+The stencil buffer can be controlled with 2 instructions:
+
+- class:`ScissorPush`: Begins clipping, sets the bounds of the clip space
+- class:`ScissorPop`: Ends clipping
+The area provided to clip is in screenspace pixels and must be provided as
+integer values not floats. 
+'''
 include "config.pxi"
 include "opcodes.pxi"
 
