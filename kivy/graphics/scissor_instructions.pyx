@@ -5,9 +5,7 @@ Stencil instructions
 .. versionadded:: 1.9.1
 
 
-Stencil instructions clip your drawing area into a rectangular region.
-
-The stencil buffer can be controlled with 2 instructions:
+Scissor instructions clip your drawing area into a rectangular region.
 
 - class:`ScissorPush`: Begins clipping, sets the bounds of the clip space
 - class:`ScissorPop`: Ends clipping
