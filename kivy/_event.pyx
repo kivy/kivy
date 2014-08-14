@@ -124,7 +124,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
         # then auto register
         for event in events:
-            self.__event_stack[event] = []
+            self.__event_stack[event] = None
 
 
     def __init__(self, **kwargs):
@@ -193,7 +193,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
         # Add the event type to the stack
         if event_type not in self.__event_stack:
-            self.__event_stack[event_type] = []
+            self.__event_stack[event_type] = None
 
     def unregister_event_types(self, str event_type):
         '''Unregister an event type in the dispatcher.
@@ -301,15 +301,23 @@ cdef class EventDispatcher(ObjectWithUid):
         '''
         cdef Property prop
         for key, value in kwargs.iteritems():
-            if key[:3] == 'on_':
-                if key not in self.__event_stack:
-                    continue
-                # convert the handler to a weak method
-                handler = WeakMethod(value)
-                self.__event_stack[key].append(handler)
+            self.bind_key(key, value)  
+
+    cpdef bind_key(self, key, value):
+        cdef list stack
+        if key[:3] == 'on_':
+            if key not in self.__event_stack:
+                return
+            # convert the handler to a weak method
+            handler = WeakMethod(value)
+            stack = self.__event_stack[key]
+            if stack is None:
+                self.__event_stack[key] = [handler]
             else:
-                prop = self.__properties[key]
-                prop.bind(self, value)
+                stack.append(handler)
+        else:
+            prop = self.__properties[key]
+            prop.bind(self, value)
 
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions.
@@ -317,9 +325,13 @@ cdef class EventDispatcher(ObjectWithUid):
         Same usage as :meth:`bind`.
         '''
         cdef Property prop
+        cdef list stack
         for key, value in kwargs.iteritems():
             if key[:3] == 'on_':
                 if key not in self.__event_stack:
+                    continue
+                stack = self.__event_stack[key]
+                if not stack:
                     continue
                 # we need to execute weak method to be able to compare
                 for handler in self.__event_stack[key]:
@@ -341,7 +353,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
         '''
         if name[:3] == 'on_':
-            return self.__event_stack[name]
+            return self.__event_stack[name] or []
         cdef PropertyStorage ps = self.__storage[name]
         return ps.observers
 
@@ -374,15 +386,17 @@ cdef class EventDispatcher(ObjectWithUid):
 
         '''
         cdef list event_stack = self.__event_stack[event_type]
-        cdef object remove = event_stack.remove
-        for value in reversed(event_stack[:]):
-            handler = value()
-            if handler is None:
-                # handler has gone, must be removed
-                remove(value)
-                continue
-            if handler(self, *largs, **kwargs):
-                return True
+        cdef object remove
+        if event_stack is not None:
+            remove = event_stack.remove
+            for value in reversed(event_stack[:]):
+                handler = value()
+                if handler is None:
+                    # handler has gone, must be removed
+                    remove(value)
+                    continue
+                if handler(self, *largs, **kwargs):
+                    return True
 
         handler = getattr(self, event_type)
         return handler(*largs, **kwargs)

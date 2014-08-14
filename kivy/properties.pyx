@@ -284,7 +284,6 @@ cdef class Property:
         self.errorhandler = None
         self.errorvalue_set = 0
 
-
     def __init__(self, defaultvalue, **kw):
         self.defaultvalue = defaultvalue
         self.allownone = <int>kw.get('allownone', 0)
@@ -304,7 +303,7 @@ cdef class Property:
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
         storage.value = self.convert(obj, self.defaultvalue)
-        storage.observers = []
+        storage.observers = None
 
     cpdef link(self, EventDispatcher obj, str name):
         '''Link the instance with its real name.
@@ -337,13 +336,17 @@ cdef class Property:
         '''Add a new observer to be called only when the value is changed.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        if observer not in ps.observers:
+        if ps.observers is None:
+            ps.observers = [observer]
+        elif observer not in ps.observers:
             ps.observers.append(observer)
 
     cpdef unbind(self, EventDispatcher obj, observer):
         '''Remove the observer from our widget observer list.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
+        if not ps.observers:
+            return
         for item in ps.observers[:]:
             if item == observer:
                 ps.observers.remove(item)
@@ -432,7 +435,7 @@ cdef class Property:
 
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        if len(ps.observers):
+        if ps.observers:
             value = ps.value
             for observer in ps.observers[:]:
                 observer(obj, value)

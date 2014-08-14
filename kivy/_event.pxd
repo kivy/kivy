@@ -7,3 +7,4 @@ cdef class EventDispatcher(ObjectWithUid):
     cdef dict __storage
     cdef object __weakref__
     cpdef dict properties(self)
+    cpdef bind_key(self, key, value)

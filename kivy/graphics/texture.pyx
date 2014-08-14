@@ -936,6 +936,8 @@ cdef class Texture:
             if _mipmap_generation:
                 glGenerateMipmap(target)
 
+        pbuffer = None
+
     def _on_proxyimage_loaded(self, image):
         if image is not self._proxyimage:
             return

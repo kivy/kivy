@@ -68,6 +68,8 @@ else:
         for functions and bound methods.
         '''
 
+        __slots__ = ("_obj", "_func", "_class")
+
         def __init__(self, method):
             try:
                 if method.__self__ is not None:

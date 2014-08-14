@@ -961,6 +961,10 @@ class ParserRuleProperty(object):
                    self.value, self.watched_keys)
 
 
+L_NEW, L_ID, L_SET_CANVAS, L_CLEAR_CANVAS, L_CREATE_GRAPHIC, L_SET_GRAPHIC, \
+    L_CREATE_WIDGET, L_PUSH_WIDGET, L_POP_WIDGET = range(9)
+CANVAS_BEFORE, CANVAS, CANVAS_AFTER = range(3)
+
 class ParserRule(object):
     '''Represents a rule, in terms of the Kivy internal language.
     '''
@@ -1114,6 +1118,50 @@ class ParserRule(object):
     def __repr__(self):
         return '<ParserRule name=%r>' % (self.name, )
 
+    def linearize(self):
+        yield (L_NEW, )
+        if self.id:
+            rid = self.id.split('#', 1)[0].strip()
+            yield (L_ID, rid)
+        if self.canvas_before:
+            yield (L_SET_CANVAS, CANVAS_BEFORE)
+            for cmd in self.linearize_canvas(self.canvas_before):
+                yield cmd
+        if self.canvas_root:
+            yield (L_SET_CANVAS, CANVAS)
+            for cmd in self.linearize_canvas(self.canvas_root):
+                yield cmd
+        if self.canvas_after:
+            yield (L_SET_CANVAS, CANVAS_AFTER)
+            for cmd in self.linearize_canvas(self.canvas_after):
+                yield cmd
+
+        for crule in self.children:
+            cname = crule.name
+            yield (L_PUSH_WIDGET, cname)
+            for cmd in crule.linearize():
+                yield cmd
+            yield (L_POP_WIDGET, )
+            
+
+    def linearize_canvas(self, canvas):
+        for crule in canvas.children:
+            name = crule.name
+            if name == 'Clear':
+                yield (L_CLEAR_CANVAS, )
+                continue
+
+            yield (L_CREATE_GRAPHIC, name)
+            for prule in crule.properties.values():
+                key = prule.name
+                value = prule.value
+                yield (L_SET_GRAPHIC, key, value)
+
+
+
+
+
+
 
 class Parser(object):
     '''Create a Parser object to parse a Kivy language file or Kivy content.
@@ -1253,6 +1301,13 @@ class Parser(object):
         if remaining_lines:
             ln, content = remaining_lines[0]
             raise ParserException(self, ln, 'Invalid data (not parsed)')
+
+        # linearize the execution
+        for selector, rule in self.rules:
+            print "-->", rule
+            for cmd in rule.linearize():
+                print cmd
+            print "-" * 80
 
     def strip_comments(self, lines):
         '''Remove all comments from all lines in-place.
@@ -1480,29 +1535,12 @@ def update_intermediates(base, keys, bound, s, fn, *args):
         # bind all attrs, except last to update_intermediates
         k = i
         for val in keys[i:-1]:
-            is_ev = isinstance(f, (Observable, EventDispatcher))
-            try:
-                # if we need to dynamically rebind, bindm otherwise just
-                # add the attr to the list
-                if is_ev and f.property(val).rebind:
-                    p = partial(update_intermediates, base, keys, bound, k, fn)
-                    append([get_proxy(f), val, p])
-                    f.bind(**{val: p})
-                    # during the bind, the watched keys could have changed
-                    # value, calling update_intermediates and changing
-                    # the last attr, so we have to read the last attr again
-                    f = bound[-1][0]
-                else:
-                    append([get_proxy(f) if is_ev else f, val, None])
-            except (KeyError, AttributeError):  # in case property is not kivy
-                append([get_proxy(f), val, None])
             f = getattr(f, val)
             k += 1
         # for the last attr we bind directly to the setting function,
         # because that attr sets the value of the rule.
         if isinstance(f, (Observable, EventDispatcher)):
-            f.bind(**{keys[-1]: fn})
-            append([get_proxy(f), keys[-1], fn])
+            f.bind_key(keys[-1], fn)
     except KeyError:
         pass
     except AttributeError:
