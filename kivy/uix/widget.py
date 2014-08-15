@@ -141,7 +141,7 @@ but swallow the event if it has been handled. For example:
 
     class MyWidget(Widget):
         def on_touch_down(self, touch):
-            If <some_condition>:
+            if <some_condition>:
                 # Do stuff here and kill the event
                 return True
             else:
