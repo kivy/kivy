@@ -88,8 +88,8 @@ for your widget, you can do the following::
         self.bg_rect.pos = self.pos
 
     widget = Widget()
-    with self.canvas:
-        self.bg_rect = Rectangle(source="cover.jpg", pos=self.pos, \
+    with widget.canvas:
+        widget.bg_rect = Rectangle(source="cover.jpg", pos=self.pos, \
 size=self.size)
     widget.bind(pos=redraw, size=redraw)
 
