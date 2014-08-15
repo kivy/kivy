@@ -1076,9 +1076,11 @@ class Widget(WidgetBase):
     '''Indicates whether this widget can interact with input or not.
 
     .. note::
-        1. Child Widgets, when added to a disabled widget, will be disabled
-        automatically,
-        2. Disabling/enabling a parent disables/enables all it's children.
+    
+      1. Child Widgets, when added to a disabled widget, will be disabled
+         automatically.
+      2. Disabling/enabling a parent disables/enables all
+         of it's children.
 
     .. versionadded:: 1.8.0
 
