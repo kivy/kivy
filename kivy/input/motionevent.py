@@ -275,6 +275,7 @@ class MotionEvent(MotionEventBase):
 
         #: If the touch is a :attr:`is_triple_tap`, this is the time
         #: between the first tap and the current touch.
+        #:
         #: .. versionadded:: 1.7.0
         self.triple_tap_time = 0
 
