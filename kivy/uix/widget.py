@@ -598,10 +598,10 @@ class Widget(WidgetBase):
         them.
 
         :Parameters:
-            `restrict`:
+            `restrict`: bool, defaults to False
                 If True, it will only iterate through the widget and its
                 children (or children of its children etc.). Defaults to False.
-            `loopback`:
+            `loopback`: bool, defaults to False
                 If True, when the last widget in the tree is reached,
                 it'll loop back to the uppermost root and start walking until
                 we hit this widget again. Naturally, it can only loop back when
@@ -689,7 +689,7 @@ class Widget(WidgetBase):
         to the list generated with this, provided `loopback` is True.
 
         :Parameters:
-            `loopback`:
+            `loopback`: bool, defaults to False
                 If True, when the uppermost root in the tree is
                 reached, it'll loop back to the last widget and start walking
                 back until after we hit widget again. Defaults to False
