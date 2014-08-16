@@ -12,7 +12,7 @@ handlers.
 
 '''
 
-__all__ = ('EventDispatcher', )
+__all__ = ('EventDispatcher', 'ObjectWithUid')
 
 
 from functools import partial
@@ -36,6 +36,10 @@ def _get_bases(cls):
             yield cbase
 
 cdef class ObjectWithUid(object):
+    '''
+    (internal) This class assists in providing unique identifiers for class
+    instances. It it not intended for direct usage.
+    '''
     def __cinit__(self):
         global widget_uid
 
