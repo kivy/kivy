@@ -20,6 +20,11 @@ be available. For these, we recommend `Pygame <http://pygame.org>`_, `Gst-Python
 <http://www.gstreamer.net/modules/gst-python.html>`_ and `Enchant
 <http://www.rfk.id.au/software/pyenchant/>`_, respectively.
 
++--------------------------------------------------------------------------------------------------------------------------+
+| NOTE: Currently, packaging only works with Python 2.7. We are working on Python 3.3+ support, but for now if you plan to |
+| distribute your package on any platform you should use Python 2.7.                                                       |
++--------------------------------------------------------------------------------------------------------------------------+
+
 Other optional libraries (mutually independent) are:
 
     * `OpenCV 2.0 <http://sourceforge.net/projects/opencvlibrary/>`_ -- Camera input.
