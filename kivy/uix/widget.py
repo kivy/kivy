@@ -88,8 +88,8 @@ for your widget, you can do the following::
         self.bg_rect.pos = self.pos
 
     widget = Widget()
-    with self.canvas:
-        self.bg_rect = Rectangle(source="cover.jpg", pos=self.pos, \
+    with widget.canvas:
+        widget.bg_rect = Rectangle(source="cover.jpg", pos=self.pos, \
 size=self.size)
     widget.bind(pos=redraw, size=redraw)
 
@@ -141,7 +141,7 @@ but swallow the event if it has been handled. For example:
 
     class MyWidget(Widget):
         def on_touch_down(self, touch):
-            If <some_condition>:
+            if <some_condition>:
                 # Do stuff here and kill the event
                 return True
             else:
@@ -598,10 +598,10 @@ class Widget(WidgetBase):
         them.
 
         :Parameters:
-            `restrict`:
+            `restrict`: bool, defaults to False
                 If True, it will only iterate through the widget and its
                 children (or children of its children etc.). Defaults to False.
-            `loopback`:
+            `loopback`: bool, defaults to False
                 If True, when the last widget in the tree is reached,
                 it'll loop back to the uppermost root and start walking until
                 we hit this widget again. Naturally, it can only loop back when
@@ -689,7 +689,7 @@ class Widget(WidgetBase):
         to the list generated with this, provided `loopback` is True.
 
         :Parameters:
-            `loopback`:
+            `loopback`: bool, defaults to False
                 If True, when the uppermost root in the tree is
                 reached, it'll loop back to the last widget and start walking
                 back until after we hit widget again. Defaults to False
@@ -1076,9 +1076,11 @@ class Widget(WidgetBase):
     '''Indicates whether this widget can interact with input or not.
 
     .. note::
-        1. Child Widgets, when added to a disabled widget, will be disabled
-        automatically,
-        2. Disabling/enabling a parent disables/enables all it's children.
+    
+      1. Child Widgets, when added to a disabled widget, will be disabled
+         automatically.
+      2. Disabling/enabling a parent disables/enables all
+         of it's children.
 
     .. versionadded:: 1.8.0
 
