@@ -153,6 +153,7 @@ class ImageLoaderBase(object):
         self.filename = filename
         self._data = self.load(filename)
         self._textures = None
+        self.populate()
 
     def load(self, filename):
         '''Load an image'''
@@ -175,7 +176,6 @@ class ImageLoaderBase(object):
                          (self.filename, len(self._data)))
 
         for count in range(len(self._data)):
-
             # first, check if a texture with the same name already exist in the
             # cache
             uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
