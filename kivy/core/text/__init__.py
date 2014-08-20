@@ -53,6 +53,16 @@ FONT_BOLD = 2
 FONT_BOLDITALIC = 3
 
 
+def set_default_font(fontname):
+    global DEFAULT_FONT
+    DEFAULT_FONT = fontname
+
+    from kivy.uix.label import Label
+    Label.font_name.defaultvalue = fontname
+    from kivy.uix.textinput import TextInput
+    TextInput.font_name.defaultvalue = fontname
+
+
 class LabelBase(object):
     '''Core text label.
     This is the abstract class used by different backends to render text.
@@ -135,12 +145,13 @@ class LabelBase(object):
 
     _texture_1px = None
 
-    def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
+    def __init__(self, text='', font_size=12, font_name=None,
                  bold=False, italic=False, halign='left', valign='bottom',
                  shorten=False, text_size=None, mipmap=False, color=None,
                  line_height=1.0, strip=False, shorten_from='center',
                  split_str=' ', **kwargs):
 
+        font_name = font_name or DEFAULT_FONT
         options = {'text': text, 'font_size': font_size,
                    'font_name': font_name, 'bold': bold, 'italic': italic,
                    'halign': halign, 'valign': valign, 'shorten': shorten,
@@ -228,9 +239,14 @@ class LabelBase(object):
             filename = resource_find(fontname)
             if filename is None:
                 # XXX for compatibility, check directly in the data dir
+                if '.' not in fontname:
+                    fontname += '.ttf'
                 filename = os.path.join(kivy_data_dir, fontname)
                 if not os.path.exists(filename):
-                    raise IOError('Label: File %r not found' % fontname)
+                    filename = os.path.join(kivy_data_dir, 'fonts', fontname)
+                    print filename
+                    if not os.path.exists(filename):
+                        raise IOError('Label: File %r not found' % fontname)
             fontscache[fontname] = filename
             options['font_name_r'] = filename
 

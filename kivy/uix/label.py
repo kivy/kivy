@@ -157,6 +157,7 @@ __all__ = ('Label', )
 from functools import partial
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
+from kivy.core import text as core_text
 from kivy.core.text import Label as CoreLabel
 from kivy.core.text.markup import MarkupLabel as CoreMarkupLabel
 from kivy.properties import StringProperty, OptionProperty, \
@@ -344,7 +345,7 @@ class Label(Widget):
     defaults to (None, None), meaning no size restriction by default.
     '''
 
-    font_name = StringProperty('DroidSans')
+    font_name = StringProperty(core_text.DEFAULT_FONT)
     '''Filename of the font to use. The path can be absolute or relative.
     Relative paths are resolved by the :func:`~kivy.resources.resource_find`
     function.

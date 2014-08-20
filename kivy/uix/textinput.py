@@ -152,6 +152,7 @@ from kivy.logger import Logger
 from kivy.metrics import inch
 from kivy.utils import boundary, platform
 
+from kivy.core import text as core_text
 from kivy.core.text import Label
 from kivy.graphics import Color, Rectangle
 from kivy.graphics.texture import Texture
@@ -2516,7 +2517,7 @@ class TextInput(Widget):
     :attr:`text` a :class:`~kivy.properties.StringProperty`.
     '''
 
-    font_name = StringProperty('DroidSans')
+    font_name = StringProperty(core_text.DEFAULT_FONT)
     '''Filename of the font to use. The path can be absolute or relative.
     Relative paths are resolved by the :func:`~kivy.resources.resource_find`
     function.
