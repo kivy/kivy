@@ -1206,14 +1206,15 @@ cdef class SmoothLine(Line):
         VertexInstruction.__init__(self, **kwargs)
         self._owidth = kwargs.get("overdraw_width") or 1.2
         self.batch.set_mode("triangles")
-        self.texture = self.premultiplied_texture()
+        self.load_texture()
 
-    def premultiplied_texture(self):
+    def load_texture(self, *args):
         cdef bytes GRADIENT_DATA = (
             b"\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00")
         texture = Texture.create(size=(4, 1), colorfmt="rgba")
         texture.blit_buffer(GRADIENT_DATA, colorfmt="rgba")
-        return texture
+        texture.add_reload_observer(self.load_texture)
+        self.texture = texture
 
     cdef void build(self):
         if self._mode == LINE_MODE_ELLIPSE:
