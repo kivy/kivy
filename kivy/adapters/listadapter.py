@@ -257,15 +257,14 @@ class ListAdapter(Adapter, EventDispatcher):
 
         return view_instance
 
-    def on_selection_change(self, *args):
+    def on_selection_change(self, adapter):
         '''on_selection_change() is the default handler for the
-        on_selection_change event.
+        on_selection_change event. You can bind to this event to get notified
+        of selection changes.
         
         :Parameters:
-            view: :class:`~kivy.uix.listview.ListView` or subclass
-                The instance of the listview displaying the items
-            viewlist: :class:`~kivy.uix.listview.SelectableView` or subclass
-                The list of items in the view
+            adapter: :class:`~ListAdapter` or subclass
+                The instance of the list adapter where the selection changed
         '''
         pass
 
