@@ -1213,7 +1213,11 @@ cdef class SmoothLine(Line):
             b"\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00")
         texture = Texture.create(size=(4, 1), colorfmt="rgba")
         texture.blit_buffer(GRADIENT_DATA, colorfmt="rgba")
+        texture.add_reload_observer(self.reload_texture)
         return texture
+
+    def reload_texture(self, *args):
+        self.texture = self.premultiplied_texture()
 
     cdef void build(self):
         if self._mode == LINE_MODE_ELLIPSE:
