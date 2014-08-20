@@ -178,7 +178,7 @@ class Label(Widget):
                         'halign', 'valign', 'padding_x', 'padding_y',
                         'text_size', 'shorten', 'mipmap', 'markup',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
-                        'split_str')
+                        'split_str', 'bidi')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -575,6 +575,15 @@ class Label(Widget):
 
     :attr:`split_str` is a :class:`~kivy.properties.StringProperty` and
     defaults to `''` (the empty string).
+    '''
+
+    bidi = BooleanProperty(None, allownone=True)
+    '''Whether to treat text as bi-directional (if supported).
+    
+    .. versionadded:: 1.9.0
+    
+    :attr:`bidi` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to the :class:`~kivy.config.Config` setting.
     '''
 
     markup = BooleanProperty(False)

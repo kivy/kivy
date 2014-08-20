@@ -216,6 +216,17 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted
     arguments.
 
+:i18n:
+
+    `bidi`: int, 0 or 1
+        Support bi-directional text by default on all widgets subclassing
+        :class:`~kivy.uix.label.Label` or
+        :class:`~kivy.uix.textinput.TextInput`, if supported. Support can
+        still be toggled for an individual widget, regardless of this setting.
+
+.. versionchanged:: 1.9.0
+    `i18n` section added.
+
 .. versionchanged:: 1.8.0
     `systemanddock` and `systemandmulti` has been added as possible values for
     `keyboard_mode` in the kivy section. `exit_on_escape` has been added
@@ -255,7 +266,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 10
+KIVY_CONFIG_VERSION = 11
 
 Config = None
 '''Kivy configuration object. Its :attr:`~kivy.config.ConfigParser.name` is
@@ -718,6 +729,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 9:
             Config.setdefault('kivy', 'exit_on_escape', '1')
+
+        elif version == 10:
+            Config.adddefaultsection('i18n')
+            Config.setdefault('i18n', 'bidi', '0')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
