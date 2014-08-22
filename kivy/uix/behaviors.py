@@ -681,7 +681,8 @@ class FocusBehavior(object):
     defaults to 'auto'. Can be one of 'auto' or 'managed'.
     '''
 
-    unfocus_on_touch = BooleanProperty(_keyboard_mode not in ('multi', 'systemandmulti'))
+    unfocus_on_touch = BooleanProperty(_keyboard_mode not in
+                                       ('multi', 'systemandmulti'))
     '''Whether a instance should lose focus when clicked outside the instance.
 
     When a user clicks on a widget that is focus aware and shares the same
@@ -773,11 +774,10 @@ class FocusBehavior(object):
             return True
         if (not self.disabled and self.is_focusable and
             ('button' not in touch.profile or
-             not touch.button.startswith('scroll')) and
-            self.collide_point(*touch.pos)):
+             not touch.button.startswith('scroll'))):
             self.focused = True
             FocusBehavior._processed_touches.append(touch)
-            return True
+            return False
 
     @staticmethod
     def _handle_post_on_touch_up(touch):
