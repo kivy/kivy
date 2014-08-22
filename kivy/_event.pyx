@@ -15,7 +15,7 @@ handlers.
     defines the methods required to create a bindable object.
 '''
 
-__all__ = ('EventDispatcher', 'ObjectWithUid')
+__all__ = ('EventDispatcher', 'ObjectWithUid', 'Observable')
 
 
 from functools import partial
