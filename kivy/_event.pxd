@@ -5,7 +5,7 @@ cdef class ObjectWithUid(object):
 
 
 cdef class Observable(ObjectWithUid):
-    pass
+    cdef object __fast_bind_mapping
 
 
 cdef class EventDispatcher(Observable):
