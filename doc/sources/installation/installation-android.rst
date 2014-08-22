@@ -3,40 +3,14 @@
 Installation on Android
 =======================
 
-Please note that Kivy is a framework. Installing Kivy itself on your phone will do
-absolutely nothing. Kivy is not an application.
+Kivy is a Python framework, and simply installing it on an Android
+device the same way as on a desktop machine will do nothing. However,
+you can compile a Kivy application to a standard Android APK that will
+run just like a normal java app on (more or less) any device.
 
-That said, we provide a "launcher" that allows you to push
-your Kivy application onto your phone and execute it through a simple interface.
-Instructions for packaging your Kivy app as a standalone application
-can be found in the programming guide under
-:doc:`Create a package for Android </guide/packaging-android>`.
-
-To install the Kivy launcher, you must:
-
-#. Go to the `Kivy Launcher <https://market.android.com/details?id=org.kivy.pygame>`_
-   on the Google Play Store
-#. Click on Install
-#. Select your phone... And you're done!
-
-If you don't have access to the Google Play Store on your phone/tablet,
-you can download and install the APK manually from  http://kivy.org/#download.
-
-Once the Kivy laucher is installed, you can put your Kivy applications in the Kivy
-directory on the SD Card. The launcher will then automatically detect and display
-them in its menu, provided you have
-:ref:`packaged them correctly <Packaging your application for Kivy Launcher>`.
-
-Refer to :ref:`android` for a more detailed explanation.
-
-Installation of Examples
-------------------------
-
-#. Download the `Kivy demos for Android <http://kivy.googlecode.com/files/kivydemo-for-android.zip>`_
-#. Unzip the contents and go to the folder `kivydemo-for-android`
-#. Copy all the the subfolders here to
-
-    /sdcard/kivy
-
-#. Run the launcher and select one of the Pictures, Showcase, Touchtracer, Cymunk or other demos...
-
+We provide several different tools to help you run code on an Android
+device, covered fully in the :doc:`Android packaging documentation
+</guide/packaging-android>`. These include creating a fully standalone APK
+that may be released on an Android store, as well as the ability to
+run your Kivy apps without a compilation step using our pre-prepared
+Kivy Launcher app.

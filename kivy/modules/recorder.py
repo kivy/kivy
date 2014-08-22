@@ -37,7 +37,8 @@ For normal module usage, please see the :mod:`~kivy.modules` documentation.
 
 '''
 
-from kivy.input.recorder import Recorder
+__all__ = ('start', 'stop')
+
 from kivy.logger import Logger
 from functools import partial
 
@@ -86,6 +87,7 @@ def start(win, ctx):
     if value is not None:
         keys['filename'] = value
 
+    from kivy.input.recorder import Recorder
     ctx.recorder = Recorder(window=win, **keys)
     win.bind(on_key_down=partial(on_recorder_key, ctx.recorder))
 

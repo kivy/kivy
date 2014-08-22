@@ -4,10 +4,12 @@ Context management
 
 .. versionadded:: 1.2.0
 
-This class manages a registry of all the created graphics instructions. It has
+This class manages a registry of all created graphics instructions. It has
 the ability to flush and delete them.
 
-You can read more about it at :doc:`api-kivy.graphics`
+You can read more about Kivy graphics contexts in the :doc:`api-kivy.graphics`
+module documentation. These are based on
+`OpenGL graphics contexts <http://www.opengl.org/wiki/OpenGL_Context>`_.
 '''
 
 __all__ = ('Context',)

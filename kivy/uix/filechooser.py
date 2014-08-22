@@ -435,20 +435,27 @@ class FileChooserController(FloatLayout):
             'button' in touch.profile and touch.button in (
                 'scrollup', 'scrolldown', 'scrollleft', 'scrollright')):
             return False
+
+        _dir = self.file_system.is_dir(entry.path)
+        dirselect = self.dirselect
+
+        if _dir and dirselect and touch.is_double_tap:
+            self.open_entry(entry)
+            return
+
         if self.multiselect:
-            if self.file_system.is_dir(entry.path) and touch.is_double_tap:
-                self.open_entry(entry)
+            if entry.path in self.selection:
+                self.selection.remove(entry.path)
             else:
-                if entry.path in self.selection:
-                    self.selection.remove(entry.path)
-                else:
-                    self.selection.append(entry.path)
+                if _dir and not self.dirselect:
+                    self.open_entry(entry)
+                    return
+                self.selection.append(entry.path)
         else:
-            if self.file_system.is_dir(entry.path):
-                if self.dirselect:
-                    self.selection = [entry.path, ]
-            else:
-                self.selection = [entry.path, ]
+            if _dir and not self.dirselect:
+                self.open_entry
+                return
+            self.selection = [entry.path, ]
 
     def entry_released(self, entry, touch):
         '''(internal) This method must be called by the template when an entry
@@ -545,6 +552,9 @@ class FileChooserController(FloatLayout):
                 self._gitems.append(item)
                 count += 1
             except StopIteration:
+                finished = True
+                break
+            except TypeError:  # in case _gitems_gen is None
                 finished = True
                 break
 

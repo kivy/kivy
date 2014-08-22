@@ -13,7 +13,7 @@ accuracy of text rendering may vary.
     width <= 1.
 
 This is the backend layer for getting text out of different text providers,
-you should only be using this directly if your needs aren't fulfilled by
+you should only be using this directly if your needs aren't fulfilled by the
 :class:`~kivy.uix.label.Label`.
 
 Usage example::
@@ -24,9 +24,9 @@ Usage example::
     ...
     my_label = CoreLabel()
     my_label.text = 'hello'
-    # label is usully not drawn till absolutely needed, force it to draw.
+    # the label is usually not drawn until needed, so force it to draw.
     my_label.refresh()
-    # Now access the texture of the label and use it where ever,
+    # Now access the texture of the label and use it wherever and
     # however you may please.
     hello_texture = my_label.texture
 
@@ -540,7 +540,7 @@ class LabelBase(object):
             h = uh
         if h > 1 and w < 2:
             w = 2
-        return w, h
+        return int(w), int(h)
 
     def _texture_refresh(self, *l):
         self.refresh()

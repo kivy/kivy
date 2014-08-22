@@ -96,6 +96,60 @@ For prettier rendering, you could add a color for the reference. Replace the
 
     'Hello [ref=world][color=0000ff]World[/color][/ref]'
 
+Usage example
+-------------
+
+The following example marks the anchors and references contained in a label::
+
+    from kivy.app import App
+    from kivy.uix.label import Label
+    from kivy.clock import Clock
+    from kivy.graphics import Color, Rectangle
+
+
+    class TestApp(App):
+
+        @staticmethod
+        def get_x(label, ref_x):
+            """ Return the x value of the ref/anchor relative to the canvas """
+            return label.center_x - label.texture_size[0] * 0.5 + ref_x
+
+        @staticmethod
+        def get_y(label, ref_y):
+            """ Return the y value of the ref/anchor relative to the canvas """
+            # Note the inversion of direction, as y values start at the top of
+            # the texture and increase downwards
+            return label.center_y + label.texture_size[1] * 0.5 - ref_y
+
+        def show_marks(self, label):
+
+            # Indicate the position of the anchors with a red top marker
+            for name, anc in label.anchors.items():
+                with label.canvas:
+                    Color(1, 0, 0)
+                    Rectangle(pos=(self.get_x(label, anc[0]),
+                                   self.get_y(label, anc[1])),
+                              size=(3, 3))
+
+            # Draw a green surround around the refs. Note the sizes y inversion
+            for name, boxes in label.refs.items():
+                for box in boxes:
+                    with label.canvas:
+                        Color(0, 1, 0, 0.25)
+                        Rectangle(pos=(self.get_x(label, box[0]),
+                                       self.get_y(label, box[1])),
+                                  size=(box[2] - box[0],
+                                        box[1] - box[3]))
+
+        def build(self):
+            label = Label(
+                text='[anchor=a]a\\nChars [anchor=b]b\\n[ref=myref]ref[/ref]',
+                markup=True)
+            Clock.schedule_once(lambda dt: self.show_marks(label), 1)
+            return label
+
+    TestApp().run()
+
 '''
 
 __all__ = ('Label', )
@@ -182,12 +236,16 @@ class Label(Widget):
         After this function call, the :attr:`texture` and :attr:`texture_size`
         will be updated in this order.
         '''
+        mrkup = self._label.__class__ is CoreMarkupLabel
         self.texture = None
+
         if (not self._label.text or (self.halign[-1] == 'y' or self.strip) and
             not self._label.text.strip()):
             self.texture_size = (0, 0)
+            if mrkup:
+                self.refs, self._label._refs = {}, {}
+                self.anchors, self._label._anchors = {}, {}
         else:
-            mrkup = self._label.__class__ is CoreMarkupLabel
             if mrkup:
                 text = self._label.text
                 # we must strip here, otherwise, if the last line is empty,
@@ -202,7 +260,6 @@ class Label(Widget):
                 # force the rendering to get the references
                 if self._label.texture:
                     self._label.texture.bind()
-                self._label.text = text
                 self.refs = self._label.refs
                 self.anchors = self._label.anchors
             else:
@@ -480,6 +537,10 @@ class Label(Widget):
     without an appropriately set :attr:`text_size` will lead to unexpected
     results.
 
+    :attr:`shorten_from` and :attr:`split_str` control the direction from
+    which the :attr:`text` is split, as well as where in the :attr:`text` we
+    are allowed to split.
+
     :attr:`shorten` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
     '''
@@ -501,7 +562,7 @@ class Label(Widget):
     defaults to `center`.
     '''
 
-    split_str = StringProperty(' ')
+    split_str = StringProperty('')
     '''The string used to split the :attr:`text` while shortening the string
     when :attr:`shorten` is True.
 
@@ -513,7 +574,7 @@ class Label(Widget):
     .. versionadded:: 1.8.1
 
     :attr:`split_str` is a :class:`~kivy.properties.StringProperty` and
-    defaults to `' '` (single space).
+    defaults to `''` (the empty string).
     '''
 
     markup = BooleanProperty(False)
@@ -538,13 +599,18 @@ class Label(Widget):
 
     For example, if you wrote::
 
-        Check out my [ref=hello]link[/hello]
+        Check out my [ref=hello]link[/ref]
 
     The refs will be set with::
 
         {'hello': ((64, 0, 78, 16), )}
 
-    You know that the reference "hello" has a bounding box at (x1, y1, x2, y2).
+    The references marked "hello" have a bounding box at (x1, y1, x2, y2).
+    These co-ordinates are relative to the top left corner of the text, with
+    the y value increasing downwards. You can define multiple refs with the same
+    name: each occurence will be added as another (x1, y1, x2, y2) tuple to
+    this list.
+
     The current Label implementation uses these references if they exist in
     your markup text, automatically doing the collision with the touch and
     dispatching an `on_ref_press` event.
@@ -567,6 +633,10 @@ class Label(Widget):
     .. versionadded:: 1.1.0
 
     Position of all the ``[anchor=xxx]`` markup in the text.
+    These co-ordinates are relative to the top left corner of the text, with
+    the y value increasing downwards. Anchors names should be unique and only
+    the first occurence of any duplicate anchors will be recorded.
+    
 
     You can place anchors in your markup text as follows::
 

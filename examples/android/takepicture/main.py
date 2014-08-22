@@ -29,11 +29,13 @@ from kivy.clock import Clock
 from kivy.uix.scatter import Scatter
 from kivy.properties import StringProperty
 
+from PIL import Image
 
 Intent = autoclass('android.content.Intent')
 PythonActivity = autoclass('org.renpy.android.PythonActivity')
 MediaStore = autoclass('android.provider.MediaStore')
 Uri = autoclass('android.net.Uri')
+Environment = autoclass('android.os.Environment') 
 
 
 class Picture(Scatter):
@@ -48,9 +50,10 @@ class TakePictureApp(App):
     def get_filename(self):
         while True:
             self.index += 1
-            fn = '/sdcard/takepicture{}.png'.format(self.index)
+            fn = Environment.getExternalStorageDirectory().getPath()+'/takepicture{}.jpg'.format(self.index)
             if not exists(fn):
                 return fn
+            
 
     def take_picture(self):
         intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -59,16 +62,20 @@ class TakePictureApp(App):
         self.uri = cast('android.os.Parcelable', self.uri)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, self.uri)
         PythonActivity.mActivity.startActivityForResult(intent, 0x123)
-
+        
     def on_activity_result(self, requestCode, resultCode, intent):
         if requestCode == 0x123:
             Clock.schedule_once(partial(self.add_picture, self.last_fn), 0)
 
     def add_picture(self, fn, *args):
+        im = Image.open(fn)
+        width, height = im.size
+        im.thumbnail( (width/4,height/4) , Image.ANTIALIAS)
+        im.save(fn,quality=95)
         self.root.add_widget(Picture(source=fn, center=self.root.center))
+
 
     def on_pause(self):
         return True
 
 TakePictureApp().run()
-

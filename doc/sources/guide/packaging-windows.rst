@@ -8,6 +8,10 @@ package of Kivy.
 The package will be either 32 or 64 bits depending on which version of Python
 you ran it with.
 
++-------------------------------------------------------------------------------------------------------------------+
+| NOTE: Currently, packages for Windows can only be generated with Python 2.7. Python 3.3+ support is on the way... |
++-------------------------------------------------------------------------------------------------------------------+
+
 .. _packaging-windows-requirements:
 
 Requirements
@@ -22,7 +26,7 @@ Create the spec file
 --------------------
 
 For this example, we'll package the touchtracer example and embed a custom icon.
-The touchtracer example is the `kivy\examples\demo\touchtracer` directory and
+The touchtracer example is the `kivy\\examples\\demo\\touchtracer` directory and
 the main file is named `main.py`.
 
 #. Double click on the Kivy.bat and a console will open.
@@ -76,8 +80,7 @@ Build the spec
     cd pyinstaller-2.1
     python pyinstaller.py touchtracer\touchtracer.spec
 
-#. The package will be in the `touchtracer\dist\touchtracer` directory.
-
+#. The package will be in the `touchtracer\\dist\\touchtracer` directory.
 
 Including Gstreamer
 -------------------

@@ -34,10 +34,11 @@ This module includes all the classes for drawing simple vertex objects.
                 self.triangle.points[3] = 400
 
     Although when the button is pressed the triangle coordinates will be
-    changed, the graphics will not be updated because the list itself is not
-    changed. Similarly, no updates will occur if syntax e.g
-    self.triangle.points[0:2] = [10,10] or self.triangle.points.insert(10) etc.
-    is used. To force an update after a change, the list variable itself must be
+    changed, the graphics will not be updated because the list itself has not
+    been changed. Similarly, no updates will occur using any syntax that changes
+    only elements of the list e.g. self.triangle.points[0:2] = [10,10] or
+    self.triangle.points.insert(10) etc.
+    To force an update after a change, the list variable itself must be
     changed, which in this case can be achieved with:
 
     .. code-block:: kv
@@ -50,7 +51,7 @@ This module includes all the classes for drawing simple vertex objects.
 '''
 
 __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
-           'Point', 'Mesh', 'GraphicException', 'Bezier')
+           'Point', 'Mesh', 'GraphicException', 'Bezier', 'SmoothLine')
 
 
 include "config.pxi"
@@ -214,7 +215,7 @@ cdef class Bezier(VertexInstruction):
         .. warning::
 
             This will always reconstruct the whole graphic from the new points
-            list. It can be very CPU expensive.
+            list. It can be very CPU intensive.
         '''
         def __get__(self):
             return self._points
@@ -849,7 +850,8 @@ cdef class BorderImage(Rectangle):
 cdef class Ellipse(Rectangle):
     '''A 2D ellipse.
 
-    .. versionadded:: 1.0.7
+    .. versionchanged:: 1.0.7
+
         Added angle_start and angle_end.
 
     :Parameters:

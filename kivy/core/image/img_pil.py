@@ -18,15 +18,15 @@ class ImageLoaderPIL(ImageLoaderBase):
 
     .. versionadded:: 1.0.8
 
-        Support for GIF animation added.
+    Support for GIF animation added.
 
-        Gif animation has a lot of issues(transparency/color depths... etc).
-        In order to keep it simple, what is implimented here is what is
-        natively supported by the PIL library.
+    Gif animation has a lot of issues(transparency/color depths... etc).
+    In order to keep it simple, what is implimented here is what is
+    natively supported by the PIL library.
 
-        As a general rule, try to use gifs that have no transparency.
-        Gif's with transparency will work but be prepared for some
-        artifacts until transparency support is improved.
+    As a general rule, try to use gifs that have no transparency.
+    Gif's with transparency will work but be prepared for some
+    artifacts until transparency support is improved.
 
     '''
 
@@ -72,7 +72,8 @@ class ImageLoaderPIL(ImageLoaderBase):
             while True:
                 img_tmp = im
                 img_tmp = self._img_correct(img_tmp)
-                if img_ol:
+                bg = im.info.get('background', 0) == 0
+                if bg and img_ol:
                     # paste new frame over old so as to handle
                     # transparency properly
                     img_ol.paste(img_tmp, (0, 0), img_tmp)

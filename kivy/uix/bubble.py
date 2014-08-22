@@ -69,6 +69,7 @@ from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
     ListProperty, BooleanProperty
 from kivy.clock import Clock
 from kivy.base import EventLoop
+from kivy.metrics import dp
 
 
 class BubbleButton(Button):
@@ -179,6 +180,7 @@ class Bubble(GridLayout):
             keep_ratio=False, color=self.background_color)
         self.background_texture = self._bk_img.texture
         self._arrow_img = Image(source=self.arrow_image,
+                                allow_stretch=True,
                                 color=self.background_color)
         self.content = content = BubbleContent(parent=self)
         super(Bubble, self).__init__(**kwargs)
@@ -278,7 +280,7 @@ class Bubble(GridLayout):
         self_content.parent = None
 
         self_arrow_img.size_hint = (1, None)
-        self_arrow_img.height = self_arrow_img.texture_size[1]
+        self_arrow_img.height = dp(self_arrow_img.texture_size[1])
         self_arrow_img.pos = 0, 0
         widget_list = []
         arrow_list = []

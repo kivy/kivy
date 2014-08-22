@@ -85,4 +85,3 @@ distclean: clean
 
 theming:
 	$(PYTHON) -m kivy.atlas kivy/data/images/defaulttheme 512 kivy/tools/theming/defaulttheme/*.png
-

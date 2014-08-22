@@ -235,6 +235,9 @@ immediately previous multiple of `kivy-indent-offset' spaces."
   (setq imenu-generic-expression kivy-imenu-generic-expression))
 
 (add-hook 'kivy-mode-hook 'kivy-set-imenu-generic-expression)
+(add-hook 'kivy-mode-hook
+          '(lambda ()
+             (setq indent-tabs-mode 'nil)))
 
 
 (defun kivy-mode-version ()

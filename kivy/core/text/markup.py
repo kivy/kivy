@@ -66,6 +66,7 @@ class MarkupLabel(MarkupLabelBase):
     def __init__(self, *largs, **kwargs):
         self._style_stack = {}
         self._refs = {}
+        self._anchors = {}
         super(MarkupLabel, self).__init__(*largs, **kwargs)
         self._internal_size = 0, 0
         self._cached_lines = []
@@ -133,6 +134,7 @@ class MarkupLabel(MarkupLabelBase):
         spop = self._pop_style
         opts = options = self.options
         options['_ref'] = None
+        options['_anchor'] = None
         options['script'] = 'normal'
         shorten = options['shorten']
         # if shorten, then don't split lines to fit uw, because it will be
@@ -209,12 +211,7 @@ class MarkupLabel(MarkupLabelBase):
             elif item == '[/ref]':
                 spop('_ref')
             elif not clipped and item[:8] == '[anchor=':
-                ref = item[8:-1]
-                if len(lines):
-                    x, y = lines[-1].x, lines[-1].y
-                else:
-                    x = y = 0
-                self._anchors[ref] = x, y
+                options['_anchor'] = item[8:-1]
             elif not clipped:
                 item = item.replace('&bl;', '[').replace(
                     '&br;', ']').replace('&amp;', '&')
@@ -233,6 +230,7 @@ class MarkupLabel(MarkupLabelBase):
 
         if shorten:
             options['_ref'] = None  # no refs for you!
+            options['_anchor'] = None
             w, h, lines = self.shorten_post(lines, w, h)
             self._cached_lines = lines
         # when valign is not top, for markup we layout everything (text_size[1]
@@ -366,7 +364,7 @@ class MarkupLabel(MarkupLabelBase):
             w = 1
         if h < 1:
             h = 1
-        return w, h
+        return int(w), int(h)
 
     def _real_render(self):
         lines = self._cached_lines
@@ -392,6 +390,7 @@ class MarkupLabel(MarkupLabelBase):
         halign = options['halign']
         valign = options['valign']
         refs = self._refs
+        anchors = self._anchors
         self._render_begin()
 
         if valign == 'bottom':
@@ -433,6 +432,12 @@ class MarkupLabel(MarkupLabelBase):
                     if not ref in refs:
                         refs[ref] = []
                     refs[ref].append((x, y, x + word.lw, y + word.lh))
+
+                # Should we record anchors?
+                anchor = options['_anchor']
+                if anchor is not None:
+                    if not anchor in anchors:
+                       anchors[anchor] = (x, y)
                 x += word.lw
             y += lh
 

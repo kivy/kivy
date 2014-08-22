@@ -113,7 +113,8 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties import (StringProperty, ObjectProperty, ListProperty,
                              NumericProperty, DictProperty)
 from kivy.graphics import (RenderContext, Fbo, Color, Rectangle,
-                           Translate, PushMatrix, PopMatrix, ClearColor, ClearBuffers)
+                           Translate, PushMatrix, PopMatrix, ClearColor,
+                           ClearBuffers)
 from kivy.event import EventDispatcher
 from kivy.base import EventLoop
 from kivy.resources import resource_find
@@ -176,14 +177,14 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 effect_invert = '''
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {
-    return vec4(1.0 - color.xyz, 1.0);
+    return vec4(1.0 - color.xyz, color.w);
 }
 '''
 
 effect_mix = '''
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {{
-    return vec4(color.{}, color.{}, color.{}, 1.0);
+    return vec4(color.{}, color.{}, color.{}, color.w);
 }}
 '''
 
@@ -210,7 +211,7 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
                      * 0.09;
     sum += texture2D(texture, vec2(tex_coords.x + 4.0*dt, tex_coords.y))
                      * 0.05;
-    return sum;
+    return vec4(sum.xyz, color.w);
 }}
 '''
 
@@ -238,7 +239,7 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
                      * 0.09;
     sum += texture2D(texture, vec2(tex_coords.x, tex_coords.y + 4.0*dt))
                      * 0.05;
-    return sum;
+    return vec4(sum.xyz, color.w);
 }}
 '''
 
@@ -268,7 +269,7 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
     float comp = smoothstep( 0.2, 0.7, sin(time) );
     //col = mix( col, oricol, clamp(-2.0+2.0*q.x+3.0*comp,0.0,1.0) );
 
-    return vec4(col,1.0);
+    return vec4(col, color.w);
 }
 '''
 
@@ -593,11 +594,12 @@ class EffectWidget(RelativeLayout):
     setting effects and creating your own.
     '''
 
-    background_color = ListProperty((1, 1, 1, 1))
+    background_color = ListProperty((0, 0, 0, 1))
     '''This defines the background color to be used for the fbo in the
     EffectWidget.
 
-    :attr:`background_color` is a :class:`ListProperty` defaults to (1, 1, 1, 1)
+    :attr:`background_color` is a :class:`ListProperty` defaults to
+    (0, 0, 0, 1)
     '''
 
     texture = ObjectProperty(None)
@@ -642,11 +644,10 @@ class EffectWidget(RelativeLayout):
 
         with self.fbo.before:
             PushMatrix()
-            self.fbo_translation = Translate(-self.x, -self.y, 0)
         with self.fbo:
-            ClearColor(1, 1, 1, 1)
-            Color(*self.background_color)
+            ClearColor(0, 0, 0, 0)
             ClearBuffers()
+            self._background_color = Color(*self.background_color)
             self.fbo_rectangle = Rectangle(size=self.size)
         with self.fbo.after:
             PopMatrix()
@@ -655,17 +656,15 @@ class EffectWidget(RelativeLayout):
 
         Clock.schedule_interval(self._update_glsl, 0)
 
-        self.bind(pos=self._update_translation,
-                  size=self.refresh_fbo_setup,
-                  effects=self.refresh_fbo_setup)
+        self.bind(size=self.refresh_fbo_setup,
+                  effects=self.refresh_fbo_setup,
+                  background_color=self._refresh_background_color)
 
         self.refresh_fbo_setup()
+        self._refresh_background_color()  # In case thi was changed in kwargs
 
-    def _update_translation(self, *args):
-        '''(internal) Makes sure everything is translated correctly to
-        appear in the fbo.'''
-        self.fbo_translation.x = -self.x
-        self.fbo_translation.y = -self.y
+    def _refresh_background_color(self, *args):
+        self._background_color.rgba = self.background_color
 
     def _update_glsl(self, *largs):
         '''(internal) Passes new time and resolution uniform
@@ -689,9 +688,9 @@ class EffectWidget(RelativeLayout):
             with self.canvas:
                 new_fbo = EffectFbo(size=self.size)
             with new_fbo:
-                ClearColor(1, 1, 1, 1)
-                Color(*self.background_color)
+                ClearColor(0, 0, 0, 0)
                 ClearBuffers()
+                Color(1, 1, 1, 1)
                 new_fbo.texture_rectangle = Rectangle(size=self.size)
 
                 new_fbo.texture_rectangle.size = self.size

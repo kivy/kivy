@@ -294,6 +294,16 @@ class ScrollView(StencilView):
     to [.7, .7, .7, .9].
     '''
 
+    bar_inactive_color = ListProperty([.7, .7, .7, .2])
+    '''Color of horizontal / vertical scroll bar (in RGBA format), when no
+    scroll is happening.
+
+    .. versionadded:: 1.8.1
+
+    :attr:`bar_inactive_color` is a
+    :class:`~kivy.properties.ListProperty` and defaults to [.7, .7, .7, .2].
+    '''
+
     bar_width = NumericProperty('2dp')
     '''Width of the horizontal / vertical scroll bar. The width is interpreted
     as a height for the horizontal bar.
@@ -396,7 +406,7 @@ class ScrollView(StencilView):
     # private, for internal use only
 
     _viewport = ObjectProperty(None, allownone=True)
-    bar_alpha = NumericProperty(1.)
+    _bar_color = ListProperty([0, 0, 0, 0])
 
     def _set_viewport_size(self, instance, value):
         self.viewport_size = value
@@ -588,7 +598,7 @@ class ScrollView(StencilView):
                     e.velocity = 0
                 touch.ud[self._get_uid('svavoid')] = True
                 e.trigger_velocity_update()
-                return True
+            return True
 
         # no mouse scrolling, so the user is going to drag the scrollview with
         # this touch.
@@ -606,8 +616,10 @@ class ScrollView(StencilView):
 
         if self.do_scroll_x and self.effect_x and not ud['in_bar_x']:
             self.effect_x.start(touch.x)
+            self._scroll_x_mouse = self.scroll_x
         if self.do_scroll_y and self.effect_y and not ud['in_bar_y']:
             self.effect_y.start(touch.y)
+            self._scroll_y_mouse = self.scroll_y
 
         if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
             return
@@ -757,7 +769,6 @@ class ScrollView(StencilView):
             sy = 1
         return sx, sy
 
-
     def update_from_scroll(self, *largs):
         '''Force the reposition of the content, according to current value of
         :attr:`scroll_x` and :attr:`scroll_y`.
@@ -793,18 +804,23 @@ class ScrollView(StencilView):
         vp.pos = 0, 0
         self.g_translate.xy = x, y
 
-        # new in 1.2.0, show bar when scrolling happen
-        # and slowly remove them when no scroll is happening.
-        self.bar_alpha = 1.
-        Animation.stop_all(self, 'bar_alpha')
-        Clock.unschedule(self._start_decrease_alpha)
-        Clock.schedule_once(self._start_decrease_alpha, .5)
+        # New in 1.2.0, show bar when scrolling happens and (changed in 1.8.1)
+        # fade to bar_inactive_color when no scroll is happening.
+        Clock.unschedule(self._bind_inactive_bar_color)
+        self.unbind(bar_inactive_color=self._change_bar_color)
+        Animation.stop_all(self, '_bar_color')
+        self.bind(bar_color=self._change_bar_color)
+        self._bar_color = self.bar_color
+        Clock.schedule_once(self._bind_inactive_bar_color, .5)
 
-    def _start_decrease_alpha(self, *l):
-        self.bar_alpha = 1.
-        # show bars if scroll_type != content
-        bar_alpha = .2 if self.scroll_type != ['content'] else 0
-        Animation(bar_alpha=bar_alpha, d=.5, t='out_quart').start(self)
+    def _bind_inactive_bar_color(self, *l):
+        self.unbind(bar_color=self._change_bar_color)
+        self.bind(bar_inactive_color=self._change_bar_color)
+        Animation(
+            _bar_color=self.bar_inactive_color, d=.5, t='out_quart').start(self)
+
+    def _change_bar_color(self, inst, value):
+        self._bar_color = value
 
     #
     # Private
