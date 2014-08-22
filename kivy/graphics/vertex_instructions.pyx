@@ -359,6 +359,9 @@ cdef class Mesh(VertexInstruction):
         def __get__(self):
             return self._indices
         def __set__(self, value):
+            if len(value) > 65535:
+                raise GraphicException('Cannot upload more than 65535 indices'
+                                       '(OpenGL ES 2 limitation)')
             self._indices, self._lindices = _ensure_ushort_view(value,
                 &self._pindices)
             self.flag_update()
