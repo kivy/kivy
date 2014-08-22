@@ -19,6 +19,7 @@ __all__ = ('EventDispatcher', 'ObjectWithUid')
 
 
 from functools import partial
+from collections import defaultdict
 from kivy.weakmethod import WeakMethod
 from kivy.compat import string_types
 from kivy.properties cimport (Property, PropertyStorage, ObjectProperty,
@@ -63,6 +64,9 @@ cdef class Observable(ObjectWithUid):
     .. versionadded:: 1.8.2
     '''
 
+    def __cinit__(self, *largs, **kwargs):
+        self.__fast_bind_mapping = defaultdict(list)
+
     def bind(self, **kwargs):
         pass
 
@@ -70,10 +74,39 @@ cdef class Observable(ObjectWithUid):
         pass
 
     def fast_bind(self, name, func, *largs):
-        pass
+        '''See :meth:`EventDispatcher.fast_bind`.
+
+        .. note::
+
+            To keep backward compatibility with derived classes which may have
+            inherited from :class:`Observable` before
+            :meth:`fast_bind` was added, the default implementation
+            of :meth:`fast_bind` and :meth:`fast_unbind` is to create a partial
+            function that it passes to bind. However, :meth:`fast_unbind`
+            is fairly inefficient since we have to lookup this partial function
+            before we can call :meth:`unbind`. It is recommended to overwrite
+            these methods in derived classes to directly do binding for
+            better performance.
+        '''
+        f = partial(func, *largs)
+        self.__fast_bind_mapping[name].append(((func, largs), f))
+        self.bind(**{name: f})
 
     def fast_unbind(self, name, func, *largs):
-        pass
+        '''See :meth:`fast_bind`.
+        '''
+        cdef object f = None
+        cdef tuple item, val = (func, largs)
+        cdef list bound = self.__fast_bind_mapping[name]
+
+        for i, item in enumerate(bound):
+            if item[0] == val:
+                f = item[1]
+                del bound[i]
+                break
+
+        if f is not None:
+            self.unbind(**{name: f})
 
     property proxy_ref:
         def __get__(self):
