@@ -20,6 +20,11 @@ be available. For these, we recommend `Pygame <http://pygame.org>`_, `Gst-Python
 <http://www.gstreamer.net/modules/gst-python.html>`_ and `Enchant
 <http://www.rfk.id.au/software/pyenchant/>`_, respectively.
 
++--------------------------------------------------------------------------------------------------------------------------+
+| NOTE: Currently, packaging only works with Python 2.7. We are working on Python 3.3+ support, but for now if you plan to |
+| distribute your package on any platform you should use Python 2.7.                                                       |
++--------------------------------------------------------------------------------------------------------------------------+
+
 Other optional libraries (mutually independent) are:
 
     * `OpenCV 2.0 <http://sourceforge.net/projects/opencvlibrary/>`_ -- Camera input.
@@ -76,15 +81,15 @@ To install Kivy's dependencies, follow the guide below for your platform.
 Ubuntu
 ++++++
 
-For Ubuntu 12.04, simply enter the following command that will install all
-necessary packages::
+For Ubuntu 12.04 and above (tested to 14.04), simply enter the following command
+that will install all necessary packages::
 
     $ sudo apt-get install python-setuptools python-pygame python-opengl \
       python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
       build-essential libgl1-mesa-dev-lts-quantal libgles2-mesa-dev-lts-quantal\ 
       python-pip
 
-For other versions of Ubuntu, this one should work::
+For older versions of Ubuntu, this one should work::
 
     $ sudo apt-get install python-setuptools python-pygame python-opengl \
       python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \

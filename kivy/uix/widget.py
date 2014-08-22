@@ -88,8 +88,8 @@ for your widget, you can do the following::
         self.bg_rect.pos = self.pos
 
     widget = Widget()
-    with self.canvas:
-        self.bg_rect = Rectangle(source="cover.jpg", pos=self.pos, \
+    with widget.canvas:
+        widget.bg_rect = Rectangle(source="cover.jpg", pos=self.pos, \
 size=self.size)
     widget.bind(pos=redraw, size=redraw)
 
@@ -107,94 +107,49 @@ To draw a background in kv::
 These examples only scratch the surface. Please see the :mod:`kivy.graphics`
 documentation for more information.
 
-Widget event bubbling
----------------------
+.. _widget-event-bubbling:
 
-When you use the Kivy property changes to catch events, you sometimes
+Widget touch event bubbling
+---------------------------
+
+When you catch touch events between multiple widgets, you often
 need to be aware of the order in which these events are propogated. In Kivy,
 events bubble up from the most recently added widget and then backwards through
-it's children (from the most recently added back to the first child).
+it's children (from the most recently added back to the first child). This order
+is the same for the `on_touch_move` and `on_touch_up` events.
 
-In effect, this event model does not follow either of the conventional
-"bubble up" or "bubble down" approaches, but propogates events according to the
-natural order in which the widgets have been added. If you want to reverse this
-order, you can raise events in the children before the parent by using the
-`super` command.
+If you want to reverse this order, you can raise events in the children before
+the parent by using the `super` command. For example:
 
-Linguistically, this can be difficult to explain and sound complicated,
-but it's really quite simple. Lets look at an example. In our kv file::
+.. code-block:: python
 
-    <EventBubbler>:
-        Label:
-            text: '1'
-            on_touch_down: root.printme("label 1 on_touch_down")
-        Label:
-            text: '2'
-            on_touch_down: root.printme("label 2 on_touch_down")
-        BoxLayout:
-            on_touch_down: root.printme("BoxLayout on_touch_down")
-            Label:
-                text: '3'
-                on_touch_down: root.printme("label 3 on_touch_down")
-            Label:
-                text: '4'
-                on_touch_down: root.printme("label 4 on_touch_down")
-        MyBoxLayout:
-            # We use this class to demonsrate using 'super' to raise the child
-            # events first
-            Label:
-                text: '5'
-                on_touch_down: root.printme("label 5 on_touch_down")
-            Label:
-                text: '6'
-                on_touch_down: root.printme("label 6 on_touch_down")
-
-.. highlight:: python
-
-In your Python file::
-
-    from kivy.app import App
-    from kivy.lang import Builder
-    from kivy.uix.boxlayout import BoxLayout
-    from kivy.properties import StringProperty
-
-
-    class EventBubbler(BoxLayout):
-
-        @staticmethod
-        def printme(msg):
-            print msg
-
-
-    class MyBoxLayout(BoxLayout):
+    class MyWidget(Widget):
         def on_touch_down(self, touch):
-            print "Before super(MyBoxLayout, self).on_touch_down(touch)"
-            super(MyBoxLayout, self).on_touch_down(touch)
-            print "After super(MyBoxLayout, self).on_touch_down(touch)"
+            super(MyWidget, self).on_touch_down(touch)
+            # Do stuff here
 
+In general, this would seldom be the best approach as every event bubbles all
+the way through event time and there is no way of determining if it has been
+handled. In order to stop this the event bubbling, one of these methods must
+return `True`. At this point, Kivy assumes the event has been handled and
+propogation stops.
 
-    class BubbleApp(App):
-        def build(self):
-            return EventBubbler()
+This means that the recommended approach is to let the event bubble naturally
+but swallow the event if it has been handled. For example:
 
-    BubbleApp().run()
+.. code-block:: python
 
-This produces the following output::
+    class MyWidget(Widget):
+        def on_touch_down(self, touch):
+            if <some_condition>:
+                # Do stuff here and kill the event
+                return True
+            else:
+                # Continue normal event bubbling
+                return super(MyWidget, self).on_touch_down(touch)
 
-    >>> Before super(MyBoxLayout, self).on_touch_down(touch)
-    >>> label 6 on_touch_down
-    >>> label 5 on_touch_down
-    >>> After super(MyBoxLayout, self).on_touch_down(touch)
-    >>> BoxLayout on_touch_up
-    >>> label 4 on_touch_down
-    >>> label 3 on_touch_down
-    >>> label 2 on_touch_down
-    >>> label 1 on_touch_down
-
-This order is the same for the `on_touch_move` and `on_touch_up` events.
-Notice how using the `super` command raises the child events immediately
-when it is called. This approach gives you total control over the order in which
-Kivy's events are propogated.
+This approach gives you good control over exactly how events and dispatched
+and managed.
 
 '''
 
@@ -260,12 +215,12 @@ class Widget(WidgetBase):
         `on_touch_up`:
             Fired when an existing touch disappears
 
-    ..warning::
+    .. warning::
         Adding a `__del__` method to a class derived from Widget with python
-        prior to 3.4, will disable automatic garbage collection for instances
-        of that class. That is because Widget creates ref cycles, thereby
-        removing it from garbage collection as described
-        `here <https://docs.python.org/2/library/gc.html#gc.garbage>`_.
+        prior to 3.4 will disable automatic garbage collection for instances
+        of that class. This is because the Widget class creates reference
+        cycles, thereby `preventing garbage collection 
+        <https://docs.python.org/2/library/gc.html#gc.garbage>`_.
 
     .. versionchanged:: 1.0.9
         Everything related to event properties has been moved to the
@@ -359,6 +314,8 @@ class Widget(WidgetBase):
         :Returns:
             bool, True if the point is inside the bounding box.
 
+    .. code-block:: python
+
         >>> Widget(pos=(10, 10), size=(50, 50)).collide_point(40, 40)
         True
         '''
@@ -374,6 +331,8 @@ class Widget(WidgetBase):
 
         :Returns:
             bool, True if the other widget collides with this widget.
+
+    .. code-block:: python
 
         >>> wid = Widget(size=(50, 50))
         >>> wid2 = Widget(size=(50, 50), pos=(25, 25))
@@ -453,6 +412,8 @@ class Widget(WidgetBase):
                 Index to insert the widget in the list
 
                 .. versionadded:: 1.0.5
+            
+    .. code-block:: python
 
         >>> from kivy.uix.button import Button
         >>> from kivy.uix.slider import Slider
@@ -508,6 +469,8 @@ class Widget(WidgetBase):
         :Parameters:
             `widget`: :class:`Widget`
                 Widget to remove from our children list.
+    
+    .. code-block:: python
 
         >>> from kivy.uix.button import Button
         >>> root = Widget()
@@ -637,10 +600,10 @@ class Widget(WidgetBase):
         them.
 
         :Parameters:
-            `restrict`:
+            `restrict`: bool, defaults to False
                 If True, it will only iterate through the widget and its
                 children (or children of its children etc.). Defaults to False.
-            `loopback`:
+            `loopback`: bool, defaults to False
                 If True, when the last widget in the tree is reached,
                 it'll loop back to the uppermost root and start walking until
                 we hit this widget again. Naturally, it can only loop back when
@@ -660,7 +623,9 @@ class Widget(WidgetBase):
                     Button
                 Widget
 
-        walking this tree::
+        walking this tree:
+
+        .. code-block:: python
 
             >>> # Call walk on box with loopback True, and restrict False
             >>> [type(widget) for widget in box.walk(loopback=True)]
@@ -726,7 +691,7 @@ class Widget(WidgetBase):
         to the list generated with this, provided `loopback` is True.
 
         :Parameters:
-            `loopback`:
+            `loopback`: bool, defaults to False
                 If True, when the uppermost root in the tree is
                 reached, it'll loop back to the last widget and start walking
                 back until after we hit widget again. Defaults to False
@@ -745,7 +710,9 @@ class Widget(WidgetBase):
                     Button
                 Widget
 
-        walking this tree::
+        walking this tree:
+        
+        .. code-block:: python
 
             >>> # Call walk on box with loopback True
             >>> [type(widget) for widget in box.walk_reverse(loopback=True)]
@@ -828,7 +795,7 @@ class Widget(WidgetBase):
     width = NumericProperty(100)
     '''Width of the widget.
 
-    :attr:`width` is a :class:`~kivy.properties.NumericProperty` ans defaults
+    :attr:`width` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 100.
 
     .. warning::
@@ -1045,7 +1012,9 @@ class Widget(WidgetBase):
                 TextInput:
                     id: other_textinput
 
-    Then, in python::
+    Then, in python:
+
+    .. code-block:: python
 
         >>> widget = MyWidget()
         >>> print(widget.ids)
@@ -1074,7 +1043,9 @@ class Widget(WidgetBase):
     For example, if the parent has an opacity of 0.5 and a child has an
     opacity of 0.2, the real opacity of the child will be 0.5 * 0.2 = 0.1.
 
-    Then, the opacity is applied by the shader as::
+    Then, the opacity is applied by the shader as:
+
+    .. code-block:: python
 
         frag_color = color * vec4(1.0, 1.0, 1.0, opacity);
 
@@ -1107,9 +1078,11 @@ class Widget(WidgetBase):
     '''Indicates whether this widget can interact with input or not.
 
     .. note::
-        1. Child Widgets, when added to a disabled widget, will be disabled
-        automatically,
-        2. Disabling/enabling a parent disables/enables all it's children.
+    
+      1. Child Widgets, when added to a disabled widget, will be disabled
+         automatically.
+      2. Disabling/enabling a parent disables/enables all
+         of it's children.
 
     .. versionadded:: 1.8.0
 

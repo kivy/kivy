@@ -18,6 +18,10 @@ The overall process for creating a package for IOS can be explained in 4 steps:
 
 This process has been tested with Xcode 4.2.
 
++---------------------------------------------------------------------------------------------------------------+
+| NOTE: Currently, packages for iOS can only be generated with Python 2.7. Python 3.3+ support is on the way... |
++---------------------------------------------------------------------------------------------------------------+
+
 Prerequisites
 -------------
 

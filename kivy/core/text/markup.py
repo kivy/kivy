@@ -364,7 +364,7 @@ class MarkupLabel(MarkupLabelBase):
             w = 1
         if h < 1:
             h = 1
-        return w, h
+        return int(w), int(h)
 
     def _real_render(self):
         lines = self._cached_lines

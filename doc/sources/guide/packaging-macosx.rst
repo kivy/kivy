@@ -8,6 +8,10 @@ MacOSX 10.6, using the portable package of Kivy.
 The package will only work for the 64 bit MacOSX. We no longer support 32 bit
 MacOSX platforms.
 
++---------------------------------------------------------------------------------------------------------------+
+| NOTE: Currently, packages for OSX can only be generated with Python 2.7. Python 3.3+ support is on the way... |
++---------------------------------------------------------------------------------------------------------------+
+
 .. _mac_osx_requirements:
 
 Requirements

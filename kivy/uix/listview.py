@@ -537,7 +537,7 @@ in Kivy, we can build a wide range of user interface designs.
 We could make data items that contain the names of dog breeds, and connect
 the selection of dog breed to the display of details in another view, which
 would update automatically on selection. This is done via a binding to the
-on_selection_change event::
+:attr:`~kivy.adapters.listadapter.ListAdapter.on_selection_change` event::
 
     list_adapter.bind(on_selection_change=callback_function)
 

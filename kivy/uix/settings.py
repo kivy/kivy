@@ -155,8 +155,8 @@ on_close event.
 '''
 
 __all__ = ('Settings', 'SettingsPanel', 'SettingItem', 'SettingString',
-           'SettingPath', 'SettingBoolean', 'SettingNumeric',
-           'SettingOptions', 'SettingsWithSidebar', 'SettingsWithSpinner',
+           'SettingPath', 'SettingBoolean', 'SettingNumeric', 'SettingOptions',
+           'SettingTitle', 'SettingsWithSidebar', 'SettingsWithSpinner',
            'SettingsWithTabbedPanel', 'SettingsWithNoMenu',
            'InterfaceWithSidebar', 'ContentPanel')
 

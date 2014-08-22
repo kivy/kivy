@@ -57,8 +57,9 @@ from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
     AliasProperty, BooleanProperty, NumericProperty
 from kivy.logger import Logger
 
-# delayed imports 
+# delayed imports
 Loader = None
+
 
 class Image(Widget):
     '''Image class, see module documentation for more information.
@@ -322,8 +323,8 @@ class AsyncImage(Image):
             if not self.is_uri(source):
                 source = resource_find(source)
             self._coreimage = image = Loader.image(source,
-                                                   nocache=self.nocache,
-                                                   mipmap=self.mipmap)
+                nocache=self.nocache, mipmap=self.mipmap,
+                anim_delay=self.anim_delay)
             image.bind(on_load=self._on_source_load)
             image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture

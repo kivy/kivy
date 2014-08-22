@@ -1025,6 +1025,9 @@ cdef class Texture:
         '''Save the texture content to a file. Check
         :meth:`kivy.core.image.Image.save` for more information.
 
+        The flipped parameter flips the saved image vertically, and
+        defaults to True.
+
         .. versionadded:: 1.7.0
 
         .. versionchanged:: 1.8.0
