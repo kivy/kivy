@@ -221,8 +221,9 @@ class ListAdapter(Adapter, EventDispatcher):
 
         item_args['index'] = index
 
-        if self.cls:
-            view_instance = self.cls(**item_args)
+        cls = self.get_cls()
+        if cls:
+            view_instance = cls(**item_args)
         else:
             view_instance = Builder.template(self.template, **item_args)
 
