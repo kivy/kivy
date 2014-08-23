@@ -24,4 +24,3 @@ class ClipboardDummy(ClipboardBase):
 
     def get_types(self):
         return list(self._data.keys())
-

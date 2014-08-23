@@ -2,8 +2,8 @@
 Report tool
 ===========
 
-This tool is an helper for user. It will be used to dump all informations
-for helping in debugging process.
+This tool is a helper for users. It can be used to dump information
+for help during the debugging process.
 
 '''
 

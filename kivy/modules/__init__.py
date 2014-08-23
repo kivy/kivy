@@ -3,23 +3,36 @@ Modules
 =======
 
 Modules are classes that can be loaded when a Kivy application is starting. The
-loading of modules is managed by the config file. For example, we have a few
-modules like:
+loading of modules is managed by the config file. Currently, we include:
 
-    * touchring: Draw a circle around each touch.
-    * monitor: Add a red topbar that indicates the FPS and a small graph
-      indicating input activity.
-    * keybinding: Bind some keys to actions, such as a screenshot.
+    * :class:`~kivy.modules.touchring`: Draw a circle around each touch.
+    * :class:`~kivy.modules.monitor`: Add a red topbar that indicates the FPS
+      and a small graph indicating input activity.
+    * :class:`~kivy.modules.keybinding`: Bind some keys to actions, such as a
+      screenshot.
+    * :class:`~kivy.modules.recorder`: Record and playback a sequence of
+      events.
+    * :class:`~kivy.modules.screen`: Emulate the characteristics (dpi/density/
+      resolution) of different screens.
+    * :class:`~kivy.modules.inspector`: Examines your widget heirarchy and
+      widget properties.
+    * :class:`~kivy.modules.webdebugger`: Realtime examination of your app
+      internals via a web browser.
 
 Modules are automatically loaded from the Kivy path and User path:
 
     * `PATH_TO_KIVY/kivy/modules`
     * `HOME/.kivy/mods`
 
-Activate a module in the config
--------------------------------
+Activating a module
+-------------------
 
-To activate a module, you can edit your configuration file (in your
+There are various ways in which you can activate a kivy module.
+
+Activate a module in the config
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To activate a module this way, you can edit your configuration file (in your
 `HOME/.kivy/config.ini`)::
 
     [modules]
@@ -32,7 +45,7 @@ Only the name of the module followed by "=" is sufficient to activate the
 module.
 
 Activate a module in Python
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Before starting your application, preferably at the start of your import, you
 can do something like this::
@@ -43,6 +56,19 @@ can do something like this::
     # Activate the touchring module
     from kivy.config import Config
     Config.set('modules', 'touchring', '')
+
+Activate a module via the commandline
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When starting your application from the commandline, you can add a
+*-m <modulename>* to the arguments. For example::
+
+    python main.py -m webdebugger
+
+.. note::
+    Some modules, such as the screen, may require additional parameters. They
+    will, however, print these parameters to the console when launched without
+    them.
 
 
 Create your own module
@@ -56,10 +82,11 @@ Create a file in your `HOME/.kivy/mods`, and create 2 functions::
     def stop(win, ctx):
         pass
 
-Start/stop are functions that will be called for every window opened in Kivy.
-When you are starting a module, you can use these to store and manage the module
-state. Use the `ctx` variable as a dictionary. This context is unique for each
-instance/start() call of the module, and will be passed to stop() too.
+Start/stop are functions that will be called for every window opened in
+Kivy.  When you are starting a module, you can use these to store and
+manage the module state. Use the `ctx` variable as a dictionary. This
+context is unique for each instance/start() call of the module, and will
+be passed to stop() too.
 
 '''
 
@@ -80,6 +107,9 @@ class ModuleContext:
 
     def __init__(self):
         self.config = {}
+
+    def __repr__(self):
+        return repr(self.config)
 
 
 class ModuleBase:
@@ -140,14 +170,20 @@ class ModuleBase:
             Logger.warning('Modules: Module <%s> not found' % name)
             return
 
-        module = self.mods[name]['module']
-        if not self.mods[name]['activated']:
-            context = self.mods[name]['context']
+        mod = self.mods[name]
+
+        # ensure the module has been configured
+        if 'module' not in mod:
+            self._configure_module(name)
+
+        pymod = mod['module']
+        if not mod['activated']:
+            context = mod['context']
             msg = 'Modules: Start <{0}> with config {1}'.format(
-                    name, context)
+                  name, context)
             Logger.debug(msg)
-            module.start(win, context)
-            self.mods[name]['activated'] = True
+            pymod.start(win, context)
+            mod['activated'] = True
 
     def deactivate_module(self, name, win):
         '''Deactivate a module from a window'''

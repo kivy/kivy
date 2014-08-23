@@ -25,11 +25,26 @@ dispatchers). The :class:`~kivy.uix.widget.Widget`,
 :class:`~kivy.animation.Animation` and :obj:`~kivy.clock.Clock` classes are 
 examples of event dispatchers.
 
+EventDispatcher objects depend on the main loop to generate and
+handle events.
 
-As outlined in the illustration above, Kivy has a `main loop`. It's important
-that you avoid breaking it. The main loop is responsible for reading from 
-inputs, loading images asynchronously, drawing to frame, ...etc. Avoid
-long/infinite loops or sleeping. For example the following code does both::
+Main loop
+---------
+
+As outlined in the illustration above, Kivy has a `main loop`. This loop is
+running during all of the application's lifetime and only quits when exiting
+the application.
+
+Inside the loop, at every iteration, events are generated from user input,
+hardware sensors or a couple of other sources, and frames are rendered to the
+display.
+
+Your application will specify callbacks (more on this later), which are called
+by the main loop. If a callback takes too long or doesn't quit at all, the main
+loop is broken and your app doesn't work properly anymore.
+
+In Kivy applications, you have to avoid long/infinite loops or sleeping.
+For example the following code does both::
 
     while True:
         animate_something()
@@ -37,9 +52,9 @@ long/infinite loops or sleeping. For example the following code does both::
 
 When you run this, the program will never exit your loop, preventing Kivy from
 doing all of the other things that need doing. As a result, all you'll see is a
-black window which you won't be able to interact with. You need to "schedule"
-your ``animate_something()`` function call over time. You can do this in 2 ways:
-a repetitive call or one-time call.
+black window which you won't be able to interact with. Instead, you need to
+"schedule" your ``animate_something()`` function to be called repeatedly.
+
 
 Scheduling a repetitive event
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -92,6 +107,25 @@ achieve some other results with special values for the second argument:
 The -1 is mostly used when you are already in a scheduled event, and if you
 want to schedule a call BEFORE the next frame is happening.
 
+A second method for repeating a function call is to first schedule a callback once
+with :meth:`~kivy.clock.Clock.schedule_once`, and a second call to this function
+inside the callback itself::
+
+
+    def my_callback(dt):
+        print 'My callback is called !'
+        Clock.schedule_once(my_callback, 1)
+    Clock.schedule_once(my_callback, 1)
+
+While the main loop will try to keep to the schedule as requested, there is some
+uncertainty as to when exactly a scheduled callback will be called. Sometimes
+another callback or some other task in the application will take longer than
+anticipated and thus the timing can be a little off.
+
+In the latter solution to the repetitive callback problem, the next iteration will
+be called at least one second after the last iteration ends. With
+:meth:`~kivy.clock.Clock.schedule_interval` however, the callback is called
+every second.
 
 Trigger events
 ~~~~~~~~~~~~~~
@@ -123,6 +157,9 @@ A widget has 2 default types of events:
 - Property event: if your widget changes its position or size, an event is fired.
 - Widget-defined event: e.g. an event will be fired for a Button when it's pressed or
   released.
+
+For a discussion on how widget touch events managed and propagated, please refer
+to the :ref:`Widget touch event bubbling <widget-event-bubbling>` section.
 
 Creating custom events
 ----------------------
@@ -167,6 +204,8 @@ Example::
     ev.bind(on_test=my_callback)
     ev.do_something('test')
 
+Pleases refer to the :meth:`kivy.event.EventDispatcher.bind` method
+documentation for more examples on how to attach callbacks.
 
 Introduction to Properties
 --------------------------
@@ -412,7 +451,7 @@ Consider the following code.
         'scroll_x', 'scroll_y'))
     '''Current position of the cursor, in (x, y).
 
-    :data:`cursor_pos` is a :class:`~kivy.properties.AliasProperty`, read-only.
+    :attr:`cursor_pos` is a :class:`~kivy.properties.AliasProperty`, read-only.
     '''
 
 Here `cursor_pos` is a :class:`~kivy.properties.AliasProperty` which uses the

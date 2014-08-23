@@ -197,7 +197,8 @@ for fruit_record in fruit_data_list_of_dicts:
             dict({'name': fruit_record['name'],
                   'Serving Size': fruit_record['Serving Size'],
                   'is_selected': fruit_record['is_selected']},
-            **dict(list(zip(list(attributes_and_units.keys()), fruit_record['data']))))
+            **dict(list(zip(list(attributes_and_units.keys()),
+                            fruit_record['data']))))
 
 
 class CategoryItem(SelectableDataItem):
@@ -440,6 +441,18 @@ class AdaptersTestCase(unittest.TestCase):
 
         msg = 'list adapter: data must be a tuple or list'
         self.assertEqual(str(cm.exception), msg)
+
+    def test_simple_list_adapter_for_inherited_list(self):
+        # Test for issue 1396 : list, tuple and inheritance
+        class ExtendedList(list):
+            pass
+        class ExtendedTuple(tuple):
+            pass
+        # Equivalent to assertNotRaise
+        simple_list_adapter = SimpleListAdapter(data=ExtendedList(),
+                                  template='CustomSimpleListItem')
+        simple_list_adapter = SimpleListAdapter(data=ExtendedTuple(),
+                                  template='CustomSimpleListItem')
 
     def test_simple_list_adapter_with_template(self):
         list_item_args_converter = \

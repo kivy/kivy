@@ -3,9 +3,9 @@ from kivy._event cimport EventDispatcher
 cdef class PropertyStorage:
     cdef object value
     cdef list observers
-    cdef str numeric_fmt
-    cdef int bnum_min
-    cdef int bnum_max
+    cdef object numeric_fmt
+    cdef long bnum_min
+    cdef long bnum_max
     cdef float bnum_f_min
     cdef float bnum_f_max
     cdef int bnum_use_min
@@ -38,7 +38,7 @@ cdef class Property:
 
 cdef class NumericProperty(Property):
     cdef float parse_str(self, EventDispatcher obj, value)
-    cdef float parse_list(self, EventDispatcher obj, value, str ext)
+    cdef float parse_list(self, EventDispatcher obj, value, ext)
 
 cdef class StringProperty(Property):
     pass
@@ -47,10 +47,11 @@ cdef class ListProperty(Property):
     pass
 
 cdef class DictProperty(Property):
-    pass
+    cdef public int rebind
 
 cdef class ObjectProperty(Property):
     cdef object baseclass
+    cdef public int rebind
 
 cdef class BooleanProperty(Property):
     pass
@@ -76,10 +77,23 @@ cdef class AliasProperty(Property):
     cdef object setter
     cdef list bind_objects
     cdef int use_cache
+    cdef public int rebind
     cpdef trigger_change(self, EventDispatcher obj, value)
 
 cdef class VariableListProperty(Property):
     cdef public int length
     cdef _convert_numeric(self, EventDispatcher obj, x)
     cdef float parse_str(self, EventDispatcher obj, value)
-    cdef float parse_list(self, EventDispatcher obj, value, str ext)
+    cdef float parse_list(self, EventDispatcher obj, value, ext)
+
+cdef class ConfigParserProperty(Property):
+    cdef object config
+    cdef object section
+    cdef object key
+    cdef object val_type
+    cdef object verify
+    cdef object obj
+    cdef object last_value  # last string config value
+    cdef object config_name
+    cpdef _edit_setting(self, section, key, value)
+    cdef inline object _parse_str(self, object value)

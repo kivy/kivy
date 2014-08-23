@@ -16,7 +16,7 @@ __all__ = ('gl_get_extensions', 'gl_has_extension',
 include "opengl_utils_def.pxi"
 cimport c_opengl
 from kivy.logger import Logger
-from kivy.utils import platform as core_platform
+from kivy.utils import platform
 from kivy.graphics.opengl import _GL_GET_SIZE
 
 
@@ -28,12 +28,12 @@ cdef tuple _gl_texture_fmts = (
     'pvrtc_rgb4', 'pvrtc_rgb2', 'pvrtc_rgba4', 'pvrtc_rgba2')
 cdef int _gl_version_major = -1
 cdef int _gl_version_minor = -1
-cdef str _platform = core_platform()
+cdef str _platform = str(platform)
 
 
 cpdef list gl_get_extensions():
     '''Return a list of OpenGL extensions available. All the names in the list
-    have the `GL_` stripped at the start if exist, and are in lowercase.
+    have the `GL_` stripped at the start (if it exists) and are in lowercase.
 
     >>> print(gl_get_extensions())
     ['arb_blend_func_extended', 'arb_color_buffer_float', 'arb_compatibility',
@@ -49,9 +49,9 @@ cpdef list gl_get_extensions():
     return _gl_extensions
 
 
-cpdef int gl_has_extension(str name):
-    '''Check if an OpenGL extension is available. If the name start with `GL_`,
-    it will be stripped for the test, and converted to lowercase.
+cpdef int gl_has_extension(name):
+    '''Check if an OpenGL extension is available. If the name starts with `GL_`,
+    it will be stripped for the test and converted to lowercase.
 
         >>> gl_has_extension('NV_get_tex_image')
         False
@@ -66,11 +66,11 @@ cpdef int gl_has_extension(str name):
 
 
 cpdef gl_register_get_size(int constid, int size):
-    '''Register an association between a OpenGL Const used in glGet* to a number
+    '''Register an association between an OpenGL Const used in glGet* to a number
     of elements.
 
     By example, the GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX is a special pname that
-    will return 1 integer (nvidia only).
+    will return the integer 1 (nvidia only).
 
         >>> GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX = 0x9047
         >>> gl_register_get_size(GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, 1)
@@ -82,9 +82,9 @@ cpdef gl_register_get_size(int constid, int size):
 
 
 cpdef int gl_has_capability(int cap):
-    '''Return the status of a OpenGL Capability. This is a wrapper that auto
-    discover all the capabilities that Kivy might need. The current capabilites
-    test are:
+    '''Return the status of a OpenGL Capability. This is a wrapper that
+    auto-discovers all the capabilities that Kivy might need. The current
+    capabilites tested are:
 
         - GLCAP_BGRA: Test the support of BGRA texture format
         - GLCAP_NPOT: Test the support of Non Power of Two texture
@@ -103,7 +103,12 @@ cpdef int gl_has_capability(int cap):
     # ok, never been initialized, do it now.
     if cap == c_GLCAP_BGRA:
         msg = 'BGRA texture support'
-        value = gl_has_extension('EXT_bgra')
+        if _platform == 'ios':
+            value = gl_has_extension('APPLE_texture_format_BGRA8888')
+        else:
+            value = gl_has_extension('EXT_bgra')
+        if not value:
+            value = gl_has_extension('EXT_texture_format_BGRA888')
 
     elif cap == c_GLCAP_NPOT:
         msg = 'NPOT texture support'
@@ -161,10 +166,10 @@ cpdef int gl_has_capability(int cap):
 
 
 cpdef tuple gl_get_texture_formats():
-    '''Return a list of texture format recognized by kivy.
-    The texture list is informative, but might not been supported by your
+    '''Return a list of texture formats recognized by kivy.
+    The texture list is informative but might not been supported by your
     hardware. If you want a list of supported textures, you must filter that
-    list like that::
+    list as follows::
 
         supported_fmts = [gl_has_texture_format(x) for x in gl_get_texture_formats()]
 
@@ -172,7 +177,7 @@ cpdef tuple gl_get_texture_formats():
     return _gl_texture_fmts
 
 
-cpdef int gl_has_texture_native_format(str fmt):
+cpdef int gl_has_texture_native_format(fmt):
     '''Return 1 if the texture format is handled natively.
 
     >>> gl_has_texture_format('azdmok')
@@ -185,7 +190,7 @@ cpdef int gl_has_texture_native_format(str fmt):
     1
 
     '''
-    if fmt in ('rgb', 'rgba', 'luminance', 'luminance_alpha'):
+    if fmt in ('rgb', 'rgba', 'luminance', 'luminance_alpha', 'red', 'rg'):
         return 1
     if fmt in ('palette4_rgb8', 'palette4_rgba8', 'palette4_r5_g6_b5', 'palette4_rgba4', 'palette4_rgb5_a1', 'palette8_rgb8', 'palette8_rgba8', 'palette8_r5_g6_b5', 'palette8_rgba4', 'palette8_rgb5_a1'):
         return gl_has_extension('OES_compressed_paletted_texture')
@@ -202,16 +207,16 @@ cpdef int gl_has_texture_native_format(str fmt):
     return 0
 
 
-cpdef int gl_has_texture_conversion(str fmt):
-    '''Return 1 if the texture can be converted to a native format
+cpdef int gl_has_texture_conversion(fmt):
+    '''Return 1 if the texture can be converted to a native format.
     '''
     return fmt in ('bgr', 'bgra')
 
 
-cpdef int gl_has_texture_format(str fmt):
-    '''Return if a texture format is supported by your system, natively or by
-    conversion. For example, if your card doesn't support 'bgra', we are able to
-    convert to 'rgba', but in software mode.
+cpdef int gl_has_texture_format(fmt):
+    '''Return whether a texture format is supported by your system, natively or
+    by conversion. For example, if your card doesn't support 'bgra', we are able
+    to convert to 'rgba' but only in software mode.
     '''
     # check if the support of a format can be done natively
     if gl_has_texture_native_format(fmt):

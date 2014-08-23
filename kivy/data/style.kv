@@ -70,9 +70,9 @@
             size: self.width, 24
             source: 'atlas://data/images/defaulttheme/progressbar_background'
         BorderImage:
-            border: [int(min(self.width * (self.value / float(self.max)), 12))] * 4
+            border: [int(min(self.width * (self.value / float(self.max)) if self.max else 0, 12))] * 4
             pos: self.x, self.center_y - 12
-            size: self.width * (self.value / float(self.max)), 24
+            size: self.width * (self.value / float(self.max)) if self.max else 0, 24
             source: 'atlas://data/images/defaulttheme/progressbar'
 
 <SplitterStrip>:
@@ -112,6 +112,18 @@
             size: self.norm_image_size
             pos: self.center_x - self.norm_image_size[0] / 2., self.center_y - self.norm_image_size[1] / 2.
 
+<EffectWidget>:
+    canvas.before:
+        Translate:
+            xy: -self.x, -self.y
+    canvas:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            texture: self.texture
+            pos: self.pos
+            size: self.size
+
 <TabbedPanelContent>
     rows: 1
     padding: 3
@@ -146,6 +158,8 @@
     border: (8, 8, 8, 8)
     font_size: '15sp'
 
+<Selector>
+    allow_stretch: True
 
 <TextInput>:
     canvas.before:
@@ -157,7 +171,7 @@
             size: self.size
             source: (self.background_disabled_active if self.disabled else self.background_active) if self.focus else (self.background_disabled_normal if self.disabled else self.background_normal)
         Color:
-            rgba: (1, 0, 0, 1 if self.focus and not self.cursor_blink else 0)
+            rgba: (self.cursor_color if self.focus and not self.cursor_blink else (0, 0, 0, 0))
         Rectangle:
             pos: [int(x) for x in self.cursor_pos]
             size: 1, -self.line_height
@@ -165,10 +179,10 @@
             rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text and not self.focus else self.foreground_color)
 
 <TextInputCutCopyPaste>:
-    but_cut: cut
-    but_copy: copy
-    but_paste: paste
-    but_selectall: selectall
+    but_cut: cut.__self__
+    but_copy: copy.__self__
+    but_paste: paste.__self__
+    but_selectall: selectall.__self__
 
     size_hint: None, None
     size: '150sp', '50sp'
@@ -188,6 +202,9 @@
         id: selectall
         text: 'Select All'
         on_release: root.do('selectall')
+
+<CodeInput>:
+    font_name: 'data/fonts/DroidSansMono.ttf'
 
 
 <TreeViewNode>:
@@ -297,7 +314,7 @@
 
     orientation: 'horizontal'
     size_hint_y: None
-    height: '24sp'
+    height: '48dp' if dp(1) > 1 else '24dp'
     # Don't allow expansion of the ../ node
     is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
@@ -348,7 +365,7 @@
 
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
     on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
-	size: '100dp', '100dp'
+    size: '100dp', '100dp'
 
     canvas:
         Color:
@@ -793,68 +810,119 @@
                 size: self.width, 1
 
 <Settings>:
-    content: content
-    menu: menu
-
-    canvas:
+    orientation: 'horizontal'
+    canvas.before:
         Color:
             rgb: 0, 0, 0
         Rectangle:
             pos: self.pos
             size: self.size
 
-    FloatLayout:
+<InterfaceWithSidebar>:
+    orientation: 'horizontal'
+    menu: menu
+    content: content
+    MenuSidebar:
+        id: menu
+    ContentPanel:
+        id: content
+        current_uid: menu.selected_uid
+
+<InterfaceWithSpinner>:
+    orientation: 'vertical'
+    menu: menu
+    content: content
+    MenuSpinner:
+        id: menu
+    ContentPanel:
+        id: content
+        current_uid: menu.selected_uid
+
+<MenuSpinner>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: '50dp'
+    spinner: spinner
+    spinner_text: spinner.text
+    close_button: button
+    Spinner:
+        id: spinner
+    Button:
+        text: 'Close'
+        id: button
         size_hint_x: None
-        width: '200dp'
-        GridLayout:
-            pos: root.pos
-            cols: 1
-            id: menu
-            orientation: 'vertical'
-            padding: 5
+        width: min(dp(200), 0.4*root.width)
+        font_size: '15sp'
 
-            canvas.after:
-                Color:
-                    rgb: .2, .2, .2
-                Rectangle:
-                    pos: self.right - 1, self.y
-                    size: 1, self.height
 
-        Button:
-            text: 'Close'
-            size_hint: None, None
-            width: '180dp'
-            height: max(50, self.texture_size[1] + dp(20))
-            pos: root.x + dp(10), root.y + dp(10)
-            on_release: root.dispatch('on_close')
-            font_size: '15sp'
+<MenuSidebar>:
+    size_hint_x: None
+    width: '200dp'
+    buttons_layout: menu
+    close_button: button
+    GridLayout:
+        pos: root.pos
+        cols: 1
+        id: menu
+        orientation: 'vertical'
+        padding: 5
 
-    ScrollView:
-        do_scroll_x: False
-        id: sv
-        Scatter:
-            size_hint: None, None
-            size: content.size
-            do_translation: False
-            do_rotation: False
-            do_scale: False
-            StackLayout:
-                id: content
-                height: self.minimum_height
-                width: sv.width
+        canvas.after:
+            Color:
+                rgb: .2, .2, .2
+            Rectangle:
+                pos: self.right - 1, self.y
+                size: 1, self.height
+
+    Button:
+        text: 'Close'
+        id: button
+        size_hint: None, None
+        width: root.width - dp(20)
+        height: max(50, self.texture_size[1] + dp(20))
+        pos: root.x + dp(10), root.y + dp(10)
+        font_size: '15sp'
+
+<ContentPanel>:
+    do_scroll_x: False
+    container: content
+    GridLayout:
+        id: content
+        cols: 1
+        size_hint_y: None
+        height: self.minimum_height
+
+<InterfaceWithTabbedPanel>:
+    tabbedpanel: tp
+    close_button: button
+    TabbedPanel:
+        id: tp
+        size: root.size
+        pos: root.pos
+        #do_default_tab: False
+        background_color: (0,0,0,1)
+    Button:
+        id: button
+        text: 'Close'
+        size_hint: None, None
+        height: '45dp'
+        width: min(dp(200), 0.3*root.width)
+        x: root.x + root.width - self.width
+        y: root.y + root.height - self.height
+
 
 <ScrollView>:
     canvas.after:
         Color:
-            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if (self.do_scroll_y and self.viewport_size[1]>self.height) else 0]
+            rgba: self._bar_color if (self.do_scroll_y and self.viewport_size[1] > self.height) else [0, 0, 0, 0]
         Rectangle:
-            pos: self.right - self.bar_width - self.bar_margin, self.y + self.height * self.vbar[0]
-            size: self.bar_width, self.height * self.vbar[1]
+            pos: (self.right - self.bar_width - self.bar_margin) if self.bar_pos_y == 'right' else (self.x + self.bar_margin), self.y + self.height * self.vbar[0]
+            size: min(self.bar_width, self.width), self.height * self.vbar[1]
         Color:
-            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if (self.do_scroll_x and self.viewport_size[0] > self.width) else 0]
+            rgba: self._bar_color if (self.do_scroll_x and self.viewport_size[0] > self.width) else [0, 0, 0, 0]
         Rectangle:
-            pos: self.x + self.width * self.hbar[0], self.y + self.bar_margin
-            size: self.width * self.hbar[1], self.bar_width
+            pos: self.x + self.width * self.hbar[0], (self.y + self.bar_margin) if self.bar_pos_x == 'bottom' else (self.top - self.bar_margin - self.bar_width)
+            size: self.width * self.hbar[1], min(self.bar_width, self.height)
 
 
 # =============================================================================

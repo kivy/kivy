@@ -19,7 +19,7 @@ class ClockTestCase(unittest.TestCase):
         from kivy.clock import Clock
         global counter
         counter = 0
-        Clock._events = {}
+        Clock._events = [[] for i in range(256)]
 
     def test_schedule_once(self):
         from kivy.clock import Clock

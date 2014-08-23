@@ -172,9 +172,9 @@ if __name__ == '__main__':
         sys.stdout.flush()
 
     clock_total = 0
-    benchs = list(locals().keys())
+    benchs = list(globals().keys())
     benchs.sort()
-    benchs = [locals()[x] for x in benchs if x.startswith('bench_')]
+    benchs = [globals()[x] for x in benchs if x.startswith('bench_')]
 
     log('')
     log('=' * 70)

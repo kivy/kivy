@@ -1,3 +1,6 @@
+#!/usr/bin/kivy
+__version__ = '1.0'
+
 import kivy
 kivy.require('1.0.6')
 
@@ -31,13 +34,19 @@ class Touchtracer(FloatLayout):
         win = self.get_parent_window()
         ud = touch.ud
         ud['group'] = g = str(touch.uid)
+        pointsize = 5
+        if 'pressure' in touch.profile:
+            ud['pressure'] = touch.pressure
+            pointsize = (touch.pressure * 100000) ** 2
+        ud['color'] = random()
+
         with self.canvas:
-            ud['color'] = Color(random(), 1, 1, mode='hsv', group=g)
-            ud['lines'] = (
+            Color(ud['color'], 1, 1, mode='hsv', group=g)
+            ud['lines'] = [
                 Rectangle(pos=(touch.x, 0), size=(1, win.height), group=g),
                 Rectangle(pos=(0, touch.y), size=(win.width, 1), group=g),
                 Point(points=(touch.x, touch.y), source='particle.png',
-                      pointsize=5, group=g))
+                      pointsize=pointsize, group=g)]
 
         ud['label'] = Label(size_hint=(None, None))
         self.update_touch_label(ud['label'], touch)
@@ -52,12 +61,32 @@ class Touchtracer(FloatLayout):
         ud['lines'][0].pos = touch.x, 0
         ud['lines'][1].pos = 0, touch.y
 
-        points = ud['lines'][2].points
-        oldx, oldy = points[-2], points[-1]
+        index = -1
+
+        while True:
+            try:
+                points = ud['lines'][index].points
+                oldx, oldy = points[-2], points[-1]
+                break
+            except:
+                index -= 1
+
         points = calculate_points(oldx, oldy, touch.x, touch.y)
+
+        # if pressure changed create a new point instruction
+        if 'pressure' in ud:
+            if not .95 < (touch.pressure / ud['pressure']) < 1.05:
+                g = ud['group']
+                pointsize = (touch.pressure * 100000) ** 2
+                with self.canvas:
+                    Color(ud['color'], 1, 1, mode='hsv', group=g)
+                    ud['lines'].append(
+                        Point(points=(), source='particle.png',
+                              pointsize=pointsize, group=g))
+
         if points:
             try:
-                lp = ud['lines'][2].add_point
+                lp = ud['lines'][-1].add_point
                 for idx in range(0, len(points), 2):
                     lp(points[idx], points[idx+1])
             except GraphicException:

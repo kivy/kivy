@@ -131,12 +131,12 @@ cdef extern from "SDL.h":
         SDL_KEYUP
         SDL_TEXTEDITING
         SDL_TEXTINPUT
-        SDL_MOUSEMOTION    = 0x400
-        SDL_MOUSEBUTTONDOWN
-        SDL_MOUSEBUTTONUP
-        SDL_MOUSEWHEEL
-        SDL_INPUTMOTION    = 0x500
-        SDL_INPUTBUTTONDOWN
+        SDL_MOUSEMOTION     = 0x400
+        SDL_MOUSEBUTTONDOWN = 0x401
+        SDL_MOUSEBUTTONUP   = 0x402
+        SDL_MOUSEWHEEL      = 0x403
+        SDL_INPUTMOTION     = 0x500
+        SDL_INPUTBUTTONDOWN 
         SDL_INPUTBUTTONUP
         SDL_INPUTWHEEL
         SDL_INPUTPROXIMITYIN
@@ -412,6 +412,7 @@ cdef extern from "SDL.h":
     cdef void SDL_GetWindowSize(SDL_Window * window, int *w, int *h)
     cdef Uint32 SDL_GetWindowFlags(SDL_Window * window)
     cdef SDL_Window * SDL_CreateWindow(char *title, int x, int y, int w, int h, Uint32 flags)
+    cdef SDL_Window * SDL_CreateShapedWindow(char *title, int x, int y, int w, int h, Uint32 flags)
     cdef void SDL_DestroyWindow (SDL_Window * window)
     cdef int SDL_SetRenderDrawColor(SDL_Renderer * renderer, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
     cdef int SDL_RenderClear(SDL_Renderer * renderer)

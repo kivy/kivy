@@ -37,4 +37,3 @@ __all__ = (
     MotionEventProvider.__name__,
     MotionEventFactory.__name__,
     'kivy_postproc_modules')
-

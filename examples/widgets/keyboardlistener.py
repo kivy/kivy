@@ -4,12 +4,17 @@ kivy.require('1.0.8')
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
 
+
 class MyKeyboardListener(Widget):
 
     def __init__(self, **kwargs):
         super(MyKeyboardListener, self).__init__(**kwargs)
         self._keyboard = Window.request_keyboard(
-            self._keyboard_closed, self)
+            self._keyboard_closed, self, 'text')
+        if self._keyboard.widget:
+            # If it exists, this widget is a VKeyboard object which you can use
+            # to change the keyboard layout.
+            pass
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
 
     def _keyboard_closed(self):

@@ -16,14 +16,39 @@ TODO:
 __all__ = ('WindowSDL2', )
 
 import sys
+from os.path import join
+from kivy import kivy_data_dir
 from kivy.logger import Logger
-from kivy.core.window import WindowBase
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.clock import Clock
+from kivy.config import Config
+from kivy.core.window import WindowBase
+from kivy.core.window._window_sdl2 import _WindowSDL2Storage
 from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
+from kivy.resources import resource_find
+from kivy.utils import platform
 from collections import deque
-from kivy.core.window._window_sdl2 import _WindowSDL2Storage
+
+KMOD_LCTRL = 64
+KMOD_RCTRL = 128
+KMOD_RSHIFT = 2
+KMOD_LSHIFT = 1
+KMOD_RALT = 512
+KMOD_LALT = 256
+KMOD_LMETA = 1024
+KMOD_RMETA = 2048
+SDLK_SHIFTL = 1073742049
+SDLK_SHIFTR = 1073742053
+SDLK_LEFT = 1073741904
+SDLK_RIGHT = 1073741903
+SDLK_UP = 1073741906
+SDLK_DOWN = 1073741905
+SDLK_HOME = 1073741898
+SDLK_END = 1073741901
+SDLK_PAGEUP = 1073741899
+SDLK_PAGEDOWN = 1073741902
+
 
 class SDL2MotionEvent(MotionEvent):
     def depack(self, args):
@@ -67,19 +92,22 @@ class WindowSDL(WindowBase):
     def __init__(self, **kwargs):
         self._win = _WindowSDL2Storage()
         super(WindowSDL, self).__init__()
+        self._meta_keys = (KMOD_LCTRL, KMOD_RCTRL, KMOD_RSHIFT,\
+            KMOD_LSHIFT, KMOD_RALT, KMOD_LALT, KMOD_LMETA,\
+            KMOD_RMETA)
 
-    def create_window(self):
+    def create_window(self, *largs):
         use_fake = self.fullscreen == 'fake'
         use_fullscreen = False
         if self.fullscreen in ('auto', True):
             use_fullscreen = self.fullscreen
 
-        # never stay with a None pos, application using w.center will be fired.
-        self._pos = (0, 0)
+        if not self.initialized:# never stay with a None pos, application using w.center will be fired.
+            self._pos = (0, 0)
 
-        # setup !
-        w, h = self._size
-        self._size = self._win.setup_window(w, h, use_fake, use_fullscreen)
+            # setup !
+            w, h = self._size
+            self._size = self._win.setup_window(w, h, use_fake, use_fullscreen)
 
         super(WindowSDL, self).create_window()
 
@@ -89,6 +117,22 @@ class WindowSDL(WindowBase):
         SDL2MotionEventProvider.win = self
         EventLoop.add_input_provider(SDL2MotionEventProvider('sdl', ''))
 
+        # set window icon before calling set_mode
+        try:
+            filename_icon = self.icon or Config.get('kivy', 'window_icon')
+            if filename_icon == '':
+                logo_size = 32
+                if platform == 'macosx':
+                    logo_size = 512
+                elif platform == 'win':
+                    logo_size = 64
+                filename_icon = 'kivy-icon-{}.png'.format(logo_size)
+                filename_icon = resource_find(
+                        join(kivy_data_dir, 'logo', filename_icon))
+            self.set_icon(filename_icon)
+        except:
+            Logger.exception('Window: cannot set icon')
+
     def close(self):
         self._win.teardown_window()
         self.dispatch('on_close')
@@ -97,10 +141,11 @@ class WindowSDL(WindowBase):
         self._win.set_window_title(title)
 
     def set_icon(self, filename):
-        return
+        self._win.set_window_icon(filename)
 
     def screenshot(self, *largs, **kwargs):
         return
+        # TODO
         filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
         if filename is None:
             return None
@@ -139,6 +184,11 @@ class WindowSDL(WindowBase):
 
             if action == 'mousemotion':
                 x, y = args
+                self.mouse_pos = x, self.system_size[1] - y
+                # don't dispatch motion if no button are pressed
+                self._mouse_x = x
+                self._mouse_y = y
+                self._mouse_meta = self.modifiers
                 self.dispatch('on_mouse_move', x, y, self.modifiers)
 
             elif action in ('mousebuttondown', 'mousebuttonup'):
@@ -152,6 +202,26 @@ class WindowSDL(WindowBase):
                 if action == 'mousebuttonup':
                     eventname = 'on_mouse_up'
                 self.dispatch(eventname, x, y, btn, self.modifiers)
+            elif action.startswith('mousewheel'):
+                self._update_modifiers()
+                x, y, button = args
+                btn = 'scrolldown'
+                if action.endswith('up'):
+                    btn = 'scrollup'
+                elif action.endswith('right'):
+                    btn = 'scrollright'
+                elif action.endswith('left'):
+                    btn = 'scrollleft'
+
+                self._mouse_meta = self.modifiers
+                self._mouse_btn = btn
+                times = x if y == 0 else y
+                times = min(abs(times), 100)
+                for k in range(times):
+                    self._mouse_down = True
+                    self.dispatch('on_mouse_down', self._mouse_x, self._mouse_y, btn, self.modifiers)
+                    self._mouse_down = False
+                    self.dispatch('on_mouse_up', self._mouse_x, self._mouse_y, btn, self.modifiers)
 
             # video resize
             elif action == 'windowresized':
@@ -171,25 +241,43 @@ class WindowSDL(WindowBase):
                 self.do_pause()
 
             elif action in ('keydown', 'keyup'):
-                mod, key, scancode, str = args
+                mod, key, scancode, kstr = args
+                if mod in self._meta_keys:
+                    try:
+                        kstr = unichr(key)
+                    except ValueError:
+                        pass
 
                 # XXX ios keyboard suck, when backspace is hit, the delete
                 # keycode is sent. fix it.
-                if key == 127:
-                    key = 8
+                key_swap = {127:8,# back
+                            SDLK_LEFT:276,
+                            SDLK_RIGHT:275,
+                            SDLK_UP:273,
+                            SDLK_DOWN:274,
+                            SDLK_HOME:278,
+                            SDLK_END:279,
+                            SDLK_PAGEDOWN:281,
+                            SDLK_PAGEUP:280,
+                            SDLK_SHIFTL:303,
+                            SDLK_SHIFTR:304}
+                try:
+                    key = key_swap[key]
+                except KeyError:
+                    pass 
 
-                self._pygame_update_modifiers(mod)
+                self._update_modifiers(mod)
                 if action == 'keyup':
                     self.dispatch('on_key_up', key, scancode)
                     continue
 
                 # don't dispatch more key if down event is accepted
                 if self.dispatch('on_key_down', key,
-                                 scancode, str,
+                                 scancode, kstr,
                                  self.modifiers):
                     continue
                 self.dispatch('on_keyboard', key,
-                              scancode, str,
+                              scancode, kstr,
                               self.modifiers)
 
             elif action == 'textinput':
@@ -284,7 +372,23 @@ class WindowSDL(WindowBase):
     #
     # Pygame wrapper
     #
-    def _pygame_update_modifiers(self, mods=None):
+    def _update_modifiers(self, mods=None):
+        # Available mod, from dir(pygame)
+        # 'KMOD_ALT', 'KMOD_CAPS', 'KMOD_CTRL', 'KMOD_LALT',
+        # 'KMOD_LCTRL', 'KMOD_LMETA', 'KMOD_LSHIFT', 'KMOD_META',
+        # 'KMOD_MODE', 'KMOD_NONE'
+        if mods is None:
+            return
+        self._modifiers = []
+
+        if mods & (KMOD_RSHIFT | KMOD_LSHIFT):
+            self._modifiers.append('shift')
+        if mods & (KMOD_RALT | KMOD_LALT):
+            self._modifiers.append('alt')
+        if mods & (KMOD_RCTRL | KMOD_LCTRL):
+            self._modifiers.append('ctrl')
+        if mods & (KMOD_RMETA | KMOD_LMETA):
+            self._modifiers.append('meta')
         return
 
     def on_keyboard(self, key, scancode=None, str=None, modifier=None):
@@ -297,8 +401,9 @@ class WindowSDL(WindowBase):
             return True
         super(WindowSDL, self).on_keyboard(key, scancode, str, modifier)
 
-    def request_keyboard(self, *largs):
-        self._sdl_keyboard = super(WindowSDL, self).request_keyboard(*largs)
+    def request_keyboard(self, callback, target, input_type='text'):
+        self._sdl_keyboard = super(WindowSDL, self).\
+            request_keyboard(callback, target, input_type)
         self._win.show_keyboard()
         Clock.schedule_interval(self._check_keyboard_shown, 1 / 5.)
         return self._sdl_keyboard

@@ -7,10 +7,6 @@ VKeyboard
 
 .. versionadded:: 1.0.8
 
-.. warning::
-
-    This is experimental and subject to change as long as this warning notice is
-    present.
 
 VKeyboard is an onscreen keyboard for Kivy. Its operation is intended to be
 transparent to the user. Using the widget directly is NOT recommended. Read the
@@ -21,17 +17,18 @@ Modes
 
 This virtual keyboard has a docked and free mode:
 
-* docked mode (:data:`VKeyboard.docked` = True)
-  Generally used when only one person is using the computer, like tablet,
+* docked mode (:attr:`VKeyboard.docked` = True)
+  Generally used when only one person is using the computer, like a tablet or
   personal computer etc.
-* free mode: (:data:`VKeyboard.docked` = False)
-  Mostly for multitouch table. This mode allows more than one virtual
-  keyboard on the screen.
+* free mode: (:attr:`VKeyboard.docked` = False)
+  Mostly for multitouch surfaces. This mode allows multiple virtual
+  keyboards to be used on the screen.
 
 If the docked mode changes, you need to manually call
-:meth:`VKeyboard.setup_mode`. Otherwise the change will have no impact.
-During that call, the VKeyboard, implemented in top of scatter, will change the
-behavior of the scatter, and position the keyboard near the target (if target
+:meth:`VKeyboard.setup_mode` otherwise the change will have no impact.
+During that call, the VKeyboard, implemented on top of a
+:class:`~kivy.uix.scatter.Scatter`, will change the
+behavior of the scatter and position the keyboard near the target (if target
 and docked mode is set).
 
 
@@ -39,8 +36,8 @@ Layouts
 -------
 
 The virtual keyboard is able to load a custom layout. If you create a new
-layout, put the JSON in :file:`<kivy_data_dir>/keyboards/<layoutid>.json`.
-Load it by setting :data:`VKeyboard.layout` to your layoutid.
+layout and put the JSON in :file:`<kivy_data_dir>/keyboards/<layoutid>.json`,
+you can load it by setting :attr:`VKeyboard.layout` to your layoutid.
 
 The JSON must be structured like this::
 
@@ -53,11 +50,12 @@ The JSON must be structured like this::
         ...
     }
 
-Then, you need to describe keys in each row, for either a "normal" mode or a
-"shift" mode. Keys for this row data must be named `normal_<row>` and
-`shift_<row>`. Replace `row` with the row number.
-Inside each row, you will describe the key. A key is a 4 element list in the
-format::
+Then, you need to describe the keys in each row, for either a "normal",
+"shift" or a "special" (added in version 1.8.1) mode. Keys for this row
+data must be named `normal_<row>`, `shift_<row>` and `special_<row>`.
+Replace `row` with the row number.
+Inside each row, you will describe the key. A key is a 4 element list in
+the format::
 
     [ <text displayed on the keyboard>, <text to put when the key is pressed>,
       <text that represents the keycode>, <size of cols> ]
@@ -83,6 +81,7 @@ Finally, complete the JSON::
 
         "shift_1": [ ... ],
         "normal_2": [ ... ],
+        "special_2": [ ... ],
         ...
     }
 
@@ -97,6 +96,16 @@ If you intend to create a widget that requires a keyboard, do not use the
 virtual keyboard directly, but prefer to use the best method available on
 the platform. Check the :meth:`~kivy.core.window.WindowBase.request_keyboard`
 method in the :doc:`api-kivy.core.window`.
+
+If you want a specific layout when you request the keyboard, you should write
+something like this (from 1.8.0, numeric.json can be in the same directory as
+your main.py)::
+
+    keyboard = Window.request_keyboard(
+        self._keyboard_close, self)
+    if keyboard.widget:
+        vkeyboard = self._keyboard.widget
+        vkeyboard.layout = 'numeric.json'
 
 '''
 
@@ -115,7 +124,7 @@ from kivy.core.image import Image
 from kivy.resources import resource_find
 from kivy.clock import Clock
 
-from os.path import join, splitext
+from os.path import join, splitext, basename
 from os import listdir
 from json import loads
 
@@ -137,54 +146,59 @@ class VKeyboard(Scatter):
     '''
 
     target = ObjectProperty(None, allownone=True)
-    '''Target widget associated to VKeyboard. If set, it will be used to send
-    keyboard events, and if the VKeyboard mode is "free", it will also be used
+    '''Target widget associated with the VKeyboard. If set, it will be used to
+    send keyboard events. If the VKeyboard mode is "free", it will also be used
     to set the initial position.
 
-    :data:`target` is a :class:`~kivy.properties.ObjectProperty` instance,
-    default to None.
+    :attr:`target` is an :class:`~kivy.properties.ObjectProperty` instance and
+    defaults to None.
     '''
 
     callback = ObjectProperty(None, allownone=True)
-    '''Callback can be set to a function that will be called if the VKeyboard is
-    closed by the user.
+    '''Callback can be set to a function that will be called if the
+    VKeyboard is closed by the user.
 
-    :data:`target` is a :class:`~kivy.properties.ObjectProperty` instance,
-    default to None.
+    :attr:`target` is an :class:`~kivy.properties.ObjectProperty` instance and
+    defaults to None.
     '''
 
     layout = StringProperty(None)
-    '''Layout to use for the VKeyboard. By default, it will be the layout set in
-    the configuration, according to the `keyboard_layout` in `[kivy]` section.
+    '''Layout to use for the VKeyboard. By default, it will be the
+    layout set in the configuration, according to the `keyboard_layout`
+    in `[kivy]` section.
 
-    :data:`layout` is a :class:`~kivy.properties.StringProperty`, default to
-    None.
+    .. versionchanged:: 1.8.0
+        If layout is a .json filename, it will loaded and added to the
+        available_layouts.
+
+    :attr:`layout` is a :class:`~kivy.properties.StringProperty` and defaults
+    to None.
     '''
 
     layout_path = StringProperty(default_layout_path)
     '''Path from which layouts are read.
 
-    :data:`layout` is a :class:`~kivy.properties.StringProperty`, default to
-    :file:`<kivy_data_dir>/keyboards/`
+    :attr:`layout` is a :class:`~kivy.properties.StringProperty` and
+    defaults to :file:`<kivy_data_dir>/keyboards/`
     '''
 
     available_layouts = DictProperty({})
     '''Dictionary of all available layouts. Keys are the layout ID, and the
-    value is the JSON (translated in Python object).
+    value is the JSON (translated into a Python object).
 
-    :data:`available_layouts` is a :class:`~kivy.properties.DictProperty`,
-    default to {}
+    :attr:`available_layouts` is a :class:`~kivy.properties.DictProperty` and
+    defaults to {}.
     '''
 
     docked = BooleanProperty(False)
-    '''Indicate if the VKeyboard is docked on the screen or not. If you change
-    it, you must manually call :meth:`setup_mode`. Otherwise, it will have no
-    impact. If the VKeyboard is created by the Window, the docked mode will be
-    automatically set by the configuration, with `keyboard_mode` token in
-    `[kivy]` section.
+    '''Indicate whether the VKeyboard is docked on the screen or not. If you
+    change it, you must manually call :meth:`setup_mode` otherwise it will have
+    no impact. If the VKeyboard is created by the Window, the docked mode will
+    be automatically set by the configuration, using the `keyboard_mode` token
+    in `[kivy]` section.
 
-    :data:`docked` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :attr:`docked` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     margin_hint = ListProperty([.05, .06, .05, .06])
@@ -196,8 +210,8 @@ class VKeyboard(Scatter):
     The margin hints will be multiplied by width and height, according to their
     position.
 
-    :data:`margin_hint` is a :class:`~kivy.properties.ListProperty`, default to
-    [.05, .06, .05, .06]
+    :attr:`margin_hint` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [.05, .06, .05, .06]
     '''
 
     key_margin = ListProperty([2, 2, 2, 2])
@@ -206,24 +220,24 @@ class VKeyboard(Scatter):
 
         key_margin = [top, right, bottom, left]
 
-    :data:`key_margin` is a :class:`~kivy.properties.ListProperty`, default to
-    [2, 2, 2, 2]
+    :attr:`key_margin` is a :class:`~kivy.properties.ListProperty` and defaults
+    to [2, 2, 2, 2]
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
-    '''Background color, in the format (r, g, b, a). If a background is set, the
-    color will be combined with the background texture.
+    '''Background color, in the format (r, g, b, a). If a background is
+    set, the color will be combined with the background texture.
 
-    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [1, 1, 1, 1].
+    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [1, 1, 1, 1].
     '''
 
     background = StringProperty(
         'atlas://data/images/defaulttheme/vkeyboard_background')
     '''Filename of the background image.
 
-    :data:`background` a :class:`~kivy.properties.StringProperty`, default to
-    :file:`atlas://data/images/defaulttheme/vkeyboard_background`.
+    :attr:`background` a :class:`~kivy.properties.StringProperty` and defaults
+    to :file:`atlas://data/images/defaulttheme/vkeyboard_background`.
     '''
 
     background_disabled = StringProperty(
@@ -232,36 +246,41 @@ class VKeyboard(Scatter):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled` a :class:`~kivy.properties.StringProperty`, default to
+    :attr:`background_disabled` is a
+    :class:`~kivy.properties.StringProperty` and defaults to
     :file:`atlas://data/images/defaulttheme/vkeyboard__disabled_background`.
+
     '''
 
     key_background_color = ListProperty([1, 1, 1, 1])
     '''Key background color, in the format (r, g, b, a). If a key background is
     set, the color will be combined with the key background texture.
 
-    :data:`key_background_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [1, 1, 1, 1].
+    :attr:`key_background_color` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [1, 1, 1, 1].
     '''
 
     key_background_normal = StringProperty(
-            'atlas://data/images/defaulttheme/vkeyboard_key_normal')
+        'atlas://data/images/defaulttheme/vkeyboard_key_normal')
     '''Filename of the key background image for use when no touches are active
     on the widget.
 
-    :data:`key_background_normal` a :class:`~kivy.properties.StringProperty`,
-    default to :file:`atlas://data/images/defaulttheme/vkeyboard_key_normal`.
+    :attr:`key_background_normal` a :class:`~kivy.properties.StringProperty`
+    and defaults to
+    :file:`atlas://data/images/defaulttheme/vkeyboard_key_normal`.
     '''
 
     key_disabled_background_normal = StringProperty(
-            'atlas://data/images/defaulttheme/vkeyboard_key_normal')
+        'atlas://data/images/defaulttheme/vkeyboard_key_normal')
     '''Filename of the key background image for use when no touches are active
     on the widget and vkeyboard is disabled.
 
     ..versionadded:: 1.8.0
 
-    :data:`key_disabled_background_normal` a :class:`~kivy.properties.StringProperty`,
-    default to :file:`atlas://data/images/defaulttheme/vkeyboard_disabled_key_normal`.
+    :attr:`key_disabled_background_normal` a
+    :class:`~kivy.properties.StringProperty` and defaults to
+    :file:`atlas://data/images/defaulttheme/vkeyboard_disabled_key_normal`.
+
     '''
 
     key_background_down = StringProperty(
@@ -269,36 +288,40 @@ class VKeyboard(Scatter):
     '''Filename of the key background image for use when a touch is active
     on the widget.
 
-    :data:`key_background_down` a :class:`~kivy.properties.StringProperty`,
-    default to :file:`atlas://data/images/defaulttheme/vkeyboard_key_down`.
+    :attr:`key_background_down` a :class:`~kivy.properties.StringProperty`
+    and defaults to
+    :file:`atlas://data/images/defaulttheme/vkeyboard_key_down`.
     '''
 
     background_border = ListProperty([16, 16, 16, 16])
     '''Background image border. Used for controlling the
-    :data:`~kivy.graphics.vertex_instructions.BorderImage.border` property of
+    :attr:`~kivy.graphics.vertex_instructions.BorderImage.border` property of
     the background.
 
-    :data:`background_border` is a :class:`~kivy.properties.ListProperty`,
-    default to [16, 16, 16, 16]
+    :attr:`background_border` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [16, 16, 16, 16]
     '''
 
     key_border = ListProperty([8, 8, 8, 8])
     '''Key image border. Used for controlling the
-    :data:`~kivy.graphics.vertex_instructions.BorderImage.border` property of
+    :attr:`~kivy.graphics.vertex_instructions.BorderImage.border` property of
     the key.
 
-    :data:`key_border` is a :class:`~kivy.properties.ListProperty`,
-    default to [16, 16, 16, 16]
+    :attr:`key_border` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [16, 16, 16, 16]
     '''
 
     # XXX internal variables
-    layout_mode = OptionProperty('normal', options=('normal', 'shift'))
+    layout_mode = OptionProperty('normal',
+        options=('normal', 'shift', 'special'))
     layout_geometry = DictProperty({})
     have_capslock = BooleanProperty(False)
     have_shift = BooleanProperty(False)
+    have_special = BooleanProperty(False)
     active_keys = DictProperty({})
     font_size = NumericProperty('20dp')
     font_name = StringProperty('data/fonts/DejaVuSans.ttf')
+    repeat_touch = ObjectProperty(allownone=True)
 
     __events__ = ('on_key_down', 'on_key_up')
 
@@ -319,6 +342,7 @@ class VKeyboard(Scatter):
             docked=self.setup_mode,
             have_shift=self._trigger_update_layout_mode,
             have_capslock=self._trigger_update_layout_mode,
+            have_special=self._trigger_update_layout_mode,
             layout_path=self._trigger_load_layouts,
             layout=self._trigger_load_layout)
         super(VKeyboard, self).__init__(**kwargs)
@@ -346,10 +370,6 @@ class VKeyboard(Scatter):
             self.background_key_layer = Canvas()
             self.active_keys_layer = Canvas()
 
-        # prepare layout widget
-        self.refresh_keys_hint()
-        self.refresh_keys()
-
     def on_disabled(self, intance, value):
         self.refresh_keys()
 
@@ -357,15 +377,29 @@ class VKeyboard(Scatter):
         # update mode according to capslock and shift key
         mode = self.have_capslock != self.have_shift
         mode = 'shift' if mode else 'normal'
+        if self.have_special:
+            mode = "special"
         if mode != self.layout_mode:
             self.layout_mode = mode
             self.refresh(False)
 
     def _load_layout(self, *largs):
+        # ensure new layouts are loaded first
+        if self._trigger_load_layouts.is_triggered:
+            self._load_layouts()
+            self._trigger_load_layouts.cancel()
+
+        value = self.layout
         available_layouts = self.available_layouts
+
+        # it's a filename, try to load it directly
+        if self.layout[-5:] == '.json':
+            if value not in available_layouts:
+                fn = resource_find(self.layout)
+                self._load_layout_fn(fn, self.layout)
+
         if not available_layouts:
             return
-        value = self.layout
         if value not in available_layouts and value != 'qwerty':
             Logger.error(
                 'Vkeyboard: <%s> keyboard layout mentioned in '
@@ -377,26 +411,28 @@ class VKeyboard(Scatter):
     def _load_layouts(self, *largs):
         # first load available layouts from json files
         # XXX fix to be able to reload layout when path is changing
-        available_layouts = self.available_layouts
         value = self.layout_path
-        for fname in listdir(value):
-            basename, extension = splitext(fname)
-            if extension != '.json':
-                continue
-            filename = join(value, fname)
-            with open(filename, 'r') as fd:
-                json_content = fd.read()
-                layout = loads(json_content)
-            available_layouts[basename] = layout
+        for fn in listdir(value):
+            self._load_layout_fn(join(value, fn),
+                                 basename(splitext(fn)[0]))
+
+    def _load_layout_fn(self, fn, name):
+        available_layouts = self.available_layouts
+        if fn[-5:] != '.json':
+            return
+        with open(fn, 'r') as fd:
+            json_content = fd.read()
+            layout = loads(json_content)
+        available_layouts[name] = layout
 
     def setup_mode(self, *largs):
         '''Call this method when you want to readjust the keyboard according to
-        options: :data:`docked` or not, with attached :data:`target` or not:
+        options: :attr:`docked` or not, with attached :attr:`target` or not:
 
-        * If :data:`docked` is True, it will call :meth:`setup_mode_dock`
-        * If :data:`docked` is False, it will call :meth:`setup_mode_free`
+        * If :attr:`docked` is True, it will call :meth:`setup_mode_dock`
+        * If :attr:`docked` is False, it will call :meth:`setup_mode_free`
 
-        Feel free to overload theses methods to create a new
+        Feel free to overload these methods to create new
         positioning behavior.
         '''
         if self.docked:
@@ -409,7 +445,7 @@ class VKeyboard(Scatter):
 
         Dock mode will reset the rotation, disable translation, rotation and
         scale. Scale and position will be automatically adjusted to attach the
-        keyboard in the bottom of the screen.
+        keyboard to the bottom of the screen.
 
         .. note::
             Don't call this method directly, use :meth:`setup_mode` instead.
@@ -435,7 +471,7 @@ class VKeyboard(Scatter):
         Free mode is designed to let the user control the position and
         orientation of the keyboard. The only real usage is for a multiuser
         environment, but you might found other ways to use it.
-        If a :data:`target` is set, it will place the vkeyboard under the
+        If a :attr:`target` is set, it will place the vkeyboard under the
         target.
 
         .. note::
@@ -464,13 +500,13 @@ class VKeyboard(Scatter):
         # the goal now is to map both point, calculate the diff between them
         diff = dpos - cpos
 
-        # we still have an issue, self.pos represent the bounding box, not the
-        # 0,0 coordinate of the scatter. we need to apply also the diff between
-        # them (inside and outside coordinate matrix). It's hard to explain, but
-        # do a scheme on a paper, wrote all the vector i'm calculating, and
-        # you'll understand. :)
+        # we still have an issue, self.pos represent the bounding box,
+        # not the 0,0 coordinate of the scatter. we need to apply also
+        # the diff between them (inside and outside coordinate matrix).
+        # It's hard to explain, but do a scheme on a paper, write all
+        # the vector i'm calculating, and you'll understand. :)
         diff2 = Vector(self.x + self.width / 2., self.y + self.height) - \
-                Vector(self.to_parent(self.width / 2., self.height))
+            Vector(self.to_parent(self.width / 2., self.height))
         diff -= diff2
 
         # now we have a good "diff", set it as a pos.
@@ -503,7 +539,7 @@ class VKeyboard(Scatter):
             for line_nb, index in active_keys.values():
                 pos, size = layout_geometry['LINE_%d' % line_nb][index]
                 BorderImage(texture=texture, pos=pos, size=size,
-                        border=self.key_border)
+                            border=self.key_border)
 
     def refresh_keys_hint(self):
         layout = self.available_layouts[self.layout]
@@ -523,7 +559,8 @@ class VKeyboard(Scatter):
         uh_hint = (1. / layout_rows) * eh_hint
         layout_geometry['U_HINT'] = (uw_hint, uh_hint)
 
-        # calculate individual key RELATIVE surface and pos (without key margin)
+        # calculate individual key RELATIVE surface and pos (without key
+        # margin)
         current_y_hint = ey_hint + eh_hint
         for line_nb in range(1, layout_rows + 1):
             current_y_hint -= uh_hint
@@ -591,7 +628,7 @@ class VKeyboard(Scatter):
         with self.background_key_layer:
             Color(*self.background_color)
             BorderImage(texture=texture, size=self.size,
-                    border=self.background_border)
+                        border=self.background_border)
 
         # XXX seperate drawing the keys and the fonts to avoid
         # XXX reloading the texture each time
@@ -605,7 +642,7 @@ class VKeyboard(Scatter):
             for line_nb in range(1, layout_rows + 1):
                 for pos, size in layout_geometry['LINE_%d' % line_nb]:
                         BorderImage(texture=texture, pos=pos, size=size,
-                                border=self.key_border)
+                                    border=self.key_border)
 
         # then draw the text
         # calculate font_size
@@ -617,7 +654,7 @@ class VKeyboard(Scatter):
                 # retrieve the relative text
                 text = layout[layout_mode + '_' + str(line_nb)][key_nb][0]
                 l = Label(text=text, font_size=font_size, pos=pos, size=size,
-                        font_name=self.font_name)
+                          font_name=self.font_name)
                 self.add_widget(l)
                 key_nb += 1
 
@@ -672,7 +709,7 @@ class VKeyboard(Scatter):
         x_hint = x / self.width
         y_hint = y / self.height
         if x_hint > mleft and x_hint < 1. - mright \
-            and y_hint > mbottom and y_hint < 1. - mtop:
+                and y_hint > mbottom and y_hint < 1. - mtop:
             return False
         return True
 
@@ -693,11 +730,17 @@ class VKeyboard(Scatter):
         # for caps lock or shift only:
         uid = touch.uid
         if special_char is not None:
+            # Do not repeat special keys
+            if special_char in ('capslock', 'shift', 'layout', 'special'):
+                Clock.unschedule(self._start_repeat_key)
+                self.repeat_touch = None
             if special_char == 'capslock':
                 self.have_capslock = not self.have_capslock
                 uid = -1
             elif special_char == 'shift':
                 self.have_shift = True
+            elif special_char == 'special':
+                self.have_special = True
             elif special_char == 'layout':
                 self.change_layout()
 
@@ -731,6 +774,8 @@ class VKeyboard(Scatter):
             self.active_keys.pop(uid, None)
             if special_char == 'shift':
                 self.have_shift = False
+            elif special_char == 'special':
+                self.have_special = False
             if special_char == 'capslock' and self.have_capslock:
                 self.active_keys[-1] = key
             self.refresh_active_keys_layer()
@@ -743,6 +788,12 @@ class VKeyboard(Scatter):
             ret.append('capslock')
         return ret
 
+    def _start_repeat_key(self, *kwargs):
+        Clock.schedule_interval(self._repeat_key, 0.05)
+
+    def _repeat_key(self, *kwargs):
+        self.process_key_on(self.repeat_touch)
+
     def on_touch_down(self, touch):
         x, y = touch.pos
         if not self.collide_point(x, y):
@@ -752,8 +803,13 @@ class VKeyboard(Scatter):
 
         x, y = self.to_local(x, y)
         if not self.collide_margin(x, y):
+            if self.repeat_touch is None:
+                Clock.schedule_once(self._start_repeat_key, 0.5)
+            self.repeat_touch = touch
+
             self.process_key_on(touch)
             touch.grab(self, exclusive=True)
+
         else:
             super(VKeyboard, self).on_touch_down(touch)
         return True
@@ -761,6 +817,12 @@ class VKeyboard(Scatter):
     def on_touch_up(self, touch):
         if touch.grab_current is self:
             self.process_key_up(touch)
+
+            Clock.unschedule(self._start_repeat_key)
+            if touch == self.repeat_touch:
+                Clock.unschedule(self._repeat_key)
+                self.repeat_touch = None
+
         return super(VKeyboard, self).on_touch_up(touch)
 
 

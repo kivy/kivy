@@ -13,7 +13,7 @@
     { "match": ".*?:$",
       "name": "support.function.kivy" },
     { "name": "entity.name.section.kivy",
-      "match": "(.*?):" },
+      "match": "(.*?):$" },
     { "include": "source.python" }
   ],
   "uuid": "49cecc44-5094-48ec-a876-91f597e8bf81"

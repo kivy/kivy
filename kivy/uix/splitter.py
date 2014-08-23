@@ -1,5 +1,4 @@
-'''
-Splitter
+'''Splitter
 ======
 
 .. versionadded:: 1.5.0
@@ -7,15 +6,11 @@ Splitter
 .. image:: images/splitter.jpg
     :align: right
 
-.. warning::
-
-    This widget is still experimental, and its API is subject to change in
-    a future version.
-
-The :class:`Splitter` is a widget that helps you re-size it's child \
-widget/layout by letting the user control the size of it's child  by \
-dragging the boundary. This widget like :class:`~kivy.uix.scrollview.Scrollview`
-allows only one child widget.
+The :class:`Splitter` is a widget that helps you re-size it's child
+widget/layout by letting you re-size it via dragging the boundary or
+double tapping the boundary. This widget is similar to the
+:class:`~kivy.uix.scrollview.ScrollView` in that it allows only one
+child widget.
 
 Usage::
 
@@ -24,16 +19,16 @@ Usage::
     splitter.min_size = 100
     splitter.max_size = 250
 
-Change size of the strip/border used to resize::
+To change the size of the strip/border used for resizing::
 
     splitter.strip_size = '10pt'
 
-Change appearance::
+To change it's appearance::
 
     splitter.strip_cls = your_custom_class
 
-You could also change the appearance of the `strip_cls` which defaults to
-:class:`SplitterStrip` by overriding the `kv` rule for like so in your app::
+You can also change the appearance of the `strip_cls`, which defaults to
+:class:`SplitterStrip`, by overriding the `kv` rule in your app::
 
     <SplitterStrip>:
         horizontal: True if self.parent and self.parent.sizable_from[0] \
@@ -48,15 +43,17 @@ if self.horizontal else 'path to vertical pressed image'
 
 __all__ = ('Splitter', )
 
+from kivy.compat import string_types
+from kivy.factory import Factory
 from kivy.uix.button import Button
 from kivy.properties import (OptionProperty, NumericProperty, ObjectProperty,
-                            ListProperty, BooleanProperty)
+                             ListProperty, BooleanProperty)
 from kivy.uix.boxlayout import BoxLayout
 
 
 class SplitterStrip(Button):
-    '''Class used for graphical representation of \
-    :class:`kivy.uix.splitter.SplitterStripe`
+    '''Class used for tbe graphical representation of a
+    :class:`kivy.uix.splitter.SplitterStripe`.
     '''
     pass
 
@@ -66,62 +63,112 @@ class Splitter(BoxLayout):
 
     :Events:
         `on_press`:
-            Fired when the splitter is pressed
+            Fired when the splitter is pressed.
         `on_release`:
-            Fired when the splitter is released
+            Fired when the splitter is released.
 
     .. versionchanged:: 1.6.0
-        Added `on_press` and `on_release` events
+        Added `on_press` and `on_release` events.
 
     '''
 
     border = ListProperty([4, 4, 4, 4])
-    '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
+    '''Border used for the
+    :class:`~kivy.graphics.vertex_instructions.BorderImage`
     graphics instruction.
 
-    It must be a list of four values: (top, right, bottom, left). Read the
-    BorderImage instruction for more information about how to use it.
+    This must be a list of four values: (top, right, bottom, left).
+    Read the BorderImage instructions for more information about how
+    to use it.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty`, \
-    default to (4, 4, 4, 4)
+    :attr:`border` is a :class:`~kivy.properties.ListProperty` and
+    defaults to (4, 4, 4, 4).
     '''
 
     strip_cls = ObjectProperty(SplitterStrip)
-    '''Specifies the class of the resize Strip
+    '''Specifies the class of the resize Strip.
 
-    :data:`strip_cls` is a :class:`kivy.properties.ObjectProperty`
-    defaults to :class:`~kivy.uix.splitter.SplitterStrip` which is of type\
-    :class:`~kivy.uix.button.Button`
+    :attr:`strip_cls` is an :class:`kivy.properties.ObjectProperty` and
+    defaults to :class:`~kivy.uix.splitter.SplitterStrip`, which is of type
+    :class:`~kivy.uix.button.Button`.
+
+    .. versionchanged:: 1.8.0
+        If you set a string, the :class:`~kivy.factory.Factory` will be used to
+        resolve the class.
+
     '''
 
-    sizable_from = OptionProperty('left',
-        options=('left', 'right', 'top', 'bottom'))
-    '''Specifies wether the widget is resizable from ::
+    sizable_from = OptionProperty('left', options=(
+        'left', 'right', 'top', 'bottom'))
+    '''Specifies whether the widget is resizable. Options are::
         `left`, `right`, `top` or `bottom`
 
-    :data:`sizable_from` is a :class:`~kivy.properties.OptionProperty`
-    defaults to `left`
+    :attr:`sizable_from` is an :class:`~kivy.properties.OptionProperty`
+    and defaults to `left`.
     '''
 
     strip_size = NumericProperty('10pt')
     '''Specifies the size of resize strip
 
-    :data:`strp_size` is a :class:`~kivy.properties.NumericProperty`
+    :attr:`strp_size` is a :class:`~kivy.properties.NumericProperty`
     defaults to `10pt`
     '''
 
     min_size = NumericProperty('100pt')
-    '''Specifies the minimum size beyond which the widget is not resizable
+    '''Specifies the minimum size beyond which the widget is not resizable.
 
-    :data:`min_size` is a :class:`~kivy.properties.NumericProperty`
-    defaults to `100pt`
+    :attr:`min_size` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to `100pt`.
     '''
 
     max_size = NumericProperty('500pt')
-    '''Specifies the maximum size beyond which the widget is not resizable
+    '''Specifies the maximum size beyond which the widget is not resizable.
 
-    :data:`max_size` is a :class:`~kivy.properties.NumericProperty`
-    defaults to `500pt`
+    :attr:`max_size` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to `500pt`.
+    '''
+
+    _parent_proportion = NumericProperty(0.)
+    '''(internal) Specifies the distance that the slider has travelled
+    across its parent, used to automatically maintain a sensible
+    position if the parent is resized.
+
+    :attr:`_parent_proportion` is a
+    :class:`~kivy.properties.NumericProperty` and defaults to 0.
+
+    .. versionadded:: 1.8.1
+    '''
+
+    _bound_parent = ObjectProperty(None, allownone=True)
+    '''(internal) References the widget whose size is currently being
+    tracked by :attr:`_parent_proportion`.
+
+    :attr:`_bound_parent` is a
+    :class:`~kivy.properties.ObjectProperty` and defaults to None.
+
+    .. versionadded:: 1.8.1
+    '''
+
+    keep_within_parent = BooleanProperty(False)
+    '''If True, will limit the splitter to stay within its parent widget.
+
+    :attr:`keep_within_parent` is a
+    :class:`~kivy.properties.BooleanProperty` and defaults to False.
+
+    .. versionadded:: 1.8.1
+    '''
+
+    rescale_with_parent = BooleanProperty(False)
+    '''If True, will automatically change size to take up the same
+    proportion of the parent widget when it is resized, while
+    staying within :attr:`min_size` and :attr:`max_size`. As long as
+    these attributes can be satisfied, this stops the
+    :class:`Splitter` from exceeding the parent size during rescaling.
+
+    :attr:`keep_within_parent` is a
+    :class:`~kivy.properties.BooleanProperty` and defaults to False.
+
+    .. versionadded:: 1.8.1
     '''
 
     __events__ = ('on_press', 'on_release')
@@ -130,6 +177,9 @@ class Splitter(BoxLayout):
         self._container = None
         self._strip = None
         super(Splitter, self).__init__(**kwargs)
+        self.bind(max_size=self._do_size,
+                  min_size=self._do_size,
+                  parent=self._rebind_parent)
 
     def on_sizable_from(self, instance, sizable_from):
         if not instance._container:
@@ -142,11 +192,14 @@ class Splitter(BoxLayout):
             _strp.unbind(on_touch_down=instance.strip_down)
             _strp.unbind(on_touch_move=instance.strip_move)
             _strp.unbind(on_touch_up=instance.strip_up)
-            self.unbind(disabled = _strp.setter('disabled'))
+            self.unbind(disabled=_strp.setter('disabled'))
 
             sup.remove_widget(instance._strip)
         else:
-            instance._strip = _strp = instance.strip_cls()
+            cls = instance.strip_cls
+            if isinstance(cls, string_types):
+                cls = Factory.get(cls)
+            instance._strip = _strp = cls()
 
         sz_frm = instance.sizable_from[0]
         if sz_frm in ('l', 'r'):
@@ -206,44 +259,103 @@ class Splitter(BoxLayout):
     def on_press(self):
         pass
 
+    def _rebind_parent(self, instance, new_parent):
+        if self._bound_parent is not None:
+            self._bound_parent.unbind(size=self.rescale_parent_proportion)
+        if self.parent is not None:
+            new_parent.bind(size=self.rescale_parent_proportion)
+        self._bound_parent = new_parent
+        self.rescale_parent_proportion()
+
+    def rescale_parent_proportion(self, *args):
+        if self.rescale_with_parent:
+            parent_proportion = self._parent_proportion
+            if self.sizable_from in ('top', 'bottom'):
+                new_height = parent_proportion * self.parent.height
+                self.height = max(self.min_size, min(new_height, self.max_size))
+            else:
+                new_width = parent_proportion * self.parent.width
+                self.width = max(self.min_size, min(new_width, self.max_size))
+
+    def _do_size(self, instance, value):
+        if self.sizable_from[0] in ('l', 'r'):
+            self.width = max(self.min_size, min(self.width, self.max_size))
+        else:
+            self.height = max(self.min_size, min(self.height, self.max_size))
+
     def strip_move(self, instance, touch):
         if touch.grab_current is not instance:
             return False
-        sign = 1
         max_size = self.max_size
         min_size = self.min_size
         sz_frm = self.sizable_from[0]
 
         if sz_frm in ('t', 'b'):
             diff_y = (touch.dy)
+            if self.keep_within_parent:
+                if sz_frm == 't' and (self.top + diff_y) > self.parent.top:
+                    diff_y = self.parent.top - self.top
+                elif sz_frm == 'b' and (self.y + diff_y) < self.parent.y:
+                    diff_y = self.parent.y - self.y
             if sz_frm == 'b':
-                sign = -1
+                diff_y *= -1
             if self.size_hint_y:
                 self.size_hint_y = None
             if self.height > 0:
-                self.height += sign * diff_y
+                self.height += diff_y
             else:
                 self.height = 1
 
             height = self.height
             self.height = max(min_size, min(height, max_size))
+
+            self._parent_proportion = self.height / self.parent.height
         else:
             diff_x = (touch.dx)
+            if self.keep_within_parent:
+                if sz_frm == 'l' and (self.x + diff_x) < self.parent.x:
+                    diff_x = self.parent.x - self.x
+                elif (sz_frm == 'r' and
+                      (self.right + diff_x) > self.parent.right):
+                    diff_x = self.parent.right - self.right
             if sz_frm == 'l':
-                sign = -1
+                diff_x *= -1
             if self.size_hint_x:
                 self.size_hint_x = None
             if self.width > 0:
-                self.width += sign * (diff_x)
+                self.width += diff_x
             else:
                 self.width = 1
 
             width = self.width
             self.width = max(min_size, min(width, max_size))
 
+            self._parent_proportion = self.width / self.parent.width
+
     def strip_up(self, instance, touch):
         if touch.grab_current is not instance:
             return
+
+        if touch.is_double_tap:
+            max_size = self.max_size
+            min_size = self.min_size
+            sz_frm = self.sizable_from[0]
+            s = self.size
+
+            if sz_frm in ('t', 'b'):
+                if self.size_hint_y:
+                    self.size_hint_y = None
+                if s[1] - min_size <= max_size - s[1]:
+                    self.height = max_size
+                else:
+                    self.height = min_size
+            else:
+                if self.size_hint_x:
+                    self.size_hint_x = None
+                if s[0] - min_size <= max_size - s[0]:
+                    self.width = max_size
+                else:
+                    self.width = min_size
         touch.ungrab(instance)
         self.dispatch('on_release')
 

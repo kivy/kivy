@@ -8,8 +8,7 @@ import os
 
 SAMPLE_FILE = os.path.join(os.path.dirname(__file__), 'sample1.ogg')
 SAMPLE_LENGTH = 1.402
-SAMPLE_LENGTH_MIN = SAMPLE_LENGTH * 0.99
-SAMPLE_LENGTH_MAX = SAMPLE_LENGTH * 1.01
+DELTA = SAMPLE_LENGTH * 0.01
 
 
 class AudioTestCase(unittest.TestCase):
@@ -24,7 +23,7 @@ class AudioTestCase(unittest.TestCase):
         sound = self.get_sound()
         volume = sound.volume = 0.75
         length = sound.length
-        assert SAMPLE_LENGTH_MIN <= length <= SAMPLE_LENGTH_MAX
+        self.assertAlmostEqual(SAMPLE_LENGTH, length, delta=DELTA)
         # ensure that the gstreamer play/stop doesn't mess up the volume
         assert volume == sound.volume
 
@@ -35,9 +34,10 @@ class AudioTestCase(unittest.TestCase):
         try:
             time.sleep(0.1)
             length = sound.length
-            assert SAMPLE_LENGTH_MIN <= length <= SAMPLE_LENGTH_MAX
+            self.assertAlmostEqual(SAMPLE_LENGTH, length, delta=DELTA)
         finally:
             sound.stop()
+        self.assertAlmostEqual(SAMPLE_LENGTH, length, delta=DELTA)
 
     def test_length_stopped(self):
         import time
@@ -48,7 +48,7 @@ class AudioTestCase(unittest.TestCase):
         finally:
             sound.stop()
         length = sound.length
-        assert SAMPLE_LENGTH_MIN <= length <= SAMPLE_LENGTH_MAX
+        self.assertAlmostEqual(SAMPLE_LENGTH, length, delta=DELTA)
 
 
 class AudioGstreamerTestCase(AudioTestCase):

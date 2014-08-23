@@ -72,7 +72,17 @@ def load(filename):
 
             fimage = image2
         else:
-            fimage = image
+            if (image.format.Rshift > image.format.Bshift):
+                memset(&pf, 0, sizeof(pf))
+                pf.BitsPerPixel = 32
+                pf.Rmask = 0x000000FF
+                pf.Gmask = 0x0000FF00
+                pf.Bmask = 0x00FF0000
+                pf.Amask = 0xFF000000
+                image2 = SDL_ConvertSurface(image, &pf, 0)
+                fimage = image2
+            else:
+                fimage = image
 
         w = fimage.w
         h = fimage.h

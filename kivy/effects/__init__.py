@@ -21,4 +21,3 @@ We have multiple implementations:
   stops the drag, the opacity is set back to 1.
 
 '''
-

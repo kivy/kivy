@@ -1,8 +1,10 @@
+.coverage
 .noseids
 Kivy.egg-info
 *.so
 *.pyc
 *.pyo
+*.py#
 *~
 *.swp
 *.DS_Store
@@ -11,9 +13,15 @@ build/*
 doc/build
 doc/sources/api-*.rst
 kivy/*.c
+kivy/*.pyd
+kivy/core/text/text_layout.c
+kivy/core/text/text_layout.pyd
 kivy/graphics/*.c
+kivy/graphics/*.pyd
 kivy/graphics/config.h
 kivy/graphics/config.pxi
+kivy/lib/gstplayer/_gstplayer.c
+kivy/core/camera/camera_avfoundation.c
 kivy/tests/build
 kivy/tests/results
 .last_known_portable_deps_hash
@@ -24,6 +32,8 @@ kivy/core/image/osxcoreimage.c
 kivy/core/window/sdl.c
 python
 python.exe
+.idea
+dist
 
 MANIFEST
 
@@ -37,3 +47,11 @@ kivy/lib/vidcore_lite/egl.c
 kivy/core/image/_img_sdl2.c
 kivy/core/text/_text_sdl2.c
 kivy/core/window/_window_sdl2.c
+
+# PyDev
+.project
+.pydevproject
+
+# Virtualenv
+venv
+

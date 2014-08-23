@@ -4,12 +4,20 @@ Garden
 
 .. versionadded:: 1.7.0
 
-Garden is a project to centralize addons for Kivy, maintained by users. You can
-find more information at `Kivy Garden <http://kivy-garden.github.io/>`_ All the
-garden packages are centralized on the `kivy-garden Github
-<https://github.com/kivy-garden>`_.
+.. versionchanged:: 1.8.0
 
-We provide a tool (`kivy/tools/garden`) for managing garden packages::
+Garden is a project to centralize addons for Kivy maintained by users. You can
+find more information at `Kivy Garden <http://kivy-garden.github.io/>`_. All
+the garden packages are centralized on the `kivy-garden Github
+<https://github.com/kivy-garden>`_ repository.
+
+Garden is now distributed as a separate Python module, kivy-garden. You can
+install it with pip::
+
+    pip install kivy-garden
+
+The garden module does not initially include any packages. You can download
+them with the garden tool installed by the pip package::
 
     # Installing a garden package
     garden install graph
@@ -34,12 +42,16 @@ We provide a tool (`kivy/tools/garden`) for managing garden packages::
 
 All the garden packages are installed by default in `~/.kivy/garden`.
 
+.. Note:: In previous versions of Kivy, garden was a tool at 
+          kivy/tools/garden. This no longer exists, but the
+          kivy-garden module provides exactly the same functionality.
+
 Packaging
 ---------
 
-If you want to include garden package in your application, you can add `--app`
-in the `install` command. This will create a `libs/garden` directory in your
-current directory, and will be used by `kivy.garden`.
+If you want to include garden packages in your application, you can add `--app`
+to the `install` command. This will create a `libs/garden` directory in your
+current directory which will be used by `kivy.garden`.
 
 For example::
 
@@ -60,7 +72,10 @@ from kivy import kivy_home_dir
 garden_system_dir = join(kivy_home_dir, 'garden')
 
 #: application path where garden modules can be installed
-garden_app_dir = join(realpath(dirname(sys.argv[0])), 'libs', 'garden')
+if getattr(sys, 'frozen', False) and getattr(sys, '_MEIPASS', False):
+    garden_app_dir = join(realpath(sys._MEIPASS), 'libs', 'garden')
+else:
+    garden_app_dir = join(realpath(dirname(sys.argv[0])), 'libs', 'garden')
 
 
 class GardenImporter(object):
@@ -79,10 +94,9 @@ class GardenImporter(object):
 
     def _load_module(self, fullname, moddir):
         mod = imp.load_module(fullname, None, moddir,
-                ('', '', imp.PKG_DIRECTORY))
+                              ('', '', imp.PKG_DIRECTORY))
         return mod
 
 
 # insert the garden importer as ultimate importer
 sys.meta_path.append(GardenImporter())
-

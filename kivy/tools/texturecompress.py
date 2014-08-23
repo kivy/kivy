@@ -11,12 +11,12 @@ This tool is designed to compress images into:
 Usage
 -----
 
-For compressing a texture::
+In order to compress a texture::
 
     texturecompress.py [--dir <directory>] <format> <image.png>
 
-It will create a `image.tex` file with a json header that contain all the image
-information, and the compressed data.
+This will create a `image.tex` file with a json header that contains all the
+image information and the compressed data.
 
 TODO
 ----
@@ -130,6 +130,12 @@ class Etc1Tool(Tool):
             self.etc1tool = fn
             return
 
+        if self.etc1tool is None:
+            print('Error: Unable to locate "etc1tool".\n'
+                  'Make sure that "etc1tool" is available in your PATH.\n'
+                  'Or export the path of your Android SDK to ANDROIDSDK')
+            exit(1)
+
     def compress(self):
         # 1. open the source image, and get the dimensions
         image = Image.open(self.source_fn)
@@ -198,12 +204,17 @@ class PvrtcTool(Tool):
         s2 = max(w2, h2)
         print('PVR need a square image, the texture will be {0}x{0}'.format(s2))
 
+        ext = self.source_fn.rsplit('.', 1)[-1]
+        tmpfile = '/tmp/ktexturecompress.{}'.format(ext)
+        image = image.resize((s2, s2))
+        image.save(tmpfile)
+
         # 4. invoke texture tool
         raw_tex_fn = self.tex_fn + '.raw'
         cmd = [self.texturetool]
         if self.options.mipmap:
             cmd += ['-m']
-        cmd += ['-e', 'PVRTC', '-o', raw_tex_fn, '-f', 'RAW', self.source_fn]
+        cmd += ['-e', 'PVRTC', '-o', raw_tex_fn, '-f', 'RAW', tmpfile]
         try:
             self.runcmd(cmd)
             with open(raw_tex_fn, 'rb') as fd:

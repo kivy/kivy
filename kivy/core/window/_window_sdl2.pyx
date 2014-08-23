@@ -4,6 +4,7 @@ cdef class _WindowSDL2Storage:
     cdef SDL_Window *win
     cdef SDL_GLContext ctx
     cdef SDL_Surface *surface
+    cdef SDL_Surface *icon
     cdef int win_flags
 
     def __cinit__(self):
@@ -15,9 +16,9 @@ cdef class _WindowSDL2Storage:
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
 
-    def setup_window(self, width, height, use_fake, use_fullscreen):
+    def setup_window(self, width, height, use_fake, use_fullscreen, shaped=False):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
-        if use_fake:
+        if use_fake or shaped:
             self.win_flags |= SDL_WINDOW_BORDERLESS
         if use_fullscreen == 'auto':
             self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
@@ -46,7 +47,15 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
 
 
-        self.win = SDL_CreateWindow(NULL, 0, 0, width, height, self.win_flags)
+        if not shaped:
+            self.win = SDL_CreateWindow(NULL, 0, 0, width, height, self.win_flags)
+        else:
+            self.win = SDL_CreateShapedWindow(NULL, 0, 0, width, height, self.win_flags)
+            #shape_mode = SDL_WindowShapeMode()
+            #shape_mode.mode = ShapeModeColorKey
+            #shape_mode.parameters.colorKey = (0, 0, 0, 255)
+            #SDL_SetWindowShape(Self.win, circle_sf, shape_mode)
+
         if not self.win:
             self.die()
 
@@ -70,6 +79,10 @@ cdef class _WindowSDL2Storage:
 
     def set_window_title(self, str title):
         SDL_SetWindowTitle(self.win, <bytes>title.decode('utf-8'))
+
+    def set_window_icon(self, str filename):
+        icon = IMG_Load(<bytes>filename.decode('utf-8'))
+        SDL_SetWindowIcon(self.win, icon)
 
     def teardown_window(self):
         SDL_GL_DeleteContext(self.ctx)
@@ -105,6 +118,12 @@ cdef class _WindowSDL2Storage:
             y = event.button.y
             button = event.button.button
             action = 'mousebuttondown' if event.type == SDL_MOUSEBUTTONDOWN else 'mousebuttonup'
+            return (action, x, y, button)
+        elif event.type == SDL_MOUSEWHEEL:
+            x = event.button.x
+            y = event.button.y
+            button = event.button.button
+            action = 'mousewheel' + ('down' if x > 0 else 'up') if x != 0 else ('left' if y < 0 else 'right')
             return (action, x, y, button)
         elif event.type == SDL_FINGERMOTION:
             fid = event.tfinger.fingerId
@@ -150,8 +169,7 @@ cdef class _WindowSDL2Storage:
         elif event.type == SDL_KEYDOWN or event.type == SDL_KEYUP:
             action = 'keydown' if event.type == SDL_KEYDOWN else 'keyup'
             mod = event.key.keysym.mod
-            scancode = event.key.keysym.scancode
-            #unicode = event.key.keysym.unicode
+            scancode = event.key.keysym.get('scancode', '')
             key = event.key.keysym.sym
             return (action, mod, key, scancode, None)
         elif event.type == SDL_TEXTINPUT:

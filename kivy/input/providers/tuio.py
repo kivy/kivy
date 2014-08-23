@@ -2,10 +2,11 @@
 TUIO Input Provider
 ===================
 
-TUIO is the de facto standard network protocol for the transmission of touch and
-fiducial information between a server and a client.
-To learn more about TUIO (which is itself based on the OSC protocol), please
-refer to http://tuio.org -- The specification should be of special interest.
+TUIO is the de facto standard network protocol for the transmission of
+touch and fiducial information between a server and a client.  To learn
+more about TUIO (which is itself based on the OSC protocol), please
+refer to http://tuio.org -- The specification should be of special
+interest.
 
 Configure a TUIO provider in the config.ini
 -------------------------------------------
@@ -250,7 +251,8 @@ class Tuio2dCurMotionEvent(TuioMotionEvent):
             self.sx, self.sy = list(map(float, args[0:2]))
             self.profile = ('pos', )
         elif len(args) == 5:
-            self.sx, self.sy, self.X, self.Y, self.m = list(map(float, args[0:5]))
+            self.sx, self.sy, self.X, self.Y, self.m = list(map(float,
+                                                                args[0:5]))
             self.Y = -self.Y
             self.profile = ('pos', 'mov', 'motacc')
         else:
@@ -298,7 +300,33 @@ class Tuio2dObjMotionEvent(TuioMotionEvent):
         super(Tuio2dObjMotionEvent, self).depack(args)
 
 
+class Tuio2dBlbMotionEvent(TuioMotionEvent):
+    '''A 2dBlb TUIO object.
+    # FIXME 3d shape are not supported
+    /tuio/2Dobj set s i x y a       X Y A m r
+    /tuio/2Dblb set s   x y a w h f X Y A m r
+    '''
+
+    def __init__(self, device, id, args):
+        super(Tuio2dBlbMotionEvent, self).__init__(device, id, args)
+
+    def depack(self, args):
+        self.is_touch = True
+        self.sx, self.sy, self.a, self.X, self.Y, sw, sh, sd, \
+            self.A, self.m, self.r = args
+        self.Y = -self.Y
+        self.profile = ('pos', 'angle', 'mov', 'rot', 'rotacc',
+                        'acc', 'shape')
+        if self.shape is None:
+            self.shape = ShapeRect()
+            self.shape.width = sw
+            self.shape.height = sh
+        self.sy = 1 - self.sy
+        super(Tuio2dBlbMotionEvent, self).depack(args)
+
+
 # registers
 TuioMotionEventProvider.register('/tuio/2Dcur', Tuio2dCurMotionEvent)
 TuioMotionEventProvider.register('/tuio/2Dobj', Tuio2dObjMotionEvent)
+TuioMotionEventProvider.register('/tuio/2Dblb', Tuio2dBlbMotionEvent)
 MotionEventFactory.register('tuio', TuioMotionEventProvider)

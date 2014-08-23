@@ -2,7 +2,7 @@
 Properties
 ==========
 
-The *Properties* classes are used when you create a
+The *Properties* classes are used when you create an
 :class:`~kivy.event.EventDispatcher`.
 
 .. warning::
@@ -12,10 +12,10 @@ The *Properties* classes are used when you create a
 Kivy's property classes support:
 
     Value Checking / Validation
-        When you assign a new value to a property, the value is checked to
-        pass constraints implemented in the class such as validation. For
-        example, validation for :class:`OptionProperty` will make sure that
-        the value is in a predefined list of possibilities. Validation for
+        When you assign a new value to a property, the value is checked against
+        validation constraints. For
+        example, validation for an :class:`OptionProperty` will make sure that
+        the value is in a predefined list of possibilities. Validation for a
         :class:`NumericProperty` will check that your value is a numeric type.
         This prevents many errors early on.
 
@@ -31,14 +31,14 @@ Kivy's property classes support:
         The same instance of a property is shared across multiple widget
         instances.
 
-Comparison Python / Kivy
-------------------------
+Comparison Python vs. Kivy
+--------------------------
 
 Basic example
 ~~~~~~~~~~~~~
 
 Let's compare Python and Kivy properties by creating a Python class with 'a'
-as a float::
+as a float property::
 
     class MyClass(object):
         def __init__(self, a=1.0):
@@ -54,13 +54,12 @@ With Kivy, you can do::
 Value checking
 ~~~~~~~~~~~~~~
 
-If you wanted to add a check such a minimum / maximum value allowed for a
+If you wanted to add a check for a minimum / maximum value allowed for a
 property, here is a possible implementation in Python::
 
     class MyClass(object):
         def __init__(self, a=1):
             super(MyClass, self).__init__()
-            self._a = 0
             self.a_min = 0
             self.a_max = 100
             self.a = a
@@ -70,12 +69,12 @@ property, here is a possible implementation in Python::
         def _set_a(self, value):
             if value < self.a_min or value > self.a_max:
                 raise ValueError('a out of bounds')
-            self._a = a
+            self._a = value
         a = property(_get_a, _set_a)
 
 The disadvantage is you have to do that work yourself. And it becomes
 laborious and complex if you have many properties.
-With Kivy, you can simplify like this::
+With Kivy, you can simplify the process::
 
     class MyClass(EventDispatcher):
         a = BoundedNumericProperty(1, min=0, max=100)
@@ -87,18 +86,18 @@ Error Handling
 ~~~~~~~~~~~~~~
 
 If setting a value would otherwise raise a ValueError, you have two options to
-handle the error gracefully within the property.  An errorvalue is a substitute
+handle the error gracefully within the property. An errorvalue is a substitute
 for the invalid value. An errorhandler is a callable (single argument function
 or lambda) which can return a valid substitute.
 
-errorhandler parameter::
+errorvalue parameter::
 
     # simply returns 0 if the value exceeds the bounds
     bnp = BoundedNumericProperty(0, min=-500, max=500, errorvalue=0)
 
-errorvalue parameter::
+errorhandler parameter::
 
-    # returns a the boundary value when exceeded
+    # returns the boundary value when exceeded
     bnp = BoundedNumericProperty(0, min=-500, max=500,
         errorhandler=lambda x: 500 if x > 500 else -500)
 
@@ -118,12 +117,12 @@ As we said in the beginning, Kivy's Properties implement the `Observer pattern
 :meth:`~kivy.event.EventDispatcher.bind` to a property and have your own
 function called when the value changes.
 
-Multiple ways are available to observe the changes.
+There are multiple ways to observe the changes.
 
 Observe using bind()
 ~~~~~~~~~~~~~~~~~~~~
 
-You can observe a property change by using the bind() method, outside the
+You can observe a property change by using the bind() method outside of the
 class::
 
     class MyClass(EventDispatcher):
@@ -138,7 +137,7 @@ class::
 
     # At this point, any change to the a property will call your callback.
     ins.a = 5    # callback called
-    ins.a = 5    # callback not called, because the value didnt change
+    ins.a = 5    # callback not called, because the value did not change
     ins.a = -1   # callback called
 
 Observe using 'on_<propname>'
@@ -155,26 +154,51 @@ If you created the class yourself, you can use the 'on_<propname>' callback::
 .. warning::
 
     Be careful with 'on_<propname>'. If you are creating such a callback on a
-    property you are inherit, you must not forget to call the subclass
+    property you are inheriting, you must not forget to call the superclass
     function too.
 
+Binding to properties of properties.
+------------------------------------
 
+When binding to a property of a property, for example binding to a numeric
+property of an object saved in a object property, updating the object property
+to point to a new object will not re-bind the numeric property to the
+new object. For example::
 
+    <MyWidget>:
+        Label:
+            id: first
+            text: 'First label'
+        Label:
+            id: second
+            text: 'Second label'
+        Button:
+            label: first
+            text: self.label.text
+            on_press: self.label = second
 
+When clicking on the button, although the label object property has changed
+to the second widget, the button text will not change because it is bound to
+the text property of the first label directly.
 
-
+In `1.8.1`, the ``rebind`` option has been introduced that will allow the
+automatic updating of the ``text`` when ``label`` is changed, provided it
+was enabled. See :class:`ObjectProperty`.
 '''
 
 __all__ = ('Property',
            'NumericProperty', 'StringProperty', 'ListProperty',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
-           'DictProperty', 'VariableListProperty')
+           'DictProperty', 'VariableListProperty', 'ConfigParserProperty')
 
 include "graphics/config.pxi"
 
 from weakref import ref
 from kivy.compat import string_types
+from kivy.config import ConfigParser
+from functools import partial
+from kivy.clock import Clock
 
 cdef float g_dpi = -1
 cdef float g_density = -1
@@ -220,7 +244,7 @@ cdef class Property:
             hello = Property('Hello world')
 
     The default value must be a value that agrees with the Property type. For
-    example, you can't set a list to a :class:`StringProperty`, because the
+    example, you can't set a list to a :class:`StringProperty` because the
     StringProperty will check the default value.
 
     None is a special case: you can set the default value of a Property to
@@ -237,12 +261,16 @@ cdef class Property:
         a.hello = None # working too, because allownone is True.
 
     :Parameters:
-        `errorhandler`: callable
-            If set, must take a single argument and return a valid substitute
-            value
-        `errorvalue`: object
-            If set, will replace an invalid property value (overrides
-            errorhandler)
+        `default`:
+            Specifies the default value for the property.
+        `\*\*kwargs`:
+            If the parameters include `errorhandler`, this should be a callable
+            which must take a single argument and return a valid substitute
+            value.
+
+            If the parameters include `errorvalue`, this should be an object.
+            If set, it will replace an invalid property value (overrides
+            errorhandler).
 
     .. versionchanged:: 1.4.2
         Parameters errorhandler and errorvalue added
@@ -293,8 +321,8 @@ cdef class Property:
                 uid = NumericProperty(0)
 
         In this example, the uid will be a NumericProperty() instance, but the
-        property instance doesn't know its name. That's why :func:`link` is
-        used in Widget.__new__. The link function is also used to create the
+        property instance doesn't know its name. That's why :meth:`link` is
+        used in `Widget.__new__`. The link function is also used to create the
         storage space of the property for this specific widget instance.
         '''
         cdef PropertyStorage d = PropertyStorage()
@@ -367,8 +395,8 @@ cdef class Property:
     #
 
     cdef check(self, EventDispatcher obj, x):
-        '''Check if the value is correct or not, depending on the settings of
-        the property class.
+        '''Check whether the value is correct or not, depending on the settings
+        of the property class.
 
         :Returns:
             bool, True if the value correctly validates.
@@ -406,14 +434,16 @@ cdef class Property:
         cdef PropertyStorage ps = obj.__storage[self._name]
         if len(ps.observers):
             value = ps.value
-            for observer in ps.observers:
+            for observer in ps.observers[:]:
                 observer(obj, value)
 
 
 cdef class NumericProperty(Property):
     '''Property that represents a numeric value.
 
-    The NumericProperty accepts only int or float.
+    :Parameters:
+        `default`: int or float, defaults to 0
+            Specifies the default value of the property.
 
     >>> wid = Widget()
     >>> wid.x = 42
@@ -459,8 +489,8 @@ cdef class NumericProperty(Property):
                 raise ValueError('%s.%s must have 2 components (got %r)' % (
                     obj.__class__.__name__,
                     self.name, x))
-            return self.parse_list(obj, x[0], <str>x[1])
-        elif tp is str:
+            return self.parse_list(obj, x[0], x[1])
+        elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
             raise ValueError('%s.%s have an invalid format (got %r)' % (
@@ -468,9 +498,9 @@ cdef class NumericProperty(Property):
                 self.name, x))
 
     cdef float parse_str(self, EventDispatcher obj, value):
-        return self.parse_list(obj, value[:-2], <str>value[-2:])
+        return self.parse_list(obj, value[:-2], value[-2:])
 
-    cdef float parse_list(self, EventDispatcher obj, value, str ext):
+    cdef float parse_list(self, EventDispatcher obj, value, ext):
         cdef PropertyStorage ps = obj.__storage[self._name]
         ps.numeric_fmt = ext
         return dpi2px(value, ext)
@@ -488,7 +518,10 @@ cdef class NumericProperty(Property):
 cdef class StringProperty(Property):
     '''Property that represents a string value.
 
-    Only a string or unicode is accepted.
+    :Parameters:
+        `default`: string, defaults to ''
+            Specifies the default value of the property.
+
     '''
 
     def __init__(self, defaultvalue='', **kw):
@@ -573,7 +606,26 @@ class ObservableList(list):
 cdef class ListProperty(Property):
     '''Property that represents a list.
 
-    Only lists are allowed. Tuple or any other classes are forbidden.
+    :Parameters:
+        `default`: list, defaults to []
+            Specifies the default value of the property.
+
+    .. warning::
+
+        When assigning a list to a :class:`ListProperty`, the list stored in
+        the property is a copy of the list and not the original list. This can
+        be demonstrated with the following example::
+
+            >>> class MyWidget(Widget):
+            >>>     my_list = ListProperty([])
+
+            >>> widget = MyWidget()
+            >>> my_list = widget.my_list = [1, 5, 7]
+            >>> print my_list is widget.my_list
+            False
+            >>> my_list.append(10)
+            >>> print(my_list, widget.my_list)
+            [1, 5, 7, 10], [1, 5, 7]
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or []
@@ -631,12 +683,7 @@ class ObservableDict(dict):
         self.__setitem__(attr, value)
 
     def __setitem__(self, key, value):
-        if value is None:
-            # remove attribute if value is None
-            # is this really needed?
-            self.__delitem__(key)
-        else:
-            dict.__setitem__(self, key, value)
+        dict.__setitem__(self, key, value)
         observable_dict_dispatch(self)
 
     def __delitem__(self, key):
@@ -662,8 +709,9 @@ class ObservableDict(dict):
         return result
 
     def setdefault(self, *largs):
-        dict.setdefault(self, *largs)
+        cdef object result = dict.setdefault(self, *largs)
         observable_dict_dispatch(self)
+        return result
 
     def update(self, *largs):
         dict.update(self, *largs)
@@ -673,12 +721,26 @@ class ObservableDict(dict):
 cdef class DictProperty(Property):
     '''Property that represents a dict.
 
-    Only dict are allowed. Any other classes are forbidden.
+    :Parameters:
+        `default`: dict, defaults to None
+            Specifies the default value of the property.
+        `rebind`: bool, defaults to False
+            See :class:`ObjectProperty` for details.
+
+    .. versionchanged:: 1.8.1
+        `rebind` has been introduced.
+
+    .. warning::
+
+        Similar to :class:`ListProperty`, when assigning a dict to a
+        :class:`DictProperty`, the dict stored in the property is a copy of the
+        dict and not the original dict. See :class:`ListProperty` for details.
     '''
-    def __init__(self, defaultvalue=None, **kw):
+    def __init__(self, defaultvalue=None, rebind=False, **kw):
         defaultvalue = defaultvalue or {}
 
         super(DictProperty, self).__init__(defaultvalue, **kw)
+        self.rebind = rebind
 
     cpdef link(self, EventDispatcher obj, str name):
         Property.link(self, obj, name)
@@ -702,20 +764,50 @@ cdef class ObjectProperty(Property):
     '''Property that represents a Python object.
 
     :Parameters:
-        `baseclass`: object
-            This will be used for: `isinstance(value, baseclass)`.
+        `default`: object type
+            Specifies the default value of the property.
+        `rebind`: bool, defaults to False
+            Whether kv rules using this object as an intermediate attribute
+            in a kv rule, will update the bound property when this object
+            changes.
+
+            That is the standard behavior is that if there's a kv rule
+            ``text: self.a.b.c.d``, where ``a``, ``b``, and ``c`` are
+            properties with ``rebind`` ``False`` and ``d`` is a
+            :class:`StringProperty`. Then when the rule is applied, ``text``
+            becomes bound only to ``d``. If ``a``, ``b``, or ``c`` change,
+            ``text`` still remains bound to ``d``. Furthermore, if any of them
+            were ``None`` when the rule was initially evaluated, e.g. ``b`` was
+            ``None``; then ``text`` is bound to ``b`` and will not become bound
+            to ``d`` even when ``b`` is changed to not be ``None``.
+
+            By setting ``rebind`` to ``True``, however, the rule will be
+            re-evaluated and all the properties rebound when that intermediate
+            property changes. E.g. in the example above, whenever ``b`` changes
+            or becomes not ``None`` if it was ``None`` before, ``text`` is
+            evaluated again and becomes rebound to ``d``. The overall result is
+            that ``text`` is now bound to all the properties among ``a``,
+            ``b``, or ``c`` that have ``rebind`` set to ``True``.
+        `\*\*kwargs`: a list of keyword arguments
+            `baseclass`
+                If kwargs includes a `baseclass` argument, this value will be
+                used for validation: `isinstance(value, kwargs['baseclass'])`.
 
     .. warning::
 
         To mark the property as changed, you must reassign a new python object.
 
+    .. versionchanged:: 1.8.1
+        `rebind` has been introduced.
+
     .. versionchanged:: 1.7.0
 
         `baseclass` parameter added.
     '''
-    def __init__(self, defaultvalue=None, **kw):
+    def __init__(self, defaultvalue=None, rebind=False, **kw):
         self.baseclass = kw.get('baseclass', object)
         super(ObjectProperty, self).__init__(defaultvalue, **kw)
+        self.rebind = rebind
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
@@ -728,6 +820,10 @@ cdef class ObjectProperty(Property):
 
 cdef class BooleanProperty(Property):
     '''Property that represents only a boolean value.
+
+    :Parameters:
+        `default`: boolean
+            Specifies the default value of the property.
     '''
 
     def __init__(self, defaultvalue=True, **kw):
@@ -746,10 +842,13 @@ cdef class BoundedNumericProperty(Property):
     maximum bound -- within a numeric range.
 
     :Parameters:
-        `min`: numeric
-            If set, minimum bound will be used, with the value of min
-        `max`: numeric
-            If set, maximum bound will be used, with the value of max
+        `default`: numeric
+            Specifies the default value of the property.
+        `\*\*kwargs`: a list of keyword arguments
+            If a `min` parameter is included, this specifies the minimum
+            numeric value that will be accepted.
+            If a `max` parameter is included, this specifies the maximum
+            numeric value that will be accepted.
     '''
     def __cinit__(self):
         self.use_min = 0
@@ -842,7 +941,7 @@ cdef class BoundedNumericProperty(Property):
     def set_max(self, EventDispatcher obj, value):
         '''Change the maximum value acceptable for the BoundedNumericProperty,
         only for the `obj` instance. Set to None if you want to disable it.
-        Check :data:`set_min` for a usage example.
+        Check :attr:`set_min` for a usage example.
 
         .. warning::
 
@@ -863,7 +962,7 @@ cdef class BoundedNumericProperty(Property):
     def get_max(self, EventDispatcher obj):
         '''Return the maximum value acceptable for the BoundedNumericProperty
         in `obj`. Return None if no maximum value is set. Check
-        :data:`get_min` for a usage example.
+        :attr:`get_min` for a usage example.
 
         .. versionadded:: 1.1.0
         '''
@@ -935,8 +1034,11 @@ cdef class OptionProperty(Property):
     (passed at property creation time), a ValueError exception will be raised.
 
     :Parameters:
-        `options`: list (not tuple.)
-            List of valid options
+        `default`: any valid type in the list of options
+            Specifies the default value of the property.
+        `\*\*kwargs`: a list of keyword arguments
+            Should include an `options` parameter specifying a list (not tuple)
+            of valid options.
     '''
     def __cinit__(self):
         self.options = []
@@ -981,9 +1083,9 @@ class ObservableReferenceList(ObservableList):
             self.prop.setitem(self.obj(), slice(start, stop), value)
 
 cdef class ReferenceListProperty(Property):
-    '''Property that allows the creaton of a tuple of other properties.
+    '''Property that allows the creation of a tuple of other properties.
 
-    For example, if `x` and `y` are :class:`NumericProperty`s, we can create a
+    For example, if `x` and `y` are :class:`NumericProperty`\s, we can create a
     :class:`ReferenceListProperty` for the `pos`. If you change the value of
     `pos`, it will automatically change the values of `x` and `y` accordingly.
     If you read the value of `pos`, it will return a tuple with the values of
@@ -1116,12 +1218,19 @@ cdef class AliasProperty(Property):
         `getter`: function
             Function to use as a property getter
         `setter`: function
-            Function to use as a property setter
+            Function to use as a property setter. Properties listening to the
+            alias property won't be updated when the property is set (e.g.
+            `right = 10`), unless the `setter` returns `True`.
         `bind`: list/tuple
             Properties to observe for changes, as property name strings
         `cache`: boolean
             If True, the value will be cached, until one of the binded elements
             will changes
+        `rebind`: bool, defaults to False
+            See :class:`ObjectProperty` for details.
+
+    .. versionchanged:: 1.8.1
+        `rebind` has been introduced.
 
     .. versionchanged:: 1.4.0
         Parameter `cache` added.
@@ -1132,13 +1241,18 @@ cdef class AliasProperty(Property):
         self.use_cache = 0
         self.bind_objects = list()
 
-    def __init__(self, getter, setter, **kwargs):
+    def __init__(self, getter, setter=None, rebind=False, **kwargs):
         Property.__init__(self, None, **kwargs)
         self.getter = getter
-        self.setter = setter
+        self.setter = setter or self.__read_only
+        self.rebind = rebind
         v = kwargs.get('bind')
         self.bind_objects = list(v) if v is not None else []
-        self.use_cache = 1 if kwargs.get('cache') else 0
+        if kwargs.get('cache'):
+            self.use_cache = 1
+
+    def __read_only(self, _obj, _value):
+        raise AttributeError('property is read-only')
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
         Property.init_storage(self, obj, storage)
@@ -1179,21 +1293,32 @@ cdef class AliasProperty(Property):
             self.dispatch(obj)
 
 cdef class VariableListProperty(Property):
-    '''A ListProperty that mimics the css way of defining numeric values such
-    as padding, margin, etc.
+    '''A ListProperty that allows you to work with a variable amount of
+    list items and to expand them to the desired list size.
 
-    Accepts a list of 1 or 2 (or 4 when length=4) Numeric arguments or a single
-    Numeric argument.
+    For example, GridLayout's padding used to just accept one numeric value
+    which was applied equally to the left, top, right and bottom of the
+    GridLayout. Now padding can be given one, two or four values, which are
+    expanded into a length four list [left, top, right, bottom] and stored
+    in the property.
+
+    :Parameters:
+        `default`: a default list of values
+            Specifies the default values for the list.
+        `length`: int, one of 2 or 4.
+            Specifies the length of the final list. The `default` list will
+            be expanded to match a list of this length.
+        `\*\*kwargs`: a list of keyword arguments
+            Not currently used.
+
+    Keeping in mind that the `default` list is expanded to a list of length 4,
+    here are some examples of how VariabelListProperty's are handled.
 
     - VariableListProperty([1]) represents [1, 1, 1, 1].
     - VariableListProperty([1, 2]) represents [1, 2, 1, 2].
     - VariableListProperty(['1px', (2, 'px'), 3, 4.0]) represents [1, 2, 3, 4.0].
     - VariableListProperty(5) represents [5, 5, 5, 5].
     - VariableListProperty(3, length=2) represents [3, 3].
-
-    :Parameters:
-        `length`: int
-            The length of the list, can be 2 or 4.
 
     .. versionadded:: 1.7.0
     '''
@@ -1227,7 +1352,7 @@ cdef class VariableListProperty(Property):
             return x
 
         tp = type(x)
-        if tp is list or tp is tuple:
+        if isinstance(x, (list, tuple)):
             l = len(x)
             if l == 1:
                 y = self._convert_numeric(obj, x[0])
@@ -1263,7 +1388,7 @@ cdef class VariableListProperty(Property):
                 elif self.length == 2:
                     err = '%s.%s must have 1 or 2 components (got %r)'
                 raise ValueError(err % (obj.__class__.__name__, self.name, x))
-        elif tp is int or tp is long or tp is float or tp is str:
+        elif tp is int or tp is long or tp is float or isinstance(x, string_types):
             y = self._convert_numeric(obj, x)
             if self.length == 4:
                 return [y, y, y, y]
@@ -1283,8 +1408,8 @@ cdef class VariableListProperty(Property):
                 raise ValueError('%s.%s must have 2 components (got %r)' % (
                     obj.__class__.__name__,
                     self.name, x))
-            return self.parse_list(obj, x[0], <str>x[1])
-        elif tp is str:
+            return self.parse_list(obj, x[0], x[1])
+        elif isinstance(x, string_types):
             return self.parse_str(obj, x)
         else:
             raise ValueError('%s.%s have an invalid format (got %r)' % (
@@ -1292,8 +1417,312 @@ cdef class VariableListProperty(Property):
                 self.name, x))
 
     cdef float parse_str(self, EventDispatcher obj, value):
-        return self.parse_list(obj, value[:-2], <str>value[-2:])
+        return self.parse_list(obj, value[:-2], value[-2:])
 
-    cdef float parse_list(self, EventDispatcher obj, value, str ext):
+    cdef float parse_list(self, EventDispatcher obj, value, ext):
         return dpi2px(value, ext)
 
+
+cdef class ConfigParserProperty(Property):
+    ''' Property that allows one to bind to changes in the configuration values
+    of a :class:`~kivy.config.ConfigParser` as well as to bind the ConfigParser
+    values to other properties.
+
+    A ConfigParser is composed of sections, where each section has a number of
+    keys and values associated with these keys. ConfigParserProperty lets
+    you automatically listen to and change the values of specified keys based
+    on other kivy properties.
+
+    For example, say we want to have a TextInput automatically write
+    its value, represented as an int, in the `info` section of a ConfigParser.
+    Also, the textinputs should update its values from the ConfigParser's
+    fields. Finally, their values should be displayed in a label. In py::
+
+        class Info(Label):
+
+            number = ConfigParserProperty(0, 'info', 'number', 'example',
+                                          val_type=int, errorvalue=41)
+
+            def __init__(self, **kw):
+                super(Info, self).__init__(**kw)
+                config = ConfigParser(name='example')
+
+    The above code creates a property that is connected to the `number` key in
+    the `info` section of the ConfigParser named `example`. Initially, this
+    ConfigParser doesn't exist. Then, in `__init__`, a ConfigParser is created
+    with name `example`, which is then automatically linked with this property.
+    then in kv::
+
+        BoxLayout:
+            TextInput:
+                id: number
+                text: str(info.number)
+            Info:
+                id: info
+                number: number.text
+                text: 'Number: {}'.format(self.number)
+
+    You'll notice that we have to do `text: str(info.number)`, this is because
+    the value of this property is always an int, because we specified `int` as
+    the `val_type`. However, we can assign anything to the property, e.g.
+    `number: number.text` which assigns a string, because it is instantly
+    converted with the `val_type` callback.
+
+    .. note::
+
+        If a file has been opened for this ConfigParser using
+        :meth:`~kivy.config.ConfigParser.read`, then
+        :meth:`~kivy.config.ConfigParser.write` will be called every property
+        change, keeping the file updated.
+
+    .. warning::
+
+        It is recommend that the config parser object be assigned to the
+        property after the kv tree has been constructed (e.g. schedule on next
+        frame from init). This is because the kv tree and its properties, when
+        constructed, are evaluated on its own order, therefore, any initial
+        values in the parser might be overwritten by objects it's bound to.
+        So in the example above, the TextInput might be initially empty,
+        and if `number: number.text` is evaluated before
+        `text: str(info.number)`, the config value will be overwitten with the
+        (empty) text value.
+
+    :Parameters:
+        `default`: object type
+            Specifies the default value for the key. If the parser associated
+            with this property doesn't have this section or key, it'll be
+            created with the current value, which is the default value
+            initially.
+        `section`: string type
+            The section in the ConfigParser where the key / value will be
+            written. Must be provided. If the section doesn't exist, it'll be
+            created.
+        `key`: string type
+            The key in section `section` where the value will be written to.
+            Must be provided. If the key doesn't exist, it'll be created and
+            the current value written to it, otherwise its value will be used.
+        `config`: string or :class:`~kivy.config.ConfigParser` instance.
+            The ConfigParser instance to associate with this property if
+            not None. If it's a string, the ConfigParser instance whose
+            :attr:`~kivy.config.ConfigParser.name` is the value of `config`
+            will be used. If no such parser exists yet, whenever a ConfigParser
+            with this name is created, it will automatically be linked to this
+            property.
+
+            Whenever a ConfigParser becomes linked with a property, if the
+            section or key doesn't exist, the current property value will be
+            used to create that key, otherwise, the existing key value will be
+            used for the property value; overwriting its current value. You can
+            change the ConfigParser associated with this property if a string
+            was used here, by changing the
+            :attr:`~kivy.config.ConfigParser.name` of an existing or new
+            ConfigParser instance. Or through :meth:`set_config`.
+        `\*\*kwargs`: a list of keyword arguments
+            `val_type`: a callable object
+                The key values are saved in the ConfigParser as strings. When
+                the ConfigParser value is read internally and assigned to the
+                property or when the user changes the property value directly,
+                if `val_type` is not None, it will be called with the new value
+                as input and it should return the value converted to the proper
+                type accepted ny this property. For example, if the property
+                represent ints, `val_type` can simply be `int`.
+
+                If the `val_type` callback raises a `ValueError`, `errorvalue`
+                or `errorhandler` will be used if provided. Tip: the
+                `getboolean` function of the ConfigParser might also be useful
+                here to convert to a boolean type.
+            `verify`: a callable object
+                Can be used to restrict the allowable values of the property.
+                For every value assigned to the property, if this is specified,
+                `verify` is called with the new value, and if it returns `True`
+                the value is accepted, otherwise, `errorvalue` or
+                `errorhandler` will be used if provided or a `ValueError` is
+                raised.
+
+    .. versionadded:: 1.8.1
+    '''
+
+    def __cinit__(self):
+        self.config = None
+        self.config_name = ''
+        self.section = ''
+        self.key = ''
+        self.val_type = None
+        self.verify = None
+        self.last_value = None  # the last string value in the config for this
+
+    def __init__(self, defaultvalue, section, key, config, **kw):
+        super(ConfigParserProperty, self).__init__(defaultvalue, **kw)
+        self.section = section
+        self.key = key
+        self.val_type = kw.get('val_type', None)
+        self.verify = kw.get('verify', None)
+
+        if isinstance(config, string_types) and config:
+            self.config_name = config
+        elif isinstance(config, ConfigParser):
+            self.config = config
+        elif config is not None:
+            raise ValueError(
+            'config {}, is not a ConfigParser instance or a non-empty string'.
+            format(config))
+
+        if not self.section or not isinstance(section, string_types):
+            raise ValueError('section {}, is not a non-empty string'.
+                             format(section))
+        if not self.key or not isinstance(key, string_types):
+            raise ValueError('key {}, is not a non-empty string'.
+                             format(key))
+        if self.val_type is not None and not callable(self.val_type):
+            raise ValueError(
+                'val_type {} is not callable'.format(self.val_type))
+        if self.verify is not None and not callable(self.verify):
+            raise ValueError(
+                'verify {} is not callable'.format(self.verify))
+
+    cpdef link_deps(self, EventDispatcher obj, str name):
+        # initialize the config objects
+        cdef PropertyStorage ps
+        Property.link_deps(self, obj, name)
+        self.obj = ref(obj)
+
+        if self.config is not None:
+            self.config.adddefaultsection(self.section)
+            self.config.setdefault(self.section, self.key, self.defaultvalue)
+
+            ps = obj.__storage[self._name]
+            ps.value = self._parse_str(self.config.get(self.section, self.key))
+            # in case the value changed, save it
+            self.config.set(self.section, self.key, ps.value)
+            self.last_value = self.config.get(self.section, self.key)
+            self.config.add_callback(self._edit_setting, self.section, self.key)
+            self.config.write()
+            #self.dispatch(obj)  # we need to dispatch, so not overwitten
+        elif self.config_name:
+            # ConfigParser will set_config when one named config is created
+            Clock.schedule_once(partial(ConfigParser._register_named_property,
+            self.config_name, (self.obj, self.name)), 0)
+
+    cpdef _edit_setting(self, section, key, value):
+        # callback of ConfigParser
+        cdef object obj = self.obj()
+        if obj is None or self.last_value == value:
+            return
+
+        self.last_value = value
+        self.set(obj, value)
+
+    cdef inline object _parse_str(self, object value):
+        ''' Takes a ConfigParser's string (or any value supplied by the user),
+        and converts it to the python type that this property represents
+        (with :attr:`val_type` and :attr:`verify`).
+        '''
+        cdef object val = value
+        cdef object obj = self.obj()
+        cdef object name = obj.__class__.__name__ if obj else ''
+
+        if self.val_type is not None:
+            try:
+                val = self.val_type(value)
+                if self.verify is not None and not self.verify(val):
+                    raise ValueError('{} is not allowed for {}.{}'. format(
+                        val, name, self.name))
+                return val
+            except ValueError, e:
+                if self.errorvalue_set == 1:
+                    val = self.errorvalue
+                elif self.errorhandler is not None:
+                    val = self.errorhandler(val)
+                else:
+                    raise e
+
+        if self.verify is not None:
+            if not self.verify(val):
+                raise ValueError('{} is not allowed for {}.{}'.format(val,
+                    name, self.name))
+        return val
+
+    cpdef set(self, EventDispatcher obj, value):
+        # Takes the a python object of the type used by this property
+        # (see :attr:`val_type`), and saves it as a string in the config parser
+        # (if available) and sets itself to this value.
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        cdef object orig_value = value
+
+        value = self._parse_str(value)
+        realvalue = ps.value
+        if self.compare_value(realvalue, value):
+            if self.compare_value(orig_value, value):
+                return False
+            else:
+                # even if the resolved parsed value is the same, the original
+                # value, e.g. str in config or user set value containing
+                # invalid value might have been different, so we have to
+                # change to the resolved value.
+                if self.config:
+                    self.config.set(self.section, self.key, value)
+                    self.config.write()
+                self.dispatch(obj)
+                return True
+
+        try:
+            if self.verify is not None and not self.verify(value):
+                raise ValueError('{} is not allowed for {}.{}'.
+                format(value, obj.__class__.__name__, self.name))
+        except ValueError, e:
+            if self.errorvalue_set == 1:
+                value = self.errorvalue
+            elif self.errorhandler is not None:
+                value = self.errorhandler(value)
+            else:
+                raise e
+
+            if self.verify is not None and not self.verify(value):
+                raise ValueError('{} is not allowed for {}.{}'.
+                format(value, obj.__class__.__name__, self.name))
+
+        ps.value = value
+        if self.config is not None:
+            self.config.set(self.section, self.key, value)
+            self.config.write()
+        self.dispatch(obj)
+        return True
+
+    def set_config(self, config):
+        ''' Sets the ConfigParser object to be used by this property. Normally,
+        the ConfigParser is set when initializing the Property using the
+        `config` parameter.
+
+        :Parameters:
+            `config`: A :class:`~kivy.config.ConfigParser` instance.
+                The instance to use for listening to and saving property value
+                changes. If None, it disconnects the currently used
+                `ConfigParser`.
+
+        ::
+
+            class MyWidget(Widget):
+                username = ConfigParserProperty('', 'info', 'name', None)
+
+            widget = MyWidget()
+            widget.property('username').set_config(ConfigParser())
+        '''
+        cdef EventDispatcher obj = self.obj()
+        cdef object value
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        if self.config is config:
+            return
+
+        if self.config is not None:
+            self.config.remove_callback(self._edit_setting, self.section,
+                                        self.key)
+        self.config = config
+        if self.config is not None:
+            self.config.adddefaultsection(self.section)
+            self.config.setdefault(self.section, self.key, ps.value)
+            self.config.write()
+            self.config.add_callback(self._edit_setting, self.section,
+                                     self.key)
+            self.last_value = None
+            self._edit_setting(self.section, self.key,
+                               self.config.get(self.section, self.key))

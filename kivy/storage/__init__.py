@@ -6,18 +6,18 @@ Storage
 
 .. warning::
 
-    This module is still experimental, and his API is subject to change in a
+    This module is still experimental, and the API is subject to change in a
     future version.
 
 Usage
 -----
 
-The idea behind the Storage module is to be able to load/store keys/values. The
-default model is abstract, and you cannot use it directly. We provide some
-implementation like:
+The idea behind the Storage module is to be able to load/store any number of
+key/value pairs via an indexed key. The default model is abstract so you
+cannot use it directly. We provide some implementations such as:
 
-- :class:`kivy.storage.dictstore.DictStore`: use a python dict as a storage
-- :class:`kivy.storage.jsonstore.JsonStore`: use a JSON file as a storage
+- :class:`kivy.storage.dictstore.DictStore`: use a python dict as a store
+- :class:`kivy.storage.jsonstore.JsonStore`: use a JSON file as a store
 - :class:`kivy.storage.redistore.RedisStore`: use a `Redis <http://redis.io>`_
   database with `redis-py <https://github.com/andymccurdy/redis-py>`_
 
@@ -33,22 +33,26 @@ For example, let's use a JsonStore::
     store = JsonStore('hello.json')
 
     # put some values
-    store.put('tito', name='Mathieu', age=30)
+    store.put('tito', name='Mathieu', org='kivy')
     store.put('tshirtman', name='Gabriel', age=27)
 
-    # get from a key
-    print('tito is', store.get('tito'))
+    # using the same index key erases all previously added key/value pairs
+    store.put('tito', name='Mathieu', age=30)
+
+    # get a value using a index key and key
+    print('tito is', store.get('tito')['age'])
 
     # or guess the key/entry for a part of the key
-    key, tshirtman = store.find(name='Gabriel')
-    print('tshirtman is', tshirtman)
+    for item in store.find(name='Gabriel'):
+        print('tshirtmans index key is', item[0])
+        print('his key value pairs are', str(item[1]))
 
-Because the data is persistant, i can check later if the key exists::
+Because the data is persistant, you can check later to see if the key exists::
 
     from kivy.storage.jsonstore import JsonStore
 
     store = JsonStore('hello.json')
-    if store.exists('tite'):
+    if store.exists('tito'):
         print('tite exists:', store.get('tito'))
         store.delete('tito')
 
@@ -56,17 +60,15 @@ Because the data is persistant, i can check later if the key exists::
 Synchronous / Asynchronous API
 ------------------------------
 
-All the standard method (:meth:`~AbstractStore.get`, :meth:`~AbstractStore.put`,
-:meth:`~AbstractStore.exists`, :meth:`~AbstractStore.delete`,
-:meth:`~AbstractStore.find`) got an asynchronous version of it.
+All the standard methods (:meth:`~AbstractStore.get`,
+:meth:`~AbstractStore.put` , :meth:`~AbstractStore.exists`,
+:meth:`~AbstractStore.delete`, :meth:`~AbstractStore.find`) have an
+asynchronous version.
 
-For example
-
-
-have a `callback` parameter. If set, the callback will be used
-to return the result to the user when available: the request will be
-asynchronous.  If the `callback` is None, then the request will be synchronous
-and the result will be returned directly.
+For example, the *get* method has a `callback` parameter. If set, the
+`callback` will be used to return the result to the user when available:
+the request will be asynchronous.  If the `callback` is None, then the
+request will be synchronous and the result will be returned directly.
 
 
 Without callback (Synchronous API)::
@@ -74,7 +76,7 @@ Without callback (Synchronous API)::
     entry = mystore.get('tito')
     print('tito =', entry)
 
-With callback (Asynchronous API):
+With callback (Asynchronous API)::
 
     def my_callback(store, key, entry):
         print('the key', key, 'have', entry)
@@ -82,17 +84,17 @@ With callback (Asynchronous API):
 
 
 The callback signature is (for almost all methods) `callback(store, key,
-result)`:
+result)`::
 
-#. `store` is the `Store` instance currently used
-#. `key` is the key searched
-#. `entry` is the result of the lookup for the `key`
+#. `store` is the `Store` instance currently used.
+#. `key` is the key to search for.
+#. `entry` is the result of the lookup for the `key`.
 
 
 Synchronous container type
 --------------------------
 
-The storage API is also emulating the container type for the synchronous API::
+The storage API emulates the container type for the synchronous API::
 
     store = JsonStore('hello.json')
 
@@ -131,7 +133,7 @@ class AbstractStore(EventDispatcher):
         self.store_load()
 
     def exists(self, key):
-        '''Check if a key exist in the storage.
+        '''Check if a key exists in the store.
         '''
         return self.store_exists(key)
 
@@ -143,15 +145,15 @@ class AbstractStore(EventDispatcher):
                 Store instance
             `key`: string
                 Name of the key to search for
-            `result`: bool
+            `result`: boo
                 Result of the query, None if any error
         '''
         self._schedule(self.store_exists_async,
-                key=key, callback=callback)
+                       key=key, callback=callback)
 
     def get(self, key):
-        '''Get the value stored at `key`. If the key is not found, an
-        `KeyError` exception will be throw.
+        '''Get the key/value pairs stored at `key`. If the key is not found, a
+        `KeyError` exception will be thrown.
         '''
         return self.store_get(key)
 
@@ -169,7 +171,8 @@ class AbstractStore(EventDispatcher):
         self._schedule(self.store_get_async, key=key, callback=callback)
 
     def put(self, key, **values):
-        '''Put a new key/value in the storage
+        '''Put new key/value pairs (given in *values*) into the storage. Any
+        existing key/value pairs will be removed.
         '''
         need_sync = self.store_put(key, values)
         if need_sync:
@@ -186,14 +189,14 @@ class AbstractStore(EventDispatcher):
                 Name of the key to search for
             `result`: bool
                 Indicate True if the storage has been updated, or False if
-                nothing has been done (no changes.). None if any error.
+                nothing has been done (no changes). None if any error.
         '''
         self._schedule(self.store_put_async,
-                key=key, value=values, callback=callback)
+                       key=key, value=values, callback=callback)
 
     def delete(self, key):
-        '''Delete a key from the storage. If the key is not found, an `KeyError`
-        exception will be throw.  '''
+        '''Delete a key from the storage. If the key is not found, a `KeyError`
+        exception will be thrown.'''
         need_sync = self.store_delete(key)
         if need_sync:
             self.store_sync()
@@ -209,17 +212,18 @@ class AbstractStore(EventDispatcher):
                 Name of the key to search for
             `result`: bool
                 Indicate True if the storage has been updated, or False if
-                nothing has been done (no changes.). None if any error.
+                nothing has been done (no changes). None if any error.
         '''
         self._schedule(self.store_delete_async, key=key,
-                callback=callback)
+                       callback=callback)
 
     def find(self, **filters):
-        '''Return all the entries matching the filters. The entries are given
-        through a generator, as a list of (key, entry)::
+        '''Return all the entries matching the filters. The entries are
+        returned through a generator as a list of (key, entry) pairs
+        where *entry* is a dict of key/value pairs ::
 
             for key, entry in store.find(name='Mathieu'):
-                print('entry:', key, '->', value)
+                print('key:', key, ', entry:', entry)
 
         Because it's a generator, you cannot directly use it as a list. You can
         do::
@@ -234,38 +238,38 @@ class AbstractStore(EventDispatcher):
     def async_find(self, callback, **filters):
         '''Asynchronous version of :meth:`find`.
 
-        The callback will be called for each entries in the result.
+        The callback will be called for each entry in the result.
 
         :Callback arguments:
             `store`: :class:`AbstractStore` instance
                 Store instance
             `key`: string
                 Name of the key to search for, or None if we reach the end of
-                the result
+                the results
             `result`: bool
                 Indicate True if the storage has been updated, or False if
-                nothing has been done (no changes.). None if any error.
+                nothing has been done (no changes). None if any error.
         '''
         self._schedule(self.store_find_async,
-                callback=callback, filters=filters)
+                       callback=callback, filters=filters)
 
     def keys(self):
-        '''Return a list of all the keys in the storage
+        '''Return a list of all the keys in the storage.
         '''
         return self.store_keys()
 
     def async_keys(self, callback):
-        '''Asynchronously return all the keys in the storage
+        '''Asynchronously return all the keys in the storage.
         '''
         self._schedule(self.store_keys_async, callback=callback)
 
     def count(self):
-        '''Return the number of entries in the storage
+        '''Return the number of entries in the storage.
         '''
         return self.store_count()
 
     def async_count(self, callback):
-        '''Asynchronously return the number of entries in the storage
+        '''Asynchronously return the number of entries in the storage.
         '''
         self._schedule(self.store_count_async, callback=callback)
 
