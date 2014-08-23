@@ -504,6 +504,13 @@ class FocusBehavior(object):
     :attr:`keyboard` is a :class:`~kivy.properties.AliasProperty`, defaults to
     None.
 
+    .. note::
+
+        When Config's `keyboard_mode` is multi, each new touch is considered
+        a touch by a different user and will focus (if clicked on a
+        focusable) with a new keyboard. Already focused elements will not lose
+        their focus (even if clicked on a unfocusable).
+
     .. note:
 
         If the keyboard property is set, that keyboard will be used when the
