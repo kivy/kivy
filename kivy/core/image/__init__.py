@@ -467,12 +467,14 @@ class Image(EventDispatcher):
 
         '''
         count = 0
-        uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
+        f = self.filename
+        pat = type(f)('%s|%s|%s')
+        uid = pat % (f, self._mipmap, count)
         Cache.remove("kv.image", uid)
         while Cache.get("kv.texture", uid):
             Cache.remove("kv.texture", uid)
             count += 1
-            uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
+            uid = pat % (f, self._mipmap, count)
 
     def _anim(self, *largs):
         if not self._image:
@@ -603,7 +605,8 @@ class Image(EventDispatcher):
         self._filename = value
 
         # construct uid as a key for Cache
-        uid = '%s|%s|%s' % (self.filename, self._mipmap, 0)
+        f = self.filename
+        uid = type(f)('%s|%s|%s') % (f, self._mipmap, 0)
 
         # in case of Image have been asked with keep_data
         # check the kv.image cache instead of texture.
