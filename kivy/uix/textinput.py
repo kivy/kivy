@@ -337,9 +337,12 @@ class TextInput(FocusBehavior, Widget):
         :meth:`~kivy.clock.ClockBase.schedule_once`.
 
     .. note::
-        `keyboard_mode`, `show_keyboard`, and `hide_keyboard` have been removed
-        from :class:`TextInput` since they are now inherited from
-        :class:`~kivy.uix.behaviors.FocusBehavior`.
+        :attr:`~kivy.uix.behaviors.FocusBehavior.keyboard_mode`,
+        :meth:`~kivy.uix.behaviors.FocusBehavior.show_keyboard`,
+        :meth:`~kivy.uix.behaviors.FocusBehavior.hide_keyboard`,
+        and :attr:`~kivy.uix.behaviors.FocusBehavior.input_type`,
+        have been removed from :class:`TextInput` since they are now inherited
+        from :class:`~kivy.uix.behaviors.FocusBehavior`.
 
     .. versionchanged:: 1.8.1
         :class:`TextInput` now inherits from
@@ -2573,18 +2576,6 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`line_spacing` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
-    '''
-
-    input_type = OptionProperty('text', options=('text', 'number', 'url',
-                                                 'mail', 'datetime', 'tel',
-                                                 'address'))
-    '''The kind of input, keyboard to request
-
-    .. versionadded:: 1.8.0
-
-    :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
-    defaults to 'text'. Can be one of 'text', 'number', 'url', 'mail',
-    'datetime', 'tel', 'address'.
     '''
 
     input_filter = ObjectProperty(None, allownone=True)

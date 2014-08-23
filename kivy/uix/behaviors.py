@@ -647,6 +647,18 @@ class FocusBehavior(object):
     defaults to 'auto'. Can be one of 'auto' or 'managed'.
     '''
 
+    input_type = OptionProperty('text', options=('text', 'number', 'url',
+                                                 'mail', 'datetime', 'tel',
+                                                 'address'))
+    '''The kind of input keyboard to request.
+
+    .. versionadded:: 1.8.0
+
+    :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
+    defaults to 'text'. Can be one of 'text', 'number', 'url', 'mail',
+    'datetime', 'tel', 'address'.
+    '''
+
     unfocus_on_touch = BooleanProperty(_keyboard_mode not in
                                        ('multi', 'systemandmulti'))
     '''Whether a instance should lose focus when clicked outside the instance.
@@ -696,7 +708,8 @@ class FocusBehavior(object):
                 return
             self._requested_keyboard = True
             keyboard = self._keyboard =\
-                win.request_keyboard(self._keyboard_released, self)
+                win.request_keyboard(self._keyboard_released, self,
+                                     input_type=self.input_type)
             keyboards = FocusBehavior._keyboards
             if keyboard not in keyboards:
                 keyboards[keyboard] = None
