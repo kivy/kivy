@@ -422,7 +422,7 @@ cdef class Line(VertexInstruction):
                 cx * pcx + cy * pcy)
 
             # in case of the angle is NULL, avoid the generation
-            if jangle == 0 or jangle == PI or jangle == -PI:
+            if jangle == 0:
                 if self._joint == LINE_JOINT_ROUND:
                     vertices_count -= self._joint_precision
                     indices_count -= self._joint_precision * 3
