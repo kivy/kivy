@@ -157,6 +157,7 @@ from kivy.graphics import Color, Rectangle
 from kivy.graphics.texture import Texture
 
 from kivy.uix.widget import Widget
+from kivy.uix.scrollview import ScrollView
 from kivy.uix.bubble import Bubble
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
@@ -303,7 +304,7 @@ class TextInputCutCopyPaste(Bubble):
         anim.start(self)
 
 
-class TextInput(Widget):
+class TextInput(ScrollView):
     '''TextInput class. See module documentation for more information.
 
     :Events:
@@ -368,6 +369,7 @@ class TextInput(Widget):
         self._keyboard_mode = Config.get('kivy', 'keyboard_mode')
         self._command_mode = False
         self._command = ''
+        self._viewport = Widget()
         self.reset_undo()
         self._touch_count = 0
         self.interesting_keys = {
@@ -945,46 +947,13 @@ class TextInput(Widget):
         Clock.schedule_once(lambda dt: self.select_all())
 
     def on_touch_down(self, touch):
+        # import pudb; pudb.set_trace()
         if self.disabled:
-            return
-
-        touch_pos = touch.pos
-        if not self.collide_point(*touch_pos):
-            if self._keyboard_mode == 'multi':
-                if self.readonly:
-                    self.focus = False
-            else:
-                self.focus = False
-            return False
-        if not self.focus:
-            self.focus = True
-
-        # Check for scroll wheel
-        if 'button' in touch.profile and touch.button.startswith('scroll'):
-            scroll_type = touch.button[6:]
-            if scroll_type == 'down':
-                if self.multiline:
-                    if self.scroll_y <= 0:
-                        return
-                    self.scroll_y -= self.line_height
-                else:
-                    if self.scroll_x <= 0:
-                        return
-                    self.scroll_x -= self.line_height
-            if scroll_type == 'up':
-                if self.multiline:
-                    if (self._lines_rects[-1].pos[1] > self.y +
-                        self.line_height):
-                        return
-                    self.scroll_y += self.line_height
-                else:
-                    if (self.scroll_x + self.width >=
-                        self._lines_rects[-1].texture.size[0]):
-                        return
-                    self.scroll_x += self.line_height
+            return super(TextInput, self).on_touch_down(touch)
 
         touch.grab(self)
         self._touch_count += 1
+
         if touch.is_double_tap:
             self.dispatch('on_double_tap')
         if touch.is_triple_tap:
@@ -1005,13 +974,14 @@ class TextInput(Widget):
         self._long_touch_pos = touch.pos
         Clock.schedule_once(self.long_touch, .5)
 
-        self.cursor = self.get_cursor_from_xy(*touch_pos)
+        self.cursor = self.get_cursor_from_xy(*touch.pos)
         if not self._selection_touch:
             self.cancel_selection()
             self._selection_touch = touch
             self._selection_from = self._selection_to = self.cursor_index()
             self._update_selection()
-        return False
+
+        return super(TextInput, self).on_touch_down(touch)
 
     def on_touch_move(self, touch):
         if touch.grab_current is not self:
@@ -1020,7 +990,8 @@ class TextInput(Widget):
             touch.ungrab(self)
             if self._selection_touch is touch:
                 self._selection_touch = None
-            return False
+            return super(TextInput, self).on_touch_move(touch)
+
         if self._selection_touch is touch:
             self.cursor = self.get_cursor_from_xy(touch.x, touch.y)
             self._selection_to = self.cursor_index()
@@ -1030,13 +1001,24 @@ class TextInput(Widget):
     def on_touch_up(self, touch):
         if touch.grab_current is not self:
             return
+
+        super(TextInput, self).on_touch_up(touch)
+
         touch.ungrab(self)
         self._touch_count -= 1
 
         # schedule long touch for paste
         Clock.unschedule(self.long_touch)
 
-        if not self.focus:
+        if not self.focus and touch.ud.get('mode') != 'scroll':
+            self.focus = True
+
+        if not self.collide_point(*touch.pos):
+            if self._keyboard_mode == 'multi':
+                if self.readonly:
+                    self.focus = False
+            else:
+                self.focus = False
             return False
 
         if self._selection_touch is touch:
@@ -1497,6 +1479,11 @@ class TextInput(Widget):
             lbl = _create_label(x)
             _lines_labels.append(lbl)
             _line_rects.append(Rectangle(size=lbl.size))
+
+        self._viewport.size=(max(x.width for x in _lines_labels),
+                             sum(x.height for x in _lines_labels))
+
+        print self._viewport.size
 
         if mode == 'all':
             self._lines_labels = _lines_labels
