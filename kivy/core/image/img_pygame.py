@@ -38,19 +38,23 @@ class ImageLoaderPygame(ImageLoaderBase):
 
     def load(self, filename):
         try:
-            f = filename
+            im = None
             if isfile(filename):
-                f = self._file_handle = open(filename, 'rb')
+                with open(filename, 'rb') as fd:
+                    im = pygame.image.load(fd)
             elif isinstance(filename, bytes):
                 try:
                     fname = filename.decode()
                     if isfile(fname):
-                        f = self._file_handle = open(fname, 'rb')
+                        with open(fname, 'rb') as fd:
+                            im = pygame.image.load(fd)
                 except UnicodeDecodeError:
                     pass
-            im = pygame.image.load(f)
+            if im is None:
+                im = pygame.image.load(filename)
         except:
-            Logger.warning('Image: Unable to load image <%s>' % filename)
+            Logger.warning(type(filename)('Image: Unable to load image <%s>')
+                           % filename)
             raise
 
         fmt = ''
