@@ -55,8 +55,10 @@ from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
     AliasProperty, BooleanProperty, NumericProperty
-from kivy.loader import Loader
 from kivy.logger import Logger
+
+# delayed imports
+Loader = None
 
 
 class Image(Widget):
@@ -303,6 +305,9 @@ class AsyncImage(Image):
     def __init__(self, **kwargs):
         self._coreimage = None
         super(AsyncImage, self).__init__(**kwargs)
+        global Loader
+        if not Loader:
+            from kivy.loader import Loader
         self.bind(source=self._load_source)
         if self.source:
             self._load_source()
@@ -318,8 +323,8 @@ class AsyncImage(Image):
             if not self.is_uri(source):
                 source = resource_find(source)
             self._coreimage = image = Loader.image(source,
-                                                   nocache=self.nocache,
-                                                   mipmap=self.mipmap)
+                nocache=self.nocache, mipmap=self.mipmap,
+                anim_delay=self.anim_delay)
             image.bind(on_load=self._on_source_load)
             image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture

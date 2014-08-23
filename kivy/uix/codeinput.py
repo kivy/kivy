@@ -91,10 +91,10 @@ class CodeInput(TextInput):
             ntext = u'*' * len(ntext)
         ntext = self._get_bbcode(ntext)
         kw = self._get_line_options()
-        cid = '%s\0%s' % (ntext, str(kw))
+        cid = u'{}\0{}\0{}'.format(ntext, self.password, kw)
         texture = Cache_get('textinput.label', cid)
 
-        if not texture:
+        if texture is None:
             # FIXME right now, we can't render very long line...
             # if we move on "VBO" version as fallback, we won't need to
             # do this.
@@ -104,10 +104,7 @@ class CodeInput(TextInput):
                 label.text = u''
             else:
                 label.text = ntext
-            try:
-                label.refresh()
-            except ValueError:
-                return
+            label.refresh()
 
             # ok, we found it.
             texture = label.texture
@@ -124,15 +121,14 @@ class CodeInput(TextInput):
 
     def _get_text_width(self, text, tab_width, _label_cached):
         # Return the width of a text, according to the current line options
-        width = Cache_get('textinput.width', text + u'_' +
-                          repr(self._get_line_options()))
-        if width:
+        cid = u'{}\0{}\0{}'.format(text, self.password,
+                                   self._get_line_options())
+        width = Cache_get('textinput.width', cid)
+        if width is not None:
             return width
         lbl = self._create_line_label(text)
-        width = lbl.width if lbl else 0
-        Cache_append(
-            'textinput.width',
-            text + u'_' + repr(self._get_line_options()), width)
+        width = lbl.width
+        Cache_append('textinput.width', cid, width)
         return width
 
     def _get_bbcode(self, ntext):

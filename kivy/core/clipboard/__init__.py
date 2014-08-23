@@ -33,12 +33,14 @@ from kivy.utils import platform
 class ClipboardBase(object):
 
     def get(self, mimetype):
-        '''Get the current data in clipboard, using the mimetype if possible
+        '''Get the current data in clipboard, using the mimetype if possible.
+        You not use this method directly. Use :meth:`paste` instead.
         '''
         return None
 
     def put(self, data, mimetype):
-        '''Put data on the clipboard, and attach a mimetype
+        '''Put data on the clipboard, and attach a mimetype.
+        You should not use this method directly. Use :meth:`copy` instead.
         '''
         pass
 
@@ -46,6 +48,69 @@ class ClipboardBase(object):
         '''Return a list of supported mimetypes
         '''
         return []
+
+    def _ensure_clipboard(self):
+        ''' Ensure that the clipboard has been properly initialised.
+        '''
+        
+        if hasattr(self, '_clip_mime_type'):
+            return
+        
+        if platform == 'win':
+            self._clip_mime_type = 'text/plain;charset=utf-8'
+            # windows clipboard uses a utf-16 encoding
+            self._encoding = 'utf-16'
+        elif platform == 'linux':
+            self._clip_mime_type = 'UTF8_STRING'
+            self._encoding = 'utf-8'
+        else:
+            self._clip_mime_type = 'text/plain'
+            self._encoding = 'utf-8'
+
+    def copy(self, data=''):
+        ''' Copy the value provided in argument `data` into current clipboard.
+        If data is not of type string it will be converted to string.
+
+        .. versionadded:: 1.8.1
+
+        '''
+        if data:
+            self._copy(data)
+
+    def paste(self):
+        ''' Get text from the system clipboard and return it a usable string.
+
+        .. versionadded:: 1.8.1
+
+        '''
+        return self._paste()
+
+    def _copy(self, data):
+        # explicitly terminate strings with a null character
+        # so as to avoid putting spurious data after the end.
+        # MS windows issue.
+        self._ensure_clipboard()
+        data = data.encode(self._encoding) + b'\x00'
+        self.put(data, self._clip_mime_type)
+
+    def _paste(self):
+        self._ensure_clipboard()
+        _clip_types = Clipboard.get_types()
+
+        mime_type = self._clip_mime_type
+        if mime_type not in _clip_types:
+            mime_type = 'text/plain'
+
+        data = self.get(mime_type)
+        if data is not None:
+            # decode only if we don't have unicode
+            # we would still need to decode from utf-16 (windows)
+            # data is of type bytes in PY3
+            data = data.decode(self._encoding, 'ignore')
+            # remove null strings mostly a windows issue
+            data = data.replace(u'\x00', u'')
+            return data
+        return u''
 
 
 # load clipboard implementation

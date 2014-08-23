@@ -428,7 +428,8 @@ graphics_dependencies = {
     'texture.pxd': ['c_opengl.pxd'],
     'texture.pyx': [
         'config.pxi', 'common.pxi', 'opengl_utils_def.pxi', 'context.pxd',
-        'c_opengl.pxd', 'c_opengl_debug.pxd', 'opengl_utils.pxd'],
+        'c_opengl.pxd', 'c_opengl_debug.pxd', 'opengl_utils.pxd',
+        'img_tools.pxi'],
     'vbo.pxd': ['buffer.pxd', 'c_opengl.pxd', 'vertex.pxd'],
     'vbo.pyx': [
         'config.pxi', 'common.pxi', 'c_opengl_debug.pxd', 'context.pxd',

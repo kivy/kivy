@@ -422,7 +422,7 @@ cdef class Line(VertexInstruction):
                 cx * pcx + cy * pcy)
 
             # in case of the angle is NULL, avoid the generation
-            if jangle == 0 or jangle == PI or jangle == -PI:
+            if jangle == 0:
                 if self._joint == LINE_JOINT_ROUND:
                     vertices_count -= self._joint_precision
                     indices_count -= self._joint_precision * 3
@@ -1180,3 +1180,305 @@ cdef class Line(VertexInstruction):
                 raise GraphicException('Invalid bezier_precision value, must be >= 1')
             self._bezier_precision = int(value)
             self.flag_update()
+
+
+cdef class SmoothLine(Line):
+    '''Experimental line using over-draw method to get better antialiasing
+    results. It has few drawbacks:
+    
+    - drawing line with alpha will unlikely doesn't give the intended result if
+      the line cross itself
+    - no cap or joint are supported
+    - it use a custom texture with premultiplied alpha
+    - dash is not supported
+    - line under 1px width are not supported, it will look the same
+
+    .. warning::
+
+        This is an unfinished work, experimental, subject to crash.
+
+    .. versionadded:: 1.8.1
+    '''
+
+    cdef float _owidth
+
+    def __init__(self, **kwargs):
+        VertexInstruction.__init__(self, **kwargs)
+        self._owidth = kwargs.get("overdraw_width") or 1.2
+        self.batch.set_mode("triangles")
+        self.texture = self.premultiplied_texture()
+
+    def premultiplied_texture(self):
+        cdef bytes GRADIENT_DATA = (
+            b"\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00")
+        texture = Texture.create(size=(4, 1), colorfmt="rgba")
+        texture.blit_buffer(GRADIENT_DATA, colorfmt="rgba")
+        return texture
+
+    cdef void build(self):
+        if self._mode == LINE_MODE_ELLIPSE:
+            self.prebuild_ellipse()
+        elif self._mode == LINE_MODE_CIRCLE:
+            self.prebuild_circle()
+        elif self._mode == LINE_MODE_RECTANGLE:
+            self.prebuild_rectangle()
+        elif self._mode == LINE_MODE_ROUNDED_RECTANGLE:
+            self.prebuild_rounded_rectangle()
+        elif self._mode == LINE_MODE_BEZIER:
+            self.prebuild_bezier()
+
+        self.build_smooth()
+
+    cdef void apply(self):
+        VertexInstruction.apply(self)
+        return
+
+    cdef void build_smooth(self):
+        cdef:
+            list p = self.points
+            float width = max(0, (self._width - 1.))
+            float owidth = width + self._owidth
+            vertex_t *vertices = NULL
+            unsigned short *indices = NULL
+            unsigned short *tindices = NULL
+            double ax, ay, bx, by, rx, ry, last_angle, angle, av_angle
+            float cos1, sin1, cos2, sin2, ocos1, ocos2, osin1, osin2
+            long index, vindex, vcount, icount, iv, ii, max_vindex, count
+            unsigned short i0, i1, i2, i3, i4, i5, i6, i7
+
+        iv = vindex = 0
+        count = len(p) / 2
+        if count < 2:
+            self.batch.clear_data()
+            return
+
+        vcount = count * 4
+        icount = (count - 1) * 18
+        if self._close:
+            icount += 18
+
+        vertices = <vertex_t *>malloc(vcount * sizeof(vertex_t))
+        if vertices == NULL:
+            raise MemoryError("vertices")
+
+        indices = <unsigned short *>malloc(icount * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError("indices")
+
+        if self._close:
+            ax = p[-2]
+            ay = p[-1]
+            bx = p[0]
+            by = p[1]
+            rx = bx - ax
+            ry = by - ay
+            last_angle = atan2(ry, rx)
+
+        max_index = len(p)
+        for index in range(0, max_index, 2):
+            ax = p[index]
+            ay = p[index + 1]
+            if index < max_index - 2:
+                bx = p[index + 2]
+                by = p[index + 3]
+                rx = bx - ax
+                ry = by - ay
+                angle = atan2(ry, rx)
+            else:
+                angle = last_angle
+
+            if index == 0 and not self._close:
+                av_angle = angle
+                ad_angle = pi
+            else:
+                av_angle = atan2(
+                        sin(angle) + sin(last_angle),
+                        cos(angle) + cos(last_angle))
+
+                ad_angle = abs(pi - abs(angle - last_angle))
+
+            a1 = av_angle - PI2
+            a2 = av_angle + PI2
+            '''
+            cos1 = cos(a1) * width
+            sin1 = sin(a1) * width
+            cos2 = cos(a2) * width
+            sin2 = sin(a2) * width
+            ocos1 = cos(a1) * owidth
+            osin1 = sin(a1) * owidth
+            ocos2 = cos(a2) * owidth
+            osin2 = sin(a2) * owidth
+            print 'angle diff', ad_angle
+            '''
+            #l = width
+            #ol = owidth
+
+            if index == 0 or index >= max_index - 2:
+                l = width
+                ol = owidth
+            else:
+                la1 = last_angle - PI2
+                la2 = angle - PI2
+                ra1 = last_angle + PI2
+                ra2 = angle + PI2
+                ox = p[index - 2]
+                oy = p[index - 1]
+                if line_intersection(
+                    ox + cos(la1) * width,
+                    oy + sin(la1) * width,
+                    ax + cos(la1) * width,
+                    ay + sin(la1) * width,
+                    ax + cos(la2) * width,
+                    ay + sin(la2) * width,
+                    bx + cos(la2) * width,
+                    by + sin(la2) * width,
+                    &rx, &ry) == 0:
+                    #print 'ERROR LINE INTERSECTION 1'
+                    pass
+
+                l = sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
+
+                if line_intersection(
+                    ox + cos(ra1) * owidth,
+                    oy + sin(ra1) * owidth,
+                    ax + cos(ra1) * owidth,
+                    ay + sin(ra1) * owidth,
+                    ax + cos(ra2) * owidth,
+                    ay + sin(ra2) * owidth,
+                    bx + cos(ra2) * owidth,
+                    by + sin(ra2) * owidth,
+                    &rx, &ry) == 0:
+                    #print 'ERROR LINE INTERSECTION 2'
+                    pass
+
+                ol = sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
+
+            last_angle = angle
+
+            #l = sqrt(width ** 2 * (1. / sin(av_angle)) ** 2)
+            #l = width / tan(av_angle / 2.)
+            #l = width * sqrt(1 + 1 / (av_angle / 2.))
+            #l = 2 * (width * width * sin(av_angle))
+            #l = 2 * (cos(av_angle / 2.) * width)
+            #l = width / abs(cos(PI2 - 1.5 * ad_angle))
+            cos1 = cos(a1) * l
+            sin1 = sin(a1) * l
+            cos2 = cos(a2) * l
+            sin2 = sin(a2) * l
+
+            #ol = sqrt(owidth ** 2 * (1. / sin(av_angle)) ** 2)
+            #ol = owidth / tan(av_angle / 2.)
+            #ol = owidth * sqrt(1 + 1 / (av_angle / 2.))
+            #ol = 2 * (owidth * owidth * sin(av_angle))
+            #ol = 2 * (cos(av_angle / 2.) * owidth)
+            #ol = owidth / abs(cos(PI2 - 1.5 * ad_angle))
+            ocos1 = cos(a1) * ol
+            osin1 = sin(a1) * ol
+            ocos2 = cos(a2) * ol
+            osin2 = sin(a2) * ol
+
+            x1 = ax + cos1
+            y1 = ay + sin1
+            x2 = ax + cos2
+            y2 = ay + sin2
+
+            ox1 = ax + ocos1
+            oy1 = ay + osin1
+            ox2 = ax + ocos2
+            oy2 = ay + osin2
+
+            vertices[iv].x = x1
+            vertices[iv].y = y1
+            vertices[iv].s0 = 0.5
+            vertices[iv].t0 = 0.25
+            iv += 1
+            vertices[iv].x = x2
+            vertices[iv].y = y2
+            vertices[iv].s0 = 0.5
+            vertices[iv].t0 = 0.75
+            iv += 1
+            vertices[iv].x = ox1
+            vertices[iv].y = oy1
+            vertices[iv].s0 = 1
+            vertices[iv].t0 = 0
+            iv += 1
+            vertices[iv].x = ox2
+            vertices[iv].y = oy2
+            vertices[iv].s0 = 1
+            vertices[iv].t0 = 1
+            iv += 1
+
+        tindices = indices
+        for vindex in range(0, vcount - 4, 4):
+            tindices[0] = vindex
+            tindices[1] = vindex + 2
+            tindices[2] = vindex + 6
+            tindices[3] = vindex
+            tindices[4] = vindex + 6
+            tindices[5] = vindex + 4
+            tindices[6] = vindex + 1
+            tindices[7] = vindex
+            tindices[8] = vindex + 4
+            tindices[9] = vindex + 1
+            tindices[10] = vindex + 4
+            tindices[11] = vindex + 5
+            tindices[12] = vindex + 3
+            tindices[13] = vindex + 1
+            tindices[14] = vindex + 5
+            tindices[15] = vindex + 3
+            tindices[16] = vindex + 5
+            tindices[17] = vindex + 7
+            tindices = tindices + 18
+
+        if self._close:
+            vindex = vcount - 4
+            i0 = vindex
+            i1 = vindex + 1
+            i2 = vindex + 2
+            i3 = vindex + 3
+            i4 = 0
+            i5 = 1
+            i6 = 2
+            i7 = 3
+            tindices[0] = i0
+            tindices[1] = i2
+            tindices[2] = i6
+            tindices[3] = i0
+            tindices[4] = i6
+            tindices[5] = i4
+            tindices[6] = i1
+            tindices[7] = i0
+            tindices[8] = i4
+            tindices[9] = i1
+            tindices[10] = i4
+            tindices[11] = i5
+            tindices[12] = i3
+            tindices[13] = i1
+            tindices[14] = i5
+            tindices[15] = i3
+            tindices[16] = i5
+            tindices[17] = i7
+            tindices = tindices + 18
+
+        #print 'tindices', <long>tindices, <long>indices, (<long>tindices - <long>indices) / sizeof(unsigned short)
+
+
+        self.batch.set_data(vertices, <int>vcount, indices, <int>icount)
+
+        #free(vertices)
+        #free(indices)
+
+        
+    property overdraw_width:
+        '''Determine the overdraw width of the line, defaults to 1.2
+        '''
+        def __get__(self):
+            return self._owidth
+
+        def __set__(self, value):
+            if value <= 0:
+                raise GraphicException('Invalid width value, must be > 0')
+            self._owidth = value
+            self.flag_update()
+

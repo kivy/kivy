@@ -40,13 +40,13 @@ class ImageData(object):
     The container will always have at least the mipmap level 0.
     '''
 
-    __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical')
+    __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical', 'source_image')
     _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra', 's3tc_dxt1', 's3tc_dxt3',
                        's3tc_dxt5', 'pvrtc_rgb2', 'pvrtc_rgb4', 'pvrtc_rgba2',
                        'pvrtc_rgba4', 'etc1_rgb8')
 
     def __init__(self, width, height, fmt, data, source=None,
-                 flip_vertical=True):
+                 flip_vertical=True, source_image=None):
         assert fmt in ImageData._supported_fmts
 
         #: Decoded image format, one of a available texture format
@@ -62,10 +62,14 @@ class ImageData(object):
         #: Indicate if the texture will need to be vertically flipped
         self.flip_vertical = flip_vertical
 
+        # the original image, which we might need to save if it is a memoryview
+        self.source_image = source_image
+
     def release_data(self):
         mm = self.mipmaps
         for item in mm.values():
             item[2] = None
+            self.source_image = None
 
     @property
     def width(self):
@@ -385,12 +389,12 @@ class ImageLoader(object):
 class Image(EventDispatcher):
     '''Load an image and store the size and texture.
 
-    .. versionadded:: 1.0.7
+    .. versionchanged:: 1.0.7
 
         `mipmap` attribute has been added. The `texture_mipmap` and
         `texture_rectangle` have been deleted.
 
-    .. versionadded:: 1.0.8
+    .. versionchanged:: 1.0.8
 
         An Image widget can change its texture. A new event 'on_texture' has
         been introduced. New methods for handling sequenced animation have been
@@ -451,9 +455,6 @@ class Image(EventDispatcher):
             self.filename = arg
         else:
             raise Exception('Unable to load image type {0!r}'.format(arg))
-
-        # check if the image hase sequences for animation in it
-        self._img_iterate()
 
     def remove_from_cache(self):
         '''Remove the Image from cache. This facilitates re-loading of
@@ -694,6 +695,9 @@ class Image(EventDispatcher):
         been heavilly tested so some providers might break when using it.
         Any other extensions are not officially supported.
 
+        The flipped parameter flips the saved image vertically, and
+        defaults to True.
+
         Example::
 
             # Save an core image object
@@ -806,6 +810,7 @@ image_libs += [
     ('tex', 'img_tex'),
     ('dds', 'img_dds'),
     ('pygame', 'img_pygame'),
+    ('ffpy', 'img_ffpyplayer'),
     ('pil', 'img_pil'),
     ('gif', 'img_gif')]
 libs_loaded = core_register_libs('image', image_libs)

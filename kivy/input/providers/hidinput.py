@@ -1,3 +1,4 @@
+# coding utf-8
 '''
 Native support for HID input from the linux kernel
 ==================================================
@@ -43,6 +44,7 @@ import os
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
 from kivy.core.window import Window
+from kivy.core.window import Keyboard
 
 
 class HIDMotionEvent(MotionEvent):
@@ -131,6 +133,144 @@ else:
     EVIOCGNAME = 2147501318
     EVIOCGBIT = 2147501344
     EVIOCGABS = 2149074240
+
+    keyboard_keys = {
+        0x29: ('`', '~'),
+        0x02: ('1', '!'),
+        0x03: ('2', '@'),
+        0x04: ('3', '#'),
+        0x05: ('4', '$'),
+        0x06: ('5', '%'),
+        0x07: ('6', '^'),
+        0x08: ('7', '&'),
+        0x09: ('8', '*'),
+        0x0a: ('9', '('),
+        0x0b: ('0', ')'),
+        0x0c: ('-', '_'),
+        0x0d: ('=', '+'),
+        0x0e: ('backspace', ),
+        0x0f: ('tab', ),
+        0x10: ('q', 'Q'),
+        0x11: ('w', 'W'),
+        0x12: ('e', 'E'),
+        0x13: ('r', 'R'),
+        0x14: ('t', 'T'),
+        0x15: ('y', 'Y'),
+        0x16: ('u', 'U'),
+        0x17: ('i', 'I'),
+        0x18: ('o', 'O'),
+        0x19: ('p', 'P'),
+        0x1a: ('[', '{'),
+        0x1b: (']', '}'),
+        0x2b: ('\\', '|'),
+        0x3a: ('capslock', ),
+        0x1e: ('a', 'A'),
+        0x1f: ('s', 'S'),
+        0x20: ('d', 'D'),
+        0x21: ('f', 'F'),
+        0x22: ('g', 'G'),
+        0x23: ('h', 'H'),
+        0x24: ('j', 'J'),
+        0x25: ('k', 'K'),
+        0x26: ('l', 'L'),
+        0x27: (';', ':'),
+        0x28: ("'", '"'),
+        0xff: ('non-US-1', ),
+        0x1c: ('enter', ),
+        0x2a: ('shift', ),
+        0x2c: ('z', 'Z'),
+        0x2d: ('x', 'X'),
+        0x2e: ('c', 'C'),
+        0x2f: ('v', 'V'),
+        0x30: ('b', 'B'),
+        0x31: ('n', 'N'),
+        0x32: ('m', 'M'),
+        0x33: (',', '<'),
+        0x34: ('.', '>'),
+        0x35: ('/', '?'),
+        0x36: ('shift', ),
+        0x1d: ('ctrl', ),
+        0x38: ('alt', ),
+        0x39: ('spacebar', ),
+        0x45: ('numlock', ),
+        0x47: ('numpad7', 'home'),
+        0x4b: ('numpad4', 'left'),
+        0x4f: ('numpad1', 'end'),
+        0x48: ('numpad8', 'up'),
+        0x4c: ('numpad5', ),
+        0x50: ('numpad2', 'down'),
+        0x52: ('numpad0', 'ins'),
+        0x37: ('numpadmul', ),
+        0x49: ('numpad9', 'pageup'),
+        0x4d: ('numpad6', 'right'),
+        0x51: ('numpad3', 'pagedown'),
+        0x53: ('numpaddecimal', 'del'),
+        0x4a: ('numpadsubstract', ),
+        0x4e: ('numpadadd', ),
+        0x01: ('escape', ),
+        0x3b: ('f1', ),
+        0x3c: ('f2', ),
+        0x3d: ('f3', ),
+        0x3e: ('f4', ),
+        0x3f: ('f5', ),
+        0x40: ('f6', ),
+        0x41: ('f7', ),
+        0x42: ('f8', ),
+        0x43: ('f9', ),
+        0x44: ('f10', ),
+        0x57: ('f11', ),
+        0x58: ('f12', ),
+        0x54: ('Alt+SysRq', ),
+        0x46: ('ScrollLock', ),
+
+        # TODO combinations
+        # e0-37    PrtScr
+        # e0-46    Ctrl+Break
+        # e0-5b    LWin (USB: LGUI)
+        # e0-5c    RWin (USB: RGUI)
+        # e0-5d    Menu
+        # e0-5f    Sleep
+        # e0-5e    Power
+        # e0-63    Wake
+        # e0-38    RAlt
+        # e0-1d    RCtrl
+        # e0-52    Insert
+        # e0-53    Delete
+        # e0-47    Home
+        # e0-4f    End
+        # e0-49    PgUp
+        # e0-51    PgDn
+        # e0-4b    Left
+        # e0-48    Up
+        # e0-50    Down
+        # e0-4d    Right
+        # e0-35    KP-/
+        # e0-1c    KP-Enter
+        # e1-1d-45 77      Pause
+    }
+
+    keys_str = {
+        'spacebar': ' ',
+        'tab': '	',
+        'shift': '',
+        'alt': '',
+        'ctrl': '',
+        'escape': '',
+        'numpad1': '1',
+        'numpad2': '2',
+        'numpad3': '3',
+        'numpad4': '4',
+        'numpad5': '5',
+        'numpad6': '6',
+        'numpad7': '7',
+        'numpad8': '8',
+        'numpad9': '9',
+        'numpad0': '0',
+        'numpadmul': '*',
+        'numpaddivide': '/',
+        'numpadadd': '+',
+        'numpadsubstract': '-',
+    }
 
     # sizeof(struct input_event)
     struct_input_event_sz = struct.calcsize('LLHHi')
@@ -273,7 +413,7 @@ else:
                     elif ev_code == ABS_MT_TOUCH_MINOR:
                         point['size_h'] = ev_value
 
-            def process_as_mouse(tv_sec, tv_usec, ev_type, ev_code, ev_value):
+            def process_as_mouse_or_keyboard(tv_sec, tv_usec, ev_type, ev_code, ev_value):
 
                 if ev_type == EV_SYN:
                     if ev_code == SYN_REPORT:
@@ -311,6 +451,20 @@ else:
                                 del point['button']
                                 point['id'] += 1
                                 point['_avoid'] = True
+                    else:
+                        if ev_value == 1:
+                            l = keyboard_keys[ev_code][-1 if 'shift' in Window._modifiers else 0]
+                            if l == 'shift':
+                                Window._modifiers.append('shift')
+                            print(ev_code, l)
+                            Window.dispatch('on_key_down', Keyboard.keycodes[l.lower()], ev_code, keys_str.get(l, l), Window._modifiers)
+                        if ev_value == 0:
+                            l = keyboard_keys[ev_code][-1 if 'shift' in Window._modifiers else 0]
+                            Window.dispatch('on_key_up', Keyboard.keycodes[l.lower()], ev_code, keys_str.get(l, l), Window._modifiers)
+                            if l == 'shift':
+                                Window._modifiers.remove('shift')
+                        # if ev_value == 2:
+                        #     Window.dispatch('on_key_down', ev_code)
 
             def process(points):
                 if not is_multitouch:
@@ -423,7 +577,7 @@ else:
                     if is_multitouch:
                         process_as_multitouch(*infos)
                     else:
-                        process_as_mouse(*infos)
+                        process_as_mouse_or_keyboard(*infos)
 
         def update(self, dispatch_fn):
             # dispatch all event from threads

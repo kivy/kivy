@@ -32,12 +32,21 @@
 		font_size: 32
 		size_hint_y: None
 
-	StackLayout:
-		id: sl
+	BoxLayout:
+		Slider:
+			min: 0.0
+			max: 1.0
+			value: 1.0
+			on_value: app.set_volume(self.value)
+			orientation: "vertical"
+			size_hint_x: None
+			width: "48dp"
+
+		StackLayout:
+			id: sl
 
 	Button:
 		text: 'Stop and release all audio'
 		size_hint_y: None
 		height: '50sp'
 		on_press: app.release_audio()
-

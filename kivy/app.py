@@ -474,23 +474,23 @@ class App(EventDispatcher):
         #: Options passed to the __init__ of the App
         self.options = kwargs
 
-        #: Instance to the :class:`~kivy.config.ConfigParser` of the
-        #: application
-        #: configuration. Can be used to query some config token in the
-        #: build()
+        #: Returns an instance of the :class:`~kivy.config.ConfigParser` for
+        #: the application configuration. You can use this to query some config
+        #: tokens in the :meth:`build` method.
         self.config = None
 
-        #: Root widget set by the :meth:`build` method or by the
+        #: The *root* widget returned by the :meth:`build` method or by the
         #: :meth:`load_kv` method if the kv file contains a root widget.
         self.root = None
 
     def build(self):
-        '''Initializes the application; will be called only once.
+        '''Initializes the application; it will be called only once.
         If this method returns a widget (tree), it will be used as the root
         widget and added to the window.
 
-        :return: None or a root :class:`~kivy.uix.widget.Widget` instance
-                 if no self.root exists.'''
+        :return:
+            None or a root :class:`~kivy.uix.widget.Widget` instance
+            if no self.root exists.'''
 
         if not self.root:
             return Widget()
@@ -505,8 +505,9 @@ class App(EventDispatcher):
         automatically saved in the file returned by
         :meth:`get_application_config`.
 
-        :param config: Use this to add defaults section / key / value items
-        :type config: :class:`~kivy.config.ConfigParser`
+        :Parameters:
+            `config`: :class:`~kivy.config.ConfigParser`
+                Use this to add default section / key / value items
 
         '''
 
@@ -523,8 +524,9 @@ class App(EventDispatcher):
         customise the settings widget e.g. by changing the sidebar
         width. See the module documentation for full details.
 
-        :param settings: Settings instance for adding panels
-        :type settings: :class:`~kivy.uix.settings.Settings`
+        :Parameters:
+            `settings`: :class:`~kivy.uix.settings.Settings`
+                Settings instance for adding panels
 
         '''
 
@@ -657,6 +659,14 @@ class App(EventDispatcher):
         return expanduser(defaultpath) % {
             'appname': self.name, 'appdir': self.directory}
 
+    @property
+    def root_window(self):
+        '''.. versionadded:: 1.8.1
+
+        Returns the root window instance used by :meth:`run`.
+        '''
+        return self._app_window
+
     def load_config(self):
         '''(internal) This function is used for returning a ConfigParser with
         the application configuration. It's doing 3 things:
@@ -667,7 +677,8 @@ class App(EventDispatcher):
             #. If it exists, it loads the application configuration file,
                otherwise it creates one.
 
-        :return: ConfigParser instance
+        :return:
+            :class:`~kivy.config.ConfigParser` instance
         '''
         try:
             config = ConfigParser.get_configparser('app')
@@ -894,7 +905,8 @@ class App(EventDispatcher):
         should override that method if you want to display the
         settings panel differently.
 
-        :return: True if the settings has been opened.
+        :return:
+            True if the settings has been opened.
 
         '''
         if self._app_settings is None:
@@ -913,9 +925,10 @@ class App(EventDispatcher):
 
         You should return True if the display is successful, otherwise False.
 
-        :param settings: A :class:`~kivy.uix.settings.Settings`
-                         instance. You should define how to display it.
-        :type config: :class:`~kivy.uix.settings.Settings`
+        :Parameters:
+            `settings`: :class:`~kivy.uix.settings.Settings`
+                You can modify this object in order to modify the settings
+                display.
 
         '''
         win = self._app_window
@@ -930,7 +943,8 @@ class App(EventDispatcher):
     def close_settings(self, *largs):
         '''Close the previously opened settings panel.
 
-        :return: True if the settings has been closed.
+        :return:
+            True if the settings has been closed.
         '''
         win = self._app_window
         settings = self._app_settings

@@ -53,9 +53,9 @@ App instance::
 
     Widget:
 
-A `class` rule, which defines how any instance of that widget class will be
-graphically represented is declared by declaring the name of the class, between
-`< >`, followed by `:`::
+A `class` rule, declared by the name of a widget class between `< >` and
+followed by `:`, defines how any instance of that class will be
+graphically represented::
 
     <MyWidget>:
 
@@ -314,8 +314,8 @@ hold the instance of the :class:`~kivy.uix.TextInput` referenced by the id
 
     txt_inpt: txt_inpt
 
-Thus; self.txt_inpt from this point onwards holds the instance to the widget
-referenced by the id `txt_input` and can be used anywhere in the class like in
+From this point onwards, `self.txt_inpt` holds a reference to the widget
+identified by the id `txt_input` and can be used anywhere in the class, as in
 the function `check_status`. In contrast to this method you could also just pass
 the `id` to the function that needs to use it, like in case of `f_but` in the
 code above.
@@ -343,6 +343,12 @@ In your python code:
             self.ids.hulk.text = "hulk: puny god!"
             self.ids.loki.text = "loki: >_<!!!"
 
+When your kv file is parsed, kivy collects all the widgets tagged with id's
+and places them in this `self.ids` dictionary type property. That means you
+can also iterate over these widgets and access them dictionary style::
+
+    for key, val in self.ids.items():
+        print("key={0}, val={1}".format(key, val))
 
 Dynamic Classes
 ---------------
@@ -387,9 +393,9 @@ template instead, like so:
             text: "repeating the same thing over and over in a comp = fail"
         MyBigButt:
 
-This class, created just by the declaration of this rule, inherit from the
-Button class and allow to change default values and to create bindings for all
-its instances, without adding any new code on the Python side.
+This class, created just by the declaration of this rule, inherits from the
+Button class and allows us to change default values and create bindings for all
+its instances without adding any new code on the Python side.
 
 Re-using styles in multiple widgets
 -----------------------------------
@@ -444,21 +450,26 @@ declaration will have the same kv properties.
 Designing with the Kivy Language
 --------------------------------
 
-The code goes in main.py
-~~~~~~~~~~~~~~~~~~~~~~~~
+One of aims of the Kivy language is to
+`Separate the concerns <https://en.wikipedia.org/wiki/Separation_of_concerns>`_
+of presentation and logic. The presentation (layout) side is addressed by your
+kv file and the logic by your py file.
+
+The code goes in py files
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Let's start with a little example. First, the Python file named `main.py`:
 
 .. include:: ../../../examples/guide/designwithkv/main.py
    :literal:
 
-In this example, we are creating a Controller class, with 2 properties:
+In this example, we are creating a Controller class with 2 properties:
 
     * ``info`` for receving some text
     * ``label_wid`` for receving the label widget
 
-In addition, we are creating a ``do_action()`` method, that will use both of
-these properties. It will change the ``info`` text, and change text in the
+In addition, we are creating a ``do_action()`` method that will use both of
+these properties. It will change the ``info`` text and change text in the
 ``label_wid`` widget.
 
 The layout goes in controller.kv

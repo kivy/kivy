@@ -207,7 +207,9 @@ In the latter case, multiple single line statements are valid including
 multi-line statements that escape their newline, as long as they don't
 add an indentation level.
 
-Examples of valid statements are::
+Examples of valid statements are:
+
+.. code-block:: python
 
     on_press: if self.state == 'normal': print('normal')
     on_state:
@@ -219,8 +221,10 @@ Examples of valid statements are::
         print([1,2,3,4,
         5,6,7])
 
-An example of a invalid statement::
+An example of a invalid statement:
 
+.. code-block:: python
+ 
     on_state:
         if self.state == 'normal':
             print('normal')
@@ -734,6 +738,7 @@ __all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException', 'Parser',
 import codecs
 import re
 import sys
+import traceback
 from re import sub, findall
 from os import environ
 from os.path import join
@@ -856,7 +861,7 @@ class ParserException(Exception):
     '''Exception raised when something wrong happened in a kv file.
     '''
 
-    def __init__(self, context, line, message):
+    def __init__(self, context, line, message, cause=None):
         self.filename = context.filename or '<inline>'
         self.line = line
         sourcecode = context.sourcecode
@@ -873,6 +878,9 @@ class ParserException(Exception):
 
         message = 'Parser: File "%s", line %d:\n%s\n%s' % (
             self.filename, self.line + 1, sc, message)
+        if cause:
+            message += '\n' + ''.join(traceback.format_tb(cause))
+
         super(ParserException, self).__init__(message)
 
 
@@ -1419,6 +1427,100 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
     exec(__kvlang__.co_value, idmap)
 
 
+def update_intermediates(base, keys, bound, s, fn, *args):
+    ''' Function that is called when an intermediate property is updated
+    and `rebind` of that property is True. In that case, we unbind
+    all bound funcs that were bound to attrs of the old value of the
+    property and rebind to the new value of the property.
+
+    For example, if the rule is `self.a.b.c.d`, then when b is changed, we
+    unbind from `b`, `c` and `d`, if they were bound before (they were not
+    None and `rebind` of the respective properties was True) and we rebind
+    to the new values of the attrs `b`, `c``, `d` that are not None and
+    `rebind` is True.
+
+    :Parameters:
+        `base`
+            A (proxied) ref to the base widget, `self` in the example
+            above.
+        `keys`
+            A list of the name off the attrs of `base` being watched. In
+            the example above it'd be `['a', 'b', 'c', 'd']`.
+        `bound`
+            A list 3-tuples, each tuple being (widget, attr, callback)
+            representing callback functions bound to the attributed `attr`
+            of `widget`. The callback maybe be None, in which case the attr
+            was not bound, but is there to be able to walk the attr tree.
+            E.g. in the example above, if `b` was not an eventdispatcher,
+            `(_b_ref_, `c`, None)` would be added to the list so we can get
+            to `c` and `d`, which may be eventdispatchers and their attrs.
+        `s`
+            The index in `keys` of the of the attr that needs to be
+            updated. That is all the keys from `s` and further will be
+            rebound, since the `s` key was changed. In bound, the
+            corresponding index is `s - 1`. If `s` is None, we start from
+            1 (first attr).
+    '''
+    # first remove all the old bound functions from `i` and down.
+    i = s or 1
+    j = i - 1
+    for f, k, fun in bound[j:]:
+        if fun is None:
+            continue
+        try:
+            f.unbind(**{k: fun})
+        except ReferenceError:
+            pass
+    del bound[j:]
+
+    # find the first attr from which we need to start rebinding.
+    if len(bound):
+        f = bound[-1][0]
+    else:  # if it's the very first attr, we start with the base.
+        f = base
+    append = bound.append
+
+    try:
+        # bind all attrs, except last to update_intermediates
+        k = i
+        for val in keys[i:-1]:
+            is_ev = isinstance(f, (Observable, EventDispatcher))
+            try:
+                # if we need to dynamically rebind, bindm otherwise just
+                # add the attr to the list
+                if is_ev and f.property(val).rebind:
+                    p = partial(update_intermediates, base, keys, bound, k, fn)
+                    append([get_proxy(f), val, p])
+                    f.bind(**{val: p})
+                    # during the bind, the watched keys could have changed
+                    # value, calling update_intermediates and changing
+                    # the last attr, so we have to read the last attr again
+                    f = bound[-1][0]
+                else:
+                    append([get_proxy(f) if is_ev else f, val, None])
+            except (KeyError, AttributeError):  # in case property is not kivy
+                append([get_proxy(f), val, None])
+            f = getattr(f, val)
+            k += 1
+        # for the last attr we bind directly to the setting function,
+        # because that attr sets the value of the rule.
+        if isinstance(f, (Observable, EventDispatcher)):
+            f.bind(**{keys[-1]: fn})
+            append([get_proxy(f), keys[-1], fn])
+    except KeyError:
+        pass
+    except AttributeError:
+        pass
+    except ReferenceError:
+        pass
+    # except for the initial binding, when we rebind we have to update the
+    # rule with the most recent value, otherwise, the value might be wrong
+    # and wouldn't be updated since we might not have tracked it before.
+    # This only happens for a callback when rebind was True for the prop.
+    if s is not None:
+        fn()
+
+
 def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     locals()['__kvlang__'] = rule
 
@@ -1448,15 +1550,14 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
 
     # bind every key.value
     if rule.watched_keys is not None:
-        for k in rule.watched_keys:
+        for keys in rule.watched_keys:
             try:
-                f = idmap[k[0]]
-                for x in k[1:-1]:
-                    f = getattr(f, x)
-                if isinstance(f, (Observable, EventDispatcher)):
-                    f.bind(**{k[-1]: fn})
-                    # make sure _handlers doesn't keep widgets alive
-                    _handlers[uid].append([get_proxy(f), k[-1], fn])
+                bound = []
+                update_intermediates(get_proxy(idmap[keys[0]]), keys, bound,
+                                     None, fn)
+                # even if it's empty now, in the future, through dynamic
+                # rebinding it might have things.
+                _handlers[uid].append(bound)
             except KeyError:
                 continue
             except AttributeError:
@@ -1465,8 +1566,10 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     try:
         return eval(value, idmap)
     except Exception as e:
+        tb = sys.exc_info()[2]
         raise BuilderException(rule.ctx, rule.line,
-                               '{}: {}'.format(e.__class__.__name__, e))
+                               '{}: {}'.format(e.__class__.__name__, e),
+                               cause=tb)
 
 
 class ParserSelector(object):
@@ -1771,9 +1874,10 @@ class BuilderBase(object):
                         value = eval(prule.value, idmap)
                         ctx[prule.name] = value
                 except Exception as e:
+                    tb = sys.exc_info()[2]
                     raise BuilderException(
                         prule.ctx, prule.line,
-                        '{}: {}'.format(e.__class__.__name__, e))
+                        '{}: {}'.format(e.__class__.__name__, e), cause=tb)
 
                 # create the template with an explicit ctx
                 child = cls(**ctx)
@@ -1820,9 +1924,10 @@ class BuilderBase(object):
                     setattr(widget_set, key, value)
         except Exception as e:
             if rule is not None:
+                tb = sys.exc_info()[2]
                 raise BuilderException(rule.ctx, rule.line,
                                        '{}: {}'.format(e.__class__.__name__,
-                                                       e))
+                                                       e), cause=tb)
             raise e
 
         # build handlers
@@ -1845,9 +1950,10 @@ class BuilderBase(object):
                         Factory.Widget.parent.dispatch(widget_set.__self__)
         except Exception as e:
             if crule is not None:
+                tb = sys.exc_info()[2]
                 raise BuilderException(
                     crule.ctx, crule.line,
-                    '{}: {}'.format(e.__class__.__name__, e))
+                    '{}: {}'.format(e.__class__.__name__, e), cause=tb)
             raise e
 
         # rule finished, forget it
@@ -1893,12 +1999,15 @@ class BuilderBase(object):
         '''
         if uid not in _handlers:
             return
-        for f, k, fn in _handlers[uid]:
-            try:
-                f.unbind(**{k: fn})
-            except ReferenceError:
-                # proxy widget is already gone, that's cool :)
-                pass
+        for callbacks in _handlers[uid]:
+            for f, k, fn in callbacks:
+                if fn is None:  # it's not a kivy prop.
+                    continue
+                try:
+                    f.unbind(**{k: fn})
+                except ReferenceError:
+                    # proxy widget is already gone, that's cool :)
+                    pass
         del _handlers[uid]
 
     def _build_canvas(self, canvas, widget, rule, rootrule):
@@ -1926,9 +2035,10 @@ class BuilderBase(object):
                             key, value, prule, idmap, True)
                     setattr(instr, key, value)
             except Exception as e:
+                tb = sys.exc_info()[2]
                 raise BuilderException(
                     prule.ctx, prule.line,
-                    '{}: {}'.format(e.__class__.__name__, e))
+                    '{}: {}'.format(e.__class__.__name__, e), cause=tb)
 
 #: Main instance of a :class:`BuilderBase`.
 Builder = register_context('Builder', BuilderBase)

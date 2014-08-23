@@ -243,7 +243,8 @@ class WindowPygame(WindowBase):
         if filename is None:
             return None
         if glReadPixels is None:
-            from kivy.core.gl import glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE
+            from kivy.graphics.opengl import (glReadPixels, GL_RGBA,
+                                              GL_UNSIGNED_BYTE)
         width, height = self.system_size
         data = glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE)
         data = str(buffer(data))
