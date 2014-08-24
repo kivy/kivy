@@ -258,7 +258,7 @@ class ListAdapter(Adapter, EventDispatcher):
 
         return view_instance
 
-    def on_selection_change(self, adapter):
+    def on_selection_change(self, *args):
         '''on_selection_change() is the default handler for the
         on_selection_change event. You can bind to this event to get notified
         of selection changes.
