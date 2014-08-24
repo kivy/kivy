@@ -304,7 +304,7 @@ function::
                 'size_hint_y': None,
                 'height': 25}
 
-and as a lambda:
+and as a lambda::
 
     args_converter = lambda row_index, an_obj: {'text': an_obj.text,
                                                 'size_hint_y': None,
