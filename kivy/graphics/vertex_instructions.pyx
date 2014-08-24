@@ -342,7 +342,7 @@ cdef class Mesh(VertexInstruction):
             self.vcount = len(self._vertices)
 
         if len(self._indices) != self.icount:
-            if len(value) > 65535:
+            if len(self._indices) > 65535:
                 raise GraphicException('Cannot upload more than 65535 indices'
                                        '(OpenGL ES 2 limitation)')
             self._indices, self._lindices = _ensure_ushort_view(self._indices,
