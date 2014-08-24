@@ -316,6 +316,8 @@ cdef class Mesh(VertexInstruction):
     cdef float *_pvertices  # the pointer to the start of buffer interface data
     cdef unsigned short *_pindices
     cdef VertexFormat vertex_format
+    cdef long vcount  # the length of last set _vertices
+    cdef long icount  # the length of last set _indices
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
@@ -330,16 +332,29 @@ cdef class Mesh(VertexInstruction):
         self.mode = kwargs.get('mode') or 'points'
 
     cdef void build(self):
-        cdef long vcount = len(self._vertices)
-        cdef long icount = len(self._indices)
         cdef vsize = self.batch.vbo.vertex_format.vsize
 
-        if vcount == 0 or icount == 0:
+        # if user updated the list, but didn't do self.indices = ... then
+        # we'd not know about it, so ensure _indices/_indices is up to date
+        if len(self._vertices) != self.vcount:
+            self._vertices, self._fvertices = _ensure_float_view(self._vertices,
+                &self._pvertices)
+            self.vcount = len(self._vertices)
+
+        if len(self._indices) != self.icount:
+            if len(value) > 65535:
+                raise GraphicException('Cannot upload more than 65535 indices'
+                                       '(OpenGL ES 2 limitation)')
+            self._indices, self._lindices = _ensure_ushort_view(self._indices,
+                &self._pindices)
+            self.icount = len(self._indices)
+
+        if self.vcount == 0 or self.icount == 0:
             self.batch.clear_data()
             return
 
-        self.batch.set_data(&self._pvertices[0], <int>(vcount / vsize),
-                            &self._pindices[0], <int>icount)
+        self.batch.set_data(&self._pvertices[0], <int>(self.vcount / vsize),
+                            &self._pindices[0], <int>self.icount)
 
     property vertices:
         '''List of x, y, u, v coordinates used to construct the Mesh. Right now,
@@ -351,6 +366,7 @@ cdef class Mesh(VertexInstruction):
         def __set__(self, value):
             self._vertices, self._fvertices = _ensure_float_view(value,
                 &self._pvertices)
+            self.vcount = len(self._vertices)
             self.flag_update()
 
     property indices:
@@ -365,6 +381,7 @@ cdef class Mesh(VertexInstruction):
                                        '(OpenGL ES 2 limitation)')
             self._indices, self._lindices = _ensure_ushort_view(value,
                 &self._pindices)
+            self.icount = len(self._indices)
             self.flag_update()
 
     property mode:
