@@ -42,13 +42,7 @@ from kivy.properties import ObjectProperty
 from kivy.lang import Builder
 from kivy.adapters.args_converters import list_item_args_converter
 from kivy.factory import Factory
-
-try:
-    basestring  # only exists in python2
-except NameError:  
-    basestring = (str, bytes)
-    # We only need to know if a listadapter cls is a string type
-
+from kivy.compat import string_types
 
 class Adapter(EventDispatcher):
     '''An :class:`~kivy.adapters.adapter.Adapter` is a bridge between data and
@@ -145,7 +139,7 @@ class Adapter(EventDispatcher):
         the given name.
         '''
         cls = self.cls
-        if isinstance(cls, basestring):
+        if isinstance(cls, string_types):
             try:
                 cls = getattr(Factory, cls)
             except AttributeError:
