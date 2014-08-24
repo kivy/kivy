@@ -41,7 +41,8 @@ from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty
 from kivy.lang import Builder
 from kivy.adapters.args_converters import list_item_args_converter
-
+from kivy.factory import Factory
+from kivy.compat import string_types
 
 class Adapter(EventDispatcher):
     '''An :class:`~kivy.adapters.adapter.Adapter` is a bridge between data and
@@ -128,11 +129,29 @@ class Adapter(EventDispatcher):
     def get_data_item(self):
         return self.data
 
+    def get_cls(self):
+        '''
+        .. versionadded:: 1.9.0
+
+        Returns the widget type specified by self.cls. If it is already
+        anything other than a string, it is returned directly. If it is a
+        string, the Factory is queried to retrieve the widget class with
+        the given name.
+        '''
+        cls = self.cls
+        if isinstance(cls, string_types):
+            try:
+                cls = getattr(Factory, cls)
+            except AttributeError:
+                raise AttributeError(
+                    'Listadapter cls widget does not exist.')
+        return cls
+
     def get_view(self, index):  # pragma: no cover
         item_args = self.args_converter(self.data)
 
-        if self.cls:
-            instance = self.cls(**item_args)
-            return instance
+        cls = self.get_cls()
+        if cls:
+            return cls(**item_args)
         else:
             return Builder.template(self.template, **item_args)
