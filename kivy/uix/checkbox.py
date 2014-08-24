@@ -52,6 +52,3 @@ class CheckBox(ToggleButtonBehavior, Widget):
 
     def on_state(self, *args):
         self.active = not self.active
-
-    def _toggle_active(self):
-        self._do_press()
