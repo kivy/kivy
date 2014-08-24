@@ -66,8 +66,9 @@ class SimpleListAdapter(Adapter):
 
         item_args = self.args_converter(index, item)
 
-        if self.cls:
-            instance = self.cls(**item_args)
+        cls = self.get_cls()
+        if cls:
+            instance = cls(**item_args)
             return instance
         else:
             return Builder.template(self.template, **item_args)
