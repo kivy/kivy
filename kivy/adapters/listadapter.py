@@ -261,10 +261,12 @@ class ListAdapter(Adapter, EventDispatcher):
         '''on_selection_change() is the default handler for the
         on_selection_change event. You can bind to this event to get notified
         of selection changes.
-        
+
         :Parameters:
             adapter: :class:`~ListAdapter` or subclass
-                The instance of the list adapter where the selection changed
+                The instance of the list adapter where the selection changed.
+                Use the adapters :attr:`selection` property to see what has been
+                selected.
         '''
         pass
 
