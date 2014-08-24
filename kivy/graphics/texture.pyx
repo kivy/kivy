@@ -963,7 +963,7 @@ cdef class Texture:
                 source = source[4:]
             chr = type(source)
             no_cache, filename, mipmap, count = source.split(chr('|'))
-            source = chr('{}|{}|{}').format(filename, mipmap, count)
+            source = chr(u'{}|{}|{}').format(filename, mipmap, count)
 
             if not proto:
                 proto = filename.split(chr(':'), 1)[0]
@@ -977,7 +977,7 @@ cdef class Texture:
                     self._on_proxyimage_loaded(self._proxyimage)
                 return
 
-            mipmap = 0 if mipmap == 'False' else 1
+            mipmap = 0 if mipmap == '0' else 1
             if count == '0':
                 if proto =='zip' or filename.endswith('.gif'):
                     from kivy.core.image import ImageLoader
