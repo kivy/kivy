@@ -498,7 +498,23 @@ class FocusBehavior(object):
     _requested_keyboard = False
     _keyboard = ObjectProperty(None, allownone=True)
     _keyboards = {}
-    _processed_touches = []
+
+    ignored_touch = []
+    '''A list of touches that should not be used to defocus. After on_touch_up,
+    every touch that is not in :attr:`ignored_touch` will defocus all the
+    focused widgets, if, the config keyboard mode is not multi. Touches on
+    focusable widgets that were used to focus are automatically added here.
+
+    Example usage:
+
+        class Unfocusable(Widget):
+
+            def on_touch_down(self, touch):
+                if self.collide_point(*touch.pos):
+                    FocusBehavior.ignored_touch.append(touch)
+
+    Notice that you need to access this as class, not instance variable.
+    '''
 
     def _set_keyboard(self, value):
         focused = self.focused
@@ -796,14 +812,14 @@ class FocusBehavior(object):
             ('button' not in touch.profile or
              not touch.button.startswith('scroll'))):
             self.focused = True
-            FocusBehavior._processed_touches.append(touch)
+            FocusBehavior.ignored_touch.append(touch)
             return False
 
     @staticmethod
     def _handle_post_on_touch_up(touch):
         ''' Called by window after each touch has finished.
         '''
-        touches = FocusBehavior._processed_touches
+        touches = FocusBehavior.ignored_touch
         if touch in touches:
             touches.remove(touch)
             return
