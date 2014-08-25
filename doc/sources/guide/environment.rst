@@ -115,3 +115,20 @@ KIVY_METRICS_FONTSCALE
 
     .. versionadded:: 1.5.0
 
+Graphics
+--------
+
+KIVY_GLES_LIMITS
+    Whether the GLES2 restrictions are enforced (the default, or if set to
+    1). If set to false, kivy might not be GLES2 compatible.
+
+    Following is a list of the potential incompatibilities that result
+    when set to true.
+
+==============	====================================================
+mesh indices	If true, the number of indices in a mesh is limited
+                to 65535
+==============	====================================================
+
+    .. versionadded:: 1.8.1
+
