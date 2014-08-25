@@ -231,7 +231,7 @@ Widget selector usage
 
 '''
 
-__all__ = ('Widget', 'WidgetException')
+__all__ = ('Widget', 'WidgetException', 'Selector')
 
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
