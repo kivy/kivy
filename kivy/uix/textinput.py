@@ -239,6 +239,7 @@ class TextInputCutCopyPaste(Bubble):
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             FocusBehavior.ignored_touch.append(touch)
+        return super(TextInputCutCopyPaste, self).on_touch_down(touch)
 
     def on_textinput(self, instance, value):
         global Clipboard
