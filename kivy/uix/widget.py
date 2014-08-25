@@ -151,6 +151,84 @@ but swallow the event if it has been handled. For example:
 This approach gives you good control over exactly how events and dispatched
 and managed.
 
+Widget selector usage
+---------------------
+
+.. code-block:: python
+
+    from kivy.app import App
+    from kivy.lang import Builder
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.uix.label import Label
+    
+    kv = """
+    <Selectors>:
+        orientation: 'vertical'
+        Label:
+            cls: 'cats', 'bald'
+        Label:
+            cls: 'cats', 'missing'
+        Label:
+            cls: 'pigs', 'curious'
+            text: 'Wanderer piglet'
+    
+        BoxLayout:
+            id: guinea_pigs
+            orientation: 'vertical'
+            BoxLayout:
+                Label:
+                    cls:  'pigs',
+                Label:
+                    cls:  'pigs', 'bald'
+                Label:
+                    cls:  'pigs', 'missing'
+    """
+    
+    Builder.load_string(kv)
+    
+    class Selectors(BoxLayout):
+        def __init__(self, **kwargs):
+            super(Selectors, self).__init__(**kwargs)
+    
+            # Returns a generator with 'guinea_pigs' BoxLayout and its children,
+            # recursively.
+            piglets = self.ids.guinea_pigs.select(all=True)
+    
+            # Update any property of the matching widgets.
+            piglets.text = 'Guinea pig'
+            piglets.font_size = 20
+    
+            self.select(cls='pigs').color = (0, 0, 1, 1)
+            self.select(cls='cats').color = (1, 0, 0, 1)
+    
+            # Create a Python list that contains the matching widgets.
+            piglet_list = list(piglets)
+            print(piglet_list)
+    
+            self.select(cls='bald').text = 'This pet is bald'
+    
+            # Bind all matching widgets.
+            self.select(cls='missing').bind(parent=self.callback)
+    
+            # Remove all matching widgets.
+            self.select(cls='missing').detach()
+    
+            # Add a widget with one or more classes.
+            self.ids.guinea_pigs.add_widget(Label(text='Micro piglet', cls=('micro',)))
+    
+            self.select(cls='micro').font_size = 40
+            self.select(cls='micro').text = 'Giant piglet'
+    
+        def callback(self, *args):
+            print('Missing pet removed.')
+    
+    class TestApp(App):
+        def build(self):
+            return Selectors()
+    
+    if __name__ == '__main__':
+        TestApp().run()
+
 '''
 
 __all__ = ('Widget', 'WidgetException')
@@ -202,6 +280,61 @@ class WidgetMetaclass(type):
 
 #: Base class used for widget, that inherit from :class:`EventDispatcher`
 WidgetBase = WidgetMetaclass('WidgetBase', (EventDispatcher, ), {})
+
+
+class Selector(object):
+    '''Selector class. Used to select and manipulate widgets based on certain
+    filters.
+
+    .. versionadded:: 1.8.1
+
+    .. warning::
+        This code is still experimental, and its API is subject to change
+        in a future version.
+
+    '''
+
+    __slots__ = ('_cls', '_all', '_root')
+
+    def __init__(self, root=None, cls=None, all=False):
+        self._cls = cls
+        self._all = all
+        self._root = root
+
+    def __iter__(self):
+        for widget in self._root.walk(restrict=True):
+            if self._all or self._cls in widget.cls:
+                yield widget
+
+    def __setattr__(self, name, value):
+        try:
+            return object.__setattr__(self, name, value)
+        except AttributeError:
+            for widget in self:
+                if hasattr(widget, name):
+                    setattr(widget, name, value)
+
+    def bind(self, **kwargs):
+        '''Bind every selected widget's passed event or property to a callback.
+        '''
+
+        for widget in self:
+            widget.bind(**kwargs)
+
+    def unbind(self, **kwargs):
+        '''Unbind every selected widget's passed event or property from their
+        callback.
+        '''
+
+        for widget in self:
+            widget.unbind(**kwargs)
+
+    def detach(self):
+        '''Remove every selected widget from their respective parents.
+        '''
+
+        for widget in list(self):
+            widget.parent.remove_widget(widget)
 
 
 class Widget(WidgetBase):
@@ -562,6 +695,35 @@ class Widget(WidgetBase):
         if self.parent:
             return self.parent.get_parent_window()
 
+    def select(self, cls=None, all=False):
+        '''Returns a Selector object that acts as a generator.
+
+        See :class:`Selector` for more information.
+
+        .. versionadded:: 1.8.1
+
+        .. warning::
+            This code is still experimental, and its API is subject to change
+            in a future version.
+
+
+        :Parameters:
+            `cls`: string, defaults to None
+                If set, a Selector instance is returned that yields every
+                widget that is part of this class. The tree is walked by 
+                using  this widget as a temporary root. If `all` is True,
+                this parameter is ignored. Defaults to None.
+            `all`: bool, defaults to False
+                If True, a Selector instance is returnded that yields this
+                widget and all its children, recursively.
+                Defaults to False.
+
+        :Returns:
+            Instance of :class:`Selector`.
+        '''
+
+        return Selector(root=self, cls=cls, all=all)
+
     def _walk(self, restrict=False, loopback=False, index=None):
         # we pass index only when we are going on the parent.
         # so don't yield the parent as well.
@@ -886,7 +1048,9 @@ class Widget(WidgetBase):
     '''
 
     cls = ListProperty([])
-    '''Class of the widget, used for styling.
+    '''Class of the widget, used for selection.
+    
+    See :attr:`select` for more information
     '''
 
     id = StringProperty(None, allownone=True)
