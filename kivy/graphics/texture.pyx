@@ -224,6 +224,7 @@ include "common.pxi"
 include "opengl_utils_def.pxi"
 include "img_tools.pxi"
 
+from os import environ
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
 
@@ -232,6 +233,8 @@ IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.opengl_utils cimport *
 
+cdef int gles_limts = int(environ.get('KIVY_GLES_LIMITS', 1))
+
 # update flags
 cdef int TI_MIN_FILTER      = 1 << 0
 cdef int TI_MAG_FILTER      = 1 << 1
@@ -239,7 +242,6 @@ cdef int TI_WRAP            = 1 << 2
 cdef int TI_NEED_GEN        = 1 << 3
 cdef int TI_NEED_ALLOCATE   = 1 << 4
 cdef int TI_NEED_PIXELS     = 1 << 5
-
 
 # compatibility layer
 DEF GL_BGR = 0x80E0
@@ -876,6 +878,21 @@ cdef class Texture:
             size = self.size
         glbufferfmt = _buffer_fmt_to_gl(bufferfmt)
 
+        # gles limitation/issue: cannot blit buffer on a different
+        # buffer/colorfmt
+        # Reference: https://github.com/kivy/kivy/issues/1600
+        if gles_limts:
+            if colorfmt.lower() != self.colorfmt.lower():
+                raise Exception((
+                    "GLES LIMIT: Cannot blit with a different colorfmt than "
+                    "the created texture. (texture has {}, you passed {})"
+                    ).format(self.colorfmt, colorfmt))
+            if bufferfmt.lower() != self.bufferfmt.lower():
+                raise Exception((
+                    "GLES LIMIT: Cannot blit with a different bufferfmt than "
+                    "the created texture. (texture has {}, you passed {})"
+                    ).format(self.bufferfmt, bufferfmt))
+
         # bind the texture, and create anything that should be created at this
         # time.
         self.bind()
@@ -1200,6 +1217,9 @@ cdef class TextureRegion(Texture):
         Texture.__init__(self, width, height, origin.target, origin.id)
         self._is_allocated = 1
         self._mipmap = origin._mipmap
+        self._colorfmt = origin._colorfmt
+        self._bufferfmt = origin._bufferfmt
+        self._icolorfmt = origin._icolorfmt
         self.x = x
         self.y = y
         self.owner = origin
