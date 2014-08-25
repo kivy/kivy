@@ -46,9 +46,5 @@ class CheckBox(ToggleButtonBehavior, Widget):
     to False.
     '''
 
-    def __init__(self, **kwargs):
-        self._previous_group = None
-        super(CheckBox, self).__init__(**kwargs)
-
     def on_state(self, *args):
         self.active = not self.active
