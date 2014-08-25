@@ -222,6 +222,8 @@ class Selector(ButtonBehavior, Image):
             touch.push()
             touch.apply_transform_2d(self.to_widget)
             self._touch_diff = self.top - touch.y
+            if self.collide_point(*touch.pos):
+                FocusBehavior.ignored_touch.append(touch)
             return super(Selector, self).on_touch_down(touch)
         finally:
             touch.pop()
