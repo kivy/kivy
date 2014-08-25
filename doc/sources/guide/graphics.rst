@@ -103,3 +103,5 @@ Or you can clean your canvas and start fresh::
             with self.canvas:
                 self.rect = Rectangle(pos=self.pos, size=self.size)
 
+Note that updating the instructions is considered the best practise as it
+involves less overhead and avoids creating new instructions.
