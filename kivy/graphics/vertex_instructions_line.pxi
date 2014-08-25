@@ -87,15 +87,16 @@ cdef class Line(VertexInstruction):
         `bezier_precision`: int, defaults to 180
             Precision of the Bezier drawing.
 
-    .. versionadded:: 1.0.8
+    .. versionchanged:: 1.0.8
         `dash_offset` and `dash_length` have been added
 
-    .. versionadded:: 1.4.1
+    .. versionchanged:: 1.4.1
         `width`, `cap`, `joint`, `cap_precision`, `joint_precision`, `close`,
         `ellipse`, `rectangle` have been added.
 
-    .. versionadded:: 1.4.1
+    .. versionchanged:: 1.4.1
         `bezier`, `bezier_precision` have been added.
+
     '''
     cdef int _cap
     cdef int _cap_precision
