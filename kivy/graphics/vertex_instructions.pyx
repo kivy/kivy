@@ -57,6 +57,7 @@ __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
 include "config.pxi"
 include "common.pxi"
 
+from os import environ
 from kivy.graphics.vbo cimport *
 from kivy.graphics.vertex cimport *
 from kivy.graphics.instructions cimport *
@@ -65,6 +66,8 @@ IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.logger import Logger
 from kivy.graphics.texture cimport Texture
+
+cdef int gles_limts = int(environ.get('KIVY_GLES_LIMITS', 1))
 
 
 class GraphicException(Exception):
@@ -362,7 +365,7 @@ cdef class Mesh(VertexInstruction):
         def __get__(self):
             return self._indices
         def __set__(self, value):
-            if len(value) > 65535:
+            if gles_limts and len(value) > 65535:
                 raise GraphicException(
                     'Cannot upload more than 65535 indices'
                     '(OpenGL ES 2 limitation)')
@@ -371,7 +374,7 @@ cdef class Mesh(VertexInstruction):
 
     property mode:
         '''VBO Mode used for drawing vertices/indices. Can be one of 'points',
-        'line_strip', 'line_loop', 'lines', 'triangles', 'triangle_strip' or 
+        'line_strip', 'line_loop', 'lines', 'triangles', 'triangle_strip' or
         'triangle_fan'.
         '''
         def __get__(self):
