@@ -213,6 +213,8 @@ class Selector(ButtonBehavior, Image):
 
     def on_touch_down(self, touch):
         self._touch_diff = self.top - touch.y
+        if self.collide_point(*touch.pos):
+            FocusBehavior.ignored_touch.append(touch)
         return super(Selector, self).on_touch_down(touch)
 
 
@@ -233,6 +235,10 @@ class TextInputCutCopyPaste(Bubble):
         self.mode = 'normal'
         super(TextInputCutCopyPaste, self).__init__(**kwargs)
         Clock.schedule_interval(self._check_parent, .5)
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            FocusBehavior.ignored_touch.append(touch)
 
     def on_textinput(self, instance, value):
         global Clipboard
