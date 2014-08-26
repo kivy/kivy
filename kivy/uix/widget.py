@@ -276,20 +276,21 @@ class Selector(object):
 
     '''
 
-    __slots__ = ('_cls', '_root')
+    __slots__ = ('_root', '_cls', '_cls_len')
 
     def __init__(self, root=None, cls=None):
         if cls and isinstance(cls, string_types):
             cls = (cls,)
+        self._cls_len = len(cls) if cls else 0
         self._cls = cls
         self._root = root
 
     def __iter__(self):
-        len_cls = len(self._cls) if self._cls else 0
+        cls = self._cls
+        cls_len = self._cls_len
         for widget in self._root.walk(restrict=True):
-            if len_cls:
-                cls_list = tuple(c for c in self._cls if c in widget.cls)
-                if len(cls_list) == len_cls:
+            if cls_len:
+                if len(tuple(c for c in cls if c in widget.cls)) == cls_len:
                     yield widget
             else:
                 yield widget
