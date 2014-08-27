@@ -4,12 +4,14 @@ Abstract View
 
 .. versionadded:: 1.5
 
+.. warning::
+
     This code is still experimental, and its API is subject to change in a
     future version.
 
 The :class:`~kivy.uix.abstractview.AbstractView` widget has an adapter property
 for an adapter that mediates to data. The adapter manages an
-item_view_instances dict property that holds views for each data item,
+item_view_instance dict property that holds views for each data item,
 operating as a cache.
 
 '''
