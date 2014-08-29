@@ -23,7 +23,7 @@ corresponding properties:
   data should be a dict.
 
 * :attr:`~Adapter.cls`: for a list key class used to instantiate list item view
-  instances (Use this or the template argument). I
+  instances (Use this or the template argument).
 
 * :attr:`~Adapter.template`: a kv template to use to instantiate list item view
   winstances (Use this or the cls argument).
@@ -72,7 +72,9 @@ class Adapter(EventDispatcher):
 
     cls = ObjectProperty(None)
     '''
-    A class for instantiating a given view item (Use this or template).
+    A class for instantiating a given view item (Use this or template). If this
+    is not set and neither is the template, a :class:`~kivy.uix.label.Label`
+    is used for the view item.
 
     :attr:`cls` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
