@@ -136,10 +136,9 @@ class Adapter(EventDispatcher):
         '''
         .. versionadded:: 1.9.0
 
-        Returns the widget type specified by self.cls. If it is already
-        anything other than a string, it is returned directly. If it is a
-        string, the Factory is queried to retrieve the widget class with
-        the given name.
+        Returns the widget type specified by self.cls. If it is a
+        string, the :class:`~kivy.factory.Factory` is queried to retrieve the
+        widget class with the given name, otherwise it is returned directly.
         '''
         cls = self.cls
         if isinstance(cls, string_types):
