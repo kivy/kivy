@@ -13,21 +13,22 @@ An :class:`~kivy.adapters.adapter.Adapter` is a bridge between data and
 an :class:`~kivy.uix.abstractview.AbstractView` or one of its subclasses, such
 as a :class:`~kivy.uix.listview.ListView`.
 
-Arguments:
+The following arguments can be passed to the contructor to initialise the
+corresponding properties:
 
-* *data*: for any sort of data to be used in a view. For an
+* :attr:`~Adapter.data`: for any sort of data to be used in a view. For an
   :class:`~kivy.adapters.adapter.Adapter`, data can be an object as well as a
   list, dict, etc. For a :class:`~kivy.adapters.listadapter.ListAdapter`, data
   should be a list. For a :class:`~kivy.adapters.dictadapter.DictAdapter`,
   data should be a dict.
 
-* *cls*: for a list key class used to instantiate list item view
-  instances (Use this or the template argument).
+* :attr:`~Adapter.cls`: for a list key class used to instantiate list item view
+  instances (Use this or the template argument). I
 
-* *template*: a kv template to use to instantiate list item view instances (Use
-  this or the cls argument).
+* :attr:`~Adapter.template`: a kv template to use to instantiate list item view
+  winstances (Use this or the cls argument).
 
-* *args_converter*: a function to transform the data argument
+* :attr:`~Adapter.args_converter`: a function to transform the data argument
   sets, in preparation for either a cls instantiation or a kv template
   invocation. If no args_converter is provided, a default one, that
   assumes that the data items are strings, is used.
