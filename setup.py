@@ -462,7 +462,12 @@ sources = {
     'graphics/vbo.pyx': merge(base_flags, gl_flags),
     'graphics/vertex.pyx': merge(base_flags, gl_flags),
     'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags),
-    'core/text/text_layout.pyx': base_flags}
+    'core/text/text_layout.pyx': base_flags,
+    'graphics/tesselator.pyx': merge(base_flags, {
+        'include_dirs': ['kivy/lib/libtess2/Include'],
+        'depends': ['lib/libtess2/Sources/bucketalloc.c']
+    })
+}
 
 if c_options['use_sdl']:
     sdl_flags = determine_sdl()
@@ -695,4 +700,3 @@ setup(
     dependency_links=[
         'https://github.com/kivy-garden/garden/archive/master.zip'],
     install_requires=['Kivy-Garden==0.1.1'])
-
