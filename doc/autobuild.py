@@ -40,6 +40,7 @@ import kivy.ext
 import kivy.geometry
 import kivy.graphics
 import kivy.graphics.shader
+import kivy.graphics.tesselator
 import kivy.animation
 import kivy.modules.keybinding
 import kivy.modules.monitor

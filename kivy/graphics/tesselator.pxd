@@ -20,7 +20,6 @@ cdef extern from "tesselator.h":
     int tessGetVertexCount(TESStesselator *)
     int tessGetElementCount(TESStesselator *)
     float *tessGetVertices(TESStesselator *)
-    float *tessGetVertexIndices(TESStesselator *)
     int *tessGetVertexIndices(TESStesselator *)
     int *tessGetElements(TESStesselator *)
 
@@ -30,3 +29,4 @@ cdef class Tesselator:
     cdef int element_type
     cdef int polysize
     cdef void add_contour_data(self, void *cdata, int count)
+    cdef iterate_vertices(self, int mode)

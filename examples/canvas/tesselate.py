@@ -43,8 +43,8 @@ class ShapeBuilder(FloatLayout):
     def __init__(self, **kwargs):
         super(ShapeBuilder, self).__init__(**kwargs)
         self.shapes = [
-            [0, 0,   200, 0,  200, 200, 0, 200],
-            [50, 50, 150, 50, 150, 150, 50, 150]
+            [100, 100, 300, 100, 300, 300, 100, 300],
+            [150, 150, 250, 150, 250, 250, 150, 250]
         ]
         self.shape = []
         self.build()
@@ -68,7 +68,6 @@ class ShapeBuilder(FloatLayout):
     def on_touch_up(self, touch):
         if super(ShapeBuilder, self).on_touch_up(touch):
             return True
-        print "TOUCH UP"
         self.push_shape()
         self.build()
 
@@ -102,9 +101,9 @@ class ShapeBuilder(FloatLayout):
             from random import random
             with self.canvas.after:
                 c = 0
-                for vertices in tess.meshes:
+                for vertices, indices in tess.meshes:
                     Color(c, 1, 1, mode="hsv")
-                    c += 0.5
+                    c += 0.3
                     indices = [0]
                     for i in range(1, len(vertices) / 4):
                         if i > 0:
@@ -117,8 +116,7 @@ class ShapeBuilder(FloatLayout):
         else:
             with self.canvas.after:
                 Color(1, 1, 1, 1)
-                for vertices in tess.meshes:
-                    indices = range(len(vertices) / 4)
+                for vertices, indices in tess.meshes:
                     Mesh(vertices=vertices, indices=indices, mode="triangle_fan")
 
         self.ids.status.text = "Vertex: {} - Elements: {}".format(
