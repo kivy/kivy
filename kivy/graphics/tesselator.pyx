@@ -31,7 +31,7 @@ holes::
     tess.add_contour([0, 0, 200, 0, 200, 200, 0, 200])
     tess.add_contour([50, 50, 150, 50, 150, 150, 50, 150])
 
-Second, call the :meth:`Tesselate.tesselate` method to compute the points. It is
+Second, call the :meth:`Tesselator.tesselate` method to compute the points. It is
 possible that the tesselator doesn't work, in that case, it can return False::
 
     if not tess.tesselate():
