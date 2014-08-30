@@ -2,7 +2,7 @@
 Tesselator
 ==========
 
-.. versionadded:: 1.9.1
+.. versionadded:: 1.8.1
 
 .. image:: images/tesselator-filled.png
     :align: right
