@@ -52,7 +52,7 @@ class ShapeBuilder(FloatLayout):
     def on_touch_down(self, touch):
         if super(ShapeBuilder, self).on_touch_down(touch):
             return True
-        print touch.pos
+        print(touch.pos)
         self.shape.extend(touch.pos)
         self.build()
         return True
@@ -60,7 +60,7 @@ class ShapeBuilder(FloatLayout):
     def on_touch_move(self, touch):
         if super(ShapeBuilder, self).on_touch_move(touch):
             return True
-        print touch.pos
+        print(touch.pos)
         self.shape.extend(touch.pos)
         self.build()
         return True
@@ -76,7 +76,6 @@ class ShapeBuilder(FloatLayout):
         self.shape = []
 
     def build(self):
-        print "build()"
         tess = Tesselator()
         count = 0
         for shape in self.shapes:
@@ -88,11 +87,11 @@ class ShapeBuilder(FloatLayout):
             count += 1
         if not count:
             return
-        print "Tesselate", count, "shapes"
+        print("Tesselate {} shapes".format(count))
         ret = tess.tesselate(WINDING_ODD, TYPE_POLYGONS)
-        print "Result:", ret
-        print "Vertex count:", tess.vertex_count
-        print "Element count:", tess.element_count
+        print("Result: {}".format(ret))
+        print("Vertex count: {}".format(tess.vertex_count))
+        print("Element count: {}".format(tess.element_count))
 
         self.canvas.after.clear()
 
@@ -128,28 +127,8 @@ class ShapeBuilder(FloatLayout):
         self.canvas.after.clear()
 
 
-
 class TessApp(App):
     def build(self):
-        """
-        tess = Tesselator()
-        tess.add_contour([0, 0, 200, 0, 200, 200, 0, 200])
-        tess.add_contour([50, 50, 150, 50, 150, 150, 50, 150])
-        print tess.tesselate(WINDING_ODD, TYPE_POLYGONS)
-        print "Vertex count:", tess.vertex_count
-        print "Element count:", tess.element_count
-        print tess.meshes
-
-        root = Widget()
-        with root.canvas:
-            Color(1, 1, 1, 1)
-            for vertices in tess.meshes:
-                indices = range(len(vertices) / 4)
-                print list(vertices), list(indices)
-                Mesh(vertices=vertices, indices=indices, mode="triangle_fan")
-
-        return root
-        """
         return ShapeBuilder()
 
 TessApp().run()
