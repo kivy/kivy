@@ -4,6 +4,11 @@ Tesselator
 
 .. versionadded:: 1.9.1
 
+.. image:: images/tesselator-filled.png
+    :align: right
+.. image:: images/tesselator-debug.png
+    :align: right
+
 .. warning::
 
     This is experimental and subject to change as long as this warning notice
@@ -27,7 +32,7 @@ holes::
     tess.add_contour([50, 50, 150, 50, 150, 150, 50, 150])
 
 Second, call the :meth:`Tesselate.tesselate` method to compute the points. It is
-possible that the tesselator doesn't work, in that case, it can return False.
+possible that the tesselator doesn't work, in that case, it can return False::
 
     if not tess.tesselate():
         print "Tesselator didn't work :("
@@ -45,7 +50,7 @@ is using :data:`Tesselator.meshes` to get a format directly usable for
         ))
 
 Or, you can get the "raw" result, with just polygons and x/y coordinates with
-:meth:`Tesselator.vertices`:
+:meth:`Tesselator.vertices`::
 
     for vertices in tess.vertices:
         print "got polygon", vertices
