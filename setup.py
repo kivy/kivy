@@ -465,7 +465,15 @@ sources = {
     'core/text/text_layout.pyx': base_flags,
     'graphics/tesselator.pyx': merge(base_flags, {
         'include_dirs': ['kivy/lib/libtess2/Include'],
-        'depends': ['lib/libtess2/Sources/bucketalloc.c']
+        'c_depends': [
+            'lib/libtess2/Source/bucketalloc.c',
+            'lib/libtess2/Source/dict.c',
+            'lib/libtess2/Source/geom.c',
+            'lib/libtess2/Source/mesh.c',
+            'lib/libtess2/Source/priorityq.c',
+            'lib/libtess2/Source/sweep.c',
+            'lib/libtess2/Source/tess.c'
+        ]
     })
 }
 
@@ -562,6 +570,7 @@ def get_extensions_from_sources(sources):
         is_graphics = pyx.startswith('graphics')
         pyx = expand(pyx)
         depends = [expand(x) for x in flags.pop('depends', [])]
+        c_depends = [expand(x) for x in flags.pop('c_depends', [])]
         if not have_cython:
             pyx = '%s.c' % pyx[:-4]
         if is_graphics:
@@ -574,7 +583,7 @@ def get_extensions_from_sources(sources):
             if len(value):
                 flags_clean[key] = value
         ext_modules.append(CythonExtension(module_name,
-            [pyx] + f_depends, **flags_clean))
+            [pyx] + f_depends + c_depends, **flags_clean))
     return ext_modules
 
 ext_modules = get_extensions_from_sources(sources)
