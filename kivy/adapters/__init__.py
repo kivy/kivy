@@ -11,12 +11,25 @@ presented by views. Views are top-level widgets, such as a
 :class:`~kivy.uix.listview.ListView`, that allow users to scroll through
 and (optionally) interact with your data.
 
+The Concept
+-----------
+
 Kivy adapters are modelled on the
 `Adapter design pattern <http://en.wikipedia.org/wiki/Adapter_pattern>`_.
 Conceptually, they play the role of a 'controller' between you data and views
 in a `Model-View-Controller
 <https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller>`_
 type architecture.
+
+The role of an adapter can be depicted as follows:
+
+.. image:: images/adapters.png
+
+
+The Components
+--------------
+
+The components involved in this process are:
 
 - **Adapters**: The base :class:`Adapter` is subclassed by the
   :class:`SimpleListAdapter` and :class:`ListAdapter`. The :class:`DictAdapter`
