@@ -12,18 +12,18 @@ Tesselator
 .. warning::
 
     This is experimental and subject to change as long as this warning notice
-    is present. Only TYPE_POLYGONS is supported yet.
+    is present. Only TYPE_POLYGONS is currently supported.
 
-Tesselator is a library for tesselate polygon, based on
-`libtess2 <https://github.com/memononen/libtess2>`_. It render concave filled
+Tesselator is a library for tesselating polygons, based on
+`libtess2 <https://github.com/memononen/libtess2>`_. It renders concave filled
 polygons by first tesselating them into convex polygons. It also supports holes.
 
 Usage
 -----
 
-First, you need to create a :class:`Tesselator` object, and add contours. The
-first one is the external contour of your shape, all the next should be the
-holes::
+First, you need to create a :class:`Tesselator` object and add contours. The
+first one is the external contour of your shape and all of the following ones
+should be holes::
 
     from kivy.graphics.tesselator import Tesselator
 
@@ -31,16 +31,17 @@ holes::
     tess.add_contour([0, 0, 200, 0, 200, 200, 0, 200])
     tess.add_contour([50, 50, 150, 50, 150, 150, 50, 150])
 
-Second, call the :meth:`Tesselator.tesselate` method to compute the points. It is
-possible that the tesselator doesn't work, in that case, it can return False::
+Second, call the :meth:`Tesselator.tesselate` method to compute the points. It
+is possible that the tesselator won't work. In that case, it can return
+False::
 
     if not tess.tesselate():
         print "Tesselator didn't work :("
         return
 
-After the tesselation, you have multiples way to iterate on the result. Best
-is using :data:`Tesselator.meshes` to get a format directly usable for
-:class:`~kivy.graphics.Mesh`::
+After the tesselation, you have multiple ways to iterate over the result. The
+best approach is using :data:`Tesselator.meshes` to get a format directly usable
+for a :class:`~kivy.graphics.Mesh`::
 
     for vertices, indices in tess.meshes:
         self.canvas.add(Mesh(
@@ -57,8 +58,8 @@ Or, you can get the "raw" result, with just polygons and x/y coordinates with
 
 """
 
-__all__ = ["Tesselator", "WINDING_ODD", "WINDING_NONZERO", "WINDING_POSITIVE",
-           "WINDING_NEGATIVE", "TYPE_POLYGONS", "TYPE_BOUNDARY_CONTOURS"]
+__all__ = ("Tesselator", "WINDING_ODD", "WINDING_NONZERO", "WINDING_POSITIVE",
+           "WINDING_NEGATIVE", "TYPE_POLYGONS", "TYPE_BOUNDARY_CONTOURS")
 
 include "common.pxi"
 cimport cpython.array
