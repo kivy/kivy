@@ -739,7 +739,7 @@ int tessMeshMergeConvexFaces( TESSmesh *mesh, int maxVertsPerFace )
 			
 			if( eCur && eCur->Lnext->Org == vStart )
 				break;
-				
+			if (eSym == eNext) break;
 			// Continue to next edge.
 			eCur = eNext;
 		}
