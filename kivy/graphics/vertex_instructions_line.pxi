@@ -37,16 +37,16 @@ cdef class Line(VertexInstruction):
         with self.canvas:
             Line(points=[100, 100, 200, 100, 100, 200], width=10)
 
-    Actually, the line have 3 internal drawing mode that you should know about
-    if you want to get the best performance of it:
+    The line has 3 internal drawing modes that you should be aware of
+    for optimal results:
 
-    #. If the :attr:`width` is 1.0, then we will use standard GL_LINE drawing
-       from OpenGL. :attr:`dash_length` and :attr:`dash_offset` works, while
-       properties for cap and joint have no sense for this.
-    #. If the :attr:`width` is > 1.0, then we will use a custom drawing method,
-       based on triangles. :attr:`dash_length` and :attr:`dash_offset` is not
-       working on that mode.
-       Additionally, if the current color have an alpha < 1.0, stencil will be
+    #. If the :attr:`width` is 1.0, then the standard GL_LINE drawing from
+       OpenGL will be used. :attr:`dash_length` and :attr:`dash_offset` will
+       work, while properties for cap and joint have no meaning here.
+    #. If the :attr:`width` is > 1.0, then a custom drawing method will be used,
+       based on triangles. :attr:`dash_length` and :attr:`dash_offset` do not
+       work in this mode.
+       Additionally, if the current color has an alpha < 1.0, a stencil will be
        used internally to draw the line.
 
     .. image:: images/line-instruction.png
@@ -56,20 +56,20 @@ cdef class Line(VertexInstruction):
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
         `dash_length`: int
-            Length of a segment (if dashed), default 1
+            Length of a segment (if dashed), defaults to 1.
         `dash_offset`: int
             Offset between the end of a segments and the begining of the
-            next one, default 0, changing this makes it dashed.
+            next one, defaults to 0. Changing this makes it dashed.
         `width`: float
-            Width of the line, default 1.0
+            Width of the line, defaults to 1.0.
         `cap`: str, defaults to 'round'
             See :attr:`cap` for more information.
         `joint`: str, defaults to 'round'
             See :attr:`joint` for more information.
         `cap_precision`: int, defaults to 10
-            See :attr:`cap_precision` for more information
+            See :attr:`cap_precision` for more information.
         `joint_precision`: int, defaults to 10
-            See :attr:`joint_precision` for more information
+            See :attr:`joint_precision` for more information.
         `close`: bool, defaults to False
             If True, the line will be closed.
         `circle`: list
