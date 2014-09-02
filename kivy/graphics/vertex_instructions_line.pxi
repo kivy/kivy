@@ -1028,7 +1028,7 @@ cdef class Line(VertexInstruction):
         :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of one of the following forms:
-        
+
         * (x, y, width, height, corner_radius)
         * (x, y, width, height, corner_radius, resolution)
         * (x, y, width, height, corner_radius1, corner_radius2, corner_radius3, corner_radius4)
@@ -1186,7 +1186,7 @@ cdef class Line(VertexInstruction):
 cdef class SmoothLine(Line):
     '''Experimental line using over-draw method to get better antialiasing
     results. It has few drawbacks:
-    
+
     - drawing line with alpha will unlikely doesn't give the intended result if
       the line cross itself
     - no cap or joint are supported
@@ -1210,11 +1210,15 @@ cdef class SmoothLine(Line):
         self.texture = self.premultiplied_texture()
 
     def premultiplied_texture(self):
+        texture = Texture.create(size=(4, 1), colorfmt="rgba")
+        texture.add_reload_observer(self._smooth_reload_observer)
+        self._smooth_reload_observer(texture)
+        return texture
+
+    cpdef _smooth_reload_observer(self, texture):
         cdef bytes GRADIENT_DATA = (
             b"\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00")
-        texture = Texture.create(size=(4, 1), colorfmt="rgba")
         texture.blit_buffer(GRADIENT_DATA, colorfmt="rgba")
-        return texture
 
     cdef void build(self):
         if self._mode == LINE_MODE_ELLIPSE:
@@ -1470,7 +1474,7 @@ cdef class SmoothLine(Line):
         #free(vertices)
         #free(indices)
 
-        
+
     property overdraw_width:
         '''Determine the overdraw width of the line, defaults to 1.2
         '''
