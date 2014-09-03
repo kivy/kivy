@@ -219,7 +219,7 @@ class Widget(WidgetBase):
         Adding a `__del__` method to a class derived from Widget with python
         prior to 3.4 will disable automatic garbage collection for instances
         of that class. This is because the Widget class creates reference
-        cycles, thereby `preventing garbage collection 
+        cycles, thereby `preventing garbage collection
         <https://docs.python.org/2/library/gc.html#gc.garbage>`_.
 
     .. versionchanged:: 1.0.9
@@ -410,7 +410,7 @@ class Widget(WidgetBase):
                 Index to insert the widget in the list
 
                 .. versionadded:: 1.0.5
-            
+
     .. code-block:: python
 
         >>> from kivy.uix.button import Button
@@ -467,7 +467,7 @@ class Widget(WidgetBase):
         :Parameters:
             `widget`: :class:`Widget`
                 Widget to remove from our children list.
-    
+
     .. code-block:: python
 
         >>> from kivy.uix.button import Button
@@ -523,7 +523,7 @@ class Widget(WidgetBase):
             canvas_parent_index = self.parent.canvas.indexof(self.canvas)
             self.parent.canvas.remove(self.canvas)
 
-        fbo = Fbo(size=self.size)
+        fbo = Fbo(size=self.size, with_stencilbuffer=True)
 
         with fbo:
             ClearColor(0, 0, 0, 1)
@@ -709,7 +709,7 @@ class Widget(WidgetBase):
                 Widget
 
         walking this tree:
-        
+
         .. code-block:: python
 
             >>> # Call walk on box with loopback True
@@ -1076,7 +1076,7 @@ class Widget(WidgetBase):
     '''Indicates whether this widget can interact with input or not.
 
     .. note::
-    
+
       1. Child Widgets, when added to a disabled widget, will be disabled
          automatically.
       2. Disabling/enabling a parent disables/enables all
