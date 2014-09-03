@@ -250,7 +250,6 @@ from weakref import proxy
 from functools import partial
 from itertools import islice
 
-
 # references to all the destructors widgets (partial method with widget uid as
 # key.)
 _widget_destructors = {}
@@ -276,24 +275,47 @@ class Selector(object):
 
     '''
 
-    __slots__ = ('_root', '_cls', '_cls_len')
+    __slots__ = ('_roots', '_cls', '_props', '_tags', 
+        '_tag_count', '_prop_count')
 
-    def __init__(self, root=None, cls=None):
-        if cls and isinstance(cls, string_types):
-            cls = (cls,)
-        self._cls_len = len(cls) if cls else 0
-        self._cls = cls
-        self._root = root
+    def __init__(self, root, *args, **kwargs):
+        self._roots = root if isinstance(root, Selector) else (root,)
+        self._cls = args[0] if args else None
+        tags = ()
+        if 'tags' in kwargs:
+            tags = kwargs['tags']
+            del kwargs['tags']
+            if tags and isinstance(tags, string_types):
+                tags = (tags,)
+        self._tags = tags
+        self._tag_count = len(tags)
+        self._props = kwargs.items()
+        self._prop_count = len(kwargs)
 
     def __iter__(self):
+        roots = self._roots
         cls = self._cls
-        cls_len = self._cls_len
-        for widget in self._root.walk(restrict=True):
-            if cls_len:
-                if len(tuple(c for c in cls if c in widget.cls)) == cls_len:
+        tags = self._tags
+        props = self._props
+        tag_count = self._tag_count
+        prop_count = self._prop_count
+
+        for root in roots:
+            for widget in root.walk(restrict=True):
+
+                cls_match = type(widget).__name__ == cls if cls else None
+
+                tags_match = len(tuple(t for t in tags
+                    if t in widget.tags)) == tag_count if tags else None
+
+                props_match = len([True for k, v in props if hasattr(
+                    widget, k) and getattr(
+                        widget, k) == v]) == prop_count if props else None
+
+                if (cls_match or cls_match is None) and (
+                    tags_match or tags_match is None) and (
+                        props_match or props_match is None):
                     yield widget
-            else:
-                yield widget
 
     def __setattr__(self, name, value):
         try:
@@ -323,7 +345,15 @@ class Selector(object):
         '''
 
         for widget in list(self):
-            widget.parent.remove_widget(widget)
+            if widget.parent:
+                widget.parent.remove_widget(widget)
+
+    def select(self, *args, **kwargs):
+        '''
+        '''
+
+        return Selector(self, *args, **kwargs)
+
 
 
 class WidgetException(Exception):
@@ -706,7 +736,7 @@ class Widget(WidgetBase):
         if self.parent:
             return self.parent.get_parent_window()
 
-    def select(self, cls=None):
+    def select(self, *args, **kwargs):
         '''Returns a Selector object that acts as a generator.
 
         See :class:`Selector` for more information.
@@ -729,8 +759,8 @@ class Widget(WidgetBase):
         :Returns:
             Instance of :class:`Selector`.
         '''
-
-        return Selector(root=self, cls=cls)
+        #print(args, kwargs)
+        return Selector(self, *args, **kwargs)
 
     def _walk(self, restrict=False, loopback=False, index=None):
         # we pass index only when we are going on the parent.
@@ -1056,10 +1086,16 @@ class Widget(WidgetBase):
     '''
 
     cls = ListProperty([])
-    '''Classes of the widget, used for widget selection.
-    
+    '''Class of the widget, used for styling.
+
+    '''
+
+    tags = ListProperty([])
+    '''Tags of the widget, used for widget selection.
+
     See :attr:`select` for more information
     '''
+
 
     id = StringProperty(None, allownone=True)
     '''Unique identifier of the widget in the tree.
