@@ -217,8 +217,8 @@ clever optimizations to make your application run smoothly.
 Does Kivy support Python 3.x?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Yes! As of version 1.8.0 Kivy supports both Python 2 and Python 3 with
-the same codebase.
+Yes! As of version 1.8.0 Kivy supports both Python >= 2.7 and Python >= 3.3
+with the same codebase.
 
 
 How is Kivy related to PyMT?
