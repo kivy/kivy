@@ -156,81 +156,80 @@ Widget selector usage
 
 .. code-block:: python
 
-    from kivy.app import App
-    from kivy.lang import Builder
-    from kivy.uix.boxlayout import BoxLayout
-    from kivy.uix.label import Label
-
-    kv = """
-    <Selectors>:
-        orientation: 'vertical'
-        Label:
-            cls: 'cats', 'bald'
-        Label:
-            cls: 'cats', 'missing'
-        Label:
-            cls: 'pigs', 'curious'
-            text: 'Wanderer piglet'
-
-        BoxLayout:
-            id: guinea_pigs
-            orientation: 'vertical'
-            BoxLayout:
-                Label:
-                    cls:  'pigs',
-                Label:
-                    cls:  'pigs', 'bald'
-                Label:
-                    cls:  'pigs', 'missing'
-    """
-
-    Builder.load_string(kv)
-
-    class Selectors(BoxLayout):
+    class SelectorUsage(BoxLayout):
         def __init__(self, **kwargs):
-            super(Selectors, self).__init__(**kwargs)
+            super(SelectorUsage, self).__init__(**kwargs)
 
-            # Returns a generator with 'guinea_pigs' BoxLayout and its children,
-            # recursively.
-            piglets = self.ids.guinea_pigs.select()
-
-            # Update any property of the matching widgets.
-            piglets.text = 'Guinea pig'
-            piglets.font_size = 20
-
-            self.select(cls='cats').color = (1, 0, 0, 1)
+            # A select() call with no arguments returns a generator with the 
+            # caller widget and its children, recursively.
+            cats = self.ids.cats.select()
 
             # Create a Python list that contains the matching widgets.
-            piglet_list = list(piglets)
-            print(piglet_list)
+            cat_list = list(cats)
 
-            self.select(cls='bald').text = 'This pet is bald'
+            # A widget can be associated with one or more tags.
+            # Their 'tags' property must always hold a list, but when matching
+            # against them, select(tags=<value>) also accepts strings and tuples.
+
+            # These examples will match the Label instance:
+            Label(tags=['cats']).select(tags='cats')
+            Label(tags=['cats']).select(tags=('cats',))
+            Label(tags=['cats', 'dogs']).select(tags='cats')
+            Label(tags=['cats', 'dogs']).select(tags=['cats'])
+
+            #A widget is matched when all the passed tags are in its tag list.
+
+            # Match:
+            Label(tags=['a', 'b', 'c']).select(tags=('c', 'a'))
+            # No match:
+            Label(tags=['a', 'b', 'c']).select(tags=('c', 'a', 'k'))
+
+            # Widgets can be matched by their class name.
+            self.select('Label')
+            self.select('CustomWidget')
+
+            # Any widget property can be matched, partial matches are not
+            # supported at this time (except for 'tags', where a list
+            # intersection is performed by default). Every passed property
+            # must exist and their respective values must be equal to
+            # produce a widget match.
+
+            # Match:
+            Label(tags=['a'], text='cats').select(tags='a', text='cats')
+            # No match:
+            Label(tags=['a'], text='cats', opacity=0).select(
+                tags='a', text='cats', opacity=1)
+
+            # Selection filters can be combined, all of them must match to
+            # produce a match.
+            self.select('Button', tags='cats', text='Petit cats!')
+
+            # Selections can also be chained. select() uses the caller widget
+            # instance as a temporary root to walk the tree, or a list of
+            # widgets returned by the previous select() in the chain.
+            self.select('Button', tags='cats').select(opacity=0.6)
+
+            # Update the 'text' and 'font_size' properties (only if they exist)
+            # for all matching widgets.
+            cats = self.select('Button')
+            cats.text = 'Bigger cats!'
+            cats.font_size = 70
+
+            self.select('Button').text = 'Even bigger cats!'
+            self.select('Button').font_size = 90
 
             # Bind all matching widgets.
-            self.select(cls='missing').bind(parent=self.callback)
+            self.select(tags='missing').bind(parent=self.callback)
+
+            # Unind all matching widgets.
+            self.select(tags='bald').bind(parent=self.callback)
 
             # Remove all matching widgets.
-            self.select(cls='missing').detach()
+            self.select(tags='missing').detach()
 
-            self.ids.guinea_pigs.add_widget(Label(text='Micro piglet', cls=(
-                'micro', 'pigs')))
-
-            self.select(cls='micro').text = 'Giant piglet'
-            self.select(cls='pigs').color = (0, 0, 1, 1)
-
-            # Update the font_size property of widgets that are part of both 
-            # classes.
-            self.select(cls=('pigs', 'micro')).font_size = 40
-
-        def callback(self, *args):
-            print('Missing pet removed.')
-
-    class TestApp(App):
-        def build(self):
-            return Selectors()
-
-    if __name__ == '__main__':
-        TestApp().run()
+            # Properties holding lists and dictionaries cannot be partially
+            # updated, they must be replaced.
+            self.select(text='Even bigger cats!').color = [1, 0, 0, 1]
 
 '''
 
@@ -249,6 +248,7 @@ from kivy.compat import string_types
 from weakref import proxy
 from functools import partial
 from itertools import islice
+
 
 # references to all the destructors widgets (partial method with widget uid as
 # key.)
@@ -275,8 +275,8 @@ class Selector(object):
 
     '''
 
-    __slots__ = ('_roots', '_cls', '_props', '_tags', 
-        '_tag_count', '_prop_count')
+    __slots__ = ('_roots', '_cls', '_props', '_tags', '_tag_count',
+        '_prop_count')
 
     def __init__(self, root, *args, **kwargs):
         self._roots = root if isinstance(root, Selector) else (root,)
@@ -325,8 +325,16 @@ class Selector(object):
                 if hasattr(widget, name):
                     setattr(widget, name, value)
 
+    def select(self, *args, **kwargs):
+        '''Same as :meth:`~Widget.select`, enables selection chaining.
+
+        '''
+
+        return Selector(self, *args, **kwargs)
+
     def bind(self, **kwargs):
         '''Bind every selected widget's passed event or property to a callback.
+
         '''
 
         for widget in self:
@@ -335,6 +343,7 @@ class Selector(object):
     def unbind(self, **kwargs):
         '''Unbind every selected widget's passed event or property from their
         callback.
+
         '''
 
         for widget in self:
@@ -342,18 +351,12 @@ class Selector(object):
 
     def detach(self):
         '''Remove every selected widget from their respective parents.
+
         '''
 
         for widget in list(self):
             if widget.parent:
                 widget.parent.remove_widget(widget)
-
-    def select(self, *args, **kwargs):
-        '''
-        '''
-
-        return Selector(self, *args, **kwargs)
-
 
 
 class WidgetException(Exception):
@@ -367,7 +370,7 @@ class WidgetMetaclass(type):
     :class:`~kivy.factory.Factory`
 
     .. warning::
-        This metaclass is used by the Widget. Do not use it directly !
+        This metaclass is used by the Widget. Do not use it directly!
     '''
     def __init__(mcs, name, bases, attrs):
         super(WidgetMetaclass, mcs).__init__(name, bases, attrs)
@@ -747,19 +750,10 @@ class Widget(WidgetBase):
             This code is still experimental, and its API is subject to change
             in a future version.
 
-        :Parameters:
-            `cls`: string, defaults to None
-                If None, a Selector instance is returnded that yields this
-                widget and all its children, recursively.
-                If set, a Selector instance is returned that yields every
-                widget that is part of this class. The tree is walked by 
-                using  this widget as a temporary root.
-                Defaults to None.
-
         :Returns:
             Instance of :class:`Selector`.
         '''
-        #print(args, kwargs)
+
         return Selector(self, *args, **kwargs)
 
     def _walk(self, restrict=False, loopback=False, index=None):
@@ -1093,7 +1087,9 @@ class Widget(WidgetBase):
     tags = ListProperty([])
     '''Tags of the widget, used for widget selection.
 
-    See :attr:`select` for more information
+    .. versionadded:: 1.8.1
+
+    See :class:`Selector` for more information.
     '''
 
 
