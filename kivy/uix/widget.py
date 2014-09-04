@@ -221,8 +221,8 @@ Widget selector usage
             # Bind all matching widgets.
             self.select(tags='missing').bind(parent=self.callback)
 
-            # Unind all matching widgets.
-            self.select(tags='bald').bind(parent=self.callback)
+            # Unbind all matching widgets.
+            self.select(tags='bald').unbind(parent=self.callback)
 
             # Remove all matching widgets.
             self.select(tags='missing').detach()
@@ -272,7 +272,6 @@ class Selector(object):
     .. warning::
         This code is still experimental, and its API is subject to change
         in a future version.
-
     '''
 
     __slots__ = ('_roots', '_cls', '_props', '_tags', '_tag_count',
@@ -327,14 +326,12 @@ class Selector(object):
 
     def select(self, *args, **kwargs):
         '''Same as :meth:`~Widget.select`, enables selection chaining.
-
         '''
 
         return Selector(self, *args, **kwargs)
 
     def bind(self, **kwargs):
         '''Bind every selected widget's passed event or property to a callback.
-
         '''
 
         for widget in self:
@@ -343,7 +340,6 @@ class Selector(object):
     def unbind(self, **kwargs):
         '''Unbind every selected widget's passed event or property from their
         callback.
-
         '''
 
         for widget in self:
@@ -351,7 +347,6 @@ class Selector(object):
 
     def detach(self):
         '''Remove every selected widget from their respective parents.
-
         '''
 
         for widget in list(self):
@@ -1081,7 +1076,6 @@ class Widget(WidgetBase):
 
     cls = ListProperty([])
     '''Class of the widget, used for styling.
-
     '''
 
     tags = ListProperty([])
@@ -1091,7 +1085,6 @@ class Widget(WidgetBase):
 
     See :class:`Selector` for more information.
     '''
-
 
     id = StringProperty(None, allownone=True)
     '''Unique identifier of the widget in the tree.
