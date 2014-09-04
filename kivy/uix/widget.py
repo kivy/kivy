@@ -273,30 +273,50 @@ class Selector(object):
         This code is still experimental, and its API is subject to change
         in a future version.
     '''
-
-    __slots__ = ('_roots', '_cls', '_props', '_tags', '_tag_count',
-        '_prop_count')
+    __slots__ = ('_roots', '_cls', '_callback', '_tags', '_tag_count',
+        '_tags_callback', '_props', '_prop_count')
 
     def __init__(self, root, *args, **kwargs):
         self._roots = root if isinstance(root, Selector) else (root,)
-        self._cls = args[0] if args else None
+
+        cls = None
+        callback = None
+        for arg in args:
+            if isinstance(arg, string_types):
+                cls = arg
+            elif callable(arg):
+                callback = arg
+        self._cls = cls
+        self._callback = callback
+
         tags = ()
+        tag_count = 0
+        tags_callback = None
         if 'tags' in kwargs:
             tags = kwargs['tags']
             del kwargs['tags']
             if tags and isinstance(tags, string_types):
                 tags = (tags,)
+            if callable(tags):
+                tags_callback = tags
+            else:
+                tag_count = len(tags)
         self._tags = tags
-        self._tag_count = len(tags)
-        self._props = kwargs.items()
+        self._tag_count = tag_count
+        self._tags_callback = tags_callback
+
+        self._props = [prop + (prop[1],) if callable(prop[1]) else (
+            None,) for prop in kwargs.items()] if kwargs else kwargs
         self._prop_count = len(kwargs)
 
     def __iter__(self):
         roots = self._roots
         cls = self._cls
+        callback = self._callback
         tags = self._tags
-        props = self._props
         tag_count = self._tag_count
+        tags_callback = self._tags_callback
+        props = self._props
         prop_count = self._prop_count
 
         for root in roots:
@@ -304,16 +324,23 @@ class Selector(object):
 
                 cls_match = type(widget).__name__ == cls if cls else None
 
-                tags_match = len(tuple(t for t in tags
-                    if t in widget.tags)) == tag_count if tags else None
+                callb_match = callback(widget) if callback else None
 
-                props_match = len([True for k, v in props if hasattr(
-                    widget, k) and getattr(
-                        widget, k) == v]) == prop_count if props else None
+                if tags_callback:
+                    tags_match = tags_callback(widget.tags)
+                else:
+                    tags_match = len(tuple(t for t in tags
+                        if t in widget.tags)) == tag_count if tags else None
+
+                props_match = len([True for k, v, callback in props if hasattr(
+                    widget, k) and ((not callback and getattr(
+                        widget, k) == v) or (callback and callback(getattr(
+                            widget, k))))]) == prop_count if props else None
 
                 if (cls_match or cls_match is None) and (
-                    tags_match or tags_match is None) and (
-                        props_match or props_match is None):
+                    callb_match or callb_match is None) and (
+                        tags_match or tags_match is None) and (
+                            props_match or props_match is None):
                     yield widget
 
     def __setattr__(self, name, value):
@@ -327,13 +354,11 @@ class Selector(object):
     def select(self, *args, **kwargs):
         '''Same as :meth:`~Widget.select`, enables selection chaining.
         '''
-
         return Selector(self, *args, **kwargs)
 
     def bind(self, **kwargs):
         '''Bind every selected widget's passed event or property to a callback.
         '''
-
         for widget in self:
             widget.bind(**kwargs)
 
@@ -341,14 +366,12 @@ class Selector(object):
         '''Unbind every selected widget's passed event or property from their
         callback.
         '''
-
         for widget in self:
             widget.unbind(**kwargs)
 
     def detach(self):
         '''Remove every selected widget from their respective parents.
         '''
-
         for widget in list(self):
             if widget.parent:
                 widget.parent.remove_widget(widget)
@@ -748,7 +771,6 @@ class Widget(WidgetBase):
         :Returns:
             Instance of :class:`Selector`.
         '''
-
         return Selector(self, *args, **kwargs)
 
     def _walk(self, restrict=False, loopback=False, index=None):
