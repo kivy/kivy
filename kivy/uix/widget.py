@@ -334,11 +334,11 @@ class Selector(object):
         if 'tags' in kwargs:
             tags = kwargs['tags']
             del kwargs['tags']
-            if isinstance(tags, string_types):
-                tags = (tags,)
             if callable(tags):
                 tags_callback = tags
             else:
+                if isinstance(tags, string_types):
+                    tags = (tags,)
                 tag_count = len(tags)
         self._tags = tags
         self._tag_count = tag_count
