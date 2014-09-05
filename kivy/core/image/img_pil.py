@@ -72,8 +72,7 @@ class ImageLoaderPIL(ImageLoaderBase):
             while True:
                 img_tmp = im
                 img_tmp = self._img_correct(img_tmp)
-                bg = im.info.get('background', 0) == 0
-                if bg and img_ol:
+                if not im.dispose and img_ol:
                     # paste new frame over old so as to handle
                     # transparency properly
                     img_ol.paste(img_tmp, (0, 0), img_tmp)
