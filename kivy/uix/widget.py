@@ -367,7 +367,7 @@ class Selector(object):
                 callb_match = callback(widget) if callback else None
 
                 tags_match = t_callback(widget.tags) if t_callback else len(
-                    [True for t in tags if t and t in widget.tags]
+                    [True for t in tags if t in widget.tags]
                         ) == t_count if tags else None
 
                 props_match = len([True for k, v, callback in props if hasattr(
