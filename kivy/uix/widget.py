@@ -365,11 +365,9 @@ class Selector(object):
 
                 callb_match = callback(widget) if callback else None
 
-                if tags_callback:
-                    tags_match = tags_callback(widget.tags)
-                else:
-                    tags_match = len(tuple(t for t in tags
-                        if t in widget.tags)) == tag_count if tags else None
+                tags_match = tags_callback(widget.tags) if tags_callback else (
+                    len([True for t in tags if t in widget.tags])
+                        ) == tag_count if tags else None
 
                 props_match = len([True for k, v, callback in props if hasattr(
                     widget, k) and ((not callback and getattr(
