@@ -334,7 +334,7 @@ class Selector(object):
         if 'tags' in kwargs:
             tags = kwargs['tags']
             del kwargs['tags']
-            if tags and isinstance(tags, string_types):
+            if isinstance(tags, string_types):
                 tags = (tags,)
             if callable(tags):
                 tags_callback = tags
@@ -368,7 +368,7 @@ class Selector(object):
 
                 tags_match = t_callback(widget.tags) if t_callback else len(
                     [True for t in tags if t and t in widget.tags]
-                        ) == t_count if tags else False if tags == '' else None
+                        ) == t_count if tags else None
 
                 props_match = len([True for k, v, callback in props if hasattr(
                     widget, k) and ((not callback and getattr(
