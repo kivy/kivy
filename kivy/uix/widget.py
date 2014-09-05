@@ -167,9 +167,16 @@ Widget selector usage
             # Create a Python list that contains the matching widgets.
             cat_list = list(cats)
 
+            # To implement your own matching algorithm, use a function
+            # callback. Every widget is passed to the function, and you must
+            # return True to produce a match or False, if there is no match.
+            # Returning None will result in unexpected behavior.
+            self.select(self.global_callback)
+
             # A widget can be associated with one or more tags.
             # Their 'tags' property must always hold a list, but when matching
-            # against them, select(tags=<value>) also accepts strings and tuples.
+            # against them, select(tags=<value>) also accepts strings, tuples
+            # and functions.
 
             # These examples will match the Label instance:
             Label(tags=['cats']).select(tags='cats')
@@ -177,22 +184,27 @@ Widget selector usage
             Label(tags=['cats', 'dogs']).select(tags='cats')
             Label(tags=['cats', 'dogs']).select(tags=['cats'])
 
-            #A widget is matched when all the passed tags are in its tag list.
+            # A widget is matched when all the passed tags are in its tag list.
 
             # Match:
             Label(tags=['a', 'b', 'c']).select(tags=('c', 'a'))
             # No match:
             Label(tags=['a', 'b', 'c']).select(tags=('c', 'a', 'k'))
 
+            # To implement your own tag matching algorithm, use a function
+            # callback. Every widget's 'tags' property is passed to the
+            # function.
+            Label(tags=['cats']).select(tags=self.tags_callback)
+
             # Widgets can be matched by their class name.
             self.select('Label')
             self.select('CustomWidget')
 
-            # Any widget property can be matched, partial matches are not
-            # supported at this time (except for 'tags', where a list
-            # intersection is performed by default). Every passed property
-            # must exist and their respective values must be equal to
-            # produce a widget match.
+            # Any widget property can be matched, exact matching is executed
+            # by default (except for 'tags', where a list intersection is 
+            # performed). Every passed property must exist and they must
+            # match with the respective widget's properties to produce a 
+            # matching widget.
 
             # Match:
             Label(tags=['a'], text='cats').select(tags='a', text='cats')
@@ -200,9 +212,13 @@ Widget selector usage
             Label(tags=['a'], text='cats', opacity=0).select(
                 tags='a', text='cats', opacity=1)
 
+            # All properties support matching by passing a function callback.
+            self.select(font_size=self.prop_callback)
+
             # Selection filters can be combined, all of them must match to
             # produce a match.
-            self.select('Button', tags='cats', text='Petit cats!')
+            self.select('Button', self.callback,  tags='cats',
+                font_size=self.prop_callback)
 
             # Selections can also be chained. select() uses the caller widget
             # instance as a temporary root to walk the tree, or a list of
@@ -219,10 +235,10 @@ Widget selector usage
             self.select('Button').font_size = 90
 
             # Bind all matching widgets.
-            self.select(tags='missing').bind(parent=self.callback)
+            self.select(tags='missing').bind(parent=self.bind_callback)
 
             # Unbind all matching widgets.
-            self.select(tags='bald').unbind(parent=self.callback)
+            self.select(tags='bald').unbind(parent=self.bind_callback)
 
             # Remove all matching widgets.
             self.select(tags='missing').detach()
@@ -231,6 +247,29 @@ Widget selector usage
             # updated, they must be replaced.
             self.select(text='Even bigger cats!').color = [1, 0, 0, 1]
 
+            # If partial updates are preferred, iterating over the matched
+            # widgets is supported.
+            for widget in self.select('Label'):
+                widget.color[3] = 0.5
+
+        def global_callback(self, widget):
+            if (hasattr(widget, 'text') and widget.text == 'cats' and
+                widget.opacity != 0.5):
+                return True
+            return False
+
+        def tags_callback(self, value):
+            if 'cats' in value and 'dogs' not in value:
+                return True
+            return False
+
+        def prop_callback(self, value):
+            if isinstance(value, int) and value > 8:
+                return True
+        return False
+
+        def bind_callback(self):
+            print('Missing pets removed.')
 '''
 
 __all__ = ('Widget', 'WidgetException', 'Selector')
