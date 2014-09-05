@@ -344,8 +344,8 @@ class Selector(object):
         self._tag_count = tag_count
         self._tags_callback = tags_callback
 
-        self._props = [prop + (prop[1],) if callable(prop[1]) else (
-            None,) for prop in kwargs.items()] if kwargs else kwargs
+        self._props = [prop + ((prop[1],) if callable(prop[1]) else (
+            None,)) for prop in kwargs.items()] if kwargs else kwargs
         self._prop_count = len(kwargs)
 
     def __iter__(self):
@@ -353,26 +353,27 @@ class Selector(object):
         cls = self._cls
         callback = self._callback
         tags = self._tags
-        tag_count = self._tag_count
-        tags_callback = self._tags_callback
+        t_count = self._tag_count
+        t_callback = self._tags_callback
         props = self._props
-        prop_count = self._prop_count
+        p_count = self._prop_count
 
         for root in roots:
             for widget in root.walk(restrict=True):
 
-                cls_match = type(widget).__name__ == cls if cls else None
+                cls_match = (type(widget).__name__ == cls if cls
+                    else False if cls == '' else None)
 
                 callb_match = callback(widget) if callback else None
 
-                tags_match = tags_callback(widget.tags) if tags_callback else (
-                    len([True for t in tags if t in widget.tags])
-                        ) == tag_count if tags else None
+                tags_match = t_callback(widget.tags) if t_callback else len(
+                    [True for t in tags if t and t in widget.tags]
+                        ) == t_count if tags else False if tags == '' else None
 
                 props_match = len([True for k, v, callback in props if hasattr(
                     widget, k) and ((not callback and getattr(
                         widget, k) == v) or (callback and callback(getattr(
-                            widget, k))))]) == prop_count if props else None
+                            widget, k))))]) == p_count if props else None
 
                 if (cls_match or cls_match is None) and (
                     callb_match or callb_match is None) and (
