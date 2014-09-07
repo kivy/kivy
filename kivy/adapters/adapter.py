@@ -22,16 +22,16 @@ corresponding properties:
   should be a list. For a :class:`~kivy.adapters.dictadapter.DictAdapter`,
   data should be a dict.
 
-* :attr:`~Adapter.cls`: for a list key class used to instantiate list item view
-  instances (Use this or the template argument).
+* :attr:`~Adapter.cls`: the class used to instantiate each list item view
+  instance (Use this or the template argument).
 
-* :attr:`~Adapter.template`: a kv template to use to instantiate list item view
-  winstances (Use this or the cls argument).
+* :attr:`~Adapter.template`: a kv template to use to instantiate each list item
+  view instance (Use this or the cls argument).
 
-* :attr:`~Adapter.args_converter`: a function to transform the data argument
-  sets, in preparation for either a cls instantiation or a kv template
-  invocation. If no args_converter is provided, a default one, that
-  assumes that the data items are strings, is used.
+* :attr:`~Adapter.args_converter`: a function used to transform the data items
+  in preparation for either a cls instantiation or a kv template
+  invocation. If no args_converter is provided, the data items are assumed
+  to be simple strings.
 
 
 '''
