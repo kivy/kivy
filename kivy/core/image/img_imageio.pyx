@@ -303,8 +303,6 @@ def save_image(filename, width, height, fmt, data, flipped):
 class ImageLoaderImageIO(ImageLoaderBase):
     '''Image loader based on ImageIO MacOSX Framework
     '''
-    count = 0
-    total = 0
 
     @staticmethod
     def extensions():
@@ -318,18 +316,11 @@ class ImageLoaderImageIO(ImageLoaderBase):
 
     def load(self, filename):
         # FIXME: if the filename is unicode, the loader is failing.
-        from time import time
-        start = time()
         if hasattr(filename, "fileno"):
             data = filename.read()
             ret = load_image_data(None, data)
         else:
             ret = load_image_data(str(filename))
-        stop = time()
-        ImageLoaderImageIO.total += (stop - start)
-        ImageLoaderImageIO.count += 1.
-        print "Loaded in {:.2f}, average {:2f}".format((stop - start) * 1000,
-                (ImageLoaderImageIO.total / ImageLoaderImageIO.count) * 1000)
         if ret is None:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise Exception('Unable to load image')
