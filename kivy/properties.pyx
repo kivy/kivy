@@ -1047,6 +1047,12 @@ cdef class OptionProperty(Property):
         `\*\*kwargs`: a list of keyword arguments
             Should include an `options` parameter specifying a list (not tuple)
             of valid options.
+
+    For example::
+
+        class MyWidget(Widget):
+            state = OptionProperty("None", options=["On", "Off", "None"])
+
     '''
     def __cinit__(self):
         self.options = []
