@@ -140,6 +140,14 @@ class::
     ins.a = 5    # callback not called, because the value did not change
     ins.a = -1   # callback called
 
+.. note::
+
+    Property objects live at the class level and manage the values attached
+    to instances. Re-assigning at class level will remove the Property. For
+    example, continuing with the code above, `MyClass.a = 5` replaces
+    the property object with a simple int.
+
+    
 Observe using 'on_<propname>'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
