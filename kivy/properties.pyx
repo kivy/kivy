@@ -1104,6 +1104,14 @@ cdef class ReferenceListProperty(Property):
     `pos`, it will automatically change the values of `x` and `y` accordingly.
     If you read the value of `pos`, it will return a tuple with the values of
     `x` and `y`.
+    
+    For example::
+    
+        class MyWidget(EventDispatcher):
+            x = NumericProperty(0)
+            y = NumericProperty(0)
+            pos = ReferenceListProperty(x, y)
+    
     '''
     def __cinit__(self):
         self.properties = list()
