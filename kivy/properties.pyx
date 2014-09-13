@@ -140,6 +140,14 @@ class::
     ins.a = 5    # callback not called, because the value did not change
     ins.a = -1   # callback called
 
+.. note::
+
+    Property objects live at the class level and manage the values attached
+    to instances. Re-assigning at class level will remove the Property. For
+    example, continuing with the code above, `MyClass.a = 5` replaces
+    the property object with a simple int.
+
+    
 Observe using 'on_<propname>'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1039,6 +1047,12 @@ cdef class OptionProperty(Property):
         `\*\*kwargs`: a list of keyword arguments
             Should include an `options` parameter specifying a list (not tuple)
             of valid options.
+
+    For example::
+
+        class MyWidget(Widget):
+            state = OptionProperty("None", options=["On", "Off", "None"])
+
     '''
     def __cinit__(self):
         self.options = []
@@ -1090,6 +1104,14 @@ cdef class ReferenceListProperty(Property):
     `pos`, it will automatically change the values of `x` and `y` accordingly.
     If you read the value of `pos`, it will return a tuple with the values of
     `x` and `y`.
+    
+    For example::
+    
+        class MyWidget(EventDispatcher):
+            x = NumericProperty(0)
+            y = NumericProperty(0)
+            pos = ReferenceListProperty(x, y)
+    
     '''
     def __cinit__(self):
         self.properties = list()
