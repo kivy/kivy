@@ -35,6 +35,8 @@ Change the configuration and save it::
     The ConfigParser should work correctly with utf-8 now. The values are
     converted from ascii to unicode only when needed. The method get() returns
     utf-8 strings.
+    
+.. _configuration-tokens:
 
 Available configuration tokens
 ------------------------------
