@@ -11,8 +11,11 @@ order to change these settings, you can alter this file manually or use
 the Config object. Please see the :ref:`Configure Kivy` section for more
 information.
 
-Note: To avoid instances where a blank screen appears before resizing, kivy.config
-should be imported right after kivy.app ,or before any modules affecting the window.
+Note: To avoid instances where the config settings do not work or they are
+not applied before window creation (like setting an initial window size),
+Config.set should be used before importing any modules that affect the
+application window (ie. importing Window). Ideally, these settings should
+be declared right at the start of your main.py script.
 
 Usage of the Config object
 --------------------------
@@ -32,6 +35,8 @@ Change the configuration and save it::
     The ConfigParser should work correctly with utf-8 now. The values are
     converted from ascii to unicode only when needed. The method get() returns
     utf-8 strings.
+    
+.. _configuration-tokens:
 
 Available configuration tokens
 ------------------------------
@@ -47,14 +52,8 @@ Available configuration tokens
     `exit_on_escape`: int, 0 or 1
         Enables exiting kivy when escape is pressed.
         0 is disabled, 1 is enabled.
-    `log_level`: string, one of |log_levels|
-        Set the minimum log level to use.
-    `log_dir`: string
-        Path of log directory.
-    `log_name`: string
-        Format string to use for the filename of log file.
-    `log_enable`: int, 0 or 1
-        Activate file logging. 0 is disabled, 1 is enabled.
+    `keyboard_layout`: string
+        Identifier of the layout to use.
     `keyboard_mode`: string
         Specifies the keyboard mode to use. If can be one of the following:
 
@@ -65,34 +64,25 @@ Available configuration tokens
         * 'systemanddock' - virtual docked keyboard plus input from real
           keyboard.
         * 'systemandmulti' - analogous.
-    `keyboard_layout`: string
-        Identifier of the layout to use.
+    `log_dir`: string
+        Path of log directory.
+    `log_enable`: int, 0 or 1
+        Activate file logging. 0 is disabled, 1 is enabled.
+    `log_level`: string, one of |log_levels|
+        Set the minimum log level to use.
+    `log_name`: string
+        Format string to use for the filename of log file.
     `window_icon`: string
         Path of the window icon. Use this if you want to replace the default
         pygame icon.
 
 :postproc:
 
-    `double_tap_time`: int
-        Time allowed for the detection of double tap, in milliseconds.
     `double_tap_distance`: float
         Maximum distance allowed for a double tap, normalized inside the range
         0 - 1000.
-    `triple_tap_time`: int
-        Time allowed for the detection of triple tap, in milliseconds.
-    `triple_tap_distance`: float
-        Maximum distance allowed for a triple tap, normalized inside the range
-        0 - 1000.
-    `retain_time`: int
-        Time allowed for a retain touch, in milliseconds.
-    `retain_distance`: int
-        If the touch moves more than is indicated by retain_distance, it will
-        not be retained. Argument should be an int between 0 and 1000.
-    `jitter_distance`: int
-        Maximum distance for jitter detection, normalized inside the range 0
-        - 1000.
-    `jitter_ignore_devices`: string, separated with commas
-        List of devices to ignore from jitter detection.
+    `double_tap_time`: int
+        Time allowed for the detection of double tap, in milliseconds.
     `ignore`: list of tuples
         List of regions where new touches are ignored.
         This configuration token can be used to resolve hotspot problems
@@ -101,11 +91,26 @@ Available configuration tokens
             ignore = [(xmin, ymin, xmax, ymax), ...]
 
         All the values must be inside the range 0 - 1.
+    `jitter_distance`: int
+        Maximum distance for jitter detection, normalized inside the range 0
+        - 1000.
+    `jitter_ignore_devices`: string, separated with commas
+        List of devices to ignore from jitter detection.
+    `retain_distance`: int
+        If the touch moves more than is indicated by retain_distance, it will
+        not be retained. Argument should be an int between 0 and 1000.
+    `retain_time`: int
+        Time allowed for a retain touch, in milliseconds.
+    `triple_tap_distance`: float
+        Maximum distance allowed for a triple tap, normalized inside the range
+        0 - 1000.
+    `triple_tap_time`: int
+        Time allowed for the detection of triple tap, in milliseconds.
 
 :graphics:
 
-    `maxfps`: int, defaults to 60
-        Maximum FPS allowed.
+    `fbo`: string, one of 'hardware', 'software' or 'force-hardware'
+        Selects the FBO backend to use.
     `fullscreen`: int or string, one of 0, 1, 'fake' or 'auto'
         Activate fullscreen. If set to `1`, a resolution of `width`
         times `height` pixels will be used.
@@ -113,28 +118,39 @@ Available configuration tokens
         used instead. This is most likely what you want.
         If you want to place the window in another display,
         use `fake` and adjust `width`, `height`, `top` and `left`.
-    `width`: int
-        Width of the :class:`~kivy.core.window.Window`, not used if
-        `fullscreen` is set to `auto`.
     `height`: int
         Height of the :class:`~kivy.core.window.Window`, not used if
         `fullscreen` is set to `auto`.
-    `fbo`: string, one of 'hardware', 'software' or 'force-hardware'
-        Selects the FBO backend to use.
-    `show_cursor`: int, one of 0 or 1
-        Show the cursor on the screen.
+    `left`: int
+        Left position of the :class:`~kivy.core.window.Window`.
+    `maxfps`: int, defaults to 60
+        Maximum FPS allowed.
+    'multisamples': int, defaults to 2
+        Sets the `MultiSample Anti-Aliasing (MSAA)
+        <http://en.wikipedia.org/wiki/Multisample_anti-aliasing>`_ level.
+        Increasing this value results in smoother graphics but at the cost of
+        processing time.
+
+        .. note::
+
+           This feature is limited by device hardware support and will have no
+           effect on devices which do not support the level of MSAA requested.
+
     `position`: string, one of 'auto' or 'custom'
         Position of the window on your display. If `auto` is used, you have no
         control of the initial position: `top` and `left` are ignored.
+    `show_cursor`: int, one of 0 or 1
+        Show the cursor on the screen.
     `top`: int
         Top position of the :class:`~kivy.core.window.Window`.
-    `left`: int
-        Left position of the :class:`~kivy.core.window.Window`.
-    `rotation`: int, one of 0, 90, 180 or 270
-        Rotation of the :class:`~kivy.core.window.Window`.
     `resizable`: int, one of 0 or 1
         If 0, the window will have a fixed size. If 1, the window will be
         resizable.
+    `rotation`: int, one of 0, 90, 180 or 270
+        Rotation of the :class:`~kivy.core.window.Window`.
+    `width`: int
+        Width of the :class:`~kivy.core.window.Window`, not used if
+        `fullscreen` is set to `auto`.
 
 :input:
 
@@ -293,7 +309,7 @@ class ConfigParser(PythonConfigParser, object):
     def remove_callback(self, callback, section=None, key=None):
         '''Removes a callback added with :meth:`add_callback`.
         :meth:`remove_callback` must be called with the same parameters as
-        :math:`add_callback`.
+        :meth:`add_callback`.
 
         Raises a `ValueError` if not found.
 
@@ -353,16 +369,21 @@ class ConfigParser(PythonConfigParser, object):
         the value is implicitly converted to a string.
         '''
         e_value = value
+        if not isinstance(value, string_types):
+            # might be boolean, int, etc.
+            e_value = str(value)
         if PY2:
-            if not isinstance(value, string_types):
-                # might be boolean, int, etc.
-                e_value = str(value)
-            else:
-                if isinstance(value, unicode):
-                    e_value = value.encode('utf-8')
+            if isinstance(value, unicode):
+                e_value = value.encode('utf-8')
         ret = PythonConfigParser.set(self, section, option, e_value)
         self._do_callbacks(section, option, value)
         return ret
+
+    def setall(self, section, keyvalues):
+        '''Set a lot of keys/values in one section at the same time.
+        '''
+        for key, value in keyvalues.items():
+            self.set(section, key, value)
 
     def get(self, section, option, **kwargs):
         value = PythonConfigParser.get(self, section, option, **kwargs)
@@ -372,7 +393,7 @@ class ConfigParser(PythonConfigParser, object):
         return value
 
     def setdefaults(self, section, keyvalues):
-        '''Set a lot of keys/values in one section at the same time.
+        '''Set a lot of keys/value defaults in one section at the same time.
         '''
         self.adddefaultsection(section)
         for key, value in keyvalues.items():
@@ -425,8 +446,19 @@ class ConfigParser(PythonConfigParser, object):
             return False
         return True
 
+    def update_config(self, filename, overwrite=False):
+        '''Upgrade the configuration based on a new default config file.
+           Overwrite any existing values if overwrite is True.
+        '''
+        pcp = PythonConfigParser()
+        pcp.read(filename)
+        confset = self.setall if overwrite else self.setdefaults
+        for section in pcp.sections():
+            confset(section, dict(pcp.items(section)))
+        self.write()
+
     @staticmethod
-    def _register_named_property(name, widget_ref):
+    def _register_named_property(name, widget_ref, *largs):
         ''' Called by the ConfigParserProperty to register a property which
         was created with a config name instead of a config object.
 

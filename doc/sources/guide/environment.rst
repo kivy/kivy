@@ -115,3 +115,27 @@ KIVY_METRICS_FONTSCALE
 
     .. versionadded:: 1.5.0
 
+Graphics
+--------
+
+KIVY_GLES_LIMITS
+    Whether the GLES2 restrictions are enforced (the default, or if set to
+    1). If set to false, Kivy will not be trully GLES2 compatible.
+
+    Following is a list of the potential incompatibilities that result
+    when set to true.
+
+==============	====================================================
+Mesh indices	If true, the number of indices in a mesh is limited
+                to 65535
+Texture blit    When blitting to a texture, the data (color and
+                buffer) format must be the same format as the one
+                used at the texture creation. On desktop, the
+                conversion of different color is correctly handled
+                by the driver, while on Android, most of devices
+                fail to do it.
+                Ref: https://github.com/kivy/kivy/issues/1600
+==============	====================================================
+
+    .. versionadded:: 1.8.1
+

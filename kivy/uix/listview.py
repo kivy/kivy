@@ -13,7 +13,8 @@ The :class:`~kivy.uix.listview.ListView` widget provides a scrollable/pannable
 viewport that is clipped to the scrollview's bounding box which contains
 list item view instances.
 
-The :class:`~kivy.uix.listview.ListView` implements an :class:`AbstractView` as
+The :class:`~kivy.uix.listview.ListView` implements an
+:class:`~kivy.uix.abstractview.AbstractView` as
 a vertical, scrollable list. The :class:`AbstractView` has one property:
 :class:`~kivy.adapters.adapter`.
 The :class:`~kivy.uix.listview.ListView` sets an adapter to one of a
@@ -28,22 +29,34 @@ Lists are central parts of many software projects. Kivy's approach to lists
 includes providing solutions for simple lists, along with a substantial
 framework for building lists of moderate to advanced complexity. For a new
 user, it can be difficult to ramp up from simple to advanced. For
-this reason, Kivy provides an extensive set of examples that you may wish to
-run first, to get a taste of the range of functionality offered. You can tell
-from the names of the examples that they illustrate the "ramping up" from
-simple to advanced:
+this reason, Kivy provides an extensive set of examples (with the Kivy package)
+that you may wish to run first, to get a taste of the range of functionality
+offered. You can tell from the names of the examples that they illustrate the
+"ramping up" from simple to advanced:
 
-    * kivy/examples/widgets/lists/list_simple.py
-    * kivy/examples/widgets/lists/list_simple_in_kv.py
-    * kivy/examples/widgets/lists/list_simple_in_kv_2.py
-    * kivy/examples/widgets/lists/list_master_detail.py
-    * kivy/examples/widgets/lists/list_two_up.py
-    * kivy/examples/widgets/lists/list_kv.py
-    * kivy/examples/widgets/lists/list_composite.py
-    * kivy/examples/widgets/lists/list_cascade.py
-    * kivy/examples/widgets/lists/list_cascade_dict.py
-    * kivy/examples/widgets/lists/list_cascade_images.py
-    * kivy/examples/widgets/lists/list_ops.py
+
+    * `kivy/examples/widgets/lists/list_simple.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_simple.py>`_
+    * `kivy/examples/widgets/lists/list_simple_in_kv.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_simple_in_kv.py>`_
+    * `kivy/examples/widgets/lists/list_simple_in_kv_2.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_simple_in_kv_2.py>`_
+    * `kivy/examples/widgets/lists/list_master_detail.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_master_detail.py>`_
+    * `kivy/examples/widgets/lists/list_two_up.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_two_up.py>`_
+    * `kivy/examples/widgets/lists/list_kv.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_kv.py>`_
+    * `kivy/examples/widgets/lists/list_composite.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_composite.py>`_
+    * `kivy/examples/widgets/lists/list_cascade.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_cascade.py>`_
+    * `kivy/examples/widgets/lists/list_cascade_dict.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_cascade_dict.py>`_
+    * `kivy/examples/widgets/lists/list_cascade_images.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_cascade_images.py>`_
+    * `kivy/examples/widgets/lists/list_ops.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_ops.py>`_
 
 Many of the examples feature selection, some restricting selection to single
 selection, where only one item at at time can be selected, and others allowing
@@ -303,7 +316,7 @@ function::
                 'size_hint_y': None,
                 'height': 25}
 
-and as a lambda:
+and as a lambda::
 
     args_converter = lambda row_index, an_obj: {'text': an_obj.text,
                                                 'size_hint_y': None,
@@ -402,13 +415,13 @@ first appears, the first item, 'cat', will already be selected. The list
 adapter will instantiate a :class:`~kivy.uix.listview.ListItemButton` class
 instance for each data item, using the assigned args_converter.
 
-The list_vew would be added to a view with add_widget() after the last line,
+The list_view would be added to a view with add_widget() after the last line,
 where it is created. See the basic example at the top of this documentation for
 an example of add_widget() use in the context of a sample app.
 
-You may also use the provided :class:`SelectableDataItem` mixin to make a
-custom class. Instead of the "manually-constructed" DataItem class above,
-we could do::
+You may also use the provided :class:`~kivy.adapters.models.SelectableDataItem`
+mixin to make a custom class. Instead of the "manually-constructed" DataItem
+class above, we could do::
 
     from kivy.adapters.models import SelectableDataItem
 
@@ -416,8 +429,8 @@ we could do::
         # Add properties here.
         pass
 
-:class:`SelectableDataItem` is a simple mixin class that has an is_selected
-property.
+:class:`~kivy.adapters.models.SelectableDataItem` is a simple mixin class that
+has an is_selected property.
 
 Using an Item View Template
 ---------------------------
@@ -439,8 +452,8 @@ own template, mix it in as follows::
     """)
 
 A class called CustomListItem will be instantiated for each list item. Note
-that it is a layout, BoxLayout, and is thus a kind of container. It contains a
-:class:`~kivy.uix.listview.ListItemButton` instance.
+that it is a :class:`~kivy.uix.boxlayout.BoxLayout` and is thus a kind of
+container. It contains a :class:`~kivy.uix.listview.ListItemButton` instance.
 
 Using the power of the Kivy language (kv), you can easily build composite list
 items -- in addition to ListItemButton, you could have a ListItemLabel, or a
@@ -536,7 +549,7 @@ in Kivy, we can build a wide range of user interface designs.
 We could make data items that contain the names of dog breeds, and connect
 the selection of dog breed to the display of details in another view, which
 would update automatically on selection. This is done via a binding to the
-on_selection_change event::
+:attr:`~kivy.adapters.listadapter.ListAdapter.on_selection_change` event::
 
     list_adapter.bind(on_selection_change=callback_function)
 
@@ -644,7 +657,7 @@ class ListItemButton(SelectableView, Button):
 
     deselected_color = ListProperty([0., 1., 0., 1])
     '''
-    :attr:`selected_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`deselected_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [0., 1., 0., 1].
     '''
 

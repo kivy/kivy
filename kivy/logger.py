@@ -138,21 +138,21 @@ class FileHandler(logging.Handler):
             for filename in l:
                 unlink(filename['fn'])
 
-        print('Purge finished !')
+        print('Purge finished!')
 
-    def _configure(self):
+    def _configure(self, *largs, **kwargs):
         from time import strftime
         from kivy.config import Config
         log_dir = Config.get('kivy', 'log_dir')
         log_name = Config.get('kivy', 'log_name')
 
         _dir = kivy.kivy_home_dir
-        if len(log_dir) and log_dir[0] == '/':
+        if log_dir and os.path.isabs(log_dir):
             _dir = log_dir
         else:
             _dir = os.path.join(_dir, log_dir)
-            if not os.path.exists(_dir):
-                os.mkdir(_dir)
+        if not os.path.exists(_dir):
+            os.makedirs(_dir)
 
         self.purge_logs(_dir)
 
@@ -167,7 +167,11 @@ class FileHandler(logging.Handler):
             if n > 10000:  # prevent maybe flooding ?
                 raise Exception('Too many logfile, remove them')
 
+        if FileHandler.filename == filename and FileHandler.fd is not None:
+            return
         FileHandler.filename = filename
+        if FileHandler.fd is not None:
+            FileHandler.fd.close()
         FileHandler.fd = open(filename, 'w')
 
         Logger.info('Logger: Record log in %s' % filename)
@@ -199,6 +203,9 @@ class FileHandler(logging.Handler):
         if FileHandler.fd is None:
             try:
                 self._configure()
+                from kivy.config import Config
+                Config.add_callback(self._configure, 'kivy', 'log_dir')
+                Config.add_callback(self._configure, 'kivy', 'log_name')
             except Exception:
                 # deactivate filehandler...
                 FileHandler.fd = False
@@ -305,7 +312,8 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
         use_color = (
             os.name != 'nt' and
             os.environ.get('KIVY_BUILD') not in ('android', 'ios') and
-            os.environ.get('TERM') in ('xterm', 'rxvt', 'rxvt-unicode'))
+            os.environ.get('TERM') in (
+                'xterm', 'rxvt', 'rxvt-unicode', 'xterm-256color'))
         color_fmt = formatter_message(
             '[%(levelname)-18s] %(message)s', use_color)
         formatter = ColoredFormatter(color_fmt, use_color=use_color)

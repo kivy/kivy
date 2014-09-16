@@ -10,7 +10,6 @@ from kivy.uix.popup import Popup
 from kivy.uix.filechooser import FileChooserListView
 from kivy.graphics import Rectangle, Color
 from kivy.multistroke import Recognizer
-from string import lower as string_lower
 
 # local libraries
 from helpers import InformationPopup
@@ -101,7 +100,7 @@ class GestureDatabase(GridLayout):
 
         self.selected_count = 0
         self.ids.gesture_list.clear_widgets()
-        for k in sorted(self.gdict, key=string_lower):
+        for k in sorted(self.gdict, key=lambda n: n.lower()):
             gitem = GestureDatabaseItem(name=k, gesture_list=self.gdict[k])
             gitem.bind(on_select=self.select_item)
             gitem.bind(on_deselect=self.deselect_item)
@@ -147,7 +146,7 @@ class GestureDatabase(GridLayout):
             self.info_popup.text = 'Missing filename'
             self.info_popup.open()
             return
-        elif not string.lower(path).endswith('.kg'):
+        elif not path.lower().endswith('.kg'):
             path += '.kg'
 
         self.save_selection_to_file(path)

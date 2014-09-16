@@ -94,18 +94,12 @@ from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
 from kivy.core.window import Window
 from kivy.lang import Builder
 
-Builder.load_string('''
-<DropDown>:
-    container: container
-    do_scroll_x: False
-    size_hint: None, None
-
-    GridLayout:
-        id: container
-        size_hint_y: None
-        height: self.minimum_size[1]
-        cols: 1
-''')
+_grid_kv = '''
+GridLayout:
+    size_hint_y: None
+    height: self.minimum_size[1]
+    cols: 1
+'''
 
 
 class DropDownException(Exception):
@@ -179,7 +173,18 @@ class DropDown(ScrollView):
 
     def __init__(self, **kwargs):
         self._win = None
+        if 'container' not in kwargs:
+            c = self.container = Builder.load_string(_grid_kv)
+        else:
+            c = None
+        kwargs.setdefault('do_scroll_x', False)
+        if 'size_hint' not in kwargs:
+            kwargs.setdefault('size_hint_x', None)
+            kwargs.setdefault('size_hint_y', None)
         super(DropDown, self).__init__(**kwargs)
+        if c is not None:
+            super(DropDown, self).add_widget(c)
+            self.on_container(self, c)
         Window.bind(on_key_down=self.on_key_down)
         self.bind(size=self._reposition)
 
@@ -189,7 +194,8 @@ class DropDown(ScrollView):
             return True
 
     def on_container(self, instance, value):
-        self.container.bind(minimum_size=self._container_minimum_size)
+        if value is not None:
+            self.container.bind(minimum_size=self._container_minimum_size)
 
     def open(self, widget):
         '''Open the dropdown list and attach it to a specific widget.

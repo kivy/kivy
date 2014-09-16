@@ -29,11 +29,7 @@ If you wish to have a bare-bones list adapter, without selection, use a
 
 A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
 :class:`~kivy.adapters.listadapter.ListAdapter`. They both dispatch the
-*on_selection_change* event.
-
-    :Events:
-        `on_selection_change`: (view, view list )
-            Fired when selection changes
+:attr:`~ListAdapter.on_selection_change` event when selection changes.
 
 .. versionchanged:: 1.6.0
     Added data = ListProperty([]), which was proably inadvertently deleted at
@@ -225,8 +221,9 @@ class ListAdapter(Adapter, EventDispatcher):
 
         item_args['index'] = index
 
-        if self.cls:
-            view_instance = self.cls(**item_args)
+        cls = self.get_cls()
+        if cls:
+            view_instance = cls(**item_args)
         else:
             view_instance = Builder.template(self.template, **item_args)
 
@@ -263,7 +260,14 @@ class ListAdapter(Adapter, EventDispatcher):
 
     def on_selection_change(self, *args):
         '''on_selection_change() is the default handler for the
-        on_selection_change event.
+        on_selection_change event. You can bind to this event to get notified
+        of selection changes.
+
+        :Parameters:
+            adapter: :class:`~ListAdapter` or subclass
+                The instance of the list adapter where the selection changed.
+                Use the adapters :attr:`selection` property to see what has been
+                selected.
         '''
         pass
 

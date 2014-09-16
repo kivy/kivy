@@ -53,6 +53,9 @@ of these other folders (*.cache*, *tmp* and *build*) and re-run the
 Troubleshooting
 ---------------
 
+Isolating problems
+^^^^^^^^^^^^^^^^^^
+
 The kivy-ios project uses many libraries which
 may change and break things independently of kivy. It may thus sometimes be
 necessary to remove any packages which do not compile in order to complete your
@@ -77,3 +80,31 @@ application does not require them.
 We hope you never have to care about this, but if you encounter an error which
 you cannot resolve, this may help. Remember, you can always
 :ref:`contact us <contact>` for help.
+
+Clang compiler issues
+^^^^^^^^^^^^^^^^^^^^^
+
+Some dependencies for compiling cython with pip on OSX may fail to compile with
+the Clang (Apple's C) compiler displaying the message::
+
+    clang: error: unknown argument: '-mno-fused-madd' [-Wunused-command-line-argument-hard-error-in-future]
+    clang: note: this will be a hard error (cannot be downgraded to a warning) in the future
+    error: command 'cc' failed with exit status 1
+
+Here is a workaround::
+
+    export CFLAGS=-Qunused-arguments
+    sudo -E pip install cython
+
+The -E flag passes the environment to the sudo shell.
+
+Further reading
+---------------
+
+Kivy iOS support is a work-in-progress and we are busy trying to improve
+and document this process. Until such time as this is complete, you may
+find the following links useful.
+
+* `iOS Tips <https://groups.google.com/forum/#!topic/kivy-users/X8sItpeoZPQ>`_
+* `HTTPS (SSL) support <https://groups.google.com/forum/#!searchin/kivy-users/iOS/kivy-users/Qt4x2dB0Xpw/u8jlTMS8Y1MJ>`_
+

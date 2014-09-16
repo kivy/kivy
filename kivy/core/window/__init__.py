@@ -1,4 +1,5 @@
 # pylint: disable=W0611
+# coding: utf-8
 '''
 Window
 ======
@@ -79,23 +80,32 @@ class Keyboard(EventDispatcher):
         'numpadadd': 270,
 
         # F1-15
-        'f1': 282, 'f2': 283, 'f3': 282, 'f4': 285, 'f5': 286, 'f6': 287,
+        'f1': 282, 'f2': 283, 'f3': 284, 'f4': 285, 'f5': 286, 'f6': 287,
         'f7': 288, 'f8': 289, 'f9': 290, 'f10': 291, 'f11': 292, 'f12': 293,
         'f13': 294, 'f14': 295, 'f15': 296,
 
         # other keys
         '(': 40, ')': 41,
         '[': 91, ']': 93,
-        '{': 91, '}': 93,
+        '{': 123, '}': 125,
         ':': 59, ';': 59,
-        '=': 43, '+': 43,
-        '-': 41, '_': 41,
-        '/': 47, '?': 47,
-        '`': 96, '~': 96,
-        '\\': 92, '|': 92,
-        '"': 34, '\'': 39,
+        '=': 61, '+': 43,
+        '-': 45, '_': 95,
+        '/': 47, '*': 42,
+        '?': 47,
+        '`': 96, '~': 126,
+        '´': 180, '¦': 166,
+        '\\': 92, '|': 124,
+        '"': 34, "'": 39,
         ',': 44, '.': 46,
-        '<': 60, '>': 60,
+        '<': 60, '>': 62,
+        '@': 64, '!': 33,
+        '#': 35, '$': 36,
+        '%': 37, '^': 94,
+        '&': 38, '¬': 172,
+        '¨': 168, '…': 8230,
+        'ù': 249, 'à': 224,
+        'é': 233, 'è': 232,
     }
 
     __events__ = ('on_key_down', 'on_key_up')
@@ -345,9 +355,10 @@ class WindowBase(EventDispatcher):
     def _get_height(self):
         '''Rotated window height'''
         r = self._rotation
+        kb = self.keyboard_height if self.softinput_mode == 'resize' else 0
         if r == 0 or r == 180:
-            return self._size[1]
-        return self._size[0]
+            return self._size[1] - kb
+        return self._size[0] - kb
 
     height = AliasProperty(_get_height, None, bind=('_rotation', '_size'))
     '''Rotated window height.
@@ -387,8 +398,17 @@ class WindowBase(EventDispatcher):
 
     softinput_mode = OptionProperty('', options=('', 'pan', 'scale', 'resize'))
     '''This specifies the behavior of window contents on display of soft
-    keyboard on mobile platform.
-
+    keyboard on mobile platform. Can be one of '', 'pan', 'scale', 'resize'.
+    
+    When '' The main window is left as it is allowing the user to use
+    :attr:`keyboard_height` to manage the window contents the way they want.
+    
+    when 'pan' The main window pans moving the bottom part of the window to be
+    always on top of the keyboard.
+    
+    when 'resize' The window is resized and the contents scaled to fit the
+    remaining space.
+    
     ..versionadded::1.8.1
 
     :attr:`softinput_mode` is a :class:`OptionProperty` defaults to None.
@@ -454,6 +474,10 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.2.0
     '''
+
+    @property
+    def __self__(self):
+        return self
 
     top = NumericProperty(None, allownone=True)
     left = NumericProperty(None, allownone=True)
@@ -1075,6 +1099,13 @@ class WindowBase(EventDispatcher):
             and if the configuration allows it, a
             :class:`~kivy.uix.vkeyboard.VKeyboard` instance attached as a
             *.widget* property.
+
+        .. note::
+
+            The behavior of this function is heavily influenced by the current
+            `keyboard_mode`. Please see the Config's
+            :ref:`configuration tokens <configuration-tokens>` section for
+            more information.
 
         '''
 

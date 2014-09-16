@@ -294,6 +294,16 @@ class ScrollView(StencilView):
     to [.7, .7, .7, .9].
     '''
 
+    bar_inactive_color = ListProperty([.7, .7, .7, .2])
+    '''Color of horizontal / vertical scroll bar (in RGBA format), when no
+    scroll is happening.
+
+    .. versionadded:: 1.8.1
+
+    :attr:`bar_inactive_color` is a
+    :class:`~kivy.properties.ListProperty` and defaults to [.7, .7, .7, .2].
+    '''
+
     bar_width = NumericProperty('2dp')
     '''Width of the horizontal / vertical scroll bar. The width is interpreted
     as a height for the horizontal bar.
@@ -396,7 +406,7 @@ class ScrollView(StencilView):
     # private, for internal use only
 
     _viewport = ObjectProperty(None, allownone=True)
-    bar_alpha = NumericProperty(1.)
+    _bar_color = ListProperty([0, 0, 0, 0])
 
     def _set_viewport_size(self, instance, value):
         self.viewport_size = value
@@ -421,6 +431,10 @@ class ScrollView(StencilView):
             PopMatrix()
 
         super(ScrollView, self).__init__(**kwargs)
+
+        self.register_event_type('on_scroll_start')
+        self.register_event_type('on_scroll_move')
+        self.register_event_type('on_scroll_stop')
 
         # now add the viewport canvas to our canvas
         self.canvas.add(self.canvas_viewport)
@@ -531,6 +545,19 @@ class ScrollView(StencilView):
         return ret
 
     def on_touch_down(self, touch):
+        if self.dispatch('on_scroll_start', touch):
+            self._touch = touch
+            touch.grab(self)
+            return True
+
+    def on_scroll_start(self, touch, check_children=True):
+        if check_children:
+            touch.push()
+            touch.apply_transform_2d(self.to_local)
+            if self.dispatch_children('on_scroll_start', touch):
+                return True
+            touch.pop()
+
         if not self.collide_point(*touch.pos):
             touch.ud[self._get_uid('svavoid')] = True
             return
@@ -571,6 +598,12 @@ class ScrollView(StencilView):
             m = sp(self.scroll_wheel_distance)
             e = None
 
+            if ((btn == 'scrolldown' and self.scroll_y >= 1) or
+                (btn == 'scrollup' and self.scroll_y <= 0) or
+                (btn == 'scrollleft' and self.scroll_x <= 0) or
+                (btn == 'scrollright' and self.scroll_x >= 1)):
+                return False
+
             if (self.effect_x and self.do_scroll_y and height_scrollable
                     and btn in ('scrolldown', 'scrollup')):
                 e = self.effect_x if ud['in_bar_x'] else self.effect_y
@@ -588,13 +621,12 @@ class ScrollView(StencilView):
                     e.velocity = 0
                 touch.ud[self._get_uid('svavoid')] = True
                 e.trigger_velocity_update()
-                return True
+            return True
 
         # no mouse scrolling, so the user is going to drag the scrollview with
         # this touch.
         self._touch = touch
         uid = self._get_uid()
-        touch.grab(self)
 
         ud[uid] = {
             'mode': 'unknown',
@@ -606,8 +638,10 @@ class ScrollView(StencilView):
 
         if self.do_scroll_x and self.effect_x and not ud['in_bar_x']:
             self.effect_x.start(touch.x)
+            self._scroll_x_mouse = self.scroll_x
         if self.do_scroll_y and self.effect_y and not ud['in_bar_y']:
             self.effect_y.start(touch.y)
+            self._scroll_y_mouse = self.scroll_y
 
         if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
             return
@@ -625,8 +659,6 @@ class ScrollView(StencilView):
         return True
 
     def on_touch_move(self, touch):
-        if self._get_uid('svavoid') in touch.ud:
-            return
         if self._touch is not touch:
             # touch is in parent
             touch.push()
@@ -637,13 +669,33 @@ class ScrollView(StencilView):
         if touch.grab_current is not self:
             return True
 
+        touch.ud['sv.handled'] = {'x': False, 'y': False}
+        if self.dispatch('on_scroll_move', touch):
+            return True
+
+    def on_scroll_move(self, touch):
+        if self._get_uid('svavoid') in touch.ud:
+            return False
+
+        touch.push()
+        touch.apply_transform_2d(self.to_local)
+        if self.dispatch_children('on_scroll_move', touch):
+            return True
+        touch.pop()
+
+        rv = True
+
         uid = self._get_uid()
+        if not uid in touch.ud:
+            self._touch = False
+            return self.on_scroll_start(touch, False)
         ud = touch.ud[uid]
         mode = ud['mode']
 
         # check if the minimum distance has been travelled
         if mode == 'unknown' or mode == 'scroll':
-            if self.do_scroll_x and self.effect_x:
+            if not touch.ud['sv.handled']['x'] and self.do_scroll_x \
+                    and self.effect_x:
                 width = self.width
                 if touch.ud.get('in_bar_x', False):
                     dx = touch.dx / float(width - width * self.hbar[1])
@@ -652,7 +704,12 @@ class ScrollView(StencilView):
                 else:
                     if self.scroll_type != ['bars']:
                         self.effect_x.update(touch.x)
-            if self.do_scroll_y and self.effect_y:
+                if self.scroll_x < 0 or self.scroll_x > 1:
+                    rv = False
+                else:
+                    touch.ud['sv.handled']['x'] = True
+            if not touch.ud['sv.handled']['y'] and self.do_scroll_y \
+                    and self.effect_y:
                 height = self.height
                 if touch.ud.get('in_bar_y', False):
                     dy = touch.dy / float(height - height * self.vbar[1])
@@ -661,6 +718,10 @@ class ScrollView(StencilView):
                 else:
                     if self.scroll_type != ['bars']:
                         self.effect_y.update(touch.y)
+                if self.scroll_y < 0 or self.scroll_y > 1:
+                    rv = False
+                else:
+                    touch.ud['sv.handled']['y'] = True
 
         if mode == 'unknown':
             ud['dx'] += abs(touch.dx)
@@ -693,41 +754,57 @@ class ScrollView(StencilView):
             ud['time'] = touch.time_update
             ud['user_stopped'] = True
 
-        return True
+        return rv
 
     def on_touch_up(self, touch):
+        if self._touch is not touch and self.uid not in touch.ud:
+            # touch is in parents
+            touch.push()
+            touch.apply_transform_2d(self.to_local)
+            if super(ScrollView, self).on_touch_up(touch):
+                return True
+            touch.pop()
+            return False
+
+        if self.dispatch('on_scroll_stop', touch):
+            touch.ungrab(self)
+            return True
+
+    def on_scroll_stop(self, touch, check_children=True):
+        self._touch = None
+
+        if check_children:
+            touch.push()
+            touch.apply_transform_2d(self.to_local)
+            if self.dispatch_children('on_scroll_stop', touch):
+                return True
+            touch.pop()
+
         if self._get_uid('svavoid') in touch.ud:
             return
+        if self._get_uid() not in touch.ud:
+            return False
 
-        if self in [x() for x in touch.grab_list]:
-            touch.ungrab(self)
-            self._touch = None
-            uid = self._get_uid()
-            ud = touch.ud[uid]
-            if self.do_scroll_x and self.effect_x:
-                if not touch.ud.get('in_bar_x', False) and\
-                        self.scroll_type != ['bars']:
-                    self.effect_x.stop(touch.x)
-            if self.do_scroll_y and self.effect_y and\
+        self._touch = None
+        uid = self._get_uid()
+        ud = touch.ud[uid]
+        if self.do_scroll_x and self.effect_x:
+            if not touch.ud.get('in_bar_x', False) and\
                     self.scroll_type != ['bars']:
-                if not touch.ud.get('in_bar_y', False):
-                    self.effect_y.stop(touch.y)
-            if ud['mode'] == 'unknown':
-                # we must do the click at least..
-                # only send the click if it was not a click to stop
-                # autoscrolling
-                if not ud['user_stopped']:
-                    self.simulate_touch_down(touch)
-                Clock.schedule_once(partial(self._do_touch_up, touch), .2)
-            Clock.unschedule(self._update_effect_bounds)
-            Clock.schedule_once(self._update_effect_bounds)
-        else:
-            if self._touch is not touch and self.uid not in touch.ud:
-                # touch is in parents
-                touch.push()
-                touch.apply_transform_2d(self.to_local)
-                super(ScrollView, self).on_touch_up(touch)
-                touch.pop()
+                self.effect_x.stop(touch.x)
+        if self.do_scroll_y and self.effect_y and\
+                self.scroll_type != ['bars']:
+            if not touch.ud.get('in_bar_y', False):
+                self.effect_y.stop(touch.y)
+        if ud['mode'] == 'unknown':
+            # we must do the click at least..
+            # only send the click if it was not a click to stop
+            # autoscrolling
+            if not ud['user_stopped']:
+                self.simulate_touch_down(touch)
+            Clock.schedule_once(partial(self._do_touch_up, touch), .2)
+        Clock.unschedule(self._update_effect_bounds)
+        Clock.schedule_once(self._update_effect_bounds)
 
         # if we do mouse scrolling, always accept it
         if 'button' in touch.profile and touch.button.startswith('scroll'):
@@ -756,7 +833,6 @@ class ScrollView(StencilView):
         else:
             sy = 1
         return sx, sy
-
 
     def update_from_scroll(self, *largs):
         '''Force the reposition of the content, according to current value of
@@ -793,18 +869,23 @@ class ScrollView(StencilView):
         vp.pos = 0, 0
         self.g_translate.xy = x, y
 
-        # new in 1.2.0, show bar when scrolling happen
-        # and slowly remove them when no scroll is happening.
-        self.bar_alpha = 1.
-        Animation.stop_all(self, 'bar_alpha')
-        Clock.unschedule(self._start_decrease_alpha)
-        Clock.schedule_once(self._start_decrease_alpha, .5)
+        # New in 1.2.0, show bar when scrolling happens and (changed in 1.8.1)
+        # fade to bar_inactive_color when no scroll is happening.
+        Clock.unschedule(self._bind_inactive_bar_color)
+        self.unbind(bar_inactive_color=self._change_bar_color)
+        Animation.stop_all(self, '_bar_color')
+        self.bind(bar_color=self._change_bar_color)
+        self._bar_color = self.bar_color
+        Clock.schedule_once(self._bind_inactive_bar_color, .5)
 
-    def _start_decrease_alpha(self, *l):
-        self.bar_alpha = 1.
-        # show bars if scroll_type != content
-        bar_alpha = .2 if self.scroll_type != ['content'] else 0
-        Animation(bar_alpha=bar_alpha, d=.5, t='out_quart').start(self)
+    def _bind_inactive_bar_color(self, *l):
+        self.unbind(bar_color=self._change_bar_color)
+        self.bind(bar_inactive_color=self._change_bar_color)
+        Animation(
+            _bar_color=self.bar_inactive_color, d=.5, t='out_quart').start(self)
+
+    def _change_bar_color(self, inst, value):
+        self._bar_color = value
 
     #
     # Private
