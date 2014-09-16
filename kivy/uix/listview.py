@@ -29,22 +29,34 @@ Lists are central parts of many software projects. Kivy's approach to lists
 includes providing solutions for simple lists, along with a substantial
 framework for building lists of moderate to advanced complexity. For a new
 user, it can be difficult to ramp up from simple to advanced. For
-this reason, Kivy provides an extensive set of examples that you may wish to
-run first, to get a taste of the range of functionality offered. You can tell
-from the names of the examples that they illustrate the "ramping up" from
-simple to advanced:
+this reason, Kivy provides an extensive set of examples (with the Kivy package)
+that you may wish to run first, to get a taste of the range of functionality
+offered. You can tell from the names of the examples that they illustrate the
+"ramping up" from simple to advanced:
 
-    * kivy/examples/widgets/lists/list_simple.py
-    * kivy/examples/widgets/lists/list_simple_in_kv.py
-    * kivy/examples/widgets/lists/list_simple_in_kv_2.py
-    * kivy/examples/widgets/lists/list_master_detail.py
-    * kivy/examples/widgets/lists/list_two_up.py
-    * kivy/examples/widgets/lists/list_kv.py
-    * kivy/examples/widgets/lists/list_composite.py
-    * kivy/examples/widgets/lists/list_cascade.py
-    * kivy/examples/widgets/lists/list_cascade_dict.py
-    * kivy/examples/widgets/lists/list_cascade_images.py
-    * kivy/examples/widgets/lists/list_ops.py
+
+    * `kivy/examples/widgets/lists/list_simple.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_simple.py>`_
+    * `kivy/examples/widgets/lists/list_simple_in_kv.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_simple_in_kv.py>`_
+    * `kivy/examples/widgets/lists/list_simple_in_kv_2.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_simple_in_kv_2.py>`_
+    * `kivy/examples/widgets/lists/list_master_detail.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_master_detail.py>`_
+    * `kivy/examples/widgets/lists/list_two_up.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_two_up.py>`_
+    * `kivy/examples/widgets/lists/list_kv.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_kv.py>`_
+    * `kivy/examples/widgets/lists/list_composite.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_composite.py>`_
+    * `kivy/examples/widgets/lists/list_cascade.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_cascade.py>`_
+    * `kivy/examples/widgets/lists/list_cascade_dict.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_cascade_dict.py>`_
+    * `kivy/examples/widgets/lists/list_cascade_images.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_cascade_images.py>`_
+    * `kivy/examples/widgets/lists/list_ops.py <https://github.com/\
+kivy/kivy/tree/master/examples/widgets/lists/list_ops.py>`_
 
 Many of the examples feature selection, some restricting selection to single
 selection, where only one item at at time can be selected, and others allowing
@@ -304,7 +316,7 @@ function::
                 'size_hint_y': None,
                 'height': 25}
 
-and as a lambda:
+and as a lambda::
 
     args_converter = lambda row_index, an_obj: {'text': an_obj.text,
                                                 'size_hint_y': None,

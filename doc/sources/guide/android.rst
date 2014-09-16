@@ -50,7 +50,7 @@ logger.
 If you packaged your app with Buildozer, the `adb` tool may not be in
 your :code:`$PATH` and the above command may not work. You can instead run::
 
-    buildozer logcat 
+    buildozer android logcat 
 
 to run the version installed by Buildozer, or
 find the SDK tools at

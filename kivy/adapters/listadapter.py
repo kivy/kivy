@@ -221,8 +221,9 @@ class ListAdapter(Adapter, EventDispatcher):
 
         item_args['index'] = index
 
-        if self.cls:
-            view_instance = self.cls(**item_args)
+        cls = self.get_cls()
+        if cls:
+            view_instance = cls(**item_args)
         else:
             view_instance = Builder.template(self.template, **item_args)
 
@@ -257,14 +258,16 @@ class ListAdapter(Adapter, EventDispatcher):
 
         return view_instance
 
-    def on_selection_change(self, adapter):
+    def on_selection_change(self, *args):
         '''on_selection_change() is the default handler for the
         on_selection_change event. You can bind to this event to get notified
         of selection changes.
-        
+
         :Parameters:
             adapter: :class:`~ListAdapter` or subclass
-                The instance of the list adapter where the selection changed
+                The instance of the list adapter where the selection changed.
+                Use the adapters :attr:`selection` property to see what has been
+                selected.
         '''
         pass
 

@@ -27,51 +27,51 @@ cdef extern from "/opt/vc/include/EGL/egl.h":
     EGLBoolean eglTerminate(EGLDisplay dpy)
     char * eglQueryString(EGLDisplay dpy, EGLint name)
     EGLBoolean eglGetConfigs(EGLDisplay dpy, EGLConfig *configs,
-			 EGLint config_size, EGLint *num_config)
+             EGLint config_size, EGLint *num_config)
     EGLBoolean eglChooseConfig(EGLDisplay dpy, EGLint *attrib_list,
-			   EGLConfig *configs, EGLint config_size,
-			   EGLint *num_config)
+               EGLConfig *configs, EGLint config_size,
+               EGLint *num_config)
     EGLBoolean eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config,
-			      EGLint attribute, EGLint *value)
+                  EGLint attribute, EGLint *value)
     EGLSurface eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config,
-				  EGLNativeWindowType win,
-				  EGLint *attrib_list)
+                  EGLNativeWindowType win,
+                  EGLint *attrib_list)
     EGLSurface eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config,
-				   EGLint *attrib_list)
+                   EGLint *attrib_list)
     EGLSurface eglCreatePixmapSurface(EGLDisplay dpy, EGLConfig config,
-				  EGLNativePixmapType pixmap,
-				  EGLint *attrib_list)
+                  EGLNativePixmapType pixmap,
+                  EGLint *attrib_list)
     EGLBoolean eglDestroySurface(EGLDisplay dpy, EGLSurface surface)
     EGLBoolean eglQuerySurface(EGLDisplay dpy, EGLSurface surface,
-			   EGLint attribute, EGLint *value)
+               EGLint attribute, EGLint *value)
     EGLBoolean eglBindAPI(EGLenum api)
     EGLenum eglQueryAPI()
     EGLBoolean eglWaitClient()
     EGLBoolean eglReleaseThread()
     EGLSurface eglCreatePbufferFromClientBuffer(
-	      EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer,
-	      EGLConfig config, EGLint *attrib_list)
+          EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer,
+          EGLConfig config, EGLint *attrib_list)
     EGLBoolean eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface,
-			    EGLint attribute, EGLint value)
+                EGLint attribute, EGLint value)
     EGLBoolean eglBindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
     EGLBoolean eglReleaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
     EGLBoolean eglSwapInterval(EGLDisplay dpy, EGLint interval)
     EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config,
-			    EGLContext share_context,
-			    EGLint *attrib_list)
+                EGLContext share_context,
+                EGLint *attrib_list)
     EGLBoolean eglDestroyContext(EGLDisplay dpy, EGLContext ctx)
     EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw,
-			  EGLSurface read, EGLContext ctx)
+              EGLSurface read, EGLContext ctx)
     EGLContext eglGetCurrentContext()
     EGLSurface eglGetCurrentSurface(EGLint readdraw)
     EGLDisplay eglGetCurrentDisplay()
     EGLBoolean eglQueryContext(EGLDisplay dpy, EGLContext ctx,
-			   EGLint attribute, EGLint *value)
+               EGLint attribute, EGLint *value)
     EGLBoolean eglWaitGL()
     EGLBoolean eglWaitNative(EGLint engine)
     EGLBoolean eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
     EGLBoolean eglCopyBuffers(EGLDisplay dpy, EGLSurface surface,
-			  EGLNativePixmapType target)
+              EGLNativePixmapType target)
 
 class _constants:
     EGL_VERSION_1_0 = 1 # 
@@ -400,7 +400,7 @@ def ChooseConfig(Display dpy, list attrib_list, EGLint config_size):
 def GetConfigAttrib(Display dpy, Config config, EGLint attribute):
     cdef EGLint value
     if eglGetConfigAttrib(dpy._egldisplay, config._eglconfig,
-			      attribute, &value) == EGL_FALSE:
+                  attribute, &value) == EGL_FALSE:
         raise_egl_error()
     return int(value)
     
@@ -480,7 +480,7 @@ def DestroySurface(Display dpy, Surface surf):
 def QuerySurface(Display dpy, Surface surf, EGLint attrib):
     cdef EGLint ret
     if eglQuerySurface(dpy._egldisplay, surf._eglsurface,
-			   attrib, &ret) == EGL_FALSE:
+               attrib, &ret) == EGL_FALSE:
         raise_egl_error()
     return ret
         
@@ -557,7 +557,7 @@ def DestroyContext(Display dpy, Context ctx):
     
 def MakeCurrent(Display dpy, Surface draw, Surface read, Context ctx):
     if eglMakeCurrent(dpy._egldisplay, draw._eglsurface,
-			  read._eglsurface, ctx._eglcontext) == EGL_FALSE:
+              read._eglsurface, ctx._eglcontext) == EGL_FALSE:
         raise_egl_error()
               
 def GetCurrentContext():

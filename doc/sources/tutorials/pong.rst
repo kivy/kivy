@@ -317,6 +317,7 @@ inside the ``update`` method and even make it bounce of the edges::
             if (self.ball.x < 0) or (self.ball.right > self.width):
                 self.ball.velocity_x *= -1
 
+
 Don't forget to hook it up in the kv file, by giving the child widget an id
 and setting the PongGame's ``ball`` ObjectProperty to that id:
 
@@ -411,6 +412,11 @@ differently based on where it hits the racket. Here is the code for the
                 offset = 0.02 * Vector(0, ball.center_y-self.center_y)
                 ball.velocity =  speedup * (offset - ball.velocity)
 
+.. note::
+
+    This algorithm for ball bouncing is very simple, but will have strange behavior
+    if the ball hits the paddle from the side or bottom...this is something you could
+    try to fix yourself if you like.
 
 And here it is in context. Pretty much done:
 
