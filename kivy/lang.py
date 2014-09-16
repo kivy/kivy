@@ -224,7 +224,7 @@ Examples of valid statements are:
 An example of a invalid statement:
 
 .. code-block:: python
- 
+
     on_state:
         if self.state == 'normal':
             print('normal')
@@ -1538,8 +1538,40 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
         for keys in rule.watched_keys:
             try:
                 bound = []
-                update_intermediates(idmap[keys[0]].proxy_ref, keys, bound,
-                                     None, fn, args, None, None)
+                f = base = idmap[keys[0]].proxy_ref
+                append = bound.append
+
+                try:
+                    # bind all attrs, except last to update_intermediates
+                    for k, val in enumerate(keys[1:-1], start=1):
+                        is_ev = isinstance(f, Observable)
+                        try:
+                            # if we need to dynamically rebind, bindm otherwise
+                            # just add the attr to the list
+                            if is_ev and f.property(val).rebind:
+                                append([f.proxy_ref, val, update_intermediates,
+                                        (base, keys, bound, k, fn, args)])
+                                f.fast_bind(val, update_intermediates, base,
+                                            keys, bound, k, fn, args)
+                                # during the bind, the watched keys could have
+                                # changed value, calling update_intermediates
+                                # and changing the last attr, so we have to
+                                # read the last attr again
+                                f = bound[-1][0]
+                            else:
+                                append([f.proxy_ref if is_ev else f, val, None,
+                                        ()])
+                        except (KeyError, AttributeError):
+                            # in case property is not kivy
+                            append([f.proxy_ref, val, None, ()])
+                        f = getattr(f, val)
+                    # for the last attr we bind directly to the setting
+                    # function, because that attr sets the value of the rule.
+                    if isinstance(f, Observable):
+                        f.fast_bind(keys[-1], fn, *args)
+                        append([f.proxy_ref, keys[-1], fn, args])
+                except (KeyError, AttributeError, ReferenceError):
+                    pass
                 # even if it's empty now, in the future, through dynamic
                 # rebinding it might have things.
                 _handlers[iself.uid].append(bound)
