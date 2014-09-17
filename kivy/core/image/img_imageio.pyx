@@ -236,7 +236,8 @@ def save_image(filename, width, height, fmt, data, flipped):
     cdef char *source = NULL
     if type(data) is array:
         data = data.tostring()
-    source = <bytes>data[:len(data)]
+    bsource = <bytes>data[:len(data)]
+    source = <char *> bsource
 
     cdef int fmt_length = 3
     if fmt == 'rgba':
