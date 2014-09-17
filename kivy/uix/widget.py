@@ -118,24 +118,9 @@ events bubble up from the most recently added widget and then backwards through
 it's children (from the most recently added back to the first child). This order
 is the same for the `on_touch_move` and `on_touch_up` events.
 
-If you want to reverse this order, you can raise events in the children before
-the parent by using the `super` command. For example:
-
-.. code-block:: python
-
-    class MyWidget(Widget):
-        def on_touch_down(self, touch):
-            super(MyWidget, self).on_touch_down(touch)
-            # Do stuff here
-
-In general, this would seldom be the best approach as every event bubbles all
-the way through event time and there is no way of determining if it has been
-handled. In order to stop this the event bubbling, one of these methods must
-return `True`. At this point, Kivy assumes the event has been handled and
-propogation stops.
-
-This means that the recommended approach is to let the event bubble naturally
-but swallow the event if it has been handled. For example:
+In order to stop the event bubbling, the `on_<proname>` method should
+return `True`. At this point, Kivy assumes the event has been handled and the
+event propogation stops:
 
 .. code-block:: python
 
@@ -149,7 +134,19 @@ but swallow the event if it has been handled. For example:
                 return super(MyWidget, self).on_touch_down(touch)
 
 This approach gives you good control over exactly how events and dispatched
-and managed.
+and managed. Sometimes, however, you may wish to let the event be completely
+propogated before taking action. You can use the
+:class:`~kivy.clock.Clock` to help you here:
+
+.. code-block:: python
+
+    class MyLabel(Label):
+        def on_touch_down(self, touch, after=False):
+            if after:
+                print "Fired after the event has been dispatched!"
+            else:
+                Clock.schedule_once(lambda dt: self.on_touch_down(touch, True))
+                return super(MyLabel, self).on_touch_down(touch)
 
 '''
 
