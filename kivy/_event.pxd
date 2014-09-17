@@ -8,7 +8,7 @@ cdef class Observable(ObjectWithUid):
     cdef object __fast_bind_mapping
 
 
-cdef class EventDispatcher(Observable):
+cdef class EventDispatcher(ObjectWithUid):
     cdef dict __event_stack
     cdef dict __properties
     cdef dict __storage

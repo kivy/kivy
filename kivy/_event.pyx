@@ -113,7 +113,7 @@ cdef class Observable(ObjectWithUid):
             return self
 
 
-cdef class EventDispatcher(Observable):
+cdef class EventDispatcher(ObjectWithUid):
     '''Generic event dispatcher interface.
 
     See the module docstring for usage.
