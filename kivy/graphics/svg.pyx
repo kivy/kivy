@@ -220,6 +220,8 @@ def _tokenize_path(pathdef):
             yield token
 
 cdef float parse_float(txt):
+    if not txt:
+        return 0.
     if txt[-2:] == 'px':
         return float(txt[:-2])
     return float(txt)
@@ -276,36 +278,53 @@ cdef parse_color(c):
         raise Exception('Invalid color format {}'.format(c))
     return [r, g, b, a]
 
+ctypedef double matrix_t[6]
 
-class Matrix(object):
+cdef class Matrix(object):
+    cdef matrix_t mat
+    def __cinit__(self):
+        memset(self.mat, 0, sizeof(matrix_t))
+
     def __init__(self, string=None):
-        self.values = [1, 0, 0, 1, 0, 0] #Identity matrix seems a sensible default
+        cdef float f
+        cdef int i
+        self.mat[0] = self.mat[3] = 1.
         if isinstance(string, str):
             if string.startswith('matrix('):
-                self.values = [float(x) for x in parse_list(string[7:-1])]
+                i = 0
+                for f in parse_list(string[7:-1]):
+                    self.mat[i] = f
+                    i += 1
             elif string.startswith('translate('):
-                x, y = [float(x) for x in parse_list(string[10:-1])]
-                self.values = [1, 0, 0, 1, x, y]
+                self.mat[4], self.mat[5] = parse_list(string[10:-1])
             elif string.startswith('scale('):
-                sx, sy = [float(x) for x in parse_list(string[6:-1])]
-                self.values = [sx, 0, 0, sy, 0, 0]
+                self.mat[0], self.mat[3] = parse_list(string[6:-1])
         elif string is not None:
-            self.values = list(string)
+            i = 0
+            for f in string:
+                self.mat[i] = f
+                i += 1
 
-    def __call__(self, other):
-        return (self.values[0]*other[0] + self.values[2]*other[1] + self.values[4],
-                self.values[1]*other[0] + self.values[3]*other[1] + self.values[5])
+    cdef void transform(self, float ox, float oy, float *x, float *y):
+        cdef float rx = self.mat[0] * ox + self.mat[2] * oy + self.mat[4]
+        cdef float ry = self.mat[1] * ox + self.mat[3] * oy + self.mat[5]
+        x[0] = rx
+        y[0] = ry
 
-    def inverse(self):
-        d = float(self.values[0]*self.values[3] - self.values[1]*self.values[2])
-        return Matrix([self.values[3]/d, -self.values[1]/d, -self.values[2]/d, self.values[0]/d,
-                       (self.values[2]*self.values[5] - self.values[3]*self.values[4])/d,
-                       (self.values[1]*self.values[4] - self.values[0]*self.values[5])/d])
+    cpdef Matrix inverse(self):
+        cdef float d = self.mat[0] * self.mat[3] - self.mat[1]*self.mat[2]
+        return Matrix([self.mat[3] / d, -self.mat[1] / d, -self.mat[2] / d, self.mat[0] / d,
+                       (self.mat[2] * self.mat[5] - self.mat[3] * self.mat[4]) / d,
+                       (self.mat[1] * self.mat[4] - self.mat[0] * self.mat[5]) / d])
 
-    def __mul__(self, other):
-        a, b, c, d, e, f = self.values
-        u, v, w, x, y, z = other.values
-        return Matrix([a*u + c*v, b*u + d*v, a*w + c*x, b*w + d*x, a*y + c*z + e, b*y + d*z + f])
+    def __mul__(Matrix self, Matrix other):
+        return Matrix([
+            self.mat[0] * other.mat[0] + self.mat[2] * other.mat[1],
+            self.mat[1] * other.mat[0] + self.mat[3] * other.mat[1],
+            self.mat[0] * other.mat[2] + self.mat[2] * other.mat[3],
+            self.mat[1] * other.mat[2] + self.mat[3] * other.mat[3],
+            self.mat[0] * other.mat[4] + self.mat[2] * other.mat[5] + self.mat[4],
+            self.mat[1] * other.mat[4] + self.mat[3] * other.mat[5] + self.mat[5]])
 
 
 class GradientContainer(dict):
@@ -504,21 +523,16 @@ cdef class Svg(RenderContext):
 
 
     property filename:
-
         def __set__(self, filename):
-
             print 'loading', filename
-
             # check gzip
             with open(filename, 'rb') as fd:
                 header = fd.read(3)
-
             if header == '\x1f\x8b\x08':
                 import gzip
                 fd = gzip.open(filename, 'rb')
             else:
                 fd = open(filename, 'rb')
-
             try:
                 tree = parse(fd)
             finally:
@@ -532,8 +546,8 @@ cdef class Svg(RenderContext):
     def parse_tree(self, tree):
         root = tree._root
         self.paths = []
-        self.width = parse_float(root.get('width', '0'))
-        self.height = parse_float(root.get('height', '0'))
+        self.width = parse_float(root.get('width'))
+        self.height = parse_float(root.get('height'))
         if self.height:
             self.transform = Matrix([1, 0, 0, -1, 0, self.height])
         else:
@@ -957,7 +971,7 @@ cdef class Svg(RenderContext):
 
         self.path = []
 
-    def push_mesh(self, path, fill, transform, mode):
+    def push_mesh(self, path, fill, Matrix transform, mode):
         cdef view.array vertices
         cdef int count, index, vindex
         cdef float *f_tris
@@ -979,7 +993,7 @@ cdef class Svg(RenderContext):
                 x = path[index * 2]
                 y = path[index * 2 + 1]
                 clr = g.interp((x, y))
-                x, y = transform((x, y))
+                transform.transform(x, y, &x, &y)
                 vertices[vindex] = x
                 vertices[vindex + 1] = y
                 vertices[vindex + 2] = clr[0]
@@ -991,7 +1005,7 @@ cdef class Svg(RenderContext):
             for index in range(count):
                 x = path[index * 2]
                 y = path[index * 2 + 1]
-                x, y = transform((x, y))
+                transform.transform(x, y, &x, &y)
                 vertices[vindex] = x
                 vertices[vindex + 1] = y
                 vertices[vindex + 2] = fill[0]
