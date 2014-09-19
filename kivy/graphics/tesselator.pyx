@@ -66,6 +66,32 @@ cimport cpython.array
 from array import array
 from cython cimport view
 
+cdef extern from "tesselator.h":
+    ctypedef struct TESStesselator:
+        pass
+    ctypedef struct TESSalloc:
+        pass
+    ctypedef enum TessElementType:
+        TESS_POLYGONS
+        TESS_CONNECTED_POLYGONS
+        TESS_BOUNDARY_CONTOURS
+    ctypedef enum TessWindingRule:
+        TESS_WINDING_ODD
+        TESS_WINDING_NONZERO
+        TESS_WINDING_POSITIVE
+        TESS_WINDING_NEGATIVE
+        TESS_WINDING_ABS_GEQ_TWO
+    TESStesselator *tessNewTess(TESSalloc *)
+    void tessDeleteTess(TESStesselator *)
+    void tessAddContour(TESStesselator *, int, void *, int, int)
+    int tessTesselate(TESStesselator *, int, int, int, int, float *)
+    int tessGetVertexCount(TESStesselator *)
+    int tessGetElementCount(TESStesselator *)
+    float *tessGetVertices(TESStesselator *)
+    int *tessGetVertexIndices(TESStesselator *)
+    int *tessGetElements(TESStesselator *)
+
+
 #: Winding enum: ODD
 WINDING_ODD = TESS_WINDING_ODD
 
@@ -98,7 +124,7 @@ cdef class Tesselator:
         self.tess = tessNewTess(NULL)
 
     def __dealloc__(self):
-        tessDeleteTess(self.tess)
+        tessDeleteTess(<TESStesselator *>self.tess)
         self.tess = NULL
 
     def add_contour(self, points):
@@ -145,7 +171,7 @@ cdef class Tesselator:
 
         self.element_type = element_type
         self.polysize = polysize
-        ret = tessTesselate(self.tess, winding_rule, element_type,
+        ret = tessTesselate(<TESStesselator *>self.tess, winding_rule, element_type,
                             polysize, 2, NULL)
         return bool(ret)
 
@@ -157,13 +183,13 @@ cdef class Tesselator:
         result for you with :data:`meshes` or :data:`vertices` per polygon,
         you'll have more vertices in the result
         """
-        return tessGetVertexCount(self.tess)
+        return tessGetVertexCount(<TESStesselator *>self.tess)
 
     @property
     def element_count(self):
         """Returns the number of convex polygon.
         """
-        return tessGetElementCount(self.tess)
+        return tessGetElementCount(<TESStesselator *>self.tess)
 
     @property
     def vertices(self):
@@ -198,7 +224,7 @@ cdef class Tesselator:
         return self.iterate_vertices(1)
 
     cdef void add_contour_data(self, void *cdata, int count):
-        tessAddContour(self.tess, 2, <void *>cdata, sizeof(float) * 2, count)
+        tessAddContour(<TESStesselator *>self.tess, 2, <void *>cdata, sizeof(float) * 2, count)
 
     cdef iterate_vertices(self, int mode):
         # mode 0: returns for .vertices
@@ -207,12 +233,12 @@ cdef class Tesselator:
         cdef int nelems, i, j, count
         cdef int *poly
         cdef int *elems
-        cdef float *verts = <float *>tessGetVertices(self.tess)
+        cdef float *verts = <float *>tessGetVertices(<TESStesselator *>self.tess)
         cdef view.array mesh
         ret = []
         if self.element_type == TYPE_POLYGONS:
-            nelems = tessGetElementCount(self.tess)
-            elems = <int *>tessGetElements(self.tess)
+            nelems = tessGetElementCount(<TESStesselator *>self.tess)
+            elems = <int *>tessGetElements(<TESStesselator *>self.tess)
             for i in range(nelems):
                 poly = &elems[i * self.polysize]
 

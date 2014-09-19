@@ -11,41 +11,14 @@ import re
 from xml.etree.cElementTree import parse
 from kivy.graphics.instructions cimport RenderContext
 from kivy.graphics.vertex_instructions import Mesh
+from kivy.graphics.tesselator cimport Tesselator
+from cpython cimport array
+from array import array
+from cython cimport view
 
 DEF BEZIER_POINTS = 64 # 10
 DEF CIRCLE_POINTS = 64 # 24
 DEF TOLERANCE = 0.001
-
-from cython.operator cimport dereference as deref, preincrement as inc
-cdef extern from "<vector>" namespace "std":
-    cdef cppclass vector[T]:
-        cppclass iterator:
-            T operator*()
-            iterator operator++()
-            bint operator==(iterator)
-            bint operator!=(iterator)
-        vector()
-        void push_back(T&)
-        T& operator[](int)
-        T& at(int)
-        iterator begin()
-        iterator end()
-
-cdef extern from "../lib/poly2tri/poly2tri/poly2tri.h" namespace "p2t":
-    cdef cppclass Point:
-        double x
-        double y
-        Point(double x, double y)
-
-    cdef cppclass Triangle:
-        Triangle(Point &, Point &, Point &)
-        Point *GetPoint(int &index)
-
-    cdef cppclass CDT:
-        CDT(vector[Point *] polyline)
-        void Triangulate()
-        vector[Triangle *] GetTriangles()
-
 
 cdef str SVG_FS = '''
 #ifdef GL_ES
@@ -451,7 +424,7 @@ cdef class Svg(RenderContext):
         float y
         int close_index
         list path
-        list loop
+        array.array loop
         int bezier_points
         int circle_points
         public object gradients
@@ -864,12 +837,13 @@ cdef class Svg(RenderContext):
         self.y = 0
         self.close_index = 0
         self.path = []
-        self.loop = []
+        self.loop = array('f', [])
 
     cdef void close_path(self):
-        self.loop.append(self.loop[0][:])
+        #self.loop.append(self.loop[0])
+        #self.loop.append(self.loop[1])
         self.path.append(self.loop)
-        self.loop = []
+        self.loop = array('f', [])
 
     cdef void set_position(self, float x, float y, int absolute=1):
         if absolute:
@@ -878,7 +852,8 @@ cdef class Svg(RenderContext):
         else:
             self.x += x
             self.y += y
-        self.loop.append([x, y])
+        self.loop.append(x)
+        self.loop.append(y)
 
     def arc_to(self, float rx, float ry, float phi, float large_arc,
             float sweep, float x, float y):
@@ -938,13 +913,16 @@ cdef class Svg(RenderContext):
         for i, t in enumerate(self.bezier_coefficients):
             px = t[0] * self.x + t[1] * x1 + t[2] * x2 + t[3] * x
             py = t[0] * self.y + t[1] * y1 + t[2] * y2 + t[3] * y
-            self.loop.append([px, py])
+            self.loop.append(px)
+            self.loop.append(py)
 
         self.x, self.y = px, py
 
     cdef void end_path(self):
-        self.path.append(self.loop)
+        if self.loop:
+            self.path.append(self.loop)
 
+        """
         path = []
         for orig_loop in self.path:
 
@@ -957,97 +935,81 @@ cdef class Svg(RenderContext):
                     if pt not in loop:
                         loop.append(pt)
             path.append(loop)
+        """
+
+
+        tris = None
+        cdef Tesselator tess
+        cdef array.array loop
+        if self.fill:
+            tess = Tesselator()
+            for loop in self.path:
+                tess.add_contour_data(loop.data.as_voidptr, len(loop) / 2)
+            tess.tesselate()
+            tris = tess.vertices
 
         self.paths.append((
-            path if self.stroke else None,
+            self.path[0] if self.stroke else None,
             self.stroke,
-            self.triangulate(path) if self.fill else None,
+            tris,
             self.fill,
             self.transform))
 
         self.path = []
 
-    def triangulate(self, looplist):
-        cdef CDT *cdt
-        cdef Point *p
-        cdef Triangle *t
-        cdef vector[Point *] *polyline
-        cdef vector[Triangle *].iterator it
-        cdef vector[Triangle *] triangles
+    def push_mesh(self, path, fill, transform, mode):
+        cdef view.array vertices
+        cdef int count, index, vindex
+        cdef float *f_tris
+        cdef float x, y
 
-        #print 'triangulate()'
-        #return []
-
-        tris = []
-        for points in looplist:
-
-            polyline = new vector[Point *]()
-            if points[0] == points[-1]:
-                points = points[:-1]
-            for x, y in points:
-                p = new Point(x, y)
-                polyline.push_back(p)
-
-            cdt = new CDT(polyline[0])
-            cdt.Triangulate()
-            triangles = cdt.GetTriangles()
-
-            it = triangles.begin()
-            while it != triangles.end():
-                t = deref(it)
-                tris.append([t.GetPoint(0).x, t.GetPoint(0).y])
-                tris.append([t.GetPoint(1).x, t.GetPoint(1).y])
-                tris.append([t.GetPoint(2).x, t.GetPoint(2).y])
-                inc(it)
-
-            del cdt
-            del polyline
-
-        return tris
-
-    def render(self):
         vertex_format = [
             ('v_pos', 2, 'float'),
             ('v_color', 4, 'float')]
+        count = len(path) / 2
+        indices = range(count)
+        vertices = view.array(shape=(count * 6, ),
+                              itemsize=sizeof(float),
+                              format='f')
+        vindex = 0
 
+        if isinstance(fill, str):
+            g = self.gradients[fill]
+            for index in range(count):
+                x = path[index * 2]
+                y = path[index * 2 + 1]
+                clr = g.interp((x, y))
+                x, y = transform((x, y))
+                vertices[vindex] = x
+                vertices[vindex + 1] = y
+                vertices[vindex + 2] = clr[0]
+                vertices[vindex + 3] = clr[1]
+                vertices[vindex + 4] = clr[2]
+                vertices[vindex + 5] = clr[3]
+                vindex += 6
+        else:
+            for index in range(count):
+                x = path[index * 2]
+                y = path[index * 2 + 1]
+                x, y = transform((x, y))
+                vertices[vindex] = x
+                vertices[vindex + 1] = y
+                vertices[vindex + 2] = fill[0]
+                vertices[vindex + 3] = fill[1]
+                vertices[vindex + 4] = fill[2]
+                vertices[vindex + 5] = fill[3]
+                vindex += 6
+
+        return Mesh(
+            fmt=vertex_format,
+            indices=indices,
+            vertices=vertices.memview,
+            mode=mode)
+
+    def render(self):
         for path, stroke, tris, fill, transform in self.paths:
-
             if tris:
-                if isinstance(fill, str):
-                    g = self.gradients[fill]
-                    fills = [g.interp(x) for x in tris]
-                else:
-                    fills = [fill for x in tris]
-                indices = range(len(tris))
-                vertices = []
-                for vtx, clr in zip(tris, fills):
-                    vtx = transform(vtx)
-                    vertices += [vtx[0], vtx[1], clr[0], clr[1], clr[2], clr[3]]
-
-                mesh = Mesh(fmt=vertex_format,
-                    indices=indices, vertices=vertices,
-                    mode='triangles')
-
+                for item in tris:
+                    self.push_mesh(item, fill, transform, 'triangle_fan')
             if path:
-                for loop in path:
-                    loop_plus = []
-                    for i in xrange(len(loop) - 1):
-                        loop_plus += [loop[i], loop[i+1]]
-                    if isinstance(stroke, str):
-                        g = self.gradients[stroke]
-                        strokes = [g.interp(x) for x in loop_plus]
-                    else:
-                        strokes = [stroke for x in loop_plus]
-
-                    vertices = []
-                    indices = range(len(strokes))
-                    for vtx, clr in zip(loop_plus, strokes):
-                        vtx = transform(vtx)
-                        vertices += [vtx[0], vtx[1], clr[0], clr[1], clr[2], clr[3]]
-
-                    print 'add a mesh', len(indices), len(vertices)
-                    mesh = Mesh(
-                        fmt=vertex_format,
-                        indices=indices,
-                        vertices=vertices,
-                        mode='lines')
+                self.push_mesh(path, stroke, transform, 'lines')
