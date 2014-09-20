@@ -2,8 +2,25 @@
 SVG
 ===
 
-Load an SVG as a graphics instruction
+.. versionadded:: 1.8.1
+
+.. warning::
+
+    This is highly experimental and subject to change. Don't use it in
+    production.
+
+
+Load an SVG as a graphics instruction::
+
+    from kivy.graphics.svg import Svg
+    with widget.canvas:
+        svg = Svg("image.svg")
+
+There is no widget that can display Svg directly, you have to make your own for
+now. Check the `examples/svg` for more informations.
 '''
+
+__all__ = ("Svg", )
 
 include "common.pxi"
 
@@ -308,13 +325,17 @@ cdef class Matrix(object):
         if isinstance(string, str):
             if string.startswith('matrix('):
                 i = 0
-                for f in parse_list(string[7:-1]):
-                    self.mat[i] = f
+                for sf in parse_list(string[7:-1]):
+                    self.mat[i] = float(sf)
                     i += 1
             elif string.startswith('translate('):
-                self.mat[4], self.mat[5] = parse_list(string[10:-1])
+                a, b = parse_list(string[10:-1])
+                self.mat[4] = float(a)
+                self.mat[5] = float(b)
             elif string.startswith('scale('):
-                self.mat[0], self.mat[3] = parse_list(string[6:-1])
+                a, b = parse_list(string[6:-1])
+                self.mat[0] = float(a)
+                self.mat[3] = float(b)
         elif string is not None:
             i = 0
             for f in string:
@@ -371,11 +392,7 @@ class GradientContainer(dict):
             callback(val)
 
 
-cdef class Gradient(object):
-    cdef dict stops
-    cdef object element
-    cdef Matrix inv_transform
-
+class Gradient(object):
     def __init__(self, element, svg):
         self.element = element
         self.stops = {}
@@ -407,11 +424,10 @@ cdef class Gradient(object):
             self.get_params(parent)
 
     def interp(self, float x, float y):
-        cdef float t, u, v, alpha
-        cdef int n
+        cdef Matrix m = self.inv_transform
         if not self.stops:
             return [255, 0, 255, 255]
-        self.inv_transform.transform(x, y, &x, &y)
+        m.transform(x, y, &x, &y)
         t = self.grad_value(x, y)
         if t < self.stops[0][0]:
             return self.stops[0][1]
@@ -438,26 +454,24 @@ cdef class Gradient(object):
     def tardy_gradient_parsed(self, gradient):
         self.get_params(gradient)
 
-    cdef float grad_value(self, float x, float y):
-        return 0.
 
-cdef class LinearGradient(Gradient):
-    cdef float x1, x2, y1, y2
+class LinearGradient(Gradient):
     params = ['x1', 'x2', 'y1', 'y2', 'stops']
 
-    cdef float grad_value(self, float x, float y):
-        return ((x - self.x1)*(self.x2 - self.x1) + (x - self.y1)*(self.y2 - self.y1)) / ((self.x1 - self.x2)**2 + (self.y1 - self.y2)**2)
+    def grad_value(self, x, y):
+        return ((x - self.x1)*(self.x2 - self.x1) + (y - self.y1)*(self.y2 - self.y1)) / ((self.x1 - self.x2)**2 + (self.y1 - self.y2)**2)
 
 
-cdef class RadialGradient(Gradient):
-    cdef float cx, cy, r
+class RadialGradient(Gradient):
     params = ['cx', 'cy', 'r', 'stops']
 
-    cdef float grad_value(self, float x, float y):
-        return sqrt((x - self.cx) ** 2 + (x - self.cy) ** 2)/self.r
+    def grad_value(self, x, y):
+        return sqrt((x - self.cx) ** 2 + (y - self.cy) ** 2)/self.r
 
 
 cdef class Svg(RenderContext):
+    """Svg class. See module for more informations about the usage.
+    """
 
     cdef:
         public double width
@@ -484,21 +498,20 @@ cdef class Svg(RenderContext):
 
     def __init__(self, filename, anchor_x=0, anchor_y=0,
             bezier_points=BEZIER_POINTS, circle_points=CIRCLE_POINTS):
-        '''Creates an SVG object from a .svg or .svgz file.
+        '''
+        Creates an SVG object from a .svg or .svgz file.
 
-            `filename`: str
-                The name of the file to be loaded.
-            `anchor_x`: float
-                The horizontal anchor position for scaling and rotations. Defaults to 0. The symbolic
-                values 'left', 'center' and 'right' are also accepted.
-            `anchor_y`: float
-                The vertical anchor position for scaling and rotations. Defaults to 0. The symbolic
-                values 'bottom', 'center' and 'top' are also accepted.
-            `bezier_points`: int
-                The number of line segments into which to subdivide Bezier splines. Defaults to 10.
-            `circle_points`: int
-                The number of line segments into which to subdivide circular and elliptic arcs.
-                Defaults to 10.
+        :param str filename: The name of the file to be loaded.
+        :param float anchor_x: The horizontal anchor position for scaling and
+            rotations. Defaults to 0. The symbolic values 'left', 'center' and
+            'right' are also accepted.
+        :param float anchor_y: The vertical anchor position for scaling and
+            rotations. Defaults to 0. The symbolic values 'bottom', 'center' and
+            'top' are also accepted.
+        :param int bezier_points: The number of line segments into which to
+            subdivide Bezier splines. Defaults to 10.
+        :param int circle_points: The number of line segments into which to
+            subdivide circular and elliptic arcs. Defaults to 10.
         '''
 
         super(Svg, self).__init__(fs=SVG_FS, vs=SVG_VS,
@@ -521,6 +534,10 @@ cdef class Svg(RenderContext):
         self.filename = filename
 
     property anchor_x:
+        '''
+        Horizontal anchor position for scaling and rotations. Defaults to 0. The
+        symbolic values 'left', 'center' and 'right' are also accepted.
+        '''
 
         def __set__(self, anchor_x):
             self._anchor_x = anchor_x
@@ -538,6 +555,10 @@ cdef class Svg(RenderContext):
 
 
     property anchor_y:
+        '''
+        Vertical anchor position for scaling and rotations. Defaults to 0. The
+        symbolic values 'bottom', 'center' and 'top' are also accepted.
+        '''
 
         def __set__(self, anchor_y):
             self._anchor_y = anchor_y
@@ -555,6 +576,10 @@ cdef class Svg(RenderContext):
 
 
     property filename:
+        '''Filename to load.
+
+        The parsing and rendering is done as soon as you set the filename.
+        '''
         def __set__(self, filename):
             print 'loading', filename
             # check gzip
@@ -581,7 +606,7 @@ cdef class Svg(RenderContext):
             print "{}: Parsed in {:.2f}s, rendered in {:.2f}s".format(
                     filename, end1 - start, end2 - end1)
 
-    def parse_tree(self, tree):
+    cdef parse_tree(self, tree):
         root = tree._root
         self.paths = []
         self.width = parse_float(root.get('width'))
@@ -598,7 +623,7 @@ cdef class Svg(RenderContext):
         for e in root.getchildren():
             self.parse_element(e)
 
-    def parse_element(self, e):
+    cdef parse_element(self, e):
         self.fill = parse_color(e.get('fill'))
         self.stroke = parse_color(e.get('stroke'))
         oldopacity = self.opacity
@@ -711,7 +736,7 @@ cdef class Svg(RenderContext):
         self.transform = oldtransform
         self.opacity = oldopacity
 
-    def parse_path(self, pathdef):
+    cdef parse_path(self, pathdef):
         # In the SVG specs, initial movetos are absolute, even if
         # specified as 'm'. This is the default behavior here as well.
         # But if you pass in a current_pos variable, the initial moveto
@@ -901,7 +926,7 @@ cdef class Svg(RenderContext):
         self.loop.append(self.x)
         self.loop.append(self.y)
 
-    def arc_to(self, float rx, float ry, float phi, float large_arc,
+    cdef arc_to(self, float rx, float ry, float phi, float large_arc,
             float sweep, float x, float y):
         # This function is made out of magical fairy dust
         # http://www.w3.org/TR/2003/REC-SVG11-20030114/implnote.html#ArcImplementationNotes
@@ -951,7 +976,7 @@ cdef class Svg(RenderContext):
             float x, float y):
         cdef int bp_count = self.bezier_points + 1
         cdef int i, count, ilast
-        cdef float t, t0, t1, t2, t3, px, py
+        cdef float t, t0, t1, t2, t3, px = 0, py = 0
         cdef list bc
         cdef array.array loop
         cdef float* f_loop
@@ -1029,11 +1054,11 @@ cdef class Svg(RenderContext):
         vindex = 0
 
         if isinstance(fill, str):
-            g = self.gradients[fill]
+            gradient = self.gradients[fill]
             for index in range(count):
                 x = path[index * 2]
                 y = path[index * 2 + 1]
-                r, g, b, a = g.interp(x, y)
+                r, g, b, a = gradient.interp(x, y)
                 transform.transform(x, y, &x, &y)
                 vertices[vindex] = x
                 vertices[vindex + 1] = y
@@ -1063,109 +1088,6 @@ cdef class Svg(RenderContext):
         cdef Mesh mesh = Mesh(fmt=VERTEX_FORMAT, mode=mode)
         mesh.build_triangle_fan(vertices, vindex, count)
         free(vertices)
-
-    """
-    # Tentative to use smooth line, doesn't work.
-    cdef void push_line_mesh(self, float[:] path, fill, Matrix transform):
-        cdef int index, vindex
-        cdef float ax, ay, bx, by, r, g, b, a
-        cdef int count = len(path) / 2
-        cdef list indices = []
-        cdef list vertices = []
-        vindex = 0
-
-
-        # build internal smooth line
-        cdef float line_width = 0
-        cdef float line_owidth = 1.2
-        width = max(0, (line_width - 1.))
-        owidth = width + line_owidth
-
-        vertices = []
-        indices = []
-
-        if not isinstance(fill, str):
-            r, g, b, a = fill
-
-        for index in range(0, len(path) - 2, 2):
-            ax = path[index]
-            ay = path[index + 1]
-            bx = path[index + 2]
-            by = path[index + 3]
-            transform.transform(ax, ay, &ax, &ay)
-            transform.transform(bx, by, &bx, &by)
-
-            rx = bx - ax
-            ry = by - ay
-            angle = atan2(ry, rx)
-            a1 = angle - PI2
-            a2 = angle + PI2
-
-            cos1 = cos(a1) * width
-            sin1 = sin(a1) * width
-            cos2 = cos(a2) * width
-            sin2 = sin(a2) * width
-            ocos1 = cos(a1) * owidth
-            osin1 = sin(a1) * owidth
-            ocos2 = cos(a2) * owidth
-            osin2 = sin(a2) * owidth
-
-            x1 = ax + cos1
-            y1 = ay + sin1
-            x4 = ax + cos2
-            y4 = ay + sin2
-            x2 = bx + cos1
-            y2 = by + sin1
-            x3 = bx + cos2
-            y3 = by + sin2
-
-            ox1 = ax + ocos1
-            oy1 = ay + osin1
-            ox4 = ax + ocos2
-            oy4 = ay + osin2
-            ox2 = bx + ocos1
-            oy2 = by + osin1
-            ox3 = bx + ocos2
-            oy3 = by + osin2
-
-            if isinstance(fill, str):
-                g = self.gradients[fill]
-                r, g, b, a = g.interp(ax, ay)
-
-            vindex = len(vertices) / 8
-            vertices += [
-                # x, y, u, v, r, g, b, a
-                x1, y1, 0, 0, r, g, b, a,
-                x2, y2, 0, 0, r, g, b, a,
-                x3, y3, 0, 0, r, g, b, a,
-                x4, y4, 0, 0, r, g, b, a,
-                ox1, oy1, 1, 1, r, g, b, a,
-                ox2, oy2, 1, 1, r, g, b, a,
-                ox3, oy3, 1, 1, r, g, b, a,
-                ox4, oy4, 1, 1, r, g, b, a,
-            ]
-
-            indices += [vindex + i for i in (
-                0, 4, 5,
-                0, 5, 1,
-                3, 0, 1,
-                3, 1, 2,
-                7, 3, 2,
-                7, 2, 6
-            )]
-
-            if len(indices) > 65000:
-                self._push_line_mesh(vertices, indices)
-                vertices = []
-                indices = []
-
-        if indices:
-            self._push_line_mesh(vertices, indices)
-
-    cdef void _push_line_mesh(self, vertices, indices):
-        Mesh(fmt=VERTEX_FORMAT, mode='triangles',
-            vertices=vertices, indices=indices, texture=self.line_texture)
-    """
 
     cdef void render(self):
         for path, stroke, tris, fill, transform in self.paths:

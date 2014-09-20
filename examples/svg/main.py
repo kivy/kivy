@@ -10,11 +10,10 @@ from kivy.uix.floatlayout import FloatLayout
 
 class SvgWidget(Scatter):
 
-    def __init__(self, filename):
-        super(SvgWidget, self).__init__()
+    def __init__(self, filename, **kwargs):
+        super(SvgWidget, self).__init__(**kwargs)
         with self.canvas:
             svg = Svg(filename)
-
         self.size = svg.width, svg.height
 
 class SvgApp(App):
@@ -27,7 +26,7 @@ class SvgApp(App):
             filenames = glob(join(dirname(__file__), '*.svg'))
 
         for filename in filenames:
-            svg = SvgWidget(filename)
+            svg = SvgWidget(filename, size_hint=(None, None))
             self.root.add_widget(svg)
             svg.scale = 5.
             svg.center = Window.center

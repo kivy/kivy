@@ -193,7 +193,8 @@ cdef class Tesselator:
 
     @property
     def vertices(self):
-        """Iterate through the result of the :meth:`tesselate` in order to give
+        """
+        Iterate through the result of the :meth:`tesselate` in order to give
         only a list of `[x, y, x2, y2, ...]` polygons.
         """
         return self.iterate_vertices(0)
