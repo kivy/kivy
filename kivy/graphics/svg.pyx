@@ -12,6 +12,7 @@ from xml.etree.cElementTree import parse
 from kivy.graphics.instructions cimport RenderContext
 from kivy.graphics.vertex_instructions cimport Mesh
 from kivy.graphics.tesselator cimport Tesselator
+from kivy.graphics.texture cimport Texture
 from cpython cimport array
 from array import array
 from cython cimport view
@@ -26,9 +27,11 @@ cdef str SVG_FS = '''
 #endif
 
 varying vec4 vertex_color;
+varying vec2 texcoord;
+uniform sampler2D texture0;
 
 void main (void) {
-    gl_FragColor = vertex_color / 255.;
+    gl_FragColor = texture2D(texture0, texcoord) * (vertex_color / 255.);
 }
 '''
 
@@ -38,14 +41,17 @@ cdef str SVG_VS = '''
 #endif
 
 attribute vec2 v_pos;
+attribute vec2 v_tex;
 attribute vec4 v_color;
 uniform mat4 modelview_mat;
 uniform mat4 projection_mat;
 varying vec4 vertex_color;
+varying vec2 texcoord;
 
 void main (void) {
     vertex_color = v_color;
     gl_Position = projection_mat * modelview_mat * vec4(v_pos, 0.0, 1.0);
+    texcoord = v_tex;
 }
 '''
 
@@ -213,6 +219,7 @@ cdef object RE_POLYLINE = re.compile(
 
 cdef list VERTEX_FORMAT = [
     ('v_pos', 2, 'float'),
+    ('v_tex', 2, 'float'),
     ('v_color', 4, 'float')]
 
 def _tokenize_path(pathdef):
@@ -221,6 +228,11 @@ def _tokenize_path(pathdef):
             yield x
         for token in RE_FLOAT.findall(x):
             yield token
+
+cdef inline float angle(float ux, float uy, float vx, float vy):
+    a = acos((ux * vx + uy * vy) / sqrt((ux ** 2 + uy ** 2) * (vx ** 2 + vy ** 2)))
+    sgn = 1 if ux * vy > uy * vx else -1
+    return sgn * a
 
 cdef float parse_float(txt):
     if not txt:
@@ -429,6 +441,7 @@ cdef class Gradient(object):
         return 0.
 
 cdef class LinearGradient(Gradient):
+    cdef float x1, x2, y1, y2
     params = ['x1', 'x2', 'y1', 'y2', 'stops']
 
     cdef float grad_value(self, float x, float y):
@@ -436,6 +449,7 @@ cdef class LinearGradient(Gradient):
 
 
 cdef class RadialGradient(Gradient):
+    cdef float cx, cy, r
     params = ['cx', 'cy', 'r', 'stops']
 
     cdef float grad_value(self, float x, float y):
@@ -465,6 +479,7 @@ cdef class Svg(RenderContext):
         float anchor_y
         double last_cx
         double last_cy
+        Texture line_texture
 
     def __init__(self, filename, anchor_x=0, anchor_y=0,
             bezier_points=BEZIER_POINTS, circle_points=CIRCLE_POINTS):
@@ -498,7 +513,10 @@ cdef class Svg(RenderContext):
         self.gradients = GradientContainer()
         self.anchor_x = anchor_x
         self.anchor_y = anchor_y
-
+        self.line_texture = Texture.create(
+                size=(2, 1), colorfmt="rgba")
+        self.line_texture.blit_buffer(
+                b"\xff\xff\xff\xff\xff\xff\xff\x00", colorfmt="rgba")
         self.filename = filename
 
     property anchor_x:
@@ -695,7 +713,6 @@ cdef class Svg(RenderContext):
         # Reverse for easy use of .pop()
         elements.reverse()
 
-        sx = sy = None
         command = None
 
         self.new_path()
@@ -722,10 +739,6 @@ cdef class Svg(RenderContext):
                 y = float(elements.pop())
                 self.set_position(x, y, absolute)
 
-                if sx is None:
-                    sx = self.x
-                    sy = self.y
-
                 # Implicit moveto commands are treated as lineto commands.
                 # So we set command to lineto here, in case there are
                 # further implicit commands after this moveto.
@@ -733,7 +746,6 @@ cdef class Svg(RenderContext):
 
             elif command == 'Z':
                 self.close_path()
-                sx = sy = None
 
             elif command == 'L':
                 x = float(elements.pop())
@@ -879,13 +891,16 @@ cdef class Svg(RenderContext):
         else:
             self.x += x
             self.y += y
-        self.loop.append(x)
-        self.loop.append(y)
+        self.loop.append(self.x)
+        self.loop.append(self.y)
 
     def arc_to(self, float rx, float ry, float phi, float large_arc,
             float sweep, float x, float y):
         # This function is made out of magical fairy dust
         # http://www.w3.org/TR/2003/REC-SVG11-20030114/implnote.html#ArcImplementationNotes
+        cdef float x1, y1, x2, y2, cp, sp, dx, dy, x_, y_, r2, cx_, cy_, cx, cy
+        cdef float psi, delta, ct, st, theta
+        cdef int n_points, i
         x1 = self.x
         y1 = self.y
         x2 = x
@@ -906,17 +921,15 @@ cdef class Svg(RenderContext):
         cy_ = -r * ry * x_ / rx
         cx = cp * cx_ - sp * cy_ + .5 * (x1 + x2)
         cy = sp * cx_ + cp * cy_ + .5 * (y1 + y2)
-        def angle(u, v):
-            a = acos((u[0]*v[0] + u[1]*v[1]) / sqrt((u[0]**2 + u[1]**2) * (v[0]**2 + v[1]**2)))
-            sgn = 1 if u[0]*v[1] > u[1]*v[0] else -1
-            return sgn * a
 
-        psi = angle((1,0), ((x_ - cx_)/rx, (y_ - cy_)/ry))
-        delta = angle(((x_ - cx_)/rx, (y_ - cy_)/ry),
-                      ((-x_ - cx_)/rx, (-y_ - cy_)/ry))
+        psi = angle(1, 0, (x_ - cx_) / rx, (y_ - cy_) / ry)
+        delta = angle((x_ - cx_) / rx, (y_ - cy_) / ry,
+                      (-x_ - cx_) / rx, (-y_ - cy_) / ry)
         if sweep and delta < 0: delta += pi * 2
         if not sweep and delta > 0: delta -= pi * 2
-        n_points = max(int(abs(self.circle_points * delta / (2 * pi))), 1)
+        n_points = <int>fabs(self.circle_points * delta / (2 * pi))
+        if n_points < 1:
+            n_points = 1
 
         for i in xrange(n_points + 1):
             theta = psi + i * delta / n_points
@@ -927,9 +940,12 @@ cdef class Svg(RenderContext):
 
     cdef void curve_to(self, float x1, float y1, float x2, float y2,
             float x, float y):
+        cdef int i
+        cdef float t, t0, t1, t2, t3, px, py
+        cdef list bc
         if not self.bezier_coefficients:
-            for i in xrange(self.bezier_points+1):
-                t = float(i)/self.bezier_points
+            for i in range(self.bezier_points + 1):
+                t = float(i) / self.bezier_points
                 t0 = (1 - t) ** 3
                 t1 = 3 * t * (1 - t) ** 2
                 t2 = 3 * t ** 2 * (1 - t)
@@ -937,33 +953,18 @@ cdef class Svg(RenderContext):
                 self.bezier_coefficients.append([t0, t1, t2, t3])
         self.last_cx = x2
         self.last_cy = y2
-        for i, t in enumerate(self.bezier_coefficients):
-            px = t[0] * self.x + t[1] * x1 + t[2] * x2 + t[3] * x
-            py = t[0] * self.y + t[1] * y1 + t[2] * y2 + t[3] * y
+        for bc in self.bezier_coefficients:
+            t0, t1, t2, t3 = bc
+            px = t0 * self.x + t1 * x1 + t2 * x2 + t3 * x
+            py = t0 * self.y + t1 * y1 + t2 * y2 + t3 * y
             self.loop.append(px)
             self.loop.append(py)
 
         self.x, self.y = px, py
 
     cdef void end_path(self):
-        if self.loop:
+        if len(self.loop):
             self.path.append(self.loop)
-
-        """
-        path = []
-        for orig_loop in self.path:
-
-            if not orig_loop:
-                continue
-
-            loop = [orig_loop[0]]
-            for pt in orig_loop:
-                if (pt[0] - loop[-1][0]) ** 2 + (pt[1] - loop[-1][1]) ** 2 > TOLERANCE:
-                    if pt not in loop:
-                        loop.append(pt)
-            path.append(loop)
-        """
-
 
         tris = None
         cdef Tesselator tess
@@ -992,8 +993,7 @@ cdef class Svg(RenderContext):
         cdef float x, y, r, g, b, a
 
         cdef int count = len(path) / 2
-        cdef list indices = range(count)
-        v_vertices = view.array(shape=(count * 6, ),
+        v_vertices = view.array(shape=(count * 8, ),
                               itemsize=sizeof(float),
                               format='f')
         vertices = v_vertices
@@ -1008,11 +1008,13 @@ cdef class Svg(RenderContext):
                 transform.transform(x, y, &x, &y)
                 vertices[vindex] = x
                 vertices[vindex + 1] = y
-                vertices[vindex + 2] = r
-                vertices[vindex + 3] = g
-                vertices[vindex + 4] = b
-                vertices[vindex + 5] = a
-                vindex += 6
+                vertices[vindex + 2] = 0
+                vertices[vindex + 3] = 0
+                vertices[vindex + 4] = r
+                vertices[vindex + 5] = g
+                vertices[vindex + 6] = b
+                vertices[vindex + 7] = a
+                vindex += 8
         else:
             r, g, b, a = fill
             for index in range(count):
@@ -1021,14 +1023,116 @@ cdef class Svg(RenderContext):
                 transform.transform(x, y, &x, &y)
                 vertices[vindex] = x
                 vertices[vindex + 1] = y
-                vertices[vindex + 2] = r
-                vertices[vindex + 3] = g
-                vertices[vindex + 4] = b
-                vertices[vindex + 5] = a
-                vindex += 6
+                vertices[vindex + 2] = 0
+                vertices[vindex + 3] = 0
+                vertices[vindex + 4] = r
+                vertices[vindex + 5] = g
+                vertices[vindex + 6] = b
+                vertices[vindex + 7] = a
+                vindex += 8
 
         cdef Mesh mesh = Mesh(fmt=VERTEX_FORMAT, mode=mode)
         mesh.build_triangle_fan(&vertices[0], vindex, count)
+
+    def push_line_mesh(self, float[:] path, fill, Matrix transform):
+        cdef int index, vindex
+        cdef float ax, ay, bx, by, r, g, b, a
+        cdef int count = len(path) / 2
+        cdef list indices = []
+        cdef list vertices = []
+        vindex = 0
+
+
+        # build internal smooth line
+        cdef float line_width = 0
+        cdef float line_owidth = 1.2
+        width = max(0, (line_width - 1.))
+        owidth = width + line_owidth
+
+        vertices = []
+        indices = []
+
+        if not isinstance(fill, str):
+            r, g, b, a = fill
+
+        for index in range(0, len(path) - 2, 2):
+            ax = path[index]
+            ay = path[index + 1]
+            bx = path[index + 2]
+            by = path[index + 3]
+            transform.transform(ax, ay, &ax, &ay)
+            transform.transform(bx, by, &bx, &by)
+
+            rx = bx - ax
+            ry = by - ay
+            angle = atan2(ry, rx)
+            a1 = angle - PI2
+            a2 = angle + PI2
+
+            cos1 = cos(a1) * width
+            sin1 = sin(a1) * width
+            cos2 = cos(a2) * width
+            sin2 = sin(a2) * width
+            ocos1 = cos(a1) * owidth
+            osin1 = sin(a1) * owidth
+            ocos2 = cos(a2) * owidth
+            osin2 = sin(a2) * owidth
+
+            x1 = ax + cos1
+            y1 = ay + sin1
+            x4 = ax + cos2
+            y4 = ay + sin2
+            x2 = bx + cos1
+            y2 = by + sin1
+            x3 = bx + cos2
+            y3 = by + sin2
+
+            ox1 = ax + ocos1
+            oy1 = ay + osin1
+            ox4 = ax + ocos2
+            oy4 = ay + osin2
+            ox2 = bx + ocos1
+            oy2 = by + osin1
+            ox3 = bx + ocos2
+            oy3 = by + osin2
+
+            if isinstance(fill, str):
+                g = self.gradients[fill]
+                r, g, b, a = g.interp(ax, ay)
+
+            vindex = len(vertices) / 8
+            vertices += [
+                # x, y, u, v, r, g, b, a
+                x1, y1, 0, 0, r, g, b, a,
+                x2, y2, 0, 0, r, g, b, a,
+                x3, y3, 0, 0, r, g, b, a,
+                x4, y4, 0, 0, r, g, b, a,
+                ox1, oy1, 1, 1, r, g, b, a,
+                ox2, oy2, 1, 1, r, g, b, a,
+                ox3, oy3, 1, 1, r, g, b, a,
+                ox4, oy4, 1, 1, r, g, b, a,
+            ]
+
+            indices += [vindex + i for i in (
+                0, 4, 5,
+                0, 5, 1,
+                3, 0, 1,
+                3, 1, 2,
+                7, 3, 2,
+                7, 2, 6
+            )]
+
+            if len(indices) > 65000:
+                self._push_line_mesh(vertices, indices)
+                vertices = []
+                indices = []
+
+        if indices:
+            self._push_line_mesh(vertices, indices)
+
+    def _push_line_mesh(self, vertices, indices):
+        Mesh(fmt=VERTEX_FORMAT, mode='triangles',
+            vertices=vertices, indices=indices, texture=self.line_texture)
 
     def render(self):
         for path, stroke, tris, fill, transform in self.paths:
@@ -1036,4 +1140,5 @@ cdef class Svg(RenderContext):
                 for item in tris:
                     self.push_mesh(item, fill, transform, 'triangle_fan')
             if path:
-                self.push_mesh(path, stroke, transform, 'lines')
+                #self.push_mesh(path, stroke, transform, 'line_loop')
+                self.push_line_mesh(path, stroke, transform)

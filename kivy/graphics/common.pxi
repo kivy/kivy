@@ -17,6 +17,7 @@ cdef extern from "math.h":
     double pow(double x, double y) nogil
     double atan2(double y, double x) nogil
     double tan(double) nogil
+    double fabs(double) nogil
 
 cdef extern from "stdlib.h":
     ctypedef unsigned long size_t
