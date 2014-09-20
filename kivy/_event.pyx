@@ -615,8 +615,10 @@ cdef class EventDispatcher(ObjectWithUid):
         '''
         return partial(self.__proxy_getter, self, name)
 
-    def property(self, name):
-        '''Get a property instance from the name.
+    def property(self, name, quiet=False):
+        '''Get a property instance from the property name. If quiet is True,
+        None is returned instead of raising an exception when `name` is not a
+        property. Defaults to `False`.
 
         .. versionadded:: 1.0.9
 
@@ -624,8 +626,14 @@ cdef class EventDispatcher(ObjectWithUid):
 
             A :class:`~kivy.properties.Property` derived instance
             corresponding to the name.
+
+        .. versionchanged:: 1.8.1
+            quiet was added.
         '''
-        return self.__properties[name]
+        if quiet:
+            return self.__properties.get(name, None)
+        else:
+            return self.__properties[name]
 
     cpdef dict properties(EventDispatcher self):
         '''Return all the properties in the class in a dictionary of
