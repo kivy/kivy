@@ -62,6 +62,7 @@ __all__ = ("Tesselator", "WINDING_ODD", "WINDING_NONZERO", "WINDING_POSITIVE",
            "WINDING_NEGATIVE", "TYPE_POLYGONS", "TYPE_BOUNDARY_CONTOURS")
 
 include "common.pxi"
+cimport cython
 cimport cpython.array
 from array import array
 from cython cimport view
@@ -150,7 +151,7 @@ cdef class Tesselator:
         datasize = float_view.nbytes
         self.add_contour_data(cdata, len(points) / 2)
 
-    def tesselate(
+    cpdef int tesselate(
             self, int winding_rule=WINDING_ODD,
             int element_type=TYPE_POLYGONS, int polysize=65535):
         """
@@ -164,16 +165,15 @@ cdef class Tesselator:
         :param enum element_type: The result type, you can generate the
             polygons with TYPE_POLYGONS, or the contours with
             TYPE_BOUNDARY_CONTOURS. Defaults to TYPE_POLYGONS.
-        :return: True if the tesselation happenned, False otherwise.
-        :rtype: bool
+        :return: 1 if the tesselation happenned, 0 otherwise.
+        :rtype: int
 
         """
 
         self.element_type = element_type
         self.polysize = polysize
-        ret = tessTesselate(<TESStesselator *>self.tess, winding_rule, element_type,
+        return tessTesselate(<TESStesselator *>self.tess, winding_rule, element_type,
                             polysize, 2, NULL)
-        return bool(ret)
 
     @property
     def vertex_count(self):
@@ -226,6 +226,7 @@ cdef class Tesselator:
     cdef void add_contour_data(self, void *cdata, int count):
         tessAddContour(<TESStesselator *>self.tess, 2, <void *>cdata, sizeof(float) * 2, count)
 
+    @cython.boundscheck(False)
     cdef iterate_vertices(self, int mode):
         # mode 0: returns for .vertices
         # mode 1: returns for .meshes
@@ -235,6 +236,7 @@ cdef class Tesselator:
         cdef int *elems
         cdef float *verts = <float *>tessGetVertices(<TESStesselator *>self.tess)
         cdef view.array mesh
+        cdef float[:] f_mesh
         ret = []
         if self.element_type == TYPE_POLYGONS:
             nelems = tessGetElementCount(<TESStesselator *>self.tess)
@@ -257,9 +259,10 @@ cdef class Tesselator:
                     # only x/y per polygon
                     mesh = view.array(shape=(count * 2, ),
                                       itemsize=sizeof(float), format="f")
+                    f_mesh = mesh
                     for j in range(count):
-                        mesh[j * 2] = verts[poly[j] * 2]
-                        mesh[j * 2 + 1] = verts[poly[j] * 2 + 1]
+                        f_mesh[j * 2] = verts[poly[j] * 2]
+                        f_mesh[j * 2 + 1] = verts[poly[j] * 2 + 1]
                     ret.append(mesh.memview)
 
                 elif mode == 1:
@@ -267,9 +270,10 @@ cdef class Tesselator:
                     # x, y, u, v
                     mesh = view.array(shape=(count * 4, ),
                                       itemsize=sizeof(float), format="f")
+                    f_mesh = mesh
                     for j in range(count):
-                        mesh[j * 4] = mesh[j * 4 + 2] = verts[poly[j] * 2]
-                        mesh[j * 4 + 1] = mesh[j * 4 + 3] = verts[poly[j] * 2 + 1]
+                        f_mesh[j * 4] = f_mesh[j * 4 + 2] = verts[poly[j] * 2]
+                        f_mesh[j * 4 + 1] = f_mesh[j * 4 + 3] = verts[poly[j] * 2 + 1]
                     ret.append((mesh.memview, range(count)))
 
                 else:
