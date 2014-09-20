@@ -756,7 +756,7 @@ from kivy.compat import PY2, iteritems, iterkeys
 from kivy.context import register_context
 from kivy.resources import resource_find
 import kivy.metrics as Metrics
-from kivy._event import Observable
+from kivy._event import Observable, EventDispatcher
 
 
 trace = Logger.trace
@@ -1410,7 +1410,8 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
     exec(__kvlang__.co_value, idmap)
 
 
-def call_fn(element, key, value, rule, idmap, instance, v):
+def call_fn(args, instance, v):
+    element, key, value, rule, idmap = args
     if __debug__:
         trace('Builder: call_fn %s, key=%s, value=%r, %r' % (
             element, key, value, rule.value))
@@ -1421,8 +1422,8 @@ def call_fn(element, key, value, rule, idmap, instance, v):
     setattr(element, key, e_value)
 
 
-def delayed_call_fn(element, key, value, rule, idmap, hhash, instance, v):
-    _delayed_calls[hhash] = (element, key, value, rule, idmap)
+def delayed_call_fn(args, hhash, instance, v):
+    _delayed_calls[hash] = args
 
 
 def update_intermediates(base, keys, bound, s, fn, args, instance, value):
@@ -1461,9 +1462,8 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
         `fn`
             The function to be called args, `args` on bound callback.
     '''
-    # first remove all the old bound functions from `i` and down.
-    i = s or 1
-    j = i - 1
+    # first remove all the old bound functions from `s` and down.
+    j = s - 1
     for f, k, fun, largs in bound[j:]:
         if fun is None:
             continue
@@ -1480,105 +1480,96 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
         f = base
     append = bound.append
 
-    try:
-        # bind all attrs, except last to update_intermediates
-        k = i
-        for val in keys[i:-1]:
-            is_ev = isinstance(f, Observable)
-            try:
-                # if we need to dynamically rebind, bindm otherwise just
-                # add the attr to the list
-                if is_ev and f.property(val).rebind:
-                    append([f.proxy_ref, val, update_intermediates,
-                            (base, keys, bound, k, fn, args)])
-                    f.fast_bind(val, update_intermediates, base, keys, bound,
-                                k, fn, args)
-                    # during the bind, the watched keys could have changed
-                    # value, calling update_intermediates and changing
-                    # the last attr, so we have to read the last attr again
-                    f = bound[-1][0]
-                else:
-                    append([f.proxy_ref if is_ev else f, val, None, ()])
-            except (KeyError, AttributeError):  # in case property is not kivy
+    # bind all attrs, except last to update_intermediates
+    for k, val in enumerate(keys[s:-1], start=s):
+        # if we need to dynamically rebind, bindm otherwise just
+        # add the attr to the list
+        if isinstance(f, (EventDispatcher, Observable)):
+            prop = f.property(val, True)
+            if prop is not None and getattr(prop, 'rebind', False):
+                # fast_bind should not dispatch, otherwise
+                # update_intermediates might be called in the middle
+                # here messing things up
+                f.fast_bind(val, update_intermediates, base, keys, bound, k,
+                            fn, args)
+                append([f.proxy_ref, val, update_intermediates,
+                        (base, keys, bound, k, fn, args)])
+            else:
                 append([f.proxy_ref, val, None, ()])
-            f = getattr(f, val)
-            k += 1
-        # for the last attr we bind directly to the setting function,
-        # because that attr sets the value of the rule.
-        if isinstance(f, Observable):
-            f.fast_bind(keys[-1], fn, *args)
+        else:
+            append([getattr(f, 'proxy_ref', f), val, None, ()])
+
+        f = getattr(f, val, None)
+        if f is None:
+            break
+
+    # for the last attr we bind directly to the setting function,
+    # because that attr sets the value of the rule.
+    if isinstance(f, (EventDispatcher, Observable)):
+        if f.fast_bind(keys[-1], fn, *args):
             append([f.proxy_ref, keys[-1], fn, args])
-    except (KeyError, AttributeError, ReferenceError):
-        pass
-    # except for the initial binding, when we rebind we have to update the
+    # when we rebind we have to update the
     # rule with the most recent value, otherwise, the value might be wrong
     # and wouldn't be updated since we might not have tracked it before.
     # This only happens for a callback when rebind was True for the prop.
-    if s is not None:
-        fn(*args + (None, None))
+    fn(*args + (None, None))
 
 
 def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     idmap = copy(idmap)
     idmap.update(global_idmap)
     idmap['self'] = iself.proxy_ref
+    handler_append = _handlers[iself.uid].append
 
     # we need a hash for when delayed, so we don't execute duplicate canvas
     # callbacks from the same handler during a sync op
     if delayed:
         fn = delayed_call_fn
-        handler_hash = element.uid, key, value, rule
-        args = element, key, value, rule, idmap, handler_hash
+        args = (element, key, value, rule,
+                idmap), (element.uid, key, value, rule)
     else:
         fn = call_fn
-        args = element, key, value, rule, idmap
+        args = (element, key, value, rule, idmap),
 
     # bind every key.value
     if rule.watched_keys is not None:
         for keys in rule.watched_keys:
-            try:
-                bound = []
-                f = base = idmap[keys[0]].proxy_ref
-                append = bound.append
+            bound = []
+            was_bound = False
+            f = base = idmap[keys[0]].proxy_ref
+            append = bound.append
 
-                try:
-                    # bind all attrs, except last to update_intermediates
-                    for k, val in enumerate(keys[1:-1], start=1):
-                        is_ev = isinstance(f, Observable)
-                        try:
-                            # if we need to dynamically rebind, bindm otherwise
-                            # just add the attr to the list
-                            if is_ev and f.property(val).rebind:
-                                append([f.proxy_ref, val, update_intermediates,
-                                        (base, keys, bound, k, fn, args)])
-                                f.fast_bind(val, update_intermediates, base,
-                                            keys, bound, k, fn, args)
-                                # during the bind, the watched keys could have
-                                # changed value, calling update_intermediates
-                                # and changing the last attr, so we have to
-                                # read the last attr again
-                                f = bound[-1][0]
-                            else:
-                                append([f.proxy_ref if is_ev else f, val, None,
-                                        ()])
-                        except (KeyError, AttributeError):
-                            # in case property is not kivy
-                            append([f.proxy_ref, val, None, ()])
-                        f = getattr(f, val)
-                    # for the last attr we bind directly to the setting
-                    # function, because that attr sets the value of the rule.
-                    if isinstance(f, Observable):
-                        f.fast_bind(keys[-1], fn, *args)
-                        append([f.proxy_ref, keys[-1], fn, args])
-                except (KeyError, AttributeError, ReferenceError):
-                    pass
-                # even if it's empty now, in the future, through dynamic
-                # rebinding it might have things.
-                _handlers[iself.uid].append(bound)
-            except KeyError:
-                continue
-            except AttributeError:
-                continue
+            # bind all attrs, except last to update_intermediates
+            for k, val in enumerate(keys[1:-1], start=1):
+                # if we need to dynamically rebind, bindm otherwise
+                # just add the attr to the list
+                if isinstance(f, (EventDispatcher, Observable)):
+                    prop = f.property(val, True)
+                    if prop is not None and getattr(prop, 'rebind', False):
+                        # fast_bind should not dispatch, otherwise
+                        # update_intermediates might be called in the middle
+                        # here messing things up
+                        f.fast_bind(val, update_intermediates, base, keys,
+                                    bound, k, fn, args)
+                        append([f.proxy_ref, val, update_intermediates,
+                                (base, keys, bound, k, fn, args)])
+                        was_bound = True
+                    else:
+                        append([f.proxy_ref, val, None, ()])
+                else:
+                    append([getattr(f, 'proxy_ref', f), val, None, ()])
+                f = getattr(f, val, None)
+                if f is None:
+                    break
+
+            # for the last attr we bind directly to the setting
+            # function, because that attr sets the value of the rule.
+            if isinstance(f, (EventDispatcher, Observable)):
+                if f.fast_bind(keys[-1], fn, *args):  # f is not None
+                    append([f.proxy_ref, keys[-1], fn, args])
+                    was_bound = True
+            if was_bound:
+                handler_append(bound)
 
     try:
         return eval(value, idmap)
@@ -2002,7 +1993,7 @@ class BuilderBase(object):
         for args in l:
             # is this try/except still needed?
             try:
-                call_fn(*args + (None, None))
+                call_fn(args, None, None)
             except ReferenceError:
                 continue
 
