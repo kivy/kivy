@@ -552,7 +552,7 @@ cdef class EventDispatcher(ObjectWithUid):
             # dispatch callback from a fast bind
             else:
                 args = item[1]
-                args_list = args + largs  # largs goes at the end
+                args_list = args + (self, ) + largs  # largs goes at the end
                 if item[0](*args_list, **kwargs):
                     return True
 
