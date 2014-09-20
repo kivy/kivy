@@ -303,7 +303,10 @@ cdef class Mesh(VertexInstruction):
         self.indices = v if v is not None else []
         fmt = kwargs.get('fmt')
         if fmt is not None:
-            self.vertex_format = VertexFormat(*fmt)
+            if isinstance(fmt, VertexFormat):
+                self.vertex_format = fmt
+            else:
+                self.vertex_format = VertexFormat(*fmt)
             vbo = VBO(self.vertex_format)
             self.batch = VertexBatch(vbo=vbo)
         self.mode = kwargs.get('mode') or 'points'

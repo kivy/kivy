@@ -31,6 +31,7 @@ from kivy.graphics.instructions cimport RenderContext
 from kivy.graphics.vertex_instructions cimport Mesh
 from kivy.graphics.tesselator cimport Tesselator
 from kivy.graphics.texture cimport Texture
+from kivy.graphics.vertex cimport VertexFormat
 from cpython cimport array
 from array import array
 from cython cimport view
@@ -235,10 +236,10 @@ cdef object RE_FLOAT = re.compile(
 cdef object RE_POLYLINE = re.compile(
     r'(-?[0-9]+\.?[0-9]*(?:e-?[0-9]*)?)')
 
-cdef list VERTEX_FORMAT = [
+cdef VertexFormat VERTEX_FORMAT = VertexFormat(
     ('v_pos', 2, 'float'),
     ('v_tex', 2, 'float'),
-    ('v_color', 4, 'float')]
+    ('v_color', 4, 'float'))
 
 def _tokenize_path(pathdef):
     for x in RE_COMMAND.split(pathdef):
