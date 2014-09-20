@@ -702,3 +702,10 @@ cdef class EventDispatcher(ObjectWithUid):
         prop.link_deps(self, name)
         self.__properties[name] = prop
         setattr(self.__class__, name, prop)
+
+    property proxy_ref:
+        '''Default implementation of proxy_ref, returns self.
+        ..versionadded:: 1.8.1
+        '''
+        def __get__(self):
+            return self
