@@ -9,7 +9,7 @@ if "PROFILE" in os.environ:
     import pstats, cProfile
     cProfile.runctx("Svg(filename)", globals(), locals(), "Profile.prof")
     s = pstats.Stats("Profile.prof")
-    s.strip_dirs().sort_stats("time").print_callers()
+    s.sort_stats("time").print_callers()
 else:
     print("Loading {}".format(filename))
     start = time()

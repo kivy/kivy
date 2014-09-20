@@ -8,6 +8,7 @@ Load an SVG as a graphics instruction
 include "common.pxi"
 
 import re
+cimport cython
 from xml.etree.cElementTree import parse
 from kivy.graphics.instructions cimport RenderContext
 from kivy.graphics.vertex_instructions cimport Mesh
@@ -474,7 +475,7 @@ cdef class Svg(RenderContext):
         int bezier_points
         int circle_points
         public object gradients
-        list bezier_coefficients
+        view.array bezier_coefficients
         float anchor_x
         float anchor_y
         double last_cx
@@ -509,7 +510,7 @@ cdef class Svg(RenderContext):
         self.height = 0
         self.bezier_points = bezier_points
         self.circle_points = circle_points
-        self.bezier_coefficients = []
+        self.bezier_coefficients = None
         self.gradients = GradientContainer()
         self.anchor_x = anchor_x
         self.anchor_y = anchor_y
@@ -570,9 +571,15 @@ cdef class Svg(RenderContext):
                 fd.close()
 
             # parse tree
+            from time import time
+            start = time()
             self.parse_tree(tree)
+            end1 = time()
             with self:
                 self.render()
+            end2 = time()
+            print "{}: Parsed in {:.2f}s, rendered in {:.2f}s".format(
+                    filename, end1 - start, end2 - end1)
 
     def parse_tree(self, tree):
         root = tree._root
@@ -938,27 +945,50 @@ cdef class Svg(RenderContext):
             self.set_position(cp * rx * ct - sp * ry * st + cx,
                     sp * rx * ct + cp * ry * st + cy)
 
+
+    @cython.boundscheck(False)
     cdef void curve_to(self, float x1, float y1, float x2, float y2,
             float x, float y):
-        cdef int i
+        cdef int bp_count = self.bezier_points + 1
+        cdef int i, count, ilast
         cdef float t, t0, t1, t2, t3, px, py
         cdef list bc
-        if not self.bezier_coefficients:
-            for i in range(self.bezier_points + 1):
+        cdef array.array loop
+        cdef float* f_loop
+        cdef float[:] f_bc
+
+        if self.bezier_coefficients is None:
+            self.bezier_coefficients = view.array(
+                    shape=(bp_count * 4, ),
+                    itemsize=sizeof(float),
+                    format="f")
+            f_bc = self.bezier_coefficients
+            for i in range(bp_count):
                 t = float(i) / self.bezier_points
                 t0 = (1 - t) ** 3
                 t1 = 3 * t * (1 - t) ** 2
                 t2 = 3 * t ** 2 * (1 - t)
                 t3 = t ** 3
-                self.bezier_coefficients.append([t0, t1, t2, t3])
+                f_bc[i * 4] = t0
+                f_bc[i * 4 + 1] = t1
+                f_bc[i * 4 + 2] = t2
+                f_bc[i * 4 + 3] = t3
+        else:
+            f_bc = self.bezier_coefficients
+
         self.last_cx = x2
         self.last_cy = y2
-        for bc in self.bezier_coefficients:
-            t0, t1, t2, t3 = bc
-            px = t0 * self.x + t1 * x1 + t2 * x2 + t3 * x
-            py = t0 * self.y + t1 * y1 + t2 * y2 + t3 * y
-            self.loop.append(px)
-            self.loop.append(py)
+        count = bp_count * 2
+        ilast = len(self.loop)
+        array.resize(self.loop, ilast + count)
+        f_loop = self.loop.data.as_floats
+        for i in range(bp_count):
+            t0 = f_bc[i * 4]
+            t1 = f_bc[i * 4 + 1]
+            t2 = f_bc[i * 4 + 2]
+            t3 = f_bc[i * 4 + 3]
+            f_loop[ilast + i * 2] = px = t0 * self.x + t1 * x1 + t2 * x2 + t3 * x
+            f_loop[ilast + i * 2 + 1] = py = t0 * self.y + t1 * y1 + t2 * y2 + t3 * y
 
         self.x, self.y = px, py
 
@@ -985,18 +1015,17 @@ cdef class Svg(RenderContext):
 
         self.path = []
 
-    def push_mesh(self, float[:] path, fill, Matrix transform, mode):
-        cdef view.array v_vertices
-        cdef float[:] vertices
+    @cython.boundscheck(False)
+    cdef void push_mesh(self, float[:] path, fill, Matrix transform, mode):
+        cdef float *vertices
         cdef int index, vindex
         cdef float *f_tris
         cdef float x, y, r, g, b, a
 
         cdef int count = len(path) / 2
-        v_vertices = view.array(shape=(count * 8, ),
-                              itemsize=sizeof(float),
-                              format='f')
-        vertices = v_vertices
+        vertices = <float *>malloc(sizeof(float) * count * 8)
+        if vertices == NULL:
+            return
         vindex = 0
 
         if isinstance(fill, str):
@@ -1032,9 +1061,12 @@ cdef class Svg(RenderContext):
                 vindex += 8
 
         cdef Mesh mesh = Mesh(fmt=VERTEX_FORMAT, mode=mode)
-        mesh.build_triangle_fan(&vertices[0], vindex, count)
+        mesh.build_triangle_fan(vertices, vindex, count)
+        free(vertices)
 
-    def push_line_mesh(self, float[:] path, fill, Matrix transform):
+    """
+    # Tentative to use smooth line, doesn't work.
+    cdef void push_line_mesh(self, float[:] path, fill, Matrix transform):
         cdef int index, vindex
         cdef float ax, ay, bx, by, r, g, b, a
         cdef int count = len(path) / 2
@@ -1130,15 +1162,16 @@ cdef class Svg(RenderContext):
         if indices:
             self._push_line_mesh(vertices, indices)
 
-    def _push_line_mesh(self, vertices, indices):
+    cdef void _push_line_mesh(self, vertices, indices):
         Mesh(fmt=VERTEX_FORMAT, mode='triangles',
             vertices=vertices, indices=indices, texture=self.line_texture)
+    """
 
-    def render(self):
+    cdef void render(self):
         for path, stroke, tris, fill, transform in self.paths:
             if tris:
                 for item in tris:
                     self.push_mesh(item, fill, transform, 'triangle_fan')
             if path:
-                #self.push_mesh(path, stroke, transform, 'line_loop')
-                self.push_line_mesh(path, stroke, transform)
+                self.push_mesh(path, stroke, transform, 'line_loop')
+                #self.push_line_mesh(path, stroke, transform)
