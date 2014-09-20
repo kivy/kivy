@@ -777,8 +777,6 @@ lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 lang_tr = re.compile('(_\()')
 
-# delayed calls are canvas expression triggered during an loop
-_delayed_calls = {}
 
 # all the widget handlers, used to correctly unbind all the callbacks then the
 # widget is deleted
@@ -838,6 +836,13 @@ global_idmap['cm'] = Metrics.cm
 global_idmap['mm'] = Metrics.mm
 global_idmap['dp'] = Metrics.dp
 global_idmap['sp'] = Metrics.sp
+
+
+# delayed calls are canvas expression triggered during an loop. It is one
+# directional linked list of args to call call_fn with. Each element is a list
+# whos last element points to the next list of args to execute when
+# Builder.sync is called.
+_delayed_start = None
 
 
 class ParserException(Exception):
@@ -1422,8 +1427,18 @@ def call_fn(args, instance, v):
     setattr(element, key, e_value)
 
 
-def delayed_call_fn(args, hhash, instance, v):
-    _delayed_calls[hash] = args
+def delayed_call_fn(args, instance, v):
+    # it's already on the list
+    if args[-1] is not None:
+        return
+
+    global _delayed_start
+    if _delayed_start is None:
+        _delayed_start = args
+        args[-1] = StopIteration
+    else:
+        args[-1] = _delayed_start
+        _delayed_start = args
 
 
 def update_intermediates(base, keys, bound, s, fn, args, instance, value):
@@ -1506,13 +1521,13 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     # for the last attr we bind directly to the setting function,
     # because that attr sets the value of the rule.
     if isinstance(f, (EventDispatcher, Observable)):
-        if f.fast_bind(keys[-1], fn, *args):
-            append([f.proxy_ref, keys[-1], fn, args])
+        if f.fast_bind(keys[-1], fn, args):
+            append([f.proxy_ref, keys[-1], fn, (args, )])
     # when we rebind we have to update the
     # rule with the most recent value, otherwise, the value might be wrong
     # and wouldn't be updated since we might not have tracked it before.
     # This only happens for a callback when rebind was True for the prop.
-    fn(*args + (None, None))
+    fn(args, None, None)
 
 
 def create_handler(iself, element, key, value, rule, idmap, delayed=False):
@@ -1525,11 +1540,10 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     # callbacks from the same handler during a sync op
     if delayed:
         fn = delayed_call_fn
-        args = (element, key, value, rule,
-                idmap), (element.uid, key, value, rule)
+        args = [element, key, value, rule, idmap, None]  # see _delayed_start
     else:
         fn = call_fn
-        args = (element, key, value, rule, idmap),
+        args = (element, key, value, rule, idmap)
 
     # bind every key.value
     if rule.watched_keys is not None:
@@ -1568,8 +1582,8 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
             # for the last attr we bind directly to the setting
             # function, because that attr sets the value of the rule.
             if isinstance(f, (EventDispatcher, Observable)):
-                if f.fast_bind(keys[-1], fn, *args):  # f is not None
-                    append([f.proxy_ref, keys[-1], fn, args])
+                if f.fast_bind(keys[-1], fn, args):  # f is not None
+                    append([f.proxy_ref, keys[-1], fn, (args, )])
                     was_bound = True
             if was_bound:
                 handler_append(bound)
@@ -1993,14 +2007,22 @@ class BuilderBase(object):
 
         .. versionadded:: 1.7.0
         '''
-        l = _delayed_calls.values()
-        _delayed_calls.clear()
-        for args in l:
-            # is this try/except still needed?
+        global _delayed_start
+        next_args = _delayed_start
+        if next_args is None:
+            return
+
+        while next_args is not StopIteration:
+            # is this try/except still needed? yes, in case widget died in this
+            # frame after the call was scheduled
             try:
-                call_fn(args, None, None)
+                call_fn(next_args[:-1], None, None)
             except ReferenceError:
-                continue
+                pass
+            args = next_args
+            next_args = args[-1]
+            args[-1] = None
+        _delayed_start = None
 
     def unbind_widget(self, uid):
         '''(internal) Unbind all the handlers created by the rules of the
