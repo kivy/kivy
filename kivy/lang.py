@@ -1954,7 +1954,9 @@ class BuilderBase(object):
                     idmap = copy(global_idmap)
                     idmap.update(rctx['ids'])
                     idmap['self'] = widget_set.proxy_ref
-                    widget_set.fast_bind(key, custom_callback, crule, idmap)
+                    if not widget_set.fast_bind(key, custom_callback, crule,
+                                                idmap):
+                        raise AttributeError(key)
                     #hack for on_parent
                     if crule.name == 'on_parent':
                         Factory.Widget.parent.dispatch(widget_set.__self__)
