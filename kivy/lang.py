@@ -1534,9 +1534,12 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     # bind every key.value
     if rule.watched_keys is not None:
         for keys in rule.watched_keys:
+            base = idmap.get(keys[0])
+            if base is None:
+                continue
+            f = base = getattr(base, 'proxy_ref', base)
             bound = []
             was_bound = False
-            f = base = idmap[keys[0]].proxy_ref
             append = bound.append
 
             # bind all attrs, except last to update_intermediates
