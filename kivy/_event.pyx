@@ -407,14 +407,18 @@ cdef class EventDispatcher(ObjectWithUid):
         internally and it performs less error checking. It can be used
         externally, as long as the following warnings are heeded.
 
-        Compared to :meth:`bind`, it does not check that the name is valid,
-        or that this function and args has not been bound before to this
-        name. It is assumed that the combination of function + positional args
-        has not been bound to this name before.
+        As opposed to :meth:`bind`, it does not check that this function and
+        args has not been bound before to this name. It is assumed that the
+        combination of function + positional args has not been bound to this
+        name before.
 
         In addition, although :meth:`bind` creates a :class:`WeakMethod` for
         the callback function, this method stores the function directly,
         without any proxying.
+
+        Finally, this method returns True if `name` was found and bound, and
+        `False`, otherwise. It does not raise an exception, like :meth:`bind`,
+        if `name` is not found.
 
         Anything bound with this method, must be unbound with
         :meth:`fast_unbind`; :meth:`unbind` will not unbind it.
@@ -440,12 +444,20 @@ cdef class EventDispatcher(ObjectWithUid):
         '''
         cdef PropertyStorage ps
         cdef tuple handler = (func, largs)
+        cdef list elems
 
         if name[:3] == 'on_':
-            self.__event_stack[name].append(handler)
+            elems = self.__event_stack.get(name)
+            if elems is not None:
+                elems.append(handler)
+                return True
+            return False
         else:
-            ps = self.__storage[name]
+            ps = self.__storage.get(name)
+            if ps is None:
+                return False
             ps.observers.append(handler)
+            return True
 
     def fast_unbind(self, name, func, *largs):
         '''Similar to :meth:`fast_bind`.
