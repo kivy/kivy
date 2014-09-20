@@ -163,6 +163,16 @@ class ToggleButtonBehavior(ButtonBehavior):
     :attr:`group` is a :class:`~kivy.properties.ObjectProperty`
     '''
 
+    allow_no_selection = BooleanProperty(True)
+    '''This specifies whether the checkbox in group allows everything to
+    be deselected.
+
+    ..versionadded::1.9.0
+
+    :attr:`allow_no_selection` is a :class:`BooleanProperty` defaults to
+    `True`
+    '''
+
     def __init__(self, **kwargs):
         self._previous_group = None
         super(ToggleButtonBehavior, self).__init__(**kwargs)
@@ -194,6 +204,9 @@ class ToggleButtonBehavior(ButtonBehavior):
             widget.state = 'normal'
 
     def _do_press(self):
+        if (not self.allow_no_selection and 
+            self.group and self.state == 'down'):
+            return
         self._release_group(self)
         self.state = 'normal' if self.state == 'down' else 'down'
 
