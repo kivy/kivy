@@ -45,8 +45,6 @@ cdef class Context:
         self.observers_before = []
         self.l_texture = []
         self.l_canvas = []
-        self.l_vbo = []
-        self.l_vertexbatch = []
         self.l_shader = []
         self.l_fbo = []
         self.flush()
@@ -66,12 +64,6 @@ cdef class Context:
 
     cdef void register_canvas(self, Canvas canvas):
         self.l_canvas.append(ref(canvas, self.l_canvas.remove))
-
-    cdef void register_vbo(self, VBO vbo):
-        self.l_vbo.append(ref(vbo, self.l_vbo.remove))
-
-    cdef void register_vertexbatch(self, VertexBatch vb):
-        self.l_vertexbatch.append(ref(vb, self.l_vertexbatch.remove))
 
     cdef void register_shader(self, Shader shader):
         self.l_shader.append(ref(shader, self.l_shader.remove))
@@ -239,16 +231,17 @@ cdef class Context:
         image_objects.update(Cache._objects['kv.image'])
         Cache._objects['kv.image'] = image_objects
 
+        gc_objects = gc.get_objects()[:]
         Logger.debug('Context: Reload vbos')
-        for item in self.l_vbo[:]:
-            vbo = item()
-            if vbo is not None:
+        for item in gc_objects:
+            if isinstance(item, VBO):
+                vbo = item
                 Logger.trace('Context: reloaded %r' % item())
                 vbo.reload()
         Logger.debug('Context: Reload vertex batchs')
-        for item in self.l_vertexbatch[:]:
-            batch = item()
-            if batch is not None:
+        for item in gc_objects:
+            if isinstance(item, VertexBatch):
+                batch = item
                 Logger.trace('Context: reloaded %r' % item())
                 batch.reload()
         Logger.debug('Context: Reload shaders')
