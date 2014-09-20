@@ -10,7 +10,7 @@ include "common.pxi"
 import re
 from xml.etree.cElementTree import parse
 from kivy.graphics.instructions cimport RenderContext
-from kivy.graphics.vertex_instructions import Mesh
+from kivy.graphics.vertex_instructions cimport Mesh
 from kivy.graphics.tesselator cimport Tesselator
 from cpython cimport array
 from array import array
@@ -211,6 +211,9 @@ cdef object RE_FLOAT = re.compile(
 cdef object RE_POLYLINE = re.compile(
     r'(-?[0-9]+\.?[0-9]*(?:e-?[0-9]*)?)')
 
+cdef list VERTEX_FORMAT = [
+    ('v_pos', 2, 'float'),
+    ('v_color', 4, 'float')]
 
 def _tokenize_path(pathdef):
     for x in RE_COMMAND.split(pathdef):
@@ -355,7 +358,11 @@ class GradientContainer(dict):
             callback(val)
 
 
-class Gradient(object):
+cdef class Gradient(object):
+    cdef dict stops
+    cdef object element
+    cdef Matrix inv_transform
+
     def __init__(self, element, svg):
         self.element = element
         self.stops = {}
@@ -386,9 +393,13 @@ class Gradient(object):
         if not delay_params:
             self.get_params(parent)
 
-    def interp(self, pt):
-        if not self.stops: return [255, 0, 255, 255]
-        t = self.grad_value(self.inv_transform(pt))
+    def interp(self, float x, float y):
+        cdef float t, u, v, alpha
+        cdef int n
+        if not self.stops:
+            return [255, 0, 255, 255]
+        self.inv_transform.transform(x, y, &x, &y)
+        t = self.grad_value(x, y)
         if t < self.stops[0][0]:
             return self.stops[0][1]
         for n, top in enumerate(self.stops[1:]):
@@ -397,7 +408,7 @@ class Gradient(object):
                 u = bottom[0]
                 v = top[0]
                 alpha = (t - u)/(v - u)
-                return [int(x[0] * (1 - alpha) + x[1] * alpha) for x in zip(bottom[1], top[1])]
+                return [int(item[0] * (1 - alpha) + item[1] * alpha) for item in zip(bottom[1], top[1])]
         return self.stops[-1][1]
 
     def get_params(self, parent):
@@ -414,19 +425,21 @@ class Gradient(object):
     def tardy_gradient_parsed(self, gradient):
         self.get_params(gradient)
 
+    cdef float grad_value(self, float x, float y):
+        return 0.
 
-class LinearGradient(Gradient):
+cdef class LinearGradient(Gradient):
     params = ['x1', 'x2', 'y1', 'y2', 'stops']
 
-    def grad_value(self, pt):
-        return ((pt[0] - self.x1)*(self.x2 - self.x1) + (pt[1] - self.y1)*(self.y2 - self.y1)) / ((self.x1 - self.x2)**2 + (self.y1 - self.y2)**2)
+    cdef float grad_value(self, float x, float y):
+        return ((x - self.x1)*(self.x2 - self.x1) + (x - self.y1)*(self.y2 - self.y1)) / ((self.x1 - self.x2)**2 + (self.y1 - self.y2)**2)
 
 
-class RadialGradient(Gradient):
+cdef class RadialGradient(Gradient):
     params = ['cx', 'cy', 'r', 'stops']
 
-    def grad_value(self, pt):
-        return sqrt((pt[0] - self.cx) ** 2 + (pt[1] - self.cy) ** 2)/self.r
+    cdef float grad_value(self, float x, float y):
+        return sqrt((x - self.cx) ** 2 + (x - self.cy) ** 2)/self.r
 
 
 cdef class Svg(RenderContext):
@@ -971,20 +984,19 @@ cdef class Svg(RenderContext):
 
         self.path = []
 
-    def push_mesh(self, path, fill, Matrix transform, mode):
-        cdef view.array vertices
-        cdef int count, index, vindex
+    def push_mesh(self, float[:] path, fill, Matrix transform, mode):
+        cdef view.array v_vertices
+        cdef float[:] vertices
+        cdef int index, vindex
         cdef float *f_tris
-        cdef float x, y
+        cdef float x, y, r, g, b, a
 
-        vertex_format = [
-            ('v_pos', 2, 'float'),
-            ('v_color', 4, 'float')]
-        count = len(path) / 2
-        indices = range(count)
-        vertices = view.array(shape=(count * 6, ),
+        cdef int count = len(path) / 2
+        cdef list indices = range(count)
+        v_vertices = view.array(shape=(count * 6, ),
                               itemsize=sizeof(float),
                               format='f')
+        vertices = v_vertices
         vindex = 0
 
         if isinstance(fill, str):
@@ -992,33 +1004,31 @@ cdef class Svg(RenderContext):
             for index in range(count):
                 x = path[index * 2]
                 y = path[index * 2 + 1]
-                clr = g.interp((x, y))
+                r, g, b, a = g.interp(x, y)
                 transform.transform(x, y, &x, &y)
                 vertices[vindex] = x
                 vertices[vindex + 1] = y
-                vertices[vindex + 2] = clr[0]
-                vertices[vindex + 3] = clr[1]
-                vertices[vindex + 4] = clr[2]
-                vertices[vindex + 5] = clr[3]
+                vertices[vindex + 2] = r
+                vertices[vindex + 3] = g
+                vertices[vindex + 4] = b
+                vertices[vindex + 5] = a
                 vindex += 6
         else:
+            r, g, b, a = fill
             for index in range(count):
                 x = path[index * 2]
                 y = path[index * 2 + 1]
                 transform.transform(x, y, &x, &y)
                 vertices[vindex] = x
                 vertices[vindex + 1] = y
-                vertices[vindex + 2] = fill[0]
-                vertices[vindex + 3] = fill[1]
-                vertices[vindex + 4] = fill[2]
-                vertices[vindex + 5] = fill[3]
+                vertices[vindex + 2] = r
+                vertices[vindex + 3] = g
+                vertices[vindex + 4] = b
+                vertices[vindex + 5] = a
                 vindex += 6
 
-        return Mesh(
-            fmt=vertex_format,
-            indices=indices,
-            vertices=vertices.memview,
-            mode=mode)
+        cdef Mesh mesh = Mesh(fmt=VERTEX_FORMAT, mode=mode)
+        mesh.build_triangle_fan(&vertices[0], vindex, count)
 
     def render(self):
         for path, stroke, tris, fill, transform in self.paths:

@@ -105,11 +105,6 @@ cdef class Bezier(VertexInstruction):
     #    b) make that a superclass Spline,
     #    c) create BezierSpline subclass that does the computation
 
-    cdef list _points
-    cdef int _segments
-    cdef bint _loop
-    cdef int _dash_offset, _dash_length
-
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
         v = kwargs.get('points')
@@ -298,11 +293,9 @@ cdef class Mesh(VertexInstruction):
             'points'.
 
     '''
-    cdef list _vertices
-    cdef list _indices
-    cdef VertexFormat vertex_format
 
     def __init__(self, **kwargs):
+        cdef VBO vbo
         VertexInstruction.__init__(self, **kwargs)
         v = kwargs.get('vertices')
         self.vertices = v if v is not None else []
@@ -311,10 +304,38 @@ cdef class Mesh(VertexInstruction):
         fmt = kwargs.get('fmt')
         if fmt is not None:
             self.vertex_format = VertexFormat(*fmt)
-            self.batch = VertexBatch(vbo=VBO(self.vertex_format))
+            vbo = VBO(self.vertex_format)
+            self.batch = VertexBatch(vbo=vbo)
         self.mode = kwargs.get('mode') or 'points'
+        self.is_built = 0
+
+    cdef void build_triangle_fan(self, float *vertices, int vcount, int icount):
+        cdef i
+        cdef unsigned short *indices = NULL
+        cdef vsize = self.batch.vbo.vertex_format.vsize
+
+        if vcount == 0 or icount == 0:
+            self.batch.clear_data()
+            return
+
+        indices = <unsigned short *>malloc(icount * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        for i in range(icount):
+            indices[i] = i
+
+        self.batch.set_data(vertices, <int>(vcount / vsize), indices,
+                <int>icount)
+
+        free(indices)
+        self.is_built = 1
 
     cdef void build(self):
+        if self.is_built:
+            return
+
         cdef int i
         cdef long vcount = len(self._vertices)
         cdef long icount = len(self._indices)
