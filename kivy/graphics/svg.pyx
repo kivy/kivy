@@ -617,7 +617,8 @@ cdef class Svg(RenderContext):
         if self.height:
             self.transform = Matrix([1, 0, 0, -1, 0, self.height])
         else:
-            x, y, w, h = (parse_float(x) for x in parse_list(root.get('viewBox')))
+            x, y, w, h = [parse_float(x) for x in
+                    parse_list(root.get('viewBox'))]
             self.transform = Matrix([1, 0, 0, -1, -x, h + y])
             self.height = h
             self.width = w
@@ -1104,7 +1105,7 @@ cdef class Svg(RenderContext):
         # Tentative to use smooth line, doesn't work completly yet.
         # Caps and joint are missing
         cdef int index, vindex = 0, odd = 0, i
-        cdef float ax, ay, bx, _by, r, g, b, a
+        cdef float ax, ay, bx, _by, r = 0, g = 0, b = 0, a = 0
         cdef int count = len(path) / 2
         cdef float *vertices = NULL
         cdef float width = 0.25

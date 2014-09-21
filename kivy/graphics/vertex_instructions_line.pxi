@@ -1249,7 +1249,7 @@ cdef class SmoothLine(Line):
             vertex_t *vertices = NULL
             unsigned short *indices = NULL
             unsigned short *tindices = NULL
-            double ax, ay, bx, by, rx, ry, last_angle, angle, av_angle
+            double ax, ay, bx = 0., by = 0., rx = 0., ry = 0., last_angle = 0., angle, av_angle
             float cos1, sin1, cos2, sin2, ocos1, ocos2, osin1, osin2
             long index, vindex, vcount, icount, iv, ii, max_vindex, count
             unsigned short i0, i1, i2, i3, i4, i5, i6, i7

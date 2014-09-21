@@ -904,8 +904,8 @@ cdef class Texture:
         cdef short [:] short_view
         cdef int [:] int_view
         cdef float [:] float_view
-        cdef char *cdata
-        cdef long datasize
+        cdef char *cdata = NULL
+        cdef long datasize = 0
         if isinstance(pbuffer, bytes):  # if it's bytes, just use memory
             cdata = <bytes>pbuffer  # explicit bytes
             datasize = len(pbuffer)
