@@ -541,7 +541,7 @@ class Widget(WidgetBase):
             The image will be saved in png format, you should include the
             extension in your filename.
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
         '''
 
         if self.parent is not None:
@@ -662,7 +662,7 @@ class Widget(WidgetBase):
             >>> [type(widget) for widget in box.walk(restrict=True)]
             [<class 'BoxLayout'>, <class 'Widget'>, <class 'Button'>]
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
         '''
         gen = self._walk(restrict, loopback)
         yield next(gen)
@@ -749,7 +749,7 @@ class Widget(WidgetBase):
             >>> forward == backward[::-1]
             True
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
 
         '''
         for node in self._walk_reverse(loopback=loopback, go_up=True):

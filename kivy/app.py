@@ -661,7 +661,7 @@ class App(EventDispatcher):
 
     @property
     def root_window(self):
-        '''.. versionadded:: 1.8.1
+        '''.. versionadded:: 1.9.0
 
         Returns the root window instance used by :meth:`run`.
         '''

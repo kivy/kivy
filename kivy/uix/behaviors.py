@@ -463,7 +463,7 @@ class FocusBehavior(object):
         # to cycle through
 
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     .. warning::
 
@@ -845,7 +845,7 @@ class CompoundSelectionBehavior(object):
     Then, for each button added to the layout, bind on_touch_down of the button
     to :meth:`select_with_touch` to pass on the touch events.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     .. warning::
 

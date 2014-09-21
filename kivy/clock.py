@@ -160,7 +160,7 @@ Even if x and y changes within one frame, the callback is only run once.
 Threading
 ----------
 
-.. versionadded:: 1.8.1
+.. versionadded:: 1.9.0
 
 Often, other threads are used to schedule callbacks with kivy's main thread
 using :class:`ClockBase`. Therefore, it's important to know what is thread safe
@@ -579,7 +579,7 @@ class ClockBase(_ClockBase):
                 callable will be unscheduled (i.e. if this callable was
                 scheduled multiple times). Defaults to `True`.
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             The all parameter was added. Before, it behaved as if `all` was
             `True`.
         '''

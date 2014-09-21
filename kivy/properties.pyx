@@ -189,7 +189,7 @@ When clicking on the button, although the label object property has changed
 to the second widget, the button text will not change because it is bound to
 the text property of the first label directly.
 
-In `1.8.1`, the ``rebind`` option has been introduced that will allow the
+In `1.9.0`, the ``rebind`` option has been introduced that will allow the
 automatic updating of the ``text`` when ``label`` is changed, provided it
 was enabled. See :class:`ObjectProperty`.
 '''
@@ -735,7 +735,7 @@ cdef class DictProperty(Property):
         `rebind`: bool, defaults to False
             See :class:`ObjectProperty` for details.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `rebind` has been introduced.
 
     .. warning::
@@ -805,7 +805,7 @@ cdef class ObjectProperty(Property):
 
         To mark the property as changed, you must reassign a new python object.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `rebind` has been introduced.
 
     .. versionchanged:: 1.7.0
@@ -1251,7 +1251,7 @@ cdef class AliasProperty(Property):
         `rebind`: bool, defaults to False
             See :class:`ObjectProperty` for details.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `rebind` has been introduced.
 
     .. versionchanged:: 1.4.0
@@ -1561,7 +1561,7 @@ cdef class ConfigParserProperty(Property):
                 `errorhandler` will be used if provided or a `ValueError` is
                 raised.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
     '''
 
     def __cinit__(self):

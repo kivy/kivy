@@ -102,7 +102,7 @@ cdef class Fbo(RenderContext):
         `with_depthbuffer`: bool, defaults to False
             If True, the framebuffer will be allocated with a Z buffer.
         `with_stencilbuffer`: bool, defaults to False
-            .. versionadded:: 1.8.1
+            .. versionadded:: 1.9.0
 
             If True, the framebuffer will be allocated with a stencil buffer.
         `texture`: :class:`~kivy.graphics.texture.Texture`, defaults to None
@@ -110,7 +110,7 @@ cdef class Fbo(RenderContext):
 
     .. note::
         Using both of ``with_stencilbuffer`` and ``with_depthbuffer`` is not
-        supported in kivy 1.8.1
+        supported in kivy 1.9.0
 
     '''
     cdef str resolve_status(self, int status):

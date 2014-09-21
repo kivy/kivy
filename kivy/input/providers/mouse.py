@@ -27,7 +27,7 @@ activating the "disable_multitouch" token::
    [input]
    mouse = mouse,disable_multitouch
 
-.. versionchanged:: 1.8.1
+.. versionchanged:: 1.9.0
 
 You can now selectively control whether a click initiated as described above
 will emulate multi-touch. If the touch has been initiated in the above manner

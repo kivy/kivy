@@ -105,10 +105,10 @@ class LabelBase(object):
             Whether each row of text has its leading and trailing spaces
             stripped. If `halign` is `justify` it is implicitly True.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `strip`, `shorten_from`, and `split_str` were added.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `padding_x` and `padding_y` has been fixed to work as expected.
         In the past, the text was padded by the negative of their values.
 
@@ -258,7 +258,7 @@ class LabelBase(object):
             returned function incorrect. You should only use this if you know
             what you're doing.
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
         '''
         return self.get_extents
 

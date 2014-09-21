@@ -685,7 +685,7 @@ Set a key that will be available anywhere in the kv. For example:
 include <file>
 ~~~~~~~~~~~~~~~~
 
-.. versionadded:: 1.8.1
+.. versionadded:: 1.9.0
 
 Syntax:
 
@@ -788,7 +788,7 @@ class Observable(object):
     '''A lightweight class allowing to get an object be bound to action
     in kv, without using as much resources as EventDispatcher
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
     '''
 
     def bind(self, **kwargs):

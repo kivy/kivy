@@ -33,7 +33,7 @@ if not get_log_callback():
 class ImageLoaderFFPy(ImageLoaderBase):
     '''Image loader based on the ffpyplayer library.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     .. note:
         This provider may support more formats than what is listed in
