@@ -71,7 +71,6 @@ The components involved in this process are:
   
     :doc:`api-kivy.uix.abstractview`,
     :doc:`api-kivy.uix.listview`.
->>>>>>> 6a33f2d8411467a8fefd3ed3d8984b8dc0ed5ddf
 
 ----
 '''

@@ -235,7 +235,6 @@ Python 3 syntax to Python 2. However, be warned that this tool does not work
 for all Python 3 code.
 
 .. _3to2: https://pypi.python.org/pypi/3to2
->>>>>>> 6a33f2d8411467a8fefd3ed3d8984b8dc0ed5ddf
 
 
 How is Kivy related to PyMT?
