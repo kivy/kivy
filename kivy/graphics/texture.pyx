@@ -143,7 +143,7 @@ If you want to seperate the original texture into many single ones, you don't
 need to. You can get a region of the original texture. That will return the
 original texture with custom texture coordinates::
 
-    # for example, load a 1.9.028 image that contain 4 64x64 images
+    # for example, load a 128x128 image that contain 4 64x64 images
     from kivy.core.image import Image
     texture = Image('mycombinedimage.png').texture
 
