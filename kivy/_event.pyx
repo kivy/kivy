@@ -10,12 +10,16 @@ handlers.
     Property discovery and methods have been moved from the
     :class:`~kivy.uix.widget.Widget` to the :class:`EventDispatcher`.
 
+.. versionchanged:: 1.8.2
+    :class:`EventDispatcher` now inherits from :class:`Observable`, which
+    defines the methods required to create a bindable object.
 '''
 
-__all__ = ('EventDispatcher', 'ObjectWithUid')
+__all__ = ('EventDispatcher', 'ObjectWithUid', 'Observable')
 
 
 from functools import partial
+from collections import defaultdict
 from kivy.weakmethod import WeakMethod
 from kivy.compat import string_types
 from kivy.properties cimport (Property, PropertyStorage, ObjectProperty,
@@ -35,6 +39,7 @@ def _get_bases(cls):
         for cbase in _get_bases(base):
             yield cbase
 
+
 cdef class ObjectWithUid(object):
     '''
     (internal) This class assists in providing unique identifiers for class
@@ -50,6 +55,71 @@ cdef class ObjectWithUid(object):
         widget_uid += 1
         self.uid = widget_uid
 
+
+cdef class Observable(ObjectWithUid):
+    ''':class:`Observable` is a stub class defining the methods required
+    for binding. :class:`EventDispatcher` is (the) one example of a class that
+    implements the binding interface. See :class:`EventDispatcher` for details.
+
+    .. versionadded:: 1.8.2
+    '''
+
+    def __cinit__(self, *largs, **kwargs):
+        self.__fast_bind_mapping = defaultdict(list)
+
+    def bind(self, **kwargs):
+        pass
+
+    def unbind(self, **kwargs):
+        pass
+
+    def fast_bind(self, name, func, *largs):
+        '''See :meth:`EventDispatcher.fast_bind`.
+
+        .. note::
+
+            To keep backward compatibility with derived classes which may have
+            inherited from :class:`Observable` before
+            :meth:`fast_bind` was added, the default implementation
+            of :meth:`fast_bind` and :meth:`fast_unbind` is to create a partial
+            function that it passes to bind. However, :meth:`fast_unbind`
+            is fairly inefficient since we have to lookup this partial function
+            before we can call :meth:`unbind`. It is recommended to overwrite
+            these methods in derived classes to directly do binding for
+            better performance.
+        '''
+        f = partial(func, *largs)
+        self.__fast_bind_mapping[name].append(((func, largs), f))
+        try:
+            self.bind(**{name: f})
+            return True
+        except KeyError:
+            return False
+
+    def fast_unbind(self, name, func, *largs):
+        '''See :meth:`fast_bind`.
+        '''
+        cdef object f = None
+        cdef tuple item, val = (func, largs)
+        cdef list bound = self.__fast_bind_mapping[name]
+
+        for i, item in enumerate(bound):
+            if item[0] == val:
+                f = item[1]
+                del bound[i]
+                break
+
+        if f is not None:
+            try:
+                self.unbind(**{name: f})
+            except KeyError:
+                pass
+
+    property proxy_ref:
+        def __get__(self):
+            return self
+
+
 cdef class EventDispatcher(ObjectWithUid):
     '''Generic event dispatcher interface.
 
@@ -60,7 +130,7 @@ cdef class EventDispatcher(ObjectWithUid):
         global cache_properties
         cdef dict cp = cache_properties
         cdef dict attrs_found
-        cdef list attrs
+        cdef list attrs, items
         cdef Property attr
         cdef str k
 
@@ -83,13 +153,12 @@ cdef class EventDispatcher(ObjectWithUid):
             attrs_found = cp[__cls__]
 
         # First loop, link all the properties storage to our instance
-        for k in attrs_found:
-            attr = attrs_found[k]
+        items = attrs_found.items()
+        for k, attr in items:
             attr.link(self, k)
 
         # Second loop, resolve all the references
-        for k in attrs_found:
-            attr = attrs_found[k]
+        for k, attr in items:
             attr.link_deps(self, k)
 
         self.__properties = attrs_found
@@ -153,7 +222,7 @@ cdef class EventDispatcher(ObjectWithUid):
         else:
             event_handlers = cache_events_handlers[__cls__]
         for func in event_handlers:
-            self.bind(**{func[3:]: getattr(self, func)})
+            self.fast_bind(func[3:], getattr(self, func))
 
         # Apply the existing arguments to our widget
         for key, value in kwargs.iteritems():
@@ -304,12 +373,13 @@ cdef class EventDispatcher(ObjectWithUid):
                 DemoApp().run()
         '''
         cdef Property prop
+        cdef tuple handler
         for key, value in kwargs.iteritems():
             if key[:3] == 'on_':
                 if key not in self.__event_stack:
                     continue
                 # convert the handler to a weak method
-                handler = WeakMethod(value)
+                handler = (WeakMethod(value), )
                 self.__event_stack[key].append(handler)
             else:
                 prop = self.__properties[key]
@@ -321,19 +391,108 @@ cdef class EventDispatcher(ObjectWithUid):
         Same usage as :meth:`bind`.
         '''
         cdef Property prop
+        cdef tuple handler
         for key, value in kwargs.iteritems():
             if key[:3] == 'on_':
                 if key not in self.__event_stack:
                     continue
+
                 # we need to execute weak method to be able to compare
                 for handler in self.__event_stack[key]:
-                    if handler() != value:
+                    # we only unbind here if bound with normal bind
+                    if len(handler) != 1 or handler[0]() != value:
                         continue
                     self.__event_stack[key].remove(handler)
                     break
             else:
                 prop = self.__properties[key]
                 prop.unbind(self, value)
+
+    def fast_bind(self, name, func, *largs):
+        '''A method for faster binding. This method is meant to only be used
+        internally and it performs less error checking. It can be used
+        externally, as long as the following warnings are heeded.
+
+        As opposed to :meth:`bind`, it does not check that this function and
+        args has not been bound before to this name. It is assumed that the
+        combination of function + positional args has not been bound to this
+        name before.
+
+        In addition, although :meth:`bind` creates a :class:`WeakMethod` for
+        the callback function, this method stores the function directly,
+        without any proxying.
+
+        Finally, this method returns True if `name` was found and bound, and
+        `False`, otherwise. It does not raise an exception, like :meth:`bind`,
+        if `name` is not found.
+
+        Anything bound with this method, must be unbound with
+        :meth:`fast_unbind`; :meth:`unbind` will not unbind it.
+
+        The method passes on the caught positional arguments to the callback,
+        removing the need to call partial. When calling back, the
+        instance/value, or dispatched parameters are passed on after the
+        positional arguments provided here.
+
+        .. note::
+            Since the kv lang uses this method to bind, one has to implement
+            this method, instead of :meth:`bind` when creating a non
+            :class:`EventDispatcher` based class (e.g. based on
+            :class:`Observable`) used with the kv lang. A simple method is to
+            make `fast_bind` call `bind` e.g.::
+
+                def fast_bind(self, name, func, *largs):
+                    self.bind(**{name: partial(func, *largs)})
+
+            Then one can use this partial function with fast_unbind.
+
+        .. versionadded:: 1.8.2
+        '''
+        cdef PropertyStorage ps
+        cdef tuple handler = (func, largs)
+        cdef list elems
+
+        if name[:3] == 'on_':
+            elems = self.__event_stack.get(name)
+            if elems is not None:
+                elems.append(handler)
+                return True
+            return False
+        else:
+            ps = self.__storage.get(name)
+            if ps is None:
+                return False
+            ps.observers.append(handler)
+            return True
+
+    def fast_unbind(self, name, func, *largs):
+        '''Similar to :meth:`fast_bind`.
+
+        Compared to :meth:`unbind`, it doesn't check that `name` is valid.
+        Similarly, when unbinding from a property :meth:`unbind` will unbind
+        all callback that match the callback, while this method will only
+        unbind the first (as it is assumed that the combination of func and
+        args are uniquely bound).
+
+        To unbind, the same positional arguments passed to :meth:`fast_bind`
+        must be passed on to unbind.
+
+        .. versionadded:: 1.8.2
+        '''
+        cdef PropertyStorage ps
+        cdef list observers
+        cdef tuple item, src_item = (func, largs)
+        cdef int i
+
+        if name[:3] == 'on_':
+            self.__event_stack[name].remove(src_item)
+        else:
+            ps = self.__storage[name]
+            observers = ps.observers
+            for i, item in enumerate(observers):
+                if item == src_item:
+                    del observers[i]
+                    break
 
     def get_property_observers(self, name):
         ''' Returns a list of methods that are bound to the property/event
@@ -343,11 +502,15 @@ cdef class EventDispatcher(ObjectWithUid):
 
         .. versionadded:: 1.8.0
 
+        .. versionchanged:: 1.8.2
+            To keep compatibility, callbacks bound with :meth:`fast_bind` will
+            also only return the callback function and not their provided args.
+
         '''
         if name[:3] == 'on_':
-            return self.__event_stack[name]
+            return [item[0] for item in self.__event_stack[name]]
         cdef PropertyStorage ps = self.__storage[name]
-        return ps.observers
+        return [item[0] for item in ps.observers]
 
     def events(EventDispatcher self):
         '''Return all the events in the class. Can be used for introspection.
@@ -378,15 +541,26 @@ cdef class EventDispatcher(ObjectWithUid):
 
         '''
         cdef list event_stack = self.__event_stack[event_type]
-        cdef object remove = event_stack.remove
-        for value in reversed(event_stack[:]):
-            handler = value()
-            if handler is None:
-                # handler has gone, must be removed
-                remove(value)
-                continue
-            if handler(self, *largs, **kwargs):
-                return True
+        cdef tuple item, args_list, args
+        cdef object handler, remove = event_stack.remove
+
+        for item in reversed(event_stack[:]):
+            # dispatch callback from a normal bind
+            if len(item) == 1:
+                handler = item[0]()
+                if handler is None:
+                    # handler has gone, must be removed
+                    remove(item)
+                    continue
+                if handler(self, *largs, **kwargs):
+                    return True
+
+            # dispatch callback from a fast bind
+            else:
+                args = item[1]
+                args_list = args + (self, ) + largs  # largs goes at the end
+                if item[0](*args_list, **kwargs):
+                    return True
 
         handler = getattr(self, event_type)
         return handler(*largs, **kwargs)
@@ -447,8 +621,10 @@ cdef class EventDispatcher(ObjectWithUid):
         '''
         return partial(self.__proxy_getter, self, name)
 
-    def property(self, name):
-        '''Get a property instance from the name.
+    def property(self, name, quiet=False):
+        '''Get a property instance from the property name. If quiet is True,
+        None is returned instead of raising an exception when `name` is not a
+        property. Defaults to `False`.
 
         .. versionadded:: 1.0.9
 
@@ -456,8 +632,14 @@ cdef class EventDispatcher(ObjectWithUid):
 
             A :class:`~kivy.properties.Property` derived instance
             corresponding to the name.
+
+        .. versionchanged:: 1.8.1
+            quiet was added.
         '''
-        return self.__properties[name]
+        if quiet:
+            return self.__properties.get(name, None)
+        else:
+            return self.__properties[name]
 
     cpdef dict properties(EventDispatcher self):
         '''Return all the properties in the class in a dictionary of
@@ -527,4 +709,9 @@ cdef class EventDispatcher(ObjectWithUid):
         self.__properties[name] = prop
         setattr(self.__class__, name, prop)
 
-
+    property proxy_ref:
+        '''Default implementation of proxy_ref, returns self.
+        ..versionadded:: 1.8.1
+        '''
+        def __get__(self):
+            return self

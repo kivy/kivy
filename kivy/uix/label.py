@@ -174,6 +174,8 @@ class Label(Widget):
             ``[ref]`` tag in a text markup.
     '''
 
+    __events__ = ['on_ref_press']
+
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
                         'halign', 'valign', 'padding_x', 'padding_y',
                         'text_size', 'shorten', 'mipmap', 'markup',
@@ -182,7 +184,6 @@ class Label(Widget):
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
-        self.register_event_type('on_ref_press')
         super(Label, self).__init__(**kwargs)
 
         # bind all the property for recreating the texture
@@ -636,7 +637,7 @@ class Label(Widget):
     These co-ordinates are relative to the top left corner of the text, with
     the y value increasing downwards. Anchors names should be unique and only
     the first occurence of any duplicate anchors will be recorded.
-    
+
 
     You can place anchors in your markup text as follows::
 
