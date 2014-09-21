@@ -1172,7 +1172,7 @@ cdef class ReferenceListProperty(Property):
         cdef Property prop
         Property.link_deps(self, obj, name)
         for prop in self.properties:
-            prop.bind(obj, self.trigger_change)
+            prop.fast_bind(obj, self.trigger_change)
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -1323,7 +1323,7 @@ cdef class AliasProperty(Property):
         cdef Property oprop
         for prop in self.bind_objects:
             oprop = getattr(obj.__class__, prop)
-            oprop.bind(obj, self.trigger_change)
+            oprop.fast_bind(obj, self.trigger_change)
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]

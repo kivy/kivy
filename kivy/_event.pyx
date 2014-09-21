@@ -223,7 +223,7 @@ cdef class EventDispatcher(ObjectWithUid):
         else:
             event_handlers = cache_events_handlers[__cls__]
         for func in event_handlers:
-            self.bind(**{func[3:]: getattr(self, func)})
+            self.fast_bind(func[3:], getattr(self, func))
 
         # Apply the existing arguments to our widget
         for key, value in kwargs.iteritems():
