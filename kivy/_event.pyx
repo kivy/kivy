@@ -90,7 +90,11 @@ cdef class Observable(ObjectWithUid):
         '''
         f = partial(func, *largs)
         self.__fast_bind_mapping[name].append(((func, largs), f))
-        self.bind(**{name: f})
+        try:
+            self.bind(**{name: f})
+            return True
+        except KeyError:
+            return False
 
     def fast_unbind(self, name, func, *largs):
         '''See :meth:`fast_bind`.
@@ -106,7 +110,10 @@ cdef class Observable(ObjectWithUid):
                 break
 
         if f is not None:
-            self.unbind(**{name: f})
+            try:
+                self.unbind(**{name: f})
+            except KeyError:
+                pass
 
     property proxy_ref:
         def __get__(self):
