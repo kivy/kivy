@@ -260,6 +260,67 @@ cdef class Bezier(VertexInstruction):
             self.flag_update()
 
 
+cdef class StripMesh(VertexInstruction):
+    '''A specialized 2d mesh.
+
+    (internal) Used for SVG, will be available with doc later.
+    '''
+    def __init__(self, VertexFormat fmt):
+        cdef VBO vbo
+        VertexInstruction.__init__(self)
+        vbo = VBO(fmt)
+        self.batch = VertexBatch(vbo=vbo)
+        self.batch.set_mode("triangle_strip")
+        self.icount = 0
+        self.li = self.lic = 0
+
+    cdef int add_triangle_strip(self, float *vertices, int vcount, int icount,
+            int mode):
+        cdef int i, li = self.li
+        cdef int istart = 0
+        cdef unsigned short *indices = NULL
+        cdef vsize = self.batch.vbo.vertex_format.vsize
+
+        if vcount == 0 or icount < 3:
+            return 0
+        if self.icount + icount > 65533:  # (optim of) self.icount + icount - 2 > 65535
+            return 0
+
+        if self.icount > 0:
+            # repeat the last indice and the first of the new batch
+            istart = 2
+
+        indices = <unsigned short *>malloc((icount + istart) * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        if istart == 2:
+            indices[0] = self.lic
+            indices[1] = li
+        if mode == 0:
+            # polygon
+            for i in range(icount / 2):
+                indices[i * 2 + istart] = li + i
+                indices[i * 2 + istart + 1] = li + (icount - i - 1)
+            if icount % 2 == 1:
+                indices[icount + istart - 1] = li + icount / 2
+        elif mode == 1:
+            # line
+            for i in range(icount):
+                indices[istart + i] = li + i
+
+        self.lic = indices[icount + istart - 1]
+
+        self.batch.append_data(vertices, <int>(vcount / vsize), indices,
+                <int>(icount + istart))
+
+        free(indices)
+        self.icount += icount + istart
+        self.li += icount
+        return 1
+
+
 cdef class Mesh(VertexInstruction):
     '''A 2d mesh.
 
@@ -338,7 +399,6 @@ cdef class Mesh(VertexInstruction):
     cdef void build(self):
         if self.is_built:
             return
-
         cdef int i
         cdef long vcount = len(self._vertices)
         cdef long icount = len(self._indices)

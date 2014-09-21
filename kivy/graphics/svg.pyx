@@ -28,7 +28,7 @@ import re
 cimport cython
 from xml.etree.cElementTree import parse
 from kivy.graphics.instructions cimport RenderContext
-from kivy.graphics.vertex_instructions cimport Mesh
+from kivy.graphics.vertex_instructions cimport Mesh, StripMesh
 from kivy.graphics.tesselator cimport Tesselator
 from kivy.graphics.texture cimport Texture
 from kivy.graphics.vertex cimport VertexFormat
@@ -496,6 +496,7 @@ cdef class Svg(RenderContext):
         double last_cx
         double last_cy
         Texture line_texture
+        StripMesh last_mesh
 
     def __init__(self, filename, anchor_x=0, anchor_y=0,
             bezier_points=BEZIER_POINTS, circle_points=CIRCLE_POINTS):
@@ -519,6 +520,7 @@ cdef class Svg(RenderContext):
                 use_parent_projection=True, 
                 use_parent_modelview=True)
 
+        self.last_mesh = None
         self.paths = []
         self.width = 0
         self.height = 0
@@ -1047,6 +1049,7 @@ cdef class Svg(RenderContext):
         cdef int index, vindex
         cdef float *f_tris
         cdef float x, y, r, g, b, a
+        cdef Mesh mesh
 
         cdef int count = len(path) / 2
         vertices = <float *>malloc(sizeof(float) * count * 8)
@@ -1086,15 +1089,101 @@ cdef class Svg(RenderContext):
                 vertices[vindex + 7] = a
                 vindex += 8
 
-        cdef Mesh mesh = Mesh(fmt=VERTEX_FORMAT, mode=mode)
-        mesh.build_triangle_fan(vertices, vindex, count)
+        self.push_strip_mesh(vertices, vindex, count)
+        free(vertices)
+
+    cdef void push_strip_mesh(self, float *vertices, int vindex, int count,
+            int mode=0):
+        if self.last_mesh:
+            if self.last_mesh.add_triangle_strip(vertices, vindex, count, mode):
+                return
+        self.last_mesh = StripMesh(fmt=VERTEX_FORMAT)
+        self.last_mesh.add_triangle_strip(vertices, vindex, count, mode)
+
+    cdef void push_line_mesh(self, float[:] path, fill, Matrix transform):
+        # Tentative to use smooth line, doesn't work completly yet.
+        # Caps and joint are missing
+        cdef int index, vindex = 0, odd = 0, i
+        cdef float ax, ay, bx, _by, r, g, b, a
+        cdef int count = len(path) / 2
+        cdef float *vertices = NULL
+        cdef float width = 0.25
+        vindex = 0
+
+        vertices = <float *>malloc(sizeof(float) * count * 32)
+        if vertices == NULL:
+            return
+
+        if not isinstance(fill, str):
+            r, g, b, a = fill
+
+        for index in range(count):
+            i = index * 2
+            ax = path[i]
+            ay = path[i + 1]
+            if index == count - 1:
+                i = 0
+            else:
+                i = index * 2 + 2
+            bx = path[i]
+            _by = path[i + 1]
+            transform.transform(ax, ay, &ax, &ay)
+            transform.transform(bx, _by, &bx, &_by)
+
+            rx = bx - ax
+            ry = _by - ay
+            angle = atan2(ry, rx)
+            a1 = angle - PI2
+            a2 = angle + PI2
+
+            cos1 = cos(a1) * width
+            sin1 = sin(a1) * width
+            cos2 = cos(a2) * width
+            sin2 = sin(a2) * width
+
+            x1 = ax + cos1
+            y1 = ay + sin1
+            x4 = ax + cos2
+            y4 = ay + sin2
+            x2 = bx + cos1
+            y2 = _by + sin1
+            x3 = bx + cos2
+            y3 = _by + sin2
+
+            if isinstance(fill, str):
+                g = self.gradients[fill]
+                r, g, b, a = g.interp(ax, ay)
+
+            vertices[vindex + 2] = vertices[vindex + 10] = \
+                vertices[vindex + 18] = vertices[vindex + 26] = 0
+            vertices[vindex + 3] = vertices[vindex + 11] = \
+                vertices[vindex + 19] = vertices[vindex + 27] = 0
+            vertices[vindex + 4] = vertices[vindex + 12] = \
+                vertices[vindex + 20] = vertices[vindex + 28] = r
+            vertices[vindex + 5] = vertices[vindex + 13] = \
+                vertices[vindex + 21] = vertices[vindex + 29] = g
+            vertices[vindex + 6] = vertices[vindex + 14] = \
+                vertices[vindex + 22] = vertices[vindex + 30] = b
+            vertices[vindex + 7] = vertices[vindex + 15] = \
+                vertices[vindex + 23] = vertices[vindex + 31] = a
+
+            vertices[vindex + 0] = x1
+            vertices[vindex + 1] = y1
+            vertices[vindex + 8] = x4
+            vertices[vindex + 9] = y4
+            vertices[vindex + 16] = x2
+            vertices[vindex + 17] = y2
+            vertices[vindex + 24] = x3
+            vertices[vindex + 25] = y3
+            vindex += 32
+
+        self.push_strip_mesh(vertices, vindex, (vindex / 32) * 4, 1)
         free(vertices)
 
     cdef void render(self):
         for path, stroke, tris, fill, transform in self.paths:
             if tris:
                 for item in tris:
-                    self.push_mesh(item, fill, transform, 'triangle_fan')
+                    self.push_mesh(item, fill, transform, 'triangle_strip')
             if path:
-                self.push_mesh(path, stroke, transform, 'line_loop')
-                #self.push_line_mesh(path, stroke, transform)
+                self.push_line_mesh(path, stroke, transform)
