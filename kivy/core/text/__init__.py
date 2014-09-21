@@ -604,7 +604,7 @@ class LabelBase(object):
     def texture_1px(self):
         if LabelBase._texture_1px is None:
             tex = Texture.create(size=(1, 1), colorfmt='rgba')
-            tex.blit_buffer(b'\x00\x00\x00\x00')
+            tex.blit_buffer(b'\x00\x00\x00\x00', colorfmt='rgba')
             LabelBase._texture_1px = tex
         return LabelBase._texture_1px
 

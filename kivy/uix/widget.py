@@ -149,7 +149,19 @@ but swallow the event if it has been handled. For example:
                 return super(MyWidget, self).on_touch_down(touch)
 
 This approach gives you good control over exactly how events and dispatched
-and managed.
+and managed. Sometimes, however, you may wish to let the event be completely
+propogated before taking action. You can use the
+:class:`~kivy.clock.Clock` to help you here:
+
+.. code-block:: python
+
+    class MyLabel(Label):
+        def on_touch_down(self, touch, after=False):
+            if after:
+                print "Fired after the event has been dispatched!"
+            else:
+                Clock.schedule_once(lambda dt: self.on_touch_down(touch, True))
+                return super(MyLabel, self).on_touch_down(touch)
 
 '''
 
@@ -400,7 +412,7 @@ class Widget(WidgetBase):
     #
     # Tree management
     #
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, index=0, canvas=None):
         '''Add a new widget as a child of this widget.
 
         :Parameters:
@@ -410,6 +422,11 @@ class Widget(WidgetBase):
                 Index to insert the widget in the list
 
                 .. versionadded:: 1.0.5
+            `canvas`: str, defaults to None
+                Canvas to add widget's canvas to. Can be 'before', 'after' or
+                None for the default canvas.
+
+                .. versionadded:: 1.9.0
 
     .. code-block:: python
 
@@ -438,9 +455,12 @@ class Widget(WidgetBase):
         if parent.disabled:
             widget.disabled = True
 
+        canvas = self.canvas.before if canvas == 'before' else \
+            self.canvas.after if canvas == 'after' else self.canvas
+
         if index == 0 or len(self.children) == 0:
             self.children.insert(0, widget)
-            self.canvas.add(widget.canvas)
+            canvas.add(widget.canvas)
         else:
             canvas = self.canvas
             children = self.children
@@ -479,7 +499,12 @@ class Widget(WidgetBase):
         if widget not in self.children:
             return
         self.children.remove(widget)
-        self.canvas.remove(widget.canvas)
+        if widget.canvas in self.canvas.children:
+            self.canvas.remove(widget.canvas)
+        elif widget.canvas in self.canvas.after.children:
+            self.canvas.after.remove(widget.canvas)
+        elif widget.canvas in self.canvas.before.children:
+            self.canvas.before.remove(widget.canvas)
         widget.parent = None
 
     def clear_widgets(self, children=None):
@@ -523,7 +548,7 @@ class Widget(WidgetBase):
             canvas_parent_index = self.parent.canvas.indexof(self.canvas)
             self.parent.canvas.remove(self.canvas)
 
-        fbo = Fbo(size=self.size)
+        fbo = Fbo(size=self.size, with_stencilbuffer=True)
 
         with fbo:
             ClearColor(0, 0, 0, 1)

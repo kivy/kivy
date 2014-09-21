@@ -238,7 +238,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         else:
             is_double_tap = 'shift' in modifiers
             do_graphics = (not self.disable_multitouch) and (
-                button == 'right' or 'ctrl' in modifiers)
+                button != 'left' or 'ctrl' in modifiers)
             cur = self.create_touch(rx, ry, is_double_tap, do_graphics, button)
             if 'alt' in modifiers:
                 self.alt_touch = cur

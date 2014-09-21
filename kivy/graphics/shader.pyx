@@ -165,7 +165,6 @@ cdef class Shader:
         self.uniform_values = dict()
 
     def __init__(self, str vs=None, str fs=None, str source=None):
-        get_context().register_shader(self)
         self.program = glCreateProgram()
         if source:
             self.source = source

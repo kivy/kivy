@@ -198,17 +198,18 @@ class VideoFFPy(VideoBase):
             self._texture.flip_vertical()
             self.dispatch('on_load')
 
-        if self._out_fmt == 'yuv420p':
-            dy, du, dv, _ = img.to_memoryview()
-            self._tex_y.blit_buffer(dy, colorfmt='luminance')
-            self._tex_u.blit_buffer(du, colorfmt='luminance')
-            self._tex_v.blit_buffer(dv, colorfmt='luminance')
-        else:
-            self._texture.blit_buffer(img.to_memoryview()[0], colorfmt='rgba')
+        if self._texture:
+            if self._out_fmt == 'yuv420p':
+                dy, du, dv, _ = img.to_memoryview()
+                self._tex_y.blit_buffer(dy, colorfmt='luminance')
+                self._tex_u.blit_buffer(du, colorfmt='luminance')
+                self._tex_v.blit_buffer(dv, colorfmt='luminance')
+            else:
+                self._texture.blit_buffer(img.to_memoryview()[0], colorfmt='rgba')
 
-        self._fbo.ask_update()
-        self._fbo.draw()
-        self.dispatch('on_frame')
+            self._fbo.ask_update()
+            self._fbo.draw()
+            self.dispatch('on_frame')
 
     def _next_frame_run(self):
         ffplayer = self._ffplayer

@@ -17,6 +17,7 @@ kivy/*.pyd
 kivy/core/text/text_layout.c
 kivy/core/text/text_layout.pyd
 kivy/graphics/*.c
+kivy/graphics/*.cpp
 kivy/graphics/*.pyd
 kivy/graphics/config.h
 kivy/graphics/config.pxi

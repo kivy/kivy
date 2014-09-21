@@ -13,24 +13,25 @@ An :class:`~kivy.adapters.adapter.Adapter` is a bridge between data and
 an :class:`~kivy.uix.abstractview.AbstractView` or one of its subclasses, such
 as a :class:`~kivy.uix.listview.ListView`.
 
-Arguments:
+The following arguments can be passed to the contructor to initialise the
+corresponding properties:
 
-* *data*: for any sort of data to be used in a view. For an
+* :attr:`~Adapter.data`: for any sort of data to be used in a view. For an
   :class:`~kivy.adapters.adapter.Adapter`, data can be an object as well as a
   list, dict, etc. For a :class:`~kivy.adapters.listadapter.ListAdapter`, data
   should be a list. For a :class:`~kivy.adapters.dictadapter.DictAdapter`,
   data should be a dict.
 
-* *cls*: for a list key class used to instantiate list item view
-  instances (Use this or the template argument).
+* :attr:`~Adapter.cls`: the class used to instantiate each list item view
+  instance (Use this or the template argument).
 
-* *template*: a kv template to use to instantiate list item view instances (Use
-  this or the cls argument).
+* :attr:`~Adapter.template`: a kv template to use to instantiate each list item
+  view instance (Use this or the cls argument).
 
-* *args_converter*: a function to transform the data argument
-  sets, in preparation for either a cls instantiation or a kv template
-  invocation. If no args_converter is provided, a default one, that
-  assumes that the data items are strings, is used.
+* :attr:`~Adapter.args_converter`: a function used to transform the data items
+  in preparation for either a cls instantiation or a kv template
+  invocation. If no args_converter is provided, the data items are assumed
+  to be simple strings.
 
 
 '''
@@ -41,7 +42,8 @@ from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty
 from kivy.lang import Builder
 from kivy.adapters.args_converters import list_item_args_converter
-
+from kivy.factory import Factory
+from kivy.compat import string_types
 
 class Adapter(EventDispatcher):
     '''An :class:`~kivy.adapters.adapter.Adapter` is a bridge between data and
@@ -70,7 +72,9 @@ class Adapter(EventDispatcher):
 
     cls = ObjectProperty(None)
     '''
-    A class for instantiating a given view item (Use this or template).
+    A class for instantiating a given view item (Use this or template). If this
+    is not set and neither is the template, a :class:`~kivy.uix.label.Label`
+    is used for the view item.
 
     :attr:`cls` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
@@ -128,11 +132,28 @@ class Adapter(EventDispatcher):
     def get_data_item(self):
         return self.data
 
+    def get_cls(self):
+        '''
+        .. versionadded:: 1.9.0
+
+        Returns the widget type specified by self.cls. If it is a
+        string, the :class:`~kivy.factory.Factory` is queried to retrieve the
+        widget class with the given name, otherwise it is returned directly.
+        '''
+        cls = self.cls
+        if isinstance(cls, string_types):
+            try:
+                cls = getattr(Factory, cls)
+            except AttributeError:
+                raise AttributeError(
+                    'Listadapter cls widget does not exist.')
+        return cls
+
     def get_view(self, index):  # pragma: no cover
         item_args = self.args_converter(self.data)
 
-        if self.cls:
-            instance = self.cls(**item_args)
-            return instance
+        cls = self.get_cls()
+        if cls:
+            return cls(**item_args)
         else:
             return Builder.template(self.template, **item_args)

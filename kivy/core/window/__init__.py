@@ -1100,6 +1100,13 @@ class WindowBase(EventDispatcher):
             :class:`~kivy.uix.vkeyboard.VKeyboard` instance attached as a
             *.widget* property.
 
+        .. note::
+
+            The behavior of this function is heavily influenced by the current
+            `keyboard_mode`. Please see the Config's
+            :ref:`configuration tokens <configuration-tokens>` section for
+            more information.
+
         '''
 
         # release any previous keyboard attached.

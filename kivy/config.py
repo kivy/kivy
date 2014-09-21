@@ -13,7 +13,11 @@ information.
 
 Note: To avoid instances where the config settings do not work or they are
 not applied before window creation (like setting an initial window size),
+<<<<<<< HEAD
 Config.set should be used before importing any modules that affect the 
+=======
+Config.set should be used before importing any modules that affect the
+>>>>>>> 6a33f2d8411467a8fefd3ed3d8984b8dc0ed5ddf
 application window (ie. importing Window). Ideally, these settings should
 be declared right at the start of your main.py script.
 
@@ -35,6 +39,8 @@ Change the configuration and save it::
     The ConfigParser should work correctly with utf-8 now. The values are
     converted from ascii to unicode only when needed. The method get() returns
     utf-8 strings.
+    
+.. _configuration-tokens:
 
 Available configuration tokens
 ------------------------------
@@ -130,10 +136,17 @@ Available configuration tokens
         processing time.
 
         .. note::
+<<<<<<< HEAD
         
            This feature is limited by device hardware support and will have no
            effect on devices which do not support the level of MSAA requested.
            
+=======
+
+           This feature is limited by device hardware support and will have no
+           effect on devices which do not support the level of MSAA requested.
+
+>>>>>>> 6a33f2d8411467a8fefd3ed3d8984b8dc0ed5ddf
     `position`: string, one of 'auto' or 'custom'
         Position of the window on your display. If `auto` is used, you have no
         control of the initial position: `top` and `left` are ignored.
@@ -367,13 +380,12 @@ class ConfigParser(PythonConfigParser, object):
         the value is implicitly converted to a string.
         '''
         e_value = value
+        if not isinstance(value, string_types):
+            # might be boolean, int, etc.
+            e_value = str(value)
         if PY2:
-            if not isinstance(value, string_types):
-                # might be boolean, int, etc.
-                e_value = str(value)
-            else:
-                if isinstance(value, unicode):
-                    e_value = value.encode('utf-8')
+            if isinstance(value, unicode):
+                e_value = value.encode('utf-8')
         ret = PythonConfigParser.set(self, section, option, e_value)
         self._do_callbacks(section, option, value)
         return ret

@@ -391,6 +391,16 @@ cdef class EventDispatcher(ObjectWithUid):
         handler = getattr(self, event_type)
         return handler(*largs, **kwargs)
 
+    def dispatch_generic(self, str event_type, *largs, **kwargs):
+        if event_type in self.__event_stack:
+            return self.dispatch(event_type, *largs, **kwargs)
+        return self.dispatch_children(event_type, *largs, **kwargs)
+
+    def dispatch_children(self, str event_type, *largs, **kwargs):
+        for child in self.children[:]:
+            if child.dispatch_generic(event_type, *largs, **kwargs):
+                return True
+
     #
     # Properties
     #
