@@ -1496,7 +1496,7 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     append = bound.append
 
     # bind all attrs, except last to update_intermediates
-    for k, val in enumerate(keys[s:-1], start=s):
+    for val in keys[s:-1]:
         # if we need to dynamically rebind, bindm otherwise just
         # add the attr to the list
         if isinstance(f, (EventDispatcher, Observable)):
@@ -1505,10 +1505,10 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
                 # fast_bind should not dispatch, otherwise
                 # update_intermediates might be called in the middle
                 # here messing things up
-                f.fast_bind(val, update_intermediates, base, keys, bound, k,
+                f.fast_bind(val, update_intermediates, base, keys, bound, s,
                             fn, args)
                 append([f.proxy_ref, val, update_intermediates,
-                        (base, keys, bound, k, fn, args)])
+                        (base, keys, bound, s, fn, args)])
             else:
                 append([f.proxy_ref, val, None, ()])
         else:
@@ -1517,6 +1517,7 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
         f = getattr(f, val, None)
         if f is None:
             break
+        s += 1
 
     # for the last attr we bind directly to the setting function,
     # because that attr sets the value of the rule.
@@ -1557,7 +1558,8 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
             append = bound.append
 
             # bind all attrs, except last to update_intermediates
-            for k, val in enumerate(keys[1:-1], start=1):
+            k = 1
+            for val in keys[1:-1]:
                 # if we need to dynamically rebind, bindm otherwise
                 # just add the attr to the list
                 if isinstance(f, (EventDispatcher, Observable)):
@@ -1578,6 +1580,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                 f = getattr(f, val, None)
                 if f is None:
                     break
+                k += 1
 
             # for the last attr we bind directly to the setting
             # function, because that attr sets the value of the rule.
