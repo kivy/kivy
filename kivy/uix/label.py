@@ -413,7 +413,7 @@ class Label(Widget):
     :attr:`padding_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `padding_x` has been fixed to work as expected.
         In the past, the text was padded by the negative of its values.
     '''
@@ -424,7 +424,7 @@ class Label(Widget):
     :attr:`padding_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `padding_y` has been fixed to work as expected.
         In the past, the text was padded by the negative of its values.
     '''
@@ -556,7 +556,7 @@ class Label(Widget):
     not None, In this case, the string is shortened to fit within the specified
     width.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     :attr:`shorten_from` is a :class:`~kivy.properties.OptionProperty` and
     defaults to `center`.
@@ -571,7 +571,7 @@ class Label(Widget):
     :attr:`shorten_from` is the empty string, `''`, we split on every character
     fitting as much text as possible into the line.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     :attr:`split_str` is a :class:`~kivy.properties.StringProperty` and
     defaults to `''` (the empty string).
@@ -677,7 +677,7 @@ class Label(Widget):
     edge, depending on :attr:`halign`. If :attr:`halign` is `justify` it is
     implicitly True.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     :attr:`strip` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.

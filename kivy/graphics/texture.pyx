@@ -65,7 +65,7 @@ For example, to blit immutable bytes data::
     with self.canvas:
         Rectangle(texture=texture, pos=self.pos, size=(64, 64))
 
-Since 1.8.1, you can blit data stored in a instance that implements the python
+Since 1.9.0, you can blit data stored in a instance that implements the python
 buffer interface, or a memoryview thereof, such as numpy arrays, python
 `array.array`, a `bytearray`, or a cython array. This is beneficial if you
 expect to blit similar data, with perhaps a few changes in the data.
@@ -143,7 +143,7 @@ If you want to seperate the original texture into many single ones, you don't
 need to. You can get a region of the original texture. That will return the
 original texture with custom texture coordinates::
 
-    # for example, load a 128x128 image that contain 4 64x64 images
+    # for example, load a 1.9.028 image that contain 4 64x64 images
     from kivy.core.image import Image
     texture = Image('mycombinedimage.png').texture
 
@@ -730,7 +730,7 @@ cdef class Texture:
     cpdef flip_horizontal(self):
         '''Flip tex_coords for horizontal display.
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
 
         '''
         self._uvx += self._uvw
@@ -861,7 +861,7 @@ cdef class Texture:
 
             added `mipmap_level` and `mipmap_generation`
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             `pbuffer` can now be any class instance that implements the python
             buffer interface and / or memoryviews thereof.
 

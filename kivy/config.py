@@ -277,7 +277,7 @@ class ConfigParser(PythonConfigParser, object):
         `name`: string
             The name of the instance. See :attr:`name`. Defaults to `''`.
 
-    ..versionchanged:: 1.8.1
+    ..versionchanged:: 1.9.0
         Each ConfigParser can now be named, :attr:`name`. You can get the
         ConfigParser associated with a name using :meth:`get_configparser`.
         In addition, you can now control the config values with
@@ -313,7 +313,7 @@ class ConfigParser(PythonConfigParser, object):
 
         Raises a `ValueError` if not found.
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
         '''
         self._callbacks.remove((callback, section, key))
 
@@ -330,7 +330,7 @@ class ConfigParser(PythonConfigParser, object):
         Python, this one is able to read only one file at a time. The last
         read file will be used for the :meth:`write` method.
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             :meth:`read` now calls the callbacks if read changed any values.
 
         '''

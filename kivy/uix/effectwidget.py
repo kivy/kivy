@@ -2,7 +2,7 @@
 EffectWidget
 ============
 
-.. versionadded:: 1.8.1
+.. versionadded:: 1.9.0
 
     This code is still experimental, and its API is subject to change in a
     future version.

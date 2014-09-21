@@ -1048,7 +1048,7 @@ cdef class Line(VertexInstruction):
 
             Line(rounded_rectangle=(0, 0, 200, 200, 10, 20, 30, 40, 100))
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
         '''
         def __set__(self, args):
             if args == None:
@@ -1201,7 +1201,7 @@ cdef class SmoothLine(Line):
 
         This is an unfinished work, experimental, subject to crash.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
     '''
 
     cdef float _owidth

@@ -2,7 +2,7 @@
 Calibration
 ===========
 
-.. versionadded:: 1.8.1
+.. versionadded:: 1.9.0
 
 Recalibrate input device to a specific range / offset.
 

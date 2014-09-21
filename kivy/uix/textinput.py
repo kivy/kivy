@@ -2242,7 +2242,7 @@ class TextInput(Widget):
     cursor_color = ListProperty([1, 0, 0, 1])
     '''Current color of the cursor, in (r, g, b, a) format.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     :attr:`cursor_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [1, 0, 0, 1].
@@ -2645,7 +2645,7 @@ class TextInput(Widget):
     ''' Filters the input according to the specified mode, if not None. If
     None, no filtering is applied.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     :attr:`input_filter` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to `None`. Can be one of `None`, `'int'` (string), or `'float'`

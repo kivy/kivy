@@ -509,7 +509,7 @@ class RstDocument(ScrollView):
     :attr:`underline_color` is a
     :class:`~kivy.properties.StringProperty` and defaults to '204a9699'.
 
-    .. versionadded: 1.8.1
+    .. versionadded: 1.9.0
     '''
 
     # internals.

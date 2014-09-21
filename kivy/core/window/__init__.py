@@ -242,7 +242,7 @@ class WindowBase(EventDispatcher):
         `on_dropfile`: str
             Fired when a file is dropped on the application.
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             `on_request_close` has been added.
     '''
 
@@ -409,7 +409,7 @@ class WindowBase(EventDispatcher):
     when 'resize' The window is resized and the contents scaled to fit the
     remaining space.
     
-    ..versionadded::1.8.1
+    ..versionadded::1.9.0
 
     :attr:`softinput_mode` is a :class:`OptionProperty` defaults to None.
 
@@ -441,7 +441,7 @@ class WindowBase(EventDispatcher):
     '''Rerturns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
-    ..versionadded:: 1.8.1
+    ..versionadded:: 1.9.0
 
     :attr:`keyboard_height` is a read-only :class:`AliasProperty` defaults to 0.
     '''
@@ -749,7 +749,7 @@ class WindowBase(EventDispatcher):
     def on_touch_down(self, touch):
         '''Event called when a touch down event is initiated.
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             The touch `pos` is now transformed to window coordinates before
             this method is called. Before, the touch `pos` coordinate would be
             `(0, 0)` when this method was called.
@@ -761,7 +761,7 @@ class WindowBase(EventDispatcher):
     def on_touch_move(self, touch):
         '''Event called when a touch event moves (changes location).
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             The touch `pos` is now transformed to window coordinates before
             this method is called. Before, the touch `pos` coordinate would be
             `(0, 0)` when this method was called.
@@ -773,7 +773,7 @@ class WindowBase(EventDispatcher):
     def on_touch_up(self, touch):
         '''Event called when a touch event is released (terminated).
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             The touch `pos` is now transformed to window coordinates before
             this method is called. Before, the touch `pos` coordinate would be
             `(0, 0)` when this method was called.

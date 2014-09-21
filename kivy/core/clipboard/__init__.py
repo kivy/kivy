@@ -71,7 +71,7 @@ class ClipboardBase(object):
         ''' Copy the value provided in argument `data` into current clipboard.
         If data is not of type string it will be converted to string.
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
 
         '''
         if data:
@@ -80,7 +80,7 @@ class ClipboardBase(object):
     def paste(self):
         ''' Get text from the system clipboard and return it a usable string.
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
 
         '''
         return self._paste()

@@ -298,7 +298,7 @@ class ScrollView(StencilView):
     '''Color of horizontal / vertical scroll bar (in RGBA format), when no
     scroll is happening.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     :attr:`bar_inactive_color` is a
     :class:`~kivy.properties.ListProperty` and defaults to [.7, .7, .7, .2].
@@ -869,7 +869,7 @@ class ScrollView(StencilView):
         vp.pos = 0, 0
         self.g_translate.xy = x, y
 
-        # New in 1.2.0, show bar when scrolling happens and (changed in 1.8.1)
+        # New in 1.2.0, show bar when scrolling happens and (changed in 1.9.0)
         # fade to bar_inactive_color when no scroll is happening.
         Clock.unschedule(self._bind_inactive_bar_color)
         self.unbind(bar_inactive_color=self._change_bar_color)

@@ -372,7 +372,7 @@ cdef class EventDispatcher(ObjectWithUid):
             `event_type`: str
                 the event name to dispatch.
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             Keyword arguments collection and forwarding was added. Before, only
             positional arguments would be collected and forwarded.
 
@@ -487,7 +487,7 @@ cdef class EventDispatcher(ObjectWithUid):
             property. Also, the type of the value is used to specialize the
             created property.
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             In the past, if `value` was of type `bool`, a `NumericProperty`
             would be created, now a `BooleanProperty` is created.
 
