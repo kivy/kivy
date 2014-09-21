@@ -410,11 +410,11 @@ def determine_sdl2():
             fn = join(d, '{}.h'.format(lib))
             if exists(fn):
                 found = True
-                print 'SDL2: found {} header at {}'.format(lib, fn)
+                print('SDL2: found {} header at {}'.format(lib, fn))
                 break
 
         if not found:
-            print 'SDL2: missing sub library {}'.format(lib)
+            print('SDL2: missing sub library {}'.format(lib))
             can_compile = False
 
     if not can_compile:
