@@ -394,12 +394,14 @@ def determine_sdl2():
     if not c_options['use_sdl2']:
         return flags
 
+    sdl2_path_win = join(dirname(__file__), 'kivy', 'lib', 'sdl2')
     flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
-    flags['include_dirs'] = ['/usr/local/include/SDL2', '/usr/include/SDL2']
+    flags['include_dirs'] = ['/usr/local/include/SDL2', '/usr/include/SDL2',
+        sdl2_path_win]
 
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
-    flags['extra_link_args'] += ['-L/usr/local/lib/']
+    flags['extra_link_args'] += ['-L/usr/local/lib/', '-L' + sdl2_path_win]
 
     # ensure headers for all the SDL2 and sub libraries are available
     libs_to_check = ['SDL', 'SDL_mixer', 'SDL_ttf', 'SDL_image']
