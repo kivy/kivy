@@ -121,6 +121,8 @@ if _platform == 'android':
         ('android', 'clipboard_android', 'ClipboardAndroid'))
 elif _platform in ('macosx', 'linux', 'win'):
     _clipboards.append(
+        ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
+    _clipboards.append(
         ('pygame', 'clipboard_pygame', 'ClipboardPygame'))
 _clipboards.append(
     ('dummy', 'clipboard_dummy', 'ClipboardDummy'))

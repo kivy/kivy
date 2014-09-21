@@ -10,22 +10,36 @@
             source: 'data/images/background.jpg'
             size: self.size
 
-    BoxLayout:
-        padding: 10
-        spacing: 10
-        size_hint: 1, None
-        pos_hint: {'top': 1}
-        height: 44
-        Image:
-            size_hint: None, None
-            size: 24, 24
-            source: 'data/logo/kivy-icon-24.png'
-        Label:
-            height: 24
-            text_size: self.size
-            color: (1, 1, 1, .8)
-            text: 'Kivy %s - Audio sample' % kivy.__version__
-            valign: 'middle'
+	BoxLayout:
+		padding: 10
+		spacing: 10
+		size_hint: 1, None
+		pos_hint: {'top': 1}
+		height: 44
+		Image:
+			size_hint: None, None
+			size: 24, 24
+			source: 'data/logo/kivy-icon-24.png'
+		Label:
+			height: 24
+			text_size: self.size
+			color: (1, 1, 1, .8)
+			text: 'Kivy %s - Audio sample' % kivy.__version__
+			valign: 'middle'
+
+	Label:
+		text: 'Audio example'
+		font_size: 32
+		size_hint_y: None
+
+	StackLayout:
+		id: sl
+
+	Button:
+		text: 'Stop and release all audio'
+		size_hint_y: None
+		height: '50sp'
+		on_press: app.release_audio()
 
     Label:
         text: 'Audio example'

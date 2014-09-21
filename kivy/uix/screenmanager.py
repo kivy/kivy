@@ -312,8 +312,8 @@ class TransitionBase(EventDispatcher):
     __events__ = ('on_progress', 'on_complete')
 
     def start(self, manager):
-        '''(internal) Starts the transition. This is automatically called by
-        the :class:`ScreenManager`.
+        '''(internal) Starts the transition. This is automatically
+        called by the :class:`ScreenManager`.
         '''
         if self.is_active:
             raise ScreenManagerException('start() is called twice!')

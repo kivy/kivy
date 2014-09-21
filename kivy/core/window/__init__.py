@@ -630,7 +630,7 @@ class WindowBase(EventDispatcher):
             # if we get initialized more than once, then reload opengl state
             # after the second time.
             # XXX check how it's working on embed platform.
-            if platform == 'linux':
+            if platform == 'linux' or Window.__class__.__name__ == 'WindowSDL':
                 # on linux, it's safe for just sending a resize.
                 self.dispatch('on_resize', *self.system_size)
 
@@ -922,7 +922,7 @@ class WindowBase(EventDispatcher):
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
         is_osx = platform == 'darwin'
-        if self.on_keyboard.exit_on_escape:
+        if WindowBase.on_keyboard.exit_on_escape:
             if key == 27 or all([is_osx, key in [113, 119], modifier == 1024]):
                 if not self.dispatch('on_request_close', source='keyboard'):
                     stopTouchApp()
@@ -1193,5 +1193,6 @@ Window = core_select_lib('window', (
     ('egl_rpi', 'window_egl_rpi', 'WindowEglRpi'),
     ('pygame', 'window_pygame', 'WindowPygame'),
     ('sdl', 'window_sdl', 'WindowSDL'),
+    ('sdl2', 'window_sdl2', 'WindowSDL'),
     ('x11', 'window_x11', 'WindowX11'),
 ), True)

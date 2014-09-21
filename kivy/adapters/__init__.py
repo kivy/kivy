@@ -45,6 +45,8 @@ The components involved in this process are:
     :doc:`api-kivy.adapters.listadapter`,
     :doc:`api-kivy.adapters.dictadapter`.
 
+- **Models**: The data for which an adapter serves as a bridge to views can be
+  any sort of data. However, for convenience, model mixin classes can ease the
 - **Models**: The data passed into an adapter can be any sort of data. The
   models assist in the
   preparation or shaping of data for use in the system. For selection

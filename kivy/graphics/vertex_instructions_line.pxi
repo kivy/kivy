@@ -67,6 +67,9 @@ cdef class Line(VertexInstruction):
         `joint`: str, defaults to 'round'
             See :attr:`joint` for more information.
         `cap_precision`: int, defaults to 10
+            See :attr:`cap_precision` for more information
+        `joint_precision`: int, defaults to 10
+            See :attr:`joint_precision` for more information
             See :attr:`cap_precision` for more information.
         `joint_precision`: int, defaults to 10
             See :attr:`joint_precision` for more information.

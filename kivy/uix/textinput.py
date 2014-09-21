@@ -1239,7 +1239,7 @@ class TextInput(Widget):
         lh, ls = self.line_height, self.line_spacing
 
         x, y = pos
-        t_pos = self.to_window(x, y)
+        t_pos = (x, y) if pos_in_window else self.to_window(x, y)
         bubble_size = bubble.size
         bubble_hw = bubble_size[0] / 2.
         win_size = win.size
