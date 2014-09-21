@@ -130,7 +130,7 @@ cdef class EventDispatcher(ObjectWithUid):
         global cache_properties
         cdef dict cp = cache_properties
         cdef dict attrs_found
-        cdef list attrs
+        cdef list attrs, items
         cdef Property attr
         cdef str k
 
@@ -153,13 +153,12 @@ cdef class EventDispatcher(ObjectWithUid):
             attrs_found = cp[__cls__]
 
         # First loop, link all the properties storage to our instance
-        for k in attrs_found:
-            attr = attrs_found[k]
+        items = attrs_found.items()
+        for k, attr in items:
             attr.link(self, k)
 
         # Second loop, resolve all the references
-        for k in attrs_found:
-            attr = attrs_found[k]
+        for k, attr in items:
             attr.link_deps(self, k)
 
         self.__properties = attrs_found
