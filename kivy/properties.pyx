@@ -352,7 +352,7 @@ cdef class Property:
                 return
         ps.observers.append((observer, ))
 
-    cpdef fast_bind(self, EventDispatcher obj, observer, args):
+    cpdef fast_bind(self, EventDispatcher obj, observer, args=()):
         '''Similar to bind, except it doesn't check if the observer already
         exists. It also expands and forwards args to the callback.
         fast_unbind should be called when unbinding.
@@ -369,7 +369,7 @@ cdef class Property:
             if item[0] == observer:
                 ps.observers.remove(item)
 
-    cpdef fast_unbind(self, EventDispatcher obj, observer, args):
+    cpdef fast_unbind(self, EventDispatcher obj, observer, args=()):
         '''Remove the observer from our widget observer list bound with
         fast_bind. It removes the first match it finds, as opposed to unbind
         which searches for all matches.
