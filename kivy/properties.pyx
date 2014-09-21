@@ -147,7 +147,7 @@ class::
     example, continuing with the code above, `MyClass.a = 5` replaces
     the property object with a simple int.
 
-    
+
 Observe using 'on_<propname>'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -345,11 +345,20 @@ cdef class Property:
         '''Add a new observer to be called only when the value is changed.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        cdef tuple callback = (observer, )
+        cdef tuple callback
 
-        # see dispatch - callback is a 1-tuple
-        if callback not in ps.observers:
-            ps.observers.append(callback)
+        for callback in ps.observers:
+            if callback[0] == observer:
+                return
+        ps.observers.append((observer, ))
+
+    cpdef fast_bind(self, EventDispatcher obj, observer, args):
+        '''Similar to bind, except it doesn't check if the observer already
+        exists. It also expands and forwards args to the callback.
+        fast_unbind should be called when unbinding.
+        '''
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        ps.observers.append((observer, args))
 
     cpdef unbind(self, EventDispatcher obj, observer):
         '''Remove the observer from our widget observer list.
@@ -359,6 +368,21 @@ cdef class Property:
         for item in ps.observers[:]:
             if item[0] == observer:
                 ps.observers.remove(item)
+
+    cpdef fast_unbind(self, EventDispatcher obj, observer, args):
+        '''Remove the observer from our widget observer list bound with
+        fast_bind. It removes the first match it finds, as opposed to unbind
+        which searches for all matches.
+        '''
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        cdef tuple item
+        cdef tuple bound = (observer, args)
+        cdef int i
+
+        for i, item in enumerate(ps.observers):
+            if item == bound:
+                del ps.observers[i]
+                break
 
     def __set__(self, EventDispatcher obj, val):
         self.set(obj, val)
@@ -1117,14 +1141,14 @@ cdef class ReferenceListProperty(Property):
     `pos`, it will automatically change the values of `x` and `y` accordingly.
     If you read the value of `pos`, it will return a tuple with the values of
     `x` and `y`.
-    
+
     For example::
-    
+
         class MyWidget(EventDispatcher):
             x = NumericProperty(0)
             y = NumericProperty(0)
             pos = ReferenceListProperty(x, y)
-    
+
     '''
     def __cinit__(self):
         self.properties = list()
