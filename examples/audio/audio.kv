@@ -27,20 +27,6 @@
 			text: 'Kivy %s - Audio sample' % kivy.__version__
 			valign: 'middle'
 
-	Label:
-		text: 'Audio example'
-		font_size: 32
-		size_hint_y: None
-
-	StackLayout:
-		id: sl
-
-	Button:
-		text: 'Stop and release all audio'
-		size_hint_y: None
-		height: '50sp'
-		on_press: app.release_audio()
-
     Label:
         text: 'Audio example'
         font_size: 32
