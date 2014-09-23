@@ -237,9 +237,9 @@ cdef object RE_POLYLINE = re.compile(
     r'(-?[0-9]+\.?[0-9]*(?:e-?[0-9]*)?)')
 
 cdef VertexFormat VERTEX_FORMAT = VertexFormat(
-    ('v_pos', 2, 'float'),
-    ('v_tex', 2, 'float'),
-    ('v_color', 4, 'float'))
+    (b'v_pos', 2, 'float'),
+    (b'v_tex', 2, 'float'),
+    (b'v_color', 4, 'float'))
 
 def _tokenize_path(pathdef):
     for x in RE_COMMAND.split(pathdef):
