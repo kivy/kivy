@@ -28,6 +28,7 @@ from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from kivy.resources import resource_find
 from kivy.utils import platform
+from kivy.compat import unichr
 from collections import deque
 
 KMOD_LCTRL = 64
