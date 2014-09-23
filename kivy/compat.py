@@ -24,6 +24,12 @@ if PY2:
 else:
     string_types = text_type = str
 
+#: unichr is just chr in py3, since all strings are unicode
+if PY2:
+    unichr = unichr
+else:
+    unichr = chr
+
 if PY2:
     iterkeys = lambda d: d.iterkeys()
     itervalues = lambda d: d.itervalues()

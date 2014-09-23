@@ -78,10 +78,10 @@ cdef class _WindowSDL2Storage:
         SDL_GetWindowDisplayMode(self.win, &mode)
 
     def set_window_title(self, str title):
-        SDL_SetWindowTitle(self.win, <bytes>title.decode('utf-8'))
+        SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
 
     def set_window_icon(self, str filename):
-        icon = IMG_Load(<bytes>filename.decode('utf-8'))
+        icon = IMG_Load(<bytes>filename.encode('utf-8'))
         SDL_SetWindowIcon(self.win, icon)
 
     def teardown_window(self):
