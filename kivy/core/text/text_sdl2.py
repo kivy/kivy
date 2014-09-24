@@ -22,9 +22,8 @@ class LabelSDL2(LabelBase):
                     in ('font_size', 'font_name_r', 'bold', 'italic')])
             except UnicodeDecodeError:
                 pass
-        ret_val = '|'.join([str(self.options[x]) for x \
+        return '|'.join([str(self.options[x]) for x \
             in ('font_size', 'font_name_r', 'bold', 'italic')])
-        return ret_val
 
     def get_extents(self, text):
         try:
