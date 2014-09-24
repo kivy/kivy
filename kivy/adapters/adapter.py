@@ -33,6 +33,8 @@ corresponding properties:
   invocation. If no args_converter is provided, the data items are assumed
   to be simple strings.
 
+Please refer to the :mod:`~kivy.adapters` documentation for an overview of how
+adapters are used.
 
 '''
 
