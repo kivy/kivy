@@ -80,19 +80,21 @@ class ListAdapter(Adapter, EventDispatcher):
 
     selection_mode = OptionProperty('single',
             options=('none', 'single', 'multiple'))
-    '''Selection modes:
+    '''The selection_mode is a string and can be set to one of the following
+    values:
 
-       * *none*, use the list as a simple list (no select action). This option
+       * 'none': use the list as a simple list (no select action). This option
          is here so that selection can be turned off, momentarily or
          permanently, for an existing list adapter.
          A :class:`~kivy.adapters.listadapter.ListAdapter` is not meant to be
          used as a primary no-selection list adapter.  Use a
          :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` for that.
 
-       * *single*, multi-touch/click ignored. Single item selection only.
+       * 'single': multi-touch/click ignored. Single item selection only.
 
-       * *multiple*, multi-touch / incremental addition to selection allowed;
-         may be limited to a count by selection_limit
+       * 'multiple': multi-touch / incremental addition to selection allowed;
+         may be limited to a count by setting the
+         :attr:`~ListAdapter.selection_limit`.
 
     :attr:`selection_mode` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'single'.
