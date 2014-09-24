@@ -57,7 +57,7 @@ cdef class _SurfaceContainer:
         c.r = <int>(color[0] * 255)
         c.g = <int>(color[1] * 255)
         c.b = <int>(color[2] * 255)
-        bytes_text = <bytes>(text.encode('utf-8'))
+        bytes_text = <bytes>text.encode('utf-8')
         st = TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
         if st == NULL:
             return
@@ -95,7 +95,7 @@ cdef TTF_Font *_get_font(self):
 
     # try first the file if it's a filename
     fontname = self.options['font_name_r']
-    bytes_fontname = <bytes>(fontname.encode('utf-8'))
+    bytes_fontname = <bytes>fontname.encode('utf-8')
     ext = fontname.split('.')[-1]
     if ext.lower() == 'ttf':
         fontobject = TTF_OpenFont(bytes_fontname,
@@ -125,7 +125,7 @@ def _get_extents(container, text):
     cdef int w, h
     if font == NULL:
         return 0, 0
-    bytes_text = <bytes>(text.encode('utf-8'))
+    bytes_text = <bytes>text.encode('utf-8')
     TTF_SizeUTF8(font, <char *>bytes_text, &w, &h)
     return w, h
 
