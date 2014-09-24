@@ -9,23 +9,22 @@ ListAdapter
     This code is still experimental, and its API is subject to change in a
     future version.
 
-A :class:`ListAdapter` is an adapter around a python list.
-
-Selection operations are a main concern for the class.
-
-From an :class:`Adapter`, a :class:`ListAdapter` gets cls, template, and
-args_converter properties and adds others that control selection behaviour:
-
-* *selection*, a list of selected items.
-
-* *selection_mode*, 'single', 'multiple', 'none'
-
-* *allow_empty_selection*, a boolean -- If False, a selection is forced. If
-  True, and only user or programmatic action will change selection, it can
-  be empty.
-
-If you wish to have a bare-bones list adapter, without selection, use a
+A :class:`ListAdapter` is an adapter around a python list and adds support
+for selection operations. If you wish to have a bare-bones list adapter,
+without selection, use a
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`.
+
+From an :class:`~kivy.adapters.Adapter`, a :class:`ListAdapter` inherits cls,
+template, and args_converter properties and adds others that control selection
+behaviour:
+
+* :attr:`~ListAdapter.selection`: a list of selected items.
+
+* :attr:`~ListAdapter.selection_mode`: one of 'single', 'multiple' or 'none'.
+
+* :attr:`~ListAdapter.allow_empty_selection`: a boolean. If False, a selection
+  is forced. If True, and only user or programmatic action will change
+  selection, it can be empty.
 
 A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
 :class:`~kivy.adapters.listadapter.ListAdapter`. They both dispatch the
