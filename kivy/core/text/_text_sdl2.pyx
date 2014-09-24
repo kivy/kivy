@@ -57,7 +57,8 @@ cdef class _SurfaceContainer:
         c.r = <int>(color[0] * 255)
         c.g = <int>(color[1] * 255)
         c.b = <int>(color[2] * 255)
-        st = TTF_RenderUTF8_Blended(font, <char *><bytes>text, c)
+        bytes_text = <bytes>(text.encode('utf-8'))
+        st = TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
         if st == NULL:
             return
         r.x = x
@@ -94,9 +95,11 @@ cdef TTF_Font *_get_font(self):
 
     # try first the file if it's a filename
     fontname = self.options['font_name_r']
+    bytes_fontname = <bytes>(fontname.encode('utf-8'))
     ext = fontname.split('.')[-1]
     if ext.lower() == 'ttf':
-        fontobject = TTF_OpenFont(fontname, int(self.options['font_size']))
+        fontobject = TTF_OpenFont(bytes_fontname,
+                                  int(self.options['font_size']))
 
     # fallback to search a system font
     if fontobject == NULL:
@@ -114,6 +117,7 @@ cdef TTF_Font *_get_font(self):
         del sdl2_cache[popid]
 
     ttfc = sdl2_cache[fontid]
+
     return ttfc.font
 
 def _get_extents(container, text):
@@ -121,7 +125,8 @@ def _get_extents(container, text):
     cdef int w, h
     if font == NULL:
         return 0, 0
-    TTF_SizeUTF8(font, <char *><bytes>text, &w, &h)
+    bytes_text = <bytes>(text.encode('utf-8'))
+    TTF_SizeUTF8(font, <char *>bytes_text, &w, &h)
     return w, h
 
 def _get_fontdescent(container):
