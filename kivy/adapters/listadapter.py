@@ -207,12 +207,12 @@ class ListAdapter(Adapter, EventDispatcher):
         return item_view
 
     def create_view(self, index):
-        '''This method is more complicated than the one in
-        :class:`kivy.adapters.adapter.Adapter` and
-        :class:`kivy.adapters.simplelistadapter.SimpleListAdapter`, because
-        here we create bindings for the data item and its children back to
-        self.handle_selection(), and do other selection-related tasks to keep
-        item views in sync with the data.
+        '''This method is more complicated than the ones in the
+        :class:`~kivy.adapters.adapter.Adapter` and
+        :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` classes
+        because here we create bindings for the data items and their children
+        back to the *self.handle_selection()* event. We also perform
+        other selection-related tasks to keep item views in sync with the data.
         '''
         item = self.get_data_item(index)
         if item is None:
@@ -425,7 +425,7 @@ class ListAdapter(Adapter, EventDispatcher):
             self.data = self.data[:last_sel_index + 1]
 
     def trim_to_sel(self, *args):
-        '''Cut list items with indices in sorted_keys that are les than or
+        '''Cut list items with indices in sorted_keys that are less than or
         greater than the index of the last selected item if there is a
         selection. This preserves intervening list items within the selected
         range.
