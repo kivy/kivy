@@ -309,7 +309,7 @@ class ImageLoaderImageIO(ImageLoaderBase):
     def extensions():
         # FIXME check which one are available on osx
         return ('bmp', 'bufr', 'cur', 'dcx', 'fits', 'fl', 'fpx', 'gbr',
-                'gd', 'gif', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
+                'gd', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
                 'jpeg', 'jpg', 'jpe', 'mcidas', 'mic', 'mpeg', 'msp',
                 'pcd', 'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi',
                 'spider', 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm',
