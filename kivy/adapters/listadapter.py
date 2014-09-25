@@ -148,7 +148,8 @@ class ListAdapter(Adapter, EventDispatcher):
     '''
 
     selection_limit = NumericProperty(-1)
-    '''When the selection_mode is multiple and the selection_limit is
+    '''When the :attr:`~ListAdapter.selection_mode` is 'multiple' and the
+    selection_limit is
     non-negative, this number will limit the number of selected items. It can
     be set to 1, which is equivalent to single selection. If selection_limit is
     not set, the default value is -1, meaning that no limit will be enforced.
