@@ -23,6 +23,10 @@ from kivy.graphics import RenderContext
 from kivy.input.motionevent import MotionEvent
 from kivy.cache import Cache
 from kivy.clock import Clock
+from kivy.compat import PY2
+
+if not PY2:
+    xrange = range
 
 clockfn = time
 if sys.platform == 'win32':

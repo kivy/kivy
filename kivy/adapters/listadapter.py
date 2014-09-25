@@ -9,23 +9,22 @@ ListAdapter
     This code is still experimental, and its API is subject to change in a
     future version.
 
-A :class:`ListAdapter` is an adapter around a python list.
-
-Selection operations are a main concern for the class.
-
-From an :class:`Adapter`, a :class:`ListAdapter` gets cls, template, and
-args_converter properties and adds others that control selection behaviour:
-
-* *selection*, a list of selected items.
-
-* *selection_mode*, 'single', 'multiple', 'none'
-
-* *allow_empty_selection*, a boolean -- If False, a selection is forced. If
-  True, and only user or programmatic action will change selection, it can
-  be empty.
-
-If you wish to have a bare-bones list adapter, without selection, use a
+A :class:`ListAdapter` is an adapter around a python list and adds support
+for selection operations. If you wish to have a bare-bones list adapter,
+without selection, use a
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`.
+
+From an :class:`~kivy.adapters.Adapter`, a :class:`ListAdapter` inherits cls,
+template, and args_converter properties and adds others that control selection
+behaviour:
+
+* :attr:`~ListAdapter.selection`: a list of selected items.
+
+* :attr:`~ListAdapter.selection_mode`: one of 'single', 'multiple' or 'none'.
+
+* :attr:`~ListAdapter.allow_empty_selection`: a boolean. If False, a selection
+  is forced. If True, and only user or programmatic action will change
+  selection, it can be empty.
 
 A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
 :class:`~kivy.adapters.listadapter.ListAdapter`. They both dispatch the
@@ -81,19 +80,21 @@ class ListAdapter(Adapter, EventDispatcher):
 
     selection_mode = OptionProperty('single',
             options=('none', 'single', 'multiple'))
-    '''Selection modes:
+    '''The selection_mode is a string and can be set to one of the following
+    values:
 
-       * *none*, use the list as a simple list (no select action). This option
+       * 'none': use the list as a simple list (no select action). This option
          is here so that selection can be turned off, momentarily or
          permanently, for an existing list adapter.
          A :class:`~kivy.adapters.listadapter.ListAdapter` is not meant to be
          used as a primary no-selection list adapter.  Use a
          :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` for that.
 
-       * *single*, multi-touch/click ignored. Single item selection only.
+       * 'single': multi-touch/click ignored. Single item selection only.
 
-       * *multiple*, multi-touch / incremental addition to selection allowed;
-         may be limited to a count by selection_limit
+       * 'multiple': multi-touch / incremental addition to selection allowed;
+         may be limited to a count by setting the
+         :attr:`~ListAdapter.selection_limit`.
 
     :attr:`selection_mode` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'single'.
@@ -206,12 +207,12 @@ class ListAdapter(Adapter, EventDispatcher):
         return item_view
 
     def create_view(self, index):
-        '''This method is more complicated than the one in
-        :class:`kivy.adapters.adapter.Adapter` and
-        :class:`kivy.adapters.simplelistadapter.SimpleListAdapter`, because
-        here we create bindings for the data item and its children back to
-        self.handle_selection(), and do other selection-related tasks to keep
-        item views in sync with the data.
+        '''This method is more complicated than the ones in the
+        :class:`~kivy.adapters.adapter.Adapter` and
+        :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` classes
+        because here we create bindings for the data items and their children
+        back to the *self.handle_selection()* event. We also perform
+        other selection-related tasks to keep item views in sync with the data.
         '''
         item = self.get_data_item(index)
         if item is None:
@@ -424,7 +425,7 @@ class ListAdapter(Adapter, EventDispatcher):
             self.data = self.data[:last_sel_index + 1]
 
     def trim_to_sel(self, *args):
-        '''Cut list items with indices in sorted_keys that are les than or
+        '''Cut list items with indices in sorted_keys that are less than or
         greater than the index of the last selected item if there is a
         selection. This preserves intervening list items within the selected
         range.

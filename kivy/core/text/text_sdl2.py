@@ -9,8 +9,8 @@ __all__ = ('LabelSDL2', )
 
 from kivy.compat import PY2
 from kivy.core.text import LabelBase
-from _text_sdl2 import _SurfaceContainer, _get_extents, _get_fontdescent, \
-        _get_fontascent
+from kivy.core.text._text_sdl2 import (_SurfaceContainer, _get_extents,
+                                       _get_fontdescent, _get_fontascent)
 
 
 class LabelSDL2(LabelBase):
@@ -22,7 +22,7 @@ class LabelSDL2(LabelBase):
                     in ('font_size', 'font_name_r', 'bold', 'italic')])
             except UnicodeDecodeError:
                 pass
-        return '|'.join([self.options[x] for x \
+        return '|'.join([str(self.options[x]) for x \
             in ('font_size', 'font_name_r', 'bold', 'italic')])
 
     def get_extents(self, text):
