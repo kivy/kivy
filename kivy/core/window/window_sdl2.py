@@ -100,15 +100,25 @@ class WindowSDL(WindowBase):
     def create_window(self, *largs):
         use_fake = self.fullscreen == 'fake'
         use_fullscreen = False
+
+
         if self.fullscreen in ('auto', True):
             use_fullscreen = self.fullscreen
 
-        if not self.initialized:# never stay with a None pos, application using w.center will be fired.
-            self._pos = (0, 0)
+        if not self.initialized:
+
+            if self.position == 'auto':
+                pos = None, None
+            elif self.position == 'custom':
+                pos = self.left, self.top
 
             # setup !
             w, h = self._size
-            gl_size = self._win.setup_window(w, h, use_fake, use_fullscreen)
+            gl_size = self._win.setup_window(pos[0], pos[1], w, h,
+                                                use_fake, use_fullscreen)
+            # never stay with a None pos, application using w.center
+            # will be fired.
+            self._pos = (0, 0)
         else:
             w, h = self._size
             self._win.resize_window(w, h)
