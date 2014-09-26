@@ -16,7 +16,8 @@ cdef class _WindowSDL2Storage:
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
 
-    def setup_window(self, width, height, use_fake, use_fullscreen, shaped=False):
+    def setup_window(self, x, y, width, height, use_fake, use_fullscreen,
+                     shaped=False):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
         if use_fake or shaped:
             self.win_flags |= SDL_WINDOW_BORDERLESS
@@ -46,11 +47,17 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
         SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
 
+        if x is None:
+            x = SDL_WINDOWPOS_UNDEFINED
+        if y is None:
+            y = SDL_WINDOWPOS_UNDEFINED
 
         if not shaped:
-            self.win = SDL_CreateWindow(NULL, 0, 0, width, height, self.win_flags)
+            self.win = SDL_CreateWindow(NULL, x, y, width, height,
+                                        self.win_flags)
         else:
-            self.win = SDL_CreateShapedWindow(NULL, 0, 0, width, height, self.win_flags)
+            self.win = SDL_CreateShapedWindow(NULL, x, y, width, height,
+                                              self.win_flags)
             #shape_mode = SDL_WindowShapeMode()
             #shape_mode.mode = ShapeModeColorKey
             #shape_mode.parameters.colorKey = (0, 0, 0, 255)
