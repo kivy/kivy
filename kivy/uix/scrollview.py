@@ -600,8 +600,8 @@ class ScrollView(StencilView):
 
             if ((btn == 'scrolldown' and self.scroll_y >= 1) or
                 (btn == 'scrollup' and self.scroll_y <= 0) or
-                (btn == 'scrollleft' and self.scroll_x <= 0) or
-                (btn == 'scrollright' and self.scroll_x >= 1)):
+                (btn == 'scrollleft' and self.scroll_x >= 1) or
+                (btn == 'scrollright' and self.scroll_x <= 0)):
                 return False
 
             if (self.effect_x and self.do_scroll_y and height_scrollable
