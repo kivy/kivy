@@ -29,8 +29,10 @@ editor.kv
 '''
 
 __all__ = ('FileChooserListView', 'FileChooserIconView',
-           'FileChooserController', 'FileChooserProgressBase',
-           'FileSystemAbstract', 'FileSystemLocal')
+           'FileChooserListLayout', 'FileChooserIconLayout',
+           'FileChooser', 'FileChooserController',
+           'FileChooserProgressBase', 'FileSystemAbstract',
+           'FileSystemLocal')
 
 from weakref import ref
 from time import time
@@ -43,7 +45,7 @@ from kivy.utils import platform as core_platform
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import (
     StringProperty, ListProperty, BooleanProperty, ObjectProperty,
-    NumericProperty)
+    NumericProperty, OptionProperty)
 from os import listdir
 from os.path import (
     basename, join, sep, normpath, expanduser, altsep,
@@ -198,6 +200,13 @@ class FileChooserController(FloatLayout):
             Fired when a file has been selected with a double-tap.
     '''
     _ENTRY_TEMPLATE = None
+    
+    layout = ObjectProperty()
+    '''
+    Reference to the layout widget instance.
+    
+    layout is an :class:`~kivy.properties.ObjectProperty`.
+    '''
 
     path = StringProperty(u'/')
     '''
@@ -413,19 +422,19 @@ class FileChooserController(FloatLayout):
         Clock.schedule_once(self._update_files)
 
     def on_entry_added(self, node, parent=None):
-        pass
+        self.layout.dispatch('on_entry_added', node, parent)
 
     def on_entries_cleared(self):
-        pass
+        self.layout.dispatch('on_entries_cleared')
 
     def on_subentry_to_entry(self, subentry, entry):
-        pass
+        self.layout.dispatch('on_subentry_to_entry', subentry, entry)
 
     def on_remove_subentry(self, subentry, entry):
-        pass
+        self.layout.dispatch('on_remove_subentry', subentry, entry)
 
     def on_submit(self, selected, touch=None):
-        pass
+        self.layout.dispatch('on_submit', selected, touch)
 
     def entry_touched(self, entry, touch):
         '''(internal) This method must be called by the template when an entry
@@ -539,6 +548,9 @@ class FileChooserController(FloatLayout):
             # start a timer for the next 100 ms
             Clock.schedule_interval(self._create_files_entries, .1)
 
+    def _get_file_paths(self, items):
+        return [file.path for file in items]
+
     def _create_files_entries(self, *args):
         # create maximum entries during 50ms max, or 10 minimum (slow system)
         # (on a "fast system" (core i7 2700K), we can create up to 40 entries
@@ -577,7 +589,7 @@ class FileChooserController(FloatLayout):
             parent.entries[:] = items
             for entry in items:
                 self.dispatch('on_subentry_to_entry', entry, parent)
-        self.files[:] = [file.path for file in items]
+        self.files[:] = self._get_file_paths(items)
 
         # stop the progression / creation
         self._hide_progress()
@@ -644,7 +656,7 @@ class FileChooserController(FloatLayout):
         # generate an entries to go back to previous
         if not is_root and not have_parent:
             back = '..' + sep
-            pardir = Builder.template(self._ENTRY_TEMPLATE, **dict(
+            pardir = self._create_entry_widget(dict(
                 name=back, size='', path=back, controller=ref(self),
                 isdir=True, parent=None, sep=sep, get_nice_size=lambda: ''))
             yield 0, 1, pardir
@@ -656,6 +668,9 @@ class FileChooserController(FloatLayout):
         except OSError:
             Logger.exception('Unable to open directory <%s>' % self.path)
             self.files[:] = []
+
+    def _create_entry_widget(self, ctx):
+        return Builder.template(self.layout._ENTRY_TEMPLATE, **ctx)
 
     def _add_files(self, path, parent=None):
         path = expanduser(path)
@@ -693,7 +708,7 @@ class FileChooserController(FloatLayout):
                    'isdir': self.file_system.is_dir(fn),
                    'parent': parent,
                    'sep': sep}
-            entry = Builder.template(self._ENTRY_TEMPLATE, **ctx)
+            entry = self._create_entry_widget(ctx)
             yield index, total, entry
 
     def entry_subselect(self, entry):
@@ -706,42 +721,195 @@ class FileChooserController(FloatLayout):
             self.dispatch('on_remove_subentry', subentry, entry)
 
 
+class FileChooserLayout(FloatLayout):
+    '''Base class for file chooser layouts.
+    '''
+    
+    __events__ = ('on_entry_added', 'on_entries_cleared',
+                  'on_subentry_to_entry', 'on_remove_subentry', 'on_submit')
+    
+    controller = ObjectProperty()
+    '''
+    Reference to the controller handling this layout.
+    
+    :class:`~kivy.properties.ObjectProperty`
+    '''
+
+    def on_entry_added(self, node, parent=None):
+        pass
+
+    def on_entries_cleared(self):
+        pass
+
+    def on_subentry_to_entry(self, subentry, entry):
+        pass
+
+    def on_remove_subentry(self, subentry, entry):
+        pass
+
+    def on_submit(self, selected, touch=None):
+        pass
+
+
+class FileChooserListLayout(FileChooserLayout):
+    '''File chooser layout using a list view.
+    '''
+    _ENTRY_TEMPLATE = 'FileListEntry'
+
+
 class FileChooserListView(FileChooserController):
     '''Implementation of :class:`FileChooserController` using a list view.
     '''
-    _ENTRY_TEMPLATE = 'FileListEntry'
+    pass
+
+
+class FileChooserIconLayout(FileChooserLayout):
+    '''File chooser layout using an icon view.
+    '''
+
+    _ENTRY_TEMPLATE = 'FileIconEntry'
+    
+    def __init__(self, **kwargs):
+        super(FileChooserIconLayout, self).__init__(**kwargs)
+        self.bind(on_entries_cleared=self.scroll_to_top)
+
+    def scroll_to_top(self, *args):
+        self.ids.scrollview.scroll_y = 1.0
 
 
 class FileChooserIconView(FileChooserController):
     '''Implementation of :class:`FileChooserController` using an icon view.
     '''
-    _ENTRY_TEMPLATE = 'FileIconEntry'
+    pass
+
+
+class FileChooser(FileChooserController):
+    '''Implementation of :class:`FileChooserController` which supports
+    switching between multiple, synced layout views.
+    '''
+    
+    view_mode = OptionProperty('icon', options=('icon', 'list'))
+    '''
+    Current layout view mode. Can be 'icon' or 'list'.
+    
+    :class:`~kivy.properties.OptionProperty`, defaults to 'icon'.
+    '''
+
+    manager = ObjectProperty()
+    '''
+    Reference to the :class:`~kivy.uix.screenmanager.ScreenManager` instance.
+    
+    :class:`~kivy.properties.ObjectProperty`
+    '''
+
+    listview = ObjectProperty()
+    '''
+    Reference to the list layout widget instance.
+    
+    :class:`~kivy.properties.ObjectProperty`
+    '''
+    
+    iconview = ObjectProperty()
+    '''
+    Reference to the icon layout widget instance.
+    
+    :class:`~kivy.properties.ObjectProperty`
+    '''
 
     def __init__(self, **kwargs):
-        super(FileChooserIconView, self).__init__(**kwargs)
-        self.bind(on_entries_cleared=self.scroll_to_top)
+        super(FileChooser, self).__init__(**kwargs)
+        
+        self.bind(view_mode=self.update_view)
+        
+        Clock.schedule_once(self.update_view)
     
-    def scroll_to_top(self, *args):
-        self.ids.scrollview.scroll_y = 1.0
+    def update_view(self, *args):
+        # if self.layout:
+        # 	self.remove_widget(self.layout)
+        # self.layout = self.list_view if self.view_mode == 'list' else self.icon_view
+        # self.add_widget(self.layout, index=-1)
+        sm = self.manager
+        viewlist = self.__class__.view_mode.options
+        view = self.view_mode
+        current = sm.current[:-4]
+        
+        viewindex = viewlist.index(view) if view in viewlist else 0
+        currentindex = viewlist.index(current) if current in viewlist else 0
+        
+        direction = 'left' if currentindex < viewindex else 'right'
+        
+        sm.transition.direction = direction
+        sm.current = view + 'view'
+
+    def _create_entry_widget(self, ctx):
+        return (Builder.template(self.listview._ENTRY_TEMPLATE, **ctx),
+                Builder.template(self.iconview._ENTRY_TEMPLATE, **ctx))
+
+    def _get_file_paths(self, items):
+        return [file[0].path for file in items]
+
+    def _update_item_selection(self, *args):
+        for item in self._items:
+            item[0].selected = item[0].path in self.selection
+            item[1].selected = item[1].path in self.selection
+
+    def on_entry_added(self, node, parent=None):
+        self.listview.dispatch('on_entry_added', node[0], parent[0] if parent else None)
+        self.iconview.dispatch('on_entry_added', node[1], parent[1] if parent else None)
+
+    def on_entries_cleared(self):
+        self.listview.dispatch('on_entries_cleared')
+        self.iconview.dispatch('on_entries_cleared')
+
+    def on_subentry_to_entry(self, subentry, entry):
+        self.listview.dispatch('on_subentry_to_entry', subentry[0], entry)
+
+    def on_remove_subentry(self, subentry, entry):
+        self.listview.dispatch('on_remove_subentry', subentry[0], entry)
+
+    def on_submit(self, selected, touch=None):
+        if self.view_mode == 'list':
+            self.listview.dispatch('on_submit', selected, touch)
+        else:
+            self.iconview.dispatch('on_submit', selected, touch)
 
 
 if __name__ == '__main__':
     from kivy.app import App
+    from kivy.lang import Builder
     from pprint import pprint
+    import textwrap
     import sys
+    
+    root = Builder.load_string(textwrap.dedent('''\
+    BoxLayout:
+        orientation: 'vertical'
+        
+        BoxLayout:
+            size_hint_y: None
+            height: sp(52)
+            
+            Button:
+                text: 'Icon View'
+                on_press: fc.view_mode = 'icon'
+            Button:
+                text: 'List View'
+                on_press: fc.view_mode = 'list'
+        
+        FileChooser:
+            id: fc
+    '''))
 
     class FileChooserApp(App):
 
         def build(self):
-            view = FileChooserListView
-
+            v = root.ids.fc
             if len(sys.argv) > 1:
-                v = view(path=sys.argv[1])
-            else:
-                v = view()
-
+                v.path = sys.argv[1]
+            
             v.bind(selection=lambda *x: pprint("selection: %s" % x[1:]))
             v.bind(path=lambda *x: pprint("path: %s" % x[1:]))
-            return v
+            
+            return root
 
     FileChooserApp().run()

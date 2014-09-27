@@ -1,30 +1,21 @@
 ShowcaseScreen:
-	name: 'FileChoosers'
-	fullscreen: True
+    name: 'FileChoosers'
+    fullscreen: True
 
-	BoxLayout:
-		size_hint_y: None
-		height: '48dp'
+    BoxLayout:
+        size_hint_y: None
+        height: '48dp'
 
-		ToggleButton:
-			text: 'List'
-			state: 'down'
-			group: 'filechooser'
-			on_release: sm.transition.direction, sm.current = 'right', 'listview'
+        ToggleButton:
+            text: 'Icon'
+            state: 'down'
+            group: 'filechooser'
+            on_release: filechooser.view_mode = 'icon'
 
-		ToggleButton:
-			text: 'Icon'
-			group: 'filechooser'
-			on_release: sm.transition.direction, sm.current = 'left', 'iconview'
+        ToggleButton:
+            text: 'List'
+            group: 'filechooser'
+            on_release: filechooser.view_mode = 'list'
 
-	ScreenManager:
-		id: sm
-		Screen:
-			name: 'listview'
-			FileChooserListView:
-				id: listview
-
-		Screen:
-			name: 'iconview'
-			FileChooserIconView:
-				id: iconview
+    FileChooser:
+        id: filechooser

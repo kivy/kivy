@@ -249,7 +249,7 @@
         StencilPop
 
 
-<FileChooserListView>:
+<FileChooserListLayout>:
     on_entry_added: treeview.add_node(args[1])
     on_entries_cleared: treeview.root.nodes = []
     on_subentry_to_entry: not args[2].locked and treeview.add_node(args[1], args[2])
@@ -299,8 +299,14 @@
                     size_hint_y: None
                     width: scrollview.width
                     height: self.minimum_height
-                    on_node_expand: root.entry_subselect(args[1])
-                    on_node_collapse: root.close_subselection(args[1])
+                    on_node_expand: root.controller.entry_subselect(args[1])
+                    on_node_collapse: root.controller.close_subselection(args[1])
+
+<FileChooserListView>:
+    layout: layout
+    FileChooserListLayout:
+        id: layout
+        controller: root
 
 [FileListEntry@FloatLayout+TreeViewNode]:
     locked: False
@@ -334,7 +340,7 @@
             text: '{}'.format(ctx.get_nice_size())
 
 
-<FileChooserIconView>:
+<FileChooserIconLayout>:
     on_entry_added: stacklayout.add_widget(args[1])
     on_entries_cleared: stacklayout.clear_widgets()
     ScrollView:
@@ -356,6 +362,12 @@
                 height: self.minimum_height
                 spacing: '10dp'
                 padding: '10dp'
+
+<FileChooserIconView>:
+    layout: layout
+    FileChooserIconLayout:
+        id: layout
+        controller: root
 
 [FileIconEntry@Widget]:
     locked: False
@@ -395,6 +407,24 @@
         size: '100dp', '16sp'
         pos: root.pos
         halign: 'center'
+
+<FileChooser>:
+    manager: sm
+    listview: listview
+    iconview: iconview
+    
+    ScreenManager:
+        id: sm
+        Screen:
+            name: 'iconview'
+            FileChooserIconLayout:
+                id: iconview
+                controller: root
+        Screen:
+            name: 'listview'
+            FileChooserListLayout:
+                id: listview
+                controller: root
 
 <FileChooserProgress>:
     pos_hint: {'x': 0, 'y': 0}
