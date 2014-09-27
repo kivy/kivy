@@ -69,13 +69,16 @@ cdef class _WindowSDL2Storage:
         SDL_GetWindowDisplayMode(self.win, &mode)
         return mode.w, mode.h
 
-    def resize_window(self, w, h):
+    def resize_display_mode(self, w, h):
         cdef SDL_DisplayMode mode
         SDL_GetWindowDisplayMode(self.win, &mode)
         mode.w = w
         mode.h = h
         SDL_SetWindowDisplayMode(self.win, &mode)
         SDL_GetWindowDisplayMode(self.win, &mode)
+
+    def resize_window(self, w, h):
+        SDL_SetWindowSize(self.win, w, h)
 
     def set_window_title(self, str title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
