@@ -31,7 +31,7 @@ from kivy.base import EventLoop
 from kivy.logger import Logger
 from functools import partial
 from weakref import ref
-from time import clock
+from time import clock, time
 import string
 
 # When we are generating documentation, Config doesn't exist
@@ -73,6 +73,13 @@ class ButtonBehavior(object):
     defaults to None.
     '''
 
+    MIN_STATE_TIME = 0.075
+    '''The minimum period of time which the widget must remain in the
+    `'down'` state.
+
+    :attr:`MIN_STATE_TIME` is a float.
+    '''
+
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
@@ -81,7 +88,7 @@ class ButtonBehavior(object):
     def _do_press(self):
         self.state = 'down'
 
-    def _do_release(self):
+    def _do_release(self, *args):
         self.state = 'normal'
 
     def on_touch_down(self, touch):
@@ -113,7 +120,11 @@ class ButtonBehavior(object):
         assert(self in touch.ud)
         touch.ungrab(self)
         self.last_touch = touch
-        self._do_release()
+        touchtime = time() - touch.time_start
+        if touchtime < self.MIN_STATE_TIME:
+            Clock.schedule_once(self._do_release, self.MIN_STATE_TIME - touchtime)
+        else:
+            self._do_release()
         self.dispatch('on_release')
         return True
 
