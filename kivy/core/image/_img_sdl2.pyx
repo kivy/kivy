@@ -28,11 +28,10 @@ def load(filename):
     cdef SDL_Surface *fimage = NULL
     cdef SDL_PixelFormat pf
     cdef bytes pixels
-    cdef int w, h
 
     try:
         if image == NULL:
-            print 'UNABLE TO LOAD O_o?'
+            #print 'UNABLE TO LOAD O_o?'
             return None
 
         fmt = ''
@@ -47,10 +46,10 @@ def load(filename):
         # some opengl card.
 
         if fmt not in ('rgb', 'rgba'):
-            print 'origin image format'
-            print '  format', image.format.format
-            print '  bytesperpixel', image.format.BytesPerPixel
-            print '  bitsperpixel', image.format.BitsPerPixel
+            #print 'origin image format'
+            #print '  format', image.format.format
+            #print '  bytesperpixel', image.format.BytesPerPixel
+            #print '  bitsperpixel', image.format.BitsPerPixel
 
             memset(&pf, 0, sizeof(pf))
             pf.BitsPerPixel = 8
@@ -67,7 +66,7 @@ def load(filename):
 
             image2 = SDL_ConvertSurface(image, &pf, 0)
             if image2 == NULL:
-                print 'UNABLE TO CONVERT O_o?'
+                #print 'UNABLE TO CONVERT O_o?'
                 return None
 
             fimage = image2
@@ -84,10 +83,8 @@ def load(filename):
             else:
                 fimage = image
 
-        w = fimage.w
-        h = fimage.h
-        pixels = (<char *>fimage.pixels)[:w * h * fimage.format.BytesPerPixel]
-        return (w, h, fmt, pixels)
+        pixels = (<char *>fimage.pixels)[:fimage.pitch * fimage.h]
+        return (fimage.w, fimage.h, fmt, pixels, fimage.pitch)
 
     finally:
         if image:

@@ -27,5 +27,5 @@ cdef extern from "stdlib.h":
     void *calloc(size_t nmemb, size_t size) nogil
 
 cdef extern from "string.h":
-    void *memcpy(void *dest, void *src, size_t n)
+    void *memcpy(void *dest, void *src, size_t n) nogil
     void *memset(void *dest, int c, size_t len)

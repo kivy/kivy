@@ -269,6 +269,9 @@ DEF GL_RG = 0x8227
 DEF GL_R8 = 0x8229
 DEF GL_RG8 = 0x822B
 DEF GL_RGBA8 =  0x8058
+DEF GL_UNPACK_ROW_LENGTH = 0x0CF2
+DEF GL_UNPACK_SKIP_ROWS = 0x0CF3
+DEF GL_UNPACK_SKIP_PIXELS = 0x0CF4
 
 cdef dict _gl_color_fmt = {
     'rgba': GL_RGBA, 'bgra': GL_BGRA, 'rgb': GL_RGB, 'bgr': GL_BGR,
@@ -813,17 +816,19 @@ cdef class Texture:
 
         # depending if imagedata have mipmap, think different.
         if not im.have_mipmap:
-            blit(im.data, size=im.size, colorfmt=im.fmt, pos=pos)
+            blit(im.data, size=im.size, colorfmt=im.fmt, pos=pos,
+                    rowlength=im.rowlength)
         else:
             # upload each level
-            for level, width, height, data in im.iterate_mipmaps():
+            for level, width, height, data, rowlength in im.iterate_mipmaps():
                 blit(data, size=(width, height),
                      colorfmt=im.fmt, pos=pos,
-                     mipmap_level=level, mipmap_generation=False)
+                     mipmap_level=level, mipmap_generation=False,
+                     rowlength=rowlength)
 
     def blit_buffer(self, pbuffer, size=None, colorfmt=None,
                     pos=None, bufferfmt=None, mipmap_level=0,
-                    mipmap_generation=True):
+                    mipmap_generation=True, int rowlength=0):
         '''Blit a buffer into the texture.
 
         .. note::
@@ -939,19 +944,68 @@ cdef class Texture:
         cdef int _mipmap_generation = mipmap_generation and self._mipmap
         cdef int _mipmap_level = mipmap_level
 
+        # if there is a pitch/rowlength passed for the texture,
+        # determine the alignment needed, and see if GL can handle it on the
+        # current platform.
+        cdef int bytes_per_pixels = _gl_format_size(glfmt)
+        cdef int target_rowlength = w * bytes_per_pixels * _buffer_type_to_gl_size(bufferfmt)
+        cdef int need_unpack = rowlength > 0 and rowlength != target_rowlength
+        cdef char *cpdata = NULL
+        cdef char *cpsrc
+        cdef char *cpdst
+        cdef int i
+        cdef int require_subimage = 0
+
+        # if the hardware doesn't support native unpack, use alternative method.
+        if need_unpack and not gl_has_capability(GLCAP_UNPACK_SUBIMAGE):
+            require_subimage = 1
+            need_unpack = 0
+
         with nogil:
+
+            if need_unpack:
+                # native unpack supported, use it.
+                glPixelStorei(GL_UNPACK_ROW_LENGTH, rowlength / bytes_per_pixels)
+                if y != 0:
+                    glPixelStorei(GL_UNPACK_SKIP_ROWS, y)
+                if x != 0:
+                    glPixelStorei(GL_UNPACK_SKIP_PIXELS, x)
+                _gl_prepare_pixels_upload(rowlength)
+
+            elif require_subimage:
+                # make a temporary copy to a format without alignment for upload
+                cpsrc = cdata
+                cpdst = cpdata = <char *>malloc(target_rowlength * h)
+                for i in range(h):
+                    memcpy(cpdst, cpsrc, target_rowlength)
+                    cpsrc += rowlength
+                    cpdst += target_rowlength
+                cdata = cpdata
+                datasize = target_rowlength * h
+
+            else:
+                _gl_prepare_pixels_upload(w)
+
             if is_compressed:
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
                 glCompressedTexImage2D(target, _mipmap_level, glfmt, w, h, 0,
                         <GLsizei>datasize, cdata)
             elif is_allocated:
-                _gl_prepare_pixels_upload(w)
                 glTexSubImage2D(target, _mipmap_level, x, y, w, h, glfmt, glbufferfmt, cdata)
             else:
-                _gl_prepare_pixels_upload(w)
                 glTexImage2D(target, _mipmap_level, iglfmt, w, h, 0, glfmt, glbufferfmt, cdata)
             if _mipmap_generation:
                 glGenerateMipmap(target)
+
+            if need_unpack:
+                glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
+                if y != 0:
+                    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0)
+                if x != 0:
+                    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0)
+            elif require_subimage:
+                if cpdata != NULL:
+                    free(cpdata)
 
     def _on_proxyimage_loaded(self, image):
         if image is not self._proxyimage:

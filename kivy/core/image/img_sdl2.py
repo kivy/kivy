@@ -33,11 +33,13 @@ class ImageLoaderSDL2(ImageLoaderBase):
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise Exception('SDL2: Unable to load image')
 
-        w, h, fmt, pixels = info
+        w, h, fmt, pixels, rowlength = info
 
         # update internals
         self.filename = filename
-        return [ImageData(w, h, fmt, pixels, source=filename)]
+        return [ImageData(
+            w, h, fmt, pixels, source=filename,
+            rowlength=rowlength)]
 
     @staticmethod
     def save(filename, width, height, fmt, pixels):

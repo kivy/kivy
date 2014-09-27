@@ -97,7 +97,7 @@ cpdef int gl_has_capability(int cap):
     cdef str msg, sval
 
     # if we got a value, it's already initialized, return it!
-    if value!= -1:
+    if value != -1:
         return value
 
     # ok, never been initialized, do it now.
@@ -152,6 +152,14 @@ cpdef int gl_has_capability(int cap):
         # PVRTC = PowerVR, mostly available in iOS device
         msg = 'ETC1 texture support'
         value = gl_has_extension('OES_compressed_ETC1_RGB8_texture')
+
+    elif cap == c_GLCAP_UNPACK_SUBIMAGE:
+        # Is GL_UNPACK_ROW_LENGTH is supported
+        msg = 'Unpack subimage support'
+        if _platform == 'ios' or _platform == 'android':
+            value = gl_has_extension('EXT_unpack_subimage')
+        else:
+            value = 1
 
     else:
         raise Exception('Unknown capability')
