@@ -111,7 +111,7 @@ class WindowSDL(WindowBase):
             gl_size = self._win.setup_window(w, h, use_fake, use_fullscreen)
         else:
             w, h = self._size
-            self._win.resize_actual_window(w, h)
+            self._win.resize_window(w, h)
 
         super(WindowSDL, self).create_window()
 
