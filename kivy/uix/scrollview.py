@@ -644,7 +644,7 @@ class ScrollView(StencilView):
             self._scroll_y_mouse = self.scroll_y
 
         if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
-            return
+            return True
         if scroll_type == ['bars']:
             # touch is in parent, but _change_touch_mode expects window coords
             touch.push()
