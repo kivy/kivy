@@ -77,24 +77,16 @@ Basic Example
 In its simplest form, we make a listview with 100 items::
 
     from kivy.uix.listview import ListView
-    from kivy.uix.gridlayout import GridLayout
+    from kivy.base import runTouchApp
 
 
-    class MainView(GridLayout):
-
+    class MainView(ListView):
         def __init__(self, **kwargs):
-            kwargs['cols'] = 2
-            super(MainView, self).__init__(**kwargs)
-
-            list_view = ListView(
+            super(MainView, self).__init__(
                 item_strings=[str(index) for index in range(100)])
 
-            self.add_widget(list_view)
-
-
     if __name__ == '__main__':
-        from kivy.base import runTouchApp
-        runTouchApp(MainView(width=800))
+        runTouchApp(MainView())
 
 Or, we could declare the listview using the kv language::
 
