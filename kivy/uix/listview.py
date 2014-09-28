@@ -183,22 +183,26 @@ The :class:`~kivy.adapters.listadapter.ListAdapter` is the base class for
 Refer to the :class:`~kivy.adapters.listadapter.ListAdapter` docs for details,
 but here is a synopses of its arguments:
 
-* *data*: strings, class instances, dicts, etc. that form the base data
+* :attr:`~kivy.adapters.adapter.Adapter.data`: 
+  strings, class instances, dicts, etc. that form the base data
   for instantiating views.
 
-* *cls*: a Kivy view that is to be instantiated for each list item. There
+* :attr:`~kivy.adapters.adapter.Adapter.cls`: 
+  a Kivy view that is to be instantiated for each list item. There
   are several built-in types available, including ListItemLabel and
   ListItemButton, or you can make your own class that mixes in the
   required :class:`~kivy.uix.listview.SelectableView`.
 
-* *template*: the name of a Kivy language (kv) template that defines the
+* :attr:`~kivy.adapters.adapter.Adapter.template`: 
+  the name of a Kivy language (kv) template that defines the
   Kivy view for each list item.
 
 .. note::
 
     Pick only one, cls or template, to provide as an argument.
 
-* *args_converter*: a function that takes a data item object as input and
+* :attr:`~kivy.adapters.args_converter`: a function that takes a data item
+  object as input and
   uses it to build and return an args dict, ready
   to be used in a call to instantiate item views using the item view cls
   or template. In the case of cls, the args dict becomes a kwargs constructor
