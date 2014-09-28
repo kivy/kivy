@@ -202,6 +202,7 @@ __all__ = ('Property',
 
 include "graphics/config.pxi"
 
+
 from weakref import ref
 from kivy.compat import string_types
 from kivy.config import ConfigParser
@@ -305,14 +306,13 @@ cdef class Property:
         if 'errorhandler' in kw and not callable(self.errorhandler):
             raise ValueError('errorhandler %s not callable' % self.errorhandler)
 
-
     property name:
         def __get__(self):
             return self._name
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
         storage.value = self.convert(obj, self.defaultvalue)
-        storage.observers = []
+        storage.observers = EventObservers()
 
     cpdef link(self, EventDispatcher obj, str name):
         '''Link the instance with its real name.
@@ -345,44 +345,29 @@ cdef class Property:
         '''Add a new observer to be called only when the value is changed.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        cdef tuple callback
+        ps.observers.bind(observer)
 
-        for callback in ps.observers:
-            if callback[0] == observer:
-                return
-        ps.observers.append((observer, ))
-
-    cpdef fast_bind(self, EventDispatcher obj, observer, args=()):
+    cpdef fast_bind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
         '''Similar to bind, except it doesn't check if the observer already
-        exists. It also expands and forwards args to the callback.
+        exists. It also expands and forwards largs and kwargs to the callback.
         fast_unbind should be called when unbinding.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.observers.append((observer, args))
+        ps.observers.fast_bind(observer, largs, kwargs, 0)
 
     cpdef unbind(self, EventDispatcher obj, observer):
         '''Remove the observer from our widget observer list.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        cdef tuple item
-        for item in ps.observers[:]:
-            if item[0] == observer:
-                ps.observers.remove(item)
+        ps.observers.unbind(observer, 0, 0)
 
-    cpdef fast_unbind(self, EventDispatcher obj, observer, args=()):
+    cpdef fast_unbind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
         '''Remove the observer from our widget observer list bound with
         fast_bind. It removes the first match it finds, as opposed to unbind
         which searches for all matches.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        cdef tuple item
-        cdef tuple bound = (observer, args)
-        cdef int i
-
-        for i, item in enumerate(ps.observers):
-            if item == bound:
-                del ps.observers[i]
-                break
+        ps.observers.fast_unbind(observer, largs, kwargs)
 
     def __set__(self, EventDispatcher obj, val):
         self.set(obj, val)
@@ -468,19 +453,7 @@ cdef class Property:
 
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        cdef tuple item, args
-        if len(ps.observers):
-            value = ps.value
-            for item in ps.observers[:]:
-                # if bound with bind, it's a 1-tuple of the callback
-                if len(item) == 1:
-                    item[0](obj, value)
-
-                # if bound with fast_bind, it's a 2-tuple of callback, args
-                else:
-                    args = item[1]
-                    args = args + (obj, value)
-                    item[0](*args)
+        ps.observers.dispatch(obj, ps.value, None, None, 0)
 
 
 cdef class NumericProperty(Property):
