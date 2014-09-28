@@ -201,11 +201,11 @@ but here is a synopses of its arguments:
 * *args_converter*: a function that takes a data item object as input and
   uses it to build and return an args dict, ready
   to be used in a call to instantiate item views using the item view cls
-  or template. In the case of cls, the args dict acts as a
-  kwargs object. For a template, it is treated as a context
+  or template. In the case of cls, the args dict becomes a kwargs constructor
+  argument. For a template, it is treated as a context
   (ctx) but is essentially similar in form to the kwargs usage.
 
-* *selection_mode*: a string with the value 'single', 'multiple' or others
+* *selection_mode*: a string with the value 'single', 'multiple' or other
   (See :attr:`~kivy.adapters.listadapter.ListAdapter.selection_mode` for
   details).
 
