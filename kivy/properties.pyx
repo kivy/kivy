@@ -147,7 +147,7 @@ class::
     example, continuing with the code above, `MyClass.a = 5` replaces
     the property object with a simple int.
 
-    
+
 Observe using 'on_<propname>'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -201,6 +201,7 @@ __all__ = ('Property',
            'DictProperty', 'VariableListProperty', 'ConfigParserProperty')
 
 include "graphics/config.pxi"
+
 
 from weakref import ref
 from kivy.compat import string_types
@@ -305,14 +306,13 @@ cdef class Property:
         if 'errorhandler' in kw and not callable(self.errorhandler):
             raise ValueError('errorhandler %s not callable' % self.errorhandler)
 
-
     property name:
         def __get__(self):
             return self._name
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
         storage.value = self.convert(obj, self.defaultvalue)
-        storage.observers = []
+        storage.observers = EventObservers()
 
     cpdef link(self, EventDispatcher obj, str name):
         '''Link the instance with its real name.
@@ -345,16 +345,29 @@ cdef class Property:
         '''Add a new observer to be called only when the value is changed.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        if observer not in ps.observers:
-            ps.observers.append(observer)
+        ps.observers.bind(observer)
+
+    cpdef fast_bind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
+        '''Similar to bind, except it doesn't check if the observer already
+        exists. It also expands and forwards largs and kwargs to the callback.
+        fast_unbind should be called when unbinding.
+        '''
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        ps.observers.fast_bind(observer, largs, kwargs, 0)
 
     cpdef unbind(self, EventDispatcher obj, observer):
         '''Remove the observer from our widget observer list.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        for item in ps.observers[:]:
-            if item == observer:
-                ps.observers.remove(item)
+        ps.observers.unbind(observer, 0, 0)
+
+    cpdef fast_unbind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
+        '''Remove the observer from our widget observer list bound with
+        fast_bind. It removes the first match it finds, as opposed to unbind
+        which searches for all matches.
+        '''
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        ps.observers.fast_unbind(observer, largs, kwargs)
 
     def __set__(self, EventDispatcher obj, val):
         self.set(obj, val)
@@ -440,10 +453,7 @@ cdef class Property:
 
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        if len(ps.observers):
-            value = ps.value
-            for observer in ps.observers[:]:
-                observer(obj, value)
+        ps.observers.dispatch(obj, ps.value, None, None, 0)
 
 
 cdef class NumericProperty(Property):
@@ -678,11 +688,8 @@ class ObservableDict(dict):
         try:
             return self._weak_return(self.__getitem__(attr))
         except KeyError:
-            try:
-                return self._weak_return(
-                                super(ObservableDict, self).__getattr__(attr))
-            except AttributeError:
-                raise KeyError(attr)
+            return self._weak_return(
+                            super(ObservableDict, self).__getattr__(attr))
 
     def __setattr__(self, attr, value):
         if attr in ('prop', 'obj'):
@@ -1104,14 +1111,14 @@ cdef class ReferenceListProperty(Property):
     `pos`, it will automatically change the values of `x` and `y` accordingly.
     If you read the value of `pos`, it will return a tuple with the values of
     `x` and `y`.
-    
+
     For example::
-    
+
         class MyWidget(EventDispatcher):
             x = NumericProperty(0)
             y = NumericProperty(0)
             pos = ReferenceListProperty(x, y)
-    
+
     '''
     def __cinit__(self):
         self.properties = list()
@@ -1135,7 +1142,7 @@ cdef class ReferenceListProperty(Property):
         cdef Property prop
         Property.link_deps(self, obj, name)
         for prop in self.properties:
-            prop.bind(obj, self.trigger_change)
+            prop.fast_bind(obj, self.trigger_change)
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -1286,7 +1293,7 @@ cdef class AliasProperty(Property):
         cdef Property oprop
         for prop in self.bind_objects:
             oprop = getattr(obj.__class__, prop)
-            oprop.bind(obj, self.trigger_change)
+            oprop.fast_bind(obj, self.trigger_change)
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
