@@ -40,8 +40,7 @@ class ImageData(object):
     The container will always have at least the mipmap level 0.
     '''
 
-    __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical', 'source_image',
-                 'rowlength')
+    __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical', 'source_image')
     _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra', 's3tc_dxt1', 's3tc_dxt3',
                        's3tc_dxt5', 'pvrtc_rgb2', 'pvrtc_rgb4', 'pvrtc_rgba2',
                        'pvrtc_rgba4', 'etc1_rgb8')
