@@ -416,7 +416,6 @@ cdef class Fbo(RenderContext):
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                     self._texture._target, self._texture._id, 0)
             self.release()
-            self.flag_update()
 
     property pixels:
         '''Get the pixels texture, in RGBA format only, unsigned byte. The
