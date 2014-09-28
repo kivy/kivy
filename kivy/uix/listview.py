@@ -209,11 +209,12 @@ but here is a synopses of its arguments:
   argument. For a template, it is treated as a context
   (ctx) but is essentially similar in form to the kwargs usage.
 
-* *selection_mode*: a string with the value 'single', 'multiple' or other
-  (See :attr:`~kivy.adapters.listadapter.ListAdapter.selection_mode` for
-  details).
+* :attr:`~kivy.adapters.listadapter.ListAdapter.selection_mode`:
+  a string with the value 'single',
+  'multiple' or other.
 
-* *allow_empty_selection*: a boolean, which if False (the default), forces
+* :attr:`~kivy.adapters.listadapter.ListAdapter.allow_empty_selection`:
+  a boolean, which if False (the default), forces
   there to always be a selection if there is data
   available. If True, selection happens only as a
   result of user action.
@@ -221,7 +222,7 @@ but here is a synopses of its arguments:
 In narrative, we can summarize as follows:
 
     A listview's adapter takes data items and uses an args_converter
-    function to transform them into arguments for making list item view
+    function to transform them into arguments for creating list item view
     instances, using either a cls or a kv template.
 
 In a graphic, a summary of the relationship between a listview and its
