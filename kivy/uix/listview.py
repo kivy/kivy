@@ -90,40 +90,22 @@ In its simplest form, we make a listview with 100 items::
 
 Or, we could declare the listview using the kv language::
 
-    from kivy.uix.modalview import ModalView
-    from kivy.uix.listview import ListView
-    from kivy.uix.gridlayout import GridLayout
+    from kivy.uix.boxlayout import BoxLayout
     from kivy.lang import Builder
+    from kivy.base import runTouchApp
 
     Builder.load_string("""
-    <ListViewModal>:
-        size_hint: None, None
-        size: 400, 400
+    <MyListView>:
         ListView:
-            size_hint: .8, .8
             item_strings: [str(index) for index in range(100)]
     """)
 
 
-    class ListViewModal(ModalView):
-        def __init__(self, **kwargs):
-            super(ListViewModal, self).__init__(**kwargs)
-
-
-    class MainView(GridLayout):
-
-        def __init__(self, **kwargs):
-            kwargs['cols'] = 1
-            super(MainView, self).__init__(**kwargs)
-
-            listview_modal = ListViewModal()
-
-            self.add_widget(listview_modal)
-
+    class MyListView(BoxLayout):
+        pass
 
     if __name__ == '__main__':
-        from kivy.base import runTouchApp
-        runTouchApp(MainView(width=800))
+        runTouchApp(MyListView())
 
 Using an Adapter
 -------------------
