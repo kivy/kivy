@@ -27,14 +27,14 @@ ctypedef struct BoundCallabck:
 cdef inline void release_callback(BoundCallabck *callback)
 
 cdef class EventObservers:
+    # The first callback that was bound.
     cdef BoundCallabck *first_callback
-    ''' The first callback that was bound. '''
+    # The last callback that was bound.
     cdef BoundCallabck *last_callback
-    ''' The last callback that was bound. '''
+    # If dispatching should occur in normal or reverse order of binding.
     cdef int dispatch_reverse
-    '''If dispatching should occur in normal or reverse order of binding. '''
+    # If in dispatch, the value parameter is dispatched or ignored.
     cdef int dispatch_value
-    '''If in dispatch, the value parameter is dispatched or ignored. '''
 
     cdef inline void bind(self, object observer)
     cdef inline int fast_bind(self, object observer, tuple largs, dict kwargs, int is_ref)
