@@ -836,10 +836,10 @@ cdef class EventObservers:
         while callback != NULL:
             if ((callback.largs != NULL and il == 0 or
                  callback.largs == NULL and il != 0 or
-                 <tuple>(callback.largs) != largs) or
+                 callback.largs != NULL and <tuple>(callback.largs) != largs) or
                 (callback.kwargs != NULL and ikw == 0 or
                  callback.kwargs == NULL and ikw != 0 or
-                 <dict>(callback.kwargs) != kwargs) or
+                 callback.kwargs != NULL and <dict>(callback.kwargs) != kwargs) or
                 <object>(callback.func) != observer):
                 last_callback = callback
                 callback = callback.next
