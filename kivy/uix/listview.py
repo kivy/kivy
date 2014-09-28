@@ -171,7 +171,7 @@ given to the way longer python blocks are indented::
 ListAdapter and DictAdapter
 ---------------------------
 
-For many uses of a list, the data is more than a simple list of strings.
+For most use cases, your data is more complex than a simple list of strings.
 Selection functionality is also often needed.
 The :class:`~kivy.adapters.listadapter.ListAdapter` and
 :class:`~kivy.adapters.dictadapter.DictAdapter` cover these more elaborate
