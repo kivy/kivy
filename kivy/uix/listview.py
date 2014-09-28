@@ -114,11 +114,11 @@ Behind the scenes, the basic example above uses the
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`. When the
 constructor for the :class:`~kivy.uix.listview.ListView` sees that only a list
 of
-strings is provided as an argument (called item_strings), it creates an instance
-of :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` using the
+strings is provided as an argument (called item_strings), it creates a
+:class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` using the
 list of strings.
 
-Simple in :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` means:
+"Simple" in :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` means
 *without selection support*. It is a scrollable list of items that does not
 respond to touch events.
 
@@ -133,8 +133,8 @@ do::
 
 The instance of :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` has
 a required data argument which contains data items to use for instantiating
-Label views for the list view (note the cls=Label argument). The data items are
-strings. Each item string is set by the
+:class:`~kivy.uix.label.Label` views for the list view (note the cls=Label
+argument). The data items are strings. Each item string is set by the
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` as the *text*
 argument for each Label instantiation.
 
