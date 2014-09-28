@@ -18,6 +18,13 @@ handlers.
 __all__ = ('EventDispatcher', 'ObjectWithUid', 'Observable')
 
 
+cdef extern from "Python.h":
+    void Py_INCREF(PyObject *)
+    void Py_DECREF(PyObject *)
+
+from libc.stdlib cimport malloc, free
+from libc.string cimport memset
+
 from functools import partial
 from collections import defaultdict
 from kivy.weakmethod import WeakMethod
@@ -198,8 +205,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
         # then auto register
         for event in events:
-            self.__event_stack[event] = []
-
+            self.__event_stack[event] = EventObservers(1, 0)
 
     def __init__(self, **kwargs):
         cdef str func, name, key
@@ -267,7 +273,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
         # Add the event type to the stack
         if event_type not in self.__event_stack:
-            self.__event_stack[event_type] = []
+            self.__event_stack[event_type] = EventObservers(1, 0)
 
     def unregister_event_types(self, str event_type):
         '''Unregister an event type in the dispatcher.
@@ -373,43 +379,40 @@ cdef class EventDispatcher(ObjectWithUid):
             if __name__ == "__main__":
                 DemoApp().run()
         '''
-        cdef Property prop
-        cdef tuple handler
+        cdef EventObservers observers
+        cdef PropertyStorage ps
+
         for key, value in kwargs.iteritems():
             if key[:3] == 'on_':
-                if key not in self.__event_stack:
+                observers = self.__event_stack.get(key)
+                if observers is None:
                     continue
                 # convert the handler to a weak method
-                handler = (WeakMethod(value), )
-                self.__event_stack[key].append(handler)
+                observers.fast_bind(WeakMethod(value), None, None, 1)
             else:
-                prop = self.__properties[key]
-                prop.bind(self, value)
+                ps = self.__storage[key]
+                ps.observers.bind(value)
 
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions.
 
         Same usage as :meth:`bind`.
         '''
-        cdef Property prop
-        cdef tuple handler
+        cdef EventObservers observers
+        cdef PropertyStorage ps
+
         for key, value in kwargs.iteritems():
             if key[:3] == 'on_':
-                if key not in self.__event_stack:
+                observers = self.__event_stack.get(key)
+                if observers is None:
                     continue
-
-                # we need to execute weak method to be able to compare
-                for handler in self.__event_stack[key]:
-                    # we only unbind here if bound with normal bind
-                    if len(handler) != 1 or handler[0]() != value:
-                        continue
-                    self.__event_stack[key].remove(handler)
-                    break
+                # it's a ref, and stop on first match
+                observers.unbind(value, 1, 1)
             else:
-                prop = self.__properties[key]
-                prop.unbind(self, value)
+                ps = self.__storage[key]
+                ps.observers.unbind(value, 0, 0)
 
-    def fast_bind(self, name, func, *largs):
+    def fast_bind(self, name, func, *largs, **kwargs):
         '''A method for faster binding. This method is meant to only be used
         internally and it performs less error checking. It can be used
         externally, as long as the following warnings are heeded.
@@ -449,28 +452,26 @@ cdef class EventDispatcher(ObjectWithUid):
 
         .. versionadded:: 1.8.2
         '''
+        cdef EventObservers observers
         cdef PropertyStorage ps
-        cdef tuple handler = (func, largs)
-        cdef list elems
 
         if name[:3] == 'on_':
-            elems = self.__event_stack.get(name)
-            if elems is not None:
-                elems.append(handler)
+            observers = self.__event_stack.get(name)
+            if observers is not None:
+                observers.fast_bind(func, largs, kwargs, 0)
                 return True
             return False
         else:
             ps = self.__storage.get(name)
             if ps is None:
                 return False
-            ps.observers.append(handler)
+            ps.observers.fast_bind(func, largs, kwargs, 0)
             return True
 
-    def fast_unbind(self, name, func, *largs):
+    def fast_unbind(self, name, func, *largs, **kwargs):
         '''Similar to :meth:`fast_bind`.
 
-        Compared to :meth:`unbind`, it doesn't check that `name` is valid.
-        Similarly, when unbinding from a property :meth:`unbind` will unbind
+        When unbinding from a property :meth:`unbind` will unbind
         all callback that match the callback, while this method will only
         unbind the first (as it is assumed that the combination of func and
         args are uniquely bound).
@@ -480,20 +481,17 @@ cdef class EventDispatcher(ObjectWithUid):
 
         .. versionadded:: 1.8.2
         '''
+        cdef EventObservers observers
         cdef PropertyStorage ps
-        cdef list observers
-        cdef tuple item, src_item = (func, largs)
-        cdef int i
 
         if name[:3] == 'on_':
-            self.__event_stack[name].remove(src_item)
+            observers = self.__event_stack.get(name)
+            if observers is not None:
+                observers.fast_unbind(func, largs, kwargs)
         else:
-            ps = self.__storage[name]
-            observers = ps.observers
-            for i, item in enumerate(observers):
-                if item == src_item:
-                    del observers[i]
-                    break
+            ps = self.__storage.get(name)
+            if ps is not None:
+                ps.observers.fast_unbind(func, largs, kwargs)
 
     def get_property_observers(self, name):
         ''' Returns a list of methods that are bound to the property/event
@@ -508,9 +506,13 @@ cdef class EventDispatcher(ObjectWithUid):
             also only return the callback function and not their provided args.
 
         '''
+        cdef PropertyStorage ps
+        cdef EventObservers observers
+
         if name[:3] == 'on_':
-            return [item[0] for item in self.__event_stack[name]]
-        cdef PropertyStorage ps = self.__storage[name]
+            observers = self.__event_stack[name]
+            return [item[0] for item in observers]
+        ps = self.__storage[name]
         return [item[0] for item in ps.observers]
 
     def events(EventDispatcher self):
@@ -541,27 +543,9 @@ cdef class EventDispatcher(ObjectWithUid):
             positional arguments would be collected and forwarded.
 
         '''
-        cdef list event_stack = self.__event_stack[event_type]
-        cdef tuple item, args_list, args
-        cdef object handler, remove = event_stack.remove
-
-        for item in reversed(event_stack[:]):
-            # dispatch callback from a normal bind
-            if len(item) == 1:
-                handler = item[0]()
-                if handler is None:
-                    # handler has gone, must be removed
-                    remove(item)
-                    continue
-                if handler(self, *largs, **kwargs):
-                    return True
-
-            # dispatch callback from a fast bind
-            else:
-                args = item[1]
-                args_list = args + (self, ) + largs  # largs goes at the end
-                if item[0](*args_list, **kwargs):
-                    return True
+        cdef EventObservers observers = self.__event_stack[event_type]
+        if observers.dispatch(self, None, largs, kwargs, 1):
+            return True
 
         handler = getattr(self, event_type)
         return handler(*largs, **kwargs)
@@ -716,3 +700,293 @@ cdef class EventDispatcher(ObjectWithUid):
         '''
         def __get__(self):
             return self
+
+
+cdef inline void release_callback(BoundCallabck *callback):
+    Py_DECREF(callback.func)
+    if callback.largs != NULL:
+        Py_DECREF(callback.largs)
+    if callback.kwargs != NULL:
+        Py_DECREF(callback.kwargs)
+    free(callback)
+
+
+cdef class EventObservers:
+    '''A class that stores observers to events as a forward linked list
+    (doubly linked if dispatch_reverse is true, and then dispatching occurs
+    in reverse order of binding).
+    '''
+
+    def __cinit__(self, int dispatch_reverse=0, dispatch_value=1):
+        self.first_callback = self.last_callback = NULL
+        self.dispatch_reverse = dispatch_reverse
+        self.dispatch_value = dispatch_value
+
+    def __dealloc__(self):
+        cdef BoundCallabck *callback
+        cdef BoundCallabck *last_c
+        callback = self.first_callback
+        while callback != NULL:
+            last_c = callback
+            callback = callback.next
+            release_callback(last_c)
+
+    cdef inline void bind(self, object observer):
+        '''Bind the observer to the event. If this observer has already been
+        bound, we don't add it again.
+        '''
+        cdef BoundCallabck *callback = self.first_callback
+
+        # ensure observer is not bound already
+        while callback != NULL:
+            if (callback.largs == NULL and callback.kwargs == NULL and
+                <object>(callback.func) == observer):
+                return
+            callback = callback.next
+
+        callback = <BoundCallabck *>malloc(sizeof(BoundCallabck))
+        memset(callback, 0, sizeof(BoundCallabck))
+        callback.func = <PyObject *>observer
+        Py_INCREF(callback.func)
+
+        if self.first_callback == NULL:
+            self.last_callback = self.first_callback = callback
+        else:
+            if self.dispatch_reverse:
+                callback.previous = self.last_callback
+            self.last_callback.next = callback
+            self.last_callback = callback
+
+
+    cdef inline int fast_bind(self, object observer, tuple largs, dict kwargs, int is_ref):
+        '''Similar to bind, except it accepts largs, kwargs that is forwards.
+        is_ref, if true, will mark the observer that it is a ref so that we
+        can unref it before calling.
+        '''
+        cdef BoundCallabck *callback = <BoundCallabck *>malloc(sizeof(BoundCallabck))
+        memset(callback, 0, sizeof(BoundCallabck))
+
+        callback.func = <PyObject *>observer
+        Py_INCREF(callback.func)
+        callback.is_ref = is_ref
+        if largs is not None and len(largs):
+            callback.largs = <PyObject *>largs
+            Py_INCREF(callback.largs)
+        if kwargs is not None and len(kwargs):
+            callback.kwargs = <PyObject *>kwargs
+            Py_INCREF(callback.kwargs)
+
+        if self.first_callback == NULL:
+            self.last_callback = self.first_callback = callback
+        else:
+            if self.dispatch_reverse:
+                callback.previous = self.last_callback
+            self.last_callback.next = callback
+            self.last_callback = callback
+
+    cdef inline void unbind(self, object observer, int is_ref, int stop_on_first):
+        '''Removes the observer. If is_ref, he observers will be derefed before
+        comparing to observer, if they are refed. If stop_on_first, after the
+        first match we return.
+        '''
+        cdef BoundCallabck *callback = self.first_callback
+        cdef BoundCallabck *last_callback = NULL
+        cdef BoundCallabck  *c
+        cdef object f
+
+        while callback != NULL:
+            if callback.largs != NULL or callback.kwargs != NULL:
+                last_callback = callback
+                callback = callback.next
+                continue
+
+            f = <object>(callback.func)
+            if is_ref and callback.is_ref:
+                f = f()
+            if f != observer and (not (is_ref and callback.is_ref) or f is not None):
+                last_callback = callback
+                callback = callback.next
+                continue
+
+            c = callback
+            if callback == self.first_callback:
+                callback = self.first_callback = callback.next
+                if callback != NULL and self.dispatch_reverse:
+                    callback.previous = NULL
+            else:
+                last_callback.next = callback = callback.next
+                if callback != NULL and self.dispatch_reverse:
+                    callback.previous = last_callback
+
+            release_callback(c)
+            if stop_on_first and f is not None:
+                self.last_callback = last_callback
+                return
+        self.last_callback = last_callback
+
+    cdef inline void fast_unbind(self, object observer, tuple largs, dict kwargs):
+        '''Similar to unbind, except we only remove the first match, and
+        we don't deref the observers before comparing to observer. The
+        largs and kwargs must match the largs and kwargs from when binding.
+        '''
+        cdef BoundCallabck *callback = self.first_callback
+        cdef BoundCallabck *last_callback = NULL
+        cdef int il = len(largs) if largs is not None else 0, ikw = len(kwargs) if kwargs is not None else 0
+
+        while callback != NULL:
+            if ((callback.largs != NULL and il == 0 or
+                 callback.largs == NULL and il != 0 or
+                 <tuple>(callback.largs) != largs) or
+                (callback.kwargs != NULL and ikw == 0 or
+                 callback.kwargs == NULL and ikw != 0 or
+                 <dict>(callback.kwargs) != kwargs) or
+                <object>(callback.func) != observer):
+                last_callback = callback
+                callback = callback.next
+                continue
+
+            if callback == self.first_callback:
+                self.first_callback = callback.next
+                if self.first_callback != NULL and self.dispatch_reverse:
+                    self.first_callback.previous = NULL
+            else:
+                last_callback.next = callback.next
+                if callback.next != NULL and self.dispatch_reverse:
+                    callback.next.previous = last_callback
+            if callback == self.last_callback:
+                self.last_callback = last_callback
+
+            release_callback(callback)
+            return
+
+    cdef inline int dispatch(self, object obj, object value, tuple largs, dict kwargs, int stop_on_true):
+        '''Dispatches obj, value to all bound observers. If largs and/or kwargs,
+        they are forwarded after obj, value. if stop_on_true, if a observer returns
+        true, the function stops and returns true.
+        '''
+        cdef BoundCallabck *callback = self.last_callback if self.dispatch_reverse else self.first_callback
+        cdef BoundCallabck *last_callback = NULL
+        cdef BoundCallabck *c
+        cdef object result, f
+        cdef dict d
+        cdef tuple param = (obj, value) if self.dispatch_value else (obj, )
+        cdef tuple fargs = None
+
+        while callback != NULL:
+            f = <object>(callback.func)
+
+            # first make sure that if the callback is a ref and dead, we remove it
+            if callback.is_ref:
+                f = f()
+                if f is None:  # remove invalid callback
+                    c = callback
+                    if self.dispatch_reverse:
+                        if callback == self.last_callback:
+                            self.last_callback = callback.previous
+                            if self.last_callback != NULL:
+                                self.last_callback.next = NULL
+                        else:
+                            last_callback.previous = callback.previous
+                            if callback.previous != NULL:
+                                callback.previous.next = last_callback
+                        if callback == self.first_callback:
+                            self.first_callback = last_callback
+                        callback = callback.previous
+                    else:
+                        if callback == self.first_callback:
+                            self.first_callback = callback.next
+                        else:
+                            last_callback.next = callback.next
+                        if callback == self.last_callback:
+                            self.last_callback = last_callback
+                        callback = callback.next
+                    release_callback(c)
+                    continue
+
+            # find the correct combo of largs, kwargs from binding and dispatching
+            last_callback = callback
+            if callback.largs != NULL and callback.kwargs != NULL:  # both kw and largs
+                if largs is not None:
+                    fargs = <tuple>(callback.largs) + param + largs
+                else:
+                    fargs = (<tuple>(callback.largs)) + param
+
+                if kwargs is not None:
+                    d = dict(<dict>(callback.kwargs))
+                    d.update(kwargs)
+                else:
+                    d = <dict>(callback.kwargs)
+
+                result = f(*fargs, **d)
+            elif callback.largs != NULL:  # only largs
+                if largs is not None:
+                    fargs = <tuple>(callback.largs) + param + largs
+                else:
+                    fargs = (<tuple>(callback.largs)) + param
+
+                if kwargs is None:
+                    result = f(*fargs)
+                else:
+                    result = f(*fargs, **kwargs)
+            elif callback.kwargs != NULL:  # only kwargs
+                if kwargs is not None:
+                    d = dict(<dict>(callback.kwargs))
+                    d.update(kwargs)
+                else:
+                    d = <dict>(callback.kwargs)
+
+                if largs is None:
+                    if self.dispatch_value:
+                        result = f(obj, value, **d)
+                    else:
+                        result = f(obj, **d)
+                else:
+                    if self.dispatch_value:
+                        result = f(obj, value, *largs, **d)
+                    else:
+                        result = f(obj, *largs, **d)
+            else:  # no args
+                if largs is None:
+                    if kwargs is None:
+                        if self.dispatch_value:
+                            result = f(obj, value)
+                        else:
+                            result = f(obj)
+                    else:
+                        if self.dispatch_value:
+                            result = f(obj, value, **kwargs)
+                        else:
+                            result = f(obj, **kwargs)
+                else:
+                    if kwargs is None:
+                        if self.dispatch_value:
+                            result = f(obj, value, *largs)
+                        else:
+                            result = f(obj, *largs)
+                    else:
+                        if self.dispatch_value:
+                            result = f(obj, value, *largs, **kwargs)
+                        else:
+                            result = f(obj, *largs, **kwargs)
+
+            if stop_on_true and result:
+                return 1
+            if self.dispatch_reverse:
+                callback = callback.previous
+            else:
+                callback = callback.next
+        return 0
+
+    def __iter__(self):
+        cdef BoundCallabck *callback = self.first_callback
+
+        while callback != NULL:
+            if callback.largs != NULL and callback.kwargs != NULL:
+                yield <object>(callback.func), <tuple>(callback.largs), <dict>(callback.kwargs), callback.is_ref
+            elif callback.largs != NULL:
+                yield <object>(callback.func), <tuple>(callback.largs), {}, callback.is_ref
+            elif callback.kwargs != NULL:
+                yield <object>(callback.func), (), <dict>(callback.kwargs), callback.is_ref
+            else:
+                yield <object>(callback.func), (), {}, callback.is_ref
+            callback = callback.next
