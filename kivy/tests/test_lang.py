@@ -37,6 +37,7 @@ class BaseClass(object):
 
     def fast_bind(self, name, func, *largs):
         self.binded_func[name] = partial(func, *largs)
+        return True
 
 
 class TestClass(BaseClass):
