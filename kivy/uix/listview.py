@@ -201,7 +201,7 @@ but here is a synopses of its arguments:
 
     Pick only one, cls or template, to provide as an argument.
 
-* :attr:`~kivy.adapters.args_converter`: a function that takes a data item
+* :attr:`~kivy.adapters.args_converters`: a function that takes a data item
   object as input and
   uses it to build and return an args dict, ready
   to be used in a call to instantiate item views using the item view cls
