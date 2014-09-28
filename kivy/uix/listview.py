@@ -180,10 +180,10 @@ needs.
 The :class:`~kivy.adapters.listadapter.ListAdapter` is the base class for
 :class:`~kivy.adapters.dictadapter.DictAdapter`, so we can start with it.
 
-See the :class:`~kivy.adapters.listadapter.ListAdapter` docs for details, but
-here are synopses of its arguments:
+Refer to the :class:`~kivy.adapters.listadapter.ListAdapter` docs for details,
+but here is a synopses of its arguments:
 
-* *data*: strings, class instances, dicts, etc. that form the basis data
+* *data*: strings, class instances, dicts, etc. that form the base data
   for instantiating views.
 
 * *cls*: a Kivy view that is to be instantiated for each list item. There
