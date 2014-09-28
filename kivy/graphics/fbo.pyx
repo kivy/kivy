@@ -407,6 +407,17 @@ cdef class Fbo(RenderContext):
         def __get__(self):
             return self._texture
 
+        def __set__(self, texture):
+            # attach the framebuffer to our texture
+            self._texture = texture
+
+            self._texture.bind()
+            self.bind()
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                    self._texture._target, self._texture._id, 0)
+            self.release()
+            self.flag_update()
+
     property pixels:
         '''Get the pixels texture, in RGBA format only, unsigned byte. The
         origin of the image is at bottom left.
