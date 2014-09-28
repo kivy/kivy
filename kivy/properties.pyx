@@ -688,11 +688,8 @@ class ObservableDict(dict):
         try:
             return self._weak_return(self.__getitem__(attr))
         except KeyError:
-            try:
-                return self._weak_return(
-                                super(ObservableDict, self).__getattr__(attr))
-            except AttributeError:
-                raise KeyError(attr)
+            return self._weak_return(
+                            super(ObservableDict, self).__getattr__(attr))
 
     def __setattr__(self, attr, value):
         if attr in ('prop', 'obj'):
