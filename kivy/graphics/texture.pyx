@@ -224,6 +224,7 @@ include "common.pxi"
 include "opengl_utils_def.pxi"
 include "img_tools.pxi"
 
+cimport cython
 from os import environ
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
@@ -826,6 +827,7 @@ cdef class Texture:
                      mipmap_level=level, mipmap_generation=False,
                      rowlength=rowlength)
 
+    @cython.cdivision(True)
     def blit_buffer(self, pbuffer, size=None, colorfmt=None,
                     pos=None, bufferfmt=None, mipmap_level=0,
                     mipmap_generation=True, int rowlength=0):
