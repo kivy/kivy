@@ -488,8 +488,10 @@ graphics_dependencies = {
     'vertex_instructions_line.pxi': ['stencil_instructions.pxd']}
 
 sources = {
-    '_event.pyx': base_flags,
-    'properties.pyx': base_flags,
+    '_event.pyx': merge(base_flags,
+                        {'depends': ['properties.pyx', 'properties.pxd']}),
+    'properties.pyx': merge(base_flags,
+                            {'depends': ['_event.pyx', '_event.pxd']}),
     'graphics/buffer.pyx': base_flags,
     'graphics/context.pyx': merge(base_flags, gl_flags),
     'graphics/c_opengl_debug.pyx': merge(base_flags, gl_flags),
