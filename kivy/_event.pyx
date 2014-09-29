@@ -453,54 +453,54 @@ cdef class EventDispatcher(ObjectWithUid):
         Following is an example of usage similar to the example in
         :meth:`bind`::
 
-        class DemoBox(BoxLayout):
+            class DemoBox(BoxLayout):
 
-            def __init__(self, **kwargs):
-                super(DemoBox, self).__init__(**kwargs)
-                self.orientation = "vertical"
+                def __init__(self, **kwargs):
+                    super(DemoBox, self).__init__(**kwargs)
+                    self.orientation = "vertical"
 
-                btn = Button(text="Normal binding to event")
-                btn.fast_bind('on_press', self.on_event)
+                    btn = Button(text="Normal binding to event")
+                    btn.fast_bind('on_press', self.on_event)
 
-                btn2 = Button(text="Normal binding to a property change")
-                btn2.fast_bind('state', self.on_property)
+                    btn2 = Button(text="Normal binding to a property change")
+                    btn2.fast_bind('state', self.on_property)
 
-                btn3 = Button(text="A: Using function with args.")
-                btn3.fast_bind('on_press', self.on_event_with_args, 'right',
-                               tree='birch', food='apple')
+                    btn3 = Button(text="A: Using function with args.")
+                    btn3.fast_bind('on_press', self.on_event_with_args, 'right',
+                                   tree='birch', food='apple')
 
-                btn4 = Button(text="Unbind A.")
-                btn4.fast_bind('on_press', self.unbind_a, btn3)
+                    btn4 = Button(text="Unbind A.")
+                    btn4.fast_bind('on_press', self.unbind_a, btn3)
 
-                btn5 = Button(text="Use a flexible function")
-                btn5.fast_bind('on_press', self.on_anything)
+                    btn5 = Button(text="Use a flexible function")
+                    btn5.fast_bind('on_press', self.on_anything)
 
-                btn6 = Button(text="B: Using flexible functions with args. For hardcores.")
-                btn6.fast_bind('on_press', self.on_anything, "1", "2", monthy="python")
+                    btn6 = Button(text="B: Using flexible functions with args. For hardcores.")
+                    btn6.fast_bind('on_press', self.on_anything, "1", "2", monthy="python")
 
-                btn7 = Button(text="Force dispatch B with different params")
-                btn7.fast_bind('on_press', btn6.dispatch, 'on_press', 6, 7, monthy="other python")
+                    btn7 = Button(text="Force dispatch B with different params")
+                    btn7.fast_bind('on_press', btn6.dispatch, 'on_press', 6, 7, monthy="other python")
 
-                for but in [btn, btn2, btn3, btn4, btn5, btn6, btn7]:
-                    self.add_widget(but)
+                    for but in [btn, btn2, btn3, btn4, btn5, btn6, btn7]:
+                        self.add_widget(but)
 
-            def on_event(self, obj):
-                print("Typical event from", obj)
+                def on_event(self, obj):
+                    print("Typical event from", obj)
 
-            def on_event_with_args(self, side, obj, tree=None, food=None):
-                print("Event with args", obj, side, tree, food)
+                def on_event_with_args(self, side, obj, tree=None, food=None):
+                    print("Event with args", obj, side, tree, food)
 
-            def on_property(self, obj, value):
-                print("Typical property change from", obj, "to", value)
+                def on_property(self, obj, value):
+                    print("Typical property change from", obj, "to", value)
 
-            def on_anything(self, *args, **kwargs):
-                print('The flexible function has *args of', str(args),
-                    "and **kwargs of", str(kwargs))
-                return True
+                def on_anything(self, *args, **kwargs):
+                    print('The flexible function has *args of', str(args),
+                        "and **kwargs of", str(kwargs))
+                    return True
 
-            def unbind_a(self, btn, event):
-                btn.fast_unbind('on_press', self.on_event_with_args, 'right',
-                                tree='birch', food='apple')
+                def unbind_a(self, btn, event):
+                    btn.fast_unbind('on_press', self.on_event_with_args, 'right',
+                                    tree='birch', food='apple')
 
         .. note::
             Since the kv lang uses this method to bind, one has to implement
