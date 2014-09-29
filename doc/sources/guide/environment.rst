@@ -16,6 +16,34 @@ Environment variable can be set before importing kivy::
     os.environ['KIVY_TEXT'] = 'pil'
     import kivy
 
+Path control
+------------
+
+.. versionadded:: 1.0.7
+
+You can control the default directories where config files, modules,
+extensions, and kivy data are located.
+
+KIVY_DATA_DIR
+    Location of the Kivy data, default to `<kivy path>/data`
+
+KIVY_EXTS_DIR
+    Location of the Kivy extensions, default to `<kivy path>/extensions`
+
+KIVY_MODULES_DIR
+    Location of the Kivy modules, default to `<kivy path>/modules`
+
+KIVY_HOME
+    Location of the Kivy home. This directory is used for local configuration,
+    and must be in a writable location.
+
+    Defaults to:
+     - Desktop: `<user home>/.kivy`
+     - Android: `<android app path>/.kivy`
+     - iOS: `<user home>/Documents/.kivy`
+
+    .. versionadded:: 1.9.0
+
 Configuration
 -------------
 
@@ -31,23 +59,6 @@ KIVY_NO_FILELOG
 
 KIVY_NO_CONSOLELOG
     If set, logs will be not print on the console
-
-Path control
-------------
-
-.. versionadded:: 1.0.7
-
-You can control where the default directory of modules, extensions, and
-kivy data is located.
-
-KIVY_DATA_DIR
-    Location of the Kivy data, default to `<kivy path>/data`
-
-KIVY_EXTS_DIR
-    Location of the Kivy extensions, default to `<kivy path>/extensions`
-
-KIVY_MODULES_DIR
-    Location of the Kivy modules, default to `<kivy path>/modules`
 
 Restrict core to specific implementation
 ----------------------------------------
