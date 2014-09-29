@@ -226,19 +226,14 @@ In narrative, we can summarize as follows:
     instances, using either a cls or a kv template.
 
 In a graphic, a summary of the relationship between a listview and its
-list adapter, looks like this::
+components can be summarized as follows:
 
-    -                    ------------ ListAdapter or DictAdapter ------------
-    -                    |                                                  |
-    -                    | <list item views> (cls or template) <data items> |
-    -   ListView   -->   |                           [args_converter]       |
-    -                    |                                                  |
-    -                    |           <<< selection handling >>>             |
-    -                    |                                                  |
-    -                    ----------------------------------------------------
+.. image:: images/adapters.png
+
+Please refer to the :mod:`~kivy.adapters` documentation for more details.
 
 A :class:`~kivy.adapters.dictadapter.DictAdapter` has the same arguments and
-requirements as :class:`~kivy.adapters.listadapter.ListAdapter` except for two
+requirements as a :class:`~kivy.adapters.listadapter.ListAdapter` except for two
 things:
 
 1) There is an additional argument, sorted_keys, which must meet the
