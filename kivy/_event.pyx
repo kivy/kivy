@@ -9,10 +9,6 @@ handlers.
 .. versionchanged:: 1.0.9
     Property discovery and methods have been moved from the
     :class:`~kivy.uix.widget.Widget` to the :class:`EventDispatcher`.
-
-.. versionchanged:: 1.8.2
-    :class:`EventDispatcher` now inherits from :class:`Observable`, which
-    defines the methods required to create a bindable object.
 '''
 
 __all__ = ('EventDispatcher', 'ObjectWithUid', 'Observable')
@@ -68,7 +64,7 @@ cdef class Observable(ObjectWithUid):
     for binding. :class:`EventDispatcher` is (the) one example of a class that
     implements the binding interface. See :class:`EventDispatcher` for details.
 
-    .. versionadded:: 1.8.2
+    .. versionadded:: 1.9.0
     '''
 
     def __cinit__(self, *largs, **kwargs):
@@ -309,7 +305,7 @@ cdef class EventDispatcher(ObjectWithUid):
         object and the property's new value) and event callbacks with
         one argument (the object). The example above illustrates this.
 
-        The following example demonstates various ways of using the bind
+        The following example demonstrates various ways of using the bind
         function in a complete application::
 
             from kivy.uix.boxlayout import BoxLayout
@@ -378,6 +374,15 @@ cdef class EventDispatcher(ObjectWithUid):
 
             if __name__ == "__main__":
                 DemoApp().run()
+
+        When binding a function to an event, a
+        :class:`kivy.weakmethod.WeakMethod` of the callback is saved, and
+        when dispatching the callback is removed if the callback reference
+        becomes invalid. For properties, the actual callback is saved.
+
+        Another difference between binding to an event vs a property; when
+        binding to a property, if this callback has already been bound to this
+        property, it won't be added again. For events, we don't do this check.
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps
@@ -394,9 +399,17 @@ cdef class EventDispatcher(ObjectWithUid):
                 ps.observers.bind(value)
 
     def unbind(self, **kwargs):
-        '''Unbind properties from callback functions.
+        '''Unbind properties from callback functions with similar usage as
+        :meth:`bind`.
 
-        Same usage as :meth:`bind`.
+        One difference between unbinding from
+        an event vs. property, is that when unbinding from an event, we
+        stop after the first callback match. For properties, we remove all
+        matching callbacks.
+
+        Note, a callback bound with :meth:`fast_bind` without any largs or
+        kwargs is equivalent to one bound with :meth:`bind` so either
+        :meth:`unbind` or :meth:`fast_unbind` will unbind it.
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps
@@ -413,44 +426,89 @@ cdef class EventDispatcher(ObjectWithUid):
                 ps.observers.unbind(value, 0, 0)
 
     def fast_bind(self, name, func, *largs, **kwargs):
-        '''A method for faster binding. This method is meant to only be used
-        internally and it performs less error checking. It can be used
-        externally, as long as the following warnings are heeded.
+        '''A method for faster binding. This method is somewhat different than
+        :meth:`bind` and is meant for more advanced users and internal usage.
+        It can be used as long as the following points are heeded.
 
-        As opposed to :meth:`bind`, it does not check that this function and
-        args has not been bound before to this name. It is assumed that the
-        combination of function + positional args has not been bound to this
-        name before.
+        - As opposed to :meth:`bind`, it does not check that this function and
+        largs/kwargs has not been bound before to this name. So binding
+        the same callback multiple times will just keep adding it.
 
-        In addition, although :meth:`bind` creates a :class:`WeakMethod` for
-        the callback function, this method stores the function directly,
-        without any proxying.
+        - Although :meth:`bind` creates a :class:`WeakMethod` when
+        binding to an event, this method stores the callback directly.
 
-        Finally, this method returns True if `name` was found and bound, and
+        - This method returns True if `name` was found and bound, and
         `False`, otherwise. It does not raise an exception, like :meth:`bind`,
-        if `name` is not found.
+        would if the property `name` is not found.
 
-        Anything bound with this method, must be unbound with
-        :meth:`fast_unbind`; :meth:`unbind` will not unbind it.
+        When binding a callback with largs and/or kwargs, :meth:`fast_unbind`
+        must be used for unbinding. If no largs and kwargs are provided,
+        :meth:`unbind` may be used as well.
 
-        The method passes on the caught positional arguments to the callback,
-        removing the need to call partial. When calling back, the
-        instance/value, or dispatched parameters are passed on after the
-        positional arguments provided here.
+        This method passes on any caught positional and/or keyword arguments to
+        the callback, removing the need to call partial. When calling the
+        callback the expended largs are passed on followed by instance/value
+        (just instance for kwargs) followed by expended kwargs.
+
+        Following is an example of usage similar to the example in
+        :meth:`bind`::
+
+        class DemoBox(BoxLayout):
+
+            def __init__(self, **kwargs):
+                super(DemoBox, self).__init__(**kwargs)
+                self.orientation = "vertical"
+
+                btn = Button(text="Normal binding to event")
+                btn.fast_bind('on_press', self.on_event)
+
+                btn2 = Button(text="Normal binding to a property change")
+                btn2.fast_bind('state', self.on_property)
+
+                btn3 = Button(text="A: Using function with args.")
+                btn3.fast_bind('on_press', self.on_event_with_args, 'right',
+                               tree='birch', food='apple')
+
+                btn4 = Button(text="Unbind A.")
+                btn4.fast_bind('on_press', self.unbind_a, btn3)
+
+                btn5 = Button(text="Use a flexible function")
+                btn5.fast_bind('on_press', self.on_anything)
+
+                btn6 = Button(text="B: Using flexible functions with args. For hardcores.")
+                btn6.fast_bind('on_press', self.on_anything, "1", "2", monthy="python")
+
+                btn7 = Button(text="Force dispatch B with different params")
+                btn7.fast_bind('on_press', btn6.dispatch, 'on_press', 6, 7, monthy="other python")
+
+                for but in [btn, btn2, btn3, btn4, btn5, btn6, btn7]:
+                    self.add_widget(but)
+
+            def on_event(self, obj):
+                print("Typical event from", obj)
+
+            def on_event_with_args(self, side, obj, tree=None, food=None):
+                print("Event with args", obj, side, tree, food)
+
+            def on_property(self, obj, value):
+                print("Typical property change from", obj, "to", value)
+
+            def on_anything(self, *args, **kwargs):
+                print('The flexible function has *args of', str(args),
+                    "and **kwargs of", str(kwargs))
+                return True
+
+            def unbind_a(self, btn, event):
+                btn.fast_unbind('on_press', self.on_event_with_args, 'right',
+                                tree='birch', food='apple')
 
         .. note::
             Since the kv lang uses this method to bind, one has to implement
             this method, instead of :meth:`bind` when creating a non
-            :class:`EventDispatcher` based class (e.g. based on
-            :class:`Observable`) used with the kv lang. A simple method is to
-            make `fast_bind` call `bind` e.g.::
+            :class:`EventDispatcher` based class used with the kv lang. See
+            :class:`Observable` for an example.
 
-                def fast_bind(self, name, func, *largs):
-                    self.bind(**{name: partial(func, *largs)})
-
-            Then one can use this partial function with fast_unbind.
-
-        .. versionadded:: 1.8.2
+        .. versionadded:: 1.9.0
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps
@@ -472,14 +530,14 @@ cdef class EventDispatcher(ObjectWithUid):
         '''Similar to :meth:`fast_bind`.
 
         When unbinding from a property :meth:`unbind` will unbind
-        all callback that match the callback, while this method will only
+        all callbacks that match the callback, while this method will only
         unbind the first (as it is assumed that the combination of func and
-        args are uniquely bound).
+        largs/kwargs are uniquely bound).
 
-        To unbind, the same positional arguments passed to :meth:`fast_bind`
-        must be passed on to unbind.
+        To unbind, the same positional and keyword arguments passed to
+        :meth:`fast_bind` must be passed on to fast_unbind.
 
-        .. versionadded:: 1.8.2
+        .. versionadded:: 1.9.0
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps
@@ -501,7 +559,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
         .. versionadded:: 1.8.0
 
-        .. versionchanged:: 1.8.2
+        .. versionchanged:: 1.9.0
             To keep compatibility, callbacks bound with :meth:`fast_bind` will
             also only return the callback function and not their provided args.
 
@@ -524,7 +582,7 @@ cdef class EventDispatcher(ObjectWithUid):
         return self.__event_stack.keys()
 
     def dispatch(self, str event_type, *largs, **kwargs):
-        '''Dispatch an event across all the handlers added in bind().
+        '''Dispatch an event across all the handlers added in bind/fast_bind().
         As soon as a handler returns True, the dispatching stops.
 
         The function collects all the positional and keyword arguments and
@@ -618,7 +676,7 @@ cdef class EventDispatcher(ObjectWithUid):
             A :class:`~kivy.properties.Property` derived instance
             corresponding to the name.
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             quiet was added.
         '''
         if quiet:
@@ -696,7 +754,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
     property proxy_ref:
         '''Default implementation of proxy_ref, returns self.
-        ..versionadded:: 1.8.1
+        ..versionadded:: 1.9.0
         '''
         def __get__(self):
             return self
