@@ -789,7 +789,7 @@ cdef class EventObservers:
             callback = callback.next
             release_callback(last_c)
 
-    cdef inline void bind(self, object observer):
+    cdef inline void bind(self, object observer) except *:
         '''Bind the observer to the event. If this observer has already been
         bound, we don't add it again.
         '''
@@ -816,7 +816,8 @@ cdef class EventObservers:
             self.last_callback = callback
 
 
-    cdef inline int fast_bind(self, object observer, tuple largs, dict kwargs, int is_ref):
+    cdef inline void fast_bind(self, object observer, tuple largs, dict kwargs,
+                               int is_ref) except *:
         '''Similar to bind, except it accepts largs, kwargs that is forwards.
         is_ref, if true, will mark the observer that it is a ref so that we
         can unref it before calling.
@@ -842,7 +843,7 @@ cdef class EventObservers:
             self.last_callback.next = callback
             self.last_callback = callback
 
-    cdef inline void unbind(self, object observer, int is_ref, int stop_on_first):
+    cdef inline void unbind(self, object observer, int is_ref, int stop_on_first) except *:
         '''Removes the observer. If is_ref, he observers will be derefed before
         comparing to observer, if they are refed. If stop_on_first, after the
         first match we return.
@@ -882,14 +883,15 @@ cdef class EventObservers:
                 return
         self.last_callback = last_callback
 
-    cdef inline void fast_unbind(self, object observer, tuple largs, dict kwargs):
+    cdef inline void fast_unbind(self, object observer, tuple largs, dict kwargs) except *:
         '''Similar to unbind, except we only remove the first match, and
         we don't deref the observers before comparing to observer. The
         largs and kwargs must match the largs and kwargs from when binding.
         '''
         cdef BoundCallabck *callback = self.first_callback
         cdef BoundCallabck *last_callback = NULL
-        cdef int il = len(largs) if largs is not None else 0, ikw = len(kwargs) if kwargs is not None else 0
+        cdef int il = len(largs) if largs is not None else 0,
+        cdef int ikw = len(kwargs) if kwargs is not None else 0
 
         while callback != NULL:
             if ((callback.largs != NULL and il == 0 or
@@ -917,7 +919,8 @@ cdef class EventObservers:
             release_callback(callback)
             return
 
-    cdef inline int dispatch(self, object obj, object value, tuple largs, dict kwargs, int stop_on_true):
+    cdef inline int dispatch(self, object obj, object value, tuple largs,
+                             dict kwargs, int stop_on_true) except 2:
         '''Dispatches obj, value to all bound observers. If largs and/or kwargs,
         they are forwarded after obj, value. if stop_on_true, if a observer returns
         true, the function stops and returns true.

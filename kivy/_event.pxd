@@ -36,8 +36,8 @@ cdef class EventObservers:
     # If in dispatch, the value parameter is dispatched or ignored.
     cdef int dispatch_value
 
-    cdef inline void bind(self, object observer)
-    cdef inline int fast_bind(self, object observer, tuple largs, dict kwargs, int is_ref)
-    cdef inline void unbind(self, object observer, int is_ref, int stop_on_first)
-    cdef inline void fast_unbind(self, object observer, tuple largs, dict kwargs)
-    cdef inline int dispatch(self, object obj, object value, tuple largs, dict kwargs, int stop_on_true)
+    cdef inline void bind(self, object observer) except *
+    cdef inline void fast_bind(self, object observer, tuple largs, dict kwargs, int is_ref) except *
+    cdef inline void unbind(self, object observer, int is_ref, int stop_on_first) except *
+    cdef inline void fast_unbind(self, object observer, tuple largs, dict kwargs) except *
+    cdef inline int dispatch(self, object obj, object value, tuple largs, dict kwargs, int stop_on_true) except 2
