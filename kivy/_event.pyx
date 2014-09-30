@@ -779,6 +779,8 @@ cdef class EventObservers:
         self.first_callback = self.last_callback = NULL
         self.dispatch_reverse = dispatch_reverse
         self.dispatch_value = dispatch_value
+        self.new_callback = self.current_dispatch = NULL
+        self.unbound_dispatched_callback = 0
 
     def __dealloc__(self):
         cdef BoundCallabck *callback
@@ -798,7 +800,8 @@ cdef class EventObservers:
         # ensure observer is not bound already
         while callback != NULL:
             if (callback.largs == NULL and callback.kwargs == NULL and
-                <object>(callback.func) == observer):
+                <object>(callback.func) == observer and
+                (callback != self.current_dispatch or not self.unbound_dispatched_callback)):
                 return
             callback = callback.next
 
@@ -814,6 +817,9 @@ cdef class EventObservers:
                 callback.previous = self.last_callback
             self.last_callback.next = callback
             self.last_callback = callback
+
+        if self.current_dispatch != NULL and self.new_callback == NULL:
+            self.new_callback = callback
 
 
     cdef inline void fast_bind(self, object observer, tuple largs, dict kwargs,
@@ -843,6 +849,9 @@ cdef class EventObservers:
             self.last_callback.next = callback
             self.last_callback = callback
 
+        if self.current_dispatch != NULL and self.new_callback == NULL:
+            self.new_callback = callback
+
     cdef inline void unbind(self, object observer, int is_ref, int stop_on_first) except *:
         '''Removes the observer. If is_ref, he observers will be derefed before
         comparing to observer, if they are refed. If stop_on_first, after the
@@ -854,7 +863,8 @@ cdef class EventObservers:
         cdef object f
 
         while callback != NULL:
-            if callback.largs != NULL or callback.kwargs != NULL:
+            if callback.largs != NULL or callback.kwargs != NULL or (
+                callback == self.current_dispatch and self.unbound_dispatched_callback):
                 last_callback = callback
                 callback = callback.next
                 continue
@@ -867,19 +877,29 @@ cdef class EventObservers:
                 callback = callback.next
                 continue
 
-            c = callback
-            if callback == self.first_callback:
-                callback = self.first_callback = callback.next
-                if callback != NULL and self.dispatch_reverse:
-                    callback.previous = NULL
+            # if the callback is currently dispatched, don't actually remove it
+            if callback == self.current_dispatch:
+                c = NULL
+                self.unbound_dispatched_callback = 1
+                last_callback = callback
             else:
-                last_callback.next = callback = callback.next
-                if callback != NULL and self.dispatch_reverse:
-                    callback.previous = last_callback
+                c = callback
+                if callback == self.first_callback:
+                    callback = self.first_callback = callback.next
+                    if callback != NULL and self.dispatch_reverse:
+                        callback.previous = NULL
+                else:
+                    last_callback.next = callback = callback.next
+                    if callback != NULL and self.dispatch_reverse:
+                        callback.previous = last_callback
 
-            release_callback(c)
+                if c == self.new_callback:
+                    self.new_callback = c.next
+                release_callback(c)
+
             if stop_on_first and f is not None:
-                self.last_callback = last_callback
+                if c == self.last_callback:
+                    self.last_callback = last_callback
                 return
         self.last_callback = last_callback
 
@@ -900,23 +920,29 @@ cdef class EventObservers:
                 (callback.kwargs != NULL and ikw == 0 or
                  callback.kwargs == NULL and ikw != 0 or
                  callback.kwargs != NULL and <dict>(callback.kwargs) != kwargs) or
-                <object>(callback.func) != observer):
+                <object>(callback.func) != observer or (
+                callback == self.current_dispatch and self.unbound_dispatched_callback)):
                 last_callback = callback
                 callback = callback.next
                 continue
 
-            if callback == self.first_callback:
-                self.first_callback = callback.next
-                if self.first_callback != NULL and self.dispatch_reverse:
-                    self.first_callback.previous = NULL
+            if callback == self.current_dispatch:
+                self.unbound_dispatched_callback = 1
             else:
-                last_callback.next = callback.next
-                if callback.next != NULL and self.dispatch_reverse:
-                    callback.next.previous = last_callback
-            if callback == self.last_callback:
-                self.last_callback = last_callback
+                if callback == self.first_callback:
+                    self.first_callback = callback.next
+                    if self.first_callback != NULL and self.dispatch_reverse:
+                        self.first_callback.previous = NULL
+                else:
+                    last_callback.next = callback.next
+                    if callback.next != NULL and self.dispatch_reverse:
+                        callback.next.previous = last_callback
+                if callback == self.last_callback:
+                    self.last_callback = last_callback
 
-            release_callback(callback)
+                if callback == self.new_callback:
+                    self.new_callback = callback.next
+                release_callback(callback)
             return
 
     cdef inline int dispatch(self, object obj, object value, tuple largs,
@@ -932,8 +958,11 @@ cdef class EventObservers:
         cdef dict d
         cdef tuple param = (obj, value) if self.dispatch_value else (obj, )
         cdef tuple fargs = None
+        self.new_callback = NULL
 
-        while callback != NULL:
+        # calling f() should be barrier for caching optim of self.new_callback
+        # and self.unbound_dispatched_callback (hopefully oO)
+        while callback != NULL and callback != self.new_callback:
             f = <object>(callback.func)
 
             # first make sure that if the callback is a ref and dead, we remove it
@@ -965,7 +994,8 @@ cdef class EventObservers:
                     continue
 
             # find the correct combo of largs, kwargs from binding and dispatching
-            last_callback = callback
+            self.current_dispatch = callback
+            self.unbound_dispatched_callback = 0
             if callback.largs != NULL and callback.kwargs != NULL:  # both kw and largs
                 if largs is not None:
                     fargs = <tuple>(callback.largs) + param + largs
@@ -1030,18 +1060,56 @@ cdef class EventObservers:
                         else:
                             result = f(obj, *largs, **kwargs)
 
-            if stop_on_true and result:
-                return 1
-            if self.dispatch_reverse:
-                callback = callback.previous
+            # if it was unbound during the dispatch, remove it
+            if self.unbound_dispatched_callback:
+                c = callback
+                if self.dispatch_reverse:
+                    if callback == self.last_callback:
+                        self.last_callback = callback.previous
+                        if self.last_callback != NULL:
+                            self.last_callback.next = NULL
+                    else:
+                        last_callback.previous = callback.previous
+                        if callback.previous != NULL:
+                            callback.previous.next = last_callback
+                    if callback == self.first_callback:
+                        self.first_callback = last_callback
+                    callback = callback.previous
+                else:
+                    if callback == self.first_callback:
+                        self.first_callback = callback.next
+                    else:
+                        last_callback.next = callback.next
+                    if callback == self.last_callback:
+                        self.last_callback = last_callback
+                    callback = callback.next
+                release_callback(c)
             else:
-                callback = callback.next
+                last_callback = callback
+                if self.dispatch_reverse:
+                    callback = callback.previous
+                else:
+                    callback = callback.next
+
+            if stop_on_true and result:
+                self.current_dispatch = NULL
+                return 1
+
+        self.current_dispatch = NULL
         return 0
 
     def __iter__(self):
+        '''Binding/unbinding/dispatching while iterating can lead to invalid
+        data.
+        '''
         cdef BoundCallabck *callback = self.first_callback
+        cdef BoundCallabck *current_dispatch = \
+            self.current_dispatch if self.unbound_dispatched_callback else NULL
 
         while callback != NULL:
+            if current_dispatch != NULL and current_dispatch == callback:
+                callback = callback.next
+                continue
             if callback.largs != NULL and callback.kwargs != NULL:
                 yield <object>(callback.func), <tuple>(callback.largs), <dict>(callback.kwargs), callback.is_ref
             elif callback.largs != NULL:

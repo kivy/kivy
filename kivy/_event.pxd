@@ -35,6 +35,14 @@ cdef class EventObservers:
     cdef int dispatch_reverse
     # If in dispatch, the value parameter is dispatched or ignored.
     cdef int dispatch_value
+    # The callback that dispatch is currently dispatching
+    cdef BoundCallabck *current_dispatch
+    # if unbind unbinds current_dispatch, this is set to true so that we don't
+    # dispatch this again. dispatch then manuually removes it.
+    cdef int unbound_dispatched_callback
+    # when binding while dispatching, don't dispatch from new_callback and down
+    # because those callbacks didn't exist when we started dispatching
+    cdef BoundCallabck *new_callback
 
     cdef inline void bind(self, object observer) except *
     cdef inline void fast_bind(self, object observer, tuple largs, dict kwargs, int is_ref) except *
