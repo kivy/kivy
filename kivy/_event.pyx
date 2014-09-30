@@ -82,14 +82,15 @@ cdef class Observable(ObjectWithUid):
         .. note::
 
             To keep backward compatibility with derived classes which may have
-            inherited from :class:`Observable` before
-            :meth:`fast_bind` was added, the default implementation
+            inherited from :class:`Observable` before, the
+            :meth:`fast_bind` method was added. The default implementation
             of :meth:`fast_bind` and :meth:`fast_unbind` is to create a partial
             function that it passes to bind. However, :meth:`fast_unbind`
             is fairly inefficient since we have to lookup this partial function
             before we can call :meth:`unbind`. It is recommended to overwrite
-            these methods in derived classes to directly do binding for
+            these methods in derived classes to bind directly for
             better performance.
+
         '''
         f = partial(func, *largs)
         self.__fast_bind_mapping[name].append(((func, largs), f))
@@ -431,15 +432,16 @@ cdef class EventDispatcher(ObjectWithUid):
         It can be used as long as the following points are heeded.
 
         - As opposed to :meth:`bind`, it does not check that this function and
-        largs/kwargs has not been bound before to this name. So binding
-        the same callback multiple times will just keep adding it.
+          largs/kwargs has not been bound before to this name. So binding
+          the same callback multiple times will just keep adding it.
 
         - Although :meth:`bind` creates a :class:`WeakMethod` when
-        binding to an event, this method stores the callback directly.
+          binding to an event, this method stores the callback directly.
 
         - This method returns True if `name` was found and bound, and
-        `False`, otherwise. It does not raise an exception, like :meth:`bind`,
-        would if the property `name` is not found.
+          `False`, otherwise. It does not raise an exception, like :meth:`bind`,
+          would if the property `name` is not found.
+
 
         When binding a callback with largs and/or kwargs, :meth:`fast_unbind`
         must be used for unbinding. If no largs and kwargs are provided,
@@ -503,6 +505,7 @@ cdef class EventDispatcher(ObjectWithUid):
                                     tree='birch', food='apple')
 
         .. note::
+
             Since the kv lang uses this method to bind, one has to implement
             this method, instead of :meth:`bind` when creating a non
             :class:`EventDispatcher` based class used with the kv lang. See
