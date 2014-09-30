@@ -340,15 +340,15 @@ is_selected properties::
     from kivy.uix.listview import ListItemButton
     from kivy.adapters.listadapter import ListAdapter
 
+
     class DataItem(object):
         def __init__(self, text='', is_selected=False):
             self.text = text
             self.is_selected = is_selected
-
-    data_items = []
-    data_items.append(DataItem(text='cat'))
-    data_items.append(DataItem(text='dog'))
-    data_items.append(DataItem(text='frog'))
+    
+    data_items = [DataItem(text='cat'),
+                  DataItem(text='dog'),
+                  DataItem(text='frog')]
 
     list_item_args_converter = lambda row_index, obj: {'text': obj.text,
                                                        'size_hint_y': None,
@@ -363,14 +363,12 @@ is_selected properties::
 
     list_view = ListView(adapter=list_adapter)
 
-The data is set in a :class:`~kivy.adapters.listadapter.ListAdapter` along
-with a list item args_converter function above (lambda) and arguments
-concerning selection: only single selection is allowed, and selection in the
-listview will propagate to the data items. The propagation setting means that
+The data is passed to the :class:`~kivy.adapters.listadapter.ListAdapter` along
+with an args_converter function above (lambda) and arguments
+concerning selection. The propagation setting means that
 the is_selected property for each data item will be set and kept in sync with
-the list item views. By having allow_empty_selection=False, when the listview
-first appears, the first item, 'cat', will already be selected. The list
-adapter will instantiate a :class:`~kivy.uix.listview.ListItemButton` class
+the list item views. The list adapter will instantiate a
+:class:`~kivy.uix.listview.ListItemButton` class
 instance for each data item, using the assigned args_converter.
 
 The list_view would be added to a view with add_widget() after the last line,
