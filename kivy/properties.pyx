@@ -333,7 +333,11 @@ cdef class Property:
         used in `Widget.__new__`. The link function is also used to create the
         storage space of the property for this specific widget instance.
         '''
-        cdef PropertyStorage d = PropertyStorage()
+        cdef PropertyStorage d
+        if self._name != '' and name != self._name:
+            d = obj.__storage.get(self._name, PropertyStorage())
+        else:
+            d = PropertyStorage()
         self._name = name
         obj.__storage[name] = d
         self.init_storage(obj, d)
