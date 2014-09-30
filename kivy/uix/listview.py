@@ -250,8 +250,8 @@ Using an Args Converter
 A :class:`~kivy.uix.listview.ListView` allows use of built-in list item views,
 such as :class:`~kivy.uix.listview.ListItemButton`, your own custom item view
 class or a custom kv template. Whichever type of list item view is used, an
-args_converter function is needed to prepare, per list data item, args for
-the cls or template.
+:doc:`args_converter <api-kivy.adapters.args_converters>` function is needed to
+prepare, per list data item, kwargs for the cls or the ctx for the template.
 
 .. note::
 
