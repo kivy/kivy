@@ -316,12 +316,13 @@ Now, to some example code::
 
     list_view = ListView(adapter=list_adapter)
 
-This listview will show 100 buttons with text of 0 to 100. The args converter
-function works on dict items in the data. ListItemButton views will be
-instantiated from the args converted by args_converter for each data item. The
-listview will only allow single selection: additional touches will be
-ignored. When the listview is first shown, the first item will already be
-selected because allow_empty_selection is False.
+This listview will show 100 buttons with text of 0 to 100. The args_converter
+function converts the dict items in the data and instantiates ListItemButton
+views by passing these converted items into it's constructor. The
+listview will only allow single selection and the first item will already be
+selected as allow_empty_selection is False. For a complete discussion on these
+arguments, please see the :class:`~kivy.adapters.listadapter.ListAdapter`
+documentation.
 
 The :class:`~kivy.uix.listview.ListItemLabel` works in much the same way as the
 :class:`~kivy.uix.listview.ListItemButton`.
@@ -370,10 +371,6 @@ the is_selected property for each data item will be set and kept in sync with
 the list item views. The list adapter will instantiate a
 :class:`~kivy.uix.listview.ListItemButton` class
 instance for each data item, using the assigned args_converter.
-
-The list_view would be added to a view with add_widget() after the last line,
-where it is created. See the basic example at the top of this documentation for
-an example of add_widget() use in the context of a sample app.
 
 You may also use the provided :class:`~kivy.adapters.models.SelectableDataItem`
 mixin to make a custom class. Instead of the "manually-constructed" DataItem
@@ -440,9 +437,6 @@ Builder.load_string() call is set as the kv template for the list item views.
 The list_item_args_converter lambda function will take each dict in
 integers_dict and will return an args dict, ready for passing as the context
 (ctx) for the template.
-
-The list_vew would be added to a view with add_widget() after the last line,
-where it is created. Again, see the basic example above for add_widget() use.
 
 Using CompositeListItem
 -----------------------
