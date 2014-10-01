@@ -330,10 +330,9 @@ The :class:`~kivy.uix.listview.ListItemLabel` works in much the same way as the
 Using a Custom Item View Class
 ------------------------------
 
-The data used in an adapter can be any of the normal Python types, such as
-strings, class instances and dictionaries. They can also be custom classes, as
-shown below. It is up to the programmer to assure that the args_converter
-performs the appropriate conversions.
+The data used in an adapter can be any of the normal Python types or custom
+classes, as shown below. It is up to the programmer to assure that the
+args_converter performs the appropriate conversions.
 
 Here we make a simple DataItem class that has the required text and
 is_selected properties::
@@ -357,20 +356,17 @@ is_selected properties::
 
     list_adapter = ListAdapter(data=data_items,
                                args_converter=list_item_args_converter,
-                               selection_mode='single',
                                propagate_selection_to_data=True,
-                               allow_empty_selection=False,
                                cls=ListItemButton)
 
     list_view = ListView(adapter=list_adapter)
 
 The data is passed to the :class:`~kivy.adapters.listadapter.ListAdapter` along
-with an args_converter function above (lambda) and arguments
-concerning selection. The propagation setting means that
+with an args_converter function. The propagation setting means that
 the is_selected property for each data item will be set and kept in sync with
 the list item views. The list adapter will instantiate a
 :class:`~kivy.uix.listview.ListItemButton` class
-instance for each data item, using the assigned args_converter.
+instance for each data item using the assigned args_converter.
 
 You may also use the provided :class:`~kivy.adapters.models.SelectableDataItem`
 mixin to make a custom class. Instead of the "manually-constructed" DataItem
