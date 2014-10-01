@@ -409,7 +409,7 @@ class Carousel(StencilView):
         width = self.width
         height = self.height
         index = self.index
-        if self._skip_slide is not None:
+        if self._skip_slide is not None or index is None:
             return
 
         if direction[0] == 'r':
