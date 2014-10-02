@@ -25,6 +25,7 @@ kivy/lib/gstplayer/_gstplayer.c
 kivy/core/camera/camera_avfoundation.c
 kivy/tests/build
 kivy/tests/results
+kivy/garden
 .last_known_portable_deps_hash
 deps.zip
 Kivy.dmg
