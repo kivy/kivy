@@ -118,13 +118,13 @@ class Carousel(StencilView):
     def _get_index(self):
         if self.slides:
             return self._index % len(self.slides)
-        return float('nan')
+        return None
 
     def _set_index(self, value):
         if self.slides:
             self._index = value % len(self.slides)
         else:
-            self._index = float('nan')
+            self._index = None
     index = AliasProperty(_get_index, _set_index, bind=('_index', 'slides'))
     '''Get/Set the current visible slide based on the index.
 
@@ -230,7 +230,7 @@ class Carousel(StencilView):
     '''
 
     #### private properties, for internal use only ###
-    _index = NumericProperty(0)
+    _index = NumericProperty(0, allownone=True)
     _prev = ObjectProperty(None, allownone=True)
     _current = ObjectProperty(None, allownone=True)
     _next = ObjectProperty(None, allownone=True)
@@ -273,17 +273,18 @@ class Carousel(StencilView):
 
         .. versionadded:: 1.7.0
         '''
-        h, w = self.size
-        _direction = {
-            'top': -h / 2,
-            'bottom': h / 2,
-            'left': w / 2,
-            'right': -w / 2}
-        _offset = _direction[self.direction]
-        if mode == 'prev':
-            _offset = -_offset
+        if not self.index is None:
+            h, w = self.size
+            _direction = {
+                'top': -h / 2,
+                'bottom': h / 2,
+                'left': w / 2,
+                'right': -w / 2}
+            _offset = _direction[self.direction]
+            if mode == 'prev':
+                _offset = -_offset
 
-        self._start_animation(min_move=0, offset=_offset)
+            self._start_animation(min_move=0, offset=_offset)
 
     def get_slide_container(self, slide):
         return slide.parent
@@ -408,7 +409,7 @@ class Carousel(StencilView):
         width = self.width
         height = self.height
         index = self.index
-        if self._skip_slide is not None:
+        if self._skip_slide is not None or index is None:
             return
 
         if direction[0] == 'r':
