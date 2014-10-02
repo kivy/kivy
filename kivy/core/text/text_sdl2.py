@@ -43,11 +43,6 @@ class LabelSDL2(LabelBase):
         self._surface = _SurfaceContainer(self._size[0], self._size[1])
 
     def _render_text(self, text, x, y):
-        try:
-            if PY2:
-                text = text.encode('UTF-8')
-        except:
-            pass
         self._surface.render(self, text, x, y)
 
     def _render_end(self):

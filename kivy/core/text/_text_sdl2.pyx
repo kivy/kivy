@@ -10,6 +10,7 @@ include '../../lib/sdl2.pxi'
 
 from libc.string cimport memset
 from kivy.core.image import ImageData
+from kivy.compat import PY2
 
 cdef dict sdl2_cache = {}
 cdef list sdl2_cache_order = []
@@ -125,7 +126,9 @@ def _get_extents(container, text):
     cdef int w, h
     if font == NULL:
         return 0, 0
-    bytes_text = <bytes>text.encode('utf-8')
+    if not PY2:
+        text = text.encode('utf-8')
+    bytes_text = <bytes>text
     TTF_SizeUTF8(font, <char *>bytes_text, &w, &h)
     return w, h
 
