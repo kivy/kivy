@@ -388,8 +388,7 @@ Using an Item View Template
 has required properties for a list item: text, and is_selected. To make your
 own template, mix it in as follows::
 
-    from kivy.uix.listview import ListItemButton
-    from kivy.uix.listview import SelectableView
+    from kivy.lang import Builder
 
     Builder.load_string("""
     [CustomListItem@SelectableView+BoxLayout]:
