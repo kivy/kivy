@@ -42,7 +42,7 @@ them with the garden tool installed by the pip package::
 
 All the garden packages are installed by default in `~/.kivy/garden`.
 
-.. Note:: In previous versions of Kivy, garden was a tool at 
+.. Note:: In previous versions of Kivy, garden was a tool at
           kivy/tools/garden. This no longer exists, but the
           kivy-garden module provides exactly the same functionality.
 
@@ -65,11 +65,13 @@ __path__ = 'kivy.garden'
 
 import sys
 import imp
-from os.path import dirname, join, realpath, exists
+from os.path import dirname, join, realpath, exists, abspath
 from kivy import kivy_home_dir
+import kivy
 
 #: system path where garden modules can be installed
 garden_system_dir = join(kivy_home_dir, 'garden')
+garden_kivy_dir = abspath(join(dirname(kivy.__file__), 'garden'))
 
 #: application path where garden modules can be installed
 if getattr(sys, 'frozen', False) and getattr(sys, '_MEIPASS', False):
@@ -85,7 +87,12 @@ class GardenImporter(object):
             return self
 
     def load_module(self, fullname):
-        assert(fullname.startswith('kivy.'))
+        assert(fullname.startswith('kivy.garden'))
+
+        moddir = join(garden_kivy_dir, fullname.split('.', 2)[-1])
+        if exists(moddir):
+            return self._load_module(fullname, moddir)
+
         modname = fullname.split('.', 1)[-1]
         for directory in (garden_app_dir, garden_system_dir):
             moddir = join(directory, modname)
