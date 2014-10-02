@@ -399,13 +399,15 @@ own template, mix it in as follows::
             is_selected: ctx.is_selected
     """)
 
-A class called CustomListItem will be instantiated for each list item. Note
-that it is a :class:`~kivy.uix.boxlayout.BoxLayout` and is thus a kind of
-container. It contains a :class:`~kivy.uix.listview.ListItemButton` instance.
+A class called CustomListItem can then be instantiated for each list item. Note
+that it subclasses a :class:`~kivy.uix.boxlayout.BoxLayout` and is thus a type
+of :mod:`~kivy.uix.layout`. It contains a
+:class:`~kivy.uix.listview.ListItemButton` instance.
 
 Using the power of the Kivy language (kv), you can easily build composite list
-items -- in addition to ListItemButton, you could have a ListItemLabel, or a
-custom class you have defined and registered with the system.
+items: in addition to ListItemButton, you could have a ListItemLabel or a
+custom class you have defined and registered via the
+:class:`~kivy.factory.Factory`.
 
 An args_converter needs to be constructed that goes along with such a kv
 template. For example, to use the kv template above::
@@ -438,8 +440,7 @@ Using CompositeListItem
 
 The class :class:`~kivy.uix.listview.CompositeListItem` is another option for
 building advanced composite list items. The kv language approach has its
-advantages, but here we build a composite list view using a straight Kivy
-widget method::
+advantages, but here we build a composite list view using a plain Python::
 
     args_converter = lambda row_index, rec: \
             {'text': rec['text'],
@@ -470,16 +471,15 @@ widget method::
 The args_converter is somewhat complicated, so we should go through the
 details. Observe in the :class:`~kivy.adapters.dictadapter.DictAdapter`
 instantiation that :class:`~kivy.uix.listview.CompositeListItem` instance is
-set as the cls to be instantiated for each list item. The args_converter will
-make args dicts for this cls.  In the args_converter, the first three items,
-text, size_hint_y, and height, are arguments for CompositeListItem itself.
+set as the cls to be instantiated for each list item component. The
+args_converter will
+make args dicts for this cls. In the args_converter, the first three items,
+text, size_hint_y, and height, are arguments for the CompositeListItem itself.
 After that you see a cls_dicts list that contains argument sets for each of the
-member widgets for this composite: :class:`~kivy.uix.listview.ListItemButton`
-and :class:`~kivy.uix.listview.ListItemLabel`. This is a similar approach to
+member widgets for this composite: 2
+:class:`ListItemButtons <kivy.uix.listview.ListItemButton>` and a
+:class:`~kivy.uix.listview.ListItemLabel`. This is a similar approach to
 using a kv template described above.
-
-The sorted_keys and data arguments for the dict adapter are the same as in the
-previous code example.
 
 For details on how :class:`~kivy.uix.listview.CompositeListItem` works,
 examine the code, looking for how parsing of the cls_dicts list and kwargs
@@ -498,17 +498,18 @@ would update automatically on selection. This is done via a binding to the
 
     list_adapter.bind(on_selection_change=callback_function)
 
-where callback_function() does whatever is needed for the update. See the
-example called list_master_detail.py, and imagine that the list one the left
-would be a list of dog breeds, and the detail view on the right would show
+where callback_function() gets passed the adapter as an argument and does
+whatever is needed for the update. See the
+example called list_master_detail.py, and imagine that the list on the left
+could be a list of dog breeds, and the detail view on the right could show
 details for a selected dog breed.
 
 In another example, we could set the selection_mode of a listview to
 'multiple', and load it with a list of answers to a multiple-choice question.
 The question could have several correct answers. A color swatch view could be
 bound to selection change, as above, so that it turns green as soon as the
-correct choices are made, unless the number of touches exeeds a limit, when the
-answer session would be terminated. See the examples that feature thumbnail
+correct choices are made, unless the number of touches exeeds a limit, then the
+answer session could be terminated. See the examples that feature thumbnail
 images to get some ideas, e.g., list_cascade_dict.py.
 
 In a more involved example, we could chain together three listviews, where
@@ -518,8 +519,7 @@ set to False for these listviews, a dynamic system of selection "cascading"
 from one list to the next, would result.
 
 There are so many ways that listviews and Kivy bindings functionality can be
-used, that we have only scratched the surface here. For on-disk examples, see
-these::
+used, that we have only scratched the surface here. For on-disk examples, see::
 
     kivy/examples/widgets/lists/list_*.py
 
