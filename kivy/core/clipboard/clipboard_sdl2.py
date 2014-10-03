@@ -8,7 +8,7 @@ from kivy.utils import platform
 from kivy.core.clipboard import ClipboardBase
 
 if platform not in ('win', 'linux', 'macosx', 'android', 'ios'):
-    raise SystemError('unsupported platform for pygame clipboard')
+    raise SystemError('unsupported platform for sdl2 clipboard')
 
 try:
     from kivy.core.clipboard._clipboard_sdl2 import _get_text, _has_text, _set_text
