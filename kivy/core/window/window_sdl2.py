@@ -108,7 +108,10 @@ class WindowSDL(WindowBase):
 
             # setup !
             w, h = self._size
-            self._size = self._win.setup_window(w, h, use_fake, use_fullscreen)
+            gl_size = self._win.setup_window(w, h, use_fake, use_fullscreen)
+        else:
+            w, h = self._size
+            self._win.resize_window(w, h)
 
         super(WindowSDL, self).create_window()
 
@@ -314,7 +317,7 @@ class WindowSDL(WindowBase):
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self._size))
-        self._win.resize_window(*self._size)
+        self._win.resize_display_mode(*self._size)
         self.dispatch('on_resize', *self._size)
 
     def do_pause(self):
