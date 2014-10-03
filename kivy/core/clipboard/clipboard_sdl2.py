@@ -5,6 +5,7 @@ Clipboard SDL2: an implementation of the Clipboard using sdl2.
 __all__ = ('ClipboardSDL2', )
 
 from kivy.utils import platform
+from kivy.compat import PY2
 from kivy.core.clipboard import ClipboardBase
 
 if platform() not in ('win', 'linux', 'macosx', 'android', 'ios'):
@@ -18,10 +19,12 @@ except ImportError:
 
 class ClipboardSDL2(ClipboardBase):
 
-    def get(self, mimetype='text/plain'):
+    def paste(self):
         return _get_text() if _has_text() else ''
 
-    def put(self, data, mimetype='text/plain'):
+    def copy(self, data=''):
+        if PY2:
+            data = data.encode('utf-8')
         _set_text(data)
 
     def get_types(self):
