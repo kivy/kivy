@@ -11,17 +11,18 @@ if platform() not in ('win', 'linux', 'macosx', 'android', 'ios'):
     raise SystemError('unsupported platform for pygame clipboard')
 
 try:
-    from _clipboard_sdl2 import _get_text, _has_text, _set_text
+    from kivy.core.clipboard._clipboard_sdl2 import _get_text, _has_text, _set_text
 except ImportError:
     raise SystemError('extension not copiled??')
 
 
 class ClipboardSDL2(ClipboardBase):
 
-    def get(self, mimetype='text/plain'):
+    def paste(self):
         return _get_text() if _has_text() else ''
 
-    def put(self, data, mimetype='text/plain'):
+    def copy(self, data=''):
+        data = data.encode('utf-8')
         _set_text(data)
 
     def get_types(self):
