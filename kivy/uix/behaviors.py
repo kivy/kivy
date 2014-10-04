@@ -73,7 +73,7 @@ class ButtonBehavior(object):
     defaults to None.
     '''
 
-    MIN_STATE_TIME = 0.075
+    MIN_STATE_TIME = 0.035
     '''The minimum period of time which the widget must remain in the
     `'down'` state.
 
@@ -84,12 +84,20 @@ class ButtonBehavior(object):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
         super(ButtonBehavior, self).__init__(**kwargs)
+        self.__state_event = None
+        self.__touch_time = None
+        self.bind(state=self.cancel_event)
 
     def _do_press(self):
         self.state = 'down'
 
     def _do_release(self, *args):
         self.state = 'normal'
+    
+    def cancel_event(self, *args):
+        if self.__state_event:
+            self.__state_event.cancel()
+            self.__state_event = None
 
     def on_touch_down(self, touch):
         if super(ButtonBehavior, self).on_touch_down(touch):
@@ -103,6 +111,7 @@ class ButtonBehavior(object):
         touch.grab(self)
         touch.ud[self] = True
         self.last_touch = touch
+        self.__touch_time = time()
         self._do_press()
         self.dispatch('on_press')
         return True
@@ -120,9 +129,9 @@ class ButtonBehavior(object):
         assert(self in touch.ud)
         touch.ungrab(self)
         self.last_touch = touch
-        touchtime = time() - touch.time_start
+        touchtime = time() - self.__touch_time
         if touchtime < self.MIN_STATE_TIME:
-            Clock.schedule_once(self._do_release, self.MIN_STATE_TIME - touchtime)
+            self.__state_event = Clock.schedule_once(self._do_release, self.MIN_STATE_TIME - touchtime)
         else:
             self._do_release()
         self.dispatch('on_release')
