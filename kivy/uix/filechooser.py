@@ -27,6 +27,7 @@ editor.kv
     :literal:
 
 '''
+from kivy.uix.screenmanager import ScreenManager, Screen
 
 __all__ = ('FileChooserListView', 'FileChooserIconView',
            'FileChooserListLayout', 'FileChooserIconLayout',
@@ -45,7 +46,7 @@ from kivy.utils import platform as core_platform
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import (
     StringProperty, ListProperty, BooleanProperty, ObjectProperty,
-    NumericProperty, OptionProperty)
+    NumericProperty, OptionProperty, AliasProperty)
 from os import listdir
 from os.path import (
     basename, join, sep, normpath, expanduser, altsep,
@@ -725,6 +726,8 @@ class FileChooserLayout(FloatLayout):
     '''Base class for file chooser layouts.
     '''
     
+    VIEWNAME = 'undefined'
+    
     __events__ = ('on_entry_added', 'on_entries_cleared',
                   'on_subentry_to_entry', 'on_remove_subentry', 'on_submit')
     
@@ -754,7 +757,15 @@ class FileChooserLayout(FloatLayout):
 class FileChooserListLayout(FileChooserLayout):
     '''File chooser layout using a list view.
     '''
+    VIEWNAME = 'list'
     _ENTRY_TEMPLATE = 'FileListEntry'
+
+    def __init__(self, **kwargs):
+        super(FileChooserListLayout, self).__init__(**kwargs)
+        self.bind(on_entries_cleared=self.scroll_to_top)
+
+    def scroll_to_top(self, *args):
+        self.ids.scrollview.scroll_y = 1.0
 
 
 class FileChooserListView(FileChooserController):
@@ -767,6 +778,7 @@ class FileChooserIconLayout(FileChooserLayout):
     '''File chooser layout using an icon view.
     '''
 
+    VIEWNAME = 'icon'
     _ENTRY_TEMPLATE = 'FileIconEntry'
     
     def __init__(self, **kwargs):
@@ -788,13 +800,6 @@ class FileChooser(FileChooserController):
     switching between multiple, synced layout views.
     '''
     
-    view_mode = OptionProperty('icon', options=('icon', 'list'))
-    '''
-    Current layout view mode. Can be 'icon' or 'list'.
-    
-    :class:`~kivy.properties.OptionProperty`, defaults to 'icon'.
-    '''
-
     manager = ObjectProperty()
     '''
     Reference to the :class:`~kivy.uix.screenmanager.ScreenManager` instance.
@@ -802,34 +807,76 @@ class FileChooser(FileChooserController):
     :class:`~kivy.properties.ObjectProperty`
     '''
 
-    listview = ObjectProperty()
-    '''
-    Reference to the list layout widget instance.
+    _view_list = ListProperty()
     
-    :class:`~kivy.properties.ObjectProperty`
+    def get_view_list(self):
+        return self._view_list
+    
+    view_list = AliasProperty(get_view_list, bind=('_view_list',))
+    '''
+    List of views added to this FileChooser.
+    
+    :class:`~kivy.properties.AliasProperty` of type :class:`list`.
     '''
     
-    iconview = ObjectProperty()
-    '''
-    Reference to the icon layout widget instance.
+    _view_mode = StringProperty()
     
-    :class:`~kivy.properties.ObjectProperty`
+    def get_view_mode(self):
+        return self._view_mode
+    
+    def set_view_mode(self, mode):
+        if mode not in self._view_list:
+            raise ValueError('unknown view mode %r' % mode)
+        self._view_mode = mode
+    
+    view_mode = AliasProperty(get_view_mode, set_view_mode, bind=('_view_mode',))
     '''
+    Current layout view mode.
+    
+    :class:`~kivy.properties.AliasProperty` of type :class:`str`.
+    '''
+    
+    @property
+    def _views(self):
+        return [screen.children[0] for screen in self.manager.screens]
 
     def __init__(self, **kwargs):
         super(FileChooser, self).__init__(**kwargs)
         
-        self.bind(view_mode=self.update_view)
+        self.manager = ScreenManager()
+        super(FileChooser, self).add_widget(self.manager)
         
-        Clock.schedule_once(self.update_view)
+        self.trigger_update_view = Clock.create_trigger(self.update_view)
+        
+        self.bind(view_mode=self.trigger_update_view)
+    
+    def add_widget(self, widget, **kwargs):
+        if widget is self._progress:
+            super(FileChooser, self).add_widget(widget, **kwargs)
+        elif hasattr(widget, 'VIEWNAME'):
+            name = widget.VIEWNAME + 'view'
+            screen = Screen(name=name)
+            widget.controller = self
+            screen.add_widget(widget)
+            self.manager.add_widget(screen)
+            
+            self.trigger_update_view()
+        else:
+            raise ValueError('widget must be a FileChooserLayout, not %s' % type(widget).__name__)
+    
+    def rebuild_views(self):
+        views = [view.VIEWNAME for view in self._views]
+        if views != self._view_list:
+            self._view_list = views
+            if self._view_mode not in self._view_list:
+                self._view_mode = self._view_list[0]
+            self._trigger_update()
     
     def update_view(self, *args):
-        # if self.layout:
-        # 	self.remove_widget(self.layout)
-        # self.layout = self.list_view if self.view_mode == 'list' else self.icon_view
-        # self.add_widget(self.layout, index=-1)
+        self.rebuild_views()
+        
         sm = self.manager
-        viewlist = self.__class__.view_mode.options
+        viewlist = self._view_list
         view = self.view_mode
         current = sm.current[:-4]
         
@@ -842,36 +889,42 @@ class FileChooser(FileChooserController):
         sm.current = view + 'view'
 
     def _create_entry_widget(self, ctx):
-        return (Builder.template(self.listview._ENTRY_TEMPLATE, **ctx),
-                Builder.template(self.iconview._ENTRY_TEMPLATE, **ctx))
+        return [Builder.template(view._ENTRY_TEMPLATE, **ctx)
+                for view in self._views]
 
     def _get_file_paths(self, items):
-        return [file[0].path for file in items]
+        if self._views:
+            return [file[0].path for file in items]
+        return []
 
     def _update_item_selection(self, *args):
-        for item in self._items:
-            item[0].selected = item[0].path in self.selection
-            item[1].selected = item[1].path in self.selection
+        for viewitem in self._items:
+            selected = viewitem[0].path in self.selection
+            for item in viewitem:
+                item.selected = selected
 
     def on_entry_added(self, node, parent=None):
-        self.listview.dispatch('on_entry_added', node[0], parent[0] if parent else None)
-        self.iconview.dispatch('on_entry_added', node[1], parent[1] if parent else None)
+        for index, view in enumerate(self._views):
+            view.dispatch('on_entry_added', node[index], parent[index] if parent else None)
 
     def on_entries_cleared(self):
-        self.listview.dispatch('on_entries_cleared')
-        self.iconview.dispatch('on_entries_cleared')
+        for view in self._views:
+            view.dispatch('on_entries_cleared')
 
     def on_subentry_to_entry(self, subentry, entry):
-        self.listview.dispatch('on_subentry_to_entry', subentry[0], entry)
+        for index, view in enumerate(self._views):
+            view.dispatch('on_subentry_to_entry', subentry[index], entry)
 
     def on_remove_subentry(self, subentry, entry):
-        self.listview.dispatch('on_remove_subentry', subentry[0], entry)
+        for index, view in enumerate(self._views):
+            view.dispatch('on_remove_subentry', subentry[index], entry)
 
     def on_submit(self, selected, touch=None):
-        if self.view_mode == 'list':
-            self.listview.dispatch('on_submit', selected, touch)
-        else:
-            self.iconview.dispatch('on_submit', selected, touch)
+        view_mode = self.view_mode
+        for view in self._views:
+            if view_mode == view.VIEWNAME:
+                view.dispatch('on_submit', selected, touch)
+                return
 
 
 if __name__ == '__main__':
@@ -898,6 +951,9 @@ if __name__ == '__main__':
         
         FileChooser:
             id: fc
+            
+            FileChooserIconLayout
+            FileChooserListLayout
     '''))
 
     class FileChooserApp(App):

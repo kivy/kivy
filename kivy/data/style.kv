@@ -408,24 +408,6 @@
         pos: root.pos
         halign: 'center'
 
-<FileChooser>:
-    manager: sm
-    listview: listview
-    iconview: iconview
-    
-    ScreenManager:
-        id: sm
-        Screen:
-            name: 'iconview'
-            FileChooserIconLayout:
-                id: iconview
-                controller: root
-        Screen:
-            name: 'listview'
-            FileChooserListLayout:
-                id: listview
-                controller: root
-
 <FileChooserProgress>:
     pos_hint: {'x': 0, 'y': 0}
     canvas:
