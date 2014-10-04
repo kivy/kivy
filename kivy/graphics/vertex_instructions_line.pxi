@@ -951,7 +951,7 @@ cdef class Line(VertexInstruction):
             x, y, r, angle_start, angle_end = args
         elif len(args) == 6:
             x, y, r, angle_start, angle_end, segments = args
-            segments += 2
+            segments += 1
         else:
             x = y = r = 0
             assert(0)
@@ -962,17 +962,18 @@ cdef class Line(VertexInstruction):
             angle_dir = -1
         if segments == 0:
             segments = int(abs(angle_end - angle_start) / 2) + 3
-            if segments % 2 == 1:
-                segments += 1
+        
+        segmentpoints = segments * 2
+        
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
         angle_start = angle_start * 0.017453292519943295
         angle_end = angle_end * 0.017453292519943295
-        angle_range = abs(angle_end - angle_start) / (segments - 2)
+        angle_range = abs(angle_end - angle_start) / (segmentpoints - 2)
 
-        cdef list points = [0, ] * segments
+        cdef list points = [0, ] * segmentpoints
         cdef double angle
-        for i in xrange(0, segments, 2):
-            angle = angle_start + (angle_dir * (i - 1) * angle_range)
+        for i in xrange(0, segmentpoints, 2):
+            angle = angle_start + (angle_dir * i * angle_range)
             points[i] = x + (r * sin(angle))
             points[i + 1] = y + (r * cos(angle))
         self._points = points
