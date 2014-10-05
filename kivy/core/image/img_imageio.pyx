@@ -218,7 +218,7 @@ def save_image_rgba(filename, width, height, data, flipped):
     # compatibility, could be removed i guess
     save_image(filename, width, height, 'rgba', data, flipped)
 
-def save_image(filename, width, height, fmt, data, flipped):
+def save_image(filenm, width, height, fmt, data, flipped):
     # save a RGBA string into filename using CoreGraphics
 
     # FIXME only png output are accepted.
@@ -228,6 +228,7 @@ def save_image(filename, width, height, fmt, data, flipped):
     # filename into a CoreGraphics image domain type.
 
     fileformat = 'public.png'
+    cdef bytes filename = <bytes>filenm.encode('utf-8')
     if filename.endswith('.png'):
         fileformat = 'public.png'
     if filename.endswith('.jpg') or filename.endswith('.jpeg'):
@@ -253,8 +254,10 @@ def save_image(filename, width, height, fmt, data, flipped):
         colorSpace,
         kCGImageAlphaNoneSkipLast)
 
+    fileformat = fileformat.encode('utf-8')
+
     cdef CGImageRef cgImage = CGBitmapContextCreateImage(bitmapContext)
-    cdef char *cfilename = <char *><bytes>filename
+    cdef char *cfilename = <char *>filename
 
     cdef CFStringRef sfilename = CFStringCreateWithCString(NULL,
             cfilename, kCFStringEncodingUTF8)
@@ -321,7 +324,7 @@ class ImageLoaderImageIO(ImageLoaderBase):
             data = filename.read()
             ret = load_image_data(None, data)
         else:
-            ret = load_image_data(str(filename))
+            ret = load_image_data(filename.encode('utf-8'))
         if ret is None:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise Exception('Unable to load image')
