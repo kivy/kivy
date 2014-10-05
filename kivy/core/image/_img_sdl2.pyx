@@ -1,7 +1,9 @@
 include '../../lib/sdl2.pxi'
 
+
 from kivy.logger import Logger
 from libc.string cimport memset
+from libc.stdlib cimport malloc
 
 cdef int _is_init = 0
 
@@ -20,6 +22,18 @@ def init():
             Logger.error('ImageSDL2: {}'.format(IMG_GetError()))
 
     _is_init = 1
+
+
+def save(filename, w, h, fmt, pixels, flipped):
+    # this only saves in png for now.
+    cdef bytes c_filename = filename.encode('utf-8')
+    cdef int pitch
+    pitch = w * 4
+
+    cdef SDL_Surface *image = SDL_CreateRGBSurfaceFrom(<void *>pixels, w, h, 32, pitch, 0x00000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
+
+    IMG_SavePNG(image, c_filename)
+    SDL_FreeSurface(image)
 
 def load(filename):
     cdef bytes c_filename = filename.encode('utf-8')

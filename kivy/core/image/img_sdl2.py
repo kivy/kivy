@@ -42,11 +42,12 @@ class ImageLoaderSDL2(ImageLoaderBase):
             rowlength=rowlength)]
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels):
+    def save(filename, width, height, fmt, pixels, flipped):
         # TODO implement the save for sdl2
         #surface = SDL2.image.fromstring(
         #        pixels, (width, height), fmt.upper(), False)
         #SDL2.image.save(surface, filename)
+        _img_sdl2.save(filename, width, height, fmt, pixels, flipped)
         return True
 
 

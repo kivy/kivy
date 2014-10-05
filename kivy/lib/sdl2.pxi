@@ -563,6 +563,7 @@ cdef extern from "SDL_image.h":
     cdef SDL_Surface *IMG_Load(char *file)
     cdef SDL_Surface *IMG_Load_RW(SDL_RWops *src, int freesrc)
     cdef SDL_Surface *IMG_LoadTyped_RW(SDL_RWops *src, int freesrc, char *type)
+    cdef int *IMG_SavePNG(SDL_Surface *src, char *file)
 
 
 cdef extern from "SDL_ttf.h":
