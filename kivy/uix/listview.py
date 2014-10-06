@@ -364,9 +364,8 @@ is_selected properties::
 The data is passed to the :class:`~kivy.adapters.listadapter.ListAdapter` along
 with an args_converter function. The propagation setting means that
 the is_selected property for each data item will be set and kept in sync with
-the list item views. The list adapter will instantiate a
-:class:`~kivy.uix.listview.ListItemButton` class
-instance for each data item using the assigned args_converter.
+the list item views. This setting should be set to True if you wish to
+initialize the view with an item view already selected.
 
 You may also use the provided :class:`~kivy.adapters.models.SelectableDataItem`
 mixin to make a custom class. Instead of the "manually-constructed" DataItem
