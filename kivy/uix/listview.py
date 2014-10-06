@@ -442,7 +442,7 @@ The class :class:`~kivy.uix.listview.CompositeListItem` is another option for
 building advanced composite list items. The kv language approach has its
 advantages, but here we build a composite list view using a plain Python::
 
-    args_converter = lambda row_index, rec: \
+    args_converter = lambda row_index, rec: \\
             {'text': rec['text'],
              'size_hint_y': None,
              'height': 25,
@@ -456,7 +456,7 @@ advantages, but here we build a composite list view using a plain Python::
 
     item_strings = ["{0}".format(index) for index in range(100)]
 
-    integers_dict = \
+    integers_dict = \\
         { str(i): {'text': str(i), 'is_selected': False} for i in range(100)}
 
     dict_adapter = DictAdapter(sorted_keys=item_strings,
