@@ -134,7 +134,7 @@ class ListAdapter(Adapter, EventDispatcher):
     .. note::
     
         This setting should be set to True if you wish to initialize the view
-        with an item view already selected.
+        with item views already selected.
 
     :attr:`propagate_selection_to_data` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to False.
