@@ -139,6 +139,12 @@ cdef class _WindowSDL2Storage:
             y = event.tfinger.y
             action = 'fingerdown' if event.type == SDL_FINGERDOWN else 'fingerup'
             return (action, fid, x, y)
+        elif event.type == SDL_JOYAXISMOTION:
+            #printf("Joystick %d axis %d value: %d\n",
+            #        event.jaxis.which,
+            #        event.jaxis.axis, event.jaxis.value);
+            #break;
+            return ('joyaxismotion', event.jaxis.which, event.jaxis.axis, event.jaxis.value)
         elif event.type == SDL_WINDOWEVENT:
             if event.window.event == SDL_WINDOWEVENT_EXPOSED:
                 action = ('windowexposed', )

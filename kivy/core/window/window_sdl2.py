@@ -244,6 +244,10 @@ class WindowSDL(WindowBase):
             elif action == 'windowminimized':
                 self.do_pause()
 
+            elif action == 'joyaxismotion':
+                stickid, axisid, value = args
+                self.dispatch('on_joyaxis', stickid, axisid, value)
+                
             elif action in ('keydown', 'keyup'):
                 mod, key, scancode, kstr = args
                 if mod in self._meta_keys:
