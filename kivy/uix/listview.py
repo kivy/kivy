@@ -442,21 +442,21 @@ building advanced composite list items. The kv language approach has its
 advantages, but here we build a composite list view using a plain Python::
 
     args_converter = lambda row_index, rec: \\
-            {'text': rec['text'],
-             'size_hint_y': None,
-             'height': 25,
-             'cls_dicts': [{'cls': ListItemButton,
-                            'kwargs': {'text': rec['text']}},
-                           {'cls': ListItemLabel,
-                            'kwargs': {'text': "Middle-{0}".format(rec['text']),
-                                       'is_representing_cls': True}},
-                           {'cls': ListItemButton,
-                            'kwargs': {'text': rec['text']}}]}
+        {'text': rec['text'],
+        'size_hint_y': None,
+        'height': 25,
+        'cls_dicts': [{'cls': ListItemButton,
+                        'kwargs': {'text': rec['text']}},
+                    {'cls': ListItemLabel,
+                        'kwargs': {'text': "Middle-{0}".format(rec['text']),
+                                'is_representing_cls': True}},
+                    {'cls': ListItemButton,
+                        'kwargs': {'text': rec['text']}}]}
 
     item_strings = ["{0}".format(index) for index in range(100)]
 
     integers_dict = \\
-        { str(i): {'text': str(i), 'is_selected': False} for i in range(100)}
+        {str(i): {'text': str(i), 'is_selected': False} for i in range(100)}
 
     dict_adapter = DictAdapter(sorted_keys=item_strings,
                                data=integers_dict,
