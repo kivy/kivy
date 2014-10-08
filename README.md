@@ -37,7 +37,7 @@ If you need assistance, you can ask for help on our mailing list:
 * User Group : https://groups.google.com/group/kivy-users
 * Email      : kivy-users@googlegroups.com
 
-We also have an IRC channel (expect responses mostly in the day hours of CET):
+We also have an IRC channel:
 
 * Server  : irc.freenode.net
 * Port    : 6667, 6697 (SSL only)
@@ -56,7 +56,7 @@ discussions about developing the Kivy framework and its sister projects:
 * Dev Group : https://groups.google.com/group/kivy-dev
 * Email     : kivy-dev@googlegroups.com
 
-IRC channel (expect responses mostly in the day hours of CET):
+IRC channel:
 
 * Server  : irc.freenode.net
 * Port    : 6667, 6697 (SSL only)
