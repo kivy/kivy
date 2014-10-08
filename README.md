@@ -1,5 +1,6 @@
 Kivy
 ====
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/kivy/kivy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 <img align="right" height="256" src="https://raw.githubusercontent.com/kivy/kivy/master/kivy/data/logo/kivy-icon-256.png"/>
 
