@@ -96,6 +96,7 @@ class WindowSDL(WindowBase):
         self._meta_keys = (KMOD_LCTRL, KMOD_RCTRL, KMOD_RSHIFT,\
             KMOD_LSHIFT, KMOD_RALT, KMOD_LALT, KMOD_LMETA,\
             KMOD_RMETA)
+        self.register_event_type('on_joyaxis')
 
     def create_window(self, *largs):
         use_fake = self.fullscreen == 'fake'
@@ -245,6 +246,7 @@ class WindowSDL(WindowBase):
                 self.do_pause()
 
             elif action == 'joyaxismotion':
+                print args
                 stickid, axisid, value = args
                 self.dispatch('on_joyaxis', stickid, axisid, value)
                 
@@ -408,6 +410,10 @@ class WindowSDL(WindowBase):
             self.close()  # not sure what to do here
             return True
         super(WindowSDL, self).on_keyboard(key, scancode, str, modifier)
+    
+    
+    def on_joyaxis(self, stickid, axisid, value):
+        return stickid, axisid, value
 
     def request_keyboard(self, callback, target, input_type='text'):
         self._sdl_keyboard = super(WindowSDL, self).\

@@ -25,7 +25,7 @@ cdef class _WindowSDL2Storage:
         elif use_fullscreen:
             self.win_flags |= SDL_WINDOW_FULLSCREEN
 
-        if SDL_Init(SDL_INIT_VIDEO) < 0:
+        if SDL_Init(SDL_INIT_VIDEO| SDL_INIT_JOYSTICK) < 0:
             self.die()
 
         '''
@@ -67,6 +67,7 @@ cdef class _WindowSDL2Storage:
             self.die()
         cdef SDL_DisplayMode mode
         SDL_GetWindowDisplayMode(self.win, &mode)
+        SDL_JoystickOpen(0)
         return mode.w, mode.h
 
     def resize_display_mode(self, w, h):

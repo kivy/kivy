@@ -289,9 +289,12 @@ cdef extern from "SDL.h":
         Uint32 windowID
         int x
         int y
-
     cdef struct SDL_JoyAxisEvent:
-        pass
+        Uint32 type
+        Uint32 timestamp
+        SDL_JoystickID which
+        Uint8 axis
+        Sint16 value
     cdef struct SDL_JoyBallEvent:
         pass
     cdef struct SDL_JoyHatEvent:
@@ -519,6 +522,7 @@ cdef extern from "SDL.h":
     cdef void SDL_GL_SwapWindow(SDL_Window * window)
     cdef void SDL_GL_DeleteContext(SDL_GLContext context)
     
+    cdef SDL_Joystick * SDL_JoystickOpen(int index)
     cdef SDL_Window * SDL_GetKeyboardFocus()
     cdef Uint8 *SDL_GetKeyboardState(int *numkeys)
     cdef SDL_Keymod SDL_GetModState()
@@ -551,6 +555,10 @@ cdef extern from "SDL.h":
     Uint16 AUDIO_F32LSB #0x8120  /**< 32-bit floating point samples */
     Uint16 AUDIO_F32MSB #0x9120  /**< As above, but big-endian byte order */
     Uint16 AUDIO_F32    #AUDIO_F32LSB
+
+cdef extern from "SDL_joystick.h":
+    cdef struct SDL_Joystick
+    cdef Sint32 SDL_JoystickID
 
 cdef extern from "SDL_image.h":
     ctypedef enum IMG_InitFlags:
