@@ -114,7 +114,7 @@ class WindowSDL(WindowBase):
             # setup !
             w, h = self._size
             gl_size = self._win.setup_window(pos[0], pos[1], w, h,
-                                                use_fake, use_fullscreen)
+                                             use_fake, use_fullscreen)
             # never stay with a None pos, application using w.center
             # will be fired.
             self._pos = (0, 0)
