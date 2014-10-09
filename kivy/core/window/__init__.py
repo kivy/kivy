@@ -490,7 +490,7 @@ class WindowBase(EventDispatcher):
                   'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
                   'on_mouse_down', 'on_mouse_move', 'on_mouse_up',
                   'on_keyboard', 'on_key_down', 'on_key_up', 'on_dropfile',
-                  'on_request_close')
+                  'on_request_close', 'on_joy_axis')
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -904,6 +904,10 @@ class WindowBase(EventDispatcher):
 
     def on_mouse_up(self, x, y, button, modifiers):
         '''Event called when the mouse is moved with buttons pressed'''
+        pass
+
+    def on_joy_axis(self, stickid, axisid, value):
+        '''Event called a joystick has a stick or other axis moved'''
         pass
 
     def on_keyboard(self, key, scancode=None, codepoint=None,
