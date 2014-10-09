@@ -4,6 +4,9 @@
 #whose terms are available in the LICENSE file or at http://www.ignifuga.org/license
 
 
+cdef extern from "SDL_joystick.h":
+    cdef struct SDL_Joystick
+
 cdef extern from "SDL.h":
     ctypedef unsigned char Uint8
     ctypedef unsigned long Uint32
@@ -14,6 +17,7 @@ cdef extern from "SDL.h":
     ctypedef unsigned short Uint16
     ctypedef void *SDL_GLContext
     ctypedef Uint32 SDL_Keycode
+    ctypedef Sint32 SDL_JoystickID
 
     ctypedef enum:
         SDL_PIXELFORMAT_ARGB8888
@@ -556,9 +560,6 @@ cdef extern from "SDL.h":
     Uint16 AUDIO_F32MSB #0x9120  /**< As above, but big-endian byte order */
     Uint16 AUDIO_F32    #AUDIO_F32LSB
 
-cdef extern from "SDL_joystick.h":
-    cdef struct SDL_Joystick
-    cdef Sint32 SDL_JoystickID
 
 cdef extern from "SDL_image.h":
     ctypedef enum IMG_InitFlags:

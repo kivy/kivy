@@ -246,7 +246,6 @@ class WindowSDL(WindowBase):
                 self.do_pause()
 
             elif action == 'joyaxismotion':
-                print args
                 stickid, axisid, value = args
                 self.dispatch('on_joyaxis', stickid, axisid, value)
                 
