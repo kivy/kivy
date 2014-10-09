@@ -742,9 +742,13 @@ class CompositeListItem(SelectableView, BoxLayout):
 
     def select(self, *args):
         self.background_color = self.selected_color
+        for child in self.children:
+            child.select()
 
     def deselect(self, *args):
         self.background_color = self.deselected_color
+        for child in self.children:
+            child.deselect()
 
     def select_from_child(self, child, *args):
         for c in self.children:
