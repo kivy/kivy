@@ -15,6 +15,8 @@ cdef extern from "SDL.h":
     ctypedef void *SDL_GLContext
     ctypedef Uint32 SDL_Keycode
 
+    int SDL_WINDOWPOS_UNDEFINED
+
     ctypedef enum:
         SDL_PIXELFORMAT_ARGB8888
         SDL_PIXELFORMAT_RGBA8888
