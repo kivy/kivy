@@ -43,7 +43,10 @@ cdef class EventObservers:
     # when binding while dispatching, don't dispatch from new_callback and down
     # because those callbacks didn't exist when we started dispatching
     cdef BoundCallabck *new_callback
+    # this needs to be here to enable cython cyclic gc
+    cdef object dummy_obj
 
+    cdef inline void release_callbacks(self) except *
     cdef inline void bind(self, object observer) except *
     cdef inline void fast_bind(self, object observer, tuple largs, dict kwargs, int is_ref) except *
     cdef inline void unbind(self, object observer, int is_ref, int stop_on_first) except *

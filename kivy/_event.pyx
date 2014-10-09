@@ -15,6 +15,12 @@ __all__ = ('EventDispatcher', 'ObjectWithUid', 'Observable')
 
 
 cdef extern from "Python.h":
+    ctypedef int (*visitproc)(PyObject *, void *)
+    ctypedef int (*inquiry)(PyObject *)
+    ctypedef int (*traverseproc)(PyObject *, visitproc, void *)
+    ctypedef struct PyTypeObject:
+        traverseproc tp_traverse
+        inquiry tp_clear
     void Py_INCREF(PyObject *)
     void Py_DECREF(PyObject *)
 
@@ -786,9 +792,13 @@ cdef class EventObservers:
         self.unbound_dispatched_callback = 0
 
     def __dealloc__(self):
-        cdef BoundCallabck *callback
+        self.release_callbacks()
+
+    cdef inline void release_callbacks(self):
+        cdef BoundCallabck *callback = self.first_callback
         cdef BoundCallabck *last_c
-        callback = self.first_callback
+        self.first_callback = NULL
+
         while callback != NULL:
             last_c = callback
             callback = callback.next
@@ -823,7 +833,6 @@ cdef class EventObservers:
 
         if self.current_dispatch != NULL and self.new_callback == NULL:
             self.new_callback = callback
-
 
     cdef inline void fast_bind(self, object observer, tuple largs, dict kwargs,
                                int is_ref) except *:
@@ -1122,3 +1131,39 @@ cdef class EventObservers:
             else:
                 yield <object>(callback.func), (), {}, callback.is_ref
             callback = callback.next
+
+
+cdef traverseproc tp_traverse_old = (<PyTypeObject *>EventObservers).tp_traverse
+cdef inquiry tp_clear_old = (<PyTypeObject *>EventObservers).tp_clear
+
+cdef int observers_traverse(PyObject *obj, visitproc visit, void *arg):
+    cdef BoundCallabck *callback = (<EventObservers>obj).first_callback
+    cdef int vret
+    if tp_traverse_old != NULL:
+        vret = tp_traverse_old(obj, visit, arg)
+        if vret:
+            return vret
+
+    while callback != NULL:
+        vret = visit(callback.func, arg)
+        if vret:
+            return vret
+        if callback.largs != NULL:
+            vret = visit(callback.largs, arg)
+            if vret:
+                return vret
+        if callback.kwargs != NULL:
+            vret = visit(callback.kwargs, arg)
+            if vret:
+                return vret
+        callback = callback.next
+    return 0
+
+cdef int observers_clear(PyObject *obj):
+    if tp_clear_old != NULL:
+        tp_clear_old(obj)
+    (<EventObservers>obj).release_callbacks()
+    return 0
+
+(<PyTypeObject *>EventObservers).tp_traverse = observers_traverse
+(<PyTypeObject *>EventObservers).tp_clear = observers_clear
