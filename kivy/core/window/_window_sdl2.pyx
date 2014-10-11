@@ -1,5 +1,7 @@
 include "../../../kivy/lib/sdl2.pxi"
 
+from libc.string cimport memcpy
+
 cdef class _WindowSDL2Storage:
     cdef SDL_Window *win
     cdef SDL_GLContext ctx
@@ -200,7 +202,36 @@ cdef class _WindowSDL2Storage:
             0x0000ff, 0x00ff00, 0xff0000, 0)
         cdef bytes bytes_filename = <bytes>filename.encode('utf-8')
         cdef char *real_filename = <char *>bytes_filename
-        IMG_SavePNG(surface, real_filename)
+
+        cdef SDL_Surface *flipped_surface = flipVert(surface)
+        IMG_SavePNG(flipped_surface, real_filename)
 
 
 
+# Based on the example at
+# http://content.gpwiki.org/index.php/OpenGL:Tutorials:Taking_a_Screenshot
+cdef SDL_Surface* flipVert(SDL_Surface* sfc):
+    cdef SDL_Surface* result = SDL_CreateRGBSurface(
+        sfc.flags, sfc.w, sfc.h, sfc.format.BytesPerPixel * 8,
+        sfc.format.Rmask, sfc.format.Gmask, sfc.format.Bmask,
+        sfc.format.Amask)
+
+
+    cdef Uint8* pixels = <Uint8*>sfc.pixels
+    cdef Uint8* rpixels = <Uint8*>result.pixels
+
+    cdef tuple output = (<int>sfc.w, <int>sfc.h, <int>sfc.format.BytesPerPixel,
+                         <int>sfc.pitch)
+    print(output)
+
+    cdef Uint32 pitch = sfc.pitch
+    cdef Uint32 pxlength = pitch*sfc.h
+
+    cdef Uint32 pos
+
+    cdef int line
+    for line in range(sfc.h):
+        pos = line * pitch;
+        memcpy(&rpixels[pos], &pixels[(pxlength-pos)-pitch], pitch)
+
+    return result
