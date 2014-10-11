@@ -193,4 +193,14 @@ cdef class _WindowSDL2Storage:
     def flip(self):
         SDL_GL_SwapWindow(self.win)
 
+    def save_bytes_in_png(self, filename, data, int width, int height):
+
+        cdef SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(
+            <char *>data, width, height, 24, width*3,
+            0x0000ff, 0x00ff00, 0xff0000, 0)
+        cdef bytes bytes_filename = <bytes>filename.encode('utf-8')
+        cdef char *real_filename = <char *>bytes_filename
+        IMG_SavePNG(surface, real_filename)
+
+
 

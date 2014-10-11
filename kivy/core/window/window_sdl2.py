@@ -157,6 +157,11 @@ class WindowSDL(WindowBase):
         self._win.set_window_icon(filename)
 
     def screenshot(self, *largs, **kwargs):
+        from kivy.graphics.opengl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+        width, height = self.size
+        data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
+        filename = super(WindowSDL, self).screenshot(*largs, **kwargs)
+        self._win.save_bytes_in_png(filename, data, width, height)
         return
         # TODO
         filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
