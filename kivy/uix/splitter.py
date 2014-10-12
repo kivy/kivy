@@ -165,7 +165,7 @@ class Splitter(BoxLayout):
     these attributes can be satisfied, this stops the
     :class:`Splitter` from exceeding the parent size during rescaling.
 
-    :attr:`keep_within_parent` is a
+    :attr:`rescale_with_parent` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to False.
 
     .. versionadded:: 1.9.0
