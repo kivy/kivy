@@ -407,7 +407,8 @@ class TextInput(Widget):
                   font_size=self._update_text_options,
                   font_name=self._update_text_options,
                   size=self._update_text_options,
-                  password=self._update_text_options)
+                  password=self._update_text_options,
+                  bidi=self._update_text_options)
 
         self.bind(pos=self._trigger_update_graphics)
 
@@ -1799,6 +1800,7 @@ class TextInput(Widget):
             self._line_options = kw = {
                 'font_size': self.font_size,
                 'font_name': self.font_name,
+                'bidi': self.bidi,
                 'anchor_x': 'left',
                 'anchor_y': 'top',
                 'padding_x': 0,
@@ -2593,6 +2595,15 @@ class TextInput(Widget):
 
     :attr:`auto_indent` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
+    '''
+
+    bidi = BooleanProperty(None, allownone=True)
+    '''Whether to treat text as bi-directional (if supported).
+    
+    .. versionadded:: 1.9.0
+    
+    :attr:`bidi` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to the :class:`~kivy.config.Config` setting.
     '''
 
     allow_copy = BooleanProperty(True)

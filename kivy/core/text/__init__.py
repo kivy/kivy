@@ -38,7 +38,7 @@ import re
 import os
 from functools import partial
 from copy import copy
-from kivy import kivy_data_dir
+from kivy import kivy_data_dir, Config
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
 from kivy.core.text.text_layout import layout_text, LayoutWord
@@ -51,6 +51,18 @@ FONT_REGULAR = 0
 FONT_ITALIC = 1
 FONT_BOLD = 2
 FONT_BOLDITALIC = 3
+
+
+def get_display_text_noop(text):
+    return text
+
+try:
+    from pyfribidi import log2vis as get_display_text
+except ImportError:
+    try:
+        from bidi.algorithm import get_display as get_display_text
+    except ImportError:
+        get_display_text = get_display_text_noop
 
 
 class LabelBase(object):
@@ -104,6 +116,11 @@ class LabelBase(object):
         `strip` : bool, defaults to False
             Whether each row of text has its leading and trailing spaces
             stripped. If `halign` is `justify` it is implicitly True.
+        `bidi` : bool, defaults to :class:`~kivy.config.Config` setting.
+            Whether text should be treated as bi-directional (if supported).
+
+    .. versionchanged:: 1.9.0
+        `bidi` parameter was added.
 
     .. versionchanged:: 1.9.0
         `strip`, `shorten_from`, and `split_str` were added.
@@ -139,14 +156,15 @@ class LabelBase(object):
                  bold=False, italic=False, halign='left', valign='bottom',
                  shorten=False, text_size=None, mipmap=False, color=None,
                  line_height=1.0, strip=False, shorten_from='center',
-                 split_str=' ', **kwargs):
+                 split_str=' ', bidi=None, **kwargs):
 
+        bidi = bidi if bidi is not None else bool(int(Config.getint('i18n', 'bidi')))
         options = {'text': text, 'font_size': font_size,
                    'font_name': font_name, 'bold': bold, 'italic': italic,
                    'halign': halign, 'valign': valign, 'shorten': shorten,
                    'mipmap': mipmap, 'line_height': line_height,
                    'strip': strip, 'shorten_from': shorten_from,
-                   'split_str': split_str}
+                   'split_str': split_str, 'bidi': bidi}
 
         options['color'] = color or (1, 1, 1, 1)
         options['padding'] = kwargs.get('padding', (0, 0))
@@ -502,6 +520,7 @@ class LabelBase(object):
         text = self.text
         if strip:
             text = text.strip()
+        text = get_display_text(text) if options['bidi'] else text
         if uw is not None and options['shorten']:
             text = self.shorten(text)
         self._cached_lines = lines = []
