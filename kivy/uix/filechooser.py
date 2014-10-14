@@ -181,6 +181,67 @@ class FileChooserProgress(FileChooserProgressBase):
     pass
 
 
+class FileChooserLayout(FloatLayout):
+    '''Base class for file chooser layouts.
+    '''
+    
+    VIEWNAME = 'undefined'
+    
+    __events__ = ('on_entry_added', 'on_entries_cleared',
+                  'on_subentry_to_entry', 'on_remove_subentry', 'on_submit')
+    
+    controller = ObjectProperty()
+    '''
+    Reference to the controller handling this layout.
+    
+    :class:`~kivy.properties.ObjectProperty`
+    '''
+
+    def on_entry_added(self, node, parent=None):
+        pass
+
+    def on_entries_cleared(self):
+        pass
+
+    def on_subentry_to_entry(self, subentry, entry):
+        pass
+
+    def on_remove_subentry(self, subentry, entry):
+        pass
+
+    def on_submit(self, selected, touch=None):
+        pass
+
+
+class FileChooserListLayout(FileChooserLayout):
+    '''File chooser layout using a list view.
+    '''
+    VIEWNAME = 'list'
+    _ENTRY_TEMPLATE = 'FileListEntry'
+
+    def __init__(self, **kwargs):
+        super(FileChooserListLayout, self).__init__(**kwargs)
+        self.bind(on_entries_cleared=self.scroll_to_top)
+
+    def scroll_to_top(self, *args):
+        self.ids.scrollview.scroll_y = 1.0
+
+
+class FileChooserIconLayout(FileChooserLayout):
+    '''File chooser layout using an icon view.
+    '''
+
+    VIEWNAME = 'icon'
+    _ENTRY_TEMPLATE = 'FileIconEntry'
+    
+    def __init__(self, **kwargs):
+        super(FileChooserIconLayout, self).__init__(**kwargs)
+        self.bind(on_entries_cleared=self.scroll_to_top)
+
+    def scroll_to_top(self, *args):
+        self.ids.scrollview.scroll_y = 1.0
+
+
 class FileChooserController(FloatLayout):
     '''Base for implementing a FileChooser. Don't use this class directly, but
     prefer using an implementation such as the :class:`FileChooserListView` or
@@ -202,7 +263,7 @@ class FileChooserController(FloatLayout):
     '''
     _ENTRY_TEMPLATE = None
     
-    layout = ObjectProperty()
+    layout = ObjectProperty(baseclass=FileChooserLayout)
     '''
     Reference to the layout widget instance.
     
@@ -722,71 +783,10 @@ class FileChooserController(FloatLayout):
             self.dispatch('on_remove_subentry', subentry, entry)
 
 
-class FileChooserLayout(FloatLayout):
-    '''Base class for file chooser layouts.
-    '''
-    
-    VIEWNAME = 'undefined'
-    
-    __events__ = ('on_entry_added', 'on_entries_cleared',
-                  'on_subentry_to_entry', 'on_remove_subentry', 'on_submit')
-    
-    controller = ObjectProperty()
-    '''
-    Reference to the controller handling this layout.
-    
-    :class:`~kivy.properties.ObjectProperty`
-    '''
-
-    def on_entry_added(self, node, parent=None):
-        pass
-
-    def on_entries_cleared(self):
-        pass
-
-    def on_subentry_to_entry(self, subentry, entry):
-        pass
-
-    def on_remove_subentry(self, subentry, entry):
-        pass
-
-    def on_submit(self, selected, touch=None):
-        pass
-
-
-class FileChooserListLayout(FileChooserLayout):
-    '''File chooser layout using a list view.
-    '''
-    VIEWNAME = 'list'
-    _ENTRY_TEMPLATE = 'FileListEntry'
-
-    def __init__(self, **kwargs):
-        super(FileChooserListLayout, self).__init__(**kwargs)
-        self.bind(on_entries_cleared=self.scroll_to_top)
-
-    def scroll_to_top(self, *args):
-        self.ids.scrollview.scroll_y = 1.0
-
-
 class FileChooserListView(FileChooserController):
     '''Implementation of :class:`FileChooserController` using a list view.
     '''
     pass
-
-
-class FileChooserIconLayout(FileChooserLayout):
-    '''File chooser layout using an icon view.
-    '''
-
-    VIEWNAME = 'icon'
-    _ENTRY_TEMPLATE = 'FileIconEntry'
-    
-    def __init__(self, **kwargs):
-        super(FileChooserIconLayout, self).__init__(**kwargs)
-        self.bind(on_entries_cleared=self.scroll_to_top)
-
-    def scroll_to_top(self, *args):
-        self.ids.scrollview.scroll_y = 1.0
 
 
 class FileChooserIconView(FileChooserController):
