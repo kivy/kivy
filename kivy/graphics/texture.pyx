@@ -1264,6 +1264,22 @@ cdef class Texture:
             from kivy.graphics.fbo import Fbo
             return Fbo(size=self.size, texture=self).pixels
 
+    property is_flipped_vertical:
+        '''Determine if the texture seems to be vertically flipped currently.
+
+        .. versionadded:: 1.9.0
+        '''
+        def __get__(self):
+            return self._uvh < 0
+
+    property is_flipped_horizontal:
+        '''Determine if the texture seems to be horizontally flipped currently.
+
+        .. versionadded:: 1.9.0
+        '''
+        def __get__(self):
+            return self._uvh < 0
+
 
 cdef class TextureRegion(Texture):
     '''Handle a region of a Texture class. Useful for non power-of-2
