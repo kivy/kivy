@@ -183,6 +183,8 @@ class FileChooserProgress(FileChooserProgressBase):
 
 class FileChooserLayout(FloatLayout):
     '''Base class for file chooser layouts.
+    
+    .. versionadded:: 1.9.0
     '''
     
     VIEWNAME = 'undefined'
@@ -215,6 +217,8 @@ class FileChooserLayout(FloatLayout):
 
 class FileChooserListLayout(FileChooserLayout):
     '''File chooser layout using a list view.
+    
+    .. versionadded:: 1.9.0
     '''
     VIEWNAME = 'list'
     _ENTRY_TEMPLATE = 'FileListEntry'
@@ -229,6 +233,8 @@ class FileChooserListLayout(FileChooserLayout):
 
 class FileChooserIconLayout(FileChooserLayout):
     '''File chooser layout using an icon view.
+    
+    .. versionadded:: 1.9.0
     '''
 
     VIEWNAME = 'icon'
@@ -244,8 +250,10 @@ class FileChooserIconLayout(FileChooserLayout):
 
 class FileChooserController(FloatLayout):
     '''Base for implementing a FileChooser. Don't use this class directly, but
-    prefer using an implementation such as the :class:`FileChooserListView` or
-    :class:`FileChooserIconView`.
+    prefer using an implementation such as the :class:`FileChooser`,
+    :class:`FileChooserListView` or :class:`FileChooserIconView`.
+    
+    .. versionchanged:: 1.9.0
 
     :Events:
         `on_entry_added`: entry, parent
@@ -268,6 +276,8 @@ class FileChooserController(FloatLayout):
     Reference to the layout widget instance.
     
     layout is an :class:`~kivy.properties.ObjectProperty`.
+    
+    .. versionadded:: 1.9.0
     '''
 
     path = StringProperty(u'/')
@@ -785,12 +795,16 @@ class FileChooserController(FloatLayout):
 
 class FileChooserListView(FileChooserController):
     '''Implementation of :class:`FileChooserController` using a list view.
+    
+    .. versionadded:: 1.9.0
     '''
     pass
 
 
 class FileChooserIconView(FileChooserController):
     '''Implementation of :class:`FileChooserController` using an icon view.
+    
+    .. versionadded:: 1.9.0
     '''
     pass
 
@@ -798,6 +812,8 @@ class FileChooserIconView(FileChooserController):
 class FileChooser(FileChooserController):
     '''Implementation of :class:`FileChooserController` which supports
     switching between multiple, synced layout views.
+    
+    .. versionadded:: 1.9.0
     '''
     
     manager = ObjectProperty()
