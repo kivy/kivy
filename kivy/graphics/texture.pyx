@@ -1278,7 +1278,7 @@ cdef class Texture:
         .. versionadded:: 1.9.0
         '''
         def __get__(self):
-            return self._uvh < 0
+            return self._uvw < 0
 
 
 cdef class TextureRegion(Texture):
