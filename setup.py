@@ -332,7 +332,7 @@ def determine_gl_flags():
             '/opt/vc/include/interface/vcos/pthreads',
             '/opt/vc/include/interface/vmcs_host/linux']
         flags['extra_link_args'] = ['-L', '/opt/vc/lib']
-        flags['libraries'] = ['GLESv2']
+        flags['libraries'] = ['bcm_host', 'EGL', 'GLESv2']
     else:
         flags['libraries'] = ['GL']
     if c_options['use_glew']:
