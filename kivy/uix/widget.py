@@ -446,7 +446,7 @@ class Widget(WidgetBase):
 
         widget = widget.__self__
         if widget is self:
-            raise WidgetException('You cannot add yourself in a Widget')
+            raise WidgetException('Widget instances cannot be added to themselves.')
         parent = widget.parent
         # check if widget is already a child of another widget
         if parent:
