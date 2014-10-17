@@ -907,7 +907,7 @@ class WindowBase(EventDispatcher):
         pass
 
     def on_joy_axis(self, stickid, axisid, value):
-        '''Event called a joystick has a stick or other axis moved'''
+        '''Event called when a joystick has a stick or other axis moved'''
         pass
 
     def on_keyboard(self, key, scancode=None, codepoint=None,
