@@ -235,6 +235,8 @@ cdef object RE_FLOAT = re.compile(
     r'[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?')
 cdef object RE_POLYLINE = re.compile(
     r'(-?[0-9]+\.?[0-9]*(?:e-?[0-9]*)?)')
+cdef object RE_TRANSFORM = re.compile(
+    r'[a-zA-Z]+\([^)]*\)')
 
 cdef VertexFormat VERTEX_FORMAT = VertexFormat(
     (b'v_pos', 2, 'float'),
@@ -637,7 +639,8 @@ cdef class Svg(RenderContext):
         stroke_opacity = float(e.get('stroke-opacity', 1))
 
         oldtransform = self.transform
-        self.transform = self.transform * Matrix(e.get('transform'))
+        for t in self.parse_transform(e.get('transform')):
+            self.transform *= Matrix(t)
 
         style = e.get('style')
         if style:
@@ -740,6 +743,12 @@ cdef class Svg(RenderContext):
 
         self.transform = oldtransform
         self.opacity = oldopacity
+
+    cdef list parse_transform(self, transform_def):
+        if isinstance(transform_def, str):
+            return RE_TRANSFORM.findall(transform_def)
+        else:
+            return [transform_def]
 
     cdef parse_path(self, pathdef):
         # In the SVG specs, initial movetos are absolute, even if
