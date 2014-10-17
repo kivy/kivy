@@ -280,7 +280,8 @@ cdef parse_color(c):
         c = c[1:]
     if c[:5] == 'url(#':
         return c[5:-1]
-
+    if str(c) == 'currentColor':
+        c = 'black'
     if str(c) in colormap:
         c = colormap[str(c)][1:]
         r = int(c[0:2], 16)
@@ -696,19 +697,19 @@ cdef class Svg(RenderContext):
             self.end_path()
 
         elif e.tag.endswith('line'):
-            x1 = float(e['x1'])
-            y1 = float(e['y1'])
-            x2 = float(e['x2'])
-            y2 = float(e['y2'])
+            x1 = float(e.get('x1'))
+            y1 = float(e.get('y1'))
+            x2 = float(e.get('x2'))
+            y2 = float(e.get('y2'))
             self.new_path()
             self.set_position(x1, y1)
             self.set_position(x2, y2)
             self.end_path()
 
         elif e.tag.endswith('circle'):
-            cx = float(e['cx'])
-            cy = float(e['cy'])
-            r = float(e['r'])
+            cx = float(e.get('cx'))
+            cy = float(e.get('cy'))
+            r = float(e.get('r'))
             self.new_path()
             for i in xrange(self.circle_points):
                 theta = 2 * i * pi / self.circle_points
@@ -717,10 +718,10 @@ cdef class Svg(RenderContext):
             self.end_path()
 
         elif e.tag.endswith('ellipse'):
-            cx = float(e['cx'])
-            cy = float(e['cy'])
-            rx = float(e['rx'])
-            ry = float(e['ry'])
+            cx = float(e.get('cx'))
+            cy = float(e.get('cy'))
+            rx = float(e.get('rx'))
+            ry = float(e.get('ry'))
             self.new_path()
             for i in xrange(self.circle_points):
                 theta = 2 * i * pi / self.circle_points
