@@ -6,6 +6,11 @@
 
 cdef extern from "SDL_joystick.h":
     cdef struct SDL_Joystick
+    cdef int SDL_HAT_CENTERED = 0x00
+    cdef int SDL_HAT_UP = 0x01
+    cdef int SDL_HAT_RIGHT = 0x02
+    cdef int SDL_HAT_DOWN = 0x04
+    cdef int SDL_HAT_LEFT = 0x08
 
 cdef extern from "SDL.h":
     ctypedef unsigned char Uint8
@@ -300,11 +305,24 @@ cdef extern from "SDL.h":
         Uint8 axis
         Sint16 value
     cdef struct SDL_JoyBallEvent:
-        pass
+        Uint32 type
+        Uint32 timestamp
+        SDL_JoystickID which
+        Uint8 ball
+        Sint16  xrel
+        Sint16  yrel
     cdef struct SDL_JoyHatEvent:
-        pass
+        Uint32 type
+        Uint32 timestamp
+        SDL_JoystickID which
+        Uint8 hat
+        Uint8 value
     cdef struct SDL_JoyButtonEvent:
-        pass
+        Uint32 type
+        Uint32 timestamp
+        SDL_JoystickID which
+        Uint8 button
+        Uint8 state
     cdef struct SDL_QuitEvent:
         pass
     cdef struct SDL_UserEvent:

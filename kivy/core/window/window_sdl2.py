@@ -247,6 +247,18 @@ class WindowSDL(WindowBase):
             elif action == 'joyaxismotion':
                 stickid, axisid, value = args
                 self.dispatch('on_joy_axis', stickid, axisid, value)
+            elif action == 'joyhatmotion':
+                stickid, hatid, value = args
+                self.dispatch('on_joy_hat', stickid, hatid, value)
+            elif action == 'joyballmotion':
+                stickid, ballid, xrel, yrel = args
+                self.dispatch('on_joy_ball', stickid, ballid, xrel, yrel)
+            elif action == 'joybuttondown':
+                stickid, buttonid = args
+                self.dispatch('on_joy_button_down', stickid, buttonid)
+            elif action == 'joybuttonup':
+                stickid, buttonid = args
+                self.dispatch('on_joy_button_up', stickid, buttonid)
                 
             elif action in ('keydown', 'keyup'):
                 mod, key, scancode, kstr = args
