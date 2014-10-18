@@ -274,7 +274,11 @@ cdef dict parse_style(string):
     return sdict
 
 
-cdef parse_color(c):
+cdef list kv_color_to_int_color(color):
+    c = [int(255*x) for x in color]
+    return c if len(c) == 4 else c + [255]
+
+cdef parse_color(c, current_color = None):
     cdef int r, g, b, a
     if c is None or c == 'none':
         return None
@@ -283,7 +287,10 @@ cdef parse_color(c):
     if c[:5] == 'url(#':
         return c[5:-1]
     if str(c) == 'currentColor':
-        c = 'black'
+        if current_color is None:
+            c = 'black'
+        else:
+            return current_color
     if str(c) in colormap:
         c = colormap[str(c)][1:]
         r = int(c[0:2], 16)
@@ -403,9 +410,9 @@ class Gradient(object):
         for e in element.getiterator():
             if e.tag.endswith('stop'):
                 style = parse_style(e.get('style', ''))
-                color = parse_color(e.get('stop-color'))
+                color = parse_color(e.get('stop-color'), current_color = svg.current_color)
                 if 'stop-color' in style:
-                    color = parse_color(style['stop-color'])
+                    color = parse_color(style['stop-color'], current_color = svg.current_color)
                 color[3] = int(float(e.get('stop-opacity', '1')) * 255)
                 if 'stop-opacity' in style:
                     color[3] = int(float(style['stop-opacity']) * 255)
@@ -483,6 +490,7 @@ cdef class Svg(RenderContext):
         list paths
         object transform
         object fill
+        object current_color
         object stroke
         float opacity
         float x
@@ -502,7 +510,8 @@ cdef class Svg(RenderContext):
         StripMesh last_mesh
 
     def __init__(self, filename, anchor_x=0, anchor_y=0,
-            bezier_points=BEZIER_POINTS, circle_points=CIRCLE_POINTS):
+                 bezier_points=BEZIER_POINTS, circle_points=CIRCLE_POINTS,
+                 color=None):
         '''
         Creates an SVG object from a .svg or .svgz file.
 
@@ -527,6 +536,12 @@ cdef class Svg(RenderContext):
         self.paths = []
         self.width = 0
         self.height = 0
+
+        if color is None:
+            self.current_color = None
+        else:
+            self.current_color = kv_color_to_int_color(color)
+
         self.bezier_points = bezier_points
         self.circle_points = circle_points
         self.bezier_coefficients = None
@@ -631,8 +646,8 @@ cdef class Svg(RenderContext):
             self.parse_element(e)
 
     cdef parse_element(self, e):
-        self.fill = parse_color(e.get('fill'))
-        self.stroke = parse_color(e.get('stroke'))
+        self.fill = parse_color(e.get('fill'), current_color = self.current_color)
+        self.stroke = parse_color(e.get('stroke'), current_color = self.current_color)
         oldopacity = self.opacity
         self.opacity *= float(e.get('opacity', 1))
         fill_opacity = float(e.get('fill-opacity', 1))
@@ -646,11 +661,11 @@ cdef class Svg(RenderContext):
         if style:
             sdict = parse_style(style)
             if 'fill' in sdict:
-                self.fill = parse_color(sdict['fill'])
+                self.fill = parse_color(sdict['fill'], current_color = self.current_color)
             if 'fill-opacity' in sdict:
                 fill_opacity *= float(sdict['fill-opacity'])
             if 'stroke' in sdict:
-                self.stroke = parse_color(sdict['stroke'])
+                self.stroke = parse_color(sdict['stroke'], current_color = self.current_color)
             if 'stroke-opacity' in sdict:
                 stroke_opacity *= float(sdict['stroke-opacity'])
 
