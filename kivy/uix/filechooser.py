@@ -494,19 +494,24 @@ class FileChooserController(FloatLayout):
         Clock.schedule_once(self._update_files)
 
     def on_entry_added(self, node, parent=None):
-        self.layout.dispatch('on_entry_added', node, parent)
+        if self.layout:
+            self.layout.dispatch('on_entry_added', node, parent)
 
     def on_entries_cleared(self):
-        self.layout.dispatch('on_entries_cleared')
+        if self.layout:
+            self.layout.dispatch('on_entries_cleared')
 
     def on_subentry_to_entry(self, subentry, entry):
-        self.layout.dispatch('on_subentry_to_entry', subentry, entry)
+        if self.layout:
+            self.layout.dispatch('on_subentry_to_entry', subentry, entry)
 
     def on_remove_subentry(self, subentry, entry):
-        self.layout.dispatch('on_remove_subentry', subentry, entry)
+        if self.layout:
+            self.layout.dispatch('on_remove_subentry', subentry, entry)
 
     def on_submit(self, selected, touch=None):
-        self.layout.dispatch('on_submit', selected, touch)
+        if self.layout:
+            self.layout.dispatch('on_submit', selected, touch)
 
     def entry_touched(self, entry, touch):
         '''(internal) This method must be called by the template when an entry
@@ -742,7 +747,8 @@ class FileChooserController(FloatLayout):
             self.files[:] = []
 
     def _create_entry_widget(self, ctx):
-        return Builder.template(self.layout._ENTRY_TEMPLATE, **ctx)
+        template = self.layout._ENTRY_TEMPLATE if self.layout else self._ENTRY_TEMPLATE
+        return Builder.template(template, **ctx)
 
     def _add_files(self, path, parent=None):
         path = expanduser(path)
