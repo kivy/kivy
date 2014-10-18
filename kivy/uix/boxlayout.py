@@ -162,7 +162,6 @@ class BoxLayout(Layout):
 
                 for key, value in c.pos_hint.items():
                     posy = value * (selfh - padding_y)
-                    print posy
                     if key == 'y':
                         cy += posy
                     elif key == 'top':
