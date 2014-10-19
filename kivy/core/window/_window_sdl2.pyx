@@ -96,6 +96,12 @@ cdef class _WindowSDL2Storage:
     def restore_window(self):
         SDL_RestoreWindow(self.win)
 
+    def hide_window(self):
+        SDL_HideWindow(self.win)
+
+    def show_window(self):
+        SDL_ShowWindow(self.win)
+
     def set_window_title(self, str title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
 

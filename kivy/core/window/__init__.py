@@ -596,8 +596,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This method currently works only with the SDL2 window provider.
             The following platforms are supported: Windows, Linux and OSX.
+            This method currently works only with the SDL2 window provider.
 
         .. warning::
             This code is still experimental, and its API is subject to change
@@ -611,8 +611,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This method currently works only with the SDL2 window provider.
             The following platforms are supported: Windows, Linux and OSX.
+            This method currently works only with the SDL2 window provider.
 
         .. warning::
             This code is still experimental, and its API is subject to change
@@ -626,8 +626,39 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This method currently works only with the SDL2 window provider.
             The following platforms are supported: Windows, Linux and OSX.
+            This method currently works only with the SDL2 window provider.
+
+        .. warning::
+            This code is still experimental, and its API is subject to change
+            in a future version.
+        '''
+        pass
+
+
+    def hide(self):
+        '''Hide the window.
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            The following platforms are supported: Windows, Linux and OSX.
+            This method currently works only with the SDL2 window provider.
+
+        .. warning::
+            This code is still experimental, and its API is subject to change
+            in a future version.
+        '''
+        pass
+
+    def show(self):
+        '''Show the window.
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            The following platforms are supported: Windows, Linux and OSX.
+            This method currently works only with the SDL2 window provider.
 
         .. warning::
             This code is still experimental, and its API is subject to change
@@ -636,7 +667,7 @@ class WindowBase(EventDispatcher):
         pass
 
     def close(self):
-        '''Close the window.'''
+        '''Close the window'''
         pass
 
     def create_window(self, *largs):

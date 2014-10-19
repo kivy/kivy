@@ -164,6 +164,14 @@ class WindowSDL(WindowBase):
         if self._is_desktop:
             self._win.restore_window()
 
+    def hide(self):
+        if self._is_desktop:
+            self._win.hide_window()
+
+    def show(self):
+        if self._is_desktop:
+            self._win.show_window()
+
     def set_title(self, title):
         self._win.set_window_title(title)
 
