@@ -590,8 +590,53 @@ class WindowBase(EventDispatcher):
         '''Toggle fullscreen on window'''
         pass
 
+    def maximize(self):
+        '''Maximize the window. 
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            This method currently works only with the SDL2 window provider.
+            The following platforms are supported: Windows, Linux and OSX.
+
+        .. warning::
+            This code is still experimental, and its API is subject to change
+            in a future version.
+        '''
+        pass
+
+    def minimize(self):
+        '''Minimize the window.
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            This method currently works only with the SDL2 window provider.
+            The following platforms are supported: Windows, Linux and OSX.
+
+        .. warning::
+            This code is still experimental, and its API is subject to change
+            in a future version.
+        '''
+        pass
+
+    def restore(self):
+        '''Restore the size and position of a maximized or minimized window.
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            This method currently works only with the SDL2 window provider.
+            The following platforms are supported: Windows, Linux and OSX.
+
+        .. warning::
+            This code is still experimental, and its API is subject to change
+            in a future version.
+        '''
+        pass
+
     def close(self):
-        '''Close the window'''
+        '''Close the window.'''
         pass
 
     def create_window(self, *largs):

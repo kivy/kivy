@@ -89,6 +89,8 @@ class SDL2MotionEventProvider(MotionEventProvider):
                 dispatch_fn('update', me)
 
 class WindowSDL(WindowBase):
+    
+    _is_desktop = platform in ('win', 'linux', 'macosx')
 
     def __init__(self, **kwargs):
         self._win = _WindowSDL2Storage()
@@ -149,6 +151,18 @@ class WindowSDL(WindowBase):
     def close(self):
         self._win.teardown_window()
         self.dispatch('on_close')
+
+    def maximize(self):
+        if self._is_desktop:
+            self._win.maximize_window()
+
+    def minimize(self):
+        if self._is_desktop:
+            self._win.minimize_window()
+
+    def restore(self):
+        if self._is_desktop:
+            self._win.restore_window()
 
     def set_title(self, title):
         self._win.set_window_title(title)

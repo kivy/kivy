@@ -87,6 +87,15 @@ cdef class _WindowSDL2Storage:
     def resize_window(self, w, h):
         SDL_SetWindowSize(self.win, w, h)
 
+    def maximize_window(self):
+        SDL_MaximizeWindow(self.win)
+
+    def minimize_window(self):
+        SDL_MinimizeWindow(self.win)
+
+    def restore_window(self):
+        SDL_RestoreWindow(self.win)
+
     def set_window_title(self, str title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
 
