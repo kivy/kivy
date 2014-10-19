@@ -636,7 +636,6 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
-
     def hide(self):
         '''Hide the window.
 
