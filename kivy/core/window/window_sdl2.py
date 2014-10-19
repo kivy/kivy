@@ -89,8 +89,6 @@ class SDL2MotionEventProvider(MotionEventProvider):
                 dispatch_fn('update', me)
 
 class WindowSDL(WindowBase):
-    
-    _is_desktop = platform in ('win', 'linux', 'macosx')
 
     def __init__(self, **kwargs):
         self._win = _WindowSDL2Storage()

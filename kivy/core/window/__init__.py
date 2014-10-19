@@ -248,6 +248,7 @@ class WindowBase(EventDispatcher):
 
     __instance = None
     __initialized = False
+    _is_desktop = platform in ('win', 'linux', 'macosx')
 
     # private properties
     _size = ListProperty([0, 0])
