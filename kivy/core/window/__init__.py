@@ -597,12 +597,12 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            The following platforms are supported: Windows, Linux and OSX.
+            The following platforms are supported: Windows, Linux and OS X.
             This method currently works only with the SDL2 window provider.
 
         .. warning::
-            This code is still experimental, and its API is subject to change
-            in a future version.
+            This code is still experimental, and its API may be subject to
+            change in a future version.
         '''
         pass
 
@@ -612,12 +612,12 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            The following platforms are supported: Windows, Linux and OSX.
+            The following platforms are supported: Windows, Linux and OS X.
             This method currently works only with the SDL2 window provider.
 
         .. warning::
-            This code is still experimental, and its API is subject to change
-            in a future version.
+            This code is still experimental, and its API may be subject to
+            change in a future version.
         '''
         pass
 
@@ -627,12 +627,12 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            The following platforms are supported: Windows, Linux and OSX.
+            The following platforms are supported: Windows, Linux and OS X.
             This method currently works only with the SDL2 window provider.
 
         .. warning::
-            This code is still experimental, and its API is subject to change
-            in a future version.
+            This code is still experimental, and its API may be subject to
+            change in a future version.
         '''
         pass
 
@@ -643,12 +643,12 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            The following platforms are supported: Windows, Linux and OSX.
+            The following platforms are supported: Windows, Linux and OS X.
             This method currently works only with the SDL2 window provider.
 
         .. warning::
-            This code is still experimental, and its API is subject to change
-            in a future version.
+            This code is still experimental, and its API may be subject to
+            change in a future version.
         '''
         pass
 
@@ -658,12 +658,12 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            The following platforms are supported: Windows, Linux and OSX.
+            The following platforms are supported: Windows, Linux and OS X.
             This method currently works only with the SDL2 window provider.
 
         .. warning::
-            This code is still experimental, and its API is subject to change
-            in a future version.
+            This code is still experimental, and its API may be subject to
+            change in a future version.
         '''
         pass
 
