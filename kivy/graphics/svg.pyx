@@ -490,7 +490,7 @@ cdef class Svg(RenderContext):
         list paths
         object transform
         object fill
-        object current_color
+        public object current_color
         object stroke
         float opacity
         float x
