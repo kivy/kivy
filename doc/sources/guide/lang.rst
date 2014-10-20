@@ -20,6 +20,7 @@ How to load KV
 --------------
 
 There are two ways to load Kv code into your application:
+
 - By name convention:
 
   Kivy looks for a Kv file with the same name as your App class in
