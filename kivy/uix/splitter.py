@@ -23,7 +23,7 @@ To change the size of the strip/border used for resizing::
 
     splitter.strip_size = '10pt'
 
-To change it's appearance::
+To change its appearance::
 
     splitter.strip_cls = your_custom_class
 
