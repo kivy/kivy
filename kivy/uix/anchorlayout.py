@@ -36,8 +36,8 @@ class AnchorLayout(Layout):
     '''
 
     padding = VariableListProperty([0, 0, 0, 0])
-    '''Padding between the widget box and it's children, in pixels:
-    [padding_left,padding_top, padding_right, padding_bottom].
+    '''Padding between the widget box and its children, in pixels:
+    [padding_left, padding_top, padding_right, padding_bottom].
 
     padding also accepts a two argument form [padding_horizontal,
     padding_vertical] and a one argument form [padding].
