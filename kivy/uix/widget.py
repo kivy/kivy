@@ -8,8 +8,8 @@ This widget class is designed with a couple of principles in mind:
     Event Driven
         Widget interaction is built on top of events that occur. If a property
         changes, the widget can respond to the change in the 'on_<propname>'
-        callback. If nothing changes, nothing will be done. That's the main goal
-        of the :class:`~kivy.properties.Property` class.
+        callback. If nothing changes, nothing will be done. That's the main
+        goal of the :class:`~kivy.properties.Property` class.
 
     Separate the widget and its graphical representation
         Widgets don't have a `draw()` method. This is done on purpose: The idea
@@ -26,7 +26,7 @@ This widget class is designed with a couple of principles in mind:
         widget. An example would be a button widget where you want to only
         trigger an action when the button itself is actually touched.
         For this, you can use the :meth:`Widget.collide_point` method, which
-        will return True if the point you pass it is inside the axis-aligned
+        will return True if the point you pass to it is inside the axis-aligned
         bounding box defined by the widget's position and size.
         If a simple AABB is not sufficient, you can override the method to
         perform the collision checks with more complex shapes, e.g. a polygon.
@@ -43,11 +43,11 @@ We also have some default values and behaviors that you should be aware of:
 * The default size of a widget is (100, 100). This is only changed if the
   parent is a :class:`~kivy.uix.layout.Layout`.
   For example, if you add a :class:`Label` inside a
-  :class:`Button`, the label will not inherit the buttons size or position
+  :class:`Button`, the label will not inherit the button's size or position
   because the button is not a *Layout*: it's just another *Widget*.
 
 * The default size_hint is (1, 1). If the parent is a :class:`Layout`, then the
-  widget size will be the parent/layout size.
+  widget size will be the parent layout's size.
 
 * :meth:`Widget.on_touch_down`, :meth:`Widget.on_touch_move`,
   :meth:`Widget.on_touch_up` don't do any sort of collisions. If you want to
@@ -83,6 +83,8 @@ Widgets support a range of drawing instructions that you can use to customize
 the look of your widgets and layouts. For example, to draw a background image
 for your widget, you can do the following::
 
+.. code-block:: python
+
     def redraw(self, args):
         self.bg_rect.size = self.size
         self.bg_rect.pos = self.pos
@@ -93,9 +95,9 @@ for your widget, you can do the following::
 size=self.size)
     widget.bind(pos=redraw, size=redraw)
 
-.. highlight:: kv
-
 To draw a background in kv::
+
+.. highlight:: kv
 
     Widget:
         canvas:
@@ -115,7 +117,7 @@ Widget touch event bubbling
 When you catch touch events between multiple widgets, you often
 need to be aware of the order in which these events are propogated. In Kivy,
 events bubble up from the most recently added widget and then backwards through
-it's children (from the most recently added back to the first child). This order
+its children (from the most recently added back to the first child). This order
 is the same for the `on_touch_move` and `on_touch_up` events.
 
 If you want to reverse this order, you can raise events in the children before
@@ -130,8 +132,8 @@ the parent by using the `super` command. For example:
 
 In general, this would seldom be the best approach as every event bubbles all
 the way through event time and there is no way of determining if it has been
-handled. In order to stop this the event bubbling, one of these methods must
-return `True`. At this point, Kivy assumes the event has been handled and
+handled. In order to stop this event bubbling, one of these methods must
+return `True`. At this point, Kivy assumes the event has been handled and the
 propogation stops.
 
 This means that the recommended approach is to let the event bubble naturally
@@ -148,7 +150,7 @@ but swallow the event if it has been handled. For example:
                 # Continue normal event bubbling
                 return super(MyWidget, self).on_touch_down(touch)
 
-This approach gives you good control over exactly how events and dispatched
+This approach gives you good control over exactly how events are dispatched
 and managed. Sometimes, however, you may wish to let the event be completely
 propogated before taking action. You can use the
 :class:`~kivy.clock.Clock` to help you here:
@@ -181,14 +183,14 @@ from functools import partial
 from itertools import islice
 
 
-# references to all the destructors widgets (partial method with widget uid as
-# key.)
+# References to all the widget destructors (partial method with widget uid as
+# key).
 _widget_destructors = {}
 
 
 def _widget_destructor(uid, r):
-    # internal method called when a widget is deleted from memory. the only
-    # thing we remember about it is its uid. Clear all the associated callback
+    # Internal method called when a widget is deleted from memory. the only
+    # thing we remember about it is its uid. Clear all the associated callbacks
     # created in kv language.
     del _widget_destructors[uid]
     Builder.unbind_widget(uid)
@@ -202,17 +204,17 @@ class WidgetException(Exception):
 
 class WidgetMetaclass(type):
     '''Metaclass to automatically register new widgets for the
-    :class:`~kivy.factory.Factory`
+    :class:`~kivy.factory.Factory`.
 
     .. warning::
-        This metaclass is used by the Widget. Do not use it directly !
+        This metaclass is used by the Widget. Do not use it directly!
     '''
     def __init__(mcs, name, bases, attrs):
         super(WidgetMetaclass, mcs).__init__(name, bases, attrs)
         Factory.register(name, cls=mcs)
 
 
-#: Base class used for widget, that inherit from :class:`EventDispatcher`
+#: Base class used for Widget, that inherits from :class:`EventDispatcher`
 WidgetBase = WidgetMetaclass('WidgetBase', (EventDispatcher, ), {})
 
 
@@ -228,7 +230,7 @@ class Widget(WidgetBase):
             Fired when an existing touch disappears
 
     .. warning::
-        Adding a `__del__` method to a class derived from Widget with python
+        Adding a `__del__` method to a class derived from Widget with Python
         prior to 3.4 will disable automatic garbage collection for instances
         of that class. This is because the Widget class creates reference
         cycles, thereby `preventing garbage collection
@@ -252,17 +254,17 @@ class Widget(WidgetBase):
         # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
 
-        # assign the default context of the widget creation
+        # Assign the default context of the widget creation.
         if not hasattr(self, '_context'):
             self._context = get_current_context()
 
         super(Widget, self).__init__(**kwargs)
 
-        # Create the default canvas if not exist
+        # Create the default canvas if it does not exist.
         if self.canvas is None:
             self.canvas = Canvas(opacity=self.opacity)
 
-        # Apply all the styles
+        # Apply all the styles.
         if '__no_builder' not in kwargs:
             #current_root = Builder.idmap.get('root')
             #Builder.idmap['root'] = self
@@ -272,7 +274,7 @@ class Widget(WidgetBase):
             #else:
             #    Builder.idmap.pop('root')
 
-        # Bind all the events
+        # Bind all the events.
         for argument in kwargs:
             if argument[:3] == 'on_':
                 self.bind(**{argument: kwargs[argument]})
@@ -292,9 +294,9 @@ class Widget(WidgetBase):
 
         f = partial(_widget_destructor, self.uid)
         self._proxy_ref = _proxy_ref = proxy(self, f)
-        # only f should be enough here, but it appears that is a very
+        # Only f should be enough here, but it appears that is a very
         # specific case, the proxy destructor is not called if both f and
-        # _proxy_ref are not together in a tuple
+        # _proxy_ref are not together in a tuple.
         _widget_destructors[self.uid] = (f, _proxy_ref)
         return _proxy_ref
 
@@ -421,7 +423,7 @@ class Widget(WidgetBase):
             `widget`: :class:`Widget`
                 Widget to add to our list of children.
             `index`: int, defaults to 0
-                Index to insert the widget in the list
+                Index to insert the widget in the list.
 
                 .. versionadded:: 1.0.5
             `canvas`: str, defaults to None
@@ -442,18 +444,18 @@ class Widget(WidgetBase):
         '''
         if not isinstance(widget, Widget):
             raise WidgetException(
-                'add_widget() can be used only with Widget classes.')
+                'add_widget() can be used only with instances of the Widget class.')
 
         widget = widget.__self__
         if widget is self:
             raise WidgetException('Widget instances cannot be added to themselves.')
         parent = widget.parent
-        # check if widget is already a child of another widget
+        # Check if the widget is already a child of another widget.
         if parent:
             raise WidgetException('Cannot add %r, it already has a parent %r'
                                   % (widget, parent))
         widget.parent = parent = self
-        # child will be disabled if added to a disabled parent
+        # Child will be disabled if added to a disabled parent.
         if parent.disabled:
             widget.disabled = True
 
@@ -478,7 +480,7 @@ class Widget(WidgetBase):
                     next_index += 1
 
             children.insert(index, widget)
-            # we never want to insert widget _before_ canvas.before.
+            # We never want to insert widget _before_ canvas.before.
             if next_index == 0 and canvas.has_before:
                 next_index = 1
             canvas.insert(next_index, widget.canvas)
@@ -532,8 +534,8 @@ class Widget(WidgetBase):
 
         .. note::
 
-            The image includes only this widget and its children. If you want to
-            include widgets elsewhere in the tree, you must call
+            The image includes only this widget and its children. If you want
+            to include widgets elsewhere in the tree, you must call
             :meth:`~Widget.export_to_png` from their common parent, or use
             :meth:`~kivy.core.window.Window.screenshot` to capture the whole
             window.
@@ -590,7 +592,7 @@ class Widget(WidgetBase):
             return self.parent.get_parent_window()
 
     def _walk(self, restrict=False, loopback=False, index=None):
-        # we pass index only when we are going on the parent.
+        # We pass index only when we are going on the parent
         # so don't yield the parent as well.
         if index is None:
             index = len(self.children)
@@ -600,7 +602,7 @@ class Widget(WidgetBase):
             for walk_child in child._walk(restrict=True):
                 yield walk_child
 
-        # if we want to continue with our parent, just do it
+        # If we want to continue with our parent, just do it.
         if not restrict:
             parent = self.parent
             try:
@@ -608,12 +610,12 @@ class Widget(WidgetBase):
                     raise ValueError
                 index = parent.children.index(self)
             except ValueError:
-                # self is root, if wanted to loopback from first element then ->
+                # Self is root, if we want to loopback from the first element:
                 if not loopback:
                     return
-                # if we started with root (i.e. index==None), then we have to
+                # If we started with root (i.e. index==None), then we have to
                 # start from root again, so we return self again. Otherwise, we
-                # never returned it, so return it now starting with it
+                # never returned it, so return it now starting with it.
                 parent = self
                 index = None
             for walk_child in parent._walk(loopback=loopback, index=index):
@@ -719,7 +721,7 @@ class Widget(WidgetBase):
             `loopback`: bool, defaults to False
                 If True, when the uppermost root in the tree is
                 reached, it'll loop back to the last widget and start walking
-                back until after we hit widget again. Defaults to False
+                back until after we hit widget again. Defaults to False.
 
         :return:
             A generator that walks the tree, returning widgets in the
@@ -865,7 +867,7 @@ class Widget(WidgetBase):
     '''Right position of the widget.
 
     :attr:`right` is an :class:`~kivy.properties.AliasProperty` of
-    (:attr:`x` + :attr:`width`),
+    (:attr:`x` + :attr:`width`).
     '''
 
     def get_top(self):
@@ -878,7 +880,7 @@ class Widget(WidgetBase):
     '''Top position of the widget.
 
     :attr:`top` is an :class:`~kivy.properties.AliasProperty` of
-    (:attr:`y` + :attr:`height`),
+    (:attr:`y` + :attr:`height`).
     '''
 
     def get_center_x(self):
@@ -886,11 +888,12 @@ class Widget(WidgetBase):
 
     def set_center_x(self, value):
         self.x = value - self.width / 2.
+
     center_x = AliasProperty(get_center_x, set_center_x, bind=('x', 'width'))
     '''X center position of the widget.
 
     :attr:`center_x` is an :class:`~kivy.properties.AliasProperty` of
-    (:attr:`x` + :attr:`width` / 2.),
+    (:attr:`x` + :attr:`width` / 2.).
     '''
 
     def get_center_y(self):
@@ -898,18 +901,19 @@ class Widget(WidgetBase):
 
     def set_center_y(self, value):
         self.y = value - self.height / 2.
+
     center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'height'))
     '''Y center position of the widget.
 
     :attr:`center_y` is an :class:`~kivy.properties.AliasProperty` of
-    (:attr:`y` + :attr:`height` / 2.)
+    (:attr:`y` + :attr:`height` / 2.).
     '''
 
     center = ReferenceListProperty(center_x, center_y)
     '''Center position of the widget.
 
     :attr:`center` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:attr:`center_x`, :attr:`center_y`)
+    (:attr:`center_x`, :attr:`center_y`) properties.
     '''
 
     cls = ListProperty([])
@@ -968,16 +972,16 @@ class Widget(WidgetBase):
     :attr:`size_hint_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
 
-    See :attr:`size_hint_x` for more information
+    See :attr:`size_hint_x` for more information.
     '''
 
     size_hint = ReferenceListProperty(size_hint_x, size_hint_y)
     '''Size hint.
 
     :attr:`size_hint` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:attr:`size_hint_x`, :attr:`size_hint_y`).
+    (:attr:`size_hint_x`, :attr:`size_hint_y`) properties.
 
-    See :attr:`size_hint_x` for more information
+    See :attr:`size_hint_x` for more information.
     '''
 
     pos_hint = ObjectProperty({})
@@ -995,21 +999,21 @@ class Widget(WidgetBase):
 
     See :doc:`api-kivy.uix.floatlayout` for further reference.
 
-    Position hint is only used by the
-    :class:`~kivy.uix.floatlayout.FloatLayout` and
-    :class:`~kivy.core.window.Window`.
+    .. note::
+        :attr:`pos_hint` is not used by all layouts. Check the documentation
+        of the layout in question to see if it supports pos_hint.
 
     :attr:`pos_hint` is an :class:`~kivy.properties.ObjectProperty`
     containing a dict.
     '''
 
     ids = DictProperty({})
-    '''This is a Dictionary of id's defined in your kv language. This will only
-    be populated if you use id's in your kv language code.
+    '''This is a dictionary of ids defined in your kv language. This will only
+    be populated if you use ids in your kv language code.
 
     .. versionadded:: 1.7.0
 
-    :attr:`ids` is a :class:`~kivy.properties.DictProperty` and defaults to a
+    :attr:`ids` is a :class:`~kivy.properties.DictProperty` and defaults to an
     empty dict {}.
 
     The :attr:`ids` are populated for each root level widget definition. For
@@ -1056,7 +1060,7 @@ class Widget(WidgetBase):
     '''
 
     opacity = NumericProperty(1.0)
-    '''Opacity of the widget and all the children.
+    '''Opacity of the widget and all its children.
 
     .. versionadded:: 1.4.1
 
@@ -1107,7 +1111,7 @@ class Widget(WidgetBase):
       1. Child Widgets, when added to a disabled widget, will be disabled
          automatically.
       2. Disabling/enabling a parent disables/enables all
-         of it's children.
+         of its children.
 
     .. versionadded:: 1.8.0
 
