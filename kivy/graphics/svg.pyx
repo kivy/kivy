@@ -235,6 +235,8 @@ cdef object RE_FLOAT = re.compile(
     r'[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?')
 cdef object RE_POLYLINE = re.compile(
     r'(-?[0-9]+\.?[0-9]*(?:e-?[0-9]*)?)')
+cdef object RE_TRANSFORM = re.compile(
+    r'[a-zA-Z]+\([^)]*\)')
 
 cdef VertexFormat VERTEX_FORMAT = VertexFormat(
     (b'v_pos', 2, 'float'),
@@ -272,7 +274,11 @@ cdef dict parse_style(string):
     return sdict
 
 
-cdef parse_color(c):
+cdef list kv_color_to_int_color(color):
+    c = [int(255*x) for x in color]
+    return c if len(c) == 4 else c + [255]
+
+cdef parse_color(c, current_color = None):
     cdef int r, g, b, a
     if c is None or c == 'none':
         return None
@@ -280,7 +286,11 @@ cdef parse_color(c):
         c = c[1:]
     if c[:5] == 'url(#':
         return c[5:-1]
-
+    if str(c) == 'currentColor':
+        if current_color is None:
+            c = 'black'
+        else:
+            return current_color
     if str(c) in colormap:
         c = colormap[str(c)][1:]
         r = int(c[0:2], 16)
@@ -400,9 +410,9 @@ class Gradient(object):
         for e in element.getiterator():
             if e.tag.endswith('stop'):
                 style = parse_style(e.get('style', ''))
-                color = parse_color(e.get('stop-color'))
+                color = parse_color(e.get('stop-color'), current_color = svg.current_color)
                 if 'stop-color' in style:
-                    color = parse_color(style['stop-color'])
+                    color = parse_color(style['stop-color'], current_color = svg.current_color)
                 color[3] = int(float(e.get('stop-opacity', '1')) * 255)
                 if 'stop-opacity' in style:
                     color[3] = int(float(style['stop-opacity']) * 255)
@@ -480,6 +490,7 @@ cdef class Svg(RenderContext):
         list paths
         object transform
         object fill
+        public object current_color
         object stroke
         float opacity
         float x
@@ -499,7 +510,8 @@ cdef class Svg(RenderContext):
         StripMesh last_mesh
 
     def __init__(self, filename, anchor_x=0, anchor_y=0,
-            bezier_points=BEZIER_POINTS, circle_points=CIRCLE_POINTS):
+                 bezier_points=BEZIER_POINTS, circle_points=CIRCLE_POINTS,
+                 color=None):
         '''
         Creates an SVG object from a .svg or .svgz file.
 
@@ -524,6 +536,12 @@ cdef class Svg(RenderContext):
         self.paths = []
         self.width = 0
         self.height = 0
+
+        if color is None:
+            self.current_color = None
+        else:
+            self.current_color = kv_color_to_int_color(color)
+
         self.bezier_points = bezier_points
         self.circle_points = circle_points
         self.bezier_coefficients = None
@@ -628,25 +646,26 @@ cdef class Svg(RenderContext):
             self.parse_element(e)
 
     cdef parse_element(self, e):
-        self.fill = parse_color(e.get('fill'))
-        self.stroke = parse_color(e.get('stroke'))
+        self.fill = parse_color(e.get('fill'), current_color = self.current_color)
+        self.stroke = parse_color(e.get('stroke'), current_color = self.current_color)
         oldopacity = self.opacity
         self.opacity *= float(e.get('opacity', 1))
         fill_opacity = float(e.get('fill-opacity', 1))
         stroke_opacity = float(e.get('stroke-opacity', 1))
 
         oldtransform = self.transform
-        self.transform = self.transform * Matrix(e.get('transform'))
+        for t in self.parse_transform(e.get('transform')):
+            self.transform *= Matrix(t)
 
         style = e.get('style')
         if style:
             sdict = parse_style(style)
             if 'fill' in sdict:
-                self.fill = parse_color(sdict['fill'])
+                self.fill = parse_color(sdict['fill'], current_color = self.current_color)
             if 'fill-opacity' in sdict:
                 fill_opacity *= float(sdict['fill-opacity'])
             if 'stroke' in sdict:
-                self.stroke = parse_color(sdict['stroke'])
+                self.stroke = parse_color(sdict['stroke'], current_color = self.current_color)
             if 'stroke-opacity' in sdict:
                 stroke_opacity *= float(sdict['stroke-opacity'])
 
@@ -696,19 +715,19 @@ cdef class Svg(RenderContext):
             self.end_path()
 
         elif e.tag.endswith('line'):
-            x1 = float(e['x1'])
-            y1 = float(e['y1'])
-            x2 = float(e['x2'])
-            y2 = float(e['y2'])
+            x1 = float(e.get('x1'))
+            y1 = float(e.get('y1'))
+            x2 = float(e.get('x2'))
+            y2 = float(e.get('y2'))
             self.new_path()
             self.set_position(x1, y1)
             self.set_position(x2, y2)
             self.end_path()
 
         elif e.tag.endswith('circle'):
-            cx = float(e['cx'])
-            cy = float(e['cy'])
-            r = float(e['r'])
+            cx = float(e.get('cx'))
+            cy = float(e.get('cy'))
+            r = float(e.get('r'))
             self.new_path()
             for i in xrange(self.circle_points):
                 theta = 2 * i * pi / self.circle_points
@@ -717,10 +736,10 @@ cdef class Svg(RenderContext):
             self.end_path()
 
         elif e.tag.endswith('ellipse'):
-            cx = float(e['cx'])
-            cy = float(e['cy'])
-            rx = float(e['rx'])
-            ry = float(e['ry'])
+            cx = float(e.get('cx'))
+            cy = float(e.get('cy'))
+            rx = float(e.get('rx'))
+            ry = float(e.get('ry'))
             self.new_path()
             for i in xrange(self.circle_points):
                 theta = 2 * i * pi / self.circle_points
@@ -739,6 +758,12 @@ cdef class Svg(RenderContext):
 
         self.transform = oldtransform
         self.opacity = oldopacity
+
+    cdef list parse_transform(self, transform_def):
+        if isinstance(transform_def, str):
+            return RE_TRANSFORM.findall(transform_def)
+        else:
+            return [transform_def]
 
     cdef parse_path(self, pathdef):
         # In the SVG specs, initial movetos are absolute, even if
