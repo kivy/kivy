@@ -167,7 +167,7 @@ template_examples_ref = ('# :ref:`Jump directly to Examples'
 
 def extract_summary_line(doc):
     if doc is None:
-        return
+        return ''
     for line in doc.split('\n'):
         line = line.strip()
         # don't take empty line
