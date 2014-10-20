@@ -81,7 +81,7 @@ Basic drawing
 
 Widgets support a range of drawing instructions that you can use to customize
 the look of your widgets and layouts. For example, to draw a background image
-for your widget, you can do the following::
+for your widget, you can do the following:
 
 .. code-block:: python
 
@@ -96,8 +96,6 @@ size=self.size)
     widget.bind(pos=redraw, size=redraw)
 
 To draw a background in kv::
-
-.. highlight:: kv
 
     Widget:
         canvas:
