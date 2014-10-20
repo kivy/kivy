@@ -532,6 +532,7 @@ __all__ = ('SelectableView', 'ListItemButton', 'ListItemLabel',
 
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
+from kivy.compat import PY2
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -585,7 +586,18 @@ class SelectableView(object):
         self.is_selected = False
 
 
-class ListItemButton(SelectableView, Button):
+class ListItemReprMixin(Label):
+    if PY2:
+        def __repr__(self):
+            text = self.text.encode('utf-8') if isinstance(self.text, unicode) \
+                else self.text
+            return '<%s text=%s>' % (self.__class__.__name__, text)
+    else:
+        def __repr__(self):
+            return '<%s text=%s>' % (self.__class__.__name__, self.text)
+
+
+class ListItemButton(ListItemReprMixin, SelectableView, Button):
     ''':class:`~kivy.uix.listview.ListItemButton` mixes
     :class:`~kivy.uix.listview.SelectableView` with
     :class:`~kivy.uix.button.Button` to produce a button suitable for use in
@@ -626,14 +638,11 @@ class ListItemButton(SelectableView, Button):
     def deselect_from_composite(self, *args):
         self.background_color = self.deselected_color
 
-    def __repr__(self):
-        return '<%s text=%s>' % (self.__class__.__name__, self.text)
-
 
 # [TODO] Why does this mix in SelectableView -- that makes it work like
 #        button, which is redundant.
 
-class ListItemLabel(SelectableView, Label):
+class ListItemLabel(ListItemReprMixin, SelectableView, Label):
     ''':class:`~kivy.uix.listview.ListItemLabel` mixes
     :class:`~kivy.uix.listview.SelectableView` with
     :class:`~kivy.uix.label.Label` to produce a label suitable for use in
@@ -658,9 +667,6 @@ class ListItemLabel(SelectableView, Label):
 
     def deselect_from_composite(self, *args):
         self.bold = False
-
-    def __repr__(self):
-        return '<%s text=%s>' % (self.__class__.__name__, self.text)
 
 
 class CompositeListItem(SelectableView, BoxLayout):
