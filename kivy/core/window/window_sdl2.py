@@ -121,6 +121,7 @@ class WindowSDL(WindowBase):
         else:
             w, h = self._size
             self._win.resize_window(w, h)
+            self._win.set_fullscreen_mode(use_fake, use_fullscreen)
 
         super(WindowSDL, self).create_window()
 
