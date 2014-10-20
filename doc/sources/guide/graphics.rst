@@ -23,7 +23,7 @@ Canvasses can contain two subsets of instructions. They are the
 groups will be executed before and after the :mod:`~kivy.graphics.canvas` group
 respectively. This means that they will appear under (be executed before) and
 above (be executed after) them.
-Thoses groups are not created until the user accesses them.
+Those groups are not created until the user accesses them.
 
 To add a canvas instruction to a widget, you use the canvas context:
 
