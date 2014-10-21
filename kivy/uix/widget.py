@@ -169,8 +169,7 @@ Widget selector usage
 
             # To implement your own matching algorithm, use a function
             # callback. Every widget is passed to the function, and you must
-            # return True to produce a match or False, if there is no match.
-            # Returning None will result in unexpected behavior.
+            # return True to produce a match.
             self.select(self.global_callback)
 
             # A widget can be associated with one or more tags.
@@ -256,17 +255,14 @@ Widget selector usage
             if (hasattr(widget, 'text') and widget.text == 'cats' and
                 widget.opacity != 0.5):
                 return True
-            return False
 
         def tags_callback(self, value):
             if 'cats' in value and 'dogs' not in value:
                 return True
-            return False
 
         def prop_callback(self, value):
             if isinstance(value, int) and value > 8:
                 return True
-        return False
 
         def bind_callback(self):
             print('Missing pets removed.')
@@ -306,14 +302,14 @@ class Selector(object):
     '''Selector class. Used to select and manipulate widgets based on certain
     filters. See module documentation for more information.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     .. warning::
         This code is still experimental, and its API is subject to change
         in a future version.
     '''
-    __slots__ = ('_roots', '_cls', '_callback', '_tags', '_tag_count',
-        '_tags_callback', '_props', '_prop_count')
+    __slots__ = ('_roots', '_cls', '_callback', '_tags', '_tags_callback',
+        '_props')
 
     def __init__(self, root, *args, **kwargs):
         self._roots = root if isinstance(root, Selector) else (root,)
@@ -329,7 +325,6 @@ class Selector(object):
         self._callback = callback
 
         tags = ()
-        tag_count = 0
         tags_callback = None
         if 'tags' in kwargs:
             tags = kwargs['tags']
@@ -339,47 +334,59 @@ class Selector(object):
             else:
                 if isinstance(tags, string_types):
                     tags = (tags,)
-                tag_count = len(tags)
+
         self._tags = tags
-        self._tag_count = tag_count
         self._tags_callback = tags_callback
 
-        self._props = [prop + ((prop[1],) if callable(prop[1]) else (
-            None,)) for prop in kwargs.items()] if kwargs else kwargs
-        self._prop_count = len(kwargs)
+        self._props = [(prop, val) + ((val if callable(val) else None,)
+            ) for prop, val in kwargs.items()] if kwargs else kwargs
 
     def __iter__(self):
         roots = self._roots
         cls = self._cls
         callback = self._callback
         tags = self._tags
-        t_count = self._tag_count
         t_callback = self._tags_callback
         props = self._props
-        p_count = self._prop_count
 
         for root in roots:
             for widget in root.walk(restrict=True):
 
-                cls_match = (type(widget).__name__ == cls if cls
-                    else False if cls == '' else None)
+                if callback and not callback(widget):
+                    continue
 
-                callb_match = callback(widget) if callback else None
+                if cls and cls != type(widget).__name__:
+                    continue
 
-                tags_match = t_callback(widget.tags) if t_callback else len(
-                    [True for t in tags if t in widget.tags]
-                        ) == t_count if tags else None
+                if t_callback:
+                    if not t_callback(widget.tags):
+                        continue
+                elif tags:
+                    t_match = True
+                    for tag in tags:
+                        if tag not in widget.tags:
+                            t_match = False
+                            break
+                    if not t_match:
+                        continue
 
-                props_match = len([True for k, v, callback in props if hasattr(
-                    widget, k) and ((not callback and getattr(
-                        widget, k) == v) or (callback and callback(getattr(
-                            widget, k))))]) == p_count if props else None
+                if props:
+                    p_match = True
+                    for p, v, callback in props:
+                        if not hasattr(widget, p):
+                            p_match = False
+                            break
+                        prop_value = getattr(widget, p)
+                        if callback and not callback(prop_value):
+                            p_match = False
+                            break
+                        elif prop_value != v:
+                            p_match = False
+                            break
+                    if not p_match:
+                        continue
 
-                if (cls_match or cls_match is None) and (
-                    callb_match or callb_match is None) and (
-                        tags_match or tags_match is None) and (
-                            props_match or props_match is None):
-                    yield widget
+                yield widget
 
     def __setattr__(self, name, value):
         try:
@@ -800,7 +807,7 @@ class Widget(WidgetBase):
 
         See :class:`Selector` for more information.
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
 
         .. warning::
             This code is still experimental, and its API is subject to change
@@ -1141,7 +1148,7 @@ class Widget(WidgetBase):
     tags = ListProperty([])
     '''Tags of the widget, used for widget selection.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     See :class:`Selector` for more information.
     '''
