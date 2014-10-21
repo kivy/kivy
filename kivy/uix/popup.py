@@ -31,7 +31,7 @@ Example of a simple 400x400 Hello world popup::
         content=Label(text='Hello world'),
         size_hint=(None, None), size=(400, 400))
 
-By default, any click outside the popup will dismiss it. If you don't
+By default, any click outside the popup will dismiss/close it. If you don't
 want that, you can set
 :attr:`~kivy.uix.modalview.ModalView.auto_dismiss` to False::
 
@@ -152,7 +152,7 @@ class Popup(ModalView):
     defaults to 2dp.
     '''
 
-    # Internals properties used for graphical representation.
+    # Internal properties used for graphical representation.
 
     _container = ObjectProperty(None)
 
