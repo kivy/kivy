@@ -4,14 +4,18 @@ Layout
 
 Layouts are used to calculate and assign widget positions.
 
-The :class:`Layout` class itself cannot be used directly. You should use one of
-the concrete layout classes:
+The :class:`Layout` class itself cannot be used directly.
+You should use one of the following layout classes:
 
-- Anchor layout : :class:`kivy.uix.anchorlayout.AnchorLayout`
-- Box layout : :class:`kivy.uix.boxlayout.BoxLayout`
-- Float layout : :class:`kivy.uix.floatlayout.FloatLayout`
-- Grid layout : :class:`kivy.uix.gridlayout.GridLayout`
-- Stack layout : :class:`kivy.uix.stacklayout.StackLayout`
+- Anchor layout: :class:`kivy.uix.anchorlayout.AnchorLayout`
+- Box layout: :class:`kivy.uix.boxlayout.BoxLayout`
+- Float layout: :class:`kivy.uix.floatlayout.FloatLayout`
+- Grid layout: :class:`kivy.uix.gridlayout.GridLayout`
+- Page Layout: :class:`kivy.uix.pagelayout.PageLayout`
+- Relative layout: :class:`kivy.uix.relativelayout.RelativeLayout`
+- Scatter layout: :class:`kivy.uix.scatterlayout.ScatterLayout`
+- Stack layout: :class:`kivy.uix.stacklayout.StackLayout`
+
 
 Understanding the `size_hint` Property in `Widget`
 --------------------------------------------------
@@ -32,9 +36,8 @@ height to be identical to the parent's height, you would do::
     widget.size_hint = (0.5, 1.0)
 
 If you don't want to use a size_hint for either the width or height, set the
-value to
-None. For example, to make a widget that is 250px wide and 30% of the parent's
-height, do::
+value to None. For example, to make a widget that is 250px wide and 30%
+of the parent's height, do::
 
     widget.size_hint = (None, 0.3)
     widget.width = 250
