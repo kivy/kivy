@@ -120,7 +120,7 @@ class CodeInput(TextInput):
         return kw
 
     def _get_text_width(self, text, tab_width, _label_cached):
-        # Return the width of a text, according to the current line options
+        # Return the width of a text, according to the current line options.
         cid = u'{}\0{}\0{}'.format(text, self.password,
                                    self._get_line_options())
         width = Cache_get('textinput.width', cid)
