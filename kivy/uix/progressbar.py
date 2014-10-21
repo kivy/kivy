@@ -30,7 +30,7 @@ from kivy.properties import NumericProperty, AliasProperty
 
 
 class ProgressBar(Widget):
-    '''Class for creating a Progress bar widget.
+    '''Class for creating a progress bar widget.
 
     See module documentation for more details.
     '''
@@ -51,9 +51,9 @@ class ProgressBar(Widget):
     value = AliasProperty(_get_value, _set_value)
     '''Current value used for the slider.
 
-    :attr:`value` is an :class:`~kivy.properties.AliasProperty` than
-    returns the value of the progressbar. If the value is < 0 or >
-    :attr:`max`, it will be normalized to thoses boundaries.
+    :attr:`value` is an :class:`~kivy.properties.AliasProperty` that
+    returns the value of the progress bar. If the value is < 0 or >
+    :attr:`max`, it will be normalized to those boundaries.
 
     .. versionchanged:: 1.6.0
         The value is now limited to between 0 and :attr:`max`.
