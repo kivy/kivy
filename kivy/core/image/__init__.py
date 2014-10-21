@@ -194,7 +194,7 @@ class ImageLoaderBase(object):
             # if not create it and append to the cache
             if texture is None:
                 imagedata = self._data[count]
-                imagedata.source = '{}{}|{}'.format(
+                imagedata.source = u'{}{}|{}'.format(
                     'zip|' if self.filename.endswith('.zip') else '',
                     self._nocache, uid)
                 texture = Texture.create_from_data(
