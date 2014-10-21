@@ -248,7 +248,7 @@ class WindowBase(EventDispatcher):
 
     __instance = None
     __initialized = False
-    _is_desktop = platform in ('win', 'linux', 'macosx')
+    _is_desktop = Config.getboolean('kivy', 'desktop')
 
     # private properties
     _size = ListProperty([0, 0])
@@ -592,13 +592,13 @@ class WindowBase(EventDispatcher):
         pass
 
     def maximize(self):
-        '''Maximize the window. 
+        '''Maximizes the window. This method should be used on desktop
+        platforms only.
 
         .. versionadded:: 1.9.0
 
         .. note::
-            The following platforms are supported: Windows, Linux and OS X.
-            This method currently works only with the SDL2 window provider.
+            This feature works with the SDL2 window provider only.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -607,13 +607,13 @@ class WindowBase(EventDispatcher):
         pass
 
     def minimize(self):
-        '''Minimize the window.
+        '''Minimizes the window. This method should be used on desktop
+        platforms only.
 
         .. versionadded:: 1.9.0
 
         .. note::
-            The following platforms are supported: Windows, Linux and OS X.
-            This method currently works only with the SDL2 window provider.
+            This feature works with the SDL2 window provider only.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -622,13 +622,13 @@ class WindowBase(EventDispatcher):
         pass
 
     def restore(self):
-        '''Restore the size and position of a maximized or minimized window.
+        '''Restores the size and position of a maximized or minimized window.
+        This method should be used on desktop platforms only.
 
         .. versionadded:: 1.9.0
 
         .. note::
-            The following platforms are supported: Windows, Linux and OS X.
-            This method currently works only with the SDL2 window provider.
+            This feature works with the SDL2 window provider only.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -637,13 +637,13 @@ class WindowBase(EventDispatcher):
         pass
 
     def hide(self):
-        '''Hide the window.
+        '''Hides the window. This method should be used on desktop
+        platforms only.
 
         .. versionadded:: 1.9.0
 
         .. note::
-            The following platforms are supported: Windows, Linux and OS X.
-            This method currently works only with the SDL2 window provider.
+            This feature works with the SDL2 window provider only.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -652,13 +652,13 @@ class WindowBase(EventDispatcher):
         pass
 
     def show(self):
-        '''Show the window.
+        '''Shows the window. This method should be used on desktop
+        platforms only.
 
         .. versionadded:: 1.9.0
 
         .. note::
-            The following platforms are supported: Windows, Linux and OS X.
-            This method currently works only with the SDL2 window provider.
+            This feature works with the SDL2 window provider only.
 
         .. warning::
             This code is still experimental, and its API may be subject to

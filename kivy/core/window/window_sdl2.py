@@ -153,22 +153,32 @@ class WindowSDL(WindowBase):
     def maximize(self):
         if self._is_desktop:
             self._win.maximize_window()
+        else:
+            Logger.warning('Window: maximize() is used only on desktop OSes.')
 
     def minimize(self):
         if self._is_desktop:
             self._win.minimize_window()
+        else:
+            Logger.warning('Window: minimize() is used only on desktop OSes.')
 
     def restore(self):
         if self._is_desktop:
             self._win.restore_window()
+        else:
+            Logger.warning('Window: restore() is used only on desktop OSes.')
 
     def hide(self):
         if self._is_desktop:
             self._win.hide_window()
+        else:
+            Logger.warning('Window: hide() is used only on desktop OSes.')
 
     def show(self):
         if self._is_desktop:
             self._win.show_window()
+        else:
+            Logger.warning('Window: show() is used only on desktop OSes.')
 
     def set_title(self, title):
         self._win.set_window_title(title)
@@ -252,9 +262,11 @@ class WindowSDL(WindowBase):
                 times = min(abs(times), 100)
                 for k in range(times):
                     self._mouse_down = True
-                    self.dispatch('on_mouse_down', self._mouse_x, self._mouse_y, btn, self.modifiers)
+                    self.dispatch('on_mouse_down',
+                        self._mouse_x, self._mouse_y, btn, self.modifiers)
                     self._mouse_down = False
-                    self.dispatch('on_mouse_up', self._mouse_x, self._mouse_y, btn, self.modifiers)
+                    self.dispatch('on_mouse_up',
+                        self._mouse_x, self._mouse_y, btn, self.modifiers)
 
             # video resize
             elif action == 'windowresized':
