@@ -82,7 +82,7 @@ class Slider(Widget):
         100
 
     :attr:`range` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:attr:`min`, :attr:`max`).
+    (:attr:`min`, :attr:`max`) properties.
     '''
 
     step = BoundedNumericProperty(0, min=0)

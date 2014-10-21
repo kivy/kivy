@@ -6,15 +6,15 @@ Scatter Layout
 
 This layout behaves just like a
 :class:`~kivy.uix.relativelayout.RelativeLayout`.
-For example, if you create a :class:`ScatterLayout`, add a widget with
-position = (0,0), the child widget will also move when you change the
-position of the :class:`ScatterLayout`.  The child widget's coordinates remain
-(0,0), i.e. they are relative to the containing layout.
+When a widget is added with position = (0,0) to a :class:`ScatterLayout`,
+the child widget will also move when you change the position of the
+:class:`ScatterLayout`. The child widget's coordinates remain
+(0,0), they are relative to the parent layout.
 
 However, since :class:`ScatterLayout` is implemented using a
 :class:`~kivy.uix.scatter.Scatter`
 widget, you can also translate, rotate and scale the layout using touches
-(mouse or fingers) just like a normal Scatter widget and the child
+or clicks, just like in the case of a normal Scatter widget, and the child
 widgets will behave as expected.
 
 In contrast to a Scatter, the Layout favours 'hint' properties, such as
@@ -54,7 +54,7 @@ from kivy.properties import ObjectProperty
 
 
 class ScatterLayout(Scatter):
-    '''RelativeLayout class, see module documentation for more information.
+    '''ScatterLayout class, see module documentation for more information.
     '''
 
     content = ObjectProperty()

@@ -12,7 +12,7 @@ Anchor Layout
     .. image:: images/anchorlayout.png
         :align: right
 
-The :class:`AnchorLayout` aligns children to a border (top, bottom,
+The :class:`AnchorLayout` aligns its children to a border (top, bottom,
 left, right) or center.
 
 
@@ -36,8 +36,8 @@ class AnchorLayout(Layout):
     '''
 
     padding = VariableListProperty([0, 0, 0, 0])
-    '''Padding between the widget box and it's children, in pixels:
-    [padding_left,padding_top, padding_right, padding_bottom].
+    '''Padding between the widget box and its children, in pixels:
+    [padding_left, padding_top, padding_right, padding_bottom].
 
     padding also accepts a two argument form [padding_horizontal,
     padding_vertical] and a one argument form [padding].
@@ -108,4 +108,3 @@ class AnchorLayout(Layout):
             c.y = y
             c.width = w
             c.height = h
-

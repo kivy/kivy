@@ -2,7 +2,7 @@
 PageLayout
 ==========
 
-The :class:`PageLayout` class allow to create a simple multiple page
+The :class:`PageLayout` class is used to create a simple multi-page
 layout, in a way that allows easy flipping of one page to another using
 borders.
 
@@ -31,21 +31,21 @@ from kivy.animation import Animation
 
 
 class PageLayout(Layout):
-    '''PageLayout class. See module documentation for more information
+    '''PageLayout class. See module documentation for more information.
     '''
 
     page = NumericProperty(0)
     '''Currently displayed page.
 
-    :data:`page` is a :class:`~kivy.properties.NumericProperty`, default to 0.
+    :data:`page` is a :class:`~kivy.properties.NumericProperty`, defaults to 0.
     '''
 
     border = NumericProperty('50dp')
-    '''Width of the border used around current page to display previous/next
-    page when needed.
+    '''Width of the border used around the current page to display the 
+    previous/next page when needed.
 
     :data:`border` is a :class:`~kivy.properties.NumericProperty`,
-    default to 0.
+    defaults to 0.
     '''
 
     swipe_threshold = NumericProperty(.5)
@@ -53,7 +53,7 @@ class PageLayout(Layout):
     size.
 
     :data:`swipe_threshold` is a :class:`~kivy.properties.NumericProperty`,
-    default to .5.
+    defaults to .5.
     '''
 
     def __init__(self, **kwargs):

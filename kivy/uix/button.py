@@ -7,8 +7,8 @@ Button
 
 The :class:`Button` is a :class:`~kivy.uix.label.Label` with associated actions
 that are triggered when the button is pressed (or released after a
-click/touch).  To configure the button, you can use the same properties
-that you can use for the Label class::
+click/touch). To configure the button, the same properties are used
+as for the Label class::
 
     button = Button(text='Hello world', font_size=14)
 
@@ -83,7 +83,7 @@ class Button(ButtonBehavior, Label):
     background_disabled_normal = StringProperty(
         'atlas://data/images/defaulttheme/button_disabled')
     '''Background image of the button used for the default graphical
-    representation when the button is not pressed.
+    representation when the button is disabled and not pressed.
 
     .. versionadded:: 1.8.0
 
@@ -95,7 +95,7 @@ class Button(ButtonBehavior, Label):
     background_disabled_down = StringProperty(
         'atlas://data/images/defaulttheme/button_disabled_pressed')
     '''Background image of the button used for the default graphical
-    representation when the button is pressed.
+    representation when the button is disabled and pressed.
 
     .. versionadded:: 1.8.0
 
