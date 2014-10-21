@@ -12,7 +12,7 @@ Anchor Layout
     .. image:: images/anchorlayout.png
         :align: right
 
-The :class:`AnchorLayout` aligns children to a border (top, bottom,
+The :class:`AnchorLayout` aligns its children to a border (top, bottom,
 left, right) or center.
 
 
@@ -108,4 +108,3 @@ class AnchorLayout(Layout):
             c.y = y
             c.width = w
             c.height = h
-
