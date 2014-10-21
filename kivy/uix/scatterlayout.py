@@ -9,7 +9,7 @@ This layout behaves just like a
 When a widget is added with position = (0,0) to a :class:`ScatterLayout`,
 the child widget will also move when you change the position of the
 :class:`ScatterLayout`. The child widget's coordinates remain
-(0,0), they are relative to the parent layout.
+(0,0) as they are relative to the parent layout.
 
 However, since :class:`ScatterLayout` is implemented using a
 :class:`~kivy.uix.scatter.Scatter`
