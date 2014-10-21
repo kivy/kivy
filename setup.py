@@ -331,7 +331,7 @@ def determine_gl_flags():
         flags['include_dirs'] = ['/opt/vc/include',
             '/opt/vc/include/interface/vcos/pthreads',
             '/opt/vc/include/interface/vmcs_host/linux']
-        flags['extra_link_args'] = ['-L', '/opt/vc/lib']
+        flags['library_dirs'] = ['/opt/vc/lib']
         flags['libraries'] = ['bcm_host', 'EGL', 'GLESv2']
     else:
         flags['libraries'] = ['GL']
