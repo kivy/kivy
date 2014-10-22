@@ -604,7 +604,8 @@ class WindowBase(EventDispatcher):
             This code is still experimental, and its API may be subject to
             change in a future version.
         '''
-        pass
+        Logger.warning('Window: maximize() is not implemented in the current '
+                        'window provider.')
 
     def minimize(self):
         '''Minimizes the window. This method should be used on desktop
@@ -619,7 +620,8 @@ class WindowBase(EventDispatcher):
             This code is still experimental, and its API may be subject to
             change in a future version.
         '''
-        pass
+        Logger.warning('Window: minimize() is not implemented in the current '
+                        'window provider.')
 
     def restore(self):
         '''Restores the size and position of a maximized or minimized window.
@@ -634,7 +636,8 @@ class WindowBase(EventDispatcher):
             This code is still experimental, and its API may be subject to
             change in a future version.
         '''
-        pass
+        Logger.warning('Window: restore() is not implemented in the current '
+                        'window provider.')
 
     def hide(self):
         '''Hides the window. This method should be used on desktop
@@ -649,7 +652,8 @@ class WindowBase(EventDispatcher):
             This code is still experimental, and its API may be subject to
             change in a future version.
         '''
-        pass
+        Logger.warning('Window: hide() is not implemented in the current '
+                        'window provider.')
 
     def show(self):
         '''Shows the window. This method should be used on desktop
@@ -664,7 +668,8 @@ class WindowBase(EventDispatcher):
             This code is still experimental, and its API may be subject to
             change in a future version.
         '''
-        pass
+        Logger.warning('Window: show() is not implemented in the current '
+                        'window provider.')
 
     def close(self):
         '''Close the window'''
