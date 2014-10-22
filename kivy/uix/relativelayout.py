@@ -14,7 +14,7 @@ the layout.
 
 When a widget with position = (0,0) is added to a RelativeLayout,
 the child widget will also move when the position of the RelativeLayout
-is changed. The child widgets coordinates remain (0,0), they are
+is changed. The child widgets coordinates remain (0,0) as they are
 always relative to the parent layout.
 
 Coordinate Systems
