@@ -248,7 +248,7 @@ class WindowBase(EventDispatcher):
 
     __instance = None
     __initialized = False
-    _is_desktop = Config.getboolean('kivy', 'desktop')
+    _is_desktop = None
 
     # private properties
     _size = ListProperty([0, 0])
@@ -506,6 +506,7 @@ class WindowBase(EventDispatcher):
         # except if force is specified
         if WindowBase.__instance is not None and not kwargs.get('force'):
             return
+        self._is_desktop = Config.getboolean('kivy', 'desktop')
         self.initialized = False
 
         # create a trigger for update/create the window when one of window
