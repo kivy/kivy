@@ -587,7 +587,11 @@ class WindowBase(EventDispatcher):
         self.initialized = True
 
     def toggle_fullscreen(self):
-        '''Toggle fullscreen on window'''
+        '''Toggle between fullscreen and windowed mode.
+
+        .. deprecated:: 1.9.0
+            Use :attr:`fullscreen` instead.
+        '''
         pass
 
     def close(self):

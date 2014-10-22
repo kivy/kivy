@@ -27,7 +27,7 @@ from kivy.core.window._window_sdl2 import _WindowSDL2Storage
 from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from kivy.resources import resource_find
-from kivy.utils import platform
+from kivy.utils import platform, deprecated
 from kivy.compat import unichr
 from collections import deque
 
@@ -150,6 +150,10 @@ class WindowSDL(WindowBase):
     def close(self):
         self._win.teardown_window()
         self.dispatch('on_close')
+
+    @deprecated
+    def toggle_fullscreen(self):
+        self._win.toggle_fullscreen()
 
     def set_title(self, title):
         self._win.set_window_title(title)

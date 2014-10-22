@@ -87,7 +87,7 @@ cdef class _WindowSDL2Storage:
     def resize_window(self, w, h):
         SDL_SetWindowSize(self.win, w, h)
 
-    def set_fullscreen_mode(self, fake, fullscreen):
+    def set_fullscreen_mode(self, fake=False, fullscreen=False):
         if fake:
             mode = SDL_WINDOW_FULLSCREEN_DESKTOP
         elif fullscreen:
@@ -95,6 +95,13 @@ cdef class _WindowSDL2Storage:
         else:
             mode = False
         SDL_SetWindowFullscreen(self.win, mode)
+
+    def toggle_fullscreen(self):
+        if (SDL_GetWindowFlags(self.win) & SDL_WINDOW_FULLSCREEN or
+            SDL_GetWindowFlags(self.win) & SDL_WINDOW_FULLSCREEN_DESKTOP):
+            self.set_fullscreen_mode()
+        else:
+            self.set_fullscreen_mode(fake=True)
 
     def set_window_title(self, str title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
