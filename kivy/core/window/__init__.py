@@ -248,6 +248,7 @@ class WindowBase(EventDispatcher):
 
     __instance = None
     __initialized = False
+    _is_desktop = Config.getboolean('kivy', 'desktop')
 
     # private properties
     _size = ListProperty([0, 0])
@@ -589,6 +590,86 @@ class WindowBase(EventDispatcher):
     def toggle_fullscreen(self):
         '''Toggle fullscreen on window'''
         pass
+
+    def maximize(self):
+        '''Maximizes the window. This method should be used on desktop
+        platforms only.
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            This feature works with the SDL2 window provider only.
+
+        .. warning::
+            This code is still experimental, and its API may be subject to
+            change in a future version.
+        '''
+        Logger.warning('Window: maximize() is not implemented in the current '
+                        'window provider.')
+
+    def minimize(self):
+        '''Minimizes the window. This method should be used on desktop
+        platforms only.
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            This feature works with the SDL2 window provider only.
+
+        .. warning::
+            This code is still experimental, and its API may be subject to
+            change in a future version.
+        '''
+        Logger.warning('Window: minimize() is not implemented in the current '
+                        'window provider.')
+
+    def restore(self):
+        '''Restores the size and position of a maximized or minimized window.
+        This method should be used on desktop platforms only.
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            This feature works with the SDL2 window provider only.
+
+        .. warning::
+            This code is still experimental, and its API may be subject to
+            change in a future version.
+        '''
+        Logger.warning('Window: restore() is not implemented in the current '
+                        'window provider.')
+
+    def hide(self):
+        '''Hides the window. This method should be used on desktop
+        platforms only.
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            This feature works with the SDL2 window provider only.
+
+        .. warning::
+            This code is still experimental, and its API may be subject to
+            change in a future version.
+        '''
+        Logger.warning('Window: hide() is not implemented in the current '
+                        'window provider.')
+
+    def show(self):
+        '''Shows the window. This method should be used on desktop
+        platforms only.
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            This feature works with the SDL2 window provider only.
+
+        .. warning::
+            This code is still experimental, and its API may be subject to
+            change in a future version.
+        '''
+        Logger.warning('Window: show() is not implemented in the current '
+                        'window provider.')
 
     def close(self):
         '''Close the window'''
