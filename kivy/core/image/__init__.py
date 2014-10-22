@@ -180,23 +180,26 @@ class ImageLoaderBase(object):
 
     def populate(self):
         self._textures = []
+        fname = self.filename
         if __debug__:
             Logger.trace('Image: %r, populate to textures (%d)' %
-                         (self.filename, len(self._data)))
+                         (fname, len(self._data)))
 
         for count in range(len(self._data)):
 
             # first, check if a texture with the same name already exist in the
             # cache
-            uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
+            chr = type(fname)
+            uid = chr(u'%s|%d|%d') % (fname, self._mipmap, count)
             texture = Cache.get('kv.texture', uid)
 
             # if not create it and append to the cache
             if texture is None:
                 imagedata = self._data[count]
-                imagedata.source = '{}{}|{}'.format(
-                    'zip|' if self.filename.endswith('.zip') else '',
-                    self._nocache, uid)
+                source = '{}{}|'.format(
+                    'zip|' if fname.endswith('.zip') else '',
+                    self._nocache)
+                imagedata.source = chr(source) + uid
                 texture = Texture.create_from_data(
                     imagedata, mipmap=self._mipmap)
                 if not self._nocache:
@@ -341,7 +344,7 @@ class ImageLoader(object):
             if atlas:
                 texture = atlas[uid]
                 fn = 'atlas://%s/%s' % (rfn, uid)
-                cid = '%s|%s|%s' % (fn, False, 0)
+                cid = '{}|{:d}|{:d}'.format(fn, False, 0)
                 Cache.append('kv.texture', cid, texture)
                 return Image(texture)
 
@@ -357,7 +360,7 @@ class ImageLoader(object):
             # first time, fill our texture cache.
             for nid, texture in atlas.textures.items():
                 fn = 'atlas://%s/%s' % (rfn, nid)
-                cid = '%s|%s|%s' % (fn, False, 0)
+                cid = '{}|{:d}|{:d}'.format(fn, False, 0)
                 Cache.append('kv.texture', cid, texture)
             return Image(atlas[uid])
 
@@ -475,12 +478,14 @@ class Image(EventDispatcher):
 
         '''
         count = 0
-        uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
+        f = self.filename
+        pat = type(f)(u'%s|%d|%d')
+        uid = pat % (f, self._mipmap, count)
         Cache.remove("kv.image", uid)
         while Cache.get("kv.texture", uid):
             Cache.remove("kv.texture", uid)
             count += 1
-            uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
+            uid = pat % (f, self._mipmap, count)
 
     def _anim(self, *largs):
         if not self._image:
@@ -611,7 +616,8 @@ class Image(EventDispatcher):
         self._filename = value
 
         # construct uid as a key for Cache
-        uid = '%s|%s|%s' % (self.filename, self._mipmap, 0)
+        f = self.filename
+        uid = type(f)(u'%s|%d|%d') % (f, self._mipmap, 0)
 
         # in case of Image have been asked with keep_data
         # check the kv.image cache instead of texture.
@@ -643,7 +649,6 @@ class Image(EventDispatcher):
             self._filename, keep_data=self._keep_data,
             mipmap=self._mipmap, nocache=self._nocache)
         self._filename = tmpfilename
-
         # put the image into the cache if needed
         if isinstance(image, Texture):
             self._texture = image
