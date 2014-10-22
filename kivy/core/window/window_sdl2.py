@@ -153,7 +153,10 @@ class WindowSDL(WindowBase):
 
     @deprecated
     def toggle_fullscreen(self):
-        self._win.toggle_fullscreen()
+        if self._win._is_fullscreen():
+            self.fullscreen = False
+        else:
+            self.fullscreen = 'fake'
 
     def set_title(self, title):
         self._win.set_window_title(title)
