@@ -27,7 +27,7 @@ from kivy.core.window._window_sdl2 import _WindowSDL2Storage
 from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from kivy.resources import resource_find
-from kivy.utils import platform
+from kivy.utils import platform, deprecated
 from kivy.compat import unichr
 from collections import deque
 
@@ -121,6 +121,7 @@ class WindowSDL(WindowBase):
         else:
             w, h = self._size
             self._win.resize_window(w, h)
+            self._win.set_fullscreen_mode(use_fake, use_fullscreen)
 
         super(WindowSDL, self).create_window()
 
@@ -179,6 +180,13 @@ class WindowSDL(WindowBase):
             self._win.show_window()
         else:
             Logger.warning('Window: show() is used only on desktop OSes.')
+
+    @deprecated
+    def toggle_fullscreen(self):
+        if self.fullscreen in (True, 'fake'):
+            self.fullscreen = False
+        else:
+            self.fullscreen = 'fake'
 
     def set_title(self, title):
         self._win.set_window_title(title)
