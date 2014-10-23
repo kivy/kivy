@@ -693,6 +693,7 @@ setup(
         'kivy.effects',
         'kivy.ext',
         'kivy.graphics',
+        'kivy.garden',
         'kivy.input',
         'kivy.input.postproc',
         'kivy.input.providers',
@@ -767,4 +768,3 @@ setup(
     dependency_links=[
         'https://github.com/kivy-garden/garden/archive/master.zip'],
     install_requires=['Kivy-Garden==0.1.1'])
-
