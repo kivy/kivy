@@ -96,11 +96,6 @@ cdef class _WindowSDL2Storage:
             mode = False
         SDL_SetWindowFullscreen(self.win, mode)
 
-    # Used for toggle_fullscreen (deprecated).
-    def _is_fullscreen(self):
-        return (SDL_GetWindowFlags(self.win) & SDL_WINDOW_FULLSCREEN or
-            SDL_GetWindowFlags(self.win) & SDL_WINDOW_FULLSCREEN_DESKTOP)
-
     def set_window_title(self, str title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
 

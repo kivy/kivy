@@ -153,7 +153,7 @@ class WindowSDL(WindowBase):
 
     @deprecated
     def toggle_fullscreen(self):
-        if self._win._is_fullscreen():
+        if self.fullscreen in (True, 'fake'):
             self.fullscreen = False
         else:
             self.fullscreen = 'fake'
