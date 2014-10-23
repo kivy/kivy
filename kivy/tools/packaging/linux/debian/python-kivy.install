@@ -7,6 +7,7 @@ usr/lib/python2.7/dist-packages/kivy/effects/*
 usr/lib/python2.7/dist-packages/kivy/ext/*
 usr/lib/python2.7/dist-packages/kivy/extras/*
 usr/lib/python2.7/dist-packages/kivy/graphics/*.py*
+usr/lib/python2.7/dist-packages/kivy/garden/*
 usr/lib/python2.7/dist-packages/kivy/input
 usr/lib/python2.7/dist-packages/kivy/lib
 usr/lib/python2.7/dist-packages/kivy/modules
