@@ -17,7 +17,7 @@ from kivy import kivy_data_dir
 from kivy.base import ExceptionManager
 from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
-from kivy.utils import platform
+from kivy.utils import platform, deprecated
 from kivy.resources import resource_find
 from kivy.clock import Clock
 
@@ -257,6 +257,7 @@ class WindowPygame(WindowBase):
         pygame.display.flip()
         super(WindowPygame, self).flip()
 
+    @deprecated
     def toggle_fullscreen(self):
         if self.flags & pygame.FULLSCREEN:
             self.flags &= ~pygame.FULLSCREEN
