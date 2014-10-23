@@ -762,12 +762,8 @@ class TextInput(Widget):
             - cursor_pgup: move one "page" before
             - cursor_pgdown: move one "page" after
 
-        .. warning::
-
-            Current page has three lines before/after.
-
         '''
-        pgmove_speed = 3
+        pgmove_speed = round(self.height/(self.line_height + self.line_spacing)) - 1
         col, row = self.cursor
         if action == 'cursor_up':
             row = max(row - 1, 0)
@@ -794,11 +790,10 @@ class TextInput(Widget):
         elif action == 'cursor_end':
             col = len(self._lines[row])
         elif action == 'cursor_pgup':
-            row /= pgmove_speed
+            row = max(0, row - pgmove_speed)
             col = min(len(self._lines[row]), col)
         elif action == 'cursor_pgdown':
-            row = min((row + 1) * pgmove_speed,
-                      len(self._lines) - 1)
+            row = min(row + pgmove_speed, len(self._lines) - 1)
             col = min(len(self._lines[row]), col)
         self.cursor = (col, row)
 
