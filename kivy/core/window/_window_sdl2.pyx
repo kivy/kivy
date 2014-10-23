@@ -66,8 +66,8 @@ cdef class _WindowSDL2Storage:
         if not self.win:
             self.die()
 
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
 
         self.ctx = SDL_GL_CreateContext(self.win)
         if not self.ctx:
@@ -75,6 +75,8 @@ cdef class _WindowSDL2Storage:
         cdef SDL_DisplayMode mode
         SDL_GetWindowDisplayMode(self.win, &mode)
         SDL_JoystickOpen(0)
+
+        SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
         return mode.w, mode.h
 
     def resize_display_mode(self, w, h):
@@ -135,6 +137,8 @@ cdef class _WindowSDL2Storage:
         action = None
         if event.type == SDL_QUIT:
             return ('quit', )
+        elif event.type == SDL_DROPFILE:
+            return ('dropfile', event.drop.file)
         elif event.type == SDL_MOUSEMOTION:
             x = event.motion.x
             y = event.motion.y
