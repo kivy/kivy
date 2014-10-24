@@ -156,7 +156,7 @@ the value can use the values of other properties using reserved keywords.
         This keyword is available only in rule definitions and represents the
         root widget of the rule (the first instance of the rule)::
 
-            <Widget>:
+            <MyWidget>:
                 custom: 'Hello world'
                 Button:
                     text: root.custom
@@ -178,7 +178,7 @@ the value can use the values of other properties using reserved keywords.
 Furthermore, if a class definition contains an id, you can use it as a
 keyword::
 
-    <Widget>:
+    <MyWidget>:
         Button:
             id: btn1
         Button:
