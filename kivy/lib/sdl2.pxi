@@ -4,6 +4,14 @@
 #whose terms are available in the LICENSE file or at http://www.ignifuga.org/license
 
 
+cdef extern from "SDL_joystick.h":
+    cdef struct SDL_Joystick
+    cdef int SDL_HAT_CENTERED = 0x00
+    cdef int SDL_HAT_UP = 0x01
+    cdef int SDL_HAT_RIGHT = 0x02
+    cdef int SDL_HAT_DOWN = 0x04
+    cdef int SDL_HAT_LEFT = 0x08
+
 cdef extern from "SDL.h":
     ctypedef unsigned char Uint8
     ctypedef unsigned long Uint32
@@ -14,6 +22,7 @@ cdef extern from "SDL.h":
     ctypedef unsigned short Uint16
     ctypedef void *SDL_GLContext
     ctypedef Uint32 SDL_Keycode
+    ctypedef Sint32 SDL_JoystickID
 
     int SDL_WINDOWPOS_UNDEFINED
 
@@ -291,15 +300,31 @@ cdef extern from "SDL.h":
         Uint32 windowID
         int x
         int y
-
     cdef struct SDL_JoyAxisEvent:
-        pass
+        Uint32 type
+        Uint32 timestamp
+        SDL_JoystickID which
+        Uint8 axis
+        Sint16 value
     cdef struct SDL_JoyBallEvent:
-        pass
+        Uint32 type
+        Uint32 timestamp
+        SDL_JoystickID which
+        Uint8 ball
+        Sint16  xrel
+        Sint16  yrel
     cdef struct SDL_JoyHatEvent:
-        pass
+        Uint32 type
+        Uint32 timestamp
+        SDL_JoystickID which
+        Uint8 hat
+        Uint8 value
     cdef struct SDL_JoyButtonEvent:
-        pass
+        Uint32 type
+        Uint32 timestamp
+        SDL_JoystickID which
+        Uint8 button
+        Uint8 state
     cdef struct SDL_QuitEvent:
         pass
     cdef struct SDL_UserEvent:
@@ -521,6 +546,7 @@ cdef extern from "SDL.h":
     cdef void SDL_GL_SwapWindow(SDL_Window * window)
     cdef void SDL_GL_DeleteContext(SDL_GLContext context)
     
+    cdef SDL_Joystick * SDL_JoystickOpen(int index)
     cdef SDL_Window * SDL_GetKeyboardFocus()
     cdef Uint8 *SDL_GetKeyboardState(int *numkeys)
     cdef SDL_Keymod SDL_GetModState()
@@ -553,6 +579,7 @@ cdef extern from "SDL.h":
     Uint16 AUDIO_F32LSB #0x8120  /**< 32-bit floating point samples */
     Uint16 AUDIO_F32MSB #0x9120  /**< As above, but big-endian byte order */
     Uint16 AUDIO_F32    #AUDIO_F32LSB
+
 
 cdef extern from "SDL_image.h":
     ctypedef enum IMG_InitFlags:

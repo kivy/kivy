@@ -26,7 +26,7 @@ cdef class _WindowSDL2Storage:
         elif use_fullscreen:
             self.win_flags |= SDL_WINDOW_FULLSCREEN
 
-        if SDL_Init(SDL_INIT_VIDEO) < 0:
+        if SDL_Init(SDL_INIT_VIDEO| SDL_INIT_JOYSTICK) < 0:
             self.die()
 
         '''
@@ -74,6 +74,7 @@ cdef class _WindowSDL2Storage:
             self.die()
         cdef SDL_DisplayMode mode
         SDL_GetWindowDisplayMode(self.win, &mode)
+        SDL_JoystickOpen(0)
         return mode.w, mode.h
 
     def resize_display_mode(self, w, h):
@@ -161,6 +162,28 @@ cdef class _WindowSDL2Storage:
             y = event.tfinger.y
             action = 'fingerdown' if event.type == SDL_FINGERDOWN else 'fingerup'
             return (action, fid, x, y)
+        elif event.type == SDL_JOYAXISMOTION:
+            return ('joyaxismotion', event.jaxis.which, event.jaxis.axis, event.jaxis.value)
+        elif event.type == SDL_JOYHATMOTION:
+            vx = 0
+            vy = 0
+            if (event.jhat.value != SDL_HAT_CENTERED):
+                if (event.jhat.value & SDL_HAT_UP):
+                    vy=1
+                elif (event.jhat.value & SDL_HAT_DOWN):
+                    vy=-1
+                if (event.jhat.value & SDL_HAT_RIGHT):
+                    vx=1
+                elif (event.jhat.value & SDL_HAT_LEFT):
+                    vx=-1
+            return ('joyhatmotion', event.jhat.which, event.jhat.hat, (vx,vy))
+        elif event.type == SDL_JOYBALLMOTION:
+            return ('joyballmotion', event.jball.which,
+                       event.jball.ball, event.jball.xrel, event.jball.yrel)
+        elif event.type == SDL_JOYBUTTONDOWN:
+            return ('joybuttondown', event.jbutton.which, event.jbutton.button)
+        elif event.type == SDL_JOYBUTTONUP:
+            return ('joybuttonup', event.jbutton.which, event.jbutton.button)
         elif event.type == SDL_WINDOWEVENT:
             if event.window.event == SDL_WINDOWEVENT_EXPOSED:
                 action = ('windowexposed', )
