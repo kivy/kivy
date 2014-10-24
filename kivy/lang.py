@@ -555,24 +555,25 @@ When you are creating a context:
 
     #. you cannot use references other than "root":
 
-    .. code-block:: kv
+        .. code-block:: kv
 
-        <MyRule>:
-            Widget:
-                id: mywidget
-                value: 'bleh'
-            Template:
-                ctxkey: mywidget.value # << fail, this reference mywidget id
+            <MyRule>:
+                Widget:
+                    id: mywidget
+                    value: 'bleh'
+                Template:
+                    ctxkey: mywidget.value # << fail, this references the id
+                    # mywidget
 
     #. not all of the dynamic parts will be understood:
 
-    .. code-block:: kv
+        .. code-block:: kv
 
-        <MyRule>:
-            Template:
-                ctxkey: 'value 1' if root.prop1 else 'value2' # << even if
-                # root.prop1 is a property, the context will not update the
-                # context
+            <MyRule>:
+                Template:
+                    ctxkey: 'value 1' if root.prop1 else 'value2' # << even if
+                    # root.prop1 is a property, if it changes value, ctxkey
+                    # will not be updated
 
 Redefining a widget's style
 ---------------------------
