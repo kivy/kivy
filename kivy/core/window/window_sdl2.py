@@ -101,8 +101,6 @@ class WindowSDL(WindowBase):
         borderless = self.borderless
         use_fullscreen = self.fullscreen
 
-        print(borderless, use_fullscreen)
-
         if self._fake_fullscreen:
             if not borderless:
                 self.fullscreen = self._fake_fullscreen = use_fullscreen = False
@@ -114,9 +112,6 @@ class WindowSDL(WindowBase):
             Logger.warning("The 'fake' fullscreen option has been "
                             "deprecated, use Window.borderless or the "
                             "borderless Config option instead.")
-
-        print(self.borderless, self.fullscreen)
-        print(borderless, use_fullscreen)
 
         if not self.initialized:
 

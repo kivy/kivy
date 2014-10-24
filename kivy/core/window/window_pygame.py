@@ -34,6 +34,9 @@ glReadPixels = GL_RGBA = GL_UNSIGNED_BYTE = None
 
 class WindowPygame(WindowBase):
 
+    def set_border_state(self, state):
+        pass
+
     def create_window(self, *largs):
         # ensure the mouse is still not up after window creation, otherwise, we
         # have some weird bugs
@@ -77,8 +80,21 @@ class WindowPygame(WindowBase):
             raise ValueError('position token in configuration accept only '
                              '"auto" or "custom"')
 
+        if self._fake_fullscreen:
+            if not self.borderless:
+                self.fullscreen = self._fake_fullscreen  = False
+            elif not self.fullscreen:
+                self.borderless = self._fake_fullscreen = False
+
         if self.fullscreen == 'fake':
+            self.borderless = self._fake_fullscreen = True
+            Logger.warning("The 'fake' fullscreen option has been "
+                            "deprecated, use Window.borderless or the "
+                            "borderless Config option instead.")
+
+        if self.fullscreen == 'fake' or self.borderless:
             Logger.debug('WinPygame: Set window to fake fullscreen mode')
+
             self.flags |= pygame.NOFRAME
             # if no position set, in fake mode, we always need to set the
             # position. so replace 0, 0.
