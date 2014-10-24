@@ -108,7 +108,8 @@ Available configuration tokens
         Time allowed for the detection of triple tap, in milliseconds.
 
 :graphics:
-
+    `borderless`: int , one of 0 or 1
+        If set to `1`, removes the window border/decoration.
     `fbo`: string, one of 'hardware', 'software' or 'force-hardware'
         Selects the FBO backend to use.
     `fullscreen`: int or string, one of 0, 1, 'fake' or 'auto'
@@ -117,7 +118,8 @@ Available configuration tokens
         If set to `auto`, your current display's resolution will be
         used instead. This is most likely what you want.
         If you want to place the window in another display,
-        use `fake` and adjust `width`, `height`, `top` and `left`.
+        use `fake`, or set the `borderless` option from the graphics section,
+        then adjust `width`, `height`, `top` and `left`.
     `height`: int
         Height of the :class:`~kivy.core.window.Window`, not used if
         `fullscreen` is set to `auto`.
@@ -218,6 +220,11 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted
     arguments.
 
+.. versionchanged:: 1.9.0
+    `borderless` has been added to the graphics section.
+    The `fake` option of `fullscreen` in the graphics section has been
+    deprecated, use the `bordered` option in the graphics section instead.
+
 .. versionchanged:: 1.8.0
     `systemanddock` and `systemandmulti` has been added as possible values for
     `keyboard_mode` in the kivy section. `exit_on_escape` has been added
@@ -257,7 +264,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 10
+KIVY_CONFIG_VERSION = 11
 
 Config = None
 '''Kivy configuration object. Its :attr:`~kivy.config.ConfigParser.name` is
@@ -719,6 +726,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 9:
             Config.setdefault('kivy', 'exit_on_escape', '1')
+            
+        elif version == 10:
+            Config.set('graphics', 'fullscreen', '0')
+            Config.setdefault('graphics', 'borderless', '0')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1

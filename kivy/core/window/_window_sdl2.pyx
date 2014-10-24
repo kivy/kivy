@@ -16,14 +16,14 @@ cdef class _WindowSDL2Storage:
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
 
-    def setup_window(self, x, y, width, height, use_fake, use_fullscreen,
+    def setup_window(self, x, y, width, height, borderless, use_fullscreen,
                      shaped=False):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
-        if use_fake or shaped:
+        if borderless or shaped:
             self.win_flags |= SDL_WINDOW_BORDERLESS
         if use_fullscreen == 'auto':
             self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
-        elif use_fullscreen:
+        elif use_fullscreen and use_fullscreen != 'fake':
             self.win_flags |= SDL_WINDOW_FULLSCREEN
 
         if SDL_Init(SDL_INIT_VIDEO) < 0:
@@ -102,12 +102,15 @@ cdef class _WindowSDL2Storage:
     def show_window(self):
         SDL_ShowWindow(self.win)
 
-    def set_fullscreen_mode(self, fake=False, fullscreen=False):
-        if fake:
+    def set_border_state(self, state):
+        SDL_SetWindowBordered(self.win, SDL_FALSE if state else SDL_TRUE)
+
+    def set_fullscreen_mode(self, mode):
+        if mode == 'auto':
             mode = SDL_WINDOW_FULLSCREEN_DESKTOP
-        elif fullscreen:
+        elif mode and mode != 'fake':
             mode = SDL_WINDOW_FULLSCREEN
-        else:
+        elif not mode or mode == 'fake':
             mode = False
         SDL_SetWindowFullscreen(self.win, mode)
 

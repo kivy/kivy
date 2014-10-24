@@ -98,11 +98,25 @@ class WindowSDL(WindowBase):
             KMOD_RMETA)
 
     def create_window(self, *largs):
-        use_fake = self.fullscreen == 'fake'
-        use_fullscreen = False
+        borderless = self.borderless
+        use_fullscreen = self.fullscreen
 
-        if self.fullscreen in ('auto', True):
-            use_fullscreen = self.fullscreen
+        print(borderless, use_fullscreen)
+
+        if self._fake_fullscreen:
+            if not borderless:
+                self.fullscreen = self._fake_fullscreen = use_fullscreen = False
+            elif not use_fullscreen:
+                self.borderless = self._fake_fullscreen = borderless = False
+
+        if self.fullscreen == 'fake':
+            self.borderless = self._fake_fullscreen = borderless = True
+            Logger.warning("The 'fake' fullscreen option has been "
+                            "deprecated, use Window.borderless or the "
+                            "borderless Config option instead.")
+
+        print(self.borderless, self.fullscreen)
+        print(borderless, use_fullscreen)
 
         if not self.initialized:
 
@@ -114,14 +128,15 @@ class WindowSDL(WindowBase):
             # setup !
             w, h = self._size
             gl_size = self._win.setup_window(pos[0], pos[1], w, h,
-                                             use_fake, use_fullscreen)
+                                             borderless, use_fullscreen)
             # never stay with a None pos, application using w.center
             # will be fired.
             self._pos = (0, 0)
         else:
             w, h = self._size
             self._win.resize_window(w, h)
-            self._win.set_fullscreen_mode(use_fake, use_fullscreen)
+            self._win.set_border_state(borderless)
+            self._win.set_fullscreen_mode(use_fullscreen)
 
         super(WindowSDL, self).create_window()
 
@@ -183,10 +198,10 @@ class WindowSDL(WindowBase):
 
     @deprecated
     def toggle_fullscreen(self):
-        if self.fullscreen in (True, 'fake'):
+        if self.fullscreen in (True, 'auto'):
             self.fullscreen = False
         else:
-            self.fullscreen = 'fake'
+            self.fullscreen = 'auto'
 
     def set_title(self, title):
         self._win.set_window_title(title)
