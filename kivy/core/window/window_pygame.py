@@ -34,9 +34,6 @@ glReadPixels = GL_RGBA = GL_UNSIGNED_BYTE = None
 
 class WindowPygame(WindowBase):
 
-    def set_border_state(self, state):
-        pass
-
     def create_window(self, *largs):
         # ensure the mouse is still not up after window creation, otherwise, we
         # have some weird bugs
