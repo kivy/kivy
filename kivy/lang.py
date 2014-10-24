@@ -139,8 +139,8 @@ return the root widget defined in your kv file/string. They will also add any
 class and template definitions to the :class:`~kivy.factory.Factory` for later
 usage.
 
-Value Expressions, on_property Expressions, and Reserved Keywords
------------------------------------------------------------------
+Value Expressions, on_property Expressions, ids and Reserved Keywords
+---------------------------------------------------------------------
 
 When you specify a property's value, the value is evaluated as a Python
 expression. This expression can be static or dynamic, which means that
@@ -175,8 +175,10 @@ the value can use the values of other properties using reserved keywords.
             TextInput:
                 on_focus: self.insert_text("Focus" if args[1] else "No focus")
 
-Furthermore, if a class definition contains an id, you can use it as a
-keyword::
+ids
+~~~
+
+Class definitions may contain ids which can be used as a keywords:::
 
     <MyWidget>:
         Button:
@@ -188,6 +190,19 @@ Please note that the `id` will not be available in the widget instance:
 it is used exclusively for external references. `id` is a weakref to the
 widget, and not the widget itself. The widget itself can be accessed
 with `id.__self__` (`btn1.__self__` in this case).
+
+When the kv file is processed, weakrefs to all the widgets tagged with ids are
+added to the root widgets `ids` dictionary. In other words, following on from
+the example above, the buttons state could also be accessed as follows:
+
+.. code-block:: python
+
+    widget = MyWidget()
+    state = widget.ids["btn1"].state
+
+Note that the outermost widget applies the kv rules to all its inner widgets
+before any other rules are applied. This means if an inner widget contains ids,
+these ids may not be available during the inner widget's `__init__` function.
 
 Valid expressons
 ~~~~~~~~~~~~~~~~
