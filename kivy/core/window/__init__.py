@@ -908,22 +908,32 @@ class WindowBase(EventDispatcher):
         pass
 
     def on_joy_axis(self, stickid, axisid, value):
-        '''Event called when a joystick has a stick or other axis moved'''
+        '''Event called when a joystick has a stick or other axis moved
+
+        .. versionadded:: 1.9.0'''
         pass
 
     def on_joy_hat(self, stickid, hatid, value):
-        '''Event called when a joystick has a hat/dpad moved'''
+        '''Event called when a joystick has a hat/dpad moved
+
+        .. versionadded:: 1.9.0'''
         pass
 
     def on_joy_ball(self, stickid, ballid, value):
-        '''Event called when a joystick has a ball moved'''
+        '''Event called when a joystick has a ball moved
+
+        .. versionadded:: 1.9.0'''
         pass
 
     def on_joy_button_down(self, stickid, buttonid):
-        '''Event called when a joystick has a button pressed'''
+        '''Event called when a joystick has a button pressed
+
+        .. versionadded:: 1.9.0'''
         pass
     def on_joy_button_up(self, stickid, buttonid):
-        '''Event called when a joystick has a button released'''
+        '''Event called when a joystick has a button released
+
+        .. versionadded:: 1.9.0'''
         pass
 
     def on_keyboard(self, key, scancode=None, codepoint=None,
