@@ -51,7 +51,6 @@ To remove the Inspector, you can do the following::
     inspector.stop(Window, button)
 
 '''
-
 __all__ = ('start', 'stop', 'create_inspector')
 
 import kivy
@@ -131,7 +130,7 @@ Builder.load_string('''
                 text: 'Parent'
                 on_release:
                     root.highlight_widget(root.widget.parent) if root.widget \
-                            and root.widget.parent is not root.win else None
+                            else None
                 size_hint_x: None
                 width: 80
 
@@ -296,8 +295,12 @@ class Inspector(FloatLayout):
 
         # determine rotation
         a = Vector(1, 0)
-        b = Vector(widget.to_window(*widget.to_parent(0, 0)))
-        c = Vector(widget.to_window(*widget.to_parent(1, 0))) - b
+        if widget is self.win:
+            b = Vector(widget.to_window(0, 0))
+            c = Vector(widget.to_window(1, 0))
+        else:
+            b = Vector(widget.to_window(*widget.to_parent(0, 0)))
+            c = Vector(widget.to_window(*widget.to_parent(1, 0))) - b
         angle = -a.angle(c)
 
         # determine scale
@@ -305,7 +308,10 @@ class Inspector(FloatLayout):
 
         # apply transform
         gr.size = widget.size
-        self.gtranslate.xy = Vector(widget.to_window(*widget.pos))
+        if widget is self.win:
+            self.gtranslate.xy = Vector(widget.to_window(0, 0))
+        else:
+            self.gtranslate.xy = Vector(widget.to_window(*widget.pos))
         self.grotate.angle = angle
         # fix warning about scale property deprecation
         self.gscale.xyz = (scale,) * 3
