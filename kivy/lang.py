@@ -233,7 +233,7 @@ Examples of valid statements are:
     on_state:
         if self.state == 'normal': print('normal')
         else: print('down')
-        if self.state == 'normal': \
+        if self.state == 'normal': \\
         print('multiline normal')
         for i in range(10): print(i)
         print([1,2,3,4,
@@ -393,7 +393,7 @@ automatically created as an :class:`~kivy.properties.ObjectProperty`
     external binding), then the value will be used as default value of the
     property, and the type of the value will be used for the specialization of
     the Property class. In other terms: if you declare `hello: "world"`, a new
-    :class:`~kivy.properties.StringProperty` will be instanciated, with the
+    :class:`~kivy.properties.StringProperty` will be instantiated, with the
     default value `"world"`. Lists, tuples, dictionaries and strings are
     supported.
 
@@ -478,7 +478,7 @@ filename and a title:
         Label:
             text: ctx.title
 
-Then in Python, you can instanciate the template using:
+Then in Python, you can instantiate the template using:
 
 .. code-block:: python
 
@@ -1840,7 +1840,7 @@ class BuilderBase(object):
         BuilderBase._match_cache = {}
 
     def _apply_rule(self, widget, rule, rootrule, template_ctx=None):
-        # widget: the current instanciated widget
+        # widget: the current instantiated widget
         # rule: the current rule
         # rootrule: the current root rule (for children of a rule)
 
