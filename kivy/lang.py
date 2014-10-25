@@ -200,6 +200,9 @@ the example above, the buttons state could also be accessed as follows:
     widget = MyWidget()
     state = widget.ids["btn1"].state
 
+    # Or, as an alternative syntax,
+    state = widget.ids.btn1.state
+
 Note that the outermost widget applies the kv rules to all its inner widgets
 before any other rules are applied. This means if an inner widget contains ids,
 these ids may not be available during the inner widget's `__init__` function.
