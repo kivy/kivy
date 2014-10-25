@@ -202,7 +202,7 @@ will be automatically called when needed::
         self.texture.add_reload_observer(self.populate_texture)
 
         # and load the data now.
-        self.cbuffer = '\x00\xf0\xff' * 512 * 512
+        self.cbuffer = '\\x00\\xf0\\xff' * 512 * 512
         self.populate_texture(self.texture)
 
     def populate_texture(self, texture):
@@ -214,7 +214,7 @@ This way, you can use the same method for initialization and reloading.
 
     For all text rendering with our core text renderer, the texture is generated
     but we already bind a method to redo the text rendering and reupload
-    the text to the texture. You have nothing to do in this case.
+    the text to the texture. You don't have to do anything.
 '''
 
 __all__ = ('Texture', 'TextureRegion')
