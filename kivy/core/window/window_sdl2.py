@@ -102,7 +102,7 @@ class WindowSDL(WindowBase):
         if self._fake_fullscreen:
             if not self.borderless:
                 self.fullscreen = self._fake_fullscreen = False
-            elif self.not fullscreen:
+            elif not self.fullscreen or self.fullscreen == 'auto':
                 self.borderless = self._fake_fullscreen = False
 
         if self.fullscreen == 'fake':
