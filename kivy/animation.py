@@ -62,7 +62,6 @@ property, you should either schedule them sequentially (via the '+' operator or
 using the *on_complete* callback) or cancel previous animations using the
 :attr:`~Animation.cancel_all` method.
 
-
 Repeating animation
 -------------------
 
