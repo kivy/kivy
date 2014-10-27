@@ -135,6 +135,7 @@ cdef extern from "SDL.h":
 
     ctypedef enum SDL_EventType:
         SDL_FIRSTEVENT     = 0,
+        SDL_DROPFILE       = 0x1000,
         SDL_QUIT           = 0x100
         SDL_WINDOWEVENT    = 0x200
         SDL_SYSWMEVENT
@@ -213,6 +214,10 @@ cdef extern from "SDL.h":
         SDL_WINDOW_FOREIGN = 0x00000800         #            /**< window not created by SDL */
         SDL_WINDOW_FULLSCREEN_DESKTOP
 
+    cdef struct SDL_DropEvent:
+        Uint32 type
+        Uint32 timestamp
+        char* file
 
     cdef struct SDL_MouseMotionEvent:
         Uint32 type
@@ -354,6 +359,7 @@ cdef extern from "SDL.h":
         SDL_TextInputEvent text
         SDL_MouseMotionEvent motion
         SDL_MouseButtonEvent button
+        SDL_DropEvent drop
         SDL_MouseWheelEvent wheel
         SDL_JoyAxisEvent jaxis
         SDL_JoyBallEvent jball
@@ -409,6 +415,10 @@ cdef extern from "SDL.h":
     cdef enum SDL_Scancode:
         pass
 
+    cdef int SDL_QUERY               = -1
+    cdef int SDL_IGNORE              =  0
+    cdef int SDL_DISABLE             =  0
+    cdef int SDL_ENABLE              =  1
     cdef int SDL_INIT_TIMER          = 0x00000001
     cdef int SDL_INIT_AUDIO          = 0x00000010
     cdef int SDL_INIT_VIDEO          = 0x00000020  # SDL_INIT_VIDEO implies SDL_INIT_EVENTS */
@@ -452,6 +462,7 @@ cdef extern from "SDL.h":
     cdef int SDL_EnableUNICODE(int enable)
     cdef Uint32 SDL_GetTicks()
     cdef void SDL_Delay(Uint32 ms) nogil
+    cdef Uint8 SDL_EventState(Uint32 type, int state)
     cdef int SDL_PollEvent(SDL_Event * event)
     cdef SDL_RWops * SDL_RWFromFile(char *file, char *mode)
     cdef SDL_RWops * SDL_RWFromMem(void *mem, int size)

@@ -1073,9 +1073,10 @@ class WindowBase(EventDispatcher):
 
         .. warning::
 
-            This event is currently used only on MacOSX with a patched version
-            of pygame, but is left in place for further evolution (ios,
-            android etc.)
+            This event is currently works sdl2 window provider and on pygame
+            window provider and MacOSX with a patched version of pygame.
+            This event is left in place for further evolution
+            (ios, android etc.)
 
         .. versionadded:: 1.2.0
         '''

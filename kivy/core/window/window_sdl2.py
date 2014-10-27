@@ -58,6 +58,7 @@ class SDL2MotionEvent(MotionEvent):
         self.sx, self.sy = args
         super(SDL2MotionEvent, self).depack(args)
 
+
 class SDL2MotionEventProvider(MotionEventProvider):
     win = None
     q = deque()
@@ -88,13 +89,14 @@ class SDL2MotionEventProvider(MotionEventProvider):
             else:
                 dispatch_fn('update', me)
 
+
 class WindowSDL(WindowBase):
 
     def __init__(self, **kwargs):
         self._win = _WindowSDL2Storage()
         super(WindowSDL, self).__init__()
-        self._meta_keys = (KMOD_LCTRL, KMOD_RCTRL, KMOD_RSHIFT,\
-            KMOD_LSHIFT, KMOD_RALT, KMOD_LALT, KMOD_LMETA,\
+        self._meta_keys = (KMOD_LCTRL, KMOD_RCTRL, KMOD_RSHIFT,
+            KMOD_LSHIFT, KMOD_RALT, KMOD_LALT, KMOD_LMETA,
             KMOD_RMETA)
 
     def create_window(self, *largs):
@@ -268,6 +270,9 @@ class WindowSDL(WindowBase):
                     self.dispatch('on_mouse_up',
                         self._mouse_x, self._mouse_y, btn, self.modifiers)
 
+            elif action == 'dropfile':
+                dropfile = args
+                self.dispatch('on_dropfile', dropfile[0])
             # video resize
             elif action == 'windowresized':
                 self._size = args
@@ -311,21 +316,21 @@ class WindowSDL(WindowBase):
 
                 # XXX ios keyboard suck, when backspace is hit, the delete
                 # keycode is sent. fix it.
-                key_swap = {127:8,# back
-                            SDLK_LEFT:276,
-                            SDLK_RIGHT:275,
-                            SDLK_UP:273,
-                            SDLK_DOWN:274,
-                            SDLK_HOME:278,
-                            SDLK_END:279,
-                            SDLK_PAGEDOWN:281,
-                            SDLK_PAGEUP:280,
-                            SDLK_SHIFTL:303,
-                            SDLK_SHIFTR:304}
+                key_swap = {127: 8,  # back
+                            SDLK_LEFT: 276,
+                            SDLK_RIGHT: 275,
+                            SDLK_UP: 273,
+                            SDLK_DOWN: 274,
+                            SDLK_HOME: 278,
+                            SDLK_END: 279,
+                            SDLK_PAGEDOWN: 281,
+                            SDLK_PAGEUP: 280,
+                            SDLK_SHIFTL: 303,
+                            SDLK_SHIFTR: 304}
                 try:
                     key = key_swap[key]
                 except KeyError:
-                    pass 
+                    pass
 
                 self._update_modifiers(mod)
                 if action == 'keyup':
