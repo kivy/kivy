@@ -90,11 +90,11 @@ class WindowPygame(WindowBase):
                             "borderless Config option instead.")
 
         if self.fullscreen == 'fake' or self.borderless:
-            Logger.debug('WinPygame: Set window to fake fullscreen mode')
+            Logger.debug('WinPygame: Set window to borderless mode.')
 
             self.flags |= pygame.NOFRAME
-            # if no position set, in fake mode, we always need to set the
-            # position. so replace 0, 0.
+            # If no position set in borderless mode, we always need
+            # to set the position. So use 0, 0.
             if self._pos is None:
                 self._pos = (0, 0)
             environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
