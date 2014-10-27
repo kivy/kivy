@@ -3,6 +3,10 @@ from kivy.graphics.opengl_utils cimport (gl_has_texture_native_format,
 cimport cython
 from cython cimport view as cyview
 from cpython.array cimport array, clone
+from cpython.ref cimport PyObject
+
+cdef extern from "Python.h":
+    void Py_DECREF(PyObject *)
 
 
 @cython.boundscheck(False)
@@ -43,6 +47,8 @@ cdef inline convert_to_gl_format(data, fmt):
         ret_array = clone(array('b'), datasize, False)
         src_buffer = &view[0]
     dst_buffer = ret_array.data.as_chars
+    # XXX: seems to be needed, not sure why
+    Py_DECREF(<PyObject *>ret_array)
 
     # BGR -> RGB
     if fmt == 'bgr':
