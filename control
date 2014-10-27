@@ -15,6 +15,7 @@ Build-Depends: debhelper (>= 7.0.50~), pkg-config,
                libgles2-mesa-dev,
                libsdl-ttf2.0-dev,
                libgstreamer1.0-dev | libgstreamer0.10-dev,
+               libswscale-dev, libavformat-dev, libavcodec-dev,
                texlive-latex-base, texlive-latex-recommended, texlive-latex-extra, texlive-fonts-extra, texlive-fonts-recommended,
 Standards-Version: 3.9.1
 Homepage: http://kivy.org/
