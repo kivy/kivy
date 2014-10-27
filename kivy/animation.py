@@ -56,6 +56,13 @@ animating the size to (800, 800)::
     anim &= Animation(size=(800, 800), duration=2.)
     anim.start(widget)
 
+Keep in mind that creating overlapping animations on the same property may have
+unexpected results. If you want to apply multiple animations to the same
+property, you should either schedule them sequentially (via the '+' operator or
+using the *on_complete* callback) or cancel previous animations using the
+:attr:`~Animation.cancel_all` method.
+
+
 Repeating animation
 -------------------
 
