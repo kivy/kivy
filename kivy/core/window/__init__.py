@@ -538,7 +538,6 @@ class WindowBase(EventDispatcher):
         # set the default window parameter according to the configuration
         if 'borderless' not in kwargs:
             kwargs['borderless'] = Config.getboolean('graphics', 'borderless')
-
         if 'fullscreen' not in kwargs:
             fullscreen = Config.get('graphics', 'fullscreen')
             if fullscreen not in ('auto', 'fake'):

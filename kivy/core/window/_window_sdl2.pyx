@@ -23,7 +23,7 @@ cdef class _WindowSDL2Storage:
             self.win_flags |= SDL_WINDOW_BORDERLESS
         if fullscreen == 'auto':
             self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
-        elif fullscreen and use_fullscreen != 'fake':
+        elif fullscreen is True:
             self.win_flags |= SDL_WINDOW_FULLSCREEN
 
         if SDL_Init(SDL_INIT_VIDEO) < 0:
