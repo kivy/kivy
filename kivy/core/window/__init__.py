@@ -184,6 +184,10 @@ class WindowBase(EventDispatcher):
     '''WindowBase is an abstract window widget for any window implementation.
 
     :Parameters:
+        `borderless`: str, one of ('0', '1')
+            Set the window border state. Check the
+            :mod:`~kivy.config` documentation for a
+            more detailed explanation on the values.
         `fullscreen`: str, one of ('0', '1', 'auto', 'fake')
             Make the window fullscreen. Check the
             :mod:`~kivy.config` documentation for a
@@ -248,6 +252,7 @@ class WindowBase(EventDispatcher):
 
     __instance = None
     __initialized = False
+    _fake_fullscreen = False
 
     # private properties
     _size = ListProperty([0, 0])
@@ -461,12 +466,24 @@ class WindowBase(EventDispatcher):
     '''Real size of the window ignoring rotation.
     '''
 
+    borderless = BooleanProperty(False)
+    '''When set to True, this property removes the window border/decoration.
+
+    .. versionadded:: 1.9.0
+
+    :attr:`borderless` is a :class:`BooleanProperty`.
+    '''
+
     fullscreen = OptionProperty(False, options=(True, False, 'auto', 'fake'))
     '''This property sets the fullscreen mode of the window. Available options
     are: True, False, 'auto', 'fake'. Check the :mod:`~kivy.config`
     documentation for a more detailed explanation on the values.
 
     .. versionadded:: 1.2.0
+
+    .. note::
+        The 'fake' option has been deprecated, use the :attr:`borderless`
+        property instead.
     '''
 
     mouse_pos = ObjectProperty([0, 0])
@@ -520,6 +537,8 @@ class WindowBase(EventDispatcher):
             self._upd_kbd_height, .5)
 
         # set the default window parameter according to the configuration
+        if 'borderless' not in kwargs:
+            kwargs['borderless'] = Config.getboolean('graphics', 'borderless')
         if 'fullscreen' not in kwargs:
             fullscreen = Config.get('graphics', 'fullscreen')
             if fullscreen not in ('auto', 'fake'):
@@ -550,7 +569,7 @@ class WindowBase(EventDispatcher):
 
         # bind all the properties that need to recreate the window
         for prop in (
-                'fullscreen', 'position', 'top',
+                'fullscreen', 'borderless', 'position', 'top',
                 'left', '_size', 'system_size'):
             self.bind(**{prop: self.trigger_create_window})
 
@@ -590,7 +609,11 @@ class WindowBase(EventDispatcher):
         self.initialized = True
 
     def toggle_fullscreen(self):
-        '''Toggle fullscreen on window'''
+        '''Toggle between fullscreen and windowed mode.
+
+        .. deprecated:: 1.9.0
+            Use :attr:`fullscreen` instead.
+        '''
         pass
 
     def maximize(self):

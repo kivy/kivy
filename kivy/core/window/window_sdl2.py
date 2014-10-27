@@ -27,7 +27,7 @@ from kivy.core.window._window_sdl2 import _WindowSDL2Storage
 from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from kivy.resources import resource_find
-from kivy.utils import platform
+from kivy.utils import platform, deprecated
 from kivy.compat import unichr
 from collections import deque
 
@@ -100,11 +100,18 @@ class WindowSDL(WindowBase):
             KMOD_RMETA)
 
     def create_window(self, *largs):
-        use_fake = self.fullscreen == 'fake'
-        use_fullscreen = False
 
-        if self.fullscreen in ('auto', True):
-            use_fullscreen = self.fullscreen
+        if self._fake_fullscreen:
+            if not self.borderless:
+                self.fullscreen = self._fake_fullscreen = False
+            elif not self.fullscreen or self.fullscreen == 'auto':
+                self.borderless = self._fake_fullscreen = False
+
+        if self.fullscreen == 'fake':
+            self.borderless = self._fake_fullscreen = True
+            Logger.warning("The 'fake' fullscreen option has been "
+                            "deprecated, use Window.borderless or the "
+                            "borderless Config option instead.")
 
         if not self.initialized:
 
@@ -116,13 +123,15 @@ class WindowSDL(WindowBase):
             # setup !
             w, h = self._size
             gl_size = self._win.setup_window(pos[0], pos[1], w, h,
-                                             use_fake, use_fullscreen)
+                                             self.borderless, self.fullscreen)
             # never stay with a None pos, application using w.center
             # will be fired.
             self._pos = (0, 0)
         else:
             w, h = self._size
             self._win.resize_window(w, h)
+            self._win.set_border_state(self.borderless)
+            self._win.set_fullscreen_mode(self.fullscreen)
 
         super(WindowSDL, self).create_window()
 
@@ -181,6 +190,13 @@ class WindowSDL(WindowBase):
             self._win.show_window()
         else:
             Logger.warning('Window: show() is used only on desktop OSes.')
+
+    @deprecated
+    def toggle_fullscreen(self):
+        if self.fullscreen in (True, 'auto'):
+            self.fullscreen = False
+        else:
+            self.fullscreen = 'auto'
 
     def set_title(self, title):
         self._win.set_window_title(title)

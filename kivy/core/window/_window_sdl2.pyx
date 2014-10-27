@@ -16,14 +16,14 @@ cdef class _WindowSDL2Storage:
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
 
-    def setup_window(self, x, y, width, height, use_fake, use_fullscreen,
+    def setup_window(self, x, y, width, height, borderless, fullscreen,
                      shaped=False):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
-        if use_fake or shaped:
+        if borderless or shaped:
             self.win_flags |= SDL_WINDOW_BORDERLESS
-        if use_fullscreen == 'auto':
+        if fullscreen == 'auto':
             self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
-        elif use_fullscreen:
+        elif fullscreen is True:
             self.win_flags |= SDL_WINDOW_FULLSCREEN
 
         if SDL_Init(SDL_INIT_VIDEO| SDL_INIT_JOYSTICK) < 0:
@@ -104,6 +104,18 @@ cdef class _WindowSDL2Storage:
 
     def show_window(self):
         SDL_ShowWindow(self.win)
+
+    def set_border_state(self, state):
+        SDL_SetWindowBordered(self.win, SDL_FALSE if state else SDL_TRUE)
+
+    def set_fullscreen_mode(self, mode):
+        if mode == 'auto':
+            mode = SDL_WINDOW_FULLSCREEN_DESKTOP
+        elif mode is True:
+            mode = SDL_WINDOW_FULLSCREEN
+        else:
+            mode = False
+        SDL_SetWindowFullscreen(self.win, mode)
 
     def set_window_title(self, str title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))

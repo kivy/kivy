@@ -17,7 +17,7 @@ from kivy import kivy_data_dir
 from kivy.base import ExceptionManager
 from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
-from kivy.utils import platform
+from kivy.utils import platform, deprecated
 from kivy.resources import resource_find
 from kivy.clock import Clock
 
@@ -77,11 +77,24 @@ class WindowPygame(WindowBase):
             raise ValueError('position token in configuration accept only '
                              '"auto" or "custom"')
 
+        if self._fake_fullscreen:
+            if not self.borderless:
+                self.fullscreen = self._fake_fullscreen  = False
+            elif not self.fullscreen or self.fullscreen == 'auto':
+                self.borderless = self._fake_fullscreen = False
+
         if self.fullscreen == 'fake':
-            Logger.debug('WinPygame: Set window to fake fullscreen mode')
+            self.borderless = self._fake_fullscreen = True
+            Logger.warning("The 'fake' fullscreen option has been "
+                            "deprecated, use Window.borderless or the "
+                            "borderless Config option instead.")
+
+        if self.fullscreen == 'fake' or self.borderless:
+            Logger.debug('WinPygame: Set window to borderless mode.')
+
             self.flags |= pygame.NOFRAME
-            # if no position set, in fake mode, we always need to set the
-            # position. so replace 0, 0.
+            # If no position set in borderless mode, we always need
+            # to set the position. So use 0, 0.
             if self._pos is None:
                 self._pos = (0, 0)
             environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
@@ -257,6 +270,7 @@ class WindowPygame(WindowBase):
         pygame.display.flip()
         super(WindowPygame, self).flip()
 
+    @deprecated
     def toggle_fullscreen(self):
         if self.flags & pygame.FULLSCREEN:
             self.flags &= ~pygame.FULLSCREEN
