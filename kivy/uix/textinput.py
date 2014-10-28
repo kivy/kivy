@@ -763,7 +763,8 @@ class TextInput(Widget):
             - cursor_pgdown: move one "page" after
 
         '''
-        pgmove_speed = round(self.height/(self.line_height + self.line_spacing)) - 1
+        pgmove_speed = int(self.height /
+            (self.line_height + self.line_spacing) - 1)
         col, row = self.cursor
         if action == 'cursor_up':
             row = max(row - 1, 0)
@@ -1086,7 +1087,7 @@ class TextInput(Widget):
 
         self._update_selection()
         self._show_cut_copy_paste(
-	        (instance.center_x, instance.top + self.line_height), self._win)
+            (instance.center_x, instance.top + self.line_height), self._win)
 
     def _handle_move(self, instance, touch):
         if touch.grab_current != instance:
