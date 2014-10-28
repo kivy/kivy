@@ -445,7 +445,8 @@ cdef class Shader:
                 attr = &vertex_format.vattr[i]
                 if attr.per_vertex == 0:
                     continue
-                attr.index = glGetAttribLocation(self.program, <char *><bytes>attr.name)
+                name = <bytes>attr.name
+                attr.index = glGetAttribLocation(self.program, <char *>name)
                 glEnableVertexAttribArray(attr.index)
 
         # save for the next run.

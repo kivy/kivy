@@ -207,7 +207,7 @@ cdef class GstPlayer:
             self.eos_cb()
 
     def load(self):
-        cdef char *c_uri
+        cdef bytes py_uri
 
         # if already loaded before, clean everything.
         if self.pipeline != NULL:
@@ -256,8 +256,8 @@ cdef class GstPlayer:
 
         # configure playbin
         g_object_set_int(self.pipeline, 'async-handling', 1)
-        c_uri = <bytes>self.uri.encode('utf-8')
-        g_object_set_void(self.playbin, 'uri', c_uri)
+        py_uri = <bytes>self.uri.encode('utf-8')
+        g_object_set_void(self.playbin, 'uri', <char *>py_uri)
 
         # attach the callback
         # NOTE no need to create a weakref here, as we manage to grab/release
