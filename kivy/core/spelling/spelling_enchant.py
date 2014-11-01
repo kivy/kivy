@@ -42,4 +42,3 @@ class SpellingEnchant(SpellingBase):
         if PY2:
             suggestions = [s.decode('utf-8') for s in suggestions]
         return suggestions
-

@@ -5,8 +5,10 @@ import shutil
 import shlex
 import re
 import time
-from urllib.request import urlretrieve
-from urllib.request import urlopen
+try:
+    from urllib.request import urlretrieve, urlopen
+except:
+    from urllib import urlretrieve, urlopen
 from subprocess import Popen, PIPE
 from distutils.cmd import Command
 
@@ -233,6 +235,11 @@ class OSXPortableBuild(Command):
                    set icon size of theViewOptions to 72
                    set background picture of theViewOptions to file ".background:kivydmg.png"
                    make new alias file at container window to POSIX file "/Applications" with properties {name:"Applications"}
+                   set the label index of item "examples" to 7
+                   set the label index of item "Readme.txt" to 7
+                   set the label index of item "make-symlinks" to 7
+                   close
+                   open
                    set position of item "Kivy" of container window to {155, 85}
                    set position of item "Applications" of container window to {495, 85}
                    set position of item "examples" of container window to {575, 400}
@@ -242,13 +249,10 @@ class OSXPortableBuild(Command):
                    set position of item ".DS_Store" of container window to {900, 900}
                    set position of item ".fseventsd" of container window to {900, 900}
                    set position of item ".Trashes" of container window to {900, 900}
-                   set the label index of item "examples" to 7
-                   set the label index of item "Readme.txt" to 7
-                   set the label index of item "make-symlinks" to 7
                    close
                    open
                    update without registering applications
-                   delay 2
+                   delay 10
                    eject
              end tell
            end tell
@@ -278,13 +282,4 @@ class OSXPortableBuild(Command):
 
         print("*Writing disk image, and cleaning build directory")
         shutil.rmtree(self.build_dir, ignore_errors=True)
-
-        print("*Upload to google code")
-        cmd = ('{} kivy/tools/packaging/googlecode_upload.py -s {} '
-                '-p kivy -l Featured,OsSys-OSX {}'.format(
-                sys.executable,
-                '"Kivy {}, MacOSX portable version (Python 2.7, '
-                '64 bits, bundled dependencies)"'.format(version),
-                fn))
-        Popen(shlex.split(cmd), cwd=self.src_dir).communicate()
 

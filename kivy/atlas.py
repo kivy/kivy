@@ -4,15 +4,15 @@ Atlas
 
 .. versionadded:: 1.1.0
 
-Atlas is a class for managing textures atlases: packing multiple texture into
-one. With it, you are reducing the number of image to load and speedup the
+Atlas is a class for managing texture atlases: packing multiple textures into
+one. With it, you reduce the number of images loaded and speedup the
 application loading.
 
 An Atlas is composed of:
 
-    - a json file (.atlas) that contain all the information about the image
+    - a json file (.atlas) that contains all the information about the images
       contained inside the atlas.
-    - one or multiple atlas image associated to the atlas definition.
+    - one or multiple atlas images associated with the atlas definition.
 
 Definition of .atlas
 --------------------
@@ -40,21 +40,21 @@ Example of the Kivy ``defaulttheme.atlas``::
         }
     }
 
-How to create an atlas
+How to create an Atlas
 ----------------------
 
 .. warning::
 
-    The atlas creation require Imaging/PIL. This will be removed in the future
-    when Kivy core Image will be able to support loading / blitting / save
-    operation.
+    The atlas creation requires Imaging/PIL. This will be removed in the future
+    when the Kivy core Image is able to support loading / blitting / saving
+    operations.
 
-You can directly use this module to create atlas file with this command::
+You can directly use this module to create atlas files with this command::
 
     $ python -m kivy.atlas <basename> <size> <list of images...>
 
-Let's say you have a list of image that you want to put into an Atlas. The
-directory is named ``images`` with lot of png::
+Let's say you have a list of images that you want to put into an Atlas. The
+directory is named ``images`` with lots of png files inside::
 
     $ ls
     images
@@ -62,7 +62,7 @@ directory is named ``images`` with lot of png::
     $ ls
     bubble.png bubble-red.png button.png button-down.png
 
-You can combine all the png into one, and generate the atlas file with::
+You can combine all the png's into one and generate the atlas file with::
 
     $ python -m kivy.atlas myatlas 256 *.png
     Atlas created at myatlas.atlas
@@ -71,44 +71,44 @@ You can combine all the png into one, and generate the atlas file with::
     bubble.png bubble-red.png button.png button-down.png myatlas.atlas
     myatlas-0.png
 
-As you can see, we got 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
+As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
 
 .. note::
 
-    When using this script, the ids referenced in the atlas is the base name of
-    the image, without the extension. So if you are going to give a file name
+    When using this script, the ids referenced in the atlas are the base names
+    of the images without the extension. So, if you are going to name a file
     ``../images/button.png``, the id for this image will be ``button``.
 
-    If you need path information included, you must include ``use_path`` like
-    this::
+    If you need path information included, you should include ``use_path`` as
+    follows::
 
         $ python -m kivy.atlas use_path myatlas 256 *.png
 
     In which case the id for ``../images/button.png`` will be ``images_button``
 
 
-How to use an atlas
+How to use an Atlas
 -------------------
 
-Usually, you are doing something like this::
+Usually, you would use the atlas as follows::
 
     a = Button(background_normal='images/button.png',
                background_down='images/button_down.png')
 
-In our previous example, we have created the atlas containing both of them, and
-put it in ``images/myatlas.atlas``. You can use the url notation to reference
+In our previous example, we have created the atlas containing both images and
+put them in ``images/myatlas.atlas``. You can use url notation to reference
 them::
 
     atlas://path/to/myatlas/id
-    # will search for the ``path/to/myatlas.atlas``, and get the image ``id``
+    # will search for the ``path/to/myatlas.atlas`` and get the image ``id``
 
-In our case, it will be::
+In our case, it would be::
 
     atlas://images/myatlas/button
 
 .. note::
 
-    In the atlas url, their is no need to put the ``.atlas`` extension, it will
+    In the atlas url, there is no need to add the ``.atlas`` extension. It will
     be automatically append to the filename.
 
 Manual usage of the Atlas
@@ -145,17 +145,18 @@ class Atlas(EventDispatcher):
     textures = DictProperty({})
     '''List of available textures within the atlas.
 
-    :data:`textures` is a :class:`~kivy.properties.DictProperty`, default to {}
+    :attr:`textures` is a :class:`~kivy.properties.DictProperty` and defaults
+    to {}.
     '''
 
     def _get_filename(self):
         return self._filename
 
     filename = AliasProperty(_get_filename, None)
-    '''Filename of the current Atlas
+    '''Filename of the current Atlas.
 
-    :data:`filename` is a :class:`~kivy.properties.AliasProperty`, default to
-    None
+    :attr:`filename` is an :class:`~kivy.properties.AliasProperty` and defaults
+    to None.
     '''
 
     def __init__(self, filename):
@@ -191,8 +192,8 @@ class Atlas(EventDispatcher):
             # load the image
             ci = CoreImage(subfilename)
 
-            # for all the uid, load the image, get the region, and put it in our
-            # dict.
+            # for all the uid, load the image, get the region, and put
+            # it in our dict.
             for meta_id, meta_coords in ids.items():
                 x, y, w, h = meta_coords
                 textures[meta_id] = ci.texture.get_region(*meta_coords)
@@ -201,7 +202,7 @@ class Atlas(EventDispatcher):
 
     @staticmethod
     def create(outname, filenames, size, padding=2, use_path=False):
-        '''This method can be used to create manually an atlas from a set of
+        '''This method can be used to create an atlas manually from a set of
         images.
 
         :Parameters:
@@ -209,28 +210,31 @@ class Atlas(EventDispatcher):
                 Basename to use for ``.atlas`` creation and ``-<idx>.png``
                 associated images.
             `filenames`: list
-                List of filename to put in the atlas
+                List of filenames to put in the atlas.
             `size`: int or list (width, height)
-                Size of an atlas image
-            `padding`: int, default to 2
+                Size of the atlas image.
+            `padding`: int, defaults to 2
                 Padding to put around each image.
 
-                Be careful. If you're using a padding < 2, you might get issues
-                with border of the images. Because of the OpenGL linearization,
-                it might take the pixels of the adjacent image.
+                Be careful. If you're using a padding < 2, you might have
+                issues with the borders of the images. Because of the OpenGL
+                linearization, it might use the pixels of the adjacent image.
 
                 If you're using a padding >= 2, we'll automatically generate a
-                "border" of 1px of your image, around the image. If you look at
-                the result, don't be scared if the image inside it are not
+                "border" of 1px around your image. If you look at
+                the result, don't be scared if the image inside is not
                 exactly the same as yours :).
-            `use_path`: bool, if true, the relative path of the source png
-                file names will be included in their atlas ids, rather
-                that just the file name. Leading dots and slashes will be
+
+            `use_path`: bool, defaults to False
+                If True, the relative path of the source png
+                file names will be included in the atlas ids rather
+                that just in the file names. Leading dots and slashes will be
                 excluded and all other slashes in the path will be replaced
-                with underscores, so for example, if the path and file name is
-                ``../data/tiles/green_grass.png`` then the id will be
-                ``green_grass`` if use_path is False, and it will be
-                ``data_tiles_green_grass`` if use_path is True
+                with underscores. For example, if `use_path` is False
+                (the default) and the file name is
+                ``../data/tiles/green_grass.png``, the id will be
+                ``green_grass``. If `use_path` is True, it will be
+                ``data_tiles_green_grass``.
 
             .. versionchanged:: 1.8.0
                 Parameter use_path added
@@ -250,11 +254,17 @@ class Atlas(EventDispatcher):
             size_w = size_h = int(size)
 
         # open all of the images
-        ims = [(f, Image.open(f)) for f in filenames]
+        ims = list()
+        for f in filenames:
+            fp = open(f)
+            im = Image.open(fp)
+            im.load()
+            fp.close()
+            ims.append((f, im))
 
         # sort by image area
         ims = sorted(ims, key=lambda im: im[1].size[0] * im[1].size[1],
-                reverse=True)
+                     reverse=True)
 
         # free boxes are empty space in our output image set
         # the freebox tuple format is: outidx, x, y, w, h
@@ -265,15 +275,16 @@ class Atlas(EventDispatcher):
         # the full box tuple format is: image, outidx, x, y, w, h, filename
         fullboxes = []
 
-        # do the actual atlasing by sticking the largest images we can have into
-        # the smallest valid free boxes
+        # do the actual atlasing by sticking the largest images we can
+        # have into the smallest valid free boxes
         for imageinfo in ims:
             im = imageinfo[1]
             imw, imh = im.size
             imw += padding
             imh += padding
             if imw > size_w or imh > size_h:
-                Logger.error('Atlas: image %s is larger than the atlas size!' %
+                Logger.error(
+                    'Atlas: image %s is larger than the atlas size!' %
                     imageinfo[0])
                 return
 
@@ -282,9 +293,9 @@ class Atlas(EventDispatcher):
                 for idx, fb in enumerate(freeboxes):
                     # find the smallest free box that will contain this image
                     if fb[3] >= imw and fb[4] >= imh:
-                        # we found a valid spot! Remove the current freebox, and
-                        # split the leftover space into (up to) two new
-                        # freeboxes
+                        # we found a valid spot! Remove the current
+                        # freebox, and split the leftover space into (up to)
+                        # two new freeboxes
                         del freeboxes[idx]
                         if fb[3] > imw:
                             freeboxes.append((
@@ -298,17 +309,17 @@ class Atlas(EventDispatcher):
 
                         # keep this sorted!
                         freeboxes = sorted(freeboxes,
-                                key=lambda fb: fb[3] * fb[4])
+                                           key=lambda fb: fb[3] * fb[4])
                         fullboxes.append((im,
-                            fb[0], fb[1] + padding,
-                            fb[2] + padding, imw - padding,
-                            imh - padding, imageinfo[0]))
+                                          fb[0], fb[1] + padding,
+                                          fb[2] + padding, imw - padding,
+                                          imh - padding, imageinfo[0]))
                         inserted = True
                         break
 
                 if not inserted:
-                    # oh crap - there isn't room in any of our free boxes, so we
-                    # have to add a new output image
+                    # oh crap - there isn't room in any of our free
+                    # boxes, so we have to add a new output image
                     freeboxes.append((numoutimages, 0, 0, size_w, size_h))
                     numoutimages += 1
 
@@ -317,7 +328,7 @@ class Atlas(EventDispatcher):
         Logger.info('Atlas: create an {0}x{1} rgba image'.format(size_w,
                                                                  size_h))
         outimages = [Image.new('RGBA', (size_w, size_h))
-                for i in range(0, int(numoutimages))]
+                     for i in range(0, int(numoutimages))]
         for fb in fullboxes:
             x, y = fb[2], fb[3]
             out = outimages[fb[1]]
@@ -409,5 +420,4 @@ if __name__ == '__main__':
     fn, meta = ret
     print('Atlas created at', fn)
     print('%d image%s have been created' % (len(meta),
-            's' if len(meta) > 1 else ''))
-
+          's' if len(meta) > 1 else ''))

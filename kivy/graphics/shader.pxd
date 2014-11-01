@@ -15,7 +15,7 @@ cdef class Shader:
 
     cdef int _success
     cdef VertexFormat _current_vertex_format
-    cdef int program
+    cdef unsigned int program
     cdef ShaderSource vertex_shader
     cdef ShaderSource fragment_shader
     cdef object _source

@@ -2,13 +2,14 @@
 Video
 =====
 
-The :class:`Video` widget is used to display video files and streams. Depending
-on your Video core provider, platform, and plugins, you will be able to play
-different formats. For example, the pygame video provider only supports MPEG1 on
-Linux and OSX. GStreamer is more versatile, and can read many video containers
-and codecs such as MKV, OGV, AVI, MOV, FLV (if the correct gstreamer plugins
-are installed). Our :class:`~kivy.core.video.VideoBase` implementation is used
-under the hood.
+The :class:`Video` widget is used to display video files and streams.
+Depending on your Video core provider, platform, and plugins, you will
+be able to play different formats. For example, the pygame video
+provider only supports MPEG1 on Linux and OSX. GStreamer is more
+versatile, and can read many video containers and codecs such as MKV,
+OGV, AVI, MOV, FLV (if the correct gstreamer plugins are installed). Our
+:class:`~kivy.core.video.VideoBase` implementation is used under the
+hood.
 
 Video loading is asynchronous - many properties are not available until
 the video is loaded (when the texture is created)::
@@ -30,7 +31,7 @@ from kivy.uix.image import Image
 from kivy.core.video import Video as CoreVideo
 from kivy.resources import resource_find
 from kivy.properties import (BooleanProperty, NumericProperty, ObjectProperty,
-        OptionProperty)
+                             OptionProperty)
 
 
 class Video(Image):
@@ -48,16 +49,16 @@ class Video(Image):
         # and later
         video.state = 'play'
 
-    :data:`state` is a :class:`~kivy.properties.OptionProperty`, default to
-    'play'.
+    :attr:`state` is an :class:`~kivy.properties.OptionProperty` and defaults
+    to 'stop'.
     '''
 
     play = BooleanProperty(False)
     '''
     .. deprecated:: 1.4.0
-        Use :data:`state` instead.
+        Use :attr:`state` instead.
 
-    Boolean, indicates if the video is playing.
+    Boolean, indicates whether the video is playing or not.
     You can start/stop the video by setting this property::
 
         # start playing the video at creation
@@ -68,50 +69,53 @@ class Video(Image):
         # and later
         video.play = True
 
-    :data:`play` is a :class:`~kivy.properties.BooleanProperty`, default to
+    :attr:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
 
     .. deprecated:: 1.4.0
-        Use :data:`state` instead.
+        Use :attr:`state` instead.
     '''
 
     eos = BooleanProperty(False)
-    '''Boolean, indicates if the video is done playing (reached end of stream).
+    '''Boolean, indicates whether the video has finished playing or not
+    (reached the end of the stream).
 
-    :data:`eos` is a :class:`~kivy.properties.BooleanProperty`, default to
+    :attr:`eos` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
     '''
 
     loaded = BooleanProperty(False)
-    '''Boolean, indicates if the video is loaded and ready for playback.
+    '''Boolean, indicates whether the video is loaded and ready for playback
+    or not.
 
     .. versionadded:: 1.6.0
 
-    :data:`loaded` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :attr:`loaded` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     position = NumericProperty(-1)
-    '''Position of the video between 0 and :data:`duration`. The position
-    defaults to -1, and is set to a real position when the video is loaded.
+    '''Position of the video between 0 and :attr:`duration`. The position
+    defaults to -1 and is set to a real position when the video is loaded.
 
-    :data:`position` is a :class:`~kivy.properties.NumericProperty`, default to
-    -1.
+    :attr:`position` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to -1.
     '''
 
     duration = NumericProperty(-1)
     '''Duration of the video. The duration defaults to -1, and is set to a real
     duration when the video is loaded.
 
-    :data:`duration` is a :class:`~kivy.properties.NumericProperty`, default to
-    -1.
+    :attr:`duration` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to -1.
     '''
 
     volume = NumericProperty(1.)
-    '''Volume of the video, in the range 0-1. 1 means full volume, 0 means mute.
+    '''Volume of the video, in the range 0-1. 1 means full volume, 0
+    means mute.
 
-    :data:`volume` is a :class:`~kivy.properties.NumericProperty`, default to
-    1.
+    :attr:`volume` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to 1.
     '''
 
     options = ObjectProperty({})
@@ -119,7 +123,8 @@ class Video(Image):
 
     .. versionadded:: 1.0.4
 
-    :data:`options` is a :class:`kivy.properties.ObjectProperty`, default to {}.
+    :attr:`options` is an :class:`kivy.properties.ObjectProperty` and defaults
+    to {}.
     '''
 
     def __init__(self, **kwargs):
@@ -127,16 +132,18 @@ class Video(Image):
         super(Image, self).__init__(**kwargs)
         self.bind(source=self._trigger_video_load)
 
+        if "eos" in kwargs:
+            self.options["eos"] = kwargs["eos"]
         if self.source:
             self._trigger_video_load()
 
     def seek(self, percent):
-        '''Change the position to a percentage of duration. Percentage must be a
-        value between 0-1.
+        '''Change the position to a percentage of duration. Percentage
+        must be a value between 0-1.
 
         .. warning::
 
-            Calling seek() before video is loaded has no impact.
+            Calling seek() before the video is loaded has no impact.
 
         .. versionadded:: 1.2.0
         '''
@@ -193,9 +200,12 @@ class Video(Image):
             self._video.eos = False
 
     def _on_video_frame(self, *largs):
-        self.duration = self._video.duration
-        self.position = self._video.position
-        self.texture = self._video.texture
+        video = self._video
+        if not video:
+            return
+        self.duration = video.duration
+        self.position = video.position
+        self.texture = video.texture
         self.canvas.ask_update()
 
     def _on_eos(self, *largs):
@@ -210,6 +220,16 @@ class Video(Image):
     def on_volume(self, instance, value):
         if self._video:
             self._video.volume = value
+
+    def unload(self):
+        '''Unload the video. The playback will be stopped.
+
+        .. versionadded:: 1.8.0
+        '''
+        if self._video:
+            self._video.stop()
+            self._video.unload()
+            self._video = None
 
 if __name__ == '__main__':
     from kivy.app import App

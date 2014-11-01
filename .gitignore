@@ -1,3 +1,4 @@
+.coverage
 .noseids
 Kivy.egg-info
 *.so
@@ -12,11 +13,19 @@ build/*
 doc/build
 doc/sources/api-*.rst
 kivy/*.c
+kivy/*.pyd
+kivy/core/text/text_layout.c
+kivy/core/text/text_layout.pyd
 kivy/graphics/*.c
+kivy/graphics/*.cpp
+kivy/graphics/*.pyd
 kivy/graphics/config.h
 kivy/graphics/config.pxi
+kivy/lib/gstplayer/_gstplayer.c
+kivy/core/camera/camera_avfoundation.c
 kivy/tests/build
 kivy/tests/results
+kivy/garden
 .last_known_portable_deps_hash
 deps.zip
 Kivy.dmg
@@ -26,19 +35,25 @@ kivy/core/window/sdl.c
 python
 python.exe
 .idea
+dist
 
 MANIFEST
 
 kivy/core/image/img_imageio.c
-
 kivy/core/audio/audio_sdl.c
-
 kivy/core/text/text_sdlttf.c
-
 kivy/core/window/window_x11.c
-
 kivy/lib/vidcore_lite/bcm.c
-
 kivy/lib/vidcore_lite/bcm.h
-
 kivy/lib/vidcore_lite/egl.c
+kivy/core/image/_img_sdl2.c
+kivy/core/text/_text_sdl2.c
+kivy/core/window/_window_sdl2.c
+
+# PyDev
+.project
+.pydevproject
+
+# Virtualenv
+venv
+

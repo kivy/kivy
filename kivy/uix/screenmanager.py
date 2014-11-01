@@ -1,5 +1,4 @@
-'''
-Screen Manager
+'''Screen Manager
 ==============
 
 .. versionadded:: 1.4.0
@@ -21,7 +20,7 @@ Basic Usage
 -----------
 
 Let's construct a Screen Manager with 4 named screens. When you are creating
-a screen, you absolutely need to give a name to it::
+a screen, **you absolutely need to give a name to it**::
 
     from kivy.uix.screenmanager import ScreenManager, Screen
 
@@ -40,20 +39,9 @@ a screen, you absolutely need to give a name to it::
     # A transition will automatically be used.
     sm.current = 'Title 2'
 
-From 1.8.0, you can now switch dynamically to a new screen, change the
-transition options and remove the previous one by using
-:meth:`ScreenManager.switch_to`::
-
-    sm = ScreenManager()
-    screens = [Screen(name='Title {}'.format(i)) for i in range(4)]
-
-    sm.switch_to(screens[0])
-    # later
-    sm.swith_to(screens[1], direction='right')
-
-The default :data:`ScreenManager.transition` is a :class:`SlideTransition` with
-options :data:`~SlideTransition.direction` and
-:data:`~TransitionBase.duration`.
+The default :attr:`ScreenManager.transition` is a :class:`SlideTransition` with
+options :attr:`~SlideTransition.direction` and
+:attr:`~TransitionBase.duration`.
 
 Please note that by default, a :class:`Screen` displays nothing: it's just a
 :class:`~kivy.uix.relativelayout.RelativeLayout`. You need to use that class as
@@ -107,29 +95,84 @@ Here is an example with a 'Menu Screen' and a 'Settings Screen'::
         TestApp().run()
 
 
+Changing Direction
+------------------
+
+A common use case for :class:`ScreenManager` involves using a
+:class:`SlideTransition` which slides right to the next screen
+and slides left to the previous screen. Building on the previous
+example, this can be accomplished like so::
+
+    Builder.load_string("""
+    <MenuScreen>:
+        BoxLayout:
+            Button:
+                text: 'Goto settings'
+                on_press:
+                    root.manager.transition.direction = 'left'
+                    root.manager.current = 'settings'
+            Button:
+                text: 'Quit'
+
+    <SettingScreen>:
+        BoxLayout:
+            Button:
+                text: 'My settings button'
+            Button:
+                text: 'Back to menu'
+                on_press:
+                    root.manager.transition.direction = 'right'
+                    root.manager.current = 'menu'
+    """)
+
+
+Advanced Usage
+--------------
+
+From 1.8.0, you can now switch dynamically to a new screen, change the
+transition options and remove the previous one by using
+:meth:`~ScreenManager.switch_to`::
+
+    sm = ScreenManager()
+    screens = [Screen(name='Title {}'.format(i)) for i in range(4)]
+
+    sm.switch_to(screens[0])
+    # later
+    sm.switch_to(screens[1], direction='right')
+
+Note that this method adds the screen to the :class:`ScreenManager` instance
+and should not be used if your screens have already been added to this
+instance. To switch to a screen which is already added, you should use the
+:attr:`~ScreenManager.current` property.
+
+
 Changing transitions
 --------------------
 
 You have multiple transitions available by default, such as:
 
+- :class:`NoTransition` - switches screens instantly with no animation
 - :class:`SlideTransition` - slide the screen in/out, from any direction
 - :class:`SwapTransition` - implementation of the iOS swap transition
 - :class:`FadeTransition` - shader to fade the screen in/out
 - :class:`WipeTransition` - shader to wipe the screens from right to left
+- :class:`FallOutTransition` - shader where the old screen 'falls' and
+  becomes transparent, revealing the new one behind it.
+- :class:`RiseInTransition` - shader where the new screen rises from the
+  screen centre while fading from transparent to opaque.
 
 You can easily switch transitions by changing the
-:data:`ScreenManager.transition` property::
+:attr:`ScreenManager.transition` property::
 
     sm = ScreenManager(transition=FadeTransition())
 
 .. note::
 
-    Currently, none of Shader based Transitions use anti-aliasing. This
-    is because they use the FBO which doesn't have any logic to handle
-    supersampling.
-    This is a known issue and we are working on a transparent
-    implementation that will give the same results as if it had been rendered on
-    screen.
+    Currently, none of Shader based Transitions use
+    anti-aliasing. This is because they use the FBO which doesn't have
+    any logic to handle supersampling.  This is a known issue and we
+    are working on a transparent implementation that will give the
+    same results as if it had been rendered on screen.
 
     To be more concrete, if you see sharp edged text during the animation, it's
     normal.
@@ -137,21 +180,23 @@ You can easily switch transitions by changing the
 '''
 
 __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
-    'TransitionBase', 'ShaderTransition', 'SlideTransition', 'SwapTransition',
-    'FadeTransition', 'WipeTransition')
+           'TransitionBase', 'ShaderTransition', 'SlideTransition',
+           'SwapTransition', 'FadeTransition', 'WipeTransition',
+           'FallOutTransition', 'RiseInTransition', 'NoTransition')
 
 from kivy.compat import iteritems
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import StringProperty, ObjectProperty, AliasProperty, \
-        NumericProperty, ListProperty, OptionProperty, BooleanProperty
+from kivy.properties import (StringProperty, ObjectProperty, AliasProperty,
+                             NumericProperty, ListProperty, OptionProperty,
+                             BooleanProperty)
 from kivy.animation import Animation, AnimationTransition
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
-from kivy.graphics import RenderContext, Rectangle, Fbo, \
-        ClearColor, ClearBuffers, BindTexture, PushMatrix, \
-        PopMatrix, Translate
+from kivy.graphics import (RenderContext, Rectangle, Fbo,
+                           ClearColor, ClearBuffers, BindTexture, PushMatrix,
+                           PopMatrix, Translate)
 
 
 class ScreenManagerException(Exception):
@@ -186,17 +231,19 @@ class Screen(RelativeLayout):
     name = StringProperty('')
     '''
     Name of the screen which must be unique within a :class:`ScreenManager`.
-    This is the name used for :data:`ScreenManager.current`.
+    This is the name used for :attr:`ScreenManager.current`.
 
-    :data:`name` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`name` is a :class:`~kivy.properties.StringProperty` and defaults to
     ''.
     '''
 
     manager = ObjectProperty(None, allownone=True)
-    ''':class:`ScreenManager` object, set when the screen is added to a manager.
+    ''':class:`ScreenManager` object, set when the screen is added to a
+    manager.
 
-    :data:`manager` is an :class:`~kivy.properties.ObjectProperty` and defaults
-    to None, read-only.
+    :attr:`manager` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None, read-only.
+
     '''
 
     transition_progress = NumericProperty(0.)
@@ -205,9 +252,9 @@ class Screen(RelativeLayout):
 
     If a transition is in progress, whatever the mode, the value will change
     from 0 to 1. If you want to know if it's an entering or leaving animation,
-    check the :data:`transition_state`.
+    check the :attr:`transition_state`.
 
-    :data:`transition_progress` is a :class:`~kivy.properties.NumericProperty`
+    :attr:`transition_progress` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
     '''
 
@@ -220,7 +267,7 @@ class Screen(RelativeLayout):
     After the transition is complete, the state will retain it's last value (in
     or out).
 
-    :data:`transition_state` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`transition_state` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'out'.
     '''
 
@@ -283,16 +330,18 @@ class TransitionBase(EventDispatcher):
     '''
 
     manager = ObjectProperty()
-    ''':class:`ScreenManager` object, set when the screen is added to a manager.
+    ''':class:`ScreenManager` object, set when the screen is added to a
+    manager.
 
-    :data:`manager` is an :class:`~kivy.properties.ObjectProperty` and defaults
-    to None, read-only.
+    :attr:`manager` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None, read-only.
+
     '''
 
     is_active = BooleanProperty(False)
     '''Indicate whether the transition is currently active or not.
 
-    :data:`is_active` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`is_active` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False, read-only.
     '''
 
@@ -303,8 +352,8 @@ class TransitionBase(EventDispatcher):
     __events__ = ('on_progress', 'on_complete')
 
     def start(self, manager):
-        '''(internal) Starts the transition. This is automatically called by
-        the :class:`ScreenManager`.
+        '''(internal) Starts the transition. This is automatically
+        called by the :class:`ScreenManager`.
         '''
         if self.is_active:
             raise ScreenManagerException('start() is called twice!')
@@ -395,19 +444,27 @@ class ShaderTransition(TransitionBase):
     fs = StringProperty(None)
     '''Fragment shader to use.
 
-    :data:`fs` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`fs` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.'''
 
     vs = StringProperty(None)
     '''Vertex shader to use.
 
-    :data:`vs` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`vs` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.'''
+
+    clearcolor = ListProperty([0, 0, 0, 1])
+    '''Sets the color of Fbo ClearColor. 
+
+    .. versionadded:: 1.9.0
+
+    :attr:`clearcolor` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [0, 0, 0, 1].'''
 
     def make_screen_fbo(self, screen):
         fbo = Fbo(size=screen.size)
         with fbo:
-            ClearColor(0, 0, 0, 1)
+            ClearColor(*self.clearcolor)
             ClearBuffers()
         fbo.add(screen.canvas)
         with fbo.before:
@@ -435,14 +492,15 @@ class ShaderTransition(TransitionBase):
         self.manager.canvas.add(self.fbo_out)
 
         self.render_ctx = RenderContext(fs=self.fs, vs=self.vs,
-                use_parent_modelview=True, use_parent_projection=True)
+                                        use_parent_modelview=True,
+                                        use_parent_projection=True)
         with self.render_ctx:
             BindTexture(texture=self.fbo_out.texture, index=1)
             BindTexture(texture=self.fbo_in.texture, index=2)
             x, y = self.screen_in.pos
             w, h = self.fbo_in.texture.size
             Rectangle(size=(w, h), pos=(x, y),
-                    tex_coords=self.fbo_in.texture.tex_coords)
+                      tex_coords=self.fbo_in.texture.tex_coords)
         self.render_ctx['tex_out'] = 1
         self.render_ctx['tex_in'] = 2
         self.manager.canvas.add(self.render_ctx)
@@ -454,6 +512,21 @@ class ShaderTransition(TransitionBase):
         self.manager.real_add_widget(self.screen_in)
 
 
+class NoTransition(TransitionBase):
+    '''No transition, instantly switches to the next screen with no delay or
+    animation.
+
+    .. versionadded:: 1.8.0
+    '''
+
+    duration = NumericProperty(0.0)
+
+    def on_complete(self):
+        self.screen_in.pos = self.manager.pos
+        self.screen_out.pos = self.manager.pos
+        super(NoTransition, self).on_complete()
+
+
 class SlideTransition(TransitionBase):
     '''Slide Transition, can be used to show a new screen from any direction:
     left, right, up or down.
@@ -462,7 +535,7 @@ class SlideTransition(TransitionBase):
     direction = OptionProperty('left', options=('left', 'right', 'up', 'down'))
     '''Direction of the transition.
 
-    :data:`direction` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`direction` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'left'. Can be one of 'left', 'right', 'up' or 'down'.
     '''
 
@@ -579,6 +652,118 @@ class FadeTransition(ShaderTransition):
     fs = StringProperty(FADE_TRANSITION_FS)
 
 
+class FallOutTransition(ShaderTransition):
+    '''Transition where the new screen 'falls' from the screen centre,
+    becoming smaller and more transparent until it disappears, and
+    revealing the new screen behind it. Mimics the popular/standard
+    Android transition.
+
+    .. versionadded:: 1.8.0
+
+    '''
+
+    duration = NumericProperty(0.15)
+    '''Duration in seconds of the transition, replacing the default of
+    :class:`TransitionBase`.
+
+    :class:`duration` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to .15 (= 150ms).
+    '''
+
+    FALLOUT_TRANSITION_FS = '''$HEADER$
+    uniform float t;
+    uniform sampler2D tex_in;
+    uniform sampler2D tex_out;
+
+    void main(void) {
+        /* quantities for position and opacity calculation */
+        float tr = 0.5*sin(t);  /* 'real' time */
+        vec2 diff = (tex_coord0.st - 0.5) * (1.0/(1.0-tr));
+        vec2 dist = diff + 0.5;
+        float max_dist = 1.0 - tr;
+
+        /* in and out colours */
+        vec4 cin = vec4(texture2D(tex_in, tex_coord0.st));
+        vec4 cout = vec4(texture2D(tex_out, dist));
+
+        /* opacities for in and out textures */
+        float oin = clamp(1.0-cos(t), 0.0, 1.0);
+        float oout = clamp(cos(t), 0.0, 1.0);
+
+        bvec2 outside_bounds = bvec2(abs(tex_coord0.s - 0.5) > 0.5*max_dist,
+                                     abs(tex_coord0.t - 0.5) > 0.5*max_dist);
+
+        vec4 frag_col;
+        if (any(outside_bounds) ){
+            frag_col = vec4(cin.x, cin.y, cin.z, 1.0);
+            }
+        else {
+            frag_col = vec4(oout*cout.x + oin*cin.x, oout*cout.y + oin*cin.y,
+                            oout*cout.z + oin*cin.z, 1.0);
+            }
+
+        gl_FragColor = frag_col;
+    }
+    '''
+
+    fs = StringProperty(FALLOUT_TRANSITION_FS)
+
+
+class RiseInTransition(ShaderTransition):
+    '''Transition where the new screen rises from the screen centre,
+    becoming larger and changing from transparent to opaque until it
+    fills the screen. Mimics the popular/standard Android transition.
+
+    .. versionadded:: 1.8.0
+    '''
+
+    duration = NumericProperty(0.2)
+    '''Duration in seconds of the transition, replacing the default of
+    :class:`TransitionBase`.
+
+    :class:`duration` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to .2 (= 200ms).
+    '''
+
+    RISEIN_TRANSITION_FS = '''$HEADER$
+    uniform float t;
+    uniform sampler2D tex_in;
+    uniform sampler2D tex_out;
+
+    void main(void) {
+        /* quantities for position and opacity calculation */
+        float tr = 0.5 - 0.5*sqrt(sin(t));  /* 'real' time */
+        vec2 diff = (tex_coord0.st - 0.5) * (1.0/(1.0-tr));
+        vec2 dist = diff + 0.5;
+        float max_dist = 1.0 - tr;
+
+        /* in and out colours */
+        vec4 cin = vec4(texture2D(tex_in, dist));
+        vec4 cout = vec4(texture2D(tex_out, tex_coord0.st));
+
+        /* opacities for in and out textures */
+        float oin = clamp(sin(2.0*t), 0.0, 1.0);
+        float oout = clamp(1.0 - sin(2.0*t), 0.0, 1.0);
+
+        bvec2 outside_bounds = bvec2(abs(tex_coord0.s - 0.5) > 0.5*max_dist,
+                                     abs(tex_coord0.t - 0.5) > 0.5*max_dist);
+
+        vec4 frag_col;
+        if (any(outside_bounds) ){
+            frag_col = vec4(cout.x, cout.y, cout.z, 1.0);
+            }
+        else {
+            frag_col = vec4(oout*cout.x + oin*cin.x, oout*cout.y + oin*cin.y,
+                            oout*cout.z + oin*cin.z, 1.0);
+            }
+
+        gl_FragColor = frag_col;
+    }
+    '''
+
+    fs = StringProperty(RISEIN_TRANSITION_FS)
+
+
 class ScreenManager(FloatLayout):
     '''Screen manager. This is the main class that will control your
     :class:`Screen` stack and memory.
@@ -598,7 +783,7 @@ class ScreenManager(FloatLayout):
         sm.add_widget(Screen(name='second'))
 
         # By default, the first added screen will be shown. If you want to
-        # show another one, just set the 'current' property. 
+        # show another one, just set the 'current' property.
         sm.current = 'second'
     '''
 
@@ -630,15 +815,15 @@ class ScreenManager(FloatLayout):
     '''List of all the :class:`Screen` widgets added. You must not change the
     list manually. Use :meth:`Screen.add_widget` instead.
 
-    :data:`screens` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`screens` is a :class:`~kivy.properties.ListProperty` and defaults to
     [], read-only.
     '''
 
     current_screen = ObjectProperty(None)
     '''Contains the currently displayed screen. You must not change this
-    property manually, use :data:`current` instead.
+    property manually, use :attr:`current` instead.
 
-    :data:`current_screen` is an :class:`~kivy.properties.ObjectProperty` and
+    :attr:`current_screen` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None, read-only.
     '''
 
@@ -646,11 +831,11 @@ class ScreenManager(FloatLayout):
         return [s.name for s in self.screens]
 
     screen_names = AliasProperty(_get_screen_names,
-            None, bind=('screens', ))
+                                 None, bind=('screens', ))
     '''List of the names of all the :class:`Screen` widgets added. The list
     is read only.
 
-    :data:`screens_names` is an :class:`~kivy.properties.AliasProperty` and
+    :attr:`screens_names` is an :class:`~kivy.properties.AliasProperty` and
     is read-only. It is updated if the screen list changes or the name
     of a screen changes.
     '''
@@ -667,10 +852,10 @@ class ScreenManager(FloatLayout):
     def add_widget(self, screen):
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
-                    'ScreenManager accepts only Screen widget.')
+                'ScreenManager accepts only Screen widget.')
         if screen.manager:
             raise ScreenManagerException(
-                    'Screen already managed by another ScreenManager.')
+                'Screen already managed by another ScreenManager.')
         screen.manager = self
         screen.bind(name=self._screen_name_changed)
         self.screens.append(screen)
@@ -681,8 +866,8 @@ class ScreenManager(FloatLayout):
         screen = l[0]
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
-                    'ScreenManager uses remove_widget only to remove' +
-                    'screens added via add_widget! use real_remove_widget.')
+                'ScreenManager uses remove_widget only to remove' +
+                'screens added via add_widget! use real_remove_widget.')
 
         if not screen in self.screens:
             return
@@ -744,7 +929,7 @@ class ScreenManager(FloatLayout):
         return bool([s for s in self.screens if s.name == name])
 
     def __next__(self):
-        '''Return the name of the next screen from the screen list.
+        '''Py2K backwards compatability without six or other lib.
         '''
         screens = self.screens
         if not screens:
@@ -757,7 +942,7 @@ class ScreenManager(FloatLayout):
             return
 
     def next(self):
-        ''' Py2K backwards compatability without six or other lib'''
+        '''Return the name of the next screen from the screen list.'''
         return self.__next__()
 
     def previous(self):
@@ -776,7 +961,7 @@ class ScreenManager(FloatLayout):
     def switch_to(self, screen, **options):
         '''Add a new screen to the ScreenManager and switch to it. The previous
         screen will be removed from the children. `options` are the
-        :data:`transition` options that will be changed before the animation
+        :attr:`transition` options that will be changed before the animation
         happens.
 
         If no previous screens are available, the screen will be used as the
@@ -791,7 +976,7 @@ class ScreenManager(FloatLayout):
 
         If any animation is in progress, it will be stopped and replaced by
         this one: you should avoid this because the animation will just look
-        weird. Use either :meth:`switch` or :data:`current` but not both.
+        weird. Use either :meth:`switch_to` or :attr:`current` but not both.
 
         The `screen` name will be changed if there is any conflict with the
         current screen.
@@ -802,7 +987,7 @@ class ScreenManager(FloatLayout):
 
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
-                    'ScreenManager accepts only Screen widget.')
+                'ScreenManager accepts only Screen widget.')
 
         # stop any transition that might be happening already
         self.transition.stop()
@@ -811,6 +996,12 @@ class ScreenManager(FloatLayout):
         if screen not in self.children:
             if self.has_screen(screen.name):
                 screen.name = self._generate_screen_name()
+
+        # change the transition if given explicitly
+        old_transition = self.transition
+        specified_transition = options.pop("transition", None)
+        if specified_transition:
+            self.transition = specified_transition
 
         # change the transition options
         for key, value in iteritems(options):
@@ -826,6 +1017,7 @@ class ScreenManager(FloatLayout):
         def remove_old_screen(transition):
             if old_current in self.children:
                 self.remove_widget(old_current)
+                self.transition = old_transition
             transition.unbind(on_complete=remove_old_screen)
         self.transition.bind(on_complete=remove_old_screen)
 
@@ -843,7 +1035,7 @@ class ScreenManager(FloatLayout):
         for child in self.children:
             if self.transition.is_active and \
                 (child == self.transition.screen_in or
-                child == self.transition.screen_out):
+                 child == self.transition.screen_out):
                     continue
             child.pos = value
 

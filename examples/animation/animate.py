@@ -2,7 +2,7 @@
 Widget animation
 ================
 
-This is showing an example of a animation creation, and how you can apply yo a
+This is an example of an animation creation, and how you can apply it to a
 widget.
 '''
 

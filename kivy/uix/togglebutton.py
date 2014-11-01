@@ -3,11 +3,11 @@ Toggle button
 =============
 
 The :class:`ToggleButton` widget acts like a checkbox. When you touch/click it,
-the state toggles between 'normal' and 'down' (opposed to a :class:`Button`
+the state toggles between 'normal' and 'down' (as opposed to a :class:`Button`
 that is only 'down' as long as it is pressed).
 
 Toggle buttons can also be grouped to make radio buttons - only one button in
-a group can be in 'down' state. The group name can be a string or any other
+a group can be in a 'down' state. The group name can be a string or any other
 hashable Python object::
 
     btn1 = ToggleButton(text='Male', group='sex',)
@@ -17,7 +17,7 @@ hashable Python object::
 Only one of the buttons can be 'down'/checked at the same time.
 
 To configure the ToggleButton, you can use the same properties that you can use
-for a Button class.
+for a :class:`~kivy.uix.button.Button` class.
 
 '''
 
@@ -32,4 +32,3 @@ class ToggleButton(ToggleButtonBehavior, Button):
     '''
 
     pass
-

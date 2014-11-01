@@ -20,6 +20,8 @@ opening a new Bug report instead of relying on your library.
 
 
 import os
+import sys
+import traceback
 import kivy
 from kivy.logger import Logger
 
@@ -28,23 +30,28 @@ class CoreCriticalException(Exception):
     pass
 
 
-def core_select_lib(category, llist, create_instance=False):
+def core_select_lib(category, llist, create_instance=False, base='kivy.core'):
     if 'KIVY_DOC' in os.environ:
         return
     category = category.lower()
     libs_ignored = []
+    errs = []
     for option, modulename, classname in llist:
         try:
             # module activated in config ?
-            if option not in kivy.kivy_options[category]:
-                libs_ignored.append(modulename)
-                Logger.debug('{0}: Provider <{1}> ignored by config'.format(
-                    category.capitalize(), option))
-                continue
+            try:
+                if option not in kivy.kivy_options[category]:
+                    libs_ignored.append(modulename)
+                    Logger.debug(
+                        '{0}: Provider <{1}> ignored by config'.format(
+                            category.capitalize(), option))
+                    continue
+            except KeyError:
+                pass
 
             # import module
-            mod = __import__(name='kivy.core.{0}.{1}'.format(
-                category, modulename),
+            mod = __import__(name='{2}.{0}.{1}'.format(
+                category, modulename, base),
                 globals=globals(),
                 locals=locals(),
                 fromlist=[modulename], level=0)
@@ -59,31 +66,36 @@ def core_select_lib(category, llist, create_instance=False):
             return cls
 
         except ImportError as e:
+            errs.append((option, e, sys.exc_info()[2]))
             libs_ignored.append(modulename)
             Logger.debug('{0}: Ignored <{1}> (import error)'.format(
                 category.capitalize(), option))
             Logger.trace('', exc_info=e)
 
         except CoreCriticalException as e:
+            errs.append((option, e, sys.exc_info()[2]))
             Logger.error('{0}: Unable to use {1}'.format(
-                    category.capitalize(), option))
+                category.capitalize(), option))
             Logger.error(
-                    '{0}: The module raised an important error: {1!r}'.format(
+                '{0}: The module raised an important error: {1!r}'.format(
                     category.capitalize(), e.message))
             raise
 
         except Exception as e:
+            errs.append((option, e, sys.exc_info()[2]))
             libs_ignored.append(modulename)
             Logger.trace('{0}: Unable to use {1}'.format(
                 category.capitalize(), option, category))
             Logger.trace('', exc_info=e)
 
+    err = '\n'.join(['{} - {}: {}\n{}'.format(opt, e.__class__.__name__, e,
+                   ''.join(traceback.format_tb(tb))) for opt, e, tb in errs])
     Logger.critical(
-        '{0}: Unable to find any valuable {1} provider at all!'.format(
-        category.capitalize(), category.capitalize()))
+        '{0}: Unable to find any valuable {0} provider at all!\n{1}'.format(
+            category.capitalize(), err))
 
 
-def core_register_libs(category, libs):
+def core_register_libs(category, libs, base='kivy.core'):
     if 'KIVY_DOC' in os.environ:
         return
     category = category.lower()
@@ -99,11 +111,11 @@ def core_register_libs(category, libs):
                 continue
 
             # import module
-            __import__(name='kivy.core.{0}.{1}'.format(category, lib),
-                        globals=globals(),
-                        locals=locals(),
-                        fromlist=[lib],
-                        level=0)
+            __import__(name='{2}.{0}.{1}'.format(category, lib, base),
+                       globals=globals(),
+                       locals=locals(),
+                       fromlist=[lib],
+                       level=0)
 
             libs_loaded.append(lib)
 
@@ -118,4 +130,4 @@ def core_register_libs(category, libs):
         ', '.join(libs_loaded),
         '({0} ignored)'.format(
             ', '.join(libs_ignored)) if libs_ignored else ''))
-
+    return libs_loaded

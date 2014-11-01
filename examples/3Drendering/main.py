@@ -42,7 +42,7 @@ class Renderer(Widget):
         PushMatrix()
         Translate(0, 0, -3)
         self.rot = Rotate(1, 0, 1, 0)
-        m = self.scene.objects.values()[0]
+        m = list(self.scene.objects.values())[0]
         UpdateNormalMatrix()
         self.mesh = Mesh(
             vertices=m.vertices,

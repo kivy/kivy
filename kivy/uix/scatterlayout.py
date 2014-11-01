@@ -6,15 +6,15 @@ Scatter Layout
 
 This layout behaves just like a
 :class:`~kivy.uix.relativelayout.RelativeLayout`.
-For example, if you create a :class:`ScatterLayout`, add a widget with
-position = (0,0), the child widget will also move when you change the
-position of the :class:`ScatterLayout`.  The child widget's coordinates remain
-(0,0), i.e. they are relative to the containing layout.
+When a widget is added with position = (0,0) to a :class:`ScatterLayout`,
+the child widget will also move when you change the position of the
+:class:`ScatterLayout`. The child widget's coordinates remain
+(0,0) as they are relative to the parent layout.
 
 However, since :class:`ScatterLayout` is implemented using a
 :class:`~kivy.uix.scatter.Scatter`
 widget, you can also translate, rotate and scale the layout using touches
-(mouse or fingers) just like a normal Scatter widget and the child
+or clicks, just like in the case of a normal Scatter widget, and the child
 widgets will behave as expected.
 
 In contrast to a Scatter, the Layout favours 'hint' properties, such as
@@ -22,19 +22,19 @@ size_hint, size_hint_x, size_hint_y and pos_hint.
 
 .. note::
 
-    The :class:`ScatterLayout` is implemented as a 
+    The :class:`ScatterLayout` is implemented as a
     :class:`~kivy.uix.floatlayout.FloatLayout`
     inside a :class:`~kivy.uix.scatter.Scatter`.
 
 .. warning::
 
-    Since the actual :class:`ScatterLayout` is a 
+    Since the actual :class:`ScatterLayout` is a
     :class:`~kivy.uix.scatter.Scatter`, its
     add_widget and remove_widget functions are overridden to add children
     to the embedded :class:`~kivy.uix.floatlayout.FloatLayout` (accessible as
-    the `content` property of :class:`~kivy.uix.scatter.Scatter`) automatically.
-    So if you want to access the added
-    child elements, you need self.content.children instead of self.children.
+    the `content` property of :class:`~kivy.uix.scatter.Scatter`)
+    automatically. So if you want to access the added child elements,
+    you need self.content.children instead of self.children.
 
 .. warning::
 
@@ -54,7 +54,7 @@ from kivy.properties import ObjectProperty
 
 
 class ScatterLayout(Scatter):
-    '''RelativeLayout class, see module documentation for more information.
+    '''ScatterLayout class, see module documentation for more information.
     '''
 
     content = ObjectProperty()
@@ -78,4 +78,3 @@ class ScatterLayout(Scatter):
 
     def clear_widgets(self):
         self.content.clear_widgets()
-

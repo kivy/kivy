@@ -37,10 +37,11 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.checkbox import CheckBox
+from kivy.uix.spinner import Spinner
 from kivy.config import Config
 from kivy.properties import ObjectProperty, NumericProperty, \
     BooleanProperty, StringProperty, ListProperty, OptionProperty
-from kivy.uix.spinner import Spinner
+from kivy.metrics import sp
 from kivy.lang import Builder
 from functools import partial
 
@@ -65,14 +66,14 @@ class ActionItem(object):
     minimum_width = NumericProperty('90sp')
     '''Minimum Width required by an ActionItem.
 
-       :data:`minimum_width` is a :class:`~kivy.properties.NumericProperty` and
+       :attr:`minimum_width` is a :class:`~kivy.properties.NumericProperty` and
        defaults to '90sp'.
     '''
 
     important = BooleanProperty(False)
     '''Determines if an ActionItem is important or not.
 
-       :data:`important` is a :class:`~kivy.properties.BooleanProperty` and
+       :attr:`important` is a :class:`~kivy.properties.BooleanProperty` and
        defaults to False.
     '''
 
@@ -80,7 +81,7 @@ class ActionItem(object):
     '''(internal) Determines if an ActionItem is displayed inside an
        ActionGroup or not.
 
-       :data:`inside_group` is a :class:`~kivy.properties.BooleanProperty` and
+       :attr:`inside_group` is a :class:`~kivy.properties.BooleanProperty` and
        defaults to False.
     '''
 
@@ -89,7 +90,7 @@ class ActionItem(object):
     '''Background image of the ActionItem used for the default graphical
        representation when the ActionItem is not pressed.
 
-       :data:`background_normal` is a :class:`~kivy.properties.StringProperty`
+       :attr:`background_normal` is a :class:`~kivy.properties.StringProperty`
        and defaults to 'atlas://data/images/defaulttheme/action_item'.
     '''
 
@@ -98,7 +99,7 @@ class ActionItem(object):
     '''Background image of the ActionItem used for default graphical
        representation when an ActionItem is pressed.
 
-       :data:`background_down` is a :class:`~kivy.properties.StringProperty`
+       :attr:`background_down` is a :class:`~kivy.properties.StringProperty`
        and defaults to 'atlas://data/images/defaulttheme/action_item_down'.
     '''
 
@@ -106,7 +107,7 @@ class ActionItem(object):
     '''Defines whether the image/icon dispayed on top of the button uses a
     mipmap or not.
 
-    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    :attr:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to `True`.
     '''
 
@@ -144,14 +145,14 @@ class ActionPrevious(ActionButton):
        screen or not. If True, the previous_icon will be shown otherwise it
        will not.
 
-       :data:`with_previous` is a :class:`~kivy.properties.BooleanProperty` and
+       :attr:`with_previous` is a :class:`~kivy.properties.BooleanProperty` and
        defaults to True.
     '''
 
     app_icon = StringProperty(window_icon)
     '''Application icon for the ActionView.
 
-       :data:`app_icon` is a :class:`~kivy.properties.StringProperty`
+       :attr:`app_icon` is a :class:`~kivy.properties.StringProperty`
        and defaults to the window icon if set, otherwise
        'data/logo/kivy-icon-32.png'.
     '''
@@ -160,14 +161,14 @@ class ActionPrevious(ActionButton):
         'atlas://data/images/defaulttheme/previous_normal')
     '''Image for the 'previous' ActionButtons default graphical representation.
 
-       :data:`previous_image` is a :class:`~kivy.properties.StringProperty` and
+       :attr:`previous_image` is a :class:`~kivy.properties.StringProperty` and
        defaults to 'atlas://data/images/defaulttheme/previous_normal'.
     '''
 
     title = StringProperty('')
     '''Title for ActionView.
 
-       :data:`title` is a :class:`~kivy.properties.StringProperty` and
+       :attr:`title` is a :class:`~kivy.properties.StringProperty` and
        defaults to ''.
     '''
 
@@ -201,7 +202,7 @@ class ActionSeparator(ActionItem, Widget):
         'atlas://data/images/defaulttheme/separator')
     '''Background image for the separators default graphical representation.
 
-       :data:`background_image` is a :class:`~kivy.properties.StringProperty`
+       :attr:`background_image` is a :class:`~kivy.properties.StringProperty`
        and defaults to 'atlas://data/images/defaulttheme/separator'.
     '''
 
@@ -219,7 +220,7 @@ class ActionGroup(ActionItem, Spinner):
     use_separator = BooleanProperty(False)
     '''Specifies whether to use a separator after/before this group or not.
 
-       :data:`use_separator` is a :class:`~kivy.properties.BooleanProperty` and
+       :attr:`use_separator` is a :class:`~kivy.properties.BooleanProperty` and
        defaults to False.
     '''
 
@@ -227,14 +228,14 @@ class ActionGroup(ActionItem, Spinner):
         'atlas://data/images/defaulttheme/separator')
     '''Background Image for an ActionSeparator in an ActionView.
 
-       :data:`separator_image` is a :class:`~kivy.properties.StringProperty`
+       :attr:`separator_image` is a :class:`~kivy.properties.StringProperty`
        and defaults to 'atlas://data/images/defaulttheme/separator'.
     '''
 
     separator_width = NumericProperty(0)
     '''Width of the ActionSeparator in an ActionView.
 
-       :data:`separator_width` is a :class:`~kivy.properties.NumericProperty`
+       :attr:`separator_width` is a :class:`~kivy.properties.NumericProperty`
        and defaults to 0.
     '''
 
@@ -244,7 +245,7 @@ class ActionGroup(ActionItem, Spinner):
        space, otherwise they will be displayed in a spinner. If mode is
        'spinner', then the children will always be displayed in a spinner.
 
-       :data:`mode` is a :class:`~kivy.properties.OptionProperty` and
+       :attr:`mode` is a :class:`~kivy.properties.OptionProperty` and
        defaults to 'normal'.
     '''
 
@@ -288,11 +289,15 @@ class ActionGroup(ActionItem, Spinner):
         if not ddn.container:
             return
         children = ddn.container.children
-        ddn.width = max([self.width,
-                        children[0].minimum_width])
+
+        if children:
+            ddn.width = max([self.width, children[0].minimum_width])
+        else:
+            ddn.width = self.width
+
         for item in children:
             item.size_hint_y = None
-            item.height = max([self.height, '48sp'])
+            item.height = max([self.height, sp(48)])
 
     def clear_widgets(self):
         self._dropdown.clear_widgets()
@@ -306,7 +311,7 @@ class ActionOverflow(ActionGroup):
         'atlas://data/images/defaulttheme/overflow')
     '''Image to be used as an Overflow Image.
 
-      :data:`overflow_image` is an :class:`~kivy.properties.ObjectProperty` and
+      :attr:`overflow_image` is an :class:`~kivy.properties.ObjectProperty` and
        defaults to 'atlas://data/images/defaulttheme/overflow'.
     '''
 
@@ -319,7 +324,7 @@ class ActionOverflow(ActionGroup):
 
         if not isinstance(action_item, ActionItem):
             raise ActionBarException('ActionView only accepts ActionItem'
-                    ' (got {!r}'.format(action_item))
+                                     ' (got {!r}'.format(action_item))
 
         else:
             if index == 0:
@@ -341,14 +346,14 @@ class ActionView(BoxLayout):
     action_previous = ObjectProperty(None)
     '''Previous button for an ActionView.
 
-       :data:`action_previous` is an :class:`~kivy.properties.ObjectProperty`
+       :attr:`action_previous` is an :class:`~kivy.properties.ObjectProperty`
         and defaults to None.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
     '''Background color in the format (r, g, b, a).
 
-       :data:`background_color` is a :class:`~kivy.properties.ListProperty` and
+       :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
         defaults to [1, 1, 1, 1].
     '''
 
@@ -356,21 +361,21 @@ class ActionView(BoxLayout):
         'atlas://data/images/defaulttheme/action_view')
     '''Background image of an ActionViews default graphical representation.
 
-      :data:`background_image` is an :class:`~kivy.properties.StringProperty`
+      :attr:`background_image` is an :class:`~kivy.properties.StringProperty`
       and defaults to 'atlas://data/images/defaulttheme/action_view'.
     '''
 
     use_separator = BooleanProperty(False)
     '''Specify whether to use a separator before every ActionGroup or not.
 
-       :data:`use_separator` is a :class:`~kivy.properties.BooleanProperty` and
+       :attr:`use_separator` is a :class:`~kivy.properties.BooleanProperty` and
        defaults to False.
     '''
 
     overflow_group = ObjectProperty(None)
     '''Widget to be used for the overflow.
 
-       :data:`overflow_group` is an :class:`~kivy.properties.ObjectProperty`
+       :attr:`overflow_group` is an :class:`~kivy.properties.ObjectProperty`
        and defaults to an instance of :class:`ActionOverflow`.
     '''
 
@@ -392,7 +397,7 @@ class ActionView(BoxLayout):
 
         if not isinstance(action_item, ActionItem):
             raise ActionBarException('ActionView only accepts ActionItem'
-                    ' (got {!r}'.format(action_item))
+                                     ' (got {!r}'.format(action_item))
 
         elif isinstance(action_item, ActionOverflow):
             self.overflow_group = action_item
@@ -477,7 +482,7 @@ class ActionView(BoxLayout):
         super_add(self.action_previous)
 
         width = (self.width - self.overflow_group.minimum_width -
-                self.action_previous.minimum_width)
+                 self.action_previous.minimum_width)
 
         if len(self._list_action_items):
             for child in self._list_action_items[1:]:
@@ -499,8 +504,8 @@ class ActionView(BoxLayout):
                    group.separator_width < width:
                     super_add(group)
                     group.show_group()
-                    total_width += group.minimum_width +\
-                                   group.separator_width
+                    total_width += (group.minimum_width +
+                                    group.separator_width)
 
                 else:
                     hidden_groups.append(group)
@@ -581,14 +586,14 @@ class ActionBar(BoxLayout):
     action_view = ObjectProperty(None)
     '''action_view of ActionBar.
 
-       :data:`action_view` is an :class:`~kivy.properties.ObjectProperty` and
+       :attr:`action_view` is an :class:`~kivy.properties.ObjectProperty` and
        defaults to an instance of ActionView.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a).
 
-       :data:`background_color` is a :class:`~kivy.properties.ListProperty` and
+       :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
         defaults to [1, 1, 1, 1].
     '''
 
@@ -597,12 +602,12 @@ class ActionBar(BoxLayout):
 
     '''Background image of the ActionBars default graphical representation.
 
-      :data:`background_image` is an :class:`~kivy.properties.StringProperty`
+      :attr:`background_image` is an :class:`~kivy.properties.StringProperty`
       and defaults to 'atlas://data/images/defaulttheme/action_bar'.
     '''
 
     border = ListProperty([2, 2, 2, 2])
-    ''':data:`border` to be applied to the :data:`background_image`.
+    ''':attr:`border` to be applied to the :attr:`background_image`.
     '''
 
     __events__ = ('on_previous',)
@@ -647,7 +652,6 @@ class ActionBar(BoxLayout):
 if __name__ == "__main__":
     from kivy.base import runTouchApp
     from kivy.uix.floatlayout import FloatLayout
-    from kivy.lang import Builder
     from kivy.factory import Factory
 
     # XXX clean the first registration done from '__main__' here.

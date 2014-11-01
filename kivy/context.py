@@ -9,14 +9,15 @@ Context
     This is experimental and subject to change as long as this warning notice
     is present.
 
-Kivy have few "global" instances that is used directly by many piece of the
+Kivy has a few "global" instances that are used directly by many pieces of the
 framework: `Cache`, `Builder`, `Clock`.
 
 TODO: document this module.
 
 '''
 
-__all__ = ('Context', 'ProxyContext', 'register_context', 'get_current_context')
+__all__ = ('Context', 'ProxyContext', 'register_context',
+           'get_current_context')
 
 _contexts = {}
 _default_context = None
@@ -77,7 +78,7 @@ class Context(dict):
 
 
 def register_context(name, cls, *args, **kwargs):
-    '''Register a new context
+    '''Register a new context.
     '''
     instance = cls(*args, **kwargs)
     proxy = ProxyContext(instance)
@@ -89,9 +90,9 @@ def register_context(name, cls, *args, **kwargs):
     _default_context[name] = instance
     return proxy
 
-    
+
 def get_current_context():
-    '''Return the current context
+    '''Return the current context.
     '''
     if not _context_stack:
         return _default_context

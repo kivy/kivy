@@ -154,8 +154,12 @@ class Catalog(BoxLayout):
 class KivyCatalogApp(App):
     '''The kivy App that runs the main root. All we do is build a catalog
     widget into the root.'''
+
     def build(self):
         return Catalog()
+
+    def on_pause(self):
+        return True
 
 
 if __name__ == "__main__":

@@ -152,7 +152,8 @@ fruit_data_attribute_units = ['(g)',
                               '(%DV)',
                               '(%DV)']
 
-attributes_and_units = dict(list(zip(fruit_data_attributes, fruit_data_attribute_units)))
+attributes_and_units = dict(list(zip(fruit_data_attributes,
+                                     fruit_data_attribute_units)))
 
 fruit_data = {}
 for fruit_record in fruit_data_list_of_dicts:
@@ -161,4 +162,5 @@ for fruit_record in fruit_data_list_of_dicts:
             dict({'name': fruit_record['name'],
                   'Serving Size': fruit_record['Serving Size'],
                   'is_selected': fruit_record['is_selected']},
-            **dict(list(zip(list(attributes_and_units.keys()), fruit_record['data']))))
+            **dict(list(zip(list(attributes_and_units.keys()),
+                            fruit_record['data']))))

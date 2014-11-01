@@ -44,6 +44,7 @@ class WindowEglRpi(WindowBase):
             c.EGL_BLUE_SIZE, 8,
             c.EGL_ALPHA_SIZE, 8,
             c.EGL_DEPTH_SIZE, 16,
+            c.EGL_STENCIL_SIZE, 8,
             c.EGL_SURFACE_TYPE, c.EGL_WINDOW_BIT,
             c.EGL_NONE]
 

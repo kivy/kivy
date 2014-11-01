@@ -9,7 +9,7 @@ import timeit
 Builder.load_string('''
 <PerfApp>:
     value: 0
-    but: but
+    but: but.__self__
     slider: slider
     text_input: text_input
     BoxLayout:

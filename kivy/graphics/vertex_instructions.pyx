@@ -2,16 +2,62 @@
 Vertex Instructions
 ===================
 
-This module include all the classes for drawing simple vertex object.
+This module includes all the classes for drawing simple vertex objects.
+
+.. note::
+
+    The list attributes of the graphics instruction classes (e.g.
+    :attr:`Triangle.points`, :attr:`Mesh.indices` etc.) are not Kivy
+    properties but Python properties. As a consequence, the graphics will only
+    be updated when the list object itself is changed and not when list values
+    are modified.
+
+    For example in python:
+
+    .. code-block:: python
+
+        class MyWidget(Button):
+
+            triangle = ObjectProperty(None)
+            def __init__(self, **kwargs):
+                super(MyWidget, self).__init__(**kwargs)
+                with self.canvas:
+                    self.triangle = Triangle(points=[0,0, 100,100, 200,0])
+
+    and in kv:
+
+    .. code-block:: kv
+
+        <MyWidget>:
+            text: 'Update'
+            on_press:
+                self.triangle.points[3] = 400
+
+    Although when the button is pressed the triangle coordinates will be
+    changed, the graphics will not be updated because the list itself has not
+    been changed. Similarly, no updates will occur using any syntax that changes
+    only elements of the list e.g. self.triangle.points[0:2] = [10,10] or
+    self.triangle.points.insert(10) etc.
+    To force an update after a change, the list variable itself must be
+    changed, which in this case can be achieved with:
+
+    .. code-block:: kv
+
+        <MyWidget>:
+            text: 'Update'
+            on_press:
+                self.triangle.points[3] = 400
+                self.triangle.points = self.triangle.points
 '''
 
 __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
-           'Point', 'Mesh', 'GraphicException', 'Bezier')
+           'Point', 'Mesh', 'GraphicException', 'Bezier', 'SmoothLine')
 
 
 include "config.pxi"
 include "common.pxi"
 
+from os import environ
 from kivy.graphics.vbo cimport *
 from kivy.graphics.vertex cimport *
 from kivy.graphics.instructions cimport *
@@ -21,9 +67,11 @@ IF USE_OPENGL_DEBUG == 1:
 from kivy.logger import Logger
 from kivy.graphics.texture cimport Texture
 
+cdef int gles_limts = int(environ.get('KIVY_GLES_LIMITS', 1))
+
 
 class GraphicException(Exception):
-    '''Exception fired when a graphic error is fired.
+    '''Exception raised when a graphics error is fired.
     '''
 
 include "vertex_instructions_line.pxi"
@@ -37,16 +85,16 @@ cdef class Bezier(VertexInstruction):
     :Parameters:
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
-        `segments`: int, default to 180
-            Define how much segment is needed for drawing the ellipse.
-            The drawing will be smoother if you have lot of segment.
-        `loop`: bool, default to False
-            Set the bezier curve to join last point to first.
+        `segments`: int, defaults to 180
+            Define how many segments are needed for drawing the curve.
+            The drawing will be smoother if you have many segments.
+        `loop`: bool, defaults to False
+            Set the bezier curve to join the last point to the first.
         `dash_length`: int
-            length of a segment (if dashed), default 1
+            Length of a segment (if dashed), defaults to 1.
         `dash_offset`: int
-            distance between the end of a segment and the start of the
-            next one, default 0, changing this makes it dashed.
+            Distance between the end of a segment and the start of the
+            next one, defaults to 0. Changing this makes it dashed.
     '''
 
     # TODO: refactoring:
@@ -56,11 +104,6 @@ cdef class Bezier(VertexInstruction):
     #
     #    b) make that a superclass Spline,
     #    c) create BezierSpline subclass that does the computation
-
-    cdef list _points
-    cdef int _segments
-    cdef bint _loop
-    cdef int _dash_offset, _dash_length
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
@@ -165,12 +208,12 @@ cdef class Bezier(VertexInstruction):
         free(indices)
 
     property points:
-        '''Property for getting/settings points of the triangle
+        '''Property for getting/settings the points of the triangle.
 
         .. warning::
 
-            This will always reconstruct the whole graphics from the new points
-            list. It can be very CPU expensive.
+            This will always reconstruct the whole graphic from the new points
+            list. It can be very CPU intensive.
         '''
         def __get__(self):
             return self._points
@@ -181,7 +224,7 @@ cdef class Bezier(VertexInstruction):
             self.flag_update()
 
     property segments:
-        '''Property for getting/setting the number of segments of the curve
+        '''Property for getting/setting the number of segments of the curve.
         '''
         def __get__(self):
             return self._segments
@@ -192,7 +235,7 @@ cdef class Bezier(VertexInstruction):
             self.flag_update()
 
     property dash_length:
-        '''Property for getting/stting the length of the dashes in the curve
+        '''Property for getting/setting the length of the dashes in the curve.
         '''
         def __get__(self):
             return self._dash_length
@@ -204,7 +247,8 @@ cdef class Bezier(VertexInstruction):
             self.flag_update()
 
     property dash_offset:
-        '''Property for getting/setting the offset between the dashes in the curve
+        '''Property for getting/setting the offset between the dashes in the
+        curve.
         '''
         def __get__(self):
             return self._dash_offset
@@ -216,10 +260,71 @@ cdef class Bezier(VertexInstruction):
             self.flag_update()
 
 
+cdef class StripMesh(VertexInstruction):
+    '''A specialized 2d mesh.
+
+    (internal) Used for SVG, will be available with doc later.
+    '''
+    def __init__(self, VertexFormat fmt):
+        cdef VBO vbo
+        VertexInstruction.__init__(self)
+        vbo = VBO(fmt)
+        self.batch = VertexBatch(vbo=vbo)
+        self.batch.set_mode("triangle_strip")
+        self.icount = 0
+        self.li = self.lic = 0
+
+    cdef int add_triangle_strip(self, float *vertices, int vcount, int icount,
+            int mode):
+        cdef int i, li = self.li
+        cdef int istart = 0
+        cdef unsigned short *indices = NULL
+        cdef vsize = self.batch.vbo.vertex_format.vsize
+
+        if vcount == 0 or icount < 3:
+            return 0
+        if self.icount + icount > 65533:  # (optim of) self.icount + icount - 2 > 65535
+            return 0
+
+        if self.icount > 0:
+            # repeat the last indice and the first of the new batch
+            istart = 2
+
+        indices = <unsigned short *>malloc((icount + istart) * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        if istart == 2:
+            indices[0] = self.lic
+            indices[1] = li
+        if mode == 0:
+            # polygon
+            for i in range(icount / 2):
+                indices[i * 2 + istart] = li + i
+                indices[i * 2 + istart + 1] = li + (icount - i - 1)
+            if icount % 2 == 1:
+                indices[icount + istart - 1] = li + icount / 2
+        elif mode == 1:
+            # line
+            for i in range(icount):
+                indices[istart + i] = li + i
+
+        self.lic = indices[icount + istart - 1]
+
+        self.batch.append_data(vertices, <int>(vcount / vsize), indices,
+                <int>(icount + istart))
+
+        free(indices)
+        self.icount += icount + istart
+        self.li += icount
+        return 1
+
+
 cdef class Mesh(VertexInstruction):
     '''A 2d mesh.
 
-    The format of vertices are actually fixed, this might change in a future
+    The format for vertices is currently fixed but this might change in a future
     release. Right now, each vertex is described with 2D coordinates (x, y) and
     a 2D texture coordinate (u, v).
 
@@ -232,8 +337,8 @@ cdef class Mesh(VertexInstruction):
                     |            |  |            |
                     +---- i1 ----+  +---- i2 ----+
 
-    If you want to draw a triangles, put 3 vertices, then you can make an
-    indices list as:
+    If you want to draw a triangle, add 3 vertices. You can then make an
+    indices list as follows:
 
         indices = [0, 1, 2]
 
@@ -241,19 +346,17 @@ cdef class Mesh(VertexInstruction):
 
     :Parameters:
         `vertices`: list
-            List of vertices in the format (x1, y1, u1, v1, x2, y2, u2, v2...)
+            List of vertices in the format (x1, y1, u1, v1, x2, y2, u2, v2...).
         `indices`: list
-            List of indices in the format (i1, i2, i3...)
+            List of indices in the format (i1, i2, i3...).
         `mode`: str
-            Mode of the vbo. Check :data:`mode` for more information. Default to
+            Mode of the vbo. Check :attr:`mode` for more information. Defaults to
             'points'.
 
     '''
-    cdef list _vertices
-    cdef list _indices
-    cdef VertexFormat vertex_format
 
     def __init__(self, **kwargs):
+        cdef VBO vbo
         VertexInstruction.__init__(self, **kwargs)
         v = kwargs.get('vertices')
         self.vertices = v if v is not None else []
@@ -261,11 +364,41 @@ cdef class Mesh(VertexInstruction):
         self.indices = v if v is not None else []
         fmt = kwargs.get('fmt')
         if fmt is not None:
-            self.vertex_format = VertexFormat(*fmt)
-            self.batch = VertexBatch(vbo=VBO(self.vertex_format))
+            if isinstance(fmt, VertexFormat):
+                self.vertex_format = fmt
+            else:
+                self.vertex_format = VertexFormat(*fmt)
+            vbo = VBO(self.vertex_format)
+            self.batch = VertexBatch(vbo=vbo)
         self.mode = kwargs.get('mode') or 'points'
+        self.is_built = 0
+
+    cdef void build_triangle_fan(self, float *vertices, int vcount, int icount):
+        cdef i
+        cdef unsigned short *indices = NULL
+        cdef vsize = self.batch.vbo.vertex_format.vsize
+
+        if vcount == 0 or icount == 0:
+            self.batch.clear_data()
+            return
+
+        indices = <unsigned short *>malloc(icount * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        for i in range(icount):
+            indices[i] = i
+
+        self.batch.set_data(vertices, <int>(vcount / vsize), indices,
+                <int>icount)
+
+        free(indices)
+        self.is_built = 1
 
     cdef void build(self):
+        if self.is_built:
+            return
         cdef int i
         cdef long vcount = len(self._vertices)
         cdef long icount = len(self._indices)
@@ -299,9 +432,9 @@ cdef class Mesh(VertexInstruction):
         free(indices)
 
     property vertices:
-        '''List of x, y, u, v, ... used to construct the Mesh. Right now, the
-        Mesh instruction doesn't allow you to change the format of the vertices,
-        mean it's only x/y + one texture coordinate.
+        '''List of x, y, u, v coordinates used to construct the Mesh. Right now,
+        the Mesh instruction doesn't allow you to change the format of the
+        vertices, which means it's only x, y + one texture coordinate.
         '''
         def __get__(self):
             return self._vertices
@@ -310,13 +443,13 @@ cdef class Mesh(VertexInstruction):
             self.flag_update()
 
     property indices:
-        '''Vertex indices used to know which order you wanna do for drawing the
+        '''Vertex indices used to specify the order when drawing the
         mesh.
         '''
         def __get__(self):
             return self._indices
         def __set__(self, value):
-            if len(value) > 65535:
+            if gles_limts and len(value) > 65535:
                 raise GraphicException(
                     'Cannot upload more than 65535 indices'
                     '(OpenGL ES 2 limitation)')
@@ -324,8 +457,9 @@ cdef class Mesh(VertexInstruction):
             self.flag_update()
 
     property mode:
-        '''VBO Mode used for drawing vertices/indices. Can be one of: 'points',
-        'line_strip', 'line_loop', 'lines', 'triangle_strip', 'triangle_fan'
+        '''VBO Mode used for drawing vertices/indices. Can be one of 'points',
+        'line_strip', 'line_loop', 'lines', 'triangles', 'triangle_strip' or
+        'triangle_fan'.
         '''
         def __get__(self):
             self.batch.get_mode()
@@ -339,15 +473,15 @@ cdef class Point(VertexInstruction):
 
     :Parameters:
         `points`: list
-            List of points in the format (x1, y1, x2, y2...)
-        `pointsize`: float, default to 1.
-            Size of the point (1. mean the real size will be 2)
+            List of points in the format (x1, y1, x2, y2...).
+        `pointsize`: float, defaults to 1.
+            Size of the point (1. means the real size will be 2).
 
     .. warning::
 
         Starting from version 1.0.7, vertex instruction have a limit of 65535
         vertices (indices of vertex to be accurate).
-        2 entry in the list (x + y) will be converted to 4 vertices. So the
+        2 entries in the list (x, y) will be converted to 4 vertices. So the
         limit inside Point() class is 2^15-2.
 
     '''
@@ -418,11 +552,11 @@ cdef class Point(VertexInstruction):
         free(indices)
 
     def add_point(self, float x, float y):
-        '''Add a point into the current :data:`points` list.
+        '''Add a point to the current :attr:`points` list.
 
-        If you intend to add multiple point, prefer to use this method, instead
-        of reassign a new :data:`points` list. Assigning a new :data:`points`
-        list will recalculate and reupload the whole buffer into GPU.
+        If you intend to add multiple points, prefer to use this method instead
+        of reassigning a new :attr:`points` list. Assigning a new :attr:`points`
+        list will recalculate and reupload the whole buffer into the GPU.
         If you use add_point, it will only upload the changes.
         '''
         cdef float ps = self._pointsize
@@ -469,7 +603,7 @@ cdef class Point(VertexInstruction):
             self.parent.flag_update()
 
     property points:
-        '''Property for getting/settings points of the triangle
+        '''Property for getting/settings points of the triangle.
         '''
         def __get__(self):
             return self._points
@@ -483,7 +617,7 @@ cdef class Point(VertexInstruction):
             self.flag_update()
 
     property pointsize:
-        '''Property for getting/setting point size
+        '''Property for getting/setting point size.
         '''
         def __get__(self):
             return self._pointsize
@@ -499,7 +633,7 @@ cdef class Triangle(VertexInstruction):
 
     :Parameters:
         `points`: list
-            List of point in the format (x1, y1, x2, y2, x3, y3)
+            List of points in the format (x1, y1, x2, y2, x3, y3).
     '''
 
     cdef list _points
@@ -534,7 +668,7 @@ cdef class Triangle(VertexInstruction):
         self.batch.set_data(vertices, 3, indices, 3)
 
     property points:
-        '''Property for getting/settings points of the triangle
+        '''Property for getting/settings points of the triangle.
         '''
         def __get__(self):
             return self._points
@@ -548,7 +682,7 @@ cdef class Quad(VertexInstruction):
 
     :Parameters:
         `points`: list
-            List of point in the format (x1, y1, x2, y2, x3, y3, x4, y4)
+            List of point in the format (x1, y1, x2, y2, x3, y3, x4, y4).
     '''
     cdef list _points
 
@@ -588,7 +722,7 @@ cdef class Quad(VertexInstruction):
         self.batch.set_data(vertices, 4, indices, 6)
 
     property points:
-        '''Property for getting/settings points of the quads
+        '''Property for getting/settings points of the quad.
         '''
         def __get__(self):
             return self._points
@@ -606,9 +740,9 @@ cdef class Rectangle(VertexInstruction):
 
     :Parameters:
         `pos`: list
-            Position of the rectangle, in the format (x, y)
+            Position of the rectangle, in the format (x, y).
         `size`: list
-            Size of the rectangle, in the format (width, height)
+            Size of the rectangle, in the format (width, height).
     '''
     cdef float x,y,w,h
 
@@ -648,7 +782,7 @@ cdef class Rectangle(VertexInstruction):
         self.batch.set_data(vertices, 4, indices, 6)
 
     property pos:
-        '''Property for getting/settings the position of the rectangle
+        '''Property for getting/settings the position of the rectangle.
         '''
         def __get__(self):
             return (self.x, self.y)
@@ -662,7 +796,7 @@ cdef class Rectangle(VertexInstruction):
             self.flag_update()
 
     property size:
-        '''Property for getting/settings the size of the rectangle
+        '''Property for getting/settings the size of the rectangle.
         '''
         def __get__(self):
             return (self.w, self.h)
@@ -679,7 +813,7 @@ cdef class Rectangle(VertexInstruction):
 
 cdef class BorderImage(Rectangle):
     '''A 2d border image. The behavior of the border image is similar to the
-    concept of CSS3 border-image.
+    concept of a CSS3 border-image.
 
     :Parameters:
         `border`: list
@@ -793,7 +927,7 @@ cdef class BorderImage(Rectangle):
 
 
     property border:
-        '''Property for getting/setting the border of the class
+        '''Property for getting/setting the border of the class.
         '''
         def __get__(self):
             return self._border
@@ -805,16 +939,18 @@ cdef class BorderImage(Rectangle):
 cdef class Ellipse(Rectangle):
     '''A 2D ellipse.
 
-    .. versionadded:: 1.0.7 added angle_start + angle_end
+    .. versionchanged:: 1.0.7
+
+        Added angle_start and angle_end.
 
     :Parameters:
-        `segments`: int, default to 180
-            Define how much segment is needed for drawing the ellipse.
-            The drawing will be smoother if you have lot of segment.
-        `angle_start`: int default to 0
-            Specifies the starting angle, in degrees, of the disk portion
-        `angle_end`: int default to 360
-            Specifies the ending angle, in degrees, of the disk portion
+        `segments`: int, defaults to 180
+            Define how many segments are needed for drawing the ellipse.
+            The drawing will be smoother if you have many segments.
+        `angle_start`: int, defaults to 0
+            Specifies the starting angle, in degrees, of the disk portion.
+        `angle_end`: int, defaults to 360
+            Specifies the ending angle, in degrees, of the disk portion.
     '''
     cdef int _segments
     cdef float _angle_start
@@ -916,7 +1052,7 @@ cdef class Ellipse(Rectangle):
         free(indices)
 
     property segments:
-        '''Property for getting/setting the number of segments of the ellipse
+        '''Property for getting/setting the number of segments of the ellipse.
         '''
         def __get__(self):
             return self._segments
@@ -925,7 +1061,7 @@ cdef class Ellipse(Rectangle):
             self.flag_update()
 
     property angle_start:
-        '''Angle start of the ellipse in degrees, default to 0
+        '''Start angle of the ellipse in degrees, defaults to 0.
         '''
         def __get__(self):
             return self._angle_start
@@ -934,13 +1070,10 @@ cdef class Ellipse(Rectangle):
             self.flag_update()
 
     property angle_end:
-        '''Angle end of the ellipse in degrees, default to 360
+        '''End angle of the ellipse in degrees, defaults to 360.
         '''
         def __get__(self):
             return self._angle_end
         def __set__(self, value):
             self._angle_end = value
             self.flag_update()
-
-    
-

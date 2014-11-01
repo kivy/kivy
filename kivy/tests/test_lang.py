@@ -5,6 +5,7 @@ Language tests
 
 import unittest
 from weakref import proxy
+from functools import partial
 
 
 class BaseClass(object):
@@ -28,14 +29,15 @@ class BaseClass(object):
         self.children.append(widget)
         widget.parent = self
 
-    def create_property(self, name):
+    def create_property(self, name, value=None):
         pass
 
     def is_event_type(self, key):
         return key.startswith('on_')
 
-    def bind(self, **kwargs):
-        self.binded_func.update(kwargs)
+    def fast_bind(self, name, func, *largs):
+        self.binded_func[name] = partial(func, *largs)
+        return True
 
 
 class TestClass(BaseClass):

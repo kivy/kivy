@@ -50,9 +50,9 @@ correct faulty input, as well as make meaningful interpretations like:
     - Reducing the amount of generated events if the native touch hardware is
       sending events with nearly the same position
 
-After processing, the motion event is dispatched to the Window. As explained previosuly,
-not all events are dispatched to the whole widget tree: the window filters them.
-For a given event:
+After processing, the motion event is dispatched to the Window. As explained
+previously, not all events are dispatched to the whole widget tree: the window
+filters them. For a given event:
 
     - if it's only a motion event, it will be dispatched to 
       :meth:`~kivy.core.window.WindowBase.on_motion`
@@ -106,7 +106,7 @@ Touch events
 ------------
 
 A touch event is a specialized :class:`~kivy.input.motionevent.MotionEvent`
-where the property :data:`~kivy.input.motionevent.MotionEvent.is_touch`
+where the property :attr:`~kivy.input.motionevent.MotionEvent.is_touch`
 evaluates to True. For all touch events, you automatically have the X and Y
 positions available, scaled to the Window width and height. In other words, all
 touch events have the ``'pos'`` profile.
@@ -241,3 +241,10 @@ Here is an example of how to use grabbing::
 
             # and accept the last up
             return True
+            
+Touch Event Management
+~~~~~~~~~~~~~~~~~~~~~~
+
+In order to see how touch events are controlled and propogated between 
+widgets, please refer to the
+:ref:`Widget touch event bubbling <widget-event-bubbling>` section.

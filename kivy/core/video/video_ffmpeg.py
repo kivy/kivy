@@ -85,8 +85,9 @@ class VideoFFMpeg(VideoBase):
             self._texture.flip_vertical()
             self.dispatch('on_load')
 
-        self._texture.blit_buffer(frame)
-        self.dispatch('on_frame')
+        if self._texture:
+            self._texture.blit_buffer(frame)
+            self.dispatch('on_frame')
 
     def _get_duration(self):
         if self._player is None:

@@ -11,9 +11,12 @@ DEF LINE_MODE_POINTS = 0
 DEF LINE_MODE_ELLIPSE = 1
 DEF LINE_MODE_CIRCLE = 2
 DEF LINE_MODE_RECTANGLE = 3
-DEF LINE_MODE_BEZIER = 4
+DEF LINE_MODE_ROUNDED_RECTANGLE = 4
+DEF LINE_MODE_BEZIER = 5
 
 from kivy.graphics.stencil_instructions cimport StencilUse, StencilUnUse, StencilPush, StencilPop
+
+cdef float PI = 3.1415926535
 
 cdef inline int line_intersection(double x1, double y1, double x2, double y2,
         double x3, double y3, double x4, double y4, double *px, double *py):
@@ -34,16 +37,16 @@ cdef class Line(VertexInstruction):
         with self.canvas:
             Line(points=[100, 100, 200, 100, 100, 200], width=10)
 
-    Actually, the line have 3 internal drawing mode that you should know about
-    if you want to get the best performance of it:
+    The line has 3 internal drawing modes that you should be aware of
+    for optimal results:
 
-    #. If the :data:`width` is 1.0, then we will use standard GL_LINE drawing
-       from OpenGL. :data:`dash_length` and :data:`dash_offset` works, while
-       properties for cap and joint have no sense for this.
-    #. If the :data:`width` is > 1.0, then we will use a custom drawing method,
-       based on triangles. :data:`dash_length` and :data:`dash_offset` is not
-       working on that mode.
-       Additionally, if the current color have an alpha < 1.0, stencil will be
+    #. If the :attr:`width` is 1.0, then the standard GL_LINE drawing from
+       OpenGL will be used. :attr:`dash_length` and :attr:`dash_offset` will
+       work, while properties for cap and joint have no meaning here.
+    #. If the :attr:`width` is > 1.0, then a custom drawing method will be used,
+       based on triangles. :attr:`dash_length` and :attr:`dash_offset` do not
+       work in this mode.
+       Additionally, if the current color has an alpha < 1.0, a stencil will be
        used internally to draw the line.
 
     .. image:: images/line-instruction.png
@@ -53,46 +56,50 @@ cdef class Line(VertexInstruction):
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
         `dash_length`: int
-            Length of a segment (if dashed), default 1
+            Length of a segment (if dashed), defaults to 1.
         `dash_offset`: int
             Offset between the end of a segments and the begining of the
-            next one, default 0, changing this makes it dashed.
+            next one, defaults to 0. Changing this makes it dashed.
         `width`: float
-            Width of the line, default 1.0
-        `cap`: str, default to 'round'
-            See :data:`cap` for more information.
-        `joint`: str, default to 'round'
-            See :data:`joint` for more information.
-        `cap_precision`: int, default to 10
-            See :data:`cap_precision` for more information
-        `joint_precision`: int, default to 10
-            See :data:`joint_precision` for more information
-        `close`: bool, default to False
+            Width of the line, defaults to 1.0.
+        `cap`: str, defaults to 'round'
+            See :attr:`cap` for more information.
+        `joint`: str, defaults to 'round'
+            See :attr:`joint` for more information.
+        `cap_precision`: int, defaults to 10
+            See :attr:`cap_precision` for more information
+        `joint_precision`: int, defaults to 10
+            See :attr:`joint_precision` for more information
+            See :attr:`cap_precision` for more information.
+        `joint_precision`: int, defaults to 10
+            See :attr:`joint_precision` for more information.
+        `close`: bool, defaults to False
             If True, the line will be closed.
         `circle`: list
-            If set, the :data:`points` will be set to build a circle. Check
-            :data:`circle` for more information.
+            If set, the :attr:`points` will be set to build a circle. Check
+            :attr:`circle` for more information.
         `ellipse`: list
-            If set, the :data:`points` will be set to build an ellipse. Check
-            :data:`ellipse` for more information.
+            If set, the :attr:`points` will be set to build an ellipse. Check
+            :attr:`ellipse` for more information.
         `rectangle`: list
-            If set, the :data:`points` will be set to build a rectangle. Check
-            :data:`rectangle` for more information.
+            If set, the :attr:`points` will be set to build a rectangle. Check
+            :attr:`rectangle` for more information.
         `bezier`: list
-            If set, the :data:`points` will be set to build a bezier line. Check
-            :data:`bezier` for more information.
-        `bezier_precision`: int, default to 180
+            If set, the :attr:`points` will be set to build a bezier line. Check
+            :attr:`bezier` for more information.
+        `bezier_precision`: int, defaults to 180
             Precision of the Bezier drawing.
 
-    .. versionadded:: 1.0.8
+    .. versionchanged:: 1.0.8
         `dash_offset` and `dash_length` have been added
 
-    .. versionadded:: 1.4.1
+    .. versionchanged:: 1.4.1
         `width`, `cap`, `joint`, `cap_precision`, `joint_precision`, `close`,
         `ellipse`, `rectangle` have been added.
 
-    .. versionadded:: 1.4.1
+    .. versionchanged:: 1.4.1
         `bezier`, `bezier_precision` have been added.
+
     '''
     cdef int _cap
     cdef int _cap_precision
@@ -150,6 +157,8 @@ cdef class Line(VertexInstruction):
             self.prebuild_circle()
         elif self._mode == LINE_MODE_RECTANGLE:
             self.prebuild_rectangle()
+        elif self._mode == LINE_MODE_ROUNDED_RECTANGLE:
+            self.prebuild_rounded_rectangle()
         elif self._mode == LINE_MODE_BEZIER:
             self.prebuild_bezier()
         if self._width == 1.0:
@@ -393,18 +402,18 @@ cdef class Line(VertexInstruction):
             iv += 1
             vertices[iv].x = x2
             vertices[iv].y = y2
-            vertices[iv].s0 = 0
+            vertices[iv].s0 = 1
             vertices[iv].t0 = 0
             iv += 1
             vertices[iv].x = x3
             vertices[iv].y = y3
-            vertices[iv].s0 = 0
-            vertices[iv].t0 = 0
+            vertices[iv].s0 = 1
+            vertices[iv].t0 = 1
             iv += 1
             vertices[iv].x = x4
             vertices[iv].y = y4
             vertices[iv].s0 = 0
-            vertices[iv].t0 = 0
+            vertices[iv].t0 = 1
             iv += 1
 
             # joint generation
@@ -417,7 +426,7 @@ cdef class Line(VertexInstruction):
                 cx * pcx + cy * pcy)
 
             # in case of the angle is NULL, avoid the generation
-            if jangle == 0 or jangle == PI or jangle == -PI:
+            if jangle == 0:
                 if self._joint == LINE_JOINT_ROUND:
                     vertices_count -= self._joint_precision
                     indices_count -= self._joint_precision * 3
@@ -582,8 +591,8 @@ cdef class Line(VertexInstruction):
             for i in xrange(0, self._cap_precision - 1):
                 vertices[iv].x = cx + cos(a1 + step * i) * w
                 vertices[iv].y = cy + sin(a1 + step * i) * w
-                vertices[iv].s0 = 0
-                vertices[iv].t0 = 0
+                vertices[iv].s0 = 1
+                vertices[iv].t0 = 1
                 if i == 0:
                     indices[ii] = siv
                     indices[ii + 1] = 0
@@ -643,7 +652,7 @@ cdef class Line(VertexInstruction):
                 self._bymax = vertices[i].y
 
         self.batch.set_data(vertices, <int>vertices_count,
-		                   indices, <int>indices_count)
+                           indices, <int>indices_count)
 
         free(vertices)
         free(indices)
@@ -693,7 +702,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property width:
-        '''Determine the width of the line, default to 1.0.
+        '''Determine the width of the line, defaults to 1.0.
 
         .. versionadded:: 1.4.1
         '''
@@ -707,7 +716,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property cap:
-        '''Determine the cap of the line, default to 'round'. Can be one of
+        '''Determine the cap of the line, defaults to 'round'. Can be one of
         'none', 'square' or 'round'
 
         .. versionadded:: 1.4.1
@@ -732,7 +741,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property joint:
-        '''Determine the join of the line, default to 'round'. Can be one of
+        '''Determine the join of the line, defaults to 'round'. Can be one of
         'none', 'round', 'bevel', 'miter'.
 
         .. versionadded:: 1.4.1
@@ -762,7 +771,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property cap_precision:
-        '''Number of iteration for drawing the "round" cap, default to 10.
+        '''Number of iteration for drawing the "round" cap, defaults to 10.
         The cap_precision must be at least 1.
 
         .. versionadded:: 1.4.1
@@ -778,7 +787,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property joint_precision:
-        '''Number of iteration for drawing the "round" joint, default to 10.
+        '''Number of iteration for drawing the "round" joint, defaults to 10.
         The joint_precision must be at least 1.
 
         .. versionadded:: 1.4.1
@@ -808,7 +817,7 @@ cdef class Line(VertexInstruction):
 
     property ellipse:
         '''Use this property to build an ellipse, without calculate the
-        :data:`points`. You can only set this property, not get it.
+        :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of (x, y, width, height, angle_start,
         angle_end, segments):
@@ -820,7 +829,7 @@ cdef class Line(VertexInstruction):
         * (optional) segments is the precision of the ellipse. The default
             value is calculated from the range between angle.
 
-        Note that it's up to you to :data:`close` the ellipse or not.
+        Note that it's up to you to :attr:`close` the ellipse or not.
 
         For example, for building a simple ellipse, in python::
 
@@ -861,6 +870,7 @@ cdef class Line(VertexInstruction):
             x, y, w, h, angle_start, angle_end, segments = args
             segments += 2
         else:
+            x = y = w = h = 0
             assert(0)
 
         if angle_end > angle_start:
@@ -890,7 +900,7 @@ cdef class Line(VertexInstruction):
 
     property circle:
         '''Use this property to build a circle, without calculate the
-        :data:`points`. You can only set this property, not get it.
+        :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of (center_x, center_y, radius, angle_start,
         angle_end, segments):
@@ -902,7 +912,7 @@ cdef class Line(VertexInstruction):
         * (optional) segments is the precision of the ellipse. The default
             value is calculated from the range between angle.
 
-        Note that it's up to you to :data:`close` the circle or not.
+        Note that it's up to you to :attr:`close` the circle or not.
 
         For example, for building a simple ellipse, in python::
 
@@ -941,8 +951,9 @@ cdef class Line(VertexInstruction):
             x, y, r, angle_start, angle_end = args
         elif len(args) == 6:
             x, y, r, angle_start, angle_end, segments = args
-            segments += 2
+            segments += 1
         else:
+            x = y = r = 0
             assert(0)
 
         if angle_end > angle_start:
@@ -951,24 +962,25 @@ cdef class Line(VertexInstruction):
             angle_dir = -1
         if segments == 0:
             segments = int(abs(angle_end - angle_start) / 2) + 3
-            if segments % 2 == 1:
-                segments += 1
+        
+        segmentpoints = segments * 2
+        
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
         angle_start = angle_start * 0.017453292519943295
         angle_end = angle_end * 0.017453292519943295
-        angle_range = abs(angle_end - angle_start) / (segments - 2)
+        angle_range = abs(angle_end - angle_start) / (segmentpoints - 2)
 
-        cdef list points = [0, ] * segments
+        cdef list points = [0, ] * segmentpoints
         cdef double angle
-        for i in xrange(0, segments, 2):
-            angle = angle_start + (angle_dir * (i - 1) * angle_range)
+        for i in xrange(0, segmentpoints, 2):
+            angle = angle_start + (angle_dir * i * angle_range)
             points[i] = x + (r * sin(angle))
             points[i + 1] = y + (r * cos(angle))
         self._points = points
 
     property rectangle:
         '''Use this property to build a rectangle, without calculating the
-        :data:`points`. You can only set this property, not get it.
+        :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of (x, y, width, height)
         angle_end, segments):
@@ -1009,14 +1021,108 @@ cdef class Line(VertexInstruction):
         if len(args) == 4:
             x, y, width, height = args
         else:
+            x = y = width = height = 0
             assert(0)
 
         self._points = [x, y, x + width, y, x + width, y + height, x, y + height]
         self._close = 1
 
+    property rounded_rectangle:
+        '''Use this property to build a rectangle, without calculating the
+        :attr:`points`. You can only set this property, not get it.
+
+        The argument must be a tuple of one of the following forms:
+
+        * (x, y, width, height, corner_radius)
+        * (x, y, width, height, corner_radius, resolution)
+        * (x, y, width, height, corner_radius1, corner_radius2, corner_radius3, corner_radius4)
+        * (x, y, width, height, corner_radius1, corner_radius2, corner_radius3, corner_radius4, resolution)
+
+        * x and y represent the bottom-left position of the rectangle
+        * width and height represent the size
+        * corner_radius is the number of pixels between two borders and the center of the circle arc joining them
+        * resolution is the numper of line segment that will be used to draw the circle arc at each corner (default to 30)
+
+        The line is automatically closed.
+
+        Usage::
+
+            Line(rounded_rectangle=(0, 0, 200, 200, 10, 20, 30, 40, 100))
+
+        .. versionadded:: 1.9.0
+        '''
+        def __set__(self, args):
+            if args == None:
+                raise GraphicException(
+                    'Invlid rounded rectangle value: {0!r}'.format(args))
+            if len(args) not in (5, 6, 8, 9):
+                raise GraphicException('invalid number of arguments:'
+                        '{0} not in (5, 6, 8, 9)'.format(len(args)))
+            self._mode_args = tuple(args)
+            self._mode = LINE_MODE_ROUNDED_RECTANGLE
+            self.flag_update()
+
+    cdef void prebuild_rounded_rectangle(self):
+        cdef float a, px, py, x, y, w, h, c1, c2, c3, c4
+        cdef resolution = 30
+        cdef int l = len(self._mode_args)
+
+        self._points = []
+        a = -PI
+        x, y, w, h = self._mode_args [:4]
+
+        if l == 5:
+            c1 = c2 = c3 = c4 = self._mode_args[4]
+        elif l == 6:
+            c1 = c2 = c3 = c4 = self._mode_args[4]
+            resolution = self._mode_args[5]
+        elif l == 8:
+            c1, c2, c3, c4 = self._mode_args[4:]
+        else:  # l == 9, but else make the compiler happy about uninitialization
+            c1, c2, c3, c4 = self._mode_args[4:8]
+            resolution = self._mode_args[8]
+
+        px = x + c1
+        py = y + c1
+
+        while a < - PI / 2.:
+            a += pi / resolution
+            self._points.extend([
+                px + cos(a) * c1,
+                py + sin(a) * c1])
+
+        px = x + w - c2
+        py = y + c2
+
+        while a < 0:
+            a += PI / resolution
+            self._points.extend([
+                px + cos(a) * c2,
+                py + sin(a) * c2])
+
+        px = x + w - c3
+        py = y + h - c3
+
+        while a < PI / 2.:
+            a += PI / resolution
+            self._points.extend([
+                px + cos(a) * c3,
+                py + sin(a) * c3])
+
+        px = x + c4
+        py = y + h - c4
+
+        while a < PI:
+            a += PI / resolution
+            self._points.extend([
+                px + cos(a) * c4,
+                py + sin(a) * c4])
+
+        self._close = 1
+
     property bezier:
         '''Use this property to build a bezier line, without calculating the
-        :data:`points`. You can only set this property, not get it.
+        :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of 2n elements, n being the number of points.
 
@@ -1066,7 +1172,7 @@ cdef class Line(VertexInstruction):
 
     property bezier_precision:
         '''Number of iteration for drawing the bezier between 2 segments,
-        default to 180. The bezier_precision must be at least 1.
+        defaults to 180. The bezier_precision must be at least 1.
 
         .. versionadded:: 1.4.2
         '''
@@ -1079,3 +1185,309 @@ cdef class Line(VertexInstruction):
                 raise GraphicException('Invalid bezier_precision value, must be >= 1')
             self._bezier_precision = int(value)
             self.flag_update()
+
+
+cdef class SmoothLine(Line):
+    '''Experimental line using over-draw method to get better antialiasing
+    results. It has few drawbacks:
+
+    - drawing line with alpha will unlikely doesn't give the intended result if
+      the line cross itself
+    - no cap or joint are supported
+    - it use a custom texture with premultiplied alpha
+    - dash is not supported
+    - line under 1px width are not supported, it will look the same
+
+    .. warning::
+
+        This is an unfinished work, experimental, subject to crash.
+
+    .. versionadded:: 1.9.0
+    '''
+
+    cdef float _owidth
+
+    def __init__(self, **kwargs):
+        VertexInstruction.__init__(self, **kwargs)
+        self._owidth = kwargs.get("overdraw_width") or 1.2
+        self.batch.set_mode("triangles")
+        self.texture = self.premultiplied_texture()
+
+    def premultiplied_texture(self):
+        texture = Texture.create(size=(4, 1), colorfmt="rgba")
+        texture.add_reload_observer(self._smooth_reload_observer)
+        self._smooth_reload_observer(texture)
+        return texture
+
+    cpdef _smooth_reload_observer(self, texture):
+        cdef bytes GRADIENT_DATA = (
+            b"\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00")
+        texture.blit_buffer(GRADIENT_DATA, colorfmt="rgba")
+
+    cdef void build(self):
+        if self._mode == LINE_MODE_ELLIPSE:
+            self.prebuild_ellipse()
+        elif self._mode == LINE_MODE_CIRCLE:
+            self.prebuild_circle()
+        elif self._mode == LINE_MODE_RECTANGLE:
+            self.prebuild_rectangle()
+        elif self._mode == LINE_MODE_ROUNDED_RECTANGLE:
+            self.prebuild_rounded_rectangle()
+        elif self._mode == LINE_MODE_BEZIER:
+            self.prebuild_bezier()
+
+        self.build_smooth()
+
+    cdef void apply(self):
+        VertexInstruction.apply(self)
+        return
+
+    cdef void build_smooth(self):
+        cdef:
+            list p = self.points
+            float width = max(0, (self._width - 1.))
+            float owidth = width + self._owidth
+            vertex_t *vertices = NULL
+            unsigned short *indices = NULL
+            unsigned short *tindices = NULL
+            double ax, ay, bx = 0., by = 0., rx = 0., ry = 0., last_angle = 0., angle, av_angle
+            float cos1, sin1, cos2, sin2, ocos1, ocos2, osin1, osin2
+            long index, vindex, vcount, icount, iv, ii, max_vindex, count
+            unsigned short i0, i1, i2, i3, i4, i5, i6, i7
+
+        iv = vindex = 0
+        count = len(p) / 2
+        if count < 2:
+            self.batch.clear_data()
+            return
+
+        vcount = count * 4
+        icount = (count - 1) * 18
+        if self._close:
+            icount += 18
+
+        vertices = <vertex_t *>malloc(vcount * sizeof(vertex_t))
+        if vertices == NULL:
+            raise MemoryError("vertices")
+
+        indices = <unsigned short *>malloc(icount * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError("indices")
+
+        if self._close:
+            ax = p[-2]
+            ay = p[-1]
+            bx = p[0]
+            by = p[1]
+            rx = bx - ax
+            ry = by - ay
+            last_angle = atan2(ry, rx)
+
+        max_index = len(p)
+        for index in range(0, max_index, 2):
+            ax = p[index]
+            ay = p[index + 1]
+            if index < max_index - 2:
+                bx = p[index + 2]
+                by = p[index + 3]
+                rx = bx - ax
+                ry = by - ay
+                angle = atan2(ry, rx)
+            else:
+                angle = last_angle
+
+            if index == 0 and not self._close:
+                av_angle = angle
+                ad_angle = pi
+            else:
+                av_angle = atan2(
+                        sin(angle) + sin(last_angle),
+                        cos(angle) + cos(last_angle))
+
+                ad_angle = abs(pi - abs(angle - last_angle))
+
+            a1 = av_angle - PI2
+            a2 = av_angle + PI2
+            '''
+            cos1 = cos(a1) * width
+            sin1 = sin(a1) * width
+            cos2 = cos(a2) * width
+            sin2 = sin(a2) * width
+            ocos1 = cos(a1) * owidth
+            osin1 = sin(a1) * owidth
+            ocos2 = cos(a2) * owidth
+            osin2 = sin(a2) * owidth
+            print 'angle diff', ad_angle
+            '''
+            #l = width
+            #ol = owidth
+
+            if index == 0 or index >= max_index - 2:
+                l = width
+                ol = owidth
+            else:
+                la1 = last_angle - PI2
+                la2 = angle - PI2
+                ra1 = last_angle + PI2
+                ra2 = angle + PI2
+                ox = p[index - 2]
+                oy = p[index - 1]
+                if line_intersection(
+                    ox + cos(la1) * width,
+                    oy + sin(la1) * width,
+                    ax + cos(la1) * width,
+                    ay + sin(la1) * width,
+                    ax + cos(la2) * width,
+                    ay + sin(la2) * width,
+                    bx + cos(la2) * width,
+                    by + sin(la2) * width,
+                    &rx, &ry) == 0:
+                    #print 'ERROR LINE INTERSECTION 1'
+                    pass
+
+                l = sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
+
+                if line_intersection(
+                    ox + cos(ra1) * owidth,
+                    oy + sin(ra1) * owidth,
+                    ax + cos(ra1) * owidth,
+                    ay + sin(ra1) * owidth,
+                    ax + cos(ra2) * owidth,
+                    ay + sin(ra2) * owidth,
+                    bx + cos(ra2) * owidth,
+                    by + sin(ra2) * owidth,
+                    &rx, &ry) == 0:
+                    #print 'ERROR LINE INTERSECTION 2'
+                    pass
+
+                ol = sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
+
+            last_angle = angle
+
+            #l = sqrt(width ** 2 * (1. / sin(av_angle)) ** 2)
+            #l = width / tan(av_angle / 2.)
+            #l = width * sqrt(1 + 1 / (av_angle / 2.))
+            #l = 2 * (width * width * sin(av_angle))
+            #l = 2 * (cos(av_angle / 2.) * width)
+            #l = width / abs(cos(PI2 - 1.5 * ad_angle))
+            cos1 = cos(a1) * l
+            sin1 = sin(a1) * l
+            cos2 = cos(a2) * l
+            sin2 = sin(a2) * l
+
+            #ol = sqrt(owidth ** 2 * (1. / sin(av_angle)) ** 2)
+            #ol = owidth / tan(av_angle / 2.)
+            #ol = owidth * sqrt(1 + 1 / (av_angle / 2.))
+            #ol = 2 * (owidth * owidth * sin(av_angle))
+            #ol = 2 * (cos(av_angle / 2.) * owidth)
+            #ol = owidth / abs(cos(PI2 - 1.5 * ad_angle))
+            ocos1 = cos(a1) * ol
+            osin1 = sin(a1) * ol
+            ocos2 = cos(a2) * ol
+            osin2 = sin(a2) * ol
+
+            x1 = ax + cos1
+            y1 = ay + sin1
+            x2 = ax + cos2
+            y2 = ay + sin2
+
+            ox1 = ax + ocos1
+            oy1 = ay + osin1
+            ox2 = ax + ocos2
+            oy2 = ay + osin2
+
+            vertices[iv].x = x1
+            vertices[iv].y = y1
+            vertices[iv].s0 = 0.5
+            vertices[iv].t0 = 0.25
+            iv += 1
+            vertices[iv].x = x2
+            vertices[iv].y = y2
+            vertices[iv].s0 = 0.5
+            vertices[iv].t0 = 0.75
+            iv += 1
+            vertices[iv].x = ox1
+            vertices[iv].y = oy1
+            vertices[iv].s0 = 1
+            vertices[iv].t0 = 0
+            iv += 1
+            vertices[iv].x = ox2
+            vertices[iv].y = oy2
+            vertices[iv].s0 = 1
+            vertices[iv].t0 = 1
+            iv += 1
+
+        tindices = indices
+        for vindex in range(0, vcount - 4, 4):
+            tindices[0] = vindex
+            tindices[1] = vindex + 2
+            tindices[2] = vindex + 6
+            tindices[3] = vindex
+            tindices[4] = vindex + 6
+            tindices[5] = vindex + 4
+            tindices[6] = vindex + 1
+            tindices[7] = vindex
+            tindices[8] = vindex + 4
+            tindices[9] = vindex + 1
+            tindices[10] = vindex + 4
+            tindices[11] = vindex + 5
+            tindices[12] = vindex + 3
+            tindices[13] = vindex + 1
+            tindices[14] = vindex + 5
+            tindices[15] = vindex + 3
+            tindices[16] = vindex + 5
+            tindices[17] = vindex + 7
+            tindices = tindices + 18
+
+        if self._close:
+            vindex = vcount - 4
+            i0 = vindex
+            i1 = vindex + 1
+            i2 = vindex + 2
+            i3 = vindex + 3
+            i4 = 0
+            i5 = 1
+            i6 = 2
+            i7 = 3
+            tindices[0] = i0
+            tindices[1] = i2
+            tindices[2] = i6
+            tindices[3] = i0
+            tindices[4] = i6
+            tindices[5] = i4
+            tindices[6] = i1
+            tindices[7] = i0
+            tindices[8] = i4
+            tindices[9] = i1
+            tindices[10] = i4
+            tindices[11] = i5
+            tindices[12] = i3
+            tindices[13] = i1
+            tindices[14] = i5
+            tindices[15] = i3
+            tindices[16] = i5
+            tindices[17] = i7
+            tindices = tindices + 18
+
+        #print 'tindices', <long>tindices, <long>indices, (<long>tindices - <long>indices) / sizeof(unsigned short)
+
+
+        self.batch.set_data(vertices, <int>vcount, indices, <int>icount)
+
+        #free(vertices)
+        #free(indices)
+
+
+    property overdraw_width:
+        '''Determine the overdraw width of the line, defaults to 1.2
+        '''
+        def __get__(self):
+            return self._owidth
+
+        def __set__(self, value):
+            if value <= 0:
+                raise GraphicException('Invalid width value, must be > 0')
+            self._owidth = value
+            self.flag_update()
+

@@ -10,8 +10,8 @@ system.
 
 .. warning::
 
-    This widget is highly experimental. The whole styling and implementation are
-    not stable until this warning has been removed.
+    This widget is highly experimental. The whole styling and
+    implementation are not stable until this warning has been removed.
 
 Usage with Text
 ---------------
@@ -39,7 +39,7 @@ The rendering will output:
 Usage with Source
 -----------------
 
-You can also render a rst file using the :data:`RstDocument.source` property::
+You can also render a rst file using the :attr:`RstDocument.source` property::
 
     document = RstDocument(source='index.rst')
 
@@ -48,19 +48,20 @@ document ``index.rst`` you can write::
 
     Go to my next document: :doc:`moreinfo.rst`
 
-It will generate a link that, when clicked, opens the ``moreinfo.rst`` document.
+It will generate a link that, when clicked, opens the ``moreinfo.rst``
+document.
 
 '''
 
 __all__ = ('RstDocument', )
 
 import os
-from os.path import dirname, join, exists
+from os.path import dirname, join, exists, abspath
 from kivy.clock import Clock
 from kivy.compat import PY2
 from kivy.properties import ObjectProperty, NumericProperty, \
-        DictProperty, ListProperty, StringProperty, \
-        BooleanProperty, OptionProperty, AliasProperty
+    DictProperty, ListProperty, StringProperty, \
+    BooleanProperty, OptionProperty, AliasProperty
 from kivy.lang import Builder
 from kivy.utils import get_hex_from_color, get_color_from_hex
 from kivy.uix.widget import Widget
@@ -77,6 +78,7 @@ from docutils.parsers.rst import roles
 from docutils import nodes, frontend, utils
 from docutils.parsers.rst import Directive, directives
 from docutils.parsers.rst.roles import set_classes
+from kivy.parser import parse_color
 
 
 #
@@ -122,7 +124,7 @@ Builder.load_string('''
     content: content
     scatter: scatter
     do_scroll_x: False
-    canvas:
+    canvas.before:
         Color:
             rgba: parse_color(root.colors['background'])
         Rectangle:
@@ -159,7 +161,7 @@ Builder.load_string('''
 
     canvas:
         Color:
-            rgba: parse_color('204a9699')
+            rgba: parse_color(self.document.underline_color)
         Rectangle:
             pos: self.x, self.y + 5
             size: self.width, 1
@@ -172,6 +174,7 @@ Builder.load_string('''
     height: self.texture_size[1] + self.my
     text_size: self.width - self.mx, None
     font_size: sp(self.document.base_font_size / 2.0)
+
 <RstTerm>:
     size_hint: None, None
     height: label.height
@@ -183,7 +186,7 @@ Builder.load_string('''
         valign: 'top'
         size_hint: None, None
         size: self.texture_size[0] + dp(10), self.texture_size[1] + dp(10)
-        font_size: sp(self.parent.root.base_font_size / 2.0)
+        font_size: sp(root.document.base_font_size / 2.0)
 
 <RstBlockQuote>:
     cols: 2
@@ -394,14 +397,14 @@ class RstDocument(ScrollView):
     source = StringProperty(None)
     '''Filename of the RST document.
 
-    :data:`source` is a :class:`~kivy.properties.StringProperty` and defaults to
-    None.
+    :attr:`source` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
     '''
 
     source_encoding = StringProperty('utf-8')
-    '''Encoding to be used for the :data:`source` file.
+    '''Encoding to be used for the :attr:`source` file.
 
-    :data:`source_encoding` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`source_encoding` is a :class:`~kivy.properties.StringProperty` and
     defaults to `utf-8`.
 
     .. Note::
@@ -411,10 +414,11 @@ class RstDocument(ScrollView):
 
     source_error = OptionProperty('strict',
                                   options=('strict', 'ignore', 'replace',
-                                    'xmlcharrefreplace', 'backslashreplac'))
-    '''Error handling to be used while encoding the :data:`source` file.
+                                           'xmlcharrefreplace',
+                                           'backslashreplac'))
+    '''Error handling to be used while encoding the :attr:`source` file.
 
-    :data:`source_error` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`source_error` is an :class:`~kivy.properties.OptionProperty` and
     defaults to `strict`. Can be one of 'strict', 'ignore', 'replace',
     'xmlcharrefreplace' or 'backslashreplac'.
     '''
@@ -422,7 +426,7 @@ class RstDocument(ScrollView):
     text = StringProperty(None)
     '''RST markup text of the document.
 
-    :data:`text` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`text` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
     '''
 
@@ -430,7 +434,7 @@ class RstDocument(ScrollView):
     '''Root path where :doc: will search for rst documents. If no path is
     given, it will use the directory of the first loaded source file.
 
-    :data:`document_root` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`document_root` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
     '''
 
@@ -442,9 +446,10 @@ class RstDocument(ScrollView):
     '''
 
     show_errors = BooleanProperty(False)
-    '''Indicate whether RST parsers errors should be shown on the screen or not.
+    '''Indicate whether RST parsers errors should be shown on the screen
+    or not.
 
-    :data:`show_errors` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`show_errors` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -459,7 +464,7 @@ class RstDocument(ScrollView):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_color` is an :class:`~kivy.properties.AliasProperty`
+    :attr:`background_color` is an :class:`~kivy.properties.AliasProperty`
     for colors['background'].
     '''
 
@@ -476,13 +481,13 @@ class RstDocument(ScrollView):
         This dictionary is needs special handling. You also need to call
         :meth:`RstDocument.render` if you change them after loading.
 
-    :data:`colors` is a :class:`~kivy.properties.DictProperty`.
+    :attr:`colors` is a :class:`~kivy.properties.DictProperty`.
     '''
 
     title = StringProperty('')
     '''Title of the current document.
 
-    :data:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
+    :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
     ''. It is read-only.
     '''
 
@@ -494,8 +499,17 @@ class RstDocument(ScrollView):
     If the document has no filename, e.g. when the document is loaded from a
     text file, the key will be ''.
 
-    :data:`toctrees` is a :class:`~kivy.properties.DictProperty` and defaults
+    :attr:`toctrees` is a :class:`~kivy.properties.DictProperty` and defaults
     to {}.
+    '''
+
+    underline_color = StringProperty('204a9699')
+    '''underline color of the titles, expressed in html color notation
+
+    :attr:`underline_color` is a
+    :class:`~kivy.properties.StringProperty` and defaults to '204a9699'.
+
+    .. versionadded: 1.9.0
     '''
 
     # internals.
@@ -508,13 +522,16 @@ class RstDocument(ScrollView):
         self._trigger_load = Clock.create_trigger(self._load_from_text, -1)
         self._parser = rst.Parser()
         self._settings = frontend.OptionParser(
-                components=(rst.Parser, )).get_default_values()
+            components=(rst.Parser, )).get_default_values()
         super(RstDocument, self).__init__(**kwargs)
 
     def on_source(self, instance, value):
+        if not value:
+            return
         if self.document_root is None:
-            # set the documentation root to the directory name of the first tile
-            self.document_root = dirname(value)
+            # set the documentation root to the directory name of the
+            # first tile
+            self.document_root = abspath(dirname(value))
         self._load_from_source()
 
     def on_text(self, instance, value):
@@ -536,13 +553,9 @@ class RstDocument(ScrollView):
     def preload(self, filename, encoding='utf-8', errors='strict'):
         '''Preload a rst file to get its toctree and its title.
 
-        The result will be stored in :data:`toctrees` with the ``filename`` as
+        The result will be stored in :attr:`toctrees` with the ``filename`` as
         key.
         '''
-        if filename in self.toctrees:
-            return
-        if not exists(filename):
-            return
 
         with open(filename, 'rb') as fd:
             text = fd.read().decode(encoding, errors)
@@ -607,8 +620,9 @@ class RstDocument(ScrollView):
 
             It is preferable to delay the call of the goto if you just loaded
             the document because the layout might not be finished or the
-            size of the RstDocument has not yet been determined. In either case,
-            the calculation of the scrolling would be wrong.
+            size of the RstDocument has not yet been determined. In
+            either case, the calculation of the scrolling would be
+            wrong.
 
             You can, however, do a direct call if the document is already
             loaded.
@@ -616,11 +630,10 @@ class RstDocument(ScrollView):
         .. versionadded:: 1.3.0
         '''
         # check if it's a file ?
-        if self.document_root is not None and ref.endswith('.rst'):
-            filename = join(self.document_root, ref)
-            if exists(filename):
-                self.source = filename
-                return
+        if ref.endswith('.rst'):
+            # whether it's a valid or invalid file, let source deal with it
+            self.source = ref
+            return
 
         # get the association
         ref = self.refs_assoc.get(ref, ref)
@@ -995,9 +1008,9 @@ class _Visitor(nodes.NodeVisitor):
 
         elif cls is nodes.reference:
             name = node.get('name', node.get('refuri'))
-            self.text += '[ref=%s][color=%s]' % (name,
-                    self.root.colors.get('link',
-                        self.root.colors.get('paragraph')))
+            self.text += '[ref=%s][color=%s]' % (
+                name, self.root.colors.get(
+                    'link', self.root.colors.get('paragraph')))
             if 'refname' in node and 'name' in node:
                 self.root.refs_assoc[node['name']] = node['refname']
 
@@ -1122,7 +1135,8 @@ class _Visitor(nodes.NodeVisitor):
             filename = self.root.resolve_path(rst_docname)
             self.root.preload(filename)
 
-            # if exist, use the title of the first section found in the document
+            # if exist, use the title of the first section found in the
+            # document
             title = docname
             if filename in self.root.toctrees:
                 toctree = self.root.toctrees[filename]
@@ -1131,8 +1145,8 @@ class _Visitor(nodes.NodeVisitor):
 
             # replace the text with a good reference
             text = '[ref=%s]%s[/ref]' % (
-                    rst_docname,
-                    self.colorize(title, 'link'))
+                rst_docname,
+                self.colorize(title, 'link'))
             self.text = self.text[:self.doc_index] + text
 
         elif cls is role_video:
@@ -1142,9 +1156,9 @@ class _Visitor(nodes.NodeVisitor):
             if uri.startswith('/') and self.root.document_root:
                 uri = join(self.root.document_root, uri[1:])
             video = RstVideoPlayer(
-                    source=uri,
-                    size_hint=(None, None),
-                    size=(width, height))
+                source=uri,
+                size_hint=(None, None),
+                size=(width, height))
             anchor = AnchorLayout(size_hint_y=None, height=height + 20)
             anchor.add_widget(video)
             self.current.add_widget(anchor)

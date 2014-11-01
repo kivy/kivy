@@ -1,11 +1,13 @@
-'''Application
+'''
+Application
 ===========
 
 The :class:`App` class is the base for creating Kivy applications.
-Think of it as your main entry point into the Kivy run loop.  In most cases, you
-subclass this class and make your own app. You create an instance of your
-specific app class and then, when you are ready to start the application's life
-cycle, you call your instance's :func:`App.run` method.
+Think of it as your main entry point into the Kivy run loop.  In most
+cases, you subclass this class and make your own app. You create an
+instance of your specific app class and then, when you are ready to
+start the application's life cycle, you call your instance's
+:meth:`App.run` method.
 
 
 Creating an Application
@@ -14,8 +16,8 @@ Creating an Application
 Method using build() override
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To initialize your app with a widget tree, override the build() method in
-your app class and return the widget tree you constructed.
+To initialize your app with a widget tree, override the :meth:`~App.build`
+method in your app class and return the widget tree you constructed.
 
 Here's an example of a very simple application that just shows a button:
 
@@ -25,16 +27,16 @@ Here's an example of a very simple application that just shows a button:
 The file is also available in the examples folder at
 :file:`kivy/examples/application/app_with_build.py`.
 
-Here, no widget tree was constructed (or if you will, a tree with only the root
-node).
+Here, no widget tree was constructed (or if you will, a tree with only
+the root node).
 
 
 Method using kv file
 ~~~~~~~~~~~~~~~~~~~~
 
-You can also use the :doc:`api-kivy.lang` for creating applications. The .kv can
-contain rules and root widget definitions at the same time. Here is the same
-example as the Button one in a kv file.
+You can also use the :doc:`api-kivy.lang` for creating applications. The
+.kv can contain rules and root widget definitions at the same time. Here
+is the same example as the Button one in a kv file.
 
 Contents of 'test.kv':
 
@@ -48,7 +50,7 @@ Contents of 'main.py':
 
 See :file:`kivy/examples/application/app_with_kv.py`.
 
-The relation between main.py and test.kv is explained in :func:`App.load_kv`.
+The relation between main.py and test.kv is explained in :meth:`App.load_kv`.
 
 
 Application configuration
@@ -62,7 +64,7 @@ Use the configuration file
 Your application might want to have its own configuration file. The
 :class:`App` is able to handle an INI file automatically. You add your
 section/key/value in the :meth:`App.build_config` method by using the `config`
-parameters (instance of :class:`~kivy.config.ConfigParser`::
+parameter (which is an instance of :class:`~kivy.config.ConfigParser`)::
 
     class TestApp(App):
         def build_config(self, config):
@@ -71,15 +73,15 @@ parameters (instance of :class:`~kivy.config.ConfigParser`::
                 'key2': '42'
             })
 
-As soon as you add one section in the config, a file is created on the disk, and
-named from the mangled name of your class:. "TestApp" will give a config
-file-name "test.ini" with the content::
+As soon as you add one section in the config, a file is created on the
+disk and named from the mangled name of your class. "TestApp" will give
+a config file-name "test.ini" with the content::
 
     [section1]
     key1 = value1
     key2 = 42
 
-The "test.ini" will be automatically loaded at runtime, and you can access the
+The "test.ini" will be automatically loaded at runtime and you can access the
 configuration in your :meth:`App.build` method::
 
     class TestApp(App):
@@ -110,8 +112,8 @@ the :meth:`App.build_settings` method.
 Check the :class:`~kivy.uix.settings.Settings` about how to create a panel,
 because you need a JSON file / data first.
 
-Let's take as an example the previous snippet of TestApp with custom config. We
-could create a JSON like this::
+Let's take as an example the previous snippet of TestApp with custom
+config. We could create a JSON like this::
 
     [
         { "type": "title",
@@ -131,8 +133,8 @@ could create a JSON like this::
           "key": "key2" }
     ]
 
-Then, we can create a panel using this JSON to create automatically all the
-options, and link them to our :data:`App.config` ConfigParser instance::
+Then, we can create a panel using this JSON to automatically create all the
+options and link them to our :attr:`App.config` ConfigParser instance::
 
     class TestApp(App):
         # ...
@@ -141,14 +143,15 @@ options, and link them to our :data:`App.config` ConfigParser instance::
             settings.add_json_panel('Test application',
                 self.config, data=jsondata)
 
-That's all ! Now you can press F1 (default keystroke) to toggle the settings
-panel, or press the "settings" key on your android device. You can manually call
-:meth:`App.open_settings` and :meth:`App.close_settings` if you want. Every
+That's all! Now you can press F1 (default keystroke) to toggle the
+settings panel or press the "settings" key on your android device. You
+can manually call :meth:`App.open_settings` and
+:meth:`App.close_settings` if you want to handle this manually. Every
 change in the panel is automatically saved in the config file.
 
 You can also use :meth:`App.build_settings` to modify properties of
 the settings panel. For instance, the default panel has a sidebar for
-switching between json panels, whose width defaults to 200dp. If you'd
+switching between json panels whose width defaults to 200dp. If you'd
 prefer this to be narrower, you could add::
 
     settings.interface.menu.width = dp(100)
@@ -156,7 +159,7 @@ prefer this to be narrower, you could add::
 to your :meth:`build_settings` method.
 
 You might want to know when a config value has been changed by the
-user, in order to adapt or reload your UI. You can overload the
+user in order to adapt or reload your UI. You can then overload the
 :meth:`on_config_change` method::
 
     class TestApp(App):
@@ -170,14 +173,14 @@ user, in order to adapt or reload your UI. You can overload the
                     print('Our key2 have been changed to', value)
 
 The Kivy configuration panel is added by default to the settings
-instance. If you don't want this panel, you can declare your Application like
-this::
+instance. If you don't want this panel, you can declare your Application as
+follows::
 
     class TestApp(App):
         use_kivy_settings = False
         # ...
 
-This only removes the Kivy panel, but does not stop the settings instance
+This only removes the Kivy panel but does not stop the settings instance
 from appearing. If you want to prevent the settings instance from appearing
 altogether, you can do this::
 
@@ -190,10 +193,10 @@ Profiling with on_start and on_stop
 
 It is often useful to profile python code in order to discover locations to
 optimise. The standard library profilers
-(http://docs.python.org/2/library/profile.html) provide multiple options for
+(http://docs.python.org/2/library/profile.html) provides multiple options for
 profiling code. For profiling the entire program, the natural
-approaches of using profile as a module or profile's run method do not work
-with Kivy. It is however possible to use :meth:`App.on_start` and
+approaches of using profile as a module or profile's run method does not work
+with Kivy. It is however, possible to use :meth:`App.on_start` and
 :meth:`App.on_stop` methods::
 
     import cProfile
@@ -213,19 +216,19 @@ Customising layout
 ------------------
 
 You can choose different settings widget layouts by setting
-:attr:`App.settings_cls`. By default, this is
-:class:`~kivy.uix.settings.Settings` which provides the pictured
+:attr:`App.settings_cls`. By default, this is a
+:class:`~kivy.uix.settings.Settings` class which provides the pictured
 sidebar layout, but you could set it to any of the other layouts
 provided in :mod:`kivy.uix.settings` or create your own. See the
 module documentation for :mod:`kivy.uix.settings` for more
 information.
 
-You can customise how the settings panel is actually displayed by
-overriding :meth:`App.display_settings`, which is called to
-actually display the settings panel on the screen. By default it
+You can customise how the settings panel is displayed by
+overriding :meth:`App.display_settings` which is called before
+displaying the settings panel on the screen. By default, it
 simply draws the panel on top of the window, but you could modify it
 to (for instance) show the settings in a
-:class:`~kivy.uix.popup.Popup` or add them to your app's
+:class:`~kivy.uix.popup.Popup` or add it to your app's
 :class:`~kivy.uix.screenmanager.ScreenManager` if you are using
 one. If you do so, you should also modify :meth:`App.close_settings`
 to exit the panel appropriately. For instance, to have the settings
@@ -242,6 +245,7 @@ panel appear in a popup you can do::
         if p.content is not settings:
             p.content = settings
         p.open()
+
     def close_settings(self, *args):
         try:
             p = self.settings_popup
@@ -265,25 +269,27 @@ Pause mode
     This mode is experimental, and designed for phones/tablets. There are some
     cases where your application could crash on resume.
 
-On tablets and phones, the user can switch at any moment to another application.
-By default, your application will reach :func:`App.on_stop` behavior.
+On tablets and phones, the user can switch at any moment to another
+application.  By default, your application will close and the
+:meth:`App.on_stop` event will be fired.
 
-You can support the Pause mode: when switching to another application, the
-application goes into Pause mode and waits infinitely until the user
+If you support Pause mode, when switching to another application, your
+application will wait indefinitely until the user
 switches back to your application. There is an issue with OpenGL on Android
-devices: you're not ensured that the OpenGL ES Context is restored when your app
-resumes. The mechanism for restoring all the OpenGL data is not yet implemented
-into Kivy(we are looking for device with this behavior).
+devices: it is not guaranteed that the OpenGL ES Context will be restored when
+your app resumes. The mechanism for restoring all the OpenGL data is not yet
+implemented in Kivy.
 
-The current implemented Pause mechanism is:
+The currently implemented Pause mechanism is:
 
-    #. Kivy checks every frame, if Pause mode is activated by the Operating
-       System, due to user switching to another application, phone shutdown or
-       any other reason.
-    #. :func:`App.on_pause` is called:
-    #. If False is returned (default case), then :func:`App.on_stop` is called.
-    #. Otherwise the application will sleep until the OS will resume our App
-    #. We got a `resume`, :func:`App.on_resume` is called.
+    #. Kivy checks every frame if Pause mode is activated by the Operating
+       System due to the user switching to another application, a phone
+       shutdown or any other reason.
+    #. :meth:`App.on_pause` is called:
+    #. If False is returned (default case), then :meth:`App.on_stop` is
+       called.
+    #. Otherwise the application will sleep until the OS resumes our App
+    #. When the app is resumed, :meth:`App.on_resume` is called.
     #. If our app memory has been reclaimed by the OS, then nothing will be
        called.
 
@@ -301,8 +307,8 @@ Here is a simple example of how on_pause() should be used::
 
 .. warning::
 
-    Both `on_pause` and `on_stop` must save important data, because after
-    `on_pause` call, on_resume may not be called at all.
+    Both `on_pause` and `on_stop` must save important data because after
+    `on_pause` is called, `on_resume` may not be called at all.
 
 '''
 
@@ -313,14 +319,15 @@ from inspect import getfile
 from os.path import dirname, join, exists, sep, expanduser, isfile
 from kivy.config import ConfigParser
 from kivy.base import runTouchApp, stopTouchApp
+from kivy.compat import string_types
+from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.resources import resource_find
 from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
-from kivy.uix.settings import SettingsWithSpinner
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, StringProperty
 
 
 platform = core_platform
@@ -338,70 +345,116 @@ class App(EventDispatcher):
         `on_pause`:
             Fired when the application is paused by the OS.
         `on_resume`:
-            Fired when the application is resumed from pause by the OS, beware,
-            you have no garantee that this event will be fired after the
-            on_pause event has been called.
-
-    :Parameters:
-        `kv_directory`: <path>, default to None
-            If a kv_directory is set, it will be used to get the initial kv
-            file. By default, the file is searched in the same directory as the
-            current App definition file.
-        `kv_file`: <filename>, default to None
-            If a kv_file is set, it will be loaded when the application start.
-            The loading of the "default" kv will be avoided.
+            Fired when the application is resumed from pause by the OS. Beware:
+            you have no guarantee that this event will be fired after the
+            `on_pause` event has been called.
 
     .. versionchanged:: 1.7.0
         Parameter `kv_file` added.
+
+    .. versionchanged:: 1.8.0
+        Parameters `kv_file` and `kv_directory` are now properties of App.
     '''
 
-    title = None
-    '''.. versionadded:: 1.0.5
-
-    Title of your application. You can set by doing::
+    title = StringProperty(None)
+    '''
+    Title of your application. You can set this as follows::
 
         class MyApp(App):
-            title = 'Custom title'
+            def build(self):
+                self.title = 'Hello world'
+
+    .. versionadded:: 1.0.5
+
+    .. versionchanged:: 1.8.0
+        `title` is now a :class:`~kivy.properties.StringProperty`. Don't set the
+        title in the class as previously stated in the documentation.
+
+    .. note::
+
+        For Kivy < 1.8.0, you can set this as follows::
+
+            class MyApp(App):
+                title = 'Custom title'
+
+        If you want to dynamically change the title, you can do::
+
+            from kivy.base import EventLoop
+            EventLoop.window.title = 'New title'
 
     '''
 
-    icon = None
-    '''.. versionadded:: 1.0.5
-
-    Icon of your application. You can set by doing::
+    icon = StringProperty(None)
+    '''Icon of your application.
+    The icon can be located in the same directory as your main file. You can set
+    this as follows::
 
         class MyApp(App):
-            icon = 'customicon.png'
+            def build(self):
+                self.icon = 'myicon.png'
 
-    The icon can be located in the same directory as your main file.
+    .. versionadded:: 1.0.5
+
+    .. versionchanged:: 1.8.0
+        `icon` is now a :class:`~kivy.properties.StringProperty`. Don't set the
+        icon in the class as previously stated in the documentation.
+
+    .. note::
+
+        For Kivy prior to 1.8.0, you need to set this as follows::
+
+            class MyApp(App):
+                icon = 'customicon.png'
+
     '''
 
     use_kivy_settings = True
     '''.. versionadded:: 1.0.7
 
-    If True, the application settings will include also the Kivy settings. If
+    If True, the application settings will also include the Kivy settings. If
     you don't want the user to change any kivy settings from your settings UI,
     change this to False.
     '''
 
-    settings_cls = ObjectProperty(SettingsWithSpinner)
+    settings_cls = ObjectProperty(None)
     '''.. versionadded:: 1.8.0
 
-    The class to use to construct the settings panel, used to
-    construct the instance passed to :meth:`build_config`. You should
-    use either :class:`~kivy.uix.settings.Settings`, or one of the provided
+    The class to used to construct the settings panel and
+    the instance passed to :meth:`build_config`. You should
+    use either :class:`~kivy.uix.settings.Settings` or one of the provided
     subclasses with different layouts
     (:class:`~kivy.uix.settings.SettingsWithSidebar`,
     :class:`~kivy.uix.settings.SettingsWithSpinner`,
     :class:`~kivy.uix.settings.SettingsWithTabbedPanel`,
-    :class:`~kivy.uix.settings.SettingsWithNoMenu`), or your own
-    Settings subclass. See the documentation
-    of :mod:`kivy.uix.Settings` for more information.
+    :class:`~kivy.uix.settings.SettingsWithNoMenu`). You can also create your
+    own Settings subclass. See the documentation
+    of :mod:`~kivy.uix.settings.Settings` for more information.
 
-    :attr:`~App.settings_cls` is an :class:`~kivy.properties.ObjectProperty`.
-    it defaults to :class:`~kivy.uix.settings.SettingsWithSpinner`, which
-    displays settings panels with a spinner to switch between them.
+    :attr:`~App.settings_cls` is an :class:`~kivy.properties.ObjectProperty`
+    and defaults to :class:`~kivy.uix.settings.SettingsWithSpinner` which
+    displays settings panels with a spinner to switch between them. If you set a
+    string, the :class:`~kivy.factory.Factory` will be used to resolve the
+    class.
 
+    '''
+
+    kv_directory = StringProperty(None)
+    '''Path of the directory where application kv is stored, defaults to None
+
+    .. versionadded:: 1.8.0
+
+    If a kv_directory is set, it will be used to get the initial kv file. By
+    default, the file is assumed to be in the same directory as the current App
+    definition file.
+    '''
+
+    kv_file = StringProperty(None)
+    '''Filename of the Kv file to load, defaults to None.
+
+    .. versionadded:: 1.8.0
+
+    If a kv_file is set, it will be loaded when the application starts. The
+    loading of the "default" kv file will be prevented.
     '''
 
     # Return the current running App instance
@@ -421,36 +474,40 @@ class App(EventDispatcher):
         #: Options passed to the __init__ of the App
         self.options = kwargs
 
-        #: Instance to the :class:`~kivy.config.ConfigParser` of the application
-        #: configuration. Can be used to query some config token in the build()
+        #: Returns an instance of the :class:`~kivy.config.ConfigParser` for
+        #: the application configuration. You can use this to query some config
+        #: tokens in the :meth:`build` method.
         self.config = None
 
-        #: Root widget set by the :meth:`build` method or by the
+        #: The *root* widget returned by the :meth:`build` method or by the
         #: :meth:`load_kv` method if the kv file contains a root widget.
         self.root = None
 
     def build(self):
-        '''Initializes the application; will be called only once.
+        '''Initializes the application; it will be called only once.
         If this method returns a widget (tree), it will be used as the root
         widget and added to the window.
 
-        :return: None or a root :class:`~kivy.uix.widget.Widget` instance is no
-                 self.root exist.
-        '''
+        :return:
+            None or a root :class:`~kivy.uix.widget.Widget` instance
+            if no self.root exists.'''
+
         if not self.root:
             return Widget()
 
     def build_config(self, config):
         '''.. versionadded:: 1.0.7
 
-        This method is called before the application is initialized to construct
-        your :class:`~kivy.config.ConfigParser` object. This is where you can
-        put any default section / key / value for your config. If anything is
-        set, the configuration will be automatically saved in the file returned
-        by :meth:`get_application_config`.
+        This method is called before the application is initialized to
+        construct your :class:`~kivy.config.ConfigParser` object. This
+        is where you can put any default section / key / value for your
+        config. If anything is set, the configuration will be
+        automatically saved in the file returned by
+        :meth:`get_application_config`.
 
-        :param config: Use this to add defaults section / key / value
-        :type config: :class:`~kivy.config.ConfigParser`
+        :Parameters:
+            `config`: :class:`~kivy.config.ConfigParser`
+                Use this to add default section / key / value items
 
         '''
 
@@ -458,15 +515,18 @@ class App(EventDispatcher):
         '''.. versionadded:: 1.0.7
 
         This method is called when the user (or you) want to show the
-        application settings. This will be called only once, the first time when
-        the user will show the settings.
+        application settings. It is called once when the settings panel
+        is first opened, after which the panel is cached. It may be
+        called again if the cached settings panel is removed by
+        :meth:`destroy_settings`.
 
         You can use this method to add settings panels and to
-        customise the settings widget, e.g. by changing the sidebar
+        customise the settings widget e.g. by changing the sidebar
         width. See the module documentation for full details.
 
-        :param settings: Settings instance for adding panels
-        :type settings: :class:`~kivy.uix.settings.Settings`
+        :Parameters:
+            `settings`: :class:`~kivy.uix.settings.Settings`
+                Settings instance for adding panels
 
         '''
 
@@ -476,7 +536,7 @@ class App(EventDispatcher):
         This method then looks for a matching kv file in the same directory as
         the file that contains the application class.
 
-        For example, if you have a file named main.py that contains::
+        For example, say you have a file named main.py that contains::
 
             class ShowcaseApp(App):
                 pass
@@ -498,6 +558,14 @@ class App(EventDispatcher):
         documentation for more information on how to create kv files. If your
         kv file contains a root widget, it will be used as self.root, the root
         widget for the application.
+
+        .. note::
+
+            This function is called from :meth:`run`, therefore, any widget
+            whose styling is defined in this kv file and is created before
+            :meth:`run` is called (e.g. in `__init__`), won't have its styling
+            applied. Note that :meth:`build` is called after :attr:`load_kv`
+            has been called.
         '''
         # Detect filename automatically if it was not specified.
         if filename:
@@ -510,20 +578,21 @@ class App(EventDispatcher):
             except TypeError:
                 # if it's a builtin module.. use the current dir.
                 default_kv_directory = '.'
-            kv_directory = self.options.get('kv_directory',
-                                            default_kv_directory)
+
+            kv_directory = self.kv_directory or default_kv_directory
             clsname = self.__class__.__name__.lower()
-            if clsname.endswith('app') and \
-                not isfile(join(kv_directory, '%s.kv' % clsname)):
+            if (clsname.endswith('app') and
+                    not isfile(join(kv_directory, '%s.kv' % clsname))):
                 clsname = clsname[:-3]
             filename = join(kv_directory, '%s.kv' % clsname)
 
         # Load KV file
         Logger.debug('App: Loading kv <{0}>'.format(filename))
-        if not exists(filename):
+        rfilename = resource_find(filename)
+        if rfilename is None or not exists(rfilename):
             Logger.debug('App: kv <%s> not found' % filename)
             return False
-        root = Builder.load_file(filename)
+        root = Builder.load_file(rfilename)
         if root:
             self.root = root
         return True
@@ -550,22 +619,24 @@ class App(EventDispatcher):
         '''.. versionadded:: 1.0.7
 
         .. versionchanged:: 1.4.0
-            Customize the default path for iOS and Android platform. Add
-            defaultpath parameter for desktop computer (not applicatable for iOS
+            Customized the default path for iOS and Android platforms. Added a
+            defaultpath parameter for desktop OS's (not applicable to iOS
             and Android.)
 
-        Return the filename of your application configuration. Depending the
-        platform, the application file will be stored at different places:
+        Return the filename of your application configuration. Depending
+        on the platform, the application file will be stored in
+        different locations:
 
             - on iOS: <appdir>/Documents/.<appname>.ini
             - on Android: /sdcard/.<appname>.ini
             - otherwise: <appdir>/<appname>.ini
 
-        When you are distributing your application on Desktop, please note than
-        if the application is meant to be installed system-wise, then the user
-        might not have any write-access to the application directory. You could
-        overload this method to change the default behavior, and save the
-        configuration file in the user directory by default::
+        When you are distributing your application on Desktops, please
+        note that if the application is meant to be installed
+        system-wide, the user might not have write-access to the
+        application directory. If you want to store user settings, you
+        should overload this method and change the default behavior to
+        save the configuration file in the user directory.::
 
             class TestApp(App):
                 def get_application_config(self):
@@ -575,8 +646,8 @@ class App(EventDispatcher):
         Some notes:
 
         - The tilda '~' will be expanded to the user directory.
-        - %(appdir)s will be replaced with the application :data:`directory`
-        - %(appname)s will be replaced with the application :data:`name`
+        - %(appdir)s will be replaced with the application :attr:`directory`
+        - %(appname)s will be replaced with the application :attr:`name`
         '''
 
         if platform == 'android':
@@ -588,19 +659,34 @@ class App(EventDispatcher):
         return expanduser(defaultpath) % {
             'appname': self.name, 'appdir': self.directory}
 
+    @property
+    def root_window(self):
+        '''.. versionadded:: 1.9.0
+
+        Returns the root window instance used by :meth:`run`.
+        '''
+        return self._app_window
+
     def load_config(self):
         '''(internal) This function is used for returning a ConfigParser with
         the application configuration. It's doing 3 things:
 
-            #. Create an instance of a ConfigParser
-            #. Load the default configuration by calling
+            #. Creating an instance of a ConfigParser
+            #. Loading the default configuration by calling
                :meth:`build_config`, then
-            #. If exist, load the application configuration file, or create it
-               if it's not existing.
+            #. If it exists, it loads the application configuration file,
+               otherwise it creates one.
 
-        :return: ConfigParser instance
+        :return:
+            :class:`~kivy.config.ConfigParser` instance
         '''
-        self.config = config = ConfigParser()
+        try:
+            config = ConfigParser.get_configparser('app')
+        except KeyError:
+            config = None
+        if config is None:
+            config = ConfigParser(name='app')
+        self.config = config
         self.build_config(config)
         # if no sections are created, that's mean the user don't have
         # configuration.
@@ -617,7 +703,14 @@ class App(EventDispatcher):
                 config.read(filename)
             except:
                 Logger.error('App: Corrupted config file, ignored.')
-                self.config = config = ConfigParser()
+                config.name = ''
+                try:
+                    config = ConfigParser.get_configparser('app')
+                except KeyError:
+                    config = None
+                if config is None:
+                    config = ConfigParser(name='app')
+                self.config = config
                 self.build_config(config)
                 pass
         else:
@@ -631,7 +724,7 @@ class App(EventDispatcher):
     def directory(self):
         '''.. versionadded:: 1.0.7
 
-        Return the directory where the application live
+        Return the directory where the application lives.
         '''
         if self._app_directory is None:
             try:
@@ -648,21 +741,22 @@ class App(EventDispatcher):
         '''
         .. versionadded:: 1.7.0
 
-        Returns the path to a directory in the users files system, which the
+        Returns the path to the directory in the users file system which the
         application can use to store additional data.
 
-        Different platforms have different conventions for where to save user
-        data like preferences, saved games, and settings. This function
-        implements those conventions.
+        Different platforms have different conventions with regards to where
+        the user can store data such as preferences, saved games and settings.
+        This function implements these conventions. The <app_name> directory
+        is created when the property is called, unless it already exists.
 
-        On iOS `~/Documents<app_name>` is returned (which is inside the
-        apps sandbox).
+        On iOS, `~/Documents<app_name>` is returned (which is inside the
+        app's sandbox).
 
-        On Android `/sdcard/<app_name>` is returned.
+        On Android, `/sdcard/<app_name>` is returned.
 
-        On Windows `%APPDATA%/<app_name>` is returned.
+        On Windows, `%APPDATA%/<app_name>` is returned.
 
-        On Mac OS X `~/Library/Application Support <app_name>` is returned.
+        On Mac OSX, `~/Library/Application Support/<app_name>` is returned.
 
         On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
         '''
@@ -687,7 +781,7 @@ class App(EventDispatcher):
     def name(self):
         '''.. versionadded:: 1.0.7
 
-        Return the name of the application, based on the class name
+        Return the name of the application based on the class name.
         '''
         if self._app_name is None:
             clsname = self.__class__.__name__
@@ -701,11 +795,14 @@ class App(EventDispatcher):
         '''
         if not self.built:
             self.load_config()
-            self.load_kv(filename=self.options.get('kv_file'))
+            self.load_kv(filename=self.kv_file)
             root = self.build()
             if root:
                 self.root = root
         if self.root:
+            if not isinstance(self.root, Widget):
+                Logger.critical('App.root must be an _instance_ of Widget')
+                raise Exception('Invalid instance in App.root')
             from kivy.core.window import Window
             Window.add_widget(self.root)
 
@@ -721,7 +818,7 @@ class App(EventDispatcher):
             self._install_settings_keys(window)
         else:
             Logger.critical("Application: No window is created."
-                " Terminating application run.")
+                            " Terminating application run.")
             return
 
         self.dispatch('on_start')
@@ -742,70 +839,74 @@ class App(EventDispatcher):
             self._app_window.remove_widget(child)
 
     def on_start(self):
-        '''Event handler for the on_start event, which is fired after
-        initialization (after build() has been called), and before the
-        application is being run.
+        '''Event handler for the `on_start` event which is fired after
+        initialization (after build() has been called) but before the
+        application has started running.
         '''
         pass
 
     def on_stop(self):
-        '''Event handler for the on_stop event, which is fired when the
-        application has finished running (e.g. the window is about to be
+        '''Event handler for the `on_stop` event which is fired when the
+        application has finished running (i.e. the window is about to be
         closed).
         '''
         pass
 
     def on_pause(self):
-        '''Event handler called when pause mode is asked. You must return True
-        if you can go to the Pause mode. Otherwise, return False, and your
-        application will be stopped.
+        '''Event handler called when Pause mode is requested. You should
+        return True if your app can go into Pause mode, otherwise
+        return False and your application will be stopped (the default).
 
-        You cannot control when the application is going to this mode. It's
-        mostly used for embed devices (android/ios), and for resizing.
+        You cannot control when the application is going to go into this mode.
+        It's determined by the Operating System and mostly used for mobile
+        devices (android/ios) and for resizing.
 
-        Default is False.
+        The default return value is False.
 
         .. versionadded:: 1.1.0
         '''
         return False
 
     def on_resume(self):
-        '''Event handler called when your application is resuming from the Pause
-        mode.
+        '''Event handler called when your application is resuming from
+        the Pause mode.
 
         .. versionadded:: 1.1.0
 
         .. warning::
 
-            When resuming, OpenGL Context might have been damaged / freed. This
-            is where you should reconstruct some of your OpenGL state, like FBO
-            content.
+            When resuming, the OpenGL Context might have been damaged / freed.
+            This is where you can reconstruct some of your OpenGL state
+            e.g. FBO content.
         '''
         pass
 
     @staticmethod
     def get_running_app():
-        '''Return the current runned application instance.
+        '''Return the currently running application instance.
 
         .. versionadded:: 1.1.0
         '''
         return App._running_app
 
     def on_config_change(self, config, section, key, value):
-        '''Event handler fired when one configuration token have been changed by
+        '''Event handler fired when a configuration token has been changed by
         the settings page.
         '''
         pass
 
     def open_settings(self, *largs):
         '''Open the application settings panel. It will be created the very
-        first time. The settings panel will be displayed with the
+        first time, or recreated if the previously cached panel has been
+        removed by :meth:`destroy_settings`. The settings panel will be
+        displayed with the
         :meth:`display_settings` method, which by default adds the
         settings panel to the Window attached to your application. You
         should override that method if you want to display the
         settings panel differently.
 
-        :return: True if the settings have been opened
+        :return:
+            True if the settings has been opened.
 
         '''
         if self._app_settings is None:
@@ -824,9 +925,10 @@ class App(EventDispatcher):
 
         You should return True if the display is successful, otherwise False.
 
-        :param settings: A :class:`~kivy.uix.settings.Settings`
-                         instance. You should define how to display it.
-        :type config: :class:`~kivy.uix.settings.Settings`
+        :Parameters:
+            `settings`: :class:`~kivy.uix.settings.Settings`
+                You can modify this object in order to modify the settings
+                display.
 
         '''
         win = self._app_window
@@ -841,7 +943,8 @@ class App(EventDispatcher):
     def close_settings(self, *largs):
         '''Close the previously opened settings panel.
 
-        :return: True if the settings have been closed
+        :return:
+            True if the settings has been closed.
         '''
         win = self._app_window
         settings = self._app_settings
@@ -853,19 +956,28 @@ class App(EventDispatcher):
         return False
 
     def create_settings(self):
-        '''Create the settings panel. This method is called only one time per
-        application life-time, and the result is cached internally.
+        '''Create the settings panel. This method will normally
+        be called only one time per
+        application life-time and the result is cached internally,
+        but it may be called again if the cached panel is removed
+        by :meth:`destroy_settings`.
 
-        By default, it will build a setting panel according to
-        :data:`settings_cls`, call :meth:`build_settings`, add the Kivy panel if
-        :data:`use_kivy_settings` is True, and bind to
+        By default, it will build a settings panel according to
+        :attr:`settings_cls`, call :meth:`build_settings`, add a Kivy panel if
+        :attr:`use_kivy_settings` is True, and bind to
         on_close/on_config_change.
 
-        If you want to plug your own way of doing settings, without Kivy panel
-        or close/config change events, this is the method you want to overload.
+        If you want to plug your own way of doing settings, without the Kivy
+        panel or close/config change events, this is the method you want to
+        overload.
 
         .. versionadded:: 1.8.0
         '''
+        if self.settings_cls is None:
+            from kivy.uix.settings import SettingsWithSpinner
+            self.settings_cls = SettingsWithSpinner
+        elif isinstance(self.settings_cls, string_types):
+            self.settings_cls = Factory.get(self.settings_cls)
         s = self.settings_cls()
         self.build_settings(s)
         if self.use_kivy_settings:
@@ -877,7 +989,7 @@ class App(EventDispatcher):
     def destroy_settings(self):
         '''.. versionadded:: 1.8.0
 
-        Dereferences the current settings panel, if one
+        Dereferences the current settings panel if one
         exists. This means that when :meth:`App.open_settings` is next
         run, a new panel will be created and displayed. It doesn't
         affect any of the contents of the panel, but lets you (for
@@ -893,6 +1005,10 @@ class App(EventDispatcher):
         '''
         if self._app_settings is not None:
             self._app_settings = None
+
+    #
+    # privates
+    #
 
     def _on_config_change(self, *largs):
         self.on_config_change(*largs[1:])
@@ -916,3 +1032,12 @@ class App(EventDispatcher):
             return True
         if key == 27:
             return self.close_settings()
+
+    def on_title(self, instance, title):
+        if self._app_window:
+            self._app_window.set_title(title)
+
+    def on_icon(self, instance, icon):
+        if self._app_window:
+            self._app_window.set_icon(self.get_application_icon())
+

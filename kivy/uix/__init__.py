@@ -7,8 +7,8 @@ The `kivy.uix` module contains classes for creating and managing Widgets.
 
 First read: :doc:`api-kivy.uix.widget`
 
-- **UX widgets**: Classical user interface widgets, perfect and ready to be
-  assembled to create more complex widgets.
+- **UX widgets**: Classical user interface widgets, ready to be assembled to
+  create more complex widgets.
 
     :doc:`api-kivy.uix.label`, :doc:`api-kivy.uix.button`,
     :doc:`api-kivy.uix.checkbox`,
@@ -27,12 +27,12 @@ First read: :doc:`api-kivy.uix.widget`
 - **Complex UX widgets**: Non-atomic widgets that are the result of
   combining multiple classic widgets.
   We call them complex because their assembly and usage are not as
-  generic as the classicals widgets.
+  generic as the classical widgets.
 
     :doc:`api-kivy.uix.bubble`, :doc:`api-kivy.uix.dropdown`,
     :doc:`api-kivy.uix.filechooser`, :doc:`api-kivy.uix.popup`,
     :doc:`api-kivy.uix.spinner`,
-    :doc:`api-kivy.uix.listview`, :doc:`api-kivy.uix.listview`,
+    :doc:`api-kivy.uix.listview`,
     :doc:`api-kivy.uix.tabbedpanel`, :doc:`api-kivy.uix.videoplayer`,
     :doc:`api-kivy.uix.vkeyboard`,
 
@@ -41,8 +41,8 @@ First read: :doc:`api-kivy.uix.widget`
 
     :doc:`api-kivy.uix.scatter`, :doc:`api-kivy.uix.stencilview`
 
-- **Screen manager**: Manages screens and transitions when switching from one to
-  another.
+- **Screen manager**: Manages screens and transitions when switching
+  from one to another.
 
     :doc:`api-kivy.uix.screenmanager`
 

@@ -72,7 +72,7 @@ class BoxLayout(Layout):
     spacing = NumericProperty(0)
     '''Spacing between children, in pixels.
 
-    :data:`spacing` is a :class:`~kivy.properties.NumericProperty` and defaults
+    :attr:`spacing` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 0.
     '''
 
@@ -84,10 +84,9 @@ class BoxLayout(Layout):
     padding_vertical] and a one argument form [padding].
 
     .. versionchanged:: 1.7.0
+        Replaced NumericProperty with VariableListProperty.
 
-    Replaced NumericProperty with VariableListProperty.
-
-    :data:`padding` is a :class:`~kivy.properties.VariableListProperty` and
+    :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [0, 0, 0, 0].
     '''
 
@@ -95,7 +94,7 @@ class BoxLayout(Layout):
         'horizontal', 'vertical'))
     '''Orientation of the layout.
 
-    :data:`orientation` is an :class:`~kivy.properties.OptionProperty` and
+    :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'horizontal'. Can be 'vertical' or 'horizontal'.
     '''
 
@@ -159,16 +158,16 @@ class BoxLayout(Layout):
                 if shw:
                     w = stretch_space * shw / stretch_weight_x
                 if shh:
-                    h = shh * (selfh - padding_y)
+                    h = max(0, shh * (selfh - padding_y))
 
                 for key, value in c.pos_hint.items():
                     posy = value * (selfh - padding_y)
                     if key == 'y':
-                        cy += padding_bottom + posy
+                        cy += posy
                     elif key == 'top':
-                        cy += padding_bottom + posy - h
+                        cy += posy - h
                     elif key == 'center_y':
-                        cy += padding_bottom - h / 2. + posy
+                        cy += posy - (h / 2.)
 
                 c.x = cx
                 c.y = cy
@@ -190,16 +189,16 @@ class BoxLayout(Layout):
                 if shh:
                     h = stretch_space * shh / stretch_weight_y
                 if shw:
-                    w = shw * (selfw - padding_x)
+                    w = max(0, shw * (selfw - padding_x))
 
                 for key, value in c.pos_hint.items():
                     posx = value * (selfw - padding_x)
                     if key == 'x':
-                        cx += padding_left + posx
+                        cx += posx
                     elif key == 'right':
-                        cx += padding_left + posx - w
+                        cx += posx - w
                     elif key == 'center_x':
-                        cx += padding_left - w / 2. + posx
+                        cx += posx - (w / 2.)
 
                 c.x = cx
                 c.y = cy
