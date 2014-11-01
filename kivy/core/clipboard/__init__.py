@@ -119,7 +119,21 @@ _platform = platform
 if _platform == 'android':
     _clipboards.append(
         ('android', 'clipboard_android', 'ClipboardAndroid'))
+    _clipboards.append(
+        ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
+elif _platform == 'ios':
+    _clipboards.append(
+        ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
 elif _platform in ('macosx', 'linux', 'win'):
+    if _platform == 'macosx':
+        _clipboards.append(
+            ('nspaste', 'clipboard_nspaste', 'ClipboardNSPaste'))
+    elif _platform == 'win':
+        _clipboards.append(
+            ('winctypes', 'clipboard_winctypes', 'ClipboardWindows'))
+    elif _platform == 'linux':
+        _clipboards.append(('dbusklipper', 'clipboard_dbusklipper', 'Clipboard_DbusKlipper'))
+
     _clipboards.append(
         ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
     _clipboards.append(
