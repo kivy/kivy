@@ -132,7 +132,7 @@ elif _platform in ('macosx', 'linux', 'win'):
         _clipboards.append(
             ('winctypes', 'clipboard_winctypes', 'ClipboardWindows'))
     elif _platform == 'linux':
-        _clipboards.append(('dbusklipper', 'clipboard_dbusklipper', 'Clipboard_DbusKlipper'))
+        _clipboards.append(('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
 
     _clipboards.append(
         ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
