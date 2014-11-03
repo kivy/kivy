@@ -142,7 +142,7 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef dict attrs_found
         cdef list attrs
         cdef Property attr
-        cdef str k
+        cdef basestring k
 
         self.__event_stack = {}
         self.__storage = {}
@@ -180,7 +180,7 @@ cdef class EventDispatcher(ObjectWithUid):
         # If not done yet, discover __events__ on all the baseclasses
         cdef dict ce = cache_events
         cdef list events
-        cdef str event
+        cdef basestring event
         if __cls__ not in ce:
             classes = [__cls__] + list(_get_bases(self.__class__))
             events = []
@@ -211,7 +211,7 @@ cdef class EventDispatcher(ObjectWithUid):
             self.__event_stack[event] = EventObservers(1, 0)
 
     def __init__(self, **kwargs):
-        cdef str func, name, key
+        cdef basestring func, name, key
         cdef dict properties
         # object.__init__ takes no parameters as of 2.6; passing kwargs
         # triggers a DeprecationWarning or worse
@@ -239,7 +239,7 @@ cdef class EventDispatcher(ObjectWithUid):
             if key in properties:
                 setattr(self, key, value)
 
-    def register_event_type(self, str event_type):
+    def register_event_type(self, basestring event_type):
         '''Register an event type with the dispatcher.
 
         Registering event types allows the dispatcher to validate event handler
@@ -278,13 +278,13 @@ cdef class EventDispatcher(ObjectWithUid):
         if event_type not in self.__event_stack:
             self.__event_stack[event_type] = EventObservers(1, 0)
 
-    def unregister_event_types(self, str event_type):
+    def unregister_event_types(self, basestring event_type):
         '''Unregister an event type in the dispatcher.
         '''
         if event_type in self.__event_stack:
             del self.__event_stack[event_type]
 
-    def is_event_type(self, str event_type):
+    def is_event_type(self, basestring event_type):
         '''Return True if the event_type is already registered.
 
         .. versionadded:: 1.0.4
@@ -590,7 +590,7 @@ cdef class EventDispatcher(ObjectWithUid):
         '''
         return self.__event_stack.keys()
 
-    def dispatch(self, str event_type, *largs, **kwargs):
+    def dispatch(self, basestring event_type, *largs, **kwargs):
         '''Dispatch an event across all the handlers added in bind/fast_bind().
         As soon as a handler returns True, the dispatching stops.
 
@@ -602,7 +602,7 @@ cdef class EventDispatcher(ObjectWithUid):
             with :meth:`bind`.
 
         :Parameters:
-            `event_type`: str
+            `event_type`: basestring
                 the event name to dispatch.
 
         .. versionchanged:: 1.9.0
@@ -617,12 +617,12 @@ cdef class EventDispatcher(ObjectWithUid):
         handler = getattr(self, event_type)
         return handler(*largs, **kwargs)
 
-    def dispatch_generic(self, str event_type, *largs, **kwargs):
+    def dispatch_generic(self, basestring event_type, *largs, **kwargs):
         if event_type in self.__event_stack:
             return self.dispatch(event_type, *largs, **kwargs)
         return self.dispatch_children(event_type, *largs, **kwargs)
 
-    def dispatch_children(self, str event_type, *largs, **kwargs):
+    def dispatch_children(self, basestring event_type, *largs, **kwargs):
         for child in self.children[:]:
             if child.dispatch_generic(event_type, *largs, **kwargs):
                 return True
