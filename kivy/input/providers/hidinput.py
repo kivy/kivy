@@ -43,8 +43,10 @@ __all__ = ('HIDInputMotionEventProvider', 'HIDMotionEvent')
 import os
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
-from kivy.core.window import Window
-from kivy.core.window import Keyboard
+
+# late imports
+Window = None
+Keyboard = None
 
 
 class HIDMotionEvent(MotionEvent):
@@ -286,6 +288,13 @@ else:
 
         def __init__(self, device, args):
             super(HIDInputMotionEventProvider, self).__init__(device, args)
+            global Window, Keyboard
+
+            if Window is None:
+                from kivy.core.window import Window
+            if Keyboard is None:
+                from kivy.core.window import Keyboard
+
             self.input_fn = None
             self.default_ranges = dict()
 
@@ -373,10 +382,10 @@ else:
                     if ev_code == SYN_MT_REPORT:
                         if 'id' not in point:
                             return
-                        l_points.append(point)
+                        l_points.append(point.copy())
                     elif ev_code == SYN_REPORT:
                         process(l_points)
-                        l_points = []
+                        del l_points[:]
 
                 elif ev_type == EV_MSC and ev_code in (MSC_RAW, MSC_SCAN):
                     pass
@@ -384,7 +393,7 @@ else:
                 else:
                     # compute multitouch track
                     if ev_code == ABS_MT_TRACKING_ID:
-                        point = {}
+                        point.clear()
                         point['id'] = ev_value
                     elif ev_code == ABS_MT_POSITION_X:
                         val = normalize(ev_value,
