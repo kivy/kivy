@@ -211,6 +211,7 @@ __all__ = ('Clock', 'ClockBase', 'ClockEvent', 'mainthread')
 
 from sys import platform
 from os import environ
+from functools import wraps
 from kivy.context import register_context
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
@@ -657,6 +658,7 @@ def mainthread(func):
 
     .. versionadded:: 1.8.0
     '''
+    @wraps(func)
     def delayed_func(*args, **kwargs):
         def callback_func(dt):
             func(*args, **kwargs)
