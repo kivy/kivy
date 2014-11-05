@@ -48,7 +48,7 @@ If you don't have an IRC client, you can also use
 the browser window too soon. Just enter ``#kivy`` in the channels field.
 
 
-**Please read our**
-**`Community Guidelines <https://github.com/kivy/kivy/wiki/Community-Guidelines/>`_**
-**before asking for help on the mailing list or IRC channel.**
+Please read our
+`Community Guidelines <https://github.com/kivy/kivy/wiki/Community-Guidelines/>`_
+before asking for help on the mailing list or IRC channel.
 
