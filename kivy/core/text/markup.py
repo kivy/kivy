@@ -766,6 +766,12 @@ class MarkupLabel(MarkupLabelBase):
         s = self.get_extents(last_text)
         if len(last_text):
             line1.append(LayoutWord(last_word.options, s[0], s[1], last_text))
+        # first part of the text has its own options visual changes
+        # could be made; color and font_names are critical for this point.
+        # datas are copied from first part of the text to dots. 
+        elps.options.update({'color': self.options['color'],
+                             'font_name': self.options['font_name'],
+                             'font_name_r': self.options['font_name_r']})
         line1.append(elps)
 
         # now add back the right half
