@@ -861,7 +861,7 @@ cdef class Texture:
                 'uint', 'byte', 'short', 'int' or 'float'.
             `mipmap_level`: int, defaults to 0
                 Indicate which mipmap level we are going to update.
-            `mipmap_generation`: bool, defaults to False
+            `mipmap_generation`: bool, defaults to True
                 Indicate if we need to regenerate the mipmap from level 0.
 
         .. versionchanged:: 1.0.7
