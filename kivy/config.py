@@ -223,7 +223,7 @@ Available configuration tokens
 .. versionchanged:: 1.9.0
     `borderless` has been added to the graphics section.
     The `fake` option of `fullscreen` in the graphics section has been
-    deprecated, use the `bordered` option in the graphics section instead.
+    deprecated, use the `borderless` option instead.
 
 .. versionchanged:: 1.8.0
     `systemanddock` and `systemandmulti` has been added as possible values for
