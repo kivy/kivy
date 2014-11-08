@@ -44,6 +44,14 @@ KIVY_HOME
 
     .. versionadded:: 1.9.0
 
+KIVY_SDL_PATH
+    If set, the SDL2 libraries and headers from this path are used when
+    compiling kivy instead of the ones installed system-wide.
+    To use the same libraries while running a kivy app, this path must be
+    added at the start of the PATH environment variable.
+
+    .. versionadded:: 1.9.0
+
 Configuration
 -------------
 
