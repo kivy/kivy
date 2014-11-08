@@ -220,6 +220,11 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted
     arguments.
 
+.. note::
+
+    These options control only the initalization of the app and a restart
+    is required for value changes to take effect.    
+
 .. versionchanged:: 1.9.0
     `borderless` has been added to the graphics section.
     The `fake` option of `fullscreen` in the graphics section has been
