@@ -33,13 +33,18 @@ __version__ = '1.9.0-dev'
 import sys
 import shutil
 from getopt import getopt, GetoptError
-from os import environ, mkdir
+from os import environ, mkdir, pathsep
 from os.path import dirname, join, basename, exists, expanduser
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
 
 # internals for post-configuration
 __kivy_post_configuration = []
+
+# Use custom SDL2 libraries and headers if SDL_PATH is set, not the ones
+# installed system-wide.
+if 'SDL_PATH' in environ:
+    environ['PATH'] = pathsep.join((environ['SDL_PATH'], environ['PATH']))
 
 
 if platform == 'macosx' and sys.maxsize < 9223372036854775807:
