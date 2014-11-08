@@ -394,7 +394,10 @@ def determine_sdl2():
     if not c_options['use_sdl2']:
         return flags
 
-    sdl2_path = environ['SDL_PATH'] if 'SDL_PATH' in environ else None
+    if 'KIVY_SDL_PATH' in environ:
+        sdl2_path = environ['KIVY_SDL_PATH'] 
+    else:
+        sdl2_path = None
 
     flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
     flags['include_dirs'] = ([sdl2_path] if sdl2_path else

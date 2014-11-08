@@ -41,11 +41,6 @@ from kivy.utils import platform
 # internals for post-configuration
 __kivy_post_configuration = []
 
-# Use custom SDL2 libraries and headers if SDL_PATH is set, not the ones
-# installed system-wide.
-if 'SDL_PATH' in environ:
-    environ['PATH'] = pathsep.join((environ['SDL_PATH'], environ['PATH']))
-
 
 if platform == 'macosx' and sys.maxsize < 9223372036854775807:
     r = '''Unsupported Python version detected!:
