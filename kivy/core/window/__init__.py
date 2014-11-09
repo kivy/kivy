@@ -471,7 +471,7 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.9.0
 
-    :attr:`borderless` is a :class:`BooleanProperty`.
+    :attr:`borderless` is a :class:`BooleanProperty`, defaults to False.
     '''
 
     fullscreen = OptionProperty(False, options=(True, False, 'auto', 'fake'))
@@ -526,6 +526,7 @@ class WindowBase(EventDispatcher):
 
         self.initialized = False
         self._is_desktop = Config.getboolean('kivy', 'desktop')
+        self._resizable = Config.getboolean('graphics', 'resizable')
 
         # create a trigger for update/create the window when one of window
         # property changes
