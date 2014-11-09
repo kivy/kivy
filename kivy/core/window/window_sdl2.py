@@ -30,6 +30,7 @@ from kivy.resources import resource_find
 from kivy.utils import platform, deprecated
 from kivy.compat import unichr
 from collections import deque
+from kivy.app import App
 
 KMOD_LCTRL = 64
 KMOD_RCTRL = 128
@@ -205,18 +206,11 @@ class WindowSDL(WindowBase):
         self._win.set_window_icon(filename)
 
     def screenshot(self, *largs, **kwargs):
-        return
-        # TODO
-        filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
+        filename = super(WindowSDL, self).screenshot(*largs, **kwargs)
         if filename is None:
             return None
-        from kivy.core.gl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
-        width, height = self.size
-        data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
-        data = str(buffer(data))
-        surface = pygame.image.fromstring(data, self.size, 'RGB', True)
-        pygame.image.save(surface, filename)
-        Logger.debug('Window: Screenshot saved at <%s>' % filename)
+        App.get_running_app().root.export_to_png(filename)
+        Logger.debug('Window: Screenshot saved at {}.'.format(filename))
         return filename
 
     def flip(self):
