@@ -263,7 +263,7 @@ class WindowPygame(WindowBase):
         if PY2:
             data = str(buffer(data))
         else:
-            data = bytes(memoryview(data))
+            data = bytes(bytearray(data))
         surface = pygame.image.fromstring(data, (width, height), 'RGBA', True)
         pygame.image.save(surface, filename)
         Logger.debug('Window: Screenshot saved at <%s>' % filename)
