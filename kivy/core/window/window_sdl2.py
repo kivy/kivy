@@ -284,15 +284,15 @@ class WindowSDL(WindowBase):
 
                 self._mouse_meta = self.modifiers
                 self._mouse_btn = btn
-                times = x if y == 0 else y
-                times = min(abs(times), 100)
-                for k in range(times):
-                    self._mouse_down = True
-                    self.dispatch('on_mouse_down',
-                        self._mouse_x, self._mouse_y, btn, self.modifiers)
-                    self._mouse_down = False
-                    self.dispatch('on_mouse_up',
-                        self._mouse_x, self._mouse_y, btn, self.modifiers)
+                #times = x if y == 0 else y
+                #times = min(abs(times), 100)
+                #for k in range(times):
+                self._mouse_down = True
+                self.dispatch('on_mouse_down',
+                    self._mouse_x, self._mouse_y, btn, self.modifiers)
+                self._mouse_down = False
+                self.dispatch('on_mouse_up',
+                    self._mouse_x, self._mouse_y, btn, self.modifiers)
 
             elif action == 'dropfile':
                 dropfile = args
