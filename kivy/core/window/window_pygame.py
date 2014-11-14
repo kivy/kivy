@@ -51,7 +51,7 @@ class WindowPygame(WindowBase):
         # on window / macosx, the opengl context is lost, and we need to
         # reconstruct everything. Check #168 for a state of the work.
         if platform in ('linux', 'macosx', 'win') and \
-                Config.getint('graphics', 'resizable'):
+                Config.getboolean('graphics', 'resizable'):
             self.flags |= pygame.RESIZABLE
 
         try:

@@ -122,8 +122,10 @@ class WindowSDL(WindowBase):
 
             # setup !
             w, h = self._size
+            resizable = Config.getboolean('graphics', 'resizable')
             gl_size = self._win.setup_window(pos[0], pos[1], w, h,
-                                             self.borderless, self.fullscreen)
+                                             self.borderless, self.fullscreen,
+                                             resizable)
             # never stay with a None pos, application using w.center
             # will be fired.
             self._pos = (0, 0)
