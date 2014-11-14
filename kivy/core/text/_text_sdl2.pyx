@@ -96,7 +96,7 @@ cdef TTF_Font *_get_font(self):
 
     # try first the file if it's a filename
     fontname = self.options['font_name_r']
-    bytes_fontname = <bytes>fontname.encode('utf-8')
+    bytes_fontname = <bytes>fontname
     ext = fontname.split('.')[-1]
     if ext.lower() == 'ttf':
         fontobject = TTF_OpenFont(bytes_fontname,
@@ -104,14 +104,16 @@ cdef TTF_Font *_get_font(self):
 
     # fallback to search a system font
     if fontobject == NULL:
-        s_error = (<bytes>SDL_GetError()).decode('utf-8')
+        s_error = (<bytes>SDL_GetError()).encode('utf-8')
         print(s_error)
         assert(0)
+
     sdl2_cache[fontid] = ttfc = _TTFContainer()
     ttfc.font = fontobject
     sdl2_cache_order.append(fontid)
 
     # to prevent too much file open, limit the number of opened fonts to 64
+
     while len(sdl2_cache_order) > 64:
         popid = sdl2_cache_order.pop(0)
         ttfc = sdl2_cache[popid]

@@ -39,10 +39,11 @@ import os
 from functools import partial
 from copy import copy
 from kivy import kivy_data_dir
+from kivy.utils import platform
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
 from kivy.core.text.text_layout import layout_text, LayoutWord
-from kivy.resources import resource_find
+from kivy.resources import resource_find, resource_add_path
 from kivy.compat import PY2
 
 DEFAULT_FONT = 'DroidSans'
@@ -141,6 +142,10 @@ class LabelBase(object):
                  line_height=1.0, strip=False, shorten_from='center',
                  split_str=' ', **kwargs):
 
+        # Include system fonts_dir in resource paths.
+        # This allows us to specify a font from those dirs.
+        LabelBase.get_system_fonts_dir()
+
         options = {'text': text, 'font_size': font_size,
                    'font_name': font_name, 'bold': bold, 'italic': italic,
                    'halign': halign, 'valign': valign, 'shorten': shorten,
@@ -226,6 +231,10 @@ class LabelBase(object):
             options['font_name_r'] = fontscache[fontname]
         else:
             filename = resource_find(fontname)
+            if not filename:
+                fontname = fontname + ('' if fontname.endswith('.ttf') else '.ttf')
+                filename = resource_find(fontname)
+
             if filename is None:
                 # XXX for compatibility, check directly in the data dir
                 filename = os.path.join(kivy_data_dir, fontname)
@@ -233,6 +242,31 @@ class LabelBase(object):
                     raise IOError('Label: File %r not found' % fontname)
             fontscache[fontname] = filename
             options['font_name_r'] = filename
+
+    @staticmethod
+    def get_system_fonts_dir():
+        '''Return the Directory used by the system for fonts.
+        '''
+        fdirs = None
+        if platform == 'linux':
+           fdirs = ('/usr/share/fonts/truetype', '/usr/local/share/fonts',
+               os.path.expanduser('~/.fonts'), os.path.expanduser('~/.local/share/fonts'))
+        elif platform == 'macosx':
+            fdirs = ('/Library/Fonts', '/System/Library/Fonts',
+                os.path.expanduser('~/Library/Fonts'))
+        elif platform == 'windows':
+            fdirs = (os.environ['SYSTEMROOT']+ os.sep + 'Fonts',)
+        elif platform == 'ios':
+            fdirs = ('/Systiem/Library/Fonts',)
+        elif platform == 'android':
+            fdirs =  ('/system/fonts', )
+
+        if fdirs:
+            # let's register the font dirs
+            fdirs = [fdir for fdir in fdirs if os.path.exists(fdir)]
+            map(resource_add_path, fdirs)
+            return fdirs
+        raise Exception("Unknown Platform {}".format(platform))
 
     def get_extents(self, text):
         '''Return a tuple (width, height) indicating the size of the specified
