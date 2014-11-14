@@ -232,7 +232,8 @@ class LabelBase(object):
         else:
             filename = resource_find(fontname)
             if not filename:
-                fontname = fontname + ('' if fontname.endswith('.ttf') else '.ttf')
+                fontname = fontname + \
+                    ('' if fontname.endswith('.ttf') else '.ttf')
                 filename = resource_find(fontname)
 
             if filename is None:
@@ -247,20 +248,23 @@ class LabelBase(object):
     def get_system_fonts_dir():
         '''Return the Directory used by the system for fonts.
         '''
-        fdirs = None
+        fdirs = []
         if platform == 'linux':
-           fdirs = ('/usr/share/fonts/truetype', '/usr/local/share/fonts',
-               os.path.expanduser('~/.fonts'), os.path.expanduser('~/.local/share/fonts'))
+            fdirs = [
+                '/usr/share/fonts/truetype', '/usr/local/share/fonts',
+                os.path.expanduser('~/.fonts'),
+                os.path.expanduser('~/.local/share/fonts')]
         elif platform == 'macosx':
-            fdirs = ('/Library/Fonts', '/System/Library/Fonts',
-                os.path.expanduser('~/Library/Fonts'))
+            fdirs = ['/Library/Fonts', '/System/Library/Fonts',
+                os.path.expanduser('~/Library/Fonts')]
         elif platform == 'windows':
-            fdirs = (os.environ['SYSTEMROOT']+ os.sep + 'Fonts',)
+            fdirs = [os.environ['SYSTEMROOT'] + os.sep + 'Fonts']
         elif platform == 'ios':
-            fdirs = ('/Systiem/Library/Fonts',)
+            fdirs = ['/Systiem/Library/Fonts']
         elif platform == 'android':
-            fdirs =  ('/system/fonts', )
+            fdirs = ['/system/fonts']
 
+        fdirs.append(kivy_data_dir + os.sep + 'fonts')
         if fdirs:
             # let's register the font dirs
             fdirs = [fdir for fdir in fdirs if os.path.exists(fdir)]
