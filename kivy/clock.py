@@ -641,8 +641,8 @@ class ClockBase(_ClockBase):
 
 
 def mainthread(func):
-    '''Decorator that will schedule the call of the function in the
-    mainthread.  It can be useful when you use
+    '''Decorator that will schedule the call of the function for the next
+    available frame in the mainthread. It can be useful when you use
     :class:`~kivy.network.urlrequest.UrlRequest` or when you do Thread
     programming: you cannot do any OpenGL-related work in a thread.
 
@@ -651,8 +651,8 @@ def mainthread(func):
 
         @mainthread
         def callback(self, *args):
-            print('The request succedded!'
-                  'This callback is call in the main thread')
+            print('The request succedded!',
+                  'This callback is called in the main thread.')
 
         self.req = UrlRequest(url='http://...', on_success=callback)
 
