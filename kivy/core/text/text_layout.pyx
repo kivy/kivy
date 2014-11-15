@@ -6,6 +6,7 @@ An internal module for laying out text according to options and constraints.
 This is not part of the API and may change at any time.
 '''
 
+import string
 
 __all__ = ('layout_text', 'LayoutWord', 'LayoutLine')
 
@@ -147,7 +148,7 @@ cdef inline void final_strip(LayoutLine line):
             line.w -= last_word.lw  # likely 0
             continue
 
-        stripped = last_word.text.rstrip()  # ends with space
+        stripped = last_word.text.rstrip(string.whitespace)  # ends with space
         # subtract ending space length
         diff = ((len(last_word.text) - len(stripped)) *
                 last_word.options['space_width'])
@@ -187,10 +188,10 @@ cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
             k = n - 1
         if strip:
             if not _line.w:  # no proceeding text: strip leading
-                line = line.lstrip()
+                line = line.lstrip(string.whitespace)
             # ends this line so right strip
             if complete or (dwn and n > 1 or not dwn and pos > 1):
-                line = line.rstrip()
+                line = line.rstrip(string.whitespace)
         lw, lh = get_extents(line)
 
         old_lh = _line.h
@@ -217,9 +218,9 @@ cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
         # the last line is only stripped from left
         if strip:
             if complete or (dwn and i < n - 1 or not dwn and i > s):
-                line = line.strip()
+                line = line.strip(string.whitespace)
             else:
-                line = line.lstrip()
+                line = line.lstrip(string.whitespace)
         lw, lh = get_extents(line)
         lhh = int(lh * line_height)
         if uh != -1 and h + lhh > uh and pos:  # too high
@@ -424,9 +425,9 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
         line = new_lines[i]
         if strip:
             if not _line.w:  # there's no proceeding text, so strip leading
-                line = line.lstrip()
+                line = line.lstrip(string.whitespace)
             if ends_line:
-                line = line.rstrip()
+                line = line.rstrip(string.whitespace)
         k = len(line)
         if not k:  # just add empty line if empty
             _line.is_last_line = ends_line  # nothing will be appended
@@ -474,7 +475,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
                 if s != m:
                     _do_last_line = 1
                     if strip and line[m - 1] == ' ':
-                        ln = line[s:m].rstrip()
+                        ln = line[s:m].rstrip(string.whitespace)
                         lww, lhh = get_extents(ln)
                     else:
                         ln = line[s:m]
@@ -494,7 +495,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
                 # try to fit word on new line, if it doesn't fit we'll
                 # have to break the word into as many lines needed
                 if strip:
-                    s = e - len(line[s:e].lstrip())
+                    s = e - len(line[s:e].lstrip(string.whitespace))
                 if s == e:  # if it was only a stripped space, move on
                     m = s
                     continue
