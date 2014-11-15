@@ -274,7 +274,7 @@ class Animation(EventDispatcher):
 
     def _initialize(self, widget):
         d = self._widgets[widget.uid] = {
-            'widget': widget,
+            'widget': widget.__self__,
             'properties': {},
             'time': None}
 
