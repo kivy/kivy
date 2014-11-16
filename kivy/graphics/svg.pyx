@@ -322,10 +322,7 @@ cdef parse_color(c, current_color = None):
         raise Exception('Invalid color format {}'.format(c))
     return [r, g, b, a]
 
-ctypedef double matrix_t[6]
-
 cdef class Matrix(object):
-    cdef matrix_t mat
     def __cinit__(self):
         memset(self.mat, 0, sizeof(matrix_t))
 
@@ -483,31 +480,6 @@ class RadialGradient(Gradient):
 cdef class Svg(RenderContext):
     """Svg class. See module for more informations about the usage.
     """
-
-    cdef:
-        public double width
-        public double height
-        list paths
-        object transform
-        object fill
-        public object current_color
-        object stroke
-        float opacity
-        float x
-        float y
-        int close_index
-        list path
-        array.array loop
-        int bezier_points
-        int circle_points
-        public object gradients
-        view.array bezier_coefficients
-        float anchor_x
-        float anchor_y
-        double last_cx
-        double last_cy
-        Texture line_texture
-        StripMesh last_mesh
 
     def __init__(self, filename, anchor_x=0, anchor_y=0,
                  bezier_points=BEZIER_POINTS, circle_points=CIRCLE_POINTS,

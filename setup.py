@@ -470,7 +470,7 @@ graphics_dependencies = {
     'stencil_instructions.pyx': [
         'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd'],
     'svg.pyx': ['config.pxi', 'common.pxi', 'texture.pxd', 'instructions.pxd',
-                'vertex_instructions.pxd', 'tesselator.pxd'],
+                'vertex_instructions.pxd', 'tesselator.pxd', 'svg.pxd'],
     'texture.pxd': ['c_opengl.pxd'],
     'texture.pyx': [
         'config.pxi', 'common.pxi', 'opengl_utils_def.pxi', 'context.pxd',
