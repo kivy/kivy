@@ -172,7 +172,7 @@ from kivy.factory import Factory
 from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
                              ReferenceListProperty, ObjectProperty,
                              ListProperty, DictProperty, BooleanProperty)
-from kivy.graphics import Canvas, Translate, Fbo, ClearColor, ClearBuffers
+from kivy.graphics import Canvas, Translate, Fbo, ClearColor, ClearBuffers, Scale
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
@@ -555,11 +555,12 @@ class Widget(WidgetBase):
         with fbo:
             ClearColor(0, 0, 0, 1)
             ClearBuffers()
-            Translate(-self.x, -self.y, 0)
+            Scale(1, -1, 1)
+            Translate(-self.x, -self.y - self.height, 0)
 
         fbo.add(self.canvas)
         fbo.draw()
-        fbo.texture.save(filename)
+        fbo.texture.save(filename, flipped=False)
         fbo.remove(self.canvas)
 
         if self.parent is not None:
