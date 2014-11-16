@@ -1998,7 +1998,6 @@ class TextInput(Widget):
 
             if self._command_mode:
                 self._command += text
-                return
 
             _command = self._command
             if _command and ord(text) == 2:
