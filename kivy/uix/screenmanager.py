@@ -47,6 +47,11 @@ Please note that by default, a :class:`Screen` displays nothing: it's just a
 :class:`~kivy.uix.relativelayout.RelativeLayout`. You need to use that class as
 a root widget for your own screen, the best way being to subclass.
 
+.. warning::
+    As :class:`Screen` is a :class:`~kivy.uix.relativelayout.RelativeLayout`,
+    it is important to understand the
+    :ref:`kivy-uix-relativelayout-common-pitfalls`.
+
 Here is an example with a 'Menu Screen' and a 'Settings Screen'::
 
     from kivy.app import App

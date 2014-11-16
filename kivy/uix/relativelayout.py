@@ -157,6 +157,77 @@ relative parameter is True, the coordinates are returned or originate in
 true relative coordinates - relative to a coordinate system with its (0, 0) at
 the bottom left corner of the widget in question.
 
+.. _kivy-uix-relativelayout-common-pitfalls:
+
+Common Pitfalls
+---------------
+
+As all positions within a :class:`RelativeLayout` are relative to the position
+of the layout itself, the position of the layout should never be used in
+determining the position of sub-widgets or the layout's :attr:`canvas`.
+
+Take the following kv code for example:
+
+.. container:: align-right
+
+    .. figure:: images/relativelayout-fixedposition.png
+        :scale: 50%
+
+        expected result
+
+    .. figure:: images/relativelayout-doubleposition.png
+        :scale: 50%
+
+        actual result
+
+.. code::
+
+    FloatLayout:
+        Widget:
+            size_hint: None, None
+            size: 200, 200
+            pos: 200, 200
+
+            canvas:
+                Color:
+                    rgba: 1, 1, 1, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+        RelativeLayout:
+            size_hint: None, None
+            size: 200, 200
+            pos: 200, 200
+
+            canvas:
+                Color:
+                    rgba: 1, 0, 0, 0.5
+                Rectangle:
+                    pos: self.pos  # incorrect
+                    size: self.size
+
+You might expect this to render a single pink rectangle; however, the content
+of the :class:`RelativeLayout` is already transformed, so the use of
+`pos: self.pos` will double that transformation. In this case, using
+`pos: 0, 0` or omitting `pos` completely will provide the expected result.
+
+This also applies to the position of sub-widgets. Instead of positioning a
+:class:`~kivy.uix.widget.Widget` based on the layout's own position::
+
+    RelativeLayout:
+        Widget:
+            pos: self.parent.pos
+        Widget:
+            center: self.parent.center
+
+...use the :attr:`pos_hint` property::
+
+    RelativeLayout:
+        Widget:
+            pos_hint: {'x': 0, 'y': 0}
+        Widget:
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
 .. versionchanged:: 1.7.0
     Prior to version 1.7.0, the :class:`RelativeLayout` was implemented as a
