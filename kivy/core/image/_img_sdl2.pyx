@@ -28,11 +28,12 @@ def save(filename, w, h, fmt, pixels, flipped):
     cdef bytes c_filename = filename.encode('utf-8')
     cdef int pitch
     pitch = w * 4
+    cdef char *c_pixels = pixels
 
     if flipped:
         Logger.warn(
             'ImageSDL2: saving flipped textures not supported; image will be flipped')
-    cdef SDL_Surface *image = SDL_CreateRGBSurfaceFrom(<void *>pixels + 36, w, h, 32, pitch, 0x00000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
+    cdef SDL_Surface *image = SDL_CreateRGBSurfaceFrom(c_pixels, w, h, 32, pitch, 0x00000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
 
     IMG_SavePNG(image, c_filename)
     SDL_FreeSurface(image)
