@@ -278,7 +278,7 @@ cdef list kv_color_to_int_color(color):
     c = [int(255*x) for x in color]
     return c if len(c) == 4 else c + [255]
 
-cdef parse_color(c, current_color = None):
+cdef parse_color(c, current_color=None):
     cdef int r, g, b, a
     if c is None or c == 'none':
         return None
@@ -410,9 +410,9 @@ class Gradient(object):
         for e in element.getiterator():
             if e.tag.endswith('stop'):
                 style = parse_style(e.get('style', ''))
-                color = parse_color(e.get('stop-color'), current_color = svg.current_color)
+                color = parse_color(e.get('stop-color'), svg.current_color)
                 if 'stop-color' in style:
-                    color = parse_color(style['stop-color'], current_color = svg.current_color)
+                    color = parse_color(style['stop-color'], svg.current_color)
                 color[3] = int(float(e.get('stop-opacity', '1')) * 255)
                 if 'stop-opacity' in style:
                     color[3] = int(float(style['stop-opacity']) * 255)
@@ -646,8 +646,8 @@ cdef class Svg(RenderContext):
             self.parse_element(e)
 
     cdef parse_element(self, e):
-        self.fill = parse_color(e.get('fill'), current_color = self.current_color)
-        self.stroke = parse_color(e.get('stroke'), current_color = self.current_color)
+        self.fill = parse_color(e.get('fill'), self.current_color)
+        self.stroke = parse_color(e.get('stroke'), self.current_color)
         oldopacity = self.opacity
         self.opacity *= float(e.get('opacity', 1))
         fill_opacity = float(e.get('fill-opacity', 1))
@@ -661,11 +661,11 @@ cdef class Svg(RenderContext):
         if style:
             sdict = parse_style(style)
             if 'fill' in sdict:
-                self.fill = parse_color(sdict['fill'], current_color = self.current_color)
+                self.fill = parse_color(sdict['fill'], self.current_color)
             if 'fill-opacity' in sdict:
                 fill_opacity *= float(sdict['fill-opacity'])
             if 'stroke' in sdict:
-                self.stroke = parse_color(sdict['stroke'], current_color = self.current_color)
+                self.stroke = parse_color(sdict['stroke'], self.current_color)
             if 'stroke-opacity' in sdict:
                 stroke_opacity *= float(sdict['stroke-opacity'])
 
