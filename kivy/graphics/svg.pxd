@@ -1,5 +1,3 @@
-include "config.pxi"
-
 cdef class Matrix
 cdef class Svg
 
