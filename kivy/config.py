@@ -742,7 +742,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('graphics', 'borderless', '0')
 
         elif version == 11:
-            Config.setdefault('kivy', 'pause_on_minimize', '1')
+            Config.setdefault('kivy', 'pause_on_minimize', '1'
+                              if platform in ('android', 'ios') else '0')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
