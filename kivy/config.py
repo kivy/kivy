@@ -52,6 +52,10 @@ Available configuration tokens
     `exit_on_escape`: int, 0 or 1
         Enables exiting kivy when escape is pressed.
         0 is disabled, 1 is enabled.
+    `pause_on_minimize`: int, 0 or 1
+        If set to `1`, the main loop is paused and the `on_pause` event
+        is dispatched when the window is minimized. Defaults to `0`
+        on desktop and `1` on mobile.
     `keyboard_layout`: string
         Identifier of the layout to use.
     `keyboard_mode`: string
@@ -229,6 +233,7 @@ Available configuration tokens
     `borderless` has been added to the graphics section.
     The `fake` option of `fullscreen` in the graphics section has been
     deprecated, use the `borderless` option instead.
+    `pause_on_minimize` has been added to the kivy section.
 
 .. versionchanged:: 1.8.0
     `systemanddock` and `systemandmulti` has been added as possible values for
@@ -269,7 +274,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 11
+KIVY_CONFIG_VERSION = 12
 
 Config = None
 '''Kivy configuration object. Its :attr:`~kivy.config.ConfigParser.name` is
@@ -731,10 +736,13 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 9:
             Config.setdefault('kivy', 'exit_on_escape', '1')
-            
+
         elif version == 10:
             Config.set('graphics', 'fullscreen', '0')
             Config.setdefault('graphics', 'borderless', '0')
+
+        elif version == 11:
+            Config.setdefault('kivy', 'pause_on_minimize', '1')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1

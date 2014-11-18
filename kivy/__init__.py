@@ -277,6 +277,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
     Logger.setLevel(level=level)
 
+    if Config.getboolean('kivy', 'desktop'):
+        Config.set('kivy', 'pause_on_minimize', '0')
+
     # Can be overrided in command line
     if 'KIVY_UNITTEST' not in environ and 'KIVY_PACKAGING' not in environ:
         # save sys argv, otherwize, gstreamer use it and display help..

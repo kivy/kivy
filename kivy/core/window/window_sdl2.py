@@ -314,7 +314,8 @@ class WindowSDL(WindowBase):
                 self.canvas.ask_update()
 
             elif action == 'windowminimized':
-                self.do_pause()
+                if Config.getboolean('kivy', 'pause_on_minimize'):
+                    self.do_pause()
 
             elif action == 'joyaxismotion':
                 stickid, axisid, value = args
