@@ -134,6 +134,8 @@ class LabelBase(object):
 
     _fonts_cache = {}
 
+    _fonts_dirs = []
+
     _texture_1px = None
 
     def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
@@ -248,6 +250,9 @@ class LabelBase(object):
     def get_system_fonts_dir():
         '''Return the Directory used by the system for fonts.
         '''
+        if LabelBase._fonts_dirs:
+            return LabelBase._fonts_dirs
+
         fdirs = []
         if platform == 'linux':
             fdirs = [
@@ -257,19 +262,23 @@ class LabelBase(object):
         elif platform == 'macosx':
             fdirs = ['/Library/Fonts', '/System/Library/Fonts',
                 os.path.expanduser('~/Library/Fonts')]
-        elif platform == 'windows':
+        elif platform == 'win':
             fdirs = [os.environ['SYSTEMROOT'] + os.sep + 'Fonts']
         elif platform == 'ios':
             fdirs = ['/Systiem/Library/Fonts']
         elif platform == 'android':
             fdirs = ['/system/fonts']
 
-        fdirs.append(kivy_data_dir + os.sep + 'fonts')
         if fdirs:
+            fdirs.append(kivy_data_dir + os.sep + 'fonts')
             # let's register the font dirs
-            fdirs = [fdir for fdir in fdirs if os.path.exists(fdir)]
-            map(resource_add_path, fdirs)
-            return fdirs
+            rdirs = []
+            for _dir in fdirs:
+                if os.path.exists(_dir):
+                    resource_add_path(_dir)
+                    rdirs.append(_dir)
+            LabelBase._fonts_dirs = rdirs
+            return rdirs
         raise Exception("Unknown Platform {}".format(platform))
 
     def get_extents(self, text):
@@ -721,3 +730,4 @@ if 'KIVY_DOC' not in os.environ:
                    'data/fonts/DroidSans-Italic.ttf',
                    'data/fonts/DroidSans-Bold.ttf',
                    'data/fonts/DroidSans-BoldItalic.ttf')
+
