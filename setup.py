@@ -218,15 +218,16 @@ if platform == 'ios':
     c_options['use_ios'] = True
     c_options['use_sdl'] = True
 
-# detect gstreamer, only on desktop
+# detect gstreamer/sdl2, only on desktop
+sdl2_flags = {}
 if platform not in ('ios', 'android'):
     gst_flags = pkgconfig('gstreamer-1.0')
     if 'libraries' in gst_flags:
         c_options['use_gstreamer'] = True
 
-sdl2_flags = pkgconfig('sdl2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer')
-if 'libraries' in sdl2_flags:
-    c_options['use_sdl2'] = True
+    sdl2_flags = pkgconfig('sdl2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer')
+    if 'libraries' in sdl2_flags:
+        c_options['use_sdl2'] = True
 
 
 # -----------------------------------------------------------------------------
