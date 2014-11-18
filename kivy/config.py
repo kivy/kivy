@@ -45,6 +45,7 @@ Available configuration tokens
 
 :kivy:
 
+    `default_font` : 'Droid Sans'
     `desktop`: int, 0 or 1
         This option controls desktop OS specific features, such as enabling
         drag-able scroll-bar in scroll views, disabling of bubbles in
@@ -735,6 +736,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif version == 10:
             Config.set('graphics', 'fullscreen', '0')
             Config.setdefault('graphics', 'borderless', '0')
+
+        elif version == 10:
+            Config.setdefault('kivy', 'default_font', 'DroidSans')        
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
