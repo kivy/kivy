@@ -96,7 +96,7 @@ cdef TTF_Font *_get_font(self):
 
     # try first the file if it's a filename
     fontname = self.options['font_name_r']
-    bytes_fontname = <bytes>fontname
+    bytes_fontname = <bytes>fontname.encode('utf-8')
     ext = fontname.split('.')[-1]
     if ext.lower() == 'ttf':
         fontobject = TTF_OpenFont(bytes_fontname,
