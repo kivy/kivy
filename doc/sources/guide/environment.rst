@@ -44,14 +44,6 @@ KIVY_HOME
 
     .. versionadded:: 1.9.0
 
-KIVY_SDL2_PATH
-    If set, the SDL2 libraries and headers from this path are used when
-    compiling kivy instead of the ones installed system-wide.
-    To use the same libraries while running a kivy app, this path must be
-    added at the start of the PATH environment variable.
-
-    .. versionadded:: 1.9.0
-
 Configuration
 -------------
 
@@ -158,3 +150,19 @@ Texture blit    When blitting to a texture, the data (color and
 
     .. versionadded:: 1.8.1
 
+Provider-specific configuration
+-------------------------------
+
+KIVY_SDL2_PATH
+    If set, the SDL2 libraries and headers from this path are used when
+    compiling kivy instead of the ones installed system-wide.
+    To use the same libraries while running a kivy app, this path must be
+    added at the start of the PATH environment variable.
+
+    .. versionadded:: 1.9.0
+
+SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS
+    When set to '1' and the window is in `auto` fullscreen mode,
+    SDL2 will minimize the window on focus loss. Defaults to '0'.
+
+    .. versionadded:: 1.9.0
