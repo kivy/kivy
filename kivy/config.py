@@ -54,7 +54,8 @@ Available configuration tokens
         0 is disabled, 1 is enabled.
     `pause_on_minimize`: int, 0 or 1
         If set to `1`, the main loop is paused and the `on_pause` event
-        is dispatched when the window is minimized. Defaults to `0`
+        is dispatched when the window is minimized. This option is intended
+        for desktop use only. Defaults to `0`.
         on desktop and `1` on mobile.
     `keyboard_layout`: string
         Identifier of the layout to use.
@@ -742,8 +743,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('graphics', 'borderless', '0')
 
         elif version == 11:
-            Config.setdefault('kivy', 'pause_on_minimize', '1'
-                              if platform in ('android', 'ios') else '0')
+            Config.setdefault('kivy', 'pause_on_minimize', '0')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
