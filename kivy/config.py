@@ -56,7 +56,6 @@ Available configuration tokens
         If set to `1`, the main loop is paused and the `on_pause` event
         is dispatched when the window is minimized. This option is intended
         for desktop use only. Defaults to `0`.
-        on desktop and `1` on mobile.
     `keyboard_layout`: string
         Identifier of the layout to use.
     `keyboard_mode`: string
