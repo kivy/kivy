@@ -224,6 +224,10 @@ if platform not in ('ios', 'android'):
     if 'libraries' in gst_flags:
         c_options['use_gstreamer'] = True
 
+sdl2_flags = pkgconfig('sdl2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer')
+if 'libraries' in sdl2_flags:
+    c_options['use_sdl2'] = True
+
 
 # -----------------------------------------------------------------------------
 # declare flags
@@ -396,6 +400,11 @@ def determine_sdl2():
 
     sdl2_path = environ.get('KIVY_SDL2_PATH', None)
 
+    if sdl2_flags and not sdl2_path:
+        return sdl2_flags
+
+    # no pkgconfig info, or we want to use a specific sdl2 path, so perform
+    # manual configuration
     flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
     flags['include_dirs'] = ([sdl2_path] if sdl2_path else
                              ['/usr/local/include/SDL2', '/usr/include/SDL2'])
@@ -403,7 +412,7 @@ def determine_sdl2():
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
     flags['extra_link_args'] += (['-L' + sdl2_path] if sdl2_path else
-                             ['-L/usr/local/lib/'])
+                                 ['-L/usr/local/lib/'])
 
     # ensure headers for all the SDL2 and sub libraries are available
     libs_to_check = ['SDL', 'SDL_mixer', 'SDL_ttf', 'SDL_image']

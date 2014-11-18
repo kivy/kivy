@@ -14,6 +14,7 @@ Build-Depends: debhelper (>= 7.0.50~), pkg-config,
                libgl1-mesa-dev,
                libgles2-mesa-dev,
                libsdl-ttf2.0-dev,
+               libsdl2-dev, libsdl2-image-dev, libsdl2-mixer-dev, libsdl2-ttf-dev,
                libgstreamer1.0-dev | libgstreamer0.10-dev,
                texlive-latex-base, texlive-latex-recommended, texlive-latex-extra, texlive-fonts-extra, texlive-fonts-recommended,
 Standards-Version: 3.9.1
