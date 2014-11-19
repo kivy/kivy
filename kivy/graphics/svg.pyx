@@ -273,7 +273,6 @@ cdef dict parse_style(string):
             sdict[key] = value
     return sdict
 
-
 cdef list kv_color_to_int_color(color):
     c = [int(255*x) for x in color]
     return c if len(c) == 4 else c + [255]

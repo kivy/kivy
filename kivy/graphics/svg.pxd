@@ -9,7 +9,18 @@ from kivy.graphics.vertex_instructions cimport StripMesh
 from cpython cimport array
 from array import array
 
+cdef set COMMANDS
+cdef set UPPERCASE
+cdef object RE_LIST
+cdef object RE_COMMAND
+cdef object RE_FLOAT
+cdef object RE_POLYLINE
+cdef object RE_TRANSFORM
+
 ctypedef double matrix_t[6]
+cdef list kv_color_to_int_color(color)
+cdef parse_color(c, current_color=?)
+cdef dict parse_style(string)
 
 cdef class Matrix:
     cdef matrix_t mat
