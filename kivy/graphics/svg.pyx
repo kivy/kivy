@@ -507,6 +507,7 @@ cdef class Svg(RenderContext):
         self.paths = []
         self.width = 0
         self.height = 0
+        self.line_width = 0.25
 
         if color is None:
             self.current_color = None
@@ -1104,7 +1105,7 @@ cdef class Svg(RenderContext):
         cdef float ax, ay, bx, _by, r = 0, g = 0, b = 0, a = 0
         cdef int count = len(path) / 2
         cdef float *vertices = NULL
-        cdef float width = 0.25
+        cdef float width = self.line_width
         vindex = 0
 
         vertices = <float *>malloc(sizeof(float) * count * 32)

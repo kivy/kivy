@@ -4,8 +4,8 @@ cdef class Svg
 from cython cimport view
 from kivy.graphics.instructions cimport RenderContext
 from kivy.graphics.texture cimport Texture
+from kivy.graphics.vertex cimport VertexFormat
 from kivy.graphics.vertex_instructions cimport StripMesh
-
 from cpython cimport array
 from array import array
 
@@ -16,11 +16,13 @@ cdef object RE_COMMAND
 cdef object RE_FLOAT
 cdef object RE_POLYLINE
 cdef object RE_TRANSFORM
-
+cdef VertexFormat VERTEX_FORMAT
 ctypedef double matrix_t[6]
 cdef list kv_color_to_int_color(color)
-cdef parse_color(c, current_color=?)
+cdef float parse_float(txt)
+cdef list parse_list(string)
 cdef dict parse_style(string)
+cdef parse_color(c, current_color=?)
 
 cdef class Matrix:
     cdef matrix_t mat
@@ -30,6 +32,7 @@ cdef class Matrix:
 cdef class Svg(RenderContext):
     cdef public double width
     cdef public double height
+    cdef float line_width
     cdef list paths
     cdef object transform
     cdef object fill
