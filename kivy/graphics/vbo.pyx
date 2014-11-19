@@ -61,7 +61,6 @@ cdef class VBO:
         get_context().dealloc_vbo(self)
 
     def __init__(self, VertexFormat vertex_format=None):
-        get_context().register_vbo(self)
         self.data = Buffer(self.format_size)
 
     cdef int have_id(self):
@@ -127,7 +126,6 @@ cdef class VBO:
 
 cdef class VertexBatch:
     def __init__(self, **kwargs):
-        get_context().register_vertexbatch(self)
         self.usage  = GL_DYNAMIC_DRAW
         cdef object lushort = sizeof(unsigned short)
         self.vbo = kwargs.get('vbo')

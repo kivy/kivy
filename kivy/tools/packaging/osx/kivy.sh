@@ -12,4 +12,4 @@ export GST_PLUGIN_PATH=${SCRIPT_PATH}/lib/gst-plugins:$GST_PLUGIN_PATH
 export GST_PLUGIN_SCANNER=${SCRIPT_PATH}/lib/bin/gst-plugin-scanner
 export GST_REGISTRY_FORK="no"
 
-exec $(python -c "import os, sys; print os.path.normpath(sys.prefix)")/bin/python2.7 "$@"
+exec $(python -c "import os, sys; print(os.path.normpath(sys.prefix))")/bin/python2.7 "$@"

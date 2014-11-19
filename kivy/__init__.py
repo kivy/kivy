@@ -28,7 +28,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.8.1-dev'
+__version__ = '1.9.0-dev'
 
 import sys
 import shutil
@@ -181,15 +181,15 @@ def kivy_usage():
 
 #: Global settings options for kivy
 kivy_options = {
-    'window': ('egl_rpi', 'pygame', 'sdl', 'x11'),
-    'text': ('pil', 'pygame', 'sdlttf'),
+    'window': ('egl_rpi', 'pygame', 'sdl', 'x11', 'sdl2'),
+    'text': ('pil', 'pygame', 'sdlttf', 'sdl2'),
     'video': ('gstplayer', 'ffmpeg', 'ffpyplayer', 'gi', 'pygst', 'pyglet',
               'null'),
     'audio': ('gstplayer', 'pygame', 'gi', 'pygst', 'ffpyplayer', 'sdl'),
-    'image': ('tex', 'imageio', 'dds', 'gif', 'pil', 'pygame', 'ffpy'),
+    'image': ('tex', 'imageio', 'dds', 'gif', 'pil', 'pygame', 'ffpy', 'sdl2'),
     'camera': ('opencv', 'gi', 'pygst', 'videocapture', 'avfoundation'),
     'spelling': ('enchant', 'osxappkit', ),
-    'clipboard': ('android', 'pygame', 'dummy'), }
+    'clipboard': ('android', 'pygame', 'dummy', 'sdl2'), }
 
 # Read environment
 for option in kivy_options:
@@ -243,12 +243,15 @@ if any('pyinstaller' in arg for arg in sys.argv):
 
 if not environ.get('KIVY_DOC_INCLUDE'):
     # Configuration management
-    user_home_dir = expanduser('~')
-    if platform == 'android':
-        user_home_dir = environ['ANDROID_APP_PATH']
-    elif platform == 'ios':
-        user_home_dir = join(expanduser('~'), 'Documents')
-    kivy_home_dir = join(user_home_dir, '.kivy')
+    if 'KIVY_HOME' in environ:
+        kivy_home_dir = expanduser(environ['KIVY_HOME'])
+    else:
+        user_home_dir = expanduser('~')
+        if platform == 'android':
+            user_home_dir = environ['ANDROID_APP_PATH']
+        elif platform == 'ios':
+            user_home_dir = join(expanduser('~'), 'Documents')
+        kivy_home_dir = join(user_home_dir, '.kivy')
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
     kivy_userexts_dir = join(kivy_home_dir, 'extensions')

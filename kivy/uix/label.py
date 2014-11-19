@@ -174,6 +174,8 @@ class Label(Widget):
             ``[ref]`` tag in a text markup.
     '''
 
+    __events__ = ['on_ref_press']
+
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
                         'halign', 'valign', 'padding_x', 'padding_y',
                         'text_size', 'shorten', 'mipmap', 'markup',
@@ -182,7 +184,6 @@ class Label(Widget):
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
-        self.register_event_type('on_ref_press')
         super(Label, self).__init__(**kwargs)
 
         # bind all the property for recreating the texture
@@ -413,7 +414,7 @@ class Label(Widget):
     :attr:`padding_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `padding_x` has been fixed to work as expected.
         In the past, the text was padded by the negative of its values.
     '''
@@ -424,7 +425,7 @@ class Label(Widget):
     :attr:`padding_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `padding_y` has been fixed to work as expected.
         In the past, the text was padded by the negative of its values.
     '''
@@ -556,7 +557,7 @@ class Label(Widget):
     not None, In this case, the string is shortened to fit within the specified
     width.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     :attr:`shorten_from` is a :class:`~kivy.properties.OptionProperty` and
     defaults to `center`.
@@ -571,7 +572,7 @@ class Label(Widget):
     :attr:`shorten_from` is the empty string, `''`, we split on every character
     fitting as much text as possible into the line.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     :attr:`split_str` is a :class:`~kivy.properties.StringProperty` and
     defaults to `''` (the empty string).
@@ -636,7 +637,7 @@ class Label(Widget):
     These co-ordinates are relative to the top left corner of the text, with
     the y value increasing downwards. Anchors names should be unique and only
     the first occurence of any duplicate anchors will be recorded.
-    
+
 
     You can place anchors in your markup text as follows::
 
@@ -677,7 +678,7 @@ class Label(Widget):
     edge, depending on :attr:`halign`. If :attr:`halign` is `justify` it is
     implicitly True.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     :attr:`strip` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.

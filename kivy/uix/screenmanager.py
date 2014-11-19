@@ -20,7 +20,7 @@ Basic Usage
 -----------
 
 Let's construct a Screen Manager with 4 named screens. When you are creating
-a screen, you absolutely need to give a name to it::
+a screen, **you absolutely need to give a name to it**::
 
     from kivy.uix.screenmanager import ScreenManager, Screen
 
@@ -39,17 +39,6 @@ a screen, you absolutely need to give a name to it::
     # A transition will automatically be used.
     sm.current = 'Title 2'
 
-From 1.8.0, you can now switch dynamically to a new screen, change the
-transition options and remove the previous one by using
-:meth:`ScreenManager.switch_to`::
-
-    sm = ScreenManager()
-    screens = [Screen(name='Title {}'.format(i)) for i in range(4)]
-
-    sm.switch_to(screens[0])
-    # later
-    sm.switch_to(screens[1], direction='right')
-
 The default :attr:`ScreenManager.transition` is a :class:`SlideTransition` with
 options :attr:`~SlideTransition.direction` and
 :attr:`~TransitionBase.duration`.
@@ -57,6 +46,11 @@ options :attr:`~SlideTransition.direction` and
 Please note that by default, a :class:`Screen` displays nothing: it's just a
 :class:`~kivy.uix.relativelayout.RelativeLayout`. You need to use that class as
 a root widget for your own screen, the best way being to subclass.
+
+.. warning::
+    As :class:`Screen` is a :class:`~kivy.uix.relativelayout.RelativeLayout`,
+    it is important to understand the
+    :ref:`kivy-uix-relativelayout-common-pitfalls`.
 
 Here is an example with a 'Menu Screen' and a 'Settings Screen'::
 
@@ -104,6 +98,57 @@ Here is an example with a 'Menu Screen' and a 'Settings Screen'::
 
     if __name__ == '__main__':
         TestApp().run()
+
+
+Changing Direction
+------------------
+
+A common use case for :class:`ScreenManager` involves using a
+:class:`SlideTransition` which slides right to the next screen
+and slides left to the previous screen. Building on the previous
+example, this can be accomplished like so::
+
+    Builder.load_string("""
+    <MenuScreen>:
+        BoxLayout:
+            Button:
+                text: 'Goto settings'
+                on_press:
+                    root.manager.transition.direction = 'left'
+                    root.manager.current = 'settings'
+            Button:
+                text: 'Quit'
+
+    <SettingScreen>:
+        BoxLayout:
+            Button:
+                text: 'My settings button'
+            Button:
+                text: 'Back to menu'
+                on_press:
+                    root.manager.transition.direction = 'right'
+                    root.manager.current = 'menu'
+    """)
+
+
+Advanced Usage
+--------------
+
+From 1.8.0, you can now switch dynamically to a new screen, change the
+transition options and remove the previous one by using
+:meth:`~ScreenManager.switch_to`::
+
+    sm = ScreenManager()
+    screens = [Screen(name='Title {}'.format(i)) for i in range(4)]
+
+    sm.switch_to(screens[0])
+    # later
+    sm.switch_to(screens[1], direction='right')
+
+Note that this method adds the screen to the :class:`ScreenManager` instance
+and should not be used if your screens have already been added to this
+instance. To switch to a screen which is already added, you should use the
+:attr:`~ScreenManager.current` property.
 
 
 Changing transitions
@@ -312,8 +357,8 @@ class TransitionBase(EventDispatcher):
     __events__ = ('on_progress', 'on_complete')
 
     def start(self, manager):
-        '''(internal) Starts the transition. This is automatically called by
-        the :class:`ScreenManager`.
+        '''(internal) Starts the transition. This is automatically
+        called by the :class:`ScreenManager`.
         '''
         if self.is_active:
             raise ScreenManagerException('start() is called twice!')
@@ -416,7 +461,7 @@ class ShaderTransition(TransitionBase):
     clearcolor = ListProperty([0, 0, 0, 1])
     '''Sets the color of Fbo ClearColor. 
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     :attr:`clearcolor` is a :class:`~kivy.properties.ListProperty`
     and defaults to [0, 0, 0, 1].'''

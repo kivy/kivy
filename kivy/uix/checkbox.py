@@ -46,10 +46,6 @@ class CheckBox(ToggleButtonBehavior, Widget):
     to False.
     '''
 
-    def __init__(self, **kwargs):
-        self._previous_group = None
-        super(CheckBox, self).__init__(**kwargs)
-
     def on_state(self, instance, value):
         if value == 'down':
             self.active = True
@@ -59,3 +55,5 @@ class CheckBox(ToggleButtonBehavior, Widget):
     def _toggle_active(self):
         self._do_press()
 
+    def on_active(self, instance, value):
+        self.state = 'down' if value else 'normal'

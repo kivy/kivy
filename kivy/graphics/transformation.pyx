@@ -181,10 +181,10 @@ cdef class Matrix:
         self.mat[8]  = 0.0
         self.mat[9]  = 0.0
         self.mat[10] = (zFar + zNear) / (zNear - zFar)
-        self.mat[11] = (2 * zFar * zNear) / (zNear - zFar)
+        self.mat[11] = -1.0
         self.mat[12] = 0.0
         self.mat[13] = 0.0
-        self.mat[14] = -1.0
+        self.mat[14] = (2 * zFar * zNear) / (zNear - zFar)
         self.mat[15] = 0.0
 
     cpdef Matrix view_clip(Matrix self, double left, double right,

@@ -108,7 +108,7 @@ class Scatter(Widget):
         `on_bring_to_front`:
             Fired when the scatter is brought to the front.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         Event `on_bring_to_front` added.
 
     .. versionchanged:: 1.8.0
@@ -574,7 +574,7 @@ class Scatter(Widget):
         :Parameters:
             `touch`: the touch object which brought the scatter to front.
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
         '''
         pass
 

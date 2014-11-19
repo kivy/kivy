@@ -106,9 +106,9 @@ from optparse import OptionParser
 from fnmatch import fnmatch
 try:
     from ConfigParser import RawConfigParser
-    from io import TextIOWrapper
 except ImportError:
     from configparser import RawConfigParser
+    from io import TextIOWrapper
 
 DEFAULT_EXCLUDE = '.svn,CVS,.bzr,.hg,.git'
 DEFAULT_IGNORE = 'E24'

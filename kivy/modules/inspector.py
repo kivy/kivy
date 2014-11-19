@@ -51,7 +51,6 @@ To remove the Inspector, you can do the following::
     inspector.stop(Window, button)
 
 '''
-
 __all__ = ('start', 'stop', 'create_inspector')
 
 import kivy
@@ -131,7 +130,7 @@ Builder.load_string('''
                 text: 'Parent'
                 on_release:
                     root.highlight_widget(root.widget.parent) if root.widget \
-                            and root.widget.parent is not root.win else None
+                            else None
                 size_hint_x: None
                 width: 80
 
@@ -169,7 +168,7 @@ Builder.load_string('''
         size_hint_x: None
     Label:
         id: ltext
-        text: [repr(getattr(root.widget, root.key)), root.refresh][0]\
+        text: [repr(getattr(root.widget, root.key, '')), root.refresh][0]\
                 if root.widget else ''
         text_size: (self.width, None)
 ''')
@@ -231,7 +230,7 @@ class Inspector(FloatLayout):
 
     def on_touch_down(self, touch):
         ret = super(Inspector, self).on_touch_down(touch)
-        if not ret and self.inspect_enabled:
+        if touch.button == 'left' and not ret and self.inspect_enabled:
             self.highlight_at(*touch.pos)
             if touch.is_double_tap:
                 self.inspect_enabled = False
@@ -296,8 +295,12 @@ class Inspector(FloatLayout):
 
         # determine rotation
         a = Vector(1, 0)
-        b = Vector(widget.to_window(*widget.to_parent(0, 0)))
-        c = Vector(widget.to_window(*widget.to_parent(1, 0))) - b
+        if widget is self.win:
+            b = Vector(widget.to_window(0, 0))
+            c = Vector(widget.to_window(1, 0))
+        else:
+            b = Vector(widget.to_window(*widget.to_parent(0, 0)))
+            c = Vector(widget.to_window(*widget.to_parent(1, 0))) - b
         angle = -a.angle(c)
 
         # determine scale
@@ -305,7 +308,10 @@ class Inspector(FloatLayout):
 
         # apply transform
         gr.size = widget.size
-        self.gtranslate.xy = Vector(widget.to_window(*widget.pos))
+        if widget is self.win:
+            self.gtranslate.xy = Vector(widget.to_window(0, 0))
+        else:
+            self.gtranslate.xy = Vector(widget.to_window(*widget.pos))
         self.grotate.angle = angle
         # fix warning about scale property deprecation
         self.gscale.xyz = (scale,) * 3
@@ -412,8 +418,10 @@ class Inspector(FloatLayout):
             text = '%s' % key
             node = TreeViewProperty(text=text, key=key, widget_ref=wk_widget)
             node.bind(is_selected=self.show_property)
-            widget.bind(**{key: partial(
-                self.update_node_content, weakref.ref(node))})
+            try:
+                widget.bind(**{key: partial(
+                    self.update_node_content, weakref.ref(node))})
+            except: pass
             treeview.add_node(node)
 
     def update_node_content(self, node, *l):

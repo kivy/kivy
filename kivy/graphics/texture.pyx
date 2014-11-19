@@ -65,7 +65,7 @@ For example, to blit immutable bytes data::
     with self.canvas:
         Rectangle(texture=texture, pos=self.pos, size=(64, 64))
 
-Since 1.8.1, you can blit data stored in a instance that implements the python
+Since 1.9.0, you can blit data stored in a instance that implements the python
 buffer interface, or a memoryview thereof, such as numpy arrays, python
 `array.array`, a `bytearray`, or a cython array. This is beneficial if you
 expect to blit similar data, with perhaps a few changes in the data.
@@ -202,7 +202,7 @@ will be automatically called when needed::
         self.texture.add_reload_observer(self.populate_texture)
 
         # and load the data now.
-        self.cbuffer = '\x00\xf0\xff' * 512 * 512
+        self.cbuffer = '\\x00\\xf0\\xff' * 512 * 512
         self.populate_texture(self.texture)
 
     def populate_texture(self, texture):
@@ -214,7 +214,7 @@ This way, you can use the same method for initialization and reloading.
 
     For all text rendering with our core text renderer, the texture is generated
     but we already bind a method to redo the text rendering and reupload
-    the text to the texture. You have nothing to do in this case.
+    the text to the texture. You don't have to do anything.
 '''
 
 __all__ = ('Texture', 'TextureRegion')
@@ -224,6 +224,8 @@ include "common.pxi"
 include "opengl_utils_def.pxi"
 include "img_tools.pxi"
 
+cimport cython
+from os import environ
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
 
@@ -232,6 +234,8 @@ IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.opengl_utils cimport *
 
+cdef int gles_limts = int(environ.get('KIVY_GLES_LIMITS', 1))
+
 # update flags
 cdef int TI_MIN_FILTER      = 1 << 0
 cdef int TI_MAG_FILTER      = 1 << 1
@@ -239,7 +243,6 @@ cdef int TI_WRAP            = 1 << 2
 cdef int TI_NEED_GEN        = 1 << 3
 cdef int TI_NEED_ALLOCATE   = 1 << 4
 cdef int TI_NEED_PIXELS     = 1 << 5
-
 
 # compatibility layer
 DEF GL_BGR = 0x80E0
@@ -267,6 +270,9 @@ DEF GL_RG = 0x8227
 DEF GL_R8 = 0x8229
 DEF GL_RG8 = 0x822B
 DEF GL_RGBA8 =  0x8058
+DEF GL_UNPACK_ROW_LENGTH = 0x0CF2
+DEF GL_UNPACK_SKIP_ROWS = 0x0CF3
+DEF GL_UNPACK_SKIP_PIXELS = 0x0CF4
 
 cdef dict _gl_color_fmt = {
     'rgba': GL_RGBA, 'bgra': GL_BGRA, 'rgb': GL_RGB, 'bgr': GL_BGR,
@@ -728,7 +734,7 @@ cdef class Texture:
     cpdef flip_horizontal(self):
         '''Flip tex_coords for horizontal display.
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
 
         '''
         self._uvx += self._uvw
@@ -811,17 +817,20 @@ cdef class Texture:
 
         # depending if imagedata have mipmap, think different.
         if not im.have_mipmap:
-            blit(im.data, size=im.size, colorfmt=im.fmt, pos=pos)
+            blit(im.data, size=im.size, colorfmt=im.fmt, pos=pos,
+                    rowlength=im.rowlength)
         else:
             # upload each level
-            for level, width, height, data in im.iterate_mipmaps():
+            for level, width, height, data, rowlength in im.iterate_mipmaps():
                 blit(data, size=(width, height),
                      colorfmt=im.fmt, pos=pos,
-                     mipmap_level=level, mipmap_generation=False)
+                     mipmap_level=level, mipmap_generation=False,
+                     rowlength=rowlength)
 
+    @cython.cdivision(True)
     def blit_buffer(self, pbuffer, size=None, colorfmt=None,
                     pos=None, bufferfmt=None, mipmap_level=0,
-                    mipmap_generation=True):
+                    mipmap_generation=True, int rowlength=0):
         '''Blit a buffer into the texture.
 
         .. note::
@@ -852,14 +861,14 @@ cdef class Texture:
                 'uint', 'byte', 'short', 'int' or 'float'.
             `mipmap_level`: int, defaults to 0
                 Indicate which mipmap level we are going to update.
-            `mipmap_generation`: bool, defaults to False
+            `mipmap_generation`: bool, defaults to True
                 Indicate if we need to regenerate the mipmap from level 0.
 
         .. versionchanged:: 1.0.7
 
             added `mipmap_level` and `mipmap_generation`
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             `pbuffer` can now be any class instance that implements the python
             buffer interface and / or memoryviews thereof.
 
@@ -876,6 +885,21 @@ cdef class Texture:
             size = self.size
         glbufferfmt = _buffer_fmt_to_gl(bufferfmt)
 
+        # gles limitation/issue: cannot blit buffer on a different
+        # buffer/colorfmt
+        # Reference: https://github.com/kivy/kivy/issues/1600
+        if gles_limts:
+            if colorfmt.lower() != self.colorfmt.lower():
+                raise Exception((
+                    "GLES LIMIT: Cannot blit with a different colorfmt than "
+                    "the created texture. (texture has {}, you passed {})"
+                    ).format(self.colorfmt, colorfmt))
+            if bufferfmt.lower() != self.bufferfmt.lower():
+                raise Exception((
+                    "GLES LIMIT: Cannot blit with a different bufferfmt than "
+                    "the created texture. (texture has {}, you passed {})"
+                    ).format(self.bufferfmt, bufferfmt))
+
         # bind the texture, and create anything that should be created at this
         # time.
         self.bind()
@@ -887,8 +911,8 @@ cdef class Texture:
         cdef short [:] short_view
         cdef int [:] int_view
         cdef float [:] float_view
-        cdef char *cdata
-        cdef long datasize
+        cdef char *cdata = NULL
+        cdef long datasize = 0
         if isinstance(pbuffer, bytes):  # if it's bytes, just use memory
             cdata = <bytes>pbuffer  # explicit bytes
             datasize = len(pbuffer)
@@ -922,19 +946,68 @@ cdef class Texture:
         cdef int _mipmap_generation = mipmap_generation and self._mipmap
         cdef int _mipmap_level = mipmap_level
 
+        # if there is a pitch/rowlength passed for the texture,
+        # determine the alignment needed, and see if GL can handle it on the
+        # current platform.
+        cdef int bytes_per_pixels = _gl_format_size(glfmt)
+        cdef int target_rowlength = w * bytes_per_pixels * _buffer_type_to_gl_size(bufferfmt)
+        cdef int need_unpack = rowlength > 0 and rowlength != target_rowlength
+        cdef char *cpdata = NULL
+        cdef char *cpsrc
+        cdef char *cpdst
+        cdef int i
+        cdef int require_subimage = 0
+
+        # if the hardware doesn't support native unpack, use alternative method.
+        if need_unpack and not gl_has_capability(GLCAP_UNPACK_SUBIMAGE):
+            require_subimage = 1
+            need_unpack = 0
+
         with nogil:
+
+            if need_unpack:
+                # native unpack supported, use it.
+                glPixelStorei(GL_UNPACK_ROW_LENGTH, rowlength / bytes_per_pixels)
+                if y != 0:
+                    glPixelStorei(GL_UNPACK_SKIP_ROWS, y)
+                if x != 0:
+                    glPixelStorei(GL_UNPACK_SKIP_PIXELS, x)
+                _gl_prepare_pixels_upload(rowlength)
+
+            elif require_subimage:
+                # make a temporary copy to a format without alignment for upload
+                cpsrc = cdata
+                cpdst = cpdata = <char *>malloc(target_rowlength * h)
+                for i in range(h):
+                    memcpy(cpdst, cpsrc, target_rowlength)
+                    cpsrc += rowlength
+                    cpdst += target_rowlength
+                cdata = cpdata
+                datasize = target_rowlength * h
+
+            else:
+                _gl_prepare_pixels_upload(w)
+
             if is_compressed:
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
                 glCompressedTexImage2D(target, _mipmap_level, glfmt, w, h, 0,
                         <GLsizei>datasize, cdata)
             elif is_allocated:
-                _gl_prepare_pixels_upload(w)
                 glTexSubImage2D(target, _mipmap_level, x, y, w, h, glfmt, glbufferfmt, cdata)
             else:
-                _gl_prepare_pixels_upload(w)
                 glTexImage2D(target, _mipmap_level, iglfmt, w, h, 0, glfmt, glbufferfmt, cdata)
             if _mipmap_generation:
                 glGenerateMipmap(target)
+
+            if need_unpack:
+                glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
+                if y != 0:
+                    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0)
+                if x != 0:
+                    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0)
+            elif require_subimage:
+                if cpdata != NULL:
+                    free(cpdata)
 
     def _on_proxyimage_loaded(self, image):
         if image is not self._proxyimage:
@@ -961,11 +1034,12 @@ cdef class Texture:
             if source.startswith('zip|'):
                 proto = 'zip'
                 source = source[4:]
-            no_cache, filename, mipmap, count = source.split('|')
-            source = '{}|{}|{}'.format(filename, mipmap, count)
+            chr = type(source)
+            no_cache, filename, mipmap, count = source.split(chr('|'))
+            source = chr(u'{}|{}|{}').format(filename, mipmap, count)
 
             if not proto:
-                proto = filename.split(':', 1)[0]
+                proto = filename.split(chr(':'), 1)[0]
 
             if proto in ('http', 'https', 'ftp', 'smb'):
                 from kivy.loader import Loader
@@ -976,7 +1050,7 @@ cdef class Texture:
                     self._on_proxyimage_loaded(self._proxyimage)
                 return
 
-            mipmap = 0 if mipmap == 'False' else 1
+            mipmap = 0 if mipmap == '0' else 1
             if count == '0':
                 if proto =='zip' or filename.endswith('.gif'):
                     from kivy.core.image import ImageLoader
@@ -1200,6 +1274,9 @@ cdef class TextureRegion(Texture):
         Texture.__init__(self, width, height, origin.target, origin.id)
         self._is_allocated = 1
         self._mipmap = origin._mipmap
+        self._colorfmt = origin._colorfmt
+        self._bufferfmt = origin._bufferfmt
+        self._icolorfmt = origin._icolorfmt
         self.x = x
         self.y = y
         self.owner = origin

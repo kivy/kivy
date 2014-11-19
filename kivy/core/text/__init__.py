@@ -105,10 +105,10 @@ class LabelBase(object):
             Whether each row of text has its leading and trailing spaces
             stripped. If `halign` is `justify` it is implicitly True.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `strip`, `shorten_from`, and `split_str` were added.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `padding_x` and `padding_y` has been fixed to work as expected.
         In the past, the text was padded by the negative of their values.
 
@@ -258,7 +258,7 @@ class LabelBase(object):
             returned function incorrect. You should only use this if you know
             what you're doing.
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
         '''
         return self.get_extents
 
@@ -500,14 +500,22 @@ class LabelBase(object):
                                     options['halign'][-1] == 'y')
         uw, uh = options['text_size'] = self._text_size
         text = self.text
-        if strip:
-            text = text.strip()
+        if not strip:
+            # all text will be stripped by default. unicode NO-BREAK SPACE
+            # characters will be preserved, so we replace the leading and
+            # trailing spaces with \u00a0
+            text = text.decode('utf8') if isinstance(text, bytes) else text
+            lspace = len(text) - len(text.lstrip())
+            rspace = len(text) - len(text.rstrip())
+            text = (u'\u00a0' * lspace) + text.strip() + (u'\u00a0' * rspace)
         if uw is not None and options['shorten']:
             text = self.shorten(text)
         self._cached_lines = lines = []
         if not text:
             return 0, 0
 
+        ostrip = options['strip']
+        strip = options['strip'] = True
         if uh is not None and options['valign'][-1] == 'e':  # middle
             center = -1  # pos of newline
             if len(text) > 1:
@@ -533,6 +541,7 @@ class LabelBase(object):
         else:  # top or bottom
             w, h, clipped = layout_text(text, lines, (0, 0), (uw, uh), options,
                 self.get_cached_extents(), options['valign'][-1] == 'p', True)
+        options['strip'] = ostrip
         self._internal_size = w, h
         if uw:
             w = uw
@@ -604,7 +613,7 @@ class LabelBase(object):
     def texture_1px(self):
         if LabelBase._texture_1px is None:
             tex = Texture.create(size=(1, 1), colorfmt='rgba')
-            tex.blit_buffer(b'\x00\x00\x00\x00')
+            tex.blit_buffer(b'\x00\x00\x00\x00', colorfmt='rgba')
             LabelBase._texture_1px = tex
         return LabelBase._texture_1px
 
@@ -665,6 +674,7 @@ class LabelBase(object):
 # Load the appropriate provider
 Label = core_select_lib('text', (
     ('pygame', 'text_pygame', 'LabelPygame'),
+    ('sdl2', 'text_sdl2', 'LabelSDL2'),
     ('sdlttf', 'text_sdlttf', 'LabelSDLttf'),
     ('pil', 'text_pil', 'LabelPIL'),
 ))

@@ -210,9 +210,20 @@ if 'KIVY_DOC' not in environ:
 class Selector(ButtonBehavior, Image):
     # Internal class for managing the selection Handles.
 
-    def on_touch_down(self, touch):
-        self._touch_diff = self.top - touch.y
-        return super(Selector, self).on_touch_down(touch)
+    window = ObjectProperty()
+
+    def __init__(self, **kwargs):
+        super(Selector, self).__init__(**kwargs)
+        self.window.bind(on_touch_down=self.on_window_touch_down)
+
+    def on_window_touch_down(self, win, touch):
+        try:
+            touch.push()
+            touch.apply_transform_2d(self.to_widget)
+            self._touch_diff = self.top - touch.y
+            return super(Selector, self).on_touch_down(touch)
+        finally:
+            touch.pop()
 
 
 class TextInputCutCopyPaste(Bubble):
@@ -332,7 +343,7 @@ class TextInput(Widget):
         a update to the :attr:`text`, changing the cursor in the same clock
         frame will move it using the previous text and will likely end up in an
         incorrect position. The solution is to schedule any updates to occur
-        on the next clock cycle using 
+        on the next clock cycle using
         :meth:`~kivy.clock.ClockBase.schedule_once`.
 
     .. versionchanged:: 1.7.0
@@ -751,12 +762,9 @@ class TextInput(Widget):
             - cursor_pgup: move one "page" before
             - cursor_pgdown: move one "page" after
 
-        .. warning::
-
-            Current page has three lines before/after.
-
         '''
-        pgmove_speed = 3
+        pgmove_speed = int(self.height /
+            (self.line_height + self.line_spacing) - 1)
         col, row = self.cursor
         if action == 'cursor_up':
             row = max(row - 1, 0)
@@ -783,11 +791,10 @@ class TextInput(Widget):
         elif action == 'cursor_end':
             col = len(self._lines[row])
         elif action == 'cursor_pgup':
-            row /= pgmove_speed
+            row = max(0, row - pgmove_speed)
             col = min(len(self._lines[row]), col)
         elif action == 'cursor_pgdown':
-            row = min((row + 1) * pgmove_speed,
-                      len(self._lines) - 1)
+            row = min(row + pgmove_speed, len(self._lines) - 1)
             col = min(len(self._lines[row]), col)
         self.cursor = (col, row)
 
@@ -947,6 +954,11 @@ class TextInput(Widget):
     def on_touch_down(self, touch):
         if self.disabled:
             return
+
+        for child in self.children[:]:
+            if child.on_touch_down(touch):
+                return True
+
         touch_pos = touch.pos
         if not self.collide_point(*touch_pos):
             if self._keyboard_mode == 'multi':
@@ -957,6 +969,31 @@ class TextInput(Widget):
             return False
         if not self.focus:
             self.focus = True
+
+        # Check for scroll wheel
+        if 'button' in touch.profile and touch.button.startswith('scroll'):
+            scroll_type = touch.button[6:]
+            if scroll_type == 'down':
+                if self.multiline:
+                    if self.scroll_y <= 0:
+                        return
+                    self.scroll_y -= self.line_height
+                else:
+                    if self.scroll_x <= 0:
+                        return
+                    self.scroll_x -= self.line_height
+            if scroll_type == 'up':
+                if self.multiline:
+                    if (self._lines_rects[-1].pos[1] > self.y +
+                        self.line_height):
+                        return
+                    self.scroll_y += self.line_height
+                else:
+                    if (self.scroll_x + self.width >=
+                        self._lines_rects[-1].texture.size[0]):
+                        return
+                    self.scroll_x += self.line_height
+
         touch.grab(self)
         self._touch_count += 1
         if touch.is_double_tap:
@@ -1012,6 +1049,7 @@ class TextInput(Widget):
 
         if not self.focus:
             return False
+
         if self._selection_touch is touch:
             self._selection_to = self.cursor_index()
             self._update_selection(True)
@@ -1025,13 +1063,14 @@ class TextInput(Widget):
                 if handle_middle is None:
                     self._handle_middle = handle_middle = Selector(
                         source=self.handle_image_middle,
+                        window=win,
                         size_hint=(None, None),
                         size=('45dp', '45dp'))
                     handle_middle.bind(on_press=self._handle_pressed,
                                        on_touch_move=self._handle_move,
                                        on_release=self._handle_released)
                 if not self._handle_middle.parent and self.text:
-                    self._win.add_widget(handle_middle)
+                    self.add_widget(handle_middle, canvas='after')
                 self._position_handles(mode='middle')
             return True
 
@@ -1048,9 +1087,7 @@ class TextInput(Widget):
 
         self._update_selection()
         self._show_cut_copy_paste(
-            (instance.x + ((1 if instance is self._handle_left else -1)
-                * self._bubble.width / 2) if self._bubble else instance.x,
-                instance.top + self.line_height), self._win, pos_in_window=True)
+            (instance.center_x, instance.top + self.line_height), self._win)
 
     def _handle_move(self, instance, touch):
         if touch.grab_current != instance:
@@ -1060,7 +1097,7 @@ class TextInput(Widget):
         handle_left = self._handle_left
         handle_middle = self._handle_middle
 
-        x, y = self.to_widget(*touch.pos)
+        x, y = touch.pos
         cursor = get_cursor(
             x,
             y + instance._touch_diff + (self.line_height / 2))
@@ -1089,12 +1126,11 @@ class TextInput(Widget):
         mode = kwargs.get('mode', 'both')
 
         lh = self.line_height
-        to_win = self.to_window
 
         handle_middle = self._handle_middle
         if handle_middle:
             hp_mid = self.cursor_pos
-            pos = to_win(*hp_mid)
+            pos = hp_mid
             handle_middle.x = pos[0] - handle_middle.width / 2
             handle_middle.top = pos[1] - lh
         if mode[0] == 'm':
@@ -1106,20 +1142,20 @@ class TextInput(Widget):
 
         if not self._win:
             self._set_window()
-        self._win.remove_widget(self._handle_middle)
+        self.remove_widget(self._handle_middle)
 
         handle_left = self._handle_left
         if not handle_left:
             return
         hp_left = group[2].pos
-        handle_left.pos = to_win(*hp_left)
+        handle_left.pos = hp_left
         handle_left.x -= handle_left.width
         handle_left.y -= handle_left.height
 
         handle_right = self._handle_right
         last_rect = group[-1]
         hp_right = last_rect.pos[0], last_rect.pos[1]
-        x, y = to_win(*hp_right)
+        x, y = hp_right
         handle_right.x = x + last_rect.size[0]
         handle_right.y = y - handle_right.height
 
@@ -1127,9 +1163,9 @@ class TextInput(Widget):
         win = win or self._win
         if win is None:
             return
-        self._win.remove_widget(self._handle_right)
-        self._win.remove_widget(self._handle_left)
-        self._win.remove_widget(self._handle_middle)
+        self.remove_widget(self._handle_right)
+        self.remove_widget(self._handle_left)
+        self.remove_widget(self._handle_middle)
 
     def _show_handles(self, dt):
         if not self.use_handles or not self.text:
@@ -1145,6 +1181,7 @@ class TextInput(Widget):
         if self._handle_left is None:
             self._handle_left = handle_left = Selector(
                 source=self.handle_image_left,
+                window=win,
                 size_hint=(None, None),
                 size=('45dp', '45dp'))
             handle_left.bind(on_press=self._handle_pressed,
@@ -1152,6 +1189,7 @@ class TextInput(Widget):
                              on_release=self._handle_released)
             self._handle_right = handle_right = Selector(
                 source=self.handle_image_right,
+                window=win,
                 size_hint=(None, None),
                 size=('45dp', '45dp'))
             handle_right.bind(on_press=self._handle_pressed,
@@ -1167,8 +1205,8 @@ class TextInput(Widget):
         self._trigger_position_handles()
         if self.selection_from != self.selection_to:
             self._handle_left.opacity = self._handle_right.opacity = 0
-            win.add_widget(self._handle_left)
-            win.add_widget(self._handle_right)
+            self.add_widget(self._handle_left, canvas='after')
+            self.add_widget(self._handle_right, canvas='after')
             anim = Animation(opacity=1, d=.4)
             anim.start(self._handle_right)
             anim.start(self._handle_left)
@@ -1187,7 +1225,7 @@ class TextInput(Widget):
             self._win.bind(size=lambda *args: self._hide_cut_copy_paste(win))
             self.bind(cursor_pos=lambda *args: self._hide_cut_copy_paste(win))
         else:
-            win.remove_widget(bubble)
+            self.remove_widget(bubble)
             if not self.parent:
                 return
         if parent_changed:
@@ -1199,50 +1237,55 @@ class TextInput(Widget):
         x, y = pos
         t_pos = (x, y) if pos_in_window else self.to_window(x, y)
         bubble_size = bubble.size
+        bubble_hw = bubble_size[0] / 2.
         win_size = win.size
-        bubble.pos = (t_pos[0] - bubble_size[0] / 2., t_pos[1] + inch(.25))
-        bubble_pos = bubble.pos
+        bubble_pos = (t_pos[0], t_pos[1] + inch(.25))
 
-        if bubble_pos[0] < 0:
+        if (bubble_pos[0] - bubble_hw) < 0:
             # bubble beyond left of window
-            if bubble.pos[1] > (win_size[1] - bubble_size[1]):
+            if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
-                bubble.pos = (0, (t_pos[1]) - (bubble_size[1] + lh + ls))
+                bubble_pos = (bubble_hw, (t_pos[1]) - (lh + ls + inch(.25)))
                 bubble.arrow_pos = 'top_left'
             else:
-                bubble.pos = (0, bubble_pos[1])
+                bubble_pos = (bubble_hw, bubble_pos[1])
                 bubble.arrow_pos = 'bottom_left'
-        elif bubble.right > win_size[0]:
+        elif (bubble_pos[0] + bubble_hw) > win_size[0]:
             # bubble beyond right of window
             if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
-                bubble.pos = (win_size[0] - bubble_size[0],
-                             (t_pos[1]) - (bubble_size[1] + lh + ls))
+                bubble_pos = (win_size[0] - bubble_hw,
+                             (t_pos[1]) - (lh + ls + inch(.25)))
                 bubble.arrow_pos = 'top_right'
             else:
-                bubble.right = win_size[0]
+                bubble_pos = (win_size[0] - bubble_hw, bubble_pos[1])
                 bubble.arrow_pos = 'bottom_right'
         else:
             if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
-                bubble.pos = (bubble_pos[0],
-                             (t_pos[1]) - (bubble_size[1] + lh + ls))
+                bubble_pos = (bubble_pos[0],
+                             (t_pos[1]) - (lh + ls + inch(.25)))
                 bubble.arrow_pos = 'top_mid'
             else:
                 bubble.arrow_pos = 'bottom_mid'
 
+        bubble_pos = self.to_widget(*bubble_pos)
+        bubble.center_x = bubble_pos[0]
+        if bubble.arrow_pos[0] == 't':
+            bubble.top = bubble_pos[1]
+        else:
+            bubble.y = bubble_pos[1]
         bubble.mode = mode
         Animation.cancel_all(bubble)
         bubble.opacity = 0
-        win.add_widget(bubble)
+        self.add_widget(bubble, canvas='after')
         Animation(opacity=1, d=.225).start(bubble)
-
 
     def _hide_cut_copy_paste(self, win=None):
         bubble = self._bubble
         if not bubble:
             return
-        
+
         bubble.hide()
 
     #
@@ -1943,7 +1986,7 @@ class TextInput(Widget):
 
             self._hide_handles(win)
             self._hide_cut_copy_paste(win)
-            self._win.remove_widget(self._handle_middle)
+            self.remove_widget(self._handle_middle)
 
             # check for command modes
             if ord(text[0]) == 1:
@@ -1952,11 +1995,11 @@ class TextInput(Widget):
             if ord(text[0]) == 2:
                 self._command_mode = False
                 self._command = self._command[1:]
- 
+
             if self._command_mode:
                 self._command += text
                 return
- 
+
             _command = self._command
             if _command and ord(text) == 2:
                 from_undo = True
@@ -1987,7 +2030,6 @@ class TextInput(Widget):
                 elif _command == 'CURCOL':
                     self.cursor = int(data), self.cursor_row
                 return
- 
 
             if is_shortcut:
                 if key == ord('x'):  # cut selection
@@ -2196,7 +2238,7 @@ class TextInput(Widget):
     cursor_color = ListProperty([1, 0, 0, 1])
     '''Current color of the cursor, in (r, g, b, a) format.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     :attr:`cursor_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [1, 0, 0, 1].
@@ -2300,7 +2342,7 @@ class TextInput(Widget):
     defaults to [0.1843, 0.6549, 0.8313, .5].
     '''
 
-    border = ListProperty([16, 16, 16, 16])
+    border = ListProperty([4, 4, 4, 4])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
     graphics instruction. Used with :attr:`background_normal` and
     :attr:`background_active`. Can be used for a custom background.
@@ -2311,7 +2353,7 @@ class TextInput(Widget):
     BorderImage instruction for more information about how to use it.
 
     :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults
-    to (16, 16, 16, 16).
+    to (4, 4, 4, 4).
     '''
 
     background_normal = StringProperty(
@@ -2599,7 +2641,7 @@ class TextInput(Widget):
     ''' Filters the input according to the specified mode, if not None. If
     None, no filtering is applied.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     :attr:`input_filter` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to `None`. Can be one of `None`, `'int'` (string), or `'float'`

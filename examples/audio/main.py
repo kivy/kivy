@@ -14,7 +14,7 @@ from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.core.audio import SoundLoader
-from kivy.properties import StringProperty, ObjectProperty
+from kivy.properties import StringProperty, ObjectProperty, NumericProperty
 from glob import glob
 from os.path import dirname, join, basename
 
@@ -23,6 +23,7 @@ class AudioButton(Button):
 
     filename = StringProperty(None)
     sound = ObjectProperty(None, allownone=True)
+    volume = NumericProperty(1.0)
 
     def on_press(self):
         if self.sound is None:
@@ -30,6 +31,7 @@ class AudioButton(Button):
         # stop the sound if it's currently playing
         if self.sound.status != 'stop':
             self.sound.stop()
+        self.sound.volume = self.volume
         self.sound.play()
 
     def release_audio(self):
@@ -37,6 +39,11 @@ class AudioButton(Button):
             self.sound.stop()
             self.sound.unload()
             self.sound = None
+
+    def set_volume(self, volume):
+        self.volume = volume
+        if self.sound:
+            self.sound.volume = volume
 
 
 class AudioBackground(BoxLayout):
@@ -60,6 +67,10 @@ class AudioApp(App):
     def release_audio(self):
         for audiobutton in self.root.ids.sl.children:
             audiobutton.release_audio()
+
+    def set_volume(self, value):
+        for audiobutton in self.root.ids.sl.children:
+            audiobutton.set_volume(value)
 
 if __name__ == '__main__':
     AudioApp().run()

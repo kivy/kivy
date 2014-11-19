@@ -141,10 +141,20 @@ cdef class ShaderSource:
     cdef get_shader_log(self, int shader):
         '''Return the shader log.
         '''
-        cdef char msg[2048]
-        msg[0] = '\0'
-        glGetShaderInfoLog(shader, 2048, NULL, msg)
-        return msg
+        cdef char *msg
+        cdef bytes py_msg
+        cdef int info_length
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &info_length)
+        if info_length <= 0:
+            return ""
+        msg = <char *>malloc(info_length * sizeof(char))
+        if msg == NULL:
+            return ""
+        msg[0] = "\0"
+        glGetShaderInfoLog(shader, info_length, NULL, msg)
+        py_msg = msg
+        free(msg)
+        return py_msg
 
 
 cdef class Shader:
@@ -165,7 +175,6 @@ cdef class Shader:
         self.uniform_values = dict()
 
     def __init__(self, str vs=None, str fs=None, str source=None):
-        get_context().register_shader(self)
         self.program = glCreateProgram()
         if source:
             self.source = source

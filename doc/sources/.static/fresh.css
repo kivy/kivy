@@ -18,7 +18,13 @@ a, a:link, a:visited {
 }
 
 a.headerlink {
-	display: none;
+        font-size: 1.2em;
+        color: transparent;
+        margin-left: 10px;
+}
+
+.hover a.headerlink {
+        color: #bdc3c7;
 }
 
 h1:hover a.headerlink,

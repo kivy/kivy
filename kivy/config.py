@@ -11,9 +11,11 @@ order to change these settings, you can alter this file manually or use
 the Config object. Please see the :ref:`Configure Kivy` section for more
 information.
 
-Note: To avoid instances where a blank screen appears before resizing,
-kivy.config should be imported right after kivy.app ,or before any modules
-affecting the window.
+Note: To avoid instances where the config settings do not work or they are
+not applied before window creation (like setting an initial window size),
+Config.set should be used before importing any modules that affect the
+application window (ie. importing Window). Ideally, these settings should
+be declared right at the start of your main.py script.
 
 Usage of the Config object
 --------------------------
@@ -33,6 +35,8 @@ Change the configuration and save it::
     The ConfigParser should work correctly with utf-8 now. The values are
     converted from ascii to unicode only when needed. The method get() returns
     utf-8 strings.
+    
+.. _configuration-tokens:
 
 Available configuration tokens
 ------------------------------
@@ -48,6 +52,10 @@ Available configuration tokens
     `exit_on_escape`: int, 0 or 1
         Enables exiting kivy when escape is pressed.
         0 is disabled, 1 is enabled.
+    `pause_on_minimize`: int, 0 or 1
+        If set to `1`, the main loop is paused and the `on_pause` event
+        is dispatched when the window is minimized. This option is intended
+        for desktop use only. Defaults to `0`.
     `keyboard_layout`: string
         Identifier of the layout to use.
     `keyboard_mode`: string
@@ -104,7 +112,8 @@ Available configuration tokens
         Time allowed for the detection of triple tap, in milliseconds.
 
 :graphics:
-
+    `borderless`: int , one of 0 or 1
+        If set to `1`, removes the window border/decoration.
     `fbo`: string, one of 'hardware', 'software' or 'force-hardware'
         Selects the FBO backend to use.
     `fullscreen`: int or string, one of 0, 1, 'fake' or 'auto'
@@ -113,7 +122,8 @@ Available configuration tokens
         If set to `auto`, your current display's resolution will be
         used instead. This is most likely what you want.
         If you want to place the window in another display,
-        use `fake` and adjust `width`, `height`, `top` and `left`.
+        use `fake`, or set the `borderless` option from the graphics section,
+        then adjust `width`, `height`, `top` and `left`.
     `height`: int
         Height of the :class:`~kivy.core.window.Window`, not used if
         `fullscreen` is set to `auto`.
@@ -128,10 +138,10 @@ Available configuration tokens
         processing time.
 
         .. note::
-        
+
            This feature is limited by device hardware support and will have no
            effect on devices which do not support the level of MSAA requested.
-           
+
     `position`: string, one of 'auto' or 'custom'
         Position of the window on your display. If `auto` is used, you have no
         control of the initial position: `top` and `left` are ignored.
@@ -214,6 +224,17 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted
     arguments.
 
+.. note::
+
+    These options control only the initalization of the app and a restart
+    is required for value changes to take effect.    
+
+.. versionchanged:: 1.9.0
+    `borderless` has been added to the graphics section.
+    The `fake` option of `fullscreen` in the graphics section has been
+    deprecated, use the `borderless` option instead.
+    `pause_on_minimize` has been added to the kivy section.
+
 .. versionchanged:: 1.8.0
     `systemanddock` and `systemandmulti` has been added as possible values for
     `keyboard_mode` in the kivy section. `exit_on_escape` has been added
@@ -253,7 +274,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 10
+KIVY_CONFIG_VERSION = 12
 
 Config = None
 '''Kivy configuration object. Its :attr:`~kivy.config.ConfigParser.name` is
@@ -273,7 +294,7 @@ class ConfigParser(PythonConfigParser, object):
         `name`: string
             The name of the instance. See :attr:`name`. Defaults to `''`.
 
-    ..versionchanged:: 1.8.1
+    ..versionchanged:: 1.9.0
         Each ConfigParser can now be named, :attr:`name`. You can get the
         ConfigParser associated with a name using :meth:`get_configparser`.
         In addition, you can now control the config values with
@@ -309,7 +330,7 @@ class ConfigParser(PythonConfigParser, object):
 
         Raises a `ValueError` if not found.
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
         '''
         self._callbacks.remove((callback, section, key))
 
@@ -326,7 +347,7 @@ class ConfigParser(PythonConfigParser, object):
         Python, this one is able to read only one file at a time. The last
         read file will be used for the :meth:`write` method.
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             :meth:`read` now calls the callbacks if read changed any values.
 
         '''
@@ -365,13 +386,12 @@ class ConfigParser(PythonConfigParser, object):
         the value is implicitly converted to a string.
         '''
         e_value = value
+        if not isinstance(value, string_types):
+            # might be boolean, int, etc.
+            e_value = str(value)
         if PY2:
-            if not isinstance(value, string_types):
-                # might be boolean, int, etc.
-                e_value = str(value)
-            else:
-                if isinstance(value, unicode):
-                    e_value = value.encode('utf-8')
+            if isinstance(value, unicode):
+                e_value = value.encode('utf-8')
         ret = PythonConfigParser.set(self, section, option, e_value)
         self._do_callbacks(section, option, value)
         return ret
@@ -716,6 +736,13 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 9:
             Config.setdefault('kivy', 'exit_on_escape', '1')
+
+        elif version == 10:
+            Config.set('graphics', 'fullscreen', '0')
+            Config.setdefault('graphics', 'borderless', '0')
+
+        elif version == 11:
+            Config.setdefault('kivy', 'pause_on_minimize', '0')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1

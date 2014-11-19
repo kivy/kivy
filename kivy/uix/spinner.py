@@ -7,10 +7,10 @@ Spinner
 .. image:: images/spinner.jpg
     :align: right
 
-Spinner is a widget that provide a quick way to select one value from a set. In
-the default state, a spinner show its currently selected value. Touching the
-spinner displays a dropdown menu with all other available values from which the
-user can select a new one.
+Spinner is a widget that provides a quick way to select one value from a set.
+In the default state, a spinner shows its currently selected value.
+Touching the spinner displays a dropdown menu with all the other available
+values from which the user can select a new one.
 
 Example::
 
@@ -18,7 +18,7 @@ Example::
     from kivy.uix.spinner import Spinner
 
     spinner = Spinner(
-        # default value showed
+        # default value shown
         text='Home',
         # available values
         values=('Home', 'Work', 'Other', 'Custom'),

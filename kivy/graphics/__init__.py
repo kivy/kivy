@@ -53,7 +53,7 @@ happens:
   resized. This was fixed in SDL 1.3 but pygame is not yet available on it
   by default.
 
-- when Android release the app resources: when your application goes to the
+- when Android releases the app resources: when your application goes to the
   background, Android might reclaim your opengl context to give the
   resource to another app. When the user switches back to your application, a
   newly created gl context is given to your app.
@@ -68,7 +68,7 @@ and VertexBatch:
 - Shader: same as VBO, we store the source and values used in the
   shader so we are able to recreate the vertex/fragment/program.
 
-- Texture: if the texture has a source (an image file, an atlas...), the image
+- Texture: if the texture has a source (an image file or atlas), the image
   is reloaded from the source and reuploaded to the GPU.
 
 You should cover theses cases yourself:

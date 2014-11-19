@@ -46,7 +46,8 @@ class ImageData(object):
                        'pvrtc_rgba4', 'etc1_rgb8')
 
     def __init__(self, width, height, fmt, data, source=None,
-                 flip_vertical=True, source_image=None):
+                 flip_vertical=True, source_image=None,
+                 rowlength=0):
         assert fmt in ImageData._supported_fmts
 
         #: Decoded image format, one of a available texture format
@@ -54,7 +55,7 @@ class ImageData(object):
 
         #: Data for each mipmap.
         self.mipmaps = {}
-        self.add_mipmap(0, width, height, data)
+        self.add_mipmap(0, width, height, data, rowlength)
 
         #: Image source, if available
         self.source = source
@@ -93,6 +94,15 @@ class ImageData(object):
         return self.mipmaps[0][2]
 
     @property
+    def rowlength(self):
+        '''Image rowlength.
+        (If the image is mipmapped, it will use the level 0)
+
+        .. versionadded:: 1.9.0
+        '''
+        return self.mipmaps[0][3]
+
+    @property
     def size(self):
         '''Image (width, height) in pixels.
         (If the image is mipmapped, it will use the level 0)
@@ -110,12 +120,12 @@ class ImageData(object):
                     self.width, self.height, self.fmt,
                     self.source, len(self.mipmaps)))
 
-    def add_mipmap(self, level, width, height, data):
+    def add_mipmap(self, level, width, height, data, rowlength):
         '''Add a image for a specific mipmap level.
 
         .. versionadded:: 1.0.7
         '''
-        self.mipmaps[level] = [int(width), int(height), data]
+        self.mipmaps[level] = [int(width), int(height), data, rowlength]
 
     def get_mipmap(self, level):
         '''Get the mipmap image at a specific level if it exists
@@ -123,12 +133,12 @@ class ImageData(object):
         .. versionadded:: 1.0.7
         '''
         if level == 0:
-            return (self.width, self.height, self.data)
+            return (self.width, self.height, self.data, self.rowlength)
         assert(level < len(self.mipmaps))
         return self.mipmaps[level]
 
     def iterate_mipmaps(self):
-        '''Iterate over all mipmap images available
+        '''Iterate over all mipmap images available.
 
         .. versionadded:: 1.0.7
         '''
@@ -137,7 +147,7 @@ class ImageData(object):
             item = mm.get(x, None)
             if item is None:
                 raise Exception('Invalid mipmap level, found empty one')
-            yield x, item[0], item[1], item[2]
+            yield x, item[0], item[1], item[2], item[3]
 
 
 class ImageLoaderBase(object):
@@ -170,23 +180,26 @@ class ImageLoaderBase(object):
 
     def populate(self):
         self._textures = []
+        fname = self.filename
         if __debug__:
             Logger.trace('Image: %r, populate to textures (%d)' %
-                         (self.filename, len(self._data)))
+                         (fname, len(self._data)))
 
         for count in range(len(self._data)):
 
             # first, check if a texture with the same name already exist in the
             # cache
-            uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
+            chr = type(fname)
+            uid = chr(u'%s|%d|%d') % (fname, self._mipmap, count)
             texture = Cache.get('kv.texture', uid)
 
             # if not create it and append to the cache
             if texture is None:
                 imagedata = self._data[count]
-                imagedata.source = '{}{}|{}'.format(
-                    'zip|' if self.filename.endswith('.zip') else '',
-                    self._nocache, uid)
+                source = '{}{}|'.format(
+                    'zip|' if fname.endswith('.zip') else '',
+                    self._nocache)
+                imagedata.source = chr(source) + uid
                 texture = Texture.create_from_data(
                     imagedata, mipmap=self._mipmap)
                 if not self._nocache:
@@ -331,7 +344,7 @@ class ImageLoader(object):
             if atlas:
                 texture = atlas[uid]
                 fn = 'atlas://%s/%s' % (rfn, uid)
-                cid = '%s|%s|%s' % (fn, False, 0)
+                cid = '{}|{:d}|{:d}'.format(fn, False, 0)
                 Cache.append('kv.texture', cid, texture)
                 return Image(texture)
 
@@ -347,7 +360,7 @@ class ImageLoader(object):
             # first time, fill our texture cache.
             for nid, texture in atlas.textures.items():
                 fn = 'atlas://%s/%s' % (rfn, nid)
-                cid = '%s|%s|%s' % (fn, False, 0)
+                cid = '{}|{:d}|{:d}'.format(fn, False, 0)
                 Cache.append('kv.texture', cid, texture)
             return Image(atlas[uid])
 
@@ -465,12 +478,14 @@ class Image(EventDispatcher):
 
         '''
         count = 0
-        uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
+        f = self.filename
+        pat = type(f)(u'%s|%d|%d')
+        uid = pat % (f, self._mipmap, count)
         Cache.remove("kv.image", uid)
         while Cache.get("kv.texture", uid):
             Cache.remove("kv.texture", uid)
             count += 1
-            uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
+            uid = pat % (f, self._mipmap, count)
 
     def _anim(self, *largs):
         if not self._image:
@@ -601,7 +616,8 @@ class Image(EventDispatcher):
         self._filename = value
 
         # construct uid as a key for Cache
-        uid = '%s|%s|%s' % (self.filename, self._mipmap, 0)
+        f = self.filename
+        uid = type(f)(u'%s|%d|%d') % (f, self._mipmap, 0)
 
         # in case of Image have been asked with keep_data
         # check the kv.image cache instead of texture.
@@ -633,7 +649,6 @@ class Image(EventDispatcher):
             self._filename, keep_data=self._keep_data,
             mipmap=self._mipmap, nocache=self._nocache)
         self._filename = tmpfilename
-
         # put the image into the cache if needed
         if isinstance(image, Texture):
             self._texture = image
@@ -780,8 +795,8 @@ class Image(EventDispatcher):
         assert data.fmt in ImageData._supported_fmts
         size = 3 if data.fmt in ('rgb', 'bgr') else 4
         index = y * data.width * size + x * size
-        raw = data.data[index:index + size]
-        color = [ord(c) / 255.0 for c in raw]
+        raw = bytearray(data.data[index:index + size])
+        color = [c / 255.0 for c in raw]
 
         # conversion for BGR->RGB, BGR->RGBA format
         if data.fmt in ('bgr', 'bgra'):
@@ -803,6 +818,7 @@ image_libs += [
     ('tex', 'img_tex'),
     ('dds', 'img_dds'),
     ('pygame', 'img_pygame'),
+    ('sdl2', 'img_sdl2'),
     ('ffpy', 'img_ffpyplayer'),
     ('pil', 'img_pil'),
     ('gif', 'img_gif')]

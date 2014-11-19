@@ -217,8 +217,24 @@ clever optimizations to make your application run smoothly.
 Does Kivy support Python 3.x?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Yes! As of version 1.8.0 Kivy supports both Python 2 and Python 3 with
-the same codebase.
+Yes! As of version 1.8.0 Kivy supports both Python >= 2.7 and Python >= 3.3
+with the same codebase.
+
+However, be aware that while Kivy will run in Python 3.3+, packaging support
+is not yet complete. If you plan to create mobile apps for Android or iOS,
+you should use Python 2.7 for now.
+
+
+I've already started with Python 3.x! Is there anything I can do?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Be patient. We're working on it. :)
+
+If you can't wait, you could try using the 3to2_ tool, which converts valid
+Python 3 syntax to Python 2. However, be warned that this tool does not work
+for all Python 3 code.
+
+.. _3to2: https://pypi.python.org/pypi/3to2
 
 
 How is Kivy related to PyMT?

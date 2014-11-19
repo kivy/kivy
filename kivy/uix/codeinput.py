@@ -7,24 +7,24 @@ Code Input
 .. image:: images/codeinput.jpg
 
 
-The :class:`CodeInput` provides a box of editable highlited text like the one
+The :class:`CodeInput` provides a box of editable highlighted text like the one
 shown in the image.
 
 It supports all the features provided by the :class:`~kivy.uix.textinput` as
-well as code highliting for `languages supported by pygments
+well as code highlighting for `languages supported by pygments
 <http://pygments.org/docs/lexers/>`_ along with `KivyLexer` for
-:mod:`kivy.lang` highliting.
+:mod:`kivy.lang` highlighting.
 
 Usage example
 -------------
 
-To create a CodeInput with highliting for `KV language`::
+To create a CodeInput with highlighting for `KV language`::
 
     from kivy.uix.codeinput import CodeInput
     from kivy.extras.highlight import KivyLexer
     codeinput = CodeInput(lexer=KivyLexer())
 
-To create a CodeInput with highliting for `Cython`::
+To create a CodeInput with highlighting for `Cython`::
 
     from kivy.uix.codeinput import CodeInput
     from pygments.lexers import CythonLexer
@@ -120,7 +120,7 @@ class CodeInput(TextInput):
         return kw
 
     def _get_text_width(self, text, tab_width, _label_cached):
-        # Return the width of a text, according to the current line options
+        # Return the width of a text, according to the current line options.
         cid = u'{}\0{}\0{}'.format(text, self.password,
                                    self._get_line_options())
         width = Cache_get('textinput.width', cid)

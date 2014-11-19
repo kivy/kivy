@@ -312,7 +312,7 @@ Calling platform() will return one of: *win*, *linux*, *android*, *macosx*,
     foo = {'linux' : do_linux_things}
     foo[platform]() # calls do_linux_things
     p = platform # assigns to a module object
-    if p is 'android':
+    if p == 'android':
         do_android_things()
     p += 'some string' # error!
 

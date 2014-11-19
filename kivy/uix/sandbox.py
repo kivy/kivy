@@ -15,11 +15,10 @@ itself runs its own Clock, Cache, etc.
 
 The SandBox widget is still experimental and required for the Kivy designer.
 When the user designs their own widget, if they do something wrong (wrong size
-value,
-invalid python code), it will be caught correctly without breaking the whole
-application. Because it has been designed that way, we are still
+value, invalid python code), it will be caught correctly without breaking
+the whole application. Because it has been designed that way, we are still
 enhancing this widget and the :mod:`kivy.context` module.
-Don't use it unless you know what you are doing :)
+Don't use it unless you know what you are doing.
 
 '''
 

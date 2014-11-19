@@ -37,16 +37,16 @@ cdef class Line(VertexInstruction):
         with self.canvas:
             Line(points=[100, 100, 200, 100, 100, 200], width=10)
 
-    Actually, the line have 3 internal drawing mode that you should know about
-    if you want to get the best performance of it:
+    The line has 3 internal drawing modes that you should be aware of
+    for optimal results:
 
-    #. If the :attr:`width` is 1.0, then we will use standard GL_LINE drawing
-       from OpenGL. :attr:`dash_length` and :attr:`dash_offset` works, while
-       properties for cap and joint have no sense for this.
-    #. If the :attr:`width` is > 1.0, then we will use a custom drawing method,
-       based on triangles. :attr:`dash_length` and :attr:`dash_offset` is not
-       working on that mode.
-       Additionally, if the current color have an alpha < 1.0, stencil will be
+    #. If the :attr:`width` is 1.0, then the standard GL_LINE drawing from
+       OpenGL will be used. :attr:`dash_length` and :attr:`dash_offset` will
+       work, while properties for cap and joint have no meaning here.
+    #. If the :attr:`width` is > 1.0, then a custom drawing method will be used,
+       based on triangles. :attr:`dash_length` and :attr:`dash_offset` do not
+       work in this mode.
+       Additionally, if the current color has an alpha < 1.0, a stencil will be
        used internally to draw the line.
 
     .. image:: images/line-instruction.png
@@ -56,12 +56,12 @@ cdef class Line(VertexInstruction):
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
         `dash_length`: int
-            Length of a segment (if dashed), default 1
+            Length of a segment (if dashed), defaults to 1.
         `dash_offset`: int
             Offset between the end of a segments and the begining of the
-            next one, default 0, changing this makes it dashed.
+            next one, defaults to 0. Changing this makes it dashed.
         `width`: float
-            Width of the line, default 1.0
+            Width of the line, defaults to 1.0.
         `cap`: str, defaults to 'round'
             See :attr:`cap` for more information.
         `joint`: str, defaults to 'round'
@@ -70,6 +70,9 @@ cdef class Line(VertexInstruction):
             See :attr:`cap_precision` for more information
         `joint_precision`: int, defaults to 10
             See :attr:`joint_precision` for more information
+            See :attr:`cap_precision` for more information.
+        `joint_precision`: int, defaults to 10
+            See :attr:`joint_precision` for more information.
         `close`: bool, defaults to False
             If True, the line will be closed.
         `circle`: list
@@ -87,15 +90,16 @@ cdef class Line(VertexInstruction):
         `bezier_precision`: int, defaults to 180
             Precision of the Bezier drawing.
 
-    .. versionadded:: 1.0.8
+    .. versionchanged:: 1.0.8
         `dash_offset` and `dash_length` have been added
 
-    .. versionadded:: 1.4.1
+    .. versionchanged:: 1.4.1
         `width`, `cap`, `joint`, `cap_precision`, `joint_precision`, `close`,
         `ellipse`, `rectangle` have been added.
 
-    .. versionadded:: 1.4.1
+    .. versionchanged:: 1.4.1
         `bezier`, `bezier_precision` have been added.
+
     '''
     cdef int _cap
     cdef int _cap_precision
@@ -422,7 +426,7 @@ cdef class Line(VertexInstruction):
                 cx * pcx + cy * pcy)
 
             # in case of the angle is NULL, avoid the generation
-            if jangle == 0 or jangle == PI or jangle == -PI:
+            if jangle == 0:
                 if self._joint == LINE_JOINT_ROUND:
                     vertices_count -= self._joint_precision
                     indices_count -= self._joint_precision * 3
@@ -947,7 +951,7 @@ cdef class Line(VertexInstruction):
             x, y, r, angle_start, angle_end = args
         elif len(args) == 6:
             x, y, r, angle_start, angle_end, segments = args
-            segments += 2
+            segments += 1
         else:
             x = y = r = 0
             assert(0)
@@ -958,17 +962,18 @@ cdef class Line(VertexInstruction):
             angle_dir = -1
         if segments == 0:
             segments = int(abs(angle_end - angle_start) / 2) + 3
-            if segments % 2 == 1:
-                segments += 1
+        
+        segmentpoints = segments * 2
+        
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
         angle_start = angle_start * 0.017453292519943295
         angle_end = angle_end * 0.017453292519943295
-        angle_range = abs(angle_end - angle_start) / (segments - 2)
+        angle_range = abs(angle_end - angle_start) / (segmentpoints - 2)
 
-        cdef list points = [0, ] * segments
+        cdef list points = [0, ] * segmentpoints
         cdef double angle
-        for i in xrange(0, segments, 2):
-            angle = angle_start + (angle_dir * (i - 1) * angle_range)
+        for i in xrange(0, segmentpoints, 2):
+            angle = angle_start + (angle_dir * i * angle_range)
             points[i] = x + (r * sin(angle))
             points[i + 1] = y + (r * cos(angle))
         self._points = points
@@ -1027,7 +1032,7 @@ cdef class Line(VertexInstruction):
         :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of one of the following forms:
-        
+
         * (x, y, width, height, corner_radius)
         * (x, y, width, height, corner_radius, resolution)
         * (x, y, width, height, corner_radius1, corner_radius2, corner_radius3, corner_radius4)
@@ -1044,7 +1049,7 @@ cdef class Line(VertexInstruction):
 
             Line(rounded_rectangle=(0, 0, 200, 200, 10, 20, 30, 40, 100))
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
         '''
         def __set__(self, args):
             if args == None:
@@ -1185,7 +1190,7 @@ cdef class Line(VertexInstruction):
 cdef class SmoothLine(Line):
     '''Experimental line using over-draw method to get better antialiasing
     results. It has few drawbacks:
-    
+
     - drawing line with alpha will unlikely doesn't give the intended result if
       the line cross itself
     - no cap or joint are supported
@@ -1197,7 +1202,7 @@ cdef class SmoothLine(Line):
 
         This is an unfinished work, experimental, subject to crash.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
     '''
 
     cdef float _owidth
@@ -1209,11 +1214,15 @@ cdef class SmoothLine(Line):
         self.texture = self.premultiplied_texture()
 
     def premultiplied_texture(self):
+        texture = Texture.create(size=(4, 1), colorfmt="rgba")
+        texture.add_reload_observer(self._smooth_reload_observer)
+        self._smooth_reload_observer(texture)
+        return texture
+
+    cpdef _smooth_reload_observer(self, texture):
         cdef bytes GRADIENT_DATA = (
             b"\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00")
-        texture = Texture.create(size=(4, 1), colorfmt="rgba")
         texture.blit_buffer(GRADIENT_DATA, colorfmt="rgba")
-        return texture
 
     cdef void build(self):
         if self._mode == LINE_MODE_ELLIPSE:
@@ -1241,7 +1250,7 @@ cdef class SmoothLine(Line):
             vertex_t *vertices = NULL
             unsigned short *indices = NULL
             unsigned short *tindices = NULL
-            double ax, ay, bx, by, rx, ry, last_angle, angle, av_angle
+            double ax, ay, bx = 0., by = 0., rx = 0., ry = 0., last_angle = 0., angle, av_angle
             float cos1, sin1, cos2, sin2, ocos1, ocos2, osin1, osin2
             long index, vindex, vcount, icount, iv, ii, max_vindex, count
             unsigned short i0, i1, i2, i3, i4, i5, i6, i7
@@ -1469,7 +1478,7 @@ cdef class SmoothLine(Line):
         #free(vertices)
         #free(indices)
 
-        
+
     property overdraw_width:
         '''Determine the overdraw width of the line, defaults to 1.2
         '''

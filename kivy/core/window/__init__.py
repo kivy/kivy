@@ -1,4 +1,5 @@
 # pylint: disable=W0611
+# coding: utf-8
 '''
 Window
 ======
@@ -79,23 +80,32 @@ class Keyboard(EventDispatcher):
         'numpadadd': 270,
 
         # F1-15
-        'f1': 282, 'f2': 283, 'f3': 282, 'f4': 285, 'f5': 286, 'f6': 287,
+        'f1': 282, 'f2': 283, 'f3': 284, 'f4': 285, 'f5': 286, 'f6': 287,
         'f7': 288, 'f8': 289, 'f9': 290, 'f10': 291, 'f11': 292, 'f12': 293,
         'f13': 294, 'f14': 295, 'f15': 296,
 
         # other keys
         '(': 40, ')': 41,
         '[': 91, ']': 93,
-        '{': 91, '}': 93,
+        '{': 123, '}': 125,
         ':': 59, ';': 59,
-        '=': 43, '+': 43,
-        '-': 41, '_': 41,
-        '/': 47, '?': 47,
-        '`': 96, '~': 96,
-        '\\': 92, '|': 92,
-        '"': 34, '\'': 39,
+        '=': 61, '+': 43,
+        '-': 45, '_': 95,
+        '/': 47, '*': 42,
+        '?': 47,
+        '`': 96, '~': 126,
+        '´': 180, '¦': 166,
+        '\\': 92, '|': 124,
+        '"': 34, "'": 39,
         ',': 44, '.': 46,
-        '<': 60, '>': 60,
+        '<': 60, '>': 62,
+        '@': 64, '!': 33,
+        '#': 35, '$': 36,
+        '%': 37, '^': 94,
+        '&': 38, '¬': 172,
+        '¨': 168, '…': 8230,
+        'ù': 249, 'à': 224,
+        'é': 233, 'è': 232,
     }
 
     __events__ = ('on_key_down', 'on_key_up')
@@ -174,6 +184,10 @@ class WindowBase(EventDispatcher):
     '''WindowBase is an abstract window widget for any window implementation.
 
     :Parameters:
+        `borderless`: str, one of ('0', '1')
+            Set the window border state. Check the
+            :mod:`~kivy.config` documentation for a
+            more detailed explanation on the values.
         `fullscreen`: str, one of ('0', '1', 'auto', 'fake')
             Make the window fullscreen. Check the
             :mod:`~kivy.config` documentation for a
@@ -232,12 +246,13 @@ class WindowBase(EventDispatcher):
         `on_dropfile`: str
             Fired when a file is dropped on the application.
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             `on_request_close` has been added.
     '''
 
     __instance = None
     __initialized = False
+    _fake_fullscreen = False
 
     # private properties
     _size = ListProperty([0, 0])
@@ -345,9 +360,10 @@ class WindowBase(EventDispatcher):
     def _get_height(self):
         '''Rotated window height'''
         r = self._rotation
+        kb = self.keyboard_height if self.softinput_mode == 'resize' else 0
         if r == 0 or r == 180:
-            return self._size[1]
-        return self._size[0]
+            return self._size[1] - kb
+        return self._size[0] - kb
 
     height = AliasProperty(_get_height, None, bind=('_rotation', '_size'))
     '''Rotated window height.
@@ -398,7 +414,7 @@ class WindowBase(EventDispatcher):
     when 'resize' The window is resized and the contents scaled to fit the
     remaining space.
     
-    ..versionadded::1.8.1
+    ..versionadded::1.9.0
 
     :attr:`softinput_mode` is a :class:`OptionProperty` defaults to None.
 
@@ -430,7 +446,7 @@ class WindowBase(EventDispatcher):
     '''Rerturns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
-    ..versionadded:: 1.8.1
+    ..versionadded:: 1.9.0
 
     :attr:`keyboard_height` is a read-only :class:`AliasProperty` defaults to 0.
     '''
@@ -450,12 +466,24 @@ class WindowBase(EventDispatcher):
     '''Real size of the window ignoring rotation.
     '''
 
+    borderless = BooleanProperty(False)
+    '''When set to True, this property removes the window border/decoration.
+
+    .. versionadded:: 1.9.0
+
+    :attr:`borderless` is a :class:`BooleanProperty`, defaults to False.
+    '''
+
     fullscreen = OptionProperty(False, options=(True, False, 'auto', 'fake'))
     '''This property sets the fullscreen mode of the window. Available options
     are: True, False, 'auto', 'fake'. Check the :mod:`~kivy.config`
     documentation for a more detailed explanation on the values.
 
     .. versionadded:: 1.2.0
+
+    .. note::
+        The 'fake' option has been deprecated, use the :attr:`borderless`
+        property instead.
     '''
 
     mouse_pos = ObjectProperty([0, 0])
@@ -479,7 +507,8 @@ class WindowBase(EventDispatcher):
                   'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
                   'on_mouse_down', 'on_mouse_move', 'on_mouse_up',
                   'on_keyboard', 'on_key_down', 'on_key_up', 'on_dropfile',
-                  'on_request_close')
+                  'on_request_close', 'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
+                  'on_joy_button_down', "on_joy_button_up")
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -494,7 +523,9 @@ class WindowBase(EventDispatcher):
         # except if force is specified
         if WindowBase.__instance is not None and not kwargs.get('force'):
             return
+
         self.initialized = False
+        self._is_desktop = Config.getboolean('kivy', 'desktop')
 
         # create a trigger for update/create the window when one of window
         # property changes
@@ -506,6 +537,8 @@ class WindowBase(EventDispatcher):
             self._upd_kbd_height, .5)
 
         # set the default window parameter according to the configuration
+        if 'borderless' not in kwargs:
+            kwargs['borderless'] = Config.getboolean('graphics', 'borderless')
         if 'fullscreen' not in kwargs:
             fullscreen = Config.get('graphics', 'fullscreen')
             if fullscreen not in ('auto', 'fake'):
@@ -536,7 +569,7 @@ class WindowBase(EventDispatcher):
 
         # bind all the properties that need to recreate the window
         for prop in (
-                'fullscreen', 'position', 'top',
+                'fullscreen', 'borderless', 'position', 'top',
                 'left', '_size', 'system_size'):
             self.bind(**{prop: self.trigger_create_window})
 
@@ -576,8 +609,92 @@ class WindowBase(EventDispatcher):
         self.initialized = True
 
     def toggle_fullscreen(self):
-        '''Toggle fullscreen on window'''
+        '''Toggle between fullscreen and windowed mode.
+
+        .. deprecated:: 1.9.0
+            Use :attr:`fullscreen` instead.
+        '''
         pass
+
+    def maximize(self):
+        '''Maximizes the window. This method should be used on desktop
+        platforms only.
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            This feature works with the SDL2 window provider only.
+
+        .. warning::
+            This code is still experimental, and its API may be subject to
+            change in a future version.
+        '''
+        Logger.warning('Window: maximize() is not implemented in the current '
+                        'window provider.')
+
+    def minimize(self):
+        '''Minimizes the window. This method should be used on desktop
+        platforms only.
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            This feature works with the SDL2 window provider only.
+
+        .. warning::
+            This code is still experimental, and its API may be subject to
+            change in a future version.
+        '''
+        Logger.warning('Window: minimize() is not implemented in the current '
+                        'window provider.')
+
+    def restore(self):
+        '''Restores the size and position of a maximized or minimized window.
+        This method should be used on desktop platforms only.
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            This feature works with the SDL2 window provider only.
+
+        .. warning::
+            This code is still experimental, and its API may be subject to
+            change in a future version.
+        '''
+        Logger.warning('Window: restore() is not implemented in the current '
+                        'window provider.')
+
+    def hide(self):
+        '''Hides the window. This method should be used on desktop
+        platforms only.
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            This feature works with the SDL2 window provider only.
+
+        .. warning::
+            This code is still experimental, and its API may be subject to
+            change in a future version.
+        '''
+        Logger.warning('Window: hide() is not implemented in the current '
+                        'window provider.')
+
+    def show(self):
+        '''Shows the window. This method should be used on desktop
+        platforms only.
+
+        .. versionadded:: 1.9.0
+
+        .. note::
+            This feature works with the SDL2 window provider only.
+
+        .. warning::
+            This code is still experimental, and its API may be subject to
+            change in a future version.
+        '''
+        Logger.warning('Window: show() is not implemented in the current '
+                        'window provider.')
 
     def close(self):
         '''Close the window'''
@@ -619,7 +736,7 @@ class WindowBase(EventDispatcher):
             # if we get initialized more than once, then reload opengl state
             # after the second time.
             # XXX check how it's working on embed platform.
-            if platform == 'linux':
+            if platform == 'linux' or Window.__class__.__name__ == 'WindowSDL':
                 # on linux, it's safe for just sending a resize.
                 self.dispatch('on_resize', *self.system_size)
 
@@ -738,7 +855,7 @@ class WindowBase(EventDispatcher):
     def on_touch_down(self, touch):
         '''Event called when a touch down event is initiated.
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             The touch `pos` is now transformed to window coordinates before
             this method is called. Before, the touch `pos` coordinate would be
             `(0, 0)` when this method was called.
@@ -750,7 +867,7 @@ class WindowBase(EventDispatcher):
     def on_touch_move(self, touch):
         '''Event called when a touch event moves (changes location).
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             The touch `pos` is now transformed to window coordinates before
             this method is called. Before, the touch `pos` coordinate would be
             `(0, 0)` when this method was called.
@@ -762,7 +879,7 @@ class WindowBase(EventDispatcher):
     def on_touch_up(self, touch):
         '''Event called when a touch event is released (terminated).
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             The touch `pos` is now transformed to window coordinates before
             this method is called. Before, the touch `pos` coordinate would be
             `(0, 0)` when this method was called.
@@ -895,6 +1012,35 @@ class WindowBase(EventDispatcher):
         '''Event called when the mouse is moved with buttons pressed'''
         pass
 
+    def on_joy_axis(self, stickid, axisid, value):
+        '''Event called when a joystick has a stick or other axis moved
+
+        .. versionadded:: 1.9.0'''
+        pass
+
+    def on_joy_hat(self, stickid, hatid, value):
+        '''Event called when a joystick has a hat/dpad moved
+
+        .. versionadded:: 1.9.0'''
+        pass
+
+    def on_joy_ball(self, stickid, ballid, value):
+        '''Event called when a joystick has a ball moved
+
+        .. versionadded:: 1.9.0'''
+        pass
+
+    def on_joy_button_down(self, stickid, buttonid):
+        '''Event called when a joystick has a button pressed
+
+        .. versionadded:: 1.9.0'''
+        pass
+    def on_joy_button_up(self, stickid, buttonid):
+        '''Event called when a joystick has a button released
+
+        .. versionadded:: 1.9.0'''
+        pass
+
     def on_keyboard(self, key, scancode=None, codepoint=None,
                     modifier=None, **kwargs):
         '''Event called when keyboard is used.
@@ -911,7 +1057,7 @@ class WindowBase(EventDispatcher):
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
         is_osx = platform == 'darwin'
-        if self.on_keyboard.exit_on_escape:
+        if WindowBase.on_keyboard.exit_on_escape:
             if key == 27 or all([is_osx, key in [113, 119], modifier == 1024]):
                 if not self.dispatch('on_request_close', source='keyboard'):
                     stopTouchApp()
@@ -950,9 +1096,10 @@ class WindowBase(EventDispatcher):
 
         .. warning::
 
-            This event is currently used only on MacOSX with a patched version
-            of pygame, but is left in place for further evolution (ios,
-            android etc.)
+            This event is currently works sdl2 window provider and on pygame
+            window provider and MacOSX with a patched version of pygame.
+            This event is left in place for further evolution
+            (ios, android etc.)
 
         .. versionadded:: 1.2.0
         '''
@@ -1089,6 +1236,13 @@ class WindowBase(EventDispatcher):
             :class:`~kivy.uix.vkeyboard.VKeyboard` instance attached as a
             *.widget* property.
 
+        .. note::
+
+            The behavior of this function is heavily influenced by the current
+            `keyboard_mode`. Please see the Config's
+            :ref:`configuration tokens <configuration-tokens>` section for
+            more information.
+
         '''
 
         # release any previous keyboard attached.
@@ -1175,5 +1329,6 @@ Window = core_select_lib('window', (
     ('egl_rpi', 'window_egl_rpi', 'WindowEglRpi'),
     ('pygame', 'window_pygame', 'WindowPygame'),
     ('sdl', 'window_sdl', 'WindowSDL'),
+    ('sdl2', 'window_sdl2', 'WindowSDL'),
     ('x11', 'window_x11', 'WindowX11'),
 ), True)

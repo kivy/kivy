@@ -34,10 +34,11 @@ This module includes all the classes for drawing simple vertex objects.
                 self.triangle.points[3] = 400
 
     Although when the button is pressed the triangle coordinates will be
-    changed, the graphics will not be updated because the list itself is not
-    changed. Similarly, no updates will occur if syntax e.g
-    self.triangle.points[0:2] = [10,10] or self.triangle.points.insert(10) etc.
-    is used. To force an update after a change, the list variable itself must be
+    changed, the graphics will not be updated because the list itself has not
+    been changed. Similarly, no updates will occur using any syntax that changes
+    only elements of the list e.g. self.triangle.points[0:2] = [10,10] or
+    self.triangle.points.insert(10) etc.
+    To force an update after a change, the list variable itself must be
     changed, which in this case can be achieved with:
 
     .. code-block:: kv
@@ -56,6 +57,7 @@ __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
 include "config.pxi"
 include "common.pxi"
 
+from os import environ
 from kivy.graphics.vbo cimport *
 from kivy.graphics.vertex cimport *
 from kivy.graphics.instructions cimport *
@@ -64,6 +66,8 @@ IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.logger import Logger
 from kivy.graphics.texture cimport Texture
+
+cdef int gles_limts = int(environ.get('KIVY_GLES_LIMITS', 1))
 
 
 class GraphicException(Exception):
@@ -100,11 +104,6 @@ cdef class Bezier(VertexInstruction):
     #
     #    b) make that a superclass Spline,
     #    c) create BezierSpline subclass that does the computation
-
-    cdef list _points
-    cdef int _segments
-    cdef bint _loop
-    cdef int _dash_offset, _dash_length
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
@@ -261,6 +260,67 @@ cdef class Bezier(VertexInstruction):
             self.flag_update()
 
 
+cdef class StripMesh(VertexInstruction):
+    '''A specialized 2d mesh.
+
+    (internal) Used for SVG, will be available with doc later.
+    '''
+    def __init__(self, VertexFormat fmt):
+        cdef VBO vbo
+        VertexInstruction.__init__(self)
+        vbo = VBO(fmt)
+        self.batch = VertexBatch(vbo=vbo)
+        self.batch.set_mode("triangle_strip")
+        self.icount = 0
+        self.li = self.lic = 0
+
+    cdef int add_triangle_strip(self, float *vertices, int vcount, int icount,
+            int mode):
+        cdef int i, li = self.li
+        cdef int istart = 0
+        cdef unsigned short *indices = NULL
+        cdef vsize = self.batch.vbo.vertex_format.vsize
+
+        if vcount == 0 or icount < 3:
+            return 0
+        if self.icount + icount > 65533:  # (optim of) self.icount + icount - 2 > 65535
+            return 0
+
+        if self.icount > 0:
+            # repeat the last indice and the first of the new batch
+            istart = 2
+
+        indices = <unsigned short *>malloc((icount + istart) * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        if istart == 2:
+            indices[0] = self.lic
+            indices[1] = li
+        if mode == 0:
+            # polygon
+            for i in range(icount / 2):
+                indices[i * 2 + istart] = li + i
+                indices[i * 2 + istart + 1] = li + (icount - i - 1)
+            if icount % 2 == 1:
+                indices[icount + istart - 1] = li + icount / 2
+        elif mode == 1:
+            # line
+            for i in range(icount):
+                indices[istart + i] = li + i
+
+        self.lic = indices[icount + istart - 1]
+
+        self.batch.append_data(vertices, <int>(vcount / vsize), indices,
+                <int>(icount + istart))
+
+        free(indices)
+        self.icount += icount + istart
+        self.li += icount
+        return 1
+
+
 cdef class Mesh(VertexInstruction):
     '''A 2d mesh.
 
@@ -294,11 +354,9 @@ cdef class Mesh(VertexInstruction):
             'points'.
 
     '''
-    cdef list _vertices
-    cdef list _indices
-    cdef VertexFormat vertex_format
 
     def __init__(self, **kwargs):
+        cdef VBO vbo
         VertexInstruction.__init__(self, **kwargs)
         v = kwargs.get('vertices')
         self.vertices = v if v is not None else []
@@ -306,11 +364,41 @@ cdef class Mesh(VertexInstruction):
         self.indices = v if v is not None else []
         fmt = kwargs.get('fmt')
         if fmt is not None:
-            self.vertex_format = VertexFormat(*fmt)
-            self.batch = VertexBatch(vbo=VBO(self.vertex_format))
+            if isinstance(fmt, VertexFormat):
+                self.vertex_format = fmt
+            else:
+                self.vertex_format = VertexFormat(*fmt)
+            vbo = VBO(self.vertex_format)
+            self.batch = VertexBatch(vbo=vbo)
         self.mode = kwargs.get('mode') or 'points'
+        self.is_built = 0
+
+    cdef void build_triangle_fan(self, float *vertices, int vcount, int icount):
+        cdef i
+        cdef unsigned short *indices = NULL
+        cdef vsize = self.batch.vbo.vertex_format.vsize
+
+        if vcount == 0 or icount == 0:
+            self.batch.clear_data()
+            return
+
+        indices = <unsigned short *>malloc(icount * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        for i in range(icount):
+            indices[i] = i
+
+        self.batch.set_data(vertices, <int>(vcount / vsize), indices,
+                <int>icount)
+
+        free(indices)
+        self.is_built = 1
 
     cdef void build(self):
+        if self.is_built:
+            return
         cdef int i
         cdef long vcount = len(self._vertices)
         cdef long icount = len(self._indices)
@@ -361,7 +449,7 @@ cdef class Mesh(VertexInstruction):
         def __get__(self):
             return self._indices
         def __set__(self, value):
-            if len(value) > 65535:
+            if gles_limts and len(value) > 65535:
                 raise GraphicException(
                     'Cannot upload more than 65535 indices'
                     '(OpenGL ES 2 limitation)')
@@ -370,7 +458,7 @@ cdef class Mesh(VertexInstruction):
 
     property mode:
         '''VBO Mode used for drawing vertices/indices. Can be one of 'points',
-        'line_strip', 'line_loop', 'lines', 'triangles', 'triangle_strip' or 
+        'line_strip', 'line_loop', 'lines', 'triangles', 'triangle_strip' or
         'triangle_fan'.
         '''
         def __get__(self):
