@@ -457,7 +457,7 @@ else:
                     if invert_y:
                         val = 1. - val
                     point['y'] = val
-                elif ev_code == ABS_MT_PRESSURE:
+                elif ev_code == ABS_PRESSURE:
                     point['pressure'] = normalize(ev_value,
                                                   range_min_abs_pressure,
                                                   range_max_abs_pressure)
