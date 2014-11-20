@@ -119,6 +119,9 @@ else:
     MSC_MAX = 0x07
     MSC_CNT = (MSC_MAX + 1)
 
+    ABS_X = 0x00
+    ABS_Y = 0x01
+    ABS_PRESSURE = 0x18
     ABS_MT_TOUCH_MAJOR = 0x30  # Major axis of touching ellipse
     ABS_MT_TOUCH_MINOR = 0x31  # Minor axis (omit if circular)
     ABS_MT_WIDTH_MAJOR = 0x32  # Major axis of approaching ellipse
@@ -372,6 +375,12 @@ else:
             range_max_position_y = 2048
             range_min_pressure = 0
             range_max_pressure = 255
+            range_min_abs_x = 0
+            range_max_abs_x = 255
+            range_min_abs_y = 0
+            range_max_abs_y = 255
+            range_min_abs_pressure = 0
+            range_max_abs_pressure = 255
             invert_x = int(bool(drs('invert_x', 0)))
             invert_y = int(bool(drs('invert_y', 0)))
 
@@ -427,16 +436,31 @@ else:
                 if ev_type == EV_SYN:
                     if ev_code == SYN_REPORT:
                         process([point])
-
                 elif ev_type == EV_REL:
-
                     if ev_code == 0:
                         point['x'] = \
                             min(1., max(0., point['x'] + ev_value / 1000.))
                     elif ev_code == 1:
                         point['y'] = \
                             min(1., max(0., point['y'] - ev_value / 1000.))
-
+                elif ev_code == ABS_X:
+                    val = normalize(ev_value,
+                                    range_min_abs_x,
+                                    range_max_abs_x)
+                    if invert_x:
+                        val = 1. - val
+                    point['x'] = val
+                elif ev_code == ABS_Y:
+                    val = 1. - normalize(ev_value,
+                                         range_min_abs_y,
+                                         range_max_abs_y)
+                    if invert_y:
+                        val = 1. - val
+                    point['y'] = val
+                elif ev_code == ABS_MT_PRESSURE:
+                    point['pressure'] = normalize(ev_value,
+                                                  range_min_abs_pressure,
+                                                  range_max_abs_pressure)
                 elif ev_type == EV_KEY:
                     buttons = {
                         272: 'left',
@@ -446,7 +470,9 @@ else:
                         276: 'extra',
                         277: 'forward',
                         278: 'back',
-                        279: 'task'}
+                        279: 'task',
+                        330: 'touch',
+                        320: 'pen'}
 
                     if ev_code in buttons.keys():
                         if ev_value:
@@ -563,6 +589,24 @@ else:
                         range_max_pressure = drs('max_pressure', abs_max)
                         Logger.info('HIDMotionEvent: ' +
                                     '<%s> range pressure is %d - %d' % (
+                                        device_name, abs_min, abs_max))
+                    elif y == ABS_X:
+                        range_min_abs_x = drs('min_abs_x', abs_min)
+                        range_max_abs_x = drs('max_abs_x', abs_max)
+                        Logger.info('HIDMotionEvent: ' +
+                                    '<%s> range ABS X position is %d - %d' % (
+                                        device_name, abs_min, abs_max))
+                    elif y == ABS_Y:
+                        range_min_abs_y = drs('min_abs_y', abs_min)
+                        range_max_abs_y = drs('max_abs_y', abs_max)
+                        Logger.info('HIDMotionEvent: ' +
+                                    '<%s> range ABS Y position is %d - %d' % (
+                                        device_name, abs_min, abs_max))
+                    elif y == ABS_X:
+                        range_min_abs_pressure = drs('min_abs_pressure', abs_min)
+                        range_max_abs_pressure = drs('max_abs_pressure', abs_max)
+                        Logger.info('HIDMotionEvent: ' +
+                                    '<%s> range ABS pressure is %d - %d' % (
                                         device_name, abs_min, abs_max))
 
             # init the point
