@@ -602,7 +602,7 @@ else:
                         Logger.info('HIDMotionEvent: ' +
                                     '<%s> range ABS Y position is %d - %d' % (
                                         device_name, abs_min, abs_max))
-                    elif y == ABS_X:
+                    elif y == ABS_PRESSURE:
                         range_min_abs_pressure = drs('min_abs_pressure', abs_min)
                         range_max_abs_pressure = drs('max_abs_pressure', abs_max)
                         Logger.info('HIDMotionEvent: ' +
