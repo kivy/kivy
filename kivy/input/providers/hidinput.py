@@ -284,7 +284,7 @@ else:
         options = ('min_position_x', 'max_position_x',
                    'min_position_y', 'max_position_y',
                    'min_pressure', 'max_pressure',
-                   'invert_x', 'invert_y')
+                   'invert_x', 'invert_y', 'rotate')
 
         def __init__(self, device, args):
             super(HIDInputMotionEventProvider, self).__init__(device, args)
@@ -374,6 +374,7 @@ else:
             range_max_pressure = 255
             invert_x = int(bool(drs('invert_x', 0)))
             invert_y = int(bool(drs('invert_y', 0)))
+            rotate = int(drs('invert_y', 0)) % 360
 
             def process_as_multitouch(tv_sec, tv_usec, ev_type,
                                       ev_code, ev_value):
@@ -401,14 +402,24 @@ else:
                                         range_max_position_x)
                         if invert_x:
                             val = 1. - val
-                        point['x'] = val
+                        if rotate == 90:
+                            point['y'] = val
+                        elif rotate == 270:
+                            point['y'] = -val
+                        else:
+                            point['x'] = val
                     elif ev_code == ABS_MT_POSITION_Y:
                         val = 1. - normalize(ev_value,
                                              range_min_position_y,
                                              range_max_position_y)
                         if invert_y:
                             val = 1. - val
-                        point['y'] = val
+                        if rotate == 90:
+                            point['x'] = -val
+                        elif rotate == 270:
+                            point['x'] = val
+                        else:
+                            point['y'] = val
                     elif ev_code == ABS_MT_ORIENTATION:
                         point['orientation'] = ev_value
                     elif ev_code == ABS_MT_BLOB_ID:
