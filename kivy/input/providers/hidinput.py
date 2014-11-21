@@ -27,6 +27,7 @@ To fix that, you can add these options to the argument line:
 * max_position_y : Y maximum
 * min_pressure : pressure minimum
 * max_pressure : pressure maximum
+* rotation : rotate the input coordinate (0, 90, 180, 270)
 
 For example, on the Asus T101M, the touchscreen reports a range from 0-4095 for
 the X and Y values, but the real values are in a range from 0-32768. To correct
@@ -35,6 +36,10 @@ this, you can add the following to the configuration::
     [input]
     t101m = hidinput,/dev/input/event7,max_position_x=32768,\
 max_position_y=32768
+
+.. versionadded:: 1.9.1
+
+    `rotation` configuration token added.
 
 '''
 
@@ -287,7 +292,7 @@ else:
         options = ('min_position_x', 'max_position_x',
                    'min_position_y', 'max_position_y',
                    'min_pressure', 'max_pressure',
-                   'invert_x', 'invert_y')
+                   'invert_x', 'invert_y', 'rotation')
 
         def __init__(self, device, args):
             super(HIDInputMotionEventProvider, self).__init__(device, args)
@@ -343,6 +348,13 @@ else:
                 Logger.info('HIDInput: Set custom %s to %d' % (
                     key, int(value)))
 
+            if 'rotation' not in self.default_ranges:
+                self.default_ranges['rotation'] = 0
+            elif self.default_ranges['rotation'] not in (0, 90, 180, 270):
+                Logger.error('HIDInput: invalid rotation value ({})'.format(
+                    self.default_ranges['rotation']))
+                self.default_ranges['rotation'] = 0
+
         def start(self):
             if self.input_fn is None:
                 return
@@ -383,6 +395,33 @@ else:
             range_max_abs_pressure = 255
             invert_x = int(bool(drs('invert_x', 0)))
             invert_y = int(bool(drs('invert_y', 0)))
+            rotation = drs('rotation', 0)
+
+            def assign_coord(point, value, invert, coords):
+                cx, cy = coords
+                if invert:
+                    value = 1. - value
+                if rotation == 0:
+                    point[cx] = value
+                elif rotation == 90:
+                    point[cy] = value
+                elif rotation == 180:
+                    point[cx] = 1. - value
+                elif rotation == 270:
+                    point[cy] = 1. - value
+
+            def assign_rel_coord(point, value, invert, coords):
+                cx, cy = coords
+                if invert:
+                    value = 1. - value
+                if rotation == 0:
+                    point[cx] += value
+                elif rotation == 90:
+                    point[cy] += value
+                elif rotation == 180:
+                    point[cx] += -value
+                elif rotation == 270:
+                    point[cy] += -value
 
             def process_as_multitouch(tv_sec, tv_usec, ev_type,
                                       ev_code, ev_value):
@@ -408,16 +447,12 @@ else:
                         val = normalize(ev_value,
                                         range_min_position_x,
                                         range_max_position_x)
-                        if invert_x:
-                            val = 1. - val
-                        point['x'] = val
+                        assign_coord(point, val, invert_x, 'xy')
                     elif ev_code == ABS_MT_POSITION_Y:
                         val = 1. - normalize(ev_value,
                                              range_min_position_y,
                                              range_max_position_y)
-                        if invert_y:
-                            val = 1. - val
-                        point['y'] = val
+                        assign_coord(point, val, invert_y, 'yx')
                     elif ev_code == ABS_MT_ORIENTATION:
                         point['orientation'] = ev_value
                     elif ev_code == ABS_MT_BLOB_ID:
@@ -438,25 +473,23 @@ else:
                         process([point])
                 elif ev_type == EV_REL:
                     if ev_code == 0:
-                        point['x'] = \
-                            min(1., max(0., point['x'] + ev_value / 1000.))
+                        assign_rel_coord(point,
+                            min(1., max(-1., ev_value / 1000.)),
+                            invert_x, 'xy')
                     elif ev_code == 1:
-                        point['y'] = \
-                            min(1., max(0., point['y'] - ev_value / 1000.))
+                        assign_rel_coord(point,
+                            min(1., max(-1., ev_value / 1000.)),
+                            invert_y, 'yx')
                 elif ev_code == ABS_X:
                     val = normalize(ev_value,
                                     range_min_abs_x,
                                     range_max_abs_x)
-                    if invert_x:
-                        val = 1. - val
-                    point['x'] = val
+                    assign_coord(point, val, invert_x, 'xy')
                 elif ev_code == ABS_Y:
                     val = 1. - normalize(ev_value,
                                          range_min_abs_y,
                                          range_max_abs_y)
-                    if invert_y:
-                        val = 1. - val
-                    point['y'] = val
+                    assign_coord(point, val, invert_x, 'yx')
                 elif ev_code == ABS_PRESSURE:
                     point['pressure'] = normalize(ev_value,
                                                   range_min_abs_pressure,
