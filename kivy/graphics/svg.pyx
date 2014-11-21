@@ -745,7 +745,6 @@ cdef class Svg(RenderContext):
         elements = list(_tokenize_path(pathdef))
         # Reverse for easy use of .pop()
         elements.reverse()
-
         command = None
 
         self.new_path()
@@ -767,7 +766,12 @@ cdef class Svg(RenderContext):
 
 
             if command == 'M':
-                # Moveto command.
+                # Moveto command. This is like "picking up the pen", so
+                # start a new loop.
+                if len(self.loop):
+                    self.path.append(self.loop)
+                    self.loop = array('f', [])
+
                 x = float(elements.pop())
                 y = float(elements.pop())
                 self.set_position(x, y, absolute)
@@ -1021,7 +1025,6 @@ cdef class Svg(RenderContext):
     cdef void end_path(self):
         if len(self.loop):
             self.path.append(self.loop)
-
         tris = None
         cdef Tesselator tess
         cdef array.array loop
@@ -1032,6 +1035,8 @@ cdef class Svg(RenderContext):
             tess.tesselate()
             tris = tess.vertices
 
+        # Add the stroke for the first subpath, and the fill for all
+        # subpaths.
         self.paths.append((
             self.path[0] if self.stroke else None,
             self.stroke,
@@ -1039,6 +1044,15 @@ cdef class Svg(RenderContext):
             self.fill,
             self.transform))
 
+        # Finally, add the stroke for second and subsequent subpaths
+        if self.stroke and len(self.path) > 1:
+            for loop in self.path[1:]:
+                self.paths.append((
+                    loop,
+                    self.stroke,
+                    None,
+                    None,
+                    self.transform))
         self.path = []
 
     @cython.boundscheck(False)
