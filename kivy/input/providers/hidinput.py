@@ -489,7 +489,7 @@ else:
                     val = 1. - normalize(ev_value,
                                          range_min_abs_y,
                                          range_max_abs_y)
-                    assign_coord(point, val, invert_x, 'yx')
+                    assign_coord(point, val, invert_y, 'yx')
                 elif ev_code == ABS_PRESSURE:
                     point['pressure'] = normalize(ev_value,
                                                   range_min_abs_pressure,
