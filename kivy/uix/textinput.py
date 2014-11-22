@@ -1989,10 +1989,14 @@ class TextInput(Widget):
             self.remove_widget(self._handle_middle)
 
             # check for command modes
-            if ord(text[0]) == 1:
+            # we use \x01INFO\x02 to get info from IME on mobiles
+            # pygame seems to pass \x01 as the unicode for ctrl+a
+            # checking for modifiers ensures conflict resolution.
+
+            if not modifiers and ord(text[0]) == 1:
                 self._command_mode = True
                 self._command = ''
-            if ord(text[0]) == 2:
+            if not modifiers and ord(text[0]) == 2:
                 self._command_mode = False
                 self._command = self._command[1:]
 
