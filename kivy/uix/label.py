@@ -180,7 +180,7 @@ class Label(Widget):
                         'halign', 'valign', 'padding_x', 'padding_y',
                         'text_size', 'shorten', 'mipmap', 'markup',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
-                        'split_str')
+                        'split_str', 'unicode_errors')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -576,6 +576,16 @@ class Label(Widget):
 
     :attr:`split_str` is a :class:`~kivy.properties.StringProperty` and
     defaults to `''` (the empty string).
+    '''
+    
+    unicode_errors = OptionProperty('replace', options=('strict', 'replace', 'ignore'))
+    '''How to handle unicode decode errors. Can be `'strict'`, `'replace'` or
+    `'ignore'`.
+    
+    .. versionadded:: 1.9.0
+    
+    :attr:`unicode_errors` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to `'replace'`.
     '''
 
     markup = BooleanProperty(False)

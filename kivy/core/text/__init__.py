@@ -104,9 +104,12 @@ class LabelBase(object):
         `strip` : bool, defaults to False
             Whether each row of text has its leading and trailing spaces
             stripped. If `halign` is `justify` it is implicitly True.
+        `unicode_errors` : str, defaults to `'replace'`
+            How to handle unicode decode errors. Can be `'strict'`, `'replace'`
+            or `'ignore'`.
 
     .. versionchanged:: 1.9.0
-        `strip`, `shorten_from`, and `split_str` were added.
+        `strip`, `shorten_from`, `split_str`, and `unicode_errors` were added.
 
     .. versionchanged:: 1.9.0
         `padding_x` and `padding_y` has been fixed to work as expected.
@@ -139,14 +142,14 @@ class LabelBase(object):
                  bold=False, italic=False, halign='left', valign='bottom',
                  shorten=False, text_size=None, mipmap=False, color=None,
                  line_height=1.0, strip=False, shorten_from='center',
-                 split_str=' ', **kwargs):
+                 split_str=' ', unicode_errors='replace', **kwargs):
 
         options = {'text': text, 'font_size': font_size,
                    'font_name': font_name, 'bold': bold, 'italic': italic,
                    'halign': halign, 'valign': valign, 'shorten': shorten,
                    'mipmap': mipmap, 'line_height': line_height,
                    'strip': strip, 'shorten_from': shorten_from,
-                   'split_str': split_str}
+                   'split_str': split_str, 'unicode_errors': unicode_errors}
 
         options['color'] = color or (1, 1, 1, 1)
         options['padding'] = kwargs.get('padding', (0, 0))
@@ -504,7 +507,7 @@ class LabelBase(object):
             # all text will be stripped by default. unicode NO-BREAK SPACE
             # characters will be preserved, so we replace the leading and
             # trailing spaces with \u00a0
-            text = text.decode('utf8') if isinstance(text, bytes) else text
+            text = text.decode('utf8', errors=options['unicode_errors']) if isinstance(text, bytes) else text
             lspace = len(text) - len(text.lstrip())
             rspace = len(text) - len(text.rstrip())
             text = (u'\u00a0' * lspace) + text.strip() + (u'\u00a0' * rspace)
