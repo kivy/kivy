@@ -27,6 +27,7 @@ To fix that, you can add these options to the argument line:
 * max_position_y : Y maximum
 * min_pressure : pressure minimum
 * max_pressure : pressure maximum
+* rotation : rotate the input coordinate (0, 90, 180, 270)
 
 For example, on the Asus T101M, the touchscreen reports a range from 0-4095 for
 the X and Y values, but the real values are in a range from 0-32768. To correct
@@ -35,6 +36,10 @@ this, you can add the following to the configuration::
     [input]
     t101m = hidinput,/dev/input/event7,max_position_x=32768,\
 max_position_y=32768
+
+.. versionadded:: 1.9.1
+
+    `rotation` configuration token added.
 
 '''
 
@@ -119,6 +124,9 @@ else:
     MSC_MAX = 0x07
     MSC_CNT = (MSC_MAX + 1)
 
+    ABS_X = 0x00
+    ABS_Y = 0x01
+    ABS_PRESSURE = 0x18
     ABS_MT_TOUCH_MAJOR = 0x30  # Major axis of touching ellipse
     ABS_MT_TOUCH_MINOR = 0x31  # Minor axis (omit if circular)
     ABS_MT_WIDTH_MAJOR = 0x32  # Major axis of approaching ellipse
@@ -284,7 +292,7 @@ else:
         options = ('min_position_x', 'max_position_x',
                    'min_position_y', 'max_position_y',
                    'min_pressure', 'max_pressure',
-                   'invert_x', 'invert_y')
+                   'invert_x', 'invert_y', 'rotation')
 
         def __init__(self, device, args):
             super(HIDInputMotionEventProvider, self).__init__(device, args)
@@ -340,6 +348,13 @@ else:
                 Logger.info('HIDInput: Set custom %s to %d' % (
                     key, int(value)))
 
+            if 'rotation' not in self.default_ranges:
+                self.default_ranges['rotation'] = 0
+            elif self.default_ranges['rotation'] not in (0, 90, 180, 270):
+                Logger.error('HIDInput: invalid rotation value ({})'.format(
+                    self.default_ranges['rotation']))
+                self.default_ranges['rotation'] = 0
+
         def start(self):
             if self.input_fn is None:
                 return
@@ -372,8 +387,41 @@ else:
             range_max_position_y = 2048
             range_min_pressure = 0
             range_max_pressure = 255
+            range_min_abs_x = 0
+            range_max_abs_x = 255
+            range_min_abs_y = 0
+            range_max_abs_y = 255
+            range_min_abs_pressure = 0
+            range_max_abs_pressure = 255
             invert_x = int(bool(drs('invert_x', 0)))
             invert_y = int(bool(drs('invert_y', 0)))
+            rotation = drs('rotation', 0)
+
+            def assign_coord(point, value, invert, coords):
+                cx, cy = coords
+                if invert:
+                    value = 1. - value
+                if rotation == 0:
+                    point[cx] = value
+                elif rotation == 90:
+                    point[cy] = value
+                elif rotation == 180:
+                    point[cx] = 1. - value
+                elif rotation == 270:
+                    point[cy] = 1. - value
+
+            def assign_rel_coord(point, value, invert, coords):
+                cx, cy = coords
+                if invert:
+                    value = 1. - value
+                if rotation == 0:
+                    point[cx] += value
+                elif rotation == 90:
+                    point[cy] += value
+                elif rotation == 180:
+                    point[cx] += -value
+                elif rotation == 270:
+                    point[cy] += -value
 
             def process_as_multitouch(tv_sec, tv_usec, ev_type,
                                       ev_code, ev_value):
@@ -399,16 +447,12 @@ else:
                         val = normalize(ev_value,
                                         range_min_position_x,
                                         range_max_position_x)
-                        if invert_x:
-                            val = 1. - val
-                        point['x'] = val
+                        assign_coord(point, val, invert_x, 'xy')
                     elif ev_code == ABS_MT_POSITION_Y:
                         val = 1. - normalize(ev_value,
                                              range_min_position_y,
                                              range_max_position_y)
-                        if invert_y:
-                            val = 1. - val
-                        point['y'] = val
+                        assign_coord(point, val, invert_y, 'yx')
                     elif ev_code == ABS_MT_ORIENTATION:
                         point['orientation'] = ev_value
                     elif ev_code == ABS_MT_BLOB_ID:
@@ -427,16 +471,29 @@ else:
                 if ev_type == EV_SYN:
                     if ev_code == SYN_REPORT:
                         process([point])
-
                 elif ev_type == EV_REL:
-
                     if ev_code == 0:
-                        point['x'] = \
-                            min(1., max(0., point['x'] + ev_value / 1000.))
+                        assign_rel_coord(point,
+                            min(1., max(-1., ev_value / 1000.)),
+                            invert_x, 'xy')
                     elif ev_code == 1:
-                        point['y'] = \
-                            min(1., max(0., point['y'] - ev_value / 1000.))
-
+                        assign_rel_coord(point,
+                            min(1., max(-1., ev_value / 1000.)),
+                            invert_y, 'yx')
+                elif ev_code == ABS_X:
+                    val = normalize(ev_value,
+                                    range_min_abs_x,
+                                    range_max_abs_x)
+                    assign_coord(point, val, invert_x, 'xy')
+                elif ev_code == ABS_Y:
+                    val = 1. - normalize(ev_value,
+                                         range_min_abs_y,
+                                         range_max_abs_y)
+                    assign_coord(point, val, invert_y, 'yx')
+                elif ev_code == ABS_PRESSURE:
+                    point['pressure'] = normalize(ev_value,
+                                                  range_min_abs_pressure,
+                                                  range_max_abs_pressure)
                 elif ev_type == EV_KEY:
                     buttons = {
                         272: 'left',
@@ -446,7 +503,9 @@ else:
                         276: 'extra',
                         277: 'forward',
                         278: 'back',
-                        279: 'task'}
+                        279: 'task',
+                        330: 'touch',
+                        320: 'pen'}
 
                     if ev_code in buttons.keys():
                         if ev_value:
@@ -563,6 +622,24 @@ else:
                         range_max_pressure = drs('max_pressure', abs_max)
                         Logger.info('HIDMotionEvent: ' +
                                     '<%s> range pressure is %d - %d' % (
+                                        device_name, abs_min, abs_max))
+                    elif y == ABS_X:
+                        range_min_abs_x = drs('min_abs_x', abs_min)
+                        range_max_abs_x = drs('max_abs_x', abs_max)
+                        Logger.info('HIDMotionEvent: ' +
+                                    '<%s> range ABS X position is %d - %d' % (
+                                        device_name, abs_min, abs_max))
+                    elif y == ABS_Y:
+                        range_min_abs_y = drs('min_abs_y', abs_min)
+                        range_max_abs_y = drs('max_abs_y', abs_max)
+                        Logger.info('HIDMotionEvent: ' +
+                                    '<%s> range ABS Y position is %d - %d' % (
+                                        device_name, abs_min, abs_max))
+                    elif y == ABS_PRESSURE:
+                        range_min_abs_pressure = drs('min_abs_pressure', abs_min)
+                        range_max_abs_pressure = drs('max_abs_pressure', abs_max)
+                        Logger.info('HIDMotionEvent: ' +
+                                    '<%s> range ABS pressure is %d - %d' % (
                                         device_name, abs_min, abs_max))
 
             # init the point
