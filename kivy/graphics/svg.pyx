@@ -273,7 +273,6 @@ cdef dict parse_style(string):
             sdict[key] = value
     return sdict
 
-
 cdef list kv_color_to_int_color(color):
     c = [int(255*x) for x in color]
     return c if len(c) == 4 else c + [255]
@@ -322,10 +321,7 @@ cdef parse_color(c, current_color=None):
         raise Exception('Invalid color format {}'.format(c))
     return [r, g, b, a]
 
-ctypedef double matrix_t[6]
-
 cdef class Matrix(object):
-    cdef matrix_t mat
     def __cinit__(self):
         memset(self.mat, 0, sizeof(matrix_t))
 
@@ -484,31 +480,6 @@ cdef class Svg(RenderContext):
     """Svg class. See module for more informations about the usage.
     """
 
-    cdef:
-        public double width
-        public double height
-        list paths
-        object transform
-        object fill
-        public object current_color
-        object stroke
-        float opacity
-        float x
-        float y
-        int close_index
-        list path
-        array.array loop
-        int bezier_points
-        int circle_points
-        public object gradients
-        view.array bezier_coefficients
-        float anchor_x
-        float anchor_y
-        double last_cx
-        double last_cy
-        Texture line_texture
-        StripMesh last_mesh
-
     def __init__(self, filename, anchor_x=0, anchor_y=0,
                  bezier_points=BEZIER_POINTS, circle_points=CIRCLE_POINTS,
                  color=None):
@@ -536,6 +507,7 @@ cdef class Svg(RenderContext):
         self.paths = []
         self.width = 0
         self.height = 0
+        self.line_width = 0.25
 
         if color is None:
             self.current_color = None
@@ -773,7 +745,6 @@ cdef class Svg(RenderContext):
         elements = list(_tokenize_path(pathdef))
         # Reverse for easy use of .pop()
         elements.reverse()
-
         command = None
 
         self.new_path()
@@ -795,7 +766,12 @@ cdef class Svg(RenderContext):
 
 
             if command == 'M':
-                # Moveto command.
+                # Moveto command. This is like "picking up the pen", so
+                # start a new loop.
+                if len(self.loop):
+                    self.path.append(self.loop)
+                    self.loop = array('f', [])
+
                 x = float(elements.pop())
                 y = float(elements.pop())
                 self.set_position(x, y, absolute)
@@ -1049,7 +1025,6 @@ cdef class Svg(RenderContext):
     cdef void end_path(self):
         if len(self.loop):
             self.path.append(self.loop)
-
         tris = None
         cdef Tesselator tess
         cdef array.array loop
@@ -1060,6 +1035,8 @@ cdef class Svg(RenderContext):
             tess.tesselate()
             tris = tess.vertices
 
+        # Add the stroke for the first subpath, and the fill for all
+        # subpaths.
         self.paths.append((
             self.path[0] if self.stroke else None,
             self.stroke,
@@ -1067,6 +1044,15 @@ cdef class Svg(RenderContext):
             self.fill,
             self.transform))
 
+        # Finally, add the stroke for second and subsequent subpaths
+        if self.stroke and len(self.path) > 1:
+            for loop in self.path[1:]:
+                self.paths.append((
+                    loop,
+                    self.stroke,
+                    None,
+                    None,
+                    self.transform))
         self.path = []
 
     @cython.boundscheck(False)
@@ -1133,7 +1119,7 @@ cdef class Svg(RenderContext):
         cdef float ax, ay, bx, _by, r = 0, g = 0, b = 0, a = 0
         cdef int count = len(path) / 2
         cdef float *vertices = NULL
-        cdef float width = 0.25
+        cdef float width = self.line_width
         vindex = 0
 
         vertices = <float *>malloc(sizeof(float) * count * 32)
