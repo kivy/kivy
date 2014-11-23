@@ -20,7 +20,7 @@ class ImageLoaderSDL2(ImageLoaderBase):
     @staticmethod
     def extensions():
         '''Return accepted extensions for this loader'''
-        return ('bmp', 'gif', 'jpg', 'jpeg', 'lbm', 'pcx', 'png', 'pnm', 'tga', 'tiff',
+        return ('bmp', 'jpg', 'jpeg', 'lbm', 'pcx', 'png', 'pnm', 'tga', 'tiff',
                 'webp', 'xcf', 'xpm', 'xv')
 
     @staticmethod
@@ -43,10 +43,6 @@ class ImageLoaderSDL2(ImageLoaderBase):
 
     @staticmethod
     def save(filename, width, height, fmt, pixels, flipped):
-        # TODO implement the save for sdl2
-        #surface = SDL2.image.fromstring(
-        #        pixels, (width, height), fmt.upper(), False)
-        #SDL2.image.save(surface, filename)
         _img_sdl2.save(filename, width, height, fmt, pixels, flipped)
         return True
 
