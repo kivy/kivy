@@ -16,6 +16,7 @@ TODO:
 __all__ = ('WindowSDL2', )
 
 import sys
+from os import environ, getenv
 from os.path import join
 from kivy import kivy_data_dir
 from kivy.logger import Logger
@@ -98,6 +99,8 @@ class WindowSDL(WindowBase):
         self._meta_keys = (KMOD_LCTRL, KMOD_RCTRL, KMOD_RSHIFT,
             KMOD_LSHIFT, KMOD_RALT, KMOD_LALT, KMOD_LMETA,
             KMOD_RMETA)
+        env_var = getenv('SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS', '0')
+        environ['SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS'] = env_var
 
     def create_window(self, *largs):
 
