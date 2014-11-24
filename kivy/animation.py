@@ -116,7 +116,7 @@ class Animation(EventDispatcher):
 
     _instances = set()
 
-    __events__ = ('on_start', 'on_progress', 'on_complete')
+    __events__ = ('on_start', 'on_progress', 'on_complete', 'on_pause')
 
     def __init__(self, **kw):
         super(Animation, self).__init__(**kw)
@@ -132,12 +132,19 @@ class Animation(EventDispatcher):
             kw.pop(key, None)
         self._animated_properties = kw
         self._widgets = {}
+        self._onpause = False
 
     @property
     def duration(self):
         '''Return the duration of the animation.
         '''
         return self._duration
+
+    @property
+    def paused(self):
+        '''Return the pause state of the animation.
+        '''
+        return self._onpause
 
     @property
     def transition(self):
@@ -195,6 +202,21 @@ class Animation(EventDispatcher):
             for animation in set(Animation._instances):
                 animation.cancel(widget)
 
+    @staticmethod
+    def pause_all(pause):
+        '''Pause all animations.
+
+        Example::
+
+            anim = Animation(x=50)
+            anim.start(widget)
+
+            # and later
+            Animation.pause_all(True)
+        '''
+        for animation in list(Animation._instances):
+            animation.pause(pause)
+
     def start(self, widget):
         '''Start the animation on a widget.
         '''
@@ -222,6 +244,14 @@ class Animation(EventDispatcher):
         self._clock_uninstall()
         if not self._widgets:
             self._unregister()
+
+    def pause(self, pause):
+        '''Pause the animation, triggering the `on_pause` event.
+        '''
+        self._onpause = pause
+        if pause:
+            for widget in self._widgets:
+                self.dispatch('on_pause', widget)
 
     def stop_property(self, widget, prop):
         '''Even if an animation is running, remove a property. It will not be
@@ -310,6 +340,8 @@ class Animation(EventDispatcher):
         for uid in list(widgets.keys())[:]:
             anim = widgets[uid]
             widget = anim['widget']
+            if self._onpause:
+                return
             if anim['time'] is None:
                 anim['time'] = 0.
             else:
@@ -359,6 +391,9 @@ class Animation(EventDispatcher):
     # Default handlers
     #
     def on_start(self, widget):
+        pass
+
+    def on_pause(self, widget):
         pass
 
     def on_progress(self, widget, progress):
@@ -417,6 +452,11 @@ class Sequence(Animation):
                 not self.anim2.have_properties_to_animate(widget)):
             self.stop(widget)
 
+    def pause(self, pause):
+        self.anim1.pause(pause)
+        self.anim2.pause(pause)
+        super(Sequence, self).pause(pause)
+
     def cancel(self, widget):
         self.anim1.cancel(widget)
         self.anim2.cancel(widget)
@@ -474,6 +514,11 @@ class Parallel(Animation):
         if props:
             self.dispatch('on_complete', widget)
         super(Parallel, self).cancel(widget)
+
+    def pause(self, pause):
+        self.anim1.pause(pause)
+        self.anim2.pause(pause)
+        super(Parallel, self).pause(pause)
 
     def stop_property(self, widget, prop):
         self.anim1.stop_property(widget, prop)
