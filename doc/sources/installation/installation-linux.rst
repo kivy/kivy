@@ -107,15 +107,18 @@ Fedora
 
     **Fedora 18** ::
     
-        $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_18/home:thopiekar:kivy.repo
+        $ sudo yum-config-manager  --add-repo=http://download.opensuse.org\
+        /repositories/home:/thopiekar:/kivy/Fedora_18/home:thopiekar:kivy.repo
     
     **Fedora 17** ::
     
-        $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_17/home:thopiekar:kivy.repo
+        $ sudo yum-config-manager --add-repo=http://download.opensuse.org\
+        /repositories/home:/thopiekar:/kivy/Fedora_17/home:thopiekar:kivy.repo
     
     **Fedora 16** ::
     
-        $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_16/home:thopiekar:kivy.repo
+        $ sudo yum-config-manager --add-repo=http://download.opensuse.org\
+        /repositories/home:/thopiekar:/kivy/Fedora_16/home:thopiekar:kivy.repo
     
 
 #. Use your preferred package-manager to refresh your packagelists
