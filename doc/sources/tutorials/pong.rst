@@ -141,7 +141,7 @@ So this canvas block says that the ``PongGame`` widget should draw some
 graphics primitives. In this case, we add a rectangle to the canvas. We set
 the pos of the rectangle to be 5 pixels left of the horizontal center of
 the widget, and 0 for y. The size of the rectangle is set to 10 pixels
-in width, and the widgets' height in height. The nice thing about defining the
+in width, and the widget's height in height. The nice thing about defining the
 graphics like this, is that the rendered rectangle will be automatically
 updated when the properties of any widgets used in the value expression change.
 
