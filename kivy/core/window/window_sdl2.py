@@ -105,6 +105,7 @@ class WindowSDL(WindowBase):
             KMOD_RMETA)
         self.command_keys = {
                     27: 'escape',
+                    9: 'tab',
                     8: 'backspace',
                     13: 'enter',
                     127: 'del',
