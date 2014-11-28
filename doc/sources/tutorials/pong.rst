@@ -339,7 +339,7 @@ and setting the PongGame's ``ball`` ObjectProperty to that id:
     you're coding along as we go, you might be wondering why the ball isn't
     moving anywhere.  The ball's velocity is set to 0 on both x and y.
     In the code listing below, a ``serve_ball`` method is
-    added to the ``PongGame`` class and called in the apps ``build`` method. It sets a
+    added to the ``PongGame`` class and called in the app's ``build`` method. It sets a
     random x and y velocity for the ball, and also resets the position, so we
     can use it later to reset the ball when a player has scored a point.
 
@@ -364,7 +364,7 @@ Connect Input Events
 Sweet, our ball is bouncing around. The only things missing now are the movable
 player rackets and keeping track of the score.  We won't go over all the
 details of creating the class and kv rules again, since those concepts were
-already covered in the previous steps. Instead, lets focus on how to move the
+already covered in the previous steps. Instead, let's focus on how to move the
 Player widgets in response to user input. You can get the whole code and kv
 rules for the ``PongPaddle`` class at the end of this section.
 
@@ -373,7 +373,7 @@ In Kivy, a widget can react to input by implementing the
 :meth:`on_touch_move <kivy.uix.widget.Widget.on_touch_move>` and the 
 :meth:`on_touch_up <kivy.uix.widget.Widget.on_touch_up>`
 methods. By default, the Widget class
-implements these methods by just calling the corresponding method on all it's
+implements these methods by just calling the corresponding method on all its
 child widgets to pass on the event until one of the children returns ``True``.
 
 Pong is pretty simple. The rackets just need to move up and down. In fact it's
