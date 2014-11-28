@@ -336,7 +336,7 @@ and setting the PongGame's ``ball`` ObjectProperty to that id:
 .. note::
 
     At this point everything is hooked up for the ball to bounce around. If
-    your coding along as we go, you might be wondering why the ball isn't
+    you're coding along as we go, you might be wondering why the ball isn't
     moving anywhere.  The ball's velocity is set to 0 on both x and y.
     In the code listing below, a ``serve_ball`` method is
     added to the ``PongGame`` class and called in the apps ``build`` method. It sets a
