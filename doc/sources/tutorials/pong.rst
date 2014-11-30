@@ -301,7 +301,7 @@ However, that still doesn't change the fact that we don't have a reference to th
 :class:`ObjectProperty <kivy.properties.ObjectProperty>`
 to the PongGame class, and hook it up to the widget created in
 the kv rule. Once that's done, we can easily reference the ball property
-inside the ``update`` method and even make it bounce of the edges::
+inside the ``update`` method and even make it bounce off the edges::
 
     class PongGame(Widget):
         ball = ObjectProperty(None)
