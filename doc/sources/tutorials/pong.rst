@@ -443,16 +443,16 @@ things that are covered in this tutorial, give yourself a pat on the back and
 think about how you could improve the game. Here are a few ideas of things
 you could do:
 
-* Add some nicer graphics / images (hint check out the source property on
+* Add some nicer graphics / images. (Hint: check out the source property on
   the graphics instructions like Circle or Rectangle, to set an image as the
-  texture for it)
+  texture.)
 
 * Make the game end after a certain score. Maybe once a player has 10
   points, you can display a large "PLAYER 1 WINS" label and/or add a main menu
-  to start, pause and reset the game (hint: check out the
+  to start, pause and reset the game. (Hint: check out the
   :class:`~kivy.uix.button.Button` and
   :class:`~kivy.uix.label.Label`
-  classes and figure out how to use their `add_widget` & `remove_widget`
+  classes, and figure out how to use their `add_widget` and `remove_widget`
   functions to add or remove widgets dynamically.
 
 * Make it a 4 player Pong Game.  Most tablets have Multi-Touch support, so
