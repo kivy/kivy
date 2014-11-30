@@ -669,6 +669,9 @@ class ScrollView(StencilView):
         if touch.grab_current is not self:
             return True
 
+        if not (self.do_scroll_y or self.do_scroll_x):
+            return super(ScrollView, self).on_touch_move(touch)
+
         touch.ud['sv.handled'] = {'x': False, 'y': False}
         if self.dispatch('on_scroll_move', touch):
             return True
