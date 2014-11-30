@@ -141,7 +141,7 @@ So this canvas block says that the ``PongGame`` widget should draw some
 graphics primitives. In this case, we add a rectangle to the canvas. We set
 the pos of the rectangle to be 5 pixels left of the horizontal center of
 the widget, and 0 for y. The size of the rectangle is set to 10 pixels
-in width, and the widgets' height in height. The nice thing about defining the
+in width, and the widget's height in height. The nice thing about defining the
 graphics like this, is that the rendered rectangle will be automatically
 updated when the properties of any widgets used in the value expression change.
 
@@ -301,7 +301,7 @@ However, that still doesn't change the fact that we don't have a reference to th
 :class:`ObjectProperty <kivy.properties.ObjectProperty>`
 to the PongGame class, and hook it up to the widget created in
 the kv rule. Once that's done, we can easily reference the ball property
-inside the ``update`` method and even make it bounce of the edges::
+inside the ``update`` method and even make it bounce off the edges::
 
     class PongGame(Widget):
         ball = ObjectProperty(None)
@@ -336,10 +336,10 @@ and setting the PongGame's ``ball`` ObjectProperty to that id:
 .. note::
 
     At this point everything is hooked up for the ball to bounce around. If
-    your coding along as we go, you might be wondering why the ball isn't
+    you're coding along as we go, you might be wondering why the ball isn't
     moving anywhere.  The ball's velocity is set to 0 on both x and y.
     In the code listing below, a ``serve_ball`` method is
-    added to the ``PongGame`` class and called in the apps ``build`` method. It sets a
+    added to the ``PongGame`` class and called in the app's ``build`` method. It sets a
     random x and y velocity for the ball, and also resets the position, so we
     can use it later to reset the ball when a player has scored a point.
 
@@ -364,7 +364,7 @@ Connect Input Events
 Sweet, our ball is bouncing around. The only things missing now are the movable
 player rackets and keeping track of the score.  We won't go over all the
 details of creating the class and kv rules again, since those concepts were
-already covered in the previous steps. Instead, lets focus on how to move the
+already covered in the previous steps. Instead, let's focus on how to move the
 Player widgets in response to user input. You can get the whole code and kv
 rules for the ``PongPaddle`` class at the end of this section.
 
@@ -373,7 +373,7 @@ In Kivy, a widget can react to input by implementing the
 :meth:`on_touch_move <kivy.uix.widget.Widget.on_touch_move>` and the 
 :meth:`on_touch_up <kivy.uix.widget.Widget.on_touch_up>`
 methods. By default, the Widget class
-implements these methods by just calling the corresponding method on all it's
+implements these methods by just calling the corresponding method on all its
 child widgets to pass on the event until one of the children returns ``True``.
 
 Pong is pretty simple. The rackets just need to move up and down. In fact it's
@@ -443,16 +443,16 @@ things that are covered in this tutorial, give yourself a pat on the back and
 think about how you could improve the game. Here are a few ideas of things
 you could do:
 
-* Add some nicer graphics / images (hint check out the source property on
+* Add some nicer graphics / images. (Hint: check out the source property on
   the graphics instructions like Circle or Rectangle, to set an image as the
-  texture for it)
+  texture.)
 
 * Make the game end after a certain score. Maybe once a player has 10
   points, you can display a large "PLAYER 1 WINS" label and/or add a main menu
-  to start, pause and reset the game (hint: check out the
+  to start, pause and reset the game. (Hint: check out the
   :class:`~kivy.uix.button.Button` and
   :class:`~kivy.uix.label.Label`
-  classes and figure out how to use their `add_widget` & `remove_widget`
+  classes, and figure out how to use their `add_widget` and `remove_widget`
   functions to add or remove widgets dynamically.
 
 * Make it a 4 player Pong Game.  Most tablets have Multi-Touch support, so

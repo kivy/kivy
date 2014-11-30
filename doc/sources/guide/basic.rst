@@ -110,7 +110,7 @@ is what we do on line 8::
 
     return Label(text='Hello world')
 
-Here we initialize a Label with text 'Hello World' and return it's instance.
+Here we initialize a Label with text 'Hello World' and return its instance.
 This Label will be the Root Widget of this App.
 
 .. Note::
@@ -122,7 +122,7 @@ Now on to the portion that will make our app run at line 11 and 12::
     if __name__ == '__main__':
         MyApp().run()
 
-Here the class `MyApp` is initialized and it's run() method called. This
+Here the class `MyApp` is initialized and its run() method called. This
 initializes and starts our Kivy application.
 
 
@@ -226,7 +226,7 @@ Moving on to Line 15 and beyond::
     self.password = TextInput(password=True, multiline=False)
     self.add_widget(self.password)
 
-We ask the GridLayout to manage it's children in two columns and add a
+We ask the GridLayout to manage its children in two columns and add a
 :class:`~kivy.uix.label.Label` and a :class:`~kivy.uix.textinput.TextInput`
 for the username and password.
 
