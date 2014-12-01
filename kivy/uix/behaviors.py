@@ -93,7 +93,7 @@ class ButtonBehavior(object):
 
     def _do_release(self, *args):
         self.state = 'normal'
-    
+
     def cancel_event(self, *args):
         if self.__state_event:
             self.__state_event.cancel()
@@ -131,7 +131,8 @@ class ButtonBehavior(object):
         self.last_touch = touch
         touchtime = time() - self.__touch_time
         if touchtime < self.MIN_STATE_TIME:
-            self.__state_event = Clock.schedule_once(self._do_release, self.MIN_STATE_TIME - touchtime)
+            self.__state_event = Clock.schedule_once(
+                self._do_release, self.MIN_STATE_TIME - touchtime)
         else:
             self._do_release()
         self.dispatch('on_release')
@@ -224,7 +225,7 @@ class ToggleButtonBehavior(ButtonBehavior):
             widget.state = 'normal'
 
     def _do_press(self):
-        if (not self.allow_no_selection and 
+        if (not self.allow_no_selection and
             self.group and self.state == 'down'):
             return
         self._release_group(self)
@@ -795,7 +796,11 @@ class FocusBehavior(object):
                 next = self._get_focus_next('focus_next')
             if next:
                 self.focused = False
-                next.focused = True
+
+                def _fn(dt):
+                    next.focused = True
+
+                Clock.schedule_once(_fn)
             return True
         return False
 
