@@ -57,7 +57,7 @@ for class_name in CONTAINER_CLASSES:
 
 
 class KivyRenderTextInput(CodeInput):
-    def _keyboard_on_key_down(self, window, keycode, text, modifiers):
+    def keyboard_on_key_down(self, window, keycode, text, modifiers):
         is_osx = sys.platform == 'darwin'
         # Keycodes on OSX:
         ctrl, cmd = 64, 1024
@@ -70,7 +70,7 @@ class KivyRenderTextInput(CodeInput):
                     self.catalog.change_kv(True)
                     return
 
-        super(KivyRenderTextInput, self)._keyboard_on_key_down(
+        super(KivyRenderTextInput, self).keyboard_on_key_down(
             window, keycode, text, modifiers)
 
 
