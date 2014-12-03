@@ -31,7 +31,7 @@ from kivy.base import EventLoop
 from kivy.logger import Logger
 from functools import partial
 from weakref import ref
-from time import clock
+from time import clock, time
 import string
 
 # When we are generating documentation, Config doesn't exist
@@ -806,14 +806,12 @@ class FocusBehavior(object):
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
-        if super(FocusBehavior, self).on_touch_down(touch):
-            return True
         if (not self.disabled and self.is_focusable and
             ('button' not in touch.profile or
              not touch.button.startswith('scroll'))):
             self.focused = True
             FocusBehavior.ignored_touch.append(touch)
-            return False
+        return super(FocusBehavior, self).on_touch_down(touch)
 
     @staticmethod
     def _handle_post_on_touch_up(touch):
