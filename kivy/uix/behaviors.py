@@ -37,10 +37,12 @@ import string
 # When we are generating documentation, Config doesn't exist
 _scroll_timeout = _scroll_distance = 0
 _is_desktop = False
+_keyboard_mode = 'system'
 if Config:
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
     _scroll_distance = Config.getint('widgets', 'scroll_distance')
     _is_desktop = Config.getboolean('kivy', 'desktop')
+    _keyboard_mode = Config.get('kivy', 'keyboard_mode')
 
 
 class ButtonBehavior(object):
@@ -492,10 +494,27 @@ class FocusBehavior(object):
         future version.
     '''
 
-    _win = None
+    _focus_win = None
     _requested_keyboard = False
     _keyboard = ObjectProperty(None, allownone=True)
     _keyboards = {}
+
+    ignored_touch = []
+    '''A list of touches that should not be used to defocus. After on_touch_up,
+    every touch that is not in :attr:`ignored_touch` will defocus all the
+    focused widgets, if, the config keyboard mode is not multi. Touches on
+    focusable widgets that were used to focus are automatically added here.
+
+    Example usage:
+
+        class Unfocusable(Widget):
+
+            def on_touch_down(self, touch):
+                if self.collide_point(*touch.pos):
+                    FocusBehavior.ignored_touch.append(touch)
+
+    Notice that you need to access this as class, not instance variable.
+    '''
 
     def _set_keyboard(self, value):
         focused = self.focused
@@ -534,6 +553,13 @@ class FocusBehavior(object):
 
     :attr:`keyboard` is a :class:`~kivy.properties.AliasProperty`, defaults to
     None.
+
+    .. note::
+
+        When Config's `keyboard_mode` is multi, each new touch is considered
+        a touch by a different user and will focus (if clicked on a
+        focusable) with a new keyboard. Already focused elements will not lose
+        their focus (even if clicked on a unfocusable).
 
     .. note:
 
@@ -668,15 +694,52 @@ class FocusBehavior(object):
     defaults to  `None`.
     '''
 
+    keyboard_mode = OptionProperty('auto', options=('auto', 'managed'))
+    '''How the keyboard visibility should be managed (auto will have standard
+    behaviour to show/hide on focus, managed requires setting keyboard_visible
+    manually, or calling the helper functions ``show_keyboard()``
+    and ``hide_keyboard()``.
+
+    :attr:`keyboard_mode` is an :class:`~kivy.properties.OptionsProperty` and
+    defaults to 'auto'. Can be one of 'auto' or 'managed'.
+    '''
+
+    input_type = OptionProperty('text', options=('text', 'number', 'url',
+                                                 'mail', 'datetime', 'tel',
+                                                 'address'))
+    '''The kind of input keyboard to request.
+
+    .. versionadded:: 1.8.0
+
+    :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
+    defaults to 'text'. Can be one of 'text', 'number', 'url', 'mail',
+    'datetime', 'tel', 'address'.
+    '''
+
+    unfocus_on_touch = BooleanProperty(_keyboard_mode not in
+                                       ('multi', 'systemandmulti'))
+    '''Whether a instance should lose focus when clicked outside the instance.
+
+    When a user clicks on a widget that is focus aware and shares the same
+    keyboard as the this widget (which in the case of only one keyboard, are
+    all focus aware widgets), then as the other widgets gains focus, this
+    widget loses focus. In addition to that, if this property is `True`,
+    clicking on any widget other than this widget, will remove focus form this
+    widget.
+
+    :attr:`unfocus_on_touch` is a :class:`~kivy.properties.BooleanProperty`,
+    defaults to `False` if the `keyboard_mode` in :attr:`~kivy.config.Config`
+    is `'multi'` or `'systemandmulti'`, otherwise it defaults to `True`.
+    '''
+
     def __init__(self, **kwargs):
         self._old_focus_next = None
         self._old_focus_previous = None
         super(FocusBehavior, self).__init__(**kwargs)
 
+        self._keyboard_mode = _keyboard_mode
         self.bind(focused=self._on_focused, disabled=self._on_focusable,
                   is_focusable=self._on_focusable,
-                  # don't be at mercy of child calling super
-                  on_touch_down=self._focus_on_touch_down,
                   focus_next=self._set_on_focus_next,
                   focus_previous=self._set_on_focus_previous)
 
@@ -685,23 +748,25 @@ class FocusBehavior(object):
             self.focused = False
 
     def _on_focused(self, instance, value, *largs):
-        if value:
-            self._bind_keyboard()
-        else:
-            self._unbind_keyboard()
+        if self.keyboard_mode == 'auto':
+            if value:
+                self._bind_keyboard()
+            else:
+                self._unbind_keyboard()
 
     def _ensure_keyboard(self):
         if self._keyboard is None:
-            win = self._win
+            win = self._focus_win
             if not win:
-                self._win = win = EventLoop.window
+                self._focus_win = win = EventLoop.window
             if not win:
                 Logger.warning('FocusBehavior: '
                 'Cannot focus the element, unable to get root window')
                 return
             self._requested_keyboard = True
             keyboard = self._keyboard =\
-                win.request_keyboard(self._keyboard_released, self)
+                win.request_keyboard(self._keyboard_released, self,
+                                     input_type=self.input_type)
             keyboards = FocusBehavior._keyboards
             if keyboard not in keyboards:
                 keyboards[keyboard] = None
@@ -738,12 +803,28 @@ class FocusBehavior(object):
     def _keyboard_released(self):
         self.focused = False
 
-    def _focus_on_touch_down(self, instance, touch):
-        if not self.disabled and self.is_focusable and\
-            self.collide_point(*touch.pos) and ('button' not in touch.profile
-            or not touch.button.startswith('scroll')):
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return
+        if (not self.disabled and self.is_focusable and
+            ('button' not in touch.profile or
+             not touch.button.startswith('scroll'))):
             self.focused = True
-        return False
+            FocusBehavior.ignored_touch.append(touch)
+        return super(FocusBehavior, self).on_touch_down(touch)
+
+    @staticmethod
+    def _handle_post_on_touch_up(touch):
+        ''' Called by window after each touch has finished.
+        '''
+        touches = FocusBehavior.ignored_touch
+        if touch in touches:
+            touches.remove(touch)
+            return
+        for focusable in FocusBehavior._keyboards.values():
+            if focusable is None or not focusable.unfocus_on_touch:
+                continue
+            focusable.focused = False
 
     def _get_focus_next(self, focus_dir):
         current = self
@@ -755,7 +836,7 @@ class FocusBehavior(object):
                 current = getattr(current, focus_dir)
                 if current is self or current is StopIteration:
                     return None  # make sure we don't loop forever
-                if current.is_focusable:
+                if current.is_focusable and not current.disabled:
                     return current
 
             # hit unfocusable, walk widget tree
@@ -769,7 +850,7 @@ class FocusBehavior(object):
             if isinstance(current, FocusBehavior):
                 if current is self:
                     return None
-                if current.is_focusable:
+                if current.is_focusable and not current.disabled:
                     return current
             else:
                 return None
@@ -822,6 +903,20 @@ class FocusBehavior(object):
             self.focused = False
             return True
         return False
+
+    def show_keyboard(self):
+        '''
+        Convenience function to show the keyboard in managed mode.
+        '''
+        if self.keyboard_mode == 'managed':
+            self._bind_keyboard()
+
+    def hide_keyboard(self):
+        '''
+        Convenience function to hide the keyboard in managed mode.
+        '''
+        if self.keyboard_mode == 'managed':
+            self._unbind_keyboard()
 
 
 class CompoundSelectionBehavior(object):
