@@ -362,7 +362,7 @@ class TextInput(FocusBehavior, Widget):
         have been removed from :class:`TextInput` since they are now inherited
         from :class:`~kivy.uix.behaviors.FocusBehavior`.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         :class:`TextInput` now inherits from
         :class:`~kivy.uix.behaviors.FocusBehavior`.
 
@@ -2468,7 +2468,7 @@ class TextInput(FocusBehavior, Widget):
             (use Clock.schedule) the call to the functions for selecting
             text (select_all, select_text).
 
-    ..versionchanged:: 1.8.1
+    ..versionchanged:: 1.9.0
         :class:`TextInput` now inherits from
         :class:`~kivy.uix.behaviors.FocusBehavior` and :attr:`focus` is now
         an alias for :attr:`focused`. Setting either one will also set the
@@ -2670,7 +2670,7 @@ class TextInput(FocusBehavior, Widget):
     enter a tab in the :class:`TextInput`. If `True` a tab will be written,
     otherwise, focus will move to the next widget.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
 
     :attr:`write_tab` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to `True`.
