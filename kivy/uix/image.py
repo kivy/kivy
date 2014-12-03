@@ -171,7 +171,7 @@ class Image(Widget):
     '''
 
     anim_loop = NumericProperty(0)
-    '''No of loops to play then stop animating. 0 means keep animating.
+    '''Number of loops to play then stop animating. 0 means keep animating.
 
     .. versionadded 1.9.0
 
