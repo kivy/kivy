@@ -49,7 +49,7 @@ static GstFlowReturn c_on_appsink_sample(GstElement *appsink, callback_data_t *d
 	GstStructure *structure = NULL;
 	gchar *cbuffer = NULL, *dstbuffer, *srcbuffer;
 	gint width4, width3, y;
-	gint width, height;
+	gint width, height, size;
 
 	g_signal_emit_by_name (appsink, data->eventname, &sample);
 	if ( sample == NULL ) {
@@ -79,6 +79,7 @@ static GstFlowReturn c_on_appsink_sample(GstElement *appsink, callback_data_t *d
 	if ( width4 == width3 ) {
 		// we can directly use the buffer in memory
 		cbuffer = (gchar *)mapinfo.data;
+		size = mapinfo.size;
 	} else {
 		// need a copy without stride :(
 		// OpenGL ES 2 doesn't support stride without an extension.  We might
@@ -87,7 +88,8 @@ static GstFlowReturn c_on_appsink_sample(GstElement *appsink, callback_data_t *d
 		// mobile with extension to copy the row width stride.
 		// NVIDIA extension:
 		// http://www.khronos.org/registry/gles/extensions/EXT/GL_EXT_unpack_subimage.txt
-		dstbuffer = cbuffer = (gchar *)g_malloc(width * height * 3);
+		size = width * height * 3;
+		dstbuffer = cbuffer = (gchar *)g_malloc(size);
 		if ( cbuffer == NULL ) {
 			g_warning("Unable to create destination buffer");
 			goto done;
@@ -100,7 +102,7 @@ static GstFlowReturn c_on_appsink_sample(GstElement *appsink, callback_data_t *d
 		}
 	}
 
-	data->callback(data->userdata, width, height, (char *)cbuffer, mapinfo.size);
+	data->callback(data->userdata, width, height, (char *)cbuffer, size);
 
 	if ( width4 != width3 )
 		g_free(cbuffer);
