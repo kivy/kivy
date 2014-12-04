@@ -1,4 +1,5 @@
 #!/usr/bin/kivy
+import sys
 import kivy
 kivy.require('1.0.6')
 
@@ -72,6 +73,8 @@ Factory.register('ShaderViewer', cls=ShaderViewer)
 
 class ShaderEditor(FloatLayout):
 
+    source = StringProperty('data/logo/kivy-icon-512.png')
+
     fs = StringProperty('''
 void main (void){
     gl_FragColor = frag_color * texture2D(texture0, tex_coord0);
@@ -107,7 +110,10 @@ void main (void) {
 
 class ShaderEditorApp(App):
     def build(self):
-        return ShaderEditor()
+        kwargs = {}
+        if len(sys.argv) > 1:
+            kwargs['source'] = sys.argv[1]
+        return ShaderEditor(**kwargs)
 
 if __name__ == '__main__':
     ShaderEditorApp().run()
