@@ -225,9 +225,11 @@ if platform not in ('ios', 'android'):
     if 'libraries' in gst_flags:
         c_options['use_gstreamer'] = True
 
-    sdl2_flags = pkgconfig('sdl2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer')
-    if 'libraries' in sdl2_flags:
-        c_options['use_sdl2'] = True
+    # XXX deactivated, until we are able to have sdl2 without using anything
+    # related to sdl1. Both must not be used at the same time.
+    # sdl2_flags = pkgconfig('sdl2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer')
+    # if 'libraries' in sdl2_flags:
+    #     c_options['use_sdl2'] = True
 
 
 # -----------------------------------------------------------------------------
