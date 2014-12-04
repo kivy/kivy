@@ -345,7 +345,7 @@ class TabbedPanel(GridLayout):
     `bottom_left`, `bottom_mid`, `bottom_right`.
 
     :attr:`tab_pos` is an :class:`~kivy.properties.OptionProperty` and
-    defaults to 'bottom_mid'.
+    defaults to 'top_left'.
     '''
 
     tab_height = NumericProperty('40dp')
