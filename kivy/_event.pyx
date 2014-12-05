@@ -395,6 +395,7 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef PropertyStorage ps
 
         for key, value in kwargs.iteritems():
+            assert callable(value), '{!r} is not callable'.format(value)
             if key[:3] == 'on_':
                 observers = self.__event_stack.get(key)
                 if observers is None:
