@@ -87,6 +87,7 @@ from math import sqrt, cos, sin, pi
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
 from kivy.compat import string_types, iterkeys
+from weakref import ProxyType
 
 
 class Animation(EventDispatcher):
@@ -310,6 +311,12 @@ class Animation(EventDispatcher):
         for uid in list(widgets.keys())[:]:
             anim = widgets[uid]
             widget = anim['widget']
+
+            if isinstance(widget, ProxyType) and not len(dir(widget)):
+                # empty proxy, widget is gone. ref: #2458
+                del widgets[uid]
+                continue
+
             if anim['time'] is None:
                 anim['time'] = 0.
             else:
