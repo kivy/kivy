@@ -1134,7 +1134,9 @@ static void InitEdgeDict( TESStesselator *tess )
 static void DoneEdgeDict( TESStesselator *tess )
 {
 	ActiveRegion *reg;
+#ifndef NDEBUG
 	int fixedEdges = 0;
+#endif
 
 	while( (reg = (ActiveRegion *)dictKey( dictMin( tess->dict ))) != NULL ) {
 		/*
