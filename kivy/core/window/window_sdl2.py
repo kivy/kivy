@@ -344,7 +344,6 @@ class WindowSDL(WindowBase):
 
             elif action in ('keydown', 'keyup'):
                 mod, key, scancode, kstr = args
-                print key
                 if mod in self._meta_keys:
                     try:
                         kstr = unichr(key)
