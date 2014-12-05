@@ -6,6 +6,8 @@ Scatter Layout
 
 This layout behaves just like a
 :class:`~kivy.uix.relativelayout.RelativeLayout`.
+Except objects outside the BoundingBox will not recieve input,
+To get such input, use ScatterPlaneLayout
 When a widget is added with position = (0,0) to a :class:`ScatterLayout`,
 the child widget will also move when you change the position of the
 :class:`ScatterLayout`. The child widget's coordinates remain
@@ -50,6 +52,7 @@ __all__ = ('ScatterLayout', )
 
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scatter import Scatter
+from kivy.uix.scatter import ScatterPlane
 from kivy.properties import ObjectProperty
 
 
@@ -65,6 +68,37 @@ class ScatterLayout(Scatter):
         if self.content.size != self.size:
             self.content.size = self.size
         super(ScatterLayout, self).add_widget(self.content)
+        self.bind(size=self.update_size)
+
+    def update_size(self, instance, size):
+        self.content.size = size
+
+    def add_widget(self, *l):
+        self.content.add_widget(*l)
+
+    def remove_widget(self, *l):
+        self.content.remove_widget(*l)
+
+    def clear_widgets(self):
+        self.content.clear_widgets()
+        
+        
+class ScatterPlaneLayout(ScatterPlane):
+    '''ScatterPlaneLayout class, see module documentation for more information.
+
+    Similar to ScatterLayout, but based on ScatterPlane - so the input is not bounded
+
+    versionadded:: 1.9.0
+    '''
+
+    content = ObjectProperty()
+
+    def __init__(self, **kw):
+        self.content = FloatLayout()
+        super(ScatterPlaneLayout, self).__init__(**kw)
+        if self.content.size != self.size:
+            self.content.size = self.size
+        super(ScatterPlaneLayout, self).add_widget(self.content)
         self.bind(size=self.update_size)
 
     def update_size(self, instance, size):
