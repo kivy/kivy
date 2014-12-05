@@ -492,7 +492,6 @@ class Image(EventDispatcher):
             return
         textures = self.image.textures
         if self._anim_index >= len(textures):
-            self.anim_reset(False)
             self._anim_index = 0
         self._texture = self.image.textures[self._anim_index]
         self.dispatch('on_texture')
