@@ -87,6 +87,7 @@ from math import sqrt, cos, sin, pi
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
 from kivy.compat import string_types, iterkeys
+from kivy.logger import Logger
 
 
 class Animation(EventDispatcher):
@@ -310,6 +311,7 @@ class Animation(EventDispatcher):
         for uid in list(widgets.keys())[:]:
             anim = widgets[uid]
             widget = anim['widget']
+
             if anim['time'] is None:
                 anim['time'] = 0.
             else:
@@ -322,17 +324,22 @@ class Animation(EventDispatcher):
                 progress = 1
             t = transition(progress)
 
-            # apply progression on widget
-            for key, values in anim['properties'].items():
-                a, b = values
-                value = calculate(a, b, t)
-                setattr(widget, key, value)
+            try:
+                # apply progression on widget
+                for key, values in anim['properties'].items():
+                    a, b = values
+                    value = calculate(a, b, t)
+                    setattr(widget, key, value)
 
-            self.dispatch('on_progress', widget, progress)
+                self.dispatch('on_progress', widget, progress)
 
-            # time to stop ?
-            if progress >= 1.:
-                self.stop(widget)
+                # time to stop ?
+                if progress >= 1.:
+                    self.stop(widget)
+
+            except ReferenceError:
+                Logger.warn("Animation ReferenceError")
+                continue
 
     def _calculate(self, a, b, t):
         _calculate = self._calculate
