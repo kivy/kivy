@@ -468,7 +468,8 @@ class LabelBase(object):
                                           words[-1])
                         layout_line.words.append(word)
                         last_word.lw = uww - ext[0]  # word was stretched
-                        render_text(words[-1], x + last_word.lw, y)
+                        render_text(words[-1].replace(u'\u00a0', ' '),
+                                    x + last_word.lw, y)
                         last_word.text = line = ''.join(words[:-2])
                     else:
                         last_word.lw = uww  # word was stretched
@@ -478,7 +479,7 @@ class LabelBase(object):
             if len(line):
                 layout_line.x = x
                 layout_line.y = y
-                render_text(line, x, y)
+                render_text(line.replace(u'\u00a0', ' '), x, y)
             y += lh
 
         # get data from provider
@@ -507,7 +508,8 @@ class LabelBase(object):
             # all text will be stripped by default. unicode NO-BREAK SPACE
             # characters will be preserved, so we replace the leading and
             # trailing spaces with \u00a0
-            text = text.decode('utf8', errors=options['unicode_errors']) if isinstance(text, bytes) else text
+            text = (text.decode('utf8', errors=options['unicode_errors'])
+                    if isinstance(text, bytes) else text)
             lspace = len(text) - len(text.lstrip())
             rspace = len(text) - len(text.rstrip())
             text = (u'\u00a0' * lspace) + text.strip() + (u'\u00a0' * rspace)
