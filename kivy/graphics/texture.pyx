@@ -494,7 +494,7 @@ cdef Texture _texture_create(int width, int height, colorfmt, bufferfmt,
         texture_height = _nearest_pow2(height)
 
     # create the texture with the future color format.
-    colorfmt = _convert_gl_format(colorfmt)
+    icolorfmt = _convert_gl_format(icolorfmt)
     texture = Texture(texture_width, texture_height, target,
                       colorfmt=colorfmt, bufferfmt=bufferfmt, mipmap=mipmap,
                       callback=callback, icolorfmt=icolorfmt)
