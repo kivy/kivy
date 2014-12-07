@@ -703,7 +703,7 @@ class CompositeListItem(SelectableView, BoxLayout):
             if cls_kwargs:
                 cls_kwargs['index'] = index
 
-                if 'text' not in cls_kwargs:
+                if 'text' not in cls_kwargs and text:
                     cls_kwargs['text'] = text
 
                 if 'is_representing_cls' in cls_kwargs:
