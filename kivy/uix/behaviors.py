@@ -505,7 +505,7 @@ class FocusBehavior(object):
     focused widgets, if, the config keyboard mode is not multi. Touches on
     focusable widgets that were used to focus are automatically added here.
 
-    Example usage:
+    Example usage::
 
         class Unfocusable(Widget):
 
