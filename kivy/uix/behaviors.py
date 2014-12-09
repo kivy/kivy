@@ -821,7 +821,7 @@ class FocusBehavior(object):
         if touch in touches:
             touches.remove(touch)
             return
-        for focusable in FocusBehavior._keyboards.values():
+        for focusable in list(FocusBehavior._keyboards.values()):
             if focusable is None or not focusable.unfocus_on_touch:
                 continue
             focusable.focused = False
