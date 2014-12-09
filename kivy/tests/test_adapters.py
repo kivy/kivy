@@ -1172,8 +1172,9 @@ class AdaptersTestCase(unittest.TestCase):
         cat_dog_data = {'cat': {'text': 'cat', 'is_selected': False},
                         'dog': {'text': 'dog', 'is_selected': False}}
         dict_adapter.data = cat_dog_data
-        # sorted_keys should remain ['dog'], as it still matches data.
-        self.assertEqual(dict_adapter.sorted_keys, ['dog'])
+        # new data added, sorted_keys are updated with new entries
+        self.assertIn(dict_adapter.sorted_keys,
+                (['dog', 'cat'], ['cat', 'dog']))
         dict_adapter.sorted_keys = ['cat']
         self.assertEqual(pet_listener.current_pet, ['cat'])
 
