@@ -15,7 +15,7 @@ timeout of 5 seconds::
     # create an object + id
     key = 'objectid'
     instance = Label(text=text)
-    Cache.append('mycache', text, instance)
+    Cache.append('mycache', key, instance)
 
     # retrieve the cached object
     instance = Cache.get('mycache', key)
