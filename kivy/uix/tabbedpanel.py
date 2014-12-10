@@ -54,10 +54,6 @@ the tabs. Your app is responsible for adding the content of individual tabs
 and for managing them, but it's not responsible for content switching. The
 tabbed panel handles switching of the main content object as per user action.
 
-.. note::
-    The default_tab functionality is turned off by default since 1.5.0. To
-    turn it back on, set `do_default_tab` = True.
-
 There is a default tab added when the tabbed panel is instantiated.
 Tabs that you add individually as above, are added in addition to the default
 tab. Thus, depending on your needs and design, you will want to customize the
