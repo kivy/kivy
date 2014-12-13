@@ -1,3 +1,4 @@
+
 '''
 Clipboard
 =========
@@ -119,11 +120,6 @@ _platform = platform
 if _platform == 'android':
     _clipboards.append(
         ('android', 'clipboard_android', 'ClipboardAndroid'))
-    _clipboards.append(
-        ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
-elif _platform == 'ios':
-    _clipboards.append(
-        ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
 elif _platform in ('macosx', 'linux', 'win'):
     if _platform == 'macosx':
         _clipboards.append(
@@ -136,8 +132,9 @@ elif _platform in ('macosx', 'linux', 'win'):
 
     _clipboards.append(
         ('pygame', 'clipboard_pygame', 'ClipboardPygame'))
-    _clipboards.append(
-        ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
+
+_clipboards.append(
+    ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
 _clipboards.append(
     ('dummy', 'clipboard_dummy', 'ClipboardDummy'))
 
@@ -145,3 +142,4 @@ Clipboard = core_select_lib('clipboard', _clipboards, True)
 
 del _clipboards
 del _platform
+
