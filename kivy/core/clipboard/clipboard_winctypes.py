@@ -30,7 +30,6 @@ class ClipboardWindows(ClipboardBase):
         return data
 
     def put(self, text, mimetype='text/plain'):
-        print text, type(text)
         GMEM_DDESHARE = 0x2000
         CF_UNICODETEXT = 13
         user32.OpenClipboard(None)

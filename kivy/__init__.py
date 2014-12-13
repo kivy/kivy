@@ -189,7 +189,7 @@ kivy_options = {
     'image': ('tex', 'imageio', 'dds', 'gif', 'pil', 'pygame', 'ffpy', 'sdl2'),
     'camera': ('opencv', 'gi', 'pygst', 'videocapture', 'avfoundation'),
     'spelling': ('enchant', 'osxappkit', ),
-    'clipboard': ('android', 'pygame', 'dummy', 'sdl2'), }
+    'clipboard': ('android', 'winctypes', 'dbusklipper', 'nspaste', 'pygame', 'sdl2', 'dummy'), }
 
 # Read environment
 for option in kivy_options:
@@ -209,6 +209,7 @@ for option in kivy_options:
 #: Kivy directory
 kivy_base_dir = dirname(sys.modules[__name__].__file__)
 #: Kivy modules directory
+
 kivy_modules_dir = environ.get('KIVY_MODULES_DIR',
                                join(kivy_base_dir, 'modules'))
 #: Kivy extension directory
