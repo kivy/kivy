@@ -16,6 +16,11 @@ from kivy.app import App
 from kivy.uix.button import Button
 from kivy.lang import Builder
 
+from kivy.uix.floatlayout import FloatLayout
+# Note that importing FloatLayout causes Kivy to execute, including
+# starting up the Logger and some other messages.
+print "** In main program, done with imports"
+
 class TestBuildApp(App):
     """ Use build() function to return a widget. """
     def build(self):
@@ -53,6 +58,23 @@ class TestKVStringApp(App):
         print "** widget built"
         return widget
 
+class TestPrebuiltApp(App):
+    """ Use the Builder to create a top level widget at the beginning
+    of the Python program, then use a dummy class for that widget.
+    This costs a bit more in start-up time. """
+    Builder.load_string("<Prebuilt>\n  Button:\n    text:'hello from TestPrebuiltApp'")
+    print "** in TestPrebuiltApp, class initialization built <Prebuilt>"
+
+    class Prebuilt(FloatLayout):
+        """ Empty class to cause setting root to <Prebuilt> tag and
+        set inheritence """
+        pass
+
+    def build(self):
+        """ called, returns instance matching tag . """
+        return self.Prebuilt()
+
+
 def print_class(class_name):
     """ Read this file and print the section with the class name specified.) """
     filename = sys.argv[0]
@@ -85,6 +107,9 @@ if __name__ == '__main__':
     elif arg == 's':
         print_class("TestKVStringApp")
         TestKVStringApp().run()
+    elif arg == 'p':
+        print_class("TestPrebuiltApp")
+        TestPrebuiltApp().run()
     else:   # help
         print """
 This demo runs different application windows based on a command line argument.
@@ -94,6 +119,7 @@ Try using one of these:
    d - Use a kv file from a different directory
    f - Use a kv file with the widget object
    s - Use a kiva language string to create the widget.
+   p - Use prebuilt widget from a kivy string
    r - pick one of the demos at random.
 
    h - show this help message.
