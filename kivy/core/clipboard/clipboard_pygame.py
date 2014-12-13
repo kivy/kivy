@@ -29,7 +29,7 @@ class ClipboardPygame(ClipboardBase):
 
     def get(self, mimetype='text/plain'):
         self.init()
-        return pygame.scrap.get(mimetype)
+        return pygame.scrap.get(mimetype).encode('utf-8')
 
     def put(self, data, mimetype='text/plain'):
         self.init()
