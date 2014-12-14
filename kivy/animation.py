@@ -394,7 +394,6 @@ class Sequence(Animation):
         self.anim2 = anim2
 
         self.anim1.bind(on_start=self.on_anim1_start,
-                        on_complete=self.on_anim1_complete,
                         on_progress=self.on_anim1_progress)
         self.anim2.bind(on_complete=self.on_anim2_complete,
                         on_progress=self.on_anim2_progress)
@@ -408,6 +407,7 @@ class Sequence(Animation):
         self._widgets[widget.uid] = True
         self._register()
         self.anim1.start(widget)
+        self.anim1.bind(on_complete=self.on_anim1_complete)
 
     def stop(self, widget):
         self.anim1.stop(widget)
@@ -433,6 +433,7 @@ class Sequence(Animation):
         self.dispatch('on_start', widget)
 
     def on_anim1_complete(self, instance, widget):
+        self.anim1.unbind(on_complete=self.on_anim1_complete)
         self.anim2.start(widget)
 
     def on_anim1_progress(self, instance, widget, progress):
@@ -445,6 +446,7 @@ class Sequence(Animation):
         '''
         if self.repeat:
             self.anim1.start(widget)
+            self.anim1.bind(on_complete=self.on_anim1_complete)
         else:
             self.dispatch('on_complete', widget)
 
