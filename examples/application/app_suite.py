@@ -5,7 +5,7 @@ Application Suite
 Explore how applications start.   Starts applications one after another, waiting for
 each to be closed first.
 '''
-
+from __future__ import print_function
 import sys
 import re
 from random import choice
@@ -19,7 +19,7 @@ from kivy.lang import Builder
 from kivy.uix.floatlayout import FloatLayout
 # Note that importing FloatLayout causes Kivy to execute, including
 # starting up the Logger and some other messages.
-print "** In main program, done with imports"
+print("** In main program, done with imports")
 
 class TestBuildApp(App):
     """ Use build() function to return a widget. """
@@ -28,7 +28,7 @@ class TestBuildApp(App):
               Called after trying to load a .kv file.
               Returns a new Button as a root widget.
               """
-        print "** inside build()"
+        print("** inside build()")
         return Button(text='hello from TestBuildApp')
 
 class TestKVFileApp(App):
@@ -53,9 +53,9 @@ class TestKVStringApp(App):
         Kivy language string.  """
     def build(self):
         """   Called by kivy run().  """
-        print "** inside build()"
+        print("** inside build()")
         widget = Builder.load_string("Button:\n  text: 'hello from TestKVStringApp'")
-        print "** widget built"
+        print("** widget built")
         return widget
 
 class TestPrebuiltApp(App):
@@ -63,7 +63,7 @@ class TestPrebuiltApp(App):
     of the Python program, then use a dummy class for that widget.
     This costs a bit more in start-up time. """
     Builder.load_string("<Prebuilt>\n  Button:\n    text:'hello from TestPrebuiltApp'")
-    print "** in TestPrebuiltApp, class initialization built <Prebuilt>"
+    print("** in TestPrebuiltApp, class initialization built <Prebuilt>")
 
     class Prebuilt(FloatLayout):
         """ Empty class to cause setting root to <Prebuilt> tag and
@@ -83,14 +83,14 @@ def print_class(class_name):
         regex = "^(class " + class_name + "\\b.*?)^\\S"
         match = re.search(regex, data, flags=re.MULTILINE|re.DOTALL)
         if match:
-            print match.group(1)
+            print(match.group(1))
 
 # the __name__ idiom executes when run from command line but not from import.
 if __name__ == '__main__':
     dash = "-" * 40
 
     arg = sys.argv[1][0].lower() if len(sys.argv) > 1 else "h"
-    print dash
+    print(dash)
 
     if arg == 'r':
         arg = choice('bfds')
@@ -111,22 +111,23 @@ if __name__ == '__main__':
         print_class("TestPrebuiltApp")
         TestPrebuiltApp().run()
     else:   # help
-        print """
+        print("""
 This demo runs different application windows based on a command line argument.
 
 Try using one of these:
    b - Use build() method to return a widget
    d - Use a kv file from a different directory
    f - Use a kv file with the widget object
-   s - Use a kiva language string to create the widget.
-   p - Use prebuilt widget from a kivy string
+   p - Use prebuilt widget inside a layout
+   s - Use a kiva language string to create the widget
    r - pick one of the demos at random.
 
    h - show this help message.
 
-   After closing the application window, this program will exit.   While the run() method
-   does return, kivy cannot run another application.
- """
+   After closing the application window, this program will exit.
+   While the run() method does return, kivy cannot run another
+   application window after one has been closed.
+ """)
 
-    print dash
-    print "This program is gratified to be of use."
+    print(dash)
+    print("This program is gratified to be of use.")
