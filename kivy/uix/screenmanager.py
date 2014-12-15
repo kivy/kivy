@@ -192,6 +192,7 @@ __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
 from kivy.compat import iteritems
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
+from kivy.clock import Clock
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import (StringProperty, ObjectProperty, AliasProperty,
                              NumericProperty, ListProperty, OptionProperty,
@@ -201,7 +202,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
 from kivy.graphics import (RenderContext, Rectangle, Fbo,
                            ClearColor, ClearBuffers, BindTexture, PushMatrix,
-                           PopMatrix, Translate)
+                           PopMatrix, Translate, Callback)
 
 
 class ScreenManagerException(Exception):
@@ -459,7 +460,7 @@ class ShaderTransition(TransitionBase):
     None.'''
 
     clearcolor = ListProperty([0, 0, 0, 1])
-    '''Sets the color of Fbo ClearColor. 
+    '''Sets the color of Fbo ClearColor.
 
     .. versionadded:: 1.9.0
 
@@ -490,6 +491,13 @@ class ShaderTransition(TransitionBase):
         self.screen_in.pos = self.screen_out.pos
         self.screen_in.size = self.screen_out.size
         self.manager.real_remove_widget(self.screen_out)
+        self.manager.canvas.add(self.screen_out.canvas)
+
+        def remove_screen_out(instr):
+            Clock.schedule_once(
+                lambda dt: self.manager.canvas.remove(self.screen_out.canvas),
+                -1)
+            self.render_ctx.remove(instr)
 
         self.fbo_in = self.make_screen_fbo(self.screen_in)
         self.fbo_out = self.make_screen_fbo(self.screen_out)
@@ -506,6 +514,7 @@ class ShaderTransition(TransitionBase):
             w, h = self.fbo_in.texture.size
             Rectangle(size=(w, h), pos=(x, y),
                       tex_coords=self.fbo_in.texture.tex_coords)
+            Callback(remove_screen_out)
         self.render_ctx['tex_out'] = 1
         self.render_ctx['tex_in'] = 2
         self.manager.canvas.add(self.render_ctx)
