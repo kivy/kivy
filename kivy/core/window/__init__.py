@@ -223,6 +223,9 @@ class WindowBase(EventDispatcher):
             If the the event is triggered because of the keyboard escape key,
             the keyword argument `source` is dispatched along with a value of
             `keyboard` to the bound functions.
+
+            .. versionadded:: 1.9.0
+
         `on_keyboard`: key, scancode, codepoint, modifier
             Fired when the keyboard is used for input.
 
@@ -247,8 +250,6 @@ class WindowBase(EventDispatcher):
         `on_dropfile`: str
             Fired when a file is dropped on the application.
 
-        .. versionchanged:: 1.9.0
-            `on_request_close` has been added.
     '''
 
     __instance = None
