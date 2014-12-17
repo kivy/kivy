@@ -215,6 +215,7 @@ class StackLayout(Layout):
                     modified_y = (selfsize[1] - padding_y - (num_children-1)*spacing_y)
                 else:
                     modified_y = (selfsize[1] - padding_y)
+                c.height = c.size_hint[1] * modified_y
 
             # does the widget fit in the row/column?
             if lu - c.size[innerattr] >= 0:
