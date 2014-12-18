@@ -268,7 +268,7 @@ class LabelBase(object):
         elif platform == 'win':
             fdirs = [os.environ['SYSTEMROOT'] + os.sep + 'Fonts']
         elif platform == 'ios':
-            fdirs = ['/Systiem/Library/Fonts']
+            fdirs = ['/System/Library/Fonts']
         elif platform == 'android':
             fdirs = ['/system/fonts']
 
