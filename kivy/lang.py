@@ -107,7 +107,7 @@ template you're defining, the definition should look like this::
 Here `prop1` and `prop2` are the properties of `ClassName` and `prop3` is the
 property of `AnotherClass`. If the widget doesn't have a property with
 the given name, an :class:`~kivy.properties.ObjectProperty` will be
-automatically created and added to the instance.
+automatically created and added to the widget.
 
 `AnotherClass` will be created and added as a child of the `ClassName`
 instance.
