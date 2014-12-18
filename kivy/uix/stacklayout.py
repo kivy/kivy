@@ -142,8 +142,6 @@ class StackLayout(Layout):
         padding_top = self.padding[1]
         padding_right = self.padding[2]
         padding_bottom = self.padding[3]
-        children = self.children
-        num_children = len(children)
 
         padding_x = padding_left + padding_right
         padding_y = padding_top + padding_bottom
@@ -203,27 +201,60 @@ class StackLayout(Layout):
 
         urev = (deltau < 0)
         vrev = (deltav < 0)
-        for c in reversed(children):
-            if c.size_hint[0]:
-                if urev:
-                    modified_x = (selfsize[0] - padding_x - (num_children-1)*spacing_x)
-                else:
-                    modified_x = (selfsize[0] - padding_x)
-                c.width = c.size_hint[0] * modified_x
-            if c.size_hint[1]:
-                if vrev:
-                    modified_y = (selfsize[1] - padding_y - (num_children-1)*spacing_y)
-                else:
-                    modified_y = (selfsize[1] - padding_y)
-                c.height = c.size_hint[1] * modified_y
+        first_in_line = True # i assume last_in_line will always be computed
+        usable_space = selfsize[innerattr] - su # replace lu to check last wgt
+        n_child = len(self.children)
+        i_child = n_child - 1
+        while i_child >= 0:
+            c = self.children[i_child]
+            if c.size_hint[0] and orientation[0] in ('lr', 'rl'):
+                space_used = c.size_hint[0] * (selfsize[0] - padding_x)
+                if i_child > 0:
+                    c2 = self.children[i_child - 1]
+                    space_used2 = c2.size_hint[0] * (selfsize[0] - padding_x)
+                    if usable_space - space_used >= space_used2:
+                        last_in_line = False
+                    else: last_in_line = True
+                else: last_in_line = True
+                
+                if first_in_line and not last_in_line:
+                    c.width = space_used - spacing_u / 2
+                elif last_in_line and not first_in_line:
+                    c.width = space_used - spacing_u / 2
+                elif not first_in_line and not last_in_line:
+                    c.width = space_used - spacing_u
+                else: c.width = space_used
+
+            if c.size_hint[1] and orientation[0] in ('bt', 'tb'):
+                space_used = c.size_hint[1] * (selfsize[1] - padding_y)
+                if i_child > 0:
+                    c2 = self.children[i_child - 1]
+                    space_used2 = c2.size_hint[1] * (selfsize[1] - padding_y)
+                    if usable_space - space_used >= space_used2:
+                        last_in_line = False
+                    else: last_in_line = True
+                else: last_in_line = True
+                
+                if first_in_line and not last_in_line:
+                    c.height = space_used - spacing_u / 2
+                elif last_in_line and not first_in_line:
+                    c.height = space_used - spacing_u / 2
+                elif not first_in_line and not last_in_line:
+                    c.height = space_used - spacing_u
+                else: c.height = space_used
 
             # does the widget fit in the row/column?
-            if lu - c.size[innerattr] >= 0:
+            if lu >= space_used:
                 lc.append(c)
-                lu -= c.size[innerattr] + spacing_u
+                lu -= space_used
                 lv = max(lv, c.size[outerattr])
+                first_in_line = last_in_line
+                i_child -= 1
+                if last_in_line:
+                  usable_space = selfsize[innerattr] - su
+                else: usable_space -= space_used
                 continue
-
+            
             # push the line
             sv += lv + spacing_v
             for c2 in lc:
@@ -246,8 +277,10 @@ class StackLayout(Layout):
             v += deltav * spacing_v
             lc = [c]
             lv = c.size[outerattr]
-            lu = selfsize[innerattr] - su - c.size[innerattr] - spacing_u
+            lu = selfsize[innerattr] - su - space_used
             u = ustart
+            first_in_line = last_in_line
+            i_child -= 1
 
         if lc:
             # push the last (incomplete) line
