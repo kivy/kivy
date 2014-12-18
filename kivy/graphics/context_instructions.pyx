@@ -396,7 +396,7 @@ cdef class LoadIdentity(ContextInstruction):
     .. versionadded:: 1.6.0
     '''
     def __init__(self, **kwargs):
-        self.context_state = kwargs.get('stack', 'modelview_mat')
+        self.stack = kwargs.get('stack', 'modelview_mat')
 
     property stack:
         '''Name of the matrix stack to use. Can be 'modelview_mat' or
