@@ -47,6 +47,7 @@ from kivy.adapters.args_converters import list_item_args_converter
 from kivy.factory import Factory
 from kivy.compat import string_types
 
+
 class Adapter(EventDispatcher):
     '''An :class:`~kivy.adapters.adapter.Adapter` is a bridge between data and
     an :class:`~kivy.uix.abstractview.AbstractView` or one of its subclasses,

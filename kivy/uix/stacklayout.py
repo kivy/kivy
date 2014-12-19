@@ -206,13 +206,17 @@ class StackLayout(Layout):
         for c in reversed(children):
             if c.size_hint[0]:
                 if urev:
-                    modified_x = (selfsize[0] - padding_x - (num_children-1)*spacing_x)
+                    modified_x = (
+                        selfsize[0] - padding_x -
+                        (num_children - 1) * spacing_x)
                 else:
                     modified_x = (selfsize[0] - padding_x)
                 c.width = c.size_hint[0] * modified_x
             if c.size_hint[1]:
                 if vrev:
-                    modified_y = (selfsize[1] - padding_y - (num_children-1)*spacing_y)
+                    modified_y = (
+                        selfsize[1] - padding_y -
+                        (num_children - 1) * spacing_y)
                 else:
                     modified_y = (selfsize[1] - padding_y)
 

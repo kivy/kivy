@@ -437,7 +437,7 @@ class MarkupLabel(MarkupLabelBase):
                 anchor = options['_anchor']
                 if anchor is not None:
                     if not anchor in anchors:
-                       anchors[anchor] = (x, y)
+                        anchors[anchor] = (x, y)
                 x += word.lw
             y += lh
 

@@ -577,13 +577,14 @@ class Label(Widget):
     :attr:`split_str` is a :class:`~kivy.properties.StringProperty` and
     defaults to `''` (the empty string).
     '''
-    
-    unicode_errors = OptionProperty('replace', options=('strict', 'replace', 'ignore'))
+
+    unicode_errors = OptionProperty(
+        'replace', options=('strict', 'replace', 'ignore'))
     '''How to handle unicode decode errors. Can be `'strict'`, `'replace'` or
     `'ignore'`.
-    
+
     .. versionadded:: 1.9.0
-    
+
     :attr:`unicode_errors` is an :class:`~kivy.properties.OptionProperty` and
     defaults to `'replace'`.
     '''

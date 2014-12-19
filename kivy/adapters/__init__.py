@@ -7,7 +7,7 @@ Adapters
 An adapter is a mediating controller-type class that processes and presents
 data for use in views. It does this by generating models, generally lists of
 :class:`~kivy.uix.listview.SelectableView` items, that are consumed and
-presented by views. Views are top-level widgets, such as a 
+presented by views. Views are top-level widgets, such as a
 :class:`~kivy.uix.listview.ListView`, that allow users to scroll through
 and (optionally) interact with your data.
 
@@ -35,7 +35,7 @@ The components involved in this process are:
   and your data. It manages the creation of the view elements for the model
   using the args_converter to prepare the contructor arguments for your
   cls/template view items.
-  
+
   The base :class:`Adapter` is subclassed by the
   :class:`SimpleListAdapter` and :class:`ListAdapter`. The :class:`DictAdapter`
   is a more advanced and flexible subclass of :class:`ListAdapter`.
@@ -66,7 +66,7 @@ The components involved in this process are:
   your data items create a corresponding view subitem (the cls or template)
   presented in a list by the View. The base :class:`AbstractView` currently has
   one concrete implementation: the :class:`ListView`.
-  
+
     :doc:`api-kivy.uix.abstractview`,
     :doc:`api-kivy.uix.listview`.
 

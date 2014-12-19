@@ -466,7 +466,8 @@ else:
                     elif ev_code == ABS_MT_TOUCH_MINOR:
                         point['size_h'] = ev_value
 
-            def process_as_mouse_or_keyboard(tv_sec, tv_usec, ev_type, ev_code, ev_value):
+            def process_as_mouse_or_keyboard(
+                tv_sec, tv_usec, ev_type, ev_code, ev_value):
 
                 if ev_type == EV_SYN:
                     if ev_code == SYN_REPORT:
@@ -521,14 +522,25 @@ else:
                                 point['_avoid'] = True
                     else:
                         if ev_value == 1:
-                            l = keyboard_keys[ev_code][-1 if 'shift' in Window._modifiers else 0]
+                            l = keyboard_keys[ev_code][-1
+                                if 'shift' in Window._modifiers else 0]
                             if l == 'shift':
                                 Window._modifiers.append('shift')
                             print(ev_code, l)
-                            Window.dispatch('on_key_down', Keyboard.keycodes[l.lower()], ev_code, keys_str.get(l, l), Window._modifiers)
+                            Window.dispatch(
+                                'on_key_down',
+                                Keyboard.keycodes[l.lower()],
+                                ev_code, keys_str.get(l, l),
+                                Window._modifiers)
                         if ev_value == 0:
-                            l = keyboard_keys[ev_code][-1 if 'shift' in Window._modifiers else 0]
-                            Window.dispatch('on_key_up', Keyboard.keycodes[l.lower()], ev_code, keys_str.get(l, l), Window._modifiers)
+                            l = keyboard_keys[ev_code][-1
+                                if 'shift' in Window._modifiers else 0]
+                            Window.dispatch(
+                                'on_key_up',
+                                Keyboard.keycodes[l.lower()],
+                                ev_code,
+                                keys_str.get(l, l),
+                                Window._modifiers)
                             if l == 'shift':
                                 Window._modifiers.remove('shift')
                         # if ev_value == 2:
@@ -536,7 +548,9 @@ else:
 
             def process(points):
                 if not is_multitouch:
-                    Window.mouse_pos = points[0]['x'] * Window.width, points[0]['y'] * Window.height
+                    Window.mouse_pos = (
+                        points[0]['x'] * Window.width,
+                        points[0]['y'] * Window.height)
 
                 actives = [args['id']
                            for args in points
@@ -636,8 +650,10 @@ else:
                                     '<%s> range ABS Y position is %d - %d' % (
                                         device_name, abs_min, abs_max))
                     elif y == ABS_PRESSURE:
-                        range_min_abs_pressure = drs('min_abs_pressure', abs_min)
-                        range_max_abs_pressure = drs('max_abs_pressure', abs_max)
+                        range_min_abs_pressure = drs(
+                            'min_abs_pressure', abs_min)
+                        range_max_abs_pressure = drs(
+                            'max_abs_pressure', abs_max)
                         Logger.info('HIDMotionEvent: ' +
                                     '<%s> range ABS pressure is %d - %d' % (
                                         device_name, abs_min, abs_max))

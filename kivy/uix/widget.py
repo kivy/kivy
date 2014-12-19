@@ -172,7 +172,8 @@ from kivy.factory import Factory
 from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
                              ReferenceListProperty, ObjectProperty,
                              ListProperty, DictProperty, BooleanProperty)
-from kivy.graphics import Canvas, Translate, Fbo, ClearColor, ClearBuffers, Scale
+from kivy.graphics import (Canvas, Translate, Fbo, ClearColor, ClearBuffers,
+                            Scale)
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
@@ -442,11 +443,13 @@ class Widget(WidgetBase):
         '''
         if not isinstance(widget, Widget):
             raise WidgetException(
-                'add_widget() can be used only with instances of the Widget class.')
+                'add_widget() can be used only with instances'
+                ' of the Widget class.')
 
         widget = widget.__self__
         if widget is self:
-            raise WidgetException('Widget instances cannot be added to themselves.')
+            raise WidgetException(
+                'Widget instances cannot be added to themselves.')
         parent = widget.parent
         # Check if the widget is already a child of another widget.
         if parent:
