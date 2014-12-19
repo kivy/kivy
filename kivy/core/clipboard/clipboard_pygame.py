@@ -30,15 +30,10 @@ class ClipboardPygame(ClipboardBase):
 
     def get(self, mimetype='text/plain'):
         self.init()
-<<<<<<< Updated upstream
         text = pygame.scrap.get(mimetype)
         if PY2:
             text = text.encode('utf-8')
-
         return text
-=======
-        return pygame.scrap.get(mimetype).encode('utf-8')
->>>>>>> Stashed changes
 
     def put(self, data, mimetype='text/plain'):
         self.init()
