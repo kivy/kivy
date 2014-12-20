@@ -422,7 +422,8 @@ class Inspector(FloatLayout):
             try:
                 widget.bind(**{key: partial(
                     self.update_node_content, weakref.ref(node))})
-            except: pass
+            except:
+                pass
             treeview.add_node(node)
 
     def update_node_content(self, node, *l):

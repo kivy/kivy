@@ -33,7 +33,6 @@ class ClipboardPygame(ClipboardBase):
         text = pygame.scrap.get(mimetype)
         if PY2:
             text = text.encode('utf-8')
-
         return text
 
     def put(self, data, mimetype='text/plain'):

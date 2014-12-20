@@ -53,10 +53,10 @@ class ClipboardBase(object):
     def _ensure_clipboard(self):
         ''' Ensure that the clipboard has been properly initialised.
         '''
-        
+
         if hasattr(self, '_clip_mime_type'):
             return
-        
+
         if platform == 'win':
             self._clip_mime_type = 'text/plain;charset=utf-8'
             # windows clipboard uses a utf-16 encoding
@@ -128,7 +128,8 @@ elif _platform in ('macosx', 'linux', 'win'):
         _clipboards.append(
             ('winctypes', 'clipboard_winctypes', 'ClipboardWindows'))
     elif _platform == 'linux':
-        _clipboards.append(('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
+        _clipboards.append(
+            ('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
 
     _clipboards.append(
         ('pygame', 'clipboard_pygame', 'ClipboardPygame'))

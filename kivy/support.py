@@ -140,6 +140,7 @@ def install_android():
 _twisted_reactor_stopper = None
 _twisted_reactor_work = None
 
+
 def install_twisted_reactor(**kwargs):
     '''Installs a threaded twisted reactor, which will schedule one
     reactor iteration before the next frame only when twisted needs
@@ -238,8 +239,9 @@ def install_twisted_reactor(**kwargs):
 
 
 def uninstall_twisted_reactor():
-    '''Uninstalls the Kivy's threaded Twisted Reactor. No more Twisted tasks will
-    run after this got called. Use this to clean the `twisted.internet.reactor`
+    '''Uninstalls the Kivy's threaded Twisted Reactor. No more Twisted
+    tasks will run after this got called. Use this to clean the
+    `twisted.internet.reactor` .
 
     .. versionadded:: 1.9.0
     '''

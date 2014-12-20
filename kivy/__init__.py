@@ -183,13 +183,16 @@ def kivy_usage():
 kivy_options = {
     'window': ('egl_rpi', 'pygame', 'sdl', 'x11', 'sdl2'),
     'text': ('pil', 'pygame', 'sdlttf', 'sdl2'),
-    'video': ('gstplayer', 'ffmpeg', 'ffpyplayer', 'gi', 'pygst', 'pyglet',
-              'null'),
+    'video': (
+        'gstplayer', 'ffmpeg', 'ffpyplayer', 'gi', 'pygst', 'pyglet',
+        'null'),
     'audio': ('gstplayer', 'pygame', 'gi', 'pygst', 'ffpyplayer', 'sdl'),
     'image': ('tex', 'imageio', 'dds', 'gif', 'pil', 'pygame', 'ffpy', 'sdl2'),
     'camera': ('opencv', 'gi', 'pygst', 'videocapture', 'avfoundation'),
     'spelling': ('enchant', 'osxappkit', ),
-    'clipboard': ('android', 'winctypes', 'dbusklipper', 'nspaste', 'pygame', 'sdl2', 'dummy'), }
+    'clipboard': (
+        'android', 'winctypes', 'dbusklipper', 'nspaste', 'pygame',
+        'sdl2', 'dummy'), }
 
 # Read environment
 for option in kivy_options:

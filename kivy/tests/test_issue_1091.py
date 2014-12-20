@@ -9,8 +9,7 @@ class PaddingSpacingTestCase(unittest.TestCase):
             orientation='tb-lr',
             size=(200, 200),
             padding=20,
-            spacing=10,
-            )
+            spacing=10)
 
         widget = Widget(width=100, size_hint=(0.2, 0.4))
         stacklayout.add_widget(widget)

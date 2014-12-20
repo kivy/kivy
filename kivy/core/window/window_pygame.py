@@ -79,7 +79,7 @@ class WindowPygame(WindowBase):
 
         if self._fake_fullscreen:
             if not self.borderless:
-                self.fullscreen = self._fake_fullscreen  = False
+                self.fullscreen = self._fake_fullscreen = False
             elif not self.fullscreen or self.fullscreen == 'auto':
                 self.borderless = self._fake_fullscreen = False
 

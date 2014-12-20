@@ -459,7 +459,7 @@ class ShaderTransition(TransitionBase):
     None.'''
 
     clearcolor = ListProperty([0, 0, 0, 1])
-    '''Sets the color of Fbo ClearColor. 
+    '''Sets the color of Fbo ClearColor.
 
     .. versionadded:: 1.9.0
 
