@@ -118,6 +118,7 @@ class WindowSDL(WindowBase):
                     279: 'end',
                     280: 'pgup',
                     281: 'pgdown'}
+        self._mouse_buttons_down = set()
 
     def create_window(self, *largs):
 
@@ -266,6 +267,8 @@ class WindowSDL(WindowBase):
                 x, y = args
                 self.mouse_pos = x, self.system_size[1] - y
                 # don't dispatch motion if no button are pressed
+                if len(self._mouse_buttons_down) == 0:
+                    continue
                 self._mouse_x = x
                 self._mouse_y = y
                 self._mouse_meta = self.modifiers
@@ -279,8 +282,10 @@ class WindowSDL(WindowBase):
                 elif button == 2:
                     btn = 'middle'
                 eventname = 'on_mouse_down'
+                self._mouse_buttons_down.add(button)
                 if action == 'mousebuttonup':
                     eventname = 'on_mouse_up'
+                    self._mouse_buttons_down.remove(button)
                 self.dispatch(eventname, x, y, btn, self.modifiers)
             elif action.startswith('mousewheel'):
                 self._update_modifiers()
