@@ -741,6 +741,42 @@ cdef class Texture:
         self._uvw = -self._uvw
         self.update_tex_coords()
 
+    cpdef rotate_90_deg(self):
+        '''Rotate tex_coords 90 degrees.
+        
+        .. versionadded:: 1.9.0
+        
+        '''
+        cdef float tmp_y = self._tex_coords[7]
+        cdef float tmp_x = self._tex_coords[6]
+        for i in range(7, 1, -1):
+            self._tex_coords[i] = self._tex_coords[i-2]
+        self._tex_coords[1] = tmp_y
+        self._tex_coords[0] = tmp_x
+
+    cpdef rotate_180_deg(self):
+        '''Rotate tex_coords 180 degrees.
+        
+        .. versionadded:: 1.9.0
+        
+        '''
+        for i in range(0, 4):
+            self._tex_coords[i], self._tex_coords[i+4] = \
+                self._tex_coords[i+4], self._tex_coords[i]
+
+    cpdef rotate_270_deg(self):
+        '''Rotate tex_coords 270 degrees.
+        
+        .. versionadded:: 1.9.0
+        
+        '''
+        cdef float tmp_y = self._tex_coords[1]
+        cdef float tmp_x = self._tex_coords[0]
+        for i in range(0, 6):
+            self._tex_coords[i] = self._tex_coords[i+2]
+        self._tex_coords[7] = tmp_y
+        self._tex_coords[6] = tmp_x
+        
     cpdef get_region(self, x, y, width, height):
         '''Return a part of the texture defined by the rectangular arguments
         (x, y, width, height). Returns a :class:`TextureRegion` instance.'''
