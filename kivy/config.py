@@ -35,7 +35,7 @@ Change the configuration and save it::
     The ConfigParser should work correctly with utf-8 now. The values are
     converted from ascii to unicode only when needed. The method get() returns
     utf-8 strings.
-    
+
 .. _configuration-tokens:
 
 Available configuration tokens
@@ -227,7 +227,7 @@ Available configuration tokens
 .. note::
 
     These options control only the initalization of the app and a restart
-    is required for value changes to take effect.    
+    is required for value changes to take effect.
 
 .. versionchanged:: 1.9.0
     `borderless` has been added to the graphics section.

@@ -268,7 +268,7 @@ class LabelBase(object):
         elif platform == 'win':
             fdirs = [os.environ['SYSTEMROOT'] + os.sep + 'Fonts']
         elif platform == 'ios':
-            fdirs = ['/Systiem/Library/Fonts']
+            fdirs = ['/System/Library/Fonts']
         elif platform == 'android':
             fdirs = ['/system/fonts']
 
@@ -554,7 +554,8 @@ class LabelBase(object):
             # all text will be stripped by default. unicode NO-BREAK SPACE
             # characters will be preserved, so we replace the leading and
             # trailing spaces with \u00a0
-            text = text.decode('utf8', errors=options['unicode_errors']) if isinstance(text, bytes) else text
+            text = text.decode('utf8', errors=options['unicode_errors'])\
+                if isinstance(text, bytes) else text
             lspace = len(text) - len(text.lstrip())
             rspace = len(text) - len(text.rstrip())
             text = (u'\u00a0' * lspace) + text.strip() + (u'\u00a0' * rspace)

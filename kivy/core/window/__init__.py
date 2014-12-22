@@ -406,16 +406,16 @@ class WindowBase(EventDispatcher):
     softinput_mode = OptionProperty('', options=('', 'pan', 'scale', 'resize'))
     '''This specifies the behavior of window contents on display of soft
     keyboard on mobile platform. Can be one of '', 'pan', 'scale', 'resize'.
-    
+
     When '' The main window is left as it is allowing the user to use
     :attr:`keyboard_height` to manage the window contents the way they want.
-    
+
     when 'pan' The main window pans moving the bottom part of the window to be
     always on top of the keyboard.
-    
+
     when 'resize' The window is resized and the contents scaled to fit the
     remaining space.
-    
+
     ..versionadded::1.9.0
 
     :attr:`softinput_mode` is a :class:`OptionProperty` defaults to None.
@@ -509,8 +509,8 @@ class WindowBase(EventDispatcher):
                   'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
                   'on_mouse_down', 'on_mouse_move', 'on_mouse_up',
                   'on_keyboard', 'on_key_down', 'on_key_up', 'on_dropfile',
-                  'on_request_close', 'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
-                  'on_joy_button_down', "on_joy_button_up")
+                  'on_request_close', 'on_joy_axis', 'on_joy_hat',
+                  'on_joy_ball', 'on_joy_button_down', "on_joy_button_up")
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -908,7 +908,6 @@ class WindowBase(EventDispatcher):
         w2, h2 = w / 2., h / 2.
         r = radians(self.rotation)
 
-
         x, y = 0, 0
         _h = h
         if smode:
@@ -1038,6 +1037,7 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 1.9.0'''
         pass
+
     def on_joy_button_up(self, stickid, buttonid):
         '''Event called when a joystick has a button released
 

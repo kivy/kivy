@@ -33,6 +33,8 @@ environ['KIVY_EMBED'] = '1'
 # PyInstaller 2.1. See kivy issue #1638
 import pygame.pkgdata
 _original_getResource = pygame.pkgdata.getResource
+
+
 def getResource(identifier, *args, **kwargs):
     if identifier == 'pygame_icon.tiff':
         raise IOError()

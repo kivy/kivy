@@ -183,17 +183,17 @@ The :class:`~kivy.adapters.listadapter.ListAdapter` is the base class for
 Refer to the :class:`~kivy.adapters.listadapter.ListAdapter` docs for details,
 but here is a synopses of its arguments:
 
-* :attr:`~kivy.adapters.adapter.Adapter.data`: 
+* :attr:`~kivy.adapters.adapter.Adapter.data`:
   strings, class instances, dicts, etc. that form the base data
   for instantiating views.
 
-* :attr:`~kivy.adapters.adapter.Adapter.cls`: 
+* :attr:`~kivy.adapters.adapter.Adapter.cls`:
   a Kivy view that is to be instantiated for each list item. There
   are several built-in types available, including ListItemLabel and
   ListItemButton, or you can make your own class that mixes in the
   required :class:`~kivy.uix.listview.SelectableView`.
 
-* :attr:`~kivy.adapters.adapter.Adapter.template`: 
+* :attr:`~kivy.adapters.adapter.Adapter.template`:
   the name of a Kivy language (kv) template that defines the
   Kivy view for each list item.
 
@@ -345,7 +345,7 @@ is_selected properties::
         def __init__(self, text='', is_selected=False):
             self.text = text
             self.is_selected = is_selected
-    
+
     data_items = [DataItem(text='cat'),
                   DataItem(text='dog'),
                   DataItem(text='frog')]
