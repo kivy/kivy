@@ -114,6 +114,10 @@ class UrlRequest(Thread):
         Parameter `ca_file` added.
         Parameter `verify` added.
 
+    .. versionchanged:: 1.9.2
+
+        Parameters `proxy_host`, `proxy_port` and `proxy_headers` added.
+
     :Parameters:
         `url`: str
             Complete url string to call.
@@ -159,13 +163,22 @@ class UrlRequest(Thread):
             certificates against
         `verify`: bool, defaults to True
             If False, disables SSL CA certificate verification
+        `proxy_host`: str, defaults to None
+            If set, the proxy host to use for this connection.
+        `proxy_port`: int, defaults to None
+            If set, and `proxy_host` is also set, the port to use for
+            connecting to the proxy server.
+        `proxy_headers`: dict, defaults to None
+            If set, and `proxy_host` is also set, the headers to send to the
+            proxy server in the ``CONNECT`` request.
     '''
 
     def __init__(self, url, on_success=None, on_redirect=None,
                  on_failure=None, on_error=None, on_progress=None,
                  req_body=None, req_headers=None, chunk_size=8192,
                  timeout=None, method=None, decode=True, debug=False,
-                 file_path=None, ca_file=None, verify=True):
+                 file_path=None, ca_file=None, verify=True, proxy_host=None,
+                 proxy_port=None, proxy_headers=None):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -189,6 +202,9 @@ class UrlRequest(Thread):
         self._method = method
         self.ca_file = ca_file
         self.verify = verify
+        self._proxy_host = proxy_host
+        self._proxy_port = proxy_port
+        self._proxy_headers = proxy_headers
 
         #: Url of the request
         self.url = url
@@ -279,7 +295,11 @@ class UrlRequest(Thread):
             ctx.verify_mode = ssl.CERT_NONE
             args['context'] = ctx
 
-        req = cls(host, port, **args)
+        if self._proxy_host:
+            req = cls(self._proxy_host, self._proxy_port, **args)
+            req.set_tunnel(host, port, self._proxy_headers)
+        else:
+            req = cls(host, port, **args)
 
         # reconstruct path to pass on the request
         path = parse.path
