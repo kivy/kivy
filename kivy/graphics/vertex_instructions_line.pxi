@@ -816,7 +816,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property ellipse:
-        '''Use this property to build an ellipse, without calculating the
+        '''Use this property to build an ellipse, without calculate the
         :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of (x, y, width, height, angle_start,
