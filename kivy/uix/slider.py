@@ -97,17 +97,15 @@ class Slider(Widget):
     :attr:`step` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.'''
 
-
-    # adding a constructor to slider to correct following misbehaviour:
-    # ...
-    # slider = Slider(min=1.0, max=200.0)
-    # root.add_widget(slider)
-    # slider.value should be set to min (1.0 here) but is in reality set to 0 and then only when a on_value event occurs does it
-    # get 1.0 as minimum value
-
-    def __init__(self, **kwargs):
-        super(Slider, self).__init__(**kwargs)
-        self.value = self.min
+    # The following two methods constrain the slider's value
+    # to range(min,max). Otherwise it may happen that self.value < self.min
+    # at init.
+    
+    def on_min(self, *largs):
+        self.value = min(self.max, max(self.min,self.value))
+        
+    def on_max(self, *largs):
+        self.value = min(self.max, max(self.min,self.value))
     
     def get_norm_value(self):
         vmin = self.min
