@@ -899,12 +899,18 @@ class ListView(AbstractView, EventDispatcher):
                   item_strings=self.item_strings_changed,
                   adapter=self._trigger_populate)
 
+        self._trigger_bind_adapter = Clock.create_trigger(
+            lambda dt: self.adapter.bind_triggers_to_view(
+                self._trigger_reset_populate),
+            -1)
+        self.bind(adapter=self._trigger_bind_adapter)
+
         # The bindings setup above sets self._trigger_populate() to fire
         # when the adapter changes, but we also need this binding for when
         # adapter.data and other possible triggers change for view updating.
         # We don't know that these are, so we ask the adapter to set up the
         # bindings back to the view updating function here.
-        self.adapter.bind_triggers_to_view(self._trigger_reset_populate)
+        self._trigger_bind_adapter()
 
     # Added to set data when item_strings is set in a kv template, but it will
     # be good to have also if item_strings is reset generally.
