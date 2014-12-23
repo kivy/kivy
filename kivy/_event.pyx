@@ -142,7 +142,7 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef dict attrs_found
         cdef list attrs
         cdef Property attr
-        cdef basestring k
+        cdef object k
 
         self.__event_stack = {}
         self.__storage = {}
