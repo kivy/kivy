@@ -464,7 +464,7 @@ cdef class NumericProperty(Property):
     '''Property that represents a numeric value.
 
     :Parameters:
-        `default`: int or float, defaults to 0
+        `defaultvalue`: int or float, defaults to 0
             Specifies the default value of the property.
 
     >>> wid = Widget()
@@ -541,7 +541,7 @@ cdef class StringProperty(Property):
     '''Property that represents a string value.
 
     :Parameters:
-        `default`: string, defaults to ''
+        `defaultvalue`: string, defaults to ''
             Specifies the default value of the property.
 
     '''
@@ -629,7 +629,7 @@ cdef class ListProperty(Property):
     '''Property that represents a list.
 
     :Parameters:
-        `default`: list, defaults to []
+        `defaultvalue`: list, defaults to []
             Specifies the default value of the property.
 
     .. warning::
@@ -741,7 +741,7 @@ cdef class DictProperty(Property):
     '''Property that represents a dict.
 
     :Parameters:
-        `default`: dict, defaults to None
+        `defaultvalue`: dict, defaults to None
             Specifies the default value of the property.
         `rebind`: bool, defaults to False
             See :class:`ObjectProperty` for details.
@@ -783,7 +783,7 @@ cdef class ObjectProperty(Property):
     '''Property that represents a Python object.
 
     :Parameters:
-        `default`: object type
+        `defaultvalue`: object type
             Specifies the default value of the property.
         `rebind`: bool, defaults to False
             Whether kv rules using this object as an intermediate attribute
@@ -841,7 +841,7 @@ cdef class BooleanProperty(Property):
     '''Property that represents only a boolean value.
 
     :Parameters:
-        `default`: boolean
+        `defaultvalue`: boolean
             Specifies the default value of the property.
     '''
 
