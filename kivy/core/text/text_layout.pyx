@@ -107,17 +107,18 @@ cdef inline LayoutLine add_line(object text, int lw, int lh, LayoutLine line,
         This assumes that global h is accurate and includes the text previously
         added to the line.
         '''
-        cdef int old_lh = line.h, count = len(lines)
+        cdef int old_lh = line.h, count = len(lines), add_h
         if lw:
             line.words.append(LayoutWord(options, lw, lh, text))
             line.w += lw
 
+        line.h = max(int(lh * line_height), line.h)
         if count:
-            line.h = max(int(lh * line_height), line.h)
+            add_h = line.h
         else:
-            line.h = max(lh, line.h)
+            add_h = max(lh, line.h)
         # if we're appending to existing line don't add height twice
-        h[0] = h[0] + line.h - old_lh
+        h[0] = h[0] + add_h - old_lh
         w[0] = max(w[0], line.w + 2 * xpad)
         if strip:
             final_strip(line)
@@ -171,7 +172,7 @@ cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
 
     cdef list new_lines
     cdef int s, lw, lh, old_lh, i = -1, n
-    cdef int lhh, k, pos
+    cdef int lhh, k, pos, add_h
     cdef object line, val = False, indices
     cdef LayoutLine _line
 
@@ -203,12 +204,17 @@ cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
             _line.words.append(LayoutWord(options, lw, lh, line))
             _line.w += lw
             _line.h = max(int(lh * line_height), _line.h)
+            if pos == 1:  # still first line
+                add_h = max(lh, _line.h)
+            else:
+                add_h = _line.h
         elif strip and (complete or (dwn and n > 1 or not dwn and pos > 1)):
             # if we finish this line, make sure it doesn't end in spaces
             final_strip(_line)
+            add_h = _line.h
 
         w = max(w, _line.w + 2 * xpad)
-        h += _line.h - old_lh
+        h += add_h - old_lh
 
     # now do the remaining lines
     indices = range(s, k) if dwn else reversed(range(s, k))
@@ -227,17 +233,18 @@ cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
                 line = line.lstrip(string.whitespace)
         lw, lh = get_extents(line)
 
+        lhh = int(lh * line_height)
         if pos:
-            lhh = int(lh * line_height)
+            add_h = lhh
         else:  # for the first line, always use full height
-            lhh = lh
-        if uh != -1 and h + lhh > uh and pos:  # too high
+            add_h = lh
+        if uh != -1 and h + add_h > uh and pos:  # too high
             i += -1 if dwn else 1
             break
 
         pos += 1
         w = max(w, int(lw + 2 * xpad))
-        h += lhh
+        h += add_h
         if lw:
             _line = LayoutLine(0, 0, lw, lhh, 1, 0, [LayoutWord(options, lw,
                                                                 lh, line)])
@@ -559,23 +566,22 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
             del lines[max_lines:]
         else:
             del lines[:max(0, len(lines) - max_lines)]
+
     # now make sure we don't have lines outside specified height
     k = len(lines)
     if k > 1 and uh != -1 and h > uh:
         val = True
-        if dwn:
-            h = ypad * 2 + lines[0].h
-            i = 1  # ith line may not fit anymore, 0:i lines do fit
-            while i < k and h + lines[i].h <= uh:
-                h += lines[i].h
-                i += 1
-            del lines[i:]
-        else:
-            h = ypad * 2 + lines[-1].h
-            i = k - 2  # ith line may not fit anymore, i+1:end lines do fit
-            while i >= 0 and h + lines[i].h <= uh:
-                h += lines[i].h
+        if dwn:  # remove from last line going up
+            i = k -1  # will removing the ith line make it fit?
+            while i > 0 and h > uh:
+                h -= lines[i].h
                 i -= 1
-            del lines[:i + 1]
+            del lines[i + 1:]  # we stopped when keeping the ith line still fits
+        else:  # remove from first line going down
+            i = 0  # will removing the ith line make it fit?
+            while i < k - 1 and h > uh:
+                h -= lines[i].h
+                i += 1
+            del lines[:i]
 
     return w, h, val
