@@ -107,11 +107,15 @@ cdef inline LayoutLine add_line(object text, int lw, int lh, LayoutLine line,
         This assumes that global h is accurate and includes the text previously
         added to the line.
         '''
-        cdef int old_lh = line.h
+        cdef int old_lh = line.h, count = len(lines)
         if lw:
             line.words.append(LayoutWord(options, lw, lh, text))
             line.w += lw
-        line.h = max(int(lh * line_height), line.h)
+
+        if count:
+            line.h = max(int(lh * line_height), line.h)
+        else:
+            line.h = max(lh, line.h)
         # if we're appending to existing line don't add height twice
         h[0] = h[0] + line.h - old_lh
         w[0] = max(w[0], line.w + 2 * xpad)
@@ -222,10 +226,15 @@ cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
             else:
                 line = line.lstrip(string.whitespace)
         lw, lh = get_extents(line)
-        lhh = int(lh * line_height)
+
+        if pos:
+            lhh = int(lh * line_height)
+        else:  # for the first line, always use full height
+            lhh = lh
         if uh != -1 and h + lhh > uh and pos:  # too high
             i += -1 if dwn else 1
             break
+
         pos += 1
         w = max(w, int(lw + 2 * xpad))
         h += lhh
