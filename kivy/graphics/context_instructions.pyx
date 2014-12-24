@@ -177,7 +177,7 @@ cdef class Color(ContextInstruction):
     ``(0.5, 0.5, 0.5, 1.0)`` and the preceding Color has
     ``rgba=(1, 0.5, 2, 1)``, the actual visible color will be
     ``(0.5, 0.25, 1.0, 1.0)`` since the Color instruction is applied as
-    a multiplier to every rgba component. In this case, a color
+    a multiplier to every rgba component. In this case, a Color
     component outside the 0-1 range gives a visible result as the
     intensity of the blue component is doubled.
 
