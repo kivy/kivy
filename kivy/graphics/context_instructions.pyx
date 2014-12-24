@@ -225,6 +225,12 @@ cdef class Color(ContextInstruction):
             else:
                 self.set_state('color', [1.0, 1.0, 1.0, 1.0])
 
+        for property_name in ['r', 'g', 'b', 'a',
+                              'rgb', 'rgba', 'hsv',
+                              'h', 's', 'v']:
+            if property_name in kwargs:
+                setattr(self, property_name, kwargs['property_name'])
+
     property rgba:
         '''RGBA color, list of 4 values in 0-1 range.
         '''
