@@ -183,7 +183,12 @@ cdef class Color(ContextInstruction):
         # using hsv mode + alpha
         c = Color(0, 1, 1, .2, mode='hsv')
 
-    In kv lang::
+    You can also set color components that are available as properties
+    by passing them as keyword arguments::
+
+        c = Color(b=0.5)  # sets the blue component only
+
+    In kv lang you can set the color properties directly::
 
         <Rule>:
             canvas:
@@ -229,7 +234,7 @@ cdef class Color(ContextInstruction):
                               'rgb', 'rgba', 'hsv',
                               'h', 's', 'v']:
             if property_name in kwargs:
-                setattr(self, property_name, kwargs['property_name'])
+                setattr(self, property_name, kwargs[property_name])
 
     property rgba:
         '''RGBA color, list of 4 values in 0-1 range.
