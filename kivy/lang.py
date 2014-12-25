@@ -1429,18 +1429,24 @@ def get_proxy(widget):
         return widget
 
 
-def custom_callback(__kvlang__, idmap, *largs, **kwargs):
+def custom_callback(__kvlang__, idmap, self_id, *largs, **kwargs):
+    old_self_id = idmap['self']
     idmap['args'] = largs
+    idmap['self'] = self_id
     exec(__kvlang__.co_value, idmap)
+    idmap['self'] = old_self_id
 
 
 def call_fn(args, instance, v):
-    element, key, value, rule, idmap = args
+    element, key, value, rule, idmap, self_id = args
     if __debug__:
         trace('Builder: call_fn %s, key=%s, value=%r, %r' % (
             element, key, value, rule.value))
     rule.count += 1
+    old_self_id = idmap['self']
+    idmap['self'] = self_id
     e_value = eval(value, idmap)
+    idmap['self'] = old_self_id
     if __debug__:
         trace('Builder: call_fn => value=%r' % (e_value, ))
     setattr(element, key, e_value)
@@ -1551,19 +1557,19 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
 
 
 def create_handler(iself, element, key, value, rule, idmap, delayed=False):
-    idmap = copy(idmap)
-    idmap.update(global_idmap)
-    idmap['self'] = iself.proxy_ref
     handler_append = _handlers[iself.uid].append
 
     # we need a hash for when delayed, so we don't execute duplicate canvas
     # callbacks from the same handler during a sync op
     if delayed:
         fn = delayed_call_fn
-        args = [element, key, value, rule, idmap, None]  # see _delayed_start
+        # see _delayed_start for usage of these args
+        args = [element, key, value, rule, idmap, iself.proxy_ref, None]
     else:
         fn = call_fn
-        args = (element, key, value, rule, idmap)
+        args = (element, key, value, rule, idmap, iself.proxy_ref)
+    old_self_id = idmap['self']
+    idmap['self'] = iself.proxy_ref
 
     # bind every key.value
     if rule.watched_keys is not None:
@@ -1611,7 +1617,9 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                 handler_append(bound)
 
     try:
-        return eval(value, idmap)
+        result = eval(value, idmap)
+        idmap['self'] = old_self_id
+        return result
     except Exception as e:
         tb = sys.exc_info()[2]
         raise BuilderException(rule.ctx, rule.line,
@@ -1957,6 +1965,10 @@ class BuilderBase(object):
             del self.rulectx[rule]
             return
 
+        idmap = copy(global_idmap)
+        idmap.update(rctx['ids'])
+        idmap['self'] = None
+
         # normally, we can apply a list of properties with a proper context
         try:
             rule = None
@@ -1967,7 +1979,7 @@ class BuilderBase(object):
                     value = rule.co_value
                     if type(value) is CodeType:
                         value = create_handler(widget_set, widget_set, key,
-                                               value, rule, rctx['ids'])
+                                               value, rule, idmap)
                     setattr(widget_set, key, value)
         except Exception as e:
             if rule is not None:
@@ -1987,11 +1999,8 @@ class BuilderBase(object):
                     key = crule.name
                     if not widget_set.is_event_type(key):
                         key = key[3:]
-                    idmap = copy(global_idmap)
-                    idmap.update(rctx['ids'])
-                    idmap['self'] = widget_set.proxy_ref
                     if not widget_set.fast_bind(key, custom_callback, crule,
-                                                idmap):
+                                                idmap, widget_set.proxy_ref):
                         raise AttributeError(key)
                     #hack for on_parent
                     if crule.name == 'on_parent':
@@ -2071,7 +2080,10 @@ class BuilderBase(object):
         global Instruction
         if Instruction is None:
             Instruction = Factory.get('Instruction')
-        idmap = copy(self.rulectx[rootrule]['ids'])
+        idmap = copy(global_idmap)
+        idmap.update(self.rulectx[rootrule]['ids'])
+        idmap['self'] = None
+
         for crule in rule.children:
             name = crule.name
             if name == 'Clear':
