@@ -168,12 +168,12 @@ cdef class Color(ContextInstruction):
     Instruction to set the color state for any vertices being
     drawn after it.
 
-    This represents a colour between 0 and 1, but is applied as a
+    This represents a color between 0 and 1, but is applied as a
     *multiplier* to the texture of any vertex instructions following
     it in a canvas. If no texture is set, the vertex instruction
     takes the precise color of the Color instruction.
 
-    For instance, if a Rectangle has a texture with uniform colour
+    For instance, if a Rectangle has a texture with uniform color
     ``(0.5, 0.5, 0.5, 1.0)`` and the preceding Color has
     ``rgba=(1, 0.5, 2, 1)``, the actual visible color will be
     ``(0.5, 0.25, 1.0, 1.0)`` since the Color instruction is applied as
