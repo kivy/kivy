@@ -687,7 +687,7 @@ class FallOutTransition(ShaderTransition):
         vec2 dist = diff + 0.5;
         float max_dist = 1.0 - tr;
 
-        /* in and out colours */
+        /* in and out colors */
         vec4 cin = vec4(texture2D(tex_in, tex_coord0.st));
         vec4 cout = vec4(texture2D(tex_out, dist));
 
@@ -742,7 +742,7 @@ class RiseInTransition(ShaderTransition):
         vec2 dist = diff + 0.5;
         float max_dist = 1.0 - tr;
 
-        /* in and out colours */
+        /* in and out colors */
         vec4 cin = vec4(texture2D(tex_in, dist));
         vec4 cout = vec4(texture2D(tex_out, tex_coord0.st));
 

@@ -80,11 +80,11 @@ must implement a function :code:`effect` as below::
         return something;  // must be a vec4 representing the new color
     }
 
-The full shader will calculate the normal pixel colour at each point,
+The full shader will calculate the normal pixel color at each point,
 then call your :code:`effect` function to transform it. The
 parameters are:
 
-- **color**: The normal colour of the current pixel (i.e. texture
+- **color**: The normal color of the current pixel (i.e. texture
   sampled at tex_coords).
 - **texture**: The texture containing the widget's normal background.
 - **tex_coords**: The normal texture_coords used to access texture.
@@ -448,14 +448,14 @@ class AdvancedEffectBase(EffectBase):
 
 
 class MonochromeEffect(EffectBase):
-    '''Returns its input colours in monochrome.'''
+    '''Returns its input colors in monochrome.'''
     def __init__(self, *args, **kwargs):
         super(MonochromeEffect, self).__init__(*args, **kwargs)
         self.glsl = effect_monochrome
 
 
 class InvertEffect(EffectBase):
-    '''Inverts the colours in the input.'''
+    '''Inverts the colors in the input.'''
     def __init__(self, *args, **kwargs):
         super(InvertEffect, self).__init__(*args, **kwargs)
         self.glsl = effect_invert
