@@ -53,8 +53,8 @@ class Button(ButtonBehavior, Label):
     '''Background color, in the format (r, g, b, a).
 
     This acts as a *multiplier* to the texture colour. The default
-    texture is grey, so just setting the background colour will give
-    a darker result. To set a plain colour, set the
+    texture is grey, so just setting the background color will give
+    a darker result. To set a plain color, set the
     :attr:`background_normal` to ``''``.
 
     .. versionadded:: 1.0.8
