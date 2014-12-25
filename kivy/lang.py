@@ -1430,11 +1430,16 @@ def get_proxy(widget):
 
 
 def custom_callback(__kvlang__, idmap, self_id, *largs, **kwargs):
-    old_self_id = idmap['self']
-    idmap['args'] = largs
-    idmap['self'] = self_id
-    exec(__kvlang__.co_value, idmap)
-    idmap['self'] = old_self_id
+    if 'args' in idmap:
+        old_self_id, old_args = idmap['self'], idmap['args']
+        idmap['self'], idmap['args'] = self_id, largs
+        exec(__kvlang__.co_value, idmap)
+        idmap['self'], idmap['args'] = old_self_id, old_args
+    else:
+        old_self_id = idmap['self']
+        idmap['self'], idmap['args'] = self_id, largs
+        exec(__kvlang__.co_value, idmap)
+        idmap['self'] = old_self_id
 
 
 def call_fn(args, instance, v):
