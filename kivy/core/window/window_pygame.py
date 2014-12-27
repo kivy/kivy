@@ -109,7 +109,7 @@ class WindowPygame(WindowBase):
         # never stay with a None pos, application using w.center will be fired.
         self._pos = (0, 0)
         
-        self.prepare_event_dict()
+        self._create_type_to_event_dispatcher()
 
         # prepare keyboard
         repeat_delay = int(Config.get('kivy', 'keyboard_repeat_delay'))
@@ -283,7 +283,7 @@ class WindowPygame(WindowBase):
             self.flags |= pygame.FULLSCREEN
         self._pygame_set_mode()
 
-    def prepare_event_dict(self):
+    def _create_type_to_event_dispatcher(self):
         # kill application (SIG_TERM)
         def on_QUIT(event):
             if self.dispatch('on_request_close'):
