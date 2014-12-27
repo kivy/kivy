@@ -770,13 +770,15 @@ cdef class EventDispatcher(ObjectWithUid):
             return self
 
 
-cdef class BoundCallabck:
+cdef class BoundCallback:
 
     def __cinit__(self, object func, tuple largs, dict kwargs, int is_ref):
         self.func = func
         self.largs = largs
         self.kwargs = kwargs
         self.is_ref = is_ref
+        self.lock = unlocked
+        self.prev = self.next = None
 
 
 cdef class EventObservers:
@@ -788,20 +790,27 @@ cdef class EventObservers:
     def __cinit__(self, int dispatch_reverse=0, dispatch_value=1):
         self.dispatch_reverse = dispatch_reverse
         self.dispatch_value = dispatch_value
-        self.callbacks = []
-        self.idx = -1
+        self.last_callback = self.first_callback = None
 
     cdef inline void bind(self, object observer) except *:
         '''Bind the observer to the event. If this observer has already been
         bound, we don't add it again.
         '''
-        cdef BoundCallabck callback
+        cdef BoundCallback callback = self.first_callback, new_callback
 
-        for callback in self.callbacks:
-            if callback.largs is None and callback.kwargs is None and callback.func == observer:
+        while callback is not None:
+            if (callback.lock != deleted and callback.largs is None and
+                callback.kwargs is None and callback.func == observer):
                 return
+            callback = callback.next
 
-        self.callbacks.append(BoundCallabck(observer, None, None, 0))
+        new_callback = BoundCallback(observer, None, None, 0)
+        if self.first_callback is None:
+            self.last_callback = self.first_callback = new_callback
+        else:
+            self.last_callback.next = new_callback
+            new_callback.prev = self.last_callback
+            self.last_callback = new_callback
 
     cdef inline void fast_bind(self, object observer, tuple largs, dict kwargs,
                                int is_ref) except *:
@@ -809,9 +818,16 @@ cdef class EventObservers:
         is_ref, if true, will mark the observer that it is a ref so that we
         can unref it before calling.
         '''
-        self.callbacks.append(BoundCallabck(
+        cdef BoundCallback new_callback = BoundCallback(
             observer, largs if largs else None, kwargs if kwargs else None,
-            is_ref))
+            is_ref)
+
+        if self.first_callback is None:
+            self.last_callback = self.first_callback = new_callback
+        else:
+            self.last_callback.next = new_callback
+            new_callback.prev = self.last_callback
+            self.last_callback = new_callback
 
     cdef inline void unbind(self, object observer, int is_ref, int stop_on_first) except *:
         '''Removes the observer. If is_ref, he observers will be derefed before
@@ -819,33 +835,25 @@ cdef class EventObservers:
         first match we return.
         '''
         cdef object f
-        cdef int i = 0
-        cdef BoundCallabck callback
+        cdef BoundCallback callback = self.first_callback
 
-        while i < len(self.callbacks):
-            callback = self.callbacks[i]
-            if callback.largs is not None or callback.kwargs is not None:
-                i += 1
+        while callback is not None:
+            # try a quick comparision
+            if callback.lock == deleted or callback.largs is not None or callback.kwargs is not None:
+                callback = callback.next
                 continue
 
+            # now match the actual callback function
             if is_ref and callback.is_ref:
                 f = callback.func()
             else:
                 f = callback.func
             if f != observer and (not (is_ref and callback.is_ref) or f is not None):
-                i += 1
+                callback = callback.next
                 continue
 
-            del self.callbacks[i]
-            if self.dispatch_reverse:
-                if i <= self.idx:
-                    self.idx -= 1
-            else:
-                if i < self.idx:
-                    self.idx -= 1
-                    self.dlen -= 1
-                elif i < self.dlen:
-                    self.dlen -= 1
+            self.remove_callback(callback)
+            callback = callback.next
 
             if stop_on_first and f is not None:
                 return
@@ -855,25 +863,33 @@ cdef class EventObservers:
         we don't deref the observers before comparing to observer. The
         largs and kwargs must match the largs and kwargs from when binding.
         '''
-        cdef int i
-        cdef BoundCallabck callback
+        cdef BoundCallback callback = self.first_callback
         largs = largs if largs else None
         kwargs = kwargs if kwargs else None
 
-        for i, callback in enumerate(self.callbacks):
-            if callback.func != observer or callback.largs != largs or callback.kwargs != kwargs:
+        while callback is not None:
+            if (callback.lock == deleted or callback.func != observer or
+                callback.largs != largs or callback.kwargs != kwargs):
+                callback = callback.next
                 continue
-            del self.callbacks[i]
-            if self.dispatch_reverse:
-                if i <= self.idx:
-                    self.idx -= 1
-            else:
-                if i < self.idx:
-                    self.idx -= 1
-                    self.dlen -= 1
-                elif i < self.dlen:
-                    self.dlen -= 1
+
+            self.remove_callback(callback)
             return
+
+    cdef inline void remove_callback(self, BoundCallback callback, int force=0) except *:
+        # assumes that callback.lock is either locked, or unlocked, not deleted
+        # except if force, then it can be anything
+        if callback.lock == locked and not force:
+            callback.lock = deleted
+        else:
+            if callback.prev is not None:
+                callback.prev.next = callback.next
+            else:
+                self.first_callback = callback.next
+            if callback.next is not None:
+                callback.next.prev = callback.prev
+            else:
+                self.last_callback = callback.prev
 
     cdef inline object _dispatch(
         self, object f, tuple slargs, dict skwargs, object obj, object value,
@@ -953,67 +969,75 @@ cdef class EventObservers:
         they are forwarded after obj, value. if stop_on_true, if a observer returns
         true, the function stops and returns true.
         '''
-        cdef int old_idx = self.idx, old_dlen = self.dlen
-        cdef BoundCallabck callback
-        cdef object f
+        cdef BoundCallback callback, final, next
+        cdef object f, result
+        cdef BoundLock current_lock, last_lock
+        cdef int done = 0, res = 0, reverse = self.dispatch_reverse
 
-        if self.dispatch_reverse:
-            self.idx = len(self.callbacks) - 1
-
-            while self.idx >= 0:
-                callback = self.callbacks[self.idx]
-                if callback.is_ref:
-                    f = callback.func()
-                    if f is None:
-                        del self.callbacks[self.idx]
-                        self.idx -= 1
-                        continue
-                else:
-                    f = callback.func
-                self.idx -= 1
-
-                if self._dispatch(
-                    f, callback.largs, callback.kwargs, obj, value, largs, kwargs) and stop_on_true:
-                    self.idx = old_idx
-                    self.dlen = old_dlen
-                    return 1
+        if reverse:  # dispatch starting from last until first
+            callback = self.last_callback  # start callback
+            final = self.first_callback  # last callback
         else:
-            self.idx = 0
-            self.dlen = len(self.callbacks)
+            callback = self.first_callback
+            final = self.last_callback
+        if callback is None:
+            return 0
 
-            while self.idx < self.dlen:
-                callback = self.callbacks[self.idx]
-                if callback.is_ref:
-                    f = callback.func()
-                    if f is None:
-                        del self.callbacks[self.idx]
-                        self.dlen -= 1
-                        continue
+
+        last_lock = final.lock  # save the state of the lock of final callback
+        if last_lock == unlocked:  # lock the final callback
+            final.lock = locked
+
+        while not done and callback is not None:
+            done = final is callback
+            next = callback.prev if reverse else callback.next
+
+            if callback.lock == deleted:
+                callback = next
+                continue
+            if callback.is_ref:
+                f = callback.func()
+                if f is None:
+                    self.remove_callback(callback)
+                    callback = next
+                    continue
+            else:
+                f = callback.func
+
+            # save the lock state (currently only either locked or unlocked)
+            current_lock = callback.lock
+            if current_lock == unlocked:  # and lock it if unlocked
+                callback.lock = locked
+
+            result = self._dispatch(
+                f, callback.largs, callback.kwargs, obj, value, largs, kwargs)
+
+            if current_lock == unlocked:  # now unlock/delete if it was unlocked
+                if callback.lock == deleted:
+                    self.remove_callback(callback, 1)
                 else:
-                    f = callback.func
-                self.idx += 1
+                    callback.lock = unlocked
 
-                if self._dispatch(
-                    f, callback.largs, callback.kwargs, obj, value, largs, kwargs) and stop_on_true:
-                    self.idx = old_idx
-                    self.dlen = old_dlen
-                    return 1
+            if result and stop_on_true:
+                res = done = 1
+            callback = next
 
-        self.idx = old_idx
-        self.dlen = old_dlen
-        return 0
+        # now unlock/delete the final callback if we locked it
+        if last_lock == unlocked:
+            if final.lock == deleted:
+                self.remove_callback(final, 1)
+            else:
+                final.lock = unlocked
+        return res
 
     def __iter__(self):
         '''Binding/unbinding/dispatching while iterating can lead to invalid
         data.
         '''
-        cdef BoundCallabck callback
+        cdef BoundCallback callback = self.first_callback
 
-        for callback in self.callbacks:
-            if largs is None:
-                largs = ()
-            if kwargs is None:
-                kwargs = {}
+        while callback is not None:
             yield (
                 callback.func, callback.largs if callback.largs is not None else (),
                 callback.kwargs if callback.kwargs is not None else {}, callback.is_ref)
+            callback = callback.next

@@ -16,11 +16,19 @@ cdef class EventDispatcher(ObjectWithUid):
     cpdef dict properties(self)
 
 
-cdef class BoundCallabck:
+cdef enum BoundLock:
+    unlocked  # whether the BoundCallback is unlocked and can be deleted
+    locked  # whether the BoundCallback is locked and cannot be deleted
+    deleted  # whether the locked BoundCallback was marked for deletion
+
+cdef class BoundCallback:
     cdef object func
     cdef tuple largs
     cdef dict kwargs
     cdef int is_ref
+    cdef BoundLock lock  # see BoundLock
+    cdef BoundCallback next
+    cdef BoundCallback prev
 
 
 cdef class EventObservers:
@@ -28,20 +36,14 @@ cdef class EventObservers:
     cdef int dispatch_reverse
     # If in dispatch, the value parameter is dispatched or ignored.
     cdef int dispatch_value
-    # The callbacks and their args. Each element is a 4-tuple of (callback,
-    # largs, kwargs, is_ref)
-    cdef list callbacks
-    # The index in callbacks of the next dispatched callback, -1 if not dispatching
-    cdef int idx
-    # The size of callbacks during a dispatch including only the original callbacks.
-    # That is, as callbacks are unbound during a dispatch dlen is reduced
-    # to account for that. It's only used if not dispatch_reverse
-    cdef int dlen
+    cdef BoundCallback first_callback
+    cdef BoundCallback last_callback
 
     cdef inline void bind(self, object observer) except *
     cdef inline void fast_bind(self, object observer, tuple largs, dict kwargs, int is_ref) except *
     cdef inline void unbind(self, object observer, int is_ref, int stop_on_first) except *
     cdef inline void fast_unbind(self, object observer, tuple largs, dict kwargs) except *
-    cdef inline int dispatch(self, object obj, object value, tuple largs, dict kwargs, int stop_on_true) except 2
+    cdef inline void remove_callback(self, BoundCallback callback, int force=*) except *
     cdef inline object _dispatch(
         self, object f, tuple slargs, dict skwargs, object obj, object value, tuple largs, dict kwargs)
+    cdef inline int dispatch(self, object obj, object value, tuple largs, dict kwargs, int stop_on_true) except 2
