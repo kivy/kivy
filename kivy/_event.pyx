@@ -770,6 +770,15 @@ cdef class EventDispatcher(ObjectWithUid):
             return self
 
 
+cdef class BoundCallabck:
+
+    def __cinit__(self, object func, tuple largs, dict kwargs, int is_ref):
+        self.func = func
+        self.largs = largs
+        self.kwargs = kwargs
+        self.is_ref = is_ref
+
+
 cdef class EventObservers:
     '''A class that stores observers to events as a forward linked list
     (doubly linked if dispatch_reverse is true, and then dispatching occurs
@@ -786,16 +795,13 @@ cdef class EventObservers:
         '''Bind the observer to the event. If this observer has already been
         bound, we don't add it again.
         '''
-        cdef object f
-        cdef tuple largs
-        cdef dict kwargs
-        cdef int is_ref
+        cdef BoundCallabck callback
 
-        for f, largs, kwargs, is_ref in self.callbacks:
-            if largs is None and kwargs is None and f == observer:
+        for callback in self.callbacks:
+            if callback.largs is None and callback.kwargs is None and callback.func == observer:
                 return
 
-        self.callbacks.append((observer, None, None, 0))
+        self.callbacks.append(BoundCallabck(observer, None, None, 0))
 
     cdef inline void fast_bind(self, object observer, tuple largs, dict kwargs,
                                int is_ref) except *:
@@ -803,7 +809,7 @@ cdef class EventObservers:
         is_ref, if true, will mark the observer that it is a ref so that we
         can unref it before calling.
         '''
-        self.callbacks.append((
+        self.callbacks.append(BoundCallabck(
             observer, largs if largs else None, kwargs if kwargs else None,
             is_ref))
 
@@ -813,19 +819,20 @@ cdef class EventObservers:
         first match we return.
         '''
         cdef object f
-        cdef tuple largs
-        cdef dict kwargs
-        cdef int was_ref, i = 0
+        cdef int i = 0
+        cdef BoundCallabck callback
 
         while i < len(self.callbacks):
-            f, largs, kwargs, was_ref = self.callbacks[i]
-            if largs is not None or kwargs is not None:
+            callback = self.callbacks[i]
+            if callback.largs is not None or callback.kwargs is not None:
                 i += 1
                 continue
 
-            if is_ref and was_ref:
-                f = f()
-            if f != observer and (not (is_ref and was_ref) or f is not None):
+            if is_ref and callback.is_ref:
+                f = callback.func()
+            else:
+                f = callback.func
+            if f != observer and (not (is_ref and callback.is_ref) or f is not None):
                 i += 1
                 continue
 
@@ -848,15 +855,13 @@ cdef class EventObservers:
         we don't deref the observers before comparing to observer. The
         largs and kwargs must match the largs and kwargs from when binding.
         '''
-        cdef object f
-        cdef tuple slargs
-        cdef dict skwargs
-        cdef int was_ref, i
+        cdef int i
+        cdef BoundCallabck callback
         largs = largs if largs else None
         kwargs = kwargs if kwargs else None
 
-        for i, (f, slargs, skwargs, was_ref) in enumerate(self.callbacks):
-            if f != observer or slargs != largs or skwargs != kwargs:
+        for i, callback in enumerate(self.callbacks):
+            if callback.func != observer or callback.largs != largs or callback.kwargs != kwargs:
                 continue
             del self.callbacks[i]
             if self.dispatch_reverse:
@@ -948,60 +953,67 @@ cdef class EventObservers:
         they are forwarded after obj, value. if stop_on_true, if a observer returns
         true, the function stops and returns true.
         '''
-        cdef object f, result
-        cdef tuple slargs
-        cdef dict skwargs
-        cdef int is_ref
+        cdef int old_idx = self.idx, old_dlen = self.dlen
+        cdef BoundCallabck callback
+        cdef object f
 
         if self.dispatch_reverse:
             self.idx = len(self.callbacks) - 1
 
             while self.idx >= 0:
-                f, slargs, skwargs, is_ref = self.callbacks[self.idx]
-                if is_ref:
-                    f = f()
+                callback = self.callbacks[self.idx]
+                if callback.is_ref:
+                    f = callback.func()
                     if f is None:
                         del self.callbacks[self.idx]
                         self.idx -= 1
                         continue
+                else:
+                    f = callback.func
                 self.idx -= 1
 
-                if self._dispatch(f, slargs, skwargs, obj, value, largs, kwargs) and stop_on_true:
-                    self.idx = -1
+                if self._dispatch(
+                    f, callback.largs, callback.kwargs, obj, value, largs, kwargs) and stop_on_true:
+                    self.idx = old_idx
+                    self.dlen = old_dlen
                     return 1
         else:
             self.idx = 0
             self.dlen = len(self.callbacks)
 
             while self.idx < self.dlen:
-                f, slargs, skwargs, is_ref = self.callbacks[self.idx]
-                if is_ref:
-                    f = f()
+                callback = self.callbacks[self.idx]
+                if callback.is_ref:
+                    f = callback.func()
                     if f is None:
                         del self.callbacks[self.idx]
                         self.dlen -= 1
                         continue
+                else:
+                    f = callback.func
                 self.idx += 1
 
-                if self._dispatch(f, slargs, skwargs, obj, value, largs, kwargs) and stop_on_true:
-                    self.idx = -1
+                if self._dispatch(
+                    f, callback.largs, callback.kwargs, obj, value, largs, kwargs) and stop_on_true:
+                    self.idx = old_idx
+                    self.dlen = old_dlen
                     return 1
 
-        self.idx = -1
+        self.idx = old_idx
+        self.dlen = old_dlen
         return 0
 
     def __iter__(self):
         '''Binding/unbinding/dispatching while iterating can lead to invalid
         data.
         '''
-        cdef object f
-        cdef tuple largs
-        cdef dict kwargs
-        cdef int was_ref
+        cdef BoundCallabck callback
 
-        for f, largs, kwargs, was_ref in self.callbacks:
+        for callback in self.callbacks:
             if largs is None:
                 largs = ()
             if kwargs is None:
                 kwargs = {}
-            yield f, largs, kwargs, was_ref
+            yield (
+                callback.func, callback.largs if callback.largs is not None else (),
+                callback.kwargs if callback.kwargs is not None else {}, callback.is_ref)

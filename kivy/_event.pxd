@@ -16,6 +16,13 @@ cdef class EventDispatcher(ObjectWithUid):
     cpdef dict properties(self)
 
 
+cdef class BoundCallabck:
+    cdef object func
+    cdef tuple largs
+    cdef dict kwargs
+    cdef int is_ref
+
+
 cdef class EventObservers:
     # If dispatching should occur in normal or reverse order of binding.
     cdef int dispatch_reverse
