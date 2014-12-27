@@ -184,6 +184,7 @@ class DropDown(ScrollView):
         self.bind(size=self._reposition)
 
     def on_key_down(self, instance, key, scancode, codepoint, modifiers):
+        # key: 27 is the key code for "escape"
         if key == 27 and self.get_parent_window():
             self.dismiss()
             return True
