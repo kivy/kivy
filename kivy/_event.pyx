@@ -782,9 +782,11 @@ cdef class BoundCallback:
 
 
 cdef class EventObservers:
-    '''A class that stores observers to events as a forward linked list
-    (doubly linked if dispatch_reverse is true, and then dispatching occurs
-    in reverse order of binding).
+    '''A class that stores observers as a doubly linked list. See dispatch
+    for more details on locking and deletion of observers.
+
+    In all instances, largs and kwargs if None or empty are all converted
+    to None internally before storing or comparing.
     '''
 
     def __cinit__(self, int dispatch_reverse=0, dispatch_value=1):
@@ -877,8 +879,13 @@ cdef class EventObservers:
             return
 
     cdef inline void remove_callback(self, BoundCallback callback, int force=0) except *:
-        # assumes that callback.lock is either locked, or unlocked, not deleted
-        # except if force, then it can be anything
+        '''Removes the callback from the doubly linked list. If the callback is
+        locked, unless forced, the lock is changed to deleted and the callback
+        is not removed.
+
+        Assumes that callback.lock is either locked, or unlocked, not deleted
+        except if force, then it can be anything.
+        '''
         if callback.lock == locked and not force:
             callback.lock = deleted
         else:
@@ -894,6 +901,11 @@ cdef class EventObservers:
     cdef inline object _dispatch(
         self, object f, tuple slargs, dict skwargs, object obj, object value,
         tuple largs, dict kwargs):
+        '''Dispatches the the callback with the args. f is the (derefed)
+        callback. slargs, skwargs are the bound-time provided args. largs, kwargs
+        are the dispatched args. The order of args is slargs, obj, value,
+        skwargs updated with kwargs. If dispatch_value is False, value is skipped.
+        '''
         cdef object result
         cdef dict d
         cdef tuple param = (obj, value) if self.dispatch_value else (obj, )
@@ -968,6 +980,34 @@ cdef class EventObservers:
         '''Dispatches obj, value to all bound observers. If largs and/or kwargs,
         they are forwarded after obj, value. if stop_on_true, if a observer returns
         true, the function stops and returns true.
+
+        If dispatch_reverse is True, we dispatch starting with last bound callback,
+        otherwise we start with the first.
+
+        The logic and reason for locking callbacks is as followes. During a dispatch,
+        arbitrary code can be executed, therefore, as we trasverse and execute
+        each callback, the callback may in turn bind. unbind or even cause a
+        new dispatch recursively many times. Therefore, our goal should be to
+        during a dispatch, allow such recursiveness, while at each level, only
+        dispatch the callbacks that existed when we started dispatching, but
+        not including callbacks removed during dispatching.
+
+        Essentially, we want to make a copy of the callbacks as exited during
+        start of dispatching, while allowing removal of callbacks. With a python
+        list, we'd have to make a copy of the list and before each callback, we
+        check the original list to see if the callback has been removed. We solve
+        this issue for the doubly linked list using locks.
+
+        At each recursion level, if a callback is already locked by a higher level,
+        we can mark it deleted but not actually delete it or unlock it. Also, that level
+        is responsible for deleting the callbacks it locked if a lower
+        level marked them deleted, otherwise it just unlocks them before returning.
+        So a callback locked by a level, is guerenteed to not be removed (but at most
+        marked for deletion) by a recursive dispatch.
+
+        Each callback as it is dispatched is locked. Also, the last callback
+        scheduled to be executed is immediatly locked, so that we know where to
+        stop, in case new callbacks are added.
         '''
         cdef BoundCallback callback, final, next
         cdef object f, result

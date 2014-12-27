@@ -17,6 +17,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
 
 cdef enum BoundLock:
+    # the state of the BoundCallback, i.e. whether it can be deleted
     unlocked  # whether the BoundCallback is unlocked and can be deleted
     locked  # whether the BoundCallback is locked and cannot be deleted
     deleted  # whether the locked BoundCallback was marked for deletion
@@ -25,10 +26,10 @@ cdef class BoundCallback:
     cdef object func
     cdef tuple largs
     cdef dict kwargs
-    cdef int is_ref
+    cdef int is_ref  # if func is a ref to the function
     cdef BoundLock lock  # see BoundLock
-    cdef BoundCallback next
-    cdef BoundCallback prev
+    cdef BoundCallback next  # next callback in chain
+    cdef BoundCallback prev  # previous callback in chain
 
 
 cdef class EventObservers:
@@ -36,7 +37,9 @@ cdef class EventObservers:
     cdef int dispatch_reverse
     # If in dispatch, the value parameter is dispatched or ignored.
     cdef int dispatch_value
+    # The first callback bound
     cdef BoundCallback first_callback
+    # The last callback bound
     cdef BoundCallback last_callback
 
     cdef inline void bind(self, object observer) except *
