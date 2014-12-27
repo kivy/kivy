@@ -89,7 +89,7 @@ And then, create the associated python class and use it::
 
 __all__ = ('DropDown', )
 
-from kivy.uix.togglebutton import ToggleButton
+from kivy.uix.behaviors import ToggleButtonBehavior
 from kivy.uix.scrollview import ScrollView
 from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
 from kivy.core.window import Window
@@ -238,7 +238,7 @@ class DropDown(ScrollView):
         self.dispatch('on_select', data)
         if self.dismiss_on_select:
             attach_to = self.attach_to
-            if attach_to and isinstance(attach_to, ToggleButton):
+            if attach_to and isinstance(attach_to, ToggleButtonBehavior):
                 attach_to.state = "normal"
             self.dismiss()
 
@@ -276,7 +276,7 @@ class DropDown(ScrollView):
         attach_to = self.attach_to
         if attach_to and attach_to.collide_point(*touch.pos):
             return True
-        if attach_to and isinstance(attach_to, ToggleButton):
+        if attach_to and isinstance(attach_to, ToggleButtonBehavior):
             attach_to.state = "normal"
         if self.auto_dismiss:
             self.dismiss()
@@ -287,7 +287,7 @@ class DropDown(ScrollView):
         if 'button' in touch.profile and touch.button.startswith('scroll'):
             return
         attach_to = self.attach_to
-        if attach_to and isinstance(attach_to, ToggleButton):
+        if attach_to and isinstance(attach_to, ToggleButtonBehavior):
             attach_to.state = "normal"
         if self.auto_dismiss:
             self.dismiss()
