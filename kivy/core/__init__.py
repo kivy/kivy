@@ -116,7 +116,10 @@ def core_register_libs(category, libs, base='kivy.core'):
     for item in kivy_options:
         try:
             # import module
-            lib = libs_loadable[item]
+            try:
+                lib = libs_loadable[item]
+            except KeyError:
+                continue
             __import__(name='{2}.{0}.{1}'.format(category, lib, base),
                        globals=globals(),
                        locals=locals(),
