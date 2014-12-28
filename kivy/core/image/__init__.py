@@ -811,8 +811,10 @@ def load(filename):
 
 # load image loaders
 image_libs = []
+
 if platform in ('macosx', 'ios'):
     image_libs += [('imageio', 'img_imageio')]
+
 image_libs += [
     ('tex', 'img_tex'),
     ('dds', 'img_dds'),
@@ -821,6 +823,7 @@ image_libs += [
     ('ffpy', 'img_ffpyplayer'),
     ('pil', 'img_pil'),
     ('gif', 'img_gif')]
+
 libs_loaded = core_register_libs('image', image_libs)
 
 from os import environ
