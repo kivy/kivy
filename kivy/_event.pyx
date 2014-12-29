@@ -561,27 +561,38 @@ cdef class EventDispatcher(ObjectWithUid):
             if ps is not None:
                 ps.observers.fast_unbind(func, largs, kwargs)
 
-    def get_property_observers(self, name):
+    def get_property_observers(self, name, args=False):
         ''' Returns a list of methods that are bound to the property/event
         passed as the *name* argument::
 
             widget_instance.get_property_observers('on_release')
 
+        :Parameters:
+
+            `name`: str
+                The name of the event or property.
+            `args`: bool
+                Whether to return the bound args. To keep compatibility,
+                callbacks bound with :meth:`fast_bind` will also only return
+                the callback function and not their provided args, unless `args`
+                is True. If True, each element in the list is a 4-tuple of
+                `(callback, largs, kwargs, is_ref)`, where `is_ref` indicates
+                whether `callback` is a weakref. Defaults to `False`.
+
         .. versionadded:: 1.8.0
 
         .. versionchanged:: 1.9.0
-            To keep compatibility, callbacks bound with :meth:`fast_bind` will
-            also only return the callback function and not their provided args.
-
+            `args` has been added.
         '''
         cdef PropertyStorage ps
         cdef EventObservers observers
 
         if name[:3] == 'on_':
             observers = self.__event_stack[name]
-            return [item[0] for item in observers]
-        ps = self.__storage[name]
-        return [item[0] for item in ps.observers]
+        else:
+            ps = self.__storage[name]
+            observers = ps.observers
+        return list(observers) if args else [item[0] for item in observers]
 
     def events(EventDispatcher self):
         '''Return all the events in the class. Can be used for introspection.
