@@ -604,6 +604,15 @@ cdef class EventDispatcher(ObjectWithUid):
         only one callback will be removed. If `uid` is not found among the
         callbacks, no error is raised.
 
+        E.g.::
+
+            btn6 = Button(text="B: Using flexible functions with args. For hardcores.")
+            uid = btn6.fast_bind('on_press', self.on_anything, "1", "2", monthy="python")
+            if not uid:
+                raise Exception('Binding failed').
+            ...
+            btn6.unbind_uid('on_press', uid)
+
         .. versionadded:: 1.9.0
         '''
         cdef EventObservers observers
