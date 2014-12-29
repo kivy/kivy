@@ -445,14 +445,17 @@ cdef class EventDispatcher(ObjectWithUid):
         - Although :meth:`bind` creates a :class:`WeakMethod` when
           binding to an event, this method stores the callback directly.
 
-        - This method returns True if `name` was found and bound, and
-          `False`, otherwise. It does not raise an exception, like :meth:`bind`,
-          would if the property `name` is not found.
+        - This method returns a unique positive number if `name` was found and
+          bound, and `0`, otherwise. It does not raise an exception, like
+          :meth:`bind` would if the property `name` is not found. If not zero,
+          the uid returned is unique to this `name` can callback and can be
+          used with :meth:`unbind_uid` for unbinding.
 
 
         When binding a callback with largs and/or kwargs, :meth:`fast_unbind`
         must be used for unbinding. If no largs and kwargs are provided,
-        :meth:`unbind` may be used as well.
+        :meth:`unbind` may be used as well. :meth:`unbind_uid` can be used in
+        either case.
 
         This method passes on any caught positional and/or keyword arguments to
         the callback, removing the need to call partial. When calling the
@@ -526,15 +529,13 @@ cdef class EventDispatcher(ObjectWithUid):
         if name[:3] == 'on_':
             observers = self.__event_stack.get(name)
             if observers is not None:
-                observers.fast_bind(func, largs, kwargs, 0)
-                return True
-            return False
+                return observers.fast_bind(func, largs, kwargs, 0)
+            return 0
         else:
             ps = self.__storage.get(name)
             if ps is None:
-                return False
-            ps.observers.fast_bind(func, largs, kwargs, 0)
-            return True
+                return 0
+            return ps.observers.fast_bind(func, largs, kwargs, 0)
 
     def fast_unbind(self, name, func, *largs, **kwargs):
         '''Similar to :meth:`fast_bind`.
@@ -561,6 +562,31 @@ cdef class EventDispatcher(ObjectWithUid):
             if ps is not None:
                 ps.observers.fast_unbind(func, largs, kwargs)
 
+    def unbind_uid(self, name, uid):
+        '''Uses the uid returned by :meth:`fast_bind` to unbind the callback.
+
+        This method is much more efficient than :meth:`fast_unbind`. If `uid`
+        evaluates to False (e.g. 0) a `ValueError` is raised. Also, only
+        callbacks bound with :meth:`fast_bind` can be unbound with this method.
+
+        Since each call to :meth:`fast_bind` will generate a unique `uid`,
+        only one callback will be removed. If `uid` is not found among the
+        callbacks, no error is raised.
+
+        .. versionadded:: 1.9.0
+        '''
+        cdef EventObservers observers
+        cdef PropertyStorage ps
+
+        if name[:3] == 'on_':
+            observers = self.__event_stack.get(name)
+            if observers is not None:
+                observers.unbind_uid(uid)
+        else:
+            ps = self.__storage.get(name)
+            if ps is not None:
+                ps.observers.unbind_uid(uid)
+
     def get_property_observers(self, name, args=False):
         ''' Returns a list of methods that are bound to the property/event
         passed as the *name* argument::
@@ -573,11 +599,16 @@ cdef class EventDispatcher(ObjectWithUid):
                 The name of the event or property.
             `args`: bool
                 Whether to return the bound args. To keep compatibility,
-                callbacks bound with :meth:`fast_bind` will also only return
-                the callback function and not their provided args, unless `args`
-                is True. If True, each element in the list is a 4-tuple of
-                `(callback, largs, kwargs, is_ref)`, where `is_ref` indicates
-                whether `callback` is a weakref. Defaults to `False`.
+                only the callback functions and not their provided args will
+                be returned in the list when `args` is False.
+
+                If True, each element in the list is a 5-tuple of
+                `(callback, largs, kwargs, is_ref, uid)`, where `is_ref` indicates
+                whether `callback` is a weakref, and `uid` is the uid given by
+                :meth:`fast_bind`, or None if :meth:`bind` was used. Defaults to `False`.
+
+        :Returns:
+            The list of bound callbacks. See `args` for details.
 
         .. versionadded:: 1.8.0
 
@@ -806,7 +837,7 @@ cdef class EventObservers:
         self.dispatch_reverse = dispatch_reverse
         self.dispatch_value = dispatch_value
         self.last_callback = self.first_callback = None
-        self.uid = 0
+        self.uid = 1  # start with 1 so uid is always evaluated to True
 
     cdef inline void bind(self, object observer) except *:
         '''Bind the observer to the event. If this observer has already been
@@ -900,8 +931,9 @@ cdef class EventObservers:
         a ValueError is raised.
         '''
         cdef BoundCallback callback = self.first_callback
-        if uid is None:
-            raise ValueError(None)
+        if not uid:
+            raise ValueError(
+                'uid, {}, that evaluates to False is not valid'.format(uid))
 
         while callback is not None:
             if callback.uid != uid:
@@ -1113,5 +1145,6 @@ cdef class EventObservers:
         while callback is not None:
             yield (
                 callback.func, callback.largs if callback.largs is not None else (),
-                callback.kwargs if callback.kwargs is not None else {}, callback.is_ref)
+                callback.kwargs if callback.kwargs is not None else {},
+                callback.is_ref, callback.uid)
             callback = callback.next
