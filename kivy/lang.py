@@ -1503,7 +1503,7 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
         if fun is None:
             continue
         try:
-            f.unbind_uid(k, fun, uid)
+            f.unbind_uid(k, uid)
         except ReferenceError:
             pass
     del bound[j:]
@@ -2063,7 +2063,7 @@ class BuilderBase(object):
                 if fn is None:  # it's not a kivy prop.
                     continue
                 try:
-                    f.unbind_uid(k, fn, bound_uid)
+                    f.unbind_uid(k, bound_uid)
                 except ReferenceError:
                     # proxy widget is already gone, that's cool :)
                     pass
