@@ -281,13 +281,23 @@ cdef class Property:
             If set, it will replace an invalid property value (overrides
             errorhandler).
 
+            If the paramters include `force_dispatch`, it should be a boolean.
+            If True, the property event will be dispatched even if the new
+            value matches the old value (by default identical values are not
+            dispatched to avoid infinite recursion in two-way binds). Be
+            careful, this is for advanced use only.
+
     .. versionchanged:: 1.4.2
         Parameters errorhandler and errorvalue added
+
+    .. versionchanged:: 1.9.0
+        Parameter force_dispatch added
     '''
 
     def __cinit__(self):
         self._name = ''
         self.allownone = 0
+        self.force_dispatch = 0
         self.defaultvalue = None
         self.errorvalue = None
         self.errorhandler = None
@@ -297,6 +307,7 @@ cdef class Property:
     def __init__(self, defaultvalue, **kw):
         self.defaultvalue = defaultvalue
         self.allownone = <int>kw.get('allownone', 0)
+        self.force_dispatch = <int>kw.get('force_dispatch', 0)
         self.errorvalue = kw.get('errorvalue', None)
         self.errorhandler = kw.get('errorhandler', None)
 
@@ -398,7 +409,7 @@ cdef class Property:
         cdef PropertyStorage ps = obj.__storage[self._name]
         value = self.convert(obj, value)
         realvalue = ps.value
-        if self.compare_value(realvalue, value):
+        if not self.force_dispatch and self.compare_value(realvalue, value):
             return False
 
         try:
@@ -1192,7 +1203,7 @@ cdef class ReferenceListProperty(Property):
         cdef list value
         cdef PropertyStorage ps = obj.__storage[self._name]
         value = self.convert(obj, _value)
-        if self.compare_value(ps.value, value):
+        if not self.force_dispatch and self.compare_value(ps.value, value):
             return False
         self.check(obj, value)
         # prevent dependency loop
@@ -1693,7 +1704,8 @@ cdef class ConfigParserProperty(Property):
         value = self._parse_str(value)
         realvalue = ps.value
         if self.compare_value(realvalue, value):
-            if self.compare_value(orig_value, value):
+            fd = self.force_dispatch
+            if not fd and self.compare_value(orig_value, value):
                 return False
             else:
                 # even if the resolved parsed value is the same, the original

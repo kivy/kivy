@@ -351,16 +351,19 @@ cdef class Mesh(VertexInstruction):
         `fmt`: list
             The format for vertices, by default, each vertex is described by 2D
             coordinates (x, y) and 2D texture coordinate (u, v).
-            Each element of the list should be a tuple or list, of the form:
+            Each element of the list should be a tuple or list, of the form
+
                 (variable_name, size, type)
+
             which will allow mapping vertex data to the glsl instructions.
-                [
-                (b'v_pos', 2, b'float'),
-                (b'v_tc', 2, b'float'),
-                ]
+
+                [(b'v_pos', 2, b'float'), (b'v_tc', 2, b'float'),]
+
             will allow using
+
                 attribute vec2 v_pos;
                 attribute vec2 v_tc;
+
             in glsl's vertex shader.
     '''
 
