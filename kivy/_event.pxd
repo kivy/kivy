@@ -30,6 +30,7 @@ cdef class BoundCallback:
     cdef BoundLock lock  # see BoundLock
     cdef BoundCallback next  # next callback in chain
     cdef BoundCallback prev  # previous callback in chain
+    cdef object uid  # the uid given for this callback, None if not given
 
 
 cdef class EventObservers:
@@ -41,11 +42,14 @@ cdef class EventObservers:
     cdef BoundCallback first_callback
     # The last callback bound
     cdef BoundCallback last_callback
+    # The uid to assign to the next bound callback.
+    cdef object uid
 
     cdef inline void bind(self, object observer) except *
-    cdef inline void fast_bind(self, object observer, tuple largs, dict kwargs, int is_ref) except *
+    cdef inline object fast_bind(self, object observer, tuple largs, dict kwargs, int is_ref)
     cdef inline void unbind(self, object observer, int is_ref, int stop_on_first) except *
     cdef inline void fast_unbind(self, object observer, tuple largs, dict kwargs) except *
+    cdef inline object unbind_uid(self, object uid)
     cdef inline void remove_callback(self, BoundCallback callback, int force=*) except *
     cdef inline object _dispatch(
         self, object f, tuple slargs, dict skwargs, object obj, object value, tuple largs, dict kwargs)

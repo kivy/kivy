@@ -783,13 +783,15 @@ cdef class EventDispatcher(ObjectWithUid):
 
 cdef class BoundCallback:
 
-    def __cinit__(self, object func, tuple largs, dict kwargs, int is_ref):
+    def __cinit__(self, object func, tuple largs, dict kwargs, int is_ref,
+                  uid=None):
         self.func = func
         self.largs = largs
         self.kwargs = kwargs
         self.is_ref = is_ref
         self.lock = unlocked
         self.prev = self.next = None
+        self.uid = uid
 
 
 cdef class EventObservers:
@@ -804,6 +806,7 @@ cdef class EventObservers:
         self.dispatch_reverse = dispatch_reverse
         self.dispatch_value = dispatch_value
         self.last_callback = self.first_callback = None
+        self.uid = 0
 
     cdef inline void bind(self, object observer) except *:
         '''Bind the observer to the event. If this observer has already been
@@ -825,15 +828,17 @@ cdef class EventObservers:
             new_callback.prev = self.last_callback
             self.last_callback = new_callback
 
-    cdef inline void fast_bind(self, object observer, tuple largs, dict kwargs,
-                               int is_ref) except *:
+    cdef inline object fast_bind(self, object observer, tuple largs, dict kwargs,
+                               int is_ref):
         '''Similar to bind, except it accepts largs, kwargs that is forwards.
         is_ref, if true, will mark the observer that it is a ref so that we
         can unref it before calling.
         '''
+        cdef object uid = self.uid
+        self.uid += 1
         cdef BoundCallback new_callback = BoundCallback(
             observer, largs if largs else None, kwargs if kwargs else None,
-            is_ref)
+            is_ref, uid)
 
         if self.first_callback is None:
             self.last_callback = self.first_callback = new_callback
@@ -841,6 +846,7 @@ cdef class EventObservers:
             self.last_callback.next = new_callback
             new_callback.prev = self.last_callback
             self.last_callback = new_callback
+        return uid
 
     cdef inline void unbind(self, object observer, int is_ref, int stop_on_first) except *:
         '''Removes the observer. If is_ref, he observers will be derefed before
@@ -887,6 +893,23 @@ cdef class EventObservers:
                 continue
 
             self.remove_callback(callback)
+            return
+
+    cdef inline object unbind_uid(self, object uid):
+        '''Remove the callback identified by the uid. If passed uid is None,
+        a ValueError is raised.
+        '''
+        cdef BoundCallback callback = self.first_callback
+        if uid is None:
+            raise ValueError(None)
+
+        while callback is not None:
+            if callback.uid != uid:
+                callback = callback.next
+                continue
+
+            if callback.lock != deleted:
+                self.remove_callback(callback)
             return
 
     cdef inline void remove_callback(self, BoundCallback callback, int force=0) except *:
