@@ -75,6 +75,7 @@ cdef class Observable(ObjectWithUid):
 
     def __cinit__(self, *largs, **kwargs):
         self.__fast_bind_mapping = defaultdict(list)
+        self.bound_uid = 1
 
     def bind(self, **kwargs):
         pass
@@ -82,7 +83,7 @@ cdef class Observable(ObjectWithUid):
     def unbind(self, **kwargs):
         pass
 
-    def fast_bind(self, name, func, *largs):
+    def fast_bind(self, name, func, *largs, **kwargs):
         '''See :meth:`EventDispatcher.fast_bind`.
 
         .. note::
@@ -90,32 +91,62 @@ cdef class Observable(ObjectWithUid):
             To keep backward compatibility with derived classes which may have
             inherited from :class:`Observable` before, the
             :meth:`fast_bind` method was added. The default implementation
-            of :meth:`fast_bind` and :meth:`fast_unbind` is to create a partial
-            function that it passes to bind. However, :meth:`fast_unbind`
-            is fairly inefficient since we have to lookup this partial function
-            before we can call :meth:`unbind`. It is recommended to overwrite
+            of :meth:`fast_bind` is to create a partial
+            function that it passes to bind while saving the uid and largs/kwargs.
+            However, :meth:`fast_unbind` (and :meth:`unbind_uid`) are fairly
+            inefficient since we have to first lookup this partial function
+            using the largs/kwargs or uid and then call :meth:`unbind` on
+            the returned function. It is recommended to overwrite
             these methods in derived classes to bind directly for
             better performance.
 
+            Similarly to :meth:`EventDispatcher.fast_bind`, this method returns
+            0 on failure and a positive unique uid on success. This uid can be
+            used with :meth:`unbind_uid`.
+
         '''
-        f = partial(func, *largs)
-        self.__fast_bind_mapping[name].append(((func, largs), f))
+        uid = self.bound_uid
+        self.bound_uid += 1
+        f = partial(func, *largs, **kwargs)
+        self.__fast_bind_mapping[name].append(((func, largs, kwargs), uid, f))
         try:
             self.bind(**{name: f})
-            return True
+            return uid
         except KeyError:
-            return False
+            return 0
 
-    def fast_unbind(self, name, func, *largs):
-        '''See :meth:`fast_bind`.
+    def fast_unbind(self, name, func, *largs, **kwargs):
+        '''See :meth:`fast_bind` and :meth:`EventDispatcher.fast_unbind`.
         '''
         cdef object f = None
-        cdef tuple item, val = (func, largs)
+        cdef tuple item, val = (func, largs, kwargs)
         cdef list bound = self.__fast_bind_mapping[name]
 
         for i, item in enumerate(bound):
             if item[0] == val:
-                f = item[1]
+                f = item[2]
+                del bound[i]
+                break
+
+        if f is not None:
+            try:
+                self.unbind(**{name: f})
+            except KeyError:
+                pass
+
+    def unbind_uid(self, name, uid):
+        '''See :meth:`fast_bind` and :meth:`EventDispatcher.unbind_uid`.
+        '''
+        cdef object f = None
+        cdef tuple item
+        cdef list bound = self.__fast_bind_mapping[name]
+        if not uid:
+            raise ValueError(
+                'uid, {}, that evaluates to False is not valid'.format(uid))
+
+        for i, item in enumerate(bound):
+            if item[1] == uid:
+                f = item[2]
                 del bound[i]
                 break
 
