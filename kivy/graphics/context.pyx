@@ -4,10 +4,12 @@ Context management
 
 .. versionadded:: 1.2.0
 
-This class manages a registry of all the created graphics instructions. It has
+This class manages a registry of all created graphics instructions. It has
 the ability to flush and delete them.
 
-You can read more about it at :doc:`api-kivy.graphics`
+You can read more about Kivy graphics contexts in the :doc:`api-kivy.graphics`
+module documentation. These are based on
+`OpenGL graphics contexts <http://www.opengl.org/wiki/OpenGL_Context>`_.
 '''
 
 __all__ = ('Context',)
@@ -43,9 +45,6 @@ cdef class Context:
         self.observers_before = []
         self.l_texture = []
         self.l_canvas = []
-        self.l_vbo = []
-        self.l_vertexbatch = []
-        self.l_shader = []
         self.l_fbo = []
         self.flush()
         self.trigger_gl_dealloc = Clock.create_trigger(self.gl_dealloc, 0)
@@ -64,15 +63,6 @@ cdef class Context:
 
     cdef void register_canvas(self, Canvas canvas):
         self.l_canvas.append(ref(canvas, self.l_canvas.remove))
-
-    cdef void register_vbo(self, VBO vbo):
-        self.l_vbo.append(ref(vbo, self.l_vbo.remove))
-
-    cdef void register_vertexbatch(self, VertexBatch vb):
-        self.l_vertexbatch.append(ref(vb, self.l_vertexbatch.remove))
-
-    cdef void register_shader(self, Shader shader):
-        self.l_shader.append(ref(shader, self.l_shader.remove))
 
     cdef void register_fbo(self, Fbo fbo):
         self.l_fbo.append(ref(fbo, self.l_fbo.remove))
@@ -237,23 +227,24 @@ cdef class Context:
         image_objects.update(Cache._objects['kv.image'])
         Cache._objects['kv.image'] = image_objects
 
+        gc_objects = gc.get_objects()[:]
         Logger.debug('Context: Reload vbos')
-        for item in self.l_vbo[:]:
-            vbo = item()
-            if vbo is not None:
-                Logger.trace('Context: reloaded %r' % item())
+        for item in gc_objects:
+            if isinstance(item, VBO):
+                vbo = item
+                Logger.trace('Context: reloaded %r' % vbo)
                 vbo.reload()
         Logger.debug('Context: Reload vertex batchs')
-        for item in self.l_vertexbatch[:]:
-            batch = item()
-            if batch is not None:
-                Logger.trace('Context: reloaded %r' % item())
+        for item in gc_objects:
+            if isinstance(item, VertexBatch):
+                batch = item
+                Logger.trace('Context: reloaded %r' % batch)
                 batch.reload()
         Logger.debug('Context: Reload shaders')
-        for item in self.l_shader[:]:
-            shader = item()
-            if shader is not None:
-                Logger.trace('Context: reloaded %r' % item())
+        for item in gc_objects:
+            if isinstance(item, Shader):
+                shader = item
+                Logger.trace('Context: reloaded %r' % shader)
                 shader.reload()
         Logger.debug('Context: Reload canvas')
         for item in self.l_canvas[:]:

@@ -66,6 +66,13 @@ class AnimationTestCase(unittest.TestCase):
         self.sleep(1.5)
         self.assertAlmostEqual(instruction.x, 100)
 
+    def test_weakref(self):
+        widget = Widget()
+        anim = Animation(x=100)
+        anim.start(widget.proxy_ref)
+        del widget
+        self.sleep(1.)
+
 
 class SequentialAnimationTestCase(unittest.TestCase):
 

@@ -39,10 +39,11 @@ import os
 from functools import partial
 from copy import copy
 from kivy import kivy_data_dir
+from kivy.utils import platform
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
 from kivy.core.text.text_layout import layout_text, LayoutWord
-from kivy.resources import resource_find
+from kivy.resources import resource_find, resource_add_path
 from kivy.compat import PY2
 
 DEFAULT_FONT = 'DroidSans'
@@ -104,11 +105,14 @@ class LabelBase(object):
         `strip` : bool, defaults to False
             Whether each row of text has its leading and trailing spaces
             stripped. If `halign` is `justify` it is implicitly True.
+        `unicode_errors` : str, defaults to `'replace'`
+            How to handle unicode decode errors. Can be `'strict'`, `'replace'`
+            or `'ignore'`.
 
-    .. versionchanged:: 1.8.1
-        `strip`, `shorten_from`, and `split_str` were added.
+    .. versionchanged:: 1.9.0
+        `strip`, `shorten_from`, `split_str`, and `unicode_errors` were added.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `padding_x` and `padding_y` has been fixed to work as expected.
         In the past, the text was padded by the negative of their values.
 
@@ -133,20 +137,26 @@ class LabelBase(object):
 
     _fonts_cache = {}
 
+    _fonts_dirs = []
+
     _texture_1px = None
 
     def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
                  bold=False, italic=False, halign='left', valign='bottom',
                  shorten=False, text_size=None, mipmap=False, color=None,
                  line_height=1.0, strip=False, shorten_from='center',
-                 split_str=' ', **kwargs):
+                 split_str=' ', unicode_errors='replace', **kwargs):
+
+        # Include system fonts_dir in resource paths.
+        # This allows us to specify a font from those dirs.
+        LabelBase.get_system_fonts_dir()
 
         options = {'text': text, 'font_size': font_size,
                    'font_name': font_name, 'bold': bold, 'italic': italic,
                    'halign': halign, 'valign': valign, 'shorten': shorten,
                    'mipmap': mipmap, 'line_height': line_height,
                    'strip': strip, 'shorten_from': shorten_from,
-                   'split_str': split_str}
+                   'split_str': split_str, 'unicode_errors': unicode_errors}
 
         options['color'] = color or (1, 1, 1, 1)
         options['padding'] = kwargs.get('padding', (0, 0))
@@ -226,6 +236,11 @@ class LabelBase(object):
             options['font_name_r'] = fontscache[fontname]
         else:
             filename = resource_find(fontname)
+            if not filename:
+                fontname = fontname + \
+                    ('' if fontname.endswith('.ttf') else '.ttf')
+                filename = resource_find(fontname)
+
             if filename is None:
                 # XXX for compatibility, check directly in the data dir
                 filename = os.path.join(kivy_data_dir, fontname)
@@ -233,6 +248,41 @@ class LabelBase(object):
                     raise IOError('Label: File %r not found' % fontname)
             fontscache[fontname] = filename
             options['font_name_r'] = filename
+
+    @staticmethod
+    def get_system_fonts_dir():
+        '''Return the Directory used by the system for fonts.
+        '''
+        if LabelBase._fonts_dirs:
+            return LabelBase._fonts_dirs
+
+        fdirs = []
+        if platform == 'linux':
+            fdirs = [
+                '/usr/share/fonts/truetype', '/usr/local/share/fonts',
+                os.path.expanduser('~/.fonts'),
+                os.path.expanduser('~/.local/share/fonts')]
+        elif platform == 'macosx':
+            fdirs = ['/Library/Fonts', '/System/Library/Fonts',
+                os.path.expanduser('~/Library/Fonts')]
+        elif platform == 'win':
+            fdirs = [os.environ['SYSTEMROOT'] + os.sep + 'Fonts']
+        elif platform == 'ios':
+            fdirs = ['/System/Library/Fonts']
+        elif platform == 'android':
+            fdirs = ['/system/fonts']
+
+        if fdirs:
+            fdirs.append(kivy_data_dir + os.sep + 'fonts')
+            # let's register the font dirs
+            rdirs = []
+            for _dir in fdirs:
+                if os.path.exists(_dir):
+                    resource_add_path(_dir)
+                    rdirs.append(_dir)
+            LabelBase._fonts_dirs = rdirs
+            return rdirs
+        raise Exception("Unknown Platform {}".format(platform))
 
     def get_extents(self, text):
         '''Return a tuple (width, height) indicating the size of the specified
@@ -258,7 +308,7 @@ class LabelBase(object):
             returned function incorrect. You should only use this if you know
             what you're doing.
 
-        .. versionadded:: 1.8.1
+        .. versionadded:: 1.9.0
         '''
         return self.get_extents
 
@@ -500,14 +550,23 @@ class LabelBase(object):
                                     options['halign'][-1] == 'y')
         uw, uh = options['text_size'] = self._text_size
         text = self.text
-        if strip:
-            text = text.strip()
+        if not strip:
+            # all text will be stripped by default. unicode NO-BREAK SPACE
+            # characters will be preserved, so we replace the leading and
+            # trailing spaces with \u00a0
+            text = text.decode('utf8', errors=options['unicode_errors'])\
+                if isinstance(text, bytes) else text
+            lspace = len(text) - len(text.lstrip())
+            rspace = len(text) - len(text.rstrip())
+            text = (u'\u00a0' * lspace) + text.strip() + (u'\u00a0' * rspace)
         if uw is not None and options['shorten']:
             text = self.shorten(text)
         self._cached_lines = lines = []
         if not text:
             return 0, 0
 
+        ostrip = options['strip']
+        strip = options['strip'] = True
         if uh is not None and options['valign'][-1] == 'e':  # middle
             center = -1  # pos of newline
             if len(text) > 1:
@@ -533,6 +592,7 @@ class LabelBase(object):
         else:  # top or bottom
             w, h, clipped = layout_text(text, lines, (0, 0), (uw, uh), options,
                 self.get_cached_extents(), options['valign'][-1] == 'p', True)
+        options['strip'] = ostrip
         self._internal_size = w, h
         if uw:
             w = uw
@@ -540,7 +600,7 @@ class LabelBase(object):
             h = uh
         if h > 1 and w < 2:
             w = 2
-        return w, h
+        return int(w), int(h)
 
     def _texture_refresh(self, *l):
         self.refresh()
@@ -604,7 +664,7 @@ class LabelBase(object):
     def texture_1px(self):
         if LabelBase._texture_1px is None:
             tex = Texture.create(size=(1, 1), colorfmt='rgba')
-            tex.blit_buffer(b'\x00\x00\x00\x00')
+            tex.blit_buffer(b'\x00\x00\x00\x00', colorfmt='rgba')
             LabelBase._texture_1px = tex
         return LabelBase._texture_1px
 
@@ -665,6 +725,7 @@ class LabelBase(object):
 # Load the appropriate provider
 Label = core_select_lib('text', (
     ('pygame', 'text_pygame', 'LabelPygame'),
+    ('sdl2', 'text_sdl2', 'LabelSDL2'),
     ('sdlttf', 'text_sdlttf', 'LabelSDLttf'),
     ('pil', 'text_pil', 'LabelPIL'),
 ))
@@ -682,3 +743,4 @@ if 'KIVY_DOC' not in os.environ:
                    'data/fonts/DroidSans-Italic.ttf',
                    'data/fonts/DroidSans-Bold.ttf',
                    'data/fonts/DroidSans-BoldItalic.ttf')
+

@@ -140,6 +140,14 @@ class::
     ins.a = 5    # callback not called, because the value did not change
     ins.a = -1   # callback called
 
+.. note::
+
+    Property objects live at the class level and manage the values attached
+    to instances. Re-assigning at class level will remove the Property. For
+    example, continuing with the code above, `MyClass.a = 5` replaces
+    the property object with a simple int.
+
+
 Observe using 'on_<propname>'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -181,7 +189,7 @@ When clicking on the button, although the label object property has changed
 to the second widget, the button text will not change because it is bound to
 the text property of the first label directly.
 
-In `1.8.1`, the ``rebind`` option has been introduced that will allow the
+In `1.9.0`, the ``rebind`` option has been introduced that will allow the
 automatic updating of the ``text`` when ``label`` is changed, provided it
 was enabled. See :class:`ObjectProperty`.
 '''
@@ -193,6 +201,7 @@ __all__ = ('Property',
            'DictProperty', 'VariableListProperty', 'ConfigParserProperty')
 
 include "graphics/config.pxi"
+
 
 from weakref import ref
 from kivy.compat import string_types
@@ -272,13 +281,23 @@ cdef class Property:
             If set, it will replace an invalid property value (overrides
             errorhandler).
 
+            If the paramters include `force_dispatch`, it should be a boolean.
+            If True, the property event will be dispatched even if the new
+            value matches the old value (by default identical values are not
+            dispatched to avoid infinite recursion in two-way binds). Be
+            careful, this is for advanced use only.
+
     .. versionchanged:: 1.4.2
         Parameters errorhandler and errorvalue added
+
+    .. versionchanged:: 1.9.0
+        Parameter force_dispatch added
     '''
 
     def __cinit__(self):
         self._name = ''
         self.allownone = 0
+        self.force_dispatch = 0
         self.defaultvalue = None
         self.errorvalue = None
         self.errorhandler = None
@@ -288,6 +307,7 @@ cdef class Property:
     def __init__(self, defaultvalue, **kw):
         self.defaultvalue = defaultvalue
         self.allownone = <int>kw.get('allownone', 0)
+        self.force_dispatch = <int>kw.get('force_dispatch', 0)
         self.errorvalue = kw.get('errorvalue', None)
         self.errorhandler = kw.get('errorhandler', None)
 
@@ -297,14 +317,13 @@ cdef class Property:
         if 'errorhandler' in kw and not callable(self.errorhandler):
             raise ValueError('errorhandler %s not callable' % self.errorhandler)
 
-
     property name:
         def __get__(self):
             return self._name
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
         storage.value = self.convert(obj, self.defaultvalue)
-        storage.observers = []
+        storage.observers = EventObservers()
 
     cpdef link(self, EventDispatcher obj, str name):
         '''Link the instance with its real name.
@@ -325,7 +344,11 @@ cdef class Property:
         used in `Widget.__new__`. The link function is also used to create the
         storage space of the property for this specific widget instance.
         '''
-        cdef PropertyStorage d = PropertyStorage()
+        cdef PropertyStorage d
+        if self._name != '' and name != self._name:
+            d = obj.__storage.get(self._name, PropertyStorage())
+        else:
+            d = PropertyStorage()
         self._name = name
         obj.__storage[name] = d
         self.init_storage(obj, d)
@@ -337,16 +360,37 @@ cdef class Property:
         '''Add a new observer to be called only when the value is changed.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        if observer not in ps.observers:
-            ps.observers.append(observer)
+        ps.observers.bind(observer)
+
+    cpdef fast_bind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
+        '''Similar to bind, except it doesn't check if the observer already
+        exists. It also expands and forwards largs and kwargs to the callback.
+        fast_unbind or unbind_uid should be called when unbinding.
+        It returns a unique positive uid to be used with unbind_uid.
+        '''
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        return ps.observers.fast_bind(observer, largs, kwargs, 0)
 
     cpdef unbind(self, EventDispatcher obj, observer):
         '''Remove the observer from our widget observer list.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        for item in ps.observers[:]:
-            if item == observer:
-                ps.observers.remove(item)
+        ps.observers.unbind(observer, 0, 0)
+
+    cpdef fast_unbind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
+        '''Remove the observer from our widget observer list bound with
+        fast_bind. It removes the first match it finds, as opposed to unbind
+        which searches for all matches.
+        '''
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        ps.observers.fast_unbind(observer, largs, kwargs)
+
+    cpdef unbind_uid(self, EventDispatcher obj, object uid):
+        '''Remove the observer from our widget observer list bound with
+        fast_bind using the uid.
+        '''
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        ps.observers.unbind_uid(uid)
 
     def __set__(self, EventDispatcher obj, val):
         self.set(obj, val)
@@ -365,7 +409,7 @@ cdef class Property:
         cdef PropertyStorage ps = obj.__storage[self._name]
         value = self.convert(obj, value)
         realvalue = ps.value
-        if self.compare_value(realvalue, value):
+        if not self.force_dispatch and self.compare_value(realvalue, value):
             return False
 
         try:
@@ -432,17 +476,14 @@ cdef class Property:
 
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        if len(ps.observers):
-            value = ps.value
-            for observer in ps.observers[:]:
-                observer(obj, value)
+        ps.observers.dispatch(obj, ps.value, None, None, 0)
 
 
 cdef class NumericProperty(Property):
     '''Property that represents a numeric value.
 
     :Parameters:
-        `default`: int or float, defaults to 0
+        `defaultvalue`: int or float, defaults to 0
             Specifies the default value of the property.
 
     >>> wid = Widget()
@@ -519,7 +560,7 @@ cdef class StringProperty(Property):
     '''Property that represents a string value.
 
     :Parameters:
-        `default`: string, defaults to ''
+        `defaultvalue`: string, defaults to ''
             Specifies the default value of the property.
 
     '''
@@ -607,9 +648,25 @@ cdef class ListProperty(Property):
     '''Property that represents a list.
 
     :Parameters:
-        `default`: list, defaults to []
+        `defaultvalue`: list, defaults to []
             Specifies the default value of the property.
 
+    .. warning::
+
+        When assigning a list to a :class:`ListProperty`, the list stored in
+        the property is a copy of the list and not the original list. This can
+        be demonstrated with the following example::
+
+            >>> class MyWidget(Widget):
+            >>>     my_list = ListProperty([])
+
+            >>> widget = MyWidget()
+            >>> my_list = widget.my_list = [1, 5, 7]
+            >>> print my_list is widget.my_list
+            False
+            >>> my_list.append(10)
+            >>> print(my_list, widget.my_list)
+            [1, 5, 7, 10], [1, 5, 7]
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or []
@@ -654,11 +711,8 @@ class ObservableDict(dict):
         try:
             return self._weak_return(self.__getitem__(attr))
         except KeyError:
-            try:
-                return self._weak_return(
-                                super(ObservableDict, self).__getattr__(attr))
-            except AttributeError:
-                raise KeyError(attr)
+            return self._weak_return(
+                            super(ObservableDict, self).__getattr__(attr))
 
     def __setattr__(self, attr, value):
         if attr in ('prop', 'obj'):
@@ -706,13 +760,19 @@ cdef class DictProperty(Property):
     '''Property that represents a dict.
 
     :Parameters:
-        `default`: dict, defaults to None
+        `defaultvalue`: dict, defaults to None
             Specifies the default value of the property.
         `rebind`: bool, defaults to False
             See :class:`ObjectProperty` for details.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `rebind` has been introduced.
+
+    .. warning::
+
+        Similar to :class:`ListProperty`, when assigning a dict to a
+        :class:`DictProperty`, the dict stored in the property is a copy of the
+        dict and not the original dict. See :class:`ListProperty` for details.
     '''
     def __init__(self, defaultvalue=None, rebind=False, **kw):
         defaultvalue = defaultvalue or {}
@@ -742,7 +802,7 @@ cdef class ObjectProperty(Property):
     '''Property that represents a Python object.
 
     :Parameters:
-        `default`: object type
+        `defaultvalue`: object type
             Specifies the default value of the property.
         `rebind`: bool, defaults to False
             Whether kv rules using this object as an intermediate attribute
@@ -775,7 +835,7 @@ cdef class ObjectProperty(Property):
 
         To mark the property as changed, you must reassign a new python object.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `rebind` has been introduced.
 
     .. versionchanged:: 1.7.0
@@ -800,7 +860,7 @@ cdef class BooleanProperty(Property):
     '''Property that represents only a boolean value.
 
     :Parameters:
-        `default`: boolean
+        `defaultvalue`: boolean
             Specifies the default value of the property.
     '''
 
@@ -1017,6 +1077,12 @@ cdef class OptionProperty(Property):
         `\*\*kwargs`: a list of keyword arguments
             Should include an `options` parameter specifying a list (not tuple)
             of valid options.
+
+    For example::
+
+        class MyWidget(Widget):
+            state = OptionProperty("None", options=["On", "Off", "None"])
+
     '''
     def __cinit__(self):
         self.options = []
@@ -1068,6 +1134,14 @@ cdef class ReferenceListProperty(Property):
     `pos`, it will automatically change the values of `x` and `y` accordingly.
     If you read the value of `pos`, it will return a tuple with the values of
     `x` and `y`.
+
+    For example::
+
+        class MyWidget(EventDispatcher):
+            x = NumericProperty(0)
+            y = NumericProperty(0)
+            pos = ReferenceListProperty(x, y)
+
     '''
     def __cinit__(self):
         self.properties = list()
@@ -1091,7 +1165,7 @@ cdef class ReferenceListProperty(Property):
         cdef Property prop
         Property.link_deps(self, obj, name)
         for prop in self.properties:
-            prop.bind(obj, self.trigger_change)
+            prop.fast_bind(obj, self.trigger_change)
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -1129,7 +1203,7 @@ cdef class ReferenceListProperty(Property):
         cdef list value
         cdef PropertyStorage ps = obj.__storage[self._name]
         value = self.convert(obj, _value)
-        if self.compare_value(ps.value, value):
+        if not self.force_dispatch and self.compare_value(ps.value, value):
             return False
         self.check(obj, value)
         # prevent dependency loop
@@ -1207,7 +1281,7 @@ cdef class AliasProperty(Property):
         `rebind`: bool, defaults to False
             See :class:`ObjectProperty` for details.
 
-    .. versionchanged:: 1.8.1
+    .. versionchanged:: 1.9.0
         `rebind` has been introduced.
 
     .. versionchanged:: 1.4.0
@@ -1242,7 +1316,7 @@ cdef class AliasProperty(Property):
         cdef Property oprop
         for prop in self.bind_objects:
             oprop = getattr(obj.__class__, prop)
-            oprop.bind(obj, self.trigger_change)
+            oprop.fast_bind(obj, self.trigger_change)
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -1517,7 +1591,7 @@ cdef class ConfigParserProperty(Property):
                 `errorhandler` will be used if provided or a `ValueError` is
                 raised.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
     '''
 
     def __cinit__(self):
@@ -1632,7 +1706,8 @@ cdef class ConfigParserProperty(Property):
         value = self._parse_str(value)
         realvalue = ps.value
         if self.compare_value(realvalue, value):
-            if self.compare_value(orig_value, value):
+            fd = self.force_dispatch
+            if not fd and self.compare_value(orig_value, value):
                 return False
             else:
                 # even if the resolved parsed value is the same, the original

@@ -119,7 +119,8 @@ class VideoPyGst(VideoBase):
             self.dispatch('on_load')
 
         # upload texture data to GPU
-        self._texture.blit_buffer(buf.data, size=size, colorfmt='rgb')
+        if self._texture:
+            self._texture.blit_buffer(buf.data, size=size, colorfmt='rgb')
 
     def _update(self, dt):
         buf = None

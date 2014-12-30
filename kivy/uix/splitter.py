@@ -23,7 +23,7 @@ To change the size of the strip/border used for resizing::
 
     splitter.strip_size = '10pt'
 
-To change it's appearance::
+To change its appearance::
 
     splitter.strip_cls = your_custom_class
 
@@ -136,7 +136,7 @@ class Splitter(BoxLayout):
     :attr:`_parent_proportion` is a
     :class:`~kivy.properties.NumericProperty` and defaults to 0.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
     '''
 
     _bound_parent = ObjectProperty(None, allownone=True)
@@ -146,7 +146,7 @@ class Splitter(BoxLayout):
     :attr:`_bound_parent` is a
     :class:`~kivy.properties.ObjectProperty` and defaults to None.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
     '''
 
     keep_within_parent = BooleanProperty(False)
@@ -155,7 +155,7 @@ class Splitter(BoxLayout):
     :attr:`keep_within_parent` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to False.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
     '''
 
     rescale_with_parent = BooleanProperty(False)
@@ -165,10 +165,10 @@ class Splitter(BoxLayout):
     these attributes can be satisfied, this stops the
     :class:`Splitter` from exceeding the parent size during rescaling.
 
-    :attr:`keep_within_parent` is a
+    :attr:`rescale_with_parent` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to False.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 1.9.0
     '''
 
     __events__ = ('on_press', 'on_release')

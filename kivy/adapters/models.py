@@ -19,23 +19,24 @@ to the requirements of some parts of the system.
 A :class:`SelectableDataItem` is a basic Python data model class that can be
 used as a mixin to build data objects that are compatible with Kivy's
 :class:`~kivy.adapters.adapter.Adapter`
-and selection system, which works with views such as a
-:class:`~kivy.uix.listview.ListView`. The boolean
-property is_selected is a requirement.
+and selection system and which work with views such as a
+:class:`~kivy.uix.listview.ListView`. A boolean *is_selected*
+property a requirement.
 
 The default operation of the selection system is to not propogate selection in
-views such as ListView to the underlying data -- selection is by default a
+views such as ListView to the underlying data: selection is by default a
 view-only operation. However, in some cases, it is useful to propogate
 selection to the actual data items.
 
 You may, of course, build your own Python data model system as the backend for
-a Kivy application. For instance, to use the Google App Engine datamodeling
-system with Kivy, this class could be redefined as::
+a Kivy application. For instance, to use the `Google App Engine Data Modeling
+<https://cloud.google.com/appengine/docs/python/datastore/datamodeling>`_
+system with Kivy, you could define your class as follows::
 
     from google.appengine.ext import db
 
     class MySelectableDataItem(db.Model):
-        ... other properties
+        # ... other properties
         is_selected = db.BooleanProperty()
 
 It is easy to build such a class with plain Python.

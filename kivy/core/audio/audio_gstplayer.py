@@ -38,7 +38,7 @@ class SoundGstplayer(Sound):
 
     @staticmethod
     def extensions():
-        return ('wav', 'ogg', 'mp3')
+        return ('wav', 'ogg', 'mp3', 'm4a')
 
     def __init__(self, **kwargs):
         self.player = None

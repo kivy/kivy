@@ -142,6 +142,8 @@ class StackLayout(Layout):
         padding_top = self.padding[1]
         padding_right = self.padding[2]
         padding_bottom = self.padding[3]
+        children = self.children
+        num_children = len(children)
 
         padding_x = padding_left + padding_right
         padding_y = padding_top + padding_bottom
@@ -201,11 +203,22 @@ class StackLayout(Layout):
 
         urev = (deltau < 0)
         vrev = (deltav < 0)
-        for c in reversed(self.children):
+        for c in reversed(children):
             if c.size_hint[0]:
-                c.width = c.size_hint[0] * (selfsize[0] - padding_x)
+                if urev:
+                    modified_x = (
+                        selfsize[0] - padding_x -
+                        (num_children - 1) * spacing_x)
+                else:
+                    modified_x = (selfsize[0] - padding_x)
+                c.width = c.size_hint[0] * modified_x
             if c.size_hint[1]:
-                c.height = c.size_hint[1] * (selfsize[1] - padding_y)
+                if vrev:
+                    modified_y = (
+                        selfsize[1] - padding_y -
+                        (num_children - 1) * spacing_y)
+                else:
+                    modified_y = (selfsize[1] - padding_y)
 
             # does the widget fit in the row/column?
             if lu - c.size[innerattr] >= 0:

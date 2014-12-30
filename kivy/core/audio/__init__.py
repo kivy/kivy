@@ -26,7 +26,7 @@ type, so it might return different Sound classes depending the file type.
 .. note::
 
     The core audio library does not support recording audio. If you require
-    this functionality, please refer to the 
+    this functionality, please refer to the
     `audiostream <https://github.com/kivy/audiostream>`_ extension.
 
 '''

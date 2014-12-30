@@ -150,7 +150,8 @@ class VideoGi(VideoBase):
             self._texture.flip_vertical()
             self.dispatch('on_load')
 
-        self._texture.blit_buffer(data, size=size, colorfmt='rgb')
+        if self._texture:
+            self._texture.blit_buffer(data, size=size, colorfmt='rgb')
 
     def _update(self, dt):
         buf = None

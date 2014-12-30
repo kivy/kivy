@@ -1,3 +1,5 @@
+include "config.pxi"
+
 cdef class Instruction
 cdef class InstructionGroup
 cdef class ContextInstruction
@@ -25,7 +27,10 @@ cdef class Instruction(ObjectWithUid):
     cdef object __proxy_ref
 
     cdef void apply(self)
-    cdef void flag_update(self, int do_parent=?)
+    IF DEBUG:
+        cdef int flag_update(self, int do_parent=?, list _instrs=?) except -1
+    ELSE:
+        cdef void flag_update(self, int do_parent=?)
     cdef void flag_update_done(self)
     cdef void set_parent(self, Instruction parent)
     cdef void reload(self)

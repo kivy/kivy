@@ -64,10 +64,7 @@ cdef inline convert_to_gl_format(data, fmt):
         with nogil:
             for i in range(0, datasize, 4):
                 c = dst_buffer[i]
-                dst_buffer[i] = dst_buffer[i + 3]
-                dst_buffer[i + 3] = c
-                c = dst_buffer[i + 1]
-                dst_buffer[i + 1] = dst_buffer[i + 2]
+                dst_buffer[i] = dst_buffer[i + 2]
                 dst_buffer[i + 2] = c
 
     else:

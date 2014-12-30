@@ -8,7 +8,7 @@ elapsed between the scheduling and the calling of the callback via the
 `dt` argument::
 
     # dt means delta-time
-    def my_callback(dt): 
+    def my_callback(dt):
         pass
 
     # call my_callback every 0.5 seconds
@@ -160,7 +160,7 @@ Even if x and y changes within one frame, the callback is only run once.
 Threading
 ----------
 
-.. versionadded:: 1.8.1
+.. versionadded:: 1.9.0
 
 Often, other threads are used to schedule callbacks with kivy's main thread
 using :class:`ClockBase`. Therefore, it's important to know what is thread safe
@@ -211,6 +211,7 @@ __all__ = ('Clock', 'ClockBase', 'ClockEvent', 'mainthread')
 
 from sys import platform
 from os import environ
+from functools import wraps
 from kivy.context import register_context
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
@@ -579,7 +580,7 @@ class ClockBase(_ClockBase):
                 callable will be unscheduled (i.e. if this callable was
                 scheduled multiple times). Defaults to `True`.
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             The all parameter was added. Before, it behaved as if `all` was
             `True`.
         '''
@@ -640,8 +641,8 @@ class ClockBase(_ClockBase):
 
 
 def mainthread(func):
-    '''Decorator that will schedule the call of the function in the
-    mainthread.  It can be useful when you use
+    '''Decorator that will schedule the call of the function for the next
+    available frame in the mainthread. It can be useful when you use
     :class:`~kivy.network.urlrequest.UrlRequest` or when you do Thread
     programming: you cannot do any OpenGL-related work in a thread.
 
@@ -650,13 +651,14 @@ def mainthread(func):
 
         @mainthread
         def callback(self, *args):
-            print('The request succedded!'
-                  'This callback is call in the main thread')
+            print('The request succedded!',
+                  'This callback is called in the main thread.')
 
         self.req = UrlRequest(url='http://...', on_success=callback)
 
     .. versionadded:: 1.8.0
     '''
+    @wraps(func)
     def delayed_func(*args, **kwargs):
         def callback_func(dt):
             func(*args, **kwargs)

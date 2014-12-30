@@ -15,7 +15,7 @@ The :class:`FloatLayout` class honors only the :attr:`Widget.pos_hint` and
     .. image:: images/floatlayout.png
         :align: right
 
-For example, say you create a FloatLayout with a size of (300, 300)::
+For example, a FloatLayout with a size of (300, 300) is created::
 
     layout = FloatLayout(size=(300, 300))
 
@@ -41,13 +41,13 @@ If you want to create a button that will always be the size of layout minus
 
 .. note::
 
-    This layout can be used for an application. Most of time, you will
+    This layout can be used for an application. Most of the time, you will
     use the size of Window.
 
 .. warning::
 
     If you are not using pos_hint, you must handle the positioning of the
-    children: If the float layout is moving, you must handle moving the
+    children: if the float layout is moving, you must handle moving the
     children too.
 
 '''

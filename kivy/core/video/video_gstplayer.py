@@ -124,7 +124,9 @@ class VideoGstplayer(VideoBase):
             self._texture.flip_vertical()
             self.dispatch('on_load')
 
-        self._texture.blit_buffer(data, size=(width, height), colorfmt='rgb')
+        if self._texture:
+            self._texture.blit_buffer(
+                data, size=(width, height), colorfmt='rgb')
 
     def _get_uri(self):
         uri = self.filename

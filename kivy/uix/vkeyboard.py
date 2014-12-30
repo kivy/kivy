@@ -51,8 +51,8 @@ The JSON must be structured like this::
     }
 
 Then, you need to describe the keys in each row, for either a "normal",
-"shift" or a "special" (added in version 1.8.1) mode. Keys for this row data must be named
-`normal_<row>`, `shift_<row>` and `special_<row>`.
+"shift" or a "special" (added in version 1.9.0) mode. Keys for this row
+data must be named `normal_<row>`, `shift_<row>` and `special_<row>`.
 Replace `row` with the row number.
 Inside each row, you will describe the key. A key is a 4 element list in
 the format::
@@ -312,7 +312,8 @@ class VKeyboard(Scatter):
     '''
 
     # XXX internal variables
-    layout_mode = OptionProperty('normal', options=('normal', 'shift', 'special'))
+    layout_mode = OptionProperty('normal',
+        options=('normal', 'shift', 'special'))
     layout_geometry = DictProperty({})
     have_capslock = BooleanProperty(False)
     have_shift = BooleanProperty(False)

@@ -3,8 +3,10 @@
 # conflict. We have one conflict with pygame.event and kivy.event => Both are
 # python extension and have the same "initevent" symbol. So right now, just
 # rename this one.
-__all__ = ('EventDispatcher', )
+__all__ = ('EventDispatcher', 'ObjectWithUid', 'Observable')
 
 import kivy._event
 __doc__ = kivy._event.__doc__
 EventDispatcher = kivy._event.EventDispatcher
+ObjectWithUid = kivy._event.ObjectWithUid
+Observable = kivy._event.Observable

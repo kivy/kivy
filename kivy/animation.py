@@ -56,6 +56,12 @@ animating the size to (800, 800)::
     anim &= Animation(size=(800, 800), duration=2.)
     anim.start(widget)
 
+Keep in mind that creating overlapping animations on the same property may have
+unexpected results. If you want to apply multiple animations to the same
+property, you should either schedule them sequentially (via the '+' operator or
+using the *on_complete* callback) or cancel previous animations using the
+:attr:`~Animation.cancel_all` method.
+
 Repeating animation
 -------------------
 
@@ -81,6 +87,7 @@ from math import sqrt, cos, sin, pi
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
 from kivy.compat import string_types, iterkeys
+from weakref import ProxyType
 
 
 class Animation(EventDispatcher):
@@ -304,6 +311,12 @@ class Animation(EventDispatcher):
         for uid in list(widgets.keys())[:]:
             anim = widgets[uid]
             widget = anim['widget']
+
+            if isinstance(widget, ProxyType) and not len(dir(widget)):
+                # empty proxy, widget is gone. ref: #2458
+                del widgets[uid]
+                continue
+
             if anim['time'] is None:
                 anim['time'] = 0.
             else:
@@ -381,7 +394,6 @@ class Sequence(Animation):
         self.anim2 = anim2
 
         self.anim1.bind(on_start=self.on_anim1_start,
-                        on_complete=self.on_anim1_complete,
                         on_progress=self.on_anim1_progress)
         self.anim2.bind(on_complete=self.on_anim2_complete,
                         on_progress=self.on_anim2_progress)
@@ -395,6 +407,7 @@ class Sequence(Animation):
         self._widgets[widget.uid] = True
         self._register()
         self.anim1.start(widget)
+        self.anim1.bind(on_complete=self.on_anim1_complete)
 
     def stop(self, widget):
         self.anim1.stop(widget)
@@ -420,6 +433,7 @@ class Sequence(Animation):
         self.dispatch('on_start', widget)
 
     def on_anim1_complete(self, instance, widget):
+        self.anim1.unbind(on_complete=self.on_anim1_complete)
         self.anim2.start(widget)
 
     def on_anim1_progress(self, instance, widget, progress):
@@ -432,6 +446,7 @@ class Sequence(Animation):
         '''
         if self.repeat:
             self.anim1.start(widget)
+            self.anim1.bind(on_complete=self.on_anim1_complete)
         else:
             self.dispatch('on_complete', widget)
 

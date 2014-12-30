@@ -2,11 +2,13 @@
 PageLayout
 ==========
 
-The :class:`PageLayout` class allow to create a simple multiple page
-layout, in a way that allows easy flipping of one page to another using
+The :class:`PageLayout` class is used to create a simple multi-page
+layout, in a way that allows easy flipping from one page to another using
 borders.
 
-:class:`PageLayout` doesn't honor size_hint or pos_hint in any way currently.
+:class:`PageLayout` does not currently honor
+:attr:`~kivy.uix.widget.Widget.size_hint` or
+:attr:`~kivy.uix.widget.Widget.pos_hint` properties.
 
 .. versionadded:: 1.8.0
 
@@ -31,29 +33,30 @@ from kivy.animation import Animation
 
 
 class PageLayout(Layout):
-    '''PageLayout class. See module documentation for more information
+    '''PageLayout class. See module documentation for more information.
     '''
 
     page = NumericProperty(0)
-    '''Currently displayed page.
+    '''The currently displayed page.
 
-    :data:`page` is a :class:`~kivy.properties.NumericProperty`, default to 0.
+    :data:`page` is a :class:`~kivy.properties.NumericProperty` and defaults
+    to 0.
     '''
 
     border = NumericProperty('50dp')
-    '''Width of the border used around current page to display previous/next
-    page when needed.
+    '''The width of the border used around the current page used to display
+    the previous/next page when needed.
 
-    :data:`border` is a :class:`~kivy.properties.NumericProperty`,
-    default to 0.
+    :data:`border` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
     '''
 
     swipe_threshold = NumericProperty(.5)
-    '''Thresold to the swipe action triggering, as percentage of the widget
+    '''The thresold used to trigger swipes as percentage of the widget
     size.
 
-    :data:`swipe_threshold` is a :class:`~kivy.properties.NumericProperty`,
-    default to .5.
+    :data:`swipe_threshold` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to .5.
     '''
 
     def __init__(self, **kwargs):

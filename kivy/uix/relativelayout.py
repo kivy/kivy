@@ -12,10 +12,10 @@ The :class:`RelativeLayout` class behaves just like the regular
 :class:`FloatLayout` except that its child widgets are positioned relative to
 the layout.
 
-For example, if you create a RelativeLayout, add a widget with position =
-(0,0), the child widget will also move when you change the position of the
-RelativeLayout. The child widgets coordinates remain (0,0) i.e. they are
-always relative to the containing layout.
+When a widget with position = (0,0) is added to a RelativeLayout,
+the child widget will also move when the position of the RelativeLayout
+is changed. The child widgets coordinates remain (0,0) as they are
+always relative to the parent layout.
 
 Coordinate Systems
 ------------------
@@ -25,8 +25,8 @@ Window coordinates
 
 By default, there's only one coordinate system that defines the position of
 widgets and touch events dispatched to them: the window coordinate system,
-which places (0, 0) at the bottom left corner of
-the window. Although there are other coordinate systems defined, e.g. local
+which places (0, 0) at the bottom left corner of the window.
+Although there are other coordinate systems defined, e.g. local
 and parent coordinates, these coordinate systems are identical to the window
 coordinate system as long as a relative layout type widget is not in the
 widget's parent stack. When widget.pos is read or a touch is received,
@@ -66,8 +66,8 @@ Other :class:`RelativeLayout` type widgets are
 :class:`~kivy.uix.scatterlayout.ScatterLayout`,
 and :class:`~kivy.uix.scrollview.ScrollView`. If such a special widget is in
 the parent stack, only then does the parent and local coordinate system
-diverge from the window coordinate system. For each such widget in the stack, a
-coordinate system with (0, 0) of that coordinate system being at the bottom
+diverge from the window coordinate system. For each such widget in the stack,
+a coordinate system with (0, 0) of that coordinate system being at the bottom
 left corner of that widget is created. **Position and touch coordinates
 received and read by a widget are in the coordinate system of the most
 recent special widget in its parent stack (not including itself) or in window
@@ -157,6 +157,77 @@ relative parameter is True, the coordinates are returned or originate in
 true relative coordinates - relative to a coordinate system with its (0, 0) at
 the bottom left corner of the widget in question.
 
+.. _kivy-uix-relativelayout-common-pitfalls:
+
+Common Pitfalls
+---------------
+
+As all positions within a :class:`RelativeLayout` are relative to the position
+of the layout itself, the position of the layout should never be used in
+determining the position of sub-widgets or the layout's :attr:`canvas`.
+
+Take the following kv code for example:
+
+.. container:: align-right
+
+    .. figure:: images/relativelayout-fixedposition.png
+        :scale: 50%
+
+        expected result
+
+    .. figure:: images/relativelayout-doubleposition.png
+        :scale: 50%
+
+        actual result
+
+.. code::
+
+    FloatLayout:
+        Widget:
+            size_hint: None, None
+            size: 200, 200
+            pos: 200, 200
+
+            canvas:
+                Color:
+                    rgba: 1, 1, 1, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+        RelativeLayout:
+            size_hint: None, None
+            size: 200, 200
+            pos: 200, 200
+
+            canvas:
+                Color:
+                    rgba: 1, 0, 0, 0.5
+                Rectangle:
+                    pos: self.pos  # incorrect
+                    size: self.size
+
+You might expect this to render a single pink rectangle; however, the content
+of the :class:`RelativeLayout` is already transformed, so the use of
+`pos: self.pos` will double that transformation. In this case, using
+`pos: 0, 0` or omitting `pos` completely will provide the expected result.
+
+This also applies to the position of sub-widgets. Instead of positioning a
+:class:`~kivy.uix.widget.Widget` based on the layout's own position::
+
+    RelativeLayout:
+        Widget:
+            pos: self.parent.pos
+        Widget:
+            center: self.parent.center
+
+...use the :attr:`pos_hint` property::
+
+    RelativeLayout:
+        Widget:
+            pos_hint: {'x': 0, 'y': 0}
+        Widget:
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
 .. versionchanged:: 1.7.0
     Prior to version 1.7.0, the :class:`RelativeLayout` was implemented as a

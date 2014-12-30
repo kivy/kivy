@@ -60,10 +60,20 @@ cdef class Instruction(ObjectWithUid):
     cdef void apply(self):
         pass
 
-    cdef void flag_update(self, int do_parent=1):
-        if do_parent == 1 and self.parent is not None:
-            self.parent.flag_update()
-        self.flags |= GI_NEEDS_UPDATE
+    IF DEBUG:
+        cdef int flag_update(self, int do_parent=1, list _instrs=None) except -1:
+            cdef list instrs = _instrs if _instrs else []
+            if _instrs and self in _instrs:
+                raise RuntimeError('Encountered instruction group render loop: %r in %r' % (self, _instrs,))
+            if do_parent == 1 and self.parent is not None:
+                instrs.append(self)
+                self.parent.flag_update(do_parent=1, _instrs=instrs)
+            self.flags |= GI_NEEDS_UPDATE
+    ELSE:
+        cdef void flag_update(self, int do_parent=1):
+            if do_parent == 1 and self.parent is not None:
+                self.parent.flag_update()
+            self.flags |= GI_NEEDS_UPDATE
 
     cdef void flag_update_done(self):
         self.flags &= ~GI_NEEDS_UPDATE
@@ -112,7 +122,19 @@ cdef class Instruction(ObjectWithUid):
 
 cdef class InstructionGroup(Instruction):
     '''Group of :class:`Instructions <Instruction>`. Allows for the adding and
-    removing of graphics instruction.
+    removing of graphics instructions. It can be used directly as follows::
+
+        blue = InstructionGroup()
+        blue.add(Color(0, 0, 1, 0.2))
+        blue.add(Rectangle(pos=self.pos, size=(100, 100)))
+
+        green = InstructionGroup()
+        green.add(Color(0, 1, 0, 0.4))
+        green.add(Rectangle(pos=(100, 100), size=(100, 100)))
+
+        # Here, self should be a Widget or subclass
+        [self.canvas.add(group) for group in [blue, green]]
+
     '''
     def __init__(self, **kwargs):
         Instruction.__init__(self, **kwargs)

@@ -70,7 +70,7 @@ class FactoryBase(object):
         class definition in a module. Warn, if True will emit a warning message
         when a class is re-declared.
 
-        .. versionchanged:: 1.8.1
+        .. versionchanged:: 1.9.0
             `warn` was added.
 
         .. versionchanged:: 1.7.0
@@ -147,7 +147,7 @@ class FactoryBase(object):
                 rootwidgets = []
                 for basecls in item['baseclasses'].split('+'):
                     rootwidgets.append(Factory.get(basecls))
-                cls = item['cls'] = type(name, tuple(rootwidgets), {})
+                cls = item['cls'] = type(str(name), tuple(rootwidgets), {})
 
             else:
                 raise FactoryException('No information to create the class')

@@ -85,7 +85,7 @@ cdef extern from 'gst/gst.h':
 
 cdef extern from '_gstplayer.h':
     void g_object_set_void(GstElement *element, char *name, void *value)
-    void g_object_set_double(GstElement *element, char *name, double value)
+    void g_object_set_double(GstElement *element, char *name, double value) nogil
     void g_object_set_caps(GstElement *element, char *value)
     void g_object_set_int(GstElement *element, char *name, int value)
     gulong c_appsink_set_sample_callback(GstElement *appsink,
@@ -207,7 +207,7 @@ cdef class GstPlayer:
             self.eos_cb()
 
     def load(self):
-        cdef char *c_uri
+        cdef bytes py_uri
 
         # if already loaded before, clean everything.
         if self.pipeline != NULL:
@@ -256,8 +256,8 @@ cdef class GstPlayer:
 
         # configure playbin
         g_object_set_int(self.pipeline, 'async-handling', 1)
-        c_uri = <bytes>self.uri.encode('utf-8')
-        g_object_set_void(self.playbin, 'uri', c_uri)
+        py_uri = <bytes>self.uri.encode('utf-8')
+        g_object_set_void(self.playbin, 'uri', <char *>py_uri)
 
         # attach the callback
         # NOTE no need to create a weakref here, as we manage to grab/release
@@ -318,7 +318,16 @@ cdef class GstPlayer:
 
     def set_volume(self, float volume):
         if self.playbin != NULL:
-            g_object_set_double(self.playbin, 'volume', volume)
+            # XXX we need to release the GIL, on linux, you might have a race
+            # condition. When running, if pulseaudio is used, it might sent a
+            # message when you set the volume, in the pulse audio thread
+            # The message is received by our common sync-message, and try to get
+            # the GIL, and block, because here we didn't release it.
+            # 1. our thread get the GIL and ask pulseaudio to set the volume
+            # 2. the pulseaudio thread try to sent a message, and wait for the
+            #    GIL
+            with nogil:
+                g_object_set_double(self.playbin, 'volume', volume)
 
     def get_duration(self):
         cdef float duration

@@ -163,7 +163,7 @@ class Bubble(GridLayout):
     defaults to 'horizontal'.
     '''
 
-    limit_to = ObjectProperty(None, allow_none=True)
+    limit_to = ObjectProperty(None, allownone=True)
     '''Specifies the widget to which the bubbles position is restricted.
 
     .. versionadded:: 1.6.0
@@ -225,16 +225,21 @@ class Bubble(GridLayout):
 
     def on_pos(self, instance, pos):
         lt = self.limit_to
-        if lt and lt is not object:
-            self.limit_to = object
+
+        if lt:
+            self.limit_to = None
             if lt is EventLoop.window:
-                lt.x = lt.y = 0
-                lt.top = EventLoop.window.height
-                lt.right = EventLoop.window.width
-            self.x = max(self.x, lt.x)
-            self.right = min(self.right, lt.right)
-            self.top = min(self.top, lt.top)
-            self.y = max(self.y, lt.y)
+                x = y = 0
+                top = lt.height
+                right = lt.width
+            else:
+                x, y = lt.x, lt.y
+                top, right = lt.top, lt.right
+
+            self.x = max(self.x, x)
+            self.right = min(self.right, right)
+            self.top = min(self.top, top)
+            self.y = max(self.y, y)
             self.limit_to = lt
 
     def on_background_image(self, *l):

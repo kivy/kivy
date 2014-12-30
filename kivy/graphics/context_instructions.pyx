@@ -331,8 +331,6 @@ cdef class BindTexture(ContextInstruction):
                 texture = get_default_texture()
             if self._texture is texture:
                 return
-            Logger.trace('BindTexture: setting texture %r (previous is %r)' % (
-                texture, self._texture))
             self._texture = texture
             self.flag_update()
 
@@ -351,7 +349,6 @@ cdef class BindTexture(ContextInstruction):
         def __get__(self):
             return self._source
         def __set__(self, filename):
-            Logger.trace('BindTexture: setting source: <%s>' % filename)
             self._source = resource_find(filename)
             if self._source:
                 tex = Cache.get('kv.texture', filename)
