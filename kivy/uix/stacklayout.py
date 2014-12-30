@@ -136,6 +136,14 @@ class StackLayout(Layout):
             size=self._trigger_force_layout,
             pos=self._trigger_force_layout)
 
+    def add_widget(self, widget, index=0):
+        widget.bind(size=self._trigger_force_layout)
+        super(StackLayout, self).add_widget(widget, index)
+
+    def remove_widget(self, widget):
+        widget.unbind(size=self._trigger_force_layout)
+        super(StackLayout, self).remove_widget(widget)
+
     def _force_layout(self, *largs):
         self._needs_layout = True
         self.do_layout()
