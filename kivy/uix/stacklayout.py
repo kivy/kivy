@@ -34,6 +34,7 @@ __all__ = ('StackLayout', )
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, OptionProperty, \
     ReferenceListProperty, VariableListProperty
+from kivy.clock import Clock
 
 
 class StackLayout(Layout):
@@ -125,15 +126,25 @@ class StackLayout(Layout):
 
     def __init__(self, **kwargs):
         super(StackLayout, self).__init__(**kwargs)
+        self._needs_layout = True
+        self._trigger_force_layout = Clock.create_trigger(self._force_layout, -1)
         self.bind(
-            padding=self._trigger_layout,
-            spacing=self._trigger_layout,
-            children=self._trigger_layout,
-            orientation=self._trigger_layout,
-            size=self._trigger_layout,
-            pos=self._trigger_layout)
+            padding=self._trigger_force_layout,
+            spacing=self._trigger_force_layout,
+            children=self._trigger_force_layout,
+            orientation=self._trigger_force_layout,
+            size=self._trigger_force_layout,
+            pos=self._trigger_force_layout)
+
+    def _force_layout(self, *largs):
+        self._needs_layout = True
+        self.do_layout()
 
     def do_layout(self, *largs):
+        if not self._needs_layout:
+            return
+        self._needs_layout = False
+
         # optimize layout by preventing looking at the same attribute in a loop
         selfpos = self.pos
         selfsize = self.size
@@ -142,8 +153,6 @@ class StackLayout(Layout):
         padding_top = self.padding[1]
         padding_right = self.padding[2]
         padding_bottom = self.padding[3]
-        children = self.children
-        num_children = len(children)
 
         padding_x = padding_left + padding_right
         padding_y = padding_top + padding_bottom
@@ -186,44 +195,67 @@ class StackLayout(Layout):
         # space calculation, used for determining when a row or column is full
 
         if orientation[0] in ('lr', 'rl'):
-            lu = self.size[innerattr] - padding_x
             sv = padding_y  # size in v-direction, for minimum_size property
             su = padding_x  # size in h-direction
             spacing_u = spacing_x
             spacing_v = spacing_y
+            padding_u = padding_x
+            padding_v = padding_y
         else:
-            lu = self.size[innerattr] - padding_y
             sv = padding_x  # size in v-direction, for minimum_size property
             su = padding_y  # size in h-direction
             spacing_u = spacing_y
             spacing_v = spacing_x
+            padding_u = padding_y
+            padding_v = padding_x
 
         # space calculation, row height or column width, for arranging widgets
         lv = 0
 
         urev = (deltau < 0)
         vrev = (deltav < 0)
-        for c in reversed(children):
-            if c.size_hint[0]:
-                if urev:
-                    modified_x = (
-                        selfsize[0] - padding_x -
-                        (num_children - 1) * spacing_x)
-                else:
-                    modified_x = (selfsize[0] - padding_x)
-                c.width = c.size_hint[0] * modified_x
-            if c.size_hint[1]:
-                if vrev:
-                    modified_y = (
-                        selfsize[1] - padding_y -
-                        (num_children - 1) * spacing_y)
-                else:
-                    modified_y = (selfsize[1] - padding_y)
+        for c in reversed(self.children):
+            if c.size_hint[outerattr]:
+                c.size[outerattr] = max(
+                    1, c.size_hint[outerattr] *
+                       (selfsize[outerattr] - padding_v))
 
             # does the widget fit in the row/column?
-            if lu - c.size[innerattr] >= 0:
+            ccount = len(lc)
+            totalsize = availsize = max(
+                0, selfsize[innerattr] - padding_u - spacing_u * ccount)
+            if not lc:
+                if c.size_hint[innerattr]:
+                    childsize = max(1, c.size_hint[innerattr] * totalsize)
+                else:
+                    childsize = max(0, c.size[innerattr])
+                availsize = selfsize[innerattr] - padding_u - childsize
+                sizes = [childsize]
+            else:
+                sizes = [0] * (ccount + 1)
+                for i, child in enumerate(lc):
+                    if availsize <= 0:
+                        # no space left but we're trying to add another widget.
+                        availsize = -1
+                        break
+                    if child.size_hint[innerattr]:
+                        sizes[i] = childsize = max(
+                            1, child.size_hint[innerattr] * totalsize)
+                    else:
+                        sizes[i] = childsize = max(0, child.size[innerattr])
+                    availsize -= childsize
+                if c.size_hint[innerattr]:
+                    sizes[-1] = max(1, c.size_hint[innerattr] * totalsize)
+                else:
+                    sizes[-1] = max(0, c.size[innerattr])
+                availsize -= sizes[-1]
+
+            if availsize >= 0 or not lc:
+                # even if there's no space, we always add one widget to a row
                 lc.append(c)
-                lu -= c.size[innerattr] + spacing_u
+                for i, child in enumerate(lc):
+                    if child.size_hint[innerattr]:
+                        child.size[innerattr] = sizes[i]
                 lv = max(lv, c.size[outerattr])
                 continue
 
@@ -249,7 +281,10 @@ class StackLayout(Layout):
             v += deltav * spacing_v
             lc = [c]
             lv = c.size[outerattr]
-            lu = selfsize[innerattr] - su - c.size[innerattr] - spacing_u
+            if c.size_hint[innerattr]:
+                c.size[innerattr] = max(
+                    1, c.size_hint[innerattr] *
+                       (selfsize[innerattr] - padding_u))
             u = ustart
 
         if lc:
