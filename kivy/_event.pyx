@@ -883,7 +883,8 @@ cdef class EventObservers:
         '''Bind the observer to the event. If this observer has already been
         bound, we don't add it again.
         '''
-        cdef BoundCallback callback = self.first_callback, new_callback
+        cdef BoundCallback callback = self.first_callback
+        cdef BoundCallback new_callback
 
         while callback is not None:
             if (callback.lock != deleted and callback.largs is None and
