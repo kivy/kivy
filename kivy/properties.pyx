@@ -365,10 +365,11 @@ cdef class Property:
     cpdef fast_bind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
         '''Similar to bind, except it doesn't check if the observer already
         exists. It also expands and forwards largs and kwargs to the callback.
-        fast_unbind should be called when unbinding.
+        fast_unbind or unbind_uid should be called when unbinding.
+        It returns a unique positive uid to be used with unbind_uid.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.observers.fast_bind(observer, largs, kwargs, 0)
+        return ps.observers.fast_bind(observer, largs, kwargs, 0)
 
     cpdef unbind(self, EventDispatcher obj, observer):
         '''Remove the observer from our widget observer list.
@@ -383,6 +384,13 @@ cdef class Property:
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
         ps.observers.fast_unbind(observer, largs, kwargs)
+
+    cpdef unbind_uid(self, EventDispatcher obj, object uid):
+        '''Remove the observer from our widget observer list bound with
+        fast_bind using the uid.
+        '''
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        ps.observers.unbind_uid(uid)
 
     def __set__(self, EventDispatcher obj, val):
         self.set(obj, val)
