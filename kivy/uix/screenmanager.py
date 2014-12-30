@@ -859,6 +859,11 @@ class ScreenManager(FloatLayout):
             raise ScreenManagerException(
                 'ScreenManager accepts only Screen widget.')
         if screen.manager:
+            if screen.manager is self:
+                raise ScreenManagerException(
+                    'Screen already managed by this ScreenManager (are you '
+                    'calling `switch_to` when you should be setting '
+                    '`current`?)')
             raise ScreenManagerException(
                 'Screen already managed by another ScreenManager.')
         screen.manager = self
