@@ -1566,8 +1566,6 @@ cdef class ConfigParserProperty(Property):
         Property.link_deps(self, obj, name)
         self.obj = ref(obj)
 
-        if self.config is None:
-            self.config = ConfigParser.get_configparser(self.config_name)
         if self.config is not None:
             self.config.adddefaultsection(self.section)
             self.config.setdefault(self.section, self.key, self.defaultvalue)
