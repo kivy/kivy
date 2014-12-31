@@ -118,6 +118,7 @@ class WindowSDL(WindowBase):
                     279: 'end',
                     280: 'pgup',
                     281: 'pgdown'}
+        self._mouse_buttons_down = set()
 
     def create_window(self, *largs):
 
@@ -266,6 +267,8 @@ class WindowSDL(WindowBase):
                 x, y = args
                 self.mouse_pos = x, self.system_size[1] - y
                 # don't dispatch motion if no button are pressed
+                if len(self._mouse_buttons_down) == 0:
+                    continue
                 self._mouse_x = x
                 self._mouse_y = y
                 self._mouse_meta = self.modifiers
@@ -279,8 +282,10 @@ class WindowSDL(WindowBase):
                 elif button == 2:
                     btn = 'middle'
                 eventname = 'on_mouse_down'
+                self._mouse_buttons_down.add(button)
                 if action == 'mousebuttonup':
                     eventname = 'on_mouse_up'
+                    self._mouse_buttons_down.remove(button)
                 self.dispatch(eventname, x, y, btn, self.modifiers)
             elif action.startswith('mousewheel'):
                 self._update_modifiers()
@@ -376,7 +381,11 @@ class WindowSDL(WindowBase):
                 except KeyError:
                     pass
 
-                self._update_modifiers(mod)
+                if action == 'keydown':
+                    self._update_modifiers(mod, key)
+                else:
+                    self._update_modifiers(mod) # ignore the key, it
+                                                # has been released
                 if 'shift' in self._modifiers and key\
                         not in self.command_keys.keys():
                     return
@@ -486,23 +495,36 @@ class WindowSDL(WindowBase):
     #
     # Pygame wrapper
     #
-    def _update_modifiers(self, mods=None):
+    def _update_modifiers(self, mods=None, key=None):
         # Available mod, from dir(pygame)
         # 'KMOD_ALT', 'KMOD_CAPS', 'KMOD_CTRL', 'KMOD_LALT',
         # 'KMOD_LCTRL', 'KMOD_LMETA', 'KMOD_LSHIFT', 'KMOD_META',
         # 'KMOD_MODE', 'KMOD_NONE'
-        if mods is None:
+        if mods is None and key is None:
             return
-        self._modifiers = []
+        modifiers = set()
 
-        if mods & (KMOD_RSHIFT | KMOD_LSHIFT):
-            self._modifiers.append('shift')
-        if mods & (KMOD_RALT | KMOD_LALT):
-            self._modifiers.append('alt')
-        if mods & (KMOD_RCTRL | KMOD_LCTRL):
-            self._modifiers.append('ctrl')
-        if mods & (KMOD_RMETA | KMOD_LMETA):
-            self._modifiers.append('meta')
+        if mods is not None:
+            if mods & (KMOD_RSHIFT | KMOD_LSHIFT):
+                modifiers.add('shift')
+            if mods & (KMOD_RALT | KMOD_LALT):
+                modifiers.add('alt')
+            if mods & (KMOD_RCTRL | KMOD_LCTRL):
+                modifiers.add('ctrl')
+            if mods & (KMOD_RMETA | KMOD_LMETA):
+                modifiers.add('meta')
+
+        if key is not None:
+            if key in (KMOD_RSHIFT, KMOD_LSHIFT):
+                modifiers.add('shift')
+            if key in (KMOD_RALT, KMOD_LALT):
+                modifiers.add('alt')
+            if key in (KMOD_RCTRL, KMOD_LCTRL):
+                modifiers.add('ctrl')
+            if key in (KMOD_RMETA, KMOD_LMETA):
+                modifiers.add('meta')
+
+        self._modifiers = list(modifiers)
         return
 
     def request_keyboard(self, callback, target, input_type='text'):
