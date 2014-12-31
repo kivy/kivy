@@ -126,32 +126,30 @@ class StackLayout(Layout):
 
     def __init__(self, **kwargs):
         super(StackLayout, self).__init__(**kwargs)
-        self._needs_layout = True
-        self._trigger_force_layout = Clock.create_trigger(self._force_layout, -1)
+        self._last_layout = -1
+        self._layout_count = 0
+        self._trigger_layout_next = Clock.create_trigger(self.do_layout, 0)
         self.bind(
-            padding=self._trigger_force_layout,
-            spacing=self._trigger_force_layout,
-            children=self._trigger_force_layout,
-            orientation=self._trigger_force_layout,
-            size=self._trigger_force_layout,
-            pos=self._trigger_force_layout)
-
-    def add_widget(self, widget, index=0):
-        widget.bind(size=self._trigger_force_layout)
-        super(StackLayout, self).add_widget(widget, index)
-
-    def remove_widget(self, widget):
-        widget.unbind(size=self._trigger_force_layout)
-        super(StackLayout, self).remove_widget(widget)
-
-    def _force_layout(self, *largs):
-        self._needs_layout = True
-        self.do_layout()
+            padding=self._trigger_layout,
+            spacing=self._trigger_layout,
+            children=self._trigger_layout,
+            orientation=self._trigger_layout,
+            size=self._trigger_layout,
+            pos=self._trigger_layout)
 
     def do_layout(self, *largs):
-        if not self._needs_layout:
+        if not self.children:
             return
-        self._needs_layout = False
+
+        dt = Clock.get_time()
+        if dt == self._last_layout:
+            if self._layout_count == 2:
+                self._trigger_layout_next()
+                return
+            self._layout_count += 1
+        else:
+            self._last_layout = dt
+            self._layout_count = 0
 
         # optimize layout by preventing looking at the same attribute in a loop
         selfpos = self.pos
@@ -222,11 +220,14 @@ class StackLayout(Layout):
 
         urev = (deltau < 0)
         vrev = (deltav < 0)
+        firstchild = self.children[0]
         for c in reversed(self.children):
             if c.size_hint[outerattr]:
-                c.size[outerattr] = max(
+                newsize = max(
                     1, c.size_hint[outerattr] *
                        (selfsize[outerattr] - padding_v))
+                if c.size[outerattr] != newsize:
+                    c.size[outerattr] = newsize
 
             # does the widget fit in the row/column?
             ccount = len(lc)
@@ -263,7 +264,8 @@ class StackLayout(Layout):
                 lc.append(c)
                 for i, child in enumerate(lc):
                     if child.size_hint[innerattr]:
-                        child.size[innerattr] = sizes[i]
+                        if child.size[innerattr] != sizes[i]:
+                            child.size[innerattr] = sizes[i]
                 lv = max(lv, c.size[outerattr])
                 continue
 
@@ -289,10 +291,12 @@ class StackLayout(Layout):
             v += deltav * spacing_v
             lc = [c]
             lv = c.size[outerattr]
-            if c.size_hint[innerattr]:
-                c.size[innerattr] = max(
+            if c.size_hint[innerattr] and c is firstchild:
+                newsize = max(
                     1, c.size_hint[innerattr] *
                        (selfsize[innerattr] - padding_u))
+                if c.size[innerattr] != newsize:
+                    c.size[innerattr] = newsize
             u = ustart
 
         if lc:
