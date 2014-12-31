@@ -286,6 +286,8 @@ class WindowSDL(WindowBase):
                 if action == 'mousebuttonup':
                     eventname = 'on_mouse_up'
                     self._mouse_buttons_down.remove(button)
+                self._mouse_x = x
+                self._mouse_y = y
                 self.dispatch(eventname, x, y, btn, self.modifiers)
             elif action.startswith('mousewheel'):
                 self._update_modifiers()
