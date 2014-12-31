@@ -1480,9 +1480,10 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
             A list of the name off the attrs of `base` being watched. In
             the example above it'd be `['a', 'b', 'c', 'd']`.
         `bound`
-            A list 3-tuples, each tuple being (widget, attr, callback)
+            A list 4-tuples, each tuple being (widget, attr, callback, uid)
             representing callback functions bound to the attributed `attr`
-            of `widget`. The callback maybe be None, in which case the attr
+            of `widget`. `uid` is returned by `fast_bind` when binding.
+            The callback may be None, in which case the attr
             was not bound, but is there to be able to walk the attr tree.
             E.g. in the example above, if `b` was not an eventdispatcher,
             `(_b_ref_, `c`, None)` would be added to the list so we can get
@@ -1498,11 +1499,11 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     '''
     # first remove all the old bound functions from `s` and down.
     j = s - 1
-    for f, k, fun, largs in bound[j:]:
+    for f, k, fun, uid in bound[j:]:
         if fun is None:
             continue
         try:
-            f.fast_unbind(k, fun, *largs)
+            f.unbind_uid(k, uid)
         except ReferenceError:
             pass
     del bound[j:]
@@ -1524,14 +1525,13 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
                 # fast_bind should not dispatch, otherwise
                 # update_intermediates might be called in the middle
                 # here messing things up
-                f.fast_bind(val, update_intermediates, base, keys, bound, s,
-                            fn, args)
-                append([f.proxy_ref, val, update_intermediates,
-                        (base, keys, bound, s, fn, args)])
+                uid = f.fast_bind(
+                    val, update_intermediates, base, keys, bound, s, fn, args)
+                append([f.proxy_ref, val, update_intermediates, uid])
             else:
-                append([f.proxy_ref, val, None, ()])
+                append([f.proxy_ref, val, None, None])
         else:
-            append([getattr(f, 'proxy_ref', f), val, None, ()])
+            append([getattr(f, 'proxy_ref', f), val, None, None])
 
         f = getattr(f, val, None)
         if f is None:
@@ -1541,8 +1541,9 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     # for the last attr we bind directly to the setting function,
     # because that attr sets the value of the rule.
     if isinstance(f, (EventDispatcher, Observable)):
-        if f.fast_bind(keys[-1], fn, args):
-            append([f.proxy_ref, keys[-1], fn, (args, )])
+        uid = f.fast_bind(keys[-1], fn, args)
+        if uid:
+            append([f.proxy_ref, keys[-1], fn, uid])
     # when we rebind we have to update the
     # rule with the most recent value, otherwise, the value might be wrong
     # and wouldn't be updated since we might not have tracked it before.
@@ -1587,15 +1588,15 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                         # fast_bind should not dispatch, otherwise
                         # update_intermediates might be called in the middle
                         # here messing things up
-                        f.fast_bind(val, update_intermediates, base, keys,
-                                    bound, k, fn, args)
-                        append([f.proxy_ref, val, update_intermediates,
-                                (base, keys, bound, k, fn, args)])
+                        uid = f.fast_bind(
+                            val, update_intermediates, base, keys, bound, k,
+                            fn, args)
+                        append([f.proxy_ref, val, update_intermediates, uid])
                         was_bound = True
                     else:
-                        append([f.proxy_ref, val, None, ()])
+                        append([f.proxy_ref, val, None, None])
                 else:
-                    append([getattr(f, 'proxy_ref', f), val, None, ()])
+                    append([getattr(f, 'proxy_ref', f), val, None, None])
                 f = getattr(f, val, None)
                 if f is None:
                     break
@@ -1604,8 +1605,9 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
             # for the last attr we bind directly to the setting
             # function, because that attr sets the value of the rule.
             if isinstance(f, (EventDispatcher, Observable)):
-                if f.fast_bind(keys[-1], fn, args):  # f is not None
-                    append([f.proxy_ref, keys[-1], fn, (args, )])
+                uid = f.fast_bind(keys[-1], fn, args)  # f is not None
+                if uid:
+                    append([f.proxy_ref, keys[-1], fn, uid])
                     was_bound = True
             if was_bound:
                 handler_append(bound)
@@ -2057,11 +2059,11 @@ class BuilderBase(object):
         if uid not in _handlers:
             return
         for callbacks in _handlers[uid]:
-            for f, k, fn, largs in callbacks:
+            for f, k, fn, bound_uid in callbacks:
                 if fn is None:  # it's not a kivy prop.
                     continue
                 try:
-                    f.fast_unbind(k, fn, *largs)
+                    f.unbind_uid(k, bound_uid)
                 except ReferenceError:
                     # proxy widget is already gone, that's cool :)
                     pass

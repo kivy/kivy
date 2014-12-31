@@ -32,6 +32,7 @@ cdef class Property:
     cpdef fast_bind(self, EventDispatcher obj, observer, tuple largs=*, dict kwargs=*)
     cpdef unbind(self, EventDispatcher obj, observer)
     cpdef fast_unbind(self, EventDispatcher obj, observer, tuple largs=*, dict kwargs=*)
+    cpdef unbind_uid(self, EventDispatcher obj, object uid)
     cdef compare_value(self, a, b)
     cpdef set(self, EventDispatcher obj, value)
     cpdef get(self, EventDispatcher obj)
