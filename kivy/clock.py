@@ -209,9 +209,11 @@ just an external thread.
 
 __all__ = ('Clock', 'ClockBase', 'ClockEvent', 'mainthread')
 
-from sys import platform
+from sys import platform, exc_info
+import traceback
 from os import environ
 from functools import wraps
+from kivy.compat import PY2
 from kivy.context import register_context
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
@@ -295,8 +297,19 @@ class ClockEvent(object):
         self._is_triggered = trigger
         self._last_dt = starttime
         self._dt = 0.
+        self._tb = None
         if trigger:
+            self._collect_stack()
             clock._events[cid].append(self)
+
+    def _collect_stack(self):
+        self._tb = traceback.extract_stack()[:-2]
+
+    @property
+    def stack_string(self):
+        return ('\n\nClockEvent triggered from:\n' +
+                    ''.join(traceback.format_list(self._tb))
+                if self._tb else '')
 
     def __call__(self, *largs):
         ''' Schedules the callback associated with this instance.
@@ -307,6 +320,7 @@ class ClockEvent(object):
             self._is_triggered = True
             # update starttime
             self._last_dt = self.clock._last_tick
+            self._collect_stack()
             self.clock._events[self.cid].append(self)
             return True
 
@@ -607,37 +621,58 @@ class ClockBase(_ClockBase):
                     event.release()
 
     def _process_events(self):
-        for events in self._events:
-            remove = events.remove
-            for event in events[:]:
-                # event may be already removed from original list
-                if event in events:
-                    event.tick(self._last_tick, remove)
+        event = None
+        try:
+            for events in self._events:
+                remove = events.remove
+                for event in events[:]:
+                    # event may be already removed from original list
+                    if event in events:
+                        event.tick(self._last_tick, remove)
+        except Exception, e:
+            if event:
+                if PY2:
+                    raise type(e), type(e)(e.message + event.stack_string), \
+                            exc_info()[2]
+                else:
+                    raise type(e)(str(e) + event.stack_string) \
+                            .with_traceback(exc_info()[2])
+            raise e
 
     def _process_events_before_frame(self):
         found = True
         count = self.max_iteration
-        events = self._events
-        while found:
-            count -= 1
-            if count == -1:
-                Logger.critical(
-                    'Clock: Warning, too much iteration done before'
-                    ' the next frame. Check your code, or increase'
-                    ' the Clock.max_iteration attribute')
-                break
+        event = None
+        try:
+            while found:
+                count -= 1
+                if count == -1:
+                    Logger.critical(
+                        'Clock: Warning, too much iteration done before'
+                        ' the next frame. Check your code, or increase'
+                        ' the Clock.max_iteration attribute')
+                    break
 
-            # search event that have timeout = -1
-            found = False
-            for events in self._events:
-                remove = events.remove
-                for event in events[:]:
-                    if event.timeout != -1:
-                        continue
-                    found = True
-                    # event may be already removed from original list
-                    if event in events:
-                        event.tick(self._last_tick, remove)
+                # search event that have timeout = -1
+                found = False
+                for events in self._events:
+                    remove = events.remove
+                    for event in events[:]:
+                        if event.timeout != -1:
+                            continue
+                        found = True
+                        # event may be already removed from original list
+                        if event in events:
+                            event.tick(self._last_tick, remove)
+        except Exception, e:
+            if event:
+                if PY2:
+                    raise type(e), type(e)(e.message + event.stack_string), \
+                            exc_info()[2]
+                else:
+                    raise type(e)(str(e) + event.stack_string) \
+                            .with_traceback(exc_info()[2])
+            raise e
 
 
 def mainthread(func):
