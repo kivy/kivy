@@ -570,11 +570,7 @@ class WindowBase(EventDispatcher):
         super(WindowBase, self).__init__(**kwargs)
 
         # bind all the properties that need to recreate the window
-        for prop in (
-                'fullscreen', 'borderless', 'position', 'top',
-                'left', '_size', 'system_size'):
-            self.bind(**{prop: self.trigger_create_window})
-
+        self._bind_create_window()
         self.bind(size=self.trigger_keyboard_height,
                   rotation=self.trigger_keyboard_height)
 
@@ -609,6 +605,18 @@ class WindowBase(EventDispatcher):
 
         # mark as initialized
         self.initialized = True
+
+    def _bind_create_window(self):
+        for prop in (
+                'fullscreen', 'borderless', 'position', 'top',
+                'left', '_size', 'system_size'):
+            self.bind(**{prop: self.trigger_create_window})
+
+    def _unbind_create_window(self):
+        for prop in (
+                'fullscreen', 'borderless', 'position', 'top',
+                'left', '_size', 'system_size'):
+            self.unbind(**{prop: self.trigger_create_window})
 
     def toggle_fullscreen(self):
         '''Toggle between fullscreen and windowed mode.
@@ -723,6 +731,10 @@ class WindowBase(EventDispatcher):
         # just to be sure, if the trigger is set, and if this method is
         # manually called, unset the trigger
         Clock.unschedule(self.create_window)
+
+        # ensure the window creation will not be called twice
+        if platform == 'android':
+            self._unbind_create_window()
 
         if not self.initialized:
             from kivy.core.gl import init_gl
