@@ -299,11 +299,11 @@ class ClockEvent(object):
         self._dt = 0.
         self._tb = None
         if trigger:
-            self._collect_stack()
+            self._collect_stack(3)
             clock._events[cid].append(self)
 
-    def _collect_stack(self):
-        self._tb = traceback.extract_stack()[:-2]
+    def _collect_stack(self, skip):
+        self._tb = traceback.extract_stack()[:-skip]
 
     @property
     def stack_string(self):
@@ -320,7 +320,7 @@ class ClockEvent(object):
             self._is_triggered = True
             # update starttime
             self._last_dt = self.clock._last_tick
-            self._collect_stack()
+            self._collect_stack(2)
             self.clock._events[self.cid].append(self)
             return True
 
