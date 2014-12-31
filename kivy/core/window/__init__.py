@@ -733,7 +733,7 @@ class WindowBase(EventDispatcher):
         Clock.unschedule(self.create_window)
 
         # ensure the window creation will not be called twice
-        if platform == 'android':
+        if platform in ('android', 'ios'):
             self._unbind_create_window()
 
         if not self.initialized:
