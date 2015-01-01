@@ -278,11 +278,11 @@ class StackLayout(Layout):
             v += deltav * spacing_v
             lc = [c]
             lv = c.size[outerattr]
-            if c.size_hint[innerattr] and c is firstchild:
-                c.size[innerattr] = max(
-                    1, c.size_hint[innerattr] *
-                       (selfsize[innerattr] - padding_u))
-            sizes = [c.size[innerattr]]
+            if c.size_hint[innerattr]:
+                sizes = [max(1, c.size_hint[innerattr] *
+                             (selfsize[innerattr] - padding_u))]
+            else:
+                sizes = [max(0, c.size[innerattr])]
             u = ustart
 
         if lc:
