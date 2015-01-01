@@ -208,7 +208,6 @@ class StackLayout(Layout):
         vrev = (deltav < 0)
         firstchild = self.children[0]
         sizes = []
-        testsizes = []
         for c in reversed(self.children):
             if c.size_hint[outerattr]:
                 c.size[outerattr] = max(
@@ -283,6 +282,7 @@ class StackLayout(Layout):
                 c.size[innerattr] = max(
                     1, c.size_hint[innerattr] *
                        (selfsize[innerattr] - padding_u))
+            sizes = [c.size[innerattr]]
             u = ustart
 
         if lc:
