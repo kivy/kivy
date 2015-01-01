@@ -1225,6 +1225,7 @@ cdef class ReferenceListProperty(Property):
 
     cpdef setitem(self, EventDispatcher obj, key, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
+        cdef bint res = False
 
         ps.stop_event = 1
         if isinstance(key, slice):
@@ -1232,12 +1233,13 @@ cdef class ReferenceListProperty(Property):
             for index in xrange(len(props)):
                 prop = props[index]
                 x = value[index]
-                prop.set(obj, x)
+                res = prop.set(obj, x) or res
         else:
             prop = ps.properties[key]
-            prop.set(obj, value)
+            res = prop.set(obj, value)
         ps.stop_event = 0
-        self.dispatch(obj)
+        if res:
+            self.dispatch(obj)
 
     cpdef get(self, EventDispatcher obj):
         cdef PropertyStorage ps = obj.__storage[self._name]
