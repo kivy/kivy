@@ -316,7 +316,7 @@ class ImageLoaderImageIO(ImageLoaderBase):
                 'jpeg', 'jpg', 'jpe', 'mcidas', 'mic', 'mpeg', 'msp',
                 'pcd', 'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi',
                 'spider', 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm',
-                'xv')
+                'xv', 'icns')
 
     def load(self, filename):
         # FIXME: if the filename is unicode, the loader is failing.
