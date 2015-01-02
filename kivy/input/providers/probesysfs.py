@@ -51,17 +51,22 @@ else:
     from subprocess import Popen, PIPE
     from kivy.logger import Logger
     from kivy.input.provider import MotionEventProvider
+    from kivy.input.providers.mouse import MouseMotionEventProvider
     from kivy.input.factory import MotionEventFactory
     from kivy.config import _is_rpi
+
+    EventLoop = None
 
     # See linux/input.h
     ABS_MT_POSITION_X = 0x35
 
     _cache_input = None
+    _cache_xinput = None
 
     class Input(object):
 
         def __init__(self, path):
+            query_xinput()
             self.path = path
 
         @property
@@ -91,9 +96,40 @@ else:
             capabilities = self.get_capabilities()
             return len(capabilities) > capability and capabilities[capability]
 
+        @property
+        def is_mouse(self):
+            return self.device in _cache_xinput
+
+    def getout(*args):
+        try:
+            return Popen(args, stdout=PIPE).communicate()[0]
+        except OSError:
+            return ''
+
     def getconf(var):
-        output = Popen(["getconf", var], stdout=PIPE).communicate()[0]
+        output = getout("getconf", var)
         return int(output)
+
+    def query_xinput():
+        global _cache_xinput
+        if _cache_xinput is None:
+            _cache_xinput = []
+            devids = getout('xinput', '--list', '--id-only')
+            for did in devids.splitlines():
+                devprops = getout('xinput', '--list-props', did)
+                evpath = None
+                for prop in devprops.splitlines():
+                    prop = prop.strip()
+                    if prop.startswith('Device Enabled') and prop.endswith('0'):
+                        evpath = None
+                        break
+                    if prop.startswith('Device Node'):
+                        try:
+                            evpath = prop.split('"')[1]
+                        except Exception:
+                            evpath = None
+                if evpath:
+                    _cache_xinput.append(evpath)
 
     def get_inputs(path):
         global _cache_input
@@ -154,12 +190,23 @@ else:
 
             self.probe()
 
+        def should_use_mouse(self):
+            return not any(p for p in EventLoop.input_providers
+                           if isinstance(p, MouseMotionEventProvider))
+
         def probe(self):
+            global EventLoop
+            from kivy.base import EventLoop
+
             inputs = get_inputs(self.input_path)
-            Logger.debug('ProbeSysfs: using probsysfs!')
+            Logger.debug('ProbeSysfs: using probesysfs!')
+
+            use_mouse = self.should_use_mouse()
+
             if not self.select_all:
                 inputs = [x for x in inputs if
-                          x.has_capability(ABS_MT_POSITION_X)]
+                          x.has_capability(ABS_MT_POSITION_X)
+                          and (use_mouse or not x.is_mouse)]
             for device in inputs:
                 Logger.debug('ProbeSysfs: found device: %s at %s' % (
                     device.name, device.device))
@@ -194,7 +241,6 @@ else:
                 instance = provider(devicename, '%s,%s' % (
                     device.device, ','.join(self.args)))
                 if instance:
-                    from kivy.base import EventLoop
                     EventLoop.add_input_provider(instance)
 
     MotionEventFactory.register('probesysfs', ProbeSysfsHardwareProbe)
