@@ -1678,7 +1678,7 @@ class BuilderBase(object):
     that you can use to load other kv files in addition to the default ones.
     '''
 
-    _cache_match = {}
+    _match_cache = {}
 
     def __init__(self):
         super(BuilderBase, self).__init__()
