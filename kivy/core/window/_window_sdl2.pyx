@@ -176,6 +176,15 @@ cdef class _WindowSDL2Storage:
             x = event.tfinger.x
             y = event.tfinger.y
             return ('fingermotion', fid, x, y)
+        elif event.type == SDL_MULTIGESTURE:
+            #timestamp = event.mgesture.timestamp
+            touchid = event.mgesture.touchId
+            rotation = event.mgesture.dTheta
+            touch_dist = event.mgesture.dDist
+            norm_x = event.mgesture.x
+            norm_y = event.mgesture.y
+            fingers = event.mgesture.numFingers
+            return ('multigesture', touchid, rotation, touch_dist, norm_x, norm_y, fingers)
         elif event.type == SDL_FINGERDOWN or event.type == SDL_FINGERUP:
             fid = event.tfinger.fingerId
             x = event.tfinger.x

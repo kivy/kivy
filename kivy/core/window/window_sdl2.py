@@ -261,6 +261,8 @@ class WindowSDL(WindowBase):
 
             elif action in ('fingermotion', 'fingerdown', 'fingerup'):
                 # for finger, pass the raw event to SDL motion event provider
+                if self._is_desktop:
+                    continue
                 SDL2MotionEventProvider.q.appendleft(event)
 
             if action == 'mousemotion':
@@ -274,6 +276,12 @@ class WindowSDL(WindowBase):
                 self._mouse_meta = self.modifiers
                 self.dispatch('on_mouse_move', x, y, self.modifiers)
 
+            elif action == 'multigesture':
+                touchid, rotation, touch_dist, norm_x, norm_y, fingers = args
+                Logger.debug(
+                    'MultiGesture: touch_distance:{} rotation: {} fingers:{}'
+                    .format(touch_dist, rotation, fingers))
+                self._mouse_meta = modifiers
             elif action in ('mousebuttondown', 'mousebuttonup'):
                 x, y, button = args
                 btn = 'left'
