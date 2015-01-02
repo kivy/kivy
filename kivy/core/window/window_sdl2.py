@@ -266,11 +266,11 @@ class WindowSDL(WindowBase):
             if action == 'mousemotion':
                 x, y = args
                 self.mouse_pos = x, self.system_size[1] - y
+                self._mouse_x = x
+                self._mouse_y = y
                 # don't dispatch motion if no button are pressed
                 if len(self._mouse_buttons_down) == 0:
                     continue
-                self._mouse_x = x
-                self._mouse_y = y
                 self._mouse_meta = self.modifiers
                 self.dispatch('on_mouse_move', x, y, self.modifiers)
 
@@ -286,6 +286,8 @@ class WindowSDL(WindowBase):
                 if action == 'mousebuttonup':
                     eventname = 'on_mouse_up'
                     self._mouse_buttons_down.remove(button)
+                self._mouse_x = x
+                self._mouse_y = y
                 self.dispatch(eventname, x, y, btn, self.modifiers)
             elif action.startswith('mousewheel'):
                 self._update_modifiers()
