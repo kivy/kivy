@@ -274,13 +274,18 @@ def _r{{ name }}(self):
 
     # link handlers
     {%- for who, name, hname, hcode, symbols in handlers %}
-    {{ who }}_b({{ name }}=partial(
-        on_{{ hname }}
+    _key = "{{ name }}"
+    _{{ name }} = partial(on_{{ hname }}
         {%- for sym in symbols %}, {% if sym == "self" %}{{ who }}
         {%- elif sym == "root" %}self
         {%- else %}{{ sym }}
         {%- endif -%}
-        {%- endfor %}))
+        {%- endfor %})
+    if {{ who }}.is_event_type(_key):
+        {{ who }}_b({{ name }}=_{{ name }})
+    else:
+        {{ who }}_b({{ name[3:] }}=_{{ name }})
+
     {% endfor %}
 
 _r{{ name }}.avoid_previous_rules = {{ avoid_previous_rules }}
