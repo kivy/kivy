@@ -99,6 +99,8 @@ def require(version):
 
         # check x y z
         l = version.split('.')
+        if len(l) == 2:
+            l += ['0']
         if len(l) != 3:
             raise Exception('Revision format must be X.Y.Z[-tag]')
         return [int(x) for x in l], tag, tagrev
