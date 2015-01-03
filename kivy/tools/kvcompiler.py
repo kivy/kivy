@@ -16,6 +16,7 @@ What's supported:
 - Canvas (root, before, after)
 - Id (and ids)
 - Directive "kivy"
+- Handlers (on_)
 
 What's not supported but passthrough:
 
@@ -25,9 +26,12 @@ What's not supported but passthrough:
 What's not supported:
 
 - Properties creation on the fly on children
-- Handlers (on_)
 - Rebind
 - Accessing of a object more than one . (self.parent.parent.myobj)
+- GC (no proxy used at all currently)
+- Unloading
+- on_parent trick dispatching
+
 
 """
 
@@ -119,7 +123,7 @@ tpl_child = Template("""
     {{ name }} = Factory.{{ clsname }}(__no_builder=True)
     {{ parent }}.add_widget({{ name }})
     Builder.apply({{ name }})
-    {%- for prop, value in props %}
+    {%- for prop, value in literal_properties %}
     {{ name }}.{{ prop }} = {{ value }}
     {%- endfor %}
 """)
@@ -128,7 +132,7 @@ tpl_child = Template("""
 tpl_canvas = Template("""
     {{ name }} = Factory.{{ clsname }}()
     {{ parent }}.{{ canvas }}.add({{ name }})
-    {%- for prop, value in props %}
+    {%- for prop, value in literal_properties %}
     {{ name }}.{{ prop }} = {{ value }}
     {%- endfor %}
 """)
@@ -141,6 +145,16 @@ def {{ name }}(
     {{- symbol -}}
     {%- endfor -%}, *args):
     {{ wself }}.{{ prop }} = {{ value }}
+""")
+
+
+tpl_handler_on = Template("""
+def on_{{ name }}(
+    {%- for symbol in symbols -%}
+    {%- if loop.index > 1 %}, {% endif -%}
+    {{- symbol -}}
+    {%- endfor -%}, *args):
+{{ code }}
 """)
 
 
@@ -174,8 +188,12 @@ Builder.load_string('''
 """)
 
 tpl_apply = Template("""
-{%- for handler in handlers %}
+{%- for handler in properties %}
 {{ handler }}
+{% endfor %}
+
+{%- for who, name, hname, hcode, symbols in handlers %}
+{{ hcode }}
 {% endfor %}
 
 _mc[{{ name }}] = []
@@ -203,20 +221,20 @@ def _r{{ name }}(self):
 
     # ids
     self.ids = {
+        {%- if ids %}
         {% for _id in ids -%}
         {% if loop.index > 1 %},
         {% endif -%}
         "{{ _id }}": {{ _id }}.proxy_ref
-        {%- endfor -%}}
+        {%- endfor -%}{% endif %}}
 
-    {%- if props %}
+    {%- if literal_properties %}
     # set default properties
-    {%- for prop, value in props %}
+    {%- for prop, value in literal_properties %}
     self.{{ prop }} = {{ value }}
     {%- endfor %}
     {% endif %}
 
-    {%- if link_handlers %}
     # shortcuts
     {%- for obj in objs %}
     if isinstance({{ obj }}, _otype):
@@ -225,8 +243,9 @@ def _r{{ name }}(self):
         {{ obj|replace(".", "_") }}_b = None
     {%- endfor %}
 
-    # link handlers
-    {%- for who, parent, hname, symbols, binds in link_handlers %}
+    {%- if link_properties %}
+    # link properties
+    {%- for who, parent, hname, symbols, binds in link_properties %}
     _{{ hname }} = partial({{ hname }}
         {%- for sym in symbols %}, {% if sym == "self" %}{{ parent }}
         {%- elif sym == "gself" %}{{ who }}
@@ -238,34 +257,57 @@ def _r{{ name }}(self):
 
     {%- for obj in objs %}
     if {{ obj|replace(".", "_") }}_b:
-        {%- for who, parent, hname, symbols, binds in link_handlers %}
+        {%- for who, parent, hname, symbols, binds in link_properties %}
         {%- for _obj, objprop in binds %}
         {%- if _obj == obj %}
         {{ obj|replace(".", "_") }}_b({{ objprop }}=_{{ hname }})
         {%- endif %}
         {%- endfor %}
         {%- endfor %}
+        pass
     {%- endfor %}
     {%- endif %}
 
-    {%- for who, parent, hname, symbols, binds in link_handlers %}
+    {%- for who, parent, hname, symbols, binds in link_properties %}
     _{{ hname }}()
     {%- endfor %}
+
+    # link handlers
+    {%- for who, name, hname, hcode, symbols in handlers %}
+    {{ who }}_b({{ name }}=partial(
+        on_{{ hname }}
+        {%- for sym in symbols %}, {% if sym == "self" %}{{ who }}
+        {%- elif sym == "root" %}self
+        {%- else %}{{ sym }}
+        {%- endif -%}
+        {%- endfor %}))
+    {% endfor %}
 
 _r{{ name }}.avoid_previous_rules = {{ avoid_previous_rules }}
 """)
 
 
-def generate_py_handler(name, prop, rule, mode="widget", symbols=[]):
+def generate_property(name, prop, rule, mode, symbols):
     global h_uid
     h_uid += 1
-    handler_name = "{}_{}_{}".format(name, prop, h_uid)
     handler_name = "h{}".format(h_uid)
     return handler_name, tpl_handler.render(
         name=handler_name,
         prop=prop,
         value=rule.value,
         wself="self" if mode == "widget" else "gself",
+        symbols=symbols)
+
+
+def generate_py_handler_on(name, rule, symbols):
+    global h_uid
+    h_uid += 1
+    code = "\n".join(["    {}".format(line) for line in
+                      rule.value.splitlines()])
+    handler_name = "h{}".format(h_uid)
+    return handler_name, tpl_handler_on.render(
+        name=handler_name,
+        code=code,
         symbols=symbols)
 
 
@@ -309,11 +351,12 @@ def generate_py_rules(key, rule, who="self", mode="widget", parent=None,
     ctx = {
         "rule": rule,
         "name": key,
-        "props": [],
+        "literal_properties": [],
         "canvas": [],
         "children": [],
+        "properties": [],
+        "link_properties": [],
         "handlers": [],
-        "link_handlers": [],
         "avoid_previous_rules": rule.avoid_previous_rules,
         "missing": [],
         "objs": []
@@ -338,16 +381,17 @@ def generate_py_rules(key, rule, who="self", mode="widget", parent=None,
     for name, prop in rule.properties.items():
         if type(prop.co_value) is CodeType and prop.watched_keys:
             continue
-        ctx["props"].append((name, prop.value))
+        ctx["literal_properties"].append((name, prop.value))
 
     # create children
     for child in rule.children:
         child_ctx, code = generate_py_child(child, who, ids)
         ctx["children"].append(code)
         ctx["children"].extend(child_ctx["children"])
-        ctx["handlers"] += child_ctx["handlers"]
-        ctx["link_handlers"] += child_ctx["link_handlers"]
+        ctx["properties"] += child_ctx["properties"]
+        ctx["link_properties"] += child_ctx["link_properties"]
         ctx["objs"] += child_ctx["objs"]
+        ctx["handlers"] += child_ctx["handlers"]
 
     # create canvas
     if rule.canvas_root:
@@ -355,35 +399,34 @@ def generate_py_rules(key, rule, who="self", mode="widget", parent=None,
             child_ctx, code = generate_py_canvas(child, who, ids)
             ctx["children"].append(code)
             ctx["children"].extend(child_ctx["children"])
-            ctx["handlers"] += child_ctx["handlers"]
-            ctx["link_handlers"] += child_ctx["link_handlers"]
+            ctx["properties"] += child_ctx["properties"]
+            ctx["link_properties"] += child_ctx["link_properties"]
             ctx["objs"] += child_ctx["objs"]
     if rule.canvas_before:
         for child in rule.canvas_before.children:
             child_ctx, code = generate_py_canvas(child, who, ids, canvas="canvas.before")
             ctx["children"].append(code)
             ctx["children"].extend(child_ctx["children"])
-            ctx["handlers"] += child_ctx["handlers"]
-            ctx["link_handlers"] += child_ctx["link_handlers"]
+            ctx["properties"] += child_ctx["properties"]
+            ctx["link_properties"] += child_ctx["link_properties"]
             ctx["objs"] += child_ctx["objs"]
     if rule.canvas_after:
         for child in rule.canvas_after.children:
             child_ctx, code = generate_py_canvas(child, who, ids, canvas="canvas.after")
             ctx["children"].append(code)
             ctx["children"].extend(child_ctx["children"])
-            ctx["handlers"] += child_ctx["handlers"]
-            ctx["link_handlers"] += child_ctx["link_handlers"]
+            ctx["properties"] += child_ctx["properties"]
+            ctx["link_properties"] += child_ctx["link_properties"]
             ctx["objs"] += child_ctx["objs"]
 
-    # handlers
+    # properties
     objs = []
+    symbols = ids + ["self", "root", "gself"]
     for name, prop in rule.properties.items():
         if not prop.watched_keys:
             continue
-        symbols = ids + ["self", "root", "gself"]
-        hname, hcode = generate_py_handler(key, name, prop, mode=mode,
-                symbols=symbols)
-        ctx["handlers"].append(hcode)
+        hname, hcode = generate_property(key, name, prop, mode, symbols)
+        ctx["properties"].append(hcode)
         binds = []
         for keys in prop.watched_keys:
             obj = list(keys[:-1])
@@ -395,12 +438,19 @@ def generate_py_rules(key, rule, who="self", mode="widget", parent=None,
             objs.append(obj)
             objprop = keys[-1]
             binds.append((obj, objprop))
-        ctx["link_handlers"].append((
+        ctx["link_properties"].append((
             who,
             who if mode == "widget" else parent,
             hname,
             symbols,
             binds))
+
+    # handlers
+    for rhdl in rule.handlers:
+        symbols = ids + ["self", "root"]
+        hname, hcode = generate_py_handler_on(rhdl.name, rhdl, symbols=symbols)
+        objs.append(who)
+        ctx["handlers"].append((who, rhdl.name, hname, hcode, symbols))
 
     ctx["objs"] = list(set(objs + ctx["objs"]))
     return ctx
