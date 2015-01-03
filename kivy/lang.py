@@ -758,9 +758,10 @@ import codecs
 import re
 import sys
 import traceback
+import imp
 from re import sub, findall
 from os import environ
-from os.path import join
+from os.path import join, exists, basename
 from copy import copy
 from types import CodeType
 from functools import partial
@@ -951,7 +952,7 @@ class ParserRuleProperty(object):
 
         # now, detect obj.prop
         # first, remove all the string from the value
-        tmp = sub(lang_str, '', value)
+        tmp = sub(lang_str, '""', value)
         idx = tmp.find('#')
         if idx != -1:
             tmp = tmp[:idx]
@@ -1697,6 +1698,17 @@ class BuilderBase(object):
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
         '''
+
+        # try to see if there is a compiled version of the kv first
+        pyfn = filename.replace(".kv", "_kv.py")
+        pyfn = resource_find(pyfn) or pyfn
+        if exists(pyfn):
+            Logger.info('Builder: load file %s (compiled, py)' % pyfn)
+            mod = imp.load_source(
+                "kivy.lang.{}".format(basename(pyfn.replace(".", "__"))),
+                pyfn)
+            return mod.get_root()
+
         filename = resource_find(filename) or filename
         if __debug__:
             trace('Builder: load file %s' % filename)
@@ -1836,7 +1848,10 @@ class BuilderBase(object):
         if not rules:
             return
         for rule in rules:
-            self._apply_rule(widget, rule, rule)
+            if isinstance(rule, ParserRule):
+                self._apply_rule(widget, rule, rule)
+            else:
+                rule(widget)
 
     def _clear_matchcache(self):
         BuilderBase._match_cache = {}
