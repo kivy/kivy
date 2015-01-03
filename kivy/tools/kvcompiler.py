@@ -28,7 +28,6 @@ What's not supported:
 - Properties creation on the fly on children
 - Rebind
 - Accessing of a object more than one . (self.parent.parent.myobj)
-- GC (no proxy used at all currently)
 - Unloading
 - on_parent trick dispatching
 
@@ -251,7 +250,7 @@ def _r{{ name }}(self):
         {%- elif sym == "gself" %}{{ who }}
         {%- elif sym == "root" %}self
         {%- else %}{{ sym }}
-        {%- endif -%}
+        {%- endif -%}.proxy_ref
         {%- endfor -%})
     {%- endfor %}
 
@@ -279,7 +278,7 @@ def _r{{ name }}(self):
         {%- for sym in symbols %}, {% if sym == "self" %}{{ who }}
         {%- elif sym == "root" %}self
         {%- else %}{{ sym }}
-        {%- endif -%}
+        {%- endif -%}.proxy_ref
         {%- endfor %})
     if {{ who }}.is_event_type(_key):
         {{ who }}_b({{ name }}=_{{ name }})
