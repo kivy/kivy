@@ -462,7 +462,7 @@ cdef class Mesh(VertexInstruction):
         def __set__(self, value):
             if gles_limts and len(value) > 65535:
                 raise GraphicException(
-                    'Cannot upload more than 65535 indices (OpenGL ES 2
+                    'Cannot upload more than 65535 indices (OpenGL ES 2'
                     ' limitation - consider setting KIVY_GLES_LIMITS)')
             self._indices = list(value)
             self.flag_update()
