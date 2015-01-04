@@ -329,6 +329,9 @@ class WindowSDL(WindowBase):
             elif action == 'windowrestored':
                 self.canvas.ask_update()
 
+            elif action == 'windowexposed':
+                self.canvas.ask_update()
+
             elif action == 'windowminimized':
                 if Config.getboolean('kivy', 'pause_on_minimize'):
                     self.do_pause()
@@ -386,8 +389,8 @@ class WindowSDL(WindowBase):
                 if action == 'keydown':
                     self._update_modifiers(mod, key)
                 else:
-                    self._update_modifiers(mod) # ignore the key, it
-                                                # has been released
+                    self._update_modifiers(mod)  # ignore the key, it
+                                                 # has been released
                 if 'shift' in self._modifiers and key\
                         not in self.command_keys.keys():
                     return
@@ -417,24 +420,10 @@ class WindowSDL(WindowBase):
                               self.modifiers)
                 self.dispatch('on_key_up', key, None, args[0],
                               self.modifiers)
-        #    # video resize
-        #    elif event.type == pygame.VIDEORESIZE:
-        #        self._size = event.size
-        #        # don't use trigger here, we want to delay the resize event
-        #        cb = self._do_resize
-        #        Clock.unschedule(cb)
-        #        Clock.schedule_once(cb, .1)
 
-        #    elif event.type == pygame.VIDEOEXPOSE:
-        #        self.canvas.ask_update()
-
-        #    # ignored event
-        #    elif event.type == pygame.ACTIVEEVENT:
-        #        pass
-
-        #    # unhandled event !
-        #    else:
-        #        Logger.debug('WinPygame: Unhandled event %s' % str(event))
+            # unhandled event !
+            else:
+                Logger.debug('WindowSDL: Unhandled event %s' % str(event))
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self._size))
