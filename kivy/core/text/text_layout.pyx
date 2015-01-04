@@ -212,6 +212,8 @@ cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
             # if we finish this line, make sure it doesn't end in spaces
             final_strip(_line)
             add_h = _line.h
+        else:
+            add_h = _line.h
 
         w = max(w, _line.w + 2 * xpad)
         h += add_h - old_lh
