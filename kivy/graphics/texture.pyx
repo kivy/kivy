@@ -226,6 +226,7 @@ include "img_tools.pxi"
 
 cimport cython
 from os import environ
+from kivy.utils import platform
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
 
@@ -234,7 +235,8 @@ IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.opengl_utils cimport *
 
-cdef int gles_limts = int(environ.get('KIVY_GLES_LIMITS', 1))
+cdef int gles_limts = int(environ.get(
+    'KIVY_GLES_LIMITS', int(platform not in ('win', 'macosx', 'linux'))))
 
 # update flags
 cdef int TI_MIN_FILTER      = 1 << 0
@@ -892,12 +894,14 @@ cdef class Texture:
             if colorfmt.lower() != self.colorfmt.lower():
                 raise Exception((
                     "GLES LIMIT: Cannot blit with a different colorfmt than "
-                    "the created texture. (texture has {}, you passed {})"
+                    "the created texture. (texture has {}, you passed {}). "
+                    "Consider setting KIVY_GLES_LIMITS"
                     ).format(self.colorfmt, colorfmt))
             if bufferfmt.lower() != self.bufferfmt.lower():
                 raise Exception((
                     "GLES LIMIT: Cannot blit with a different bufferfmt than "
-                    "the created texture. (texture has {}, you passed {})"
+                    "the created texture. (texture has {}, you passed {}). "
+                    "Consider setting KIVY_GLES_LIMITS"
                     ).format(self.bufferfmt, bufferfmt))
 
         # bind the texture, and create anything that should be created at this

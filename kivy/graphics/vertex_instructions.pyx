@@ -66,8 +66,10 @@ IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.logger import Logger
 from kivy.graphics.texture cimport Texture
+from kivy.utils import platform
 
-cdef int gles_limts = int(environ.get('KIVY_GLES_LIMITS', 1))
+cdef int gles_limts = int(environ.get(
+    'KIVY_GLES_LIMITS', int(platform not in ('win', 'macosx', 'linux'))))
 
 
 class GraphicException(Exception):
@@ -463,8 +465,8 @@ cdef class Mesh(VertexInstruction):
         def __set__(self, value):
             if gles_limts and len(value) > 65535:
                 raise GraphicException(
-                    'Cannot upload more than 65535 indices'
-                    '(OpenGL ES 2 limitation)')
+                    'Cannot upload more than 65535 indices (OpenGL ES 2'
+                    ' limitation - consider setting KIVY_GLES_LIMITS)')
             self._indices = list(value)
             self.flag_update()
 
