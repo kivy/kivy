@@ -35,7 +35,7 @@ class ImageLoaderPygame(ImageLoaderBase):
         return True
 
     @staticmethod
-    def can_load_inline():
+    def can_load_memory():
         return True
 
     def load(self, filename):

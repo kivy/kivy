@@ -210,7 +210,7 @@ class ImageLoaderBase(object):
         return False
 
     @staticmethod
-    def can_load_inline():
+    def can_load_memory():
         '''Indicate if the loader can load an image by passing data
         '''
         return False
@@ -506,7 +506,7 @@ class Image(EventDispatcher):
             if not filename:
                 self._nocache = True
                 filename = '__inline__'
-            self.load_inline(arg, ext, filename)
+            self.load_memory(arg, ext, filename)
         elif isinstance(arg, string_types):
             self.filename = arg
         else:
@@ -710,14 +710,14 @@ class Image(EventDispatcher):
     filename = property(_get_filename, _set_filename,
                         doc='Get/set the filename of image')
 
-    def load_inline(self, data, ext, filename='__inline__'):
+    def load_memory(self, data, ext, filename='__inline__'):
         '''(internal) Method to load an image from raw data.
         '''
         self._filename = filename
 
         # see if there is a available loader for it
         loaders = [loader for loader in ImageLoader.loaders if
-                   loader.can_load_inline() and
+                   loader.can_load_memory() and
                    ext in loader.extensions()]
         if not loaders:
             raise Exception('No inline loader found to load {}'.format(ext))
