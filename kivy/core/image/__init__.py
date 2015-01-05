@@ -6,6 +6,36 @@ Core classes for loading images and converting them to a
 :class:`~kivy.graphics.texture.Texture`. The raw image data can be keep in
 memory for further access.
 
+In-memory image loading
+-----------------------
+
+.. versionadded:: 1.9.0
+
+    Official support for in-memory loading. Not all the providers supports it,
+    but at the moment, pygame, pil and imageio works.
+
+To load an image with a filename, you usually do::
+
+    from kivy.core.image import Image as CoreImage
+    im = CoreImage("image.png")
+
+Now you can load from memory block. Instead of passing the filename, you'll need
+to pass the data as a BytesIO object + an "ext" parameters. Both are mandatory::
+
+    import io
+    from kivy.core.image import Image as CoreImage
+    data = io.BytesIO(open("image.png", "rb").read())
+    im = CoreImage(data, ext="png")
+
+By default, the image will not be cached, as our internal cache require a
+filename. If you want caching, add a filename that represent your file (it will
+be used only for caching)::
+
+    import io
+    from kivy.core.image import Image as CoreImage
+    data = io.BytesIO(open("image.png", "rb").read())
+    im = CoreImage(data, ext="png", filename="image.png")
+
 '''
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
@@ -154,14 +184,19 @@ class ImageLoaderBase(object):
     '''Base to implement an image loader.'''
 
     __slots__ = ('_texture', '_data', 'filename', 'keep_data',
-                 '_mipmap', '_nocache')
+                 '_mipmap', '_nocache', '_ext', '_inline')
 
     def __init__(self, filename, **kwargs):
         self._mipmap = kwargs.get('mipmap', False)
         self.keep_data = kwargs.get('keep_data', False)
         self._nocache = kwargs.get('nocache', False)
+        self._ext = kwargs.get('ext')
+        self._inline = kwargs.get('inline')
         self.filename = filename
-        self._data = self.load(filename)
+        if self._inline:
+            self._data = self.load(kwargs.get('rawdata'))
+        else:
+            self._data = self.load(filename)
         self._textures = None
 
     def load(self, filename):
@@ -171,6 +206,12 @@ class ImageLoaderBase(object):
     @staticmethod
     def can_save():
         '''Indicate if the loader can save the Image object
+        '''
+        return False
+
+    @staticmethod
+    def can_load_memory():
+        '''Indicate if the loader can load an image by passing data
         '''
         return False
 
@@ -457,6 +498,15 @@ class Image(EventDispatcher):
             self._size = self.texture.size
         elif isinstance(arg, ImageLoaderBase):
             self.image = arg
+        elif isinstance(arg, SIO.BytesIO):
+            ext = kwargs.get('ext', None)
+            if not ext:
+                raise Exception('Inline loading require "ext" parameter')
+            filename = kwargs.get('filename')
+            if not filename:
+                self._nocache = True
+                filename = '__inline__'
+            self.load_memory(arg, ext, filename)
         elif isinstance(arg, string_types):
             self.filename = arg
         else:
@@ -659,6 +709,26 @@ class Image(EventDispatcher):
 
     filename = property(_get_filename, _set_filename,
                         doc='Get/set the filename of image')
+
+    def load_memory(self, data, ext, filename='__inline__'):
+        '''(internal) Method to load an image from raw data.
+        '''
+        self._filename = filename
+
+        # see if there is a available loader for it
+        loaders = [loader for loader in ImageLoader.loaders if
+                   loader.can_load_memory() and
+                   ext in loader.extensions()]
+        if not loaders:
+            raise Exception('No inline loader found to load {}'.format(ext))
+        image = loaders[0](filename, ext=ext, rawdata=data, inline=True,
+                nocache=self._nocache, mipmap=self._mipmap,
+                keep_data=self._keep_data)
+        if isinstance(image, Texture):
+            self._texture = image
+            self._size = image.size
+        else:
+            self.image = image
 
     @property
     def size(self):
