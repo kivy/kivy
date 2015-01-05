@@ -118,6 +118,13 @@ class Popup(ModalView):
     defaults to '14sp'.
     '''
 
+    title_align = StringProperty('left')
+    '''Vertical alignment of the title, can be 'left','middle' or 'right'.
+
+    :attr:`title_align` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'left'.
+    '''
+
     content = ObjectProperty(None)
     '''Content of the popup that is displayed just under the title.
 
