@@ -125,6 +125,13 @@ class Popup(ModalView):
     defaults to 'left'. Available options are left, middle, right and justify.
     '''
 
+    title_font = StringProperty('DroidSans')
+    '''Font used to render the title text.
+
+    :attr:`title_font` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'DroidSans'.
+    '''
+
     content = ObjectProperty(None)
     '''Content of the popup that is displayed just under the title.
 
