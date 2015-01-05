@@ -250,7 +250,7 @@ def _r{{ name }}(self):
         {%- elif sym == "gself" %}{{ who }}
         {%- elif sym == "root" %}self
         {%- else %}{{ sym }}
-        {%- endif -%}.proxy_ref
+        {%- endif -%}
         {%- endfor -%})
     {%- endfor %}
 
@@ -278,7 +278,7 @@ def _r{{ name }}(self):
         {%- for sym in symbols %}, {% if sym == "self" %}{{ who }}
         {%- elif sym == "root" %}self
         {%- else %}{{ sym }}
-        {%- endif -%}.proxy_ref
+        {%- endif -%}
         {%- endfor %})
     if {{ who }}.is_event_type(_key):
         {{ who }}_b({{ name }}=_{{ name }})
@@ -387,16 +387,6 @@ def generate_py_rules(key, rule, who="self", mode="widget", parent=None,
             continue
         ctx["literal_properties"].append((name, prop.value))
 
-    # create children
-    for child in rule.children:
-        child_ctx, code = generate_py_child(child, who, ids)
-        ctx["children"].append(code)
-        ctx["children"].extend(child_ctx["children"])
-        ctx["properties"] += child_ctx["properties"]
-        ctx["link_properties"] += child_ctx["link_properties"]
-        ctx["objs"] += child_ctx["objs"]
-        ctx["handlers"] += child_ctx["handlers"]
-
     # create canvas
     if rule.canvas_root:
         for child in rule.canvas_root.children:
@@ -422,6 +412,16 @@ def generate_py_rules(key, rule, who="self", mode="widget", parent=None,
             ctx["properties"] += child_ctx["properties"]
             ctx["link_properties"] += child_ctx["link_properties"]
             ctx["objs"] += child_ctx["objs"]
+
+    # create children
+    for child in rule.children:
+        child_ctx, code = generate_py_child(child, who, ids)
+        ctx["children"].append(code)
+        ctx["children"].extend(child_ctx["children"])
+        ctx["properties"] += child_ctx["properties"]
+        ctx["link_properties"] += child_ctx["link_properties"]
+        ctx["objs"] += child_ctx["objs"]
+        ctx["handlers"] += child_ctx["handlers"]
 
     # properties
     objs = []
