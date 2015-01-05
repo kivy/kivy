@@ -24,7 +24,7 @@ to pass the data as a BytesIO object + an "ext" parameters. Both are mandatory::
 
     import io
     from kivy.core.image import Image as CoreImage
-    data = io.BytesIO(open("image.png", "b").read())
+    data = io.BytesIO(open("image.png", "rb").read())
     im = CoreImage(data, ext="png")
 
 By default, the image will not be cached, as our internal cache require a
@@ -33,7 +33,7 @@ be used only for caching)::
 
     import io
     from kivy.core.image import Image as CoreImage
-    data = io.BytesIO(open("image.png", "b").read())
+    data = io.BytesIO(open("image.png", "rb").read())
     im = CoreImage(data, ext="png", filename="image.png")
 
 '''
