@@ -163,9 +163,9 @@ def load_image_data(bytes _url, bytes _data=None):
 cdef void c_load_image_data(char *_url, char *_data, size_t datalen, size_t *width, size_t
         *height, char **r_data) nogil:
     # load an image from the _url with CoreGraphics, and output an RGBA string.
-    cdef CFURLRef url
+    cdef CFURLRef url = NULL
     cdef CGImageSourceRef myImageSourceRef
-    cdef CFDataRef dataref
+    cdef CFDataRef dataref = NULL
 
     width[0] = height[0] = 0
     r_data[0] = NULL
@@ -173,6 +173,9 @@ cdef void c_load_image_data(char *_url, char *_data, size_t datalen, size_t *wid
     if _data != NULL:
         dataref = CFDataCreateWithBytesNoCopy(NULL, _data, datalen, NULL)
         myImageSourceRef = CGImageSourceCreateWithData(dataref, NULL)
+        if not myImageSourceRef:
+            CFRelease(dataref)
+            return
     else:
         url = CFURLCreateFromFileSystemRepresentation(NULL, <unsigned char *>_url, datalen, 0)
         myImageSourceRef = CGImageSourceCreateWithURL(url, NULL)
@@ -182,6 +185,12 @@ cdef void c_load_image_data(char *_url, char *_data, size_t datalen, size_t *wid
     cdef CGImageRef myImageRef = CGImageSourceCreateImageAtIndex(myImageSourceRef, 0, NULL)
     width[0] = CGImageGetWidth(myImageRef)
     height[0] = CGImageGetHeight(myImageRef)
+    if myImageRef == NULL:
+        if dataref != NULL:
+            CFRelease(dataref)
+        if url != NULL:
+            CFRelease(url)
+        return
     cdef CGRect rect = CGRectMake(0, 0, width[0], height[0])
     cdef CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB()
     cdef vImage_Buffer src
@@ -206,7 +215,10 @@ cdef void c_load_image_data(char *_url, char *_data, size_t datalen, size_t *wid
     vImagePermuteChannels_ARGB8888(&src, &dest, pmap, 0)
 
     # release everything
-    CFRelease(url)
+    if dataref != NULL:
+        CFRelease(dataref)
+    if url != NULL:
+        CFRelease(url)
     CGImageRelease(<CGImageRef>myImageSourceRef)
     CFRelease(myImageRef)
     CGContextRelease(myBitmapContext)
@@ -320,7 +332,7 @@ class ImageLoaderImageIO(ImageLoaderBase):
 
     def load(self, filename):
         # FIXME: if the filename is unicode, the loader is failing.
-        if hasattr(filename, "fileno"):
+        if self._inline:
             data = filename.read()
             ret = load_image_data(None, data)
         else:
@@ -333,6 +345,10 @@ class ImageLoaderImageIO(ImageLoaderBase):
 
     @staticmethod
     def can_save():
+        return True
+
+    @staticmethod
+    def can_load_inline():
         return True
 
     @staticmethod
