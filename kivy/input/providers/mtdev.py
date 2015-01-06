@@ -165,6 +165,10 @@ else:
 
             def process(points):
                 for args in points:
+                    # this can happen if we have a touch going on already at the
+                    # start of the app
+                    if 'id' not in args:
+                        continue
                     tid = args['id']
                     try:
                         touch = touches[tid]
