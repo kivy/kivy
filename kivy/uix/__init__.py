@@ -40,7 +40,7 @@ Kivy widgets can be categorized as follows:
     :doc:`api-kivy.uix.vkeyboard`,
 
 - **Behaviors widgets**: Theses widgets do no rendering but act on the
-  graphics instructions or interaction (touch) behavior.
+  graphics instructions or interaction (touch) behavior of their children.
 
     :doc:`api-kivy.uix.scatter`, :doc:`api-kivy.uix.stencilview`
 
