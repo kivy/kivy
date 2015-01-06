@@ -2,10 +2,13 @@
 Widgets
 =======
 
-A widget is an element of a graphical user interface.
+Widgets are elements of a graphical user interface that form part of the
+`User Experience <http://en.wikipedia.org/wiki/User_experience>`_.
 The `kivy.uix` module contains classes for creating and managing Widgets.
+Please refer to the :doc:`api-kivy.uix.widget` documentation for further
+information.
 
-First read: :doc:`api-kivy.uix.widget`
+Kivy widgets can be categorized as follows:
 
 - **UX widgets**: Classical user interface widgets, ready to be assembled to
   create more complex widgets.
@@ -19,7 +22,7 @@ First read: :doc:`api-kivy.uix.widget`
 
 - **Layouts**: A layout widget does no rendering but just acts as a trigger
   that arranges its children in a specific way. Read more on
-  :doc:`api-kivy.uix.layout`.
+  :doc:`Layouts here <api-kivy.uix.layout>`.
 
     :doc:`api-kivy.uix.gridlayout`, :doc:`api-kivy.uix.boxlayout`,
     :doc:`api-kivy.uix.anchorlayout`, :doc:`api-kivy.uix.stacklayout`
