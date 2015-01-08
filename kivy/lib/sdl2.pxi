@@ -346,8 +346,17 @@ cdef extern from "SDL.h":
         pass
     cdef struct SDL_TouchButtonEvent:
         pass
+
     cdef struct SDL_MultiGestureEvent:
-        pass
+        Uint32 type
+        Uint32 timestamp
+        Uint32 touchId
+        float dTheta
+        float dDist
+        float x
+        float y
+        Uint16 numFingers
+
     cdef struct SDL_DollarGestureEvent:
         pass
 
