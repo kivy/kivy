@@ -49,6 +49,7 @@ from kivy.atlas import Atlas
 from kivy.resources import resource_find
 from kivy.utils import platform
 from kivy.compat import string_types
+from kivy.setupconfig import USE_SDL2
 import zipfile
 try:
     import cio as SIO
@@ -887,9 +888,12 @@ if platform in ('macosx', 'ios'):
 
 image_libs += [
     ('tex', 'img_tex'),
-    ('dds', 'img_dds'),
-    ('pygame', 'img_pygame'),
-    ('sdl2', 'img_sdl2'),
+    ('dds', 'img_dds')]
+if USE_SDL2:
+    image_libs += [('sdl2', 'img_sdl2')]
+else:
+    image_libs += [('pygame', 'img_pygame')]
+image_libs += [
     ('ffpy', 'img_ffpyplayer'),
     ('pil', 'img_pil'),
     ('gif', 'img_gif')]

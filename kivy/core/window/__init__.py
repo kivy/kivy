@@ -25,6 +25,7 @@ from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
 from kivy.utils import platform, reify
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
+from kivy.setupconfig import USE_SDL2
 
 # late import
 VKeyboard = None
@@ -1340,10 +1341,15 @@ class WindowBase(EventDispatcher):
             return True
 
 #: Instance of a :class:`WindowBase` implementation
-Window = core_select_lib('window', (
-    ('egl_rpi', 'window_egl_rpi', 'WindowEglRpi'),
-    ('pygame', 'window_pygame', 'WindowPygame'),
-    ('sdl', 'window_sdl', 'WindowSDL'),
-    ('sdl2', 'window_sdl2', 'WindowSDL'),
-    ('x11', 'window_x11', 'WindowX11'),
-), True)
+window_impl = []
+if platform == 'linux':
+    window_impl += [('egl_rpi', 'window_egl_rpi', 'WindowEglRpi')]
+if USE_SDL2:
+    window_impl += [('sdl2', 'window_sdl2', 'WindowSDL')]
+else:
+    window_impl += [
+        ('pygame', 'window_pygame', 'WindowPygame'),
+        ('sdl', 'window_sdl', 'WindowSDL')]
+if platform == 'linux':
+    window_impl += [('x11', 'window_x11', 'WindowX11')]
+Window = core_select_lib('window', window_impl, True)

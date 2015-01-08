@@ -45,6 +45,7 @@ from kivy.core import core_select_lib
 from kivy.core.text.text_layout import layout_text, LayoutWord
 from kivy.resources import resource_find, resource_add_path
 from kivy.compat import PY2
+from kivy.setupconfig import USE_SDL2
 
 DEFAULT_FONT = 'DroidSans'
 
@@ -723,12 +724,15 @@ class LabelBase(object):
                         doc='''(deprecated) Use text_size instead.''')
 
 # Load the appropriate provider
-Label = core_select_lib('text', (
-    ('pygame', 'text_pygame', 'LabelPygame'),
-    ('sdl2', 'text_sdl2', 'LabelSDL2'),
+label_libs = []
+if USE_SDL2:
+    label_libs += [('sdl2', 'text_sdl2', 'LabelSDL2')]
+else:
+    label_libs += [('pygame', 'text_pygame', 'LabelPygame')]
+label_libs += [
     ('sdlttf', 'text_sdlttf', 'LabelSDLttf'),
-    ('pil', 'text_pil', 'LabelPIL'),
-))
+    ('pil', 'text_pil', 'LabelPIL')]
+Label = core_select_lib('text', label_libs)
 
 if 'KIVY_DOC' not in os.environ:
     if not Label:

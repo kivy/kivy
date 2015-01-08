@@ -29,6 +29,7 @@ __all__ = ('ClipboardBase', 'Clipboard')
 
 from kivy.core import core_select_lib
 from kivy.utils import platform
+from kivy.setupconfig import USE_SDL2
 
 
 class ClipboardBase(object):
@@ -116,31 +117,28 @@ class ClipboardBase(object):
 
 # load clipboard implementation
 _clipboards = []
-_platform = platform
-if _platform == 'android':
+if platform == 'android':
     _clipboards.append(
         ('android', 'clipboard_android', 'ClipboardAndroid'))
-elif _platform in ('macosx', 'linux', 'win'):
-    if _platform == 'macosx':
-        _clipboards.append(
-            ('nspaste', 'clipboard_nspaste', 'ClipboardNSPaste'))
-    elif _platform == 'win':
-        _clipboards.append(
-            ('winctypes', 'clipboard_winctypes', 'ClipboardWindows'))
-    elif _platform == 'linux':
-        _clipboards.append(
-            ('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
-
+elif platform == 'macosx':
+    _clipboards.append(
+        ('nspaste', 'clipboard_nspaste', 'ClipboardNSPaste'))
+elif platform == 'win':
+    _clipboards.append(
+        ('winctypes', 'clipboard_winctypes', 'ClipboardWindows'))
+elif platform == 'linux':
+    _clipboards.append(
+        ('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
+    
+if USE_SDL2:
+    _clipboards.append(
+        ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
+else:
     _clipboards.append(
         ('pygame', 'clipboard_pygame', 'ClipboardPygame'))
 
 _clipboards.append(
-    ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
-_clipboards.append(
     ('dummy', 'clipboard_dummy', 'ClipboardDummy'))
 
 Clipboard = core_select_lib('clipboard', _clipboards, True)
-
-del _clipboards
-del _platform
 
