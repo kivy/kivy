@@ -47,7 +47,7 @@ class ImageLoaderPygame(ImageLoaderBase):
             im = None
             if self._inline:
                 im = pygame.image.load(filename, 'x.{}'.format(self._ext))
-            elif isfile(filename):
+            elif isfile(str(filename)):
                 with open(filename, 'rb') as fd:
                     im = pygame.image.load(fd)
             elif isinstance(filename, bytes):
