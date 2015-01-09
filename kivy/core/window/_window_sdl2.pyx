@@ -230,8 +230,7 @@ cdef class _WindowSDL2Storage:
             elif event.window.event == SDL_WINDOWEVENT_MOVED:
                 action = ('windowmoved', event.window.data1, event.window.data2)
             else:
-                if __debug__:
-                    print('receive unknown sdl window event', event.type)
+                #    print('receive unknown sdl window event', event.type)
                 pass
             return action
         elif event.type == SDL_KEYDOWN or event.type == SDL_KEYUP:
@@ -244,8 +243,7 @@ cdef class _WindowSDL2Storage:
             s = event.text.text.decode('utf-8')
             return ('textinput', s)
         else:
-            if __debug__:
-                print('receive unknown sdl event', event.type)
+            #    print('receive unknown sdl event', event.type)
             pass
 
     def flip(self):

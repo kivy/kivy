@@ -15,7 +15,6 @@ TODO:
 
 __all__ = ('WindowSDL2', )
 
-import sys
 from os.path import join
 from kivy import kivy_data_dir
 from kivy.logger import Logger
@@ -429,7 +428,7 @@ class WindowSDL(WindowBase):
 
             # unhandled event !
             else:
-                Logger.debug('WindowSDL: Unhandled event %s' % str(event))
+                Logger.trace('WindowSDL: Unhandled event %s' % str(event))
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self._size))
