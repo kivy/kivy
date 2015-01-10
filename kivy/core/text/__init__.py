@@ -550,23 +550,14 @@ class LabelBase(object):
                                     options['halign'][-1] == 'y')
         uw, uh = options['text_size'] = self._text_size
         text = self.text
-        if not strip:
-            # all text will be stripped by default. unicode NO-BREAK SPACE
-            # characters will be preserved, so we replace the leading and
-            # trailing spaces with \u00a0
-            text = text.decode('utf8', errors=options['unicode_errors'])\
-                if isinstance(text, bytes) else text
-            lspace = len(text) - len(text.lstrip())
-            rspace = len(text) - len(text.rstrip())
-            text = (u'\u00a0' * lspace) + text.strip() + (u'\u00a0' * rspace)
+        if strip:
+            text = text.strip()
         if uw is not None and options['shorten']:
             text = self.shorten(text)
         self._cached_lines = lines = []
         if not text:
             return 0, 0
 
-        ostrip = options['strip']
-        strip = options['strip'] = True
         if uh is not None and options['valign'][-1] == 'e':  # middle
             center = -1  # pos of newline
             if len(text) > 1:
@@ -592,7 +583,6 @@ class LabelBase(object):
         else:  # top or bottom
             w, h, clipped = layout_text(text, lines, (0, 0), (uw, uh), options,
                 self.get_cached_extents(), options['valign'][-1] == 'p', True)
-        options['strip'] = ostrip
         self._internal_size = w, h
         if uw:
             w = uw
