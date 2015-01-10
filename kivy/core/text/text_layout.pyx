@@ -390,6 +390,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
     cdef int max_lines = int(options.get('max_lines', 0))
     cdef float line_height = options['line_height']
     cdef int strip = options['strip'] or options['halign'][-1] == 'y'
+    cdef int ref_strip = options['strip_reflow']
     cdef int w = size[0], h = size[1]  # width and height of the texture so far
     cdef list new_lines
     cdef int s, lw = -1, lh = -1, old_lh, i = -1, n, m, e
@@ -440,11 +441,12 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
                 _line = lines.pop(pos)
 
         line = new_lines[i]
-        if strip:
-            if not _line.w:  # there's no proceeding text, so strip leading
-                line = line.lstrip()
-            if ends_line:
-                line = line.rstrip()
+        # there's no proceeding text, so strip leading
+        if not _line.w and (strip or ref_strip and _line.line_wrap):
+            line = line.lstrip()
+        if strip and ends_line:
+            line = line.rstrip()
+
         k = len(line)
         if not k:  # just add empty line if empty
             _line.is_last_line = ends_line  # nothing will be appended
@@ -466,7 +468,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
             # find next space or end, if end don't keep checking
             if e != k:
                 # leading spaces
-                if strip and s == m and not _line.w and line[s] == ' ':
+                if s == m and not _line.w and line[s] == ' ' and (strip or ref_strip and _line.line_wrap):
                     s = m = s + 1
                     # trailing spaces were stripped, so end is always not space
                     continue
@@ -491,7 +493,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
                 # if there's already some text, commit and go next line
                 if s != m:
                     _do_last_line = 1
-                    if strip and line[m - 1] == ' ':
+                    if (strip or ref_strip) and line[m - 1] == ' ':
                         ln = line[s:m].rstrip()
                         lww, lhh = get_extents(ln)
                     else:
@@ -511,7 +513,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
 
                 # try to fit word on new line, if it doesn't fit we'll
                 # have to break the word into as many lines needed
-                if strip:
+                if strip or ref_strip and _line.line_wrap:
                     s = e - len(line[s:e].lstrip())
                 if s == e:  # if it was only a stripped space, move on
                     m = s
@@ -545,7 +547,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
             else:   # the word fits
                 # don't allow leading spaces on empty lines
                 #if strip and m == s and line[s:e] == ' ' and not _line.w:
-                if strip and line[s:e] == ' ' and not _line.w:
+                if (strip or ref_strip and _line.line_wrap) and line[s:e] == ' ' and not _line.w:
                     s = m = e
                     continue
                 m = e
