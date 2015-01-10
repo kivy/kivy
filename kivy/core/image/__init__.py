@@ -51,10 +51,7 @@ from kivy.utils import platform
 from kivy.compat import string_types
 from kivy.setupconfig import USE_SDL2
 import zipfile
-try:
-    import cio as SIO
-except ImportError:
-    import io as SIO
+from io import BytesIO
 
 
 # late binding
@@ -316,7 +313,7 @@ class ImageLoader(object):
         Returns an Image with a list of type ImageData stored in Image._data
         '''
         # read zip in menory for faster access
-        _file = SIO.BytesIO(open(filename, 'rb').read())
+        _file = BytesIO(open(filename, 'rb').read())
         # read all images inside the zip
         z = zipfile.ZipFile(_file)
         image_data = []
@@ -327,16 +324,16 @@ class ImageLoader(object):
         for zfilename in znamelist:
             try:
                 #read file and store it in mem with fileIO struct around it
-                tmpfile = SIO.BytesIO(z.read(zfilename))
+                tmpfile = BytesIO(z.read(zfilename))
                 ext = zfilename.split('.')[-1].lower()
                 im = None
                 for loader in ImageLoader.loaders:
-                    if ext not in loader.extensions():
+                    if ext not in loader.extensions() or not loader.can_load_memory():
                         continue
                     Logger.debug('Image%s: Load <%s> from <%s>' %
                                  (loader.__name__[11:], zfilename, filename))
                     try:
-                        im = loader(tmpfile, **kwargs)
+                        im = loader(zfilename, ext=ext, rawdata=tmpfile, inline=True, **kwargs)
                     except:
                         # Loader failed, continue trying.
                         continue
@@ -499,7 +496,7 @@ class Image(EventDispatcher):
             self._size = self.texture.size
         elif isinstance(arg, ImageLoaderBase):
             self.image = arg
-        elif isinstance(arg, SIO.BytesIO):
+        elif isinstance(arg, BytesIO):
             ext = kwargs.get('ext', None)
             if not ext:
                 raise Exception('Inline loading require "ext" parameter')
