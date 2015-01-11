@@ -182,7 +182,7 @@ class SafeList(list):
     @deprecated
     def iterate(self, reverse=False):
         if reverse:
-            return reversed(iter(self))
+            return iter(reversed(self))
         return iter(self)
 
 
@@ -330,7 +330,7 @@ def escape_markup(text):
 
     .. versionadded:: 1.3.0
     '''
-    return text.replace('[', '&bl;').replace(']', '&br;').replace('&', '&amp;')
+    return text.replace('&', '&amp;').replace('[', '&bl;').replace(']', '&br;')
 
 
 class reify(object):
