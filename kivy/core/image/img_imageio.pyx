@@ -186,10 +186,7 @@ cdef void c_load_image_data(char *_url, char *_data, size_t datalen, size_t *wid
     width[0] = CGImageGetWidth(myImageRef)
     height[0] = CGImageGetHeight(myImageRef)
     if myImageRef == NULL:
-        if dataref != NULL:
-            CFRelease(dataref)
-        if url != NULL:
-            CFRelease(url)
+        CFRelease(myImageSourceRef)
         return
     cdef CGRect rect = CGRectMake(0, 0, width[0], height[0])
     cdef CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB()
@@ -215,10 +212,6 @@ cdef void c_load_image_data(char *_url, char *_data, size_t datalen, size_t *wid
     vImagePermuteChannels_ARGB8888(&src, &dest, pmap, 0)
 
     # release everything
-    if dataref != NULL:
-        CFRelease(dataref)
-    if url != NULL:
-        CFRelease(url)
     CGImageRelease(<CGImageRef>myImageSourceRef)
     CFRelease(myImageRef)
     CGContextRelease(myBitmapContext)
