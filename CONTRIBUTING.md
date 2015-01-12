@@ -27,12 +27,13 @@ We are perfectionists, so even if it's just a typo, let us know.
 
 If you have any problems, a crash, a segfault, missing documentation, invalid
 spelling, weird examples, please take 2 minutes to report the issue and follow
-the guide lines mentioned [here](http://kivy.org/docs/contribute.html#reporting-an-issue)
+the guide lines mentioned
+[here.](http://kivy.org/docs/contribute.html#reporting-an-issue)
 
 ##[Code Contributions](http://kivy.org/docs/contribute.html#code-contributions)
 
 Code contributions (patches, new features) are the most obvious way to help with
-the project's development. Since this is so common we ask you to follow our
+the project's development. Since this is quite common, we ask you to follow our
 workflow to most efficiently work with us. Adhering to our workflow ensures that
 your contribution won't be forgotten or lost. Also, your name will always be
 associated with the change you made, which basically means eternal fame in our
@@ -49,7 +50,7 @@ code history (you can opt-out if you don't want that).
 Documentation contributions generally follow the same workflow as code
 contributions, just a bit more lax. We don't ask you to go through all the
 hassle just to correct a single typo. For more complex contributions, please
-consider following the suggested workflow though.
+follow the suggested workflow.
 
 
 * #[Docstrings](http://kivy.org/docs/contribute.html#docstrings)
@@ -57,8 +58,7 @@ consider following the suggested workflow though.
 
 #Unit tests contributions
 
-For testing team, we have the document `contribute-unittest` that
-explains how Kivy unit test are working and how you can create your own. Use the
-same approach as the `Code Workflow` to [submit new tests](http://kivy.org/docs/contribute.html#unit-tests-contributions).
-
-
+For the testing team, we have a document `contribute-unittest` that
+explains how the Kivy unit tests work and how you can create your own. Please
+use the same approach as the `Code Workflow` to
+[submit new tests](http://kivy.org/docs/contribute.html#unit-tests-contributions).
