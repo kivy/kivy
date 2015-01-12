@@ -53,7 +53,7 @@ hassle just to correct a single typo. For more complex contributions, please
 follow the suggested workflow.
 
 
-* #[Docstrings](http://kivy.org/docs/contribute.html#docstrings)
+* [Docstrings](http://kivy.org/docs/contribute.html#docstrings)
 
 
 #Unit tests contributions
