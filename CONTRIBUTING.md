@@ -7,8 +7,7 @@ improvements, advertisement & advocating, testing, graphics contributions and
 many different things. Just talk to us if you want to help, and we will help you
 help us.
 
-#Feedback
---------
+##[Feedback](http://kivy.org/docs/contact.html)
 
 This is by far the easiest way to contribute something. If you're using
 Kivy for your own project, don't hesitate sharing. It doesn't have to be a
