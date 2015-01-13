@@ -106,12 +106,18 @@ class LabelBase(object):
         `strip` : bool, defaults to False
             Whether each row of text has its leading and trailing spaces
             stripped. If `halign` is `justify` it is implicitly True.
+        `strip_reflow` : bool, defaults to True
+            Whether text that has been reflowed into a second line should
+            be striped, even if `strip` is False. This is only in effect when
+            ``size_hint_x` is not None, because otherwise lines are never
+            split.
         `unicode_errors` : str, defaults to `'replace'`
             How to handle unicode decode errors. Can be `'strict'`, `'replace'`
             or `'ignore'`.
 
     .. versionchanged:: 1.9.0
-        `strip`, `shorten_from`, `split_str`, and `unicode_errors` were added.
+        `strip`, `strip_reflow`, `shorten_from`, `split_str`, and
+        `unicode_errors` were added.
 
     .. versionchanged:: 1.9.0
         `padding_x` and `padding_y` has been fixed to work as expected.
@@ -142,11 +148,12 @@ class LabelBase(object):
 
     _texture_1px = None
 
-    def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
-                 bold=False, italic=False, halign='left', valign='bottom',
-                 shorten=False, text_size=None, mipmap=False, color=None,
-                 line_height=1.0, strip=False, shorten_from='center',
-                 split_str=' ', unicode_errors='replace', **kwargs):
+    def __init__(
+        self, text='', font_size=12, font_name=DEFAULT_FONT, bold=False,
+        italic=False, halign='left', valign='bottom', shorten=False,
+        text_size=None, mipmap=False, color=None, line_height=1.0, strip=False,
+        strip_reflow=True, shorten_from='center', split_str=' ',
+        unicode_errors='replace', **kwargs):
 
         # Include system fonts_dir in resource paths.
         # This allows us to specify a font from those dirs.
@@ -156,8 +163,9 @@ class LabelBase(object):
                    'font_name': font_name, 'bold': bold, 'italic': italic,
                    'halign': halign, 'valign': valign, 'shorten': shorten,
                    'mipmap': mipmap, 'line_height': line_height,
-                   'strip': strip, 'shorten_from': shorten_from,
-                   'split_str': split_str, 'unicode_errors': unicode_errors}
+                   'strip': strip, 'strip_reflow': strip_reflow,
+                   'shorten_from': shorten_from, 'split_str': split_str,
+                   'unicode_errors': unicode_errors}
 
         options['color'] = color or (1, 1, 1, 1)
         options['padding'] = kwargs.get('padding', (0, 0))
@@ -551,23 +559,14 @@ class LabelBase(object):
                                     options['halign'][-1] == 'y')
         uw, uh = options['text_size'] = self._text_size
         text = self.text
-        if not strip:
-            # all text will be stripped by default. unicode NO-BREAK SPACE
-            # characters will be preserved, so we replace the leading and
-            # trailing spaces with \u00a0
-            text = text.decode('utf8', errors=options['unicode_errors'])\
-                if isinstance(text, bytes) else text
-            lspace = len(text) - len(text.lstrip())
-            rspace = len(text) - len(text.rstrip())
-            text = (u'\u00a0' * lspace) + text.strip() + (u'\u00a0' * rspace)
+        if strip:
+            text = text.strip()
         if uw is not None and options['shorten']:
             text = self.shorten(text)
         self._cached_lines = lines = []
         if not text:
             return 0, 0
 
-        ostrip = options['strip']
-        strip = options['strip'] = True
         if uh is not None and options['valign'][-1] == 'e':  # middle
             center = -1  # pos of newline
             if len(text) > 1:
@@ -593,7 +592,6 @@ class LabelBase(object):
         else:  # top or bottom
             w, h, clipped = layout_text(text, lines, (0, 0), (uw, uh), options,
                 self.get_cached_extents(), options['valign'][-1] == 'p', True)
-        options['strip'] = ostrip
         self._internal_size = w, h
         if uw:
             w = uw
