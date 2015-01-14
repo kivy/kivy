@@ -20,7 +20,8 @@ Manual installation
     sudo apt-get update
     sudo apt-get install pkg-config libgl1-mesa-dev libgles2-mesa-dev \
        python-pygame python-setuptools libgstreamer1.0-dev git-core \
-       gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa}
+       gstreamer1.0-plugins-{bad,base,good,ugly} \
+       gstreamer1.0-{omx,alsa} python-dev
 
 #. Install pip from source::
 

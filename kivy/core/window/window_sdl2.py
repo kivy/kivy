@@ -15,7 +15,6 @@ TODO:
 
 __all__ = ('WindowSDL2', )
 
-import sys
 from os.path import join
 from kivy import kivy_data_dir
 from kivy.logger import Logger
@@ -118,6 +117,7 @@ class WindowSDL(WindowBase):
                     279: 'end',
                     280: 'pgup',
                     281: 'pgdown'}
+        self._mouse_buttons_down = set()
 
     def create_window(self, *largs):
 
@@ -260,14 +260,22 @@ class WindowSDL(WindowBase):
 
             elif action in ('fingermotion', 'fingerdown', 'fingerup'):
                 # for finger, pass the raw event to SDL motion event provider
-                SDL2MotionEventProvider.q.appendleft(event)
+                # XXX this is problematic. On OSX, it generates touches with 0,
+                # 0 coordinates, at the same times as mouse. But it works.
+                # We have a conflict of using either the mouse or the finger. 
+                # Right now, we have no mechanism that we could use to know
+                # which is the preferred one for the application.
+                #SDL2MotionEventProvider.q.appendleft(event)
+                pass
 
-            if action == 'mousemotion':
+            elif action == 'mousemotion':
                 x, y = args
                 self.mouse_pos = x, self.system_size[1] - y
-                # don't dispatch motion if no button are pressed
                 self._mouse_x = x
                 self._mouse_y = y
+                # don't dispatch motion if no button are pressed
+                if len(self._mouse_buttons_down) == 0:
+                    continue
                 self._mouse_meta = self.modifiers
                 self.dispatch('on_mouse_move', x, y, self.modifiers)
 
@@ -279,8 +287,12 @@ class WindowSDL(WindowBase):
                 elif button == 2:
                     btn = 'middle'
                 eventname = 'on_mouse_down'
+                self._mouse_buttons_down.add(button)
                 if action == 'mousebuttonup':
                     eventname = 'on_mouse_up'
+                    self._mouse_buttons_down.remove(button)
+                self._mouse_x = x
+                self._mouse_y = y
                 self.dispatch(eventname, x, y, btn, self.modifiers)
             elif action.startswith('mousewheel'):
                 self._update_modifiers()
@@ -320,6 +332,9 @@ class WindowSDL(WindowBase):
                 self.canvas.ask_update()
 
             elif action == 'windowrestored':
+                self.canvas.ask_update()
+
+            elif action == 'windowexposed':
                 self.canvas.ask_update()
 
             elif action == 'windowminimized':
@@ -376,7 +391,11 @@ class WindowSDL(WindowBase):
                 except KeyError:
                     pass
 
-                self._update_modifiers(mod)
+                if action == 'keydown':
+                    self._update_modifiers(mod, key)
+                else:
+                    self._update_modifiers(mod)  # ignore the key, it
+                                                 # has been released
                 if 'shift' in self._modifiers and key\
                         not in self.command_keys.keys():
                     return
@@ -406,24 +425,10 @@ class WindowSDL(WindowBase):
                               self.modifiers)
                 self.dispatch('on_key_up', key, None, args[0],
                               self.modifiers)
-        #    # video resize
-        #    elif event.type == pygame.VIDEORESIZE:
-        #        self._size = event.size
-        #        # don't use trigger here, we want to delay the resize event
-        #        cb = self._do_resize
-        #        Clock.unschedule(cb)
-        #        Clock.schedule_once(cb, .1)
 
-        #    elif event.type == pygame.VIDEOEXPOSE:
-        #        self.canvas.ask_update()
-
-        #    # ignored event
-        #    elif event.type == pygame.ACTIVEEVENT:
-        #        pass
-
-        #    # unhandled event !
-        #    else:
-        #        Logger.debug('WinPygame: Unhandled event %s' % str(event))
+            # unhandled event !
+            else:
+                Logger.trace('WindowSDL: Unhandled event %s' % str(event))
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self._size))
@@ -486,23 +491,36 @@ class WindowSDL(WindowBase):
     #
     # Pygame wrapper
     #
-    def _update_modifiers(self, mods=None):
+    def _update_modifiers(self, mods=None, key=None):
         # Available mod, from dir(pygame)
         # 'KMOD_ALT', 'KMOD_CAPS', 'KMOD_CTRL', 'KMOD_LALT',
         # 'KMOD_LCTRL', 'KMOD_LMETA', 'KMOD_LSHIFT', 'KMOD_META',
         # 'KMOD_MODE', 'KMOD_NONE'
-        if mods is None:
+        if mods is None and key is None:
             return
-        self._modifiers = []
+        modifiers = set()
 
-        if mods & (KMOD_RSHIFT | KMOD_LSHIFT):
-            self._modifiers.append('shift')
-        if mods & (KMOD_RALT | KMOD_LALT):
-            self._modifiers.append('alt')
-        if mods & (KMOD_RCTRL | KMOD_LCTRL):
-            self._modifiers.append('ctrl')
-        if mods & (KMOD_RMETA | KMOD_LMETA):
-            self._modifiers.append('meta')
+        if mods is not None:
+            if mods & (KMOD_RSHIFT | KMOD_LSHIFT):
+                modifiers.add('shift')
+            if mods & (KMOD_RALT | KMOD_LALT):
+                modifiers.add('alt')
+            if mods & (KMOD_RCTRL | KMOD_LCTRL):
+                modifiers.add('ctrl')
+            if mods & (KMOD_RMETA | KMOD_LMETA):
+                modifiers.add('meta')
+
+        if key is not None:
+            if key in (KMOD_RSHIFT, KMOD_LSHIFT):
+                modifiers.add('shift')
+            if key in (KMOD_RALT, KMOD_LALT):
+                modifiers.add('alt')
+            if key in (KMOD_RCTRL, KMOD_LCTRL):
+                modifiers.add('ctrl')
+            if key in (KMOD_RMETA, KMOD_LMETA):
+                modifiers.add('meta')
+
+        self._modifiers = list(modifiers)
         return
 
     def request_keyboard(self, callback, target, input_type='text'):

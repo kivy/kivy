@@ -25,6 +25,7 @@ from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
 from kivy.utils import platform, reify
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
+from kivy.setupconfig import USE_SDL2
 
 # late import
 VKeyboard = None
@@ -406,16 +407,16 @@ class WindowBase(EventDispatcher):
     softinput_mode = OptionProperty('', options=('', 'pan', 'scale', 'resize'))
     '''This specifies the behavior of window contents on display of soft
     keyboard on mobile platform. Can be one of '', 'pan', 'scale', 'resize'.
-    
+
     When '' The main window is left as it is allowing the user to use
     :attr:`keyboard_height` to manage the window contents the way they want.
-    
+
     when 'pan' The main window pans moving the bottom part of the window to be
     always on top of the keyboard.
-    
+
     when 'resize' The window is resized and the contents scaled to fit the
     remaining space.
-    
+
     ..versionadded::1.9.0
 
     :attr:`softinput_mode` is a :class:`OptionProperty` defaults to None.
@@ -509,8 +510,8 @@ class WindowBase(EventDispatcher):
                   'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
                   'on_mouse_down', 'on_mouse_move', 'on_mouse_up',
                   'on_keyboard', 'on_key_down', 'on_key_up', 'on_dropfile',
-                  'on_request_close', 'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
-                  'on_joy_button_down', "on_joy_button_up")
+                  'on_request_close', 'on_joy_axis', 'on_joy_hat',
+                  'on_joy_ball', 'on_joy_button_down', "on_joy_button_up")
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -570,11 +571,7 @@ class WindowBase(EventDispatcher):
         super(WindowBase, self).__init__(**kwargs)
 
         # bind all the properties that need to recreate the window
-        for prop in (
-                'fullscreen', 'borderless', 'position', 'top',
-                'left', '_size', 'system_size'):
-            self.bind(**{prop: self.trigger_create_window})
-
+        self._bind_create_window()
         self.bind(size=self.trigger_keyboard_height,
                   rotation=self.trigger_keyboard_height)
 
@@ -609,6 +606,18 @@ class WindowBase(EventDispatcher):
 
         # mark as initialized
         self.initialized = True
+
+    def _bind_create_window(self):
+        for prop in (
+                'fullscreen', 'borderless', 'position', 'top',
+                'left', '_size', 'system_size'):
+            self.bind(**{prop: self.trigger_create_window})
+
+    def _unbind_create_window(self):
+        for prop in (
+                'fullscreen', 'borderless', 'position', 'top',
+                'left', '_size', 'system_size'):
+            self.unbind(**{prop: self.trigger_create_window})
 
     def toggle_fullscreen(self):
         '''Toggle between fullscreen and windowed mode.
@@ -723,6 +732,10 @@ class WindowBase(EventDispatcher):
         # just to be sure, if the trigger is set, and if this method is
         # manually called, unset the trigger
         Clock.unschedule(self.create_window)
+
+        # ensure the window creation will not be called twice
+        if platform in ('android', 'ios'):
+            self._unbind_create_window()
 
         if not self.initialized:
             from kivy.core.gl import init_gl
@@ -908,7 +921,6 @@ class WindowBase(EventDispatcher):
         w2, h2 = w / 2., h / 2.
         r = radians(self.rotation)
 
-
         x, y = 0, 0
         _h = h
         if smode:
@@ -1038,6 +1050,7 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 1.9.0'''
         pass
+
     def on_joy_button_up(self, stickid, buttonid):
         '''Event called when a joystick has a button released
 
@@ -1328,10 +1341,15 @@ class WindowBase(EventDispatcher):
             return True
 
 #: Instance of a :class:`WindowBase` implementation
-Window = core_select_lib('window', (
-    ('egl_rpi', 'window_egl_rpi', 'WindowEglRpi'),
-    ('pygame', 'window_pygame', 'WindowPygame'),
-    ('sdl', 'window_sdl', 'WindowSDL'),
-    ('sdl2', 'window_sdl2', 'WindowSDL'),
-    ('x11', 'window_x11', 'WindowX11'),
-), True)
+window_impl = []
+if platform == 'linux':
+    window_impl += [('egl_rpi', 'window_egl_rpi', 'WindowEglRpi')]
+if USE_SDL2:
+    window_impl += [('sdl2', 'window_sdl2', 'WindowSDL')]
+else:
+    window_impl += [
+        ('pygame', 'window_pygame', 'WindowPygame'),
+        ('sdl', 'window_sdl', 'WindowSDL')]
+if platform == 'linux':
+    window_impl += [('x11', 'window_x11', 'WindowX11')]
+Window = core_select_lib('window', window_impl, True)

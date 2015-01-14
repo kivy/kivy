@@ -1,7 +1,9 @@
 
 import unittest
 
+
 class AnimationTestCase(unittest.TestCase):
+
     def test_video_unload(self):
         # fix issue https://github.com/kivy/kivy/issues/2275
         # AttributeError: 'NoneType' object has no attribute 'texture'
@@ -13,9 +15,11 @@ class AnimationTestCase(unittest.TestCase):
         source = join(here, "..", "..", "examples", "widgets", "softboy.avi")
         video = Video(source=source, play=True)
         Clock.schedule_once(lambda x: stopTouchApp(), 1)
+
         def unload_video(video, position):
             if position > 0.01:
                 video.unload()
                 Clock.schedule_once(lambda x: stopTouchApp(), 0.1)
+
         video.bind(position=unload_video)
         runTouchApp(video)

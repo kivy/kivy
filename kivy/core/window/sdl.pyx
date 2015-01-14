@@ -107,6 +107,7 @@ cdef extern from "SDL.h":
     int SDL_WINDOWEVENT_RESIZED
     int SDL_WINDOWEVENT_MINIMIZED
     int SDL_WINDOWEVENT_RESTORED
+    int SDL_WINDOWEVENT_SHOWN
 
     ## Hints
     char *SDL_HINT_ORIENTATIONS
@@ -273,9 +274,12 @@ def poll():
             action = ('windowminimized', )
         elif event.window.event == SDL_WINDOWEVENT_RESTORED:
             action = ('windowrestored', )
+        elif event.window.event == SDL_WINDOWEVENT_SHOWN:
+            action = ('windowshown', )
         else:
             if __debug__:
-                print('receive unknown sdl event', event.type)
+                print('receive unknown sdl event', event.window.event,
+                        hex(event.window.event))
             pass
         return action
     elif event.type == SDL_KEYDOWN or event.type == SDL_KEYUP:

@@ -410,18 +410,20 @@ class MarkupLabel(MarkupLabelBase):
             psp = pph = 0
             for word in layout_line.words:
                 options = self.options = word.options
+                # the word height is not scaled by line_height, only lh was
+                wh = options['line_height'] * word.lh
                 # calculate sub/super script pos
                 if options['script'] == 'superscript':
                     script_pos = max(0, psp if psp else self.get_descent())
                     psp = script_pos
-                    pph = word.lh
+                    pph = wh
                 elif options['script'] == 'subscript':
-                    script_pos = min(lh - word.lh, ((psp + pph) - word.lh)
-                                     if pph else (lh - word.lh))
-                    pph = word.lh
+                    script_pos = min(lh - wh, ((psp + pph) - wh)
+                                     if pph else (lh - wh))
+                    pph = wh
                     psp = script_pos
                 else:
-                    script_pos = (lh - word.lh) / 1.25
+                    script_pos = (lh - wh) / 1.25
                     psp = pph = 0
                 if len(word.text):
                     render_text(word.text, x, y + script_pos)
@@ -431,13 +433,13 @@ class MarkupLabel(MarkupLabelBase):
                 if ref is not None:
                     if not ref in refs:
                         refs[ref] = []
-                    refs[ref].append((x, y, x + word.lw, y + word.lh))
+                    refs[ref].append((x, y, x + word.lw, y + wh))
 
                 # Should we record anchors?
                 anchor = options['_anchor']
                 if anchor is not None:
                     if not anchor in anchors:
-                       anchors[anchor] = (x, y)
+                        anchors[anchor] = (x, y)
                 x += word.lw
             y += lh
 

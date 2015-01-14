@@ -446,8 +446,10 @@ class AdaptersTestCase(unittest.TestCase):
         # Test for issue 1396 : list, tuple and inheritance
         class ExtendedList(list):
             pass
+
         class ExtendedTuple(tuple):
             pass
+
         # Equivalent to assertNotRaise
         simple_list_adapter = SimpleListAdapter(data=ExtendedList(),
                                   template='CustomSimpleListItem')

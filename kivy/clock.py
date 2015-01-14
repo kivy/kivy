@@ -8,7 +8,7 @@ elapsed between the scheduling and the calling of the callback via the
 `dt` argument::
 
     # dt means delta-time
-    def my_callback(dt): 
+    def my_callback(dt):
         pass
 
     # call my_callback every 0.5 seconds

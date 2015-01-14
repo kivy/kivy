@@ -645,18 +645,13 @@ class ScrollView(StencilView):
 
         if (ud.get('in_bar_x', False) or ud.get('in_bar_y', False)):
             return True
+
+        Clock.schedule_once(self._change_touch_mode,
+                                self.scroll_timeout / 1000.)
         if scroll_type == ['bars']:
-            # touch is in parent, but _change_touch_mode expects window coords
-            touch.push()
-            touch.apply_transform_2d(self.to_local)
-            touch.apply_transform_2d(self.to_window)
-            self._change_touch_mode()
-            touch.pop()
             return False
         else:
-            Clock.schedule_once(self._change_touch_mode,
-                                self.scroll_timeout / 1000.)
-        return True
+            return True
 
     def on_touch_move(self, touch):
         if self._touch is not touch:
@@ -668,6 +663,9 @@ class ScrollView(StencilView):
             return self._get_uid() in touch.ud
         if touch.grab_current is not self:
             return True
+
+        if not (self.do_scroll_y or self.do_scroll_x):
+            return super(ScrollView, self).on_touch_move(touch)
 
         touch.ud['sv.handled'] = {'x': False, 'y': False}
         if self.dispatch('on_scroll_move', touch):

@@ -66,8 +66,10 @@ IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.logger import Logger
 from kivy.graphics.texture cimport Texture
+from kivy.utils import platform
 
-cdef int gles_limts = int(environ.get('KIVY_GLES_LIMITS', 1))
+cdef int gles_limts = int(environ.get(
+    'KIVY_GLES_LIMITS', int(platform not in ('win', 'macosx', 'linux'))))
 
 
 class GraphicException(Exception):
@@ -324,10 +326,6 @@ cdef class StripMesh(VertexInstruction):
 cdef class Mesh(VertexInstruction):
     '''A 2d mesh.
 
-    The format for vertices is currently fixed but this might change in a future
-    release. Right now, each vertex is described with 2D coordinates (x, y) and
-    a 2D texture coordinate (u, v).
-
     In OpenGL ES 2.0 and in our graphics implementation, you cannot have more
     than 65535 indices.
 
@@ -352,7 +350,23 @@ cdef class Mesh(VertexInstruction):
         `mode`: str
             Mode of the vbo. Check :attr:`mode` for more information. Defaults to
             'points'.
+        `fmt`: list
+            The format for vertices, by default, each vertex is described by 2D
+            coordinates (x, y) and 2D texture coordinate (u, v).
+            Each element of the list should be a tuple or list, of the form
 
+                (variable_name, size, type)
+
+            which will allow mapping vertex data to the glsl instructions.
+
+                [(b'v_pos', 2, b'float'), (b'v_tc', 2, b'float'),]
+
+            will allow using
+
+                attribute vec2 v_pos;
+                attribute vec2 v_tc;
+
+            in glsl's vertex shader.
     '''
 
     def __init__(self, **kwargs):
@@ -451,8 +465,8 @@ cdef class Mesh(VertexInstruction):
         def __set__(self, value):
             if gles_limts and len(value) > 65535:
                 raise GraphicException(
-                    'Cannot upload more than 65535 indices'
-                    '(OpenGL ES 2 limitation)')
+                    'Cannot upload more than 65535 indices (OpenGL ES 2'
+                    ' limitation - consider setting KIVY_GLES_LIMITS)')
             self._indices = list(value)
             self.flag_update()
 

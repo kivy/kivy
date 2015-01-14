@@ -130,9 +130,9 @@ class ListAdapter(Adapter, EventDispatcher):
     the data. You could accomplish the same functionality by writing code to
     operate on list selection, but having selection stored in the data
     ListProperty might prove convenient in some cases.
-    
+
     .. note::
-    
+
         This setting should be set to True if you wish to initialize the view
         with item views already selected.
 

@@ -160,6 +160,9 @@ class WindowSDL(WindowBase):
             elif action == 'windowresized':
                 self.canvas.ask_update()
 
+            elif action == 'windowshown':
+                self.canvas.ask_update()
+
             elif action == 'windowminimized':
                 self.do_pause()
 

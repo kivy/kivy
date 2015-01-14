@@ -172,7 +172,8 @@ from kivy.factory import Factory
 from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
                              ReferenceListProperty, ObjectProperty,
                              ListProperty, DictProperty, BooleanProperty)
-from kivy.graphics import Canvas, Translate, Fbo, ClearColor, ClearBuffers, Scale
+from kivy.graphics import (Canvas, Translate, Fbo, ClearColor, ClearBuffers,
+                            Scale)
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
@@ -442,11 +443,13 @@ class Widget(WidgetBase):
         '''
         if not isinstance(widget, Widget):
             raise WidgetException(
-                'add_widget() can be used only with instances of the Widget class.')
+                'add_widget() can be used only with instances'
+                ' of the Widget class.')
 
         widget = widget.__self__
         if widget is self:
-            raise WidgetException('Widget instances cannot be added to themselves.')
+            raise WidgetException(
+                'Widget instances cannot be added to themselves.')
         parent = widget.parent
         # Check if the widget is already a child of another widget.
         if parent:
@@ -958,8 +961,21 @@ class Widget(WidgetBase):
     Only the :class:`~kivy.uix.layout.Layout` and
     :class:`~kivy.core.window.Window` classes make use of the hint.
 
-    The value is in percent as a float from 0. to 1., where 1. means the full
-    size of his parent. 0.5 represents 50%.
+    The size_hint is used by layouts for two purposes:
+
+    - When the layout considers widgets on their own rather than in
+      relation to its other children, the size_hint_x is a direct proportion
+      of the parent width, normally between 0.0 and 1.0. For instance, a
+      widget with ``size_hint_x=0.5`` in
+      a vertical BoxLayout will take up half the BoxLayout's width, or
+      a widget in a FloatLayout with ``size_hint_x=0.2`` will take up 20%
+      of the FloatLayout width. If the size_hint is greater than 1, the
+      widget will be wider than the parent.
+    - When multiple widgets can share a row of a layout, such as in a
+      horizontal BoxLayout, their widths will be their size_hint_x as a
+      fraction of the sum of widget size_hints. For instance, if the
+      size_hint_xs are (0.5, 1.0, 0.5), the first widget will have a
+      width of 25% of the parent width.
 
     :attr:`size_hint_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
@@ -971,7 +987,8 @@ class Widget(WidgetBase):
     :attr:`size_hint_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
 
-    See :attr:`size_hint_x` for more information.
+    See :attr:`size_hint_x` for more information, but with widths and heights
+    swapped.
     '''
 
     size_hint = ReferenceListProperty(size_hint_x, size_hint_y)

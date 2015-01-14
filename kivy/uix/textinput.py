@@ -51,20 +51,23 @@ callback when the text changes::
 You can 'focus' a textinput, meaning that the input box will be highlighted
 and keyboard focus will be requested::
 
-    textinput = TextInput(focus=True)
+    textinput = TextInput(focused=True)
 
 The textinput is defocused if the 'escape' key is pressed, or if another
 widget requests the keyboard. You can bind a callback to the focus property to
 get notified of focus changes::
 
-    def on_focus(instance, value):
+    def on_focused(instance, value):
         if value:
             print('User focused', instance)
         else:
             print('User defocused', instance)
 
     textinput = TextInput()
-    textinput.bind(focus=on_focus)
+    textinput.bind(focused=on_focused)
+
+See :class:`~kivy.uix.behaviors.FocusBehavior` from which :class:`TextInput`
+inherits for more details.
 
 
 Selection
@@ -354,17 +357,16 @@ class TextInput(FocusBehavior, Widget):
         on the next clock cycle using
         :meth:`~kivy.clock.ClockBase.schedule_once`.
 
-    .. note::
+    .. versionchanged:: 1.9.0
+        :class:`TextInput` now inherits from
+        :class:`~kivy.uix.behaviors.FocusBehavior`.
+
         :attr:`~kivy.uix.behaviors.FocusBehavior.keyboard_mode`,
         :meth:`~kivy.uix.behaviors.FocusBehavior.show_keyboard`,
         :meth:`~kivy.uix.behaviors.FocusBehavior.hide_keyboard`,
         and :attr:`~kivy.uix.behaviors.FocusBehavior.input_type`,
-        have been removed from :class:`TextInput` since they are now inherited
-        from :class:`~kivy.uix.behaviors.FocusBehavior`.
-
-    .. versionchanged:: 1.9.0
-        :class:`TextInput` now inherits from
-        :class:`~kivy.uix.behaviors.FocusBehavior`.
+        have been removed from :class:`TextInput` since they already inherit
+        them from :class:`~kivy.uix.behaviors.FocusBehavior`.
 
     .. versionchanged:: 1.7.0
         `on_double_tap`, `on_triple_tap` and `on_quad_touch` events added.
