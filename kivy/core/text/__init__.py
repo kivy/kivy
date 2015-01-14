@@ -109,7 +109,7 @@ class LabelBase(object):
         `strip_reflow` : bool, defaults to True
             Whether text that has been reflowed into a second line should
             be striped, even if `strip` is False. This is only in effect when
-            ``size_hint_x` is not None, because otherwise lines are never
+            `size_hint_x` is not None, because otherwise lines are never
             split.
         `unicode_errors` : str, defaults to `'replace'`
             How to handle unicode decode errors. Can be `'strict'`, `'replace'`
