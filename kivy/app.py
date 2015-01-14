@@ -406,6 +406,10 @@ class App(EventDispatcher):
             class MyApp(App):
                 icon = 'customicon.png'
 
+         Recommended 256x256 or 1024x1024? for GNU/Linux and Mac OSX
+         32x32 for Windows7 or less. <= 256x256 for windows 8
+         256x256 does work (on Windows 8 at least), but is scaled
+         down and doesn't look as good as a 32x32 icon.
     '''
 
     use_kivy_settings = True
