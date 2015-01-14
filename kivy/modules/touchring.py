@@ -17,8 +17,9 @@ Configuration
         Opacity of the image.
     `show_cursor`: boolean, default to False
         .. versionadded:: 1.8.0
-    `cursor_image`: str, defaults to 'atlas://data/images/defaulttheme/slider_cursor'
-        Image used to represent the cursor if displayed
+    `cursor_image`: str, defaults to
+        'atlas://data/images/defaulttheme/slider_cursor' Image used to
+        represent the cursor if displayed
         .. versionadded:: 1.8.0
     `cursor_size`: tuple, defaults to (None, None)
         Apparent size of the mouse cursor, if displayed, default value

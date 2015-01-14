@@ -99,18 +99,27 @@ def core_register_libs(category, libs, base='kivy.core'):
     if 'KIVY_DOC' in os.environ:
         return
     category = category.lower()
-    libs_loaded = []
+    kivy_options = kivy.kivy_options[category]
+    libs_loadable = {}
     libs_ignored = []
-    for option, lib in libs:
-        try:
-            # module activated in config ?
-            if option not in kivy.kivy_options[category]:
-                Logger.debug('{0}: option <{1}> ignored by config'.format(
-                    category.capitalize(), option))
-                libs_ignored.append(lib)
-                continue
 
+    for option, lib in libs:
+        # module activated in config ?
+        if option not in kivy_options:
+            Logger.debug('{0}: option <{1}> ignored by config'.format(
+                category.capitalize(), option))
+            libs_ignored.append(lib)
+            continue
+        libs_loadable[option] = lib
+
+    libs_loaded = []
+    for item in kivy_options:
+        try:
             # import module
+            try:
+                lib = libs_loadable[item]
+            except KeyError:
+                continue
             __import__(name='{2}.{0}.{1}'.format(category, lib, base),
                        globals=globals(),
                        locals=locals(),

@@ -459,7 +459,7 @@ class ShaderTransition(TransitionBase):
     None.'''
 
     clearcolor = ListProperty([0, 0, 0, 1])
-    '''Sets the color of Fbo ClearColor. 
+    '''Sets the color of Fbo ClearColor.
 
     .. versionadded:: 1.9.0
 
@@ -687,7 +687,7 @@ class FallOutTransition(ShaderTransition):
         vec2 dist = diff + 0.5;
         float max_dist = 1.0 - tr;
 
-        /* in and out colours */
+        /* in and out colors */
         vec4 cin = vec4(texture2D(tex_in, tex_coord0.st));
         vec4 cout = vec4(texture2D(tex_out, dist));
 
@@ -742,7 +742,7 @@ class RiseInTransition(ShaderTransition):
         vec2 dist = diff + 0.5;
         float max_dist = 1.0 - tr;
 
-        /* in and out colours */
+        /* in and out colors */
         vec4 cin = vec4(texture2D(tex_in, dist));
         vec4 cout = vec4(texture2D(tex_out, tex_coord0.st));
 
@@ -859,6 +859,11 @@ class ScreenManager(FloatLayout):
             raise ScreenManagerException(
                 'ScreenManager accepts only Screen widget.')
         if screen.manager:
+            if screen.manager is self:
+                raise ScreenManagerException(
+                    'Screen already managed by this ScreenManager (are you '
+                    'calling `switch_to` when you should be setting '
+                    '`current`?)')
             raise ScreenManagerException(
                 'Screen already managed by another ScreenManager.')
         screen.manager = self

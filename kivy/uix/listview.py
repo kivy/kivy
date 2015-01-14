@@ -183,17 +183,17 @@ The :class:`~kivy.adapters.listadapter.ListAdapter` is the base class for
 Refer to the :class:`~kivy.adapters.listadapter.ListAdapter` docs for details,
 but here is a synopses of its arguments:
 
-* :attr:`~kivy.adapters.adapter.Adapter.data`: 
+* :attr:`~kivy.adapters.adapter.Adapter.data`:
   strings, class instances, dicts, etc. that form the base data
   for instantiating views.
 
-* :attr:`~kivy.adapters.adapter.Adapter.cls`: 
+* :attr:`~kivy.adapters.adapter.Adapter.cls`:
   a Kivy view that is to be instantiated for each list item. There
   are several built-in types available, including ListItemLabel and
   ListItemButton, or you can make your own class that mixes in the
   required :class:`~kivy.uix.listview.SelectableView`.
 
-* :attr:`~kivy.adapters.adapter.Adapter.template`: 
+* :attr:`~kivy.adapters.adapter.Adapter.template`:
   the name of a Kivy language (kv) template that defines the
   Kivy view for each list item.
 
@@ -345,7 +345,7 @@ is_selected properties::
         def __init__(self, text='', is_selected=False):
             self.text = text
             self.is_selected = is_selected
-    
+
     data_items = [DataItem(text='cat'),
                   DataItem(text='dog'),
                   DataItem(text='frog')]
@@ -899,12 +899,18 @@ class ListView(AbstractView, EventDispatcher):
                   item_strings=self.item_strings_changed,
                   adapter=self._trigger_populate)
 
+        self._trigger_bind_adapter = Clock.create_trigger(
+            lambda dt: self.adapter.bind_triggers_to_view(
+                self._trigger_reset_populate),
+            -1)
+        self.bind(adapter=self._trigger_bind_adapter)
+
         # The bindings setup above sets self._trigger_populate() to fire
         # when the adapter changes, but we also need this binding for when
         # adapter.data and other possible triggers change for view updating.
         # We don't know that these are, so we ask the adapter to set up the
         # bindings back to the view updating function here.
-        self.adapter.bind_triggers_to_view(self._trigger_reset_populate)
+        self._trigger_bind_adapter()
 
     # Added to set data when item_strings is set in a kv template, but it will
     # be good to have also if item_strings is reset generally.

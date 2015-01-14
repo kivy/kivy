@@ -20,15 +20,23 @@ class ImageLoaderSDL2(ImageLoaderBase):
     @staticmethod
     def extensions():
         '''Return accepted extensions for this loader'''
-        return ('bmp', 'gif', 'jpg', 'jpeg', 'lbm', 'pcx', 'png', 'pnm', 'tga', 'tiff',
+        return ('bmp', 'jpg', 'jpeg', 'lbm', 'pcx', 'png', 'pnm', 'tga', 'tiff',
                 'webp', 'xcf', 'xpm', 'xv')
 
     @staticmethod
     def can_save():
         return True
 
+    @staticmethod
+    def can_load_memory():
+        return True
+
     def load(self, filename):
-        info = _img_sdl2.load(filename)
+        if self._inline:
+            data = filename.read()
+            info = _img_sdl2.load_from_memory(data)
+        else:
+            info = _img_sdl2.load_from_filename(filename)
         if not info:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise Exception('SDL2: Unable to load image')
@@ -36,17 +44,14 @@ class ImageLoaderSDL2(ImageLoaderBase):
         w, h, fmt, pixels, rowlength = info
 
         # update internals
-        self.filename = filename
+        if not self._inline:
+            self.filename = filename
         return [ImageData(
             w, h, fmt, pixels, source=filename,
             rowlength=rowlength)]
 
     @staticmethod
     def save(filename, width, height, fmt, pixels, flipped):
-        # TODO implement the save for sdl2
-        #surface = SDL2.image.fromstring(
-        #        pixels, (width, height), fmt.upper(), False)
-        #SDL2.image.save(surface, filename)
         _img_sdl2.save(filename, width, height, fmt, pixels, flipped)
         return True
 

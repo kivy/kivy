@@ -35,6 +35,10 @@ class ImageLoaderPIL(ImageLoaderBase):
         return True
 
     @staticmethod
+    def can_load_memory():
+        return True
+
+    @staticmethod
     def extensions():
         '''Return accepted extensions for this loader'''
         # See http://www.pythonware.com/library/pil/handbook/index.htm
@@ -91,13 +95,16 @@ class ImageLoaderPIL(ImageLoaderBase):
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise
         # update internals
-        self.filename = filename
+        if not self._inline:
+            self.filename = filename
         # returns an array of type ImageData len 1 if not a sequence image
         return list(self._img_read(im))
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels):
+    def save(filename, width, height, fmt, pixels, flipped=False):
         image = PILImage.fromstring(fmt.upper(), (width, height), pixels)
+        if flipped:
+            image = image.transpose(PILImage.FLIP_TOP_BOTTOM)
         image.save(filename)
         return True
 

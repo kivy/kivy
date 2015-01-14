@@ -4,6 +4,7 @@ Storage tests
 '''
 
 import unittest
+import os
 
 
 class StorageTestCase(unittest.TestCase):
@@ -35,6 +36,8 @@ class StorageTestCase(unittest.TestCase):
             unlink(tmpfn)
 
     def test_redis_storage(self):
+        if os.environ.get('NONETWORK'):
+            return
         try:
             from kivy.storage.redisstore import RedisStore
             params = dict(db=15)

@@ -52,6 +52,11 @@ class Button(ButtonBehavior, Label):
     background_color = ListProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a).
 
+    This acts as a *multiplier* to the texture colour. The default
+    texture is grey, so just setting the background color will give
+    a darker result. To set a plain color, set the
+    :attr:`background_normal` to ``''``.
+
     .. versionadded:: 1.0.8
 
     The :attr:`background_color` is a

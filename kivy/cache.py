@@ -13,12 +13,12 @@ timeout of 5 seconds::
     Cache.register('mycache', limit=10, timeout=5)
 
     # create an object + id
-    text = 'objectid'
+    key = 'objectid'
     instance = Label(text=text)
-    Cache.append('mycache', text, instance)
+    Cache.append('mycache', key, instance)
 
     # retrieve the cached object
-    instance = Cache.get('mycache', label)
+    instance = Cache.get('mycache', key)
 
 If the instance is NULL, the cache may have trashed it because you've
 not used the label for 5 seconds and you've reach the limit.

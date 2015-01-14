@@ -15,7 +15,6 @@ TODO:
 
 __all__ = ('WindowSDL2', )
 
-import sys
 from os.path import join
 from kivy import kivy_data_dir
 from kivy.logger import Logger
@@ -39,8 +38,13 @@ KMOD_RALT = 512
 KMOD_LALT = 256
 KMOD_LMETA = 1024
 KMOD_RMETA = 2048
+
 SDLK_SHIFTL = 1073742049
 SDLK_SHIFTR = 1073742053
+SDLK_LCTRL = 1073742048
+SDLK_RCTRL = 1073742052
+SDLK_LALT = 1073742050
+SDLK_RALT = 1073742054
 SDLK_LEFT = 1073741904
 SDLK_RIGHT = 1073741903
 SDLK_UP = 1073741906
@@ -98,6 +102,22 @@ class WindowSDL(WindowBase):
         self._meta_keys = (KMOD_LCTRL, KMOD_RCTRL, KMOD_RSHIFT,
             KMOD_LSHIFT, KMOD_RALT, KMOD_LALT, KMOD_LMETA,
             KMOD_RMETA)
+        self.command_keys = {
+                    27: 'escape',
+                    9: 'tab',
+                    8: 'backspace',
+                    13: 'enter',
+                    127: 'del',
+                    271: 'enter',
+                    273: 'up',
+                    274: 'down',
+                    275: 'right',
+                    276: 'left',
+                    278: 'home',
+                    279: 'end',
+                    280: 'pgup',
+                    281: 'pgdown'}
+        self._mouse_buttons_down = set()
 
     def create_window(self, *largs):
 
@@ -215,17 +235,6 @@ class WindowSDL(WindowBase):
         width, height = self.size
         data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
         self._win.save_bytes_in_png(filename, data, width, height)
-        return
-        # TODO
-        filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
-        if filename is None:
-            return None
-        from kivy.core.gl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
-        width, height = self.size
-        data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
-        data = str(buffer(data))
-        surface = pygame.image.fromstring(data, self.size, 'RGB', True)
-        pygame.image.save(surface, filename)
         Logger.debug('Window: Screenshot saved at <%s>' % filename)
         return filename
 
@@ -251,14 +260,22 @@ class WindowSDL(WindowBase):
 
             elif action in ('fingermotion', 'fingerdown', 'fingerup'):
                 # for finger, pass the raw event to SDL motion event provider
-                SDL2MotionEventProvider.q.appendleft(event)
+                # XXX this is problematic. On OSX, it generates touches with 0,
+                # 0 coordinates, at the same times as mouse. But it works.
+                # We have a conflict of using either the mouse or the finger. 
+                # Right now, we have no mechanism that we could use to know
+                # which is the preferred one for the application.
+                #SDL2MotionEventProvider.q.appendleft(event)
+                pass
 
-            if action == 'mousemotion':
+            elif action == 'mousemotion':
                 x, y = args
                 self.mouse_pos = x, self.system_size[1] - y
-                # don't dispatch motion if no button are pressed
                 self._mouse_x = x
                 self._mouse_y = y
+                # don't dispatch motion if no button are pressed
+                if len(self._mouse_buttons_down) == 0:
+                    continue
                 self._mouse_meta = self.modifiers
                 self.dispatch('on_mouse_move', x, y, self.modifiers)
 
@@ -270,8 +287,12 @@ class WindowSDL(WindowBase):
                 elif button == 2:
                     btn = 'middle'
                 eventname = 'on_mouse_down'
+                self._mouse_buttons_down.add(button)
                 if action == 'mousebuttonup':
                     eventname = 'on_mouse_up'
+                    self._mouse_buttons_down.remove(button)
+                self._mouse_x = x
+                self._mouse_y = y
                 self.dispatch(eventname, x, y, btn, self.modifiers)
             elif action.startswith('mousewheel'):
                 self._update_modifiers()
@@ -313,6 +334,9 @@ class WindowSDL(WindowBase):
             elif action == 'windowrestored':
                 self.canvas.ask_update()
 
+            elif action == 'windowexposed':
+                self.canvas.ask_update()
+
             elif action == 'windowminimized':
                 if Config.getboolean('kivy', 'pause_on_minimize'):
                     self.do_pause()
@@ -332,7 +356,7 @@ class WindowSDL(WindowBase):
             elif action == 'joybuttonup':
                 stickid, buttonid = args
                 self.dispatch('on_joy_button_up', stickid, buttonid)
-                
+
             elif action in ('keydown', 'keyup'):
                 mod, key, scancode, kstr = args
                 if mod in self._meta_keys:
@@ -341,9 +365,7 @@ class WindowSDL(WindowBase):
                     except ValueError:
                         pass
 
-                # XXX ios keyboard suck, when backspace is hit, the delete
-                # keycode is sent. fix it.
-                key_swap = {127: 8,  # back
+                key_swap = {
                             SDLK_LEFT: 276,
                             SDLK_RIGHT: 275,
                             SDLK_UP: 273,
@@ -353,13 +375,31 @@ class WindowSDL(WindowBase):
                             SDLK_PAGEDOWN: 281,
                             SDLK_PAGEUP: 280,
                             SDLK_SHIFTL: 303,
-                            SDLK_SHIFTR: 304}
+                            SDLK_SHIFTR: 304,
+                            SDLK_LCTRL: KMOD_LCTRL,
+                            SDLK_RCTRL: KMOD_RCTRL,
+                            SDLK_LALT: KMOD_LALT,
+                            SDLK_RALT: KMOD_RALT}
+
+                if platform == 'ios':
+                    # XXX ios keyboard suck, when backspace is hit, the delete
+                    # keycode is sent. fix it.
+                    key_swap[127] = 8  # back
+
                 try:
                     key = key_swap[key]
                 except KeyError:
                     pass
 
-                self._update_modifiers(mod)
+                if action == 'keydown':
+                    self._update_modifiers(mod, key)
+                else:
+                    self._update_modifiers(mod)  # ignore the key, it
+                                                 # has been released
+                if 'shift' in self._modifiers and key\
+                        not in self.command_keys.keys():
+                    return
+
                 if action == 'keyup':
                     self.dispatch('on_key_up', key, scancode)
                     continue
@@ -385,24 +425,10 @@ class WindowSDL(WindowBase):
                               self.modifiers)
                 self.dispatch('on_key_up', key, None, args[0],
                               self.modifiers)
-        #    # video resize
-        #    elif event.type == pygame.VIDEORESIZE:
-        #        self._size = event.size
-        #        # don't use trigger here, we want to delay the resize event
-        #        cb = self._do_resize
-        #        Clock.unschedule(cb)
-        #        Clock.schedule_once(cb, .1)
 
-        #    elif event.type == pygame.VIDEOEXPOSE:
-        #        self.canvas.ask_update()
-
-        #    # ignored event
-        #    elif event.type == pygame.ACTIVEEVENT:
-        #        pass
-
-        #    # unhandled event !
-        #    else:
-        #        Logger.debug('WinPygame: Unhandled event %s' % str(event))
+            # unhandled event !
+            else:
+                Logger.trace('WindowSDL: Unhandled event %s' % str(event))
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self._size))
@@ -465,34 +491,37 @@ class WindowSDL(WindowBase):
     #
     # Pygame wrapper
     #
-    def _update_modifiers(self, mods=None):
+    def _update_modifiers(self, mods=None, key=None):
         # Available mod, from dir(pygame)
         # 'KMOD_ALT', 'KMOD_CAPS', 'KMOD_CTRL', 'KMOD_LALT',
         # 'KMOD_LCTRL', 'KMOD_LMETA', 'KMOD_LSHIFT', 'KMOD_META',
         # 'KMOD_MODE', 'KMOD_NONE'
-        if mods is None:
+        if mods is None and key is None:
             return
-        self._modifiers = []
+        modifiers = set()
 
-        if mods & (KMOD_RSHIFT | KMOD_LSHIFT):
-            self._modifiers.append('shift')
-        if mods & (KMOD_RALT | KMOD_LALT):
-            self._modifiers.append('alt')
-        if mods & (KMOD_RCTRL | KMOD_LCTRL):
-            self._modifiers.append('ctrl')
-        if mods & (KMOD_RMETA | KMOD_LMETA):
-            self._modifiers.append('meta')
+        if mods is not None:
+            if mods & (KMOD_RSHIFT | KMOD_LSHIFT):
+                modifiers.add('shift')
+            if mods & (KMOD_RALT | KMOD_LALT):
+                modifiers.add('alt')
+            if mods & (KMOD_RCTRL | KMOD_LCTRL):
+                modifiers.add('ctrl')
+            if mods & (KMOD_RMETA | KMOD_LMETA):
+                modifiers.add('meta')
+
+        if key is not None:
+            if key in (KMOD_RSHIFT, KMOD_LSHIFT):
+                modifiers.add('shift')
+            if key in (KMOD_RALT, KMOD_LALT):
+                modifiers.add('alt')
+            if key in (KMOD_RCTRL, KMOD_LCTRL):
+                modifiers.add('ctrl')
+            if key in (KMOD_RMETA, KMOD_LMETA):
+                modifiers.add('meta')
+
+        self._modifiers = list(modifiers)
         return
-
-    def on_keyboard(self, key, scancode=None, str=None, modifier=None):
-        # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
-        # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = sys.platform == 'darwin'
-        if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
-            stopTouchApp()
-            self.close()  # not sure what to do here
-            return True
-        super(WindowSDL, self).on_keyboard(key, scancode, str, modifier)
 
     def request_keyboard(self, callback, target, input_type='text'):
         self._sdl_keyboard = super(WindowSDL, self).\

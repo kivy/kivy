@@ -212,7 +212,7 @@ Builder.load_string('''
             id: tab_3_content
             pos:self.parent.pos
             size: self.parent.size
-            source: 'softboy.avi'
+            source: 'softboy.mpg'
     TabbedPanelHeader:
         id: def_tab
         content:default_content.__self__

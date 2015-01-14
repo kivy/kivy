@@ -45,7 +45,7 @@ arguments via the *kwargs* keyword::
 Please see the `list_composite.py <https://github.com/\
 kivy/kivy/tree/master/examples/widgets/lists/list_composite.py>`_ for a complete
 example.
-                                            
+
 '''
 list_item_args_converter = lambda row_index, x: {'text': x,
                                                  'size_hint_y': None,

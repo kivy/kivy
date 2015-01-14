@@ -15,6 +15,7 @@ except ImportError:
 from kivy.network.urlrequest import UrlRequest
 from time import sleep
 from kivy.clock import Clock
+import os
 
 
 class UrlRequestTest(unittest.TestCase):
@@ -32,6 +33,8 @@ class UrlRequestTest(unittest.TestCase):
         self.queue.append((_thread.get_ident(), 'progress', args))
 
     def test_callbacks(self):
+        if os.environ.get('NONETWORK'):
+            return
         self.queue = []
         req = UrlRequest('http://google.com',
                          on_success=self._on_success,

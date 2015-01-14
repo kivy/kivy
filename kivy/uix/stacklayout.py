@@ -134,6 +134,9 @@ class StackLayout(Layout):
             pos=self._trigger_layout)
 
     def do_layout(self, *largs):
+        if not self.children:
+            return
+
         # optimize layout by preventing looking at the same attribute in a loop
         selfpos = self.pos
         selfsize = self.size
@@ -184,35 +187,74 @@ class StackLayout(Layout):
         # space calculation, used for determining when a row or column is full
 
         if orientation[0] in ('lr', 'rl'):
-            lu = self.size[innerattr] - padding_x
             sv = padding_y  # size in v-direction, for minimum_size property
             su = padding_x  # size in h-direction
             spacing_u = spacing_x
             spacing_v = spacing_y
+            padding_u = padding_x
+            padding_v = padding_y
         else:
-            lu = self.size[innerattr] - padding_y
             sv = padding_x  # size in v-direction, for minimum_size property
             su = padding_y  # size in h-direction
             spacing_u = spacing_y
             spacing_v = spacing_x
+            padding_u = padding_y
+            padding_v = padding_x
 
         # space calculation, row height or column width, for arranging widgets
         lv = 0
 
         urev = (deltau < 0)
         vrev = (deltav < 0)
+        firstchild = self.children[0]
+        sizes = []
         for c in reversed(self.children):
-            if c.size_hint[0]:
-                c.width = c.size_hint[0] * (selfsize[0] - padding_x)
-            if c.size_hint[1]:
-                c.height = c.size_hint[1] * (selfsize[1] - padding_y)
+            if c.size_hint[outerattr]:
+                c.size[outerattr] = max(
+                    1, c.size_hint[outerattr] *
+                       (selfsize[outerattr] - padding_v))
 
             # does the widget fit in the row/column?
-            if lu - c.size[innerattr] >= 0:
+            ccount = len(lc)
+            totalsize = availsize = max(
+                0, selfsize[innerattr] - padding_u - spacing_u * ccount)
+            if not lc:
+                if c.size_hint[innerattr]:
+                    childsize = max(1, c.size_hint[innerattr] * totalsize)
+                else:
+                    childsize = max(0, c.size[innerattr])
+                availsize = selfsize[innerattr] - padding_u - childsize
+                testsizes = [childsize]
+            else:
+                testsizes = [0] * (ccount + 1)
+                for i, child in enumerate(lc):
+                    if availsize <= 0:
+                        # no space left but we're trying to add another widget.
+                        availsize = -1
+                        break
+                    if child.size_hint[innerattr]:
+                        testsizes[i] = childsize = max(
+                            1, child.size_hint[innerattr] * totalsize)
+                    else:
+                        testsizes[i] = childsize = max(0, child.size[innerattr])
+                    availsize -= childsize
+                if c.size_hint[innerattr]:
+                    testsizes[-1] = max(1, c.size_hint[innerattr] * totalsize)
+                else:
+                    testsizes[-1] = max(0, c.size[innerattr])
+                availsize -= testsizes[-1]
+
+            if availsize >= 0 or not lc:
+                # even if there's no space, we always add one widget to a row
                 lc.append(c)
-                lu -= c.size[innerattr] + spacing_u
+                sizes = testsizes
                 lv = max(lv, c.size[outerattr])
                 continue
+
+            # apply the sizes
+            for i, child in enumerate(lc):
+                if child.size_hint[innerattr]:
+                    child.size[innerattr] = sizes[i]
 
             # push the line
             sv += lv + spacing_v
@@ -236,10 +278,19 @@ class StackLayout(Layout):
             v += deltav * spacing_v
             lc = [c]
             lv = c.size[outerattr]
-            lu = selfsize[innerattr] - su - c.size[innerattr] - spacing_u
+            if c.size_hint[innerattr]:
+                sizes = [max(1, c.size_hint[innerattr] *
+                             (selfsize[innerattr] - padding_u))]
+            else:
+                sizes = [max(0, c.size[innerattr])]
             u = ustart
 
         if lc:
+            # apply the sizes
+            for i, child in enumerate(lc):
+                if child.size_hint[innerattr]:
+                    child.size[innerattr] = sizes[i]
+
             # push the last (incomplete) line
             sv += lv + spacing_v
             for c2 in lc:

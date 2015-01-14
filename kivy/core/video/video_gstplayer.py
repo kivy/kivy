@@ -125,7 +125,8 @@ class VideoGstplayer(VideoBase):
             self.dispatch('on_load')
 
         if self._texture:
-            self._texture.blit_buffer(data, size=(width, height), colorfmt='rgb')
+            self._texture.blit_buffer(
+                data, size=(width, height), colorfmt='rgb')
 
     def _get_uri(self):
         uri = self.filename

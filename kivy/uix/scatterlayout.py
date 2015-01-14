@@ -46,10 +46,10 @@ size_hint, size_hint_x, size_hint_y and pos_hint.
 
 '''
 
-__all__ = ('ScatterLayout', )
+__all__ = ('ScatterLayout', 'ScatterPlaneLayout')
 
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.scatter import Scatter
+from kivy.uix.scatter import Scatter, ScatterPlane
 from kivy.properties import ObjectProperty
 
 
@@ -78,3 +78,20 @@ class ScatterLayout(Scatter):
 
     def clear_widgets(self):
         self.content.clear_widgets()
+
+
+class ScatterPlaneLayout(ScatterPlane):
+    '''ScatterPlaneLayout class, see module documentation for more information.
+
+    Similar to ScatterLayout, but based on ScatterPlane - so the input is not
+    bounded.
+
+    .. versionadded:: 1.9.0
+    '''
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault('auto_bring_to_front', False)
+        super(ScatterPlaneLayout, self).__init__(**kwargs)
+
+    def collide_point(self, x, y):
+        return True

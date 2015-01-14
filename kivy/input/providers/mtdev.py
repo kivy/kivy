@@ -165,6 +165,10 @@ else:
 
             def process(points):
                 for args in points:
+                    # this can happen if we have a touch going on already at the
+                    # start of the app
+                    if 'id' not in args:
+                        continue
                     tid = args['id']
                     try:
                         touch = touches[tid]
@@ -280,6 +284,12 @@ else:
                     elif ev_code == MTDEV_CODE_TRACKING_ID:
                         if ev_value == -1:
                             point['delete'] = True
+                            # force process of changes here, as the slot can be
+                            # reused.
+                            _changes.add(_slot)
+                            process([l_points[x] for x in _changes])
+                            _changes.clear()
+                            continue
                         else:
                             point['id'] = ev_value
                     else:
