@@ -728,9 +728,13 @@ setup(
     package_dir={'kivy': 'kivy'},
     package_data={'kivy': [
         '*.pxd',
+        '*.pxi',
         'core/text/*.pxd',
+        'core/text/*.pxi',
         'graphics/*.pxd',
+        'graphics/*.pxi',
         'lib/vidcore_lite/*.pxd',
+        'lib/vidcore_lite/*.pxi',
         'data/*.kv',
         'data/*.json',
         'data/fonts/*.ttf',
