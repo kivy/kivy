@@ -24,8 +24,11 @@ Kivy widgets can be categorized as follows:
   that arranges its children in a specific way. Read more on
   :doc:`Layouts here <api-kivy.uix.layout>`.
 
-    :doc:`api-kivy.uix.gridlayout`, :doc:`api-kivy.uix.boxlayout`,
-    :doc:`api-kivy.uix.anchorlayout`, :doc:`api-kivy.uix.stacklayout`
+    :doc:`api-kivy.uix.anchorlayout`, :doc:`api-kivy.uix.boxlayout`,
+    :doc:`api-kivy.uix.floatlayout`,
+    :doc:`api-kivy.uix.gridlayout`, :doc:`api-kivy.uix.pagelayout`,
+    :doc:`api-kivy.uix.relativelayout`, :doc:`api-kivy.uix.scatterlayout`
+    :doc:`api-kivy.uix.stacklayout`
 
 - **Complex UX widgets**: Non-atomic widgets that are the result of
   combining multiple classic widgets.
