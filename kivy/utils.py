@@ -19,9 +19,6 @@ from os import environ
 from sys import platform as _sys_platform
 from re import match, split
 
-_platform_android = None
-_platform_ios = None
-
 
 def boundary(value, minvalue, maxvalue):
     '''Limit a value between a minvalue and maxvalue.'''
@@ -240,7 +237,10 @@ def format_bytes_to_human(size, precision=2):
 class Platform(object):
     # refactored to class to allow module function to be replaced
     # with module variable
-    _platform = None
+    
+    def __init__(self):
+        self._platform_ios = None
+        self._platform_android = None
 
     @deprecated
     def __call__(self):
@@ -265,23 +265,22 @@ class Platform(object):
         return self._get_platform().__hash__()
 
     def _get_platform(self):
-        if self._platform is not None:
-            return self._platform
-        global _platform_ios, _platform_android
+        
 
-        if _platform_android is None:
+        if self._platform_android is None:
             # ANDROID_ARGUMENT and ANDROID_PRIVATE are 2 environment variables
             # from python-for-android project
-            _platform_android = 'ANDROID_ARGUMENT' in environ
+            self._platform_android = 'ANDROID_ARGUMENT' in environ
 
-        if _platform_ios is None:
-            _platform_ios = (environ.get('KIVY_BUILD', '') == 'ios')
+        if self._platform_ios is None:
+            self._platform_ios = (environ.get('KIVY_BUILD', '') == 'ios')
 
+        print _sys_platform, str(_sys_platform), _sys_platform[:5], _sys_platform == 'darwin'
         # On android, _sys_platform return 'linux2', so prefer to check the
         # import of Android module than trying to rely on _sys_platform.
-        if _platform_android is True:
+        if self._platform_android is True:
             return 'android'
-        elif _platform_ios is True:
+        elif self._platform_ios is True:
             return 'ios'
         elif _sys_platform in ('win32', 'cygwin'):
             return 'win'

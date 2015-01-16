@@ -3,7 +3,11 @@ utils tests
 ===========
 '''
 
-import unittest
+import os, unittest
+try:
+    from unittest.mock import MagicMock, patch, PropertyMock # python 3
+except:
+    from mock import MagicMock, patch, PropertyMock
 
 from kivy.utils import (boundary, escape_markup, format_bytes_to_human,
         is_color_transparent, SafeList, get_random_color, get_hex_from_color,
@@ -147,6 +151,55 @@ class UtilsTest(unittest.TestCase):
             self.assertEqual(p, [x[i], y[i]])
         
     def test_Platform(self):
-        strPlat = str(Platform())
-        self.assertTrue(strPlat in ['android', 'ios', 'win', 'macosx',
-                'linux', 'unknown'])
+        pf = Platform() # 
+        print pf() # __call__ deprecated
+        print hash(pf)
+        print repr(pf)
+                
+    def test_Platform_android(self):
+        with patch.dict('os.environ', {'ANDROID_ARGUMENT': ''}):
+            pf = Platform()
+            self.assertTrue(pf == 'android')
+        self.assertNotIn('ANDROID_ARGUMENT', os.environ)
+            
+    def test_Platform_ios(self):
+        with patch.dict('os.environ', {'KIVY_BUILD': 'ios'}):
+            pf = Platform()
+            self.assertEqual(str(pf), 'ios')
+        self.assertNotIn('KIVY_BUILD', os.environ)
+            
+    def test_Platform_win32(self):
+        with patch('kivy.utils._sys_platform') as m:
+            m.__str__.return_value = 'win32'
+            m.__eq__ = lambda x, y: str(x) == y
+            pf = Platform()
+            self.assertTrue(pf == 'win')
+        
+    def test_Platform_cygwin(self):
+        with patch('kivy.utils._sys_platform') as m:
+            m.__str__.return_value = 'cygwin'
+            m.__eq__ = lambda x, y: str(x) == y
+            pf = Platform()
+            self.assertTrue(pf == 'win')
+        
+    def test_Platform_linux2(self):
+        with patch('kivy.utils._sys_platform') as m:
+            m.__str__.return_value = 'linux2'
+            m.__getitem__.return_value = 'linux'
+            m.__eq__ = lambda x, y: str(x) == y
+            pf = Platform()
+            self.assertTrue(pf == 'linux')
+        
+    def test_Platform_darwin(self):
+        with patch('kivy.utils._sys_platform') as m:
+            m.__str__.return_value = 'darwin'
+            m.__eq__ = lambda x, y: str(x) == y
+            pf = Platform()
+            self.assertTrue(pf == 'macosx')
+        
+    def test_Platform_unknown(self):
+        with patch('kivy.utils._sys_platform') as m:
+            m.__str__.return_value = 'unknown'
+            m.__eq__ = lambda x, y: str(x) == y
+            pf = Platform()
+            self.assertTrue(pf == 'unknown')
