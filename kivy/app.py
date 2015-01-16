@@ -264,11 +264,6 @@ Pause mode
 
 .. versionadded:: 1.1.0
 
-.. warning::
-
-    This mode is experimental, and designed for phones/tablets. There are some
-    cases where your application could crash on resume.
-
 On tablets and phones, the user can switch at any moment to another
 application.  By default, your application will close and the
 :meth:`App.on_stop` event will be fired.
