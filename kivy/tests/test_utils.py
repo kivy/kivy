@@ -5,9 +5,9 @@ utils tests
 
 import os, unittest
 try:
-    from unittest.mock import MagicMock, patch, PropertyMock # python 3
+    from unittest.mock import patch # python 3.x
 except:
-    from mock import MagicMock, patch, PropertyMock
+    from mock import patch # python 2.x
 
 from kivy.utils import (boundary, escape_markup, format_bytes_to_human,
         is_color_transparent, SafeList, get_random_color, get_hex_from_color,
@@ -151,10 +151,11 @@ class UtilsTest(unittest.TestCase):
             self.assertEqual(p, [x[i], y[i]])
         
     def test_Platform(self):
-        pf = Platform() # 
-        print pf() # __call__ deprecated
-        print hash(pf)
-        print repr(pf)
+        # Those calls do not have specific intent, no assertions
+        pf = Platform()
+        pf() # __call__ deprecated
+        hash(pf)
+        repr(pf)
                 
     def test_Platform_android(self):
         with patch.dict('os.environ', {'ANDROID_ARGUMENT': ''}):

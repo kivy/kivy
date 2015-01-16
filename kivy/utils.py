@@ -275,7 +275,6 @@ class Platform(object):
         if self._platform_ios is None:
             self._platform_ios = (environ.get('KIVY_BUILD', '') == 'ios')
 
-        print _sys_platform, str(_sys_platform), _sys_platform[:5], _sys_platform == 'darwin'
         # On android, _sys_platform return 'linux2', so prefer to check the
         # import of Android module than trying to rely on _sys_platform.
         if self._platform_android is True:
