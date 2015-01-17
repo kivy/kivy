@@ -780,6 +780,10 @@ setup(
         'kivy.uix', ],
     package_dir={'kivy': 'kivy'},
     package_data={'kivy': [
+        '*.pxd',
+        'core/text/*.pxd',
+        'graphics/*.pxd',
+        'lib/vidcore_lite/*.pxd',
         'data/*.kv',
         'data/*.json',
         'data/fonts/*.ttf',
