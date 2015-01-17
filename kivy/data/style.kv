@@ -943,14 +943,16 @@
 
 <VideoPlayerPreview>:
     pos_hint: {'x': 0, 'y': 0}
+    image_overlay_play: 'atlas://data/images/defaulttheme/player-play-overlay'
+    image_loading: 'atlas://data/images/image-loading.gif'
     Image:
         source: root.source
         color: (.5, .5, .5, 1)
         pos_hint: {'x': 0, 'y': 0}
-
     Image:
-        source: 'atlas://data/images/defaulttheme/player-play-overlay' if not root.click_done else 'data/images/image-loading.gif'
+        source: root.image_overlay_play if not root.click_done else root.image_loading
         pos_hint: {'x': 0, 'y': 0}
+
 
 <VideoPlayerAnnotation>:
     canvas.before:
