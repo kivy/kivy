@@ -1190,6 +1190,9 @@ class Parser(object):
                                 'Language extension (.kv)'.format(ref))
                     break
                 if ref in __KV_INCLUDES__:
+                    if not os.path.isfile(ref):
+                        raise ParserException(self, ln,
+                            'Invalid or unknown file: {0}'.format(ref))
                     if not force_load:
                         Logger.warn('WARNING: {0} has already been included!'
                                     .format(ref))
@@ -1199,9 +1202,7 @@ class Parser(object):
                                     .format(ref))
                         Builder.unload_file(ref)
                         Builder.load_file(ref)
-                if not os.path.isfile(ref):
-                    raise ParserException(self, ln, 'Invalid or unknown file: '
-                                                    '{0}'.format(ref))
+                        break
                 Logger.debug('Including file: {0}'.format(0))
                 __KV_INCLUDES__.append(ref)
                 Builder.load_file(ref)
