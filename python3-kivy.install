@@ -9,6 +9,7 @@ usr/lib/python3/dist-packages/kivy/ext/*
 usr/lib/python3/dist-packages/kivy/extras/*
 usr/lib/python3/dist-packages/kivy/garden/*.py*
 usr/lib/python3/dist-packages/kivy/garden/__pycache__/*.pyc
+usr/lib/python3/dist-packages/kivy/graphics/config.h
 usr/lib/python3/dist-packages/kivy/graphics/*.py*
 usr/lib/python3/dist-packages/kivy/graphics/*.pxd
 usr/lib/python3/dist-packages/kivy/graphics/*.pxi
