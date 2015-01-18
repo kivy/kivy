@@ -150,7 +150,7 @@ class KivyBuildExt(build_ext):
         for fn, content in (
             (config_h_fn, config_h), (config_pxi_fn, config_pxi),
             (config_py_fn, config_py)):
-            if self.update_if_changed(fn, content)
+            if self.update_if_changed(fn, content):
                 print('Updated {}'.format(fn))
 
         c = self.compiler.compiler_type
