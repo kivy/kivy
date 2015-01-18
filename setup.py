@@ -105,8 +105,19 @@ if not have_cython:
 # -----------------------------------------------------------------------------
 # Setup classes
 
+# the build path where kivy is being compiled
+build_path = dirname(__file__)
+
 
 class KivyBuildExt(build_ext):
+
+    def finalize_options(self):
+        retval = build_ext.finalize_options(self)
+        global build_path
+        if (self.build_lib is not None and exists(self.build_lib) and
+            not self.inplace):
+            build_path = self.build_lib
+        return retval
 
     def build_extensions(self):
         # build files
@@ -133,14 +144,14 @@ class KivyBuildExt(build_ext):
             config_py += '{0} = {1}\n'.format(opt, value)
         debug = bool(self.debug)
         print(' * debug = {0}'.format(debug))
+
         config_pxi += 'DEF DEBUG = {0}\n'.format(debug)
         config_py += 'DEBUG = {0}\n'.format(debug)
-        print('Generate config.h')
-        self.update_if_changed(config_h_fn, config_h)
-        print('Generate config.pxi')
-        self.update_if_changed(config_pxi_fn, config_pxi)
-        print('Generate setupconfig.py')
-        self.update_if_changed(config_py_fn, config_py)
+        for fn, content in (
+            (config_h_fn, config_h), (config_pxi_fn, config_pxi),
+            (config_py_fn, config_py)):
+            if self.update_if_changed(fn, content)
+                print('Updated {}'.format(fn))
 
         c = self.compiler.compiler_type
         print('Detected compiler is {}'.format(c))
@@ -158,6 +169,7 @@ class KivyBuildExt(build_ext):
         if need_update:
             with open(fn, 'w') as fd:
                 fd.write(content)
+        return need_update
 
 
 # -----------------------------------------------------------------------------
@@ -312,7 +324,7 @@ def get_modulename_from_file(filename):
 
 
 def expand(*args):
-    return join(dirname(__file__), 'kivy', *args)
+    return join(build_path, 'kivy', *args)
 
 
 class CythonExtension(Extension):
