@@ -2075,7 +2075,7 @@ class BuilderBase(object):
             return
         for callbacks in _handlers[uid]:
             for f, k, fn, bound_uid in callbacks:
-                if fn is None:  # it's not a kivy prop.
+                if not bound_uid:  # it's not a kivy prop.
                     continue
                 try:
                     f.unbind_uid(k, bound_uid)
