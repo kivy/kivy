@@ -54,6 +54,32 @@ r_uid = 0
 
 
 def squash_callbacks(link_properties, objs):
+    '''Takes the property rules and the unique list of bound objects and
+    returns a 3 deep list the bound rules.
+
+    - First levels splits into objs.
+    - Second level, for each obj split, further splits it into bound rules
+    grouped by parents.
+
+    The returned lists also filters out any empty sublists.
+
+    The shape returned is:
+    [
+        [obj1,
+            [
+                [parent1,
+                    [(who, parent, hname, symbols, bind),
+                    (who, parent, hname, symbols, bind),
+                    ...]
+                ]
+                [parent2, [...]]
+                ...
+            ]
+        ],
+        [obj2, [...]]
+        ...
+    ]
+    '''
     ret = [[obj, [prop[:-1] + (bind, ) for prop in link_properties
                   for bind in prop[-1] if bind[:-1] == obj]] for obj in objs]
     for i, (obj, obj_binds) in enumerate(ret):
@@ -67,6 +93,9 @@ def squash_callbacks(link_properties, objs):
 
 
 def expand_symbols(symbols, who, parent, ref=True):
+    '''Replaces the symbols with the correct names for properties.
+    If ref, it also appends _ref to the names of those who are not `parent`.
+    '''
     symbols = symbols[:]
     for i, sym in enumerate(symbols):
         if sym == 'self':
@@ -83,6 +112,9 @@ def expand_symbols(symbols, who, parent, ref=True):
 
 
 def expand_symbols_handler(symbols, who, ref=True):
+    '''Replaces the symbols with the correct names for handlers.
+    If ref, it also appends _ref to the names of those who are not `who`.
+    '''
     symbols = symbols[:]
     for i, sym in enumerate(symbols):
         if sym == 'self':
@@ -97,6 +129,9 @@ def expand_symbols_handler(symbols, who, ref=True):
 
 
 def unique_symbols(props, handlers, ids):
+    '''Returns the unique list of symbols accumulated from `props`, `handlers`,
+    and `ids`.
+    '''
     symbols = []
     for who, parent, _, _symbols, _ in props:
         symbols.extend(expand_symbols(_symbols, who, parent, ref=False))
@@ -125,6 +160,9 @@ def parent_handlers(handlers):
 
 
 def cmp_idx(elems, idx, val):
+    '''Returns the elems filtered so that the value ate index `idx` of each
+    element is equal to `val`.
+    '''
     return [x for x in elems if x[idx] == val]
 
 env.filters['squash_callbacks'] = squash_callbacks
