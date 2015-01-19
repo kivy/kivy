@@ -41,20 +41,94 @@ import codecs
 import datetime
 from types import CodeType
 from jinja2 import Template
+import jinja2
 from collections import OrderedDict
 from kivy.lang import Parser
+
+env = jinja2.Environment()
 
 c_uid = 0
 g_uid = 0
 h_uid = 0
 r_uid = 0
 
+
+def squash_callbacks(link_properties, objs):
+    ret = [[obj, [prop[:-1] + (bind, ) for prop in link_properties
+                  for bind in prop[-1] if bind[:-1] == obj]] for obj in objs]
+    for i, (obj, obj_binds) in enumerate(ret):
+        parents = list(set([bind[1] for bind in obj_binds]))
+        binds = [[parent, [bind for bind in obj_binds if bind[1] == parent]]
+                 for parent in parents]
+        ret[i] = obj, [(parent, parent_binds)
+                       for (parent, parent_binds) in binds if parent_binds]
+    ret = [(obj, obj_binds) for (obj, obj_binds) in ret if obj_binds]
+    return sorted(ret, key=lambda x: '.'.join(x[0]))
+
+
+def expand_symbols(symbols, who, parent, ref=True):
+    symbols = symbols[:]
+    for i, sym in enumerate(symbols):
+        if sym == 'self':
+            symbols[i] = parent
+        elif sym == 'gself':
+            symbols[i] = who
+        elif sym == 'root':
+            symbols[i] = 'self'
+    if ref:
+        for i, sym in enumerate(symbols):
+            if sym != parent:
+                symbols[i] = '{}_ref'.format(sym)
+    return symbols
+
+
+def expand_symbols_handler(symbols, who, ref=True):
+    symbols = symbols[:]
+    for i, sym in enumerate(symbols):
+        if sym == 'self':
+            symbols[i] = who
+        elif sym == 'root':
+            symbols[i] = 'self'
+    if ref:
+        for i, sym in enumerate(symbols):
+            if sym != who:
+                symbols[i] = '{}_ref'.format(sym)
+    return symbols
+
+
+def unique_symbols(props, handlers, ids):
+    symbols = []
+    for who, parent, _, _symbols, _ in props:
+        symbols.extend(expand_symbols(_symbols, who, parent, ref=False))
+    for who, _, _, _, _symbols in handlers:
+        symbols.extend(expand_symbols_handler(_symbols, who, ref=False))
+    symbols.extend(ids)
+    return list(set(symbols))
+
+
+def dedup(objs):
+    return list(set(objs))
+
+
+def get_idx(elems, idx):
+    return [elem[idx] for elem in elems]
+
+
+def cmp_idx(elems, idx, val):
+    return [x for x in elems if x[idx] == val]
+
+env.filters['squash_callbacks'] = squash_callbacks
+env.filters['cmp_idx'] = cmp_idx
+env.filters['expand_symbols'] = expand_symbols
+env.filters['expand_symbols_handler'] = expand_symbols_handler
+env.filters['unique_symbols'] = unique_symbols
+
 header = """
 import sys
 from kivy.metrics import dp, sp
 from kivy.factory import Factory
 from functools import partial
-from kivy.lang import Builder, ParserSelectorId, ParserSelectorName, ParserSelectorClass
+from kivy.lang import Builder, ParserSelectorId, ParserSelectorName, ParserSelectorClass, _handlers
 from kivy.event import EventDispatcher, Observable
 from kivy import require
 _mc = {}
@@ -186,7 +260,7 @@ Builder.load_string('''
 ''')
 """)
 
-tpl_apply = Template("""
+tpl_apply = env.from_string("""
 {%- for handler in properties %}
 {{ handler }}
 {% endfor %}
@@ -218,14 +292,10 @@ def _r{{ name }}(self):
     # ensure all properties exists
     _mc{{ name }}(self)
 
-    # ids
-    self.ids = {
-        {%- if ids %}
-        {% for _id in ids -%}
-        {% if loop.index > 1 %},
-        {% endif -%}
-        "{{ _id }}": {{ _id }}.proxy_ref
-        {%- endfor -%}{% endif %}}
+    # id refs
+    {%- for sym in link_properties|unique_symbols(handlers, ids) %}
+    {{ sym }}_ref = {{ sym }}.proxy_ref
+    {%- endfor %}
 
     {%- if literal_properties %}
     # set default properties
@@ -234,58 +304,48 @@ def _r{{ name }}(self):
     {%- endfor %}
     {% endif %}
 
-    # shortcuts
-    {%- for obj in objs %}
-    if isinstance({{ obj }}, _otype):
-        {{ obj|replace(".", "_") }}_b = {{ obj }}.bind
-    else:
-        {{ obj|replace(".", "_") }}_b = None
-    {%- endfor %}
-
     {%- if link_properties %}
     # link properties
-    {%- for who, parent, hname, symbols, binds in link_properties %}
-    _{{ hname }} = partial({{ hname }}
-        {%- for sym in symbols %}, {% if sym == "self" %}{{ parent }}
-        {%- elif sym == "gself" %}{{ who }}
-        {%- elif sym == "root" %}self
-        {%- else %}{{ sym }}
+    {%- for obj, obj_binds in link_properties|squash_callbacks(objs) %}
+    {%- set obj = obj|join('.') %}
+    if isinstance({{ obj }}, _otype):
+        {%- for parent, parent_binds in obj_binds %}
+        {%- if parent_binds|length == 1 %}
+        {%- for who, _, hname, symbols, bind in parent_binds %}
+        _handlers[{{ parent }}.uid].append([({{ obj }}.proxy_ref, "{{ bind[-1] }}", {{ hname }}, {{ obj }}.fast_bind("{{ bind[-1] }}", {{ hname }}
+        {%- for sym in symbols|expand_symbols(who, parent) %}, {{ sym }}{%- endfor -%}))])
+        {%- endfor %}
+        {%- else  %}
+        fast_bind = {{ obj }}.fast_bind
+        proxy_ref = {{ obj }}.proxy_ref
+        bound = []
+        append = bound.append
+        {%- for who, _, hname, symbols, bind in parent_binds %}
+        append((proxy_ref, "{{ bind[-1] }}", {{ hname }}, fast_bind("{{ bind[-1] }}", {{ hname }}
+        {%- for sym in symbols|expand_symbols(who, parent) %}, {{ sym }}{%- endfor -%})))
+        {%- endfor %}
+        _handlers[{{ parent }}.uid].append(bound)
         {%- endif -%}
-        {%- endfor -%})
-    {%- endfor %}
-
-    {%- for obj in objs %}
-    if {{ obj|replace(".", "_") }}_b:
-        {%- for who, parent, hname, symbols, binds in link_properties %}
-        {%- for _obj, objprop in binds %}
-        {%- if _obj == obj %}
-        {{ obj|replace(".", "_") }}_b({{ objprop }}=_{{ hname }})
-        {%- endif %}
         {%- endfor %}
-        {%- endfor %}
-        pass
     {%- endfor %}
     {%- endif %}
 
     {%- for who, parent, hname, symbols, binds in link_properties %}
-    _{{ hname }}()
+    {{ hname }}(
+    {%- for sym in symbols|expand_symbols(who, parent, ref=False) %}
+    {%- if loop.index > 1 %}, {% endif -%}{{ sym }}
+    {%- endfor -%})
     {%- endfor %}
 
+    {% if handlers %}
     # link handlers
     {%- for who, name, hname, hcode, symbols in handlers %}
-    _key = "{{ name }}"
-    _{{ name }} = partial(on_{{ hname }}
-        {%- for sym in symbols %}, {% if sym == "self" %}{{ who }}
-        {%- elif sym == "root" %}self
-        {%- else %}{{ sym }}
-        {%- endif -%}
-        {%- endfor %})
-    if {{ who }}.is_event_type(_key):
-        {{ who }}_b({{ name }}=_{{ name }})
+    if {{ who }}.is_event_type("{{ name }}"):
+        {{ who }}.fast_bind("{{ name }}", on_{{ hname }}{%- for sym in symbols|expand_symbols_handler(who) %}, {{ sym }}{%- endfor %})
     else:
-        {{ who }}_b({{ name[3:] }}=_{{ name }})
-
-    {% endfor %}
+        {{ who }}.fast_bind("{{ name[3:] }}", on_{{ hname }}{%- for sym in symbols|expand_symbols_handler(who) %}, {{ sym }}{%- endfor %})
+    {%- endfor %}
+    {%- endif %}
 
 _r{{ name }}.avoid_previous_rules = {{ avoid_previous_rules }}
 """)
@@ -438,10 +498,9 @@ def generate_py_rules(key, rule, who="self", mode="widget", parent=None,
                 obj[0] = who if mode == "widget" else parent
             elif obj[0] == "root":
                 obj[0] = "self"
-            obj = ".".join(obj)
+            obj = tuple(obj)
             objs.append(obj)
-            objprop = keys[-1]
-            binds.append((obj, objprop))
+            binds.append(obj + (keys[-1], ))
         ctx["link_properties"].append((
             who,
             who if mode == "widget" else parent,
@@ -478,7 +537,7 @@ def _find_maxline(line, rule):
     if rule.canvas_after:
         line = max(line, _find_maxline(line, rule.canvas_after))
     return line
-        
+
 
 def generate_template(name, template):
     # template compilation is not supported at all, so rely on the current
