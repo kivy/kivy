@@ -29,7 +29,7 @@ What's not supported:
 - Rebind
 - Accessing of a object more than one . (self.parent.parent.myobj)
 - Unloading
-- on_parent trick dispatching
+- Caching canvas updates during a clock cycle
 
 
 """
@@ -106,22 +106,33 @@ def unique_symbols(props, handlers, ids):
     return list(set(symbols))
 
 
-def dedup(objs):
-    return list(set(objs))
+def parent_handlers(handlers):
+    '''Returns the names of the objects that have a on_parent rule so that we
+    can execute them manually because add_widget happened before we bound the
+    on_parent rule.
+    Return the list in correct order because when executing, we always execute
+    in reverse order.
+    '''
+    whos = [who for who, name, _, _, _ in handlers if name == 'on_parent']
+    if len(whos) <= 1:
+        return whos
 
-
-def get_idx(elems, idx):
-    return [elem[idx] for elem in elems]
+    dedup = []
+    for who in whos:
+        if who not in dedup:
+            dedup.append(who)
+    return dedup
 
 
 def cmp_idx(elems, idx, val):
     return [x for x in elems if x[idx] == val]
 
 env.filters['squash_callbacks'] = squash_callbacks
-env.filters['cmp_idx'] = cmp_idx
 env.filters['expand_symbols'] = expand_symbols
 env.filters['expand_symbols_handler'] = expand_symbols_handler
 env.filters['unique_symbols'] = unique_symbols
+env.filters['parent_handlers'] = parent_handlers
+env.filters['cmp_idx'] = cmp_idx
 
 header = """
 import sys
@@ -344,6 +355,9 @@ def _r{{ name }}(self):
         {{ who }}.fast_bind("{{ name }}", on_{{ hname }}{%- for sym in symbols|expand_symbols_handler(who) %}, {{ sym }}{%- endfor %})
     else:
         {{ who }}.fast_bind("{{ name[3:] }}", on_{{ hname }}{%- for sym in symbols|expand_symbols_handler(who) %}, {{ sym }}{%- endfor %})
+    {%- endfor %}
+    {%- for who in handlers|parent_handlers|reverse %}
+    Factory.Widget.parent.dispatch({{ who }})
     {%- endfor %}
     {%- endif %}
 
