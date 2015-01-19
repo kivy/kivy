@@ -341,7 +341,7 @@ def _r{{ name }}(self):
     {%- endfor %}
     {%- endif %}
 
-    {%- for who, parent, hname, symbols, binds in link_properties %}
+    {%- for who, parent, hname, symbols, binds in link_properties|reverse %}
     {{ hname }}(
     {%- for sym in symbols|expand_symbols(who, parent, ref=False) %}
     {%- if loop.index > 1 %}, {% endif -%}{{ sym }}
