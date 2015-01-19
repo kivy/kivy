@@ -4,8 +4,8 @@ Kivy language compiler
 
 .. author:: Mathieu Virbel <mat@kivy.org>
 
-This compiler require jinja2. The implementation is very messy but effective, as
-the current benchmark goes from 31s to 19s.
+This compiler require jinja2. The implementation is very messy but effective,
+as the current benchmark goes from 31s to 19s.
 
 What's supported:
 
@@ -139,7 +139,9 @@ import sys
 from kivy.metrics import dp, sp
 from kivy.factory import Factory
 from functools import partial
-from kivy.lang import Builder, ParserSelectorId, ParserSelectorName, ParserSelectorClass, _handlers
+from kivy.lang import (
+    Builder, ParserSelectorId, ParserSelectorName, ParserSelectorClass,
+    _handlers)
 from kivy.event import EventDispatcher, Observable
 from kivy import require
 _mc = {}
@@ -291,7 +293,8 @@ def _mc{{ name }}(self):
     _mc[{{ name }}].append(self.__class__)
 
 def _r{{ name }}(self):
-    # {{ rule.ctx.filename }}:{{ rule.line }} {{ rule.ctx.sourcecode[rule.line][1] }}
+    # {{ rule.ctx.filename }}:
+    {{- rule.line }} {{ rule.ctx.sourcecode[rule.line][1] }}
     root = self
     {%- if children %}
     # create tree
@@ -323,8 +326,11 @@ def _r{{ name }}(self):
         {%- for parent, parent_binds in obj_binds %}
         {%- if parent_binds|length == 1 %}
         {%- for who, _, hname, symbols, bind in parent_binds %}
-        _handlers[{{ parent }}.uid].append([({{ obj }}.proxy_ref, "{{ bind[-1] }}", {{ hname }}, {{ obj }}.fast_bind("{{ bind[-1] }}", {{ hname }}
-        {%- for sym in symbols|expand_symbols(who, parent) %}, {{ sym }}{%- endfor -%}))])
+        _handlers[{{ parent }}.uid].append([({{ obj }}.proxy_ref, "
+        {{- bind[-1] }}", {{ hname }}, {{ obj }}.fast_bind("
+        {{- bind[-1] }}", {{ hname }}
+        {%- for sym in symbols|expand_symbols(who, parent) %}, {{ sym }}
+        {%- endfor -%}))])
         {%- endfor %}
         {%- else  %}
         fast_bind = {{ obj }}.fast_bind
@@ -332,8 +338,10 @@ def _r{{ name }}(self):
         bound = []
         append = bound.append
         {%- for who, _, hname, symbols, bind in parent_binds %}
-        append((proxy_ref, "{{ bind[-1] }}", {{ hname }}, fast_bind("{{ bind[-1] }}", {{ hname }}
-        {%- for sym in symbols|expand_symbols(who, parent) %}, {{ sym }}{%- endfor -%})))
+        append((proxy_ref, "{{ bind[-1] }}", {{ hname }}, fast_bind("
+        {{- bind[-1] }}", {{ hname }}
+        {%- for sym in symbols|expand_symbols(who, parent) %}, {{ sym }}
+        {%- endfor -%})))
         {%- endfor %}
         _handlers[{{ parent }}.uid].append(bound)
         {%- endif -%}
@@ -352,9 +360,13 @@ def _r{{ name }}(self):
     # link handlers
     {%- for who, name, hname, hcode, symbols in handlers %}
     if {{ who }}.is_event_type("{{ name }}"):
-        {{ who }}.fast_bind("{{ name }}", on_{{ hname }}{%- for sym in symbols|expand_symbols_handler(who) %}, {{ sym }}{%- endfor %})
+        {{ who }}.fast_bind("{{ name }}", on_{{ hname }}
+        {%- for sym in symbols|expand_symbols_handler(who) %}, {{ sym }}
+        {%- endfor %})
     else:
-        {{ who }}.fast_bind("{{ name[3:] }}", on_{{ hname }}{%- for sym in symbols|expand_symbols_handler(who) %}, {{ sym }}{%- endfor %})
+        {{ who }}.fast_bind("{{ name[3:] }}", on_{{ hname }}
+        {%- for sym in symbols|expand_symbols_handler(who) %}, {{ sym }}
+        {%- endfor %})
     {%- endfor %}
     {%- for who in handlers|parent_handlers|reverse %}
     Factory.Widget.parent.dispatch({{ who }})
@@ -423,7 +435,6 @@ def get_ids(rule, ids):
         get_ids(child, ids)
 
 
-
 def generate_py_rules(key, rule, who="self", mode="widget", parent=None,
         ids=None):
     ctx = {
@@ -472,7 +483,8 @@ def generate_py_rules(key, rule, who="self", mode="widget", parent=None,
             ctx["objs"] += child_ctx["objs"]
     if rule.canvas_before:
         for child in rule.canvas_before.children:
-            child_ctx, code = generate_py_canvas(child, who, ids, canvas="canvas.before")
+            child_ctx, code = generate_py_canvas(
+                child, who, ids, canvas="canvas.before")
             ctx["children"].append(code)
             ctx["children"].extend(child_ctx["children"])
             ctx["properties"] += child_ctx["properties"]
@@ -480,7 +492,8 @@ def generate_py_rules(key, rule, who="self", mode="widget", parent=None,
             ctx["objs"] += child_ctx["objs"]
     if rule.canvas_after:
         for child in rule.canvas_after.children:
-            child_ctx, code = generate_py_canvas(child, who, ids, canvas="canvas.after")
+            child_ctx, code = generate_py_canvas(
+                child, who, ids, canvas="canvas.after")
             ctx["children"].append(code)
             ctx["children"].extend(child_ctx["children"])
             ctx["properties"] += child_ctx["properties"]
@@ -532,11 +545,14 @@ def generate_py_rules(key, rule, who="self", mode="widget", parent=None,
     ctx["objs"] = list(set(objs + ctx["objs"]))
     return ctx
 
+
 def generate_dynamic_classes(dynamic_classes):
     return tpl_dynamic_classes.render(dynamic_classes=dynamic_classes.items())
 
+
 def generate_directives(directives):
     return tpl_directives.render(directives=directives)
+
 
 def _find_maxline(line, rule):
     line = max(line, rule.line)
@@ -558,7 +574,8 @@ def generate_template(name, template):
     # interpreted language.
     minline = template.line
     maxline = _find_maxline(minline, template)
-    code = "\n".join([c[1] for c in template.ctx.sourcecode[minline:maxline+1]])
+    code = "\n".join(
+        [c[1] for c in template.ctx.sourcecode[minline:maxline + 1]])
     return tpl_template.render(code=code)
 
 
@@ -619,7 +636,7 @@ def generate_py(parser):
 
 
 if __name__ == "__main__":
-    fn = sys.argv[1]
+    fn = r'G:\Python\dev2\kivy\kivy\data\style.kv'
     with codecs.open(fn) as fd:
         content = fd.read()
     parser = Parser(content=content, filename=fn)
