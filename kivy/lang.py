@@ -1998,6 +1998,7 @@ class BuilderBase(object):
         try:
             crule = None
             for widget_set, rules in rctx['hdl']:
+                dispatch_parent = False
                 for crule in rules:
                     assert(isinstance(crule, ParserRuleProperty))
                     assert(crule.name.startswith('on_'))
@@ -2012,7 +2013,9 @@ class BuilderBase(object):
                         raise AttributeError(key)
                     #hack for on_parent
                     if crule.name == 'on_parent':
-                        Factory.Widget.parent.dispatch(widget_set.__self__)
+                        dispatch_parent = True
+                if dispatch_parent:
+                    Factory.Widget.parent.dispatch(widget_set.__self__)
         except Exception as e:
             if crule is not None:
                 tb = sys.exc_info()[2]
