@@ -34,25 +34,25 @@ import math
 import sys
 import string
 import pprint
+from kivy.compat import string_types
 
 
-def hexDump(bytes):
+def hexDump(data):
     """Useful utility; prints the string in hexadecimal"""
-    for i in range(len(bytes)):
-        sys.stdout.write("%2x " % (ord(bytes[i])))
+    for i in range(len(data)):
+        sys.stdout.write("%2x " % (ord(data[i])))
         if (i+1) % 8 == 0:
-            print(repr(bytes[i-7:i+1]))
+            print(repr(data[i-7:i+1]))
 
-    if(len(bytes) % 8 != 0):
-        print(string.rjust("", 11), repr(bytes[i-len(bytes)%8:i+1]))
+    if(len(data) % 8 != 0):
+        print(str.rjust("", 11), repr(data[i-len(data) % 8:i + 1]))
 
 
 class OSCMessage:
     """Builds typetagged OSC messages."""
     def __init__(self):
-        self.address  = ""
-        self.typetags = ","
-        self.message  = ""
+        self.address = ""
+        self.clearData()
 
     def setAddress(self, address):
         self.address = address
@@ -64,14 +64,15 @@ class OSCMessage:
         self.typetags = typetags
 
     def clear(self):
-        self.address  = ""
+        self.address = ""
+
         self.clearData()
 
     def clearData(self):
         self.typetags = ","
-        self.message  = ""
+        self.message = bytes()
 
-    def append(self, argument, typehint = None):
+    def append(self, argument, typehint=None):
         """Appends data to the message,
         updating the typetags based on
         the argument's type.
@@ -171,23 +172,23 @@ def OSCBlob(next):
     return (tag, binary)
 
 
-def OSCArgument(next):
+def OSCArgument(data):
     """Convert some Python types to their
     OSC binary representations, returning a
     (typetag, data) tuple."""
 
-    if type(next) == type(""):
-        OSCstringLength = math.ceil((len(next)+1) / 4.0) * 4
-        binary  = struct.pack(">%ds" % (OSCstringLength), next)
+    if isinstance(data, string_types):
+        OSCstringLength = math.ceil((len(data)+1) / 4.0) * 4
+        binary = struct.pack(">%ds" % (OSCstringLength), data)
         tag = "s"
-    elif type(next) == type(42.5):
-        binary  = struct.pack(">f", next)
+    elif isinstance(data, float):
+        binary = struct.pack(">f", data)
         tag = "f"
-    elif type(next) == type(13):
-        binary  = struct.pack(">i", next)
+    elif isinstance(data, int):
+        binary = struct.pack(">i", data)
         tag = "i"
     else:
-        binary  = ""
+        binary = ""
         tag = ""
 
     return (tag, binary)
@@ -391,7 +392,7 @@ if __name__ == "__main__":
 
     print1 = OSCMessage()
     print1.setAddress("/print")
-    print1.append("Hey man, that's cool.")
+    print1.append("Hey man, that's cool.".encode('utf-8'))
     print1.append(42)
     print1.append(3.1415926)
 
@@ -399,7 +400,7 @@ if __name__ == "__main__":
 
     bundle = OSCMessage()
     bundle.setAddress("")
-    bundle.append("#bundle")
+    bundle.append("#bundle".encode('utf-8'))
     bundle.append(0)
     bundle.append(0)
     bundle.append(print1.getBinary(), 'b')

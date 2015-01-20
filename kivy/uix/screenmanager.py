@@ -3,11 +3,6 @@
 
 .. versionadded:: 1.4.0
 
-.. warning::
-
-    This widget is still experimental, and its API is subject to change in a
-    future version.
-
 The screen manager is a widget dedicated to managing multiple screens for your
 application. The default :class:`ScreenManager` displays only one
 :class:`Screen` at a time and uses a :class:`TransitionBase` to switch from one
@@ -859,6 +854,11 @@ class ScreenManager(FloatLayout):
             raise ScreenManagerException(
                 'ScreenManager accepts only Screen widget.')
         if screen.manager:
+            if screen.manager is self:
+                raise ScreenManagerException(
+                    'Screen already managed by this ScreenManager (are you '
+                    'calling `switch_to` when you should be setting '
+                    '`current`?)')
             raise ScreenManagerException(
                 'Screen already managed by another ScreenManager.')
         screen.manager = self

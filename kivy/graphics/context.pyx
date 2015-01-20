@@ -57,6 +57,7 @@ cdef class Context:
         self.lr_fbo_rb = array('i')
         self.lr_fbo_fb = array('i')
         self.lr_shadersource = array('i')
+        self.lr_shader = []
 
     cdef void register_texture(self, Texture texture):
         self.l_texture.append(ref(texture, self.l_texture.remove))
@@ -93,11 +94,9 @@ cdef class Context:
     cdef void dealloc_shader(self, Shader shader):
         if shader.program == 0:
             return
-        if shader.vertex_shader is not None:
-            glDetachShader(shader.program, shader.vertex_shader.shader)
-        if shader.fragment_shader is not None:
-            glDetachShader(shader.program, shader.fragment_shader.shader)
-        glDeleteProgram(shader.program)
+        cdef int vs_id = -1
+        cdef int fs_id = -1
+        self.lr_shader.append((shader.program, vs_id, fs_id))
 
     cdef void dealloc_shader_source(self, int shader):
         cdef array arr
@@ -304,6 +303,15 @@ cdef class Context:
             for i in self.lr_shadersource:
                 glDeleteShader(i)
             del self.lr_shadersource[:]
+        if len(self.lr_shader):
+            Logger.trace('Context: releasing %d shaders' % len(self.lr_shader))
+            for program, vs_id, fs_id in self.lr_shader:
+                if vs_id != -1:
+                    glDetachShader(program, vs_id)
+                if fs_id != -1:
+                    glDetachShader(program, fs_id)
+                glDeleteProgram(program)
+            del self.lr_shader[:]
 
 
 cpdef Context get_context():

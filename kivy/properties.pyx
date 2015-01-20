@@ -281,13 +281,23 @@ cdef class Property:
             If set, it will replace an invalid property value (overrides
             errorhandler).
 
+            If the paramters include `force_dispatch`, it should be a boolean.
+            If True, the property event will be dispatched even if the new
+            value matches the old value (by default identical values are not
+            dispatched to avoid infinite recursion in two-way binds). Be
+            careful, this is for advanced use only.
+
     .. versionchanged:: 1.4.2
         Parameters errorhandler and errorvalue added
+
+    .. versionchanged:: 1.9.0
+        Parameter force_dispatch added
     '''
 
     def __cinit__(self):
         self._name = ''
         self.allownone = 0
+        self.force_dispatch = 0
         self.defaultvalue = None
         self.errorvalue = None
         self.errorhandler = None
@@ -297,6 +307,7 @@ cdef class Property:
     def __init__(self, defaultvalue, **kw):
         self.defaultvalue = defaultvalue
         self.allownone = <int>kw.get('allownone', 0)
+        self.force_dispatch = <int>kw.get('force_dispatch', 0)
         self.errorvalue = kw.get('errorvalue', None)
         self.errorhandler = kw.get('errorhandler', None)
 
@@ -354,10 +365,11 @@ cdef class Property:
     cpdef fast_bind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
         '''Similar to bind, except it doesn't check if the observer already
         exists. It also expands and forwards largs and kwargs to the callback.
-        fast_unbind should be called when unbinding.
+        fast_unbind or unbind_uid should be called when unbinding.
+        It returns a unique positive uid to be used with unbind_uid.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.observers.fast_bind(observer, largs, kwargs, 0)
+        return ps.observers.fast_bind(observer, largs, kwargs, 0)
 
     cpdef unbind(self, EventDispatcher obj, observer):
         '''Remove the observer from our widget observer list.
@@ -372,6 +384,13 @@ cdef class Property:
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
         ps.observers.fast_unbind(observer, largs, kwargs)
+
+    cpdef unbind_uid(self, EventDispatcher obj, object uid):
+        '''Remove the observer from our widget observer list bound with
+        fast_bind using the uid.
+        '''
+        cdef PropertyStorage ps = obj.__storage[self._name]
+        ps.observers.unbind_uid(uid)
 
     def __set__(self, EventDispatcher obj, val):
         self.set(obj, val)
@@ -390,7 +409,7 @@ cdef class Property:
         cdef PropertyStorage ps = obj.__storage[self._name]
         value = self.convert(obj, value)
         realvalue = ps.value
-        if self.compare_value(realvalue, value):
+        if not self.force_dispatch and self.compare_value(realvalue, value):
             return False
 
         try:
@@ -1184,7 +1203,7 @@ cdef class ReferenceListProperty(Property):
         cdef list value
         cdef PropertyStorage ps = obj.__storage[self._name]
         value = self.convert(obj, _value)
-        if self.compare_value(ps.value, value):
+        if not self.force_dispatch and self.compare_value(ps.value, value):
             return False
         self.check(obj, value)
         # prevent dependency loop
@@ -1206,6 +1225,7 @@ cdef class ReferenceListProperty(Property):
 
     cpdef setitem(self, EventDispatcher obj, key, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
+        cdef bint res = False
 
         ps.stop_event = 1
         if isinstance(key, slice):
@@ -1213,12 +1233,13 @@ cdef class ReferenceListProperty(Property):
             for index in xrange(len(props)):
                 prop = props[index]
                 x = value[index]
-                prop.set(obj, x)
+                res = prop.set(obj, x) or res
         else:
             prop = ps.properties[key]
-            prop.set(obj, value)
+            res = prop.set(obj, value)
         ps.stop_event = 0
-        self.dispatch(obj)
+        if res:
+            self.dispatch(obj)
 
     cpdef get(self, EventDispatcher obj):
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -1593,6 +1614,8 @@ cdef class ConfigParserProperty(Property):
 
         if isinstance(config, string_types) and config:
             self.config_name = config
+            # if the parser already exists, get it now
+            self.config = ConfigParser.get_configparser(config)
         elif isinstance(config, ConfigParser):
             self.config = config
         elif config is not None:
@@ -1685,7 +1708,8 @@ cdef class ConfigParserProperty(Property):
         value = self._parse_str(value)
         realvalue = ps.value
         if self.compare_value(realvalue, value):
-            if self.compare_value(orig_value, value):
+            fd = self.force_dispatch
+            if not fd and self.compare_value(orig_value, value):
                 return False
             else:
                 # even if the resolved parsed value is the same, the original

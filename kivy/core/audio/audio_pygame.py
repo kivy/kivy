@@ -38,7 +38,7 @@ class SoundPygame(Sound):
     @staticmethod
     def extensions():
         if _platform == 'android':
-            return ('wav', 'ogg', 'mp3')
+            return ('wav', 'ogg', 'mp3', 'm4a')
         return ('wav', 'ogg')
 
     def __init__(self, **kwargs):

@@ -40,6 +40,7 @@ from kivy.compat import PY2
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
     AliasProperty, BooleanProperty
+from kivy.setupconfig import USE_SDL2
 
 
 class SoundLoader:
@@ -203,6 +204,7 @@ except ImportError:
         audio_libs += [('pygst', 'audio_pygst')]
 audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]
 audio_libs += [('sdl', 'audio_sdl')]
-audio_libs += [('pygame', 'audio_pygame')]
+if not USE_SDL2:
+    audio_libs += [('pygame', 'audio_pygame')]
 
 core_register_libs('audio', audio_libs)
