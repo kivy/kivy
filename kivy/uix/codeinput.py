@@ -42,7 +42,7 @@ from pygments.formatters import BBCodeFormatter
 from kivy.uix.textinput import TextInput
 from kivy.core.text.markup import MarkupLabel as Label
 from kivy.cache import Cache
-from kivy.properties import ObjectProperty, StringProperty
+from kivy.properties import ObjectProperty, OptionProperty
 from kivy.utils import get_hex_from_color
 
 Cache_get = Cache.get
@@ -63,10 +63,12 @@ class CodeInput(TextInput):
     defaults to `PythonLexer`.
     '''
 
-    style_name = StringProperty('default')
+    style_name = OptionProperty(
+        'default', options=list(styles.get_all_styles())
+    )
     '''Name of the pygments style to use for formatting.
 
-    :attr:`style_name` is a :class:`~kivy.properties.StringProperty`
+    :attr:`style_name` is an :class:`~kivy.properties.OptionProperty`
     and defaults to ``'default'``.
 
     '''
