@@ -17,6 +17,7 @@ from kivy.core.text import LabelBase
 from kivy.core.image import ImageData
 from kivy.resources import resource_paths
 from os.path import exists, join
+import sys
 
 cdef extern from "Python.h":
     object PyString_FromStringAndSize(char *s, Py_ssize_t len)
@@ -71,6 +72,7 @@ cdef extern from "SDL_ttf.h":
 
 pygame_cache = {}
 pygame_cache_order = []
+BIG_ENDIAN = (sys.byteorder == "big")
 
 cdef class _TTFContainer:
     cdef TTF_Font* font
@@ -161,9 +163,20 @@ class LabelSDLttf(LabelBase):
     def _render_begin(self):
         cdef _SurfaceContainer sc = _SurfaceContainer()
         cdef SDL_Rect r
+        cdef int rmask, gmask, bmask, amask
+        if BIG_ENDIAN:
+            rmask = 0xff000000
+            gmask = 0x00ff0000
+            bmask = 0x0000ff00
+            amask = 0x000000ff
+        else:
+            rmask = 0x000000ff
+            gmask = 0x0000ff00
+            bmask = 0x00ff0000
+            amask = 0xff000000
         sc.surface = SDL_CreateRGBSurface(0,
             self._size[0], self._size[1], 32,
-            0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000)
+            rmask, gmask, bmask, amask)
         r.x = r.y = 0
         r.w, r.h = self._size
         SDL_FillRect(sc.surface, &r, 0x00000000)

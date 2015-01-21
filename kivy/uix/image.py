@@ -14,28 +14,37 @@ the :class:`AsyncImage` subclass::
 
     aimg = AsyncImage(source='http://mywebsite.com/logo.png')
 
+This can be useful as it prevents your application from waiting until the image
+is loaded. If you want to display large images or retrieve them from URL's,
+using :class:`AsyncImage` will allow these resources to be retrieved on a
+background thread without blocking your application.
+
 Alignment
 ---------
 
 By default, the image is centered and fits inside the widget bounding box.
-If you don't want that, you can inherit from Image and create your own style.
+If you don't want that, you can set `allow_stretch` to True and `keep_ratio`
+to False.
 
-For example, if you want your image to be the same size as your widget, you
-could do::
+You can also inherit from Image and create your own style.
+
+
+For example, if you want your image to be greater than,the size of your widget,
+you could do::
 
     class FullImage(Image):
         pass
 
 And in your kivy language file::
 
-    <FullImage>:
+    <-FullImage>:
         canvas:
             Color:
                 rgb: (1, 1, 1)
             Rectangle:
                 texture: self.texture
-                size: self.size
-                pos: self.pos
+                size: self.width + 20, self.height + 20
+                pos: self.x - 10, self.y - 10
 
 '''
 
@@ -45,9 +54,11 @@ from kivy.uix.widget import Widget
 from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
-        AliasProperty, BooleanProperty, NumericProperty
-from kivy.loader import Loader
+    AliasProperty, BooleanProperty, NumericProperty
 from kivy.logger import Logger
+
+# delayed imports
+Loader = None
 
 
 class Image(Widget):
@@ -57,8 +68,8 @@ class Image(Widget):
     source = StringProperty(None)
     '''Filename / source of your image.
 
-    :data:`source` is a :class:`~kivy.properties.StringProperty` and defaults to
-    None.
+    :attr:`source` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
     '''
 
     texture = ObjectProperty(None, allownone=True)
@@ -68,7 +79,7 @@ class Image(Widget):
     :class:`~kivy.graphics.texture.Texture` or a
     :class:`~kivy.graphics.texture.TextureRegion` object.
 
-    :data:`texture` is a :class:`~kivy.properties.ObjectProperty` and defaults
+    :attr:`texture` is a :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
     '''
 
@@ -78,7 +89,7 @@ class Image(Widget):
     .. warning::
 
         The texture size is set after the texture property. So if you listen to
-        the change on :data:`texture`, the property texture_size will not be
+        the change on :attr:`texture`, the property texture_size will not be
         up-to-date. Use self.texture.size instead.
     '''
 
@@ -93,14 +104,14 @@ class Image(Widget):
 
     .. versionadded:: 1.0.7
 
-    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    :attr:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
     '''
 
     image_ratio = AliasProperty(get_image_ratio, None, bind=('texture', ))
     '''Ratio of the image (width / float(height).
 
-    :data:`image_ratio` is a :class:`~kivy.properties.AliasProperty` and is
+    :attr:`image_ratio` is a :class:`~kivy.properties.AliasProperty` and is
     read-only.
     '''
 
@@ -111,18 +122,18 @@ class Image(Widget):
 
     .. versionadded:: 1.0.6
 
-    :data:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
     [1, 1, 1, 1].
     '''
 
     allow_stretch = BooleanProperty(False)
     '''If True, the normalized image size will be maximized to fit in the image
-    box. Otherwise, if the box is too tall, the image will not be stretched more
-    than 1:1 pixels.
+    box. Otherwise, if the box is too tall, the image will not be
+    stretched more than 1:1 pixels.
 
     .. versionadded:: 1.0.7
 
-    :data:`allow_stretch` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`allow_stretch` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -135,7 +146,7 @@ class Image(Widget):
 
     .. versionadded:: 1.0.8
 
-    :data:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
@@ -145,7 +156,7 @@ class Image(Widget):
 
     .. versionadded:: 1.3.0
 
-    :data:`keep_data` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`keep_data` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
@@ -155,8 +166,17 @@ class Image(Widget):
 
     .. versionadded:: 1.0.8
 
-    :data:`anim_delay` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`anim_delay` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.25 (4 FPS).
+    '''
+
+    anim_loop = NumericProperty(0)
+    '''Number of loops to play then stop animating. 0 means keep animating.
+
+    .. versionadded 1.9.0
+
+    :attr:`anim_loop` is a :class:`~kivy.properties.NumericProperty` defaults
+    to 0.
     '''
 
     nocache = BooleanProperty(False)
@@ -166,7 +186,7 @@ class Image(Widget):
 
     .. versionadded:: 1.6.0
 
-    :data:`nocache` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    :attr:`nocache` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
     '''
 
@@ -204,12 +224,13 @@ class Image(Widget):
     This size will always fit the widget size and will preserve the image
     ratio.
 
-    :data:`norm_image_size` is a :class:`~kivy.properties.AliasProperty` and is
+    :attr:`norm_image_size` is a :class:`~kivy.properties.AliasProperty` and is
     read-only.
     '''
 
     def __init__(self, **kwargs):
         self._coreimage = None
+        self._loops = 0
         super(Image, self).__init__(**kwargs)
         self.bind(source=self.texture_update,
                   mipmap=self.texture_update)
@@ -221,6 +242,7 @@ class Image(Widget):
             self.texture = None
         else:
             filename = resource_find(self.source)
+            self._loops = 0
             if filename is None:
                 return Logger.error('Image: Error reading file {filename}'.
                                     format(filename=self.source))
@@ -229,8 +251,9 @@ class Image(Widget):
                 self._coreimage.unbind(on_texture=self._on_tex_change)
             try:
                 self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
-                        anim_delay=self.anim_delay, keep_data=self.keep_data,
-                        nocache=self.nocache)
+                                                 anim_delay=self.anim_delay,
+                                                 keep_data=self.keep_data,
+                                                 nocache=self.nocache)
             except:
                 self._coreimage = ci = None
 
@@ -239,6 +262,7 @@ class Image(Widget):
                 self.texture = ci.texture
 
     def on_anim_delay(self, instance, value):
+        self._loop = 0
         if self._coreimage is None:
             return
         self._coreimage.anim_delay = value
@@ -252,6 +276,12 @@ class Image(Widget):
     def _on_tex_change(self, *largs):
         # update texture from core image
         self.texture = self._coreimage.texture
+        ci = self._coreimage
+        if self.anim_loop and ci._anim_index == len(ci._image.textures) - 1:
+            self._loops += 1
+            if self.anim_loop == self._loops:
+                ci.anim_reset(False)
+                self._loops = 0
 
     def reload(self):
         '''Reload image from disk. This facilitates re-loading of
@@ -284,15 +314,18 @@ class AsyncImage(Image):
 
     .. note::
 
-        The AsyncImage is a specialized form of the Image class. You may want to
-        refer to the :mod:`~kivy.loader` documentation and in particular, the
-        :class:`~kivy.loader.ProxyImage` for more detail on how to handle events
-        around asynchronous image loading.
+        The AsyncImage is a specialized form of the Image class. You may
+        want to refer to the :mod:`~kivy.loader` documentation and in
+        particular, the :class:`~kivy.loader.ProxyImage` for more detail
+        on how to handle events around asynchronous image loading.
     '''
 
     def __init__(self, **kwargs):
         self._coreimage = None
         super(AsyncImage, self).__init__(**kwargs)
+        global Loader
+        if not Loader:
+            from kivy.loader import Loader
         self.bind(source=self._load_source)
         if self.source:
             self._load_source()
@@ -308,7 +341,8 @@ class AsyncImage(Image):
             if not self.is_uri(source):
                 source = resource_find(source)
             self._coreimage = image = Loader.image(source,
-                    nocache=self.nocache, mipmap=self.mipmap)
+                nocache=self.nocache, mipmap=self.mipmap,
+                anim_delay=self.anim_delay)
             image.bind(on_load=self._on_source_load)
             image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture

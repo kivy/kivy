@@ -23,7 +23,7 @@ Canvasses can contain two subsets of instructions. They are the
 groups will be executed before and after the :mod:`~kivy.graphics.canvas` group
 respectively. This means that they will appear under (be executed before) and
 above (be executed after) them.
-Thoses groups are not created until the user accesses them.
+Those groups are not created until the user accesses them.
 
 To add a canvas instruction to a widget, you use the canvas context:
 
@@ -63,7 +63,7 @@ polygon, to more complex ones, like meshes or bezier curves::
 
        # lets draw a semi-transparent red square
        Color(1, 0, 0, .5, mode='rgba')
-       Rect(pos=self.pos, size=self.size)
+       Rectangle(pos=self.pos, size=self.size)
 
 Manipulating instructions
 -------------------------
@@ -103,3 +103,5 @@ Or you can clean your canvas and start fresh::
             with self.canvas:
                 self.rect = Rectangle(pos=self.pos, size=self.size)
 
+Note that updating the instructions is considered the best practise as it
+involves less overhead and avoids creating new instructions.

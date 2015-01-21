@@ -72,7 +72,7 @@
 		"desc": "Select a layout for virtual keyboard",
 		"section": "kivy",
 		"key": "keyboard_layout",
-		"options": ["qwerty", "azerty", "qwertz"]
+		"options": ["qwerty", "azerty", "qwertz", "de_CH", "fr_CH", "en_US"]
 	},
 
 	{

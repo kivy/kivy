@@ -2,10 +2,11 @@
 TUIO Input Provider
 ===================
 
-TUIO is the de facto standard network protocol for the transmission of touch and
-fiducial information between a server and a client.
-To learn more about TUIO (which is itself based on the OSC protocol), please
-refer to http://tuio.org -- The specification should be of special interest.
+TUIO is the de facto standard network protocol for the transmission of
+touch and fiducial information between a server and a client.  To learn
+more about TUIO (which is itself based on the OSC protocol), please
+refer to http://tuio.org -- The specification should be of special
+interest.
 
 Configure a TUIO provider in the config.ini
 -------------------------------------------
@@ -93,14 +94,14 @@ class TuioMotionEventProvider(MotionEventProvider):
         if len(args) <= 0:
             Logger.error('Tuio: Invalid configuration for TUIO provider')
             Logger.error('Tuio: Format must be ip:port (eg. 127.0.0.1:3333)')
-            err = 'Tuio: Actual configuration is <%s>' % (str(','.join(args)))
+            err = 'Tuio: Current configuration is <%s>' % (str(','.join(args)))
             Logger.error(err)
             return None
         ipport = args[0].split(':')
         if len(ipport) != 2:
             Logger.error('Tuio: Invalid configuration for TUIO provider')
             Logger.error('Tuio: Format must be ip:port (eg. 127.0.0.1:3333)')
-            err = 'Tuio: Actual configuration is <%s>' % (str(','.join(args)))
+            err = 'Tuio: Current configuration is <%s>' % (str(','.join(args)))
             Logger.error(err)
             return None
         self.ip, self.port = args[0].split(':')

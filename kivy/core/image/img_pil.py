@@ -16,17 +16,17 @@ from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 class ImageLoaderPIL(ImageLoaderBase):
     '''Image loader based on the PIL library.
 
-    .. versionadded::
+    .. versionadded:: 1.0.8
 
-        In 1.0.8, support for GIF animation was added.
+    Support for GIF animation added.
 
-        Gif animation has a lot of issues(transparency/color depths... etc).
-        In order to keep it simple, what is implimented here is what is
-        natively supported by the PIL library.
+    Gif animation has a lot of issues(transparency/color depths... etc).
+    In order to keep it simple, what is implimented here is what is
+    natively supported by the PIL library.
 
-        As a general rule, try to use gifs that have no transparency.
-        Gif's with transparency will work but be prepared for some
-        artifacts until transparency support is improved.
+    As a general rule, try to use gifs that have no transparency.
+    Gif's with transparency will work but be prepared for some
+    artifacts until transparency support is improved.
 
     '''
 
@@ -35,14 +35,19 @@ class ImageLoaderPIL(ImageLoaderBase):
         return True
 
     @staticmethod
+    def can_load_memory():
+        return True
+
+    @staticmethod
     def extensions():
         '''Return accepted extensions for this loader'''
         # See http://www.pythonware.com/library/pil/handbook/index.htm
         return ('bmp', 'bufr', 'cur', 'dcx', 'fits', 'fl', 'fpx', 'gbr',
                 'gd', 'gif', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
-                'jpeg', 'jpg', 'mcidas', 'mic', 'mpeg', 'msp', 'pcd',
-                'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi', 'spider',
-                'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm', 'xv')
+                'jpeg', 'jpg', 'jpe', 'mcidas', 'mic', 'mpeg', 'msp',
+                'pcd', 'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi',
+                'spider', 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm',
+                'xv')
 
     def _img_correct(self, _img_tmp):
         '''Convert image to the correct format and orientation.
@@ -71,7 +76,7 @@ class ImageLoaderPIL(ImageLoaderBase):
             while True:
                 img_tmp = im
                 img_tmp = self._img_correct(img_tmp)
-                if img_ol:
+                if img_ol and (hasattr(im, 'dispose') and not im.dispose):
                     # paste new frame over old so as to handle
                     # transparency properly
                     img_ol.paste(img_tmp, (0, 0), img_tmp)
@@ -90,13 +95,16 @@ class ImageLoaderPIL(ImageLoaderBase):
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise
         # update internals
-        self.filename = filename
+        if not self._inline:
+            self.filename = filename
         # returns an array of type ImageData len 1 if not a sequence image
         return list(self._img_read(im))
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels):
+    def save(filename, width, height, fmt, pixels, flipped=False):
         image = PILImage.fromstring(fmt.upper(), (width, height), pixels)
+        if flipped:
+            image = image.transpose(PILImage.FLIP_TOP_BOTTOM)
         image.save(filename)
         return True
 

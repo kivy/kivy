@@ -11,6 +11,7 @@ Builder.load_string('''
 #:import FadeTransition kivy.uix.screenmanager.FadeTransition
 #:import RiseInTransition kivy.uix.screenmanager.RiseInTransition
 #:import FallOutTransition kivy.uix.screenmanager.FallOutTransition
+#:import NoTransition kivy.uix.screenmanager.NoTransition
 
 <CustomScreen>:
     hue: random()
@@ -82,6 +83,9 @@ Builder.load_string('''
         Button:
             text: 'Use RiseInTransition'
             on_release: root.manager.transition = RiseInTransition()
+        Button:
+            text: 'Use NoTransition'
+            on_release: root.manager.transition = NoTransition(duration=0)
 ''')
 
 

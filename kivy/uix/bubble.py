@@ -66,9 +66,10 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
-        ListProperty, BooleanProperty
+    ListProperty, BooleanProperty
 from kivy.clock import Clock
 from kivy.base import EventLoop
+from kivy.metrics import dp
 
 
 class BubbleButton(Button):
@@ -93,26 +94,27 @@ class Bubble(GridLayout):
     background_color = ListProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a).
 
-    :data:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
     defaults to [1, 1, 1, 1].
     '''
 
     border = ListProperty([16, 16, 16, 16])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
-    graphics instruction. Used with the :data:`background_image`.
+    graphics instruction. Used with the :attr:`background_image`.
     It should be used when using custom backgrounds.
 
     It must be a list of 4 values: (top, right, bottom, left). Read the
     BorderImage instructions for more information about how to use it.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults to
     (16, 16, 16, 16)
     '''
 
-    background_image = StringProperty('atlas://data/images/defaulttheme/bubble')
+    background_image = StringProperty(
+        'atlas://data/images/defaulttheme/bubble')
     '''Background image of the bubble.
 
-    :data:`background_image` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`background_image` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/bubble'.
     '''
 
@@ -120,7 +122,7 @@ class Bubble(GridLayout):
         'atlas://data/images/defaulttheme/bubble_arrow')
     ''' Image of the arrow pointing to the bubble.
 
-    :data:`arrow_image` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`arrow_image` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/bubble_arrow'.
     '''
 
@@ -129,44 +131,44 @@ class Bubble(GridLayout):
 
     .. versionadded:: 1.8.0
 
-    :data:`show_arrow` is a :class:`~kivy.properties.BooleanProperty` and
+    :attr:`show_arrow` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to `True`.
     '''
 
-    arrow_pos = OptionProperty('bottom_mid',
-            options=('left_top', 'left_mid', 'left_bottom', 'top_left',
-                'top_mid', 'top_right', 'right_top', 'right_mid',
-                'right_bottom', 'bottom_left', 'bottom_mid', 'bottom_right'))
+    arrow_pos = OptionProperty('bottom_mid', options=(
+        'left_top', 'left_mid', 'left_bottom', 'top_left', 'top_mid',
+        'top_right', 'right_top', 'right_mid', 'right_bottom',
+        'bottom_left', 'bottom_mid', 'bottom_right'))
     '''Specifies the position of the arrow relative to the bubble.
     Can be one of: left_top, left_mid, left_bottom top_left, top_mid, top_right
     right_top, right_mid, right_bottom bottom_left, bottom_mid, bottom_right.
 
-    :data:`arrow_pos` is a :class:`~kivy.properties.OptionProperty` and
+    :attr:`arrow_pos` is a :class:`~kivy.properties.OptionProperty` and
     defaults to 'bottom_mid'.
     '''
 
     content = ObjectProperty(None)
     '''This is the object where the main content of the bubble is held.
 
-    :data:`content` is a :class:`~kivy.properties.ObjectProperty` and
+    :attr:`content` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to 'None'.
     '''
 
     orientation = OptionProperty('horizontal',
-            options=('horizontal', 'vertical'))
+                                 options=('horizontal', 'vertical'))
     '''This specifies the manner in which the children inside bubble
     are arranged. Can be one of 'vertical' or 'horizontal'.
 
-    :data:`orientation` is a :class:`~kivy.properties.OptionProperty` and
+    :attr:`orientation` is a :class:`~kivy.properties.OptionProperty` and
     defaults to 'horizontal'.
     '''
 
-    limit_to = ObjectProperty(None, allow_none=True)
+    limit_to = ObjectProperty(None, allownone=True)
     '''Specifies the widget to which the bubbles position is restricted.
 
     .. versionadded:: 1.6.0
 
-    :data:`limit_to` is a :class:`~kivy.properties.ObjectProperty` and
+    :attr:`limit_to` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to 'None'.
     '''
 
@@ -178,7 +180,8 @@ class Bubble(GridLayout):
             keep_ratio=False, color=self.background_color)
         self.background_texture = self._bk_img.texture
         self._arrow_img = Image(source=self.arrow_image,
-            color=self.background_color)
+                                allow_stretch=True,
+                                color=self.background_color)
         self.content = content = BubbleContent(parent=self)
         super(Bubble, self).__init__(**kwargs)
         content.parent = None
@@ -190,7 +193,7 @@ class Bubble(GridLayout):
         if content is None:
             return
         if l[0] == content or l[0] == self._arrow_img\
-            or l[0] == self._arrow_layout:
+                or l[0] == self._arrow_layout:
             super(Bubble, self).add_widget(*l)
         else:
             content.add_widget(*l)
@@ -200,7 +203,7 @@ class Bubble(GridLayout):
         if not content:
             return
         if l[0] == content or l[0] == self._arrow_img\
-            or l[0] == self._arrow_layout:
+                or l[0] == self._arrow_layout:
             super(Bubble, self).remove_widget(*l)
         else:
             content.remove_widget(l[0])
@@ -222,16 +225,21 @@ class Bubble(GridLayout):
 
     def on_pos(self, instance, pos):
         lt = self.limit_to
-        if lt and lt is not object:
-            self.limit_to = object
+
+        if lt:
+            self.limit_to = None
             if lt is EventLoop.window:
-                lt.x = lt.y = 0
-                lt.top = EventLoop.window.height
-                lt.right = EventLoop.window.width
-            self.x = max(self.x, lt.x)
-            self.right = min(self.right, lt.right)
-            self.top = min(self.top, lt.top)
-            self.y = max(self.y, lt.y)
+                x = y = 0
+                top = lt.height
+                right = lt.width
+            else:
+                x, y = lt.x, lt.y
+                top, right = lt.top, lt.right
+
+            self.x = max(self.x, x)
+            self.right = min(self.right, right)
+            self.top = min(self.top, top)
+            self.y = max(self.y, y)
             self.limit_to = lt
 
     def on_background_image(self, *l):
@@ -277,7 +285,7 @@ class Bubble(GridLayout):
         self_content.parent = None
 
         self_arrow_img.size_hint = (1, None)
-        self_arrow_img.height = self_arrow_img.texture_size[1]
+        self_arrow_img.height = dp(self_arrow_img.texture_size[1])
         self_arrow_img.pos = 0, 0
         widget_list = []
         arrow_list = []

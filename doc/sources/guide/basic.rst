@@ -12,12 +12,9 @@ platform you're working on, they can be a pain to install. For
 Windows and MacOS X, we provide a portable package that you can just
 unzip and use.
 
-.. toctree::
-    :maxdepth: 1
-
-    /installation/installation-windows.rst
-    /installation/installation-macosx.rst
-    /installation/installation-linux.rst
+* :ref:`installation_windows`
+* :ref:`installation_macosx`
+* :ref:`installation_linux`
 
 If you want to install everything yourself, ensure that you have at
 least `Cython <http://cython.org>`_ and `Pygame <http://pygame.org>`_. A
@@ -50,17 +47,17 @@ Here is an example of a minimal application::
 
     import kivy
     kivy.require('1.0.6') # replace with your current kivy version !
-    
+
     from kivy.app import App
     from kivy.uix.label import Label
-    
-    
+
+
     class MyApp(App):
-    
+
         def build(self):
             return Label(text='Hello world')
-    
-    
+
+
     if __name__ == '__main__':
         MyApp().run()
 
@@ -113,7 +110,7 @@ is what we do on line 8::
 
     return Label(text='Hello world')
 
-Here we initialize a Label with text 'Hello World' and return it's instance.
+Here we initialize a Label with text 'Hello World' and return its instance.
 This Label will be the Root Widget of this App.
 
 .. Note::
@@ -125,7 +122,7 @@ Now on to the portion that will make our app run at line 11 and 12::
     if __name__ == '__main__':
         MyApp().run()
 
-Here the class `MyApp` is initialized and it's run() method called. This
+Here the class `MyApp` is initialized and its run() method called. This
 initializes and starts our Kivy application.
 
 
@@ -170,17 +167,15 @@ Customize the application
 Lets extend this application a bit, say a simple UserName/Password page.
 
 .. code-block:: python
-   :emphasize-lines: 2,4,7,9-17,23
-   :linenos:
 
     from kivy.app import App
     from kivy.uix.gridlayout import GridLayout
     from kivy.uix.label import Label
     from kivy.uix.textinput import TextInput
-    
-    
+
+
     class LoginScreen(GridLayout):
-    
+
         def __init__(self, **kwargs):
             super(LoginScreen, self).__init__(**kwargs)
             self.cols = 2
@@ -190,14 +185,14 @@ Lets extend this application a bit, say a simple UserName/Password page.
             self.add_widget(Label(text='password'))
             self.password = TextInput(password=True, multiline=False)
             self.add_widget(self.password)
-    
-    
+
+
     class MyApp(App):
 
         def build(self):
             return LoginScreen()
-    
-    
+
+
     if __name__ == '__main__':
         MyApp().run()
 
@@ -231,7 +226,7 @@ Moving on to Line 15 and beyond::
     self.password = TextInput(password=True, multiline=False)
     self.add_widget(self.password)
 
-We ask the GridLayout to manage it's children in two columns and add a
+We ask the GridLayout to manage its children in two columns and add a
 :class:`~kivy.uix.label.Label` and a :class:`~kivy.uix.textinput.TextInput`
 for the username and password.
 

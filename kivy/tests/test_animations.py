@@ -27,6 +27,11 @@ class AnimationTestCase(unittest.TestCase):
         self.sleep(1.5)
         self.assertAlmostEqual(self.w.x, 100)
 
+    def test_animation_duration_0(self):
+        a = Animation(x=100, d=0)
+        a.start(self.w)
+        self.sleep(.5)
+
     def test_stop_animation(self):
         self.a.start(self.w)
         self.sleep(.5)
@@ -60,6 +65,13 @@ class AnimationTestCase(unittest.TestCase):
         self.assertAlmostEqual(instruction.x, 3)
         self.sleep(1.5)
         self.assertAlmostEqual(instruction.x, 100)
+
+    def test_weakref(self):
+        widget = Widget()
+        anim = Animation(x=100)
+        anim.start(widget.proxy_ref)
+        del widget
+        self.sleep(1.)
 
 
 class SequentialAnimationTestCase(unittest.TestCase):

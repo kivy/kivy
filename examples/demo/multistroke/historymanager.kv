@@ -1,0 +1,164 @@
+<GestureHistoryManager>:
+    rows: 1
+    spacing: 10
+    GridLayout:
+        cols: 1
+        size_hint_x: None
+        width: 150
+        canvas:
+            Color: 
+                rgba: 1, 1, 1, .1
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        Button:
+            text: 'Clear History'
+            size_hint_y: None
+            height: 50
+            on_press: root.clear_history()
+
+        ScrollView:
+            id: scrollview
+            scroll_type: ['bars', 'content']
+            bar_width: 4
+            GridLayout:
+                id: history
+                cols: 1
+                size_hint: 1, None
+                height: self.minimum_height
+
+<GestureSettingsForm>:
+    orientation: 'vertical'
+    spacing: 10
+    GridLayout:
+        id: settings
+        cols: 1
+        top: root.top
+        Label:
+            text: '[b]Results (scroll for more)[/b]'
+            markup: True
+            size_hint_y: None
+            height: 30
+            halign: 'left'
+            valign: 'middle'
+            text_size: self.size
+            canvas:
+                Color:
+                    rgba: 47 / 255., 167 / 255., 212 / 255., .4
+                Rectangle:   
+                    pos: self.x, self.y + 1
+                    size: self.size
+                Color:
+                    rgb: .5, .5, .5
+                Rectangle:
+                    pos: self.x, self.y - 2
+                    size: self.width, 1
+
+        GridLayout:
+            id: analysis
+            top: root.top
+            rows: 1
+
+<GestureVisualizer>:
+    canvas:
+        Color: 
+            rgba: 1, 1, 1, self.selected and .3 or .1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+
+<RecognizerResultDetails>:
+    canvas:
+        Color: 
+            rgba: 1, 0, 0, .1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    ScrollView:
+        id: result_scrollview
+        scroll_type: ['bars', 'content']
+        bar_width: 4
+        GridLayout:
+            id: result_list
+            cols: 1
+            size_hint: 1, None
+            height: self.minimum_height
+
+    Button:
+        size_hint: None, None
+        width: 150
+        height: 70
+        text: 'Re-analyze'
+        on_press: root.dispatch('on_reanalyze_selected')
+
+
+<RecognizerResultLabel>:
+    size_hint_y: None
+    height: 70
+    markup: True
+    halign: 'left'
+    valign: 'top'
+    text_size: self.size
+
+
+<AddGestureSettings>:
+    MultistrokeSettingTitle:
+        title: 'New gesture settings'
+        desc: 'Affects how to future input is matched against new gesture'
+
+    MultistrokeSettingBoolean:
+        id: permute
+        title: 'Use Heap Permute algorithm?'
+        desc:
+            ('This will generate all possible stroke orders from the ' +
+            'input. Only suitable for gestures with 1-3 strokes (or ' +
+            'the number of templates will be huge)')
+        button_text: 'Heap Permute?'
+        value: True
+        
+    MultistrokeSettingBoolean:
+        id: stroke_sens
+        title: 'Require same number of strokes?'
+        desc: 
+            ('When enabled, the new gesture will only match candidates ' +
+            'with exactly the same stroke count. Enable if possible.')
+        button_text: 'Stroke sensitive?'
+        value: True
+        
+    MultistrokeSettingBoolean:
+        id: orientation_sens
+        title: 'Is gesture orientation sensitive?'
+        desc: 
+            ('Enable to differentiate gestures that differ only by ' +
+            'orientation (d/p, b/q, w/m), disable for gestures that ' +
+            'look the same in any orientation (like a circle)')
+        button_text: 'Orientation\nsensitive?'
+        value: True
+
+    MultistrokeSettingSlider:
+        id: angle_sim
+        title: 'Angle similarity threshold'
+        type: 'float'
+        desc: 
+            ('Use a low number to distinguish similar gestures, higher ' +
+            'number to match similar gestures (with differing angle)')
+        value: 30.
+        min: 1.0
+        max: 179.0
+
+    MultistrokeSettingString:
+        id: name
+        title: 'Gesture name'
+        type: 'float'
+        desc:
+            ('Name of new gesture (including all generated templates). ' +
+            'You can have as many gestures with the same name as you need')
+
+    Button:
+        size_hint_y: None
+        height: 40
+        text: 'Add to database'
+        on_press: root.parent.parent.parent.add_selected_to_database()

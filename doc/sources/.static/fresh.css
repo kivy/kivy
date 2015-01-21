@@ -18,7 +18,13 @@ a, a:link, a:visited {
 }
 
 a.headerlink {
-	display: none;
+        font-size: 1.2em;
+        color: transparent;
+        margin-left: 10px;
+}
+
+.hover a.headerlink {
+        color: #bdc3c7;
 }
 
 h1:hover a.headerlink,
@@ -457,4 +463,24 @@ table.highlighttable td.linenos {
 .viewcode-link {
 	position: absolute;
 	right: 2em;
+	display: none;
+}
+
+/** version added in method/class/attribute/module **/
+span.versionadded {
+	font-size: 12px;
+	position: absolute;
+	right: 2.5em;
+}
+
+span.versionadded span {
+	color: #2a7cdf;
+}
+
+div.navlink {
+	font-size: 12px;
+	position: relative;
+	text-align: right;
+	top: -30px;
+	height: 0px;
 }

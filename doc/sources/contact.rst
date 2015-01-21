@@ -46,3 +46,9 @@ If you're unlucky more than once, try the mailing list.
 If you don't have an IRC client, you can also use
 `Freenode's web chat <http://webchat.freenode.net/>`_, but please, don't close
 the browser window too soon. Just enter ``#kivy`` in the channels field.
+
+
+Please read our
+`Community Guidelines <https://github.com/kivy/kivy/wiki/Community-Guidelines/>`_
+before asking for help on the mailing list or IRC channel.
+

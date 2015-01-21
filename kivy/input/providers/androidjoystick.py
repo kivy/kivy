@@ -1,10 +1,20 @@
 # pylint: disable=W0611
+'''
+Android Joystick Input Provider
+===============================
+
+This module is based on the PyGame JoyStick Input Provider. For more
+information, please refer to
+`<http://www.pygame.org/docs/ref/joystick.html>`_
+
+
+'''
 __all__ = ('AndroidMotionEventProvider', )
 
 import os
 
 try:
-    import android
+    import android  # NOQA
 except ImportError:
     if 'KIVY_DOC' not in os.environ:
         raise Exception('android lib not found.')
@@ -66,35 +76,36 @@ class AndroidMotionEventProvider(MotionEventProvider):
         for joy in self.joysticks:
             jid = joy.get_id()
             pressed = joy.get_button(0)
-            x = joy.get_axis(0) * 32768. / w
-            y = 1. - (joy.get_axis(1) * 32768. / h)
+            if pressed or jid in touches:
+                x = joy.get_axis(0) * 32768. / w
+                y = 1. - (joy.get_axis(1) * 32768. / h)
 
-            # python for android do * 1000.
-            pressure = joy.get_axis(2) / 1000.
-            radius = joy.get_axis(3) / 1000.
+                # python for android do * 1000.
+                pressure = joy.get_axis(2) / 1000.
+                radius = joy.get_axis(3) / 1000.
 
-            # new touche ?
-            if pressed and jid not in touches:
-                self.uid += 1
-                touch = AndroidMotionEvent(self.device, self.uid,
-                                     [x, y, pressure, radius])
-                touches[jid] = touch
-                dispatch_fn('begin', touch)
-            # update touch
-            elif pressed:
-                touch = touches[jid]
-                # avoid same touch position
-                if touch.sx == x and touch.sy == y \
-                   and touch.pressure == pressure:
-                    continue
-                touch.move([x, y, pressure, radius])
-                dispatch_fn('update', touch)
-            # disapear
-            elif not pressed and jid in touches:
-                touch = touches[jid]
-                touch.move([x, y, pressure, radius])
-                touch.update_time_end()
-                dispatch_fn('end', touch)
-                touches.pop(jid)
+                # new touche ?
+                if pressed and jid not in touches:
+                    self.uid += 1
+                    touch = AndroidMotionEvent(self.device, self.uid,
+                                            [x, y, pressure, radius])
+                    touches[jid] = touch
+                    dispatch_fn('begin', touch)
+                # update touch
+                elif pressed:
+                    touch = touches[jid]
+                    # avoid same touch position
+                    if (touch.sx == x and touch.sy == y
+                        and touch.pressure == pressure):
+                        continue
+                    touch.move([x, y, pressure, radius])
+                    dispatch_fn('update', touch)
+                # disapear
+                elif not pressed and jid in touches:
+                    touch = touches[jid]
+                    touch.move([x, y, pressure, radius])
+                    touch.update_time_end()
+                    dispatch_fn('end', touch)
+                    touches.pop(jid)
 
 MotionEventFactory.register('android', AndroidMotionEventProvider)

@@ -39,7 +39,8 @@ class Container(BoxLayout):
 
     def __init__(self, **kwargs):
         super(Container, self).__init__(**kwargs)
-        parser = Parser(content=open(self.kv_file).read())
+        self.previous_text = open(self.kv_file).read()
+        parser = Parser(content=self.previous_text)
         widget = Factory.get(parser.root.name)()
         Builder._apply_rule(widget, parser.root, parser.root)
         self.add_widget(widget)
@@ -57,7 +58,7 @@ for class_name in CONTAINER_CLASSES:
 
 
 class KivyRenderTextInput(CodeInput):
-    def _keyboard_on_key_down(self, window, keycode, text, modifiers):
+    def keyboard_on_key_down(self, window, keycode, text, modifiers):
         is_osx = sys.platform == 'darwin'
         # Keycodes on OSX:
         ctrl, cmd = 64, 1024
@@ -70,7 +71,7 @@ class KivyRenderTextInput(CodeInput):
                     self.catalog.change_kv(True)
                     return
 
-        super(KivyRenderTextInput, self)._keyboard_on_key_down(
+        super(KivyRenderTextInput, self).keyboard_on_key_down(
             window, keycode, text, modifiers)
 
 
@@ -112,15 +113,18 @@ class Catalog(BoxLayout):
         child = self.screen_manager.current_screen.children[0]
         with open(child.kv_file, 'rb') as file:
             self.language_box.text = file.read().decode('utf8')
+        Clock.unschedule(self.change_kv)
+        self.change_kv()
         # reset undo/redo history
         self.language_box.reset_undo()
 
     def schedule_reload(self):
         if self.auto_reload:
             txt = self.language_box.text
-            if txt == self._previously_parsed_text:
+            child = self.screen_manager.current_screen.children[0]
+            if txt == child.previous_text:
                 return
-            self._previously_parsed_text = txt
+            child.previous_text = txt
             Clock.unschedule(self.change_kv)
             Clock.schedule_once(self.change_kv, 2)
 
@@ -154,8 +158,12 @@ class Catalog(BoxLayout):
 class KivyCatalogApp(App):
     '''The kivy App that runs the main root. All we do is build a catalog
     widget into the root.'''
+
     def build(self):
         return Catalog()
+
+    def on_pause(self):
+        return True
 
 
 if __name__ == "__main__":

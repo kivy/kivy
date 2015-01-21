@@ -12,9 +12,9 @@ Storage
 Usage
 -----
 
-The idea behind the Storage module is to be able to load/store keys-value pairs.
-The default model is abstract so you cannot use it directly. We provide some
-implementations such as:
+The idea behind the Storage module is to be able to load/store any number of
+key/value pairs via an indexed key. The default model is abstract so you
+cannot use it directly. We provide some implementations such as:
 
 - :class:`kivy.storage.dictstore.DictStore`: use a python dict as a store
 - :class:`kivy.storage.jsonstore.JsonStore`: use a JSON file as a store
@@ -33,22 +33,26 @@ For example, let's use a JsonStore::
     store = JsonStore('hello.json')
 
     # put some values
-    store.put('tito', name='Mathieu', age=30)
+    store.put('tito', name='Mathieu', org='kivy')
     store.put('tshirtman', name='Gabriel', age=27)
 
-    # get from a key
-    print('tito is', store.get('tito'))
+    # using the same index key erases all previously added key/value pairs
+    store.put('tito', name='Mathieu', age=30)
+
+    # get a value using a index key and key
+    print('tito is', store.get('tito')['age'])
 
     # or guess the key/entry for a part of the key
-    key, tshirtman = store.find(name='Gabriel')
-    print('tshirtman is', tshirtman)
+    for item in store.find(name='Gabriel'):
+        print('tshirtmans index key is', item[0])
+        print('his key value pairs are', str(item[1]))
 
 Because the data is persistant, you can check later to see if the key exists::
 
     from kivy.storage.jsonstore import JsonStore
 
     store = JsonStore('hello.json')
-    if store.exists('tite'):
+    if store.exists('tito'):
         print('tite exists:', store.get('tito'))
         store.delete('tito')
 
@@ -56,15 +60,15 @@ Because the data is persistant, you can check later to see if the key exists::
 Synchronous / Asynchronous API
 ------------------------------
 
-All the standard methods (:meth:`~AbstractStore.get`, :meth:`~AbstractStore.put`
-, :meth:`~AbstractStore.exists`, :meth:`~AbstractStore.delete`,
-:meth:`~AbstractStore.find`) have an asynchronous version.
+All the standard methods (:meth:`~AbstractStore.get`,
+:meth:`~AbstractStore.put` , :meth:`~AbstractStore.exists`,
+:meth:`~AbstractStore.delete`, :meth:`~AbstractStore.find`) have an
+asynchronous version.
 
-For example, the *get* method has a `callback` parameter. If set, the `callback`
-will be used
-to return the result to the user when available: the request will be
-asynchronous.  If the `callback` is None, then the request will be synchronous
-and the result will be returned directly.
+For example, the *get* method has a `callback` parameter. If set, the
+`callback` will be used to return the result to the user when available:
+the request will be asynchronous.  If the `callback` is None, then the
+request will be synchronous and the result will be returned directly.
 
 
 Without callback (Synchronous API)::
@@ -129,7 +133,7 @@ class AbstractStore(EventDispatcher):
         self.store_load()
 
     def exists(self, key):
-        '''Check if a key exist in the store.
+        '''Check if a key exists in the store.
         '''
         return self.store_exists(key)
 
@@ -145,10 +149,10 @@ class AbstractStore(EventDispatcher):
                 Result of the query, None if any error
         '''
         self._schedule(self.store_exists_async,
-                key=key, callback=callback)
+                       key=key, callback=callback)
 
     def get(self, key):
-        '''Get the value stored at `key`. If the key is not found, a
+        '''Get the key/value pairs stored at `key`. If the key is not found, a
         `KeyError` exception will be thrown.
         '''
         return self.store_get(key)
@@ -167,7 +171,8 @@ class AbstractStore(EventDispatcher):
         self._schedule(self.store_get_async, key=key, callback=callback)
 
     def put(self, key, **values):
-        '''Put a new key/value in the storage
+        '''Put new key/value pairs (given in *values*) into the storage. Any
+        existing key/value pairs will be removed.
         '''
         need_sync = self.store_put(key, values)
         if need_sync:
@@ -187,7 +192,7 @@ class AbstractStore(EventDispatcher):
                 nothing has been done (no changes). None if any error.
         '''
         self._schedule(self.store_put_async,
-                key=key, value=values, callback=callback)
+                       key=key, value=values, callback=callback)
 
     def delete(self, key):
         '''Delete a key from the storage. If the key is not found, a `KeyError`
@@ -210,14 +215,15 @@ class AbstractStore(EventDispatcher):
                 nothing has been done (no changes). None if any error.
         '''
         self._schedule(self.store_delete_async, key=key,
-                callback=callback)
+                       callback=callback)
 
     def find(self, **filters):
-        '''Return all the entries matching the filters. The entries are given
-        through a generator as a list of (key, entry) pairs::
+        '''Return all the entries matching the filters. The entries are
+        returned through a generator as a list of (key, entry) pairs
+        where *entry* is a dict of key/value pairs ::
 
             for key, entry in store.find(name='Mathieu'):
-                print('entry:', key, '->', value)
+                print('key:', key, ', entry:', entry)
 
         Because it's a generator, you cannot directly use it as a list. You can
         do::
@@ -245,25 +251,25 @@ class AbstractStore(EventDispatcher):
                 nothing has been done (no changes). None if any error.
         '''
         self._schedule(self.store_find_async,
-                callback=callback, filters=filters)
+                       callback=callback, filters=filters)
 
     def keys(self):
-        '''Return a list of all the keys in the storage
+        '''Return a list of all the keys in the storage.
         '''
         return self.store_keys()
 
     def async_keys(self, callback):
-        '''Asynchronously return all the keys in the storage
+        '''Asynchronously return all the keys in the storage.
         '''
         self._schedule(self.store_keys_async, callback=callback)
 
     def count(self):
-        '''Return the number of entries in the storage
+        '''Return the number of entries in the storage.
         '''
         return self.store_count()
 
     def async_count(self, callback):
-        '''Asynchronously return the number of entries in the storage
+        '''Asynchronously return the number of entries in the storage.
         '''
         self._schedule(self.store_count_async, callback=callback)
 

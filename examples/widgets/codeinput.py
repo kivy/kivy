@@ -134,8 +134,9 @@ class CodeInputTest(App):
         self.codeinput.font_size = float(size)
 
     def _update_font(self, instance, fnt_name):
-        instance.font_name = self.codeinput.font_name =\
-            fonts.match_font(fnt_name)
+        font_name = fonts.match_font(fnt_name)
+        if os.path.exists(font_name):
+            instance.font_name = self.codeinput.font_name = font_name
 
     def _file_menu_selected(self, instance, value):
         if value == 'File':

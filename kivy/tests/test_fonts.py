@@ -6,7 +6,7 @@ class FontTestCase(unittest.TestCase):
 
     def setUp(self):
         import os
-        self.font_name = os.path.join(os.path.dirname(__file__), 'कीवी.ttf')
+        self.font_name = os.path.join(os.path.dirname(__file__), u'कीवी.ttf')
         if not os.path.exists(self.font_name):
             from zipfile import ZipFile
             with ZipFile(os.path.join(os.path.dirname(__file__),

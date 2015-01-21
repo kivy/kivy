@@ -4,7 +4,7 @@ Utils
 =====
 
 .. versionchanged:: 1.6.0
-    OrderedDict class has been removed. Use the collections.OrderedDict.
+    The OrderedDict class has been removed. Use the collections.OrderedDict.
 
 '''
 
@@ -18,45 +18,39 @@ __all__ = ('intersection', 'difference', 'strtotuple',
 from os import environ
 from sys import platform as _sys_platform
 from re import match, split
-try:
-    from UserDict import UserDict
-    from UserDict import DictMixin
-except ImportError:
-    from collections import UserDict
-    from collections import MutableMapping as DictMixin
 
 _platform_android = None
 _platform_ios = None
 
 
 def boundary(value, minvalue, maxvalue):
-    '''Limit a value between a minvalue and maxvalue'''
+    '''Limit a value between a minvalue and maxvalue.'''
     return min(max(value, minvalue), maxvalue)
 
 
 def intersection(set1, set2):
-    '''Return intersection between 2 list'''
+    '''Return the intersection of 2 lists.'''
     return [s for s in set1 if s in set2]
 
 
 def difference(set1, set2):
-    '''Return difference between 2 list'''
+    '''Return the difference between 2 lists.'''
     return [s for s in set1 if s not in set2]
 
 
 def interpolate(value_from, value_to, step=10):
-    '''Interpolate a value to another. Can be useful to smooth some transition.
-    For example::
+    '''Interpolate between two values. This can be useful for smoothing some
+    transitions. For example::
 
         # instead of setting directly
         self.pos = pos
 
-        # use interpolate, and you'll have a nice transition
+        # use interpolate, and you'll have a nicer transition
         self.pos = interpolate(self.pos, new_pos)
 
     .. warning::
-        This interpolation work only on list/tuple/double with the same
-        dimension. No test are done if the dimension is not the same.
+        These interpolations work only on lists/tuples/doubles with the same
+        dimensions. No test is done to check the dimensions are the same.
     '''
     if type(value_from) in (list, tuple):
         out = []
@@ -68,9 +62,9 @@ def interpolate(value_from, value_to, step=10):
 
 
 def strtotuple(s):
-    '''Convert a tuple string into tuple,
-    with some security check. Designed to be used
-    with eval() function::
+    '''Convert a tuple string into a tuple
+    with some security checks. Designed to be used
+    with the eval() function::
 
         a = (12, 54, 68)
         b = str(a)         # return '(12, 54, 68)'
@@ -92,7 +86,9 @@ def strtotuple(s):
 
 
 def get_color_from_hex(s):
-    '''Transform from hex string color to kivy color'''
+    '''Transform a hex string color to a kivy
+    :class:`~kivy.graphics.Color`.
+    '''
     if s.startswith('#'):
         return get_color_from_hex(s[1:])
 
@@ -104,7 +100,7 @@ def get_color_from_hex(s):
 
 
 def get_hex_from_color(color):
-    '''Transform from kivy color to hex::
+    '''Transform a kivy :class:`~kivy.graphics.Color` to a hex value::
 
         >>> get_hex_from_color((0, 1, 0))
         '#00ff00'
@@ -117,11 +113,11 @@ def get_hex_from_color(color):
 
 
 def get_random_color(alpha=1.0):
-    ''' Returns a random color (4 tuple)
+    '''Returns a random color (4 tuple).
 
     :Parameters:
-        `alpha` : float, default to 1.0
-            if alpha == 'random' a random alpha value is generated
+        `alpha` : float, defaults to 1.0
+            If alpha == 'random', a random alpha value is generated.
     '''
     from random import random
     if alpha == 'random':
@@ -131,7 +127,7 @@ def get_random_color(alpha=1.0):
 
 
 def is_color_transparent(c):
-    '''Return true if alpha channel is 0'''
+    '''Return True if the alpha channel is 0.'''
     if len(c) < 4:
         return False
     if float(c[3]) == 0.:
@@ -158,13 +154,13 @@ def deprecated(func):
         if caller_id not in DEPRECATED_CALLERS:
             DEPRECATED_CALLERS.append(caller_id)
             warning = (
-                    'Call to deprecated function %s in %s line %d.'
-                    'Called from %s line %d'
-                    ' by %s().') % (
-                            func.__name__,
-                            func.__code__.co_filename,
-                            func.__code__.co_firstlineno + 1,
-                            file, line, caller)
+                'Call to deprecated function %s in %s line %d.'
+                'Called from %s line %d'
+                ' by %s().' % (
+                    func.__name__,
+                    func.__code__.co_filename,
+                    func.__code__.co_firstlineno + 1,
+                    file, line, caller))
             from kivy.logger import Logger
             Logger.warn(warning)
             if func.__doc__:
@@ -174,10 +170,10 @@ def deprecated(func):
 
 
 class SafeList(list):
-    '''List with clear() method
+    '''List with a clear() method.
 
     .. warning::
-        Usage of iterate() function will decrease your performance.
+        Usage of the iterate() function will decrease your performance.
     '''
 
     def clear(self):
@@ -186,7 +182,7 @@ class SafeList(list):
     @deprecated
     def iterate(self, reverse=False):
         if reverse:
-            return reversed(iter(self))
+            return iter(reversed(self))
         return iter(self)
 
 
@@ -215,14 +211,14 @@ class QueryDict(dict):
 
 
 def format_bytes_to_human(size, precision=2):
-    '''Format a bytes number to human size (B, KB, MB...)
+    '''Format a bytes value to a human readable representation (B, KB, MB...).
 
     .. versionadded:: 1.0.8
 
     :Parameters:
         `size`: int
-            Number that represent a bytes number
-        `precision`: int
+            Number that represents a bytes value
+        `precision`: int, defaults to 2
             Precision after the comma
 
     Examples::
@@ -302,7 +298,7 @@ platform = Platform()
 
 Deprecated since 1.8.0:  Use platform as variable instaed of a function.\n
 Calling platform() will return one of: *win*, *linux*, *android*, *macosx*,
-*ios*, or *unknown*.
+*ios* or *unknown*.
 
 .. versionchanged:: 1.8.0
 
@@ -316,7 +312,7 @@ Calling platform() will return one of: *win*, *linux*, *android*, *macosx*,
     foo = {'linux' : do_linux_things}
     foo[platform]() # calls do_linux_things
     p = platform # assigns to a module object
-    if p is 'android':
+    if p == 'android':
         do_android_things()
     p += 'some string' # error!
 
@@ -334,7 +330,7 @@ def escape_markup(text):
 
     .. versionadded:: 1.3.0
     '''
-    return text.replace('[', '&bl;').replace(']', '&br;').replace('&', '&amp;')
+    return text.replace('&', '&amp;').replace('[', '&bl;').replace(']', '&br;')
 
 
 class reify(object):
@@ -347,7 +343,7 @@ class reify(object):
     after that, the value is cached as a regular attribute. This gives you lazy
     attribute creation on objects that are meant to be immutable.
 
-    Taken from Pyramid project.
+    Taken from the `Pyramid project <https://pypi.python.org/pypi/pyramid/>`_.
     '''
 
     def __init__(self, func):
@@ -360,4 +356,3 @@ class reify(object):
         retval = self.func(inst)
         setattr(inst, self.func.__name__, retval)
         return retval
-

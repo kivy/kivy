@@ -37,7 +37,7 @@ class DictAdapter(ListAdapter):
     lookup of the data, using keys from sorted_keys, will be passed
     to it for instantiation of list item view class instances.
 
-    :data:`sorted_keys` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`sorted_keys` is a :class:`~kivy.properties.ListProperty` and
     defaults to [].
     '''
 
@@ -47,7 +47,7 @@ class DictAdapter(ListAdapter):
 
     The values can be strings, class instances, dicts, etc.
 
-    :data:`data` is a :class:`~kivy.properties.DictProperty` and defaults
+    :attr:`data` is a :class:`~kivy.properties.DictProperty` and defaults
     to None.
     '''
 
@@ -71,12 +71,16 @@ class DictAdapter(ListAdapter):
     # mismatch data, force a reset of sorted_keys to data.keys(). So, in order
     # to do a complete reset of data and sorted_keys, data must be reset
     # first, followed by a reset of sorted_keys, if needed.
-    def initialize_sorted_keys(self, *args):
+    def initialize_sorted_keys(self, *args, **kwargs):
         stale_sorted_keys = False
         for key in self.sorted_keys:
             if not key in self.data:
                 stale_sorted_keys = True
                 break
+        else:
+            if kwargs.get('new_data'):
+                if len(self.sorted_keys) != len(self.data):
+                    stale_sorted_keys = True
         if stale_sorted_keys:
             self.sorted_keys = sorted(self.data.keys())
         self.delete_cache()
@@ -84,7 +88,7 @@ class DictAdapter(ListAdapter):
 
     # Override ListAdapter.update_for_new_data().
     def update_for_new_data(self, *args):
-        self.initialize_sorted_keys()
+        self.initialize_sorted_keys(new_data=True)
 
     # Note: this is not len(self.data).
     def get_count(self):

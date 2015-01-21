@@ -93,7 +93,7 @@ If you want to clear all the children inside a widget, use
 Traversing the Tree
 -------------------
 
-The Widget class instance's :data:`~kivy.uix.widget.Widget.children` list property
+The Widget class instance's :attr:`~kivy.uix.widget.Widget.children` list property
 contains all the children. You can easily traverse the tree by doing::
 
     root = BoxLayout()
@@ -142,13 +142,9 @@ proportions allowed to each child, or set fixed size for some of them.
 .. only:: html
 
     .. image:: ../images/boxlayout.gif
-        :align: left
     .. image:: ../images/gridlayout.gif
-        :align: right
     .. image:: ../images/stacklayout.gif
-        :align: left
     .. image:: ../images/anchorlayout.gif
-        :align: right
     .. image:: ../images/floatlayout.gif
 
 .. only:: latex
@@ -322,33 +318,34 @@ instance easily, as with adding a colored background:
 
 In Python::
 
+    from kivy.graphics import Color, Rectangle
+
     with layout_instance.canvas.before:
-        Color(rgba(0, 1, 0, 1)) # green; colors range from 0-1 instead of 0-255
-        self.rect = Rectangle(
-                                size=layout_instance.size,
-                                pos=layout_instance.pos)
+        Color(0, 1, 0, 1) # green; colors range from 0-1 instead of 0-255
+        self.rect = Rectangle(size=layout_instance.size,
+                               pos=layout_instance.pos)
 
 Unfortunately, this will only draw a rectangle at the layout's initial position
-and size. To make sure the rect is drawn inside the layout, when layout size/pos
-changes, we need to listen to any changes and update the rectangle size and pos
-like so::
+and size. To make sure the rect is drawn inside the layout, when the layout
+size/pos changes, we need to listen to any changes and update the rectangles
+size and pos. We can do that as follows::
+
+    with layout_instance.canvas.before:
+        Color(0, 1, 0, 1) # green; colors range from 0-1 instead of 0-255
+        self.rect = Rectangle(size=layout_instance.size,
+                               pos=layout_instance.pos)
+
+    def update_rect(instance, value):
+        instance.rect.pos = instance.pos
+        instance.rect.size = instance.size
 
     # listen to size and position changes
-    layout_instance.bind(
-                        size=self._update_rect,
-                        pos=self._update_rect)
-    
-    ...
-    def _update_rect(self, instance, value):
-        self.rect.pos = instance.pos
-        self.rect.size = instance.size
+    layout_instance.bind(pos=update_rect, size=update_rect)
 
 In kv:
 
 .. code-block:: kv
 
-    ...
-    ...
     FloatLayout:
         canvas.before:
             Color:
@@ -370,41 +367,37 @@ Pure Python way::
     from kivy.graphics import Color, Rectangle
     from kivy.uix.floatlayout import FloatLayout
     from kivy.uix.button import Button
-
-
+    
+    
     class RootWidget(FloatLayout):
-
+    
         def __init__(self, **kwargs):
             # make sure we aren't overriding any important functionality
             super(RootWidget, self).__init__(**kwargs)
-
+    
             # let's add a Widget to this layout
             self.add_widget(
-                            Button(
-                                    text="Hello World",
-                                    size_hint= (.5, .5),
-                                    pos_hint={'center_x':.5,
-                                            'center_y':.5}))
-
-
+                Button(
+                    text="Hello World",
+                    size_hint=(.5, .5),
+                    pos_hint={'center_x': .5, 'center_y': .5}))
+    
+    
     class MainApp(App):
-
+    
         def build(self):
             self.root = root = RootWidget()
-            root.bind(
-                        size=self._update_rect,
-                        pos=self._update_rect)
-            with root.canvas.before:
-                Color(0, 1, 0, 1) # green; colors range from 0-1 not 0-255
-                self.rect = Rectangle(
-                                        size=root.size,
-                                        pos=root.pos)
-            return root
+            root.bind(size=self._update_rect, pos=self._update_rect)
 
+            with root.canvas.before:
+                Color(0, 1, 0, 1)  # green; colors range from 0-1 not 0-255
+                self.rect = Rectangle(size=root.size, pos=root.pos)
+            return root
+    
         def _update_rect(self, instance, value):
             self.rect.pos = instance.pos
             self.rect.size = instance.size
-
+    
     if __name__ == '__main__':
         MainApp().run()
 
@@ -444,9 +437,8 @@ Both of the Apps should look something like this:
 **To add a color to the background of a **custom layouts rule/class** **
 
 The way we add background to the layout's instance can quickly become
-cumbersome if we need to use multiple layouts. To help with this, override
-the Layout class with your own layout, and add a background
-within the class of the layout class itself.
+cumbersome if we need to use multiple layouts. To help with this, you can
+subclass the Layout and create your own layout that adds a background.
 
 Using Python::
 
@@ -455,50 +447,50 @@ Using Python::
     from kivy.uix.boxlayout import BoxLayout
     from kivy.uix.floatlayout import FloatLayout
     from kivy.uix.image import AsyncImage
-    from kivy.uix.button import Button
-
-
+    
+    
     class RootWidget(BoxLayout):
         pass
-
+    
+    
     class CustomLayout(FloatLayout):
-
+    
         def __init__(self, **kwargs):
             # make sure we aren't overriding any important functionality
             super(CustomLayout, self).__init__(**kwargs)
-
+    
             with self.canvas.before:
-                Color(0, 1, 0, 1) # green; colors range from 0-1 instead of 0-255
-                self.rect = Rectangle(
-                                size=self.size,
-                                pos=self.pos)
-
-            self.bind(
-                        size=self._update_rect,
-                        pos=self._update_rect)
-
+                Color(0, 1, 0, 1)  # green; colors range from 0-1 instead of 0-255
+                self.rect = Rectangle(size=self.size, pos=self.pos)
+    
+            self.bind(size=self._update_rect, pos=self._update_rect)
+    
         def _update_rect(self, instance, value):
             self.rect.pos = instance.pos
             self.rect.size = instance.size
-
-
+    
+    
     class MainApp(App):
-
+    
         def build(self):
             root = RootWidget()
             c = CustomLayout()
             root.add_widget(c)
-            c.add_widget(AsyncImage(source="http://www.everythingzoomer.com/wp-content/uploads/2013/01/Monday-joke-289x277.jpg",
-                                    size_hint= (1, .5),
-                                    pos_hint={'center_x':.5, 'center_y':.5}))
+            c.add_widget(
+                AsyncImage(
+                    source="http://www.everythingzoomer.com/wp-content/uploads/2013/01/Monday-joke-289x277.jpg",
+                    size_hint= (1, .5),
+                    pos_hint={'center_x':.5, 'center_y':.5}))
             root.add_widget(AsyncImage(source='http://www.stuffistumbledupon.com/wp-content/uploads/2012/05/Have-you-seen-this-dog-because-its-awesome-meme-puppy-doggy.jpg'))
             c = CustomLayout()
-            c.add_widget(AsyncImage(source="http://www.stuffistumbledupon.com/wp-content/uploads/2012/04/Get-a-Girlfriend-Meme-empty-wallet.jpg",
-                                    size_hint= (1, .5),
-                                    pos_hint={'center_x':.5, 'center_y':.5}))
+            c.add_widget(
+                AsyncImage(
+                    source="http://www.stuffistumbledupon.com/wp-content/uploads/2012/04/Get-a-Girlfriend-Meme-empty-wallet.jpg",
+                    size_hint= (1, .5),
+                    pos_hint={'center_x':.5, 'center_y':.5}))
             root.add_widget(c)
             return root
-
+    
     if __name__ == '__main__':
         MainApp().run()
 
@@ -610,6 +602,7 @@ Then, when we put this snippet into a Kivy app::
     class RootWidget(FloatLayout):
         pass
 
+
     class MainApp(App):
 
         def build(self):
@@ -674,15 +667,18 @@ We use this to display an animated background::
                 halign: 'justify'
     ''')
 
+
     class CustomLayout(GridLayout):
 
         background_image = ObjectProperty(
-                                        Image(
-                                            source='../examples/widgets/sequenced_images/data/images/button_white_animated.zip',
-                                            anim_delay=.1))
+            Image(
+                source='../examples/widgets/sequenced_images/data/images/button_white_animated.zip',
+                anim_delay=.1))
+
 
     class RootWidget(FloatLayout):
         pass
+
 
     class MainApp(App):
 

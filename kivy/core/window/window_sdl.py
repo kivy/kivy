@@ -22,11 +22,6 @@ from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from collections import deque
 
-# When we are generating documentation, Config doesn't exist
-_exit_on_escape = True
-if Config:
-    _exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
-
 
 class SDLMotionEvent(MotionEvent):
     def depack(self, args):
@@ -84,6 +79,7 @@ class WindowSDL(WindowBase):
 
         # auto add input provider
         Logger.info('Window: auto add sdl input provider')
+        # xXX already imported at the top, is this necessary?
         from kivy.base import EventLoop
         SDLMotionEventProvider.win = self
         EventLoop.add_input_provider(SDLMotionEventProvider('sdl', ''))
@@ -103,7 +99,7 @@ class WindowSDL(WindowBase):
         filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
         if filename is None:
             return None
-        from kivy.core.gl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+        from kivy.graphics.opengl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
         width, height = self.size
         data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
         data = str(buffer(data))
@@ -128,9 +124,10 @@ class WindowSDL(WindowBase):
 
             action, args = event[0], event[1:]
             if action == 'quit':
-                EventLoop.quit = True
-                self.close()
-                break
+                if not self.dispatch('on_request_close'):
+                    EventLoop.quit = True
+                    self.close()
+                    break
 
             elif action in ('fingermotion', 'fingerdown', 'fingerup'):
                 # for finger, pass the raw event to SDL motion event provider
@@ -161,6 +158,9 @@ class WindowSDL(WindowBase):
                 Clock.schedule_once(cb, .1)
 
             elif action == 'windowresized':
+                self.canvas.ask_update()
+
+            elif action == 'windowshown':
                 self.canvas.ask_update()
 
             elif action == 'windowminimized':
@@ -230,7 +230,6 @@ class WindowSDL(WindowBase):
     def do_pause(self):
         # should go to app pause mode.
         from kivy.app import App
-        from kivy.base import stopTouchApp
         app = App.get_running_app()
         if not app:
             Logger.info('WindowSDL: No running App found, exit.')
@@ -252,9 +251,10 @@ class WindowSDL(WindowBase):
 
             action, args = event[0], event[1:]
             if action == 'quit':
-                EventLoop.quit = True
-                self.close()
-                break
+                if not self.dispatch('on_request_close'):
+                    EventLoop.quit = True
+                    self.close()
+                    break
             elif action == 'windowrestored':
                 break
 
@@ -286,17 +286,6 @@ class WindowSDL(WindowBase):
     def _pygame_update_modifiers(self, mods=None):
         return
 
-    def on_keyboard(self, key, scancode=None, str=None, modifier=None):
-        # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
-        # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = sys.platform == 'darwin'
-        if _exit_on_escape and (key == 27 or (is_osx and key in (113, 119) and
-                                              modifier == 1024)):
-            stopTouchApp()
-            self.close()  # not sure what to do here
-            return True
-        super(WindowSDL, self).on_keyboard(key, scancode, str, modifier)
-
     def request_keyboard(self, callback, target, input_type='text'):
         self._sdl_keyboard = super(WindowSDL, self).request_keyboard(
             callback, target, input_type)
@@ -315,4 +304,3 @@ class WindowSDL(WindowBase):
             return False
         if not sdl.is_keyboard_shown():
             self._sdl_keyboard.release()
-

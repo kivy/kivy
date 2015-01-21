@@ -7,9 +7,7 @@ Activate other frameworks/toolkits inside the kivy event loop.
 '''
 
 __all__ = ('install_gobject_iteration', 'install_twisted_reactor',
-    'install_android')
-
-from kivy.compat import PY2
+           'uninstall_twisted_reactor', 'install_android')
 
 
 def install_gobject_iteration():
@@ -19,10 +17,10 @@ def install_gobject_iteration():
 
     from kivy.clock import Clock
 
-    if PY2:
-        import gobject
-    else:
+    try:
         from gi.repository import GObject as gobject
+    except ImportError:
+        import gobject
 
     if hasattr(gobject, '_gobject_already_installed'):
         # already installed, don't do it twice.
@@ -37,12 +35,13 @@ def install_gobject_iteration():
 
     # schedule the iteration each frame
     def _gobject_iteration(*largs):
-        # XXX we need to loop over context here, otherwise, we might have a lag.
+        # XXX we need to loop over context here, otherwise, we might have a lag
         loop = 0
         while context.pending() and loop < 10:
             context.iteration(False)
             loop += 1
     Clock.schedule_interval(_gobject_iteration, 0)
+
 
 # -----------------------------------------------------------------------------
 # Android support
@@ -125,7 +124,7 @@ def install_android():
                 Logger.info('Android: Android has resumed, resume the app.')
                 app.dispatch('on_resume')
                 Window.canvas.ask_update()
-                g_android_redraw_count = 25  # 5 frames/seconds during 5 seconds
+                g_android_redraw_count = 25  # 5 frames/seconds for 5 seconds
                 Clock.unschedule(_android_ask_redraw)
                 Clock.schedule_interval(_android_ask_redraw, 1 / 5)
                 Logger.info('Android: App resume completed.')
@@ -136,6 +135,10 @@ def install_android():
             stopTouchApp()
 
     Clock.schedule_interval(android_check_pause, 0)
+
+
+_twisted_reactor_stopper = None
+_twisted_reactor_work = None
 
 
 def install_twisted_reactor(**kwargs):
@@ -151,7 +154,13 @@ def install_twisted_reactor(**kwargs):
     any signals unless you set the 'installSignalHandlers' keyword argument
     to 1 explicitly. This is done to allow kivy to handle the signals as
     usual unless you specifically want the twisted reactor to handle the
-    signals (e.g. SIGINT).'''
+    signals (e.g. SIGINT).
+
+    .. note::
+        Twisted is not included in iOS build by default. To use it on iOS,
+        put the twisted distribution (and zope.interface dependency) in your
+        application directory.
+    '''
     import twisted
 
     # prevent installing more than once
@@ -159,7 +168,7 @@ def install_twisted_reactor(**kwargs):
         return
     twisted._kivy_twisted_reactor_installed = True
 
-    # dont let twisted handle signals, unless specifically requested
+    # don't let twisted handle signals, unless specifically requested
     kwargs.setdefault('installSignalHandlers', 0)
 
     # install threaded-select reactor, to use with own event loop
@@ -168,6 +177,8 @@ def install_twisted_reactor(**kwargs):
 
     # now we can import twisted reactor as usual
     from twisted.internet import reactor
+    from twisted.internet.error import ReactorNotRunning
+
     from collections import deque
     from kivy.base import EventLoop
     from kivy.logger import Logger
@@ -178,9 +189,9 @@ def install_twisted_reactor(**kwargs):
 
     # twisted will call the wake function when it needs to do work
     def reactor_wake(twisted_loop_next):
-        '''Wakeup the twisted reactor to start processing the task queue 
+        '''Wakeup the twisted reactor to start processing the task queue
         '''
-        
+
         Logger.trace("Support: twisted wakeup call to schedule task")
         q.append(twisted_loop_next)
 
@@ -191,6 +202,8 @@ def install_twisted_reactor(**kwargs):
         Logger.trace("Support: processing twisted task queue")
         while len(q):
             q.popleft()()
+    global _twisted_reactor_work
+    _twisted_reactor_work = reactor_work
 
     # start the reactor, by telling twisted how to wake, and process
     def reactor_start(*args):
@@ -209,7 +222,40 @@ def install_twisted_reactor(**kwargs):
             reactor.threadpool.stop()
         Logger.info("Support: Shutting down twisted reactor")
         reactor._mainLoopShutdown()
+        try:
+            reactor.stop()
+        except ReactorNotRunning:
+            pass
 
-    # start and stop teh reactor along with kivy EventLoop
-    EventLoop.bind(on_start=reactor_start)
+        import sys
+        sys.modules.pop('twisted.internet.reactor', None)
+
+    global _twisted_reactor_stopper
+    _twisted_reactor_stopper = reactor_stop
+
+    # start and stop the reactor along with kivy EventLoop
+    Clock.schedule_once(reactor_start, 0)
     EventLoop.bind(on_stop=reactor_stop)
+
+
+def uninstall_twisted_reactor():
+    '''Uninstalls the Kivy's threaded Twisted Reactor. No more Twisted
+    tasks will run after this got called. Use this to clean the
+    `twisted.internet.reactor` .
+
+    .. versionadded:: 1.9.0
+    '''
+
+    import twisted
+
+    # prevent uninstalling more than once
+    if not hasattr(twisted, '_kivy_twisted_reactor_installed'):
+        return
+
+    from kivy.base import EventLoop
+
+    global _twisted_reactor_stopper
+    _twisted_reactor_stopper()
+    EventLoop.unbind(on_stop=_twisted_reactor_stopper)
+
+    del twisted._kivy_twisted_reactor_installed

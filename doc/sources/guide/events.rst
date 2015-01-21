@@ -158,6 +158,9 @@ A widget has 2 default types of events:
 - Widget-defined event: e.g. an event will be fired for a Button when it's pressed or
   released.
 
+For a discussion on how widget touch events managed and propagated, please refer
+to the :ref:`Widget touch event bubbling <widget-event-bubbling>` section.
+
 Creating custom events
 ----------------------
 
@@ -201,6 +204,8 @@ Example::
     ev.bind(on_test=my_callback)
     ev.do_something('test')
 
+Pleases refer to the :meth:`kivy.event.EventDispatcher.bind` method
+documentation for more examples on how to attach callbacks.
 
 Introduction to Properties
 --------------------------
@@ -446,7 +451,7 @@ Consider the following code.
         'scroll_x', 'scroll_y'))
     '''Current position of the cursor, in (x, y).
 
-    :data:`cursor_pos` is a :class:`~kivy.properties.AliasProperty`, read-only.
+    :attr:`cursor_pos` is a :class:`~kivy.properties.AliasProperty`, read-only.
     '''
 
 Here `cursor_pos` is a :class:`~kivy.properties.AliasProperty` which uses the

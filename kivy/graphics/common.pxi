@@ -11,11 +11,13 @@ cdef extern from *:
 cdef double pi = PI
 cdef extern from "math.h":
     double cos(double) nogil
+    double acos(double) nogil
     double sin(double) nogil
     double sqrt(double) nogil
     double pow(double x, double y) nogil
     double atan2(double y, double x) nogil
     double tan(double) nogil
+    double fabs(double) nogil
 
 cdef extern from "stdlib.h":
     ctypedef unsigned long size_t
@@ -25,5 +27,5 @@ cdef extern from "stdlib.h":
     void *calloc(size_t nmemb, size_t size) nogil
 
 cdef extern from "string.h":
-    void *memcpy(void *dest, void *src, size_t n)
+    void *memcpy(void *dest, void *src, size_t n) nogil
     void *memset(void *dest, int c, size_t len)

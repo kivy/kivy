@@ -72,12 +72,12 @@ else:
     import threading
     import collections
     from kivy.lib.mtdev import Device, \
-            MTDEV_TYPE_EV_ABS, MTDEV_CODE_SLOT, MTDEV_CODE_POSITION_X, \
-            MTDEV_CODE_POSITION_Y, MTDEV_CODE_PRESSURE, \
-            MTDEV_CODE_TOUCH_MAJOR, MTDEV_CODE_TOUCH_MINOR, \
-            MTDEV_CODE_TRACKING_ID, MTDEV_ABS_POSITION_X, \
-            MTDEV_ABS_POSITION_Y, MTDEV_ABS_TOUCH_MINOR, \
-            MTDEV_ABS_TOUCH_MAJOR
+        MTDEV_TYPE_EV_ABS, MTDEV_CODE_SLOT, MTDEV_CODE_POSITION_X, \
+        MTDEV_CODE_POSITION_Y, MTDEV_CODE_PRESSURE, \
+        MTDEV_CODE_TOUCH_MAJOR, MTDEV_CODE_TOUCH_MINOR, \
+        MTDEV_CODE_TRACKING_ID, MTDEV_ABS_POSITION_X, \
+        MTDEV_ABS_POSITION_Y, MTDEV_ABS_TOUCH_MINOR, \
+        MTDEV_ABS_TOUCH_MAJOR
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory
     from kivy.logger import Logger
@@ -116,7 +116,8 @@ else:
 
                 # ensure it's a key = value
                 if len(arg) != 2:
-                    err = 'MTD: Bad parameter %s: Not in key=value format' % arg
+                    err = 'MTD: Bad parameter %s: Not in key=value format' %\
+                        arg
                     Logger.error()
                     continue
 
@@ -164,6 +165,10 @@ else:
 
             def process(points):
                 for args in points:
+                    # this can happen if we have a touch going on already at the
+                    # start of the app
+                    if 'id' not in args:
+                        continue
                     tid = args['id']
                     try:
                         touch = touches[tid]
@@ -252,28 +257,39 @@ else:
                     ev_code = data.code
                     if ev_code == MTDEV_CODE_POSITION_X:
                         val = normalize(ev_value,
-                            range_min_position_x, range_max_position_x)
+                                        range_min_position_x,
+                                        range_max_position_x)
                         if invert_x:
                             val = 1. - val
                         point['x'] = val
                     elif ev_code == MTDEV_CODE_POSITION_Y:
                         val = 1. - normalize(ev_value,
-                            range_min_position_y, range_max_position_y)
+                                             range_min_position_y,
+                                             range_max_position_y)
                         if invert_y:
                             val = 1. - val
                         point['y'] = val
                     elif ev_code == MTDEV_CODE_PRESSURE:
                         point['pressure'] = normalize(ev_value,
-                            range_min_pressure, range_max_pressure)
+                                                      range_min_pressure,
+                                                      range_max_pressure)
                     elif ev_code == MTDEV_CODE_TOUCH_MAJOR:
                         point['size_w'] = normalize(ev_value,
-                            range_min_major, range_max_major)
+                                                    range_min_major,
+                                                    range_max_major)
                     elif ev_code == MTDEV_CODE_TOUCH_MINOR:
                         point['size_h'] = normalize(ev_value,
-                            range_min_minor, range_max_minor)
+                                                    range_min_minor,
+                                                    range_max_minor)
                     elif ev_code == MTDEV_CODE_TRACKING_ID:
                         if ev_value == -1:
                             point['delete'] = True
+                            # force process of changes here, as the slot can be
+                            # reused.
+                            _changes.add(_slot)
+                            process([l_points[x] for x in _changes])
+                            _changes.clear()
+                            continue
                         else:
                             point['id'] = ev_value
                     else:

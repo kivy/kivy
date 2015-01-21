@@ -3,12 +3,12 @@
 Shader
 ======
 
-The :class:`Shader` class handle the compilation of the Vertex and Fragment
-shader, and the creation of the program in OpenGL.
+The :class:`Shader` class handles the compilation of the vertex and fragment
+shader as well as the creation of the program in OpenGL.
 
 .. todo::
 
-    Write a more complete documentation about shader.
+    Include more complete documentation about the shader.
 
 Header inclusion
 ----------------
@@ -16,16 +16,16 @@ Header inclusion
 .. versionadded:: 1.0.7
 
 When you are creating a Shader, Kivy will always include default parameters. If
-you don't want to rewrite it each time you want to customize / write a new
-shader, you can add the "$HEADER$" token, and it will be replaced by the
+you don't want to rewrite this each time you want to customize / write a new
+shader, you can add the "$HEADER$" token and it will be replaced by the
 corresponding shader header.
 
-Here is the header for Fragment Shader:
+Here is the header for the fragment Shader:
 
 .. include:: ../../kivy/data/glsl/header.fs
     :literal:
 
-And the header for Vertex Shader:
+And the header for vertex Shader:
 
 .. include:: ../../kivy/data/glsl/header.vs
     :literal:
@@ -36,10 +36,10 @@ Single file glsl shader programs
 
 .. versionadded:: 1.6.0
 
-To simplify shader management, the vertex and fragment shaders can be loaded 
-automatically from a single glsl source file (plain text).  The file should 
-contain sections identified by a line starting with '---vertex' and 
-`---fragment` respectively (case insensitive) like e.g.::
+To simplify shader management, the vertex and fragment shaders can be loaded
+automatically from a single glsl source file (plain text). The file should
+contain sections identified by a line starting with '---vertex' and
+'---fragment' respectively (case insensitive), e.g.::
 
     // anything before a meaningful section such as this comment are ignored
 
@@ -53,8 +53,8 @@ contain sections identified by a line starting with '---vertex' and
         ...
     }
 
-The source property of the Shader should be set tpo the filename of a glsl
-shader file (of the above format), like e.g. `phong.glsl`
+The source property of the Shader should be set to the filename of a glsl
+shader file (of the above format), e.g. `phong.glsl`
 '''
 
 __all__ = ('Shader', )
@@ -126,7 +126,7 @@ cdef class ShaderSource:
 
     def __dealloc__(self):
         if self.shader != -1:
-            glDeleteShader(self.shader)
+            get_context().dealloc_shader_source(self.shader)
 
     cdef int is_compiled(self):
         if self.shader != -1:
@@ -139,33 +139,42 @@ cdef class ShaderSource:
             Logger.info('Shader: %s: <%s>' % (ctype, message))
 
     cdef get_shader_log(self, int shader):
-        '''Return the shader log
+        '''Return the shader log.
         '''
-        cdef char msg[2048]
-        msg[0] = '\0'
-        glGetShaderInfoLog(shader, 2048, NULL, msg)
-        return msg
+        cdef char *msg
+        cdef bytes py_msg
+        cdef int info_length
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &info_length)
+        if info_length <= 0:
+            return ""
+        msg = <char *>malloc(info_length * sizeof(char))
+        if msg == NULL:
+            return ""
+        msg[0] = "\0"
+        glGetShaderInfoLog(shader, info_length, NULL, msg)
+        py_msg = msg
+        free(msg)
+        return py_msg
 
 
 cdef class Shader:
-    '''Create a vertex or fragment shader
+    '''Create a vertex or fragment shader.
 
     :Parameters:
-        `vs`: string, default to None
-            source code for vertex shader
-        `fs`: string, default to None
-            source code for fragment shader
+        `vs`: string, defaults to None
+            Source code for vertex shader
+        `fs`: string, defaults to None
+            Source code for fragment shader
     '''
     def __cinit__(self):
         self._success = 0
-        self.program = -1
+        self.program = 0
         self.vertex_shader = None
         self.fragment_shader = None
         self.uniform_locations = dict()
         self.uniform_values = dict()
 
     def __init__(self, str vs=None, str fs=None, str source=None):
-        get_context().register_shader(self)
         self.program = glCreateProgram()
         if source:
             self.source = source
@@ -182,8 +191,15 @@ cdef class Shader:
         # is called only when the gl context is reseted. If we do it, we might
         # free newly created shaders (id collision)
         glUseProgram(0)
-        self.vertex_shader = None
-        self.fragment_shader = None
+
+        # avoid shaders to be collected
+        if self.vertex_shader:
+            self.vertex_shader.shader = -1
+            self.vertex_shader = None
+        if self.fragment_shader:
+            self.fragment_shader.shader = -1
+            self.fragment_shader = None
+
         #self.uniform_values = dict()
         self.uniform_locations = dict()
         self._success = 0
@@ -193,7 +209,7 @@ cdef class Shader:
         self.vs = self.vs
 
     cdef void use(self):
-        '''Use the shader
+        '''Use the shader.
         '''
         glUseProgram(self.program)
         for k, v in self.uniform_values.iteritems():
@@ -210,7 +226,7 @@ cdef class Shader:
             glFlush()
 
     cdef void stop(self):
-        '''Stop using the shader
+        '''Stop using the shader.
         '''
         glUseProgram(0)
 
@@ -221,7 +237,7 @@ cdef class Shader:
         self.upload_uniform(name, value)
 
     cdef void upload_uniform(self, str name, value):
-        '''Pass a uniform variable to the shader
+        '''Pass a uniform variable to the shader.
         '''
         cdef long vec_size, index, x, y
         cdef int list_size
@@ -414,6 +430,7 @@ cdef class Shader:
     cdef void bind_vertex_format(self, VertexFormat vertex_format):
         cdef unsigned int i
         cdef vertex_attr_t *attr
+        cdef bytes name
 
         # if the current vertex format used in the shader is the current one, do
         # nothing.
@@ -438,7 +455,8 @@ cdef class Shader:
                 attr = &vertex_format.vattr[i]
                 if attr.per_vertex == 0:
                     continue
-                attr.index = glGetAttribLocation(self.program, <char *><bytes>attr.name)
+                name = <bytes>attr.name
+                attr.index = glGetAttribLocation(self.program, <char *>name)
                 glEnableVertexAttribArray(attr.index)
 
         # save for the next run.
@@ -516,12 +534,20 @@ cdef class Shader:
         return shader
 
     cdef get_program_log(self, shader):
-        '''Return the program log'''
+        '''Return the program log.'''
         cdef char msg[2048]
         cdef GLsizei length
         msg[0] = '\0'
         glGetProgramInfoLog(shader, 2048, &length, msg)
-        return msg[:length]
+        # XXX don't use the msg[:length] as a string directly, or the unicode
+        # will fail on shitty driver. Ie, some Intel drivers return a static
+        # unitialized string of length 40, with just a content of "Success.\n\0"
+        # Trying to decode data after \0 will just fail. So use bytes, and
+        # convert only the part before \0.
+        # XXX Also, we cannot use directly msg as a python string, as some
+        # others drivers doesn't include a \0 (which is great.)
+        cdef bytes ret = msg[:length]
+        return ret.split(b'\0')[0].decode('utf-8')
 
     cdef void process_message(self, str ctype, message):
         message = message.strip()
@@ -535,8 +561,8 @@ cdef class Shader:
     property source:
         '''glsl  source code.
 
-        source shoudl be a filename of a glsl shader, that contains both
-        vertex and fragment shader sourcecode;  each designated by a section
+        source should be the filename of a glsl shader that contains both the
+        vertex and fragment shader sourcecode, each designated by a section
         header consisting of one line starting with either "--VERTEX" or
         "--FRAGMENT" (case insensitive).
 
@@ -572,8 +598,8 @@ cdef class Shader:
     property vs:
         '''Vertex shader source code.
 
-        If you set a new vertex shader source code, it will be automatically
-        compiled and replace the current one.
+        If you set a new vertex shader code source, it will be automatically
+        compiled and will replace the current vertex shader.
         '''
         def __get__(self):
             return self.vert_src
@@ -587,8 +613,8 @@ cdef class Shader:
     property fs:
         '''Fragment shader source code.
 
-        If you set a new fragment shader source code, it will be automatically
-        compiled and replace the current one.
+        If you set a new fragment shader code source, it will be automatically
+        compiled and will replace the current fragment shader.
         '''
         def __get__(self):
             return self.frag_src
@@ -600,7 +626,8 @@ cdef class Shader:
             self.build_fragment()
 
     property success:
-        '''Indicate if shader is ok for usage or not.
+        '''Indicate whether the shader loaded successfully and is ready for
+        usage or not.
         '''
         def __get__(self):
             return self._success

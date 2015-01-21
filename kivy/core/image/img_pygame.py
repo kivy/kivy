@@ -7,6 +7,7 @@ __all__ = ('ImageLoaderPygame', )
 from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
+from os.path import isfile
 
 try:
     import pygame
@@ -26,24 +27,42 @@ class ImageLoaderPygame(ImageLoaderBase):
         # By default it can only load uncompressed BMP image
         if pygame.image.get_extended() == 0:
             return ('bmp', )
-        # Note to self:try to learn to use loader preferences instead-
-        # of this- remove gif support from pygame
-        return ('jpg', 'jpeg', 'png', 'bmp', 'pcx', 'tga', 'tiff', 'tif', 'lbm',
-               'pbm', 'ppm', 'xpm')
+        return ('jpg', 'jpeg', 'jpe', 'png', 'bmp', 'pcx', 'tga', 'tiff',
+                'tif', 'lbm', 'pbm', 'ppm', 'xpm')
 
     @staticmethod
     def can_save():
         return True
 
+    @staticmethod
+    def can_load_memory():
+        return True
+
     def load(self, filename):
+        if not filename:
+            import traceback
+            traceback.print_stack()
+            return
         try:
-            try:
+            im = None
+            if self._inline:
+                im = pygame.image.load(filename, 'x.{}'.format(self._ext))
+            elif isfile(filename):
+                with open(filename, 'rb') as fd:
+                    im = pygame.image.load(fd)
+            elif isinstance(filename, bytes):
+                try:
+                    fname = filename.decode()
+                    if isfile(fname):
+                        with open(fname, 'rb') as fd:
+                            im = pygame.image.load(fd)
+                except UnicodeDecodeError:
+                    pass
+            if im is None:
                 im = pygame.image.load(filename)
-            except UnicodeEncodeError:
-                if PY2:
-                    im = pygame.image.load(filename.encode('utf8'))
         except:
-            Logger.warning('Image: Unable to load image <%s>' % filename)
+            #Logger.warning(type(filename)('Image: Unable to load image <%s>')
+            #               % filename)
             raise
 
         fmt = ''
@@ -69,15 +88,16 @@ class ImageLoaderPygame(ImageLoaderBase):
             im = imc
 
         # update internals
-        self.filename = filename
+        if not self._inline:
+            self.filename = filename
         data = pygame.image.tostring(im, fmt.upper())
         return [ImageData(im.get_width(), im.get_height(),
-            fmt, data, source=filename)]
+                fmt, data, source=filename)]
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels):
+    def save(filename, width, height, fmt, pixels, flipped):
         surface = pygame.image.fromstring(
-                pixels, (width, height), fmt.upper(), False)
+            pixels, (width, height), fmt.upper(), flipped)
         pygame.image.save(surface, filename)
         return True
 

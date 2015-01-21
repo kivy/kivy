@@ -22,10 +22,13 @@ dropdown. ::
 
     from kivy.uix.dropdown import DropDown
     from kivy.uix.button import Button
+    from kivy.base import runTouchApp
 
-    # create a dropdown with 10 button
+    # create a dropdown with 10 buttons
     dropdown = DropDown()
     for index in range(10):
+        # when adding widgets, we need to specify the height manually (disabling
+        # the size_hint_y) so the dropdown can calculate the area it needs.
         btn = Button(text='Value %d' % index, size_hint_y=None, height=44)
 
         # for each button, attach a callback that will call the select() method
@@ -49,6 +52,7 @@ dropdown. ::
     # assign the data to the button text.
     dropdown.bind(on_select=lambda instance, x: setattr(mainbutton, 'text', x))
 
+    runTouchApp(mainbutton)
 
 Extending dropdown in Kv
 ------------------------
@@ -90,18 +94,12 @@ from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
 from kivy.core.window import Window
 from kivy.lang import Builder
 
-Builder.load_string('''
-<DropDown>:
-    container: container
-    do_scroll_x: False
-    size_hint: None, None
-
-    GridLayout:
-        id: container
-        size_hint_y: None
-        height: self.minimum_size[1]
-        cols: 1
-''')
+_grid_kv = '''
+GridLayout:
+    size_hint_y: None
+    height: self.minimum_size[1]
+    cols: 1
+'''
 
 
 class DropDownException(Exception):
@@ -135,15 +133,15 @@ class DropDown(ScrollView):
     take the maximum height available until the top or bottom of the screen
     is reached.
 
-    :data:`max_height` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`max_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to None.
     '''
 
     dismiss_on_select = BooleanProperty(True)
-    '''By default, the dropdown will be automatically dismissed when a selection
-    has been done. Set to False to prevent the dismiss.
+    '''By default, the dropdown will be automatically dismissed when a
+    selection has been done. Set to False to prevent the dismiss.
 
-    :data:`dismiss_on_select` is a :class:`~kivy.properties.BooleanProperty`
+    :attr:`dismiss_on_select` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True.
     '''
 
@@ -152,15 +150,15 @@ class DropDown(ScrollView):
     touch happens outside of it, this option allow to disable this
     feature
 
-    :data:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`
+    :attr:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True.
 
     .. versionadded:: 1.8.0
     '''
 
     attach_to = ObjectProperty(allownone=True)
-    '''(internal) Property that will be set to the widget to which the drop down
-    list is attached.
+    '''(internal) Property that will be set to the widget to which the
+    drop down list is attached.
 
     The :meth:`open` method will automatically set this property whilst
     :meth:`dismiss` will set it back to None.
@@ -175,7 +173,18 @@ class DropDown(ScrollView):
 
     def __init__(self, **kwargs):
         self._win = None
+        if 'container' not in kwargs:
+            c = self.container = Builder.load_string(_grid_kv)
+        else:
+            c = None
+        kwargs.setdefault('do_scroll_x', False)
+        if 'size_hint' not in kwargs:
+            kwargs.setdefault('size_hint_x', None)
+            kwargs.setdefault('size_hint_y', None)
         super(DropDown, self).__init__(**kwargs)
+        if c is not None:
+            super(DropDown, self).add_widget(c)
+            self.on_container(self, c)
         Window.bind(on_key_down=self.on_key_down)
         self.bind(size=self._reposition)
 
@@ -185,19 +194,21 @@ class DropDown(ScrollView):
             return True
 
     def on_container(self, instance, value):
-        self.container.bind(minimum_size=self._container_minimum_size)
+        if value is not None:
+            self.container.bind(minimum_size=self._container_minimum_size)
 
     def open(self, widget):
         '''Open the dropdown list and attach it to a specific widget.
-        Depending on the position of the widget within the window and the height
-        of the dropdown, the dropdown might be above or below that widget.
+        Depending on the position of the widget within the window and
+        the height of the dropdown, the dropdown might be above or below
+        that widget.
         '''
         # ensure we are not already attached
         if self.attach_to is not None:
             self.dismiss()
 
-        # we will attach ourself to the main window, so ensure the widget we are
-        # looking for have a window
+        # we will attach ourself to the main window, so ensure the
+        # widget we are looking for have a window
         self._win = widget.get_parent_window()
         if self._win is None:
             raise DropDownException(
@@ -263,6 +274,8 @@ class DropDown(ScrollView):
             return True
         if self.collide_point(*touch.pos):
             return True
+        if self.attach_to and self.attach_to.collide_point(*touch.pos):
+            return True
         if self.auto_dismiss:
             self.dismiss()
 
@@ -305,8 +318,9 @@ class DropDown(ScrollView):
         elif h_top > 0:
             self.y = wtop
         else:
-            # none of both top/bottom have enough place to display the widget at
-            # the current size. Take the best side, and fit to it.
+            # none of both top/bottom have enough place to display the
+            # widget at the current size. Take the best side, and fit to
+            # it.
             height = max(h_bottom, h_top)
             if height == h_bottom:
                 self.top = wy

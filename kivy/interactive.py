@@ -4,8 +4,9 @@ Interactive launcher
 
 .. versionadded:: 1.3.0
 
-The :class:`InteractiveLauncher` provides a user-friendly python shell interface
-to an :class:`App` so that it can be prototyped and debugged interactively.
+The :class:`InteractiveLauncher` provides a user-friendly python shell
+interface to an :class:`App` so that it can be prototyped and debugged
+interactively.
 
 .. note::
 
@@ -28,12 +29,19 @@ pass an instance to the :class:`InteractiveLauncher` constructor.::
         def build(self):
             return Button(test='Hello Shell')
 
-    interactiveLauncher = InteractiveLauncher(MyApp()).run()
+    launcher = InteractiveLauncher(MyApp())
+    launcher.run()
 
-The script will return, allowing an interpreter shell to continue running and
-inspection or modification of the :class:`App` can be done safely through the
-InteractiveLauncher instance or the provided :class:`SafeMembrane` class
-instances.
+After pressing *enter*, the script will return. This allows the interpreter to
+continue running. Inspection or modification of the :class:`App` can be done
+safely through the InteractiveLauncher instance or the provided
+:class:`SafeMembrane` class instances.
+
+.. note::
+
+    If you want to test this example, start Python without any file to have
+    already an interpreter, and copy/paste all the lines. You'll still have the
+    interpreter at the end + the kivy application running.
 
 Interactive Development
 -----------------------
@@ -100,7 +108,7 @@ functions that need the screen to update etc.
 
 .. note::
 
-    The pausing is implemented via the 
+    The pausing is implemented via the
     :class:`Clocks' <kivy.clock.Clock>`
     :meth:`~kivy.clock.ClockBase.schedule_once` method
     and occurs before the start of each frame.
@@ -117,8 +125,8 @@ Adding Attributes Dynamically
 The :class:`InteractiveLauncher` can have attributes added to it exactly like a
 normal object and if these were created from outside the membrane, they will
 not be threadsafe because the external references to them in the python
-interpreter do not go through InteractiveLauncher's membrane behavior, inherited
-from :class:`SafeMembrane`.
+interpreter do not go through InteractiveLauncher's membrane behavior,
+inherited from :class:`SafeMembrane`.
 
 To threadsafe these external references, simply assign them to
 :class:`SafeMembrane` instances of themselves like so::
@@ -177,7 +185,7 @@ class SafeMembrane(object):
     from leaking into the user's environment.
     '''
 
-    __slots__ = ('_ref', 'safe', 'confirmed', 'safeIn', 'safeOut')
+    __slots__ = ('_ref', 'safe', 'confirmed')
 
     def __init__(self, ob, *args, **kwargs):
         self.confirmed = EventLoop.confirmed
@@ -229,7 +237,7 @@ class SafeMembrane(object):
 
     def __setattr__(self, attr, val, osa=object.__setattr__):
         if (attr == '_ref'
-            or hasattr(type(self), attr) and not attr.startswith('__')):
+                or hasattr(type(self), attr) and not attr.startswith('__')):
             osa(self, attr, val)
         else:
             self.safeIn()

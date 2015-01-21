@@ -13,16 +13,13 @@ from kivy.core import CoreCriticalException
 from os import environ
 from os.path import exists, join
 from kivy.config import Config
-from kivy import kivy_home_dir
+from kivy import kivy_data_dir
 from kivy.base import ExceptionManager
 from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
-from kivy.utils import platform
-
-# When we are generating documentation, Config doesn't exist
-_exit_on_escape = True
-if Config:
-    _exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
+from kivy.utils import platform, deprecated
+from kivy.resources import resource_find
+from kivy.clock import Clock
 
 try:
     android = None
@@ -48,14 +45,13 @@ class WindowPygame(WindowBase):
             environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '%d' % displayidx
 
         # init some opengl, same as before.
-        self.flags = pygame.HWSURFACE | pygame.OPENGL | \
-                     pygame.DOUBLEBUF
+        self.flags = pygame.HWSURFACE | pygame.OPENGL | pygame.DOUBLEBUF
 
         # right now, activate resizable window only on linux.
         # on window / macosx, the opengl context is lost, and we need to
         # reconstruct everything. Check #168 for a state of the work.
         if platform in ('linux', 'macosx', 'win') and \
-            Config.getint('graphics', 'resizable'):
+                Config.getboolean('graphics', 'resizable'):
             self.flags |= pygame.RESIZABLE
 
         try:
@@ -68,7 +64,7 @@ class WindowPygame(WindowBase):
         if multisamples > 0:
             pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 1)
             pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES,
-                multisamples)
+                                            multisamples)
         pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 16)
         pygame.display.gl_set_attribute(pygame.GL_STENCIL_SIZE, 1)
         pygame.display.set_caption(self.title)
@@ -81,11 +77,24 @@ class WindowPygame(WindowBase):
             raise ValueError('position token in configuration accept only '
                              '"auto" or "custom"')
 
+        if self._fake_fullscreen:
+            if not self.borderless:
+                self.fullscreen = self._fake_fullscreen = False
+            elif not self.fullscreen or self.fullscreen == 'auto':
+                self.borderless = self._fake_fullscreen = False
+
         if self.fullscreen == 'fake':
-            Logger.debug('WinPygame: Set window to fake fullscreen mode')
+            self.borderless = self._fake_fullscreen = True
+            Logger.warning("The 'fake' fullscreen option has been "
+                            "deprecated, use Window.borderless or the "
+                            "borderless Config option instead.")
+
+        if self.fullscreen == 'fake' or self.borderless:
+            Logger.debug('WinPygame: Set window to borderless mode.')
+
             self.flags |= pygame.NOFRAME
-            # if no position set, in fake mode, we always need to set the
-            # position. so replace 0, 0.
+            # If no position set in borderless mode, we always need
+            # to set the position. So use 0, 0.
             if self._pos is None:
                 self._pos = (0, 0)
             environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
@@ -107,12 +116,16 @@ class WindowPygame(WindowBase):
 
         # set window icon before calling set_mode
         try:
-            #filename_icon = Config.get('kivy', 'window_icon')
             filename_icon = self.icon or Config.get('kivy', 'window_icon')
             if filename_icon == '':
-                logo_size = 512 if platform == 'macosx' else 32
-                filename_icon = join(kivy_home_dir, 'icon', 'kivy-icon-%d.png' %
-                        logo_size)
+                logo_size = 32
+                if platform == 'macosx':
+                    logo_size = 512
+                elif platform == 'win':
+                    logo_size = 64
+                filename_icon = 'kivy-icon-{}.png'.format(logo_size)
+                filename_icon = resource_find(
+                        join(kivy_data_dir, 'logo', filename_icon))
             self.set_icon(filename_icon)
         except:
             Logger.exception('Window: cannot set icon')
@@ -125,8 +138,10 @@ class WindowPygame(WindowBase):
                 Logger.warning('WinPygame: Video: failed (multisamples=%d)' %
                                multisamples)
                 Logger.warning('WinPygame: trying without antialiasing')
-                pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 0)
-                pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 0)
+                pygame.display.gl_set_attribute(
+                    pygame.GL_MULTISAMPLEBUFFERS, 0)
+                pygame.display.gl_set_attribute(
+                    pygame.GL_MULTISAMPLESAMPLES, 0)
                 multisamples = 0
                 try:
                     self._pygame_set_mode()
@@ -143,22 +158,25 @@ class WindowPygame(WindowBase):
         # more debug output.
         Logger.debug('Window: Display driver ' + pygame.display.get_driver())
         Logger.debug('Window: Actual window size: %dx%d',
-                info.current_w, info.current_h)
+                     info.current_w, info.current_h)
         if platform != 'android':
             # unsupported platform, such as android that doesn't support
             # gl_get_attribute.
-            Logger.debug('Window: Actual color bits r%d g%d b%d a%d',
-                    pygame.display.gl_get_attribute(pygame.GL_RED_SIZE),
-                    pygame.display.gl_get_attribute(pygame.GL_GREEN_SIZE),
-                    pygame.display.gl_get_attribute(pygame.GL_BLUE_SIZE),
-                    pygame.display.gl_get_attribute(pygame.GL_ALPHA_SIZE))
-            Logger.debug('Window: Actual depth bits: %d',
-                    pygame.display.gl_get_attribute(pygame.GL_DEPTH_SIZE))
-            Logger.debug('Window: Actual stencil bits: %d',
-                    pygame.display.gl_get_attribute(pygame.GL_STENCIL_SIZE))
-            Logger.debug('Window: Actual multisampling samples: %d',
-                    pygame.display.gl_get_attribute(
-                        pygame.GL_MULTISAMPLESAMPLES))
+            Logger.debug(
+                'Window: Actual color bits r%d g%d b%d a%d',
+                pygame.display.gl_get_attribute(pygame.GL_RED_SIZE),
+                pygame.display.gl_get_attribute(pygame.GL_GREEN_SIZE),
+                pygame.display.gl_get_attribute(pygame.GL_BLUE_SIZE),
+                pygame.display.gl_get_attribute(pygame.GL_ALPHA_SIZE))
+            Logger.debug(
+                'Window: Actual depth bits: %d',
+                pygame.display.gl_get_attribute(pygame.GL_DEPTH_SIZE))
+            Logger.debug(
+                'Window: Actual stencil bits: %d',
+                pygame.display.gl_get_attribute(pygame.GL_STENCIL_SIZE))
+            Logger.debug(
+                'Window: Actual multisampling samples: %d',
+                pygame.display.gl_get_attribute(pygame.GL_MULTISAMPLESAMPLES))
         super(WindowPygame, self).create_window()
 
         # set mouse visibility
@@ -179,22 +197,58 @@ class WindowPygame(WindowBase):
             pygame.display.set_caption(self.title)
 
     def set_icon(self, filename):
+        if not exists(filename):
+            return False
         try:
-            if not exists(filename):
-                return False
-            if PY2:
+            if platform == 'win':
                 try:
-                    im = pygame.image.load(filename)
-                except UnicodeEncodeError:
-                    im = pygame.image.load(filename.encode('utf8'))
-            else:
-                im = pygame.image.load(filename)
-            if im is None:
-                raise Exception('Unable to load window icon (not found)')
-            pygame.display.set_icon(im)
+                    if self._set_icon_win(filename):
+                        return True
+                except:
+                    # fallback on standard loading then.
+                    pass
+
+            # for all others platform, or if the ico is not available, use the
+            # default way to set it.
+            self._set_icon_standard(filename)
             super(WindowPygame, self).set_icon(filename)
         except:
             Logger.exception('WinPygame: unable to set icon')
+
+    def _set_icon_standard(self, filename):
+        if PY2:
+            try:
+                im = pygame.image.load(filename)
+            except UnicodeEncodeError:
+                im = pygame.image.load(filename.encode('utf8'))
+        else:
+            im = pygame.image.load(filename)
+        if im is None:
+            raise Exception('Unable to load window icon (not found)')
+        pygame.display.set_icon(im)
+
+    def _set_icon_win(self, filename):
+        # ensure the window ico is ended by ico
+        if not filename.endswith('.ico'):
+            filename = '{}.ico'.format(filename.rsplit('.', 1)[0])
+        if not exists(filename):
+            return False
+
+        import win32api
+        import win32gui
+        import win32con
+        hwnd = pygame.display.get_wm_info()['window']
+        icon_big = win32gui.LoadImage(
+            None, filename, win32con.IMAGE_ICON,
+            48, 48, win32con.LR_LOADFROMFILE)
+        icon_small = win32gui.LoadImage(
+            None, filename, win32con.IMAGE_ICON,
+            16, 16, win32con.LR_LOADFROMFILE)
+        win32api.SendMessage(
+            hwnd, win32con.WM_SETICON, win32con.ICON_SMALL, icon_small)
+        win32api.SendMessage(
+            hwnd, win32con.WM_SETICON, win32con.ICON_BIG, icon_big)
+        return True
 
     def screenshot(self, *largs, **kwargs):
         global glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE
@@ -202,34 +256,24 @@ class WindowPygame(WindowBase):
         if filename is None:
             return None
         if glReadPixels is None:
-            from kivy.core.gl import glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE
+            from kivy.graphics.opengl import (glReadPixels, GL_RGBA,
+                                              GL_UNSIGNED_BYTE)
         width, height = self.system_size
         data = glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE)
-        data = str(buffer(data))
+        if PY2:
+            data = str(buffer(data))
+        else:
+            data = bytes(bytearray(data))
         surface = pygame.image.fromstring(data, (width, height), 'RGBA', True)
         pygame.image.save(surface, filename)
         Logger.debug('Window: Screenshot saved at <%s>' % filename)
         return filename
 
-    def on_keyboard(self, key,
-        scancode=None, codepoint=None, modifier=None, **kwargs):
-
-        codepoint = codepoint or kwargs.get('unicode')
-        # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
-        # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = platform == 'darwin'
-        if _exit_on_escape and (key == 27 or
-                (is_osx and key in (113, 119) and modifier == 1024)):
-            stopTouchApp()
-            self.close()  # not sure what to do here
-            return True
-        super(WindowPygame, self).on_keyboard(key, scancode,
-            codepoint=codepoint, modifier=modifier)
-
     def flip(self):
         pygame.display.flip()
         super(WindowPygame, self).flip()
 
+    @deprecated
     def toggle_fullscreen(self):
         if self.flags & pygame.FULLSCREEN:
             self.flags &= ~pygame.FULLSCREEN
@@ -244,6 +288,8 @@ class WindowPygame(WindowBase):
 
             # kill application (SIG_TERM)
             if event.type == pygame.QUIT:
+                if self.dispatch('on_request_close'):
+                    continue
                 EventLoop.quit = True
                 self.close()
 
@@ -293,7 +339,7 @@ class WindowPygame(WindowBase):
                 # atm, don't handle keyup
                 if event.type == pygame.KEYUP:
                     self.dispatch('on_key_up', event.key,
-                        event.scancode)
+                                  event.scancode)
                     continue
 
                 # don't dispatch more key if down event is accepted
@@ -319,8 +365,8 @@ class WindowPygame(WindowBase):
 
             # drop file (pygame patch needed)
             elif event.type == pygame.USEREVENT and \
-                hasattr(pygame, 'USEREVENT_DROPFILE') and \
-                event.code == pygame.USEREVENT_DROPFILE:
+                    hasattr(pygame, 'USEREVENT_DROPFILE') and \
+                    event.code == pygame.USEREVENT_DROPFILE:
                 self.dispatch('on_dropfile', event.filename)
 
             '''

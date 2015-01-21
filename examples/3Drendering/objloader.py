@@ -2,9 +2,9 @@ class MeshData(object):
     def __init__(self, **kwargs):
         self.name = kwargs.get("name")
         self.vertex_format = [
-            ('v_pos', 3, 'float'),
-            ('v_normal', 3, 'float'),
-            ('v_tc0', 2, 'float')]
+            (b'v_pos', 3, 'float'),
+            (b'v_normal', 3, 'float'),
+            (b'v_tc0', 2, 'float')]
         self.vertices = []
         self.indices = []
 
@@ -20,12 +20,12 @@ class MeshData(object):
             p2 = [vs[v2i + c] for c in range(3)]
             p3 = [vs[v3i + c] for c in range(3)]
 
-            u,v  = [0,0,0], [0,0,0]
+            u, v = [0, 0, 0], [0, 0, 0]
             for j in range(3):
                 v[j] = p2[j] - p1[j]
                 u[j] = p3[j] - p1[j]
 
-            n = [0,0,0]
+            n = [0, 0, 0]
             n[0] = u[1] * v[2] - u[2] * v[1]
             n[1] = u[2] * v[0] - u[0] * v[2]
             n[2] = u[0] * v[1] - u[1] * v[0]
@@ -38,33 +38,33 @@ class MeshData(object):
 
 class ObjFile:
     def finish_object(self):
-        if self._current_object == None:
+        if self._current_object is None:
             return
 
         mesh = MeshData()
         idx = 0
         for f in self.faces:
-            verts =  f[0]
+            verts = f[0]
             norms = f[1]
             tcs = f[2]
             for i in range(3):
                 #get normal components
                 n = (0.0, 0.0, 0.0)
                 if norms[i] != -1:
-                    n = self.normals[norms[i]-1]
+                    n = self.normals[norms[i] - 1]
 
                 #get texture coordinate components
                 t = (0.0, 0.0)
                 if tcs[i] != -1:
-                    t = self.texcoords[tcs[i]-1]
+                    t = self.texcoords[tcs[i] - 1]
 
                 #get vertex components
-                v = self.vertices[verts[i]-1]
+                v = self.vertices[verts[i] - 1]
 
                 data = [v[0], v[1], v[2], n[0], n[1], n[2], t[0], t[1]]
                 mesh.vertices.extend(data)
 
-            tri = [idx, idx+1, idx+2]
+            tri = [idx, idx + 1, idx + 2]
             mesh.indices.extend(tri)
             idx += 3
 
@@ -84,10 +84,13 @@ class ObjFile:
 
         material = None
         for line in open(filename, "r"):
-            if line.startswith('#'): continue
-            if line.startswith('s'): continue
+            if line.startswith('#'):
+                continue
+            if line.startswith('s'):
+                continue
             values = line.split()
-            if not values: continue
+            if not values:
+                continue
             if values[0] == 'o':
                 self.finish_object()
                 self._current_object = values[1]
@@ -96,12 +99,12 @@ class ObjFile:
             #elif values[0] in ('usemtl', 'usemat'):
             #    material = values[1]
             if values[0] == 'v':
-                v = map(float, values[1:4])
+                v = list(map(float, values[1:4]))
                 if swapyz:
                     v = v[0], v[2], v[1]
                 self.vertices.append(v)
             elif values[0] == 'vn':
-                v = map(float, values[1:4])
+                v = list(map(float, values[1:4]))
                 if swapyz:
                     v = v[0], v[2], v[1]
                 self.normals.append(v)
@@ -131,9 +134,11 @@ def MTL(filename):
     mtl = None
     return
     for line in open(filename, "r"):
-        if line.startswith('#'): continue
+        if line.startswith('#'):
+            continue
         values = line.split()
-        if not values: continue
+        if not values:
+            continue
         if values[0] == 'newmtl':
             mtl = contents[values[1]] = {}
         elif mtl is None:

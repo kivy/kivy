@@ -51,7 +51,6 @@ To remove the Inspector, you can do the following::
     inspector.stop(Window, button)
 
 '''
-
 __all__ = ('start', 'stop', 'create_inspector')
 
 import kivy
@@ -70,17 +69,18 @@ from kivy.uix.treeview import TreeViewNode
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.modalview import ModalView
 from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix, \
-        Translate, Rotate, Scale
+    Translate, Rotate, Scale
 from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
-        NumericProperty, StringProperty, OptionProperty, \
-        ReferenceListProperty, AliasProperty, VariableListProperty
+    NumericProperty, StringProperty, OptionProperty, \
+    ReferenceListProperty, AliasProperty, VariableListProperty
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from functools import partial
+from itertools import chain
 from kivy.lang import Builder
 from kivy.vector import Vector
-
 
 Builder.load_string('''
 <Inspector>:
@@ -130,7 +130,7 @@ Builder.load_string('''
                 text: 'Parent'
                 on_release:
                     root.highlight_widget(root.widget.parent) if root.widget \
-                            and root.widget.parent is not root.win else None
+                            else None
                 size_hint_x: None
                 width: 80
 
@@ -147,6 +147,8 @@ Builder.load_string('''
         # Bottom Bar
         BoxLayout:
             ScrollView:
+                scroll_type: ['bars', 'content']
+                bar_width: 10
                 TreeView:
                     id: treeview
                     size_hint_y: None
@@ -166,7 +168,7 @@ Builder.load_string('''
         size_hint_x: None
     Label:
         id: ltext
-        text: [repr(getattr(root.widget, root.key)), root.refresh][0]\
+        text: [repr(getattr(root.widget, root.key, '')), root.refresh][0]\
                 if root.widget else ''
         text_size: (self.width, None)
 ''')
@@ -228,7 +230,8 @@ class Inspector(FloatLayout):
 
     def on_touch_down(self, touch):
         ret = super(Inspector, self).on_touch_down(touch)
-        if not ret and self.inspect_enabled:
+        if (('button' not in touch.profile or touch.button == 'left')
+                and not ret and self.inspect_enabled):
             self.highlight_at(*touch.pos)
             if touch.is_double_tap:
                 self.inspect_enabled = False
@@ -259,8 +262,14 @@ class Inspector(FloatLayout):
 
     def highlight_at(self, x, y):
         widget = None
-        # reverse the loop - look at children on top first
-        for child in reversed(self.win.children):
+        # reverse the loop - look at children on top first and
+        # modalviews before others
+        win_children = self.win.children
+        children = chain(
+            (c for c in reversed(win_children) if isinstance(c, ModalView)),
+            (c for c in reversed(win_children) if not isinstance(c, ModalView))
+        )
+        for child in children:
             if child is self:
                 continue
             widget = self.pick(child, x, y)
@@ -287,8 +296,12 @@ class Inspector(FloatLayout):
 
         # determine rotation
         a = Vector(1, 0)
-        b = Vector(widget.to_window(*widget.to_parent(0, 0)))
-        c = Vector(widget.to_window(*widget.to_parent(1, 0))) - b
+        if widget is self.win:
+            b = Vector(widget.to_window(0, 0))
+            c = Vector(widget.to_window(1, 0))
+        else:
+            b = Vector(widget.to_window(*widget.to_parent(0, 0)))
+            c = Vector(widget.to_window(*widget.to_parent(1, 0))) - b
         angle = -a.angle(c)
 
         # determine scale
@@ -296,7 +309,10 @@ class Inspector(FloatLayout):
 
         # apply transform
         gr.size = widget.size
-        self.gtranslate.xy = Vector(widget.to_window(*widget.pos))
+        if widget is self.win:
+            self.gtranslate.xy = Vector(widget.to_window(0, 0))
+        else:
+            self.gtranslate.xy = Vector(widget.to_window(*widget.pos))
         self.grotate.angle = angle
         # fix warning about scale property deprecation
         self.gscale.xyz = (scale,) * 3
@@ -363,6 +379,7 @@ class Inspector(FloatLayout):
 
     def animation_close(self, instance, value):
         if self.activated is False:
+            self.inspect_enabled = False
             self.win.remove_widget(self)
             self.content.clear_widgets()
             treeview = self.treeview
@@ -402,8 +419,11 @@ class Inspector(FloatLayout):
             text = '%s' % key
             node = TreeViewProperty(text=text, key=key, widget_ref=wk_widget)
             node.bind(is_selected=self.show_property)
-            widget.bind(**{key: partial(
-                self.update_node_content, weakref.ref(node))})
+            try:
+                widget.bind(**{key: partial(
+                    self.update_node_content, weakref.ref(node))})
+            except:
+                pass
             treeview.add_node(node)
 
     def update_node_content(self, node, *l):
@@ -477,16 +497,17 @@ class Inspector(FloatLayout):
                 button = Button(text=repr(item), size_hint_y=None, height=44)
                 if isinstance(item, Widget):
                     button.bind(on_release=partial(self.highlight_widget, item,
-                        False))
+                                                   False))
                 else:
                     button.bind(on_release=partial(self.show_property, widget,
-                        item, key, i))
+                                                   item, key, i))
                 content.add_widget(button)
         elif isinstance(prop, OptionProperty):
             content = GridLayout(cols=1, size_hint_y=None)
             content.bind(minimum_height=content.setter('height'))
             for option in prop.options:
-                button = ToggleButton(text=option,
+                button = ToggleButton(
+                    text=option,
                     state='down' if option == value else 'normal',
                     group=repr(content.uid), size_hint_y=None,
                     height=44)
@@ -506,7 +527,7 @@ class Inspector(FloatLayout):
             state = 'down' if value else 'normal'
             content = ToggleButton(text=key, state=state)
             content.bind(on_release=partial(self.save_property_boolean, widget,
-                key, index))
+                                            key, index))
 
         self.content.clear_widgets()
         if content:
@@ -549,8 +570,8 @@ class Inspector(FloatLayout):
 
 def create_inspector(win, ctx, *l):
     '''Create an Inspector instance attached to the *ctx* and bound to the
-    Windows :py:func:`~kivy.core.window.WindowBase.on_keyboard` event for
-    capturing the keyboard shortcut.
+    Windows :meth:`~kivy.core.window.WindowBase.on_keyboard` event for capturing
+    the keyboard shortcut.
 
         :Parameters:
             `win`: A :class:`Window <kivy.core.window.WindowBase>`
@@ -563,7 +584,7 @@ def create_inspector(win, ctx, *l):
     # rules are applied.
     ctx.inspector = Inspector(win=win)
     win.bind(children=ctx.inspector.on_window_children,
-            on_keyboard=ctx.inspector.keyboard_shortcut)
+             on_keyboard=ctx.inspector.keyboard_shortcut)
 
 
 def start(win, ctx):
@@ -577,4 +598,3 @@ def stop(win, ctx):
                    on_keyboard=ctx.inspector.keyboard_shortcut)
         win.remove_widget(ctx.inspector)
         del ctx.inspector
-

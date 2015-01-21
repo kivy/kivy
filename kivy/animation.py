@@ -18,7 +18,7 @@ where you want the widget positioned at the end of the animation::
     anim = Animation(x=100, y=100)
     anim.start(widget)
 
-The animation will last for 1 second unless :data:`duration` is specified.
+The animation will last for 1 second unless :attr:`duration` is specified.
 When anim.start() is called, the Widget will move smoothly from the current
 x/y position to (100, 100).
 
@@ -26,7 +26,7 @@ Multiple properties and transitions
 -----------------------------------
 
 You can animate multiple properties and use built-in or custom transition
-functions using :data:`transition` (or the `t=` shortcut). For example,
+functions using :attr:`transition` (or the `t=` shortcut). For example,
 to animate the position and size using the 'in_quad' transition::
 
     anim = Animation(x=50, size=(80, 80), t='in_quad')
@@ -56,6 +56,12 @@ animating the size to (800, 800)::
     anim &= Animation(size=(800, 800), duration=2.)
     anim.start(widget)
 
+Keep in mind that creating overlapping animations on the same property may have
+unexpected results. If you want to apply multiple animations to the same
+property, you should either schedule them sequentially (via the '+' operator or
+using the *on_complete* callback) or cancel previous animations using the
+:attr:`~Animation.cancel_all` method.
+
 Repeating animation
 -------------------
 
@@ -64,8 +70,8 @@ Repeating animation
 .. note::
     This is currently only implemented for 'Sequence' animations.
 
-To set an animation to repeat, simply set the :data:`Sequence.repeat` property to
-`True`::
+To set an animation to repeat, simply set the :attr:`Sequence.repeat`
+property to `True`::
 
     anim = Animation(...) + Animation(...)
     anim.repeat = True
@@ -81,19 +87,20 @@ from math import sqrt, cos, sin, pi
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
 from kivy.compat import string_types, iterkeys
+from weakref import ProxyType
 
 
 class Animation(EventDispatcher):
     '''Create an animation definition that can be used to animate a Widget.
 
     :Parameters:
-        `duration` or `d`: float, default to 1.
+        `duration` or `d`: float, defaults to 1.
             Duration of the animation, in seconds.
         `transition` or `t`: str or func
             Transition function for animate properties. It can be the name of a
             method from :class:`AnimationTransition`.
         `step` or `s`: float
-            Step in milliseconds of the animation. Default to 1 / 60.
+            Step in milliseconds of the animation. Defaults to 1 / 60.
 
     :Events:
         `on_start`: widget
@@ -169,7 +176,7 @@ class Animation(EventDispatcher):
     @staticmethod
     def cancel_all(widget, *largs):
         '''Cancel all animations that concern a specific widget / list of
-        properties. See :data:`cancel`.
+        properties. See :attr:`cancel`.
 
         Example::
 
@@ -207,7 +214,7 @@ class Animation(EventDispatcher):
 
     def cancel(self, widget):
         '''Cancel the animation previously applied to a widget. Same
-        effect as :data:`stop`, except the `on_complete` event will
+        effect as :attr:`stop`, except the `on_complete` event will
         *not* be triggered!
 
         .. versionadded:: 1.4.0
@@ -220,7 +227,7 @@ class Animation(EventDispatcher):
     def stop_property(self, widget, prop):
         '''Even if an animation is running, remove a property. It will not be
         animated futher. If it was the only/last property being animated,
-        the animation will be stopped (see :data:`stop`).
+        the animation will be stopped (see :attr:`stop`).
         '''
         props = self._widgets.get(widget.uid, None)
         if not props:
@@ -234,7 +241,7 @@ class Animation(EventDispatcher):
     def cancel_property(self, widget, prop):
         '''Even if an animation is running, remove a property. It will not be
         animated further. If it was the only/last property being animated,
-        the animation will be canceled (see :data:`cancel`)
+        the animation will be canceled (see :attr:`cancel`)
 
         .. versionadded:: 1.4.0
         '''
@@ -275,7 +282,12 @@ class Animation(EventDispatcher):
         # get current values
         p = d['properties']
         for key, value in self._animated_properties.items():
-            p[key] = (getattr(widget, key), value)
+            original_value = getattr(widget, key)
+            if isinstance(original_value, (tuple, list)):
+                original_value = original_value[:]
+            elif isinstance(original_value, dict):
+                original_value = original_value.copy()
+            p[key] = (original_value, value)
 
         # install clock
         self._clock_install()
@@ -299,13 +311,22 @@ class Animation(EventDispatcher):
         for uid in list(widgets.keys())[:]:
             anim = widgets[uid]
             widget = anim['widget']
+
+            if isinstance(widget, ProxyType) and not len(dir(widget)):
+                # empty proxy, widget is gone. ref: #2458
+                del widgets[uid]
+                continue
+
             if anim['time'] is None:
                 anim['time'] = 0.
             else:
                 anim['time'] += dt
 
             # calculate progression
-            progress = min(1., anim['time'] / self._duration)
+            if self._duration:
+                progress = min(1., anim['time'] / self._duration)
+            else:
+                progress = 1
             t = transition(progress)
 
             # apply progression on widget
@@ -373,7 +394,6 @@ class Sequence(Animation):
         self.anim2 = anim2
 
         self.anim1.bind(on_start=self.on_anim1_start,
-                        on_complete=self.on_anim1_complete,
                         on_progress=self.on_anim1_progress)
         self.anim2.bind(on_complete=self.on_anim2_complete,
                         on_progress=self.on_anim2_progress)
@@ -387,6 +407,7 @@ class Sequence(Animation):
         self._widgets[widget.uid] = True
         self._register()
         self.anim1.start(widget)
+        self.anim1.bind(on_complete=self.on_anim1_complete)
 
     def stop(self, widget):
         self.anim1.stop(widget)
@@ -400,7 +421,7 @@ class Sequence(Animation):
         self.anim1.stop_property(widget, prop)
         self.anim2.stop_property(widget, prop)
         if (not self.anim1.have_properties_to_animate(widget) and
-            not self.anim2.have_properties_to_animate(widget)):
+                not self.anim2.have_properties_to_animate(widget)):
             self.stop(widget)
 
     def cancel(self, widget):
@@ -412,6 +433,7 @@ class Sequence(Animation):
         self.dispatch('on_start', widget)
 
     def on_anim1_complete(self, instance, widget):
+        self.anim1.unbind(on_complete=self.on_anim1_complete)
         self.anim2.start(widget)
 
     def on_anim1_progress(self, instance, widget, progress):
@@ -419,11 +441,12 @@ class Sequence(Animation):
 
     def on_anim2_complete(self, instance, widget):
         '''Repeating logic used with boolean variable "repeat".
-        
+
         .. versionadded:: 1.7.1
         '''
         if self.repeat:
             self.anim1.start(widget)
+            self.anim1.bind(on_complete=self.on_anim1_complete)
         else:
             self.dispatch('on_complete', widget)
 
@@ -465,7 +488,7 @@ class Parallel(Animation):
         self.anim1.stop_property(widget, prop)
         self.anim2.stop_property(widget, prop)
         if (not self.anim1.have_properties_to_animate(widget) and
-            not self.anim2.have_properties_to_animate(widget)):
+                not self.anim2.have_properties_to_animate(widget)):
             self.stop(widget)
 
     def cancel(self, widget):
