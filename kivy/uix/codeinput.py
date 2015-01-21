@@ -73,8 +73,22 @@ class CodeInput(TextInput):
 
     '''
 
+    style = ObjectProperty(None)
+    '''The pygments style object to use for formatting.
+
+    When ``style_name`` is set, this will be changed to the
+    corresponding style object.
+
+    :attr:`style` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to ``None``
+
+    '''
+
     def __init__(self, **kwargs):
-        self.formatter = BBCodeFormatter()
+        stylename = kwargs.get('style_name', 'default')
+        style = kwargs['style'] if 'style' in kwargs \
+            else styles.get_style_by_name(stylename)
+        self.formatter = BBCodeFormatter(style=style)
         self.lexer = lexers.PythonLexer()
         self.text_color = '#000000'
         self._label_cached = Label()
@@ -96,9 +110,10 @@ class CodeInput(TextInput):
             self.background_color = [.9, .92, .92, 1]
 
     def on_style_name(self, *args):
-        self.formatter = BBCodeFormatter(
-            style=styles.get_style_by_name(self.style_name)
-        )
+        self.style = styles.get_style_by_name(self.style_name)
+
+    def on_style(self, *args):
+        self.formatter = BBCodeFormatter(style=self.style)
         self._trigger_update_graphics()
 
     def _create_line_label(self, text, hint=False):
