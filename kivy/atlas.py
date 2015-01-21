@@ -4,18 +4,21 @@ Atlas
 
 .. versionadded:: 1.1.0
 
-Atlas is a class for managing texture atlases: packing multiple textures into
+Atlas manages texture atlases: packing multiple textures into
 one. With it, you reduce the number of images loaded and speedup the
 application loading.
 
-An Atlas is composed of:
+This file contains both the Atlas class and command line processing for creating
+an atlas from a set of individual PNG files.   The command line section requires
+the Python Imaging Library (PIL) or its successor Pillow to be installed.
 
-    - a json file (.atlas) that contains all the information about the images
-      contained inside the atlas.
-    - one or multiple atlas images associated with the atlas definition.
+An Atlas is composed of files:
 
-Definition of .atlas
---------------------
+    - a json file (.atlas) that contains the image file names and texture locations of the atlas.
+    - one or multiple image files containing textures referenced by the .atlas file.
+
+Definition of .atlas files
+--------------------------
 
 A file with ``<basename>.atlas`` is a json file formatted like this::
 
@@ -28,7 +31,7 @@ A file with ``<basename>.atlas`` is a json file formatted like this::
         # ...
     }
 
-Example of the Kivy ``defaulttheme.atlas``::
+Example from the Kivy ``data/images/defaulttheme.atlas``::
 
     {
         "defaulttheme-0.png": {
@@ -40,21 +43,26 @@ Example of the Kivy ``defaulttheme.atlas``::
         }
     }
 
+In this example, "defaulttheme-0.png" is a large image, with the pixels in the rectangle from
+(431, 224) to (431 + 59, 224 + 24) usable as ``atlas://data/images/defaulttheme/progressbar_background`` in
+any image parameter.
+
 How to create an Atlas
 ----------------------
 
 .. warning::
 
-    The atlas creation requires Imaging/PIL. This will be removed in the future
-    when the Kivy core Image is able to support loading / blitting / saving
+    The atlas creation requires the Pillow library (or the defunct Imaging/PIL library). This requirement will be
+    removed in the future when the Kivy core Image is able to support loading, blitting, and saving
     operations.
 
 You can directly use this module to create atlas files with this command::
 
     $ python -m kivy.atlas <basename> <size> <list of images...>
 
+
 Let's say you have a list of images that you want to put into an Atlas. The
-directory is named ``images`` with lots of png files inside::
+directory is named ``images`` with lots of 64x64 png files inside::
 
     $ ls
     images
@@ -64,14 +72,15 @@ directory is named ``images`` with lots of png files inside::
 
 You can combine all the png's into one and generate the atlas file with::
 
-    $ python -m kivy.atlas myatlas 256 *.png
+    $ python -m kivy.atlas myatlas 256x256 *.png
     Atlas created at myatlas.atlas
     1 image has been created
     $ ls
     bubble.png bubble-red.png button.png button-down.png myatlas.atlas
     myatlas-0.png
 
-As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
+As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.  ``myatlas-0.png``
+is a new 256x256 .png composed of all your images.
 
 .. note::
 
