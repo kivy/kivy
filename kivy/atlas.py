@@ -382,8 +382,8 @@ if __name__ == '__main__':
     import sys
     argv = sys.argv[1:]
     if len(argv) < 3:
-        print('Usage: python -m kivy.atlas [--use-path] '
-              '[--padding=2] <outname> '
+        print('Usage: python -m kivy.atlas [-- [--use-path] '
+              '[--padding=2]] <outname> '
               '<size|512x256> <img1.png> [<img2.png>, ...]')
         sys.exit(1)
 
