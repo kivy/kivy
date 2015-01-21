@@ -408,7 +408,7 @@ if __name__ == '__main__':
         else:
             size = int(argv[1])
     except ValueError:
-        print('Error: size must be an integer')
+        print('Error: size must be an integer or <integer>x<integer>')
         sys.exit(1)
 
     filenames = argv[2:]
