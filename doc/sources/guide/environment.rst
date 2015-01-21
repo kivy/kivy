@@ -52,6 +52,12 @@ KIVY_SDL2_PATH
 
     .. versionadded:: 1.9.0
 
+    .. warning::
+
+        Must be used during the compilation of Kivy. It is not required for the
+        execution.
+
+
 Configuration
 -------------
 
@@ -67,6 +73,17 @@ KIVY_NO_FILELOG
 
 KIVY_NO_CONSOLELOG
     If set, logs will be not print on the console
+
+KIVY_NO_ARGS
+    If set, the argument passed in command line will not be parsed and used by Kivy.
+    Ie, you can safely make a script or an app with your own arguments without
+    requiring the `--` delimiter::
+
+        import os
+        os.environ["KIVY_NO_ARGS"] = "1"
+        import kivy
+
+    .. versionadded:: 1.9.0
 
 Restrict core to specific implementation
 ----------------------------------------
