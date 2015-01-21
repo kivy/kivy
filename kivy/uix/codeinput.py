@@ -36,12 +36,13 @@ __all__ = ('CodeInput', )
 
 from pygments import highlight
 from pygments import lexers
+from pygments import styles
 from pygments.formatters import BBCodeFormatter
 
 from kivy.uix.textinput import TextInput
 from kivy.core.text.markup import MarkupLabel as Label
 from kivy.cache import Cache
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, StringProperty
 from kivy.utils import get_hex_from_color
 
 Cache_get = Cache.get
@@ -60,6 +61,14 @@ class CodeInput(TextInput):
 
     :attr:`lexer` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to `PythonLexer`.
+    '''
+
+    style_name = StringProperty('default')
+    '''Name of the pygments style to use for formatting.
+
+    :attr:`style_name` is a :class:`~kivy.properties.StringProperty`
+    and defaults to ``'default'``.
+
     '''
 
     def __init__(self, **kwargs):
@@ -83,6 +92,7 @@ class CodeInput(TextInput):
         self.foreground_color = [1, 1, 1, .999]
         if not kwargs.get('background_color'):
             self.background_color = [.9, .92, .92, 1]
+        self.bind(style_name=self._trigger_update_graphics)
 
     def _create_line_label(self, text, hint=False):
         # Create a label from a text, using line options
@@ -138,7 +148,9 @@ class CodeInput(TextInput):
             # replace brackets with special chars that aren't highlighted
             # by pygment. can't use &bl; ... cause & is highlighted
             ntext = ntext.replace(u'[', u'\x01;').replace(u']', u'\x02;')
-            ntext = highlight(ntext, self.lexer, self.formatter)
+            ntext = highlight(ntext, self.lexer, BBCodeFormatter(
+                style=styles.get_style_by_name(self.style_name)
+            ))
             ntext = ntext.replace(u'\x01;', u'&bl;').replace(u'\x02;', u'&br;')
             # replace special chars with &bl; and &br;
             ntext = ''.join((u'[color=', str(self.text_color), u']',
