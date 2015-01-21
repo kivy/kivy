@@ -164,10 +164,24 @@ cdef class PopState(ContextInstruction):
 
 
 cdef class Color(ContextInstruction):
-    '''Instruction to set the color state for any vertices being drawn after it.
-    All the values passed are between 0 and 1, not 0 and 255.
+    '''
+    Instruction to set the color state for any vertices being
+    drawn after it.
 
-    In Python, you can do::
+    This represents a color between 0 and 1, but is applied as a
+    *multiplier* to the texture of any vertex instructions following
+    it in a canvas. If no texture is set, the vertex instruction
+    takes the precise color of the Color instruction.
+
+    For instance, if a Rectangle has a texture with uniform color
+    ``(0.5, 0.5, 0.5, 1.0)`` and the preceding Color has
+    ``rgba=(1, 0.5, 2, 1)``, the actual visible color will be
+    ``(0.5, 0.25, 1.0, 1.0)`` since the Color instruction is applied as
+    a multiplier to every rgba component. In this case, a Color
+    component outside the 0-1 range gives a visible result as the
+    intensity of the blue component is doubled.
+
+    To declare a Color in Python, you can do::
 
         from kivy.graphics import Color
 
@@ -224,6 +238,12 @@ cdef class Color(ContextInstruction):
                 self.rgb = args
             else:
                 self.set_state('color', [1.0, 1.0, 1.0, 1.0])
+
+        for property_name in ['r', 'g', 'b', 'a',
+                              'rgb', 'rgba', 'hsv',
+                              'h', 's', 'v']:
+            if property_name in kwargs:
+                setattr(self, property_name, kwargs['property_name'])
 
     property rgba:
         '''RGBA color, list of 4 values in 0-1 range.
