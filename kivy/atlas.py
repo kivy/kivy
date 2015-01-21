@@ -284,8 +284,8 @@ class Atlas(EventDispatcher):
             imh += padding
             if imw > size_w or imh > size_h:
                 Logger.error(
-                    'Atlas: image %s is larger than the atlas size!' %
-                    imageinfo[0])
+                    'Atlas: image %s (%d by %d) is larger than the atlas size!' %
+                    (imageinfo[0], imw, imh))
                 return
 
             inserted = False
