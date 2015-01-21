@@ -66,7 +66,7 @@ You can combine all the png's into one and generate the atlas file with::
 
     $ python -m kivy.atlas myatlas 256 *.png
     Atlas created at myatlas.atlas
-    1 image have been created
+    1 image has been created
     $ ls
     bubble.png bubble-red.png button.png button-down.png myatlas.atlas
     myatlas-0.png
@@ -419,5 +419,5 @@ if __name__ == '__main__':
 
     fn, meta = ret
     print('Atlas created at', fn)
-    print('%d image%s have been created' % (len(meta),
-          's' if len(meta) > 1 else ''))
+    print('%d image%s been created' % (len(meta),
+          's have' if len(meta) > 1 else ' has'))
