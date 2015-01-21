@@ -121,12 +121,16 @@ class Popup(ModalView):
     title_align = OptionProperty('left', options=['left', 'center', 'right','justify'])
     '''Horizontal alignment of the title.
 
+    .. versionadded:: 1.9.0
+
     :attr:`title_align` is a :class:`~kivy.properties.OptionProperty` and
     defaults to 'left'. Available options are left, middle, right and justify.
     '''
 
     title_font = StringProperty('DroidSans')
     '''Font used to render the title text.
+
+    .. versionadded:: 1.9.0
 
     :attr:`title_font` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'DroidSans'.
