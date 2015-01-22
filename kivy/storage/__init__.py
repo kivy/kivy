@@ -398,6 +398,6 @@ class AbstractStore(EventDispatcher):
     # Privates
     #
 
-    def _schedule(self, callback, **kwargs):
+    def _schedule(self, cb, **kwargs):
         # XXX not entirely sure about the best value (0 or -1).
-        Clock.schedule_once(partial(callback, **kwargs), 0)
+        Clock.schedule_once(partial(cb, **kwargs), 0)
