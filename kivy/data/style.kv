@@ -1016,17 +1016,29 @@
 # =============================================================================
 
 <CheckBox>:
-    checkbox_state_image: self.background_checkbox_down if self.active else self.background_checkbox_normal
-    checkbox_disabled_image: self.background_checkbox_disabled_down if self.active else self.background_checkbox_disabled_normal
-    radio_state_image: self.background_radio_down if self.active else self.background_radio_normal
-    radio_disabled_image: self.background_radio_disabled_down if self.active else self.background_radio_disabled_normal
-    checkbox_image: self.checkbox_disabled_image if self.disabled else self.checkbox_state_image
-    radio_image: self.radio_disabled_image if self.disabled else self.radio_state_image
+    _checkbox_state_image:
+        self.background_checkbox_down \
+        if self.active else self.background_checkbox_normal
+    _checkbox_disabled_image:
+        self.background_checkbox_disabled_down \
+        if self.active else self.background_checkbox_disabled_normal
+    _radio_state_image:
+        self.background_radio_down \
+        if self.active else self.background_radio_normal
+    _radio_disabled_image:
+        self.background_radio_disabled_down \
+        if self.active else self.background_radio_disabled_normal
+    _checkbox_image:
+        self._checkbox_disabled_image \
+        if self.disabled else self._checkbox_state_image
+    _radio_image:
+        self._radio_disabled_image \
+        if self.disabled else self._radio_state_image
     canvas:
         Color:
             rgb: 1, 1, 1
         Rectangle:
-            source: self.radio_image if self.group else self.checkbox_image
+            source: self._radio_image if self.group else self._checkbox_image
             size: sp(32), sp(32)
             pos: int(self.center_x - sp(16)), int(self.center_y - sp(16))
 
