@@ -1016,10 +1016,10 @@
 # =============================================================================
 
 <CheckBox>:
-    checkbox_state_image: self.background_checkbox_normal if self.state == 'normal' else self.background_checkbox_down
-    checkbox_disabled_image: self.background_checkbox_disabled_normal if self.state == 'normal' else self.background_checkbox_disabled_down
-    radio_state_image: self.background_radio_normal if self.state == 'normal' else self.background_radio_down
-    radio_disabled_image: self.background_radio_disabled_normal if self.state == 'normal' else self.background_radio_disabled_down
+    checkbox_state_image: self.background_checkbox_normal if self.active else self.background_checkbox_down
+    checkbox_disabled_image: self.background_checkbox_disabled_normal if self.active else self.background_checkbox_disabled_down
+    radio_state_image: self.background_radio_normal if self.active else self.background_radio_down
+    radio_disabled_image: self.background_radio_disabled_normal if self.active else self.background_radio_disabled_down
     checkbox_image: self.checkbox_disabled_image if self.disabled else self.checkbox_state_image
     radio_image: self.radio_disabled_image if self.disabled else self.radio_state_image
     canvas:
