@@ -629,7 +629,7 @@ class ClockBase(_ClockBase):
                     # event may be already removed from original list
                     if event in events:
                         event.tick(self._last_tick, remove)
-        except Exception, e:
+        except Exception as e:
             if event:
                 if PY2:
                     raise type(e), type(e)(e.message + event.stack_string), \
@@ -664,7 +664,7 @@ class ClockBase(_ClockBase):
                         # event may be already removed from original list
                         if event in events:
                             event.tick(self._last_tick, remove)
-        except Exception, e:
+        except Exception as e:
             if event:
                 if PY2:
                     raise type(e), type(e)(e.message + event.stack_string), \
