@@ -25,7 +25,9 @@ def getoutput(cmd):
     p.wait()
     if p.returncode: # if not returncode == 0
         print('WARNING: A problem occured while running {0} (code {1})\n'.format(cmd,p.returncode))
-        print('{0}'.format(p.stderr.read()))
+        stderr_content = p.stderr.read()
+        if stderr_content:
+            print('{0}\n'.format(stderr_content))
         return ""
     return p.stdout.read()
 
