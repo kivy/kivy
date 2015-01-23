@@ -1162,8 +1162,6 @@ class TextInput(FocusBehavior, Widget):
         if not group:
             return
 
-        if not self._win:
-            self._set_window()
         self.remove_widget(self._handle_middle)
 
         handle_left = self._handle_left
@@ -1194,9 +1192,6 @@ class TextInput(FocusBehavior, Widget):
             return
 
         win = self._win
-        if not win:
-            self._set_window()
-            win = self._win
 
         handle_right = self._handle_right
         handle_left = self._handle_left
