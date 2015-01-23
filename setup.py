@@ -72,7 +72,7 @@ c_options['use_sdl2'] = None
 c_options['use_ios'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
-c_options['use_gstreamer'] = False
+c_options['use_gstreamer'] = None
 c_options['use_avfoundation'] = platform == 'darwin'
 c_options['use_osx_frameworks'] = platform == 'darwin'
 
@@ -269,7 +269,7 @@ if platform not in ('ios', 'android') and c_options['use_gstreamer'] in (None, T
 # detect SDL2, only on desktop
 # works if we forced the options or in autodetection
 sdl2_flags = {}
-if platform not in ('ios', 'android') and c_options['use_gstreamer'] in (None, True):
+if platform not in ('ios', 'android') and c_options['use_sdl2'] in (None, True):
 
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
