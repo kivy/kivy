@@ -24,6 +24,8 @@ class ClipboardWindows(ClipboardBase):
         user32.OpenClipboard(0)
         # 1 is CF_TEXT
         pcontents = user32.GetClipboardData(13)
+        if not pcontents:
+            return ''
         data = c_wchar_p(pcontents).value.encode('utf-16')
         #ctypes.windll.kernel32.GlobalUnlock(pcontents)
         user32.CloseClipboard()
