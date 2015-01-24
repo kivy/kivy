@@ -449,7 +449,6 @@ cdef extern from "SDL.h":
     cdef void SDL_GetWindowSize(SDL_Window * window, int *w, int *h)
     cdef Uint32 SDL_GetWindowFlags(SDL_Window * window)
     cdef SDL_Window * SDL_CreateWindow(char *title, int x, int y, int w, int h, Uint32 flags)
-    cdef SDL_Window * SDL_CreateShapedWindow(char *title, int x, int y, int w, int h, Uint32 flags)
     cdef void SDL_DestroyWindow (SDL_Window * window)
     cdef int SDL_SetRenderDrawColor(SDL_Renderer * renderer, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
     cdef int SDL_RenderClear(SDL_Renderer * renderer)
@@ -591,6 +590,9 @@ cdef extern from "SDL.h":
     Uint16 AUDIO_F32MSB #0x9120  /**< As above, but big-endian byte order */
     Uint16 AUDIO_F32    #AUDIO_F32LSB
 
+cdef extern from "SDL_shape.h":
+    cdef SDL_Window * SDL_CreateShapedWindow(char *title, unsigned int x,
+            unsigned int y, unsigned int w, unsigned int h, Uint32 flags)
 
 cdef extern from "SDL_image.h":
     ctypedef enum IMG_InitFlags:
