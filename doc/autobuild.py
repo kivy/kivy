@@ -261,4 +261,4 @@ for module in m:
 
 
 # Generation finished
-print('Generation finished, do make html')
+print('Auto-generation finished')
