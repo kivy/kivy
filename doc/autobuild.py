@@ -64,7 +64,7 @@ from kivy.factory import Factory
 BE_QUIET = False
 for arg in sys.argv:
     if "silenced=" in arg:
-        arg.split("=")[1] == "yes":
+        if arg.split("=")[1] == "yes":
             BE_QUIET = True
 
 # force loading of all classes from factory
