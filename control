@@ -4,31 +4,31 @@ Priority: optional
 Maintainer: Thomas-Karl Pietrowski <thopiekar@googlemail.com>
 Uploaders: Kivy Launchpad-Team <ubuntu@kivy.org>
 Build-Depends: debhelper (>= 7.0.50~), pkg-config,
-               # Python development files - metapackages for python2 and python3
-               python-all-dev (>= 2.7),   python3-deadsnakes-all-dev | python3-all-dev (>= 3.3),
-               # Cython2/3
-               cython,                    cython3,
-               # code unittest
-               python-nose,               python3-nose,
-               # measuring code coverage during during test execution
-               python-coverage,
-               # Mesa OpenGL / -ES development files
-               libgl1-mesa-dev, libgles2-mesa-dev,
-               # SDL(1) dependencies
-               libsdl-image1.2-dev, libsdl-ttf2.0-dev,
-               # SDL2 dependencies
-               libsdl2-dev, libsdl2-image-dev, libsdl2-mixer-dev, libsdl2-ttf-dev,
-               # SDL MPEG Player development files
-               libsmpeg-dev,
-               # libav development files
-               libswscale-dev, libavformat-dev, libavcodec-dev,
-               #gstreamer1.0 dependencies (gstreamer0.10 is just there to make builds work, when no gstreamer1.0 is available)
-               libgstreamer1.0-dev | libgstreamer0.10-dev,
+# Python development files - metapackages for python2 and python3
+ python-all-dev (>= 2.7),   python3-deadsnakes-all-dev | python3-all-dev (>= 3.3),
+# Cython2/3
+ cython,                    cython3,
+# code unittest
+ python-nose,               python3-nose,
+# measuring code coverage during during test execution
+ python-coverage,
+# Mesa OpenGL / -ES development files
+ libgl1-mesa-dev, libgles2-mesa-dev,
+# SDL(1) dependencies
+ libsdl-image1.2-dev, libsdl-ttf2.0-dev,
+# SDL2 dependencies
+ libsdl2-dev, libsdl2-image-dev, libsdl2-mixer-dev, libsdl2-ttf-dev,
+# SDL MPEG Player development files
+ libsmpeg-dev,
+# libav development files
+ libswscale-dev, libavformat-dev, libavcodec-dev,
+# gstreamer1.0 dependencies (gstreamer0.10 is just there to make builds work, when no gstreamer1.0 is available)
+ libgstreamer1.0-dev | libgstreamer0.10-dev,
 Build-Depends-Indep:          python-sphinx,             python3-sphinx,
-                              # X Window Virtual Framebuffer
-                              xvfb,
-                              # LaTex
-                              texlive-latex-base, texlive-latex-recommended, texlive-latex-extra, texlive-fonts-extra, texlive-fonts-recommended,
+# X Window Virtual Framebuffer
+ xvfb,
+# LaTex
+ texlive-latex-base, texlive-latex-recommended, texlive-latex-extra, texlive-fonts-extra, texlive-fonts-recommended,
 Standards-Version: 3.9.1
 Homepage: http://kivy.org/
 Vcs-Git:  https://github.com/kivy/kivy.git
