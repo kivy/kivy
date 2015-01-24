@@ -371,7 +371,7 @@ class Label(Widget):
     '''Font size of the text, in pixels.
 
     :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 12dp.
+    defaults to 15sp.
     '''
 
     line_height = NumericProperty(1.0)
