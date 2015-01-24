@@ -21,14 +21,22 @@ else:
 
 def getoutput(cmd):
     import subprocess
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-    return p.communicate()[0]
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr = subprocess.PIPE)
+    p.wait()
+    if p.returncode: # if not returncode == 0
+        print('WARNING: A problem occured while running {0} (code {1})\n'.format(cmd,p.returncode))
+        stderr_content = p.stderr.read()
+        if stderr_content:
+            print('{0}\n'.format(stderr_content))
+        return ""
+    return p.stdout.read()
 
 
 def pkgconfig(*packages, **kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
     cmd = 'pkg-config --libs --cflags {}'.format(' '.join(packages))
-    for token in getoutput(cmd).split():
+    results = getoutput(cmd).split()
+    for token in results:
         ext = token[:2].decode('utf-8')
         flag = flag_map.get(ext)
         if not flag:
