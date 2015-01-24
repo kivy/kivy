@@ -1,6 +1,8 @@
 # Makefile for Sphinx documentation
 #
 
+ENDUSER_BUILD	= yes
+
 # You can set these variables from the command line.
 PYTHON		= python
 SPHINXOPTS	= -Q
@@ -27,6 +29,12 @@ ALLSPHINXOPTS_TEST	= -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS_TEST) s
 ALLSPHINXOPTSGT		= -d build/doctrees_gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sources
 ALLSPHINXOPTSGT_TEST	= -d build/doctrees_gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS_TEST) sources
 
+ifeq ($(ENDUSER_BUILD),yes)
+	_TESTS = 
+else
+	_TESTS = _TEST
+endif
+
 .PHONY: help clean html web pickle htmlhelp latex changes linkcheck gettext
 
 help:
@@ -35,6 +43,8 @@ help:
 	@echo "  pickle    to make pickle files (usable by e.g. sphinx-web)"
 	@echo "  htmlhelp  to make HTML files and a HTML help project"
 	@echo "  latex     to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
+	@echo "  pdf       to make standalone PDF files"
+	@echo "  ps        to make standalone PS files"
 	@echo "  changes   to make an overview over all changed/added/deprecated items"
 	@echo "  linkcheck to check all external links for integrity"
 
@@ -49,14 +59,14 @@ endif
 html:
 	$(MKDIR) build$(P)html build$(P)doctrees
 	$(PYTHON) autobuild.py
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS$(_TESTS)) build/html
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."
 
 gettext:
 	$(MKDIR) build$(P)html build$(P)doctrees_gettext
 	$(PYTHON) autobuild.py
-	$(SPHINXBUILD) -b gettext $(ALLSPHINXOPTSGT) build/gettext
+	$(SPHINXBUILD) -b gettext $(ALLSPHINXOPTSGT$(_TESTS)) build/gettext
 	@echo
 	@echo "Build finished. The Gettext pages are in build/gettext."
 
@@ -64,7 +74,7 @@ gettext:
 pickle:
 	$(MKDIR) build$(P)pickle build$(P)doctrees
 	$(PYTHON) autobuild.py
-	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) build/pickle
+	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS$(_TESTS)) build/pickle
 	@echo
 	@echo "Build finished; now you can process the pickle files or run"
 	@echo "  sphinx-web build/pickle"
@@ -75,7 +85,7 @@ web: pickle
 htmlhelp:
 	$(MKDIR) build$(P)htmlhelp build$(P)doctrees
 	$(PYTHON) autobuild.py
-	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) build/htmlhelp
+	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS$(_TESTS)) build/htmlhelp
 	@echo
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
 	      ".hhp project file in build/htmlhelp."
@@ -83,23 +93,45 @@ htmlhelp:
 latex:
 	$(MKDIR) build$(P)latex build$(P)doctrees
 	$(PYTHON) autobuild.py
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) build/latex
+	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS$(_TESTS)) build/latex
 	@echo
 	@echo "Build finished; the LaTeX files are in build/latex."
-	@echo "Run \`make all-pdf' or \`make all-ps' in that directory to" \
+	@echo "Run \`make all-pdf' or \`make all-ps' to" \
 	      "run these through (pdf)latex."
+
+pdf: latex
+	$(MAKE) -C build$(P)latex all-pdf
+	@echo
+	@echo "Build finished; the PDF files are in build/latex."
+
+ps: latex
+	$(MAKE) -C build$(P)latex all-ps
+	@echo
+	@echo "Build finished; the PS files are in build/latex."
 
 changes:
 	$(MKDIR) build$(P)changes build$(P)doctrees
 	$(PYTHON) autobuild.py
-	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) build/changes
+	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS$(_TESTS)) build/changes
 	@echo
 	@echo "The overview file is in build/changes."
 
 linkcheck:
 	$(MKDIR) build$(P)linkcheck build$(P)doctrees
 	$(PYTHON) autobuild.py
-	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) build/linkcheck
+	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS$(_TESTS)) build/linkcheck
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in build/linkcheck/output.txt."
+
+enable-ENDUSER_BUILD:
+	$(ENDUSER_BUILD) = yes
+	$(_TESTS) =
+
+disable-ENDUSER_BUILD:
+	$(ENDUSER_BUILD) = no
+	$(_TESTS) = _TEST
+
+build-all: html pickle htmlhelp pdf ps gettext
+
+test: disable-ENDUSER_BUILD build-all
