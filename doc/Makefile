@@ -28,6 +28,8 @@ ALLSPHINXOPTS		= -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sources
 ALLSPHINXOPTS_TEST	= -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS_TEST) sources
 ALLSPHINXOPTSGT		= -d build/doctrees_gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sources
 ALLSPHINXOPTSGT_TEST	= -d build/doctrees_gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS_TEST) sources
+LATEXOPTS		= -interaction=batchmode
+LATEXOPTS_TESTS		= 
 
 ifeq ($(ENDUSER_BUILD),yes)
 	_TESTS = 
@@ -100,9 +102,16 @@ latex:
 	      "run these through (pdf)latex."
 
 pdf: latex
-	$(MAKE) -C build$(P)latex all-pdf
+	rm -f build$(P)latex$(P)Kivy.pdf
+	-$(MAKE) -C build$(P)latex all-pdf LATEXOPTS=$(LATEXOPTS$(_TESTS))
+ifneq ("$(wildcard build$(P)latex$(P)Kivy.pdf)","")
 	@echo
-	@echo "Build finished; the PDF files are in build/latex."
+	@echo "Build finished; the PDF file(s) are in build/latex."
+else
+	@echo
+	@echo "Build failed; there is no PDF file(s) in build/latex."
+	exit 1
+endif
 
 ps: latex
 	$(MAKE) -C build$(P)latex all-ps
@@ -124,14 +133,7 @@ linkcheck:
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in build/linkcheck/output.txt."
 
-enable-ENDUSER_BUILD:
-	$(ENDUSER_BUILD) = yes
-	$(_TESTS) =
-
-disable-ENDUSER_BUILD:
-	$(ENDUSER_BUILD) = no
-	$(_TESTS) = _TEST
-
 build-all: html pickle htmlhelp pdf ps gettext
 
-test: disable-ENDUSER_BUILD build-all
+# TODO: Make test run in non-enduser-build mode 
+test: build-all
