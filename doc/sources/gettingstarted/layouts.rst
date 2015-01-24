@@ -11,9 +11,11 @@ Layouts are containers used to arrange widgets in a particular manner::
     RelativeLayout: Child widgets are positioned relative to the layout.
     GridLayout:     Widgets are arranged in a grid defined by the `rows` and
                     `cols` properties.
-    PageLayout:     Used to create a simple multi-page layouts, in a way that
+    PageLayout:     Used to create simple multi-page layouts, in a way that
                     allows easy flipping from one page to another using
                     borders.
+    Scatter layout: Widgets are positioned similarly to a RelativeLayout, but
+                    they can be translated, rotate and scaled.
     StackLayout:    Widgets are stacked in a `lr-tb` (left to right then top to
                     bottom) or `tb-lr` order.
 
@@ -38,5 +40,6 @@ to:
 - :mod:`FloatLayout <kivy.uix.floatlayout>`
 - :mod:`GridLayout <kivy.uix.gridlayout>`
 - :mod:`PageLayout <kivy.uix.pagelayout>`
+- :mod:`ScatterLayout <kivy.uix.scatterlayout>`
 - :mod:`StackLayout <kivy.uix.stacklayout>`
 - :mod:`RelativeLayout <kivy.uix.relativelayout>`
