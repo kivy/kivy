@@ -102,9 +102,16 @@ latex:
 	      "run these through (pdf)latex."
 
 pdf: latex
-	$(MAKE) -C build$(P)latex all-pdf LATEXOPTS=$(LATEXOPTS$(_TESTS))
+	rm -f build$(P)latex$(P)Kivy.pdf
+	-$(MAKE) -C build$(P)latex all-pdf LATEXOPTS=$(LATEXOPTS$(_TESTS))
+ifneq ("$(wildcard build$(P)latex$(P)Kivy.pdf)","")
 	@echo
-	@echo "Build finished; the PDF files are in build/latex."
+	@echo "Build finished; the PDF file(s) are in build/latex."
+else
+	@echo
+	@echo "Build failed; there is no PDF file(s) in build/latex."
+	exit 1
+endif
 
 ps: latex
 	$(MAKE) -C build$(P)latex all-ps
