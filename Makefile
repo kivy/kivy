@@ -41,7 +41,7 @@ ios:
 	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "$(BUILDROOT)/python/lib/python2.7/site-packages"
 
 pdf:
-	$(MAKE) -C doc latex && make -C doc/build/latex all-pdf
+	$(MAKE) -C doc pdf
 
 html:
 	env USE_EMBEDSIGNATURE=1 $(MAKE) force

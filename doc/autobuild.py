@@ -60,6 +60,13 @@ import kivy.interactive
 import kivy.garden
 from kivy.factory import Factory
 
+# check for silenced build
+BE_QUIET = False
+for arg in sys.argv:
+    if "silenced=" in arg:
+        if arg.split("=")[1] == "yes":
+            BE_QUIET = True
+
 # force loading of all classes from factory
 for x in list(Factory.classes.keys())[:]:
     getattr(Factory, x)
@@ -75,7 +82,7 @@ def writefile(filename, data):
     global dest_dir
     # avoid to rewrite the file if the content didn't change
     f = os.path.join(dest_dir, filename)
-    print('write', filename)
+    if not BE_QUIET: print('write', filename)
     if os.path.exists(f):
         with open(f) as fd:
             if fd.read() == data:
@@ -254,4 +261,4 @@ for module in m:
 
 
 # Generation finished
-print('Generation finished, do make html')
+print('Auto-generation finished')
