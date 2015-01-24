@@ -4,6 +4,9 @@ KIVY_DIR = kivy/
 NOSETESTS = nosetests
 KIVY_USE_DEFAULTCONFIG = 1
 HOSTPYTHON = $(KIVYIOSROOT)/tmp/Python-$(PYTHON_VERSION)/hostpython
+
+GIT_COMMAND := $(shell which git)
+
 IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
 .PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean theming
@@ -81,7 +84,12 @@ clean:
 	-find . -iname '*.pyx' -exec sh -c 'echo `dirname {}`/`basename {} .pyx`.c' \; | xargs rm
 
 distclean: clean
+ifeq ($(GIT_COMMAND),)
+	@echo "Using GIT at $(GIT_COMMAND) to make a distclean..."
 	-git clean -dxf -e debian
+else
+	@echo "GIT not found to make a distclean..."
+endif
 
 theming:
 	$(PYTHON) -m kivy.atlas kivy/data/images/defaulttheme 512 kivy/tools/theming/defaulttheme/*.png
