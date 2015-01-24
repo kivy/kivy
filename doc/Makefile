@@ -28,6 +28,8 @@ ALLSPHINXOPTS		= -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sources
 ALLSPHINXOPTS_TEST	= -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS_TEST) sources
 ALLSPHINXOPTSGT		= -d build/doctrees_gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sources
 ALLSPHINXOPTSGT_TEST	= -d build/doctrees_gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS_TEST) sources
+LATEXOPTS		= -interaction=batchmode
+LATEXOPTS_TESTS		= 
 
 ifeq ($(ENDUSER_BUILD),yes)
 	_TESTS = 
@@ -100,7 +102,7 @@ latex:
 	      "run these through (pdf)latex."
 
 pdf: latex
-	$(MAKE) -C build$(P)latex all-pdf
+	$(MAKE) -C build$(P)latex all-pdf LATEXOPTS=$(LATEXOPTS$(_TESTS))
 	@echo
 	@echo "Build finished; the PDF files are in build/latex."
 
