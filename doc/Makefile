@@ -2,11 +2,11 @@
 #
 
 # You can set these variables from the command line.
-PYTHON		  = python
-SPHINXOPTS    = -W
-#SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build
-PAPER         =
+PYTHON		= python
+SPHINXOPTS	= -Q
+SPHINXOPTS_TEST	= -W
+SPHINXBUILD	= sphinx-build
+PAPER		=
 
 # platform indepnt path separator
 # only system calls need to use $(P), b/c on win system calls have issues with /
@@ -20,10 +20,12 @@ endif
 P=$(strip $(PATHSEP2))
 
 # Internal variables.
-PAPEROPT_a4     = -D latex_paper_size=a4
-PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS   = -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sources
-ALLSPHINXOPTSGT = -d build/doctrees_gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sources
+PAPEROPT_a4		= -D latex_paper_size=a4
+PAPEROPT_letter		= -D latex_paper_size=letter
+ALLSPHINXOPTS		= -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sources
+ALLSPHINXOPTS_TEST	= -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS_TEST) sources
+ALLSPHINXOPTSGT		= -d build/doctrees_gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sources
+ALLSPHINXOPTSGT_TEST	= -d build/doctrees_gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS_TEST) sources
 
 .PHONY: help clean html web pickle htmlhelp latex changes linkcheck gettext
 
