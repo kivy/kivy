@@ -127,13 +127,13 @@ class Popup(ModalView):
     defaults to 'left'. Available options are left, middle, right and justify.
     '''
 
-    title_font = StringProperty('DroidSans')
+    title_font = StringProperty('Roboto')
     '''Font used to render the title text.
 
     .. versionadded:: 1.9.0
 
     :attr:`title_font` is a :class:`~kivy.properties.StringProperty` and
-    defaults to 'DroidSans'.
+    defaults to 'Roboto'.
     '''
 
     content = ObjectProperty(None)
