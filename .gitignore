@@ -53,6 +53,7 @@ kivy/core/window/_window_sdl2.c
 # PyDev
 .project
 .pydevproject
+.settings/
 
 # Virtualenv
 venv

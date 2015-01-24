@@ -47,7 +47,7 @@ from kivy.resources import resource_find, resource_add_path
 from kivy.compat import PY2
 from kivy.setupconfig import USE_SDL2
 
-DEFAULT_FONT = 'DroidSans'
+DEFAULT_FONT = 'Roboto'
 
 FONT_REGULAR = 0
 FONT_ITALIC = 1
@@ -740,9 +740,9 @@ if 'KIVY_DOC' not in os.environ:
         sys.exit(1)
 
 # For the first initalization, register the default font
-    Label.register('DroidSans',
-                   'data/fonts/DroidSans.ttf',
-                   'data/fonts/DroidSans-Italic.ttf',
-                   'data/fonts/DroidSans-Bold.ttf',
-                   'data/fonts/DroidSans-BoldItalic.ttf')
+    Label.register('Roboto',
+                   'data/fonts/Roboto-Regular.ttf',
+                   'data/fonts/Roboto-Italic.ttf',
+                   'data/fonts/Roboto-Bold.ttf',
+                   'data/fonts/Roboto-BoldItalic.ttf')
 
