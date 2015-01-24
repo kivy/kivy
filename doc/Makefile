@@ -58,14 +58,14 @@ endif
 
 html:
 	$(MKDIR) build$(P)html build$(P)doctrees
-	$(PYTHON) autobuild.py
+	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS$(_TESTS)) build/html
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."
 
 gettext:
 	$(MKDIR) build$(P)html build$(P)doctrees_gettext
-	$(PYTHON) autobuild.py
+	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
 	$(SPHINXBUILD) -b gettext $(ALLSPHINXOPTSGT$(_TESTS)) build/gettext
 	@echo
 	@echo "Build finished. The Gettext pages are in build/gettext."
@@ -73,7 +73,7 @@ gettext:
 
 pickle:
 	$(MKDIR) build$(P)pickle build$(P)doctrees
-	$(PYTHON) autobuild.py
+	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
 	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS$(_TESTS)) build/pickle
 	@echo
 	@echo "Build finished; now you can process the pickle files or run"
@@ -84,7 +84,7 @@ web: pickle
 
 htmlhelp:
 	$(MKDIR) build$(P)htmlhelp build$(P)doctrees
-	$(PYTHON) autobuild.py
+	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
 	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS$(_TESTS)) build/htmlhelp
 	@echo
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
@@ -92,7 +92,7 @@ htmlhelp:
 
 latex:
 	$(MKDIR) build$(P)latex build$(P)doctrees
-	$(PYTHON) autobuild.py
+	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS$(_TESTS)) build/latex
 	@echo
 	@echo "Build finished; the LaTeX files are in build/latex."
@@ -111,14 +111,14 @@ ps: latex
 
 changes:
 	$(MKDIR) build$(P)changes build$(P)doctrees
-	$(PYTHON) autobuild.py
+	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS$(_TESTS)) build/changes
 	@echo
 	@echo "The overview file is in build/changes."
 
 linkcheck:
 	$(MKDIR) build$(P)linkcheck build$(P)doctrees
-	$(PYTHON) autobuild.py
+	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS$(_TESTS)) build/linkcheck
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
