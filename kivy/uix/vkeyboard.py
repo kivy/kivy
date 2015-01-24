@@ -320,7 +320,7 @@ class VKeyboard(Scatter):
     have_special = BooleanProperty(False)
     active_keys = DictProperty({})
     font_size = NumericProperty('20dp')
-    font_name = StringProperty('data/fonts/DejaVuSans.ttf')
+    font_name = StringProperty('data/fonts/Roboto-Regular.ttf')
     repeat_touch = ObjectProperty(allownone=True)
 
     __events__ = ('on_key_down', 'on_key_up')
