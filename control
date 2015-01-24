@@ -4,20 +4,31 @@ Priority: optional
 Maintainer: Thomas-Karl Pietrowski <thopiekar@googlemail.com>
 Uploaders: Kivy Launchpad-Team <ubuntu@kivy.org>
 Build-Depends: debhelper (>= 7.0.50~), pkg-config,
+               # Python development files - metapackages for python2 and python3
                python-all-dev (>= 2.7),   python3-deadsnakes-all-dev | python3-all-dev (>= 3.3),
-               python-pygame,
-               python-nose,               python3-nose,
-               python-coverage,
-               python-sphinx,             python3-sphinx,
+               # Cython2/3
                cython,                    cython3,
-               xvfb,
+               # code unittest
+               python-nose,               python3-nose,
+               # measuring code coverage during during test execution
+               python-coverage,
+               # Mesa OpenGL / -ES development files
                libgl1-mesa-dev, libgles2-mesa-dev,
+               # SDL(1) dependencies
                libsdl-image1.2-dev, libsdl-ttf2.0-dev,
+               # SDL2 dependencies
                libsdl2-dev, libsdl2-image-dev, libsdl2-mixer-dev, libsdl2-ttf-dev,
+               # SDL MPEG Player development files
                libsmpeg-dev,
+               # libav development files
                libswscale-dev, libavformat-dev, libavcodec-dev,
+               #gstreamer1.0 dependencies (gstreamer0.10 is just there to make builds work, when no gstreamer1.0 is available)
                libgstreamer1.0-dev | libgstreamer0.10-dev,
-               texlive-latex-base, texlive-latex-recommended, texlive-latex-extra, texlive-fonts-extra, texlive-fonts-recommended,
+Build-Depends-Indep:          python-sphinx,             python3-sphinx,
+                              # X Window Virtual Framebuffer
+                              xvfb,
+                              # LaTex
+                              texlive-latex-base, texlive-latex-recommended, texlive-latex-extra, texlive-fonts-extra, texlive-fonts-recommended,
 Standards-Version: 3.9.1
 Homepage: http://kivy.org/
 Vcs-Git:  https://github.com/kivy/kivy.git
@@ -26,11 +37,11 @@ X-Python3-Version: >= 3.3
 
 Package: kivy
 Architecture: all
-Depends: kivy-doc      (> ${binary:Version}),
-         kivy-examples (> ${binary:Version}),
-         kivy-tools    (> ${binary:Version}),
-         python-kivy   (> ${binary:Version}),
-         python3-kivy  (> ${binary:Version})
+Depends: kivy-doc      (>= ${binary:Version}),
+         kivy-examples (>= ${binary:Version}),
+         kivy-tools    (>= ${binary:Version}),
+         python-kivy   (>= ${binary:Version}),
+         python3-kivy  (>= ${binary:Version})
 Description: Kivy - Multimedia / Multitouch framework in Python
  This package includes all examples which can be found in the git repo.
 
@@ -52,8 +63,8 @@ Architecture: all
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          ${python:Depends},
-         kivy-examples     (> ${binary:Version}),
-         kivy-tools        (> ${binary:Version})
+         kivy-examples     (>= ${binary:Version}),
+         kivy-tools        (>= ${binary:Version})
 Description: Kivy - Multimedia / Multitouch framework in Python
  This package includes all examples which can be found in the git repo.
 
@@ -72,7 +83,7 @@ Architecture: all
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          ${python:Depends},
-         python-kivy (> ${binary:Version})
+         python-kivy (>= ${binary:Version})
 Description: Kivy - Multimedia / Multitouch framework in Python
  This package includes all tools shipped with kivy.
 
@@ -94,10 +105,10 @@ Depends: ${misc:Depends},
          python-kivy-common (= ${binary:Version}),
          python-kivy-bin    (= ${binary:Version}),
          python-docutils,
-         python-pygame,
          python-pygments,
          python-gst0.10
 Provides: ${python:Provides}
+Suggests: python-pygame,
 Description: Kivy - Multimedia / Multitouch framework in Python
  Kivy is an open source library for developing multi-touch applications. It is
  completely cross platform (Linux/OSX/Win/Android) and released under the terms
@@ -164,6 +175,7 @@ Depends: ${misc:Depends},
          python3-pygments,
          python-gst0.10
 Provides: ${python3:Provides}
+Suggests: python-pygame3,
 Description: Kivy - Multimedia / Multitouch framework in Python
  Kivy is an open source library for developing multi-touch applications. It is
  completely cross platform (Linux/OSX/Win/Android) and released under the terms
