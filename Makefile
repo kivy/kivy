@@ -84,7 +84,7 @@ clean:
 	-find . -iname '*.pyx' -exec sh -c 'echo `dirname {}`/`basename {} .pyx`.c' \; | xargs rm
 
 distclean: clean
-ifeq ($(GIT_COMMAND),)
+ifneq ($(GIT_COMMAND),)
 	@echo "Using GIT at $(GIT_COMMAND) to make a distclean..."
 	-git clean -dxf -e debian
 else
