@@ -72,8 +72,8 @@ clean:
 	-rm -rf doc/build
 	-rm -rf build
 	-rm -rf htmlcov
-	-rm .coverage
-	-rm .noseids
+	-rm -f .coverage
+	-rm -f .noseids
 	-rm -rf kivy/tests/build
 	-find kivy -iname '*.so' -exec rm {} \;
 	-find kivy -iname '*.pyc' -exec rm {} \;
