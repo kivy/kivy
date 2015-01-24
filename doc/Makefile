@@ -126,14 +126,7 @@ linkcheck:
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in build/linkcheck/output.txt."
 
-enable-ENDUSER_BUILD:
-	$(ENDUSER_BUILD) = yes
-	$(_TESTS) =
-
-disable-ENDUSER_BUILD:
-	$(ENDUSER_BUILD) = no
-	$(_TESTS) = _TEST
-
 build-all: html pickle htmlhelp pdf ps gettext
 
-test: disable-ENDUSER_BUILD build-all
+# TODO: Make test run in non-enduser-build mode 
+test: build-all
