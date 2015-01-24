@@ -6,7 +6,7 @@ ENDUSER_BUILD	= yes
 # You can set these variables from the command line.
 PYTHON		= python
 SPHINXOPTS	= -Q
-SPHINXOPTS_TEST	= -W
+SPHINXOPTS_TEST	= -W -T
 SPHINXBUILD	= sphinx-build
 PAPER		=
 
