@@ -243,16 +243,46 @@ try:
     else:
         if platform == 'darwin':
             _libc = ctypes.CDLL('libc.dylib')
+            _default_time = time.time
         else:
-            _libc = ctypes.CDLL('libc.so')
+            from ctypes.util import find_library
+            _libc = ctypes.CDLL(find_library('c'), use_errno=True)
+
+            def _libc_clock_gettime_wrapper():
+                from os import strerror
+
+                class struct_tv(ctypes.Structure):
+                    _fields_ = [('tv_sec', ctypes.c_long),
+                                ('tv_usec', ctypes.c_long)]
+
+                _clock_gettime = _libc.clock_gettime
+                _clock_gettime.argtypes = [ctypes.c_long,
+                                           ctypes.POINTER(struct_tv)]
+
+                if 'linux' in platform:
+                    _clockid = 4  # CLOCK_MONOTONIC_RAW (Linux specific)
+                else:
+                    _clockid = 1  # CLOCK_MONOTONIC
+
+                tv = struct_tv()
+
+                def _time():
+                    if _clock_gettime(ctypes.c_long(_clockid),
+                                      ctypes.pointer(tv)) != 0:
+                        _ernno = ctypes.get_errno()
+                        raise OSError(_ernno, strerror(_ernno))
+                    return tv.tv_sec + (tv.tv_usec * 0.000000001)
+
+                return _time
+
+            _default_time = _libc_clock_gettime_wrapper()
+
         _libc.usleep.argtypes = [ctypes.c_ulong]
         _libc_usleep = _libc.usleep
 
         class _ClockBase(object):
             def usleep(self, microseconds):
                 _libc_usleep(int(microseconds))
-
-        _default_time = time.time
 
 except (OSError, ImportError):
     # ImportError: ctypes is not available on python-for-android.
