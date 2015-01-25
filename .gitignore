@@ -1,3 +1,4 @@
+kivy-already-built*
 .coverage
 .noseids
 Kivy.egg-info
@@ -11,6 +12,7 @@ Kivy.egg-info
 *.kpf
 build/*
 doc/build
+doc/autobuild.py-done*
 doc/sources/api-*.rst
 kivy/*.c
 kivy/*.pyd
@@ -53,6 +55,7 @@ kivy/core/window/_window_sdl2.c
 # PyDev
 .project
 .pydevproject
+.settings/
 
 # Virtualenv
 venv

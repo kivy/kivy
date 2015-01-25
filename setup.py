@@ -21,14 +21,22 @@ else:
 
 def getoutput(cmd):
     import subprocess
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-    return p.communicate()[0]
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr = subprocess.PIPE)
+    p.wait()
+    if p.returncode: # if not returncode == 0
+        print('WARNING: A problem occured while running {0} (code {1})\n'.format(cmd,p.returncode))
+        stderr_content = p.stderr.read()
+        if stderr_content:
+            print('{0}\n'.format(stderr_content))
+        return ""
+    return p.stdout.read()
 
 
 def pkgconfig(*packages, **kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
     cmd = 'pkg-config --libs --cflags {}'.format(' '.join(packages))
-    for token in getoutput(cmd).split():
+    results = getoutput(cmd).split()
+    for token in results:
         ext = token[:2].decode('utf-8')
         flag = flag_map.get(ext)
         if not flag:
@@ -625,14 +633,15 @@ if c_options['use_sdl']:
 if c_options['use_sdl2']:
     sdl2_flags = determine_sdl2()
     if sdl2_flags:
+        sdl2_depends = {'depends': ['libs/sdl2.pxi']}
         sources['core/window/_window_sdl2.pyx'] = merge(
-            base_flags, gl_flags, sdl2_flags)
+            base_flags, gl_flags, sdl2_flags, sdl2_depends)
         sources['core/image/_img_sdl2.pyx'] = merge(
-            base_flags, gl_flags, sdl2_flags)
+            base_flags, gl_flags, sdl2_flags, sdl2_depends)
         sources['core/text/_text_sdl2.pyx'] = merge(
-            base_flags, gl_flags, sdl2_flags)
+            base_flags, gl_flags, sdl2_flags, sdl2_depends)
         sources['core/clipboard/_clipboard_sdl2.pyx'] = merge(
-            base_flags, gl_flags, sdl2_flags)
+            base_flags, gl_flags, sdl2_flags, sdl2_depends)
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image
