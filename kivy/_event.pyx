@@ -794,7 +794,7 @@ cdef class EventDispatcher(ObjectWithUid):
             ret[x] = p[x]
         return ret
 
-    def create_property(self, name, value=None):
+    def create_property(self, name, value=None, *largs, **kwargs):
         '''Create a new property at runtime.
 
         .. versionadded:: 1.0.9
@@ -807,6 +807,9 @@ cdef class EventDispatcher(ObjectWithUid):
         .. versionchanged:: 1.9.0
             In the past, if `value` was of type `bool`, a `NumericProperty`
             would be created, now a `BooleanProperty` is created.
+
+            Also, now and positional and keyword arguments are passed to the
+            property when created.
 
         .. warning::
 
@@ -827,18 +830,20 @@ cdef class EventDispatcher(ObjectWithUid):
         >>> print(mywidget.custom)
         True
         '''
+        if value is None:  # shortcut
+            prop = ObjectProperty(None, *largs, **kwargs)
         if isinstance(value, bool):
-            prop = BooleanProperty(value)
+            prop = BooleanProperty(value, *largs, **kwargs)
         elif isinstance(value, (int, float)):
-            prop = NumericProperty(value)
+            prop = NumericProperty(value, *largs, **kwargs)
         elif isinstance(value, string_types):
-            prop = StringProperty(value)
+            prop = StringProperty(value, *largs, **kwargs)
         elif isinstance(value, (list, tuple)):
-            prop = ListProperty(value)
+            prop = ListProperty(value, *largs, **kwargs)
         elif isinstance(value, dict):
-            prop = DictProperty(value)
+            prop = DictProperty(value, *largs, **kwargs)
         else:
-            prop = ObjectProperty(value)
+            prop = ObjectProperty(value, *largs, **kwargs)
         prop.link(self, name)
         prop.link_deps(self, name)
         self.__properties[name] = prop
