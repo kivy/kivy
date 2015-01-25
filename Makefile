@@ -29,12 +29,12 @@ endif
 .PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean theming
 
 prebuild:
-ifeq ("$(wildcard kivy-already-built)","")
+ifeq ("$(wildcard kivy-already-built-for-$(PYTHON))","")
 	@echo Building Kivy as it is not already done!
 	$(PYTHON) setup.py $(BUILD_OPTS)
-	touch kivy-already-built
+	touch kivy-already-built-for-$(PYTHON)
 else
-	@echo Kivy is already built!
+	@echo Kivy is already built for \"$(PYTHON)\"!
 endif
 
 build:
@@ -103,7 +103,7 @@ install:
 
 clean:
 	$(MAKE) -C doc clean
-	-rm -f kivy-already-built
+	-rm -f kivy-already-built*
 	-rm -rf build
 	-rm -rf htmlcov
 	-rm -f .coverage
