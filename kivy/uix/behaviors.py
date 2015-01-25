@@ -467,7 +467,7 @@ class FocusBehavior(object):
     node holds a (weak) reference to the instance before it and after it,
     as visualized when cycling through the nodes using tab (forward) or
     shift+tab (backward). If previous or next widget is not specified,
-    :attr:`focus_next` and :attr:`focus_previous` default to `None`,
+    :attr:`focus_next` and :attr:`focus_previous` defaults to `None`,
     which means that the children list and parents are walked to find
     the next focusable widget, unless :attr:`focus_next` or
     :attr:`focus_previous` is set to the `StopIteration` class, in which case

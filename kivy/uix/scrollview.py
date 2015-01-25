@@ -331,8 +331,8 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.8.0
 
-    :attr:`bar_pos_y` is an :class:`~kivy.properties.OptionProperty`,
-    default to 'right'
+    :attr:`bar_pos_y` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'right'.
 
     '''
 

@@ -532,7 +532,7 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
             Color format of the texture. Can be 'rgba' or 'rgb',
             'luminance' or 'luminance_alpha'. On desktop, additionnal values are
             available: 'red', 'rg'.
-        `icolorfmt`: str, default to the value of `colorfmt`
+        `icolorfmt`: str, defaults to the value of `colorfmt`
             Internal format storage of the texture. Can be 'rgba' or 'rgb',
             'luminance' or 'luminance_alpha'. On desktop, additionnal values are
             available: 'r8', 'rg8', 'rgba8'.
@@ -1110,7 +1110,7 @@ cdef class Texture:
 
         .. versionchanged:: 1.8.0
 
-            Parameter `flipped` added, default to True. All the OpenGL Texture
+            Parameter `flipped` added, defaults to True. All the OpenGL Texture
             are readed from bottom / left, it need to be flipped before saving.
             If you don't want to flip the image, set flipped to False.
         '''
