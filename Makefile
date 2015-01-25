@@ -50,10 +50,10 @@ ios:
 	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "$(BUILDROOT)/python/lib/python2.7/site-packages"
 
 pdf: prebuild
-	$(MAKE) -C doc pdf
+	cd doc && $(MAKE) pdf
 
 html: prebuild
-	$(MAKE) -C doc html
+	cd doc && $(MAKE) html
 
 html-embedded:
 	env USE_EMBEDSIGNATURE=1 $(MAKE) force
