@@ -18,7 +18,6 @@ override_dh_auto_build:
 	done
 
 	cd doc && PYTHONPATH=.. make html
-	cd doc && PYTHONPATH=.. make pdf
 
 override_dh_auto_install:
 	for PYX in $(shell pyversions -i) $(shell py3versions -r) ; do \
