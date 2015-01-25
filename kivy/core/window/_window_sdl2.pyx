@@ -236,7 +236,7 @@ cdef class _WindowSDL2Storage:
         elif event.type == SDL_KEYDOWN or event.type == SDL_KEYUP:
             action = 'keydown' if event.type == SDL_KEYDOWN else 'keyup'
             mod = event.key.keysym.mod
-            scancode = event.key.keysym.get('scancode', '')
+            scancode = event.key.keysym.scancode
             key = event.key.keysym.sym
             return (action, mod, key, scancode, None)
         elif event.type == SDL_TEXTINPUT:

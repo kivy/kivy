@@ -412,7 +412,7 @@ cdef extern from "SDL.h":
         KMOD_MODE
         KMOD_RESERVED
 
-    cdef enum SDL_Scancode:
+    ctypedef enum SDL_Scancode:
         pass
 
     cdef int SDL_QUERY               = -1
