@@ -102,7 +102,7 @@ cover:
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)data/*,$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
 
 install:
-	python setup.py $(INSTALL_OPTIONS)
+	$(PYTHON) setup.py $(INSTALL_OPTIONS)
 
 clean:
 	$(MAKE) -C doc clean
