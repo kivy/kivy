@@ -633,14 +633,15 @@ if c_options['use_sdl']:
 if c_options['use_sdl2']:
     sdl2_flags = determine_sdl2()
     if sdl2_flags:
+        sdl2_depends = {'depends': ['libs/sdl2.pxi']}
         sources['core/window/_window_sdl2.pyx'] = merge(
-            base_flags, gl_flags, sdl2_flags)
+            base_flags, gl_flags, sdl2_flags, sdl2_depends)
         sources['core/image/_img_sdl2.pyx'] = merge(
-            base_flags, gl_flags, sdl2_flags)
+            base_flags, gl_flags, sdl2_flags, sdl2_depends)
         sources['core/text/_text_sdl2.pyx'] = merge(
-            base_flags, gl_flags, sdl2_flags)
+            base_flags, gl_flags, sdl2_flags, sdl2_depends)
         sources['core/clipboard/_clipboard_sdl2.pyx'] = merge(
-            base_flags, gl_flags, sdl2_flags)
+            base_flags, gl_flags, sdl2_flags, sdl2_depends)
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image

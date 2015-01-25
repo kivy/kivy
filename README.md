@@ -91,9 +91,11 @@ Licenses
 
 - Kivy is released under the terms of the MIT License. Please refer to the
   LICENSE file.
-- The provided fonts DroidSans.ttf and DroidSansMono.ttf are licensed and
+- The provided fonts Roboto and DroidSansMono are licensed and
   distributed under the terms of the
   [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+  The DejaVuSans (used for the virtual keyboard) license can be viewed
+  [here](http://dejavu-fonts.org/wiki/License).
 - The current UI design has been adapted from Moblintouch theme's SVGs
   and is licensed under the terms of the
   [LGPLv2.1](http://www.gnu.org/licenses/old-licenses/lgpl-2.1).
