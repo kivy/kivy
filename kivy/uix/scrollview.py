@@ -321,7 +321,7 @@ class ScrollView(StencilView):
     .. versionadded:: 1.8.0
 
     :attr:`bar_pos_x` is an :class:`~kivy.properties.OptionProperty`,
-    default to 'bottom'
+    defaults to 'bottom'.
 
     '''
 
