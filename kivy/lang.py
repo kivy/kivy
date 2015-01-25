@@ -758,6 +758,7 @@ import codecs
 import re
 import sys
 import traceback
+import types
 from re import sub, findall
 from os import environ
 from os.path import join
@@ -795,6 +796,9 @@ lang_str = re.compile('([\'"][^\'"]*[\'"])')
 lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 lang_tr = re.compile('(_\()')
+
+# class types to check with isinstance
+_cls_type = (type, types.ClassType)
 
 
 # all the widget handlers, used to correctly unbind all the callbacks then the
@@ -1594,8 +1598,10 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                         was_bound = True
                     else:
                         append([f.proxy_ref, val, None, None])
-                else:
+                elif not isinstance(f, _cls_type):
                     append([getattr(f, 'proxy_ref', f), val, None, None])
+                else:
+                    append([f, val, None, None])
                 f = getattr(f, val, None)
                 if f is None:
                     break
