@@ -29,8 +29,6 @@ override_dh_auto_test:
 override_dh_install:
 	dh_install --fail-missing  --sourcedir debian/tmp
 
-override_dh_installdocs:
+override_dh_auto_build-indep:
 	cd doc && PYTHONPATH=.. make html
 	cd doc && PYTHONPATH=.. make pdf
-	
-	dh_installdocs
