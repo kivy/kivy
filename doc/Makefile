@@ -107,6 +107,7 @@ pdf: latex
 ifneq ("$(wildcard build$(P)latex$(P)Kivy.pdf)","")
 	@echo
 	@echo "Build finished; the PDF file(s) are in build/latex."
+	@echo "You can savely ignore the errors which might appeared above!"
 else
 	@echo
 	@echo "Build failed; there is no PDF file(s) in build/latex."
