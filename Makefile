@@ -8,6 +8,15 @@ IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
 .PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean theming
 
+prebuild:
+ifeq ("$(wildcard kivy-already-built)","")
+	@echo Building Kivy as it is not already done!
+	$(PYTHON) setup.py build_ext --inplace
+	touch kivy-already-built
+else
+	@echo Kivy is already built!
+endif
+
 build:
 	$(PYTHON) setup.py build_ext --inplace
 
@@ -40,10 +49,13 @@ ios:
 	# Copy to python for iOS installation
 	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "$(BUILDROOT)/python/lib/python2.7/site-packages"
 
-pdf:
+pdf: prebuild
 	$(MAKE) -C doc pdf
 
-html:
+html: prebuild
+	$(MAKE) -C doc html
+
+html-embedded:
 	env USE_EMBEDSIGNATURE=1 $(MAKE) force
 	$(MAKE) -C doc html
 
@@ -69,6 +81,7 @@ cover:
 install:
 	python setup.py install
 clean:
+	-rm -f kivy-already-built
 	-rm -rf doc/build
 	-rm -rf build
 	-rm -rf htmlcov
