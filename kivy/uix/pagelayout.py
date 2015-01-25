@@ -23,6 +23,12 @@ example::
 
         Button:
             text: 'page3'
+
+Transitions from one page to the next are made by swiping in from the border
+areas on the right or left hand side. If you wish to display multiple widgets
+in a page, we suggest you use a containing layout. Ideally, each page should
+consist of a single widget.
+            
 """
 
 __all__ = ('PageLayout', )
