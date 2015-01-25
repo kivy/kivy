@@ -12,6 +12,7 @@ Kivy.egg-info
 *.kpf
 build/*
 doc/build
+doc/autobuild.py-done*
 doc/sources/api-*.rst
 kivy/*.c
 kivy/*.pyd
