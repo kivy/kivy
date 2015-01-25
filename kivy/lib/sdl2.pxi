@@ -628,7 +628,7 @@ cdef extern from "SDL_ttf.h":
 
     #Set and retrieve FreeType hinter settings */
     ##define TTF_HINTING_NORMAL    0
-    ##define TTF_HINTING_LIGHT     1
+    int TTF_HINTING_LIGHT
     ##define TTF_HINTING_MONO      2
     ##define TTF_HINTING_NONE      3
     cdef int  TTF_GetFontHinting( TTF_Font *font)
