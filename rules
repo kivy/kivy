@@ -14,14 +14,14 @@ export DH_VERBOSE=1
 
 override_dh_auto_build:
 	for PYX in $(shell pyversions -i) $(shell py3versions -r) ; do \
-	    PYTHON=$$PYX make build ; \
+	    PYTHON=$$PYX $(MAKE) build ; \
 	done
 
 	cd doc && PYTHONPATH=.. make html
 
 override_dh_auto_install:
 	for PYX in $(shell pyversions -i) $(shell py3versions -r) ; do \
-	    $$PYX setup.py install --root=$(CURDIR)/debian/tmp --prefix=/usr --install-layout=deb ; \
+	    PYTHON=$$PYX INSTALL_ROOT=$(CURDIR)/debian/tmp INSTALL_PREFIX=/usr INSTALL_LAYOUT=deb $(MAKE) install ; \
 	done
 
 override_dh_auto_test:
