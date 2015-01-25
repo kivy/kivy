@@ -81,8 +81,8 @@ cover:
 install:
 	python setup.py install
 clean:
+	$(MAKE) -C doc clean
 	-rm -f kivy-already-built
-	-rm -rf doc/build
 	-rm -rf build
 	-rm -rf htmlcov
 	-rm -f .coverage
