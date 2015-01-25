@@ -14,7 +14,7 @@ export DH_VERBOSE=1
 
 override_dh_auto_build:
 	for PYX in $(shell pyversions -i) $(shell py3versions -r) ; do \
-	    $$PYX setup.py build_ext --inplace ; \
+	    PYTHON=$$PYX make build ; \
 	done
 
 override_dh_auto_install:
