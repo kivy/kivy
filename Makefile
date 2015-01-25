@@ -15,13 +15,13 @@ INSTALL_ROOT     =
 INSTALL_PREFIX   = 
 INSTALL_LAYOUT   = 
 
-ifeq ($(INSTALL_ROOT),)
+ifneq ($(INSTALL_ROOT),)
 	INSTALL_OPTIONS += --root=$(INSTALL_ROOT)
 endif
-ifeq ($(INSTALL_PREFIX),)
+ifneq ($(INSTALL_PREFIX),)
 	INSTALL_OPTIONS += --prefix=$(INSTALL_PREFIX)
 endif
-ifeq ($(INSTALL_LAYOUT),)
+ifneq ($(INSTALL_LAYOUT),)
 	INSTALL_OPTIONS += --install-layout=$(INSTALL_LAYOUT)
 endif
 
