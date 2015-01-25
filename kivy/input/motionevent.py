@@ -17,7 +17,7 @@ Motion Event and Touch
 ----------------------
 
 We differentiate between a Motion Event and Touch event. A Touch event is a
-:class:`MotionEvent` with the `pos` profile. Only theses events are dispatched
+:class:`MotionEvent` with the `pos` profile. Only these events are dispatched
 throughout the widget tree.
 
 1. The :class:`MotionEvent` 's are gathered from input providers.

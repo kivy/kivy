@@ -55,7 +55,7 @@ class Keyboard(EventDispatcher):
 
     # Keycodes mapping, between str <-> int. Theses keycode are
     # currently taken from pygame.key. But when a new provider will be
-    # used, it must do the translation to theses keycodes too.
+    # used, it must do the translation to these keycodes too.
     keycodes = {
         # specials keys
         'backspace': 8, 'tab': 9, 'enter': 13, 'shift': 304, 'ctrl': 306,

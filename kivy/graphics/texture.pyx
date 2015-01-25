@@ -130,7 +130,7 @@ Wrap mode         Supported     Supported     No
 
 If you create a NPOT texture, we first check whether your hardware
 supports it by checking the extensions GL_ARB_texture_non_power_of_two or
-OES_texture_npot. If none of theses are available, we create the nearest
+OES_texture_npot. If none of these are available, we create the nearest
 POT texture that can contain your NPOT texture. The :meth:`Texture.create` will
 return a :class:`TextureRegion` instead.
 
