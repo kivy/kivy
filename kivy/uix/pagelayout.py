@@ -12,15 +12,13 @@ borders.
 
 .. versionadded:: 1.8.0
 
-example::
+Example::
 
     PageLayout:
         Button:
             text: 'page1'
-
         Button:
             text: 'page2'
-
         Button:
             text: 'page3'
 
