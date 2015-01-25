@@ -1,23 +1,31 @@
 Layouts
 --------
 
-Layouts are containers used to arrange widgets in a particular manner::
+Layouts are containers used to arrange widgets in a particular manner.
 
-    AnchorLayout:   Widgets can be anchored to the 'top', 'bottom', 'left',
-                    'right' or 'center'.
-    BoxLayout:      Widgets are arranged sequentially, in either a 'vertical'
-                    or a 'horizontal' orientation.
-    FloatLayout:    Widgets are essentially unrestricted.
-    RelativeLayout: Child widgets are positioned relative to the layout.
-    GridLayout:     Widgets are arranged in a grid defined by the `rows` and
-                    `cols` properties.
-    PageLayout:     Used to create simple multi-page layouts, in a way that
-                    allows easy flipping from one page to another using
-                    borders.
-    Scatter layout: Widgets are positioned similarly to a RelativeLayout, but
-                    they can be translated, rotate and scaled.
-    StackLayout:    Widgets are stacked in a `lr-tb` (left to right then top to
-                    bottom) or `tb-lr` order.
+    :mod:`AnchorLayout <kivy.uix.anchorlayout>`:
+        Widgets can be anchored to the 'top', 'bottom', 'left',
+        'right' or 'center'.
+    :mod:`BoxLayout <kivy.uix.boxlayout>`:
+        Widgets are arranged sequentially, in either a 'vertical'
+        or a 'horizontal' orientation.
+    :mod:`FloatLayout <kivy.uix.floatlayout>`:
+        Widgets are essentially unrestricted.
+    :mod:`RelativeLayout <kivy.uix.relativelayout>`:
+        Child widgets are positioned relative to the layout.
+    :mod:`GridLayout <kivy.uix.gridlayout>`:
+        Widgets are arranged in a grid defined by the `rows` and
+        `cols` properties.
+    :mod:`PageLayout <kivy.uix.pagelayout>`:
+        Used to create simple multi-page layouts, in a way that
+        allows easy flipping from one page to another using
+        borders.
+    :mod:`ScatterLayout <kivy.uix.scatterlayout>`:
+        Widgets are positioned similarly to a RelativeLayout, but
+        they can be translated, rotate and scaled.
+    :mod:`StackLayout <kivy.uix.stacklayout>`:
+        Widgets are stacked in a `lr-tb` (left to right then top to
+        bottom) or `tb-lr` order.
 
 When you add a widget to a layout, the following properties are used to
 determine the widget's size and position, depending on the type of layout:
@@ -31,15 +39,3 @@ The **size_hint** and **pos_hint** are used to calculate a widget's size and
 position only if the value(s) are not set to ``None``. If you set these values to
 ``None``, the layout will not position/size the widget and you can specify the
 values (x, y, width, height) directly in screen coordinates.
-
-For a detailed look at how you can arrange widgets using layouts, please refer
-to:
-
-- :mod:`AnchorLayout <kivy.uix.anchorlayout>`
-- :mod:`BoxLayout <kivy.uix.boxlayout>`
-- :mod:`FloatLayout <kivy.uix.floatlayout>`
-- :mod:`GridLayout <kivy.uix.gridlayout>`
-- :mod:`PageLayout <kivy.uix.pagelayout>`
-- :mod:`ScatterLayout <kivy.uix.scatterlayout>`
-- :mod:`StackLayout <kivy.uix.stacklayout>`
-- :mod:`RelativeLayout <kivy.uix.relativelayout>`
