@@ -397,7 +397,7 @@ automatically created as an :class:`~kivy.properties.ObjectProperty`
     default value `"world"`. Lists, tuples, dictionaries and strings are
     supported.
 
-Let's illustrate the usage of theses dynamic classes with an
+Let's illustrate the usage of these dynamic classes with an
 implementation of a basic Image button. We could derive our classes from
 the Button and just add a property for the image filename:
 

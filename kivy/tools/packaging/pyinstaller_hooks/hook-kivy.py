@@ -8,7 +8,7 @@ In addition, the data and missing module are not copied automatically.
 
 With this hook, everything needed for running kivy is correctly copied.
 
-Check kivy documentation about how to use theses hook for packaging application.
+Check kivy documentation about how to use these hook for packaging application.
 '''
 
 import kivy

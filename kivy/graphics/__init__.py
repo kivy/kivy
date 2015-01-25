@@ -71,7 +71,7 @@ and VertexBatch:
 - Texture: if the texture has a source (an image file or atlas), the image
   is reloaded from the source and reuploaded to the GPU.
 
-You should cover theses cases yourself:
+You should cover these cases yourself:
 
 - Textures without a source: if you manually created a texture and manually
   blit data / a buffer to it, you must handle the reloading yourself. Check the
