@@ -6,28 +6,48 @@ KIVY_USE_DEFAULTCONFIG = 1
 HOSTPYTHON = $(KIVYIOSROOT)/tmp/Python-$(PYTHON_VERSION)/hostpython
 IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
+BUILD_OPTS       = build_ext --inplace
+BUILD_OPTS_FORCE = $(BUILD_OPTS) -f
+BUILD_OPTS_DEBUG = $(BUILD_OPTS_FORCE)-g
+
+INSTALL_OPTIONS  = install
+INSTALL_ROOT     = 
+INSTALL_PREFIX   = 
+INSTALL_LAYOUT   = 
+
+ifeq ($(INSTALL_ROOT),)
+	INSTALL_OPTIONS += --root=$(INSTALL_ROOT)
+endif
+ifeq ($(INSTALL_PREFIX),)
+	INSTALL_OPTIONS += --prefix=$(INSTALL_PREFIX)
+endif
+ifeq ($(INSTALL_LAYOUT),)
+	INSTALL_OPTIONS += --install-layout=$(INSTALL_LAYOUT)
+endif
+
+
 .PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean theming
 
 prebuild:
 ifeq ("$(wildcard kivy-already-built)","")
 	@echo Building Kivy as it is not already done!
-	$(PYTHON) setup.py build_ext --inplace
+	$(PYTHON) setup.py $(BUILD_OPTS)
 	touch kivy-already-built
 else
 	@echo Kivy is already built!
 endif
 
 build:
-	$(PYTHON) setup.py build_ext --inplace
+	$(PYTHON) setup.py $(BUILD_OPTS)
 
 force:
-	$(PYTHON) setup.py build_ext --inplace -f
+	$(PYTHON) setup.py $(BUILD_OPTS_FORCE)
 
 debug:
-	$(PYTHON) setup.py build_ext --inplace -f -g
+	$(PYTHON) setup.py $(BUILD_OPTS_DEBUG)
 
 mesabuild:
-	/usr/bin/env USE_MESAGL=1 $(PYTHON) setup.py build_ext --inplace
+	env USE_MESAGL=1 $(PYTHON) setup.py $(BUILD_OPTS)
 
 ios:
 	-ln -s $(KIVYIOSROOT)/Python-2.7.1/python
@@ -79,7 +99,8 @@ cover:
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)data/*,$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
 
 install:
-	python setup.py install
+	python setup.py $(INSTALL_OPTIONS)
+
 clean:
 	$(MAKE) -C doc clean
 	-rm -f kivy-already-built
