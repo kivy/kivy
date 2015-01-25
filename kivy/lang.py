@@ -1498,15 +1498,14 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
             The function to be called args, `args` on bound callback.
     '''
     # first remove all the old bound functions from `s` and down.
-    j = s - 1
-    for f, k, fun, uid in bound[j:]:
+    for f, k, fun, uid in bound[s:]:
         if fun is None:
             continue
         try:
             f.unbind_uid(k, uid)
         except ReferenceError:
             pass
-    del bound[j:]
+    del bound[s:]
 
     # find the first attr from which we need to start rebinding.
     if len(bound):
