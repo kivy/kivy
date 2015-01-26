@@ -14,12 +14,14 @@ export DH_VERBOSE=1
 
 override_dh_auto_build:
 	for PYX in $(shell pyversions -i) $(shell py3versions -r) ; do \
-	    $$PYX setup.py build_ext --inplace ; \
+	    $(MAKE) build PYTHON=$$PYX; \
 	done
+
+	cd doc && PYTHONPATH=.. make html
 
 override_dh_auto_install:
 	for PYX in $(shell pyversions -i) $(shell py3versions -r) ; do \
-	    $$PYX setup.py install --root=$(CURDIR)/debian/tmp --prefix=/usr --install-layout=deb ; \
+	    $(MAKE) install PYTHON=$$PYX INSTALL_ROOT=$(CURDIR)/debian/tmp INSTALL_PREFIX=/usr INSTALL_LAYOUT=deb; \
 	done
 
 override_dh_auto_test:
@@ -28,14 +30,3 @@ override_dh_auto_test:
 
 override_dh_install:
 	dh_install --fail-missing  --sourcedir debian/tmp
-
-override_dh_installdocs:
-	cd doc && PYTHONPATH=.. make html  || eval "echo 'NOTICE: HTML build returnd exit code $?'"
-	cd doc && PYTHONPATH=.. make latex || eval "echo 'NOTICE: LATEX build returnd exit code $?'"
-	cd doc/build/latex && make all-pdf || eval "echo 'WARNING: PDF build returnd exit code $?'"
-	
-	echo "Listing files in latex's build dir..."
-	ls   doc/build/latex
-	#cat  doc/build/latex/Kivy.log
-		
-	dh_installdocs
