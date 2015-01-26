@@ -23,6 +23,11 @@ several default modules for :
 * Decreasing jittering
 * Decreasing the inaccuracy of touch on "bad" DIY hardware
 * Ignoring regions
+
+If your application don't use input or post processing you can remove the
+respective config file sections. If you remove just `[input]` section, it will
+disable `[postproc]` as a side-effect. Removing just `[postproc]` section will
+prevent only postproc modules to load.
 '''
 
 
@@ -30,7 +35,14 @@ from kivy.input.motionevent import MotionEvent
 from kivy.input.postproc import kivy_postproc_modules
 from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory
-import kivy.input.providers
+
+from kivy.config import Config
+
+# Enable input if the section exists in config file
+_input_enabled = len(Config.items('input')) > 0
+
+if _input_enabled:
+    import kivy.input.providers
 
 __all__ = (
     MotionEvent.__name__,
