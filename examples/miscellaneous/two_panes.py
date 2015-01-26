@@ -1,5 +1,5 @@
 '''
-'Demonstrates using kv language to create some simple buttons and a
+Demonstrates using kv language to create some simple buttons and a
 label, with each button modifying the label text.
 '''
 
