@@ -17,9 +17,7 @@ Copyright:
 License (except 3rd libraries):
 
     This library is free software; you can redistribute it and/or
-    modify it under the terms of the MIT
-    License as published by the Free Software Foundation; either
-    version 3 of the License, or (at your option) any later version.
+    modify it under the terms of the MIT License.
 
     On Debian GNU/Linux systems, the complete text of the GNU Lesser General
     Public License can be found in /usr/share/common-licenses/LGPL-3.
@@ -37,5 +35,4 @@ License (kivy/lib/osc):
 The Debian packaging is:
 
     Copyright (C) 2015 Thomas-Karl Pietrowski <thopiekar@googlemail.com> under the GPL version 3,
-    Copyright (C) 2011 Mathieu Virbel <mat@kivy.org> under the GPL version 3,
     see `/usr/share/common-licenses/GPL-3'.
