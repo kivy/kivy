@@ -1512,10 +1512,11 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     del bound[s:]
 
     # find the first attr from which we need to start rebinding.
-    if len(bound):
-        f = bound[-1][0]
-    else:  # if it's the very first attr, we start with the base.
-        f = base
+    f = getattr(*bound[-1][:2])
+    if f is None:
+        fn(args, None, None)
+        return
+    s += 1
     append = bound.append
 
     # bind all attrs, except last to update_intermediates
