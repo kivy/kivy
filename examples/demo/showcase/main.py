@@ -27,7 +27,7 @@ class ShowcaseApp(App):
     show_sourcecode = BooleanProperty(False)
     sourcecode = StringProperty()
     screen_names = ListProperty([])
-    higherarchy = ListProperty([])
+    hierarchy = ListProperty([])
 
     def build(self):
         self.title = 'hello world'
@@ -75,8 +75,8 @@ class ShowcaseApp(App):
         self.root.ids.sm.switch_to(self.load_screen(idx), direction='left')
         self.update_sourcecode()
 
-    def go_higherarchy_previous(self):
-        ahr = self.higherarchy
+    def go_hierarchy_previous(self):
+        ahr = self.hierarchy
         if len(ahr) == 1:
             return
         if ahr:
