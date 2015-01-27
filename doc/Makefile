@@ -54,6 +54,7 @@ help:
 	@echo "  linkcheck to check all external links for integrity"
 
 clean:
+	-rm -rf sources/api-*.rst
 # windows just doesn't support e.g. build\*
 ifdef ComSpec
 	-rmdir /s /q build
