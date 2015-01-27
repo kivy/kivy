@@ -44,14 +44,19 @@ AUTOBUILD_STAMP      = $(AUTOBUILD_STAMP_BASE)$(PYTHON)
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
+	@echo "  build-all to build the common documentation types."
 	@echo "  changes   to make an overview over all changed/added/deprecated items"
 	@echo "  clean     to remove generated files"
+	@echo "  gettext   to make gettext pages"
 	@echo "  html      to make standalone HTML files"
 	@echo "  htmlhelp  to make HTML files and a HTML help project"
 	@echo "  latex     to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
+	@echo "  linkcheck to check through the reference linking"
+	@echo "  man       to build Man doctrees."
 	@echo "  pdf       to make standalone PDF files"
 	@echo "  pickle    to make pickle files (usable by e.g. sphinx-web)"
 	@echo "  ps        to make standalone PS files"
+	@echo "  web       same as pickle"
 
 clean:
 	-rm -rf sources/api-*.rst
