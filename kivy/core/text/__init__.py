@@ -74,8 +74,8 @@ class LabelBase(object):
         `text_size`: tuple, defaults to (None, None)
             Add constraint to render the text (inside a bounding box).
             If no size is given, the label size will be set to the text size.
-        `padding`: float, defaults to None
-            If it's a float, it will set padding_x and padding_y
+        `padding`: tuple, defaults to None
+            If it's a tuple, it will set padding_x and padding_y
         `padding_x`: float, defaults to 0.0
             Left/right padding
         `padding_y`: float, defaults to 0.0

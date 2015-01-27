@@ -1,3 +1,10 @@
+"""
+Usage:  kivy visual_test_label.py
+
+Test all visual aspects of a label, including alignment and font effects.
+Also times rendering performance.
+"""
+
 from kivy.app import runTouchApp
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import StringProperty
@@ -7,7 +14,6 @@ import timeit
 import re
 import random
 from functools import partial
-
 
 def layout_perf(label, repeat):
     if repeat:
@@ -258,6 +264,7 @@ words = re.split('( +|\\n+)', text)
 
 
 def annotate(pre, post, callable, words):
+    """ add random pre/post annotation pairs to words array. """
     state = False
     i = random.randint(0, 4)
     while i < len(words):

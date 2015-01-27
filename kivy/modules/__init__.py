@@ -14,7 +14,7 @@ loading of modules is managed by the config file. Currently, we include:
       events.
     * :class:`~kivy.modules.screen`: Emulate the characteristics (dpi/density/
       resolution) of different screens.
-    * :class:`~kivy.modules.inspector`: Examines your widget heirarchy and
+    * :class:`~kivy.modules.inspector`: Examines your widget hierarchy and
       widget properties.
     * :class:`~kivy.modules.webdebugger`: Realtime examination of your app
       internals via a web browser.
