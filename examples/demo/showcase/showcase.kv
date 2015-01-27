@@ -52,7 +52,7 @@ BoxLayout:
             ActionPrevious:
                 with_previous: (False if sm.current_screen.name == 'button' else True) if sm.current_screen else False
                 title: 'Showcase' + ('' if not app.current_title else ' - {}'.format(app.current_title))
-                on_release: app.go_heirarchy_previous()
+                on_release: app.go_hierarchy_previous()
 
             ActionSpinner:
                 id: spnr
@@ -98,4 +98,4 @@ BoxLayout:
         on_current_screen:
             spnr.text = args[1].name
             idx = app.screen_names.index(args[1].name)
-            if idx > -1: app.heirarchy.append(idx)
+            if idx > -1: app.hierarchy.append(idx)
