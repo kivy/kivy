@@ -387,10 +387,15 @@ class Atlas(EventDispatcher):
 
         return outfn, meta
 
+
 if __name__ == '__main__':
+    """ Main line program.   Process command line arguments
+    to make a new atlas. """
 
     import sys
     argv = sys.argv[1:]
+    # earlier import of kivy has already called getopt to remove kivy system
+    # arguments from this line.  That is all arguments up to the first '--'
     if len(argv) < 3:
         print('Usage: python -m kivy.atlas [-- [--use-path] '
               '[--padding=2]] <outname> '
