@@ -3,6 +3,11 @@
 # http://kivy.org/
 #
 
+MIN_CYTHON_VERSION = (0, 20, 0)
+MIN_CYTHON_STRING = '.'.join(map(str, MIN_CYTHON_VERSION))
+MAX_CYTHON_VERSION = (0, 21, 1)
+MAX_CYTHON_STRING = '.'.join(map(str, MAX_CYTHON_VERSION))
+
 import sys
 
 from copy import deepcopy
@@ -103,6 +108,18 @@ else:
         # check for cython
         from Cython.Distutils import build_ext
         have_cython = True
+        import Cython
+        cy_version_str = Cython.__version__
+        cy_version = tuple(map(int, cy_version_str.split('.')))
+        print('\nDetected Cython version {}'.format(cy_version_str))
+        if cy_version < MIN_CYTHON_VERSION:
+            print('  This version of Cython is not compatible with Kivy. ' +
+                  'Please upgrade to at least {}'.format(MIN_CYTHON_STRING))
+            raise ImportError('Incompatible Cython Version')
+        if cy_version > MAX_CYTHON_VERSION:
+            print('  This version of Cython is untested with Kivy. If you ' +
+                  'experience issues, please downgrade to {}'
+                  .format(MAX_CYTHON_STRING))
     except ImportError:
         print('\nCython is missing, its required for compiling kivy !\n\n')
         raise
