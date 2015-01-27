@@ -33,7 +33,6 @@ endif
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-
 	@echo "  build          for a standard build"
 	@echo "  clean          remove generated and compiled files"
 	@echo "  cover          create an html coverage report of unittests"
