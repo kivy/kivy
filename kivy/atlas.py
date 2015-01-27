@@ -294,8 +294,8 @@ class Atlas(EventDispatcher):
             imh += padding
             if imw > size_w or imh > size_h:
                 Logger.error(
-                    'Atlas: image %s is larger than the atlas size!' %
-                    imageinfo[0])
+                    'Atlas: image %s (%d by %d) is larger than the atlas size!'
+                    % (imageinfo[0], imw, imh))
                 return
 
             inserted = False
@@ -392,8 +392,8 @@ if __name__ == '__main__':
     import sys
     argv = sys.argv[1:]
     if len(argv) < 3:
-        print('Usage: python -m kivy.atlas [--use-path] '
-              '[--padding=2] <outname> '
+        print('Usage: python -m kivy.atlas [-- [--use-path] '
+              '[--padding=2]] <outname> '
               '<size|512x256> <img1.png> [<img2.png>, ...]')
         sys.exit(1)
 
@@ -405,7 +405,7 @@ if __name__ == '__main__':
         elif option.startswith('--padding='):
             options['padding'] = int(option.split('=', 1)[-1])
         elif option[:2] == '--':
-            print('Unknow option {}'.format(option))
+            print('Unknown option {}'.format(option))
             sys.exit(1)
         else:
             break
@@ -418,7 +418,7 @@ if __name__ == '__main__':
         else:
             size = int(argv[1])
     except ValueError:
-        print('Error: size must be an integer')
+        print('Error: size must be an integer or <integer>x<integer>')
         sys.exit(1)
 
     filenames = argv[2:]
@@ -429,5 +429,5 @@ if __name__ == '__main__':
 
     fn, meta = ret
     print('Atlas created at', fn)
-    print('%d image%s have been created' % (len(meta),
-          's' if len(meta) > 1 else ''))
+    print('%d image%s been created' % (len(meta),
+          's have' if len(meta) > 1 else ' has'))
