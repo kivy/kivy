@@ -44,14 +44,14 @@ AUTOBUILD_STAMP      = $(AUTOBUILD_STAMP_BASE)$(PYTHON)
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
+	@echo "  changes   to make an overview over all changed/added/deprecated items"
+	@echo "  clean     to remove generated files"
 	@echo "  html      to make standalone HTML files"
-	@echo "  pickle    to make pickle files (usable by e.g. sphinx-web)"
 	@echo "  htmlhelp  to make HTML files and a HTML help project"
 	@echo "  latex     to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
 	@echo "  pdf       to make standalone PDF files"
+	@echo "  pickle    to make pickle files (usable by e.g. sphinx-web)"
 	@echo "  ps        to make standalone PS files"
-	@echo "  changes   to make an overview over all changed/added/deprecated items"
-	@echo "  linkcheck to check all external links for integrity"
 
 clean:
 	-rm -rf sources/api-*.rst
