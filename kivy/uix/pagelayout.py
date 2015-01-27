@@ -52,7 +52,7 @@ class PageLayout(Layout):
     the previous/next page when needed.
 
     :data:`border` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 0.
+    defaults to 50.
     '''
 
     swipe_threshold = NumericProperty(.5)
