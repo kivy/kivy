@@ -6,16 +6,16 @@ Atlas
 
 Atlas manages texture atlases: packing multiple textures into
 one. With it, you reduce the number of images loaded and speedup the
-application loading.
-
-This file contains both the Atlas class and command line processing for creating
-an atlas from a set of individual PNG files.   The command line section requires
-the Python Imaging Library (PIL) or its successor Pillow to be installed.
+application loading.  This module contains both the Atlas class and command line
+processing for creating an atlas from a set of individual PNG files.   The
+command line section requires the Pillow library, or the defunct Python Imaging
+Library (PIL), to be installed.
 
 An Atlas is composed of files:
-
-    - a json file (.atlas) that contains the image file names and texture locations of the atlas.
-    - one or multiple image files containing textures referenced by the .atlas file.
+    - a json file (.atlas) that contains the image file names and texture
+      locations of the atlas.
+    - one or multiple image files containing textures referenced by the .atlas
+      file.
 
 Definition of .atlas files
 --------------------------
