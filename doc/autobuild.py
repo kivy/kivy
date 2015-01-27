@@ -173,6 +173,10 @@ template_examples_ref = ('# :ref:`Jump directly to Examples'
 
 
 def extract_summary_line(doc):
+    """
+    :param doc:  the __doc__ field of a module
+    :return:  a doc string suitable for a header or empty string
+    """
     if doc is None:
         return ''
     for line in doc.split('\n'):
@@ -187,7 +191,7 @@ def extract_summary_line(doc):
 
 for package in packages:
     summary = extract_summary_line(sys.modules[package].__doc__)
-    if summary is None:
+    if summary is None or summary == '':
         summary = 'NO DOCUMENTATION (package %s)' % package
     t = template.replace('$SUMMARY', summary)
     t = t.replace('$PACKAGE', package)
@@ -219,7 +223,7 @@ m.sort()
 refid = 0
 for module in m:
     summary = extract_summary_line(sys.modules[module].__doc__)
-    if summary is None:
+    if summary is None or summary == '':
         summary = 'NO DOCUMENTATION (module %s)' % package
 
     # search examples
