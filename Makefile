@@ -31,15 +31,6 @@ endif
 
 .PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean theming
 
-prebuild:
-ifeq ("$(wildcard kivy-already-built-for-$(PYTHON))","")
-	@echo Building Kivy as it is not already done!
-	$(PYTHON) setup.py $(BUILD_OPTS)
-	touch kivy-already-built-for-$(PYTHON)
-else
-	@echo Kivy is already built for \"$(PYTHON)\"!
-endif
-
 build:
 	$(PYTHON) setup.py $(BUILD_OPTS)
 
@@ -72,10 +63,10 @@ ios:
 	# Copy to python for iOS installation
 	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "$(BUILDROOT)/python/lib/python2.7/site-packages"
 
-pdf: prebuild
+pdf: build
 	cd doc && $(MAKE) pdf
 
-html: prebuild
+html: build
 	cd doc && $(MAKE) html
 
 html-embedded:
@@ -106,7 +97,6 @@ install:
 
 clean:
 	$(MAKE) -C doc clean
-	-rm -f kivy-already-built*
 	-rm -rf build
 	-rm -rf htmlcov
 	-rm -f .coverage
