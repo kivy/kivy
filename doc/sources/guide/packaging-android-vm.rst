@@ -85,6 +85,6 @@ Hints and tips
     
         arm-linux-androideabi-gcc: Internal error: Killed (program cc1)
 
-    If this occurs, please check the mount of free memory in the Kivy VM and
+    If this occurs, please check the amount of free memory in the Kivy VM and
     increase the amount of RAM allocated to it if required.
  
