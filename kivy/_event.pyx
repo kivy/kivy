@@ -794,7 +794,7 @@ cdef class EventDispatcher(ObjectWithUid):
             ret[x] = p[x]
         return ret
 
-    def create_property(self, name, value=None, *largs, **kwargs):
+    def create_property(self, str name, value=None, *largs, **kwargs):
         '''Create a new property at runtime.
 
         .. versionadded:: 1.0.9
@@ -824,12 +824,15 @@ cdef class EventDispatcher(ObjectWithUid):
                 Default value of the property. Type is also used for creating
                 more appropriate property types. Defaults to None.
 
-        >>> mywidget = Widget()
-        >>> mywidget.create_property('custom')
-        >>> mywidget.custom = True
-        >>> print(mywidget.custom)
-        True
+
+        ::
+            >>> mywidget = Widget()
+            >>> mywidget.create_property('custom')
+            >>> mywidget.custom = True
+            >>> print(mywidget.custom)
+            True
         '''
+        cdef Property prop
         if value is None:  # shortcut
             prop = ObjectProperty(None, *largs, **kwargs)
         if isinstance(value, bool):
@@ -848,6 +851,35 @@ cdef class EventDispatcher(ObjectWithUid):
         prop.link_deps(self, name)
         self.__properties[name] = prop
         setattr(self.__class__, name, prop)
+
+    def apply_property(self, **kwargs):
+        '''Adds properties at runtime to the class. The function accepts
+        keyword arguments of the form `prop_name=prop`, where `prop` is a
+        :class:`Property` instance and `prop_name` is the name of the attribute
+        of the property.
+
+        .. versionadded:: 1.9.0
+
+        .. warning::
+
+            This method is not reccomended for common usage because you should
+            declare the properties in your class instead of using this method.
+
+        For example::
+
+            >>> print(wid.property('sticks', quiet=True))
+            None
+            >>> wid.apply_property(sticks=ObjectProperty(55, max=10))
+            >>> print(wid.property('sticks', quiet=True))
+            <kivy.properties.ObjectProperty object at 0x04303130>
+        '''
+        cdef Property prop
+        cdef str name
+        for name, prop in kwargs.items():
+            prop.link(self, name)
+            prop.link_deps(self, name)
+            self.__properties[name] = prop
+            setattr(self.__class__, name, prop)
 
     property proxy_ref:
         '''Default implementation of proxy_ref, returns self.
