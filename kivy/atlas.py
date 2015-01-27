@@ -43,8 +43,9 @@ Example from the Kivy ``data/images/defaulttheme.atlas``::
         }
     }
 
-In this example, "defaulttheme-0.png" is a large image, with the pixels in the rectangle from
-(431, 224) to (431 + 59, 224 + 24) usable as ``atlas://data/images/defaulttheme/progressbar_background`` in
+In this example, "defaulttheme-0.png" is a large image, with the pixels in the
+rectangle from (431, 224) to (431 + 59, 224 + 24) usable as
+``atlas://data/images/defaulttheme/progressbar_background`` in
 any image parameter.
 
 How to create an Atlas
@@ -52,9 +53,9 @@ How to create an Atlas
 
 .. warning::
 
-    The atlas creation requires the Pillow library (or the defunct Imaging/PIL library). This requirement will be
-    removed in the future when the Kivy core Image is able to support loading, blitting, and saving
-    operations.
+    The atlas creation requires the Pillow library (or the defunct Imaging/PIL
+    library). This requirement will be removed in the future when the Kivy core
+    Image is able to support loading, blitting, and saving operations.
 
 You can directly use this module to create atlas files with this command::
 
@@ -79,8 +80,8 @@ You can combine all the png's into one and generate the atlas file with::
     bubble.png bubble-red.png button.png button-down.png myatlas.atlas
     myatlas-0.png
 
-As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.  ``myatlas-0.png``
-is a new 256x256 .png composed of all your images.
+As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
+``myatlas-0.png`` is a new 256x256 .png composed of all your images.
 
 .. note::
 
@@ -293,8 +294,8 @@ class Atlas(EventDispatcher):
             imh += padding
             if imw > size_w or imh > size_h:
                 Logger.error(
-                    'Atlas: image %s (%d by %d) is larger than the atlas size!' %
-                    (imageinfo[0], imw, imh))
+                    'Atlas: image %s (%d by %d) is larger than the atlas size!'
+                    % (imageinfo[0], imw, imh))
                 return
 
             inserted = False
@@ -387,9 +388,9 @@ class Atlas(EventDispatcher):
         return outfn, meta
 
 
-
 if __name__ == '__main__':
-    """ Main line program.   Process command line arguments to make a new atlas. """
+    """ Main line program.   Process command line arguments
+    to make a new atlas. """
 
     import sys
     argv = sys.argv[1:]
