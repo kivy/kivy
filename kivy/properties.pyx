@@ -1614,8 +1614,6 @@ cdef class ConfigParserProperty(Property):
 
         if isinstance(config, string_types) and config:
             self.config_name = config
-            # if the parser already exists, get it now
-            self.config = ConfigParser.get_configparser(config)
         elif isinstance(config, ConfigParser):
             self.config = config
         elif config is not None:
@@ -1642,6 +1640,9 @@ cdef class ConfigParserProperty(Property):
         Property.link_deps(self, obj, name)
         self.obj = ref(obj)
 
+        # if the parser already exists, get it now
+        if self.config is None:
+            self.config = ConfigParser.get_configparser(self.config_name)
         if self.config is not None:
             self.config.adddefaultsection(self.section)
             self.config.setdefault(self.section, self.key, self.defaultvalue)
