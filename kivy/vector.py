@@ -2,9 +2,9 @@
 ======
 
 The :class:`Vector` represents a 2D vector (x, y).
-Our implementation is made on top of a Python list.
+Our implementation is built on top of a Python list.
 
-Example for constructing a Vector::
+ An example of constructing a Vector::
 
     >>> # Construct a point at 82,34
     >>> v = Vector(82, 34)
@@ -52,7 +52,7 @@ points::
 Vector operators
 ----------------
 
-The :class:`Vector` supports some numeric operators like +, -, /::
+The :class:`Vector` supports some numeric operators such as +, -, /::
 
     >>> Vector(1, 1) + Vector(9, 5)
     [10, 6]
@@ -67,7 +67,7 @@ The :class:`Vector` supports some numeric operators like +, -, /::
     [2.0, 2.0]
 
 
-You can also do in-place operations::
+You can also use in-place operators::
 
     >>> v = Vector(1, 1)
     >>> v += 2
