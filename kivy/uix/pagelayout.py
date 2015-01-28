@@ -49,8 +49,8 @@ class PageLayout(Layout):
     '''
 
     border = NumericProperty('50dp')
-    '''The width of the border used around the current page used to display
-    the previous/next page when needed.
+    '''The width of the border around the current page used to display
+    the previous/next page swipe areas when needed.
 
     :data:`border` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
