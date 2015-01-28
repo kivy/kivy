@@ -214,13 +214,13 @@ class QueryDict(dict):
 
 
 def format_bytes_to_human(size, precision=2):
-    '''Format a bytes value to a human readable representation (B, KB, MB...).
+    '''Format a byte value to a human readable representation (B, KB, MB...).
 
     .. versionadded:: 1.0.8
 
     :Parameters:
         `size`: int
-            Number that represents a bytes value
+            Number that represents the bytes value
         `precision`: int, defaults to 2
             Precision after the comma
 
