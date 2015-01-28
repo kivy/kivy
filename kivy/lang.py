@@ -1202,7 +1202,7 @@ class Parser(object):
                                     .format(ref))
                         Builder.unload_file(ref)
                         Builder.load_file(ref)
-                        break
+                        continue
                 Logger.debug('Including file: {0}'.format(0))
                 __KV_INCLUDES__.append(ref)
                 Builder.load_file(ref)
