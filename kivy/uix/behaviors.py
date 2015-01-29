@@ -878,10 +878,8 @@ class FocusBehavior(object):
             if next:
                 self.focused = False
 
-                def _fn(dt):
-                    next.focused = True
+                next.focused = True
 
-                Clock.schedule_once(_fn)
             return True
         return False
 
