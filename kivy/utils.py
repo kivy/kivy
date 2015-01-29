@@ -237,7 +237,7 @@ def format_bytes_to_human(size, precision=2):
 class Platform(object):
     # refactored to class to allow module function to be replaced
     # with module variable
-    
+
     def __init__(self):
         self._platform_ios = None
         self._platform_android = None
@@ -265,8 +265,6 @@ class Platform(object):
         return self._get_platform().__hash__()
 
     def _get_platform(self):
-        
-
         if self._platform_android is None:
             # ANDROID_ARGUMENT and ANDROID_PRIVATE are 2 environment variables
             # from python-for-android project
