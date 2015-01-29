@@ -390,6 +390,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     if platform == 'android':
         Config.set('input', 'androidtouch', 'android')
 
-Logger.info('Kivy v%s' % (__version__))
+Logger.info('Kivy: v%s' % (__version__))
 Logger.info('Python: v{}'.format(sys.version))
 

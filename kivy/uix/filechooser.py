@@ -805,7 +805,7 @@ class FileChooserListView(FileChooserController):
 
     .. versionadded:: 1.9.0
     '''
-    pass
+    _ENTRY_TEMPLATE = 'FileListEntry'
 
 
 class FileChooserIconView(FileChooserController):
@@ -813,7 +813,7 @@ class FileChooserIconView(FileChooserController):
 
     .. versionadded:: 1.9.0
     '''
-    pass
+    _ENTRY_TEMPLATE = 'FileIconEntry'
 
 
 class FileChooser(FileChooserController):

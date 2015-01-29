@@ -486,7 +486,7 @@
 <Popup>:
     _container: container
     GridLayout:
-        padding: 12
+        padding: '12dp'
         cols: 1
         size_hint: None, None
         pos: root.pos
@@ -496,15 +496,15 @@
             text: root.title
             color: root.title_color
             size_hint_y: None
-            height: self.texture_size[1] + 16
-            text_size: self.width - 16, None
+            height: self.texture_size[1] + dp(16)
+            text_size: self.width - dp(16), None
             font_size: root.title_size
             font_name: root.title_font
             halign: root.title_align
 
         Widget:
             size_hint_y: None
-            height: 4
+            height: dp(4)
             canvas:
                 Color:
                     rgba: root.separator_color
