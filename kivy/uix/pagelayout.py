@@ -25,7 +25,8 @@ Example::
 Transitions from one page to the next are made by swiping in from the border
 areas on the right or left hand side. If you wish to display multiple widgets
 in a page, we suggest you use a containing layout. Ideally, each page should
-consist of a single widget.
+consist of a single :mod:`~kivy.uix.layout` widget that contains the remaining
+widgets on that page.
             
 """
 
@@ -48,8 +49,8 @@ class PageLayout(Layout):
     '''
 
     border = NumericProperty('50dp')
-    '''The width of the border used around the current page used to display
-    the previous/next page when needed.
+    '''The width of the border around the current page used to display
+    the previous/next page swipe areas when needed.
 
     :data:`border` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.

@@ -3,8 +3,14 @@
 Utils
 =====
 
+The Utils module provides a selection of general utility functions and classes
+that may be useful for various applications. They include maths, color
+and algebraic funcions, as well as custom classes and a convenience function
+for determining the current Operating System (platform).
+
 .. versionchanged:: 1.6.0
-    The OrderedDict class has been removed. Use the collections.OrderedDict.
+    The OrderedDict class has been removed. Use collections.OrderedDict
+    instead.
 
 '''
 
