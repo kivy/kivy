@@ -1595,7 +1595,7 @@ IF USE_GLEW:
             error = glewGetErrorString(result)
             Logger.error('GL: GLEW initialization error {}'.format(error))
         else:
-            Logger.info('GLEW initialization succeeded')
+            Logger.info('GL: GLEW initialization succeeded')
         glew_dynamic_binding()
 
 ELSE:
