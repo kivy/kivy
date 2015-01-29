@@ -17,6 +17,7 @@ This module is a Python wrapper for OpenGL commands.
 include "config.pxi"
 include "common.pxi"
 cimport c_opengl
+from kivy.logger import Logger
 
 ctypedef  void              GLvoid
 ctypedef  char              GLchar
@@ -1592,9 +1593,9 @@ IF USE_GLEW:
         result = glewInit()
         if result != GLEW_OK:
             error = glewGetErrorString(result)
-            print('GLEW initialization error:', error)
+            Logger.error('GL: GLEW initialization error {}'.format(error))
         else:
-            print('GLEW initialization succeeded')
+            Logger.info('GLEW initialization succeeded'
         glew_dynamic_binding()
 
 ELSE:
