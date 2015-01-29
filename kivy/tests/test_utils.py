@@ -12,7 +12,7 @@ except:
 from kivy.utils import (boundary, escape_markup, format_bytes_to_human,
         is_color_transparent, SafeList, get_random_color, get_hex_from_color,
         get_color_from_hex, strtotuple, QueryDict, intersection, difference,
-        interpolate, Platform)
+        interpolate, Platform, deprecated, reify)
 
 
 class UtilsTest(unittest.TestCase):
@@ -44,6 +44,15 @@ class UtilsTest(unittest.TestCase):
         self.assertFalse(is_color_transparent(c))
         c = [1,1,1,0]
         self.assertTrue(is_color_transparent(c))
+
+    @deprecated
+    def a_deprecated_function(self):
+        """ This one has doc string. """
+        pass
+
+    def test_deprecated(self):
+        self.a_deprecated_function()
+
 
     def test_SafeList_iterate(self): # deprecated
         sl = SafeList(['1', 2, 3.])
@@ -120,6 +129,8 @@ class UtilsTest(unittest.TestCase):
         # __getattr__
         toto = qd.toto 
         self.assertEqual(toto, 1)
+        with self.assertRaises(AttributeError):
+            foo = qd.not_an_attribute
         
     def test_intersection(self):
         abcd = ['a', 'b', 'c', 'd']
@@ -149,6 +160,24 @@ class UtilsTest(unittest.TestCase):
         for i in range (0, 3):
             p = interpolate(p, [100, -100])
             self.assertEqual(p, [x[i], y[i]])
+
+    @reify
+    def fib_100(self):
+        """ return 100th Fibonacci number
+        This uses modern view of F sub 1 = 0, F sub 2 = 1. """
+        # print "calculating..."
+        a, b = 0, 1
+        for n in range(2, 101):
+            a, b = b, a+b
+        return b
+
+    def test_reify(self):
+        first = self.fib_100   # slow.  self.fib_100 is a reify object making
+                               # the lazy call.
+        second = self.fib_100  # fast, self.fib_100 is a long.    
+        assert first == second
+
+
         
     def test_Platform(self):
         # Those calls do not have specific intent, no assertions
