@@ -37,6 +37,7 @@ python
 python.exe
 .idea
 dist
+htmlcov
 
 MANIFEST
 
