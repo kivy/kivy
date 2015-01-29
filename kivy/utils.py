@@ -340,6 +340,15 @@ class reify(object):
     attribute creation on objects that are meant to be immutable.
 
     Taken from the `Pyramid project <https://pypi.python.org/pypi/pyramid/>`_.
+
+    To use this as a decorator::
+
+         @reify
+         def lazy(self):
+              ...
+              return hard_to_compute_int
+         first_time = self.lazy   # lazy is reify obj, reify.__get__() runs
+         second_time = self.lazy  # lazy is hard_to_compute_int
     '''
 
     def __init__(self, func):
