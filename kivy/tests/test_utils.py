@@ -135,16 +135,28 @@ class UtilsTest(unittest.TestCase):
     def test_intersection(self):
         abcd = ['a', 'b', 'c', 'd']
         efgh = ['e', 'f', 'g', 'h']
-        fedc = ['c', 'd', 'e', 'f']  # cdef is cython keyword O_o
+        fedc = ['c', 'd', 'e', 'f']  # cdef is cython keyword O_o)
+        feed = ['f', 'e', 'e', 'd']
         self.assertEqual(intersection(abcd, efgh), [])
         self.assertEqual(intersection(abcd, fedc), ['c', 'd'])
+        self.assertEqual(intersection(feed, feed), feed)
+        self.assertEqual(intersection([], []), [])
+        self.assertEqual(intersection(feed, fedc), feed)
+        self.assertEqual(intersection(fedc, feed), ['d', 'e', 'f'])
+        self.assertEqual(intersection(feed, efgh), ['f', 'e', 'e'])
 
     def test_difference(self):
         abcd = ['a', 'b', 'c', 'd']
         efgh = ['e', 'f', 'g', 'h']
         fedc = ['c', 'd', 'e', 'f']  # cdef is cython keyword O_o
+        feed = ['f', 'e', 'e', 'd']
         self.assertEqual(difference(abcd, efgh), ['a', 'b', 'c', 'd'])
         self.assertEqual(difference(efgh, fedc), ['g', 'h'])
+        self.assertEqual(difference([], []), [])
+        self.assertEqual(difference(abcd, abcd), [])
+        self.assertEqual(difference(fedc, feed), ['c'])
+        self.assertEqual(difference(feed, abcd), ['f', 'e', 'e'])
+        self.assertEqual(difference(abcd, feed), ['a', 'b', 'c'])
 
     def test_interpolate_solo(self):
         values = [10., 19., 27.1]
