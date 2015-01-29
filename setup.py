@@ -26,10 +26,12 @@ else:
 
 def getoutput(cmd):
     import subprocess
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr = subprocess.PIPE)
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
     p.wait()
-    if p.returncode: # if not returncode == 0
-        print('WARNING: A problem occured while running {0} (code {1})\n'.format(cmd,p.returncode))
+    if p.returncode:  # if not returncode == 0
+        print('WARNING: A problem occured while running {0} (code {1})\n'
+              .format(cmd, p.returncode))
         stderr_content = p.stderr.read()
         if stderr_content:
             print('{0}\n'.format(stderr_content))
@@ -267,8 +269,8 @@ if platform == 'ios':
 
 # detect gstreamer, only on desktop
 # works if we forced the options or in autodetection
-if platform not in ('ios', 'android') and c_options['use_gstreamer'] in (None, True):
-
+if platform not in ('ios', 'android') and (c_options['use_gstreamer']
+                                           in (None, True)):
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
         f_path = '/Library/Frameworks/GStreamer.framework'
