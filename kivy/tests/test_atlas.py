@@ -42,11 +42,24 @@ class AtlasTestCase(unittest.TestCase):
         msg = a.run('outfile 100 missing_file.png'.split())
         self.assertIn('creating atlas', msg)
 
-        # def test_dupicate_files--meta shouldn't break
+class AtlasTestCreation(unittest.TestCase):
+    def tearDown(self):
+        from glob import glob
+        for fn in glob('bigbox*'):
+            os.unlink(fn)
 
+    def test_simple_case(self):
+        msg = a.run('bigbox 620 orange_box.png green_box.png'.split())
+        self.assertIsNone(msg)
+        self.assertTrue(os.path.exists('bigbox-0.png'))
+        self.assertFalse(os.path.exists('bigbox-1.png'))
+        self.assertTrue(os.path.exists('bigbox.atlas'))
 
-        a.run('big.png 620 x.png x.png x.png'.split())
-
-
+    def test_split_case(self):
+        msg = a.run('bigbox 70 orange_box.png green_box.png'.split())
+        self.assertIsNone(msg)
+        self.assertTrue(os.path.exists('bigbox-0.png'))
+        self.assertTrue(os.path.exists('bigbox-1.png'))
+        self.assertTrue(os.path.exists('bigbox.atlas'))
 
 
