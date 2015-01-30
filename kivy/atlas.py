@@ -205,7 +205,7 @@ class Atlas(EventDispatcher):
             # for all the uid, load the image, get the region, and put
             # it in our dict.
             for meta_id, meta_coords in ids.items():
-                x, y, w, h = meta_coords
+                # x, y, w, h = meta_coords
                 textures[meta_id] = ci.texture.get_region(*meta_coords)
 
         self.textures = textures
@@ -255,7 +255,7 @@ class Atlas(EventDispatcher):
         try:
             from PIL import Image
         except ImportError:
-            Logger.critical('Atlas: Imaging/PIL are missing')
+            Logger.critical('Atlas: PIL/Image (or Pillow) is missing')
             raise
 
         if isinstance(size, (tuple, list)):
@@ -334,11 +334,11 @@ class Atlas(EventDispatcher):
                     numoutimages += 1
 
         # now that we've figured out where everything goes, make the output
-        # images and blit the source images to the approriate locations
+        # images and blit the source images to the appropriate locations
         Logger.info('Atlas: create an {0}x{1} rgba image'.format(size_w,
                                                                  size_h))
         outimages = [Image.new('RGBA', (size_w, size_h))
-                     for i in range(0, int(numoutimages))]
+                     for _ in range(0, int(numoutimages))]
         for fb in fullboxes:
             x, y = fb[2], fb[3]
             out = outimages[fb[1]]
