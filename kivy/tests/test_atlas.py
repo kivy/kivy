@@ -38,8 +38,14 @@ class AtlasTestCase(unittest.TestCase):
         msg = a.run('outfile 10x0 x.png'.split())
         self.assertIn('size', msg)
 
+    def test_missing_files(self):
+        msg = a.run('outfile 100 missing_file.png'.split())
+        self.assertIn('creating atlas', msg)
+
+        # def test_dupicate_files--meta shouldn't break
 
 
+        a.run('big.png 620 x.png x.png x.png'.split())
 
 
 

@@ -248,6 +248,12 @@ class Atlas(EventDispatcher):
 
             .. versionchanged:: 1.8.0
                 Parameter use_path added
+        :returns:  None if error, otherwise a tuple of two items.  The
+         first item is the .atlas filename and the second is a nested
+         dictionary equivalent to content of the .atlas file.  Access it
+         like:
+             | x, y, width, height = nested_dict
+                ['combined_atlas_image_filname.png']['image_name']
         '''
         # Thanks to
         # omnisaurusgames.com/2011/06/texture-atlas-generation-using-python/
@@ -266,6 +272,9 @@ class Atlas(EventDispatcher):
         # open all of the images
         ims = list()
         for f in filenames:
+            if not os.path.exists(f):
+                Logger.critical('Cannot open file %s', f)
+                return None
             fp = open(f)
             im = Image.open(fp)
             im.load()
@@ -458,7 +467,7 @@ if __name__ == '__main__':
     argv = sys.argv[1:]
     # earlier import of kivy has already called getopt to remove kivy system
     # arguments from this line.  That is all arguments up to the first '--'
-    msg  = run(argv)
+    msg = run(argv)
     if msg is not None:
         Logger.critical(msg)
         sys.exit(1)
