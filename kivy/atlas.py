@@ -398,19 +398,25 @@ def run(argv):
     :return:  None if command completed, else error message as string.
     '''
 
-    if len(argv) < 3:
-        msg = ('Usage: python -m kivy.atlas [-- [--use-path] '
-               '[--padding=2]] <outname> '
-               '<size|512x256> <img1.png> [<img2.png>, ...]')
-        return msg
-
+    # pull off options from argv
     options = {'use_path': False}
     while True:
+        if len(argv) < 3:
+            msg = ('Usage: python -m kivy.atlas [-- [--use-path] '
+                   '[--padding=2]] <outname> '
+                   '<size|512x256> <img1.png> [<img2.png>, ...]')
+            return msg
+
         option = argv[0]
         if option == '--use-path':
             options['use_path'] = True
         elif option.startswith('--padding='):
-            options['padding'] = int(option.split('=', 1)[-1])
+            try:
+                options['padding'] = int(option.split('=', 1)[-1])
+                if options['padding'] < 0:
+                    return 'padding must be non-negative integer'
+            except ValueError:
+                return 'padding must be integer'
         elif option[:2] == '--':
             msg = 'Unknown option {}'.format(option)
             return msg
@@ -422,8 +428,12 @@ def run(argv):
     try:
         if 'x' in argv[1]:
             size = map(int, argv[1].split('x', 1))
+            if size[0] <= 0 or size[1] <= 0:
+                return 'Error:  sizes must be positive'
         else:
             size = int(argv[1])
+            if size <= 0:
+                return 'Error:  size must be positive'
     except ValueError:
         msg = 'Error: size must be an integer or <integer>x<integer>'
         return msg
