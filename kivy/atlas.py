@@ -388,19 +388,21 @@ class Atlas(EventDispatcher):
         return outfn, meta
 
 
-if __name__ == '__main__':
-    """ Main line program.   Process command line arguments
-    to make a new atlas. """
+def run(argv):
+    '''
+    process a command line to create new atlas files.
 
-    import sys
-    argv = sys.argv[1:]
-    # earlier import of kivy has already called getopt to remove kivy system
-    # arguments from this line.  That is all arguments up to the first '--'
+    :param argv: remaining arguments to this module, as described in module
+    documentation.
+
+    :return:  None if command completed, else error message as string.
+    '''
+
     if len(argv) < 3:
-        print('Usage: python -m kivy.atlas [-- [--use-path] '
-              '[--padding=2]] <outname> '
-              '<size|512x256> <img1.png> [<img2.png>, ...]')
-        sys.exit(1)
+        msg = ('Usage: python -m kivy.atlas [-- [--use-path] '
+               '[--padding=2]] <outname> '
+               '<size|512x256> <img1.png> [<img2.png>, ...]')
+        return msg
 
     options = {'use_path': False}
     while True:
@@ -410,8 +412,8 @@ if __name__ == '__main__':
         elif option.startswith('--padding='):
             options['padding'] = int(option.split('=', 1)[-1])
         elif option[:2] == '--':
-            print('Unknown option {}'.format(option))
-            sys.exit(1)
+            msg = 'Unknown option {}'.format(option)
+            return msg
         else:
             break
         argv = argv[1:]
@@ -423,16 +425,30 @@ if __name__ == '__main__':
         else:
             size = int(argv[1])
     except ValueError:
-        print('Error: size must be an integer or <integer>x<integer>')
-        sys.exit(1)
+        msg = 'Error: size must be an integer or <integer>x<integer>'
+        return msg
 
     filenames = argv[2:]
     ret = Atlas.create(outname, filenames, size, **options)
     if not ret:
-        print('Error while creating atlas!')
-        sys.exit(1)
+        msg = 'Error while creating atlas!'
+        return msg
 
     fn, meta = ret
-    print('Atlas created at', fn)
-    print('%d image%s been created' % (len(meta),
-          's have' if len(meta) > 1 else ' has'))
+    Logger.info('Atlas created at %s', fn)
+    Logger.info('%d image%s been created' % (len(meta),
+                    's have' if len(meta) > 1 else ' has'))
+    return None
+
+if __name__ == '__main__':
+    """ Main line program.   Process command line arguments
+    to make a new atlas. """
+
+    import sys
+    argv = sys.argv[1:]
+    # earlier import of kivy has already called getopt to remove kivy system
+    # arguments from this line.  That is all arguments up to the first '--'
+    msg  = run(argv)
+    if msg is not None:
+        Logger.critical(msg)
+        sys.exit(1)
