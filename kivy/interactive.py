@@ -11,7 +11,7 @@ interactively.
 .. note::
 
     The Kivy API intends for some functions to only be run once or before the
-    main EventLoop has started.  Methods that can normally be called during the
+    main EventLoop has started. Methods that can normally be called during the
     course of an application will work as intended, but specifically overriding
     methods such as :meth:`on_touch` dynamically leads to trouble.
 
@@ -74,7 +74,7 @@ code in an Ipython shell.::
     i.       # press 'tab' to list attributes of the app
     i.root.  # press 'tab' to list attributes of the root widget
 
-    # App is boring.  Attach a new widget!
+    # App is boring. Attach a new widget!
     i.root.add_widget(MyPaintWidget())
 
     i.safeIn()
@@ -136,7 +136,7 @@ To threadsafe these external references, simply assign them to
     interactiveLauncher.attribute = myNewObject
     # myNewObject is unsafe
     myNewObject = SafeMembrane(myNewObject)
-    # myNewObject is now safe.  Call at will.
+    # myNewObject is now safe. Call at will.
     myNewObject.method()
 
 TODO
@@ -207,7 +207,7 @@ class SafeMembrane(object):
 
     # Everything from this point on is just a series of thread-safing proxy
     # methods that make calls against _ref and threadsafe whenever data will be
-    # written to or if a method will be called.  SafeMembrane instances should
+    # written to or if a method will be called. SafeMembrane instances should
     # be unwrapped whenever passing them into the thread
     #use type() to determine if an object is a SafeMembrane while debugging
     def __repr__(self):
@@ -315,7 +315,7 @@ class InteractiveLauncher(SafeMembrane):
 
     def run(self):
         self.thread.start()
-        #Proxy behavior starts after this is set.  Before this point, attaching
+        #Proxy behavior starts after this is set. Before this point, attaching
         #widgets etc can only be done through the Launcher's app attribute
         self._ref = self.app
 

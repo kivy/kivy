@@ -45,5 +45,3 @@ class ClipboardWindows(ClipboardBase):
 
     def get_types(self):
         return list('text/plain',)
-
-

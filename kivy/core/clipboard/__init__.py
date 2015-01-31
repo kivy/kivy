@@ -1,4 +1,3 @@
-
 '''
 Clipboard
 =========
@@ -129,7 +128,7 @@ elif platform == 'win':
 elif platform == 'linux':
     _clipboards.append(
         ('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
-    
+
 if USE_SDL2:
     _clipboards.append(
         ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))

@@ -67,7 +67,7 @@ asynchronous version.
 
 For example, the *get* method has a `callback` parameter. If set, the
 `callback` will be used to return the result to the user when available:
-the request will be asynchronous.  If the `callback` is None, then the
+the request will be asynchronous. If the `callback` is None, then the
 request will be synchronous and the result will be returned directly.
 
 

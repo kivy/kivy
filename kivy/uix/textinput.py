@@ -658,7 +658,7 @@ class TextInput(FocusBehavior, Widget):
         .. versionadded:: 1.3.0
 
         This action re-does any command that has been un-done by
-        do_undo/ctrl+z.  This function is automatically called when
+        do_undo/ctrl+z. This function is automatically called when
         `ctrl+r` keys are pressed.
         '''
         try:

@@ -468,7 +468,7 @@ class MarkupLabel(MarkupLabelBase):
             `lines`: list of `LayoutLine` instances describing the text.
             `w`: int, the width of the text in lines, including padding.
             `h`: int, the height of the text in lines, including padding.
-            `margin` int, the additional space left on the sides.  This is in
+            `margin` int, the additional space left on the sides. This is in
             addition to :attr:`padding_x`.
 
         :returns:

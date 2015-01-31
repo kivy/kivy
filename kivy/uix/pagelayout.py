@@ -27,7 +27,6 @@ areas on the right or left hand side. If you wish to display multiple widgets
 in a page, we suggest you use a containing layout. Ideally, each page should
 consist of a single :mod:`~kivy.uix.layout` widget that contains the remaining
 widgets on that page.
-            
 """
 
 __all__ = ('PageLayout', )

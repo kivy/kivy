@@ -328,12 +328,14 @@ class ImageLoader(object):
                 ext = zfilename.split('.')[-1].lower()
                 im = None
                 for loader in ImageLoader.loaders:
-                    if ext not in loader.extensions() or not loader.can_load_memory():
+                    if (ext not in loader.extensions()
+                        or not loader.can_load_memory()):
                         continue
                     Logger.debug('Image%s: Load <%s> from <%s>' %
                                  (loader.__name__[11:], zfilename, filename))
                     try:
-                        im = loader(zfilename, ext=ext, rawdata=tmpfile, inline=True, **kwargs)
+                        im = loader(zfilename, ext=ext, rawdata=tmpfile,
+                                    inline=True, **kwargs)
                     except:
                         # Loader failed, continue trying.
                         continue
