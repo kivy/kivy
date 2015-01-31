@@ -382,7 +382,7 @@ to subclass. The Python equivalent would have been:
         pass
 
 Any new properties, usually added in python code, should be declared
-first.  If the property doesn't exist in the dynamic class, it will be
+first. If the property doesn't exist in the dynamic class, it will be
 automatically created as an :class:`~kivy.properties.ObjectProperty`
 (pre 1.8.0) or as an appropriate typed property (from version
 1.8.0).

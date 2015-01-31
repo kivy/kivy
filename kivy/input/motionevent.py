@@ -49,7 +49,7 @@ Profiles
 A capability is the ability of a :class:`MotionEvent` to store new
 information or a way to indicate what is supported by the MotionEvent.
 For example, you can receive a MotionEvent that has an angle, a fiducial
-ID, or even a shape.  You can check the :attr:`~MotionEvent.profile`
+ID, or even a shape. You can check the :attr:`~MotionEvent.profile`
 attribute to check what is currently supported by the MotionEvent and
 how to access it.
 

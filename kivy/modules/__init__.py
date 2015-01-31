@@ -83,7 +83,7 @@ Create a file in your `HOME/.kivy/mods`, and create 2 functions::
         pass
 
 Start/stop are functions that will be called for every window opened in
-Kivy.  When you are starting a module, you can use these to store and
+Kivy. When you are starting a module, you can use these to store and
 manage the module state. Use the `ctx` variable as a dictionary. This
 context is unique for each instance/start() call of the module, and will
 be passed to stop() too.

@@ -118,7 +118,8 @@ class Popup(ModalView):
     defaults to '14sp'.
     '''
 
-    title_align = OptionProperty('left', options=['left', 'center', 'right','justify'])
+    title_align = OptionProperty('left',
+                                 options=['left', 'center', 'right', 'justify'])
     '''Horizontal alignment of the title.
 
     .. versionadded:: 1.9.0

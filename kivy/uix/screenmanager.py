@@ -170,7 +170,7 @@ You can easily switch transitions by changing the
 
     Currently, none of Shader based Transitions use
     anti-aliasing. This is because they use the FBO which doesn't have
-    any logic to handle supersampling.  This is a known issue and we
+    any logic to handle supersampling. This is a known issue and we
     are working on a transparent implementation that will give the
     same results as if it had been rendered on screen.
 

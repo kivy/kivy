@@ -262,7 +262,7 @@ class WindowSDL(WindowBase):
                 # for finger, pass the raw event to SDL motion event provider
                 # XXX this is problematic. On OSX, it generates touches with 0,
                 # 0 coordinates, at the same times as mouse. But it works.
-                # We have a conflict of using either the mouse or the finger. 
+                # We have a conflict of using either the mouse or the finger.
                 # Right now, we have no mechanism that we could use to know
                 # which is the preferred one for the application.
                 #SDL2MotionEventProvider.q.appendleft(event)

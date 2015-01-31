@@ -110,6 +110,3 @@ class FBOInstructionTestCase(unittest.TestCase):
         import os
         if os.path.exists('results.png'):
             os.unlink('results.png')
-
-
-

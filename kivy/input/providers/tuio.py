@@ -3,7 +3,7 @@ TUIO Input Provider
 ===================
 
 TUIO is the de facto standard network protocol for the transmission of
-touch and fiducial information between a server and a client.  To learn
+touch and fiducial information between a server and a client. To learn
 more about TUIO (which is itself based on the OSC protocol), please
 refer to http://tuio.org -- The specification should be of special
 interest.

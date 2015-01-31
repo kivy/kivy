@@ -6,8 +6,8 @@ Atlas
 
 Atlas manages texture atlases: packing multiple textures into
 one. With it, you reduce the number of images loaded and speedup the
-application loading.  This module contains both the Atlas class and command line
-processing for creating an atlas from a set of individual PNG files.   The
+application loading. This module contains both the Atlas class and command line
+processing for creating an atlas from a set of individual PNG files. The
 command line section requires the Pillow library, or the defunct Python Imaging
 Library (PIL), to be installed.
 
@@ -389,13 +389,13 @@ class Atlas(EventDispatcher):
 
 
 if __name__ == '__main__':
-    """ Main line program.   Process command line arguments
+    """ Main line program. Process command line arguments
     to make a new atlas. """
 
     import sys
     argv = sys.argv[1:]
     # earlier import of kivy has already called getopt to remove kivy system
-    # arguments from this line.  That is all arguments up to the first '--'
+    # arguments from this line. That is all arguments up to the first '--'
     if len(argv) < 3:
         print('Usage: python -m kivy.atlas [-- [--use-path] '
               '[--padding=2]] <outname> '
