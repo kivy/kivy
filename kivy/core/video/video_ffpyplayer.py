@@ -309,6 +309,7 @@ class VideoFFPy(VideoBase):
                 loglevel='info', ff_opts=ff_opts)
 
         self._thread = Thread(target=self._next_frame_run, name='Next frame')
+        self._thread.daemon = True
         self._thread.start()
 
     def load(self):
