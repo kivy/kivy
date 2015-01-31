@@ -1,3 +1,17 @@
+'''
+3Drendering Example
+=================
+
+This example demonstrates using OpenGL to display rotating monkey head.  This
+includes loading a Blender OBJ file, shaders written in OpenGL's Shading
+Language (GLSL), and using scheduled callbacks.
+
+The file monkey.obj is a OBJ file output form the Blender free 3D creation
+software.  The file is text, listing vertices and faces.   It is loaded
+into a scene using objloader.py's ObjFile class.  The file simple.glsl is
+a simple vertex and fragment shader written in GLSL.
+'''
+
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
