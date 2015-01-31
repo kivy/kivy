@@ -106,4 +106,10 @@ class FBOInstructionTestCase(unittest.TestCase):
         surface = pygame.image.fromstring(data, (512, 512), 'RGBA', True)
         pygame.image.save(surface, "results.png")
 
+    def tearDown(self):
+        import os
+        if os.path.exists('results.png'):
+            os.unlink('results.png')
+
+
 
