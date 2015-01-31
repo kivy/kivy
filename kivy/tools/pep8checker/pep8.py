@@ -1328,6 +1328,16 @@ class Checker(object):
                     pos = 'l.%s' % token[3][0]
                 print(('l.%s\t%s\t%s\t%r' %
                       (token[2][0], pos, tokenize.tok_name[token[0]], text)))
+            if token_type == tokenize.COMMENT or token_type == tokenize.STRING:
+                for sre in re.finditer("\\.   ?[A-Z]", text):
+                    pos = sre.span()[0]
+                    part = text[:pos]
+                    line = token[2][0] + part.count('\n')
+                    offset = 0 if part.count('\n') > 0 else token[2][1]
+                    col = offset + pos - part.rfind('\n') + 1
+                    self.report_error(line, col,
+                        'E289 Too many spaces after period.  Use only one.',
+                        check=None)
             if token_type == tokenize.OP:
                 if text in '([{':
                     parens += 1
@@ -1352,6 +1362,11 @@ class Checker(object):
                     if COMMENT_WITH_NL:
                         # The comment also ends a physical line
                         self.tokens = []
+        if self.blank_lines > 1:
+            self.report_error(token[2][0],0,
+                'E389 File ends in multiple blank lines',
+                check=None)
+
         return self.report.get_file_results()
 
 
@@ -1479,7 +1494,7 @@ class StandardReport(BaseReport):
                     line = self.lines[line_number - 1]
                 print((line.rstrip()))
                 print((' ' * offset + '^'))
-            if self._show_pep8:
+            if self._show_pep8 and check is not None:
                 print((check.__doc__.lstrip('\n').rstrip()))
         return code
 
