@@ -494,7 +494,6 @@ class FocusBehavior(object):
         future version.
     '''
 
-    _focus_win = None
     _requested_keyboard = False
     _keyboard = ObjectProperty(None, allownone=True)
     _keyboards = {}
@@ -756,17 +755,10 @@ class FocusBehavior(object):
 
     def _ensure_keyboard(self):
         if self._keyboard is None:
-            win = self._focus_win
-            if not win:
-                self._focus_win = win = EventLoop.window
-            if not win:
-                Logger.warning('FocusBehavior: '
-                'Cannot focus the element, unable to get root window')
-                return
             self._requested_keyboard = True
             keyboard = self._keyboard =\
-                win.request_keyboard(self._keyboard_released, self,
-                                     input_type=self.input_type)
+                EventLoop.window.request_keyboard(
+                    self._keyboard_released, self, input_type=self.input_type)
             keyboards = FocusBehavior._keyboards
             if keyboard not in keyboards:
                 keyboards[keyboard] = None
