@@ -81,14 +81,6 @@ class ScreenLayerApp(App):
             Animation(x=f.width-b.width).start(b)
         b.bind(on_press=anim_btn)
 
-        #before this or calback instruction was only way...
-        #so no way to avoid going into python instead of stayingin c
-        #def clear_fb(*args):
-        #    f.fbo.bind()
-        #    f.fbo.clear_buffer()
-        #    f.fbo.release()
-        #Window.bind(on_draw=clear_fb)
-
         return f
 
 
