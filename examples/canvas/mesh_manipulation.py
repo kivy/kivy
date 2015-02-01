@@ -1,3 +1,16 @@
+'''
+Mesh Manipulation Example
+=========================
+
+This demonstrates creating a mesh and using it to deform the texture (the
+kivy log). You should see the kivy logo with a five sliders to right.
+The sliders change the mesh points' x and y offsets, radius, and a
+'wobble' deformation's magnitude and speed.
+
+This example is developed in gabriel's blog post at
+http://kivy.org/planet/2014/01/kivy-image-manipulations-with-mesh-and-textures/
+'''
+
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.core.image import Image as CoreImage
