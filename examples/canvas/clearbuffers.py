@@ -14,7 +14,11 @@ from kivy.graphics import Color, Rectangle, Canvas, ClearBuffers, ClearColor
 from kivy.graphics.fbo import Fbo
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import ObjectProperty, NumericProperty
+from kivy.app import App
+from kivy.core.window import Window
+from kivy.animation import Animation
 from kivy.factory import Factory
+
 
 class FboFloatLayout(FloatLayout):
 
@@ -65,11 +69,6 @@ class FboFloatLayout(FloatLayout):
     def on_alpha(self, instance, value):
         self.fbo_color.rgba = (1, 1, 1, value)
 
-
-
-from kivy.app import App
-from kivy.core.window import Window
-from kivy.animation import Animation
 
 class ScreenLayerApp(App):
     def build(self):
