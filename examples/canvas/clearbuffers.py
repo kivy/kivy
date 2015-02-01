@@ -78,7 +78,10 @@ class ScreenLayerApp(App):
         f.add_widget(b)
 
         def anim_btn(*args):
-            Animation(x=f.width-b.width).start(b)
+            if b.pos[0] == 0:
+                Animation(x=f.width-b.width).start(b)
+            else:
+                Animation(x=0).start(b)
         b.bind(on_press=anim_btn)
 
         return f
