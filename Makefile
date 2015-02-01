@@ -93,10 +93,10 @@ html-embedded:
 	$(MAKE) -C doc html
 
 style:
-	$(PYTHON) $(CHECKSCRIPT) $(KIVY_DIR)
+	$(PYTHON) $(CHECKSCRIPT) .
 
 stylereport:
-	$(PYTHON) $(CHECKSCRIPT) -html $(KIVY_DIR)
+	$(PYTHON) $(CHECKSCRIPT) -html .
 
 hook:
 	# Install pre-commit git hook to check your changes for styleguide
