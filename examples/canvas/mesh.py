@@ -22,6 +22,7 @@ class MeshTestApp(App):
         self.mesh.mode = mode
 
     def build_mesh(self):
+        """ returns a Mesh of a rough circle. """
         vertices = []
         indices = []
         step = 10
