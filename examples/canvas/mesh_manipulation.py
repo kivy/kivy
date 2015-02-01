@@ -79,6 +79,9 @@ class MeshBallApp(App):
         return Builder.load_string(kv)
 
     def update_points(self, *args):
+        """ replace self.mesh_points based on current slider positions.
+        Called continuously by a timer because this only sample code.
+        """
         points = [Window.width / 2, Window.height / 2, .5, .5]
         i = 0
         while i < 2 * pi:
