@@ -2,7 +2,11 @@
 Canvas stress
 =============
 
-This is just a test for testing the performance of our Graphics engine.
+This example tests the performance of our Graphics engine by drawing large
+numbers of small sqaures.  You should see a black canvas with buttons and a
+label at the bottom.  Pressing the buttons adds small colored squares to the
+canvas.
+
 '''
 
 from kivy.uix.button import Button
