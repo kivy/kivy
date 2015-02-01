@@ -1,4 +1,15 @@
 #!/usr/bin/env python
+'''
+Bezier Example
+==============
+
+This example shows a closed Bezier curve computed from a polygon.  You
+should see a purple polygon, a red bezier curve computed from the polygon,
+and two sliders.  You can drag points on the polygon to recompute the curve.
+The two sliders control the dash length of the dashed lines making up the two
+shapes.
+
+'''
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.slider import Slider
