@@ -1,10 +1,24 @@
-__all__ = ('FboFloatLayout', )
+'''
+FBO Canvas
+==========
 
+This demonstrates a layout using an FBO (Frame Buffer Off-screen)
+instead of a plain canvas.  You should see a black canvas with a
+button labelled 'FBO' in the bottom left corner.  Clicking it
+animates the button moving right to left.
+'''
+
+__all__ = ('FboFloatLayout', )
 
 from kivy.graphics import Color, Rectangle, Canvas, ClearBuffers, ClearColor
 from kivy.graphics.fbo import Fbo
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import ObjectProperty, NumericProperty
+from kivy.app import App
+from kivy.core.window import Window
+from kivy.animation import Animation
+from kivy.factory import Factory
+
 
 class FboFloatLayout(FloatLayout):
 
@@ -28,7 +42,7 @@ class FboFloatLayout(FloatLayout):
         super(FboFloatLayout, self).__init__(**kwargs)
 
     def add_widget(self, *largs):
-        # trick to attach graphics instructino to fbo instead of canvas
+        # trick to attach graphics instruction to fbo instead of canvas
         canvas = self.canvas
         self.canvas = self.fbo
         ret = super(FboFloatLayout, self).add_widget(*largs)
@@ -56,30 +70,19 @@ class FboFloatLayout(FloatLayout):
         self.fbo_color.rgba = (1, 1, 1, value)
 
 
-
-from kivy.app import App
-from kivy.core.window import Window
-from kivy.animation import Animation
-from kivy.factory import Factory as F
-
 class ScreenLayerApp(App):
     def build(self):
 
         f = FboFloatLayout()
-        b = F.Button(text="FBO", size_hint=(None, None))
+        b = Factory.Button(text="FBO", size_hint=(None, None))
         f.add_widget(b)
 
         def anim_btn(*args):
-            Animation(x=f.width-b.width).start(b)
+            if b.pos[0] == 0:
+                Animation(x=f.width-b.width).start(b)
+            else:
+                Animation(x=0).start(b)
         b.bind(on_press=anim_btn)
-
-        #before this or calback instruction was only way...
-        #so no way to avoid going into python instead of stayingin c
-        #def clear_fb(*args):
-        #    f.fbo.bind()
-        #    f.fbo.clear_buffer()
-        #    f.fbo.release()
-        #Window.bind(on_draw=clear_fb)
 
         return f
 
