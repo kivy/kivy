@@ -1,14 +1,19 @@
 '''
-Audio example
-=============
+Audio Playback Demonstration
+=============================
 
-This example plays sounds of different formats. You should see a grid of
-buttons labelled with filenames. Clicking on the buttons will play, or
-restart, each sound. Not all sound formats will play on all platforms.
+This demonstration plays sounds of different formats. You should see a grid of
+buttons labelled with file names. Clicking on the buttons will play, or
+restart, each sound. You can play multiple sounds at once, but not all sound
+formats will play on all platforms. The slider on the left controls volume.
 
-All the sounds are from the http://woolyss.com/chipmusic-samples.php
+Chip sounds are from http://woolyss.com/chipmusic-samples.php
 "THE FREESOUND PROJECT", Under Creative Commons Sampling Plus 1.0 License.
-
+Piano sounds are from https://archive.org/details/Piano_804, Internet Archive,
+placed into the public domain.  Beethoven sounds are from
+https://archive.org/details/SymphonyNo.5, Internet Archive, placed into the
+public domain.   Some free format conversions done by
+http://www.online-convert.com.
 '''
 
 import kivy
