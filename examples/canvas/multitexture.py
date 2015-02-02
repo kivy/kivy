@@ -36,12 +36,15 @@ class MultitextureWidget(Widget):
 
     def __init__(self, **kwargs):
         self.canvas = RenderContext()
+        # setting shader.fs to new source code automatically compiles it.
         self.canvas.shader.fs = fs_multitexture
         with self.canvas:
             Color(1, 1, 1)
 
             # here, we are binding a custom texture at index 1
             # this will be used as texture1 in shader.
+            # The filenames are misleading:  they do not correspond to the
+            # index here or in the shader.
             BindTexture(source='mtexture2.png', index=1)
 
             # create a rectangle with texture (will be at index 0)
@@ -51,7 +54,7 @@ class MultitextureWidget(Widget):
         self.canvas['texture1'] = 1
 
         # call the constructor of parent
-        # if they are any graphics object, they will be added on our new canvas
+        # if they are any graphics objects, they will be added on our new canvas
         super(MultitextureWidget, self).__init__(**kwargs)
 
         # We'll update our glsl variables in a clock
