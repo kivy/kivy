@@ -1,3 +1,15 @@
+'''
+Tesselate Demonstration
+=======================
+
+This demonstrates the experimental library for tesselating polygons. You
+should see a hollow square with some buttons below it. You can click and
+drag to create additional shapes, watchin the number of vertexes and elements
+at the top of the screen. The 'debug' button toggles showing the mesh in
+different colors.
+'''
+
+
 from kivy.app import App
 from kivy.graphics import Mesh, Color
 from kivy.graphics.tesselator import Tesselator, WINDING_ODD, TYPE_POLYGONS
