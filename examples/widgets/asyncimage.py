@@ -27,7 +27,7 @@ class CenteredAsyncImage(AsyncImage):
 class TestAsyncApp(App):
     def build(self):
         return CenteredAsyncImage(
-                source='http://kivy.org/funny-pictures-cat-is-expecting-you.jpg')
+            source='http://kivy.org/funny-pictures-cat-is-expecting-you.jpg')
 
 if __name__ == '__main__':
     TestAsyncApp().run()

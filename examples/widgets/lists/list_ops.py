@@ -111,7 +111,7 @@ listview_selection_buttons = {}
 class OpsView(BoxLayout):
     '''Seven list views are shown at the bottom, each focusing on one of the
     available operations for collection adapters: scroll_to, trim_to_sel,
-    trim_left_of_sel, etc.  At the top is a display that shows individual
+    trim_left_of_sel, etc. At the top is a display that shows individual
     items selected across the seven lists, along with a total of all selected
     items for the lists.
     '''
@@ -157,7 +157,8 @@ class OpsView(BoxLayout):
                                         size_hint=(.5, 1.0),
                                         background_color=[.25, .25, .6, 1.0])
         selection_monitor = SelectionMonitor()
-        selection_monitor.bind(count_string=total_selection_button.setter('text'))
+        selection_monitor.bind(
+            count_string=total_selection_button.setter('text'))
 
         upper_panel.add_widget(total_selection_button)
 

@@ -47,6 +47,7 @@ uniform mat4       projection_mat;
 uniform vec4       color;
 '''
 
+
 class ShaderViewer(FloatLayout):
     fs = StringProperty(None)
     vs = StringProperty(None)
@@ -70,6 +71,7 @@ class ShaderViewer(FloatLayout):
         self.canvas.shader.vs = value
 
 Factory.register('ShaderViewer', cls=ShaderViewer)
+
 
 class ShaderEditor(FloatLayout):
 
@@ -107,6 +109,7 @@ void main (void) {
         self.viewer.fs = fs
         print('-->', vs)
         self.viewer.vs = vs
+
 
 class ShaderEditorApp(App):
     def build(self):

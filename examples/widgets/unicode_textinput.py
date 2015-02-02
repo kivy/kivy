@@ -10,8 +10,7 @@ from kivy.uix.popup import Popup
 import os
 
 
-Builder.load_string(
-'''
+Builder.load_string('''
 #: import utils kivy
 #: import os os
 #: import font pygame.font
@@ -110,8 +109,10 @@ if _platform == 'linux' else '/system/fonts' if _platform == 'android' else os.p
 (filechooser.path, filechooser.selection)
 ''')
 
+
 class FntSpinnerOption(SpinnerOption):
     pass
+
 
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
@@ -121,7 +122,7 @@ class LoadDialog(FloatLayout):
 class Unicode_TextInput(BoxLayout):
 
     txt_input = ObjectProperty(None)
-    unicode_string = StringProperty('''Latin-1 suppliment: éé çç ßß
+    unicode_string = StringProperty('''Latin-1 supplement: éé çç ßß
 
 List of major languages taken from Google Translate
 ____________________________________________________
@@ -198,14 +199,13 @@ Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער 
 
     def load(self, _path, _fname):
         self.txt_input.font_name = _fname[0]
-        _f_name =  _fname[0][_fname[0].rfind(os.sep) + 1:]
+        _f_name = _fname[0][_fname[0].rfind(os.sep) + 1:]
         self.spnr_fnt.text = _f_name[:_f_name.rfind('.')]
-
         self._popup.dismiss()
 
     def show_load(self):
         content = LoadDialog(load=self.load, cancel=self.dismiss_popup)
-        self._popup = Popup(title="load file", content=content, \
+        self._popup = Popup(title="load file", content=content,
             size_hint=(0.9, 0.9))
         self._popup.open()
 

@@ -116,7 +116,8 @@ class ShapeBuilder(FloatLayout):
             with self.canvas.after:
                 Color(1, 1, 1, 1)
                 for vertices, indices in tess.meshes:
-                    Mesh(vertices=vertices, indices=indices, mode="triangle_fan")
+                    Mesh(vertices=vertices, indices=indices,
+                         mode="triangle_fan")
 
         self.ids.status.text = "Vertex: {} - Elements: {}".format(
             tess.vertex_count, tess.element_count)

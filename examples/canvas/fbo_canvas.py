@@ -3,8 +3,8 @@ FBO Canvas
 ==========
 
 This demonstrates a layout using an FBO (Frame Buffer Off-screen)
-instead of a plain canvas.  You should see a black canvas with a
-button labelled 'FBO' in the bottom left corner.  Clicking it
+instead of a plain canvas. You should see a black canvas with a
+button labelled 'FBO' in the bottom left corner. Clicking it
 animates the button moving right to left.
 '''
 
@@ -34,7 +34,7 @@ class FboFloatLayout(FloatLayout):
             self.fbo_rect = Rectangle()
 
         with self.fbo:
-            ClearColor(0,0,0,0)
+            ClearColor(0, 0, 0, 0)
             ClearBuffers()
 
         # wait that all the instructions are in the canvas to set texture
@@ -79,7 +79,7 @@ class ScreenLayerApp(App):
 
         def anim_btn(*args):
             if b.pos[0] == 0:
-                Animation(x=f.width-b.width).start(b)
+                Animation(x=f.width - b.width).start(b)
             else:
                 Animation(x=0).start(b)
         b.bind(on_press=anim_btn)

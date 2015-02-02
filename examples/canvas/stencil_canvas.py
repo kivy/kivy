@@ -31,7 +31,7 @@ class StencilTestWidget(StencilView):
         self.size = (1, 1)
 
     def on_touch_move(self, touch):
-        self.size = (touch.x-touch.ox, touch.y-touch.oy)
+        self.size = (touch.x - touch.ox, touch.y - touch.oy)
 
 
 class StencilCanvasApp(App):

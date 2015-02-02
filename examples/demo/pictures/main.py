@@ -44,7 +44,7 @@ class PicturesApp(App):
         for filename in glob(join(curdir, 'images', '*')):
             try:
                 # load the image
-                picture = Picture(source=filename, rotation=randint(-30,30))
+                picture = Picture(source=filename, rotation=randint(-30, 30))
                 # add to the main field
                 root.add_widget(picture)
             except Exception as e:

@@ -8,7 +8,8 @@ from kivy.properties import ListProperty
 from kivy.core.window import Window
 from pygments import lexers
 from pygame import font as fonts
-import codecs, os
+import codecs
+import os
 
 example_text = '''
 ---------------------Python----------------------------------
@@ -66,7 +67,7 @@ class LoadDialog(Popup):
     def load(self, path, selection):
         self.choosen_file = [None, ]
         self.choosen_file = selection
-        Window.title = selection[0][selection[0].rfind(os.sep)+1:]
+        Window.title = selection[0][selection[0].rfind(os.sep) + 1:]
         self.dismiss()
 
     def cancel(self):
@@ -78,7 +79,7 @@ class SaveDialog(Popup):
     def save(self, path, selection):
         _file = codecs.open(selection, 'w', encoding='utf8')
         _file.write(self.text)
-        Window.title = selection[selection.rfind(os.sep)+1:]
+        Window.title = selection[selection.rfind(os.sep) + 1:]
         _file.close()
         self.dismiss()
 

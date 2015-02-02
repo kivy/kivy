@@ -6,6 +6,7 @@ install_twisted_reactor()
 #A simple Client that send messages to the echo server
 from twisted.internet import reactor, protocol
 
+
 class EchoClient(protocol.Protocol):
     def connectionMade(self):
         self.factory.app.on_connection(self.transport)
@@ -13,8 +14,10 @@ class EchoClient(protocol.Protocol):
     def dataReceived(self, data):
         self.factory.app.print_message(data)
 
+
 class EchoFactory(protocol.ClientFactory):
     protocol = EchoClient
+
     def __init__(self, app):
         self.app = app
 
@@ -29,6 +32,7 @@ from kivy.app import App
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
+
 
 # A simple kivy App, with a textbox to enter messages, and
 # a large label to display all the messages received from
@@ -65,7 +69,6 @@ class TwistedClientApp(App):
 
     def print_message(self, msg):
         self.label.text += msg + "\n"
-
 
 if __name__ == '__main__':
     TwistedClientApp().run()

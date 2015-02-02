@@ -16,6 +16,7 @@ class SvgWidget(Scatter):
             svg = Svg(filename)
         self.size = svg.width, svg.height
 
+
 class SvgApp(App):
 
     def build(self):
@@ -33,4 +34,3 @@ class SvgApp(App):
 
 if __name__ == '__main__':
     SvgApp().run()
-
