@@ -9,12 +9,14 @@ from kivy.properties import NumericProperty
 from random import randint, random
 from functools import partial
 
+
 class Puzzle(Camera):
 
     blocksize = NumericProperty(100)
 
     def on_texture_size(self, instance, value):
         self.build()
+
     def on_blocksize(self, instance, value):
         self.build()
 
@@ -30,7 +32,8 @@ class Puzzle(Camera):
                 bx = x * bs
                 by = y * bs
                 subtexture = texture.get_region(bx, by, bs, bs)
-                #node = PuzzleNode(texture=subtexture, size=(bs, bs), pos=(bx, by))
+                #node = PuzzleNode(texture=subtexture,
+                #                  size=(bs, bs), pos=(bx, by))
                 node = Scatter(pos=(bx, by), size=(bs, bs))
                 with node.canvas:
                     Color(1, 1, 1)
@@ -51,7 +54,8 @@ class Puzzle(Camera):
             x = bs * (index % int(tw / bs))
             y = bs * int(index / int(tw / bs))
             child = self.children[childindex]
-            a = Animation(d=random() / 4.) + Animation(pos=(x, y), t='out_quad', d=.4)
+            a = Animation(d=random() / 4.) + Animation(pos=(x, y),
+                                                       t='out_quad', d=.4)
             a.start(child)
             childindex += 1
 
@@ -77,7 +81,5 @@ class PuzzleApp(App):
         value = int((value + 5) / 10) * 10
         puzzle.blocksize = value
         instance.value = value
-
-
 
 PuzzleApp().run()

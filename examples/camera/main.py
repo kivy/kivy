@@ -2,8 +2,8 @@
 Camera Example
 ==============
 
-This example demonstrates a simple use of the camera.  It shows a window with
-a buttoned labelled 'play' to turn the camera on and off.  Note that
+This example demonstrates a simple use of the camera. It shows a window with
+a buttoned labelled 'play' to turn the camera on and off. Note that
 not finding a camera, perhaps because gstreamer is not installed, will
 throw an exception during the kv language processing.
 

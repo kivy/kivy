@@ -2,6 +2,7 @@ from kivy.uix.accordion import Accordion, AccordionItem
 from kivy.uix.label import Label
 from kivy.app import App
 
+
 class AccordionApp(App):
     def build(self):
         root = Accordion()

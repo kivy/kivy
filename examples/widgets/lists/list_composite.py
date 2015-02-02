@@ -20,21 +20,23 @@ class MainView(GridLayout):
         # This is quite an involved args_converter, so we should go through the
         # details. A CompositeListItem instance is made with the args
         # returned by this converter. The first three, text, size_hint_y,
-        # height are arguments for CompositeListItem. The cls_dicts list contains
-        # argument sets for each of the member widgets for this composite:
-        # ListItemButton and ListItemLabel.
-        args_converter = \
-            lambda row_index, rec: \
-                {'text': rec['text'],
-                 'size_hint_y': None,
-                 'height': 25,
-                 'cls_dicts': [{'cls': ListItemButton,
-                                'kwargs': {'text': rec['text']}},
-                               {'cls': ListItemLabel,
-                                'kwargs': {'text': "Middle-{0}".format(rec['text']),
-                                           'is_representing_cls': True}},
-                               {'cls': ListItemButton,
-                                'kwargs': {'text': rec['text']}}]}
+        # height are arguments for CompositeListItem. The cls_dicts list
+        # contains argument sets for each of the member widgets for this
+        # composite:  ListItemButton and ListItemLabel.
+        args_converter = lambda row_index, rec: {
+            'text': rec['text'],
+            'size_hint_y': None,
+            'height': 25,
+            'cls_dicts': [{'cls': ListItemButton,
+                           'kwargs': {'text': rec['text']}},
+                           {
+                               'cls': ListItemLabel,
+                               'kwargs': {
+                                   'text': "Middle-{0}".format(rec['text']),
+                                   'is_representing_cls': True}},
+                           {
+                               'cls': ListItemButton,
+                               'kwargs': {'text': rec['text']}}]}
 
         item_strings = ["{0}".format(index) for index in range(100)]
 

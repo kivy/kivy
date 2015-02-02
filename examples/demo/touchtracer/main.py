@@ -88,7 +88,7 @@ class Touchtracer(FloatLayout):
             try:
                 lp = ud['lines'][-1].add_point
                 for idx in range(0, len(points), 2):
-                    lp(points[idx], points[idx+1])
+                    lp(points[idx], points[idx + 1])
             except GraphicException:
                 pass
 

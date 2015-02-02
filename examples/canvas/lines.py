@@ -3,11 +3,11 @@ Line (SmoothLine) Experiment
 ============================
 
 This demonstrates the experimental and unfinished SmoothLine feature
-for fast line drawing.  You should see a multi-segment
+for fast line drawing. You should see a multi-segment
 path at the top of the screen, and sliders and buttons along the bottom.
 You can click to add new points to the segment, change the transparency
 and width of the line, or hit 'Animate' to see a set of sine and cosine
-animations.   The Cap and Joint buttons don't work:  SmoothLine has not
+animations. The Cap and Joint buttons don't work: SmoothLine has not
 implemented these features yet.
 '''
 

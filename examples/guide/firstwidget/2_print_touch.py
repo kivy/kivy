@@ -6,6 +6,7 @@ class MyPaintWidget(Widget):
     def on_touch_down(self, touch):
         print(touch)
 
+
 class MyPaintApp(App):
     def build(self):
         return MyPaintWidget()

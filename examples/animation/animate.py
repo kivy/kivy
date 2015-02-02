@@ -3,7 +3,7 @@ Widget animation
 ================
 
 This example demonstrates creating and applying a multi-part animation to
-a button widget.  You should see a button labelled 'plop' that will move with
+a button widget. You should see a button labelled 'plop' that will move with
 an animation when clicked.
 '''
 

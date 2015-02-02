@@ -3,7 +3,7 @@ Lines Extended Demo
 ===================
 
 This demonstrates how to use the extended line drawing routines such
-as circles, elipses, and rectangles.  You should see a static image of
+as circles, elipses, and rectangles. You should see a static image of
 labelled shapes on the screen.
 '''
 
@@ -105,48 +105,54 @@ Builder.load_string('''
         center: root.center
         text: 'Rectangle'
 
-
 <LineBezier>:
     canvas:
         Color:
             rgba: .1, .1, 1, .9
         Line:
             width: 2.
-            bezier: (self.x, self.y, self.center_x - 40, self.y + 100, self.center_x + 40, self.y - 100, self.right, self.y) 
+            bezier: (self.x, self.y, self.center_x - 40, self.y + 100, self.center_x + 40, self.y - 100, self.right, self.y)
     Label:
         center: root.center
         text: 'Bezier'
-
-
 ''')
 
 
 class LineEllipse1(Widget):
     pass
 
+
 class LineEllipse2(Widget):
     pass
+
 
 class LineEllipse3(Widget):
     pass
 
+
 class LineCircle1(Widget):
     pass
+
 
 class LineCircle2(Widget):
     pass
 
+
 class LineCircle3(Widget):
     pass
+
 
 class LineCircle4(Widget):
     pass
 
+
 class LineRectangle(Widget):
     pass
 
+
 class LineBezier(Widget):
     pass
+
 
 class LineExtendedApp(App):
     def build(self):
