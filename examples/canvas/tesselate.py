@@ -81,6 +81,7 @@ class ShapeBuilder(FloatLayout):
     def on_touch_up(self, touch):
         if super(ShapeBuilder, self).on_touch_up(touch):
             return True
+        Logger.info('tesselate: on_touch_up (%5.2f, %5.2f)' % touch.pos)
         self.push_shape()
         self.build()
 
@@ -101,7 +102,7 @@ class ShapeBuilder(FloatLayout):
         if not count:
             return
         ret = tess.tesselate(WINDING_ODD, TYPE_POLYGONS)
-        Logger.info('tesselate: build:  tess.teselate returns {}'.format(ret))
+        Logger.info('tesselate: build: tess.tesselate returns {}'.format(ret))
         self.canvas.after.clear()
 
         debug = self.ids.debug.state == "down"
