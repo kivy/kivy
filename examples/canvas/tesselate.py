@@ -16,6 +16,7 @@ from kivy.graphics.tesselator import Tesselator, WINDING_ODD, TYPE_POLYGONS
 from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 from kivy.lang import Builder
+from kivy.logger import Logger
 
 Builder.load_string("""
 <ShapeBuilder>:
@@ -64,7 +65,7 @@ class ShapeBuilder(FloatLayout):
     def on_touch_down(self, touch):
         if super(ShapeBuilder, self).on_touch_down(touch):
             return True
-        print(touch.pos)
+        Logger.info('tesselate: on_touch_down (%5.2f, %5.2f)' % touch.pos)
         self.shape.extend(touch.pos)
         self.build()
         return True
@@ -72,7 +73,7 @@ class ShapeBuilder(FloatLayout):
     def on_touch_move(self, touch):
         if super(ShapeBuilder, self).on_touch_move(touch):
             return True
-        print(touch.pos)
+        Logger.info('tesselate: on_touch_move (%5.2f, %5.2f)' % touch.pos)
         self.shape.extend(touch.pos)
         self.build()
         return True
@@ -99,12 +100,8 @@ class ShapeBuilder(FloatLayout):
             count += 1
         if not count:
             return
-        print("Tesselate {} shapes".format(count))
         ret = tess.tesselate(WINDING_ODD, TYPE_POLYGONS)
-        print("Result: {}".format(ret))
-        print("Vertex count: {}".format(tess.vertex_count))
-        print("Element count: {}".format(tess.element_count))
-
+        Logger.info('tesselate: build:  tess.teselate returns {}'.format(ret))
         self.canvas.after.clear()
 
         debug = self.ids.debug.state == "down"
