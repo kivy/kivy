@@ -58,7 +58,7 @@ class ShapeBuilder(FloatLayout):
         self.shapes = [
             [100, 100, 300, 100, 300, 300, 100, 300],
             [150, 150, 250, 150, 250, 250, 150, 250]
-        ]
+        ]  # the 'hollow square' shape
         self.shape = []
         self.build()
 
@@ -128,12 +128,14 @@ class ShapeBuilder(FloatLayout):
                     Mesh(vertices=vertices, indices=indices,
                          mode="triangle_fan")
 
-        self.ids.status.text = "Vertex: {} - Elements: {}".format(
-            tess.vertex_count, tess.element_count)
+        self.ids.status.text = "Shapes: {} - Vertex: {} - Elements: {}".format(
+            count, tess.vertex_count, tess.element_count)
 
     def reset(self):
         self.shapes = []
         self.shape = []
+        self.ids.status.text = "Shapes: {} - Vertex: {} - Elements: {}".format(
+            0, 0, 0)
         self.canvas.after.clear()
 
 
