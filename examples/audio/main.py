@@ -28,9 +28,9 @@ from glob import glob
 from os.path import dirname, join, basename
 from kivy.logger import Logger
 
+extensions = '*.aac *.aiff *.flac *.m4a *.mp3 *.ogg *.opus *.wav *.wma'.split()
 
 class AudioButton(Button):
-
     filename = StringProperty(None)
     sound = ObjectProperty(None, allownone=True)
     volume = NumericProperty(1.0)
@@ -66,17 +66,18 @@ class AudioBackground(BoxLayout):
 
 
 class AudioApp(App):
-
     def build(self):
-
         root = AudioBackground(spacing=5)
-        for fn in glob(join(dirname(__file__), '*.wav')):
+        filenames = []
+        for extension in extensions:
+            filenames.extend(glob(join(dirname(__file__), extension)))
+        for fn in sorted(filenames):
             btn = AudioButton(
-                text=basename(fn[:-4]).replace('_', ' '), filename=fn,
+                text=basename(fn[:-4]).replace('_', ' ').strip('.'),
+                filename=fn,
                 size_hint=(None, None), halign='center',
-                size=(128, 128), text_size=(118, None))
+                size=(128, 64), text_size=(118, None))
             root.ids.sl.add_widget(btn)
-
         return root
 
     def release_audio(self):
