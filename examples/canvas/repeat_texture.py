@@ -1,8 +1,11 @@
 '''
-Demonstrate repeating textures
-==============================
+Repeat Texture on Resize
+========================
 
-This was a test to fix an issue with repeating texture and window reloading.
+This examples repeats the letter 'K' (mtexture1.png) 64 times in a window.
+You should see 8 rows and 8 columns of white K letters, along a label
+showing the current size. As you resize the window, it stays an 8x8.
+This example includes a label on a background.
 '''
 
 from kivy.app import App
