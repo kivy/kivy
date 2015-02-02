@@ -1,6 +1,11 @@
 '''
-Multitexturing
-==============
+Multitexture Example
+====================
+
+This example blends two textures:  the letter K in mtexture1.png and an orange
+circle in mtexture2.png. You should see an orange K clipped to a circle.
+It uses a custom shader, written in glsl (OpenGL Shading Language), stored
+in a local string.
 '''
 
 from kivy.clock import Clock
