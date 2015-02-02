@@ -26,6 +26,7 @@ from kivy.core.audio import SoundLoader
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty
 from glob import glob
 from os.path import dirname, join, basename
+from kivy.logger import Logger
 
 
 class AudioButton(Button):
@@ -35,8 +36,13 @@ class AudioButton(Button):
     volume = NumericProperty(1.0)
 
     def on_press(self):
+        """ load and play on press, restarting if playing. """
         if self.sound is None:
             self.sound = SoundLoader.load(self.filename)
+            if self.sound is None:
+                Logger.error("audio-main.py: unable to get SoundLoader for %s",
+                             self.filename)
+                return
         # stop the sound if it's currently playing
         if self.sound.status != 'stop':
             self.sound.stop()
