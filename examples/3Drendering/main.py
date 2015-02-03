@@ -1,6 +1,6 @@
 '''
-3Drendering Example
-=================
+3D Rendering Monkey Head
+========================
 
 This example demonstrates using OpenGL to display rotating monkey head. This
 includes loading a Blender OBJ file, shaders written in OpenGL's Shading
