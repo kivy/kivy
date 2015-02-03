@@ -14,6 +14,12 @@ placed into the public domain.  Beethoven sounds are from
 https://archive.org/details/SymphonyNo.5, Internet Archive, placed into the
 public domain.   Some free format conversions done by
 http://www.online-convert.com.
+
+The Beethoven files, which are 4.3M (ogg) and 84M (wav), can be useful for
+debugging troubles with large files. You can download them from
+https://github.com/merriam/big_audio_files/blob/master/Beethoven_long_ogg.ogg
+and
+https://github.com/merriam/big_audio_files/blob/master/Beethoven_long_wav.wav.
 '''
 
 import kivy
