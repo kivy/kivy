@@ -25,6 +25,9 @@ else:
 
 """ One with.  1 number doesn't count. lowercase doesn't.    Four doesn't.  """
 pass
+""" No we have commas,  with too many spaces.  a lower case sentence.
+    then more:  issues,  and, then;  another issue """
+pass
 """ And then lots of blank lines. """
 
 
