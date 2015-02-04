@@ -4,6 +4,7 @@ AudioPygame: implementation of Sound with Pygame
 
 __all__ = ('SoundPygame', )
 
+from kivy.clock import _default_time
 from kivy.clock import Clock
 from kivy.utils import platform
 from kivy.core.audio import Sound, SoundLoader
@@ -26,6 +27,7 @@ mixer.pre_init(44100, -16, 2, 1024)
 mixer.init()
 mixer.set_num_channels(32)
 
+start_time = _default_time()
 
 class SoundPygame(Sound):
 
@@ -67,6 +69,7 @@ class SoundPygame(Sound):
         # schedule event to check if the sound is still playing or not
         Clock.schedule_interval(self._check_play, 0.1)
         super(SoundPygame, self).play()
+        start_time = _default_time()
 
     def stop(self):
         if not self._data:
@@ -95,9 +98,10 @@ class SoundPygame(Sound):
 
     def get_pos(self):
         if self._data is not None:
+            time_now = _default_time()
             if _platform == 'android' and self._channel:
                 return self._channel.get_pos()
-            return mixer.music.get_pos()
+            return  time_now - start_time
         return 0
 
     def on_volume(self, instance, volume):
