@@ -27,7 +27,7 @@ mixer.pre_init(44100, -16, 2, 1024)
 mixer.init()
 mixer.set_num_channels(32)
 
-start_time = _default_time()
+start_time = 0.0
 
 class SoundPygame(Sound):
 
@@ -69,7 +69,7 @@ class SoundPygame(Sound):
         # schedule event to check if the sound is still playing or not
         Clock.schedule_interval(self._check_play, 0.1)
         super(SoundPygame, self).play()
-        start_time = _default_time()
+        self.start_time = _default_time()
 
     def stop(self):
         if not self._data:
@@ -101,7 +101,7 @@ class SoundPygame(Sound):
             time_now = _default_time()
             if _platform == 'android' and self._channel:
                 return self._channel.get_pos()
-            return  time_now - start_time
+            return  time_now - self.start_time
         return 0
 
     def on_volume(self, instance, volume):
