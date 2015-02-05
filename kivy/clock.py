@@ -639,6 +639,14 @@ class ClockBase(_ClockBase):
                     if event in events:
                         event.tick(self._last_tick, remove)
 
+    @staticmethod
+    def time():
+        '''Decorated staticmethod time returns the value of object _default_time
+        which stores the value of current time which is most accurate based on
+        the operating system being used. It is the time used by kivy clock.
+        '''
+        return _default_time()
+
 
 def mainthread(func):
     '''Decorator that will schedule the call of the function for the next
