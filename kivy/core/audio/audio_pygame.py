@@ -4,7 +4,7 @@ AudioPygame: implementation of Sound with Pygame
 
 __all__ = ('SoundPygame', )
 
-from kivy.clock import _default_time
+from kivy.clock import ClockBase
 from kivy.clock import Clock
 from kivy.utils import platform
 from kivy.core.audio import Sound, SoundLoader
@@ -36,6 +36,11 @@ class SoundPygame(Sound):
     # TypeError: cannot create weak reference to 'SoundPygame' object
     # We use our clock in play() method.
     # __slots__ = ('_data', '_channel')
+    # The get_pos method uses ClockBase.time imported from time module.
+    # It is essentially the same time as used in kivy clock.
+    # The play function stores the start time into the sound object when called.
+    # The get_pos function returns the difference of current_time and start_time.
+    
     @staticmethod
     def extensions():
         if _platform == 'android':
@@ -68,7 +73,7 @@ class SoundPygame(Sound):
         # schedule event to check if the sound is still playing or not
         Clock.schedule_interval(self._check_play, 0.1)
         super(SoundPygame, self).play()
-        self.start_time = _default_time()
+        self.start_time = ClockBase.time()
 
     def stop(self):
         if not self._data:
@@ -97,7 +102,7 @@ class SoundPygame(Sound):
 
     def get_pos(self):
         if self._data is not None:
-            time_now = _default_time()
+            time_now = ClockBase.time()
             if _platform == 'android' and self._channel:
                 return self._channel.get_pos()
             return  time_now - self.start_time
