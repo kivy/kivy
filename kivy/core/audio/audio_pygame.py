@@ -34,12 +34,7 @@ class SoundPygame(Sound):
     # SoundPygame object. Otherwise, it failed with:
     # TypeError: cannot create weak reference to 'SoundPygame' object
     # We use our clock in play() method.
-    # __slots__ = ('_data', '_channel')
-    # The get_pos method uses Clock.time imported from time module.
-    # It is essentially the same time as used in kivy clock.
-    # The play function stores the start time into the sound object when called.
-    # The get_pos function returns the difference of current_time and start_time.
-    
+    # __slots__ = ('_data', '_channel')    
     @staticmethod
     def extensions():
         if _platform == 'android':
@@ -69,10 +64,10 @@ class SoundPygame(Sound):
             return
         self._data.set_volume(self.volume)
         self._channel = self._data.play()
+        self.start_time = Clock.time()
         # schedule event to check if the sound is still playing or not
         Clock.schedule_interval(self._check_play, 0.1)
         super(SoundPygame, self).play()
-        self.start_time = Clock.time()
 
     def stop(self):
         if not self._data:
@@ -100,10 +95,10 @@ class SoundPygame(Sound):
             self._channel.seek(position)
 
     def get_pos(self):
-        if self._data is not None:
-            time_now = Clock.time()
-            if _platform == 'android' and self._channel:
+        if self._data is not None and self._channel:
+            if _platform == 'android':
                 return self._channel.get_pos()
+            time_now = Clock.time()
             return  time_now - self.start_time
         return 0
 
