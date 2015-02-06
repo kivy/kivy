@@ -98,8 +98,7 @@ class SoundPygame(Sound):
         if self._data is not None and self._channel:
             if _platform == 'android':
                 return self._channel.get_pos()
-            time_now = Clock.time()
-            return  time_now - self.start_time
+            return  Clock.time() - self.start_time
         return 0
 
     def on_volume(self, instance, volume):
