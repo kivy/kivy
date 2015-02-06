@@ -34,7 +34,7 @@ class SoundPygame(Sound):
     # SoundPygame object. Otherwise, it failed with:
     # TypeError: cannot create weak reference to 'SoundPygame' object
     # We use our clock in play() method.
-    # __slots__ = ('_data', '_channel')    
+    # __slots__ = ('_data', '_channel')
     @staticmethod
     def extensions():
         if _platform == 'android':
