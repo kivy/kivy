@@ -211,7 +211,7 @@ __all__ = ('Clock', 'ClockBase', 'ClockEvent', 'mainthread')
 
 from sys import platform
 from os import environ
-from functools import wraps
+from functools import wraps,partial
 from kivy.context import register_context
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
@@ -639,14 +639,12 @@ class ClockBase(_ClockBase):
                     if event in events:
                         event.tick(self._last_tick, remove)
 
-    @staticmethod
-    def time():
-        '''Decorated staticmethod time returns the value of object _default_time
-        which stores the value of current time which is most accurate based on
-        the operating system being used. It is the time used by kivy clock.
-        '''
-        return _default_time()
+    time = staticmethod(partial(_default_time))
 
+ClockBase.time.__doc__ = '''Proxy method for time.time() or time.clock(), 
+whichever is more suitable for the running OS'''
+# creates a static object
+    
 
 def mainthread(func):
     '''Decorator that will schedule the call of the function for the next
