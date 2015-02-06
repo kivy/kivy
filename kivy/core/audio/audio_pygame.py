@@ -35,7 +35,7 @@ class SoundPygame(Sound):
     # TypeError: cannot create weak reference to 'SoundPygame' object
     # We use our clock in play() method.
     # __slots__ = ('_data', '_channel')
-    # The get_pos method uses ClockBase.time imported from time module.
+    # The get_pos method uses Clock.time imported from time module.
     # It is essentially the same time as used in kivy clock.
     # The play function stores the start time into the sound object when called.
     # The get_pos function returns the difference of current_time and start_time.
