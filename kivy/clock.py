@@ -211,7 +211,7 @@ __all__ = ('Clock', 'ClockBase', 'ClockEvent', 'mainthread')
 
 from sys import platform
 from os import environ
-from functools import wraps,partial
+from functools import wraps, partial
 from kivy.context import register_context
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
@@ -643,7 +643,6 @@ class ClockBase(_ClockBase):
 
 ClockBase.time.__doc__ = '''Proxy method for time.time() or time.clock(), 
 whichever is more suitable for the running OS'''
-# creates a static object
     
 
 def mainthread(func):
