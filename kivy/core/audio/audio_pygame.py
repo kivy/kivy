@@ -4,7 +4,6 @@ AudioPygame: implementation of Sound with Pygame
 
 __all__ = ('SoundPygame', )
 
-from kivy.clock import ClockBase
 from kivy.clock import Clock
 from kivy.utils import platform
 from kivy.core.audio import Sound, SoundLoader
@@ -73,7 +72,7 @@ class SoundPygame(Sound):
         # schedule event to check if the sound is still playing or not
         Clock.schedule_interval(self._check_play, 0.1)
         super(SoundPygame, self).play()
-        self.start_time = ClockBase.time()
+        self.start_time = Clock.time()
 
     def stop(self):
         if not self._data:
@@ -102,7 +101,7 @@ class SoundPygame(Sound):
 
     def get_pos(self):
         if self._data is not None:
-            time_now = ClockBase.time()
+            time_now = Clock.time()
             if _platform == 'android' and self._channel:
                 return self._channel.get_pos()
             return  time_now - self.start_time
