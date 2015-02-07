@@ -1,6 +1,5 @@
 usr/lib/python3/dist-packages/Kivy-*.egg-info
-usr/lib/python3/dist-packages/kivy/*.py
-usr/lib/python3/dist-packages/kivy/*.pyc
+usr/lib/python3/dist-packages/kivy/*.py*
 usr/lib/python3/dist-packages/kivy/*.pxd
 usr/lib/python3/dist-packages/kivy/adapters/*
 usr/lib/python3/dist-packages/kivy/core/*.py
