@@ -1,4 +1,13 @@
-# this is for testing angle_stop/angle_start
+'''
+Circle Example
+==============
+
+This example exercises circle (ellipse) drawing. You should see sliders at the
+top of the screen with the Kivy logo below it. The sliders control the
+angle start and stop and the height and width scales. There is a button
+to reset the sliders. The entire example is coded in the
+kv language description.
+'''
 
 from kivy.app import App
 from kivy.lang import Builder
@@ -51,9 +60,8 @@ BoxLayout:
         Button:
             text: 'Reset ratios'
             on_press: wm.value = 1; hm.value = 1
-        
+
     FloatLayout:
-        
         canvas:
             Color:
                 rgb: 1, 1, 1
@@ -65,6 +73,7 @@ BoxLayout:
                 angle_end: e2.value
 
 '''
+
 
 class CircleApp(App):
     def build(self):

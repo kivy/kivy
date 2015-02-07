@@ -3,7 +3,7 @@ Application
 ===========
 
 The :class:`App` class is the base for creating Kivy applications.
-Think of it as your main entry point into the Kivy run loop.  In most
+Think of it as your main entry point into the Kivy run loop. In most
 cases, you subclass this class and make your own app. You create an
 instance of your specific app class and then, when you are ready to
 start the application's life cycle, you call your instance's
@@ -265,7 +265,7 @@ Pause mode
 .. versionadded:: 1.1.0
 
 On tablets and phones, the user can switch at any moment to another
-application.  By default, your application will close and the
+application. By default, your application will close and the
 :meth:`App.on_stop` event will be fired.
 
 If you support Pause mode, when switching to another application, your

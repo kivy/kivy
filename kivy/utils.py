@@ -243,7 +243,7 @@ def format_bytes_to_human(size, precision=2):
 class Platform(object):
     # refactored to class to allow module function to be replaced
     # with module variable
-    
+
     def __init__(self):
         self._platform_ios = None
         self._platform_android = None
@@ -271,8 +271,6 @@ class Platform(object):
         return self._get_platform().__hash__()
 
     def _get_platform(self):
-        
-
         if self._platform_android is None:
             # ANDROID_ARGUMENT and ANDROID_PRIVATE are 2 environment variables
             # from python-for-android project
@@ -348,6 +346,15 @@ class reify(object):
     attribute creation on objects that are meant to be immutable.
 
     Taken from the `Pyramid project <https://pypi.python.org/pypi/pyramid/>`_.
+
+    To use this as a decorator::
+
+         @reify
+         def lazy(self):
+              ...
+              return hard_to_compute_int
+         first_time = self.lazy   # lazy is reify obj, reify.__get__() runs
+         second_time = self.lazy  # lazy is hard_to_compute_int
     '''
 
     def __init__(self, func):

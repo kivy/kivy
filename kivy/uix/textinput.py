@@ -439,7 +439,7 @@ class TextInput(FocusBehavior, Widget):
                   password=self._update_text_options)
 
         self.bind(pos=self._trigger_update_graphics, focus=set_focused,
-                  readonly=handle_readonly)
+                  readonly=handle_readonly, focused=self._on_textinput_focused)
         handle_readonly(self, self.readonly)
 
         self._trigger_position_handles = Clock.create_trigger(
@@ -658,7 +658,7 @@ class TextInput(FocusBehavior, Widget):
         .. versionadded:: 1.3.0
 
         This action re-does any command that has been un-done by
-        do_undo/ctrl+z.  This function is automatically called when
+        do_undo/ctrl+z. This function is automatically called when
         `ctrl+r` keys are pressed.
         '''
         try:
@@ -1315,7 +1315,7 @@ class TextInput(FocusBehavior, Widget):
         if wr in _textinput_list:
             _textinput_list.remove(wr)
 
-    def on_focused(self, instance, value, *largs):
+    def _on_textinput_focused(self, instance, value, *largs):
         self.focus = value
 
         win = self._win

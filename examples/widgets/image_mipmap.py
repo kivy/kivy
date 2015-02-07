@@ -14,6 +14,7 @@ from kivy.uix.scatter import ScatterPlane
 from kivy.uix.image import Image
 from os.path import join
 
+
 class LabelMipmapTest(App):
     def build(self):
         s = ScatterPlane(scale=.5)

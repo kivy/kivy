@@ -5,6 +5,7 @@ from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.core.window import Window
 
+
 class KvApp(App):
     def _print_fps(self, *largs):
         print('FPS: %2.4f (real draw: %d)' % (

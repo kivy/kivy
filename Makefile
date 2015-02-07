@@ -31,6 +31,25 @@ endif
 
 .PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean theming
 
+help:
+	@echo "Please use \`make <target>' where <target> is one of"
+	@echo "  build          for a standard build"
+	@echo "  clean          remove generated and compiled files"
+	@echo "  cover          create an html coverage report of unittests"
+	@echo "  debug          for a debug build (with -g)"
+	@echo "  dist-clean     clean then use 'git clean'"
+	@echo "  force          for a forced build (with -f)"
+	@echo "  hook           add Pep-8 checking as a git precommit hook"
+	@echo "  html           to make standalone HTML files"
+	@echo "  install        run a setup.py install"
+	@echo "  mesabuild      for a build with MesaGL"
+	@echo "  style          to check Python code for style hints."
+	@echo "  style-report   make html version of style hints"
+	@echo "  test           run unittests (nosetests)"
+	@echo "  theming        create a default theme atlas"
+	@echo "  "
+	@echo "You can also 'cd doc && make help' to build more documentation types"
+
 build:
 	$(PYTHON) setup.py $(BUILD_OPTS)
 
@@ -74,10 +93,10 @@ html-embedded:
 	$(MAKE) -C doc html
 
 style:
-	$(PYTHON) $(CHECKSCRIPT) $(KIVY_DIR)
+	$(PYTHON) $(CHECKSCRIPT) .
 
 stylereport:
-	$(PYTHON) $(CHECKSCRIPT) -html $(KIVY_DIR)
+	$(PYTHON) $(CHECKSCRIPT) -html .
 
 hook:
 	# Install pre-commit git hook to check your changes for styleguide

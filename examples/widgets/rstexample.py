@@ -118,6 +118,7 @@ Go to top_'''
 from kivy.uix.rst import RstDocument
 from kivy.app import App
 
+
 class RstApp(App):
     def build(self):
         return RstDocument(text=__doc__)

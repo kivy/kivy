@@ -30,7 +30,7 @@ Example::
     :attr:`Carousel.scroll_distance`.
 
     In addition, the container used for adding a slide is now hidden in
-    the API.  We made a mistake by exposing it to the user. The impacted
+    the API. We made a mistake by exposing it to the user. The impacted
     properties are:
     :attr:`Carousel.slides`, :attr:`Carousel.current_slide`,
     :attr:`Carousel.previous_slide` and :attr:`Carousel.next_slide`.

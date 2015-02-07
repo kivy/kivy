@@ -107,7 +107,7 @@ BoxLayout:
                 value: 1.
                 on_value: taw.tex_coords[2] = self.value
                 on_value: taw.tex_coords[4] = self.value
-                
+
     BoxLayout:
         size_hint_y: None
         height: dp(50)

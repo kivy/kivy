@@ -2,6 +2,9 @@
 Mesh test
 =========
 
+This demonstrates the use of a mesh mode to distort an image. You should see
+a line of buttons across the bottom of a canvas. Pressing them displays
+the mesh, a small circle of points, with different mesh.mode settings.
 '''
 
 from kivy.uix.button import Button
@@ -19,6 +22,7 @@ class MeshTestApp(App):
         self.mesh.mode = mode
 
     def build_mesh(self):
+        """ returns a Mesh of a rough circle. """
         vertices = []
         indices = []
         step = 10

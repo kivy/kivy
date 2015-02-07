@@ -35,8 +35,10 @@ Builder.load_string("""
 
 """)
 
+
 class Test(TabbedPanel):
     pass
+
 
 class TabbedPanelApp(App):
     def build(self):

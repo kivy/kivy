@@ -2,7 +2,11 @@
 Canvas stress
 =============
 
-This is just a test for testing the performance of our Graphics engine.
+This example tests the performance of our Graphics engine by drawing large
+numbers of small sqaures. You should see a black canvas with buttons and a
+label at the bottom. Pressing the buttons adds small colored squares to the
+canvas.
+
 '''
 
 from kivy.uix.button import Button
@@ -25,6 +29,10 @@ class StressCanvasApp(App):
                 Rectangle(pos=(r() * wid.width + wid.x,
                                r() * wid.height + wid.y), size=(20, 20))
 
+    def double_rects(self, label, wid, *largs):
+        count = int(label.text)
+        self.add_rects(label, wid, count, *largs)
+
     def reset_rects(self, label, wid, *largs):
         label.text = '0'
         wid.canvas.clear()
@@ -40,12 +48,16 @@ class StressCanvasApp(App):
         btn_add500 = Button(text='+ 500 rects',
                             on_press=partial(self.add_rects, label, wid, 500))
 
+        btn_double = Button(text='x 2',
+                            on_press=partial(self.double_rects, label, wid))
+
         btn_reset = Button(text='Reset',
                            on_press=partial(self.reset_rects, label, wid))
 
         layout = BoxLayout(size_hint=(1, None), height=50)
         layout.add_widget(btn_add100)
         layout.add_widget(btn_add500)
+        layout.add_widget(btn_double)
         layout.add_widget(btn_reset)
         layout.add_widget(label)
 

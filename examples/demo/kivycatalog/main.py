@@ -71,7 +71,7 @@ class KivyRenderTextInput(CodeInput):
                     self.catalog.change_kv(True)
                     return
 
-        super(KivyRenderTextInput, self).keyboard_on_key_down(
+        return super(KivyRenderTextInput, self).keyboard_on_key_down(
             window, keycode, text, modifiers)
 
 

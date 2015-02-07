@@ -49,7 +49,7 @@ to write a short function that does accept dt. For Example::
 .. note::
 
     You cannot unschedule an anonymous function unless you keep a
-    reference to it.  It's better to add \*args to your function
+    reference to it. It's better to add \*args to your function
     definition so that it can be called with an arbitrary number of
     parameters.
 
@@ -94,7 +94,7 @@ from 1.0.5, you can use a timeout of -1::
 
 The Clock will execute all the callbacks with a timeout of -1 before the
 next frame even if you add a new callback with -1 from a running
-callback.  However, :class:`Clock` has an iteration limit for these
+callback. However, :class:`Clock` has an iteration limit for these
 callbacks: it defaults to 10.
 
 If you schedule a callback that schedules a callback that schedules a .. etc
