@@ -758,6 +758,7 @@ import codecs
 import re
 import sys
 import traceback
+import types
 from re import sub, findall
 from os import environ
 from os.path import join
@@ -795,6 +796,9 @@ lang_str = re.compile('([\'"][^\'"]*[\'"])')
 lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 lang_tr = re.compile('(_\()')
+
+# class types to check with isinstance
+_cls_type = (type, types.ClassType)
 
 
 # all the widget handlers, used to correctly unbind all the callbacks then the
@@ -1498,21 +1502,21 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
             The function to be called args, `args` on bound callback.
     '''
     # first remove all the old bound functions from `s` and down.
-    j = s - 1
-    for f, k, fun, uid in bound[j:]:
+    for f, k, fun, uid in bound[s:]:
         if fun is None:
             continue
         try:
             f.unbind_uid(k, uid)
         except ReferenceError:
             pass
-    del bound[j:]
+    del bound[s:]
 
     # find the first attr from which we need to start rebinding.
-    if len(bound):
-        f = bound[-1][0]
-    else:  # if it's the very first attr, we start with the base.
-        f = base
+    f = getattr(*bound[-1][:2])
+    if f is None:
+        fn(args, None, None)
+        return
+    s += 1
     append = bound.append
 
     # bind all attrs, except last to update_intermediates
@@ -1595,8 +1599,10 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                         was_bound = True
                     else:
                         append([f.proxy_ref, val, None, None])
-                else:
+                elif not isinstance(f, _cls_type):
                     append([getattr(f, 'proxy_ref', f), val, None, None])
+                else:
+                    append([f, val, None, None])
                 f = getattr(f, val, None)
                 if f is None:
                     break
