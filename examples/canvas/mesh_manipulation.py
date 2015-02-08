@@ -28,7 +28,7 @@ BoxLayout:
                 rgba: 1, 1, 1, 1
             Mesh:
                 vertices: app.mesh_points
-                indices: range(len(app.mesh_points) / 4)
+                indices: range(len(app.mesh_points) // 4)
                 texture: app.mesh_texture
                 mode: 'triangle_fan'
     BoxLayout:
