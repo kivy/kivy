@@ -49,7 +49,7 @@ to write a short function that does accept dt. For Example::
 .. note::
 
     You cannot unschedule an anonymous function unless you keep a
-    reference to it.  It's better to add \*args to your function
+    reference to it. It's better to add \*args to your function
     definition so that it can be called with an arbitrary number of
     parameters.
 
@@ -94,7 +94,7 @@ from 1.0.5, you can use a timeout of -1::
 
 The Clock will execute all the callbacks with a timeout of -1 before the
 next frame even if you add a new callback with -1 from a running
-callback.  However, :class:`Clock` has an iteration limit for these
+callback. However, :class:`Clock` has an iteration limit for these
 callbacks: it defaults to 10.
 
 If you schedule a callback that schedules a callback that schedules a .. etc
@@ -211,7 +211,7 @@ __all__ = ('Clock', 'ClockBase', 'ClockEvent', 'mainthread')
 
 from sys import platform
 from os import environ
-from functools import wraps
+from functools import wraps, partial
 from kivy.context import register_context
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
@@ -401,7 +401,7 @@ class ClockBase(_ClockBase):
     def __init__(self):
         super(ClockBase, self).__init__()
         self._dt = 0.0001
-        self._start_tick = self._last_tick = _default_time()
+        self._start_tick = self._last_tick = self.time()
         self._fps = 0
         self._rfps = 0
         self._fps_counter = 0
@@ -456,13 +456,13 @@ class ClockBase(_ClockBase):
             fps = self._max_fps
             usleep = self.usleep
 
-            sleeptime = 1 / fps - (_default_time() - self._last_tick)
+            sleeptime = 1 / fps - (self.time() - self._last_tick)
             while sleeptime - sleep_undershoot > min_sleep:
                 usleep(1000000 * (sleeptime - sleep_undershoot))
-                sleeptime = 1 / fps - (_default_time() - self._last_tick)
+                sleeptime = 1 / fps - (self.time() - self._last_tick)
 
         # tick the current time
-        current = _default_time()
+        current = self.time()
         self._dt = current - self._last_tick
         self._frames += 1
         self._fps_counter += 1
@@ -639,7 +639,11 @@ class ClockBase(_ClockBase):
                     if event in events:
                         event.tick(self._last_tick, remove)
 
+    time = staticmethod(partial(_default_time))
 
+ClockBase.time.__doc__ = '''Proxy method for time.time() or time.clock(), 
+whichever is more suitable for the running OS'''
+    
 def mainthread(func):
     '''Decorator that will schedule the call of the function for the next
     available frame in the mainthread. It can be useful when you use
