@@ -377,7 +377,6 @@ class TextInput(FocusBehavior, Widget):
 
     def __init__(self, **kwargs):
         self.is_focusable = kwargs.get('is_focusable', True)
-        self._win = None
         self._cursor_blink_time = Clock.get_time()
         self._cursor = [0, 0]
         self._selection = False
@@ -582,7 +581,7 @@ class TextInput(FocusBehavior, Widget):
             if not substring:
                 return
 
-        self._hide_handles(self._win)
+        self._hide_handles(EventLoop.window)
 
         if not from_undo and self.multiline and self.auto_indent \
                 and substring == u'\n':
@@ -868,7 +867,7 @@ class TextInput(FocusBehavior, Widget):
         '''
         if self.readonly:
             return
-        self._hide_handles(self._win)
+        self._hide_handles(EventLoop.window)
         scrl_x = self.scroll_x
         scrl_y = self.scroll_y
         cc, cr = self.cursor
@@ -936,9 +935,8 @@ class TextInput(FocusBehavior, Widget):
     #
     def long_touch(self, dt):
         if self._selection_to == self._selection_from:
-            self._show_cut_copy_paste(self._long_touch_pos,
-                                      self._win,
-                                      mode='paste')
+            self._show_cut_copy_paste(
+                self._long_touch_pos, EventLoop.window, mode='paste')
 
     def on_double_tap(self):
         '''This event is dispatched when a double tap happens
@@ -1025,15 +1023,7 @@ class TextInput(FocusBehavior, Widget):
         if self._touch_count == 4:
             self.dispatch('on_quad_touch')
 
-        win = self._win
-        if not win:
-            self._win = win = EventLoop.window
-        if not win:
-            Logger.warning('Textinput: '
-                           'Cannot show bubble, unable to get root window')
-            return True
-
-        self._hide_cut_copy_paste(self._win)
+        self._hide_cut_copy_paste(EventLoop.window)
         # schedule long touch for paste
         self._long_touch_pos = touch.pos
         Clock.schedule_once(self.long_touch, .5)
@@ -1076,7 +1066,7 @@ class TextInput(FocusBehavior, Widget):
             self._selection_to = self.cursor_index()
             self._update_selection(True)
             # show Bubble
-            win = self._win
+            win = EventLoop.window
             if self._selection_to != self._selection_from:
                 self._show_cut_copy_paste(touch.pos, win)
             elif self.use_handles:
@@ -1109,7 +1099,8 @@ class TextInput(FocusBehavior, Widget):
 
         self._update_selection()
         self._show_cut_copy_paste(
-            (instance.center_x, instance.top + self.line_height), self._win)
+            (instance.center_x, instance.top + self.line_height),
+            EventLoop.window)
 
     def _handle_move(self, instance, touch):
         if touch.grab_current != instance:
@@ -1180,7 +1171,6 @@ class TextInput(FocusBehavior, Widget):
         handle_right.y = y - handle_right.height
 
     def _hide_handles(self, win=None):
-        win = win or self._win
         if win is None:
             return
         self.remove_widget(self._handle_right)
@@ -1191,7 +1181,7 @@ class TextInput(FocusBehavior, Widget):
         if not self.use_handles or not self.text:
             return
 
-        win = self._win
+        win = EventLoop.window
 
         handle_right = self._handle_right
         handle_left = self._handle_left
@@ -1239,7 +1229,8 @@ class TextInput(FocusBehavior, Widget):
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
             self.bind(parent=partial(self._show_cut_copy_paste,
                                      pos, win, True))
-            self._win.bind(size=lambda *args: self._hide_cut_copy_paste(win))
+            EventLoop.window.bind(
+                size=lambda *args: self._hide_cut_copy_paste(win))
             self.bind(cursor_pos=lambda *args: self._hide_cut_copy_paste(win))
         else:
             self.remove_widget(bubble)
@@ -1318,12 +1309,7 @@ class TextInput(FocusBehavior, Widget):
     def _on_textinput_focused(self, instance, value, *largs):
         self.focus = value
 
-        win = self._win
-        if not win:
-            self._win = win = EventLoop.window
-        if not win:
-            Logger.warning('Textinput: unable to get root window')
-            return
+        win = EventLoop.window
         self.cancel_selection()
         self._hide_cut_copy_paste(win)
 
@@ -1337,7 +1323,6 @@ class TextInput(FocusBehavior, Widget):
         else:
             Clock.unschedule(self._do_blink_cursor)
             self._hide_handles(win)
-            self._win = None
 
     def _ensure_clipboard(self):
         global Clipboard
@@ -1930,7 +1915,7 @@ class TextInput(FocusBehavior, Widget):
         # Keycodes on OSX:
         ctrl, cmd = 64, 1024
         key, key_str = keycode
-        win = self._win
+        win = EventLoop.window
 
         # This allows *either* ctrl *or* cmd, but not both.
         is_shortcut = (modifiers == ['ctrl'] or (
