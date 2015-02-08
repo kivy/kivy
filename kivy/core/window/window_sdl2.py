@@ -224,7 +224,7 @@ class WindowSDL(WindowBase):
         self._win.set_window_title(title)
 
     def set_icon(self, filename):
-        self._win.set_window_icon(filename)
+        self._win.set_window_icon(str(filename))
 
     def screenshot(self, *largs, **kwargs):
         filename = super(WindowSDL, self).screenshot(*largs, **kwargs)
