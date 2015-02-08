@@ -4,9 +4,8 @@ Utils
 =====
 
 The Utils module provides a selection of general utility functions and classes
-that may be useful for various applications. They include maths, color
-and algebraic funcions, as well as custom classes and a convenience function
-for determining the current Operating System (platform).
+that may be useful for various applications. These include maths, color,
+algebraic and platform functions.
 
 .. versionchanged:: 1.6.0
     The OrderedDict class has been removed. Use collections.OrderedDict
@@ -296,27 +295,22 @@ class Platform(object):
 
 platform = Platform()
 '''
-.. versionadded:: 1.3.0
-
-Deprecated since 1.8.0:  Use platform as variable instaed of a function.\n
-Calling platform() will return one of: *win*, *linux*, *android*, *macosx*,
-*ios* or *unknown*.
-
-.. versionchanged:: 1.8.0
-
-`platform` also behaves like a regular variable in comparisons like so::
+platform is a string describing the current Operating System. It is one
+of: *win*, *linux*, *android*, *macosx*, *ios* or *unknown*.
+You can use it as follows::
 
     from kivy import platform
     if platform == 'linux':
         do_linux_things()
     if platform() == 'linux': # triggers deprecation warning
         do_more_linux_things()
-    foo = {'linux' : do_linux_things}
-    foo[platform]() # calls do_linux_things
-    p = platform # assigns to a module object
-    if p == 'android':
-        do_android_things()
-    p += 'some string' # error!
+
+.. versionadded:: 1.3.0
+
+.. versionchanged:: 1.8.0
+
+    platform is now a variable instead of a  function.
+    
 
 '''
 
