@@ -108,6 +108,8 @@ class WindowPygame(WindowBase):
 
         # never stay with a None pos, application using w.center will be fired.
         self._pos = (0, 0)
+        
+        self._create_type_to_event_dispatcher()
 
         # prepare keyboard
         repeat_delay = int(Config.get('kivy', 'keyboard_repeat_delay'))
@@ -281,99 +283,122 @@ class WindowPygame(WindowBase):
             self.flags |= pygame.FULLSCREEN
         self._pygame_set_mode()
 
+    def _create_type_to_event_dispatcher(self):
+        # kill application (SIG_TERM)
+        def on_QUIT(event):
+            if self.dispatch('on_request_close'):
+                continue
+            EventLoop.quit = True
+            self.close()
+        
+        def on_MOUSEMOTION(event):
+            x, y = event.pos
+            self.mouse_pos = x, self.system_size[1] - y
+            # don't dispatch motion if no button are pressed
+            if event.buttons == (0, 0, 0):
+                continue
+            self._mouse_x = x
+            self._mouse_y = y
+            self._mouse_meta = self.modifiers
+            self.dispatch('on_mouse_move', x, y, self.modifiers)
+        
+        def on_MOUSEBUTTON(event):
+            self._pygame_update_modifiers()
+            x, y = event.pos
+            btn = 'left'
+            if event.button == 3:
+                btn = 'right'
+            elif event.button == 2:
+                btn = 'middle'
+            elif event.button == 4:
+                btn = 'scrolldown'
+            elif event.button == 5:
+                btn = 'scrollup'
+            elif event.button == 6:
+                btn = 'scrollright'
+            elif event.button == 7:
+                btn = 'scrollleft'
+            eventname = 'on_mouse_down'
+            if event.type == pygame.MOUSEBUTTONUP:
+                eventname = 'on_mouse_up'
+            self._mouse_x = x
+            self._mouse_y = y
+            self._mouse_meta = self.modifiers
+            self._mouse_btn = btn
+            self._mouse_down = eventname == 'on_mouse_down'
+            self.dispatch(eventname, x, y, btn, self.modifiers)
+
+        def on_KEY(event):
+            self._pygame_update_modifiers(event.mod)
+            # atm, don't handle keyup
+            if event.type == pygame.KEYUP:
+                self.dispatch('on_key_up', event.key,
+                              event.scancode)
+                continue
+
+            # don't dispatch more key if down event is accepted
+            if self.dispatch('on_key_down', event.key,
+                             event.scancode, event.unicode,
+                             self.modifiers):
+                continue
+            self.dispatch('on_keyboard', event.key,
+                          event.scancode, event.unicode,
+                          self.modifiers)
+
+        def on_JOYAXISMOTION(event):
+            self.dispatch('on_joy_axis_motion', event.joy, event.axis, event.value)
+        
+        def on_JOYBALLMOTION(event):
+            self.dispatch('on_joy_ball_motion', event.joy, event.ball, event.rel)
+        
+        def on_JOYHATMOTION(event):
+            self.dispatch('on_joy_hat_motion', event.joy, event.hat, event.value)
+        
+        def on_JOYBUTTONUP(event):
+            self.dispatch('on_joy_button_up', event.joy, event.button)
+        
+        def on_JOYBUTTONDOWN(event):
+            self.dispatch('on_joy_button_down', event.joy, event.button)
+
+        def on_VIDEORESIZE(event):
+            self._size = event.size
+            self.update_viewport()
+
+        def on_VIDEOEXPOSE(event):
+            self.canvas.ask_update()
+
+        # drop file (pygame patch needed)
+        def on_USEREVENT(event):
+            if hasattr(pygame, 'USEREVENT_DROPFILE') and \
+                    event.code == pygame.USEREVENT_DROPFILE:
+                self.dispatch('on_dropfile', event.filename)
+        
+        self.type_to_event_dispatcher = {
+            pygame.QUIT: on_QUIT,
+            pygame.MOUSEMOTION: on_MOUSEMOTION,
+            pygame.MOUSEBUTTONDOWN: on_MOUSEBUTTON,
+            pygame.MOUSEBUTTONUP: on_MOUSEBUTTON,
+            pygame.KEYDOWN: on_KEY,
+            pygame.KEYUP: on_KEY,
+            pygame.JOYAXISMOTION: on_JOYAXISMOTION,
+            pygame.JOYBALLMOTION: on_JOYBALLMOTION,
+            pygame.JOYBUTTONDOWN: on_JOYBUTTONDOWN,
+            pygame.JOYBUTTONUP: on_JOYBUTTONUP,
+            pygame.JOYHATMOTION: on_JOYHATMOTION,
+            pygame.VIDEORESIZE: on_VIDEORESIZE,
+            pygame.VIDEOEXPOSE: on_VIDEOEXPOSE,
+            pygame.USEREVENT: on_USEREVENT,
+            pygame.ACTIVEEVENT: lambda event: None, # ignore this event
+        }
+
     def _mainloop(self):
         EventLoop.idle()
 
+        type_to_event_dispatcher = self.type_to_event_dispatcher
         for event in pygame.event.get():
-
-            # kill application (SIG_TERM)
-            if event.type == pygame.QUIT:
-                if self.dispatch('on_request_close'):
-                    continue
-                EventLoop.quit = True
-                self.close()
-
-            # mouse move
-            elif event.type == pygame.MOUSEMOTION:
-                x, y = event.pos
-                self.mouse_pos = x, self.system_size[1] - y
-                # don't dispatch motion if no button are pressed
-                if event.buttons == (0, 0, 0):
-                    continue
-                self._mouse_x = x
-                self._mouse_y = y
-                self._mouse_meta = self.modifiers
-                self.dispatch('on_mouse_move', x, y, self.modifiers)
-
-            # mouse action
-            elif event.type in (pygame.MOUSEBUTTONDOWN,
-                                pygame.MOUSEBUTTONUP):
-                self._pygame_update_modifiers()
-                x, y = event.pos
-                btn = 'left'
-                if event.button == 3:
-                    btn = 'right'
-                elif event.button == 2:
-                    btn = 'middle'
-                elif event.button == 4:
-                    btn = 'scrolldown'
-                elif event.button == 5:
-                    btn = 'scrollup'
-                elif event.button == 6:
-                    btn = 'scrollright'
-                elif event.button == 7:
-                    btn = 'scrollleft'
-                eventname = 'on_mouse_down'
-                if event.type == pygame.MOUSEBUTTONUP:
-                    eventname = 'on_mouse_up'
-                self._mouse_x = x
-                self._mouse_y = y
-                self._mouse_meta = self.modifiers
-                self._mouse_btn = btn
-                self._mouse_down = eventname == 'on_mouse_down'
-                self.dispatch(eventname, x, y, btn, self.modifiers)
-
-            # keyboard action
-            elif event.type in (pygame.KEYDOWN, pygame.KEYUP):
-                self._pygame_update_modifiers(event.mod)
-                # atm, don't handle keyup
-                if event.type == pygame.KEYUP:
-                    self.dispatch('on_key_up', event.key,
-                                  event.scancode)
-                    continue
-
-                # don't dispatch more key if down event is accepted
-                if self.dispatch('on_key_down', event.key,
-                                 event.scancode, event.unicode,
-                                 self.modifiers):
-                    continue
-                self.dispatch('on_keyboard', event.key,
-                              event.scancode, event.unicode,
-                              self.modifiers)
-
-            # video resize
-            elif event.type == pygame.VIDEORESIZE:
-                self._size = event.size
-                self.update_viewport()
-
-            elif event.type == pygame.VIDEOEXPOSE:
-                self.canvas.ask_update()
-
-            # ignored event
-            elif event.type == pygame.ACTIVEEVENT:
-                pass
-
-            # drop file (pygame patch needed)
-            elif event.type == pygame.USEREVENT and \
-                    hasattr(pygame, 'USEREVENT_DROPFILE') and \
-                    event.code == pygame.USEREVENT_DROPFILE:
-                self.dispatch('on_dropfile', event.filename)
-
-            '''
-            # unhandled event !
-            else:
-                Logger.debug('WinPygame: Unhandled event %s' % str(event))
-            '''
+            type = event.type
+            if type in type_to_event_dispatcher:
+                type_to_event_dispatcher[type](event)
 
     def mainloop(self):
         while not EventLoop.quit and EventLoop.status == 'started':
