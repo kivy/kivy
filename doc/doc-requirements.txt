@@ -1,0 +1,5 @@
+# Frozen Sphinx requirements for easier pip installation
+sphinxcontrib-actdiag
+sphinxcontrib-blockdiag
+sphinxcontrib-nwdiag
+sphinxcontrib-seqdiag

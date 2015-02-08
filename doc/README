@@ -13,19 +13,15 @@ You need to install :
   * Python Sphinx
     - Where apt-get is available :
           apt-get install python-sphinx
-    - On Windows :
+    - On Windows (or from inside your virtualenv) :
           Get pip (https://pypi.python.org/pypi/pip). You'll use it to install the dependencies.
-          To install pip, do python setup.py install in the pip directory.
-          Now do :
-          pip install sphinx
-          pip install blockdiag
-          pip install sphinxcontrib-blockdiag
-          pip install seqdiag
-          pip install sphinxcontrib-seqdiag
-          pip install actdiag
-          pip install sphinxcontrib-actdiag
-          pip install nwdiag
-          pip install sphinxcontrib-nwdiag
+          To install pip, run python setup.py install in the pip directory.
+          Now run :
+          pip install sphinxcontrib-blockdiag sphinxcontrib-seqdiag
+          pip install sphinxcontrib-actdiag sphinxcontrib-nwdiag
+
+          Or just use the provided doc-requirements.txt :
+          pip install -r doc-requirements.txt
 
   * Latest kivy
 
