@@ -798,8 +798,10 @@ lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 lang_tr = re.compile('(_\()')
 
 # class types to check with isinstance
-_cls_type = (type, types.ClassType)
-
+if PY2:
+    _cls_type = (type, types.ClassType)
+else:
+    _cls_type = (type, )
 
 # all the widget handlers, used to correctly unbind all the callbacks then the
 # widget is deleted
