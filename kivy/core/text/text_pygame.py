@@ -43,9 +43,9 @@ class LabelPygame(LabelBase):
             # try first the file if it's a filename
             font_handle = fontobject = None
             fontname = self.options['font_name_r']
-            ext = fontname.split('.')[-1]
-            if ext.lower() == 'ttf':
-                # fontobject
+            ext = fontname.rsplit('.', 1)
+            if len(ext) == 2:
+                # try to open the font if it has an extension
                 font_handle = open(fontname, 'rb')
                 fontobject = pygame.font.Font(font_handle,
                                               int(self.options['font_size']))

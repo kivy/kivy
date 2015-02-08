@@ -106,8 +106,8 @@ cdef TTF_Font *_get_font(self):
     if fontid not in pygame_cache:
         # try first the file if it's a filename
         fontname = self.options['font_name_r']
-        ext = fontname.split('.')[-1]
-        if ext.lower() == 'ttf':
+        ext = fontname.rsplit('.', 1)
+        if len(ext) == 2:
             fontobject = TTF_OpenFont(fontname, int(self.options['font_size']))
 
         # fallback to search a system font
