@@ -77,6 +77,9 @@ def _log_callback(message, level):
     if message:
         logger_func[level]('ffpyplayer: {}'.format(message))
 
+if not get_log_callback():
+    set_log_callback(_log_callback)
+
 
 class VideoFFPy(VideoBase):
 
@@ -102,13 +105,8 @@ class VideoFFPy(VideoBase):
         self._thread = None
         self._next_frame = None
         self._ffplayer_need_quit = False
-        self._log_callback_set = False
         self._callback_ref = WeakMethod(self._player_callback)
         self._trigger = Clock.create_trigger(self._redraw)
-
-        if not get_log_callback():
-            set_log_callback(_log_callback)
-            self._log_callback_set = True
 
         super(VideoFFPy, self).__init__(**kwargs)
 
@@ -309,6 +307,7 @@ class VideoFFPy(VideoBase):
                 loglevel='info', ff_opts=ff_opts)
 
         self._thread = Thread(target=self._next_frame_run, name='Next frame')
+        self._thread.daemon = True
         self._thread.start()
 
     def load(self):
