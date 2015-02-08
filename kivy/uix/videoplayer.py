@@ -503,6 +503,12 @@ class VideoPlayer(GridLayout):
         if value:
             self._trigger_video_load()
 
+    def on_image_overlay_play(self, instance, value):
+        self._image.image_overlay_play = value
+
+    def on_image_loading(self, instance, value):
+        self._image.image_loading = value
+
     def _load_thumbnail(self):
         if not self.container:
             return
