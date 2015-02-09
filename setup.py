@@ -642,25 +642,22 @@ sources = {
 
 if c_options['use_sdl']:
     sdl_flags = determine_sdl()
-    sources['core/window/sdl.pyx'] = merge(
-        base_flags, gl_flags, sdl_flags)
-    sources['core/text/text_sdlttf.pyx'] = merge(
-        base_flags, gl_flags, sdl_flags)
-    sources['core/audio/audio_sdl.pyx'] = merge(
-        base_flags, sdl_flags)
+    for source_file in ('core/window/sdl.pyx',
+                        'core/text/text_sdlttf.pyx',
+                        'core/audio/audio_sdl.pyx'):
+        sources[source_file] = merge(
+            base_flags, gl_flags, sdl_flags)
 
 if c_options['use_sdl2']:
     sdl2_flags = determine_sdl2()
     if sdl2_flags:
-        sdl2_depends = {'depends': ['libs/sdl2.pxi']}
-        sources['core/window/_window_sdl2.pyx'] = merge(
-            base_flags, gl_flags, sdl2_flags, sdl2_depends)
-        sources['core/image/_img_sdl2.pyx'] = merge(
-            base_flags, gl_flags, sdl2_flags, sdl2_depends)
-        sources['core/text/_text_sdl2.pyx'] = merge(
-            base_flags, gl_flags, sdl2_flags, sdl2_depends)
-        sources['core/clipboard/_clipboard_sdl2.pyx'] = merge(
-            base_flags, gl_flags, sdl2_flags, sdl2_depends)
+        sdl2_depends = {'depends': ['lib/sdl2.pxi']}
+        for source_file in ('core/window/_window_sdl2.pyx',
+                            'core/image/_img_sdl2.pyx',
+                            'core/text/_text_sdl2.pyx',
+                            'core/clipboard/_clipboard_sdl2.pyx'):
+            sources[source_file] = merge(
+                base_flags, gl_flags, sdl2_flags, sdl2_depends)
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image
