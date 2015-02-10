@@ -401,7 +401,7 @@ class ClockBase(_ClockBase):
     def __init__(self):
         super(ClockBase, self).__init__()
         self._dt = 0.0001
-        self._start_tick = self._last_tick = _default_time()
+        self._start_tick = self._last_tick = self.time()
         self._fps = 0
         self._rfps = 0
         self._fps_counter = 0
@@ -456,13 +456,13 @@ class ClockBase(_ClockBase):
             fps = self._max_fps
             usleep = self.usleep
 
-            sleeptime = 1 / fps - (_default_time() - self._last_tick)
+            sleeptime = 1 / fps - (self.time() - self._last_tick)
             while sleeptime - sleep_undershoot > min_sleep:
                 usleep(1000000 * (sleeptime - sleep_undershoot))
-                sleeptime = 1 / fps - (_default_time() - self._last_tick)
+                sleeptime = 1 / fps - (self.time() - self._last_tick)
 
         # tick the current time
-        current = _default_time()
+        current = self.time()
         self._dt = current - self._last_tick
         self._frames += 1
         self._fps_counter += 1
