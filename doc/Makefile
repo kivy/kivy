@@ -60,6 +60,9 @@ help:
 
 clean:
 	-rm -rf sources/api-*.rst
+	-rm -rf sources/examples/gen__*.rst
+	-rm -rf sources/examples/gallery.rst
+	-rm -rf sources/examples/index.rst
 # windows just doesn't support e.g. build\*
 ifdef ComSpec
 	-rmdir /s /q build
