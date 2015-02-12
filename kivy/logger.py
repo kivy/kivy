@@ -39,7 +39,9 @@ The Logger can be controlled via the Kivy configuration file::
     log_name = kivy_%y-%m-%d_%_.txt
 
 More information about the allowed values are described in the
-:mod:`kivy.config` module.
+:mod:`kivy.config` module. Setting the enviornment variable
+KIVY_NO_CONSOLELOG or KIVY_NO_FILELOG disables output to the console
+or log file, respectively.
 
 Logger history
 --------------
