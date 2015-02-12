@@ -1,4 +1,25 @@
 #!/usr/bin/kivy
+'''
+Kivy Catalog
+============
+
+The Kivy Catalog viewer showcases widgets available in Kivy
+and allows interactive editing of kivy language code to get immediate
+feedback.  You should see a two panel screen with a menu spinner button
+(starting with 'Welcome') and other controls across the top.  The left pane
+contains kivy (.kv) code, and the right side is that code rendered.  You can
+edit the left pane, though changes will be lost when you use the menu
+spinner button.  The catalog will show you dozens of .kv examples controlling
+different widgets and layouts.
+
+The catalog's interface is set in the file kivycatalog.kv, while the
+interfaces for each menu option are set in containers_kvs directory. To
+add a new .kv file to the Kivy Catalog, add a .kv file into the container_kvs
+directory and reference that file in the ScreenManager section of
+kivycatalog.kv.
+
+Known bugs include some issue with the drop
+'''
 import kivy
 kivy.require('1.4.2')
 import os

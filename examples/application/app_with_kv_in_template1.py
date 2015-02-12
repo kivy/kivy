@@ -1,11 +1,16 @@
 '''
-Application from a .kv
-======================
+Application from a .kv in a Template Directory
+==============================================
 
-The root application is created from the corresponding .kv. Check the test.kv
-file to see what will be the root widget.
+This example shows how you can change the directory for the .kv file. You
+should see "Hello from template1/test.ky" as a button.
 
-This example shows how you can change the directory where the .kv lives.
+As kivy instantiates the TestApp subclass of App, the variable kv_directory
+is set.  Kivy then implicitly searches for a .kv file matching the name
+of the subclass in that directory, finding the file template1/test.kv. That
+file contains a root of class Widget.
+
+
 '''
 
 import kivy
