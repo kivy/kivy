@@ -206,7 +206,7 @@ import kivy
 
 # extra build commands go in the cmdclass dict {'command-name': CommandClass}
 # see tools.packaging.{platform}.build.py for custom build commands for
-# portable packages.  also e.g. we use build_ext command from cython if its
+# portable packages. Also e.g. we use build_ext command from cython if its
 # installed for c extensions.
 from kivy.tools.packaging.factory import FactoryBuild
 cmdclass = {

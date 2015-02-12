@@ -1764,7 +1764,7 @@ class TextInput(FocusBehavior, Widget):
         if texture is None:
             # FIXME right now, we can't render very long line...
             # if we move on "VBO" version as fallback, we won't need to
-            # do this.  try to found the maximum text we can handle
+            # do this. try to found the maximum text we can handle
             label = None
             label_len = len(ntext)
             ld = None

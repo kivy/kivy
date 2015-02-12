@@ -100,13 +100,13 @@ class Slider(Widget):
     # The following two methods constrain the slider's value
     # to range(min,max). Otherwise it may happen that self.value < self.min
     # at init.
-    
+
     def on_min(self, *largs):
-        self.value = min(self.max, max(self.min,self.value))
-        
+        self.value = min(self.max, max(self.min, self.value))
+
     def on_max(self, *largs):
-        self.value = min(self.max, max(self.min,self.value))
-    
+        self.value = min(self.max, max(self.min, self.value))
+
     def get_norm_value(self):
         vmin = self.min
         d = self.max - vmin
