@@ -1,5 +1,6 @@
 from doc.gallery import *
 
+
 def test_parse_docstring_info():
     assert 'error' in parse_docstring_info("No Docstring")
     assert 'error' in parse_docstring_info("'''No Docstring Title'''")

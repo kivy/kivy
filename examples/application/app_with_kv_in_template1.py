@@ -6,7 +6,7 @@ This example shows how you can change the directory for the .kv file. You
 should see "Hello from template1/test.ky" as a button.
 
 As kivy instantiates the TestApp subclass of App, the variable kv_directory
-is set.  Kivy then implicitly searches for a .kv file matching the name
+is set. Kivy then implicitly searches for a .kv file matching the name
 of the subclass in that directory, finding the file template1/test.kv. That
 file contains a root of class Widget.
 

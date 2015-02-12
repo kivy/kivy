@@ -21,10 +21,10 @@ kv = '''
 <LabelOnBackground>:
     canvas.before:
         Color:
-            rgb:   self.background
+            rgb: self.background
         Rectangle:
-            pos:   self.pos
-            size:  self.size
+            pos: self.pos
+            size: self.size
 
 FloatLayout:
     canvas.before:

@@ -3,15 +3,15 @@
 Basic Picture Viewer
 ====================
 
-This simple image browser demonstrates the scatter widget.  You should
-see three framed photographs on a background.  You can click and drag
+This simple image browser demonstrates the scatter widget. You should
+see three framed photographs on a background. You can click and drag
 the photos around, or multi-touch to drop a red dot to scale and rotate the
 photos.
 
 The photos are loaded from the local images directory, while the background
 picture is from the data shipped with kivy in kivy/data/images/background.jpg.
 The file pictures.kv describes the interface and the file shadow32.png is
-the boarder to make the images looks like framed photographs.  Finally,
+the boarder to make the images looks like framed photographs. Finally,
 the file android.txt is used to package the application for use with the
 Kivy Launcher Android application.
 

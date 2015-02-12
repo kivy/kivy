@@ -5,11 +5,11 @@ Kivy Catalog
 
 The Kivy Catalog viewer showcases widgets available in Kivy
 and allows interactive editing of kivy language code to get immediate
-feedback.  You should see a two panel screen with a menu spinner button
-(starting with 'Welcome') and other controls across the top.  The left pane
-contains kivy (.kv) code, and the right side is that code rendered.  You can
+feedback. You should see a two panel screen with a menu spinner button
+(starting with 'Welcome') and other controls across the top.The left pane
+contains kivy (.kv) code, and the right side is that code rendered. You can
 edit the left pane, though changes will be lost when you use the menu
-spinner button.  The catalog will show you dozens of .kv examples controlling
+spinner button. The catalog will show you dozens of .kv examples controlling
 different widgets and layouts.
 
 The catalog's interface is set in the file kivycatalog.kv, while the
