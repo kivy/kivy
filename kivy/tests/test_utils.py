@@ -184,7 +184,7 @@ class UtilsTest(unittest.TestCase):
         return b
 
     def test_reify(self):
-        first = self.fib_100   # slow.  self.fib_100 is a reify object making
+        first = self.fib_100   # slow. self.fib_100 is a reify object making
                                # the lazy call.
         second = self.fib_100  # fast, self.fib_100 is a long.
         assert first == second

@@ -1,0 +1,4 @@
+This directory contains generated files.
+   index.rst = For the navigation sidebar submenu.
+   gallery.rst = the main gallery page
+   gen__*.rst = generated detail pages for each example with a screenshot in ../images/examples

@@ -1,9 +1,27 @@
 #!/usr/bin/kivy
 '''
-Pictures demo
-=============
+Basic Picture Viewer
+====================
 
-This is a basic picture viewer, using the scatter widget.
+This simple image browser demonstrates the scatter widget. You should
+see three framed photographs on a background. You can click and drag
+the photos around, or multi-touch to drop a red dot to scale and rotate the
+photos.
+
+The photos are loaded from the local images directory, while the background
+picture is from the data shipped with kivy in kivy/data/images/background.jpg.
+The file pictures.kv describes the interface and the file shadow32.png is
+the boarder to make the images looks like framed photographs. Finally,
+the file android.txt is used to package the application for use with the
+Kivy Launcher Android application.
+
+For Android devices, you can copy/paste this directory into
+/sdcard/kivy/pictures on your Android device.
+
+The images in the image directory are from the Internet Archive,
+`https://archive.org/details/PublicDomainImages`, and are in the public
+domain.
+
 '''
 
 import kivy

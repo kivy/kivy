@@ -1,3 +1,15 @@
+'''
+Shuffled Camera Feed Puzzle
+===========================
+
+This demonstrates using Scatter widgets with a live camera.
+You should see a shuffled grid of rectangles that make up the
+camera feed. You can drag the squares around to see the
+unscrambled camera feed or double click to scramble the grid
+again.
+'''
+
+
 from kivy.app import App
 from kivy.uix.camera import Camera
 from kivy.uix.widget import Widget
