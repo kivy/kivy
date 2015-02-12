@@ -310,7 +310,6 @@ You can use it as follows::
 .. versionchanged:: 1.8.0
 
     platform is now a variable instead of a  function.
-    
 
 '''
 

@@ -6,7 +6,7 @@ Thanks to Marc Tardif for the probing code, taken from scan-for-mt-device.
 
 The device discovery is done by this provider. However, the reading of
 input can be performed by other providers like: hidinput, mtdev and
-linuxwacom.  mtdev is used prior to other providers. For more
+linuxwacom. mtdev is used prior to other providers. For more
 information about mtdev, check :py:class:`~kivy.input.providers.mtdev`.
 
 Here is an example of auto creation::

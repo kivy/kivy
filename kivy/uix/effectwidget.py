@@ -305,7 +305,7 @@ vec4 effect( vec4 color, sampler2D buf0, vec2 texCoords, vec2 coords)
     float lumaNE = dot(rgbNE, luma);
     float lumaSW = dot(rgbSW, luma);
     float lumaSE = dot(rgbSE, luma);
-    float lumaM  = dot(rgbM,  luma);
+    float lumaM  = dot(rgbM, luma);
 
     float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));
     float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));
@@ -320,7 +320,7 @@ vec4 effect( vec4 color, sampler2D buf0, vec2 texCoords, vec2 coords)
 
     float rcpDirMin = 1.0/(min(abs(dir.x), abs(dir.y)) + dirReduce);
 
-    dir = min(vec2( FXAA_SPAN_MAX,  FXAA_SPAN_MAX),
+    dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX),
           max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX),
           dir * rcpDirMin)) / frameBufSize;
 
