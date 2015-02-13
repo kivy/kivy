@@ -1,6 +1,8 @@
 include "../../../kivy/lib/sdl2.pxi"
+include "../../../kivy/graphics/config.pxi"
 
 from libc.string cimport memcpy
+from os import environ
 
 cdef class _WindowSDL2Storage:
     cdef SDL_Window *win
@@ -21,25 +23,27 @@ cdef class _WindowSDL2Storage:
     def setup_window(self, x, y, width, height, borderless, fullscreen,
                      resizable, shaped=False):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
-        if resizable:
-            self.win_flags |= SDL_WINDOW_RESIZABLE
-        if borderless or shaped:
-            self.win_flags |= SDL_WINDOW_BORDERLESS
-        if fullscreen == 'auto':
-            self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
-        elif fullscreen is True:
-            self.win_flags |= SDL_WINDOW_FULLSCREEN
+
+        IF USE_IOS:
+            self.win_flags |= SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN
+        ELSE:
+            if resizable:
+                self.win_flags |= SDL_WINDOW_RESIZABLE
+            if borderless or shaped:
+                self.win_flags |= SDL_WINDOW_BORDERLESS
+            if fullscreen == 'auto':
+                self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
+            elif fullscreen is True:
+                self.win_flags |= SDL_WINDOW_FULLSCREEN
 
         if SDL_Init(SDL_INIT_VIDEO| SDL_INIT_JOYSTICK) < 0:
             self.die()
 
-        '''
         # Set default orientation (force landscape for now)
         cdef bytes orientations
         orientations = <bytes>environ.get('KIVY_ORIENTATION',
                 'LandscapeLeft LandscapeRight');
         SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations);
-        '''
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
@@ -59,9 +63,10 @@ cdef class _WindowSDL2Storage:
         if not shaped:
             self.win = SDL_CreateWindow(NULL, x, y, width, height,
                                         self.win_flags)
-        else:
-            self.win = SDL_CreateShapedWindow(NULL, x, y, width, height,
-                                              self.win_flags)
+        IF not USE_IOS:
+            if shaped:
+                self.win = SDL_CreateShapedWindow(NULL, x, y, width, height,
+                                                  self.win_flags)
             #shape_mode = SDL_WindowShapeMode()
             #shape_mode.mode = ShapeModeColorKey
             #shape_mode.parameters.colorKey = (0, 0, 0, 255)
@@ -81,6 +86,10 @@ cdef class _WindowSDL2Storage:
         SDL_JoystickOpen(0)
 
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
+        print("MODE", mode.w, mode.h)
+        cdef int w, h
+        SDL_GL_GetDrawableSize(self.win, &w, &h)
+        print("DRAWABLE SIZE", w, h)
         return mode.w, mode.h
 
     def resize_display_mode(self, w, h):
@@ -119,7 +128,8 @@ cdef class _WindowSDL2Storage:
             mode = SDL_WINDOW_FULLSCREEN
         else:
             mode = False
-        SDL_SetWindowFullscreen(self.win, mode)
+        IF not USE_IOS:
+            SDL_SetWindowFullscreen(self.win, mode)
 
     def set_window_title(self, str title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
