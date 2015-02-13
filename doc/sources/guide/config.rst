@@ -1,10 +1,22 @@
-.. _configure kivy:
+.. _configuring kivy:
 
-Configure Kivy
+Configuring Kivy
 ==============
 
-The configuration file for kivy is named `config.ini`, and adheres 
-to the `standard INI <http://en.wikipedia.org/wiki/INI_file>`_ format.
+There are three ways to configure Kivy and they can be used in combination.
+
+* Setting :ref:`environment variables` starting with **KIVY_**.  Environment variables can also be set by
+  a program before importing the kivy module.
+* Passing options on the command line.  Importing the kivy module parses command line
+  options, unless KIVY_NO_ARGS is set.  If the option "*--*" is found, parsing stops
+  and remaining options can be parsed the program.  Use *--help* for a list of command
+  line options.
+* Using the kivy configuration file, named `config.ini`.  This adheres
+   to the `standard INI <http://en.wikipedia.org/wiki/INI_file>`_ format.
+
+Generally, environment variables override the command line options which override the configuration
+file settings which override the defaults.
+
 
 Locating the configuration file
 -------------------------------
