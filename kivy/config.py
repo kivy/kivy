@@ -8,7 +8,8 @@ See the `ConfigParser documentation
 
 Kivy has a configuration file which determines the default settings. In
 order to change these settings, you can alter this file manually or use
-the Config object. Please see the :ref:`Configure Kivy` section for more
+the Config object. Please see the :ref:`Configuring Kivy` and
+:ref:`environment variables` sections for more
 information.
 
 Note: To avoid instances where the config settings do not work or they are
