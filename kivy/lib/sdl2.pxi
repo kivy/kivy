@@ -213,6 +213,7 @@ cdef extern from "SDL.h":
         SDL_WINDOW_MOUSE_FOCUS = 0x00000400     #,        /**< window has mouse focus */
         SDL_WINDOW_FOREIGN = 0x00000800         #            /**< window not created by SDL */
         SDL_WINDOW_FULLSCREEN_DESKTOP
+        SDL_WINDOW_ALLOW_HIGHDPI
 
     cdef struct SDL_DropEvent:
         Uint32 type
@@ -221,35 +222,33 @@ cdef extern from "SDL.h":
 
     cdef struct SDL_MouseMotionEvent:
         Uint32 type
+        Uint32 timestamp
         Uint32 windowID
-        Uint8 state
-        Uint8 padding1
-        Uint8 padding2
-        Uint8 padding3
-        int x
-        int y
-        int xrel
-        int yrel
+        Uint32 which
+        Uint32 state
+        Sint32 x
+        Sint32 y
+        Sint32 xrel
+        Sint32 yrel
 
     cdef struct SDL_MouseButtonEvent:
         Uint32 type
+        Uint32 timestamp
         Uint32 windowID
+        Uint32 which
         Uint8 button
         Uint8 state
-        Uint8 padding1
-        Uint8 padding2
-        int x
-        int y
+        Uint8 clicks
+        Sint32 x
+        Sint32 y
 
     cdef struct SDL_WindowEvent:
         Uint32 type
+        Uint32 timestamp
         Uint32 windowID
         Uint8 event
-        Uint8 padding1
-        Uint8 padding2
-        Uint8 padding3
-        int data1
-        int data2
+        Sint32 data1
+        Sint32 data2
 
     ctypedef Sint64 SDL_TouchID
     ctypedef Sint64 SDL_FingerID
@@ -259,16 +258,11 @@ cdef extern from "SDL.h":
         Uint32 windowID
         SDL_TouchID touchId
         SDL_FingerID fingerId
-        Uint8 state
-        Uint8 padding1
-        Uint8 padding2
-        Uint8 padding3
-        Uint16 x
-        Uint16 y
-        Sint16 dx
-        Sint16 dy
-        Uint16 pressure
-
+        float x
+        float y
+        float dx
+        float dy
+        float pressure
 
     cdef struct SDL_Keysym:
         SDL_Scancode scancode       # SDL physical key code - see ::SDL_Scancode for details */
@@ -282,8 +276,6 @@ cdef extern from "SDL.h":
         Uint32 windowID     # The window with keyboard focus, if any
         Uint8 state         # ::SDL_PRESSED or ::SDL_RELEASED
         Uint8 repeat        # Non-zero if this is a key repeat
-        Uint8 padding2 
-        Uint8 padding3 
         SDL_Keysym keysym   # The key that was pressed or released
 
     cdef struct SDL_TextEditingEvent:
@@ -341,8 +333,6 @@ cdef extern from "SDL.h":
         void *data2
 
     cdef struct SDL_SysWMEvent:
-        pass
-    cdef struct SDL_TouchFingerEvent:
         pass
     cdef struct SDL_TouchButtonEvent:
         pass
@@ -414,6 +404,8 @@ cdef extern from "SDL.h":
 
     ctypedef enum SDL_Scancode:
         pass
+
+    cdef char *SDL_HINT_ORIENTATIONS
 
     cdef int SDL_QUERY               = -1
     cdef int SDL_IGNORE              =  0
@@ -573,6 +565,7 @@ cdef extern from "SDL.h":
     cdef void SDL_SetTextInputRect(SDL_Rect *rect)
     cdef SDL_bool SDL_HasScreenKeyboardSupport()
     cdef SDL_bool SDL_IsScreenKeyboardShown(SDL_Window *window)
+    cdef void SDL_GL_GetDrawableSize(SDL_Window *window, int *w, int *h)
 
     # Sound audio formats
     Uint16 AUDIO_U8     #0x0008  /**< Unsigned 8-bit samples */
