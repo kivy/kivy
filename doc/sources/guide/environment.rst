@@ -59,6 +59,7 @@ KIVY_SDL2_PATH
         Must be used during the compilation of Kivy. It is not required for the
         execution.
 
+..  _`Environment Configuration`:
 
 Configuration
 -------------
