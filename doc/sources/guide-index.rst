@@ -7,8 +7,8 @@ Programming Guide
     :maxdepth: 2
 
     guide/basic
-    guide/environment
     guide/config
+    guide/environment
     guide/architecture
     guide/events
     guide/inputs
