@@ -265,7 +265,7 @@ if platform == 'ios':
     print('Kivy-IOS project located at {0}'.format(kivy_ios_root))
     print('Activate SDL compilation.')
     c_options['use_ios'] = True
-    c_options['use_sdl'] = True
+    c_options['use_sdl2'] = True
 
 # detect gstreamer, only on desktop
 # works if we forced the options or in autodetection
@@ -293,10 +293,10 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
             c_options['use_gstreamer'] = True
 
 
-# detect SDL2, only on desktop
+# detect SDL2, only on desktop and iOS
 # works if we forced the options or in autodetection
 sdl2_flags = {}
-if platform not in ('ios', 'android') and c_options['use_sdl2'] in (None, True):
+if platform not in ('android') and c_options['use_sdl2'] in (None, True):
 
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
@@ -324,7 +324,7 @@ if platform not in ('ios', 'android') and c_options['use_sdl2'] in (None, True):
             c_options['use_sdl2'] = True
             print('Activate SDL2 compilation')
 
-    else:
+    elif platform != "ios":
         # use pkg-config approach instead
         sdl2_flags = pkgconfig('sdl2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer')
         if 'libraries' in sdl2_flags:
@@ -512,7 +512,7 @@ def determine_sdl2():
     # no pkgconfig info, or we want to use a specific sdl2 path, so perform
     # manual configuration
     flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
-    flags['include_dirs'] = ([sdl2_path] if sdl2_path else
+    flags['include_dirs'] = (sdl2_path.split(':') if sdl2_path else
                              ['/usr/local/include/SDL2', '/usr/include/SDL2'])
 
     flags['extra_link_args'] = []
