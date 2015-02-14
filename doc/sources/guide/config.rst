@@ -12,7 +12,7 @@ There are three ways to configure Kivy and they can be used in combination.
   and remaining options can be parsed the program.  Use *--help* for a list of command
   line options.
 * Using the kivy configuration file, named `config.ini`.  This adheres
-   to the `standard INI <http://en.wikipedia.org/wiki/INI_file>`_ format.
+  to the `standard INI <http://en.wikipedia.org/wiki/INI_file>`_ format.
 
 Generally, environment variables override the command line options which override the configuration
 file settings which override the defaults.
