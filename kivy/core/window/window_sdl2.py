@@ -264,7 +264,8 @@ class WindowSDL(WindowBase):
                 # We have a conflict of using either the mouse or the finger.
                 # Right now, we have no mechanism that we could use to know
                 # which is the preferred one for the application.
-                #SDL2MotionEventProvider.q.appendleft(event)
+                if platform == "ios":
+                    SDL2MotionEventProvider.q.appendleft(event)
                 pass
 
             elif action == 'mousemotion':
