@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+"""
+Gesture Board
+=============
+
+This application matches input gestures.   You should see a blank
+drawing surface.  When you draw a gesture, it shows in yellow, and
+output is generated in the terminal. The gesture representation
+is output.  The gesture is scored against the gestures in the
+file my_gestures.py.
+"""
 
 from kivy.app import App
 
