@@ -59,6 +59,17 @@ cdef class Matrix:
     def __init__(self):
         self.identity()
 
+    def get(self):
+        '''Retrieve the value of the current matrix.
+
+        .. versionadded:: 1.9
+        '''
+        return (
+            self.mat[0], self.mat[1], self.mat[2], self.mat[3],
+            self.mat[4], self.mat[5], self.mat[6], self.mat[7],
+            self.mat[8], self.mat[9], self.mat[10], self.mat[11],
+            self.mat[12], self.mat[13], self.mat[14], self.mat[15])
+
     cpdef Matrix rotate(Matrix self, double angle, double x, double y, double z):
         '''Rotate the matrix through the angle around the axis (x, y, z)
         (inplace).
