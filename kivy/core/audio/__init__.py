@@ -203,8 +203,9 @@ except ImportError:
     if PY2:
         audio_libs += [('pygst', 'audio_pygst')]
 audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]
-audio_libs += [('sdl', 'audio_sdl')]
-if not USE_SDL2:
+if USE_SDL2:
+    audio_libs += [('sdl2', 'audio_sdl2')]
+else:
     audio_libs += [('pygame', 'audio_pygame')]
 
 core_register_libs('audio', audio_libs)

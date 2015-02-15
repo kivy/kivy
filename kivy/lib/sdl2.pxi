@@ -747,12 +747,15 @@ cdef extern from "SDL_ttf.h":
     # Get the kerning size of two glyphs */
     cdef int TTF_GetFontKerningSize(TTF_Font *font, int prev_index, int index)
 
+cdef extern from "SDL_audio.h":
+    cdef int AUDIO_S16SYS
+
 cdef extern from "SDL_mixer.h":
     cdef struct Mix_Chunk:
         int allocated
         Uint8 *abuf
         Uint32 alen
-        Uint8 volum
+        Uint8 volume
     ctypedef struct Mix_Music:
         pass
     ctypedef enum Mix_Fading: 
