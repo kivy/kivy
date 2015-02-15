@@ -62,7 +62,7 @@ cdef class Matrix:
     def get(self):
         '''Retrieve the value of the current matrix.
 
-        .. versionadded:: 1.9
+        .. versionadded:: 1.9.0
         '''
         return (
             self.mat[0], self.mat[1], self.mat[2], self.mat[3],
