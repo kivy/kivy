@@ -516,17 +516,17 @@ class FocusBehavior(object):
     '''
 
     def _set_keyboard(self, value):
-        focused = self.focused
+        focus = self.focus
         keyboard = self._keyboard
         keyboards = FocusBehavior._keyboards
         if keyboard:
-            self.focused = False    # this'll unbind
+            self.focus = False    # this'll unbind
             if self._keyboard:  # remove assigned keyboard from dict
                 del keyboards[keyboard]
         if value and not value in keyboards:
             keyboards[value] = None
         self._keyboard = value
-        self.focused = focused
+        self.focus = focus
 
     def _get_keyboard(self):
         return self._keyboard
@@ -573,7 +573,7 @@ class FocusBehavior(object):
 
         When an instance has focus, setting keyboard to None will remove the
         current keyboard, but will then try to get a keyboard back. It is
-        better to set :attr:`focused` to False.
+        better to set :attr:`focus` to False.
 
     .. warning:
 
@@ -594,7 +594,7 @@ class FocusBehavior(object):
     :mod:`~kivy.config`), False otherwise.
     '''
 
-    focused = BooleanProperty(False)
+    focus = BooleanProperty(False)
     '''Whether the instance currently has focus.
 
     Setting it to True, will bind to and/or request the keyboard, and input
@@ -603,8 +603,19 @@ class FocusBehavior(object):
     have its focus, so focusing one will automatically unfocus the other
     instance holding its focus.
 
+    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty`, defaults to
+    False.
+    '''
+
+    focused = focus
+    '''An alias of :attr:`focus`.
+
     :attr:`focused` is a :class:`~kivy.properties.BooleanProperty`, defaults to
     False.
+
+    .. warning::
+        :attr:`focused` is an alias of :attr:`focus` and will be removed in
+        2.0.0.
     '''
 
     def _set_on_focus_next(self, instance, value):
@@ -737,16 +748,16 @@ class FocusBehavior(object):
         super(FocusBehavior, self).__init__(**kwargs)
 
         self._keyboard_mode = _keyboard_mode
-        self.bind(focused=self._on_focused, disabled=self._on_focusable,
+        self.bind(focus=self._on_focus, disabled=self._on_focusable,
                   is_focusable=self._on_focusable,
                   focus_next=self._set_on_focus_next,
                   focus_previous=self._set_on_focus_previous)
 
     def _on_focusable(self, instance, value):
         if self.disabled or not self.is_focusable:
-            self.focused = False
+            self.focus = False
 
-    def _on_focused(self, instance, value, *largs):
+    def _on_focus(self, instance, value, *largs):
         if self.keyboard_mode == 'auto':
             if value:
                 self._bind_keyboard()
@@ -768,12 +779,12 @@ class FocusBehavior(object):
         keyboard = self._keyboard
 
         if not keyboard or self.disabled or not self.is_focusable:
-            self.focused = False
+            self.focus = False
             return
         keyboards = FocusBehavior._keyboards
         old_focus = keyboards[keyboard]  # keyboard should be in dict
         if old_focus:
-            old_focus.focused = False
+            old_focus.focus = False
             # keyboard shouldn't have been released here, see keyboard warning
         keyboards[keyboard] = self
         keyboard.bind(on_key_down=self.keyboard_on_key_down,
@@ -793,7 +804,7 @@ class FocusBehavior(object):
                 FocusBehavior._keyboards[keyboard] = None
 
     def _keyboard_released(self):
-        self.focused = False
+        self.focus = False
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -801,7 +812,7 @@ class FocusBehavior(object):
         if (not self.disabled and self.is_focusable and
             ('button' not in touch.profile or
              not touch.button.startswith('scroll'))):
-            self.focused = True
+            self.focus = True
             FocusBehavior.ignored_touch.append(touch)
         return super(FocusBehavior, self).on_touch_down(touch)
 
@@ -816,7 +827,7 @@ class FocusBehavior(object):
         for focusable in list(FocusBehavior._keyboards.values()):
             if focusable is None or not focusable.unfocus_on_touch:
                 continue
-            focusable.focused = False
+            focusable.focus = False
 
     def _get_focus_next(self, focus_dir):
         current = self
@@ -868,9 +879,9 @@ class FocusBehavior(object):
             else:
                 next = self._get_focus_next('focus_next')
             if next:
-                self.focused = False
+                self.focus = False
 
-                next.focused = True
+                next.focus = True
 
             return True
         return False
@@ -890,7 +901,7 @@ class FocusBehavior(object):
         See :meth:`on_key_down`
         '''
         if keycode[1] == 'escape':
-            self.focused = False
+            self.focus = False
             return True
         return False
 
