@@ -66,15 +66,22 @@ Enhancements to Kivy
 
   Expected Outcome:
 
-  - **Mentors**:
+  - **Mentors**: 
   - **Task level**:
 
-**Font Reshaping Support**
+**Font Reshaping and Font Fallback Support**
 
   Description:
     Currently Kivy does not support reshaping for alphabets such as Arabic, 
     Persian, Thai, or Devanagari. The solution is to integrate a text shaping
-    engine such as Harfbuzz. You would need to ensure that we can compile Harfbuzz on every platform and properly integrate it as a core text provider.
+    engine- Harfbuzz. You would need to ensure that we can compile Harfbuzz
+    on every platform and properly integrate it as a core text provider.
+    
+    The second part of the same project would involve fant fallback support.
+    If a particular character is missing; currently we show a [] box.
+    The solution for this would involve either using a os api's if available
+    or maintaining a hashtable for the default fonts on each OS which can be
+    used for glyph fallback.
 
   References:
     - http://www.freedesktop.org/wiki/Software/HarfBuzz/
@@ -83,9 +90,9 @@ Enhancements to Kivy
   Expected Outcome:
     Harfbuzz core text provider for Kivy and correct compilation recipes for platforms that need it, such as Python-For-Android.
 
-  - **Mentors**: Jacob Kovac
-  - **Requirements:** Access to Linux, Windows, OSX, iOS, Android
-  - **Task level**: Intermediate/Advanced
+  - **Mentors**: Akshay Arora, Jacob Kovac
+  - **Requirements:** Access to Linux, Windows, OSX, Android, iOS
+  - **Task level**: Intermediate
   - **Desired Skills**: Familiarity with text rendering, HarfBuzz, and Kivy's provider abstraction.
 
 
@@ -95,7 +102,18 @@ Enhancements to Mobile Platforms
 **Plyer:**
 
   Description:
-    Plyer is a platform-independant api to use features commonly found on various platforms, especially mobile ones, in Python. The idea is to provide a stable API to the user for accessing featuresof their desktop or mobile device. The student would work on improving access to platform specific Accessibility features through Plyer. In addition Plyer currently rely on some .java code that should be replaced directly with use of Pyjnius.
+    Plyer is a platform-independant api to use features commonly
+    found on various platforms, especially mobile ones, in Python.
+    The idea is to provide a stable API to the user for accessing
+    features of their desktop or mobile device.
+  
+    Python-for-android currently rely on some `.java` code that
+    should be replaced directly with use of Pyjnius.
+    
+    The student would work on:
+    - Replacing this codementioned above in `.java` files
+    to either plyer or to kivy+pyjnius which ever is more appropriate.
+    We will be providing details on which ones go where.
     
     Under the hood you'll use PyJNIus and PyOBJus. This probably would also include improving PyObjus and PyJnius to handle interfaces that they can't right now.
     
@@ -103,7 +121,9 @@ Enhancements to Mobile Platforms
     - https://github.com/kivy/plyer
     - https://github.com/kivy/pyjnius
     - https://github.com/kivy/pyobjus
+    - https://github.com/kivy/python-for-android
   Expected Outcome:
+    The requirement for this GSOC 2015 would be  basically 
     Platform independent api for accessing most platform specific features.
     
   - **Mentors**: 
