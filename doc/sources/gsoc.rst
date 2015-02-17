@@ -240,18 +240,23 @@ Or send a mail at kivy-users@googlegroups.com
 
 Make sure to Join kivy-dev user group too @ https://groups.google.com/forum/#!forum/kivy-dev
 
-You can also try to contact us on IRC (online chat), to get the irc handles of the devs mentioned above visit http://kivy.org/#aboutus
+You can also try to contact us on IRC (online chat), to get the irc handles of the devs mentioned
+above visit http://kivy.org/#aboutus
 
-Make sure to read the `IRC rules <http://kivy.org/docs/contact.html>`_ before connecting. `Connect to webchat <http://webchat.freenode.net/?nick=kvuser_GSOC_.&channels=kivy&uio=d4>`_
+Make sure to read the `IRC rules <http://kivy.org/docs/contact.html>`_ before connecting.
+`Connect to webchat <http://webchat.freenode.net/?nick=kvuser_GSOC_.&channels=kivy&uio=d4>`_
 
 
-Most of our developers are located in Europe, India, and North America so keep in mind typical waking hours for these areas.
+Most of our developers are located in Europe, India, and North America so keep in mind typical
+waking hours for these areas.
 
 
 How to be a good student
 ------------------------
 
-If you want to participate as a student and want to maximize your chances of being accepted, start talking to us today and try fixing some smaller problems to get used to our workflow. If we know you can work well with us, that'd be a big plus.
+If you want to participate as a student and want to maximize your chances of being accepted, 
+start talking to us today and try fixing some smaller problems to get used to our workflow. 
+If we know you can work well with us, that'd be a big plus.
 
 Here's a checklist:
 
@@ -259,10 +264,21 @@ Here's a checklist:
 * Look at the source code.
 * Read our contribution guidelines.
 * Pick an idea that you think is interesting from the ideas list or come up with your own idea.
-* Do some research **yourself**. GSoC is not about us teaching you something and you getting paid for that. It is about you trying to achieve agreed upon goals by yourself with our support. The main driving force in this should be, obviously, yourself. Many students pop up and ask what they should do. Well, we don't know because we know neither your interests nor your skills. Show us you're serious about it and take the initiative.
-* Write a draft `proposal <https://wiki.python.org/moin/SummerOfCode/ApplicationTemplate2014>`_ about what you want to do. Include what you understand the current state is (very roughly), what you would like to improve, how, etc. 
+* Do some research **yourself**. GSoC is about give and take, not just one sided interaction.
+  It is about you trying to achieve agreed upon goals with our support. 
+  The main driving force in this should be, obviously, yourself. Many students pop up and ask
+  what they should do. You shoud base that decision on your interests and your skills.
+  Show us you're serious about it and take the initiative.
+* Write a draft `proposal <https://wiki.python.org/moin/SummerOfCode/ApplicationTemplate2014>`_
+  about what you want to do. Include what you understand the current state is (very roughly), 
+  what you would like to improve, how, etc. 
 * Discuss that proposal with us in a timely manner. Get feedback.
-* Be patient! Especially on IRC. We will try to get to you if we're available. If not, send an email and just wait. Most questions are already answered in the docs or somewhere else and can be found with some research. If your questions don't reflect that you've actually thought through what you're asking, it might not be well received.
+* Be patient! Especially on IRC. We will try to get to you if we're available. If not, 
+  send an email and just wait. Most questions are already answered in the docs or somewhere
+  else and can be found with some research. Your questions should reflect that you've actually
+  thought through what you're asking and done some rudimentary research.
+* Most of all don't forget to have fun, interact with the community. The comminity is as big a
+  part about opensource as the code.
   
 What to expect if you are chosen
 --------------------------------
