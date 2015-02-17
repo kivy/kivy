@@ -69,13 +69,12 @@ Enhancements to Kivy
   - **Mentors**:
   - **Task level**:
 
-**Harfbuzz Font Rendering Support**
+**Font Reshaping Support**
 
   Description:
     Currently Kivy does not support reshaping for alphabets such as Arabic, 
     Persian, Thai, or Devanagari. The solution is to integrate a text shaping
-    engine- Harfbuzz. You would need to ensure that we can compile Harfbuzz
-    on every platform and properly integrate it as a core text provider.
+    engine such as Harfbuzz. You would need to ensure that we can compile Harfbuzz on every platform and properly integrate it as a core text provider.
 
   References:
     - http://www.freedesktop.org/wiki/Software/HarfBuzz/
@@ -85,7 +84,7 @@ Enhancements to Kivy
     Harfbuzz core text provider for Kivy and correct compilation recipes for platforms that need it, such as Python-For-Android.
 
   - **Mentors**: Jacob Kovac
-  - **Requirements:** Access to Linux, Windows, OSX, Android, iOS
+  - **Requirements:** Access to Linux, Windows, OSX, iOS, Android
   - **Task level**: Intermediate/Advanced
   - **Desired Skills**: Familiarity with text rendering, HarfBuzz, and Kivy's provider abstraction.
 
