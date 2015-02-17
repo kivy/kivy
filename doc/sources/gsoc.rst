@@ -198,7 +198,7 @@ Enhancements to Toolchain
   - Interface to test using different screen modules, for emulating interface on different screen sizes.
   - Interface to Select different targets, simulator or actual device if connected to deploy to.
   - Add mobile specific UI fixes(mostly making sure UI looks and feels the same on tablets as on desktops)
-  - Work on stability fixes and 
+  - Work on stability fixes.
 
   References:
     - https://github.com/kivy/kivy-designer
