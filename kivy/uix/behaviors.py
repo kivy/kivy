@@ -15,7 +15,14 @@ do::
 .. note::
 
     The behavior class must always be _before_ the widget class. If you don't
-    specify the inheritance in this order, the behavior will not work.
+    specify the inheritance in this order, the behavior will not work because
+    the behavior methods are overwritten by the class method listed first.
+
+    Similarly, if you combine a behavior class with a class which
+    requires the use of the methods also defined by the behavior class, the
+    resulting class may not function properly. E.g. combining a ButtonBehavior
+    with a Slider, both of which require the on_touch_up methods, the resulting
+    class will not work.
 
 '''
 
