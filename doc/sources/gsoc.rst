@@ -96,30 +96,28 @@ Enhancements to Kivy
   - **Desired Skills**: Familiarity with text rendering, HarfBuzz, and Kivy's provider abstraction.
 
 
-Enhancements to Mobile Platforms
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Enhancements to Plyer
+~~~~~~~~~~~~~~~~~~~~~
 
 **Plyer:**
 
   Description:
-    Plyer is a platform-independant Python api to use features 
+    Plyer is a platform-independant Python API to use features 
     commonly found on the desktop and mobile platforms supported by 
     Kivy. The idea is to provide a stable API to the user for 
     accessing features of their desktop or mobile device.
-  
-    Python-for-android currently rely on 
     
-    The student would work on improving access to platform specific 
+    The student would replace some `.java` code currently in the Kivy 
+    project to a more appropriate place in Plyer. In addition, the 
+    student would work on improving access to platform specific 
     features through Plyer, including accessibility, Bluetooth, 
     Bluetooth Low Energy, recording and previewing the video camera, 
     accessing contacts, recording audio, and utilizing speech 
-    recognition. The studen would also replace some `.java` code 
-    that should be moved to PyJnius. We will be providing details 
-    on which code goes where.
+    recognition. 
     
     Under the hood you'll use PyJNIus on Android, PyOBJus on OSX and 
     iOS, ctypes on Windows, and native APIs on Linux. This probably 
-    would also include improving PyObjus and PyJnius to handle 
+    would also include improving PyObjus and PyJNIus to handle 
     interfaces that they can't right now.
     
   References:
@@ -127,9 +125,11 @@ Enhancements to Mobile Platforms
     - https://github.com/kivy/pyjnius
     - https://github.com/kivy/pyobjus
     - https://github.com/kivy/python-for-android
+    - https://github.com/kivy/kivy-ios
   Expected Outcome:
-    The requirement for this GSOC 2015 would be  basically 
-    Platform independent api for accessing most platform specific features.
+    A successful outcome would include moving the Kivy Java code to 
+    plyer and implementation of some or all of the new facades to be 
+    decided with the student.
     
   - **Mentors**: Ben Rousch
   - **Requirements**: Access to Linux, Windows, OS X, iOS device, Android device.
