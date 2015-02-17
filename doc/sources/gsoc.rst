@@ -191,6 +191,7 @@ Enhancements to Toolchain
     for you!
 
   The Student will for this gsoc:
+  
   - Integrate buildozer, which is our build tool for deploying to different target os
     with in the kivy-designer.
   - Interface for using hanga.io as a deployment target.
@@ -206,7 +207,7 @@ Enhancements to Toolchain
     - http://hanga.io
   Expected Outcome:
 
-  - **Mentors**: Akshay Arora, Kived
+  - **Mentors**: Akshay Arora, Ryan Pessa (kived)
   - **Requirements:** Access to Linux, Windows, OSX
   - **Task level**: Easy
   - **Desired Skills**: Experience with other GUI creation tools. Familiar with Kivy approach to EventLoop and UIX Widgets.
