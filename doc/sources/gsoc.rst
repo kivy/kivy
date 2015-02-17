@@ -180,8 +180,8 @@ Make sure to Join kivy-dev user group too @ https://groups.google.com/forum/#!fo
 
 You can also try to contact us on IRC (online chat), to get the irc handles of the devs mentioned above visit http://kivy.org/#aboutus
 
-Make sure to read the `IRC rules <http://kivy.org/docs/contact.html>`_ before connecting.
-http://webchat.freenode.net/?nick=kvuser_GSOC_.&channels=kivy&uio=d4
+Make sure to read the `IRC rules <http://kivy.org/docs/contact.html>`_ before connecting. `Connect to webchat <http://webchat.freenode.net/?nick=kvuser_GSOC_.&channels=kivy&uio=d4>`_
+
 
 Most of our developers are located in Europe, India, and North America so keep in mind typical waking hours for these areas.
 
