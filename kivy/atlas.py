@@ -266,7 +266,7 @@ class Atlas(EventDispatcher):
         # open all of the images
         ims = list()
         for f in filenames:
-            fp = open(f)
+            fp = open(f, 'rb')
             im = Image.open(fp)
             im.load()
             fp.close()
