@@ -87,8 +87,7 @@ Enhancements to Kivy
   - **Mentors**: Jacob Kovac
   - **Requirements:** Access to Linux, Windows, OSX, Android, iOS
   - **Task level**: Intermediate/Advanced
-  - **Desired Skills**: Familiarity with text rendering, HarfBuzz, and Kivy's
-  provider abstraction.
+  - **Desired Skills**: Familiarity with text rendering, HarfBuzz, and Kivy's provider abstraction.
 
 
 Enhancements to Mobile Platforms
