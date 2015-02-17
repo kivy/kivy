@@ -131,7 +131,7 @@ Enhancements to Mobile Platforms
     The requirement for this GSOC 2015 would be  basically 
     Platform independent api for accessing most platform specific features.
     
-  - **Mentors**: 
+  - **Mentors**: Ben Rousch
   - **Requirements**: Access to Linux, Windows, OS X, iOS device, Android device.
   - **Task level**: Intermediate/Advanced.
   - **Desired Skills**: Familiarity with Pyjnius, PyObjus.
