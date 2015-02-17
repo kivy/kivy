@@ -183,14 +183,30 @@ Enhancements to Toolchain
 **Kivy Designer**
 
   Description:
-    Kivy Designer is a GUI tool for creating Kivy GUI layouts written in Kivy. You can compose, customize, and test widgets using the tool. This project has been the subject of 2 previous GSOC and is experimental, alpha level software at the moment. However, it is a very popular request for more updates among our uses; if you are interested in GUI tool development this could be a great fit for you!
+    Kivy Designer is a GUI tool for creating Kivy GUI layouts written in Kivy. 
+    You can compose, customize, and test widgets using the tool. This project has
+    been the subject of 2 previous GSOC and is experimental, alpha level software
+    at the moment. However, it is a very popular request for more updates among our
+    users; if you are interested in GUI tool development this could be a great fit
+    for you!
+
+  The Student will for this gsoc:
+  - Integrate buildozer, which is our build tool for deploying to different target os
+    with in the kivy-designer.
+  - Interface for using hanga.io as a deployment target.
+  - Better File management for project files. Browser Pane.
+  - Interface to test using different screen modules, for emulating interface on different screen sizes.
+  - Interface to Select different targets, simulator or actual device if connected to deploy to.
+  - Add mobile specific UI fixes(mostly making sure UI looks and feels the same on tablets as on desktops)
+  - Work on stability fixes and 
 
   References:
     - https://github.com/kivy/kivy-designer
-
+    - http://github.com/kivy/buildozer
+    - http://hanga.io
   Expected Outcome:
 
-  - **Mentors**:
+  - **Mentors**: Akshay Arora, Kived
   - **Requirements:** Access to Linux, Windows, OSX
   - **Task level**: Easy
   - **Desired Skills**: Experience with other GUI creation tools. Familiar with Kivy approach to EventLoop and UIX Widgets.
