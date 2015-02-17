@@ -102,20 +102,25 @@ Enhancements to Mobile Platforms
 **Plyer:**
 
   Description:
-    Plyer is a platform-independant api to use features commonly
-    found on various platforms, especially mobile ones, in Python.
-    The idea is to provide a stable API to the user for accessing
-    features of their desktop or mobile device.
+    Plyer is a platform-independant Python api to use features 
+    commonly found on the desktop and mobile platforms supported by 
+    Kivy. The idea is to provide a stable API to the user for 
+    accessing features of their desktop or mobile device.
   
-    Python-for-android currently rely on some `.java` code that
-    should be replaced directly with use of Pyjnius.
+    Python-for-android currently rely on 
     
-    The student would work on:
-    - Replacing this codementioned above in `.java` files
-    to either plyer or to kivy+pyjnius which ever is more appropriate.
-    We will be providing details on which ones go where.
+    The student would work on improving access to platform specific 
+    features through Plyer, including accessibility, Bluetooth, 
+    Bluetooth Low Energy, recording and previewing the video camera, 
+    accessing contacts, recording audio, and utilizing speech 
+    recognition. The studen would also replace some `.java` code 
+    that should be moved to PyJnius. We will be providing details 
+    on which code goes where.
     
-    Under the hood you'll use PyJNIus and PyOBJus. This probably would also include improving PyObjus and PyJnius to handle interfaces that they can't right now.
+    Under the hood you'll use PyJNIus on Android, PyOBJus on OSX and 
+    iOS, ctypes on Windows, and native APIs on Linux. This probably 
+    would also include improving PyObjus and PyJnius to handle 
+    interfaces that they can't right now.
     
   References:
     - https://github.com/kivy/plyer
