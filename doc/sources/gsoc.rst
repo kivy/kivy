@@ -4,7 +4,9 @@ This document is still a work in progress.
 
 Introduction
 ------------
-Kivy is a cross-platform, business friendly, GPU Accelerated open source Python library for rapid development of applications that make use of innovative user interfaces, such as multi-touch apps.
+Kivy is a cross-platform, business friendly, GPU Accelerated open source 
+Python library for rapid development of applications that make use of 
+innovative user interfaces, such as multi-touch apps.
 
 The Kivy Organization oversees several major projects:
 
@@ -16,9 +18,19 @@ The Kivy Organization oversees several major projects:
 * The `Plyer <https://github.com/kivy/plyer>`_ platform-independent Python wrapper for platform dependent APIs.
 * `Buildozer <https://github.com/kivy/buildozer>`_ - A generic Python packager for Android, iOS, and desktop.
 
-Altogether, these projects allow the user to create applications for every major operating system that make use of any native APIs present. Our goal is to enable development of Python applications that run everywhere off the same codebase and make use of platform dependent APIs and features that users of specific operating systems have come to expect. Depending on which project you choose you may need to know Cython, OpenGL ES2, Java, Objective-C, or C in addition to python. We make heavy use of Cython and OpenGL for computational and graphics performance where it matters, and the other languages are typically involved in accesses OS or provider level APIs.
+Altogether, these projects allow the user to create applications for every major
+operating system that make use of any native APIs present. Our goal is to enable 
+development of Python applications that run everywhere off the same codebase and 
+make use of platform dependent APIs and features that users of specific operating
+systems have come to expect. Depending on which project you choose you may need to
+know Cython, OpenGL ES2, Java, Objective-C, or C in addition to python. We make
+heavy use of Cython and OpenGL for computational and graphics performance where
+it matters, and the other languages are typically involved in accesses OS or provider
+level APIs.
 
-We are hoping to participate in Google Summer of Code 2015. This page showcases some ideas for gsoc projects and corresponding guidelines for students contributing to the Kivy Framework.
+We are hoping to participate in Google Summer of Code 2015. This page showcases some
+ideas for gsoc projects and corresponding guidelines for students contributing to the
+Kivy Framework.
 
 Requirements
 ------------
@@ -26,23 +38,32 @@ Requirements
 It is assumed that the incoming student meets some basic requirements as highlighted here:
 
 * Intermediate level familiarity with python
-* Comfortable with git and github (Kivy and its sister projects are all managed on github) If you have never used github before you may be interested in this tutorial: https://guides.github.com/activities/hello-world/
+* Comfortable with git and github (Kivy and its sister projects are all managed on github)
+  If you have never used github before you may be interested in this tutorial: 
+  https://guides.github.com/activities/hello-world/
 * Comfortable with event driven programming.
-* Has suitable tools/environment for kivy or the sister project you are going to work on. For example to be able to work on pyobjus you would need access to an iOS device, mac with xcode and a developer license, to work on pyjnius you would need an android device, and to work on plyer you would need access to hardware for both platforms.
+* Has suitable tools/environment for kivy or the sister project you are going to work on. 
+  For example to be able to work on pyobjus you would need access to an iOS device, mac with 
+  xcode and a developer license, to work on pyjnius you would need an android device, and to 
+  work on plyer you would need access to hardware for both platforms.
 
   
 Additional desired skills may be listed with specific projects.
 
-Familiarize yourself with the contributing guide http://kivy.org/docs/contribute.html We can help you get up to speed, however students demonstrating ability in advance will be given preference.
+Familiarize yourself with the contributing guide http://kivy.org/docs/contribute.html 
+We can help you get up to speed, however students demonstrating ability in 
+advance will be given preference.
 
 How to get setup
 ----------------
 
-For Kivy, the easiest way is to follow the installation instructions for the development version for your specific platform:
+For Kivy, the easiest way is to follow the installation instructions for the 
+development version for your specific platform:
 
 http://kivy.org/docs/installation/installation.html#development-version
 
-For the rest it's usually sufficient to install the relevant project from git and add it to your PYTHONPATH.
+For the rest it's usually sufficient to install the relevant project from git and add
+it to your PYTHONPATH.
 
 eg.. for pyjnius::
 
@@ -88,13 +109,14 @@ Enhancements to Kivy
     - https://github.com/kivy/kivy/tree/master/kivy/core/text
 
   Expected Outcome:
-    Harfbuzz core text provider for Kivy and correct compilation recipes for platforms that need it, such as Python-For-Android.
+    Fant fallback and text reshaping support Kivy and correct compilation recipes
+    the libs used (harfbuzz) for platforms(android and ios) that need it, such as
+    Python-For-Android.
 
   - **Mentors**: Akshay Arora, Jacob Kovac
   - **Requirements:** Access to Linux, Windows, OSX, Android, iOS
   - **Task level**: Intermediate
   - **Desired Skills**: Familiarity with text rendering, HarfBuzz, and Kivy's provider abstraction.
-
 
 Enhancements to Plyer
 ~~~~~~~~~~~~~~~~~~~~~
