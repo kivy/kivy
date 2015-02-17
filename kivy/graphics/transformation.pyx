@@ -538,6 +538,42 @@ cdef class Matrix:
             r[15] = 1
         return mr
 
+    cpdef Matrix dot(Matrix mb, Matrix ma):
+        '''Dot product of two Matrices ie the given matrix with self (from the left)
+        this can be used for full multiplication of 2 4x4 matrices
+        the result (not inplace)::
+
+            m.dot(n) -> n * m
+            
+        :Parameters:
+            `ma`: Matrix
+                The matrix to multiply by
+        '''
+        cdef Matrix mr = Matrix()
+        cdef double *a = <double *>ma.mat
+        cdef double *b = <double *>mb.mat
+        cdef double *r = <double *>mr.mat
+        with nogil:
+            
+            r[ 0] = a[ 0] * b[0] + a[ 1] * b[4] + a[ 2] * b[ 8] + a[3]  * b[12]
+            r[ 4] = a[ 4] * b[0] + a[ 5] * b[4] + a[ 6] * b[ 8] + a[7]  * b[12]
+            r[ 8] = a[ 8] * b[0] + a[ 9] * b[4] + a[10] * b[ 8] + a[11] * b[12]
+            r[12] = a[12] * b[0] + a[13] * b[4] + a[14] * b[ 8] + a[15] * b[12]
+            r[ 1] = a[ 0] * b[1] + a[ 1] * b[5] + a[ 2] * b[ 9] + a[3]  * b[13]
+            r[ 5] = a[ 4] * b[1] + a[ 5] * b[5] + a[ 6] * b[ 9] + a[7]  * b[13]
+            r[ 9] = a[ 8] * b[1] + a[ 9] * b[5] + a[10] * b[ 9] + a[11] * b[13]
+            r[13] = a[12] * b[1] + a[13] * b[5] + a[14] * b[ 9] + a[15] * b[13]
+            r[ 2] = a[ 0] * b[2] + a[ 1] * b[6] + a[ 2] * b[10] + a[3]  * b[14]
+            r[ 6] = a[ 4] * b[2] + a[ 5] * b[6] + a[ 6] * b[10] + a[7]  * b[14]
+            r[10] = a[ 8] * b[2] + a[ 9] * b[6] + a[10] * b[10] + a[11] * b[14]
+            r[14] = a[12] * b[2] + a[13] * b[6] + a[14] * b[10] + a[15] * b[14]
+            r[ 3] = a[ 0] * b[3] + a[ 1] * b[7] + a[ 2] * b[10] + a[3]  * b[14] 
+            r[ 7] = a[ 4] * b[3] + a[ 5] * b[7] + a[ 6] * b[10] + a[7]  * b[14] 
+            r[11] = a[ 8] * b[3] + a[ 9] * b[7] + a[10] * b[10] + a[11] * b[14] 
+            r[15] = a[12] * b[3] + a[13] * b[7] + a[14] * b[10] + a[15] * b[14]
+
+        return mr
+
     cpdef project(Matrix self, double objx, double objy, double objz, Matrix model, Matrix proj,
             double vx, double vy, double vw, double vh):
         '''Project a point from 3d space into a 2d viewport.

@@ -11,6 +11,8 @@ cdef class Matrix:
 
     cpdef Matrix multiply(Matrix self, Matrix mb)
 
+    cpdef Matrix dot(Matrix self, Matrix mb)
+
     cpdef Matrix scale(Matrix self, double x, double y, double z)
 
     cpdef Matrix translate(Matrix self, double x, double y, double z)
