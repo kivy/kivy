@@ -114,7 +114,7 @@ Enhancements to Kivy
     Python-For-Android.
 
   - **Mentors**: Akshay Arora, Jacob Kovac
-  - **Requirements:** Access to Linux, Windows, OSX, Android, iOS
+  - **Requirements:** Access to Linux, Windows, OS X, Android, iOS
   - **Task level**: Intermediate
   - **Desired Skills**: Familiarity with text rendering, HarfBuzz, and Kivy's provider abstraction.
 
@@ -137,7 +137,7 @@ Enhancements to Plyer
     accessing contacts, recording audio, and utilizing speech 
     recognition. 
     
-    Under the hood you'll use PyJNIus on Android, PyOBJus on OSX and 
+    Under the hood you'll use PyJNIus on Android, PyOBJus on OS X and 
     iOS, ctypes on Windows, and native APIs on Linux. This probably 
     would also include improving PyObjus and PyJNIus to handle 
     interfaces that they can't right now.
@@ -208,7 +208,7 @@ Enhancements to Toolchain
   Expected outcome:
 
   - **Mentors**: Akshay Arora, Ryan Pessa (kived)
-  - **Requirements:** Access to Linux, Windows, OSX
+  - **Requirements:** Access to Linux, Windows, OS X
   - **Task level**: Easy
   - **Desired Skills**: Experience with other GUI creation tools. Familiar with Kivy approach to EventLoop and UIX Widgets.
 
@@ -229,7 +229,7 @@ Applications
     The matplotlib widgets will be included in the Kivy garden and ready to use on all of Kivy's supported OS.
 
   - **Mentors**: Alexander Taylor
-  - **Requirements:** Access to Linux, Windows, OSX, Android, iOS
+  - **Requirements:** Access to Linux, Windows, OS X, Android, iOS
   - **Task level**: Easy
   - **Desired Skills**: Familiarity with Kivy widget construction and MatPlotLib. 
 
