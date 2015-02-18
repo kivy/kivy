@@ -37,10 +37,10 @@ Requirements
 
 It is assumed that the incoming student meets some basic requirements as highlighted here:
 
-* Intermediate level familiarity with python
+* Intermediate level familiarity with Python.
 * Comfortable with git and github (Kivy and its sister projects are all managed on github)
   If you have never used github before you may be interested in this tutorial: 
-  https://guides.github.com/activities/hello-world/
+  https://guides.github.com/activities/hello-world/.
 * Comfortable with event driven programming.
 * Has suitable tools/environment for kivy or the sister project you are going to work on. 
   For example to be able to work on PyOBJus you would need access to an iOS device, mac with 
