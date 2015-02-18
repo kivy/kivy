@@ -60,6 +60,9 @@ help:
 
 clean:
 	-rm -rf sources/api-*.rst
+	-rm -rf sources/examples/gen__*.rst
+	-rm -rf sources/examples/gallery.rst
+	-rm -rf sources/examples/index.rst
 # windows just doesn't support e.g. build\*
 ifdef ComSpec
 	-rmdir /s /q build
@@ -74,6 +77,7 @@ ifeq ("$(wildcard $(AUTOBUILD_STAMP))","")
 	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
 	touch $(AUTOBUILD_STAMP)
 endif
+	$(PYTHON) gallery.py
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS$(_TESTS)) build/html
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."

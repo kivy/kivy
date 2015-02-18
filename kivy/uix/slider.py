@@ -23,6 +23,7 @@ __all__ = ('Slider', )
 from kivy.uix.widget import Widget
 from kivy.properties import (NumericProperty, AliasProperty, OptionProperty,
                              ReferenceListProperty, BoundedNumericProperty)
+from kivy.metrics    import sp
 
 
 class Slider(Widget):
@@ -49,17 +50,17 @@ class Slider(Widget):
     :attr:`max` is a :class:`~kivy.properties.NumericProperty` and defaults to
     100.'''
 
-    padding = NumericProperty(10)
+    padding = NumericProperty(sp(16))
     '''Padding of the slider. The padding is used for graphical representation
     and interaction. It prevents the cursor from going out of the bounds of the
     slider bounding box.
 
-    By default, padding is 10. The range of the slider is reduced from padding
-    \*2 on the screen. It allows drawing a cursor of 20px width without having
-    the cursor go out of the widget.
+    By default, padding is sp(16). The range of the slider is reduced from padding
+    \*2 on the screen. It allows drawing the default cursor of sp(32) width without
+    having the cursor go out of the widget.
 
     :attr:`padding` is a :class:`~kivy.properties.NumericProperty` and defaults
-    to 10.'''
+    to sp(16).'''
 
     orientation = OptionProperty('horizontal', options=(
         'vertical', 'horizontal'))
@@ -100,13 +101,13 @@ class Slider(Widget):
     # The following two methods constrain the slider's value
     # to range(min,max). Otherwise it may happen that self.value < self.min
     # at init.
-    
+
     def on_min(self, *largs):
-        self.value = min(self.max, max(self.min,self.value))
-        
+        self.value = min(self.max, max(self.min, self.value))
+
     def on_max(self, *largs):
-        self.value = min(self.max, max(self.min,self.value))
-    
+        self.value = min(self.max, max(self.min, self.value))
+
     def get_norm_value(self):
         vmin = self.min
         d = self.max - vmin

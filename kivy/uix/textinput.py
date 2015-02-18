@@ -51,20 +51,20 @@ callback when the text changes::
 You can 'focus' a textinput, meaning that the input box will be highlighted
 and keyboard focus will be requested::
 
-    textinput = TextInput(focused=True)
+    textinput = TextInput(focus=True)
 
 The textinput is defocused if the 'escape' key is pressed, or if another
 widget requests the keyboard. You can bind a callback to the focus property to
 get notified of focus changes::
 
-    def on_focused(instance, value):
+    def on_focus(instance, value):
         if value:
             print('User focused', instance)
         else:
             print('User defocused', instance)
 
     textinput = TextInput()
-    textinput.bind(focused=on_focused)
+    textinput.bind(focus=on_focus)
 
 See :class:`~kivy.uix.behaviors.FocusBehavior` from which :class:`TextInput`
 inherits for more details.
@@ -357,6 +357,12 @@ class TextInput(FocusBehavior, Widget):
         on the next clock cycle using
         :meth:`~kivy.clock.ClockBase.schedule_once`.
 
+    .. Note::
+        Selection is cancelled when TextInput is focused. If you need to
+        show selection when TextInput is focused, you should delay
+        (use Clock.schedule) the call to the functions for selecting
+        text (select_all, select_text).
+
     .. versionchanged:: 1.9.0
         :class:`TextInput` now inherits from
         :class:`~kivy.uix.behaviors.FocusBehavior`.
@@ -364,6 +370,7 @@ class TextInput(FocusBehavior, Widget):
         :attr:`~kivy.uix.behaviors.FocusBehavior.keyboard_mode`,
         :meth:`~kivy.uix.behaviors.FocusBehavior.show_keyboard`,
         :meth:`~kivy.uix.behaviors.FocusBehavior.hide_keyboard`,
+        :meth:`~kivy.uix.behaviors.FocusBehavior.focus`,
         and :attr:`~kivy.uix.behaviors.FocusBehavior.input_type`,
         have been removed from :class:`TextInput` since they already inherit
         them from :class:`~kivy.uix.behaviors.FocusBehavior`.
@@ -423,9 +430,6 @@ class TextInput(FocusBehavior, Widget):
         self.bind(font_size=self._trigger_refresh_line_options,
                   font_name=self._trigger_refresh_line_options)
 
-        def set_focused(instance, value):
-            self.focused = value
-
         def handle_readonly(instance, value):
             if value and (not _is_desktop or not self.allow_copy):
                 self.is_focusable = False
@@ -437,8 +441,8 @@ class TextInput(FocusBehavior, Widget):
                   size=self._update_text_options,
                   password=self._update_text_options)
 
-        self.bind(pos=self._trigger_update_graphics, focus=set_focused,
-                  readonly=handle_readonly, focused=self._on_textinput_focused)
+        self.bind(pos=self._trigger_update_graphics,
+                  readonly=handle_readonly, focus=self._on_textinput_focused)
         handle_readonly(self, self.readonly)
 
         self._trigger_position_handles = Clock.create_trigger(
@@ -1764,7 +1768,7 @@ class TextInput(FocusBehavior, Widget):
         if texture is None:
             # FIXME right now, we can't render very long line...
             # if we move on "VBO" version as fallback, we won't need to
-            # do this.  try to found the maximum text we can handle
+            # do this. try to found the maximum text we can handle
             label = None
             label_len = len(ntext)
             ld = None
@@ -1932,7 +1936,7 @@ class TextInput(FocusBehavior, Widget):
                 if is_shortcut and key == ord('c'):
                     self.copy()
             elif key == 27:
-                self.focused = False
+                self.focus = False
             return True
 
         if text and not is_interesting_key:
@@ -2013,7 +2017,7 @@ class TextInput(FocusBehavior, Widget):
             self._hide_handles(win)
 
         if key == 27:  # escape
-            self.focused = False
+            self.focus = False
             return True
         elif key == 9:  # tab
             self.insert_text(u'\t')
@@ -2436,26 +2440,6 @@ class TextInput(FocusBehavior, Widget):
     def on_selection_text(self, instance, value):
         if value and self.use_handles:
             self._trigger_show_handles()
-
-    focus = BooleanProperty(False)
-    '''If focus is True, the keyboard will be requested and you can start
-    entering text into the textinput.
-
-    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults
-    to False.
-
-    .. Note::
-            Selection is cancelled when TextInput is focused. If you need to
-            show selection when TextInput is focused, you should delay
-            (use Clock.schedule) the call to the functions for selecting
-            text (select_all, select_text).
-
-    ..versionchanged:: 1.9.0
-        :class:`TextInput` now inherits from
-        :class:`~kivy.uix.behaviors.FocusBehavior` and :attr:`focus` is now
-        an alias for :attr:`focused`. Setting either one will also set the
-        other.
-    '''
 
     def _get_text(self, encode=True):
         lf = self._lines_flags
