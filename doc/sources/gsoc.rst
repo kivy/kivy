@@ -44,7 +44,7 @@ It is assumed that the incoming student meets some basic requirements as highlig
 * Comfortable with event driven programming.
 * Has suitable tools/environment for kivy or the sister project you are going to work on. 
   For example to be able to work on pyobjus you would need access to an iOS device, mac with 
-  xcode and a developer license, to work on pyjnius you would need an android device, and to 
+  xcode and a developer license, to work on pyjnius you would need an Android device, and to 
   work on plyer you would need access to hardware for both platforms.
 
   
@@ -110,7 +110,7 @@ Enhancements to Kivy
 
   Expected Outcome:
     Fant fallback and text reshaping support Kivy and correct compilation recipes
-    the libs used (harfbuzz) for platforms(android and ios) that need it, such as
+    the libs used (harfbuzz) for platforms(Android and iOS) that need it, such as
     Python-For-Android.
 
   - **Mentors**: Akshay Arora, Jacob Kovac
@@ -178,7 +178,7 @@ Enhancements to Toolchain
   - **Mentors**: Jacob Kovac
   - **Requirements:** Access to Linux, Android.
   - **Task level**: Intermediate/Advanced
-  - **Desired Skills**: Understanding of Cross-Compilation for Android, familiarity with PyJNIus
+  - **Desired Skills**: Understanding of cross-compilation for Android, familiarity with PyJNIus
 
 **Kivy Designer**
 
@@ -228,7 +228,7 @@ Applications
   Expected Outcome:
     The MatPlotLib widgets will be included in the Kivy garden and ready to use on all of Kivy's supported OS.
 
-  - **Mentors**:
+  - **Mentors**: Alexander Taylor (inclement)
   - **Requirements:** Access to Linux, Windows, OSX, Android, iOS
   - **Task level**: Easy
   - **Desired Skills**: Familiarity with Kivy widget construction and MatPlotLib. 
