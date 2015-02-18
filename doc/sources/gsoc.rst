@@ -43,8 +43,8 @@ It is assumed that the incoming student meets some basic requirements as highlig
   https://guides.github.com/activities/hello-world/
 * Comfortable with event driven programming.
 * Has suitable tools/environment for kivy or the sister project you are going to work on. 
-  For example to be able to work on pyobjus you would need access to an iOS device, mac with 
-  xcode and a developer license, to work on pyjnius you would need an Android device, and to 
+  For example to be able to work on PyOBJus you would need access to an iOS device, mac with 
+  xcode and a developer license, to work on PyJNIus you would need an Android device, and to 
   work on plyer you would need access to hardware for both platforms.
 
   
@@ -65,7 +65,7 @@ http://kivy.org/docs/installation/installation.html#development-version
 For the rest it's usually sufficient to install the relevant project from git and add
 it to your PYTHONPATH.
 
-eg.. for pyjnius::
+eg.. for PyJNIus::
 
     git clone http://github.com/kivy/pyjnius
     export PYTHONPATH=/path/to/pyjnius:$PYTHONPATH
@@ -156,7 +156,7 @@ Enhancements to Plyer
   - **Mentors**: Ben Rousch
   - **Requirements**: Access to Linux, Windows, OS X, iOS device, Android device.
   - **Task level**: Intermediate/Advanced.
-  - **Desired Skills**: Familiarity with Pyjnius, PyObjus.
+  - **Desired Skills**: Familiarity with Pyjnius, PyOBJus.
 
 
 Enhancements to Toolchain
