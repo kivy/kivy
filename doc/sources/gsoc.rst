@@ -85,7 +85,7 @@ Enhancements to Kivy
 
   References:
 
-  Expected Outcome:
+  Expected outcome:
 
   - **Mentors**: 
   - **Task level**:
@@ -108,7 +108,7 @@ Enhancements to Kivy
     - http://www.freedesktop.org/wiki/Software/HarfBuzz/
     - https://github.com/kivy/kivy/tree/master/kivy/core/text
 
-  Expected Outcome:
+  Expected outcome:
     Fant fallback and text reshaping support Kivy and correct compilation recipes
     the libs used (harfbuzz) for platforms(Android and iOS) that need it, such as
     Python-For-Android.
@@ -148,7 +148,7 @@ Enhancements to Plyer
     - https://github.com/kivy/pyobjus
     - https://github.com/kivy/python-for-android
     - https://github.com/kivy/kivy-ios
-  Expected Outcome:
+  Expected outcome:
     A successful outcome would include moving the Kivy Java code to 
     plyer and implementation of some or all of the new facades to be 
     decided with the student.
@@ -171,7 +171,7 @@ Enhancements to Toolchain
     - https://github.com/kivy/python-for-android
     - https://docs.google.com/document/d/1kNBFtHG55ejAr-Ow5VhHCua-vvpAjtneTRdr7GdskMA/edit?usp=sharing
 
-  Expected Outcome:
+  Expected outcome:
     Python-for-Android capable of compiling apk using SDL2 as backend instead
     of pygame.
 
@@ -205,7 +205,7 @@ Enhancements to Toolchain
     - https://github.com/kivy/kivy-designer
     - http://github.com/kivy/buildozer
     - http://hanga.io
-  Expected Outcome:
+  Expected outcome:
 
   - **Mentors**: Akshay Arora, Ryan Pessa (kived)
   - **Requirements:** Access to Linux, Windows, OSX
@@ -216,19 +216,19 @@ Enhancements to Toolchain
 Applications
 ~~~~~~~~~~~~
 
-**MatPlotLib Integration**
+**Matplotlib Integration**
 
   Description:
-    In order to enhance Kivy's usefulness for scientific disciplines tight MatPlotLib integration is highly desirable. This project would be a very exploratory project, involving both ensuring MatPlotLib is deployable on every platform Kivy supports and developing widgets that interface with the API.
+    In order to enhance Kivy's usefulness for scientific disciplines tight matplotlib integration is highly desirable. This project would be a very exploratory project, involving both ensuring matplotlib is deployable on every platform Kivy supports and developing widgets that interface with the API.
 
   References:
     - http://matplotlib.org/
     - https://github.com/kivy/kivy
 
-  Expected Outcome:
-    The MatPlotLib widgets will be included in the Kivy garden and ready to use on all of Kivy's supported OS.
+  Expected outcome:
+    The matplotlib widgets will be included in the Kivy garden and ready to use on all of Kivy's supported OS.
 
-  - **Mentors**: Alexander Taylor (inclement)
+  - **Mentors**: Alexander Taylor
   - **Requirements:** Access to Linux, Windows, OSX, Android, iOS
   - **Task level**: Easy
   - **Desired Skills**: Familiarity with Kivy widget construction and MatPlotLib. 
