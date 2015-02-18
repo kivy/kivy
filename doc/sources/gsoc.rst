@@ -98,9 +98,9 @@ Enhancements to Kivy
     engine- Harfbuzz. You would need to ensure that we can compile Harfbuzz
     on every platform and properly integrate it as a core text provider.
     
-    The second part of the same project would involve fant fallback support.
-    If a particular character is missing; currently we show a [] box.
-    The solution for this would involve either using a os api's if available
+    The second part of the same project would involve font fallback support.
+    If a particular character/glyph is missing; currently we show a [] box.
+    The solution for this would involve either using a os API if available
     or maintaining a hashtable for the default fonts on each OS which can be
     used for glyph fallback.
 
