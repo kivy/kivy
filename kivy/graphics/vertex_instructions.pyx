@@ -50,7 +50,7 @@ This module includes all the classes for drawing simple vertex objects.
                 self.triangle.points = self.triangle.points
 '''
 
-__all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
+__all__ = ('Triangle', 'Quad', 'Rectangle', 'RoundedRectangle', 'BorderImage', 'Ellipse', 'Line',
            'Point', 'Mesh', 'GraphicException', 'Bezier', 'SmoothLine')
 
 
@@ -1091,3 +1091,261 @@ cdef class Ellipse(Rectangle):
         def __set__(self, value):
             self._angle_end = value
             self.flag_update()
+
+
+cdef class RoundedRectangle(Rectangle):
+    '''A 2D rounded rectangle.
+
+    .. versionadded:: 1.9.0
+
+    :Parameters:
+        `segments`: int, defaults to 10
+            Define how many segments are needed for drawing the round corner.
+            The drawing will be smoother if you have many segments.
+        `radius`: list, defaults to [(10.0, 10.0), (10.0, 10.0), (10.0, 10.0), (10.0, 10.0)]
+            Specifies the radiuses of the round corners clockwise:
+            top-left, top-right, bottom-right, bottom-left.
+            Elements of the list can be numbers or tuples of two numbers to specify different x,y dimensions.
+            One value will define all corner dimensions to that value.
+            Four values will define dimensions for each corner separately.
+            Higher number of values will be truncated to four.
+            The first value will be used for all corners, if there is fewer than four values.
+    '''
+
+    cdef int _segments  # number of segments for each corner
+    cdef list _radius
+
+    def __init__(self, **kwargs):
+        Rectangle.__init__(self, **kwargs)
+        self.batch.set_mode('triangle_fan')
+
+        # number of segments for each corner
+        self._segments = kwargs.get('segments', 10)  # allow 0 segments
+        radius = kwargs.get('radius') or [10.0]
+        self._radius = self._check_radius(radius)
+
+    cdef object _check_radius(self, object radius):
+        """
+        Check radius argument, return list of four tuples
+        (xradius, yradius) for each corner.
+        """
+        cdef:
+            list result = []
+            object value
+
+        for value in radius:
+            if isinstance(value, tuple):
+                # tuple: (a,) -> (a,a); (a,b)
+                # extend/trim to exactly two coordinates
+                if len(value) < 2:
+                    value = value[:1] * 2
+                result.append(value[:2])
+
+            elif isinstance(value, (int, float)):
+                # int/float: a -> (a,a)
+                result.append((value, value))
+
+            # some strange type came - skip it. next value will be used or radiuses will be set to first
+            else:
+                Logger.trace("GRoundedRectangle: '{}' object can\'t be used to specify radius. "
+                             "Skipping...".format(radius.__class__.__name__))
+
+        # set all radiuses to first if there aren't four of them
+        if len(result) < 4:
+            return result[:1] * 4
+        else:
+            return result[:4]
+
+        return result
+
+    cdef void build(self):
+        cdef:
+            float *tc = self._tex_coords
+            vertex_t *vertices = NULL
+            unsigned short *indices = NULL
+
+            int count, corner, corner_count, dw, dh, index
+            list xradius, yradius
+            float rx, ry, half_w, half_h, angle
+            float tx, ty, tw, th, px, py, x, y
+
+        # zero size of the figure
+        if self.w == 0 or self.h == 0:
+            return
+
+        # number of non-sharp corners to be drawn (both radiuses are non-zero)
+        corner_count = len([True for rx, ry in self._radius if rx * ry])
+
+        # total number of vertices
+        # `1` for sharp corner, `segments+1` for round corner, '1' for center
+        # same as:  (self._segments + 1) * corner_count + (4 - corner_count) + 1
+        count = corner_count * (self._segments) + 5
+
+        vertices = <vertex_t *>malloc((count) * sizeof(vertex_t))
+        if vertices == NULL:
+            raise MemoryError('vertices')
+
+        # +1 because the last index must be the index of the first corner to close the fan
+        indices = <unsigned short *>malloc((count + 1) * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        # half sizes
+        half_w = self.w / 2
+        half_h = self.h / 2
+
+        # split radiuses by coordinate and make them <= half_size
+        xradius = [min(r[0], half_w) for r in self._radius]
+        yradius = [min(r[1], half_h) for r in self._radius]
+
+        # texture coordinates
+        tx = tc[0]
+        ty = tc[1]
+        tw = tc[4] - tx
+        th = tc[5] - ty
+
+        # add start vertex in the middle of the figure
+        vertices[0].x = self.x + half_w
+        vertices[0].y = self.y + half_h
+        vertices[0].s0 = tx + tw / 2
+        vertices[0].t0 = ty + th / 2
+        indices[0] = 0
+
+        index = 1  # vertex index from 1 to count
+        for corner in xrange(4):
+            # start angle for the corner. end is 90 degress lesser (clockwise)
+            angle = 180 - 90 * corner
+
+            # coefficients to enable/disable multiplication by width/height
+            dw, dh = [(0,1), (1,1), (1,0), (0,0)][corner]
+
+            # ellipse dimensions
+            rx, ry = xradius[corner], yradius[corner]
+
+            # ellipse center coordinates
+            px, py = [
+                # top left
+                (self.x + rx,
+                 self.y + self.h - ry),
+
+                # top right
+                (self.x + self.w - rx,
+                 self.y + self.h - ry),
+
+                # bottom right
+                (self.x + self.w - rx,
+                 self.y + ry),
+
+                # bottom left
+                (self.x + rx,
+                 self.y + ry)
+            ][corner]
+
+            # if at least one radius is zero or no segments
+            if not(rx and ry and self._segments):
+                # sharp corner
+                vertices[index].x = self.x + self.w * dw
+                vertices[index].y = self.y + self.h * dh
+                vertices[index].s0 = tx + tw * dw
+                vertices[index].t0 = ty + th * dh
+            else:
+                # round corner
+                points = self.draw_arc(px, py, rx, ry, angle, angle - 90)
+                for i, point in enumerate(points, index):
+                    x, y = point
+                    vertices[i].x = x
+                    vertices[i].y = y
+                    vertices[i].s0 = (x - self.x) / self.w
+                    vertices[i].t0 = 1 - (y - self.y) / self.h  # flip vertically
+                    indices[i] = i
+                index += self._segments
+
+                # Add final vertex that closes the arc, explained below
+                x = px * (dw != dh) + self.x * (dw == dh) + self.w * (dw * dh)
+                y = py * (dw == dh) + self.y * (dw != dh) + self.h * (dh > dw)
+                vertices[index].x = x
+                vertices[index].y = y
+                vertices[index].s0 = (x - self.x) / self.w
+                vertices[index].t0 = 1 - (y - self.y) / self.h  # flip vertically
+
+                '''
+                We have defined these coefficients for arcs:
+                   tl tr br bl
+                dw: 0  1  1  0;
+                dh: 1  1  0  0;
+
+                Let's not define multiple arrays of coefficients, but
+                use `dw` and `dh` to calculate coordinates for closing vertices
+
+                Formula looks like this:
+
+                x = px * A + self.x * B + self.w * C
+                y = py * D + self.y * E + self.h * F
+
+                , where A - F are boolean values.
+
+                For correct coordinates, coefficients should have these values:
+
+                  tl tr br bl
+                A: 1  0  1  0; when `dw` != `dh`
+                B: 0  1  0  1; when `dw` == `dh`
+                C: 0  1  0  0; when `dw` and `dh` are both `1`
+
+                  tl tr br bl
+                D: 0  1  0  1; same as B
+                E: 1  0  1  0; same as A
+                F: 1  0  0  0; when `dh` > `dw`
+
+                NOTE: Closing vertex will duplicate next opening vertex,
+                      when corner radius is equal to half_size.
+                      (e.g: a circle will have 4 duplicates)
+                      Without it, however, figure looks ugly with small
+                      segment count.
+                '''
+
+            indices[index] = index
+            index += 1
+
+        # duplicate first corner vertex to close the fan
+        indices[count] = indices[1]
+        # count+1 used to specify how many indices are used
+        self.batch.set_data(vertices, count, indices, count + 1)
+        free(vertices)
+        free(indices)
+
+    cdef object draw_arc(self, float cx, float cy, float rx, float ry, float angle_start, float angle_end):
+        cdef:
+            float fx, fy, x, y
+            float tangetial_factor, radial_factor, theta
+            list points
+
+        # convert to radians
+        angle_start *= 0.017453292519943295
+        angle_end *= 0.017453292519943295
+
+        # number of vertices for arc, including start & end
+        theta = (angle_end - angle_start) / self._segments
+        tangetial_factor = tan(theta)
+        radial_factor = cos(theta)
+
+        # unit circle, scale later
+        x = cos(angle_start)
+        y = sin(angle_start)
+
+        # array of length `self._segments`
+        points = []
+
+        for i in xrange(self._segments):
+            real_x = cx + x * rx
+            real_y = cy + y * ry
+            points.append((real_x, real_y))
+
+            fx = -y
+            fy = x
+            x += fx * tangetial_factor
+            y += fy * tangetial_factor
+            x *= radial_factor
+            y *= radial_factor
+
+        return points
