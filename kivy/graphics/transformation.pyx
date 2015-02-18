@@ -60,8 +60,20 @@ cdef class Matrix:
         self.identity()
 
     def get(Matrix self):
+        '''Retrieve the value of the current as a flat list.
+
+        .. versionadded:: 1.9.0
+        '''
+
+        return (
+            self.mat[0], self.mat[1], self.mat[2], self.mat[3],
+            self.mat[4], self.mat[5], self.mat[6], self.mat[7],
+            self.mat[8], self.mat[9], self.mat[10], self.mat[11],
+            self.mat[12], self.mat[13], self.mat[14], self.mat[15])
+
+    def tolist(Matrix self):
         '''Retrieve the value of the current matrix in numpy format.
-        for example m.get() will return 
+        for example m.tolist() will return 
 
                 [[1.000000, 0.000000, 0.000000, 0.000000],
                 [0.000000, 1.000000, 0.000000, 0.000000],
@@ -73,6 +85,7 @@ cdef class Matrix:
 
         .. versionadded:: 1.9.0
         '''
+
         return (
             (self.mat[0], self.mat[1], self.mat[2], self.mat[3]),
             (self.mat[4], self.mat[5], self.mat[6], self.mat[7]),
@@ -86,24 +99,41 @@ cdef class Matrix:
         '''
         return self.mat[index]
 
-    def set(Matrix self, mat):
-        '''Insert custom values into the matrix in numpy format
-        for example 
-        
-        m.set([
+    def set(Matrix self, flat=None, array=None):
+        '''Insert custom values into the matrix in a flat list format
+        or 4x4 array format like below
+
+        m.set(array=[
             [1.0, 0.0, 0.0, 0.0],
             [0.0, 1.0, 0.0, 0.0],
             [0.0, 0.0, 1.0, 0.0],
             [0.0, 0.0, 0.0, 1.0]])
 
-        will load in the matrix above into the matrix class
-
         .. versionadded:: 1.9.0
         '''
-        self.mat[0], self.mat[1], self.mat[2], self.mat[3] = mat[0]
-        self.mat[4], self.mat[5], self.mat[6], self.mat[7] = mat[1]
-        self.mat[8], self.mat[9], self.mat[10], self.mat[11] = mat[2]
-        self.mat[12], self.mat[13], self.mat[14], self.mat[15] = mat[3]
+        if flat:
+            self.mat[0] = flat[0]
+            self.mat[1] = flat[1]
+            self.mat[2] = flat[2]
+            self.mat[3] = flat[3]
+            self.mat[4] = flat[4]
+            self.mat[5] = flat[5]
+            self.mat[6] = flat[6]
+            self.mat[7] = flat[7]
+            self.mat[8] = flat[8]
+            self.mat[9] = flat[9]
+            self.mat[10] = flat[10]
+            self.mat[11] = flat[11]
+            self.mat[12] = flat[12]
+            self.mat[13] = flat[13]
+            self.mat[14] = flat[14]
+            self.mat[15] = flat[15]
+            return
+
+        self.mat[0], self.mat[1], self.mat[2], self.mat[3] = array[0]
+        self.mat[4], self.mat[5], self.mat[6], self.mat[7] = array[1]
+        self.mat[8], self.mat[9], self.mat[10], self.mat[11] = array[2]
+        self.mat[12], self.mat[13], self.mat[14], self.mat[15] = array[3]
 
     def __setitem__(Matrix self, int index, double value):
         '''given an index and a value update the value at that location
@@ -536,42 +566,6 @@ cdef class Matrix:
             r[ 7] = 0
             r[11] = 0
             r[15] = 1
-        return mr
-
-    cpdef Matrix dot(Matrix mb, Matrix ma):
-        '''Dot product of two Matrices ie the given matrix with self (from the left)
-        this can be used for full multiplication of 2 4x4 matrices
-        the result (not inplace)::
-
-            m.dot(n) -> n * m
-            
-        :Parameters:
-            `ma`: Matrix
-                The matrix to multiply by
-        '''
-        cdef Matrix mr = Matrix()
-        cdef double *a = <double *>ma.mat
-        cdef double *b = <double *>mb.mat
-        cdef double *r = <double *>mr.mat
-        with nogil:
-            
-            r[ 0] = a[ 0] * b[0] + a[ 1] * b[4] + a[ 2] * b[ 8] + a[3]  * b[12]
-            r[ 4] = a[ 4] * b[0] + a[ 5] * b[4] + a[ 6] * b[ 8] + a[7]  * b[12]
-            r[ 8] = a[ 8] * b[0] + a[ 9] * b[4] + a[10] * b[ 8] + a[11] * b[12]
-            r[12] = a[12] * b[0] + a[13] * b[4] + a[14] * b[ 8] + a[15] * b[12]
-            r[ 1] = a[ 0] * b[1] + a[ 1] * b[5] + a[ 2] * b[ 9] + a[3]  * b[13]
-            r[ 5] = a[ 4] * b[1] + a[ 5] * b[5] + a[ 6] * b[ 9] + a[7]  * b[13]
-            r[ 9] = a[ 8] * b[1] + a[ 9] * b[5] + a[10] * b[ 9] + a[11] * b[13]
-            r[13] = a[12] * b[1] + a[13] * b[5] + a[14] * b[ 9] + a[15] * b[13]
-            r[ 2] = a[ 0] * b[2] + a[ 1] * b[6] + a[ 2] * b[10] + a[3]  * b[14]
-            r[ 6] = a[ 4] * b[2] + a[ 5] * b[6] + a[ 6] * b[10] + a[7]  * b[14]
-            r[10] = a[ 8] * b[2] + a[ 9] * b[6] + a[10] * b[10] + a[11] * b[14]
-            r[14] = a[12] * b[2] + a[13] * b[6] + a[14] * b[10] + a[15] * b[14]
-            r[ 3] = a[ 0] * b[3] + a[ 1] * b[7] + a[ 2] * b[10] + a[3]  * b[14] 
-            r[ 7] = a[ 4] * b[3] + a[ 5] * b[7] + a[ 6] * b[10] + a[7]  * b[14] 
-            r[11] = a[ 8] * b[3] + a[ 9] * b[7] + a[10] * b[10] + a[11] * b[14] 
-            r[15] = a[12] * b[3] + a[13] * b[7] + a[14] * b[10] + a[15] * b[14]
-
         return mr
 
     cpdef project(Matrix self, double objx, double objy, double objz, Matrix model, Matrix proj,
