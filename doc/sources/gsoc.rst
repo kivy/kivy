@@ -29,7 +29,7 @@ it matters, and the other languages are typically involved in accesses OS or pro
 level APIs.
 
 We are hoping to participate in Google Summer of Code 2015. This page showcases some
-ideas for gsoc projects and corresponding guidelines for students contributing to the
+ideas for GSoC projects and corresponding guidelines for students contributing to the
 Kivy Framework.
 
 Requirements
@@ -185,12 +185,12 @@ Enhancements to Toolchain
   Description:
     Kivy Designer is a GUI tool for creating Kivy GUI layouts written in Kivy. 
     You can compose, customize, and test widgets using the tool. This project has
-    been the subject of 2 previous GSOC and is experimental, alpha level software
+    been the subject of 2 previous GSoC and is experimental, alpha level software
     at the moment. However, it is a very popular request for more updates among our
     users; if you are interested in GUI tool development this could be a great fit
     for you!
 
-  The Student will for this gsoc:
+  The Student will for this GSoC:
   
   - Integrate buildozer, which is our build tool for deploying to different target os
     with in the kivy-designer.
