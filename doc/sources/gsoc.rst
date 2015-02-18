@@ -228,7 +228,7 @@ Applications
   Expected outcome:
     The matplotlib widgets will be included in the Kivy garden and ready to use on all of Kivy's supported OS.
 
-  - **Mentors**: Alexander Taylor, Matthew Einhorn
+  - **Mentors**: Alexander Taylor, Matthew Einhorn, Jacob Kovac
   - **Requirements:** Access to Linux, Windows, OS X, Android, iOS
   - **Task level**: Easy
   - **Desired Skills**: Familiarity with Kivy widget construction and MatPlotLib. 
