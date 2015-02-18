@@ -59,16 +59,59 @@ cdef class Matrix:
     def __init__(self):
         self.identity()
 
-    def get(self):
-        '''Retrieve the value of the current matrix.
+    def get(Matrix self):
+        '''Retrieve the value of the current matrix in numpy format.
+        for example m.get() will return 
+
+                [[1.000000, 0.000000, 0.000000, 0.000000],
+                [0.000000, 1.000000, 0.000000, 0.000000],
+                [0.000000, 0.000000, 1.000000, 0.000000],
+                [0.000000, 0.000000, 0.000000, 1.000000]]
+
+        you can use this format to plug the result straight into numpy 
+        in this way numpy.array(m.get()) 
 
         .. versionadded:: 1.9.0
         '''
         return (
-            self.mat[0], self.mat[1], self.mat[2], self.mat[3],
-            self.mat[4], self.mat[5], self.mat[6], self.mat[7],
-            self.mat[8], self.mat[9], self.mat[10], self.mat[11],
-            self.mat[12], self.mat[13], self.mat[14], self.mat[15])
+            (self.mat[0], self.mat[1], self.mat[2], self.mat[3]),
+            (self.mat[4], self.mat[5], self.mat[6], self.mat[7]),
+            (self.mat[8], self.mat[9], self.mat[10], self.mat[11]),
+            (self.mat[12], self.mat[13], self.mat[14], self.mat[15]))
+
+    def __getitem__(Matrix self, int index):
+        '''Retrieve the value at the specified index or slice
+
+        .. versionadded:: 1.9.0
+        '''
+        return self.mat[index]
+
+    def set(Matrix self, mat):
+        '''Insert custom values into the matrix in numpy format
+        for example 
+        
+        m.set([
+            [1.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0]])
+
+        will load in the matrix above into the matrix class
+
+        .. versionadded:: 1.9.0
+        '''
+        self.mat[0], self.mat[1], self.mat[2], self.mat[3] = mat[0]
+        self.mat[4], self.mat[5], self.mat[6], self.mat[7] = mat[1]
+        self.mat[8], self.mat[9], self.mat[10], self.mat[11] = mat[2]
+        self.mat[12], self.mat[13], self.mat[14], self.mat[15] = mat[3]
+
+    def __setitem__(Matrix self, int index, double value):
+        '''given an index and a value update the value at that location
+
+        .. versionadded:: 1.9.0
+        '''
+        self.mat[index] = value
+
 
     cpdef Matrix rotate(Matrix self, double angle, double x, double y, double z):
         '''Rotate the matrix through the angle around the axis (x, y, z)
