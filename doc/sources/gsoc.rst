@@ -219,7 +219,7 @@ Applications
 **Matplotlib Integration**
 
   Description:
-    In order to enhance Kivy's usefulness for scientific disciplines tight matplotlib integration is highly desirable. This project would be a very exploratory project, involving both ensuring matplotlib is deployable on every platform Kivy supports and developing widgets that interface with the API.
+    More advanced graphing and plotting tools are a frequently requested addition to Kivy, and it would be ideal to provide them via integration with matplotlib's extensive feature set. The primary goal of the project would be to write a Kivy backend to matplotlib that displays plots using Kivy's own graphics API, but it would also involve ensuring that matplotlib is deployable on every platform Kivy supports.
 
   References:
     - http://matplotlib.org/
