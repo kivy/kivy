@@ -81,9 +81,9 @@ eg.. for PyJNIus::
 
 Project Ideas
 --------------
-
-The mentors list is only of potential mentors for a particular project and not 
-final.
+Here are some prospective ideas sourced from the Kivy development team, if 
+none of these projects interest you come talk to us in #kivy-dev about a 
+project idea of your own.
 
 Beginner Projects
 ~~~~~~~~~~~~~~~~~
