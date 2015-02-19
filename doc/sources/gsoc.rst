@@ -162,6 +162,47 @@ Enhancements to Plyer
 Enhancements to Toolchain
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+**Python-For-Android Revamp:**
+  
+  Description:
+    Currently Python-For-Android is not very flexible and have a very specific 
+    bootstrap crafted for use with Kivy's old SDL1.2/1.3 backend used through 
+    Pygame and functions only with Python2. Your job would be to make the 
+    necessary changes to expose swappable bootstraps, python interpreters,
+    and the appropriate compilation options for ARM and x86 Android. This
+    project will involve a significant amount of refactoring the current tool,
+    as much hardcoded functionality needs to be made optional. A student 
+    looking to take on this task should be familiar with compiling Python,
+    the compilation process for Cython modules, and the Android SDK and NDK.
+
+  The Student will:
+
+  - Introduce bootstrap argument for the distribute script
+  - Introduce a new SDL2 bootstrap
+  - Refactor old bootstrap to use new approach
+  - Refactor pyjnius to find the appropriate Activity from the provided 
+    bootstrap
+  - Introduce option for compilation with Python3 instead of Python2, this will
+    involve properly configuring the blacklist of ommitted modules, the 
+    collection of libs into one large one to avoid shared library limit on 
+    older devices, and performing any Python3 code conversions necessary.
+  - Ensure all recipes work with Python3 version of their modules
+  - Introduce option for compiling for different architectures (ARM and x86)
+
+  References:
+    - https://github.com/kivy/python-for-android
+
+  Expected outcome:
+    Python-for-Android with more options for compilation including Python2 
+    and Python3, legacy Pygame bootstrap, SDL2 bootstrap, and ARM and x86 
+    compilation options.
+
+  - **Mentors**: Mathieu Virbel, Jacob Kovac
+  - **Requirements:** Access to Linux, Android.
+  - **Task level**: Hard
+  - **Desired Skills**: Understanding of cross-compilation for Android, 
+    familiarity with PyJNIus
+
 **Kivy Designer**
 
   Description:
@@ -172,7 +213,7 @@ Enhancements to Toolchain
     updates among our users; if you are interested in GUI tool development 
     this could be a great fit for you!
 
-  The Student will for this GSoC:
+  The Student will:
   
   - Integrate Buildozer, which is our build tool for deploying to different 
     target OS, within the kivy-designer.
