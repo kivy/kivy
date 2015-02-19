@@ -121,9 +121,9 @@ with Python and require little knowedge of platform specifics.
     - http://hanga.io
 
   Expected outcome:
-    It is expected that the student be able to complete all the features 
-    mentioned above; except stability fixes which is dependent on however much 
-    time is left after completing the rest of the features. 
+    It is expected that the student completes all the features mentioned above,  
+    except stability fixes which is dependent on however much time is left 
+    after completing the rest of the features. 
 
   - **Mentors**: Akshay Arora, Ryan Pessa
   - **Requirements:** Access to Linux, Windows, OS X
@@ -312,6 +312,12 @@ Here's a checklist:
 * Make sure to read through the website and at least skim the documentation.
 * Look at the source code.
 * Read our contribution guidelines.
+* Make a contribution! Kivy would like to see how you engage with the 
+  development process. Take a look at the issue tracker for a Kivy project 
+  that interest you and submit a Pull Request. It can be a simple bug or a 
+  documentation change. We are looking to get a feel for how you work, not 
+  evaluating your capabilities. Don't worry about trying to pick something 
+  to impress us.
 * Pick an idea that you think is interesting from the ideas list or come up 
   with your own idea.
 * Do some research **yourself**. GSoC is about give and take, not just one 
