@@ -231,11 +231,11 @@ working with communicating between Python and an API in a different language.
 
 Hard Projects
 ~~~~~~~~~~~~~
-These projects may involve very indepth knowledge of Kivy's existing internals, 
-the hairy details of cross-platform compilation, or other fairly advanced 
-topics. If you are comfortable with the internals of Python, working with C 
-code, and using Cython to build your own C extensions these projects may 
-appeal to you. 
+These projects may involve very in-depth knowledge of Kivy's existing 
+internals, the hairy details of cross-platform compilation, or other fairly 
+advanced topics. If you are comfortable with the internals of Python, working 
+with C code, and using Cython to build your own C extensions these projects 
+may appeal to you. 
 
 **Python-For-Android Revamp:**
   
