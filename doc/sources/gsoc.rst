@@ -1,6 +1,5 @@
 Google Summer of Code - 2015
 ============================
-This document is still a work in progress.
 
 Introduction
 ------------
