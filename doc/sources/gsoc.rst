@@ -85,40 +85,81 @@ Project Ideas
 The mentors list is only of potential mentors for a particular project and not 
 final.
 
-Enhancements to Kivy
-~~~~~~~~~~~~~~~~~~~~
+Beginner Projects
+~~~~~~~~~~~~~~~~~
+These projects should be suitable for anyone with a college level familiarity
+with Python and require little knowedge of platform specifics.
 
-**Font Reshaping and Font Fallback Support**
+**Kivy Designer**
 
   Description:
-    Currently Kivy does not support reshaping for alphabets such as Arabic, 
-    Persian, Thai, or Devanagari. The solution is to integrate a text shaping
-    engine- Harfbuzz. You would need to ensure that we can compile Harfbuzz
-    on every platform and properly integrate it as a core text provider.
-    
-    The second part of the same project would involve font fallback support.
-    If a particular character/glyph is missing; currently we show a [] box.
-    The solution for this would involve either using an OS API if available
-    or maintaining a hashtable for the default fonts on each OS which can be
-    used for glyph fallback.
+    Kivy Designer is a GUI tool for creating Kivy GUI layouts written in Kivy. 
+    You can compose, customize, and test widgets using the tool. This project 
+    has been the subject of 2 previous GSoC and is experimental, alpha level 
+    software at the moment. However, it is a very popular request for more 
+    updates among our users; if you are interested in GUI tool development 
+    this could be a great fit for you!
+
+  The Student will:
+  
+  - Integrate Buildozer, which is our build tool for deploying to different 
+    target OS, within the kivy-designer.
+  - Interface for using hanga.io (Remote Buildozer server) as a deployment 
+    target.
+  - Better File management for project files. Browser Pane.
+  - Interface to test using different screen modules, for emulating interface 
+    on different screen sizes.
+  - Interface to Select different targets, simulator or actual device if 
+    connected to deploy to.
+  - Add mobile specific UI fixes(mostly making sure UI looks and feels the 
+    same on tablets as on desktops)
+  - Work on stability fixes.
 
   References:
-    - http://www.freedesktop.org/wiki/Software/HarfBuzz/
-    - https://github.com/kivy/kivy/tree/master/kivy/core/text
+    - https://github.com/kivy/kivy-designer
+    - http://github.com/kivy/buildozer
+    - http://hanga.io
 
   Expected outcome:
-    Font fallback and text reshaping support Kivy and correct compilation 
-    recipes for the libs used (harfbuzz) for platforms(Android and iOS) that 
-    need it, such as Python-For-Android.
+    It is expected that the student be able to complete all the features 
+    mentioned above; except stability fixes which is dependent on however much 
+    time is left after completing the rest of the features. 
 
-  - **Mentors**: Akshay Arora, Jacob Kovac
+  - **Mentors**: Akshay Arora, Ryan Pessa
+  - **Requirements:** Access to Linux, Windows, OS X
+  - **Task level**: Easy
+  - **Desired Skills**: Experience with other GUI creation tools. Familiar 
+    with Kivy approach to EventLoop and UIX Widgets.
+
+**Matplotlib Integration**
+
+  Description:
+    More advanced graphing and plotting tools are a frequently requested 
+    addition to Kivy, and it would be ideal to provide them via integration 
+    with matplotlib's extensive feature set. The primary goal of the project 
+    would be to write a Kivy backend to matplotlib that displays plots using 
+    Kivy's own graphics API, but it would also involve ensuring that 
+    matplotlib is deployable on every platform Kivy supports.
+
+  References:
+    - http://matplotlib.org/
+    - https://github.com/kivy/kivy
+
+  Expected outcome:
+    The matplotlib widgets will be included in the Kivy garden and ready to 
+    use on all of Kivy's supported OS.
+
+  - **Mentors**: Alexander Taylor, Matthew Einhorn, Jacob Kovac
   - **Requirements:** Access to Linux, Windows, OS X, Android, iOS
-  - **Task level**: Intermediate
-  - **Desired Skills**: Familiarity with text rendering, HarfBuzz, and Kivy's 
-    provider abstraction.
+  - **Task level**: Easy
+  - **Desired Skills**: Familiarity with Kivy widget construction and 
+    matplotlib. 
 
-Enhancements to Plyer
+Intermediate Projects
 ~~~~~~~~~~~~~~~~~~~~~
+These projects will involve more than just pure Python coding. You may find 
+yourself either dealing with the details of cross platform compilation or 
+working with communicating between Python and an API in a different language.
 
 **Plyer:**
 
@@ -155,12 +196,46 @@ Enhancements to Plyer
   - **Mentors**: Ben Rousch, Sebastian Popute
   - **Requirements**: Access to Linux, Windows, OS X, iOS device,  
     Android device.
-  - **Task level**: Intermediate/Advanced.
+  - **Task level**: Intermediate
   - **Desired Skills**: Familiarity with Pyjnius, PyOBJus.
 
+**Font Reshaping and Font Fallback Support**
 
-Enhancements to Toolchain
-~~~~~~~~~~~~~~~~~~~~~~~~~
+  Description:
+    Currently Kivy does not support reshaping for alphabets such as Arabic, 
+    Persian, Thai, or Devanagari. The solution is to integrate a text shaping
+    engine- Harfbuzz. You would need to ensure that we can compile Harfbuzz
+    on every platform and properly integrate it as a core text provider.
+    
+    The second part of the same project would involve font fallback support.
+    If a particular character/glyph is missing; currently we show a [] box.
+    The solution for this would involve either using an OS API if available
+    or maintaining a hashtable for the default fonts on each OS which can be
+    used for glyph fallback.
+
+  References:
+    - http://www.freedesktop.org/wiki/Software/HarfBuzz/
+    - https://github.com/kivy/kivy/tree/master/kivy/core/text
+
+  Expected outcome:
+    Font fallback and text reshaping support Kivy and correct compilation 
+    recipes for the libs used (harfbuzz) for platforms(Android and iOS) that 
+    need it, such as Python-For-Android.
+
+  - **Mentors**: Akshay Arora, Jacob Kovac
+  - **Requirements:** Access to Linux, Windows, OS X, Android, iOS
+  - **Task level**: Intermediate
+  - **Desired Skills**: Familiarity with text rendering, HarfBuzz, and Kivy's 
+    provider abstraction.
+
+
+Hard Projects
+~~~~~~~~~~~~~
+These projects may involve very indepth knowledge of Kivy's existing internals, 
+the hairy details of cross-platform compilation, or other fairly advanced 
+topics. If you are comfortable with the internals of Python, working with C 
+code, and using Cython to build your own C extensions these projects may 
+appeal to you. 
 
 **Python-For-Android Revamp:**
   
@@ -203,70 +278,6 @@ Enhancements to Toolchain
   - **Desired Skills**: Understanding of cross-compilation for Android, 
     familiarity with PyJNIus
 
-**Kivy Designer**
-
-  Description:
-    Kivy Designer is a GUI tool for creating Kivy GUI layouts written in Kivy. 
-    You can compose, customize, and test widgets using the tool. This project 
-    has been the subject of 2 previous GSoC and is experimental, alpha level 
-    software at the moment. However, it is a very popular request for more 
-    updates among our users; if you are interested in GUI tool development 
-    this could be a great fit for you!
-
-  The Student will:
-  
-  - Integrate Buildozer, which is our build tool for deploying to different 
-    target OS, within the kivy-designer.
-  - Interface for using hanga.io (Remote Buildozer server) as a deployment 
-    target.
-  - Better File management for project files. Browser Pane.
-  - Interface to test using different screen modules, for emulating interface 
-    on different screen sizes.
-  - Interface to Select different targets, simulator or actual device if 
-    connected to deploy to.
-  - Add mobile specific UI fixes(mostly making sure UI looks and feels the 
-    same on tablets as on desktops)
-  - Work on stability fixes.
-
-  References:
-    - https://github.com/kivy/kivy-designer
-    - http://github.com/kivy/buildozer
-    - http://hanga.io
-  Expected outcome:
-
-  - **Mentors**: Akshay Arora, Ryan Pessa
-  - **Requirements:** Access to Linux, Windows, OS X
-  - **Task level**: Easy
-  - **Desired Skills**: Experience with other GUI creation tools. Familiar 
-    with Kivy approach to EventLoop and UIX Widgets.
-
-
-Applications
-~~~~~~~~~~~~
-
-**Matplotlib Integration**
-
-  Description:
-    More advanced graphing and plotting tools are a frequently requested 
-    addition to Kivy, and it would be ideal to provide them via integration 
-    with matplotlib's extensive feature set. The primary goal of the project 
-    would be to write a Kivy backend to matplotlib that displays plots using 
-    Kivy's own graphics API, but it would also involve ensuring that 
-    matplotlib is deployable on every platform Kivy supports.
-
-  References:
-    - http://matplotlib.org/
-    - https://github.com/kivy/kivy
-
-  Expected outcome:
-    The matplotlib widgets will be included in the Kivy garden and ready to 
-    use on all of Kivy's supported OS.
-
-  - **Mentors**: Alexander Taylor, Matthew Einhorn, Jacob Kovac
-  - **Requirements:** Access to Linux, Windows, OS X, Android, iOS
-  - **Task level**: Easy
-  - **Desired Skills**: Familiarity with Kivy widget construction and 
-    matplotlib. 
 
 How to Contact devs
 -------------------
