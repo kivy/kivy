@@ -106,6 +106,8 @@ Enhancements to Kivy
     Add full support for major embedded platforms like Beagle Board and Raspberry Pi.
     Kivy already has partial support for RPi. It would be
     great to have support for other major embedded platforms.
+
+    Currently there is a Kivy developer's bootable OS for the RaspberryPI at http://kivypie.mitako.eu/
   
   This would involve:
     - Native Keyboard Provider.
