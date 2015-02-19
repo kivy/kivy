@@ -3,9 +3,24 @@
 Installation on Raspberry Pi
 ============================
 
-.. note::
+You can install Kivy manually, or you can download and boot KivyPie on the RaspberryPI. Both options are described below.
 
-    The current Kivy port works partially: keyboard is not currently working.
+KivyPie distribution
+--------------------
+
+KivyPie is a free Raspbian based distribution that comes with Kivy installed and ready to run.
+It is the result of applying the manual installation steps described below, with a few more extra tools.
+
+There are no X libraries or X Server installed, that means it is compact and lightweight.
+You can download the image from http://kivypie.mitako.eu and boot it on the RaspberryPI.
+
+It supports popular keyboards, mice, and it plays well with the PiTouch screen.
+If you are experiencing problems with other devices you should tweak the file ~/.kivy/config.ini,
+the options available are documented here: http://kivy.org/docs/api-kivy.config.html#module-kivy.config
+
+For more details visit the FAQ page: http://kivypie.mitako.eu/kivy-faq.html
+
+KivyPie also comes with a screenshot tool that allows for taking still pictures from your games & designs.
 
 
 Manual installation
@@ -75,4 +90,5 @@ adapt the GPIO pin in the code.
 A video to see what we were doing with it:
 http://www.youtube.com/watch?v=NVM09gaX6pQ
 
-
+A handful of examples are also available on the KivyPie distribution to get you started:
+http://kivypie.mitako.eu/kivy-gallery.html
