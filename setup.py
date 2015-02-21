@@ -17,7 +17,7 @@ from collections import OrderedDict
 from time import sleep
 
 
-MIN_CYTHON_STRING = '0.20.0'
+MIN_CYTHON_STRING = '0.20'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
 MAX_CYTHON_STRING = '0.21.2'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
