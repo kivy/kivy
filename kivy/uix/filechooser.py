@@ -263,7 +263,6 @@ class FileChooserController(FloatLayout):
             root is refreshed.
         `on_subentry_to_entry`: entry, parent
             Fired when a sub-entry is added to an existing entry.
-        `on_remove_subentry`: entry, parent
             Fired when entries are removed from an entry, usually when
             a node is closed.
         `on_submit`: selection, touch
@@ -576,6 +575,7 @@ class FileChooserController(FloatLayout):
             # parent directory
             if entry.path == "../":
                 self.path = abspath(join(self.path, pardir))
+                self.selection = []
             else:
                 self.path = join(self.path, entry.path)
                 self.selection = []
