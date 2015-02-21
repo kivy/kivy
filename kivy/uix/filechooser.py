@@ -50,7 +50,7 @@ from kivy.properties import (
 from os import listdir
 from os.path import (
     basename, join, sep, normpath, expanduser, altsep,
-    splitdrive, realpath, getsize, isdir)
+    splitdrive, realpath, getsize, isdir, abspath, pardir)
 from fnmatch import fnmatch
 import collections
 
@@ -572,8 +572,13 @@ class FileChooserController(FloatLayout):
         except OSError:
             entry.locked = True
         else:
-            self.path = join(self.path, entry.path)
-            self.selection = []
+            # If entry.path is to jump to previous directory, update path with
+            # parent directory
+            if entry.path == "../":
+                self.path = abspath(join(self.path, pardir))
+            else:
+                self.path = join(self.path, entry.path)
+                self.selection = []
 
     def _apply_filters(self, files):
         if not self.filters:
