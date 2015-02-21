@@ -2,6 +2,7 @@
 # Kivy - Crossplatform NUI toolkit
 # http://kivy.org/
 #
+from __future__ import print_function
 
 import sys
 
@@ -13,12 +14,16 @@ from distutils.core import setup
 from distutils.extension import Extension
 from distutils.version import LooseVersion
 from collections import OrderedDict
+from time import sleep
 
 
 MIN_CYTHON_STRING = '0.20.0'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
 MAX_CYTHON_STRING = '0.21.1'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
+CYTHON_UNSUPPORTED = (
+    LooseVersion('0.22'),
+)
 
 if sys.version > '3':
     PY3 = True
@@ -104,6 +109,53 @@ for key in list(c_options.keys()):
 # -----------------------------------------------------------------------------
 # Cython check
 # on python-for-android and kivy-ios, cython usage is external
+
+cython_unsupported_append = '''
+  
+  Please note that the following versions of Cython are not supported
+  at all: {}
+'''.format(', '.join(map(str, CYTHON_UNSUPPORTED)))
+
+cython_min = '''\
+  This version of Cython is not compatible with Kivy. Please upgrade to
+  at least version {0}, preferably the newest supported version {1}.
+  
+  If your platform provides a Cython package, make sure you have upgraded
+  to the newest version. If the newest version available is still too low,
+  please remove it and install the newest supported Cython via pip:
+  
+    pip install -I Cython=={1}{2}\
+'''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
+           cython_unsupported_append if CYTHON_UNSUPPORTED else '')
+
+cython_max = '''\
+  This version of Cython is untested with Kivy. While this version may
+  work perfectly fine, it is possible that you may experience issues. If
+  you do have issues, please downgrade to a supported version. It is
+  best to use the newest supported version, {1}, but the minimum
+  supported version is {0}.
+  
+  If your platform provides a Cython package, check if you can downgrade
+  to a supported version. Otherwise, uninstall the platform package and
+  install Cython via pip:
+  
+    pip install -I Cython=={1}{2}\
+'''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
+           cython_unsupported_append if CYTHON_UNSUPPORTED else '')
+
+cython_unsupported = '''\
+  This version of Cython suffers from known bugs and is unsupported.
+  Please install the newest supported version, {1}, if possible, but
+  the minimum supported version is {0}.
+  
+  If your platform provides a Cython package, check if you can install
+  a supported version. Otherwise, uninstall the platform package and
+  install Cython via pip:
+  
+    pip install -I Cython=={1}{2}\
+'''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
+           cython_unsupported_append)
+
 have_cython = False
 if platform in ('ios', 'android'):
     print('\nCython check avoided.')
@@ -117,13 +169,14 @@ else:
         cy_ver = LooseVersion(cy_version_str)
         print('\nDetected Cython version {}'.format(cy_version_str))
         if cy_ver < MIN_CYTHON_VERSION:
-            print('  This version of Cython is not compatible with Kivy. ' +
-                  'Please upgrade to at least {}'.format(MIN_CYTHON_STRING))
+            print(cython_min)
+            raise ImportError('Incompatible Cython Version')
+        if cy_ver in CYTHON_UNSUPPORTED:
+            print(cython_unsupported)
             raise ImportError('Incompatible Cython Version')
         if cy_ver > MAX_CYTHON_VERSION:
-            print('  This version of Cython is untested with Kivy. If you ' +
-                  'experience issues, please downgrade to {}'
-                  .format(MAX_CYTHON_STRING))
+            print(cython_max)
+            sleep(1)
     except ImportError:
         print('\nCython is missing, its required for compiling kivy !\n\n')
         raise
