@@ -164,10 +164,24 @@ cdef class PopState(ContextInstruction):
 
 
 cdef class Color(ContextInstruction):
-    '''Instruction to set the color state for any vertices being drawn after it.
-    All the values passed are between 0 and 1, not 0 and 255.
+    '''
+    Instruction to set the color state for any vertices being
+    drawn after it.
 
-    In Python, you can do::
+    This represents a color between 0 and 1, but is applied as a
+    *multiplier* to the texture of any vertex instructions following
+    it in a canvas. If no texture is set, the vertex instruction
+    takes the precise color of the Color instruction.
+
+    For instance, if a Rectangle has a texture with uniform color
+    ``(0.5, 0.5, 0.5, 1.0)`` and the preceding Color has
+    ``rgba=(1, 0.5, 2, 1)``, the actual visible color will be
+    ``(0.5, 0.25, 1.0, 1.0)`` since the Color instruction is applied as
+    a multiplier to every rgba component. In this case, a Color
+    component outside the 0-1 range gives a visible result as the
+    intensity of the blue component is doubled.
+
+    To declare a Color in Python, you can do::
 
         from kivy.graphics import Color
 
@@ -678,9 +692,21 @@ cdef class Scale(Transform):
         Deprecated single scale property in favor of x, y, z, xyz axis
         independant scaled factors.
     '''
+
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
         Transform.__init__(self, **kwargs)
+        self._origin = (0, 0, 0)
+
+        if 'origin' in kwargs:
+            origin = kwargs['origin']
+            if len(origin) == 3:
+                self._origin = tuple(origin)
+            elif len(origin) == 2:
+                self._origin = (origin[0], origin[1], 0.)
+            else:
+                raise Exception('invalid number of components in origin')
+
         if len(args) == 1:
             s = args[0]
             self.set_scale(s, s, s)
@@ -691,10 +717,19 @@ cdef class Scale(Transform):
             self.set_scale(1.0, 1.0, 1.0)
 
     cdef set_scale(self, double x, double y, double z):
+        cdef float ox, oy, oz
         self._x = x
         self._y = y
         self._z = z
-        self.matrix = Matrix().scale(x, y, z)
+        ox, oy, oz = self._origin
+        cdef Matrix matrix
+        matrix = Matrix().translate(ox, oy, oz)
+        print matrix
+        matrix = matrix.multiply(Matrix().scale(x, y, z))
+        print matrix
+        matrix = matrix.multiply(Matrix().translate(-ox, -oy, -oz))
+        print matrix
+        self.matrix = matrix
 
     property scale:
         '''Property for getting/setting the scale.
@@ -755,6 +790,24 @@ cdef class Scale(Transform):
             return self._x, self._y, self._z
         def __set__(self, c):
             self.set_scale(c[0], c[1], c[2])
+
+    property origin:
+        '''Origin of the scale.
+
+        .. versionadded:: 1.9.0
+
+        The format of the origin can be either (x, y) or (x, y, z).
+        '''
+        def __get__(self):
+            return self._origin
+        def __set__(self, origin):
+            if len(origin) == 3:
+                self._origin = tuple(origin)
+            elif len(origin) == 2:
+                self._origin = (origin[0], origin[1], 0.)
+            else:
+                raise Exception('invalid number of components in origin')
+            self.set_scale(self._x, self._y, self._z)
 
 
 cdef class Translate(Transform):
