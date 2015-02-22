@@ -1910,11 +1910,12 @@ class BuilderBase(object):
         for crule in rule.children:
             cname = crule.name
 
+            if cname in ('canvas', 'canvas.before', 'canvas.after'):
+                raise Exception('canvas instructions added in kv must '
+                                'be declared before child widgets.')
+
             # depending if the child rule is a template or not, we are not
             # having the same approach
-            if cname in ('canvas', 'canvas.before', 'canvas.after'):
-                raise Exception('canvas instructions declared in kv must '
-                                'be declared before child widgets.')
             cls = Factory_get(cname)
 
             if Factory_is_template(cname):
