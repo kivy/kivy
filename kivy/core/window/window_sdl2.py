@@ -99,6 +99,7 @@ class WindowSDL(WindowBase):
     def __init__(self, **kwargs):
         self._win = _WindowSDL2Storage()
         super(WindowSDL, self).__init__()
+        self._mouse_x = self._mouse_y = -1
         self._meta_keys = (KMOD_LCTRL, KMOD_RCTRL, KMOD_RSHIFT,
             KMOD_LSHIFT, KMOD_RALT, KMOD_LALT, KMOD_LMETA,
             KMOD_RMETA)
