@@ -816,7 +816,7 @@ Cache.register('kv.lang')
 __KV_INCLUDES__ = []
 
 # precompile regexp expression
-lang_str = re.compile('([\'"][^\'"]*[\'"])')
+lang_str = re.compile('(\'(?:[^\'"]|\\.)*\'|"(?:[^\'"]|\\.)*")')
 lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 lang_tr = re.compile('(_\()')
