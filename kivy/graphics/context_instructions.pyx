@@ -724,11 +724,8 @@ cdef class Scale(Transform):
         ox, oy, oz = self._origin
         cdef Matrix matrix
         matrix = Matrix().translate(ox, oy, oz)
-        print matrix
         matrix = matrix.multiply(Matrix().scale(x, y, z))
-        print matrix
         matrix = matrix.multiply(Matrix().translate(-ox, -oy, -oz))
-        print matrix
         self.matrix = matrix
 
     property scale:
