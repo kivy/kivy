@@ -158,8 +158,11 @@ class WindowSDL(WindowBase):
 
         super(WindowSDL, self).create_window()
 
+        if self.initialized:
+            return
+
         # auto add input provider
-        Logger.info('Window: auto add sdl input provider')
+        Logger.info('Window: auto add sdl2 input provider')
         from kivy.base import EventLoop
         SDL2MotionEventProvider.win = self
         EventLoop.add_input_provider(SDL2MotionEventProvider('sdl', ''))
