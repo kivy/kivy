@@ -157,7 +157,8 @@ from kivy.utils import boundary, platform
 from kivy.uix.behaviors import FocusBehavior
 
 from kivy.core.text import Label
-from kivy.graphics import Color, Rectangle
+from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix, Callback
+from kivy.graphics.context_instructions import Transform
 from kivy.graphics.texture import Texture
 
 from kivy.uix.widget import Widget
@@ -215,15 +216,37 @@ class Selector(ButtonBehavior, Image):
     # Internal class for managing the selection Handles.
 
     window = ObjectProperty()
+    target = ObjectProperty()
+    matrix = ObjectProperty()
 
     def __init__(self, **kwargs):
         super(Selector, self).__init__(**kwargs)
         self.window.bind(on_touch_down=self.on_window_touch_down)
+        self.matrix = self.target.get_window_matrix()
+
+        with self.canvas.before:
+            Callback(self.update_transform)
+            PushMatrix()
+            self.transform = Transform()
+
+        with self.canvas.after:
+            PopMatrix()
+
+    def update_transform(self, cb):
+        m = self.target.get_window_matrix()
+        if self.matrix != m:
+            self.matrix = m
+            self.transform.identity()
+            self.transform.transform(self.matrix)
+
+    def transform_touch(self, touch):
+        matrix = self.matrix.inverse()
+        touch.apply_transform_2d(lambda x, y: matrix.transform_point(x, y, 0)[:2])
 
     def on_window_touch_down(self, win, touch):
         try:
             touch.push()
-            touch.apply_transform_2d(self.to_widget)
+            self.transform_touch(touch)
             self._touch_diff = self.top - touch.y
             if self.collide_point(*touch.pos):
                 FocusBehavior.ignored_touch.append(touch)
@@ -245,15 +268,42 @@ class TextInputCutCopyPaste(Bubble):
     but_paste = ObjectProperty(None)
     but_selectall = ObjectProperty(None)
 
+    matrix = ObjectProperty(None)
+
     def __init__(self, **kwargs):
         self.mode = 'normal'
         super(TextInputCutCopyPaste, self).__init__(**kwargs)
         Clock.schedule_interval(self._check_parent, .5)
+        self.matrix = self.textinput.get_window_matrix()
+
+        with self.canvas.before:
+            Callback(self.update_transform)
+            PushMatrix()
+            self.transform = Transform()
+
+        with self.canvas.after:
+            PopMatrix()
+
+    def update_transform(self, cb):
+        m = self.textinput.get_window_matrix()
+        if self.matrix != m:
+            self.matrix = m
+            self.transform.identity()
+            self.transform.transform(self.matrix)
+
+    def transform_touch(self, touch):
+        matrix = self.matrix.inverse()
+        touch.apply_transform_2d(lambda x, y: matrix.transform_point(x, y, 0)[:2])
 
     def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            FocusBehavior.ignored_touch.append(touch)
-        return super(TextInputCutCopyPaste, self).on_touch_down(touch)
+        try:
+            touch.push()
+            self.transform_touch(touch)
+            if self.collide_point(*touch.pos):
+                FocusBehavior.ignored_touch.append(touch)
+            return super(TextInputCutCopyPaste, self).on_touch_down(touch)
+        finally:
+            touch.pop()
 
     def on_textinput(self, instance, value):
         global Clipboard
@@ -939,8 +989,9 @@ class TextInput(FocusBehavior, Widget):
     #
     def long_touch(self, dt):
         if self._selection_to == self._selection_from:
+            pos = self.to_local(*self._long_touch_pos, relative=True)
             self._show_cut_copy_paste(
-                self._long_touch_pos, EventLoop.window, mode='paste')
+                pos, EventLoop.window, mode='paste')
 
     def on_double_tap(self):
         '''This event is dispatched when a double tap happens
@@ -983,10 +1034,6 @@ class TextInput(FocusBehavior, Widget):
     def on_touch_down(self, touch):
         if self.disabled:
             return
-
-        for child in self.children[:]:
-            if child.on_touch_down(touch):
-                return True
 
         touch_pos = touch.pos
         if not self.collide_point(*touch_pos):
@@ -1080,13 +1127,14 @@ class TextInput(FocusBehavior, Widget):
                     self._handle_middle = handle_middle = Selector(
                         source=self.handle_image_middle,
                         window=win,
+                        target=self,
                         size_hint=(None, None),
                         size=('45dp', '45dp'))
                     handle_middle.bind(on_press=self._handle_pressed,
                                        on_touch_move=self._handle_move,
                                        on_release=self._handle_released)
                 if not self._handle_middle.parent and self.text:
-                    self.add_widget(handle_middle, canvas='after')
+                    EventLoop.window.add_widget(handle_middle, canvas='after')
                 self._position_handles(mode='middle')
             return True
 
@@ -1103,7 +1151,8 @@ class TextInput(FocusBehavior, Widget):
 
         self._update_selection()
         self._show_cut_copy_paste(
-            (instance.center_x, instance.top + self.line_height),
+            (instance.right if instance is self._handle_left else instance.x,
+             instance.top + self.line_height),
             EventLoop.window)
 
     def _handle_move(self, instance, touch):
@@ -1114,7 +1163,13 @@ class TextInput(FocusBehavior, Widget):
         handle_left = self._handle_left
         handle_middle = self._handle_middle
 
-        x, y = touch.pos
+        try:
+            touch.push()
+            touch.apply_transform_2d(self.to_widget)
+            x, y = touch.pos
+        finally:
+            touch.pop()
+
         cursor = get_cursor(
             x,
             y + instance._touch_diff + (self.line_height / 2))
@@ -1147,7 +1202,7 @@ class TextInput(FocusBehavior, Widget):
         handle_middle = self._handle_middle
         if handle_middle:
             hp_mid = self.cursor_pos
-            pos = hp_mid
+            pos = self.to_local(*hp_mid, relative=True)
             handle_middle.x = pos[0] - handle_middle.width / 2
             handle_middle.top = pos[1] - lh
         if mode[0] == 'm':
@@ -1157,29 +1212,30 @@ class TextInput(FocusBehavior, Widget):
         if not group:
             return
 
-        self.remove_widget(self._handle_middle)
+        EventLoop.window.remove_widget(self._handle_middle)
 
         handle_left = self._handle_left
         if not handle_left:
             return
         hp_left = group[2].pos
-        handle_left.pos = hp_left
+        handle_left.pos = self.to_local(*hp_left, relative=True)
         handle_left.x -= handle_left.width
         handle_left.y -= handle_left.height
 
         handle_right = self._handle_right
         last_rect = group[-1]
         hp_right = last_rect.pos[0], last_rect.pos[1]
-        x, y = hp_right
+        x, y = self.to_local(*hp_right, relative=True)
         handle_right.x = x + last_rect.size[0]
         handle_right.y = y - handle_right.height
 
     def _hide_handles(self, win=None):
+        win = win or EventLoop.window
         if win is None:
             return
-        self.remove_widget(self._handle_right)
-        self.remove_widget(self._handle_left)
-        self.remove_widget(self._handle_middle)
+        win.remove_widget(self._handle_right)
+        win.remove_widget(self._handle_left)
+        win.remove_widget(self._handle_middle)
 
     def _show_handles(self, dt):
         if not self.use_handles or not self.text:
@@ -1192,6 +1248,7 @@ class TextInput(FocusBehavior, Widget):
         if self._handle_left is None:
             self._handle_left = handle_left = Selector(
                 source=self.handle_image_left,
+                target=self,
                 window=win,
                 size_hint=(None, None),
                 size=('45dp', '45dp'))
@@ -1200,6 +1257,7 @@ class TextInput(FocusBehavior, Widget):
                              on_release=self._handle_released)
             self._handle_right = handle_right = Selector(
                 source=self.handle_image_right,
+                target=self,
                 window=win,
                 size_hint=(None, None),
                 size=('45dp', '45dp'))
@@ -1216,8 +1274,8 @@ class TextInput(FocusBehavior, Widget):
         self._trigger_position_handles()
         if self.selection_from != self.selection_to:
             self._handle_left.opacity = self._handle_right.opacity = 0
-            self.add_widget(self._handle_left, canvas='after')
-            self.add_widget(self._handle_right, canvas='after')
+            win.add_widget(self._handle_left, canvas='after')
+            win.add_widget(self._handle_right, canvas='after')
             anim = Animation(opacity=1, d=.4)
             anim.start(self._handle_right)
             anim.start(self._handle_left)
@@ -1233,11 +1291,11 @@ class TextInput(FocusBehavior, Widget):
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
             self.bind(parent=partial(self._show_cut_copy_paste,
                                      pos, win, True))
-            EventLoop.window.bind(
+            win.bind(
                 size=lambda *args: self._hide_cut_copy_paste(win))
             self.bind(cursor_pos=lambda *args: self._hide_cut_copy_paste(win))
         else:
-            self.remove_widget(bubble)
+            win.remove_widget(bubble)
             if not self.parent:
                 return
         if parent_changed:
@@ -1290,7 +1348,7 @@ class TextInput(FocusBehavior, Widget):
         bubble.mode = mode
         Animation.cancel_all(bubble)
         bubble.opacity = 0
-        self.add_widget(bubble, canvas='after')
+        win.add_widget(bubble, canvas='after')
         Animation(opacity=1, d=.225).start(bubble)
 
     def _hide_cut_copy_paste(self, win=None):
@@ -1943,7 +2001,7 @@ class TextInput(FocusBehavior, Widget):
 
             self._hide_handles(win)
             self._hide_cut_copy_paste(win)
-            self.remove_widget(self._handle_middle)
+            win.remove_widget(self._handle_middle)
 
             # check for command modes
             # we use \x01INFO\x02 to get info from IME on mobiles
