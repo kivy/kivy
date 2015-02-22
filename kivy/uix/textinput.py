@@ -244,6 +244,9 @@ class Selector(ButtonBehavior, Image):
         touch.apply_transform_2d(lambda x, y: matrix.transform_point(x, y, 0)[:2])
 
     def on_window_touch_down(self, win, touch):
+        if self.parent is not win:
+            return
+
         try:
             touch.push()
             self.transform_touch(touch)
