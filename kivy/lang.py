@@ -801,6 +801,7 @@ from kivy.context import register_context
 from kivy.resources import resource_find
 import kivy.metrics as Metrics
 from kivy._event import Observable, EventDispatcher
+from kivy.css_selectors import parse_css_selector
 
 
 trace = Logger.trace
@@ -1044,6 +1045,14 @@ class ParserRule(object):
         else:
             self._forbid_selectors()
 
+    # for css selectors: when a widget is kv-lang created, then it has
+    # no useful properties at rule selection time; in that case, better
+    # also look for them in the rule itself.
+    @property
+    def cls(self):
+        p = self.properties.get('cls', None)
+        return (p.co_value or ()) if p else ()
+
     def precompile(self):
         for x in self.properties.values():
             x.precompile()
@@ -1099,6 +1108,15 @@ class ParserRule(object):
         if name[0] != '<' or name[-1] != '>':
             raise ParserException(self.ctx, self.line,
                                   'Invalid rule (must be inside <>)')
+
+        if name.startswith("<<"):
+            if not name.endswith(">>"):
+                raise ParserException(self.ctx, self.line,
+                                      'Invalid contextual selector rule (should end with >>)')
+            name = name[2:-2]
+            crule = parse_css_selector(name)
+            self.ctx.rules.append((crule, self))
+            return
 
         # if the very first name start with a -, avoid previous rules
         name = name[1:-1]
@@ -1656,6 +1674,8 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
 
 class ParserSelector(object):
 
+    css_selector = False
+
     def __init__(self, key):
         self.key = key.lower()
 
@@ -1703,6 +1723,26 @@ class ParserSelectorName(ParserSelector):
         return self.key in parents[cls]
 
 
+class CSSCtx(object):
+    '''
+    :class:`CSSCtx` objects provide the information necessary for matching CSS
+    selectors.  They are stacked/unstacked as nested rules are executed.  The
+    `widget` attribute is used for matching named selectors, the `id` for
+    matching `#ID` selectors, and the `cls` attribute for matching `.CLS`
+    selectors.
+    '''
+
+    __slots__ = ('widget', 'id', 'cls')
+
+    def __init__(self, widget, crule=None):
+        self.widget = widget
+        self.id = widget.id or (crule.id if crule else None)
+        self.cls = widget.cls or (crule.cls if crule else ())
+
+    def __repr__(self):
+        return "<CSSCtx %s %s %s>" % (self.widget, self.id, self.cls)
+
+
 class BuilderBase(object):
     '''The Builder is responsible for creating a :class:`Parser` for parsing a
     kv file, merging the results into its internal rules, templates, etc.
@@ -1720,6 +1760,18 @@ class BuilderBase(object):
         self.templates = {}
         self.rules = []
         self.rulectx = {}
+        self._have_css_rules = None
+        self.css_stack = []
+
+    @property
+    def have_css_rules(self):
+        # having css rules means the cache cannot be used since rules are
+        # selected may depend on context
+        b = self._have_css_rules
+        if b is None:
+            b = self._have_css_rules = any(r[0].css_selector for r in self.rules)
+            self._clear_matchcache()
+        return b
 
     def load_file(self, filename, **kwargs):
         '''Insert a file into the language builder and return the root widget
@@ -1772,6 +1824,9 @@ class BuilderBase(object):
 
         # unregister all the dynamic classes
         Factory.unregister_from_filename(filename)
+
+        self._have_css_rules = None
+        self._clear_matchcache()
 
     def load_string(self, string, **kwargs):
         '''Insert a string into the Language Builder and return the root widget
@@ -1829,6 +1884,8 @@ class BuilderBase(object):
                 return widget
         finally:
             self._current_filename = None
+            self._have_css_rules = None
+            self._clear_matchcache()
 
     def template(self, *args, **ctx):
         '''Create a specialized template using a specific context.
@@ -1860,16 +1917,42 @@ class BuilderBase(object):
         self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
         return widget
 
-    def apply(self, widget):
+    def apply(self, widget, crule=None, rootrule=None):
         '''Search all the rules that match the widget and apply them.
         '''
-        rules = self.match(widget)
-        if __debug__:
-            trace('Builder: Found %d rules for %s' % (len(rules), widget))
-        if not rules:
-            return
-        for rule in rules:
-            self._apply_rule(widget, rule, rule)
+        have_css_rules = self.have_css_rules
+        try:
+            if have_css_rules:
+                cssctx = CSSCtx(widget, crule)
+                self.css_stack.append(cssctx)
+                cid = crule and crule.id
+                if cid and not cssctx.id:
+                    cssctx.id = cid
+                ccls = crule and crule.cls
+                if ccls and not cssctx.cls:
+                    cssctx.cls = ccls
+            rules = self.match(widget)
+            if have_css_rules:
+                if not cssctx.id:
+                    for rule in rules:
+                        if rule.id:
+                            cssctx.id = rule.id
+                            break
+                if not cssctx.cls:
+                    for rule in rules:
+                        if rule.cls:
+                            cssctx.cls = rule.cls
+                            break
+            if __debug__:
+                trace('Builder: Found %d rules for %s' % (len(rules), widget))
+            if rules:
+                for rule in rules:
+                    self._apply_rule(widget, rule, rule)
+            if crule and rootrule:
+                self._apply_rule(widget, crule, rootrule)
+        finally:
+            if have_css_rules:
+                self.css_stack.pop()
 
     def _clear_matchcache(self):
         BuilderBase._match_cache = {}
@@ -1982,8 +2065,7 @@ class BuilderBase(object):
                 # apply(), and so, we could use "self.parent".
                 child = cls(__no_builder=True)
                 widget.add_widget(child)
-                self.apply(child)
-                self._apply_rule(child, crule, rootrule)
+                self.apply(child, crule, rootrule)
 
         # append the properties and handlers to our final resolution task
         if rule.properties:
@@ -2056,12 +2138,20 @@ class BuilderBase(object):
         if k in cache:
             return cache[k]
         rules = []
+        have_css_rules = self.have_css_rules
+        ctx = self.css_stack
+        assert not have_css_rules or len(ctx) > 0
         for selector, rule in self.rules:
-            if selector.match(widget):
+            if selector.css_selector:
+                if selector.match(ctx, len(ctx)-1):
+                    rules.append(rule)
+            elif selector.match(widget):
                 if rule.avoid_previous_rules:
                     del rules[:]
                 rules.append(rule)
-        cache[k] = rules
+        # don't populate the cache if there are contextual selection rules
+        if not have_css_rules:
+            cache[k] = rules
         return rules
 
     def sync(self):

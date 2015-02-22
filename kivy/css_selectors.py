@@ -192,8 +192,7 @@ class IdSelector(FilterSelectorBase):
     op = "#"
 
     def match(self, elt):
-        name = self.name
-        return name == elt.id
+        return self.name == elt.id
 
 
 class PrecedenceSelector(SelectorBase):
