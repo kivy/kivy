@@ -12,6 +12,8 @@ don't need the corresponding dependency.
 That said, there is one dependency that Kivy **does** require:
 `Cython <http://cython.org>`_.
 
+|cython_note|
+
 In addition, you need a `Python <http://python.org/>`_ 2.x (2.7 <= x < 3.0)
 or 3.x (3.3 <= x)
 interpreter. If you want to enable features like windowing (i.e. open a Window),
@@ -95,10 +97,12 @@ For older versions of Ubuntu, this one should work::
       python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
       build-essential libgl1-mesa-dev libgles2-mesa-dev zlib1g-dev python-pip
 
-Kivy requires a recent version of Cython, so it's better to use the last
-version published on pypi::
+Kivy requires a recent version of Cython, so it's better to use the latest
+supported version from pypi:
 
-    $ sudo pip install --upgrade cython
+.. parsed-literal::
+
+    $ sudo pip install --upgrade |cython_install|
 
 Mac OS X
 ++++++++
