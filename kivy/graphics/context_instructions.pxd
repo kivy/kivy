@@ -66,6 +66,7 @@ cdef class Rotate(Transform):
 
 cdef class Scale(Transform):
     cdef float _x, _y, _z
+    cdef tuple _origin
     cdef void apply(self)
     cdef set_scale(self, double x, double y, double z)
 
@@ -73,4 +74,5 @@ cdef class Translate(Transform):
     cdef double _x, _y, _z
     cdef void apply(self)
     cdef set_translate(self, double x, double y, double z)
-
+    
+    
