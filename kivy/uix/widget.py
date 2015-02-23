@@ -268,7 +268,7 @@ class Widget(WidgetBase):
         if '__no_builder' not in kwargs:
             #current_root = Builder.idmap.get('root')
             #Builder.idmap['root'] = self
-            Builder.apply(self)
+            Builder.apply(self, css_ctx=kwargs.get('css_ctx', None))
             #if current_root is not None:
             #    Builder.idmap['root'] = current_root
             #else:

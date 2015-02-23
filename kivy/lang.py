@@ -1723,11 +1723,11 @@ class ParserSelectorName(ParserSelector):
         return self.key in parents[cls]
 
 
-class CSSCtx(object):
+class CSSCtxElt(object):
     '''
-    :class:`CSSCtx` objects provide the information necessary for matching CSS
-    selectors.  They are stacked/unstacked as nested rules are executed.  The
-    `widget` attribute is used for matching named selectors, the `id` for
+    :class:`CSSCtxElt` objects provide the information necessary for matching
+    CSS selectors.  They are stacked/unstacked as nested rules are executed.
+    The `widget` attribute is used for matching named selectors, the `id` for
     matching `#ID` selectors, and the `cls` attribute for matching `.CLS`
     selectors.
     '''
@@ -1740,7 +1740,33 @@ class CSSCtx(object):
         self.cls = widget.cls or (crule.cls if crule else ())
 
     def __repr__(self):
-        return "<CSSCtx %s %s %s>" % (self.widget, self.id, self.cls)
+        return "<CSSCtxElt %s %s %s>" % (self.widget, self.id, self.cls)
+
+
+class CSSCtx(list):
+    '''
+    a :class:`CSSCtx` object is a stack of :class:`CSSCtxElt` objects,
+    and represents the context for matching a CSS selector.  The current
+    widget (the one which is targeted) is in the top-most element.
+    '''
+
+    __slots__ = ()
+
+    def __init__(self, initializer=None):
+        if initializer is None:
+            # create an empty context
+            super(CSSCtx, self).__init__()
+        elif isinstance(initializer, Widget):
+            # initialize a context with the hierarchy of widgets
+            # down to the one provided as argument
+            super(CSSCtx, self).__init__()
+            while initializer:
+                self.append(CSSCtxElt(initializer))
+                initializer = initializer.parent
+            self.reverse()
+        else:
+            # initialize a new context using an existing one
+            super(CSSCtx, self).__init__(initializer)
 
 
 class BuilderBase(object):
@@ -1761,7 +1787,7 @@ class BuilderBase(object):
         self.rules = []
         self.rulectx = {}
         self._have_css_rules = None
-        self.css_stack = []
+        self.css_stack = CSSCtx()
 
     @property
     def have_css_rules(self):
@@ -1917,13 +1943,18 @@ class BuilderBase(object):
         self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
         return widget
 
-    def apply(self, widget, crule=None, rootrule=None):
+    def apply(self, widget, crule=None, rootrule=None, css_ctx=None):
         '''Search all the rules that match the widget and apply them.
         '''
         have_css_rules = self.have_css_rules
+        if have_css_rules and css_ctx:
+            saved_css_stack = self.css_stack
+            self.css_stack = CSSCtx(css_ctx)
+        else:
+            saved_css_stack = None
         try:
             if have_css_rules:
-                cssctx = CSSCtx(widget, crule)
+                cssctx = CSSCtxElt(widget, crule)
                 self.css_stack.append(cssctx)
                 cid = crule and crule.id
                 if cid and not cssctx.id:
@@ -1951,7 +1982,9 @@ class BuilderBase(object):
             if crule and rootrule:
                 self._apply_rule(widget, crule, rootrule)
         finally:
-            if have_css_rules:
+            if saved_css_stack:
+                self.css_stack = saved_css_stack
+            elif have_css_rules:
                 self.css_stack.pop()
 
     def _clear_matchcache(self):
