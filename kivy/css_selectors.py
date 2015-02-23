@@ -22,6 +22,23 @@ late (too late for rule selection), class selectors and id selectors also
 consult the information stored in the rule responsible for creatng the widget.
 If that information can be evaluated statically, then it can influence rule
 selection (presence of an `id` or `cls` property).
+
+After rule selection has occurred, the selected rules will also be used to
+get more precise information about `id` and `cls` before they have taken effect
+on the widget.  In this fashion, the context for descendent widgets becomes
+more precise.
+
+If you don't use contextual rules, nothing changes.  However, if you do, then
+the rule match cache is deactivated; it probably won't have a measurable
+incidence on your application, but "caveat emptor!".
+
+A widget that is created from Python code, rather than in from a kv-lang
+specification, does not have a context in which to evaluate contextual rules
+that might or might not apply to it.  For this reason, the :class:`Widget`
+constructor also accepts a `css_ctx` keyword parameter whose value maybe
+either the intended :class:`Widget` parent or an explicit :class:`CSSCtx`
+instance describing the hierarchy into which the new widget will be
+inserted.
 '''
 import re
 
