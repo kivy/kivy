@@ -1349,3 +1349,21 @@ cdef class RoundedRectangle(Rectangle):
             y *= radial_factor
 
         return points
+
+    property segments:
+        '''Property for getting/setting the number of segments for each corner.
+        '''
+        def __get__(self):
+            return self._segments
+        def __set__(self, value):
+            self._segments = value
+            self.flag_update()
+
+    property radius:
+        '''Corner radiuses of the rounded rectangle, defaults to [10,].
+        '''
+        def __get__(self):
+            return self._radius
+        def __set__(self, value):
+            self._radius = self._check_radius(value)
+            self.flag_update()
