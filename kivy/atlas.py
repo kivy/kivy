@@ -205,7 +205,7 @@ class Atlas(EventDispatcher):
             # for all the uid, load the image, get the region, and put
             # it in our dict.
             for meta_id, meta_coords in ids.items():
-                x, y, w, h = meta_coords
+                # x, y, w, h = meta_coords
                 textures[meta_id] = ci.texture.get_region(*meta_coords)
 
         self.textures = textures
@@ -248,6 +248,12 @@ class Atlas(EventDispatcher):
 
             .. versionchanged:: 1.8.0
                 Parameter use_path added
+        :returns:  None if error, otherwise a tuple of two items. The
+         first item is the .atlas filename and the second is a nested
+         dictionary equivalent to content of the .atlas file. Access it
+         like:
+             | x, y, width, height = nested_dict
+                ['combined_atlas_image_filname.png']['image_name']
         '''
         # Thanks to
         # omnisaurusgames.com/2011/06/texture-atlas-generation-using-python/
@@ -255,7 +261,7 @@ class Atlas(EventDispatcher):
         try:
             from PIL import Image
         except ImportError:
-            Logger.critical('Atlas: Imaging/PIL are missing')
+            Logger.critical('Atlas: PIL/Image (or Pillow) is missing')
             raise
 
         if isinstance(size, (tuple, list)):
@@ -266,6 +272,9 @@ class Atlas(EventDispatcher):
         # open all of the images
         ims = list()
         for f in filenames:
+            if not os.path.exists(f):
+                Logger.critical('Cannot open file %s', f)
+                return None
             fp = open(f)
             im = Image.open(fp)
             im.load()
@@ -334,11 +343,11 @@ class Atlas(EventDispatcher):
                     numoutimages += 1
 
         # now that we've figured out where everything goes, make the output
-        # images and blit the source images to the approriate locations
+        # images and blit the source images to the appropriate locations
         Logger.info('Atlas: create an {0}x{1} rgba image'.format(size_w,
                                                                  size_h))
         outimages = [Image.new('RGBA', (size_w, size_h))
-                     for i in range(0, int(numoutimages))]
+                     for _ in range(0, int(numoutimages))]
         for fb in fullboxes:
             x, y = fb[2], fb[3]
             out = outimages[fb[1]]
@@ -388,30 +397,38 @@ class Atlas(EventDispatcher):
         return outfn, meta
 
 
-if __name__ == '__main__':
-    """ Main line program. Process command line arguments
-    to make a new atlas. """
+def run(argv):
+    '''
+    process a command line to create new atlas files.
 
-    import sys
-    argv = sys.argv[1:]
-    # earlier import of kivy has already called getopt to remove kivy system
-    # arguments from this line. That is all arguments up to the first '--'
-    if len(argv) < 3:
-        print('Usage: python -m kivy.atlas [-- [--use-path] '
-              '[--padding=2]] <outname> '
-              '<size|512x256> <img1.png> [<img2.png>, ...]')
-        sys.exit(1)
+    :param argv: remaining arguments to this module, as described in module
+    documentation.
 
+    :return:  None if command completed, else error message as string.
+    '''
+
+    # pull off options from argv
     options = {'use_path': False}
     while True:
+        if len(argv) < 3:
+            msg = ('Usage: python -m kivy.atlas [-- [--use-path] '
+                   '[--padding=2]] <outname> '
+                   '<size|512x256> <img1.png> [<img2.png>, ...]')
+            return msg
+
         option = argv[0]
         if option == '--use-path':
             options['use_path'] = True
         elif option.startswith('--padding='):
-            options['padding'] = int(option.split('=', 1)[-1])
+            try:
+                options['padding'] = int(option.split('=', 1)[-1])
+                if options['padding'] < 0:
+                    return 'padding must be non-negative integer'
+            except ValueError:
+                return 'padding must be integer'
         elif option[:2] == '--':
-            print('Unknown option {}'.format(option))
-            sys.exit(1)
+            msg = 'Unknown option {}'.format(option)
+            return msg
         else:
             break
         argv = argv[1:]
@@ -420,19 +437,37 @@ if __name__ == '__main__':
     try:
         if 'x' in argv[1]:
             size = map(int, argv[1].split('x', 1))
+            if size[0] <= 0 or size[1] <= 0:
+                return 'Error:  sizes must be positive'
         else:
             size = int(argv[1])
+            if size <= 0:
+                return 'Error:  size must be positive'
     except ValueError:
-        print('Error: size must be an integer or <integer>x<integer>')
-        sys.exit(1)
+        msg = 'Error: size must be an integer or <integer>x<integer>'
+        return msg
 
     filenames = argv[2:]
     ret = Atlas.create(outname, filenames, size, **options)
     if not ret:
-        print('Error while creating atlas!')
-        sys.exit(1)
+        msg = 'Error while creating atlas!'
+        return msg
 
     fn, meta = ret
-    print('Atlas created at', fn)
-    print('%d image%s been created' % (len(meta),
-          's have' if len(meta) > 1 else ' has'))
+    Logger.info('Atlas created at %s', fn)
+    Logger.info('%d image%s been created' % (len(meta),
+                    's have' if len(meta) > 1 else ' has'))
+    return None
+
+if __name__ == '__main__':
+    """ Main line program. Process command line arguments
+    to make a new atlas. """
+
+    import sys
+    argv = sys.argv[1:]
+    # earlier import of kivy has already called getopt to remove kivy system
+    # arguments from this line. That is all arguments up to the first '--'
+    msg = run(argv)
+    if msg is not None:
+        Logger.critical(msg)
+        sys.exit(1)
