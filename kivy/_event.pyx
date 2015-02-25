@@ -446,9 +446,11 @@ cdef class EventDispatcher(ObjectWithUid):
         stop after the first callback match. For properties, we remove all
         matching callbacks.
 
-        Note, a callback bound with :meth:`fast_bind` without any largs or
-        kwargs is equivalent to one bound with :meth:`bind` so either
-        :meth:`unbind` or :meth:`fast_unbind` will unbind it.
+        .. note::
+            
+            A callback bound with :meth:`fast_bind` without any largs or
+            kwargs is equivalent to one bound with :meth:`bind` so either
+            :meth:`unbind` or :meth:`fast_unbind` will unbind it.
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps

@@ -99,6 +99,7 @@ class WindowSDL(WindowBase):
     def __init__(self, **kwargs):
         self._win = _WindowSDL2Storage()
         super(WindowSDL, self).__init__()
+        self._mouse_x = self._mouse_y = -1
         self._meta_keys = (KMOD_LCTRL, KMOD_RCTRL, KMOD_RSHIFT,
             KMOD_LSHIFT, KMOD_RALT, KMOD_LALT, KMOD_LMETA,
             KMOD_RMETA)
@@ -157,8 +158,11 @@ class WindowSDL(WindowBase):
 
         super(WindowSDL, self).create_window()
 
+        if self.initialized:
+            return
+
         # auto add input provider
-        Logger.info('Window: auto add sdl input provider')
+        Logger.info('Window: auto add sdl2 input provider')
         from kivy.base import EventLoop
         SDL2MotionEventProvider.win = self
         EventLoop.add_input_provider(SDL2MotionEventProvider('sdl', ''))

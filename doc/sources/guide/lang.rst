@@ -213,7 +213,7 @@ Referencing Widgets
 -------------------
 
 In a widget tree there is often a need to access/reference other widgets.
-Kv Language provides a way to do this using id's. Think of them as class
+The Kv Language provides a way to do this using id's. Think of them as class
 level variables that can only be used in the Kv language. Consider the
 following:
 
@@ -321,7 +321,8 @@ the function `check_status`. In contrast to this method you could also just pass
 the `id` to the function that needs to use it, like in case of `f_but` in the
 code above.
 
-There is a simpler way to access the ids as defined in the kv language for example:
+There is a simpler way to access objects with `id` tags in Kv using the
+`ids` lookup object. You can do this as follows:
 
 .. code-block:: kv
 
@@ -342,8 +343,8 @@ In your python code:
 
         def hulk_smash(self):
             self.ids.hulk.text = "hulk: puny god!"
-            self.ids.loki.text = "loki: >_<!!!"
-
+            self.ids["loki"].text = "loki: >_<!!!"  # alternative syntax
+            
 When your kv file is parsed, kivy collects all the widgets tagged with id's
 and places them in this `self.ids` dictionary type property. That means you
 can also iterate over these widgets and access them dictionary style::
