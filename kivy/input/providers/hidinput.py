@@ -590,8 +590,8 @@ else:
             fd = open(input_fn, 'rb')
 
             # get the controler name (EVIOCGNAME)
-            device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
-                                      " " * 256).split('\x00')[0]
+            device_name = str(fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
+                                      " " * 256)).split('\x00')[0]
             Logger.info('HIDMotionEvent: using <%s>' % device_name)
 
             # get abs infos
@@ -670,7 +670,7 @@ else:
                     break
 
                 # extract each event
-                for i in range(len(data) / struct_input_event_sz):
+                for i in range(int(len(data) / struct_input_event_sz)):
                     ev = data[i * struct_input_event_sz:]
 
                     # extract timeval + event infos
