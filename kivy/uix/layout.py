@@ -73,7 +73,7 @@ class Layout(Widget):
 
         .. versionadded:: 1.0.8
         '''
-        raise NotImplementedError('Must be implemented in subclasses.')
+        pass
 
     def add_widget(self, widget, index=0):
         widget.bind(
