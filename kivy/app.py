@@ -418,7 +418,7 @@ class App(EventDispatcher):
     settings_cls = ObjectProperty(None)
     '''.. versionadded:: 1.8.0
 
-    The class to used to construct the settings panel and
+    The class used to construct the settings panel and
     the instance passed to :meth:`build_config`. You should
     use either :class:`~kivy.uix.settings.Settings` or one of the provided
     subclasses with different layouts
