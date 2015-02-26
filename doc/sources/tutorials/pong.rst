@@ -443,8 +443,10 @@ things that are covered in this tutorial, give yourself a pat on the back and
 think about how you could improve the game. Here are a few ideas of things
 you could do:
 
-* Add some nicer graphics / images. (Hint: check out the :attribute:`~kivy.graphics.instructions.Instruction.source` property on
-  the graphics instructions like :class:`~kivy.graphics.Circle` or :class:`~kivy.graphics.Rectangle`, to set an image as the
+* Add some nicer graphics / images. (Hint: check out the
+  :attribute:`~kivy.graphics.instructions.Instruction.source` property on
+  the graphics instructions like :class:`~kivy.graphics.Circle` or
+  :class:`~kivy.graphics.Rectangle`, to set an image as the
   texture.)
 
 * Make the game end after a certain score. Maybe once a player has 10
