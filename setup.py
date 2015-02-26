@@ -17,6 +17,18 @@ from collections import OrderedDict
 from time import sleep
 
 
+if sys.version > '3':
+    PY3 = True
+else:
+    PY3 = False
+
+if PY3:  # fix error with py3's LooseVersion comparisons
+    def ver_equal(self, other):
+        return self.version == other.version
+
+    LooseVersion.__eq__ = ver_equal
+
+
 MIN_CYTHON_STRING = '0.20'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
 MAX_CYTHON_STRING = '0.21.2'
@@ -26,11 +38,6 @@ CYTHON_UNSUPPORTED = (
     LooseVersion('0.22.beta0'),
     LooseVersion('0.22.alpha0'),
 )
-
-if sys.version > '3':
-    PY3 = True
-else:
-    PY3 = False
 
 
 def getoutput(cmd):
