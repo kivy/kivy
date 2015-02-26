@@ -23,6 +23,8 @@ MAX_CYTHON_STRING = '0.21.2'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
 CYTHON_UNSUPPORTED = (
     LooseVersion('0.22'),
+    LooseVersion('0.22.beta0'),
+    LooseVersion('0.22.alpha0'),
 )
 
 if sys.version > '3':
