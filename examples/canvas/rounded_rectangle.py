@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import sys
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.graphics import Color, Ellipse, Rectangle, RoundedRectangle
@@ -77,14 +76,19 @@ class RoundedRectangleWidget(Widget):
             RoundedRectangle(pos=(425, 150), radius=[9000], segments=1)
 
             # Various sizes
-            # if radius dimension is 0, then the corner will be sharp (90 degrees)
-            RoundedRectangle(pos=(50, 25), radius=[30], segments=1, size=(125, 100))
+            # you can cut corners by setting segments to 1
+            # also, you can set different segment count to corners, by using a list
+            # useful for lowering vertex count by using small amount on small corners,
+            # while using bigger amount on bigger corners
+            RoundedRectangle(pos=(50, 25), radius=[40], segments=[1, 1, 10, 10], size=(125, 100))
 
+            # if radius dimension is 0, then the corner will be sharp (90 degrees)
+            # it is also possible to mix tuple values with numeric
             Color(*ORANGE)
-            RoundedRectangle(pos=(200, 25), radius=[40, 50, 50, 0], size=(125, 100))
+            RoundedRectangle(pos=(200, 25), radius=[(40, 20), 45.5, 45.5, 0], segments=[2, 3, 3, 1], size=(125, 100))
 
             Color(*RED)
-            RoundedRectangle(pos=(350, 25), radius=[(40, 20), (20, 40), (0, 40), (40, 0)], size=(150, 100))
+            RoundedRectangle(pos=(350, 25), radius=[(40, 40), (40, 40), (20, 20), (20, 20)], segments=[2, 3, 3, 2], size=(150, 100))
 
 
 class DrawRoundedRectanglesApp(App):
@@ -118,8 +122,8 @@ Widget:
         RoundedRectangle:
             pos: 550, 25
             size: 150, 100
-            segments: 1
-            radius: [30, 30, 0, 0]
+            segments: [1, 2, 1, 3]
+            radius: [30, 40, 30, 40]
 
 '''
         widget = RoundedRectangleWidget()

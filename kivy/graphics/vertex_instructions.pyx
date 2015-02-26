@@ -50,8 +50,8 @@ This module includes all the classes for drawing simple vertex objects.
                 self.triangle.points = self.triangle.points
 '''
 
-__all__ = ('Triangle', 'Quad', 'Rectangle', 'RoundedRectangle', 'BorderImage', 'Ellipse', 'Line',
-           'Point', 'Mesh', 'GraphicException', 'Bezier', 'SmoothLine')
+__all__ = ('Triangle', 'Quad', 'Rectangle', 'RoundedRectangle', 'BorderImage', 'Ellipse',
+           'Line', 'Point', 'Mesh', 'GraphicException', 'Bezier', 'SmoothLine')
 
 
 include "config.pxi"
@@ -1112,7 +1112,7 @@ cdef class RoundedRectangle(Rectangle):
             The first value will be used for all corners, if there is fewer than four values.
     '''
 
-    cdef int _segments  # number of segments for each corner
+    cdef object _segments  # number of segments for each corner
     cdef list _radius
 
     def __init__(self, **kwargs):
@@ -1120,9 +1120,38 @@ cdef class RoundedRectangle(Rectangle):
         self.batch.set_mode('triangle_fan')
 
         # number of segments for each corner
-        self._segments = kwargs.get('segments', 10)  # allow 0 segments
+        segments = kwargs.get('segments', 10)  # allow 0 segments
+        self._segments = self._check_segments(segments)
+
         radius = kwargs.get('radius') or [10.0]
         self._radius = self._check_radius(radius)
+
+    cdef object _check_segments(self, object segments):
+        """
+        Check segments argument, return list of four numeric values
+        for each corner.
+        """
+        cdef list result = []
+
+        # can be single numeric value
+        if isinstance(segments, int):  # can't be float number
+            return [segments] * 4
+
+        # can be list of four values for each corner
+        if isinstance(segments, list):
+            result = [value for value in segments if isinstance(value, int)]
+
+            if not result:
+                raise GraphicException("Invalid segments value, must be list of integers")
+
+            # set all values to first if less than four values
+            if len(result) < 4:
+                return result[:1] * 4
+            else:
+                return result[:4]
+
+        else:
+            raise GraphicException("Invalid segments value, must be integer or list of integers")
 
     cdef object _check_radius(self, object radius):
         """
@@ -1150,13 +1179,14 @@ cdef class RoundedRectangle(Rectangle):
                 Logger.trace("GRoundedRectangle: '{}' object can\'t be used to specify radius. "
                              "Skipping...".format(radius.__class__.__name__))
 
+        if not result:
+            raise GraphicException("Invalid radius value, must be list of tuples/numerics")
+
         # set all radiuses to first if there aren't four of them
         if len(result) < 4:
             return result[:1] * 4
         else:
             return result[:4]
-
-        return result
 
     cdef void build(self):
         cdef:
@@ -1164,7 +1194,7 @@ cdef class RoundedRectangle(Rectangle):
             vertex_t *vertices = NULL
             unsigned short *indices = NULL
 
-            int count, corner, corner_count, dw, dh, index
+            int count, corner, segments, dw, dh, index
             list xradius, yradius
             float rx, ry, half_w, half_h, angle
             float tx, ty, tw, th, px, py, x, y
@@ -1173,13 +1203,12 @@ cdef class RoundedRectangle(Rectangle):
         if self.w == 0 or self.h == 0:
             return
 
-        # number of non-sharp corners to be drawn (both radiuses are non-zero)
-        corner_count = len([True for rx, ry in self._radius if rx * ry])
-
-        # total number of vertices
-        # `1` for sharp corner, `segments+1` for round corner, '1' for center
-        # same as:  (self._segments + 1) * corner_count + (4 - corner_count) + 1
-        count = corner_count * (self._segments) + 5
+        # 1 vertex for sharp corner (if segments or radius is zero)
+        # `segments+1` vertices for round corner
+        # plus 1 vertex for middle point
+        count = sum([1 + segments * bool(rx * ry)
+                     for (rx, ry), segments
+                     in zip(self._radius, self._segments)]) + 1
 
         vertices = <vertex_t *>malloc((count) * sizeof(vertex_t))
         if vertices == NULL:
@@ -1242,8 +1271,11 @@ cdef class RoundedRectangle(Rectangle):
                  self.y + ry)
             ][corner]
 
+            # number of segments for this corner
+            segments = self._segments[corner]
+
             # if at least one radius is zero or no segments
-            if not(rx and ry and self._segments):
+            if not(rx and ry and segments):
                 # sharp corner
                 vertices[index].x = self.x + self.w * dw
                 vertices[index].y = self.y + self.h * dh
@@ -1251,7 +1283,7 @@ cdef class RoundedRectangle(Rectangle):
                 vertices[index].t0 = ty + th * dh
             else:
                 # round corner
-                points = self.draw_arc(px, py, rx, ry, angle, angle - 90)
+                points = self.draw_arc(px, py, rx, ry, angle, angle - 90, segments)
                 for i, point in enumerate(points, index):
                     x, y = point
                     vertices[i].x = x
@@ -1259,7 +1291,7 @@ cdef class RoundedRectangle(Rectangle):
                     vertices[i].s0 = (x - self.x) / self.w
                     vertices[i].t0 = 1 - (y - self.y) / self.h  # flip vertically
                     indices[i] = i
-                index += self._segments
+                index += segments
 
                 # Add final vertex that closes the arc, explained below
                 x = px * (dw != dh) + self.x * (dw == dh) + self.w * (dw * dh)
@@ -1314,7 +1346,8 @@ cdef class RoundedRectangle(Rectangle):
         free(vertices)
         free(indices)
 
-    cdef object draw_arc(self, float cx, float cy, float rx, float ry, float angle_start, float angle_end):
+    cdef object draw_arc(self, float cx, float cy, float rx, float ry,
+                         float angle_start, float angle_end, int segments):
         cdef:
             float fx, fy, x, y
             float tangetial_factor, radial_factor, theta
@@ -1325,7 +1358,7 @@ cdef class RoundedRectangle(Rectangle):
         angle_end *= 0.017453292519943295
 
         # number of vertices for arc, including start & end
-        theta = (angle_end - angle_start) / self._segments
+        theta = (angle_end - angle_start) / segments
         tangetial_factor = tan(theta)
         radial_factor = cos(theta)
 
@@ -1333,10 +1366,10 @@ cdef class RoundedRectangle(Rectangle):
         x = cos(angle_start)
         y = sin(angle_start)
 
-        # array of length `self._segments`
+        # array of length `segments`
         points = []
 
-        for i in xrange(self._segments):
+        for i in xrange(segments):
             real_x = cx + x * rx
             real_y = cy + y * ry
             points.append((real_x, real_y))
@@ -1356,7 +1389,7 @@ cdef class RoundedRectangle(Rectangle):
         def __get__(self):
             return self._segments
         def __set__(self, value):
-            self._segments = value
+            self._segments = self._check_segments(value)
             self.flag_update()
 
     property radius:
