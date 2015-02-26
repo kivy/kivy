@@ -82,8 +82,8 @@ ifeq ("$(wildcard $(AUTOBUILD_STAMP))","")
 	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
 	touch $(AUTOBUILD_STAMP)
 endif
-	PYTHONPATH="$$PYTHONPATH:.." $(PYTHON) gallery.py
-	PYTHONPATH="$$PYTHONPATH:.." $(SPHINXBUILD) -b html $(ALLSPHINXOPTS$(_TESTS)) build/html
+	$(PYTHON) gallery.py
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS$(_TESTS)) build/html
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."
 
