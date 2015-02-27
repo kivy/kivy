@@ -26,6 +26,7 @@ from kivy.utils import platform, reify
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
 from kivy.setupconfig import USE_SDL2
+from kivy.graphics.transformation import Matrix
 
 # late import
 VKeyboard = None
@@ -776,11 +777,13 @@ class WindowBase(EventDispatcher):
     def _update_childsize(self, instance, value):
         self.update_childsize([instance])
 
-    def add_widget(self, widget):
+    def add_widget(self, widget, canvas=None):
         '''Add a widget to a window'''
         widget.parent = self
         self.children.insert(0, widget)
-        self.canvas.add(widget.canvas)
+        canvas = self.canvas.before if canvas == 'before' else \
+            self.canvas.after if canvas == 'after' else self.canvas
+        canvas.add(widget.canvas)
         self.update_childsize([widget])
         widget.bind(
             pos_hint=self._update_childsize,
@@ -794,7 +797,12 @@ class WindowBase(EventDispatcher):
         if not widget in self.children:
             return
         self.children.remove(widget)
-        self.canvas.remove(widget.canvas)
+        if widget.canvas in self.canvas.children:
+            self.canvas.remove(widget.canvas)
+        elif widget.canvas in self.canvas.after.children:
+            self.canvas.after.remove(widget.canvas)
+        elif widget.canvas in self.canvas.before.children:
+            self.canvas.before.remove(widget.canvas)
         widget.parent = None
         widget.unbind(
             pos_hint=self._update_childsize,
@@ -832,6 +840,14 @@ class WindowBase(EventDispatcher):
 
     def to_window(self, x, y, initial=True, relative=False):
         return (x, y)
+
+    def _apply_transform(self, m):
+        return m
+
+    def get_window_matrix(self, x=0, y=0):
+        m = Matrix()
+        m.translate(x, y, 0)
+        return m
 
     def get_root_window(self):
         return self

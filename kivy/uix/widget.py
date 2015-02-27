@@ -164,6 +164,7 @@ propogated before taking action. You can use the
                 return super(MyLabel, self).on_touch_down(touch)
 
 '''
+from kivy.graphics.transformation import Matrix
 
 __all__ = ('Widget', 'WidgetException')
 
@@ -808,6 +809,24 @@ class Widget(WidgetBase):
         if relative:
             return (x - self.x, y - self.y)
         return (x, y)
+
+    def _apply_transform(self, m):
+        return self.parent._apply_transform(m) if self.parent else m
+
+    def get_window_matrix(self, x=0, y=0):
+        '''Calculate the transformation matrix to convert between window and
+        widget coordinates.
+
+        :Parameters:
+            `x`: float, defaults to 0
+                Translates the matrix on the x axis.
+            `y`: float, defaults to 0
+                Translates the matrix on the y axis.
+        '''
+        m = Matrix()
+        m.translate(self.x + x, self.y + y, 0)
+        m = self._apply_transform(m)
+        return m
 
     x = NumericProperty(0)
     '''X position of the widget.
