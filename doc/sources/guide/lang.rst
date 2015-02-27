@@ -352,6 +352,12 @@ can also iterate over these widgets and access them dictionary style::
     for key, val in self.ids.items():
         print("key={0}, val={1}".format(key, val))
 
+.. Note::
+
+    Although the `self.ids` method is very concise, it is generally regarded as
+    'best practise' to use the ObjectProperty. This creates a direct reference,
+    provides faster access and is more explicit.
+        
 Dynamic Classes
 ---------------
 Consider the code below:
