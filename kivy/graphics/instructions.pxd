@@ -26,7 +26,7 @@ cdef class Instruction(ObjectWithUid):
     cdef object __weakref__
     cdef object __proxy_ref
 
-    cdef void apply(self)
+    cdef void apply(self) except *
     IF DEBUG:
         cdef int flag_update(self, int do_parent=?, list _instrs=?) except -1
     ELSE:
@@ -80,8 +80,8 @@ cdef class Callback(Instruction):
     cdef Shader _shader
     cdef object func
     cdef int _reset_context
-    cdef void apply(self)
-    cdef void enter(self)
+    cdef void apply(self) except *
+    cdef void enter(self) except *
 
 
 
@@ -99,7 +99,7 @@ cdef class Canvas(CanvasBase):
     cpdef add(self, Instruction c)
     cpdef remove(self, Instruction c)
     cpdef draw(self)
-    cdef void apply(self)
+    cdef void apply(self) except *
 
 
 cdef class RenderContext(Canvas):

@@ -174,7 +174,7 @@ cdef class Line(VertexInstruction):
             self._stencil_use = StencilUse(op='lequal')
             self._stencil_unuse = StencilUnUse()
 
-    cdef void apply(self):
+    cdef void apply(self) except *:
         if self._width == 1.:
             VertexInstruction.apply(self)
             return
@@ -1238,7 +1238,7 @@ cdef class SmoothLine(Line):
 
         self.build_smooth()
 
-    cdef void apply(self):
+    cdef void apply(self) except *:
         VertexInstruction.apply(self)
         return
 

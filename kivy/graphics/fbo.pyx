@@ -323,7 +323,7 @@ cdef class Fbo(RenderContext):
         else:
             glClear(GL_COLOR_BUFFER_BIT)
 
-    cdef void apply(self):
+    cdef void apply(self) except *:
         if self.flags & GI_NEEDS_UPDATE:
             self.bind()
             RenderContext.apply(self)

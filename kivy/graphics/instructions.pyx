@@ -57,7 +57,7 @@ cdef class Instruction(ObjectWithUid):
         if self.parent:
             self.parent.add(self)
 
-    cdef void apply(self):
+    cdef void apply(self) except *:
         pass
 
     IF DEBUG:
@@ -145,7 +145,7 @@ cdef class InstructionGroup(Instruction):
         else:
             self.compiler = GraphicsCompiler()
 
-    cdef void apply(self):
+    cdef void apply(self) except *:
         cdef Instruction c
         cdef list children
         if self.compiler is not None:
@@ -246,7 +246,7 @@ cdef class ContextInstruction(Instruction):
         cdef RenderContext context = getActiveContext()
         return context
 
-    cdef void apply(self):
+    cdef void apply(self) except *:
         cdef RenderContext context = self.get_context()
         if self.context_push:
             context.push_states(self.context_push)
@@ -255,15 +255,15 @@ cdef class ContextInstruction(Instruction):
         if self.context_pop:
             context.pop_states(self.context_pop)
 
-    cdef void set_state(self, str name, value):
+    cdef void set_state(self, str name, value) except *:
         self.context_state[name] = value
         self.flag_update()
 
-    cdef void push_state(self, str name):
+    cdef void push_state(self, str name) except *:
         self.context_push.append(name)
         self.flag_update()
 
-    cdef void pop_state(self, str name):
+    cdef void pop_state(self, str name) except *:
         self.context_pop.append(name)
         self.flag_update()
 
@@ -400,7 +400,7 @@ cdef class VertexInstruction(Instruction):
     cdef void build(self):
         pass
 
-    cdef void apply(self):
+    cdef void apply(self) except *:
         if self.flags & GI_NEEDS_UPDATE:
             self.build()
             self.flag_update_done()
@@ -466,7 +466,7 @@ cdef class Callback(Instruction):
         '''
         self.flag_update()
 
-    cdef void apply(self):
+    cdef void apply(self) except *:
         cdef RenderContext rcx
         cdef Context ctx
         cdef Shader shader
@@ -513,7 +513,7 @@ cdef class Callback(Instruction):
 
             reset_gl_context()
 
-    cdef void enter(self):
+    cdef void enter(self) except *:
         self._shader.use()
 
     property reset_context:
@@ -597,7 +597,7 @@ cdef class Canvas(CanvasBase):
         '''
         self.apply()
 
-    cdef void apply(self):
+    cdef void apply(self) except *:
         cdef float opacity = self._opacity
         cdef float rc_opacity
         cdef RenderContext rc
@@ -786,29 +786,29 @@ cdef class RenderContext(Canvas):
     cdef get_state(self, str name):
         return self.state_stacks[name][-1]
 
-    cdef void set_states(self, dict states):
+    cdef void set_states(self, dict states) except *:
         cdef str name
         for name, value in states.iteritems():
             self.set_state(name, value)
 
-    cdef void push_state(self, str name):
+    cdef void push_state(self, str name) except *:
         stack = self.state_stacks[name]
         stack.append(stack[-1])
         self.flag_update()
 
-    cdef void push_states(self, list names):
+    cdef void push_states(self, list names) except *:
         cdef str name
         for name in names:
             self.push_state(name)
 
-    cdef void pop_state(self, str name):
+    cdef void pop_state(self, str name) except *:
         stack = self.state_stacks[name]
         oldvalue = stack.pop()
         if oldvalue != stack[-1]:
             self.set_state(name, stack[-1])
             self.flag_update()
 
-    cdef void pop_states(self, list names):
+    cdef void pop_states(self, list names) except *:
         cdef str name
         for name in names:
             self.pop_state(name)
@@ -828,13 +828,13 @@ cdef class RenderContext(Canvas):
         texture.bind()
         self.flag_update()
 
-    cdef void enter(self):
+    cdef void enter(self) except *:
         self._shader.use()
 
-    cdef void leave(self):
+    cdef void leave(self) except *:
         self._shader.stop()
 
-    cdef void apply(self):
+    cdef void apply(self) except *:
         cdef list keys
         if PY2:
             keys = self.state_stacks.keys()
