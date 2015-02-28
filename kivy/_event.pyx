@@ -432,10 +432,10 @@ cdef class EventDispatcher(ObjectWithUid):
                 if observers is None:
                     continue
                 # convert the handler to a weak method
-                observers.fast_bind(WeakMethod(value), None, None, 1)
+                observers.bind(WeakMethod(value), 1)
             else:
                 ps = self.__storage[key]
-                ps.observers.fast_bind(WeakMethod(value), None, None, 1)
+                ps.observers.bind(WeakMethod(value), 1)
 
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions with similar usage as
@@ -886,7 +886,7 @@ cdef class EventObservers:
         self.last_callback = self.first_callback = None
         self.uid = 1  # start with 1 so uid is always evaluated to True
 
-    cdef inline void bind(self, object observer) except *:
+    cdef inline void bind(self, object observer, int is_ref=0) except *:
         '''Bind the observer to the event. If this observer has already been
         bound, we don't add it again.
         '''
@@ -899,7 +899,7 @@ cdef class EventObservers:
                 return
             callback = callback.next
 
-        new_callback = BoundCallback(observer, None, None, 0)
+        new_callback = BoundCallback(observer, None, None, is_ref)
         if self.first_callback is None:
             self.last_callback = self.first_callback = new_callback
         else:
