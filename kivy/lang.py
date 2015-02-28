@@ -1885,8 +1885,8 @@ class BuilderBase(object):
                 self.files.append(fn)
 
             if parser.root:
-                widget = Factory.get(parser.root.name)()
-                self._apply_rule(widget, parser.root, parser.root)
+                widget = Factory.get(parser.root.name)(__no_builder=True)
+                self.apply(widget, parser.root, parser.root)
                 return widget
         finally:
             self._current_filename = None
