@@ -151,9 +151,9 @@ class ElementSelectorBase(SelectorBase):
         self.filters.append(filter)
 
     def match_next(self, ctx, i):
-        elt = ctx[i]
+        widget = ctx[i]
         for f in self.filters:
-            if not f.match(elt):
+            if not f.match(widget):
                 return False
         return super(ElementSelectorBase, self).match_next(ctx, i)
 
@@ -173,8 +173,8 @@ class NameSelector(ElementSelectorBase):
         self.name = name
 
     def match(self, ctx, i):
-        elt = ctx[i]
-        classes = type(elt.widget).__mro__
+        widget = ctx[i]
+        classes = type(widget).__mro__
         name = self.name
         for c in classes:
             if c.__name__ == name:
@@ -200,16 +200,16 @@ class ClassSelector(FilterSelectorBase):
 
     op = "."
 
-    def match(self, elt):
-        return self.name in elt.cls
+    def match(self, widget):
+        return self.name in widget.cls
 
 
 class IdSelector(FilterSelectorBase):
 
     op = "#"
 
-    def match(self, elt):
-        return self.name == elt.id
+    def match(self, widget):
+        return self.name == widget.id
 
 
 class PrecedenceSelector(SelectorBase):
