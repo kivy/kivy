@@ -435,7 +435,7 @@ cdef class EventDispatcher(ObjectWithUid):
                 observers.fast_bind(WeakMethod(value), None, None, 1)
             else:
                 ps = self.__storage[key]
-                ps.observers.bind(value)
+                ps.observers.fast_bind(WeakMethod(value), None, None, 1)
 
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions with similar usage as
