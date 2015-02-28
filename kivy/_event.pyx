@@ -244,12 +244,14 @@ cdef class EventDispatcher(ObjectWithUid):
     def __init__(self, **kwargs):
         cdef basestring func, name, key
         cdef dict properties
-        # object.__init__ takes no parameters as of 2.6; passing kwargs
-        # triggers a DeprecationWarning or worse
-        super(EventDispatcher, self).__init__()
+        cdef list prop_args
 
         # Auto bind on own handler if exist
         properties = self.properties()
+        prop_args = [
+            (k, kwargs.pop(k)) for k in list(kwargs.keys()) if k in properties]
+        super(EventDispatcher, self).__init__(**kwargs)
+
         __cls__ = self.__class__
         if __cls__ not in cache_events_handlers:
             event_handlers = []
@@ -266,9 +268,8 @@ cdef class EventDispatcher(ObjectWithUid):
             self.fast_bind(func[3:], getattr(self, func))
 
         # Apply the existing arguments to our widget
-        for key, value in kwargs.iteritems():
-            if key in properties:
-                setattr(self, key, value)
+        for key, value in prop_args:
+            setattr(self, key, value)
 
     def register_event_type(self, basestring event_type):
         '''Register an event type with the dispatcher.
