@@ -208,6 +208,7 @@ from kivy.compat import string_types
 from kivy.config import ConfigParser
 from functools import partial
 from kivy.clock import Clock
+from kivy.weakmethod import WeakMethod
 
 cdef float g_dpi = -1
 cdef float g_density = -1
@@ -360,7 +361,7 @@ cdef class Property:
         '''Add a new observer to be called only when the value is changed.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.observers.bind(observer)
+        ps.observers.bind(WeakMethod(observer), 1)
 
     cpdef fast_bind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
         '''Similar to bind, except it doesn't check if the observer already
@@ -375,7 +376,7 @@ cdef class Property:
         '''Remove the observer from our widget observer list.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.observers.unbind(observer, 0, 0)
+        ps.observers.unbind(observer, 1, 0)
 
     cpdef fast_unbind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
         '''Remove the observer from our widget observer list bound with

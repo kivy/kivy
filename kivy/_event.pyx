@@ -414,14 +414,13 @@ cdef class EventDispatcher(ObjectWithUid):
             if __name__ == "__main__":
                 DemoApp().run()
 
-        When binding a function to an event, a
+        When binding a function to an event or property, a
         :class:`kivy.weakmethod.WeakMethod` of the callback is saved, and
         when dispatching the callback is removed if the callback reference
-        becomes invalid. For properties, the actual callback is saved.
+        becomes invalid.
 
-        Another difference between binding to an event vs a property; when
-        binding to a property, if this callback has already been bound to this
-        property, it won't be added again. For events, we don't do this check.
+        If a callback has already been bound to a given event or property,
+        it won't be added again.
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps
@@ -433,25 +432,22 @@ cdef class EventDispatcher(ObjectWithUid):
                 if observers is None:
                     continue
                 # convert the handler to a weak method
-                observers.fast_bind(WeakMethod(value), None, None, 1)
+                observers.bind(WeakMethod(value), 1)
             else:
                 ps = self.__storage[key]
-                ps.observers.bind(value)
+                ps.observers.bind(WeakMethod(value), 1)
 
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions with similar usage as
         :meth:`bind`.
 
-        One difference between unbinding from
-        an event vs. property, is that when unbinding from an event, we
-        stop after the first callback match. For properties, we remove all
-        matching callbacks.
+        If a callback has been bound to a given event or property multiple
+        times, only the first occurrence will be unbound.
 
         .. note::
             
-            A callback bound with :meth:`fast_bind` without any largs or
-            kwargs is equivalent to one bound with :meth:`bind` so either
-            :meth:`unbind` or :meth:`fast_unbind` will unbind it.
+            This method may fail to unbind a callback bound with
+            :meth:`fast_bind; you should use :meth:`fast_unbind` instead.
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps
@@ -465,7 +461,7 @@ cdef class EventDispatcher(ObjectWithUid):
                 observers.unbind(value, 1, 1)
             else:
                 ps = self.__storage[key]
-                ps.observers.unbind(value, 0, 0)
+                ps.observers.unbind(value, 1, 1)
 
     def fast_bind(self, name, func, *largs, **kwargs):
         '''A method for faster binding. This method is somewhat different than
@@ -887,7 +883,7 @@ cdef class EventObservers:
         self.last_callback = self.first_callback = None
         self.uid = 1  # start with 1 so uid is always evaluated to True
 
-    cdef inline void bind(self, object observer) except *:
+    cdef inline void bind(self, object observer, int is_ref=0) except *:
         '''Bind the observer to the event. If this observer has already been
         bound, we don't add it again.
         '''
@@ -895,12 +891,18 @@ cdef class EventObservers:
         cdef BoundCallback new_callback
 
         while callback is not None:
+            if is_ref and not callback.is_ref:
+                cb_equal = callback.func == observer()
+            elif callback.is_ref and not is_ref:
+                cb_equal = callback.func() == observer
+            else:
+                cb_equal = callback.func == observer
             if (callback.lock != deleted and callback.largs is None and
-                callback.kwargs is None and callback.func == observer):
+                callback.kwargs is None and cb_equal):
                 return
             callback = callback.next
 
-        new_callback = BoundCallback(observer, None, None, 0)
+        new_callback = BoundCallback(observer, None, None, is_ref)
         if self.first_callback is None:
             self.last_callback = self.first_callback = new_callback
         else:
