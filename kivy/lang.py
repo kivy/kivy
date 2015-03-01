@@ -287,6 +287,30 @@ The Button text changes with the state of the button. By default, the button
 text will be 'Plop world', but when the button is being pressed, the text will
 change to 'Release me!'.
 
+More precisely, the kivy language parser detects all substrings of the form
+`X.a.b` where `X` is `self` or `root` or `app` or a known id, and `a` and `b`
+are properties: it then adds the appropriate dependencies to cause the
+the constraint to be reevaluated whenever something changes.  For example,
+this works exactly as expected::
+
+    <IndexedExample>:
+        beta: self.a.b[self.c.d]
+
+However, due to limitations in the parser which hopefully may be lifted in the
+future, the following doesn't work::
+
+    <BadExample>:
+        beta: self.a.b[self.c.d].e.f
+
+indeed the `.e.f` part is not recognized because it doesn't follow the expected
+pattern, and so, does not result in an appropriate dependency being setup.
+Instead, an intermediate property should be introduced to allow the following
+constraint::
+
+    <GoodExample>:
+        alpha: self.a.b[self.c.d]
+        beta:  self.alpha.e.f
+
 
 Graphical Instructions
 ----------------------
