@@ -445,9 +445,8 @@ cdef class EventDispatcher(ObjectWithUid):
 
         .. note::
             
-            A callback bound with :meth:`fast_bind` without any largs or
-            kwargs is equivalent to one bound with :meth:`bind` so either
-            :meth:`unbind` or :meth:`fast_unbind` will unbind it.
+            This method may fail to unbind a callback bound with
+            :meth:`fast_bind; you should use :meth:`fast_unbind` instead.
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps

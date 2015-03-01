@@ -376,7 +376,7 @@ cdef class Property:
         '''Remove the observer from our widget observer list.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.observers.unbind(observer, 0, 0)
+        ps.observers.unbind(observer, 1, 0)
 
     cpdef fast_unbind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
         '''Remove the observer from our widget observer list bound with
