@@ -890,12 +890,14 @@ cdef class EventObservers:
         cdef BoundCallback new_callback
 
         while callback is not None:
-            if is_ref and callback.is_ref:
-                f = callback.func()
+            if is_ref and not callback.is_ref:
+                cb_equal = callback == observer()
+            elif callback.is_ref and not is_ref:
+                cb_equal = callback() == observer
             else:
-                f = callback.func
+                cb_equal = callback == observer
             if (callback.lock != deleted and callback.largs is None and
-                callback.kwargs is None and f == observer):
+                callback.kwargs is None and cb_equal):
                 return
             callback = callback.next
 
