@@ -80,22 +80,26 @@ class PageLayout(Layout):
         x_parent, y_parent = self.pos
         p = self.page
         border = self.border
+        half_border = border / 2.
         right = self.right
+        width = self.width - border
         for i, c in enumerate(reversed(self.children)):
-            if not i or i == l_children:
-                width = self.width - border
-            else:
-                width = self.width - 2 * border
+            not i or i == l_children
 
             if i < p:
                 x = x_parent
             elif i == p:
-                if not p:
+                if not p:  # it's first page
                     x = x_parent
-                else:
+                elif p != l_children:  # not first, but there are post pages
+                    x = x_parent + half_border
+                else:  # not first and there are no post pages
                     x = x_parent + border
             elif i == p + 1:
-                x = right - border
+                if not p:  # second page - no left margin
+                    x = right - border
+                else:  # there's already a left margin
+                    x = right - half_border
             else:
                 x = right
 
@@ -108,65 +112,74 @@ class PageLayout(Layout):
                 d=.5, t='in_quad').start(c)
 
     def on_touch_down(self, touch):
-        if self.y < touch.y < self.top:
-            if self.page > 0 and self.x < touch.x < (self.x + self.border):
-                touch.ud['page'] = 'previous'
-                touch.grab(self)
-                return True
+        if (self.disabled or not self.collide_point(*touch.pos) or
+            not self.children):
+            return
 
-            elif (
-                self.page < len(self.children) - 1 and
-                self.right > touch.x > (self.right - self.border)
-            ):
-                touch.ud['page'] = 'next'
-                touch.grab(self)
-                return True
-
-        return self.children[-self.page - 1].on_touch_down(touch)
+        page = self.children[-self.page - 1]
+        if self.x <= touch.x < page.x:
+            touch.ud['page'] = 'previous'
+            touch.grab(self)
+            return True
+        elif page.right <= touch.x < self.right:
+            touch.ud['page'] = 'next'
+            touch.grab(self)
+            return True
+        return page.on_touch_down(touch)
 
     def on_touch_move(self, touch):
-        if touch.grab_current == self:
-            if touch.ud['page'] == 'previous':
-                # move next page upto right edge
-                if self.page < len(self.children) - 1:
-                    self.children[-self.page - 2].x = min(
-                        self.right - self.border * (1 - (touch.sx - touch.osx)),
-                        self.right)
+        if touch.grab_current != self:
+            return
 
-                # move current page until edge hits the right border
-                if self.page >= 1:
-                    self.children[-self.page - 1].x = max(min(
-                        self.x + self.border + (touch.x - touch.ox),
-                        self.right - self.border),
-                        self.x + self.border)
+        p = self.page
+        border = self.border
+        half_border = border / 2.
+        page = self.children[-p - 1]
+        if touch.ud['page'] == 'previous':
+            # move next page upto right edge
+            if p < len(self.children) - 1:
+                self.children[-p - 2].x = min(
+                    self.right - self.border * (1 - (touch.sx - touch.osx)),
+                    self.right)
 
-                # move previous page left edge upto left border
-                if self.page > 1:
-                    self.children[-self.page].x = min(
-                        self.x + self.border * (touch.sx - touch.osx),
-                        self.x + self.border)
+            # move current page until edge hits the right border
+            if p >= 1:
+                b_right = half_border if p > 1 else border
+                b_left = half_border if p < len(self.children) - 1 else border
+                self.children[-p - 1].x = max(min(
+                    self.x + b_left + (touch.x - touch.ox),
+                    self.right - b_right),
+                    self.x + b_left)
 
-            elif touch.ud['page'] == 'next':
-                # move current page upto left edge
-                if self.page >= 1:
-                    self.children[-self.page - 1].x = max(
-                        self.x + self.border * (1 - (touch.osx - touch.sx)),
-                        self.x)
+            # move previous page left edge upto left border
+            if p > 1:
+                self.children[-p].x = min(
+                    self.x + half_border * (touch.sx - touch.osx),
+                    self.x + half_border)
 
-                # move next page until its edge hit the left border
-                if self.page < len(self.children) - 1:
-                    self.children[-self.page - 2].x = min(max(
-                        self.right - self.border + (touch.x - touch.ox),
-                        self.x + self.border),
-                        self.right - self.border)
+        elif touch.ud['page'] == 'next':
+            # move current page upto left edge
+            if p >= 1:
+                self.children[-p - 1].x = max(
+                    self.x + half_border * (1 - (touch.osx - touch.sx)),
+                    self.x)
 
-                # move second next page upto right border
-                if self.page < len(self.children) - 2:
-                    self.children[-self.page - 3].x = max(
-                        self.right + self.border * (touch.sx - touch.osx),
-                        self.right - self.border)
+            # move next page until its edge hit the left border
+            if p < len(self.children) - 1:
+                b_right = half_border if p >= 1 else border
+                b_left = half_border if p < len(self.children) - 2 else border
+                self.children[-p - 2].x = min(max(
+                    self.right - b_right + (touch.x - touch.ox),
+                    self.x + b_left),
+                    self.right - b_right)
 
-        return self.children[-self.page - 1].on_touch_move(touch)
+            # move second next page upto right border
+            if p < len(self.children) - 2:
+                self.children[-p - 3].x = max(
+                    self.right + half_border * (touch.sx - touch.osx),
+                    self.right - half_border)
+
+        return page.on_touch_move(touch)
 
     def on_touch_up(self, touch):
         if touch.grab_current == self:
