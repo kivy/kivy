@@ -891,11 +891,11 @@ cdef class EventObservers:
 
         while callback is not None:
             if is_ref and not callback.is_ref:
-                cb_equal = callback == observer()
+                cb_equal = callback.func == observer()
             elif callback.is_ref and not is_ref:
-                cb_equal = callback() == observer
+                cb_equal = callback.func() == observer
             else:
-                cb_equal = callback == observer
+                cb_equal = callback.func == observer
             if (callback.lock != deleted and callback.largs is None and
                 callback.kwargs is None and cb_equal):
                 return
