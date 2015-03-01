@@ -413,14 +413,13 @@ cdef class EventDispatcher(ObjectWithUid):
             if __name__ == "__main__":
                 DemoApp().run()
 
-        When binding a function to an event, a
+        When binding a function to an event or property, a
         :class:`kivy.weakmethod.WeakMethod` of the callback is saved, and
         when dispatching the callback is removed if the callback reference
-        becomes invalid. For properties, the actual callback is saved.
+        becomes invalid.
 
-        Another difference between binding to an event vs a property; when
-        binding to a property, if this callback has already been bound to this
-        property, it won't be added again. For events, we don't do this check.
+        If a callback has already been bound to a given event or property,
+        it won't be added again.
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps
@@ -441,10 +440,8 @@ cdef class EventDispatcher(ObjectWithUid):
         '''Unbind properties from callback functions with similar usage as
         :meth:`bind`.
 
-        One difference between unbinding from
-        an event vs. property, is that when unbinding from an event, we
-        stop after the first callback match. For properties, we remove all
-        matching callbacks.
+        If a callback has been bound to a given event or property multiple
+        times, only the first occurrence will be unbound.
 
         .. note::
             
@@ -464,7 +461,7 @@ cdef class EventDispatcher(ObjectWithUid):
                 observers.unbind(value, 1, 1)
             else:
                 ps = self.__storage[key]
-                ps.observers.unbind(value, 0, 0)
+                ps.observers.unbind(value, 1, 1)
 
     def fast_bind(self, name, func, *largs, **kwargs):
         '''A method for faster binding. This method is somewhat different than
@@ -894,8 +891,12 @@ cdef class EventObservers:
         cdef BoundCallback new_callback
 
         while callback is not None:
+            if is_ref and callback.is_ref:
+                f = callback.func()
+            else:
+                f = callback.func
             if (callback.lock != deleted and callback.largs is None and
-                callback.kwargs is None and callback.func == observer):
+                callback.kwargs is None and f == observer):
                 return
             callback = callback.next
 
