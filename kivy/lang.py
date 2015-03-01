@@ -1911,8 +1911,10 @@ class BuilderBase(object):
             cname = crule.name
 
             if cname in ('canvas', 'canvas.before', 'canvas.after'):
-                raise Exception('canvas instructions added in kv must '
-                                'be declared before child widgets.')
+                raise ParserException(
+                    crule.ctx, crule.line,
+                    'Canvas instructions added in kv must '
+                    'be declared before child widgets.')
 
             # depending if the child rule is a template or not, we are not
             # having the same approach
