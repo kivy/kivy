@@ -14,6 +14,78 @@ of a widget whose python class inherits from `B` and whose `cls` property has
 elements `p1`and `p2`, and which itself is a descendant of a widget whose Python
 class inherits from `A`.
 
+Here is a (not very good) example::
+
+    ScreenManager:
+        Screen:
+            id: one
+        Screen:
+            id: two
+    
+    <Screen>:
+        id: screen
+        BoxLayout:
+            orientation: "vertical"
+            id: screen-layout
+            Label:
+                id: banner
+                size_hint: 1,None
+                height: dp(50)
+            Button:
+                id: button1
+                screen: screen
+    
+    <<Screen#one>>:
+        name: "un"
+    
+    <<Screen#two>>:
+        name: "deux"
+    
+    <<Screen#one Label#banner>>:
+        text: "Screen 1"
+    
+    <<Screen#two Label#banner>>:
+        text: "Screen 2"
+    
+    <<Screen#one Button#button1>>:
+        text: "To Screen 2"
+        on_release:
+            root.screen.manager.transition.direction = "left"
+            root.screen.manager.current = "deux"
+    
+    <<Screen#two Button#button1>>:
+        text: "To Screen 1"
+        on_release:
+            root.screen.manager.transition.direction = "right"
+            root.screen.manager.current = "un"
+
+
+It is also possible to use nesting of contextual rules: a nested contextual
+rule inherits as a prefix the css selectors of the contextual rules it is
+nested in.  For example, the above contextual rules could also equivalently
+be written as follows::
+
+    <<Screen#one>>:
+        name: "un"
+        <<Label#banner>>:
+            text: "Screen 1"
+        <<Button#button1>>:
+            text: "To Screen 2"
+            on_release:
+                root.screen.manager.transition.direction = "left"
+                root.screen.manager.current = "deux"
+    
+    <<Screen#two>>:
+        name: "deux"
+        <<Label#banner>>:
+            text: "Screen 2"
+        <<Button#button1>>:
+            text: "To Screen 1"
+            on_release:
+                root.screen.manager.transition.direction = "right"
+                root.screen.manager.current = "un"
+
+
 Caveats
 -------
 
