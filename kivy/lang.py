@@ -1013,6 +1013,10 @@ class ParserRule(object):
 
     def __init__(self, ctx, line, name, level):
         super(ParserRule, self).__init__()
+        # contextual rules are always top-level even when they were
+        # specified using nesting (for convenience)
+        if name.startswith("<<"):
+            level=0
         #: Level of the rule in the kv
         self.level = level
         #: Associated parser
@@ -1186,7 +1190,8 @@ class Parser(object):
         list(range(ord('0'), ord('9') + 1)) + [ord('_')])
 
     __slots__ = ('rules', 'templates', 'root', 'sourcecode',
-                 'directives', 'filename', 'dynamic_classes')
+                 'directives', 'filename', 'dynamic_classes',
+                 'nested_css_rules')
 
     def __init__(self, **kwargs):
         super(Parser, self).__init__()
@@ -1196,6 +1201,7 @@ class Parser(object):
         self.sourcecode = []
         self.directives = []
         self.dynamic_classes = {}
+        self.nested_css_rules = []
         self.filename = kwargs.get('filename', None)
         content = kwargs.get('content', None)
         if content is None:
@@ -1329,7 +1335,7 @@ class Parser(object):
             if not stripped:
                 lines.remove((ln, line))
 
-    def parse_level(self, level, lines, spaces=0):
+    def parse_level(self, level, lines, spaces=0, current_cssobject=None):
         '''Parse the current level (level * spaces) indentation.
         '''
         indent = spaces * level if spaces > 0 else 0
@@ -1381,12 +1387,24 @@ class Parser(object):
                 # if it's not a root rule, then we got some restriction
                 # aka, a valid name, without point or everything else
                 if count != 0:
-                    if False in [ord(z) in Parser.PROP_RANGE for z in name]:
+                    if name.startswith("<<"):
+                        if not current_cssobject:
+                            raise ParserException(
+                                self, ln,
+                                'a contextual rule must be top-level or nested within another contextual rule')
+                        else:
+                            # nested contextual rule: add the selector of the containing
+                            # rule as a prefix
+                            name = " ".join((current_cssobject.name[:-2], name[2:]))
+                    elif False in [ord(z) in Parser.PROP_RANGE for z in name]:
                         raise ParserException(self, ln, 'Invalid class name')
 
-                current_object = ParserRule(self, ln, x[0], rlevel)
+                current_object = ParserRule(self, ln, name, rlevel)
                 current_property = None
-                objects.append(current_object)
+                if level > 0 and name.startswith("<<"):
+                    self.nested_css_rules.append(current_object)
+                else:
+                    objects.append(current_object)
 
             # Next level, is it a property or an object ?
             elif count == indent + spaces:
@@ -1394,15 +1412,21 @@ class Parser(object):
                 if not len(x[0]):
                     raise ParserException(self, ln, 'Identifier missing')
 
-                # It's a class, add to the current object as a children
                 current_property = None
                 name = x[0]
-                if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+':
+                if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+' or name.startswith("<<"):
+                    # It's a class, add to the current object as a children
                     _objects, _lines = self.parse_level(
-                        level + 1, lines[i:], spaces)
+                        level + 1, lines[i:], spaces,
+                        current_cssobject=current_object if current_object.name.startswith("<<") else None)
                     current_object.children = _objects
                     lines = _lines
                     i = 0
+                    # if we are at the top-level and nested contextual rules have been encountered
+                    # then tack them on to the end of top-level objects
+                    if level==0 and self.nested_css_rules:
+                        objects.extend(self.nested_css_rules)
+                        self.nested_css_rules = []
 
                 # It's a property
                 else:
