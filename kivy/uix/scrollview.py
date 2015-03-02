@@ -921,6 +921,9 @@ class ScrollView(StencilView):
             return
         uid = self._get_uid()
         touch = self._touch
+        if uid not in touch.ud:
+            self._touch = False
+            return
         ud = touch.ud[uid]
         if ud['mode'] != 'unknown' or ud['user_stopped']:
             return
