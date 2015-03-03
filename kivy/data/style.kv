@@ -70,9 +70,9 @@
             size: self.width, 24
             source: 'atlas://data/images/defaulttheme/progressbar_background'
         BorderImage:
-            border: [int(min(self.width * (self.value / float(self.max)) if self.max else 0, 12))] * 4
-            pos: self.x, self.center_y - 12
-            size: self.width * (self.value / float(self.max)) if self.max else 0, 24
+            border: [int(min(self.width * (self.value / float(self.max)) if (self.max and self.value is not None) else 0, 12))] * 4
+            pos: self.x if self.value is not None else self.x + (sin(self._time*2*pi/self.undefined_period_time) + 1) / 2 * self.width * (1 - self.undefined_hint_size), self.center_y - 12
+            size: self.width * (self.value / float(self.max)) if (self.max and self.value is not None) else self.width * self.undefined_hint_size if self.value is None else 0, 24
             source: 'atlas://data/images/defaulttheme/progressbar'
 
 <SplitterStrip>:

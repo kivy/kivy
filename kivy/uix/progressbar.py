@@ -25,6 +25,7 @@ To use it, simply assign a value to indicate the current progress::
 
 __all__ = ('ProgressBar', )
 
+from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, AliasProperty
 
@@ -43,10 +44,40 @@ class ProgressBar(Widget):
         return self._value
 
     def _set_value(self, value):
+        if value is None and self._value is not None:
+            self._value = None
+            Clock.schedule_once(self._increment_time)
+            return True
         value = max(0, min(self.max, value))
         if value != self._value:
             self._value = value
             return True
+            
+    def _increment_time(self, dt):
+        if self.value is None:
+            self._time += Clock.frametime
+            Clock.schedule_once(self._increment_time)
+        else:
+            self._time = 0
+            
+    _time = NumericProperty(0.)
+    
+    undefined_period_time = NumericProperty(2.0)
+    '''Time taken (in seconds) by the indicator to do a round-trip.
+    
+    :attr:`undefined_frequency` is an :class:`~kivy.properties.NumericProperty`.
+    Default value: 2 
+    
+    '''
+    
+    undefined_hint_size = BoundedNumericProperty(0.2, min=0, max=1)
+    '''Relative size of the indicator.
+    
+    :attr:`undefined_frequency` is an :class:`~kivy.properties.BoundedNumericProperty`
+    between 0 and 1.
+    Default value: 0.2
+    
+    '''
 
     value = AliasProperty(_get_value, _set_value)
     '''Current value used for the slider.
@@ -63,6 +94,8 @@ class ProgressBar(Widget):
         d = self.max
         if d == 0:
             return 0
+        if self.value is None:
+            return None
         return self.value / float(d)
 
     def set_norm_value(self, value):
@@ -90,6 +123,11 @@ class ProgressBar(Widget):
 
 
 if __name__ == '__main__':
-
+    from kivy.uix.boxlayout import BoxLayout
     from kivy.base import runTouchApp
-    runTouchApp(ProgressBar(value=50))
+    bl = BoxLayout(orientation='vertical')
+    bl.add_widget(ProgressBar(value=50))
+    bl.add_widget(ProgressBar(value=None))
+    bl.add_widget(ProgressBar(value=None, undefined_hint_size = 0.6))
+    bl.add_widget(ProgressBar(value=None, undefined_hint_size = 0.6, undefined_period_time = 1))
+    runTouchApp(bl)
