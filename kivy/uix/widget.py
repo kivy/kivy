@@ -464,13 +464,15 @@ class Widget(WidgetBase):
         canvas = self.canvas.before if canvas == 'before' else \
             self.canvas.after if canvas == 'after' else self.canvas
 
-        if index == 0 or len(self.children) == 0:
+        if index > len(self.children):
+            raise ValueError
+        elif index == 0 or len(self.children) == 0:
             self.children.insert(0, widget)
             canvas.add(widget.canvas)
         else:
             canvas = self.canvas
             children = self.children
-            if index >= len(children):
+            if index == len(children):
                 index = len(children)
                 next_index = 0
             else:
