@@ -394,7 +394,7 @@ else:
             range_min_abs_pressure = 0
             range_max_abs_pressure = 255
             invert_x = int(bool(drs('invert_x', 0)))
-            invert_y = int(bool(drs('invert_y', 0)))
+            invert_y = int(bool(drs('invert_y', 1)))
             rotation = drs('rotation', 0)
 
             def assign_coord(point, value, invert, coords):
@@ -413,7 +413,7 @@ else:
             def assign_rel_coord(point, value, invert, coords):
                 cx, cy = coords
                 if invert:
-                    value = 1. - value
+                    value = -1 * value
                 if rotation == 0:
                     point[cx] += value
                 elif rotation == 90:
