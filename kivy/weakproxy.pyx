@@ -29,7 +29,10 @@ cdef class WeakProxy(object):
             return self.__ref__().__class__
 
     def __dir__(self):
-        return dir(self.__ref__())
+        r = self.__ref()
+        if not r:
+            return []
+        return dir(r)
 
     def __reversed__(self):
         return reversed(self.__ref__())
@@ -276,14 +279,14 @@ cdef class WeakProxy(object):
         return iter(self.__ref__())
 
     def __bytes__(self):
-        return bytes(self.__ref__())
+        return bytes(self.__ref())
 
     def __str__(self):
-        return str(self.__ref__())
+        return str(self.__ref())
 
     def __unicode__(self):
-        return unicode(self.__ref__())
+        return unicode(self.__ref())
 
     def __repr__(self):
-        return b'<WeakProxy to {!r}>'.format(self.__ref__())
+        return b'<WeakProxy to {!r}>'.format(self.__ref())
 
