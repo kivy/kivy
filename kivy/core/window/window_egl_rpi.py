@@ -16,7 +16,9 @@ class WindowEglRpi(WindowBase):
 
     def create_window(self):
         bcm.host_init()
-        Config.set('modules', 'cursor', 'true')        
+        
+        if None is Config.getdefault('modules', 'cursor', None):
+            Config.set('modules', 'cursor', 'true')
 
         w, h = bcm.graphics_get_display_size(0)
         Logger.debug('Window: Actual display size: {}x{}'.format(
