@@ -300,11 +300,6 @@ class Widget(WidgetBase):
         _widget_destructors[self.uid] = (f, _proxy_ref)
         return _proxy_ref
 
-    def __eq__(self, other):
-        if not isinstance(other, Widget):
-            return False
-        return self.proxy_ref is other.proxy_ref
-
     def __hash__(self):
         return id(self)
 
