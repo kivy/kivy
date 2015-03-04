@@ -1,34 +1,21 @@
 '''
-Touchring
+Cursor
 =========
 
-Shows rings around every touch on the surface / screen. You can use this module
-to check that you don't have any calibration issues with touches.
+Displays an artistic cursor texture pointing at the position of the mouse cursor. This is practical for use with the egl_rpi window that is drawn right into the framebuffer and has no cursor by default.
 
 Configuration
 -------------
 
 :Parameters:
-    `image`: str, defaults to '<kivy>/data/images/ring.png'
-        Filename of the image to use.
-    `scale`: float, defaults to 1.
-        Scale of the image.
-    `alpha`: float, defaults to 1.
-        Opacity of the image.
-    `show_cursor`: boolean, defaults to False
-        .. versionadded:: 1.8.0
-    `cursor_texture`: str, defaults to
-        'data/images/cursor.png' Image used to
-        represent the cursor if displayed
-        .. versionadded:: 1.8.0
     `cursor_size`: tuple, defaults to (40, 40)
         Apparent size of the mouse cursor, if displayed, (None,None) value
         will keep its real size.
-        .. versionadded:: 1.8.0
+        .. versionadded:: 1.9.0
     `cursor_offset`: tuple, defaults to (None, None)
         Offset of the texture image. The default value will align the
         top-left corner of the image to the mouse pos.
-        .. versionadded:: 1.8.0
+        .. versionadded:: 1.9.0
 
 Example
 -------
@@ -37,8 +24,7 @@ In your configuration (`~/.kivy/config.ini`), you can add something like
 this::
 
     [modules]
-    touchring = image=mypointer.png,scale=.3,alpha=.7
-
+    cursor = cursor_size=(20,20),cursor_offset=(0,0)
 '''
 
 __all__ = ('start', 'stop')
@@ -55,7 +41,6 @@ cursor_size = (20, 20)
 
 
 def _mouse_move(win, pos, *args):
-    print "move"
     if hasattr(win, '_cursor'):
         c = win._cursor
     else:
