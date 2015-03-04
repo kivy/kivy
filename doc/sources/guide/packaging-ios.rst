@@ -10,6 +10,7 @@ Create a package for IOS
     From the 4th march 2015, the toolchain for iOS has been rewritten. The
     previous instructions doesn't work anymore. If you still want to use the
     older version, try the old-toolchain tag in git.
+    The new version supports i386, x86_64, armv7, arm64 = it works on emulator.
 
 .. note::
 
