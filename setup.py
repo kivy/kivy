@@ -24,7 +24,7 @@ else:
 
 if PY3:  # fix error with py3's LooseVersion comparisons
     def ver_equal(self, other):
-        return self.version == other.version
+        return self.version == other
 
     LooseVersion.__eq__ = ver_equal
 
