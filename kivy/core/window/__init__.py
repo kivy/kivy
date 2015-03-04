@@ -521,11 +521,11 @@ class WindowBase(EventDispatcher):
 
     def __init__(self, **kwargs):
 
-        kwargs.setdefault('force', False)
+        force = kwargs.pop('force', False)
 
         # don't init window 2 times,
         # except if force is specified
-        if WindowBase.__instance is not None and not kwargs.get('force'):
+        if WindowBase.__instance is not None and not force:
             return
 
         self.initialized = False

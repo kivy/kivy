@@ -187,6 +187,7 @@ __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
 from kivy.compat import iteritems
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
+from kivy.clock import Clock
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import (StringProperty, ObjectProperty, AliasProperty,
                              NumericProperty, ListProperty, OptionProperty,
@@ -196,7 +197,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
 from kivy.graphics import (RenderContext, Rectangle, Fbo,
                            ClearColor, ClearBuffers, BindTexture, PushMatrix,
-                           PopMatrix, Translate)
+                           PopMatrix, Translate, Callback)
 
 
 class ScreenManagerException(Exception):
@@ -481,10 +482,21 @@ class ShaderTransition(TransitionBase):
         self.render_ctx['t'] = 1.
         super(ShaderTransition, self).on_complete()
 
+    def _remove_out_canvas(self, *args):
+        if (self.screen_out
+                and self.screen_out.canvas in self.manager.canvas.children
+                and self.screen_out not in self.manager.children):
+            self.manager.canvas.remove(self.screen_out.canvas)
+
     def add_screen(self, screen):
         self.screen_in.pos = self.screen_out.pos
         self.screen_in.size = self.screen_out.size
         self.manager.real_remove_widget(self.screen_out)
+        self.manager.canvas.add(self.screen_out.canvas)
+
+        def remove_screen_out(instr):
+            Clock.schedule_once(self._remove_out_canvas, -1)
+            self.render_ctx.remove(instr)
 
         self.fbo_in = self.make_screen_fbo(self.screen_in)
         self.fbo_out = self.make_screen_fbo(self.screen_out)
@@ -501,6 +513,7 @@ class ShaderTransition(TransitionBase):
             w, h = self.fbo_in.texture.size
             Rectangle(size=(w, h), pos=(x, y),
                       tex_coords=self.fbo_in.texture.tex_coords)
+            Callback(remove_screen_out)
         self.render_ctx['tex_out'] = 1
         self.render_ctx['tex_in'] = 2
         self.manager.canvas.add(self.render_ctx)
@@ -509,7 +522,12 @@ class ShaderTransition(TransitionBase):
         self.manager.canvas.remove(self.fbo_in)
         self.manager.canvas.remove(self.fbo_out)
         self.manager.canvas.remove(self.render_ctx)
+        self._remove_out_canvas()
         self.manager.real_add_widget(self.screen_in)
+
+    def stop(self):
+        self._remove_out_canvas()
+        super(ShaderTransition, self).stop()
 
 
 class NoTransition(TransitionBase):
@@ -909,8 +927,8 @@ class ScreenManager(FloatLayout):
             self.transition.screen_out = previous_screen
             self.transition.start(self)
         else:
-            screen.pos = self.pos
             self.real_add_widget(screen)
+            self.do_layout()
             screen.dispatch('on_pre_enter')
             screen.dispatch('on_enter')
 
