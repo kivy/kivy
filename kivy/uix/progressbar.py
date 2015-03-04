@@ -27,7 +27,7 @@ __all__ = ('ProgressBar', )
 
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
-from kivy.properties import NumericProperty, AliasProperty
+from kivy.properties import NumericProperty, AliasProperty, BoundedNumericProperty
 
 
 class ProgressBar(Widget):
