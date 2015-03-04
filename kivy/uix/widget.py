@@ -178,7 +178,7 @@ from kivy.graphics import (Canvas, Translate, Fbo, ClearColor, ClearBuffers,
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
-from weakref import proxy
+from kivy.weakproxy import WeakProxy
 from functools import partial
 from itertools import islice
 
@@ -293,17 +293,12 @@ class Widget(WidgetBase):
             return _proxy_ref
 
         f = partial(_widget_destructor, self.uid)
-        self._proxy_ref = _proxy_ref = proxy(self, f)
+        self._proxy_ref = _proxy_ref = WeakProxy(self, f)
         # Only f should be enough here, but it appears that is a very
         # specific case, the proxy destructor is not called if both f and
         # _proxy_ref are not together in a tuple.
         _widget_destructors[self.uid] = (f, _proxy_ref)
         return _proxy_ref
-
-    def __eq__(self, other):
-        if not isinstance(other, Widget):
-            return False
-        return self.proxy_ref is other.proxy_ref
 
     def __hash__(self):
         return id(self)
