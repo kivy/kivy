@@ -48,7 +48,6 @@ __all__ = ('start', 'stop')
 
 from kivy.core.image import Image
 from kivy.graphics import Color, Rectangle
-from kivy.logger import Logger
 from kivy import kivy_data_dir
 from os.path import join
 
