@@ -163,10 +163,125 @@ propogated before taking action. You can use the
                 Clock.schedule_once(lambda dt: self.on_touch_down(touch, True))
                 return super(MyLabel, self).on_touch_down(touch)
 
+Widget selector usage
+---------------------
+
+.. code-block:: python
+
+    class SelectorUsage(BoxLayout):
+        def __init__(self, **kwargs):
+            super(SelectorUsage, self).__init__(**kwargs)
+
+            # A select() call with no arguments returns a generator with the 
+            # caller widget and its children, recursively.
+            cats = self.ids.cats.select()
+
+            # Create a Python list that contains the matching widgets.
+            cat_list = list(cats)
+
+            # To implement your own matching algorithm, use a function
+            # callback. Every widget is passed to the function, and you must
+            # return True to produce a match.
+            self.select(self.global_callback)
+
+            # A widget can be associated with one or more tags.
+            # Their 'tags' property must always hold a list, but when matching
+            # against them, select(tags=<value>) also accepts strings, tuples
+            # and functions.
+
+            # These examples will match the Label instance:
+            Label(tags=['cats']).select(tags='cats')
+            Label(tags=['cats']).select(tags=('cats',))
+            Label(tags=['cats', 'dogs']).select(tags='cats')
+            Label(tags=['cats', 'dogs']).select(tags=['cats'])
+
+            # A widget is matched when all the passed tags are in its tag list.
+
+            # Match:
+            Label(tags=['a', 'b', 'c']).select(tags=('c', 'a'))
+            # No match:
+            Label(tags=['a', 'b', 'c']).select(tags=('c', 'a', 'k'))
+
+            # To implement your own tag matching algorithm, use a function
+            # callback. Every widget's 'tags' property is passed to the
+            # function.
+            Label(tags=['cats']).select(tags=self.tags_callback)
+
+            # Widgets can be matched by their class name.
+            self.select('Label')
+            self.select('CustomWidget')
+
+            # Any widget property can be matched, exact matching is executed
+            # by default (except for 'tags', where a list intersection is 
+            # performed). Every passed property must exist and they must
+            # match with the respective widget's properties to produce a 
+            # matching widget.
+
+            # Match:
+            Label(tags=['a'], text='cats').select(tags='a', text='cats')
+            # No match:
+            Label(tags=['a'], text='cats', opacity=0).select(
+                tags='a', text='cats', opacity=1)
+
+            # All properties support matching by passing a function callback.
+            self.select(font_size=self.prop_callback)
+
+            # Selection filters can be combined, all of them must match to
+            # produce a match.
+            self.select('Button', self.callback,  tags='cats',
+                font_size=self.prop_callback)
+
+            # Selections can also be chained. select() uses the caller widget
+            # instance as a temporary root to walk the tree, or a list of
+            # widgets returned by the previous select() in the chain.
+            self.select('Button', tags='cats').select(opacity=0.6)
+
+            # Update the 'text' and 'font_size' properties (only if they exist)
+            # for all matching widgets.
+            cats = self.select('Button')
+            cats.text = 'Bigger cats!'
+            cats.font_size = 70
+
+            self.select('Button').text = 'Even bigger cats!'
+            self.select('Button').font_size = 90
+
+            # Bind all matching widgets.
+            self.select(tags='missing').bind(parent=self.bind_callback)
+
+            # Unbind all matching widgets.
+            self.select(tags='bald').unbind(parent=self.bind_callback)
+
+            # Remove all matching widgets.
+            self.select(tags='missing').detach()
+
+            # Properties holding lists and dictionaries cannot be partially
+            # updated, they must be replaced.
+            self.select(text='Even bigger cats!').color = [1, 0, 0, 1]
+
+            # If partial updates are preferred, iterating over the matched
+            # widgets is supported.
+            for widget in self.select('Label'):
+                widget.color[3] = 0.5
+
+        def global_callback(self, widget):
+            if (hasattr(widget, 'text') and widget.text == 'cats' and
+                widget.opacity != 0.5):
+                return True
+
+        def tags_callback(self, value):
+            if 'cats' in value and 'dogs' not in value:
+                return True
+
+        def prop_callback(self, value):
+            if isinstance(value, int) and value > 8:
+                return True
+
+        def bind_callback(self):
+            print('Missing pets removed.')
 '''
 from kivy.graphics.transformation import Matrix
 
-__all__ = ('Widget', 'WidgetException')
+__all__ = ('Widget', 'WidgetException', 'Selector')
 
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
@@ -178,6 +293,7 @@ from kivy.graphics import (Canvas, Translate, Fbo, ClearColor, ClearBuffers,
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
+from kivy.compat import string_types
 from weakref import proxy
 from functools import partial
 from itertools import islice
@@ -194,6 +310,130 @@ def _widget_destructor(uid, r):
     # created in kv language.
     del _widget_destructors[uid]
     Builder.unbind_widget(uid)
+
+
+class Selector(object):
+    '''Selector class. Used to select and manipulate widgets based on certain
+    filters. See module documentation for more information.
+
+    .. versionadded:: 1.9.0
+
+    .. warning::
+        This code is still experimental, and its API is subject to change
+        in a future version.
+    '''
+    __slots__ = ('_roots', '_cls', '_callback', '_tags', '_tags_callback',
+        '_props')
+
+    def __init__(self, root, *args, **kwargs):
+        self._roots = root if isinstance(root, Selector) else (root,)
+
+        cls = None
+        callback = None
+        for arg in args:
+            if isinstance(arg, string_types):
+                cls = arg
+            elif callable(arg):
+                callback = arg
+        self._cls = cls
+        self._callback = callback
+
+        tags = ()
+        tags_callback = None
+        if 'tags' in kwargs:
+            tags = kwargs['tags']
+            del kwargs['tags']
+            if callable(tags):
+                tags_callback = tags
+            else:
+                if isinstance(tags, string_types):
+                    tags = (tags,)
+
+        self._tags = tags
+        self._tags_callback = tags_callback
+
+        self._props = [(prop, val) + ((val if callable(val) else None,)
+            ) for prop, val in kwargs.items()] if kwargs else kwargs
+
+    def __iter__(self):
+        roots = self._roots
+        cls = self._cls
+        callback = self._callback
+        tags = self._tags
+        t_callback = self._tags_callback
+        props = self._props
+
+        for root in roots:
+            for widget in root.walk(restrict=True):
+
+                if callback and not callback(widget):
+                    continue
+
+                if cls and cls != type(widget).__name__:
+                    continue
+
+                if t_callback:
+                    if not t_callback(widget.tags):
+                        continue
+                elif tags:
+                    t_match = True
+                    for tag in tags:
+                        if tag not in widget.tags:
+                            t_match = False
+                            break
+                    if not t_match:
+                        continue
+
+                if props:
+                    p_match = True
+                    for p, v, callback in props:
+                        if not hasattr(widget, p):
+                            p_match = False
+                            break
+                        prop_value = getattr(widget, p)
+                        if callback and not callback(prop_value):
+                            p_match = False
+                            break
+                        elif prop_value != v:
+                            p_match = False
+                            break
+                    if not p_match:
+                        continue
+
+                yield widget
+
+    def __setattr__(self, name, value):
+        try:
+            return object.__setattr__(self, name, value)
+        except AttributeError:
+            for widget in self:
+                if hasattr(widget, name):
+                    setattr(widget, name, value)
+
+    def select(self, *args, **kwargs):
+        '''Same as :meth:`~Widget.select`, enables selection chaining.
+        '''
+        return Selector(self, *args, **kwargs)
+
+    def bind(self, **kwargs):
+        '''Bind every selected widget's passed event or property to a callback.
+        '''
+        for widget in self:
+            widget.bind(**kwargs)
+
+    def unbind(self, **kwargs):
+        '''Unbind every selected widget's passed event or property from their
+        callback.
+        '''
+        for widget in self:
+            widget.unbind(**kwargs)
+
+    def detach(self):
+        '''Remove every selected widget from their respective parents.
+        '''
+        for widget in list(self):
+            if widget.parent:
+                widget.parent.remove_widget(widget)
 
 
 class WidgetException(Exception):
@@ -594,6 +834,22 @@ class Widget(WidgetBase):
         if self.parent:
             return self.parent.get_parent_window()
 
+    def select(self, *args, **kwargs):
+        '''Returns a Selector object that acts as a generator.
+
+        See :class:`Selector` for more information.
+
+        .. versionadded:: 1.9.0
+
+        .. warning::
+            This code is still experimental, and its API is subject to change
+            in a future version.
+
+        :Returns:
+            Instance of :class:`Selector`.
+        '''
+        return Selector(self, *args, **kwargs)
+
     def _walk(self, restrict=False, loopback=False, index=None):
         # We pass index only when we are going on the parent
         # so don't yield the parent as well.
@@ -939,6 +1195,14 @@ class Widget(WidgetBase):
 
     cls = ListProperty([])
     '''Class of the widget, used for styling.
+    '''
+
+    tags = ListProperty([])
+    '''Tags of the widget, used for widget selection.
+
+    .. versionadded:: 1.9.0
+
+    See :class:`Selector` for more information.
     '''
 
     id = StringProperty(None, allownone=True)
