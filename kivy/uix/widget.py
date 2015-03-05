@@ -472,7 +472,7 @@ class Widget(WidgetBase):
         else:
             canvas = self.canvas
             children = self.children
-            if index == len(children):
+            if index => len(children):
                 index = len(children)
                 next_index = 0
             else:
