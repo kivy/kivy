@@ -524,9 +524,8 @@ else:
                         if ev_value == 1:
                             l = keyboard_keys[ev_code][-1
                                 if 'shift' in Window._modifiers else 0]
-                            if l == 'shift':
-                                Window._modifiers.append('shift')
-                            print(ev_code, l)
+                            if l == 'shift' or l == 'alt':
+                                Window._modifiers.append(l)
                             Window.dispatch(
                                 'on_key_down',
                                 Keyboard.keycodes[l.lower()],
