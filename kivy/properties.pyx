@@ -432,7 +432,11 @@ cdef class Property:
     cpdef get(self, EventDispatcher obj):
         '''Return the value of the property.
         '''
-        cdef PropertyStorage ps = obj.__storage[self._name]
+        cdef PropertyStorage ps
+        try:
+            ps = obj.__storage[self._name]
+        except KeyError:
+            raise AttributeError(self._name)
         return ps.value
 
     #
