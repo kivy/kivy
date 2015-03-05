@@ -185,9 +185,6 @@ class Popup(ModalView):
             super(Popup, self).add_widget(widget)
 
     def on_content(self, instance, value):
-        if not hasattr(value, 'popup'):
-            value.create_property('popup')
-        value.popup = self
         if self._container:
             self._container.clear_widgets()
             self._container.add_widget(value)
