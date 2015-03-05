@@ -928,6 +928,7 @@ class ScreenManager(FloatLayout):
             self.transition.start(self)
         else:
             self.real_add_widget(screen)
+            screen.pos = self.pos
             self.do_layout()
             screen.dispatch('on_pre_enter')
             screen.dispatch('on_enter')
