@@ -59,11 +59,12 @@ class Keyboard(EventDispatcher):
     # used, it must do the translation to these keycodes too.
     keycodes = {
         # specials keys
-        'backspace': 8, 'tab': 9, 'enter': 13, 'shift': 304, 'ctrl': 306,
+        'backspace': 8, 'tab': 9, 'enter': 13, 'shift': 304, 'alt': 308, 'ctrl': 306,
+        'super': 309, 'alt-gr': 307, 'compose': 311, 'pipe': 310,        
         'capslock': 301, 'escape': 27, 'spacebar': 32, 'pageup': 280,
         'pagedown': 281, 'end': 279, 'home': 278, 'left': 276, 'up':
         273, 'right': 275, 'down': 274, 'insert': 277, 'delete': 127,
-        'numlock': 300, 'screenlock': 145, 'pause': 19,
+        'numlock': 300, 'print': 144, 'screenlock': 145, 'pause': 19,
 
         # a-z keys
         'a': 97, 'b': 98, 'c': 99, 'd': 100, 'e': 101, 'f': 102, 'g': 103,
@@ -80,7 +81,7 @@ class Keyboard(EventDispatcher):
         'numpad4': 260, 'numpad5': 261, 'numpad6': 262, 'numpad7': 263,
         'numpad8': 264, 'numpad9': 265, 'numpaddecimal': 266,
         'numpaddivide': 267, 'numpadmul': 268, 'numpadsubstract': 269,
-        'numpadadd': 270,
+        'numpadadd': 270, 'numpadenter': 271, 
 
         # F1-15
         'f1': 282, 'f2': 283, 'f3': 284, 'f4': 285, 'f5': 286, 'f6': 287,

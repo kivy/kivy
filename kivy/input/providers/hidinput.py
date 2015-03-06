@@ -48,7 +48,6 @@ __all__ = ('HIDInputMotionEventProvider', 'HIDMotionEvent')
 import os
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
-
 # late imports
 Window = None
 Keyboard = None
@@ -199,9 +198,15 @@ else:
         0x34: ('.', '>'),
         0x35: ('/', '?'),
         0x36: ('shift', ),
+        0x56: ('pipe', ),
         0x1d: ('ctrl', ),
+        0x7D: ('super', ),        
         0x38: ('alt', ),
         0x39: ('spacebar', ),
+        0x64: ('alt-gr', ),
+        0x7e: ('super', ),
+        0x7f: ('compose', ),
+        0x61: ('ctrl', ),
         0x45: ('numlock', ),
         0x47: ('numpad7', 'home'),
         0x4b: ('numpad4', 'left'),
@@ -209,14 +214,16 @@ else:
         0x48: ('numpad8', 'up'),
         0x4c: ('numpad5', ),
         0x50: ('numpad2', 'down'),
-        0x52: ('numpad0', 'ins'),
+        0x52: ('numpad0', 'insert'),
         0x37: ('numpadmul', ),
+        0x62: ('numpaddivide', ),
         0x49: ('numpad9', 'pageup'),
         0x4d: ('numpad6', 'right'),
         0x51: ('numpad3', 'pagedown'),
-        0x53: ('numpaddecimal', 'del'),
+        0x53: ('numpaddecimal', 'delete'),
         0x4a: ('numpadsubstract', ),
         0x4e: ('numpadadd', ),
+        0x60: ('numpadenter', ),
         0x01: ('escape', ),
         0x3b: ('f1', ),
         0x3c: ('f2', ),
@@ -231,8 +238,21 @@ else:
         0x57: ('f11', ),
         0x58: ('f12', ),
         0x54: ('Alt+SysRq', ),
-        0x46: ('ScrollLock', ),
-
+        0x46: ('Screenlock', ),
+        0x67: ('up',  ),
+        0x6c: ('down', ),
+        0x69: ('left',  ),
+        0x6a: ('right', ),
+        0x6e: ('insert', ),
+        0x6f: ('delete', ),
+        0x66: ('home', ),
+        0x6b: ('end', ),
+        0x68: ('pageup', ),
+        0x6d: ('pagedown', ),
+        0x63: ('print', ),
+        0x77: ('pause', ),
+        
+        
         # TODO combinations
         # e0-37    PrtScr
         # e0-46    Ctrl+Break
@@ -394,7 +414,7 @@ else:
             range_min_abs_pressure = 0
             range_max_abs_pressure = 255
             invert_x = int(bool(drs('invert_x', 0)))
-            invert_y = int(bool(drs('invert_y', 0)))
+            invert_y = int(bool(drs('invert_y', 1)))
             rotation = drs('rotation', 0)
 
             def assign_coord(point, value, invert, coords):
@@ -413,7 +433,7 @@ else:
             def assign_rel_coord(point, value, invert, coords):
                 cx, cy = coords
                 if invert:
-                    value = 1. - value
+                    value = -1 * value
                 if rotation == 0:
                     point[cx] += value
                 elif rotation == 90:
@@ -691,3 +711,4 @@ else:
                 pass
 
     MotionEventFactory.register('hidinput', HIDInputMotionEventProvider)
+
