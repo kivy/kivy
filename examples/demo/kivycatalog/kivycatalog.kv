@@ -1,23 +1,12 @@
 #:kivy 1.4
 #:import KivyLexer kivy.extras.highlight.KivyLexer
 
-[ContainerToggle@ToggleButton]:
-    group: "container_toggle"
-    text: ctx.text
-    on_press: root.parent.parent.parent.show_kv(*args)
-    state: ctx.state if hasattr(ctx, "state") else "normal"
-
-<Container>:
-    canvas.before:
-        Color:
-            rgb: 0, 0, 0
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
+# Catalog is the root widget of the app.
 <Catalog>:
     language_box: language_box
-    screen_manager: screen_manager
+    current_render: current_render
+    name_spinner:  name_spinner
+    category_spinner: category_spinner
     auto_reload: chkbx.active
     info_label: info_lbl
     orientation: 'vertical'
@@ -31,13 +20,45 @@
                 pos: self.pos
         size_hint: 1, None
         height: '45sp'
+
+        # This is the 'categories' spinner
         Spinner:
+            id:  category_spinner
             size_hint: None, 1
             width: '108sp'
-            text: 'Welcome'
-            values: [screen.name for screen in screen_manager.screens]
-            on_text: root.show_kv(*args)
+            text: root.category_list[0]
+            values: root.category_list
+            on_text: root.show_kv(category=self.text)
+
         Widget:
+
+        Button:
+            text: '<'
+            size_hint: .1, 1
+            on_press:  root.show_kv(prev=True)
+
+        Widget:
+            size_hint: .1, 1
+
+        # This is the 'name' spinner
+        Spinner:
+            id: name_spinner
+            size_hint: None, 1
+            width: '108sp'
+            text: root.infos[0].name
+            values: [info.name for info in root.infos]
+            on_press: root.show_kv(name=self.text)
+
+        Widget:
+            size_hint: .1, 1
+
+        Button:
+            size_hint: .1, 1
+            text: '>'
+            on_press:  root.show_kv(next=True)
+
+        Widget:
+
         BoxLayout:
             size_hint: None, 1
             width: '150sp'
@@ -47,11 +68,15 @@
                 id: chkbx
                 active: True
                 size_hint_x: 1
+                on_press:  root.schedule_reload()
+
         Button:
             size_hint: None, 1
             width: '108sp'
             text: 'Render Now'
             on_release: root.change_kv(*args)
+            background_color: (1, 0, 0, 1) if root.need_reload else (0, 1, 0, 1)
+
     BoxLayout:
         id: reactive_layout
         orientation: 'vertical' if self.width < self.height else 'horizontal'
@@ -82,59 +107,15 @@
                     text: "This box will display the kivy language for whatever has been selected"
                     on_text: root.schedule_reload()
                     on_cursor: root.schedule_reload()
-        ScreenManager:
-            id: screen_manager
-            Screen:
-                name: "Welcome"
-                PlaygroundContainer:
-            Screen:
-                name: "Float Layout"
-                FloatLayoutContainer
-            Screen:
-                name: "Box Layout"
-                BoxLayoutContainer:
-            Screen:
-                name: "Anchor Layout"
-                AnchorLayoutContainer:
-            Screen:
-                name: "Grid Layout"
-                GridLayoutContainer:
-            Screen:
-                name: "Stack Layout"
-                StackLayoutContainer:
-            Screen:
-                name: "Buttons"
-                ButtonContainer:
-            Screen:
-                name: "Labels"
-                LabelContainer:
-            Screen:
-                name: "Booleans"
-                CheckBoxContainer:
-            Screen:
-                name: "Progress Bar"
-                ProgressBarContainer:
-            Screen:
-                name: "Media"
-                MediaContainer:
-            Screen:
-                name: "Text"
-                TextContainer:
-            Screen:
-                name: "Popups"
-                PopupContainer:
-            Screen:
-                name: "Selectors"
-                SelectorsContainer:
-            Screen:
-                name: "File Choosers"
-                FileChooserContainer:
-            Screen:
-                name: "Scatter"
-                ScatterContainer:
-            Screen:
-                name: "ReST"
-                RestContainer:
+        Screen:
+            id: current_render
+            canvas.before:
+                Color:
+                    rgb: 0, 0, 0
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
     FloatLayout:
         size_hint: 1, None
         height: 0
