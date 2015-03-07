@@ -1,14 +1,17 @@
 '''
-Tree shader
+Shader Tree
 ===========
 
-This example is an experimentation to show how we can use shader for a tree
-subset. Here, we made a ShaderTreeWidget, different than the ShaderWidget in the
-plasma.py example.
+This experiment shows how to use shaders for a tree
+subset. You should see a "Hello World" button left of a star field graphic
+and above a "Change fragment shader" button. You can drag around the
+"Hello World" and star field as you cycle through three shaders: pulse,
+ post-processing, and monochrome.
 
-The ShaderTree widget create a Frambuffer, render his children on it, and render
-the Framebuffer with a specific Shader.
-With this way, you can apply cool effect on your widgets :)
+The file shadertree.kv defines some widget and image attributes. The
+ShaderTreeApp class builds a widget to render children on an fbo (frame
+buffer offscreen) and it sets the shader source code to the current shader.
+This will be how you apply cool effect on your widgets!
 
 '''
 
@@ -122,7 +125,7 @@ class ShaderWidget(FloatLayout):
             Rectangle(size=Window.size)
 
         # call the constructor of parent
-        # if they are any graphics object, they will be added on our new canvas
+        # if they are any graphics objects, they will be added on our new canvas
         super(ShaderWidget, self).__init__(**kwargs)
 
         # We'll update our glsl variables in a clock
