@@ -266,6 +266,7 @@ def make_detail_page(info):
             a('~' * len(title))
             a('\n.. image:: ../../../examples/' + full_name)
             a('     :align:  center')
+            a('     :class:  clear')
         else:  # code
             title = 'File **' + full_name + '**'
             a('\n' + title)
