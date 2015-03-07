@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' Create rst documentaiton of the examples directory.
+''' Create rst documentation of the examples directory.
 
 This uses screenshots in the screenshots_dir
 (currently doc/sources/images/examples) along with source code and files
@@ -280,7 +280,16 @@ def make_detail_page(info):
 
 
 def write_file(name, s):
-    ''' write the string to the filename '''
+    ''' write the string to the filename, unless the file is unchanged. '''
+    try:
+        with open(name) as f:
+            old_s = ''
+            old_s = f.read()
+            if old_s == s:
+                return
+    except IOError:
+        pass
+
     with open(name, 'w') as f:
         f.write(s)
 
