@@ -2,9 +2,13 @@
 Asynchronous image loading
 ==========================
 
-Test of the widget AsyncImage.
-We are just putting it in a CenteredAsyncImage for beeing able to center the
-image on screen without doing upscale like the original AsyncImage.
+This uses the AsyncImage widget. You should see a cat centered on the
+screen. The widget creation call returns immediately; the async widget
+draws animates a placeholder; downloads the entire image; and,
+finally, replaces the placeholder with the downloaded image.
+
+The original cat image is from http://cheezburger.com/2892250368.
+
 '''
 
 from kivy.app import App
