@@ -1,3 +1,15 @@
+'''
+Compound Selection
+==================
+
+This demonstrates a selectable grid of buttons. You should see
+a grid of forty numbered buttons. You can click on one or shift-click
+to select a range of buttons. The button or buttons selected are printed
+to the console. You can also use the keyboard to type a number or arrow key.
+For example, typing "34" selects button 3, then button 34. "Up" then
+deselects 34 and selects 29.
+'''
+
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from kivy.uix.behaviors import CompoundSelectionBehavior
@@ -9,17 +21,22 @@ class SelectableGrid(CompoundSelectionBehavior, GridLayout):
 
     def __init__(self, **kwargs):
         super(SelectableGrid, self).__init__(**kwargs)
+        # Note that keyboard is requested before buttons are added
+        # to the grid, and may be *behind* the buttons.
         keyboard = Window.request_keyboard(None, self)
         keyboard.bind(on_key_down=self.select_with_key_down,
                       on_key_up=self.select_with_key_up)
 
         def print_selection(*l):
-            print([x.text for x in self.selected_nodes])
+            print("Selected items: {}".format(
+                sorted([x.text for x in self.selected_nodes])))
         self.bind(selected_nodes=print_selection)
 
     def goto_node(self, key, last_node, last_node_idx):
-        ''' This function is used to go to the node by typing the number
-        of the text of the button.
+        ''' Overrides CompoundSelectionBehavior's goto_node().
+        Used to go to the node by typing the number
+        of the text of the button. Returns the node and index
+        into the children grid.
         '''
         node, idx = super(SelectableGrid, self).goto_node(key, last_node,
                                                           last_node_idx)
