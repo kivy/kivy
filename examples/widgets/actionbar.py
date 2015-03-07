@@ -1,3 +1,12 @@
+'''
+ActionBar Demo
+==============
+
+This demonstrates the ActionBar widget, similar to Android's horizontal
+chooser. You should see a blank screen with a bar of a volume icon and buttons
+labelled "Btn1", "Btn2", "Btn3", and a pull down group of more buttons.
+'''
+
 from kivy.base import runTouchApp
 from kivy.lang import Builder
 
