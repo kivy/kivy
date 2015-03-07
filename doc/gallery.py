@@ -129,13 +129,13 @@ def enhance_info_description(info, line_length=50):
     text = '\n'.join(lines)
 
     info['files'] = [info['file'] + '.' + info['ext']]
-    regex = r'[tT]he (?:file|image) ([\w\/]+\.\w+)'
+    regex = r'[tT]he (?:file|image) ([\w\.\/]+\.\w+)'
     for name in re.findall(regex, text):
         if name not in info['files']:
             info['files'].append(name)
 
     # add links where the files are referenced
-    text = re.sub(r'([tT]he (?:file|image) )([\w\/]+\.\w+)', r'\1`\2`_', text)
+    text = re.sub(r'([tT]he (?:file|image) )([\w\.\/]+\.\w+)', r'\1`\2`_', text)
 
     # now break up text into array of paragraphs, each an array of lines.
     lines = text.split('\n')
