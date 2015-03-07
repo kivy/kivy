@@ -1,7 +1,9 @@
 .. _environment:
 
-Controlling the environment
-===========================
+.. _`environment variables`:
+
+Environment Variables
+======================
 
 Many environment variables are available to control the initialization and
 behavior of Kivy.
@@ -57,26 +59,28 @@ KIVY_SDL2_PATH
         Must be used during the compilation of Kivy. It is not required for the
         execution.
 
+..  _`Environment Configuration`:
 
 Configuration
 -------------
 
 KIVY_USE_DEFAULTCONFIG
-    If this name is found in environ, Kivy will not read the user config file.
+    If set, Kivy will not read the user config file.  It will still write and create the user
+    configuration.
 
 KIVY_NO_CONFIG
-    If set, no configuration file will be read or write, and no user
-    configuration directory too.
+    If set, no configuration file will be read, written or updated.  Also, no user
+    configuration will be created.
 
 KIVY_NO_FILELOG
-    If set, logs will be not print on a file
+    If set, logs will not print to the log file.
 
 KIVY_NO_CONSOLELOG
-    If set, logs will be not print on the console
+    If set, logs will be not print to the console.
 
 KIVY_NO_ARGS
     If set, the argument passed in command line will not be parsed and used by Kivy.
-    Ie, you can safely make a script or an app with your own arguments without
+    That is, you can safely make a script or an app with your own arguments without
     requiring the `--` delimiter::
 
         import os
