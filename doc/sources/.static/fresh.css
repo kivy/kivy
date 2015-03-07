@@ -41,6 +41,11 @@ a:hover {
 	border-bottom: 1px solid rgba(42, 124, 223, 0.5);
 }
 
+/* Transparent images */
+.clear {
+    background-image:  url("clearsquares.png");
+}
+
 #topbar {
 	background-color: #202326;
 	margin: 0px;
@@ -408,6 +413,7 @@ table.docutils td {
 	margin: 5px auto;
 	display: block;
 }
+
 
 /** API **/
 .api-index {

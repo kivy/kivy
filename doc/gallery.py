@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' Create rst documentaiton of the examples directory.
+''' Create rst documentation of the examples directory.
 
 This uses screenshots in the screenshots_dir
 (currently doc/sources/images/examples) along with source code and files
@@ -129,13 +129,13 @@ def enhance_info_description(info, line_length=50):
     text = '\n'.join(lines)
 
     info['files'] = [info['file'] + '.' + info['ext']]
-    regex = r'[tT]he (?:file|image) ([\w\/]+\.\w+)'
+    regex = r'[tT]he (?:file|image) ([\w\.\/]+\.\w+)'
     for name in re.findall(regex, text):
         if name not in info['files']:
             info['files'].append(name)
 
     # add links where the files are referenced
-    text = re.sub(r'([tT]he (?:file|image) )([\w\/]+\.\w+)', r'\1`\2`_', text)
+    text = re.sub(r'([tT]he (?:file|image) )([\w\.\/]+\.\w+)', r'\1`\2`_', text)
 
     # now break up text into array of paragraphs, each an array of lines.
     lines = text.split('\n')
@@ -266,6 +266,7 @@ def make_detail_page(info):
             a('~' * len(title))
             a('\n.. image:: ../../../examples/' + full_name)
             a('     :align:  center')
+            a('     :class:  clear')
         else:  # code
             title = 'File **' + full_name + '**'
             a('\n' + title)
@@ -280,7 +281,16 @@ def make_detail_page(info):
 
 
 def write_file(name, s):
-    ''' write the string to the filename '''
+    ''' write the string to the filename, unless the file is unchanged. '''
+    try:
+        with open(name) as f:
+            old_s = ''
+            old_s = f.read()
+            if old_s == s:
+                return
+    except IOError:
+        pass
+
     with open(name, 'w') as f:
         f.write(s)
 

@@ -49,7 +49,7 @@ class Keyboard(EventDispatcher):
     Here is an example of how to request a Keyboard in accordance with the
     current configuration:
 
-    .. include:: ../../examples/widgets/keyboardlistener.py
+    .. include:: ../../examples/widgets/keyboard_listener.py
         :literal:
 
     '''

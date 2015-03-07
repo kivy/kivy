@@ -648,6 +648,13 @@ and in my.kv:
 MyWidget will now have a Color and Rectangle instruction in its canvas
 without any of the instructions inherited from the Label.
 
+Comments
+--------
+
+You can add full-line comments. Any line where the first character, after
+any whitespace, is '#' is a comment. You cannot put a comment at the end
+of a non-comment line, as one does in the Python language.
+
 Lang Directives
 ---------------
 

@@ -2,7 +2,10 @@
 TabbedPanel
 ============
 
-Test of the widget TabbedPanel.
+This demonstrates a tabbed panel with each tab having a different contents.
+You should see a Shows a tabbed panel. You should see a set of tabs across
+the top with the first panel displaying a label "First tab content area".
+Clicking on the other tabs shows a box layout and a restructured text document.
 '''
 
 from kivy.app import App

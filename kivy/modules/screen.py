@@ -1,7 +1,8 @@
-'''Screen
+'''
+Screen
 ======
 
-This module changes some environement and configuration variables
+This module changes some environment and configuration variables
 to match the density / dpi / screensize of a specific device.
 
 To see a list of the available screenid's, just run::

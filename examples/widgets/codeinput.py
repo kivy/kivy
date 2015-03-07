@@ -1,3 +1,18 @@
+'''
+CodeInput
+=========
+
+This demonstrates different ways to display source code.
+You should see some sample code in Python, Java, KV, and
+HTML, along with Kivy menus across the top. The second menu selects the
+point size of the font. The third sets the font, though some fonts may not
+render latin characters correctly. Finally, the fourth menu switches the
+syntax highlighting parser so that you can see the different languages
+highlighted. This uses the pygments parsers as well as a special KV language
+parser.
+'''
+
+
 from kivy.app import App
 from kivy.extras.highlight import KivyLexer
 from kivy.uix.spinner import Spinner, SpinnerOption

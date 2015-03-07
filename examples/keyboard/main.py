@@ -2,9 +2,20 @@
 Custom Keyboards
 ================
 
-This demo shows how to create and display custom keyboards on screen. Note that
-the new "input_type" property of the TextInput means that this is rarely needed.
-We provide this demo for the sake of completeness.
+This demo shows how to create and display custom keyboards on screen. You
+should first see a screen letting you change the type of keyboard. If you
+click the continue button, you can choose from many 'soft' keyboards, including
+a custom numeric keyboard. For each keyboard, the system will display
+key down and key up notifications. Note that the new "input_type" property
+of the TextInput means that this is rarely needed. We provide this demo for
+the sake of completeness.
+
+The numeric keyboard is described in the file numeric.json, and is appended to
+the kivy.uix.vkeyboard.VKeyboard().available_layouts.keys(). There is also
+the file android.txt for Bulldozer. This application can set the system wide
+configuration file for your the keyboard setting. See :ref:.. `configure kivy`
+for more about the configuration file.
+
 """
 # Author: Zen-CODE
 from kivy.app import App

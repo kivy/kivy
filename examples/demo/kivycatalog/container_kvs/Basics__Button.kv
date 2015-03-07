@@ -1,0 +1,27 @@
+#:kivy 1.4
+
+GridLayout:
+    cols: 2
+    Button:
+        text: "Normal Button"
+    Button:
+        text: "Large Font Button"
+        font_size: 24
+    Button:
+        text: "Colored Button"
+        background_color: .7, .7, 1, 1
+    Button:
+        text: "Button with On_press"
+        on_press: self.text = 'Pressed'
+        on_release: self.text = 'Button With on_press'
+    ToggleButton:
+        text: "Simple Toggle button"
+    ToggleButton:
+        text: "Toggle button starting Down"
+        state: "down"
+    ToggleButton:
+        text: "Toggle In A Group"
+        group: "money"
+    ToggleButton:
+        text: "Another In Same Group"
+        group: "money"
