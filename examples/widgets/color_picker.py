@@ -1,3 +1,27 @@
+'''
+Color Picker
+============
+
+This application demonstrates the experimental color picker widget. You
+should see a set of photographs on the left with some buttons along the
+right. If you choose the 'Brush' button, the color picker widget prompts
+you to enter a color by clicking on a color wheel, by entering HSV or RGB
+values, or by using sliders to set the HSV or RGB values. You can also enter
+the alpha (transparency) value. The color selected is used to scribble on the
+currently selected photograph. 'Cursor' allows you to
+select, drag, rotate, and scale a photograph and its scribbles.
+'Clear' clears the scribbles from the current photograph.
+
+This program uses data from many other examples: the image transparency
+mask is ../demo/touchtracer/particle.png; the picture frame is the image
+../demo/pictures/shadow32.png; and the fruit images are from the lists example,
+e.g., the image lists/fruit_images/Watermelon.512.jpg.
+
+Note that the brush reaches a maximum alpha value of about 60%, so you cannot
+draw a pure color on the photos.
+
+'''
+
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scatter import Scatter
@@ -41,7 +65,7 @@ Builder.load_string('''
 
 <ColorSelector>:
     color: 1, 1, 1, 1
-    title: 'Color Slector'
+    title: 'Color Selector'
     content:content
     BoxLayout:
         id: content
