@@ -89,6 +89,10 @@ test:
 	-rm -rf kivy/tests/build
 	$(NOSETESTS) kivy/tests
 
+test-quiet:
+	rm -rf kivy/tests/build
+	KIVY_NO_CONSOLELOG=1 NOSE_IGNORE_CONFIG_FILES=1 $(NOSETESTS)
+
 cover:
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)data/*,$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
 
@@ -133,6 +137,7 @@ help:
 	@echo "  style          to check Python code for style hints."
 	@echo "  style-report   make html version of style hints"
 	@echo "  test           run unittests (nosetests)"
+	@echo "  test-quiet     run unittests (nosetests) with less output"
 	@echo "  theming        create a default theme atlas"
 	@echo "  "
 	@echo "You can also 'cd doc && make help' to build more documentation types"
