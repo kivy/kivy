@@ -23,7 +23,7 @@ __all__ = ('Slider', )
 from kivy.uix.widget import Widget
 from kivy.properties import (NumericProperty, AliasProperty, OptionProperty,
                              ReferenceListProperty, BoundedNumericProperty)
-from kivy.metrics    import sp
+from kivy.metrics import sp
 
 
 class Slider(Widget):
@@ -55,9 +55,9 @@ class Slider(Widget):
     and interaction. It prevents the cursor from going out of the bounds of the
     slider bounding box.
 
-    By default, padding is sp(16). The range of the slider is reduced from padding
-    \*2 on the screen. It allows drawing the default cursor of sp(32) width without
-    having the cursor go out of the widget.
+    By default, padding is sp(16). The range of the slider is reduced from
+    padding \*2 on the screen. It allows drawing the default cursor of sp(32)
+    width without having the cursor go out of the widget.
 
     :attr:`padding` is a :class:`~kivy.properties.NumericProperty` and defaults
     to sp(16).'''

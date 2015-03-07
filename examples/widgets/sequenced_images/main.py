@@ -10,13 +10,13 @@ scatter widget (drag, rotate, and resize). You can add an image
 multiple times. You can also click on an image and then use the slider
 along the left to adjust the individual image's animation speed.
 
-The AnimatedButton class is decribed in the file uix/custom_button.py.  The
+The AnimatedButton class is decribed in the file uix/custom_button.py. The
 button images before they were animated are the image data/images/info.png and
-the image data/images/button_white.png.   Also in the data/images/ directory
+the image data/images/button_white.png. Also in the data/images/ directory
 are busy-stick-figures-animated.gif as a single multi-framed file;
 ClickHereButton-animated.zip containing 11 jpg files; the RingGreen.zip
 containing 100 png files; and button_white_animated.zip containing 15
-png files.   Finally, the file main.kv describes the interface.
+png files. Finally, the file main.kv describes the interface.
 
 
 '''
