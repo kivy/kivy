@@ -1,7 +1,11 @@
 '''
-Carousel example with button inside.
-This is a tiny test for testing the scroll distance/timeout
-And ensure the down/up are dispatched if no gesture is done.
+Carousel Buttons
+================
+
+This example demonstrates a carousel control with ten slides, each a grid
+layout of buttons. You should see a grid of buttons with internal id
+of the slide in the upper left corner. You can move between screens, or jump
+to page 3.
 '''
 from kivy.uix.carousel import Carousel
 from kivy.uix.gridlayout import GridLayout
@@ -12,7 +16,7 @@ Builder.load_string('''
 <Page>:
     cols: 3
     Label:
-        text: str(id(root))
+        text: "id=" + str(id(root))
     Button
     Button
     Button
