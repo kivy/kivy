@@ -2,10 +2,12 @@
 Plasma Shader
 =============
 
-This shader example have been taken from
-http://www.iquilezles.org/apps/shadertoy/ with some adaptation.
+This shader example was adapted from
+http://www.iquilezles.org/apps/shadertoy/. You should
+see cool and colorful oozing colors.
 
-This might become a Kivy widget when experimentation will be done.
+This might become a Kivy widget after experimentation. The basic
+layout is defined in the file plasma.kv.
 '''
 
 
