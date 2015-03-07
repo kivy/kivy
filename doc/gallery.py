@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-''' Create rst documentaiton of the examples directory.
 ''' Create rst documentation of the examples directory.
 
 This uses screenshots in the screenshots_dir
