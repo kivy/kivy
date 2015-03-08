@@ -573,12 +573,8 @@ class FileChooserController(FloatLayout):
         else:
             # If entry.path is to jump to previous directory, update path with
             # parent directory
-            if entry.path == "../":
-                self.path = abspath(join(self.path, pardir))
-                self.selection = []
-            else:
-                self.path = join(self.path, entry.path)
-                self.selection = []
+            self.path = abspath(join(self.path, entry.path))
+            self.selection = []
 
     def _apply_filters(self, files):
         if not self.filters:
