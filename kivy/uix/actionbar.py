@@ -157,7 +157,7 @@ class ActionPrevious(ActionButton):
        'data/logo/kivy-icon-32.png'.
     '''
 
-    app_icon_width = NumericProperty(10)
+    app_icon_width = NumericProperty(0)
     '''Width of app_icon image.
     '''
 
@@ -169,7 +169,7 @@ class ActionPrevious(ActionButton):
        defaults to 'atlas://data/images/defaulttheme/previous_normal'.
     '''
 
-    previous_image_width = NumericProperty(10)
+    previous_image_width = NumericProperty(0)
     '''Width of previous_image image.
     '''
 
