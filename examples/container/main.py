@@ -1,26 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os
-import string
-
-import yaml
-import sqlite3
 import kivy
 kivy.require('1.8.0')
 from kivy.app import App
 from kivy.lang import Builder
-from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.actionbar import ActionBar
-from kivy.uix.dropdown import DropDown
-from kivy.uix.spinner import Spinner
-from kivy.uix.checkbox import CheckBox
-from kivy.properties import ObjectProperty, StringProperty, ListProperty
-from kivy.uix.image import Image
-from kivy.uix.checkbox import CheckBox
-from kivy.uix.textinput import TextInput
-from kivy.uix.popup import Popup
+from kivy.properties import ObjectProperty
 
 
 class RootWidget(BoxLayout):
