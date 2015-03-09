@@ -41,6 +41,14 @@ static int VisData[] = {
 	None
 };
 
+typedef struct WMHints {
+    unsigned long   flags;
+    unsigned long   functions;
+    unsigned long   decorations;
+    long            inputMode;
+    unsigned long   status;
+} WMHints;
+
 static void fatalError(const char *why)
 {
 	fprintf(stderr, "%s", why);
@@ -71,7 +79,7 @@ static void describe_fbconfig(GLXFBConfig fbconfig)
 			red_bits, green_bits, blue_bits, alpha_bits, depth_bits);
 }
 
-static void createTheWindow(int width, int height, int x, int y, int resizable, int fullscreen, int border, int above, char *title)
+static void createTheWindow(int width, int height, int x, int y, int resizable, int fullscreen, int border, int above, int CWOR, char *title)
 {
 	XEvent event;
 	int attr_mask;
@@ -157,12 +165,11 @@ static void createTheWindow(int width, int height, int x, int y, int resizable, 
         }
     }
 
-	if ( !border ){
-        if ( !above ){
-            // As soon attr_mask is set to CWOverrideRedirect, the WM (windowmanager) won't be able to controll 
-            // the window properly. To make the window stay above we need the cooperation of the WM.
-            attr_mask |= CWOverrideRedirect;
-        }
+	if ( CWOR ){
+        // As soon attr_mask is set to CWOverrideRedirect, the WM (windowmanager) won't be able to controll
+        // the window properly. To (as an example) make the window stay above you need the cooperation of
+        // the WM and mustn't set CWOR.
+        attr_mask |= CWOverrideRedirect;
     }
 
 
@@ -232,6 +239,16 @@ static void createTheWindow(int width, int height, int x, int y, int resizable, 
             xev.xclient.data.l[1] = wm_fullscreen;
             xev.xclient.data.l[2] = 0;
         }
+    }
+
+    // Remove window decoration (= no border) by setting WM-hints. This only works
+    // if the WindowManager respects those arguments.
+    if ( !border ){
+        WMHints wmhints;
+        Atom prop = XInternAtom(Xdisplay,"_MOTIF_WM_HINTS", False);
+        wmhints.flags = 2;
+        wmhints.decorations = 0;
+        XChangeProperty(Xdisplay, window_handle, prop, prop, 32,PropModeReplace, (unsigned char *)&wmhints, 5);
     }
 
 	XFree(startup_state);
@@ -327,8 +344,9 @@ void x11_set_event_callback(event_cb_t callback) {
 }
 
 int x11_create_window(int width, int height, int x, int y,
-		int resizable, int fullscreen, int border, int above, char *title) {
-	createTheWindow(width, height, x, y, resizable, fullscreen, border, above, title);
+		int resizable, int fullscreen, int border, int above, int CWOR,
+		char *title) {
+	createTheWindow(width, height, x, y, resizable, fullscreen, border, above, CWOR, title);
 	createTheRenderContext();
 	return 1;
 }
