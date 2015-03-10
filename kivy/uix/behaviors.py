@@ -38,7 +38,7 @@ from kivy.base import EventLoop
 from kivy.logger import Logger
 from functools import partial
 from weakref import ref
-from time import clock, time
+from time import time
 import string
 
 # When we are generating documentation, Config doesn't exist
@@ -1177,11 +1177,11 @@ class CompoundSelectionBehavior(object):
             keys.append(scancode[1])
         else:
             if scancode[1] in self._printable:
-                if clock() - self._last_key_time <= 1.:
+                if time() - self._last_key_time <= 1.:
                     self._word_filter += scancode[1]
                 else:
                     self._word_filter = scancode[1]
-                self._last_key_time = clock()
+                self._last_key_time = time()
                 node, idx = self.goto_node(self._word_filter, node_src,
                                            idx_src)
             else:
