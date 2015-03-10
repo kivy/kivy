@@ -1,0 +1,32 @@
+#:kivy 1.8.0
+
+RootWidget:
+	# import container
+	container: container
+
+	BoxLayout:
+		orientation: 'vertical'
+		padding: 0
+		spacing: 6
+
+		# bottom-left part:
+		BoxLayout:
+			orientation: 'horizontal'
+			padding: 0
+			spacing: 6
+
+			# bottom-left
+			BoxLayout:
+				size_hint: 0.12, 0.12
+				orientation: 'vertical'
+				padding: 0
+				spacing: 6
+
+				# option calibrate
+				Button:
+					text: 'Start'
+					on_release: app.next_screen('1')
+
+			# create container (bottom-right)
+			BoxLayout:
+				id: container
