@@ -200,7 +200,7 @@ else:
         0x36: ('shift', ),
         0x56: ('pipe', ),
         0x1d: ('ctrl', ),
-        0x7D: ('super', ),        
+        0x7D: ('super', ),
         0x38: ('alt', ),
         0x39: ('spacebar', ),
         0x64: ('alt-gr', ),
@@ -251,8 +251,8 @@ else:
         0x6d: ('pagedown', ),
         0x63: ('print', ),
         0x77: ('pause', ),
-        
-        
+
+
         # TODO combinations
         # e0-37    PrtScr
         # e0-46    Ctrl+Break
@@ -544,9 +544,8 @@ else:
                         if ev_value == 1:
                             l = keyboard_keys[ev_code][-1
                                 if 'shift' in Window._modifiers else 0]
-                            if l == 'shift':
-                                Window._modifiers.append('shift')
-                            print(ev_code, l)
+                            if l == 'shift' or l == 'alt':
+                                Window._modifiers.append(l)
                             Window.dispatch(
                                 'on_key_down',
                                 Keyboard.keycodes[l.lower()],
