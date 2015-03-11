@@ -161,6 +161,10 @@ class ActionPrevious(ActionButton):
     '''Width of app_icon image.
     '''
 
+    app_icon_height = NumericProperty(0)
+    '''Height of app_icon image.
+    '''
+
     previous_image = StringProperty(
         'atlas://data/images/defaulttheme/previous_normal')
     '''Image for the 'previous' ActionButtons default graphical representation.
@@ -171,6 +175,10 @@ class ActionPrevious(ActionButton):
 
     previous_image_width = NumericProperty(0)
     '''Width of previous_image image.
+    '''
+
+    previous_image_height = NumericProperty(0)
+    '''Height of previous_image image.
     '''
 
     title = StringProperty('')

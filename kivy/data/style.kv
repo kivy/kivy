@@ -587,6 +587,10 @@
 <ActionCheck>:
     background_normal: 'atlas://data/images/defaulttheme/action_bar' if self.inside_group else 'atlas://data/images/defaulttheme/action_item'
 
+<ActionPreviousImage@Image>:
+    temp_width: 0
+    temp_height: 0
+
 <ActionPrevious>:
     size_hint_x: 1
     minimum_width: '100sp'
@@ -595,24 +599,30 @@
         orientation: 'horizontal'
         pos: root.pos
         size: root.size
-        Image:
+        ActionPreviousImage:
             id: prev_icon_image
             source: root.previous_image
             opacity: 1 if root.with_previous else 0
             allow_stretch: True
             size_hint_x: None
+            temp_width: root.previous_image_width or dp(prev_icon_image.texture_size[0])
+            temp_height: root.previous_image_height or dp(prev_icon_image.texture_size[1])
             width:
-                (root.previous_image_width or self.height) \
-                if root.with_previous else dp(8)
+                (self.temp_width if self.temp_height <= self.height else \
+                self.temp_width * (self.height / self.temp_height)) \
+                if self.texture else dp(8)
             mipmap: root.mipmap
-        Image:
+        ActionPreviousImage:
             id: app_icon_image
             source: root.app_icon
             allow_stretch: True
             size_hint_x: None
+            temp_width: root.app_icon_width or dp(app_icon_image.texture_size[0])
+            temp_height: root.app_icon_height or dp(app_icon_image.texture_size[1])
             width:
-                (root.app_icon_width or self.height) \
-                if self.texture else self.height
+                (self.temp_width if self.temp_height <= self.height else \
+                self.temp_width * (self.height / self.temp_height)) \
+                if self.texture else dp(8)
             mipmap: root.mipmap
         Widget:
             size_hint_x: None
