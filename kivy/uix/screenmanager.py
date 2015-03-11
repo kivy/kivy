@@ -982,6 +982,105 @@ class ScreenManager(FloatLayout):
         except ValueError:
             return
 
+    def display_screen(self, screen, **options):
+        '''Display screen.
+
+        Given ``screen`` can be either a screen instance or a screen name as
+        string.
+
+        If screen instance is given and not child of manager yet, it gets added
+        as long as no screen with same name already exists.
+
+        If screen name is given, corresponding screen must already be contained
+        in manager.
+
+        ``options`` might contain a :attr:`remove` flag, which causes the
+        already displayed screen to be removed after switching to given screen.
+
+        :attr:`transition` instance can be given in ``options`` to use a
+        custom transition for this screen switch.
+
+        .. versionadded: 1.9.0
+        '''
+        # screen must be given
+        assert(screen is not None)
+        # flag whether to add given screen
+        add_screen = False
+        # remember currently displayed screen
+        current_screen = self.current_screen
+        # screen instance given
+        if isinstance(screen, Screen):
+            # given screen already displayed
+            if current_screen is screen:
+                return
+            screen_name = screen.name
+            # screen not contained in self
+            if screen not in self.screens:
+                # screen with name already contained
+                if self.has_screen(screen_name):
+                    raise ScreenManagerException(
+                        'Screen with name {0} already exists'.format(
+                            screen_name
+                        )
+                    )
+                # screen needs to be added
+                add_screen = True
+        # no screen instance
+        else:
+            # screen name expected
+            if not isinstance(screen, basestring):
+                raise ScreenManagerException(
+                    'Given screen must be either Screen instance or screen '
+                    'name as string'
+                )
+            screen_name = screen
+            # no screen with given name in self
+            if not self.has_screen(screen_name):
+                raise ScreenManagerException(
+                    'No screen found for given screen name'
+                )
+            # given screen already displayed
+            if current_screen and current_screen.name == screen_name:
+                return
+        # option whether to remove previous screen
+        remove_prev = options.pop("remove", False)
+        # custom transition to use
+        custom_transition = options.pop("transition", None)
+        # remember original transition
+        orgin_transition = self.transition
+        # use custom transition if given
+        if custom_transition:
+            # update transition options
+            for key, value in iteritems(options):
+                setattr(custom_transition, key, value)
+            # set transition
+            self.transition = custom_transition
+
+        def finish_screen_switch(transition):
+            # remove previous screen
+            if remove_prev and current_screen in self.children:
+                self.remove_widget(current_screen)
+            # reset transition
+            if custom_transition:
+                self.transition = orgin_transition
+            # unbind callback
+            transition.unbind(on_complete=finish_screen_switch)
+
+        # bind callback
+        self.transition.bind(on_complete=finish_screen_switch)
+        # add screen if necessary
+        if add_screen:
+            # initial display
+            initial = self.current is None
+            # add screen
+            self.add_widget(screen)
+            # current gets set on add_widget if initial display
+            if not initial:
+                self.current = screen_name
+        # set current screen
+        else:
+            self.current = screen_name
+
     def switch_to(self, screen, **options):
         '''Add a new screen to the ScreenManager and switch to it. The previous
         screen will be removed from the children. `options` are the
