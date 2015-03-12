@@ -267,6 +267,9 @@ class ActionGroup(ActionItem, Spinner):
 
     dropdown_width = NumericProperty(0)
     '''If non zero, provides the width for the associated DropDown.
+    This is useful when some items to be displayed in the ActionGroup's
+    DropDown are wider than usual and you don't want to make the ActionGroup
+    widget itself wider.
     '''
 
     def __init__(self, **kwargs):
