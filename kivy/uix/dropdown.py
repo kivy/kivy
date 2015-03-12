@@ -89,6 +89,7 @@ And then, create the associated python class and use it::
 
 __all__ = ('DropDown', )
 
+from kivy.uix.behaviors import ToggleButtonBehavior
 from kivy.uix.scrollview import ScrollView
 from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
 from kivy.core.window import Window
@@ -189,6 +190,7 @@ class DropDown(ScrollView):
         self.bind(size=self._reposition)
 
     def on_key_down(self, instance, key, scancode, codepoint, modifiers):
+        # key: 27 is the key code for "escape"
         if key == 27 and self.get_parent_window():
             self.dismiss()
             return True
@@ -241,6 +243,9 @@ class DropDown(ScrollView):
         '''
         self.dispatch('on_select', data)
         if self.dismiss_on_select:
+            attach_to = self.attach_to
+            if attach_to and isinstance(attach_to, ToggleButtonBehavior):
+                attach_to.state = "normal"
             self.dismiss()
 
     def on_select(self, data):
@@ -274,8 +279,11 @@ class DropDown(ScrollView):
             return True
         if self.collide_point(*touch.pos):
             return True
-        if self.attach_to and self.attach_to.collide_point(*touch.pos):
+        attach_to = self.attach_to
+        if attach_to and attach_to.collide_point(*touch.pos):
             return True
+        if attach_to and isinstance(attach_to, ToggleButtonBehavior):
+            attach_to.state = "normal"
         if self.auto_dismiss:
             self.dismiss()
 
@@ -284,6 +292,9 @@ class DropDown(ScrollView):
             return True
         if 'button' in touch.profile and touch.button.startswith('scroll'):
             return
+        attach_to = self.attach_to
+        if attach_to and isinstance(attach_to, ToggleButtonBehavior):
+            attach_to.state = "normal"
         if self.auto_dismiss:
             self.dismiss()
 
@@ -332,6 +343,7 @@ class DropDown(ScrollView):
 
 if __name__ == '__main__':
     from kivy.uix.button import Button
+    from kivy.uix.togglebutton import ToggleButton
     from kivy.base import runTouchApp
 
     def show_dropdown(button, *largs):
@@ -348,5 +360,9 @@ if __name__ == '__main__':
 
     btn = Button(text='SHOW', size_hint=(None, None), pos=(300, 200))
     btn.bind(on_release=show_dropdown, on_touch_move=touch_move)
-
     runTouchApp(btn)
+
+    # For testing the ToggleButton() case
+    #tog_btn = ToggleButton(text='SHOW', size_hint=(None, None), pos=(300, 200))
+    #tog_btn.bind(on_release=show_dropdown, on_touch_move=touch_move)
+    #runTouchApp(tog_btn)
