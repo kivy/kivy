@@ -265,6 +265,10 @@ class ActionGroup(ActionItem, Spinner):
        defaults to 'normal'.
     '''
 
+    dropdown_width = NumericProperty(0)
+    '''If non zero, provides the width for the associated DropDown.
+    '''
+
     def __init__(self, **kwargs):
         self.list_action_item = []
         self._list_overflow_items = []
@@ -307,7 +311,7 @@ class ActionGroup(ActionItem, Spinner):
         children = ddn.container.children
 
         if children:
-            ddn.width = max([self.width, children[0].minimum_width])
+            ddn.width = self.dropdown_width or max([self.width, children[0].minimum_width])
         else:
             ddn.width = self.width
 
