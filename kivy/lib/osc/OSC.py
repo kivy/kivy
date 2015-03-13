@@ -179,7 +179,10 @@ def OSCArgument(data):
 
     if isinstance(data, string_types):
         OSCstringLength = math.ceil((len(data)+1) / 4.0) * 4
-        binary = struct.pack(">i%ds" % (OSCstringLength), bytes(data, 'utf-8'))
+        if sys.version_info >= (3, 0):
+            binary = struct.pack(">i%ds" % (OSCstringLength), bytes(data, 'utf-8'))
+        else:
+            binary = struct.pack(">%ds" % (OSCstringLength), bytes(data))
         tag = "s"
     elif isinstance(data, float):
         binary = struct.pack(">f", data)
