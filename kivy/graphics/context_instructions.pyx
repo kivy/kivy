@@ -695,6 +695,17 @@ cdef class Scale(Transform):
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
         Transform.__init__(self, **kwargs)
+        self._origin = (0, 0, 0)
+
+        if 'origin' in kwargs:
+            origin = kwargs['origin']
+            if len(origin) == 3:
+                self._origin = tuple(origin)
+            elif len(origin) == 2:
+                self._origin = (origin[0], origin[1], 0.)
+            else:
+                raise Exception('invalid number of components in origin')
+
         if len(args) == 1:
             s = args[0]
             self.set_scale(s, s, s)
@@ -705,10 +716,16 @@ cdef class Scale(Transform):
             self.set_scale(1.0, 1.0, 1.0)
 
     cdef set_scale(self, double x, double y, double z):
+        cdef float ox, oy, oz
         self._x = x
         self._y = y
         self._z = z
-        self.matrix = Matrix().scale(x, y, z)
+        ox, oy, oz = self._origin
+        cdef Matrix matrix
+        matrix = Matrix().translate(ox, oy, oz)
+        matrix = matrix.multiply(Matrix().scale(x, y, z))
+        matrix = matrix.multiply(Matrix().translate(-ox, -oy, -oz))
+        self.matrix = matrix
 
     property scale:
         '''Property for getting/setting the scale.
@@ -769,6 +786,24 @@ cdef class Scale(Transform):
             return self._x, self._y, self._z
         def __set__(self, c):
             self.set_scale(c[0], c[1], c[2])
+
+    property origin:
+        '''Origin of the scale.
+
+        .. versionadded:: 1.9.0
+
+        The format of the origin can be either (x, y) or (x, y, z).
+        '''
+        def __get__(self):
+            return self._origin
+        def __set__(self, origin):
+            if len(origin) == 3:
+                self._origin = tuple(origin)
+            elif len(origin) == 2:
+                self._origin = (origin[0], origin[1], 0.)
+            else:
+                raise Exception('invalid number of components in origin')
+            self.set_scale(self._x, self._y, self._z)
 
 
 cdef class Translate(Transform):
