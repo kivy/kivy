@@ -239,7 +239,7 @@ Available configuration tokens
     is required for value changes to take effect.
 
 .. versionchanged:: 1.9.0
-    `borderless`, `maximized`, `minimized` and `hidden` has been added
+    `borderless`, `maximized`, `minimized` and `hidden` have been added
     to the graphics section.
     The `fake` option of `fullscreen` in the graphics section has been
     deprecated, use the `borderless` option instead.
