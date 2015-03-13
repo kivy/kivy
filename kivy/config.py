@@ -113,7 +113,16 @@ Available configuration tokens
 
 :graphics:
     `borderless`: int , one of 0 or 1
-        If set to `1`, removes the window border/decoration.
+        If set to `1`, it removes the window border/decoration.
+    `maximized`: int , one of 0 or 1
+        If set to `1`, it maximizes the window. This option is available only
+        for the SDL2 window provider and it should be used on desktop OSes.
+    `minimized`: int , one of 0 or 1
+        If set to `1`, it minimizes the window. This option is available only
+        for the SDL2 window provider and it should be used on desktop OSes.
+    `hidden`: int , one of 0 or 1
+        If set to `1`, it hides the window. This option is available only
+        for the SDL2 window provider and it should be used on desktop OSes.
     `fbo`: string, one of 'hardware', 'software' or 'force-hardware'
         Selects the FBO backend to use.
     `fullscreen`: int or string, one of 0, 1, 'fake' or 'auto'
@@ -230,7 +239,8 @@ Available configuration tokens
     is required for value changes to take effect.
 
 .. versionchanged:: 1.9.0
-    `borderless` has been added to the graphics section.
+    `borderless`, `maximized`, `minimized` and `hidden` has been added
+    to the graphics section.
     The `fake` option of `fullscreen` in the graphics section has been
     deprecated, use the `borderless` option instead.
     `pause_on_minimize` has been added to the kivy section.
@@ -274,7 +284,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 12
+KIVY_CONFIG_VERSION = 13
 
 Config = None
 '''Kivy configuration object. Its :attr:`~kivy.config.ConfigParser.name` is
@@ -743,6 +753,11 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 11:
             Config.setdefault('kivy', 'pause_on_minimize', '0')
+
+        elif version == 12:
+            Config.setdefault('graphics', 'maximized', '0')
+            Config.setdefault('graphics', 'minimized', '0')
+            Config.setdefault('graphics', 'hidden', '0')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1

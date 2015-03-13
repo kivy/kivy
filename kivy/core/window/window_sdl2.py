@@ -144,9 +144,13 @@ class WindowSDL(WindowBase):
             # setup !
             w, h = self._size
             resizable = Config.getboolean('graphics', 'resizable')
+            maximized = Config.getboolean('graphics', 'maximized')
+            minimized = Config.getboolean('graphics', 'minimized')
+            hidden = Config.getboolean('graphics', 'hidden')
             gl_size = self._win.setup_window(pos[0], pos[1], w, h,
                                              self.borderless, self.fullscreen,
-                                             resizable)
+                                             resizable, maximized, minimized,
+                                             hidden, self._is_desktop)
             # never stay with a None pos, application using w.center
             # will be fired.
             self._pos = (0, 0)
