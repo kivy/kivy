@@ -53,7 +53,10 @@ SDLK_HOME = 1073741898
 SDLK_END = 1073741901
 SDLK_PAGEUP = 1073741899
 SDLK_PAGEDOWN = 1073741902
-
+SDLK_SUPER = 1073742051
+SDLK_CAPS = 1073741881
+SDLK_INSERT= 1073741897
+SDLK_KEYPADNUM = 1073741907
 
 class SDL2MotionEvent(MotionEvent):
     def depack(self, args):
@@ -363,11 +366,6 @@ class WindowSDL(WindowBase):
 
             elif action in ('keydown', 'keyup'):
                 mod, key, scancode, kstr = args
-                if mod in self._meta_keys:
-                    try:
-                        kstr = unichr(key)
-                    except ValueError:
-                        pass
 
                 key_swap = {
                             SDLK_LEFT: 276,
@@ -378,12 +376,15 @@ class WindowSDL(WindowBase):
                             SDLK_END: 279,
                             SDLK_PAGEDOWN: 281,
                             SDLK_PAGEUP: 280,
-                            SDLK_SHIFTL: 303,
-                            SDLK_SHIFTR: 304,
-                            SDLK_LCTRL: KMOD_LCTRL,
-                            SDLK_RCTRL: KMOD_RCTRL,
-                            SDLK_LALT: KMOD_LALT,
-                            SDLK_RALT: KMOD_RALT}
+                            SDLK_SHIFTR: 303,
+                            SDLK_SHIFTL: 304,
+                            SDLK_SUPER: 309,
+                            SDLK_LCTRL: 305,
+                            SDLK_RCTRL: 306,
+                            SDLK_LALT: 308,
+                            SDLK_RALT: 307,
+                            SDLK_CAPS: 301,
+                            SDLK_INSERT: 277}
 
                 if platform == 'ios':
                     # XXX ios keyboard suck, when backspace is hit, the delete
@@ -395,14 +396,23 @@ class WindowSDL(WindowBase):
                 except KeyError:
                     pass
 
+                
+
                 if action == 'keydown':
                     self._update_modifiers(mod, key)
                 else:
                     self._update_modifiers(mod)  # ignore the key, it
                                                  # has been released
-                if 'shift' in self._modifiers and key\
-                        not in self.command_keys.keys():
-                    return
+
+                # if mod in self._meta_keys:
+                if key not in self._modifiers and key not in self.command_keys.keys():
+                    try:
+                        kstr = unichr(key)
+                    except ValueError:
+                        pass
+                #if 'shift' in self._modifiers and key\
+                #        not in self.command_keys.keys():
+                #    return
 
                 if action == 'keyup':
                     self.dispatch('on_key_up', key, scancode)
@@ -418,17 +428,19 @@ class WindowSDL(WindowBase):
                               self.modifiers)
 
             elif action == 'textinput':
-                key = args[0][0]
+                text = args[0]
+                self.dispatch('on_textinput', text)
                 # XXX on IOS, keydown/up don't send unicode anymore.
                 # With latest sdl, the text is sent over textinput
                 # Right now, redo keydown/up, but we need to seperate both call
                 # too. (and adapt on_key_* API.)
-                self.dispatch('on_key_down', key, None, args[0],
-                              self.modifiers)
-                self.dispatch('on_keyboard', None, None, args[0],
-                              self.modifiers)
-                self.dispatch('on_key_up', key, None, args[0],
-                              self.modifiers)
+                #self.dispatch()
+                #self.dispatch('on_key_down', key, None, args[0],
+                #              self.modifiers)
+                #self.dispatch('on_keyboard', None, None, args[0],
+                #              self.modifiers)
+                #self.dispatch('on_key_up', key, None, args[0],
+                #              self.modifiers)
 
             # unhandled event !
             else:

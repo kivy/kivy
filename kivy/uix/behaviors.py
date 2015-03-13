@@ -795,13 +795,15 @@ class FocusBehavior(object):
             # keyboard shouldn't have been released here, see keyboard warning
         keyboards[keyboard] = self
         keyboard.bind(on_key_down=self.keyboard_on_key_down,
-                      on_key_up=self.keyboard_on_key_up)
+                      on_key_up=self.keyboard_on_key_up,
+                      on_textinput=self.keyboard_on_textinput)
 
     def _unbind_keyboard(self):
         keyboard = self._keyboard
         if keyboard:
             keyboard.unbind(on_key_down=self.keyboard_on_key_down,
-                            on_key_up=self.keyboard_on_key_up)
+                            on_key_up=self.keyboard_on_key_up,
+                            on_textinput=self.keyboard_on_textinput)
             if self._requested_keyboard:
                 keyboard.release()
                 self._keyboard = None
@@ -809,6 +811,9 @@ class FocusBehavior(object):
                 del FocusBehavior._keyboards[keyboard]
             else:
                 FocusBehavior._keyboards[keyboard] = None
+
+    def keyboard_on_textinput(self, window, text):
+        pass
 
     def _keyboard_released(self):
         self.focus = False
