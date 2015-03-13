@@ -57,7 +57,7 @@ class ClipboardAndroid(ClipboardBase):
     def _get(self, mimetype='text/plain'):
         clippy = PythonActivity._clipboard
         if sdk < 11:
-            data = clippy.getText().toString()
+            data = clippy.getText()
         else:
             ClipDescription = autoclass('android.content.ClipDescription')
             primary_clip = clippy.getPrimaryClip()

@@ -539,7 +539,6 @@ class ScrollView(StencilView):
     def _apply_transform(self, m):
         tx, ty = self.g_translate.xy
         m.translate(tx, ty, 0)
-        m.translate(self.x, self.y, 0)
         return super(ScrollView, self)._apply_transform(m)
 
     def simulate_touch_down(self, touch):

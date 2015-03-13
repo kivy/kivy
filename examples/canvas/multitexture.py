@@ -14,6 +14,8 @@ makes it hard to see.
 from kivy.clock import Clock
 from kivy.app import App
 from kivy.uix.widget import Widget
+from kivy.uix.floatlayout import FloatLayout
+from kivy.lang import Builder
 from kivy.core.window import Window
 from kivy.graphics import RenderContext, Color, Rectangle, BindTexture
 
@@ -35,6 +37,27 @@ void main(void) {
 '''
 
 
+kv = """
+<MultitextureLayout>:
+
+    Image:
+        source: "mtexture1.png"
+        size_hint: .3,.3
+        id: 1
+        pos: 0,200
+    Image:
+        source: "mtexture2.png"
+        size_hint: .3,.3
+        id: 2
+        pos: 200,200
+
+    MultitextureWidget:
+
+"""
+
+Builder.load_string(kv)
+
+
 class MultitextureWidget(Widget):
 
     def __init__(self, **kwargs):
@@ -51,13 +74,14 @@ class MultitextureWidget(Widget):
             BindTexture(source='mtexture2.png', index=1)
 
             # create a rectangle with texture (will be at index 0)
-            Rectangle(size=(512, 512), source='mtexture1.png')
+            Rectangle(size=(150, 150), source='mtexture1.png', pos=(500, 200))
 
         # set the texture1 to use texture index 1
         self.canvas['texture1'] = 1
 
         # call the constructor of parent
-        # if they are any graphics objects, they will be added on our new canvas
+        # if they are any graphics objects, they will be added on our new
+        # canvas
         super(MultitextureWidget, self).__init__(**kwargs)
 
         # We'll update our glsl variables in a clock
@@ -69,10 +93,17 @@ class MultitextureWidget(Widget):
         self.canvas['modelview_mat'] = Window.render_context['modelview_mat']
 
 
+class MultitextureLayout(FloatLayout):
+
+    def __init__(self, **kwargs):
+        self.size = kwargs['size']
+        super(MultitextureLayout, self).__init__(**kwargs)
+
+
 class MultitextureApp(App):
 
     def build(self):
-        return MultitextureWidget()
+        return MultitextureLayout(size=(600, 600))
 
 
 if __name__ == '__main__':
