@@ -1,8 +1,8 @@
-Authors & Contributors of the Kivy Toolkit
-==========================================
+Authors & Contributors of the Kivy Framework
+============================================
 
-Authors & Maintainers
----------------------
+Core Developers
+---------------
 
  * Mathieu Virbel <mathieu __at__ kivy.org>
  * Gabriel Pettier / tshirtman <gabriel __at__ kivy.org>
@@ -44,18 +44,22 @@ Graphics
  * Vincent Autin <autinvincent __at__ gmail.com>
 
 
-Special Thanks (ancient devs & special help)
---------------------------------------------
+Special Thanks
+--------------
 
- * Christopher Denter <christopher __at__ kivy.org>
- * Edwin Marshall <edwin __at__ kivy.org>
  * Alex Teiche <xelapond __at__ gmail.com>
  * Felipe Moura <felipe.celer __at__ gmail.com>
  * Riley Dutton <rileydutton __at__ gmail.com>
  * Uday Karan <uday.karan __at__ gmail.com>
  * Damien Marchal <damien.marchal __at__ lifl.fr>
  * Tommy Bjorling <tommy.bjorling __at__ gmail.com>
+ 
+ 
+Past Core Developers
+--------------------
+
  * Thomas Hansen <thomas __at__ kivy.org>
+ * Christopher Denter <christopher __at__ kivy.org>
+ * Edwin Marshall <edwin __at__ kivy.org>
  * Jeff Pittman <geogeff __at__ geogeff.org>
  * Brian Knapp <knapp __at__ kivy.org>
- 
