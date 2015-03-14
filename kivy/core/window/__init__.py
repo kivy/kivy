@@ -60,7 +60,7 @@ class Keyboard(EventDispatcher):
     keycodes = {
         # specials keys
         'backspace': 8, 'tab': 9, 'enter': 13, 'rshift': 303, 'shift': 304,
-        'alt': 308, 'rctrl': 306, 305: 'lctrl',
+        'alt': 308, 'rctrl': 306, 'lctrl': 305,
         'super': 309, 'alt-gr': 307, 'compose': 311, 'pipe': 310,        
         'capslock': 301, 'escape': 27, 'spacebar': 32, 'pageup': 280,
         'pagedown': 281, 'end': 279, 'home': 278, 'left': 276, 'up':
@@ -1137,6 +1137,8 @@ class WindowBase(EventDispatcher):
         '''Event called whem text: i.e. alpha numeric non control keys or set of keys
         is entered. As it is not gaurenteed whether we get one characyer or multiple 
         characters, this event supports handling multiple characters.
+
+        ..versionadded:: 1.9.0
         '''
         pass
 
@@ -1315,8 +1317,7 @@ class WindowBase(EventDispatcher):
                 keyboard = Keyboard(widget=vkeyboard, window=self)
                 vkeyboard.bind(
                     on_key_down=keyboard._on_vkeyboard_key_down,
-                    on_key_up=keyboard._on_vkeyboard_key_up,
-                    on_textinput=keyboard._on_vkeyboard_textinput)
+                    on_key_up=keyboard._on_vkeyboard_key_up)
                 self._keyboards[key] = keyboard
             else:
                 keyboard = self._keyboards[key]

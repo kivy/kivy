@@ -55,8 +55,24 @@ SDLK_PAGEUP = 1073741899
 SDLK_PAGEDOWN = 1073741902
 SDLK_SUPER = 1073742051
 SDLK_CAPS = 1073741881
-SDLK_INSERT= 1073741897
+SDLK_INSERT = 1073741897
 SDLK_KEYPADNUM = 1073741907
+SDLK_F1 = 1073741882
+SDLK_F2 = 1073741883
+SDLK_F3 = 1073741884
+SDLK_F4 = 1073741885
+SDLK_F5 = 1073741886
+SDLK_F6 = 1073741887
+SDLK_F7 = 1073741888
+SDLK_F8 = 1073741889
+SDLK_F9 = 1073741890
+SDLK_F10 = 1073741891
+SDLK_F11 = 1073741892
+SDLK_F12 = 1073741893
+SDLK_F13 = 1073741894
+SDLK_F14 = 1073741895
+SDLK_F15 = 1073741896
+
 
 class SDL2MotionEvent(MotionEvent):
     def depack(self, args):
@@ -368,23 +384,16 @@ class WindowSDL(WindowBase):
                 mod, key, scancode, kstr = args
 
                 key_swap = {
-                            SDLK_LEFT: 276,
-                            SDLK_RIGHT: 275,
-                            SDLK_UP: 273,
-                            SDLK_DOWN: 274,
-                            SDLK_HOME: 278,
-                            SDLK_END: 279,
-                            SDLK_PAGEDOWN: 281,
-                            SDLK_PAGEUP: 280,
-                            SDLK_SHIFTR: 303,
-                            SDLK_SHIFTL: 304,
-                            SDLK_SUPER: 309,
-                            SDLK_LCTRL: 305,
-                            SDLK_RCTRL: 306,
-                            SDLK_LALT: 308,
-                            SDLK_RALT: 307,
-                            SDLK_CAPS: 301,
-                            SDLK_INSERT: 277}
+                    SDLK_LEFT: 276, SDLK_RIGHT: 275, SDLK_UP: 273,
+                    SDLK_DOWN: 274, SDLK_HOME: 278, SDLK_END: 279,
+                    SDLK_PAGEDOWN: 281, SDLK_PAGEUP: 280, SDLK_SHIFTR: 303,
+                    SDLK_SHIFTL: 304, SDLK_SUPER: 309, SDLK_LCTRL: 305,
+                    SDLK_RCTRL: 306, SDLK_LALT: 308, SDLK_RALT: 307,
+                    SDLK_CAPS: 301, SDLK_INSERT: 277, SDLK_F1: 282,
+                    SDLK_F2: 283, SDLK_F3: 284, SDLK_F4: 285, SDLK_F5: 286,
+                    SDLK_F6: 287, SDLK_F7: 288, SDLK_F8: 289, SDLK_F9: 290,
+                    SDLK_F10: 291, SDLK_F11: 292, SDLK_F12: 293, SDLK_F13: 294,
+                    SDLK_F14: 295, SDLK_F15: 296, SDLK_KEYPADNUM: 300}
 
                 if platform == 'ios':
                     # XXX ios keyboard suck, when backspace is hit, the delete
@@ -396,8 +405,6 @@ class WindowSDL(WindowBase):
                 except KeyError:
                     pass
 
-                
-
                 if action == 'keydown':
                     self._update_modifiers(mod, key)
                 else:
@@ -405,7 +412,8 @@ class WindowSDL(WindowBase):
                                                  # has been released
 
                 # if mod in self._meta_keys:
-                if key not in self._modifiers and key not in self.command_keys.keys():
+                if (key not in self._modifiers and
+                    key not in self.command_keys.keys()):
                     try:
                         kstr = unichr(key)
                     except ValueError:
