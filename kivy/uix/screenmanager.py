@@ -480,6 +480,7 @@ class ShaderTransition(TransitionBase):
 
     def on_complete(self):
         self.render_ctx['t'] = 1.
+        self.manager.remove_widget(self.screen_out)
         super(ShaderTransition, self).on_complete()
 
     def _remove_out_canvas(self, *args):
@@ -489,6 +490,7 @@ class ShaderTransition(TransitionBase):
             self.manager.canvas.remove(self.screen_out.canvas)
 
     def add_screen(self, screen):
+        super(ShaderTransition, self).add_screen(screen)
         self.screen_in.pos = self.screen_out.pos
         self.screen_in.size = self.screen_out.size
         self.manager.real_remove_widget(self.screen_out)
@@ -523,7 +525,7 @@ class ShaderTransition(TransitionBase):
         self.manager.canvas.remove(self.fbo_out)
         self.manager.canvas.remove(self.render_ctx)
         self._remove_out_canvas()
-        self.manager.real_add_widget(self.screen_in)
+        super(ShaderTransition, self).remove_screen(screen)
 
     def stop(self):
         self._remove_out_canvas()
