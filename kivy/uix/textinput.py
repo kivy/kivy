@@ -2106,7 +2106,7 @@ class TextInput(FocusBehavior, Widget):
     def keyboard_on_textinput(self, window, text):
         if self._selection:
             self.delete_selection()
-        self.insert_text(text.encode('utf-8'), False)
+        self.insert_text(text, False)
 
     def on_hint_text(self, instance, value):
         self._refresh_hint_text()
