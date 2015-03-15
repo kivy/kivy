@@ -59,7 +59,8 @@ class Keyboard(EventDispatcher):
     # used, it must do the translation to these keycodes too.
     keycodes = {
         # specials keys
-        'backspace': 8, 'tab': 9, 'enter': 13, 'shift': 304, 'alt': 308, 'ctrl': 306,
+        'backspace': 8, 'tab': 9, 'enter': 13, 'rshift': 303, 'shift': 304,
+        'alt': 308, 'rctrl': 306, 'lctrl': 305,
         'super': 309, 'alt-gr': 307, 'compose': 311, 'pipe': 310,        
         'capslock': 301, 'escape': 27, 'spacebar': 32, 'pageup': 280,
         'pagedown': 281, 'end': 279, 'home': 278, 'left': 276, 'up':
@@ -112,7 +113,7 @@ class Keyboard(EventDispatcher):
         'é': 233, 'è': 232,
     }
 
-    __events__ = ('on_key_down', 'on_key_up')
+    __events__ = ('on_key_down', 'on_key_up', 'on_textinput')
 
     def __init__(self, **kwargs):
         super(Keyboard, self).__init__()
@@ -135,12 +136,18 @@ class Keyboard(EventDispatcher):
     def on_key_up(self, keycode):
         pass
 
+    def on_textinput(self, text):
+        pass
+
     def release(self):
         '''Call this method to release the current keyboard.
         This will ensure that the keyboard is no longer attached to your
         callback.'''
         if self.window:
             self.window.release_keyboard(self.target)
+
+    def _on_window_textinput(self, instance, text):
+        return self.dispatch('on_textinput', text)
 
     def _on_window_key_down(self, instance, keycode, scancode, text,
                             modifiers):
@@ -165,6 +172,9 @@ class Keyboard(EventDispatcher):
             keycode = text
         keycode = (self.string_to_keycode(keycode), keycode)
         return self.dispatch('on_key_up', keycode)
+
+    def _on_vkeyboard_textinput(self, instance, text):
+        return self.dispatch('on_textinput', text)
 
     def string_to_keycode(self, value):
         '''Convert a string to a keycode number according to the
@@ -508,12 +518,13 @@ class WindowBase(EventDispatcher):
     canvas = ObjectProperty(None)
     title = StringProperty('Kivy')
 
-    __events__ = ('on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
-                  'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
-                  'on_mouse_down', 'on_mouse_move', 'on_mouse_up',
-                  'on_keyboard', 'on_key_down', 'on_key_up', 'on_dropfile',
-                  'on_request_close', 'on_joy_axis', 'on_joy_hat',
-                  'on_joy_ball', 'on_joy_button_down', "on_joy_button_up")
+    __events__ = (
+        'on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
+        'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
+        'on_mouse_down', 'on_mouse_move', 'on_mouse_up', 'on_keyboard',
+        'on_key_down', 'on_key_up', 'on_textinput', 'on_dropfile',
+        'on_request_close', 'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
+        'on_joy_button_down', "on_joy_button_up")
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -1096,6 +1107,7 @@ class WindowBase(EventDispatcher):
                     stopTouchApp()
                     self.close()
                     return True
+
     if Config:
         on_keyboard.exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
 
@@ -1123,6 +1135,15 @@ class WindowBase(EventDispatcher):
                            "and will be removed in future versions. Use "
                            "codepoint instead, which has identical "
                            "semantics.")
+
+    def on_textinput(self, text):
+        '''Event called whem text: i.e. alpha numeric non control keys or set of keys
+        is entered. As it is not gaurenteed whether we get one characyer or multiple 
+        characters, this event supports handling multiple characters.
+
+        ..versionadded:: 1.9.0
+        '''
+        pass
 
     def on_dropfile(self, filename):
         '''Event called when a file is dropped on the application.
@@ -1157,7 +1178,8 @@ class WindowBase(EventDispatcher):
         sk = self._system_keyboard
         self.bind(
             on_key_down=sk._on_window_key_down,
-            on_key_up=sk._on_window_key_up)
+            on_key_up=sk._on_window_key_up,
+            on_textinput=sk._on_window_textinput)
 
         # use the device's real keyboard
         self.use_syskeyboard = True
@@ -1298,7 +1320,8 @@ class WindowBase(EventDispatcher):
                 keyboard = Keyboard(widget=vkeyboard, window=self)
                 vkeyboard.bind(
                     on_key_down=keyboard._on_vkeyboard_key_down,
-                    on_key_up=keyboard._on_vkeyboard_key_up)
+                    on_key_up=keyboard._on_vkeyboard_key_up,
+                    on_textinput=keyboard._on_vkeyboard_textinput)
                 self._keyboards[key] = keyboard
             else:
                 keyboard = self._keyboards[key]
@@ -1324,10 +1347,12 @@ class WindowBase(EventDispatcher):
         if self.allow_vkeyboard and self.use_syskeyboard:
             self.unbind(
                 on_key_down=keyboard._on_window_key_down,
-                on_key_up=keyboard._on_window_key_up)
+                on_key_up=keyboard._on_window_key_up,
+                on_textinput=keyboard._on_window_textinput)
             self.bind(
                 on_key_down=keyboard._on_window_key_down,
-                on_key_up=keyboard._on_window_key_up)
+                on_key_up=keyboard._on_window_key_up,
+                on_textinput=keyboard._on_window_textinput)
 
         return keyboard
 
