@@ -323,7 +323,7 @@ class VKeyboard(Scatter):
     font_name = StringProperty('data/fonts/DejaVuSans.ttf')
     repeat_touch = ObjectProperty(allownone=True)
 
-    __events__ = ('on_key_down', 'on_key_up')
+    __events__ = ('on_key_down', 'on_key_up', 'on_textinput')
 
     def __init__(self, **kwargs):
         # XXX move to style.kv
@@ -662,6 +662,9 @@ class VKeyboard(Scatter):
         pass
 
     def on_key_up(self, *largs):
+        pass
+
+    def on_textinput(self, *largs):
         pass
 
     def get_key_at_pos(self, x, y):

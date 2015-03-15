@@ -173,6 +173,9 @@ class Keyboard(EventDispatcher):
         keycode = (self.string_to_keycode(keycode), keycode)
         return self.dispatch('on_key_up', keycode)
 
+    def _on_vkeyboard_textinput(self, instance, text):
+        return self.dispatch('on_textinput', text)
+
     def string_to_keycode(self, value):
         '''Convert a string to a keycode number according to the
         :attr:`Keyboard.keycodes`. If the value is not found in the
@@ -1317,7 +1320,8 @@ class WindowBase(EventDispatcher):
                 keyboard = Keyboard(widget=vkeyboard, window=self)
                 vkeyboard.bind(
                     on_key_down=keyboard._on_vkeyboard_key_down,
-                    on_key_up=keyboard._on_vkeyboard_key_up)
+                    on_key_up=keyboard._on_vkeyboard_key_up,
+                    on_textinput=keyboard._on_vkeyboard_textinput)
                 self._keyboards[key] = keyboard
             else:
                 keyboard = self._keyboards[key]
