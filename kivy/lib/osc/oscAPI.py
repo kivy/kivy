@@ -55,17 +55,13 @@ oscLock        = Lock()
 if use_multiprocessing:
     def _readQueue(thread_id=None):
         global oscThreads
-        for id in oscThreads:
-            if thread_id is not None:
-                if id != thread_id:
-                    continue
-            thread = oscThreads[id]
-            try:
-                while True:
-                    message = thread.queue.get_nowait()
-                    thread.addressManager.handle(message)
-            except:
-                pass
+        thread = oscThreads[thread_id]
+        try:
+            while True:
+                message = thread.queue.get_nowait()
+                thread.addressManager.handle(message)
+        except:
+            pass
 
     class _OSCServer(Process):
         def __init__(self, **kwargs):
@@ -94,11 +90,7 @@ if use_multiprocessing:
         haveSocket = property(_get_haveSocket, _set_haveSocket)
 else:
     def _readQueue(thread_id=None):
-        for id in oscThreads:
-                if thread_id is not None:
-                    if id != thread_id:
-                        continue
-                thread = oscThreads[id]
+        thread = oscThreads[id]
 
         q = thread.queue
         h = thread.addressManager.handle
