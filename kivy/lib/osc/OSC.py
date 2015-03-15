@@ -101,7 +101,10 @@ class OSCMessage:
         return self.getBinary()
 
 def readString(data):
-    length   = data.find(bytes("\0", 'ascii'))
+    if isinstance(data, str):
+        length = string.find(data, '\0')
+    else:
+        length = data.find(bytes("\0", 'ascii'))
     nextData = int(math.ceil((length+1) / 4.0) * 4)
     return (data[0:length], data[nextData:])
 
