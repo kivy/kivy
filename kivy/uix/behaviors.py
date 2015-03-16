@@ -89,6 +89,16 @@ class ButtonBehavior(object):
     :attr:`MIN_STATE_TIME` is a float.
     '''
 
+    release_on_exit = BooleanProperty(True)
+    '''This determines if the widget fires a `on_release` event if
+    the touch_up is outside the widget.
+
+    ..versionadded:: 1.9.0  
+
+    :attr:`release_on_exit` is a :class:`~kivy.properties.BooleanProperty`,
+    defaults to `True`.
+    '''
+
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
@@ -138,7 +148,12 @@ class ButtonBehavior(object):
         assert(self in touch.ud)
         touch.ungrab(self)
         self.last_touch = touch
-        touchtime = time() - self.__touch_time
+        
+        if not self.release_on_exit:
+            self.state = 'normal'
+            return
+
+        touchtime = time() - self.__touch_timei
         if touchtime < self.MIN_STATE_TIME:
             self.__state_event = Clock.schedule_once(
                 self._do_release, self.MIN_STATE_TIME - touchtime)
