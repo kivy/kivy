@@ -96,8 +96,7 @@ class SDL2MotionEventProvider(MotionEventProvider):
                 return
 
             action, fid, x, y = value
-            x = x / 32768.
-            y = 1 - (y / 32768.)
+            y = 1 - y
             if fid not in touchmap:
                 touchmap[fid] = me = SDL2MotionEvent('sdl', fid, (x, y))
             else:
@@ -163,7 +162,7 @@ class WindowSDL(WindowBase):
             # setup !
             w, h = self._size
             resizable = Config.getboolean('graphics', 'resizable')
-            gl_size = self._win.setup_window(pos[0], pos[1], w, h,
+            self._size = self._win.setup_window(pos[0], pos[1], w, h,
                                              self.borderless, self.fullscreen,
                                              resizable)
             # never stay with a None pos, application using w.center
@@ -288,7 +287,8 @@ class WindowSDL(WindowBase):
                 # We have a conflict of using either the mouse or the finger.
                 # Right now, we have no mechanism that we could use to know
                 # which is the preferred one for the application.
-                #SDL2MotionEventProvider.q.appendleft(event)
+                if platform == "ios":
+                    SDL2MotionEventProvider.q.appendleft(event)
                 pass
 
             elif action == 'mousemotion':

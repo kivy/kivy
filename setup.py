@@ -98,7 +98,6 @@ c_options['use_rpi'] = platform == 'rpi'
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_debug'] = False
 c_options['use_glew'] = False
-c_options['use_sdl'] = False
 c_options['use_sdl2'] = None
 c_options['use_ios'] = False
 c_options['use_mesagl'] = False
@@ -335,9 +334,8 @@ print('Using this graphics system: {}'.format(
 if platform == 'ios':
     print('Kivy-IOS project environment detect, use it.')
     print('Kivy-IOS project located at {0}'.format(kivy_ios_root))
-    print('Activate SDL compilation.')
     c_options['use_ios'] = True
-    c_options['use_sdl'] = True
+    c_options['use_sdl2'] = True
 
 # detect gstreamer, only on desktop
 # works if we forced the options or in autodetection
@@ -365,10 +363,10 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
             c_options['use_gstreamer'] = True
 
 
-# detect SDL2, only on desktop
+# detect SDL2, only on desktop and iOS
 # works if we forced the options or in autodetection
 sdl2_flags = {}
-if platform not in ('ios', 'android') and c_options['use_sdl2'] in (None, True):
+if platform not in ('android') and c_options['use_sdl2'] in (None, True):
 
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
@@ -396,15 +394,11 @@ if platform not in ('ios', 'android') and c_options['use_sdl2'] in (None, True):
             c_options['use_sdl2'] = True
             print('Activate SDL2 compilation')
 
-    else:
+    elif platform != "ios":
         # use pkg-config approach instead
         sdl2_flags = pkgconfig('sdl2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer')
         if 'libraries' in sdl2_flags:
             c_options['use_sdl2'] = True
-
-    if c_options['use_sdl2']:
-        print('SDL2 compilation enabled, deactivate 1.x')
-        c_options['use_sdl'] = False
 
 
 # -----------------------------------------------------------------------------
@@ -525,52 +519,6 @@ def determine_gl_flags():
     return flags
 
 
-def determine_sdl():
-    flags = {}
-    if not c_options['use_sdl']:
-        return flags
-
-    flags['libraries'] = ['SDL', 'SDL_ttf', 'freetype', 'z', 'bz2']
-    flags['include_dirs'] = []
-    flags['extra_link_args'] = []
-    flags['extra_compile_args'] = []
-
-    # Paths as per homebrew (modified formula to use hg checkout)
-    if c_options['use_ios']:
-        # Note: on IOS, SDL is already loaded by the launcher/main.m
-        # So if we add it here, it will just complain about duplicate
-        # symbol, cause libSDL.a would be included in main.m binary +
-        # text_sdlttf.so
-        # At the result, we are linking without SDL explicitly, and add
-        # -undefined dynamic_lookup
-        # (/tito)
-        flags['libraries'] = ['SDL_ttf', 'freetype', 'bz2']
-        flags['include_dirs'] += [
-            join(kivy_ios_root, 'build', 'include'),
-            join(kivy_ios_root, 'build', 'include', 'SDL'),
-            join(kivy_ios_root, 'build', 'include', 'freetype')]
-        flags['extra_link_args'] += [
-            '-L', join(kivy_ios_root, 'build', 'lib'),
-            '-undefined', 'dynamic_lookup']
-    else:
-        flags['include_dirs'] = ['/usr/local/include/SDL']
-        flags['extra_link_args'] += ['-L/usr/local/lib/']
-
-    if platform == 'ios':
-        flags['extra_link_args'] += [
-            '-framework', 'Foundation',
-            '-framework', 'UIKit',
-            '-framework', 'AudioToolbox',
-            '-framework', 'CoreGraphics',
-            '-framework', 'QuartzCore',
-            '-framework', 'MobileCoreServices',
-            '-framework', 'ImageIO']
-    elif platform == 'darwin':
-        flags['extra_link_args'] += [
-            '-framework', 'ApplicationServices']
-    return flags
-
-
 def determine_sdl2():
     flags = {}
     if not c_options['use_sdl2']:
@@ -584,7 +532,7 @@ def determine_sdl2():
     # no pkgconfig info, or we want to use a specific sdl2 path, so perform
     # manual configuration
     flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
-    flags['include_dirs'] = ([sdl2_path] if sdl2_path else
+    flags['include_dirs'] = (sdl2_path.split(':') if sdl2_path else
                              ['/usr/local/include/SDL2', '/usr/include/SDL2'])
 
     flags['extra_link_args'] = []
@@ -713,14 +661,6 @@ sources = {
     'graphics/svg.pyx': merge(base_flags, gl_flags)
 }
 
-if c_options['use_sdl']:
-    sdl_flags = determine_sdl()
-    for source_file in ('core/window/sdl.pyx',
-                        'core/text/text_sdlttf.pyx',
-                        'core/audio/audio_sdl.pyx'):
-        sources[source_file] = merge(
-            base_flags, gl_flags, sdl_flags)
-
 if c_options['use_sdl2']:
     sdl2_flags = determine_sdl2()
     if sdl2_flags:
@@ -728,6 +668,7 @@ if c_options['use_sdl2']:
         for source_file in ('core/window/_window_sdl2.pyx',
                             'core/image/_img_sdl2.pyx',
                             'core/text/_text_sdl2.pyx',
+                            'core/audio/audio_sdl2.pyx',
                             'core/clipboard/_clipboard_sdl2.pyx'):
             sources[source_file] = merge(
                 base_flags, gl_flags, sdl2_flags, sdl2_depends)
