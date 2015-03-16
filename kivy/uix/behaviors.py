@@ -149,11 +149,12 @@ class ButtonBehavior(object):
         touch.ungrab(self)
         self.last_touch = touch
         
-        if not self.release_on_exit:
+        if (not self.release_on_exit
+             and not self.collide_point(*touch.pos)):
             self.state = 'normal'
             return
 
-        touchtime = time() - self.__touch_timei
+        touchtime = time() - self.__touch_time
         if touchtime < self.MIN_STATE_TIME:
             self.__state_event = Clock.schedule_once(
                 self._do_release, self.MIN_STATE_TIME - touchtime)
