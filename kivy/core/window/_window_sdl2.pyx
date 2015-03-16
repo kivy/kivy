@@ -86,10 +86,6 @@ cdef class _WindowSDL2Storage:
         SDL_JoystickOpen(0)
 
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
-        print("MODE", mode.w, mode.h)
-        cdef int w, h
-        SDL_GL_GetDrawableSize(self.win, &w, &h)
-        print("DRAWABLE SIZE", w, h)
         return mode.w, mode.h
 
     def resize_display_mode(self, w, h):
