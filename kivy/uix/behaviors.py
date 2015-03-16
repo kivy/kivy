@@ -89,13 +89,13 @@ class ButtonBehavior(object):
     :attr:`MIN_STATE_TIME` is a float.
     '''
 
-    release_on_exit = BooleanProperty(True)
+    ignore_release_outside = BooleanProperty(True)
     '''This determines if the widget fires a `on_release` event if
     the touch_up is outside the widget.
 
     ..versionadded:: 1.9.0  
 
-    :attr:`release_on_exit` is a :class:`~kivy.properties.BooleanProperty`,
+    :attr:`ignore_release_outside` is a :class:`~kivy.properties.BooleanProperty`,
     defaults to `True`.
     '''
 
@@ -149,7 +149,7 @@ class ButtonBehavior(object):
         touch.ungrab(self)
         self.last_touch = touch
         
-        if (not self.release_on_exit
+        if (not self.ignore_release_outside
              and not self.collide_point(*touch.pos)):
             self.state = 'normal'
             return
