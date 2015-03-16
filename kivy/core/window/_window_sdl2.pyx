@@ -19,7 +19,8 @@ cdef class _WindowSDL2Storage:
         raise RuntimeError(<bytes> SDL_GetError())
 
     def setup_window(self, x, y, width, height, borderless, fullscreen,
-                     resizable, shaped=False):
+                     resizable, maximized, minimized, hidden, is_desktop,
+                     shaped=False):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
         if resizable:
             self.win_flags |= SDL_WINDOW_RESIZABLE
@@ -29,6 +30,13 @@ cdef class _WindowSDL2Storage:
             self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
         elif fullscreen is True:
             self.win_flags |= SDL_WINDOW_FULLSCREEN
+        if is_desktop:
+            if maximized:
+                self.win_flags |= SDL_WINDOW_MAXIMIZED
+            elif minimized:
+                self.win_flags |= SDL_WINDOW_MINIMIZED
+            elif hidden:
+                self.win_flags |= SDL_WINDOW_HIDDEN
 
         if SDL_Init(SDL_INIT_VIDEO| SDL_INIT_JOYSTICK) < 0:
             self.die()
