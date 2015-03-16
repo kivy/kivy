@@ -101,7 +101,8 @@ cdef class _WindowSDL2Storage:
         SDL_GetWindowDisplayMode(self.win, &mode)
 
     def resize_window(self, w, h):
-        SDL_SetWindowSize(self.win, w, h)
+        if self.window_size != [w, h]:
+            SDL_SetWindowSize(self.win, w, h)
 
     def maximize_window(self):
         SDL_MaximizeWindow(self.win)
@@ -270,6 +271,11 @@ cdef class _WindowSDL2Storage:
         cdef SDL_Surface *flipped_surface = flipVert(surface)
         IMG_SavePNG(flipped_surface, real_filename)
 
+    property window_size:
+        def __get__(self):
+            cdef int w, h
+            SDL_GetWindowSize(self.win, &w, &h)
+            return [w, h]
 
 
 # Based on the example at

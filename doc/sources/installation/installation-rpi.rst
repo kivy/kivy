@@ -3,9 +3,7 @@
 Installation on Raspberry Pi
 ============================
 
-.. note::
-
-    The current Kivy port works partially: keyboard is not currently working.
+You can install Kivy manually, or you can download and boot KivyPie on the RaspberryPI. Both options are described below.
 
 
 Manual installation
@@ -49,6 +47,12 @@ Manual installation
     sudo python setup.py install
 
 
+KivyPie distribution
+--------------------
+
+KivyPie is a compact and lightweight Raspbian based distribution that comes with Kivy installed and ready to run. It is the result of applying the manual installation steps described above, with a few more extra tools. You can download the image from http://kivypie.mitako.eu/kivy-download.html and boot it on a Raspberry PI.
+
+
 Running the demo
 ----------------
 
@@ -74,5 +78,4 @@ adapt the GPIO pin in the code.
 
 A video to see what we were doing with it:
 http://www.youtube.com/watch?v=NVM09gaX6pQ
-
 

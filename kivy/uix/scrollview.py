@@ -536,6 +536,11 @@ class ScrollView(StencilView):
         tx, ty = self.g_translate.xy
         return x + tx, y + ty
 
+    def _apply_transform(self, m):
+        tx, ty = self.g_translate.xy
+        m.translate(tx, ty, 0)
+        return super(ScrollView, self)._apply_transform(m)
+
     def simulate_touch_down(self, touch):
         # at this point the touch is in parent coords
         touch.push()
@@ -915,6 +920,9 @@ class ScrollView(StencilView):
             return
         uid = self._get_uid()
         touch = self._touch
+        if uid not in touch.ud:
+            self._touch = False
+            return
         ud = touch.ud[uid]
         if ud['mode'] != 'unknown' or ud['user_stopped']:
             return

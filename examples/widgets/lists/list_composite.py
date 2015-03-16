@@ -22,7 +22,7 @@ class MainView(GridLayout):
         # returned by this converter. The first three, text, size_hint_y,
         # height are arguments for CompositeListItem. The cls_dicts list
         # contains argument sets for each of the member widgets for this
-        # composite:  ListItemButton and ListItemLabel.
+        # composite: ListItemButton and ListItemLabel.
         args_converter = lambda row_index, rec: {
             'text': rec['text'],
             'size_hint_y': None,

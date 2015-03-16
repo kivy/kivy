@@ -10,6 +10,8 @@ SPHINXOPTS_TEST	= -W -T
 SPHINXBUILD	= sphinx-build
 PAPER		=
 
+fasthtml: SPHINXOPTS += -j4
+
 # platform indepnt path separator
 # only system calls need to use $(P), b/c on win system calls have issues with /
 ifdef ComSpec
@@ -49,6 +51,7 @@ help:
 	@echo "  clean     to remove generated files"
 	@echo "  gettext   to make gettext pages"
 	@echo "  html      to make standalone HTML files"
+	@echo "  fasthtml  same as html, with 4 concurrent processes"
 	@echo "  htmlhelp  to make HTML files and a HTML help project"
 	@echo "  latex     to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
 	@echo "  linkcheck to check through the reference linking"
@@ -60,6 +63,9 @@ help:
 
 clean:
 	-rm -rf sources/api-*.rst
+	-rm -rf sources/examples/gen__*.rst
+	-rm -rf sources/examples/gallery.rst
+	-rm -rf sources/examples/index.rst
 # windows just doesn't support e.g. build\*
 ifdef ComSpec
 	-rmdir /s /q build
@@ -68,12 +74,15 @@ else
 	-rm $(AUTOBUILD_STAMP_BASE)*
 endif
 
+fasthtml: html
+
 html:
 	$(MKDIR) build$(P)html build$(P)doctrees
 ifeq ("$(wildcard $(AUTOBUILD_STAMP))","")
 	$(PYTHON) autobuild.py silenced=$(ENDUSER_BUILD)
 	touch $(AUTOBUILD_STAMP)
 endif
+	$(PYTHON) gallery.py
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS$(_TESTS)) build/html
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."

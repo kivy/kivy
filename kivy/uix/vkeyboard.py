@@ -323,7 +323,7 @@ class VKeyboard(Scatter):
     font_name = StringProperty('data/fonts/DejaVuSans.ttf')
     repeat_touch = ObjectProperty(allownone=True)
 
-    __events__ = ('on_key_down', 'on_key_up')
+    __events__ = ('on_key_down', 'on_key_up', 'on_textinput')
 
     def __init__(self, **kwargs):
         # XXX move to style.kv
@@ -664,6 +664,9 @@ class VKeyboard(Scatter):
     def on_key_up(self, *largs):
         pass
 
+    def on_textinput(self, *largs):
+        pass
+
     def get_key_at_pos(self, x, y):
         w, h = self.size
         x_hint = x / w
@@ -747,7 +750,11 @@ class VKeyboard(Scatter):
         # send info to the bus
         b_keycode = special_char
         b_modifiers = self._get_modifiers()
-        self.dispatch('on_key_down', b_keycode, internal, b_modifiers)
+        if self.get_parent_window().__class__.__module__ == \
+            'kivy.core.window.window_sdl2' and internal:
+            self.dispatch('on_textinput', internal)
+        else:
+            self.dispatch('on_key_down', b_keycode, internal, b_modifiers)
 
         # save key as an active key for drawing
         self.active_keys[uid] = key[1]

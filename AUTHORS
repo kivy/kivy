@@ -1,21 +1,20 @@
-Authors & Contributors of the Kivy Toolkit
-==========================================
+Authors & Contributors of the Kivy Framework
+============================================
 
-Authors & Maintainers
----------------------
+Core Developers
+---------------
 
  * Mathieu Virbel <mathieu __at__ kivy.org>
- * Thomas Hansen (University of Iowa) <thomas__at__ kivy.org>
- * Gabriel Pettier / tshirtman <gabriel__at__ kivy.org>
+ * Gabriel Pettier / tshirtman <gabriel __at__ kivy.org>
  * Akshay Arora <akshay __at__ kivy.org>
- * Brian Knapp <knapp __at__ kivy.org>
- * Jeff Pittman <geogeff __at__ geogeff.org>
  * Thomas-Karl Pietrowski <thopiekar __at__ gmail.com>
  * Ben Rousch <brousch __at__ gmail.com>
  * Jacob Kovac <kovac1066 __at__ gmail.com>
  * Alexander Taylor <alexanderjohntaylor __at__ gmail.com>
  * Matthew Einhorn <moiein2000 __at__ gmail.com>
  * Richard Larkin / ZenCODE <zenkey.zencode __at__ gmail.com>
+ * Ryan Pessa <dkived __at__ gmail.com>
+ * Sebastian Popute <dessant __at__ kivy.org>
 
 
 Contributors
@@ -45,15 +44,22 @@ Graphics
  * Vincent Autin <autinvincent __at__ gmail.com>
 
 
-Special Thanks (ancient devs & special help)
---------------------------------------------
+Special Thanks
+--------------
 
- * Christopher Denter <christopher __at__ kivy.org>
- * Edwin Marshall <edwin __at__ kivy.org>
  * Alex Teiche <xelapond __at__ gmail.com>
  * Felipe Moura <felipe.celer __at__ gmail.com>
  * Riley Dutton <rileydutton __at__ gmail.com>
  * Uday Karan <uday.karan __at__ gmail.com>
  * Damien Marchal <damien.marchal __at__ lifl.fr>
  * Tommy Bjorling <tommy.bjorling __at__ gmail.com>
+ 
+ 
+Past Core Developers
+--------------------
 
+ * Thomas Hansen <thomas __at__ kivy.org>
+ * Christopher Denter <christopher __at__ kivy.org>
+ * Edwin Marshall <edwin __at__ kivy.org>
+ * Jeff Pittman <geogeff __at__ geogeff.org>
+ * Brian Knapp <knapp __at__ kivy.org>

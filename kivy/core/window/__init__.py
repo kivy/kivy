@@ -26,6 +26,7 @@ from kivy.utils import platform, reify
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
 from kivy.setupconfig import USE_SDL2
+from kivy.graphics.transformation import Matrix
 
 # late import
 VKeyboard = None
@@ -58,11 +59,13 @@ class Keyboard(EventDispatcher):
     # used, it must do the translation to these keycodes too.
     keycodes = {
         # specials keys
-        'backspace': 8, 'tab': 9, 'enter': 13, 'shift': 304, 'ctrl': 306,
+        'backspace': 8, 'tab': 9, 'enter': 13, 'rshift': 303, 'shift': 304,
+        'alt': 308, 'rctrl': 306, 'lctrl': 305,
+        'super': 309, 'alt-gr': 307, 'compose': 311, 'pipe': 310,        
         'capslock': 301, 'escape': 27, 'spacebar': 32, 'pageup': 280,
         'pagedown': 281, 'end': 279, 'home': 278, 'left': 276, 'up':
         273, 'right': 275, 'down': 274, 'insert': 277, 'delete': 127,
-        'numlock': 300, 'screenlock': 145, 'pause': 19,
+        'numlock': 300, 'print': 144, 'screenlock': 145, 'pause': 19,
 
         # a-z keys
         'a': 97, 'b': 98, 'c': 99, 'd': 100, 'e': 101, 'f': 102, 'g': 103,
@@ -79,7 +82,7 @@ class Keyboard(EventDispatcher):
         'numpad4': 260, 'numpad5': 261, 'numpad6': 262, 'numpad7': 263,
         'numpad8': 264, 'numpad9': 265, 'numpaddecimal': 266,
         'numpaddivide': 267, 'numpadmul': 268, 'numpadsubstract': 269,
-        'numpadadd': 270,
+        'numpadadd': 270, 'numpadenter': 271, 
 
         # F1-15
         'f1': 282, 'f2': 283, 'f3': 284, 'f4': 285, 'f5': 286, 'f6': 287,
@@ -110,7 +113,7 @@ class Keyboard(EventDispatcher):
         'é': 233, 'è': 232,
     }
 
-    __events__ = ('on_key_down', 'on_key_up')
+    __events__ = ('on_key_down', 'on_key_up', 'on_textinput')
 
     def __init__(self, **kwargs):
         super(Keyboard, self).__init__()
@@ -133,12 +136,18 @@ class Keyboard(EventDispatcher):
     def on_key_up(self, keycode):
         pass
 
+    def on_textinput(self, text):
+        pass
+
     def release(self):
         '''Call this method to release the current keyboard.
         This will ensure that the keyboard is no longer attached to your
         callback.'''
         if self.window:
             self.window.release_keyboard(self.target)
+
+    def _on_window_textinput(self, instance, text):
+        return self.dispatch('on_textinput', text)
 
     def _on_window_key_down(self, instance, keycode, scancode, text,
                             modifiers):
@@ -163,6 +172,9 @@ class Keyboard(EventDispatcher):
             keycode = text
         keycode = (self.string_to_keycode(keycode), keycode)
         return self.dispatch('on_key_up', keycode)
+
+    def _on_vkeyboard_textinput(self, instance, text):
+        return self.dispatch('on_textinput', text)
 
     def string_to_keycode(self, value):
         '''Convert a string to a keycode number according to the
@@ -506,12 +518,13 @@ class WindowBase(EventDispatcher):
     canvas = ObjectProperty(None)
     title = StringProperty('Kivy')
 
-    __events__ = ('on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
-                  'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
-                  'on_mouse_down', 'on_mouse_move', 'on_mouse_up',
-                  'on_keyboard', 'on_key_down', 'on_key_up', 'on_dropfile',
-                  'on_request_close', 'on_joy_axis', 'on_joy_hat',
-                  'on_joy_ball', 'on_joy_button_down', "on_joy_button_up")
+    __events__ = (
+        'on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
+        'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
+        'on_mouse_down', 'on_mouse_move', 'on_mouse_up', 'on_keyboard',
+        'on_key_down', 'on_key_up', 'on_textinput', 'on_dropfile',
+        'on_request_close', 'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
+        'on_joy_button_down', "on_joy_button_up")
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -520,11 +533,11 @@ class WindowBase(EventDispatcher):
 
     def __init__(self, **kwargs):
 
-        kwargs.setdefault('force', False)
+        force = kwargs.pop('force', False)
 
         # don't init window 2 times,
         # except if force is specified
-        if WindowBase.__instance is not None and not kwargs.get('force'):
+        if WindowBase.__instance is not None and not force:
             return
 
         self.initialized = False
@@ -776,11 +789,13 @@ class WindowBase(EventDispatcher):
     def _update_childsize(self, instance, value):
         self.update_childsize([instance])
 
-    def add_widget(self, widget):
+    def add_widget(self, widget, canvas=None):
         '''Add a widget to a window'''
         widget.parent = self
         self.children.insert(0, widget)
-        self.canvas.add(widget.canvas)
+        canvas = self.canvas.before if canvas == 'before' else \
+            self.canvas.after if canvas == 'after' else self.canvas
+        canvas.add(widget.canvas)
         self.update_childsize([widget])
         widget.bind(
             pos_hint=self._update_childsize,
@@ -794,7 +809,12 @@ class WindowBase(EventDispatcher):
         if not widget in self.children:
             return
         self.children.remove(widget)
-        self.canvas.remove(widget.canvas)
+        if widget.canvas in self.canvas.children:
+            self.canvas.remove(widget.canvas)
+        elif widget.canvas in self.canvas.after.children:
+            self.canvas.after.remove(widget.canvas)
+        elif widget.canvas in self.canvas.before.children:
+            self.canvas.before.remove(widget.canvas)
         widget.parent = None
         widget.unbind(
             pos_hint=self._update_childsize,
@@ -832,6 +852,14 @@ class WindowBase(EventDispatcher):
 
     def to_window(self, x, y, initial=True, relative=False):
         return (x, y)
+
+    def _apply_transform(self, m):
+        return m
+
+    def get_window_matrix(self, x=0, y=0):
+        m = Matrix()
+        m.translate(x, y, 0)
+        return m
 
     def get_root_window(self):
         return self
@@ -1079,6 +1107,7 @@ class WindowBase(EventDispatcher):
                     stopTouchApp()
                     self.close()
                     return True
+
     if Config:
         on_keyboard.exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
 
@@ -1106,6 +1135,15 @@ class WindowBase(EventDispatcher):
                            "and will be removed in future versions. Use "
                            "codepoint instead, which has identical "
                            "semantics.")
+
+    def on_textinput(self, text):
+        '''Event called whem text: i.e. alpha numeric non control keys or set of keys
+        is entered. As it is not gaurenteed whether we get one characyer or multiple 
+        characters, this event supports handling multiple characters.
+
+        ..versionadded:: 1.9.0
+        '''
+        pass
 
     def on_dropfile(self, filename):
         '''Event called when a file is dropped on the application.
@@ -1140,7 +1178,8 @@ class WindowBase(EventDispatcher):
         sk = self._system_keyboard
         self.bind(
             on_key_down=sk._on_window_key_down,
-            on_key_up=sk._on_window_key_up)
+            on_key_up=sk._on_window_key_up,
+            on_textinput=sk._on_window_textinput)
 
         # use the device's real keyboard
         self.use_syskeyboard = True
@@ -1281,7 +1320,8 @@ class WindowBase(EventDispatcher):
                 keyboard = Keyboard(widget=vkeyboard, window=self)
                 vkeyboard.bind(
                     on_key_down=keyboard._on_vkeyboard_key_down,
-                    on_key_up=keyboard._on_vkeyboard_key_up)
+                    on_key_up=keyboard._on_vkeyboard_key_up,
+                    on_textinput=keyboard._on_vkeyboard_textinput)
                 self._keyboards[key] = keyboard
             else:
                 keyboard = self._keyboards[key]
@@ -1307,10 +1347,12 @@ class WindowBase(EventDispatcher):
         if self.allow_vkeyboard and self.use_syskeyboard:
             self.unbind(
                 on_key_down=keyboard._on_window_key_down,
-                on_key_up=keyboard._on_window_key_up)
+                on_key_up=keyboard._on_window_key_up,
+                on_textinput=keyboard._on_window_textinput)
             self.bind(
                 on_key_down=keyboard._on_window_key_down,
-                on_key_up=keyboard._on_window_key_up)
+                on_key_up=keyboard._on_window_key_up,
+                on_textinput=keyboard._on_window_textinput)
 
         return keyboard
 

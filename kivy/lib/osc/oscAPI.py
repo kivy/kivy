@@ -43,6 +43,7 @@ try:
     Logger.info('OSC: using <multiprocessing> for socket')
 except:
     use_multiprocessing = False
+    from collections import deque
     from threading import Thread
     Logger.info('OSC: using <thread> for socket')
 
@@ -54,17 +55,13 @@ oscLock        = Lock()
 if use_multiprocessing:
     def _readQueue(thread_id=None):
         global oscThreads
-        for id in oscThreads:
-            if thread_id is not None:
-                if id != thread_id:
-                    continue
-            thread = oscThreads[id]
-            try:
-                while True:
-                    message = thread.queue.get_nowait()
-                    thread.addressManager.handle(message)
-            except:
-                pass
+        thread = oscThreads[thread_id]
+        try:
+            while True:
+                message = thread.queue.get_nowait()
+                thread.addressManager.handle(message)
+        except:
+            pass
 
     class _OSCServer(Process):
         def __init__(self, **kwargs):
@@ -80,29 +77,38 @@ if use_multiprocessing:
 
         def _get_isRunning(self):
             return self._isRunning.value
+
         def _set_isRunning(self, value):
             self._isRunning.value = value
         isRunning = property(_get_isRunning, _set_isRunning)
 
         def _get_haveSocket(self):
             return self._haveSocket.value
+
         def _set_haveSocket(self, value):
             self._haveSocket.value = value
         haveSocket = property(_get_haveSocket, _set_haveSocket)
 else:
     def _readQueue(thread_id=None):
-        pass
+        thread = oscThreads[id]
+
+        q = thread.queue
+        h = thread.addressManager.handle
+
+        while q:
+            h(q.popleft())
 
     class _OSCServer(Thread):
         def __init__(self, **kwargs):
             Thread.__init__(self)
             self.addressManager = OSC.CallbackManager()
-            self.daemon     = True
-            self.isRunning  = True
+            self.queue = deque()
+            self.daemon = True
+            self.isRunning = True
             self.haveSocket = False
 
         def _queue_message(self, message):
-            self.addressManager.handle(message)
+            self.queue.append(message)
 
 
 def init() :

@@ -61,28 +61,16 @@ cdef load_from_surface(SDL_Surface *image):
         # some opengl card.
 
         if fmt not in ('rgb', 'rgba'):
-            #print 'origin image format'
-            #print '  format', image.format.format
-            #print '  bytesperpixel', image.format.BytesPerPixel
-            #print '  bitsperpixel', image.format.BitsPerPixel
-
-            memset(&pf, 0, sizeof(pf))
-            pf.BitsPerPixel = 8
-            pf.Rmask = 0xff
-            pf.Gmask = 0xff00
-            pf.Bmask = 0xff0000
             if fmt == 'rgb':
-                pf.format = SDL_PIXELFORMAT_RGB888
-                pf.BytesPerPixel = 3
+                pf.format = SDL_PIXELFORMAT_BGR888
+                fmt = 'rgb'
             else:
-                pf.format = SDL_PIXELFORMAT_RGBA8888
-                pf.BytesPerPixel = 4
-                pf.Amask = 0xff000000
+                pf.format = SDL_PIXELFORMAT_ABGR8888
+                fmt = 'rgba'
 
-            image2 = SDL_ConvertSurface(image, &pf, 0)
+            image2 = SDL_ConvertSurfaceFormat(image, pf.format, 0)
             if image2 == NULL:
-                #print 'UNABLE TO CONVERT O_o?'
-                return None
+                return
 
             fimage = image2
         else:

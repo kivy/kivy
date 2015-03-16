@@ -1,10 +1,18 @@
 '''
-Application Suite
-=================
+Suite of Application Builders
+=============================
 
-Explore how applications start. Starts applications one after another,
-waiting for each to be closed first.
+This explores different methods of starting an application. If you run
+this without a command line parameter, you should see a menu in your terminal.
+For example, you can rerun this with 'r' command to pick a random method.
+There are lots of logging options to make this easier to debug: execution
+order may not be obvious. Each time you run the command, only one kivy
+application is created.
+
+This uses the file testkvfile.kv and the file app_suite_data/testkvdir.kv.
+
 '''
+
 from __future__ import print_function
 import sys
 import re

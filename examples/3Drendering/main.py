@@ -1,14 +1,14 @@
 '''
-3D Rendering Monkey Head
+3D Rotating Monkey Head
 ========================
 
-This example demonstrates using OpenGL to display rotating monkey head. This
+This example demonstrates using OpenGL to display a rotating monkey head. This
 includes loading a Blender OBJ file, shaders written in OpenGL's Shading
 Language (GLSL), and using scheduled callbacks.
 
-The file monkey.obj is a OBJ file output form the Blender free 3D creation
-software. The file is text, listing vertices and faces. It is loaded
-into a scene using objloader.py's ObjFile class. The file simple.glsl is
+The monkey.obj file is an OBJ file output from the Blender free 3D creation
+software. The file is text, listing vertices and faces and is loaded
+using a class in the file objloader.py. The file simple.glsl is
 a simple vertex and fragment shader written in GLSL.
 '''
 

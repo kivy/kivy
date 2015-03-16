@@ -1,6 +1,17 @@
 '''
-Example of changing texture properties and the properties
-of its containing rectangle.
+Texture Wrapping and Coordinates Example
+========================================
+
+This example changes texture properties and the properties
+of its containing rectangle. You should see some a multicolored
+texture with sliders to the left and below and buttons at the
+bottom of the screen. The image texture_example_image.png is
+rendered into the rectangle. Sliders change the number of copies of the
+texture (the tex_coords), the size of enclosing rectangle (the taw_height
+and taw_width) while the buttons change how the texture is rendered when more
+than one copy is in the rectangle (the
+texture_wrap).
+
 '''
 
 
