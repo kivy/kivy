@@ -41,9 +41,13 @@ cdef class _WindowSDL2Storage:
 
         # Set default orientation (force landscape for now)
         cdef bytes orientations
-        orientations = <bytes>environ.get('KIVY_ORIENTATION',
-                'LandscapeLeft LandscapeRight');
-        SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations);
+        if PY3:
+            orientations = bytes(environ.get('KIVY_ORIENTATION',
+                'LandscapeLeft LandscapeRight'), encoding='utf8')
+        else:
+            orientations = <bytes>environ.get('KIVY_ORIENTATION',
+                'LandscapeLeft LandscapeRight')
+        SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations)
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
