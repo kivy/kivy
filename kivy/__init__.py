@@ -186,7 +186,9 @@ kivy_options = {
     'video': (
         'gstplayer', 'ffmpeg', 'ffpyplayer', 'gi', 'pygst', 'pyglet',
         'null'),
-    'audio': ('gstplayer', 'pygame', 'gi', 'pygst', 'ffpyplayer', 'sdl2'),
+    'audio': (
+        'gstplayer', 'pygame', 'gi', 'pygst', 'ffpyplayer', 'sdl2',
+        'avplayer'),
     'image': ('tex', 'imageio', 'dds', 'gif', 'sdl2', 'pygame', 'pil', 'ffpy'),
     'camera': ('opencv', 'gi', 'pygst', 'videocapture', 'avfoundation'),
     'spelling': ('enchant', 'osxappkit', ),

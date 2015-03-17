@@ -40,6 +40,7 @@ from kivy.compat import PY2
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
     AliasProperty, BooleanProperty
+from kivy.utils import platform
 from kivy.setupconfig import USE_SDL2
 
 
@@ -193,7 +194,8 @@ class Sound(EventDispatcher):
 # Little trick here, don't activate gstreamer on window
 # seem to have lot of crackle or something...
 audio_libs = []
-
+if platform in ('macosx', 'ios'):
+    audio_libs += [('avplayer', 'audio_avplayer')]
 # from now on, prefer our gstplayer instead of gi/pygst.
 try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA
