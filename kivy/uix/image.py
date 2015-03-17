@@ -173,7 +173,7 @@ class Image(Widget):
     anim_loop = NumericProperty(0)
     '''Number of loops to play then stop animating. 0 means keep animating.
 
-    .. versionadded 1.9.0
+    .. versionadded:: 1.9.0
 
     :attr:`anim_loop` is a :class:`~kivy.properties.NumericProperty` defaults
     to 0.
