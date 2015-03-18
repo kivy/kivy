@@ -534,13 +534,18 @@ def determine_sdl2():
     # no pkgconfig info, or we want to use a specific sdl2 path, so perform
     # manual configuration
     flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
-    flags['include_dirs'] = (sdl2_path.split(':') if sdl2_path else
-                             ['/usr/local/include/SDL2', '/usr/include/SDL2'])
+    split_chr = ';' if platform == 'win32' else ':'
+    sdl2_paths = sdl2_path.split(split_chr) if sdl2_path else []
+
+    flags['include_dirs'] = (
+        sdl2_paths if sdl2_paths else
+        ['/usr/local/include/SDL2', '/usr/include/SDL2'])
 
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
-    flags['extra_link_args'] += (['-L' + sdl2_path] if sdl2_path else
-                                 ['-L/usr/local/lib/'])
+    flags['extra_link_args'] += (
+        ['-L' + p for p in sdl2_paths] if sdl2_paths else
+        ['-L/usr/local/lib/'])
 
     # ensure headers for all the SDL2 and sub libraries are available
     libs_to_check = ['SDL', 'SDL_mixer', 'SDL_ttf', 'SDL_image']
