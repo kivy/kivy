@@ -290,7 +290,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         try:
             opts, args = getopt(sys_argv[1:], 'hp:fkawFem:sr:dc:', [
                 'help', 'fullscreen', 'windowed', 'fps', 'event',
-                'module=', 'save', 'fake-fullscreen', 'auto-fullscreen',
+                'module=', 'save', 'fake-fullscreen', 'auto-fullscreen', 'multiprocessing-fork',
                 'display=', 'size=', 'rotate=', 'config=', 'debug',
                 'dpi='])
 
@@ -299,8 +299,16 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             kivy_usage()
             sys.exit(2)
 
+        mp_fork = None
+        try:
+            mp_fork = opts['multiprocessing-fork']
+        except:
+            pass
+
         # set argv to the non-read args
         sys.argv = sys_argv[0:1] + args
+        if mp_fork is not None:
+            sys.argv = sys.argv + ['--multiprocessing-fork']
     else:
         opts = []
         args = []
