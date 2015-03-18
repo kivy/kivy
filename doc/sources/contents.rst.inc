@@ -13,6 +13,6 @@
     user-guide
     guide-index
     tutorials-index
+    books-index
     api-index
-    books
 
