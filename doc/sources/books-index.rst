@@ -5,3 +5,4 @@ Books
     :maxdepth: 1
 
     books/beginner
+    books/advanced
