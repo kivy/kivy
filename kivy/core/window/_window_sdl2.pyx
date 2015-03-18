@@ -22,7 +22,7 @@ cdef class _WindowSDL2Storage:
 
     def setup_window(self, x, y, width, height, borderless, fullscreen,
                      resizable, shaped=False):
-        self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
+        self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
         IF USE_IOS:
             self.win_flags |= SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_ALLOW_HIGHDPI
@@ -89,19 +89,19 @@ cdef class _WindowSDL2Storage:
         self.ctx = SDL_GL_CreateContext(self.win)
         if not self.ctx:
             self.die()
-        cdef SDL_DisplayMode mode
-        SDL_GetWindowDisplayMode(self.win, &mode)
 
-        cdef int w, h
-        SDL_GL_GetDrawableSize(self.win, &w, &h)
-        mode.w = w
-        mode.h = h
-        SDL_SetWindowDisplayMode(self.win, &mode)
-
+        #cdef SDL_DisplayMode mode
+        #SDL_GetWindowDisplayMode(self.win, &mode)
         SDL_JoystickOpen(0)
 
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
-        return mode.w, mode.h
+        return self._get_gl_size()
+
+    def _get_gl_size(self):
+        cdef int w
+        cdef int h
+        SDL_GL_GetDrawableSize(self.win, &w, &h)
+        return w, h
 
     def resize_display_mode(self, w, h):
         cdef SDL_DisplayMode mode

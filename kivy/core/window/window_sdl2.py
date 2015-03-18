@@ -18,6 +18,7 @@ __all__ = ('WindowSDL2', )
 from os.path import join
 from kivy import kivy_data_dir
 from kivy.logger import Logger
+from kivy import metrics
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.clock import Clock
 from kivy.config import Config
@@ -162,15 +163,21 @@ class WindowSDL(WindowBase):
             # setup !
             w, h = self._size
             resizable = Config.getboolean('graphics', 'resizable')
-            self._size = self._win.setup_window(pos[0], pos[1], w, h,
+            self._size = _size = self._win.setup_window(pos[0], pos[1], w, h,
                                              self.borderless, self.fullscreen,
                                              resizable)
+            density = _size[0] / w
+            self.dpi =  density * 96
+
             # never stay with a None pos, application using w.center
             # will be fired.
             self._pos = (0, 0)
         else:
-            w, h = self._size
+            w, h = self.size
             self._win.resize_window(w, h)
+            self._size = _size = self._win._get_gl_size()
+            density = _size[0] / w
+            self.dpi = density * 96
             self._win.set_border_state(self.borderless)
             self._win.set_fullscreen_mode(self.fullscreen)
 
@@ -345,8 +352,7 @@ class WindowSDL(WindowBase):
                 self.dispatch('on_dropfile', dropfile[0])
             # video resize
             elif action == 'windowresized':
-                if platform != "ios":
-                    self._size = args
+                self.size = args
                 # don't use trigger here, we want to delay the resize event
                 cb = self._do_resize
                 Clock.unschedule(cb)
@@ -456,12 +462,9 @@ class WindowSDL(WindowBase):
                 Logger.trace('WindowSDL: Unhandled event %s' % str(event))
 
     def _do_resize(self, dt):
-        Logger.debug('Window: Resize window to %s' % str(self._size))
-        if platform == "ios":
-            self._size = self._win.resize_display_mode(*self._size)
-        else:
-            self._win.resize_display_mode(*self._size)
-        self.dispatch('on_resize', *self._size)
+        Logger.debug('Window: Resize window to %s' % str(self.size))
+        self._win.resize_display_mode(*self.size)
+        self.dispatch('on_resize', *self.size)
 
     def do_pause(self):
         # should go to app pause mode.
