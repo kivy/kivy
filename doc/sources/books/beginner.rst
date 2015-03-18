@@ -1,5 +1,5 @@
-Beginner Books
-==============
+Beginner
+========
 
 Sorted by date of publication.
 

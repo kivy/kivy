@@ -1,5 +1,5 @@
-Advanced Books
-==============
+Advanced
+========
 
 Up to now there are no books on Kivy targetting advanced readers that we know of.
 
