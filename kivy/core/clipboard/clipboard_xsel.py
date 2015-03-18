@@ -21,12 +21,12 @@ except:
 class Clipboardxsel(ClipboardBase):
 
     def get(self, mimetype='text/plain'):
-        p = subprocess.Popen(['xsel'], stdout=subprocess.PIPE)
+        p = subprocess.Popen(['xsel', 'b'], stdout=subprocess.PIPE)
         data, _ = p.communicate()
         return data
 
     def put(self, data, mimetype='text/plain'):
-        p = subprocess.Popen(['xsel', '-i'], stdin=subprocess.PIPE)
+        p = subprocess.Popen(['xsel', '-bi'], stdin=subprocess.PIPE)
         p.communicate(data)
 
     def get_types(self):
