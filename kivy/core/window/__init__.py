@@ -306,6 +306,10 @@ class WindowBase(EventDispatcher):
     def _get_size(self):
         r = self._rotation
         w, h = self._size
+        dpi = self.dpi
+        #if self._is_desktop and  dpi > 96.:
+        #    diff = dpi / 96.
+        #    w, h = w/diff, h/diff
         if self.softinput_mode == 'resize':
             h -= self.keyboard_height
         if r in (0, 180):
@@ -313,6 +317,10 @@ class WindowBase(EventDispatcher):
         return h, w
 
     def _set_size(self, size):
+        dpi = self.dpi
+        #if self._is_desktop and self.dpi > 96.:
+        #    diff = dpi / 96.
+        #    size = size[0] * diff, size[1] * diff
         if self._size != size:
             r = self._rotation
             if r in (0, 180):
@@ -324,6 +332,7 @@ class WindowBase(EventDispatcher):
             return True
         else:
             return False
+
     size = AliasProperty(_get_size, _set_size, bind=('_size', ))
     '''Get the rotated size of the window. If :attr:`rotation` is set, then the
     size will change to reflect the rotation.

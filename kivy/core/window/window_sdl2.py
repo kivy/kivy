@@ -167,7 +167,7 @@ class WindowSDL(WindowBase):
                                              self.borderless, self.fullscreen,
                                              resizable)
             density = _size[0] / w
-            self.dpi =  density * 96
+            self.dpi = density * 96
 
             # never stay with a None pos, application using w.center
             # will be fired.
@@ -176,8 +176,8 @@ class WindowSDL(WindowBase):
             w, h = self.size
             self._win.resize_window(w, h)
             self._size = _size = self._win._get_gl_size()
-            density = _size[0] / w
-            self.dpi = density * 96
+            #density = _size[0] / w
+            #self.dpi = density * 96
             self._win.set_border_state(self.borderless)
             self._win.set_fullscreen_mode(self.fullscreen)
 
@@ -352,7 +352,11 @@ class WindowSDL(WindowBase):
                 self.dispatch('on_dropfile', dropfile[0])
             # video resize
             elif action == 'windowresized':
-                self.size = args
+                if self._is_desktop:
+                    self.size = args
+                else:
+                    # This is necessary on ios for rotation
+                    self._size = self._win._get_gl_size()
                 # don't use trigger here, we want to delay the resize event
                 cb = self._do_resize
                 Clock.unschedule(cb)
@@ -462,9 +466,9 @@ class WindowSDL(WindowBase):
                 Logger.trace('WindowSDL: Unhandled event %s' % str(event))
 
     def _do_resize(self, dt):
-        Logger.debug('Window: Resize window to %s' % str(self.size))
-        self._win.resize_display_mode(*self.size)
-        self.dispatch('on_resize', *self.size)
+        Logger.debug('Window: Resize window to %s' % str(self._size))
+        self._win.resize_display_mode(*self._size)
+        self.dispatch('on_resize', *self._size)
 
     def do_pause(self):
         # should go to app pause mode.
