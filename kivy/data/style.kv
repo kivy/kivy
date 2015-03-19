@@ -7,7 +7,11 @@
         Rectangle:
             texture: self.texture
             size: self.texture_size
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
+            pos:
+                (
+                int(self.center_x - self.texture_size[0] / 2.) if self.halign == 'center' else (self.x if self.halign == 'left' else (root.right - self.texture_size[0])),
+                int(self.center_y - self.texture_size[1] / 2.) if self.valign == 'middle' else (self.y if self.valign == 'bottom' else (root.top - self.texture_size[1]))
+                )
 
 <-Button,-ToggleButton>:
     state_image: self.background_normal if self.state == 'normal' else self.background_down
