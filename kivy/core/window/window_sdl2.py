@@ -345,7 +345,8 @@ class WindowSDL(WindowBase):
                 self.dispatch('on_dropfile', dropfile[0])
             # video resize
             elif action == 'windowresized':
-                self._size = args
+                if platform != "ios":
+                    self._size = args
                 # don't use trigger here, we want to delay the resize event
                 cb = self._do_resize
                 Clock.unschedule(cb)
@@ -456,7 +457,10 @@ class WindowSDL(WindowBase):
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self._size))
-        self._win.resize_display_mode(*self._size)
+        if platform == "ios":
+            self._size = self._win.resize_display_mode(*self._size)
+        else:
+            self._win.resize_display_mode(*self._size)
         self.dispatch('on_resize', *self._size)
 
     def do_pause(self):
