@@ -25,7 +25,7 @@ cdef class _WindowSDL2Storage:
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
 
         IF USE_IOS:
-            self.win_flags |= SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN
+            self.win_flags |= SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_ALLOW_HIGHDPI
         ELSE:
             if resizable:
                 self.win_flags |= SDL_WINDOW_RESIZABLE
@@ -44,6 +44,10 @@ cdef class _WindowSDL2Storage:
         if PY3:
             orientations = bytes(environ.get('KIVY_ORIENTATION',
                 'LandscapeLeft LandscapeRight'), encoding='utf8')
+        elif USE_IOS:
+            # ios should use all if available
+            orientations = <bytes>environ.get('KIVY_ORIENTATION',
+                'LandscapeLeft LandscapeRight Portrait PortraitUpsideDown')
         else:
             orientations = <bytes>environ.get('KIVY_ORIENTATION',
                 'LandscapeLeft LandscapeRight')
@@ -87,6 +91,14 @@ cdef class _WindowSDL2Storage:
             self.die()
         cdef SDL_DisplayMode mode
         SDL_GetWindowDisplayMode(self.win, &mode)
+
+        IF USE_IOS:
+            cdef int w, h 
+            SDL_GL_GetDrawableSize(self.win, &w, &h)       
+            mode.w = w
+            mode.h = h
+            SDL_SetWindowDisplayMode(self.win, &mode)
+
         SDL_JoystickOpen(0)
 
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
@@ -94,11 +106,20 @@ cdef class _WindowSDL2Storage:
 
     def resize_display_mode(self, w, h):
         cdef SDL_DisplayMode mode
+        cdef int draw_w, draw_h 
         SDL_GetWindowDisplayMode(self.win, &mode)
-        mode.w = w
-        mode.h = h
-        SDL_SetWindowDisplayMode(self.win, &mode)
-        SDL_GetWindowDisplayMode(self.win, &mode)
+        if USE_IOS:
+           SDL_GL_GetDrawableSize(self.win, &draw_w, &draw_h)  
+           mode.w = draw_w
+           mode.h = draw_h
+           SDL_SetWindowDisplayMode(self.win, &mode)
+        else:
+           mode.w = w
+           mode.h = h
+           SDL_SetWindowDisplayMode(self.win, &mode)
+           SDL_GetWindowDisplayMode(self.win, &mode)
+
+        return mode.w, mode.h
 
     def resize_window(self, w, h):
         if self.window_size != [w, h]:
