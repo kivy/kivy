@@ -58,17 +58,17 @@ class UtilsTest(unittest.TestCase):
         sl = SafeList(['1', 2, 3.])
         self.assertTrue(isinstance(sl, list))
         it = sl.iterate()
-        self.assertEqual(it.next(), '1')
-        self.assertEqual(it.next(), 2)
-        self.assertEqual(it.next(), 3.)
+        self.assertEqual(next(it), '1')
+        self.assertEqual(next(it), 2)
+        self.assertEqual(next(it), 3.)
 
     def test_SafeList_iterate_reverse(self):  # deprecated
         sl = SafeList(['1', 2, 3.])
         self.assertTrue(isinstance(sl, list))
         it = sl.iterate(reverse=True)
-        self.assertEqual(it.next(), 3.)
-        self.assertEqual(it.next(), 2)
-        self.assertEqual(it.next(), '1')
+        self.assertEqual(next(it), 3.)
+        self.assertEqual(next(it), 2)
+        self.assertEqual(next(it), '1')
 
     def test_SafeList_clear(self):
         sl = SafeList(['1', 2, 3.])
