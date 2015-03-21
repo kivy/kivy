@@ -61,7 +61,7 @@ class Keyboard(EventDispatcher):
         # specials keys
         'backspace': 8, 'tab': 9, 'enter': 13, 'rshift': 303, 'shift': 304,
         'alt': 308, 'rctrl': 306, 'lctrl': 305,
-        'super': 309, 'alt-gr': 307, 'compose': 311, 'pipe': 310,        
+        'super': 309, 'alt-gr': 307, 'compose': 311, 'pipe': 310,
         'capslock': 301, 'escape': 27, 'spacebar': 32, 'pageup': 280,
         'pagedown': 281, 'end': 279, 'home': 278, 'left': 276, 'up':
         273, 'right': 275, 'down': 274, 'insert': 277, 'delete': 127,
@@ -82,7 +82,7 @@ class Keyboard(EventDispatcher):
         'numpad4': 260, 'numpad5': 261, 'numpad6': 262, 'numpad7': 263,
         'numpad8': 264, 'numpad9': 265, 'numpaddecimal': 266,
         'numpaddivide': 267, 'numpadmul': 268, 'numpadsubstract': 269,
-        'numpadadd': 270, 'numpadenter': 271, 
+        'numpadadd': 270, 'numpadenter': 271,
 
         # F1-15
         'f1': 282, 'f2': 283, 'f3': 284, 'f4': 285, 'f5': 286, 'f6': 287,
@@ -1137,9 +1137,10 @@ class WindowBase(EventDispatcher):
                            "semantics.")
 
     def on_textinput(self, text):
-        '''Event called whem text: i.e. alpha numeric non control keys or set of keys
-        is entered. As it is not gaurenteed whether we get one characyer or multiple 
-        characters, this event supports handling multiple characters.
+        '''Event called whem text: i.e. alpha numeric non control keys or set
+        of keys is entered. As it is not gaurenteed whether we get one
+        character or multiple ones, this event supports handling multiple
+        characters.
 
         ..versionadded:: 1.9.0
         '''
