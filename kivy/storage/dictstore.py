@@ -37,7 +37,7 @@ class DictStore(AbstractStore):
             return
         if not exists(self.filename):
             return
-        with open(self.filename, 'r') as fd:
+        with open(self.filename, 'rb') as fd:
             data = fd.read()
             if data:
                 self._data = pickle.loads(data)
@@ -48,7 +48,7 @@ class DictStore(AbstractStore):
         if not self._is_changed:
             return
 
-        with open(self.filename, 'w') as fd:
+        with open(self.filename, 'wb') as fd:
             pickle.dump(self._data, fd)
 
         self._is_changed = False
