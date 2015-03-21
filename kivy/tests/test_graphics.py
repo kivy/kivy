@@ -100,11 +100,8 @@ class FBOInstructionTestCase(unittest.TestCase):
             ClearBuffers()
             Ellipse(pos=(100, 100), size=(100, 100))
         fbo.draw()
-        data = fbo.pixels
 
-        import pygame
-        surface = pygame.image.fromstring(data, (512, 512), 'RGBA', True)
-        pygame.image.save(surface, "results.png")
+        fbo.texture.save('results.png')
 
     def tearDown(self):
         import os
