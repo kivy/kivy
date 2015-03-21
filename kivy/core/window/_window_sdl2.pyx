@@ -109,15 +109,15 @@ cdef class _WindowSDL2Storage:
         cdef int draw_w, draw_h 
         SDL_GetWindowDisplayMode(self.win, &mode)
         if USE_IOS:
-           SDL_GL_GetDrawableSize(self.win, &draw_w, &draw_h)  
-           mode.w = draw_w
-           mode.h = draw_h
-           SDL_SetWindowDisplayMode(self.win, &mode)
+            SDL_GL_GetDrawableSize(self.win, &draw_w, &draw_h)
+            mode.w = draw_w
+            mode.h = draw_h
+            SDL_SetWindowDisplayMode(self.win, &mode)
         else:
-           mode.w = w
-           mode.h = h
-           SDL_SetWindowDisplayMode(self.win, &mode)
-           SDL_GetWindowDisplayMode(self.win, &mode)
+            mode.w = w
+            mode.h = h
+            SDL_SetWindowDisplayMode(self.win, &mode)
+            SDL_GetWindowDisplayMode(self.win, &mode)
 
         return mode.w, mode.h
 
