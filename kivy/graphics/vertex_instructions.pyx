@@ -876,13 +876,17 @@ cdef class BorderImage(Rectangle):
         tb[2] = b2 / th * tch
         tb[3] = b3 / tw * tcw
 
-
+        cdef float sb0, sb1, sb2, sb3
+        sb0 = min((b0/th) * h, b0)
+        sb1 = min((b1/tw) * w, b1)
+        sb2 = min((b2/th) * h, b2)
+        sb3 = min((b3/tw) * w, b3)
         # horizontal and vertical sections
         cdef float hs[4]
         cdef float vs[4]
         hs[0] = x;            vs[0] = y
-        hs[1] = x + b3;       vs[1] = y + b0
-        hs[2] = x + w - b1;   vs[2] = y + h - b2
+        hs[1] = x + sb3;       vs[1] = y + sb0
+        hs[2] = x + w - sb1;   vs[2] = y + h - sb2
         hs[3] = x + w;        vs[3] = y + h
 
         cdef float ths[4]
