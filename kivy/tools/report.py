@@ -186,9 +186,10 @@ report = []
 
 # Prints the entire Output
 print('\n'.join(report_dict['Global'] + report_dict['OpenGL'] +
-    report_dict['Core'] + report_dict['Libraries'] +
-    report_dict['Configuration'] + report_dict['InputAvailablity'] +
-    report_dict['Environ'] + report_dict['Options']))
+                report_dict['Core'] + report_dict['Libraries'] +
+                report_dict['Configuration'] +
+                report_dict['InputAvailablity'] +
+                report_dict['Environ'] + report_dict['Options']))
 print()
 print()
 
