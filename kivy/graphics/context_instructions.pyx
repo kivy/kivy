@@ -692,6 +692,7 @@ cdef class Scale(Transform):
         Deprecated single scale property in favor of x, y, z, xyz axis
         independant scaled factors.
     '''
+
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
         Transform.__init__(self, **kwargs)
