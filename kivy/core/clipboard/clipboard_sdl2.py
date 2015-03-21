@@ -19,12 +19,12 @@ except ImportError:
 
 class ClipboardSDL2(ClipboardBase):
 
-    def paste(self):
+    def get(self, mimetype):
         return _get_text() if _has_text() else ''
 
-    def copy(self, data=''):
+    def put(self, data='', mimetype='text/plain'):
         data = data.encode('utf-8')
         _set_text(data)
 
     def get_types(self):
-        return 'text/plain'
+        return ['text/plain']
