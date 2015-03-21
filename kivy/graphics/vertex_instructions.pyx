@@ -1350,7 +1350,7 @@ cdef class RoundedRectangle(Rectangle):
                          float angle_start, float angle_end, int segments):
         cdef:
             float fx, fy, x, y
-            float tangetial_factor, radial_factor, theta
+            float tangential_factor, radial_factor, theta
             list points
 
         # convert to radians
@@ -1359,7 +1359,7 @@ cdef class RoundedRectangle(Rectangle):
 
         # number of vertices for arc, including start & end
         theta = (angle_end - angle_start) / segments
-        tangetial_factor = tan(theta)
+        tangential_factor = tan(theta)
         radial_factor = cos(theta)
 
         # unit circle, scale later
@@ -1376,8 +1376,8 @@ cdef class RoundedRectangle(Rectangle):
 
             fx = -y
             fy = x
-            x += fx * tangetial_factor
-            y += fy * tangetial_factor
+            x += fx * tangential_factor
+            y += fy * tangential_factor
             x *= radial_factor
             y *= radial_factor
 
