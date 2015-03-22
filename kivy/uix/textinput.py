@@ -141,6 +141,7 @@ __all__ = ('TextInput', )
 
 import re
 import sys
+import string
 from functools import partial
 from os import environ
 from weakref import ref
@@ -466,6 +467,8 @@ class TextInput(FocusBehavior, Widget):
         self._command = ''
         self.reset_undo()
         self._touch_count = 0
+        self._ctrl_l = False
+        self._ctrl_r = False
         self.interesting_keys = {
             8: 'backspace',
             13: 'enter',
@@ -480,7 +483,9 @@ class TextInput(FocusBehavior, Widget):
             280: 'cursor_pgup',
             281: 'cursor_pgdown',
             303: 'shift_L',
-            304: 'shift_R'}
+            304: 'shift_R',
+            305: 'ctrl_L',
+            306: 'ctrl_R'}
 
         super(TextInput, self).__init__(**kwargs)
 
@@ -846,6 +851,123 @@ class TextInput(FocusBehavior, Widget):
         #reset redo when undo is appended to
         self._redo = []
 
+    def _move_word_left(self):
+        pos = self.cursor_index()
+        text = self.text
+        pos -= 1
+
+        if pos == 0:
+            return 0, 0
+
+        ucase = string.ascii_uppercase
+        ws = string.whitespace
+        punct = string.punctuation
+
+        mode = 'normal'
+
+        c = text[pos]
+        if c in ws:
+            mode = 'ws'
+        elif c == '_':
+            mode = 'us'
+        elif c in punct:
+            mode = 'punct'
+        elif c not in ucase:
+            mode = 'camel'
+
+        while 0 < pos:
+            lc = c
+            c = text[pos]
+            if c == '\n':
+                if lc not in ws:
+                    pos += 1
+                break
+            if mode == 'camel' and c in ucase:
+                break
+            if mode in ('normal', 'camel') and c in ws:
+                pos += 1
+                break
+            if mode in ('normal', 'camel') and c in punct:
+                pos += 1
+                break
+            if mode == 'punct' and (c == '_' or c not in punct):
+                pos += 1
+                break
+            if mode == 'us' and c != '_' and (c in punct or c in ws):
+                pos += 1
+                break
+
+            if mode == 'us' and c != '_':
+                mode = ('normal' if c in ucase
+                        else 'ws' if c in ws
+                        else 'camel')
+            elif mode == 'ws' and c not in ws:
+                mode = ('normal' if c in ucase
+                        else 'us' if c == '_'
+                        else 'punct' if c in punct
+                        else 'camel')
+
+            pos -= 1
+
+        return self.get_cursor_from_index(max(0, pos))
+
+    def _move_word_right(self):
+        pos = self.cursor_index()
+        text = self.text
+        pmax = len(text)
+
+        if pos == pmax:
+            return self.cursor
+
+        ucase = string.ascii_uppercase
+        ws = string.whitespace
+        punct = string.punctuation
+
+        mode = 'normal'
+
+        c = text[pos]
+        if c in ws:
+            mode = 'ws'
+        elif c == '_':
+            mode = 'us'
+        elif c in punct:
+            mode = 'punct'
+        elif c not in ucase:
+            mode = 'camel'
+
+        while True:
+            if mode in ('normal', 'camel', 'punct') and c in ws:
+                mode = 'ws'
+            elif mode in ('normal', 'camel') and c == '_':
+                mode = 'us'
+            elif mode == 'normal' and c not in ucase:
+                mode = 'camel'
+
+            if mode == 'us':
+                if c in ws:
+                    mode = 'ws'
+                elif c != '_':
+                    break
+            if mode == 'ws' and c not in ws:
+                break
+            if mode == 'camel' and c in ucase:
+                break
+            if mode == 'punct' and (c == '_' or c not in punct):
+                break
+            if mode != 'punct' and c != '_' and c in punct:
+                break
+
+            pos += 1
+
+            if pos == pmax:
+                break
+
+            c = text[pos]
+            if c == '\n':
+                break
+
+        return self.get_cursor_from_index(max(0, min(pmax, pos)))
+
     def do_cursor_movement(self, action):
         '''Move the cursor relative to it's current position.
         Action can be one of :
@@ -870,22 +992,32 @@ class TextInput(FocusBehavior, Widget):
             row = min(row + 1, len(self._lines) - 1)
             col = min(len(self._lines[row]), col)
         elif action == 'cursor_left':
-            if col == 0:
-                if row:
-                    row -= 1
-                    col = len(self._lines[row])
+            if self._ctrl_l or self._ctrl_r:
+                col, row = self._move_word_left()
             else:
-                col, row = col - 1, row
+                if col == 0:
+                    if row:
+                        row -= 1
+                        col = len(self._lines[row])
+                else:
+                    col, row = col - 1, row
         elif action == 'cursor_right':
-            if col == len(self._lines[row]):
-                if row < len(self._lines) - 1:
-                    col = 0
-                    row += 1
+            if self._ctrl_l or self._ctrl_r:
+                col, row = self._move_word_right()
             else:
-                col, row = col + 1, row
+                if col == len(self._lines[row]):
+                    if row < len(self._lines) - 1:
+                        col = 0
+                        row += 1
+                else:
+                    col, row = col + 1, row
         elif action == 'cursor_home':
             col = 0
+            if self._ctrl_l or self._ctrl_r:
+                row = 0
         elif action == 'cursor_end':
+            if self._ctrl_l or self._ctrl_r:
+                row = len(self._lines) - 1
             col = len(self._lines[row])
         elif action == 'cursor_pgup':
             row = max(0, row - pgmove_speed)
@@ -1960,6 +2092,10 @@ class TextInput(FocusBehavior, Widget):
                 self._selection_from = self._selection_to = self.cursor_index()
                 self._selection = True
             self._selection_finished = False
+        elif internal_action == 'ctrl_L':
+            self._ctrl_l = True
+        elif internal_action == 'ctrl_R':
+            self._ctrl_r = True
         elif internal_action.startswith('cursor_'):
             cc, cr = self.cursor
             self.do_cursor_movement(internal_action)
@@ -1996,6 +2132,10 @@ class TextInput(FocusBehavior, Widget):
         if internal_action in ('shift', 'shift_L', 'shift_R'):
             if self._selection:
                 self._update_selection(True)
+        elif internal_action == 'ctrl_L':
+            self._ctrl_l = False
+        elif internal_action == 'ctrl_R':
+            self._ctrl_r = False
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         # Keycodes on OSX:
