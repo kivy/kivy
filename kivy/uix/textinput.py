@@ -1024,7 +1024,7 @@ class TextInput(FocusBehavior, Widget):
                 self._redo = []
         Clock.schedule_once(lambda dt: self.select_text(sindex, eindex))
 
-    def do_cursor_movement(self, action):
+    def do_cursor_movement(self, action, control=False, alt=False):
         '''Move the cursor relative to it's current position.
         Action can be one of :
 
@@ -1037,31 +1037,42 @@ class TextInput(FocusBehavior, Widget):
             - cursor_pgup: move one "page" before
             - cursor_pgdown: move one "page" after
 
+        In addition, the behavior of certain actions can be modified:
+
+            - control + cursor_left: move the cursor one word to the left
+            - control + cursor_right: move the cursor one word to the right
+            - control + cursor_up: scroll up one line
+            - control + cursor_down: scroll down one line
+            - control + cursor_home: go to beginning of text
+            - control + cursor_end: go to end of text
+            - alt + cursor_up: shift line(s) up
+            - alt + cursor_down: shift line(s) down
+
         '''
         pgmove_speed = int(self.height /
             (self.line_height + self.line_spacing) - 1)
         col, row = self.cursor
         if action == 'cursor_up':
-            if self._ctrl_l or self._ctrl_r:
+            if control:
                 self.scroll_y = max(0, self.scroll_y - self.line_height)
-            elif not self.readonly and (self._alt_l or self._alt_r):
+            elif not self.readonly and alt:
                 self._shift_lines(-1)
                 return
             else:
                 row = max(row - 1, 0)
                 col = min(len(self._lines[row]), col)
         elif action == 'cursor_down':
-            if self._ctrl_l or self._ctrl_r:
+            if control:
                 maxy = self._lines_rects[-1].pos[1] - self.y + self.line_height
                 self.scroll_y = min(maxy, self.scroll_y + self.line_height)
-            elif not self.readonly and (self._alt_l or self._alt_r):
+            elif not self.readonly and alt:
                 self._shift_lines(1)
                 return
             else:
                 row = min(row + 1, len(self._lines) - 1)
                 col = min(len(self._lines[row]), col)
         elif action == 'cursor_left':
-            if self._ctrl_l or self._ctrl_r:
+            if control:
                 col, row = self._move_word_left()
             else:
                 if col == 0:
@@ -1071,7 +1082,7 @@ class TextInput(FocusBehavior, Widget):
                 else:
                     col, row = col - 1, row
         elif action == 'cursor_right':
-            if self._ctrl_l or self._ctrl_r:
+            if control:
                 col, row = self._move_word_right()
             else:
                 if col == len(self._lines[row]):
@@ -1082,10 +1093,10 @@ class TextInput(FocusBehavior, Widget):
                     col, row = col + 1, row
         elif action == 'cursor_home':
             col = 0
-            if self._ctrl_l or self._ctrl_r:
+            if control:
                 row = 0
         elif action == 'cursor_end':
-            if self._ctrl_l or self._ctrl_r:
+            if control:
                 row = len(self._lines) - 1
             col = len(self._lines[row])
         elif action == 'cursor_pgup':
@@ -2171,7 +2182,9 @@ class TextInput(FocusBehavior, Widget):
             self._alt_r = True
         elif internal_action.startswith('cursor_'):
             cc, cr = self.cursor
-            self.do_cursor_movement(internal_action)
+            self.do_cursor_movement(internal_action,
+                                    self._ctrl_l or self._ctrl_r,
+                                    self._alt_l or self._alt_r)
             if self._selection and not self._selection_finished:
                 self._selection_to = self.cursor_index()
                 self._update_selection()
