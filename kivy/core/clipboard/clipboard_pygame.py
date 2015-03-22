@@ -21,6 +21,11 @@ except:
 class ClipboardPygame(ClipboardBase):
 
     _is_init = False
+    _types = None
+
+    _aliases = {
+        'text/plain;charset=utf-8': 'UTF8_STRING'
+    }
 
     def init(self):
         if ClipboardPygame._is_init:
@@ -30,18 +35,24 @@ class ClipboardPygame(ClipboardBase):
 
     def get(self, mimetype='text/plain'):
         self.init()
+        mimetype = self._aliases.get(mimetype, mimetype)
         text = pygame.scrap.get(mimetype)
-        if PY2:
-            text = text.encode('utf-8')
         return text
 
     def put(self, data, mimetype='text/plain'):
         self.init()
-        if platform == 'macosx' and data.endswith('\x00'):
-            data = data[:-1]
+        mimetype = self._aliases.get(mimetype, mimetype)
         pygame.scrap.put(mimetype, data)
 
     def get_types(self):
-        self.init()
-        return pygame.scrap.get_types()
+        if not self._types:
+            self.init()
+            types = pygame.scrap.get_types()
+            for mime, pygtype in self._aliases.items()[:]:
+                if mime in types:
+                    del self._aliases[mime]
+                if pygtype in types:
+                    types.append(mime)
+            self._types = types
+        return self._types
 
