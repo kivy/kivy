@@ -640,6 +640,12 @@ class TextInput(FocusBehavior, Widget):
         if self.readonly or not substring:
             return
 
+        if isinstance(substring, bytes):
+            substring = substring.decode('utf8')
+
+        if self.replace_crlf:
+            substring = substring.replace(u'\r\n', u'\n')
+
         mode = self.input_filter
         if mode is not None:
             chr = type(substring)
@@ -870,6 +876,7 @@ class TextInput(FocusBehavior, Widget):
             return 0, 0
 
         ucase = string.ascii_uppercase
+        lcase = string.ascii_lowercase
         ws = string.whitespace
         punct = string.punctuation
 
@@ -892,13 +899,13 @@ class TextInput(FocusBehavior, Widget):
                 if lc not in ws:
                     pos += 1
                 break
-            if mode == 'camel' and c in ucase:
-                break
             if mode in ('normal', 'camel') and c in ws:
                 pos += 1
                 break
             if mode in ('normal', 'camel') and c in punct:
                 pos += 1
+                break
+            if mode == 'camel' and c in ucase:
                 break
             if mode == 'punct' and (c == '_' or c not in punct):
                 pos += 1
@@ -930,6 +937,7 @@ class TextInput(FocusBehavior, Widget):
             return self.cursor
 
         ucase = string.ascii_uppercase
+        lcase = string.ascii_lowercase
         ws = string.whitespace
         punct = string.punctuation
 
@@ -942,7 +950,7 @@ class TextInput(FocusBehavior, Widget):
             mode = 'us'
         elif c in punct:
             mode = 'punct'
-        elif c not in ucase:
+        elif c in lcase:
             mode = 'camel'
 
         while True:
@@ -2802,7 +2810,7 @@ class TextInput(FocusBehavior, Widget):
             if CutBuffer and not self.password:
                 self._trigger_update_cutbuffer()
 
-    def _get_text(self, encode=True):
+    def _get_text(self, encode=False):
         lf = self._lines_flags
         l = self._lines
         len_l = len(l)
@@ -2813,13 +2821,16 @@ class TextInput(FocusBehavior, Widget):
         text = u''.join([(u'\n' if (lf[i] & FL_IS_NEWLINE) else u'') + l[i]
                         for i in range(len_l)])
 
-        if PY2 and encode and type(text) is not str:
-            text = text.encode('utf-8')
+        if encode and not isinstance(text, bytes):
+            text = text.encode('utf8')
         return text
 
     def _set_text(self, text):
-        if PY2 and type(text) is str:
-            text = text.decode('utf-8')
+        if isinstance(text, bytes):
+            text = text.decode('utf8')
+
+        if self.replace_crlf:
+            text = text.replace(u'\r\n', u'\n')
 
         if self._get_text(encode=False) == text:
             return
@@ -2897,6 +2908,15 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`auto_indent` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
+    '''
+
+    replace_crlf = BooleanProperty(True)
+    '''Automatically replace CRLF with LF.
+
+    .. versionadded:: 1.9.0
+
+    :attr:`replace_crlf` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
     '''
 
     allow_copy = BooleanProperty(True)
