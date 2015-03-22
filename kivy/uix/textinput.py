@@ -986,51 +986,65 @@ class TextInput(FocusBehavior, Widget):
 
         return self.get_cursor_from_index(max(0, min(pmax, pos)))
 
+    def _expand_range(self, ifrom, ito=None):
+        if ito is None:
+            ito = ifrom
+        text = self.text
+        l_text = len(text)
+        if ifrom > 0:
+            ifrom = text.rfind('\n', 0, ifrom) + 1
+        if ito < l_text:
+            ito = text.find('\n', ito)
+            if ito == -1:
+                ito = l_text
+        return ifrom, ito
+
     def _shift_lines(self, direction, sindex=None, eindex=None, old_cursor=None, from_undo=False):
         orig_cursor = self.cursor
         if old_cursor is not None:
             self.cursor = old_cursor
-        row = self.cursor[1]
+
+        cindex = self.cursor_index()
+
         sindex = self.selection_from if sindex is None else sindex
         eindex = self.selection_to if eindex is None else eindex
+        sel = None
         if (sindex or eindex) and sindex != eindex:
-            col1, row1 = self.get_cursor_from_index(sindex)
-            col2, row2 = self.get_cursor_from_index(eindex)
-            srow = min(row1, row2)
-            erow, ecol = max((row1, col1), (row2, col2))
-            if ecol == 0 and erow > srow:
-                erow -= 1
+            sindex, eindex = tuple(sorted((sindex, eindex)))
+            sindex, eindex = self._expand_range(sindex, eindex)
+            sel = tuple(sorted((sindex, eindex)))
         else:
-            srow = erow = row
-            sindex = self.cursor_index((row, 0))
-            eindex = self.cursor_index((row + 1, 0))
+            index = self.cursor_index()
+            sindex, eindex = self._expand_range(index)
 
-        if not ((direction < 0 and srow == 0) or
-                (direction > 0 and erow == len(self._lines) - 1)):
-            row += direction
-            osindex, oeindex = sindex, eindex
-            msrow = srow - 1 if direction < 0 else erow + 1
-            merow = erow if direction < 0 else srow
-            xline = self._lines[msrow]
-            for mrow in range(msrow, merow, direction * -1):
-                self._set_line_text(mrow, self._lines[mrow - direction])
-            self._set_line_text(merow, xline)
-            if direction > 0:
-                sindex = self.cursor_index((0, srow + 1))
-                eindex = self.cursor_index((0, erow + 2)) or len(self.text)
-            else:
-                sindex = self.cursor_index((0, srow - 1))
-                eindex = self.cursor_index((0, erow))
-            self.cursor = self.cursor[0], row
+        text = self.text
+        moved = False
+        l_text = len(text)
+        if direction < 0 and sindex > 0:
+            psindex, peindex = self._expand_range(sindex - 1)
+            text = text[0:psindex] + text[sindex:eindex] + u'\n' + text[psindex:peindex] + text[eindex:]
+            moved = True
+            cindex -= peindex - psindex + 1
+            sel = tuple(sorted((psindex, psindex + eindex - sindex)))
+        elif direction > 0 and eindex < l_text - 1:
+            psindex, peindex = self._expand_range(eindex + 1)
+            text = text[0:sindex] + text[psindex:peindex] + u'\n' + text[sindex:eindex] + text[peindex:]
+            moved = True
+            cindex += peindex - psindex + 1
+            sel = tuple(sorted((peindex - (eindex - sindex), peindex)))
+
+        if moved:
+            self._refresh_text(text)
+            self.cursor = self.get_cursor_from_index(cindex)
             if not from_undo:
                 self._undo.append({
-                    'undo_command': ('shiftln', direction * -1, sindex,
-                                     eindex, self.cursor),
-                    'redo_command': ('shiftln', direction, osindex, oeindex,
-                                     orig_cursor)
+                    'undo_command': ('shiftln', direction * -1, sel[0], sel[1], self.cursor),
+                    'redo_command': ('shiftln', direction, sindex, eindex, orig_cursor)
                 })
                 self._redo = []
-        Clock.schedule_once(lambda dt: self.select_text(sindex, eindex))
+
+        if sel:
+            Clock.schedule_once(lambda dt: self.select_text(*sel))
 
     def do_cursor_movement(self, action, control=False, alt=False):
         '''Move the cursor relative to it's current position.
