@@ -192,7 +192,7 @@ kivy_options = {
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': (
         'android', 'winctypes', 'xsel', 'dbusklipper', 'nspaste', 'sdl2',
-        'pygame', 'dummy')}
+        'pygame', 'dummy', 'gtk3', )}
 
 # Read environment
 for option in kivy_options:
