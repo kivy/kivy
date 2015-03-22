@@ -1075,7 +1075,7 @@ class TextInput(FocusBehavior, Widget):
             (self.line_height + self.line_spacing) - 1)
         col, row = self.cursor
         if action == 'cursor_up':
-            if control:
+            if self.multiline and control:
                 self.scroll_y = max(0, self.scroll_y - self.line_height)
             elif not self.readonly and self.multiline and alt:
                 self._shift_lines(-1)
@@ -1084,7 +1084,7 @@ class TextInput(FocusBehavior, Widget):
                 row = max(row - 1, 0)
                 col = min(len(self._lines[row]), col)
         elif action == 'cursor_down':
-            if control:
+            if self.multiline and control:
                 maxy = self.minimum_height - self.height
                 self.scroll_y = max(0, min(maxy, self.scroll_y + self.line_height))
             elif not self.readonly and self.multiline and alt:
@@ -1094,7 +1094,7 @@ class TextInput(FocusBehavior, Widget):
                 row = min(row + 1, len(self._lines) - 1)
                 col = min(len(self._lines[row]), col)
         elif action == 'cursor_left':
-            if control:
+            if not self.password and control:
                 col, row = self._move_word_left()
             else:
                 if col == 0:
@@ -1104,7 +1104,7 @@ class TextInput(FocusBehavior, Widget):
                 else:
                     col, row = col - 1, row
         elif action == 'cursor_right':
-            if control:
+            if not self.password and control:
                 col, row = self._move_word_right()
             else:
                 if col == len(self._lines[row]):
