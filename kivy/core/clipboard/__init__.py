@@ -59,8 +59,8 @@ class ClipboardBase(object):
 
         if platform == 'win':
             self._clip_mime_type = 'text/plain;charset=utf-8'
-            # windows clipboard uses a utf-16 encoding
-            self._encoding = 'utf-16'
+            # windows clipboard uses a utf-16 little endian encoding
+            self._encoding = 'utf-16-le'
         elif platform == 'linux':
             self._clip_mime_type = 'UTF8_STRING'
             self._encoding = 'utf-8'
