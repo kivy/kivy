@@ -986,11 +986,18 @@ class TextInput(FocusBehavior, Widget):
             (self.line_height + self.line_spacing) - 1)
         col, row = self.cursor
         if action == 'cursor_up':
-            row = max(row - 1, 0)
-            col = min(len(self._lines[row]), col)
+            if self._ctrl_l or self._ctrl_r:
+                self.scroll_y = max(0, self.scroll_y - self.line_height)
+            else:
+                row = max(row - 1, 0)
+                col = min(len(self._lines[row]), col)
         elif action == 'cursor_down':
-            row = min(row + 1, len(self._lines) - 1)
-            col = min(len(self._lines[row]), col)
+            if self._ctrl_l or self._ctrl_r:
+                maxy = self._lines_rects[-1].pos[1] - self.y + self.line_height
+                self.scroll_y = min(maxy, self.scroll_y + self.line_height)
+            else:
+                row = min(row + 1, len(self._lines) - 1)
+                col = min(len(self._lines[row]), col)
         elif action == 'cursor_left':
             if self._ctrl_l or self._ctrl_r:
                 col, row = self._move_word_left()
