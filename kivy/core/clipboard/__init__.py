@@ -26,6 +26,7 @@ Usage example::
 
 __all__ = ('ClipboardBase', 'Clipboard')
 
+from kivy import Logger
 from kivy.core import core_select_lib
 from kivy.utils import platform
 from kivy.setupconfig import USE_SDL2
@@ -142,4 +143,16 @@ _clipboards.append(
     ('dummy', 'clipboard_dummy', 'ClipboardDummy'))
 
 Clipboard = core_select_lib('clipboard', _clipboards, True)
+CutBuffer = None
 
+if platform == 'linux':
+    try:
+        from kivy.core.clipboard.clipboard_xsel import ClipboardXsel
+    except ImportError:
+        pass
+    else:
+        if isinstance(Clipboard, ClipboardXsel):
+            CutBuffer = Clipboard
+        else:
+            CutBuffer = ClipboardXsel()
+        Logger.info('CutBuffer: cut buffer support enabled')
