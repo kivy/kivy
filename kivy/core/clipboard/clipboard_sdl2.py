@@ -22,8 +22,11 @@ class ClipboardSDL2(ClipboardBase):
     def get(self, mimetype):
         return _get_text() if _has_text() else ''
 
-    def put(self, data='', mimetype='text/plain'):
-        data = data.encode('utf-8')
+    def _ensure_clipboard(self):
+        super(ClipboardSDL2, self)._ensure_clipboard()
+        self._encoding = 'utf8'
+
+    def put(self, data=b'', mimetype='text/plain'):
         _set_text(data)
 
     def get_types(self):
