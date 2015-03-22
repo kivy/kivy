@@ -230,13 +230,13 @@ cdef class Shader:
         '''
         glUseProgram(0)
 
-    cdef void set_uniform(self, str name, value):
+    cdef void set_uniform(self, str name, value) except *:
         if name in self.uniform_values and self.uniform_values[name] == value:
             return
         self.uniform_values[name] = value
         self.upload_uniform(name, value)
 
-    cdef void upload_uniform(self, str name, value):
+    cdef void upload_uniform(self, str name, value) except *:
         '''Pass a uniform variable to the shader.
         '''
         cdef long vec_size, index, x, y
@@ -421,7 +421,7 @@ cdef class Shader:
             mat[x] = <GLfloat>value.mat[x]
         glUniformMatrix4fv(loc, 1, False, mat)
 
-    cdef int get_uniform_loc(self, str name):
+    cdef int get_uniform_loc(self, str name) except *:
         cdef bytes c_name = name.encode('utf-8')
         cdef int loc = glGetUniformLocation(self.program, c_name)
         self.uniform_locations[name] = loc
@@ -462,11 +462,11 @@ cdef class Shader:
         # save for the next run.
         self._current_vertex_format = vertex_format
 
-    cdef void build(self):
+    cdef void build(self) except *:
         self.build_vertex()
         self.build_fragment()
 
-    cdef void build_vertex(self, int link=1):
+    cdef void build_vertex(self, int link=1) except *:
         if self.vertex_shader is not None:
             glDetachShader(self.program, self.vertex_shader.shader)
             self.vertex_shader = None
@@ -476,7 +476,7 @@ cdef class Shader:
         if link:
             self.link_program()
 
-    cdef void build_fragment(self, int link=1):
+    cdef void build_fragment(self, int link=1) except *:
         if self.fragment_shader is not None:
             glDetachShader(self.program, self.fragment_shader.shader)
             self.fragment_shader = None
@@ -486,7 +486,7 @@ cdef class Shader:
         if link:
             self.link_program()
 
-    cdef void link_program(self):
+    cdef void link_program(self) except *:
         if self.vertex_shader is None or self.fragment_shader is None:
             return
 

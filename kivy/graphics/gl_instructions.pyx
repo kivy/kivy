@@ -50,7 +50,7 @@ cdef class ClearColor(Instruction):
         self.b = b
         self.a = a
 
-    cdef void apply(self):
+    cdef void apply(self) except *:
         glClearColor(self.r, self.g, self.b, self.a)
 
     property rgba:
@@ -136,7 +136,7 @@ cdef class ClearBuffers(Instruction):
         self.clear_stencil = int(kwargs.get('clear_stencil', 0))
         self.clear_depth = int(kwargs.get('clear_depth', 0))
 
-    cdef void apply(self):
+    cdef void apply(self) except *:
         cdef GLbitfield mask = 0
         if self.clear_color:
             mask |= GL_COLOR_BUFFER_BIT

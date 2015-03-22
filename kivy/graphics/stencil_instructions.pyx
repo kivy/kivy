@@ -126,7 +126,7 @@ cdef class StencilPush(Instruction):
     '''Push the stencil stack. See the module documentation for more
     information.
     '''
-    cdef void apply(self):
+    cdef void apply(self) except *:
         global _stencil_level, _stencil_in_push
         if _stencil_in_push:
             raise Exception('Cannot use StencilPush inside another '
@@ -150,7 +150,7 @@ cdef class StencilPush(Instruction):
 cdef class StencilPop(Instruction):
     '''Pop the stencil stack. See the module documentation for more information.
     '''
-    cdef void apply(self):
+    cdef void apply(self) except *:
         global _stencil_level, _stencil_in_push
         if _stencil_level == 0:
             raise Exception('Too much StencilPop (stack underflow)')
@@ -176,7 +176,7 @@ cdef class StencilUse(Instruction):
         else:
             self._op = GL_EQUAL
 
-    cdef void apply(self):
+    cdef void apply(self) except *:
         global _stencil_in_push
         _stencil_in_push = 0
         glColorMask(1, 1, 1, 1)
@@ -207,7 +207,7 @@ cdef class StencilUse(Instruction):
 cdef class StencilUnUse(Instruction):
     '''Use current stencil buffer to unset the mask.
     '''
-    cdef void apply(self):
+    cdef void apply(self) except *:
         glStencilFunc(GL_ALWAYS, 0, 0)
         glStencilOp(GL_DECR, GL_DECR, GL_DECR)
         glColorMask(0, 0, 0, 0)
