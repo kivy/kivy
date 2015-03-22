@@ -127,7 +127,7 @@ elif platform == 'win':
         ('winctypes', 'clipboard_winctypes', 'ClipboardWindows'))
 elif platform == 'linux':
     _clipboards.append(
-        ('xsel', 'clipboard_xsel', 'Clipboardxsel'))
+        ('xsel', 'clipboard_xsel', 'ClipboardXsel'))
     _clipboards.append(
         ('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
 
