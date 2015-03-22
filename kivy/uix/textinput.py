@@ -1063,8 +1063,8 @@ class TextInput(FocusBehavior, Widget):
                 col = min(len(self._lines[row]), col)
         elif action == 'cursor_down':
             if control:
-                maxy = self._lines_rects[-1].pos[1] - self.y + self.line_height
-                self.scroll_y = min(maxy, self.scroll_y + self.line_height)
+                maxy = self.minimum_height - self.height
+                self.scroll_y = max(0, min(maxy, self.scroll_y + self.line_height))
             elif not self.readonly and alt:
                 self._shift_lines(1)
                 return
