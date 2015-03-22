@@ -4,7 +4,7 @@ Suite of Application Builders
 
 This explores different methods of starting an application. If you run
 this without a command line parameter, you should see a menu in your terminal.
-You can also run this with an 'r' command to pick a random method.
+You can also run this with a 'r' parameter to pick a random method.
 There are lots of logging options to make this easier to debug: the execution
 order may not be obvious. Each time you run the command, only one kivy
 application is created.
