@@ -469,6 +469,8 @@ class TextInput(FocusBehavior, Widget):
         self._touch_count = 0
         self._ctrl_l = False
         self._ctrl_r = False
+        self._alt_l = False
+        self._alt_r = False
         self.interesting_keys = {
             8: 'backspace',
             13: 'enter',
@@ -485,7 +487,9 @@ class TextInput(FocusBehavior, Widget):
             303: 'shift_L',
             304: 'shift_R',
             305: 'ctrl_L',
-            306: 'ctrl_R'}
+            306: 'ctrl_R',
+            308: 'alt_L',
+            307: 'alt_R'}
 
         super(TextInput, self).__init__(**kwargs)
 
@@ -748,6 +752,9 @@ class TextInput(FocusBehavior, Widget):
             elif undo_type == 'bkspc':
                 self.cursor = _get_cusror_from_index(x_item['redo_command'])
                 self.do_backspace(from_undo=True)
+            elif undo_type == 'shiftln':
+                direction, sindex, eindex, cursor = x_item['redo_command'][1:]
+                self._shift_lines(direction, sindex, eindex, cursor, True)
             else:
                 # delsel
                 ci, sci = x_item['redo_command']
@@ -784,6 +791,9 @@ class TextInput(FocusBehavior, Widget):
             elif undo_type == 'bkspc':
                 substring = x_item['undo_command'][2:][0]
                 self.insert_text(substring, True)
+            elif undo_type == 'shiftln':
+                direction, sindex, eindex, cursor = x_item['undo_command'][1:]
+                self._shift_lines(direction, sindex, eindex, cursor, True)
             else:
                 # delsel
                 substring = x_item['undo_command'][2:][0]
@@ -851,8 +861,8 @@ class TextInput(FocusBehavior, Widget):
         #reset redo when undo is appended to
         self._redo = []
 
-    def _move_word_left(self):
-        pos = self.cursor_index()
+    def _move_word_left(self, index=None):
+        pos = index or self.cursor_index()
         text = self.text
         pos -= 1
 
@@ -911,8 +921,8 @@ class TextInput(FocusBehavior, Widget):
 
         return self.get_cursor_from_index(max(0, pos))
 
-    def _move_word_right(self):
-        pos = self.cursor_index()
+    def _move_word_right(self, index=None):
+        pos = index or self.cursor_index()
         text = self.text
         pmax = len(text)
 
@@ -968,6 +978,52 @@ class TextInput(FocusBehavior, Widget):
 
         return self.get_cursor_from_index(max(0, min(pmax, pos)))
 
+    def _shift_lines(self, direction, sindex=None, eindex=None, old_cursor=None, from_undo=False):
+        orig_cursor = self.cursor
+        if old_cursor is not None:
+            self.cursor = old_cursor
+        row = self.cursor[1]
+        sindex = self.selection_from if sindex is None else sindex
+        eindex = self.selection_to if eindex is None else eindex
+        if (sindex or eindex) and sindex != eindex:
+            col1, row1 = self.get_cursor_from_index(sindex)
+            col2, row2 = self.get_cursor_from_index(eindex)
+            srow = min(row1, row2)
+            erow, ecol = max((row1, col1), (row2, col2))
+            if ecol == 0 and erow > srow:
+                erow -= 1
+        else:
+            srow = erow = row
+            sindex = self.cursor_index((row, 0))
+            eindex = self.cursor_index((row + 1, 0))
+
+        if not ((direction < 0 and srow == 0) or
+                (direction > 0 and erow == len(self._lines) - 1)):
+            row += direction
+            osindex, oeindex = sindex, eindex
+            msrow = srow - 1 if direction < 0 else erow + 1
+            merow = erow if direction < 0 else srow
+            xline = self._lines[msrow]
+            for mrow in range(msrow, merow, direction * -1):
+                self._set_line_text(mrow, self._lines[mrow - direction])
+            self._set_line_text(merow, xline)
+            if direction > 0:
+                sindex = self.cursor_index((0, srow + 1))
+                eindex = self.cursor_index((0, erow + 2)) or len(self.text)
+            else:
+                sindex = self.cursor_index((0, srow - 1))
+                eindex = self.cursor_index((0, erow))
+            self.cursor = self.cursor[0], row
+            if not from_undo:
+                self._undo.append({
+                    'undo_command': ('shiftln', direction * -1, sindex,
+                                     eindex, self.cursor),
+                    'redo_command': ('shiftln', direction, osindex, oeindex,
+                                     orig_cursor)
+                })
+                self._redo = []
+        Clock.schedule_once(lambda dt: self.select_text(sindex, eindex))
+
     def do_cursor_movement(self, action):
         '''Move the cursor relative to it's current position.
         Action can be one of :
@@ -988,6 +1044,9 @@ class TextInput(FocusBehavior, Widget):
         if action == 'cursor_up':
             if self._ctrl_l or self._ctrl_r:
                 self.scroll_y = max(0, self.scroll_y - self.line_height)
+            elif not self.readonly and (self._alt_l or self._alt_r):
+                self._shift_lines(-1)
+                return
             else:
                 row = max(row - 1, 0)
                 col = min(len(self._lines[row]), col)
@@ -995,6 +1054,9 @@ class TextInput(FocusBehavior, Widget):
             if self._ctrl_l or self._ctrl_r:
                 maxy = self._lines_rects[-1].pos[1] - self.y + self.line_height
                 self.scroll_y = min(maxy, self.scroll_y + self.line_height)
+            elif not self.readonly and (self._alt_l or self._alt_r):
+                self._shift_lines(1)
+                return
             else:
                 row = min(row + 1, len(self._lines) - 1)
                 col = min(len(self._lines[row]), col)
@@ -2103,6 +2165,10 @@ class TextInput(FocusBehavior, Widget):
             self._ctrl_l = True
         elif internal_action == 'ctrl_R':
             self._ctrl_r = True
+        elif internal_action == 'alt_L':
+            self._alt_l = True
+        elif internal_action == 'alt_R':
+            self._alt_r = True
         elif internal_action.startswith('cursor_'):
             cc, cr = self.cursor
             self.do_cursor_movement(internal_action)
@@ -2143,6 +2209,10 @@ class TextInput(FocusBehavior, Widget):
             self._ctrl_l = False
         elif internal_action == 'ctrl_R':
             self._ctrl_r = False
+        elif internal_action == 'alt_L':
+            self._alt_l = False
+        elif internal_action == 'alt_R':
+            self._alt_r = False
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         # Keycodes on OSX:
