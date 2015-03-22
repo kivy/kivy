@@ -1268,11 +1268,8 @@ class TextInput(FocusBehavior, Widget):
         event to provide additional functionality.
         '''
         ci = self.cursor_index()
-        cc = self.cursor_col
-        line = self._lines[self.cursor_row]
-        len_line = len(line)
-        Clock.schedule_once(lambda dt:
-                            self.select_text(ci - cc, ci + (len_line - cc)))
+        sindex, eindex = self._expand_range(ci)
+        Clock.schedule_once(lambda dt: self.select_text(sindex, eindex))
 
     def on_quad_touch(self):
         '''This event is dispatched when four fingers are touching
