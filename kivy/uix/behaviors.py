@@ -70,7 +70,7 @@ offers:
 '''
 
 __all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior',
-           'FocusBehavior', 'CompoundSelectionBehavior')
+           'FocusBehavior', 'CompoundSelectionBehavior', 'CodeNavigationBehavior')
 
 from kivy.clock import Clock
 from kivy.properties import OptionProperty, ObjectProperty, NumericProperty,\
@@ -78,6 +78,7 @@ from kivy.properties import OptionProperty, ObjectProperty, NumericProperty,\
 from kivy.config import Config
 from kivy.metrics import sp
 from kivy.base import EventLoop
+from kivy.event import EventDispatcher
 from kivy.logger import Logger
 from functools import partial
 from weakref import ref
@@ -1555,3 +1556,128 @@ class CompoundSelectionBehavior(object):
             return True
         except ValueError:
             return False
+
+
+class CodeNavigationBehavior(EventDispatcher):
+    '''Code navigation behavior. Modifies navigation behavior in TextInput
+    work like an IDE instead of a word processor.
+    '''
+
+    def _move_cursor_word_left(self, index=None):
+        pos = index or self.cursor_index()
+        text = self.text
+        pos -= 1
+
+        if pos == 0:
+            return 0, 0
+
+        ucase = string.ascii_uppercase
+        lcase = string.ascii_lowercase
+        ws = string.whitespace
+        punct = string.punctuation
+
+        mode = 'normal'
+
+        c = text[pos]
+        if c in ws:
+            mode = 'ws'
+        elif c == '_':
+            mode = 'us'
+        elif c in punct:
+            mode = 'punct'
+        elif c not in ucase:
+            mode = 'camel'
+
+        while 0 < pos:
+            lc = c
+            c = text[pos]
+            if c == '\n':
+                if lc not in ws:
+                    pos += 1
+                break
+            if mode in ('normal', 'camel') and c in ws:
+                pos += 1
+                break
+            if mode in ('normal', 'camel') and c in punct:
+                pos += 1
+                break
+            if mode == 'camel' and c in ucase:
+                break
+            if mode == 'punct' and (c == '_' or c not in punct):
+                pos += 1
+                break
+            if mode == 'us' and c != '_' and (c in punct or c in ws):
+                pos += 1
+                break
+
+            if mode == 'us' and c != '_':
+                mode = ('normal' if c in ucase
+                        else 'ws' if c in ws
+                else 'camel')
+            elif mode == 'ws' and c not in ws:
+                mode = ('normal' if c in ucase
+                        else 'us' if c == '_'
+                else 'punct' if c in punct
+                else 'camel')
+
+            pos -= 1
+
+        return self.get_cursor_from_index(max(0, pos))
+
+    def _move_cursor_word_right(self, index=None):
+        pos = index or self.cursor_index()
+        text = self.text
+        pmax = len(text)
+
+        if pos == pmax:
+            return self.cursor
+
+        ucase = string.ascii_uppercase
+        lcase = string.ascii_lowercase
+        ws = string.whitespace
+        punct = string.punctuation
+
+        mode = 'normal'
+
+        c = text[pos]
+        if c in ws:
+            mode = 'ws'
+        elif c == '_':
+            mode = 'us'
+        elif c in punct:
+            mode = 'punct'
+        elif c in lcase:
+            mode = 'camel'
+
+        while True:
+            if mode in ('normal', 'camel', 'punct') and c in ws:
+                mode = 'ws'
+            elif mode in ('normal', 'camel') and c == '_':
+                mode = 'us'
+            elif mode == 'normal' and c not in ucase:
+                mode = 'camel'
+
+            if mode == 'us':
+                if c in ws:
+                    mode = 'ws'
+                elif c != '_':
+                    break
+            if mode == 'ws' and c not in ws:
+                break
+            if mode == 'camel' and c in ucase:
+                break
+            if mode == 'punct' and (c == '_' or c not in punct):
+                break
+            if mode != 'punct' and c != '_' and c in punct:
+                break
+
+            pos += 1
+
+            if pos == pmax:
+                break
+
+            c = text[pos]
+            if c == '\n':
+                break
+
+        return self.get_cursor_from_index(max(0, min(pmax, pos)))

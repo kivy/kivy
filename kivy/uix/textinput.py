@@ -867,123 +867,45 @@ class TextInput(FocusBehavior, Widget):
         #reset redo when undo is appended to
         self._redo = []
 
-    def _move_word_left(self, index=None):
+    _re_whitespace = re.compile(r'\s+')
+
+    def _move_cursor_word_left(self, index=None):
         pos = index or self.cursor_index()
-        text = self.text
-        pos -= 1
-
         if pos == 0:
-            return 0, 0
-
-        ucase = string.ascii_uppercase
-        lcase = string.ascii_lowercase
-        ws = string.whitespace
-        punct = string.punctuation
-
-        mode = 'normal'
-
-        c = text[pos]
-        if c in ws:
-            mode = 'ws'
-        elif c == '_':
-            mode = 'us'
-        elif c in punct:
-            mode = 'punct'
-        elif c not in ucase:
-            mode = 'camel'
-
-        while 0 < pos:
-            lc = c
-            c = text[pos]
-            if c == '\n':
-                if lc not in ws:
-                    pos += 1
-                break
-            if mode in ('normal', 'camel') and c in ws:
-                pos += 1
-                break
-            if mode in ('normal', 'camel') and c in punct:
-                pos += 1
-                break
-            if mode == 'camel' and c in ucase:
-                break
-            if mode == 'punct' and (c == '_' or c not in punct):
-                pos += 1
-                break
-            if mode == 'us' and c != '_' and (c in punct or c in ws):
-                pos += 1
-                break
-
-            if mode == 'us' and c != '_':
-                mode = ('normal' if c in ucase
-                        else 'ws' if c in ws
-                        else 'camel')
-            elif mode == 'ws' and c not in ws:
-                mode = ('normal' if c in ucase
-                        else 'us' if c == '_'
-                        else 'punct' if c in punct
-                        else 'camel')
-
-            pos -= 1
-
+            return self.cursor
+        matches = list(self._re_whitespace.finditer(self.text, 0, pos - 1))
+        if not matches:
+            pos = 0
+        else:
+            match = matches[-1]
+            mpos = match.end()
+            if mpos == pos - 1:
+                if len(matches) > 1:
+                    match = matches[-2]
+                    mpos = match.end()
+                else:
+                    mpos = 0
+            pos = mpos
         return self.get_cursor_from_index(max(0, pos))
 
-    def _move_word_right(self, index=None):
+    def _move_cursor_word_right(self, index=None):
         pos = index or self.cursor_index()
-        text = self.text
-        pmax = len(text)
-
+        pmax = len(self.text)
         if pos == pmax:
             return self.cursor
-
-        ucase = string.ascii_uppercase
-        lcase = string.ascii_lowercase
-        ws = string.whitespace
-        punct = string.punctuation
-
-        mode = 'normal'
-
-        c = text[pos]
-        if c in ws:
-            mode = 'ws'
-        elif c == '_':
-            mode = 'us'
-        elif c in punct:
-            mode = 'punct'
-        elif c in lcase:
-            mode = 'camel'
-
-        while True:
-            if mode in ('normal', 'camel', 'punct') and c in ws:
-                mode = 'ws'
-            elif mode in ('normal', 'camel') and c == '_':
-                mode = 'us'
-            elif mode == 'normal' and c not in ucase:
-                mode = 'camel'
-
-            if mode == 'us':
-                if c in ws:
-                    mode = 'ws'
-                elif c != '_':
-                    break
-            if mode == 'ws' and c not in ws:
-                break
-            if mode == 'camel' and c in ucase:
-                break
-            if mode == 'punct' and (c == '_' or c not in punct):
-                break
-            if mode != 'punct' and c != '_' and c in punct:
-                break
-
-            pos += 1
-
-            if pos == pmax:
-                break
-
-            c = text[pos]
-            if c == '\n':
-                break
-
+        matches = list(self._re_whitespace.finditer(self.text, pos + 1))
+        if not matches:
+            pos = pmax
+        else:
+            match = matches[0]
+            mpos = match.start()
+            if mpos == pos + 1:
+                if len(matches) > 1:
+                    match = matches[1]
+                    mpos = match.start()
+                else:
+                    mpos = pmax
+            pos = mpos
         return self.get_cursor_from_index(max(0, min(pmax, pos)))
 
     def _expand_range(self, ifrom, ito=None):
@@ -1095,7 +1017,7 @@ class TextInput(FocusBehavior, Widget):
                 col = min(len(self._lines[row]), col)
         elif action == 'cursor_left':
             if not self.password and control:
-                col, row = self._move_word_left()
+                col, row = self._move_cursor_word_left()
             else:
                 if col == 0:
                     if row:
@@ -1105,7 +1027,7 @@ class TextInput(FocusBehavior, Widget):
                     col, row = col - 1, row
         elif action == 'cursor_right':
             if not self.password and control:
-                col, row = self._move_word_right()
+                col, row = self._move_cursor_word_right()
             else:
                 if col == len(self._lines[row]):
                     if row < len(self._lines) - 1:
