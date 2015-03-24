@@ -2,11 +2,7 @@
 # Kivy - Crossplatform NUI toolkit
 # http://kivy.org/
 #
-
-MIN_CYTHON_VERSION = (0, 20, 0)
-MIN_CYTHON_STRING = '.'.join(map(str, MIN_CYTHON_VERSION))
-MAX_CYTHON_VERSION = (0, 21, 1)
-MAX_CYTHON_STRING = '.'.join(map(str, MAX_CYTHON_VERSION))
+from __future__ import print_function
 
 import sys
 
@@ -16,12 +12,32 @@ from os.path import join, dirname, sep, exists, basename
 from os import walk, environ
 from distutils.core import setup
 from distutils.extension import Extension
+from distutils.version import LooseVersion
 from collections import OrderedDict
+from time import sleep
+
 
 if sys.version > '3':
     PY3 = True
 else:
     PY3 = False
+
+if PY3:  # fix error with py3's LooseVersion comparisons
+    def ver_equal(self, other):
+        return self.version == other
+
+    LooseVersion.__eq__ = ver_equal
+
+
+MIN_CYTHON_STRING = '0.20'
+MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
+MAX_CYTHON_STRING = '0.21.2'
+MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
+CYTHON_UNSUPPORTED = (
+    LooseVersion('0.22'),
+    LooseVersion('0.22.beta0'),
+    LooseVersion('0.22.alpha0'),
+)
 
 
 def getoutput(cmd):
@@ -102,6 +118,53 @@ for key in list(c_options.keys()):
 # -----------------------------------------------------------------------------
 # Cython check
 # on python-for-android and kivy-ios, cython usage is external
+
+cython_unsupported_append = '''
+  
+  Please note that the following versions of Cython are not supported
+  at all: {}
+'''.format(', '.join(map(str, CYTHON_UNSUPPORTED)))
+
+cython_min = '''\
+  This version of Cython is not compatible with Kivy. Please upgrade to
+  at least version {0}, preferably the newest supported version {1}.
+  
+  If your platform provides a Cython package, make sure you have upgraded
+  to the newest version. If the newest version available is still too low,
+  please remove it and install the newest supported Cython via pip:
+  
+    pip install -I Cython=={1}{2}\
+'''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
+           cython_unsupported_append if CYTHON_UNSUPPORTED else '')
+
+cython_max = '''\
+  This version of Cython is untested with Kivy. While this version may
+  work perfectly fine, it is possible that you may experience issues. If
+  you do have issues, please downgrade to a supported version. It is
+  best to use the newest supported version, {1}, but the minimum
+  supported version is {0}.
+  
+  If your platform provides a Cython package, check if you can downgrade
+  to a supported version. Otherwise, uninstall the platform package and
+  install Cython via pip:
+  
+    pip install -I Cython=={1}{2}\
+'''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
+           cython_unsupported_append if CYTHON_UNSUPPORTED else '')
+
+cython_unsupported = '''\
+  This version of Cython suffers from known bugs and is unsupported.
+  Please install the newest supported version, {1}, if possible, but
+  the minimum supported version is {0}.
+  
+  If your platform provides a Cython package, check if you can install
+  a supported version. Otherwise, uninstall the platform package and
+  install Cython via pip:
+  
+    pip install -I Cython=={1}{2}\
+'''.format(MIN_CYTHON_STRING, MAX_CYTHON_STRING,
+           cython_unsupported_append)
+
 have_cython = False
 if platform in ('ios', 'android'):
     print('\nCython check avoided.')
@@ -112,16 +175,17 @@ else:
         have_cython = True
         import Cython
         cy_version_str = Cython.__version__
-        cy_version = tuple(map(int, cy_version_str.split('.')))
+        cy_ver = LooseVersion(cy_version_str)
         print('\nDetected Cython version {}'.format(cy_version_str))
-        if cy_version < MIN_CYTHON_VERSION:
-            print('  This version of Cython is not compatible with Kivy. ' +
-                  'Please upgrade to at least {}'.format(MIN_CYTHON_STRING))
+        if cy_ver < MIN_CYTHON_VERSION:
+            print(cython_min)
             raise ImportError('Incompatible Cython Version')
-        if cy_version > MAX_CYTHON_VERSION:
-            print('  This version of Cython is untested with Kivy. If you ' +
-                  'experience issues, please downgrade to {}'
-                  .format(MAX_CYTHON_STRING))
+        if cy_ver in CYTHON_UNSUPPORTED:
+            print(cython_unsupported)
+            raise ImportError('Incompatible Cython Version')
+        if cy_ver > MAX_CYTHON_VERSION:
+            print(cython_max)
+            sleep(1)
     except ImportError:
         print('\nCython is missing, its required for compiling kivy !\n\n')
         raise
@@ -133,7 +197,7 @@ if not have_cython:
 # Setup classes
 
 # the build path where kivy is being compiled
-build_path = dirname(__file__)
+src_path = build_path = dirname(__file__)
 
 
 class KivyBuildExt(build_ext):
@@ -148,9 +212,9 @@ class KivyBuildExt(build_ext):
 
     def build_extensions(self):
         # build files
-        config_h_fn = expand('graphics', 'config.h')
-        config_pxi_fn = expand('graphics', 'config.pxi')
-        config_py_fn = expand('setupconfig.py')
+        config_h_fn = ('graphics', 'config.h')
+        config_pxi_fn = ('graphics', 'config.pxi')
+        config_py_fn = ('setupconfig.py', )
 
         # generate headers
         config_h = '// Autogenerated file for Kivy C configuration\n'
@@ -159,6 +223,10 @@ class KivyBuildExt(build_ext):
         config_pxi += 'DEF PY3 = {0}\n'.format(int(PY3))
         config_py = '# Autogenerated file for Kivy configuration\n'
         config_py += 'PY3 = {0}\n'.format(int(PY3))
+        config_py += 'CYTHON_MIN = {0}\nCYTHON_MAX = {1}\n'.format(
+            repr(MIN_CYTHON_STRING), repr(MAX_CYTHON_STRING))
+        config_py += 'CYTHON_BAD = {0}\n'.format(repr(', '.join(map(
+            str, CYTHON_UNSUPPORTED))))
 
         # generate content
         print('Build configuration is:')
@@ -177,8 +245,12 @@ class KivyBuildExt(build_ext):
         for fn, content in (
             (config_h_fn, config_h), (config_pxi_fn, config_pxi),
             (config_py_fn, config_py)):
-            if self.update_if_changed(fn, content):
-                print('Updated {}'.format(fn))
+            build_fn = expand(build_path, *fn)
+            if self.update_if_changed(build_fn, content):
+                print('Updated {}'.format(build_fn))
+            src_fn = expand(src_path, *fn)
+            if src_fn != build_fn and self.update_if_changed(src_fn, content):
+                print('Updated {}'.format(src_fn))
 
         c = self.compiler.compiler_type
         print('Detected compiler is {}'.format(c))
@@ -350,8 +422,8 @@ def get_modulename_from_file(filename):
     return '.'.join(pyxl)
 
 
-def expand(*args):
-    return join(build_path, 'kivy', *args)
+def expand(root, *args):
+    return join(root, 'kivy', *args)
 
 
 class CythonExtension(Extension):
@@ -606,6 +678,7 @@ graphics_dependencies = {
 
 sources = {
     '_event.pyx': merge(base_flags, {'depends': ['properties.pxd']}),
+    'weakproxy.pyx': {},
     'properties.pyx': merge(base_flags, {'depends': ['_event.pxd']}),
     'graphics/buffer.pyx': base_flags,
     'graphics/context.pyx': merge(base_flags, gl_flags),
@@ -731,7 +804,7 @@ def resolve_dependencies(fn, depends):
     deps = []
     get_dependencies(fn, deps)
     get_dependencies(fn.replace('.pyx', '.pxd'), deps)
-    return [expand('graphics', x) for x in deps]
+    return [expand(src_path, 'graphics', x) for x in deps]
 
 
 def get_extensions_from_sources(sources):
@@ -741,9 +814,9 @@ def get_extensions_from_sources(sources):
         return ext_modules
     for pyx, flags in sources.items():
         is_graphics = pyx.startswith('graphics')
-        pyx = expand(pyx)
-        depends = [expand(x) for x in flags.pop('depends', [])]
-        c_depends = [expand(x) for x in flags.pop('c_depends', [])]
+        pyx = expand(src_path, pyx)
+        depends = [expand(src_path, x) for x in flags.pop('depends', [])]
+        c_depends = [expand(src_path, x) for x in flags.pop('c_depends', [])]
         if not have_cython:
             pyx = '%s.c' % pyx[:-4]
         if is_graphics:

@@ -126,7 +126,7 @@ with Python and require little knowedge of platform specifics.
     after completing the rest of the features. 
 
   - **Mentors**: Akshay Arora, Ryan Pessa
-  - **Requirements:** Access to Linux, Windows, OS X
+  - **Requirements:** Access to Linux, Windows, or OS X
   - **Task level**: Easy
   - **Desired Skills**: Experience with other GUI creation tools. Familiar 
     with Kivy approach to EventLoop and UIX Widgets.
@@ -138,8 +138,8 @@ with Python and require little knowedge of platform specifics.
     addition to Kivy, and it would be ideal to provide them via integration 
     with matplotlib's extensive feature set. The primary goal of the project 
     would be to write a Kivy backend to matplotlib that displays plots using 
-    Kivy's own graphics API, but it would also involve ensuring that 
-    matplotlib is deployable on every platform Kivy supports.
+    Kivy's own graphics API, but it would also potentially involve ensuring 
+    that matplotlib is deployable on every platform Kivy supports.
 
   References:
     - http://matplotlib.org/
@@ -150,7 +150,8 @@ with Python and require little knowedge of platform specifics.
     use on all of Kivy's supported OS.
 
   - **Mentors**: Alexander Taylor, Matthew Einhorn, Jacob Kovac
-  - **Requirements:** Access to Linux, Windows, OS X, Android, iOS
+  - **Requirements:** Access to Desktop OS and ideally at least one mobile 
+    platform
   - **Task level**: Easy
   - **Desired Skills**: Familiarity with Kivy widget construction and 
     matplotlib. 
@@ -219,11 +220,12 @@ working with communicating between Python and an API in a different language.
 
   Expected outcome:
     Font fallback and text reshaping support Kivy and correct compilation 
-    recipes for the libs used (harfbuzz) for platforms(Android and iOS) that 
-    need it, such as Python-For-Android.
+    recipes for the libs used (harfbuzz) for platforms that need it, 
+    such as Python-For-Android.
 
   - **Mentors**: Akshay Arora, Jacob Kovac
-  - **Requirements:** Access to Linux, Windows, OS X, Android, iOS
+  - **Requirements:** Access to Desktop OS and ideally at least one mobile 
+    platform
   - **Task level**: Intermediate
   - **Desired Skills**: Familiarity with text rendering, HarfBuzz, and Kivy's 
     provider abstraction.

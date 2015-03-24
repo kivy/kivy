@@ -266,7 +266,7 @@ class Atlas(EventDispatcher):
         # open all of the images
         ims = list()
         for f in filenames:
-            fp = open(f)
+            fp = open(f, 'rb')
             im = Image.open(fp)
             im.load()
             fp.close()
@@ -393,6 +393,7 @@ if __name__ == '__main__':
     to make a new atlas. """
 
     import sys
+    from glob import glob
     argv = sys.argv[1:]
     # earlier import of kivy has already called getopt to remove kivy system
     # arguments from this line. That is all arguments up to the first '--'
@@ -426,7 +427,7 @@ if __name__ == '__main__':
         print('Error: size must be an integer or <integer>x<integer>')
         sys.exit(1)
 
-    filenames = argv[2:]
+    filenames = [fname for fnames in argv[2:] for fname in glob(fnames)]
     ret = Atlas.create(outname, filenames, size, **options)
     if not ret:
         print('Error while creating atlas!')

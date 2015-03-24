@@ -274,7 +274,7 @@ class Carousel(StencilView):
         .. versionadded:: 1.7.0
         '''
         if not self.index is None:
-            h, w = self.size
+            w, h = self.size
             _direction = {
                 'top': -h / 2,
                 'bottom': h / 2,

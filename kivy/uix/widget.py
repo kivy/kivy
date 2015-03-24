@@ -164,6 +164,7 @@ propogated before taking action. You can use the
                 return super(MyLabel, self).on_touch_down(touch)
 
 '''
+from kivy.graphics.transformation import Matrix
 
 __all__ = ('Widget', 'WidgetException')
 
@@ -177,7 +178,7 @@ from kivy.graphics import (Canvas, Translate, Fbo, ClearColor, ClearBuffers,
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
-from weakref import proxy
+from kivy.weakproxy import WeakProxy
 from functools import partial
 from itertools import islice
 
@@ -292,17 +293,12 @@ class Widget(WidgetBase):
             return _proxy_ref
 
         f = partial(_widget_destructor, self.uid)
-        self._proxy_ref = _proxy_ref = proxy(self, f)
+        self._proxy_ref = _proxy_ref = WeakProxy(self, f)
         # Only f should be enough here, but it appears that is a very
         # specific case, the proxy destructor is not called if both f and
         # _proxy_ref are not together in a tuple.
         _widget_destructors[self.uid] = (f, _proxy_ref)
         return _proxy_ref
-
-    def __eq__(self, other):
-        if not isinstance(other, Widget):
-            return False
-        return self.proxy_ref is other.proxy_ref
 
     def __hash__(self):
         return id(self)
@@ -808,6 +804,24 @@ class Widget(WidgetBase):
         if relative:
             return (x - self.x, y - self.y)
         return (x, y)
+
+    def _apply_transform(self, m):
+        return self.parent._apply_transform(m) if self.parent else m
+
+    def get_window_matrix(self, x=0, y=0):
+        '''Calculate the transformation matrix to convert between window and
+        widget coordinates.
+
+        :Parameters:
+            `x`: float, defaults to 0
+                Translates the matrix on the x axis.
+            `y`: float, defaults to 0
+                Translates the matrix on the y axis.
+        '''
+        m = Matrix()
+        m.translate(self.x + x, self.y + y, 0)
+        m = self._apply_transform(m)
+        return m
 
     x = NumericProperty(0)
     '''X position of the widget.

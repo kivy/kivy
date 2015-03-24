@@ -179,7 +179,7 @@ def OSCArgument(data):
 
     if isinstance(data, string_types):
         OSCstringLength = math.ceil((len(data)+1) / 4.0) * 4
-        binary = struct.pack(">%ds" % (OSCstringLength), data)
+        binary = struct.pack(">i%ds" % (OSCstringLength), bytes(data, 'utf-8'))
         tag = "s"
     elif isinstance(data, float):
         binary = struct.pack(">f", data)

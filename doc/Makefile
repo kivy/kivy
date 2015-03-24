@@ -10,6 +10,8 @@ SPHINXOPTS_TEST	= -W -T
 SPHINXBUILD	= sphinx-build
 PAPER		=
 
+fasthtml: SPHINXOPTS += -j4
+
 # platform indepnt path separator
 # only system calls need to use $(P), b/c on win system calls have issues with /
 ifdef ComSpec
@@ -49,6 +51,7 @@ help:
 	@echo "  clean     to remove generated files"
 	@echo "  gettext   to make gettext pages"
 	@echo "  html      to make standalone HTML files"
+	@echo "  fasthtml  same as html, with 4 concurrent processes"
 	@echo "  htmlhelp  to make HTML files and a HTML help project"
 	@echo "  latex     to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
 	@echo "  linkcheck to check through the reference linking"
@@ -70,6 +73,8 @@ else
 	-rm -rf build/*
 	-rm $(AUTOBUILD_STAMP_BASE)*
 endif
+
+fasthtml: html
 
 html:
 	$(MKDIR) build$(P)html build$(P)doctrees

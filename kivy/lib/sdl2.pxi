@@ -30,6 +30,8 @@ cdef extern from "SDL.h":
         SDL_PIXELFORMAT_ARGB8888
         SDL_PIXELFORMAT_RGBA8888
         SDL_PIXELFORMAT_RGB888
+        SDL_PIXELFORMAT_ABGR8888
+        SDL_PIXELFORMAT_BGR888
 
     ctypedef enum SDL_GLattr:
         SDL_GL_RED_SIZE
@@ -456,6 +458,9 @@ cdef extern from "SDL.h":
     cdef int SDL_GetTextureBlendMode(SDL_Texture * texture, SDL_BlendMode *blendMode)
     cdef SDL_Surface * SDL_CreateRGBSurfaceFrom(void *pixels, int width, int height, int depth, int pitch, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
     cdef SDL_Surface* SDL_ConvertSurface(SDL_Surface* src, SDL_PixelFormat* fmt, Uint32 flags)
+    cdef SDL_Surface* SDL_ConvertSurfaceFormat(SDL_Surface* src, Uint32
+            pixel_format, Uint32 flags)
+    cdef const char* SDL_GetPixelFormatName(Uint32 format)
     cdef int SDL_Init(Uint32 flags)
     cdef void SDL_Quit()
     cdef int SDL_EnableUNICODE(int enable)
