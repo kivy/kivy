@@ -30,4 +30,4 @@ class ClipboardXsel(ClipboardBase):
         p.communicate(data)
 
     def get_types(self):
-        return list('text/plain',)
+        return [u'text/plain']
