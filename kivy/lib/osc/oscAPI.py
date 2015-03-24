@@ -90,7 +90,7 @@ if use_multiprocessing:
         haveSocket = property(_get_haveSocket, _set_haveSocket)
 else:
     def _readQueue(thread_id=None):
-        thread = oscThreads[id]
+        thread = oscThreads[thread_id]
 
         q = thread.queue
         h = thread.addressManager.handle
