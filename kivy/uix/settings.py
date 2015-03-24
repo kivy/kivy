@@ -363,6 +363,20 @@ class SettingString(SettingItem):
     defaults to None.
     '''
 
+    ok_button_text = StringProperty("Ok")
+    '''Used to store the desired text for the popup Ok button.
+
+    :attr:`ok_button_text` is an :class:`~kivy.properties.StringProperty`
+    and defaults to 'Ok'.
+    '''
+
+    cancel_button_text = StringProperty("Cancel")
+    '''Used to store the desired text for the popup Cancel button.
+
+    :attr:`cancel_button_text` is an :class:`~kivy.properties.StringProperty`
+    and defaults to 'Cancel'.
+    '''
+
     def on_panel(self, instance, value):
         if value is None:
             return
@@ -375,10 +389,26 @@ class SettingString(SettingItem):
             self.popup.dismiss()
         self.popup = None
 
-    def _validate(self, instance):
+    def _write(self, instance):
         self._dismiss()
         value = self.textinput.text.strip()
         self.value = value
+
+    def _valid_input(self, value):
+        #Controls allowable characters eg. Just numbers
+        return True
+
+    def _valid_entry(self, value):
+        #Controls allowable content. eg email address
+        return True
+
+    def _on_text(self, instance, value):
+        if self._valid_input(value):
+            self.last_value = value
+        else:
+            self.textinput.text = self.last_value
+            return
+        self._ok_button.disabled = not self._valid_entry(value)
 
     def _create_popup(self, instance):
         # create popup layout
@@ -392,7 +422,8 @@ class SettingString(SettingItem):
         self.textinput = textinput = TextInput(
             text=self.value, font_size='24sp', multiline=False,
             size_hint_y=None, height='42sp')
-        textinput.bind(on_text_validate=self._validate)
+        self.last_value = self.value
+        textinput.bind(text=self._on_text)
         self.textinput = textinput
 
         # construct the content, widget are used as a spacer
@@ -403,10 +434,10 @@ class SettingString(SettingItem):
 
         # 2 buttons are created for accept or cancel the current value
         btnlayout = BoxLayout(size_hint_y=None, height='50dp', spacing='5dp')
-        btn = Button(text='Ok')
-        btn.bind(on_release=self._validate)
-        btnlayout.add_widget(btn)
-        btn = Button(text='Cancel')
+        self._ok_button = Button(text=self.ok_button_text)
+        self._ok_button.bind(on_release=self._write)
+        btnlayout.add_widget(self._ok_button)
+        btn = Button(text=self.cancel_button_text)
         btn.bind(on_release=self._dismiss)
         btnlayout.add_widget(btn)
         content.add_widget(btnlayout)
@@ -438,6 +469,20 @@ class SettingPath(SettingItem):
 
     :attr:`textinput` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
+    '''
+
+    ok_button_text = StringProperty("Ok")
+    '''Used to store the desired text for the popup Ok button.
+
+    :attr:`ok_button_text` is an :class:`~kivy.properties.StringProperty`
+    and defaults to 'Ok'.
+    '''
+
+    cancel_button_text = StringProperty("Cancel")
+    '''Used to store the desired text for the popup Cancel button.
+
+    :attr:`cancel_button_text` is an :class:`~kivy.properties.StringProperty`
+    and defaults to 'Cancel'.
     '''
 
     def on_panel(self, instance, value):
@@ -481,10 +526,10 @@ class SettingPath(SettingItem):
 
         # 2 buttons are created for accept or cancel the current value
         btnlayout = BoxLayout(size_hint_y=None, height='50dp', spacing='5dp')
-        btn = Button(text='Ok')
+        btn = Button(text=self.ok_button_text)
         btn.bind(on_release=self._validate)
         btnlayout.add_widget(btn)
-        btn = Button(text='Cancel')
+        btn = Button(text=self.cancel_button_text)
         btn.bind(on_release=self._dismiss)
         btnlayout.add_widget(btn)
         content.add_widget(btnlayout)
@@ -501,9 +546,49 @@ class SettingNumeric(SettingString):
     value.
     '''
 
-    def _validate(self, instance):
-        # we know the type just by checking if there is a '.' in the original
-        # value
+    value_range = ListProperty([None, None])
+    '''Values used to represent the minimum and maximum values inclusive. None
+    can be specified for no limit. If you want to use positive values only in
+    your ConfigParser instance::
+
+        SettingNumeric(..., value_range=[0, None])
+
+    .. warning::
+
+        You need exactlt two values, the index 0 will be used as minimum,
+        and index 1 as maxium
+
+    :attr:`values` is a :class:`~kivy.properties.ListProperty` and defaults to
+    [None, None]
+    '''
+
+    def _valid_input(self, value):
+        is_float = '.' in str(self.value)
+        try:
+            if is_float:
+                float(value)
+            else:
+                int(value)
+        except ValueError:
+            return False
+        return True
+
+    def _in_value_range(self, value):
+        inlow = (self.value_range[0] is None) or (value >= self.value_range[0])
+        inhigh = (self.value_range[1] is None) or (value <= self.value_range[1])
+        return inlow and inhigh
+
+    def _valid_entry(self, value):
+        is_float = '.' in str(self.value)
+        try:
+            if is_float:
+                return self._in_value_range(float(value))
+            else:
+                return self._in_value_range(int(value))
+        except ValueError:
+            return False
+
+    def _write(self, instance):
         is_float = '.' in str(self.value)
         self._dismiss()
         try:
@@ -537,6 +622,13 @@ class SettingOptions(SettingItem):
     to None.
     '''
 
+    cancel_button_text = StringProperty("Cancel")
+    '''Used to store the desired text for the popup Cancel button.
+
+    :attr:`cancel_button_text` is an :class:`~kivy.properties.StringProperty`
+    and defaults to 'Cancel'.
+    '''
+
     def on_panel(self, instance, value):
         if value is None:
             return
@@ -566,7 +658,8 @@ class SettingOptions(SettingItem):
 
         # finally, add a cancel button to return on the previous panel
         content.add_widget(SettingSpacer())
-        btn = Button(text='Cancel', size_hint_y=None, height=dp(50))
+        btn = Button(
+            text=self.cancel_button_text, size_hint_y=None, height=dp(50))
         btn.bind(on_release=popup.dismiss)
         content.add_widget(btn)
 
