@@ -54,7 +54,9 @@ Builder.load_string('''
             rgba: .1, 1, .1, .9
         Line:
             width: 2.
-            circle: (self.center_x, self.center_y, min(self.width, self.height) / 2)
+            circle:
+                (self.center_x, self.center_y, min(self.width, self.height)
+                / 2)
     Label:
         center: root.center
         text: 'Circle'
@@ -65,7 +67,9 @@ Builder.load_string('''
             rgba: .1, 1, .1, .9
         Line:
             width: 2.
-            circle: (self.center_x, self.center_y, min(self.width, self.height) / 2, 90, 180)
+            circle:
+                (self.center_x, self.center_y, min(self.width, self.height)
+                / 2, 90, 180)
     Label:
         center: root.center
         text: 'Circle from 90 to 180'
@@ -76,7 +80,9 @@ Builder.load_string('''
             rgba: .1, 1, .1, .9
         Line:
             width: 2.
-            circle: (self.center_x, self.center_y, min(self.width, self.height) / 2, 90, 180, 10)
+            circle:
+                (self.center_x, self.center_y, min(self.width, self.height)
+                / 2, 90, 180, 10)
     Label:
         center: root.center
         text: 'Circle from 90 to 180\\n10 segments'
@@ -88,7 +94,9 @@ Builder.load_string('''
             rgba: .1, 1, .1, .9
         Line:
             width: 2.
-            circle: (self.center_x, self.center_y, min(self.width, self.height) / 2, 0, 360)
+            circle:
+                (self.center_x, self.center_y, min(self.width, self.height)
+                / 2, 0, 360)
     Label:
         center: root.center
         text: 'Circle from 0 to 360'
@@ -111,7 +119,9 @@ Builder.load_string('''
             rgba: .1, .1, 1, .9
         Line:
             width: 2.
-            bezier: (self.x, self.y, self.center_x - 40, self.y + 100, self.center_x + 40, self.y - 100, self.right, self.y)
+            bezier:
+                (self.x, self.y, self.center_x - 40, self.y + 100,
+                self.center_x + 40, self.y - 100, self.right, self.y)
     Label:
         center: root.center
         text: 'Bezier'

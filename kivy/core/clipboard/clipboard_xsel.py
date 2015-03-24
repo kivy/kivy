@@ -2,7 +2,7 @@
 Clipboard xsel: an implementation of the Clipboard using xsel command line tool.
 '''
 
-__all__ = ('Clipboardxsel', )
+__all__ = ('ClipboardXsel', )
 
 from kivy.utils import platform
 from kivy.core.clipboard import ClipboardBase
@@ -18,10 +18,10 @@ except:
     raise
 
 
-class Clipboardxsel(ClipboardBase):
+class ClipboardXsel(ClipboardBase):
 
     def get(self, mimetype='text/plain'):
-        p = subprocess.Popen(['xsel', 'b'], stdout=subprocess.PIPE)
+        p = subprocess.Popen(['xsel', '-bo'], stdout=subprocess.PIPE)
         data, _ = p.communicate()
         return data
 
@@ -30,4 +30,4 @@ class Clipboardxsel(ClipboardBase):
         p.communicate(data)
 
     def get_types(self):
-        return 'text/plain'
+        return list('text/plain',)

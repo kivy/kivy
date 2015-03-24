@@ -43,7 +43,8 @@ class EzsApp(App):
         return self.root
 
     def next_screen(self, screen):
-        '''Clear container and load the given screen object from file in kv folder
+        '''Clear container and load the given screen object from file in kv
+        folder.
 
         :param screen: name of the screen object made from the loaded .kv file
         :type screen: str

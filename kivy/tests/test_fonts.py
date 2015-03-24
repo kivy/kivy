@@ -23,5 +23,8 @@ class FontTestCase(unittest.TestCase):
     def tearDown(self):
         import os
         if os.path.exists(self.font_name):
-            os.unlink(self.font_name)
+            try:
+                os.unlink(self.font_name)
+            except:
+                pass
 

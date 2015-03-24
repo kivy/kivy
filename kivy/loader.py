@@ -40,7 +40,7 @@ from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.cache import Cache
 from kivy.core.image import ImageLoader, Image
-from kivy.compat import PY2
+from kivy.compat import PY2, string_types
 
 from collections import deque
 from time import sleep
@@ -164,7 +164,7 @@ class LoaderBase(object):
         return self._loading_image
 
     def _set_loading_image(self, image):
-        if isinstance(image, basestring):
+        if isinstance(image, string_types):
             self._loading_image = ImageLoader.load(filename=image)
         else:
             self._loading_image = image
@@ -187,7 +187,7 @@ class LoaderBase(object):
         return self._error_image
 
     def _set_error_image(self, image):
-        if isinstance(image, basestring):
+        if isinstance(image, string_types):
             self._error_image = ImageLoader.load(filename=image)
         else:
             self._error_image = image
