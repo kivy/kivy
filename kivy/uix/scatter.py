@@ -529,9 +529,10 @@ class Scatter(Widget):
             touch.multitouch_sim = True
         # grab the touch so we get all it later move events for sure
         self._bring_to_front(touch)
-        touch.grab(self)
-        self._touches.append(touch)
-        self._last_touch_pos[touch] = touch.pos
+        if touch not in self._touches:
+            touch.grab(self)
+            self._touches.append(touch)
+            self._last_touch_pos[touch] = touch.pos
 
         return True
 
