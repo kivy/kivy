@@ -306,10 +306,8 @@ class WindowBase(EventDispatcher):
     def _get_size(self):
         r = self._rotation
         w, h = self._size
-        dpi = self.dpi
-        #if self._is_desktop and  dpi > 96.:
-        #    diff = dpi / 96.
-        #    w, h = w/diff, h/diff
+        if hasattr(self._win, '_get_gl_size'):
+            w, h = self._win._get_gl_size()
         if self.softinput_mode == 'resize':
             h -= self.keyboard_height
         if r in (0, 180):
@@ -317,10 +315,6 @@ class WindowBase(EventDispatcher):
         return h, w
 
     def _set_size(self, size):
-        dpi = self.dpi
-        #if self._is_desktop and self.dpi > 96.:
-        #    diff = dpi / 96.
-        #    size = size[0] * diff, size[1] * diff
         if self._size != size:
             r = self._rotation
             if r in (0, 180):
@@ -951,6 +945,8 @@ class WindowBase(EventDispatcher):
         from math import radians
 
         w, h = self.system_size
+        if hasattr(self._win, '_get_gl_size'):
+            w, h = self._win._get_gl_size()
 
         smode = self.softinput_mode
         kheight = self.keyboard_height

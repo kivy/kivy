@@ -21,7 +21,7 @@ cdef class _WindowSDL2Storage:
         raise RuntimeError(<bytes> SDL_GetError())
 
     def setup_window(self, x, y, width, height, borderless, fullscreen,
-                     resizable, shaped=False):
+                     resizable):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
         IF USE_IOS:
@@ -29,7 +29,7 @@ cdef class _WindowSDL2Storage:
         ELSE:
             if resizable:
                 self.win_flags |= SDL_WINDOW_RESIZABLE
-            if borderless or shaped:
+            if borderless:
                 self.win_flags |= SDL_WINDOW_BORDERLESS
             if fullscreen == 'auto':
                 self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
@@ -68,18 +68,8 @@ cdef class _WindowSDL2Storage:
         if y is None:
             y = SDL_WINDOWPOS_UNDEFINED
 
-        if not shaped:
-            self.win = SDL_CreateWindow(NULL, x, y, width, height,
-                                        self.win_flags)
-        IF not USE_IOS:
-            if shaped:
-                self.win = SDL_CreateShapedWindow(NULL, x, y, width, height,
-                                                  self.win_flags)
-            #shape_mode = SDL_WindowShapeMode()
-            #shape_mode.mode = ShapeModeColorKey
-            #shape_mode.parameters.colorKey = (0, 0, 0, 255)
-            #SDL_SetWindowShape(Self.win, circle_sf, shape_mode)
-
+        self.win = SDL_CreateWindow(NULL, x, y, width, height,
+                                    self.win_flags)
         if not self.win:
             self.die()
 
@@ -89,17 +79,15 @@ cdef class _WindowSDL2Storage:
         self.ctx = SDL_GL_CreateContext(self.win)
         if not self.ctx:
             self.die()
-
-        #cdef SDL_DisplayMode mode
-        #SDL_GetWindowDisplayMode(self.win, &mode)
         SDL_JoystickOpen(0)
 
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
-        return self._get_gl_size()
+        cdef int w, h
+        SDL_GetWindowSize(self.win, &w, &h)
+        return w, h
 
     def _get_gl_size(self):
-        cdef int w
-        cdef int h
+        cdef int w, h
         SDL_GL_GetDrawableSize(self.win, &w, &h)
         return w, h
 
