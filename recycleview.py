@@ -218,6 +218,7 @@ class RecycleView(RelativeLayout):
         viewclass = None
         if self.key_viewclass:
             viewclass = self.data[index].get(self.key_viewclass)
+            viewclass = getattr(Factory, viewclass)
         if not viewclass:
             viewclass = self.viewclass
         return viewclass
