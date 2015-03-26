@@ -5,13 +5,12 @@ RecycleView
 Data accepted: list of dict.
 
 TODO:
-    - remove widgets outside the bbox
     - recycle old widgets based on the class
     - add custom function to get view height
     - add custom function to get view class
+    - update view size when created
     - move all internals to adapter
     - selection
-
 """
 
 from kivy.compat import string_types
