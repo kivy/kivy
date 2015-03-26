@@ -20,8 +20,6 @@ from kivy.properties import NumericProperty, AliasProperty, StringProperty, \
     ObjectProperty
 from kivy.factory import Factory
 from kivy.clock import Clock
-from profilehooks import profile
-from time import time
 
 Builder.load_string("""
 <RecycleView>:
