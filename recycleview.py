@@ -192,10 +192,10 @@ class RecycleView(RelativeLayout):
         """
         viewclass = self.get_viewclass(index)
         item = self.data[index]
-        view = viewclass()
-        # we could pass the data though the constructor, but that wont work
-        # for kv-declared classes, and might lead the user to think it can
+        # FIXME: we could pass the data though the constructor, but that wont
+        # work for kv-declared classes, and might lead the user to think it can
         # work for reloading as well.
+        view = viewclass(**item)
         for key, value in item.items():
             setattr(view, key, value)
         return view
