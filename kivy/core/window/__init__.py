@@ -268,6 +268,7 @@ class WindowBase(EventDispatcher):
     __instance = None
     __initialized = False
     _fake_fullscreen = False
+    _density = None
 
     # private properties
     _size = ListProperty([0, 0])
@@ -306,6 +307,7 @@ class WindowBase(EventDispatcher):
     def _get_size(self):
         r = self._rotation
         w, h = self._size
+        density = self._density
         if hasattr(self._win, '_get_gl_size'):
             w, h = self._win._get_gl_size()
         if self.softinput_mode == 'resize':
@@ -888,6 +890,8 @@ class WindowBase(EventDispatcher):
         '''
         if me.is_touch:
             w, h = self.system_size
+            if platform == 'ios':
+                w, h = self.size
             me.scale_for_screen(w, h, rotation=self._rotation,
                                 smode=self.softinput_mode,
                                 kheight=self.keyboard_height)
@@ -946,7 +950,7 @@ class WindowBase(EventDispatcher):
 
         w, h = self.system_size
         if hasattr(self._win, '_get_gl_size'):
-            w, h = self._win._get_gl_size()
+            w, h = self.size
 
         smode = self.softinput_mode
         kheight = self.keyboard_height

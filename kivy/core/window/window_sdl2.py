@@ -80,6 +80,7 @@ class SDL2MotionEvent(MotionEvent):
         self.is_touch = True
         self.profile = ('pos', )
         self.sx, self.sy = args
+        win = EventLoop.window
         super(SDL2MotionEvent, self).depack(args)
 
 
@@ -166,18 +167,15 @@ class WindowSDL(WindowBase):
             self.system_size = _size = self._win.setup_window(
                 pos[0], pos[1], w, h, self.borderless,
                 self.fullscreen, resizable)
-            print self.system_size, '_size create size', self.size
-            self._density = 1
             sz = self.size[0]
+            self._density = density = sz / _size[0]
             if self._is_desktop and self.size[0] != _size[0]:
-                self._density = density = sz / w
                 self.dpi = density * 96.
 
             # never stay with a None pos, application using w.center
             # will be fired.
             self._pos = (0, 0)
         else:
-            print 'window resize', self.size, self.system_size
             w, h = self.system_size
             self._win.resize_window(w, h)
             self._win.set_border_state(self.borderless)
@@ -263,7 +261,7 @@ class WindowSDL(WindowBase):
             return
 
         from kivy.graphics.opengl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
-        width, height = self.system_size
+        width, height = self.size
         data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
         self._win.save_bytes_in_png(filename, data, width, height)
         Logger.debug('Window: Screenshot saved at <%s>' % filename)
@@ -276,14 +274,12 @@ class WindowSDL(WindowBase):
     def _fix_mouse_pos(self, x, y):
         density = self._density
         y -= 1
-        if self.size[0] != self._size[0]:
+        if self._is_desktop and self.size[0] != self._size[0]:
             x, y = x * density, (y * density) - self.system_size[1]
             #y = self.system_size[1] - y
             self.mouse_pos = x, y
         else:
             self.mouse_pos = x, self.system_size[1] - y
-        print self.mouse_pos
-        print x, y
         return x, y
 
     def _mainloop(self):
