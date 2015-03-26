@@ -19,6 +19,7 @@ from kivy.lang import Builder
 from kivy.properties import NumericProperty, AliasProperty, StringProperty, \
     ObjectProperty
 from kivy.factory import Factory
+from kivy.clock import Clock
 
 Builder.load_string("""
 <RecycleView>:
@@ -61,12 +62,22 @@ class RecycleView(RelativeLayout):
     def do_layout(self, *args):
         super(RecycleView, self).do_layout(*args)
         self.refresh_from_data(True)
+        Clock.schedule_once(lambda x: self.refresh_from_data(True), 0)
+
+    def make_view_dirty(self, view, index):
+        viewclass = view.__class__
+        if viewclass not in self.dirty_views:
+            self.dirty_views[viewclass] = {index: view}
+        else:
+            self.dirty_views[viewclass][index] = view
 
     def refresh_from_data(self, force=True):
         """The data has changed, update the RecycleView internals
         """
         if force:
-            self.dirty_views.update(self.views)
+            for index, view in self.views.items():
+                self.make_view_dirty(view, index)
+            self.views = {}
         self.compute_views_heights()
         self.compute_visible_views()
 
@@ -129,7 +140,7 @@ class RecycleView(RelativeLayout):
         # put all the hidden view as dirty views
         for index, view in current_views.items():
             layout.remove_widget(view)
-            dirty_views[index] = view
+            self.make_view_dirty(view, index)
 
         # save the current visible views
         self.views = visible_views
@@ -137,12 +148,33 @@ class RecycleView(RelativeLayout):
     def get_view(self, index):
         """Return a view instance for the `index`
         """
-        if index in self.dirty_views:
-            view = self.dirty_views.pop(index)
-            self.refresh_view_layout(view, index)
-            return view
         if index in self.views:
             return self.views[index]
+
+        dirty_views = self.dirty_views
+        viewclass = self.get_viewclass(index)
+        if viewclass in dirty_views:
+
+            # we found ourself in the dirty list, no need to update data!
+            if index in dirty_views[viewclass]:
+                view = dirty_views[viewclass].pop(index)
+                self.refresh_view_layout(view, index)
+                self.views[index] = view
+                return view
+
+            # we are not in the dirty list, just take one and reuse it.
+            if dirty_views[viewclass]:
+                previous_index = dirty_views[viewclass].keys()[0]
+                view = dirty_views[viewclass].pop(previous_index)
+                # update view data
+                item = self.data[index]
+                for key, value in item.items():
+                    setattr(view, key, value)
+                self.refresh_view_layout(view, index)
+                self.views[index] = view
+                return view
+
+        # create a fresh one
         self.views[index] = view = self.create_view(index)
         self.refresh_view_layout(view, index)
         return view
@@ -161,7 +193,13 @@ class RecycleView(RelativeLayout):
         """
         viewclass = self.get_viewclass(index)
         item = self.data[index]
-        return viewclass(**item)
+        view = viewclass()
+        # we could pass the data though the constructor, but that wont work
+        # for kv-declared classes, and might lead the user to think it can
+        # work for reloading as well.
+        for key, value in item.items():
+            setattr(view, key, value)
+        return view
 
     def get_view_position(self, index):
         """Get the position for the view at `index`
@@ -200,22 +238,56 @@ class RecycleView(RelativeLayout):
 
 
 if __name__ == "__main__":
+    import random
     from kivy.base import runTouchApp
     from kivy.lang import Builder
 
-    runTouchApp(Builder.load_string("""
-RecycleView:
-    data: [{"text": "Hello {}".format(x)} for x in range(100000)]
-    viewclass: "Label"
-    """))
+    Builder.load_string("""
+<ContactItem@BoxLayout>:
+    index: 0
+    contact_media: ""
+    contact_name: ""
+    spacing: "10dp"
 
-    """
+    canvas.before:
+        Color:
+            rgb: (1, 1, 1) if root.index % 2 == 0 else (.95, .95, .95)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    AsyncImage:
+        source: root.contact_media
+        size_hint_x: None
+        width: self.height
+    Label:
+        font_size: "20sp"
+        text: root.contact_name
+        color: (0, 0, 0, 1)
+        text_size: (self.width, None)
+    """)
+
+    # Create a data set
+    contacts = []
+    names = ["Robert", "George", "Joseph", "Donald", "Mark", "Anthony", "Gary"]
+    medias = [
+        "http://life.curtin.edu.au/local/images/contact-us.jpg",
+        "http://pbs.twimg.com/profile_images/3312895495/8e39061bdad2b5d18dc8a9be63a2f50a_normal.png",
+        "http://www.geglobalresearch.com/media/Alhart-Todd-45x45.jpg",
+        "https://secure.gravatar.com/avatar/4882973ccf078682279696479b5dbce9?s=48&d=monsterid&r=g#.png"
+    ]
+    for x in range(100000):
+        contacts.append({
+            "index": x,
+            "contact_media": random.choice(medias),
+            "contact_name": "{} {}".format(
+                random.choice(names),
+                random.choice(names)
+            )
+        })
+
     from kivy.uix.label import Label
     rv = RecycleView()
-    rv.viewclass = Label
-    rv.key_height = "height"
-    rv.data = [{
-        "text": "Hello {}".format(x)}
-        for x in range(10000)]
+    rv.viewclass = "ContactItem"
+    rv.data = contacts
     runTouchApp(rv)
-    """
