@@ -104,8 +104,8 @@ class RecycleView(RelativeLayout):
         px_end = px_start + self.height
 
         # now calculate the view indices we must show
-        i_start = self.get_index_at(px_start)
-        i_end = self.get_index_at(px_end)
+        i_start = self.get_view_index_at(px_start)
+        i_end = self.get_view_index_at(px_end)
 
         current_views = self.views
         visible_views = {}
