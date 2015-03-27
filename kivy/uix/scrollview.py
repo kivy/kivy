@@ -135,6 +135,18 @@ if Config:
 class ScrollView(StencilView):
     '''ScrollView class. See module documentation for more information.
 
+    :Events:
+        `on_scroll_start`
+            Generic event fired when scrolling starts from touch.
+        `on_scroll_move`
+            Generic event fired when scrolling move from touch.
+        `on_scroll_stop`
+            Generic event fired when scrolling stops from touch.
+
+    .. versionchanged:: 1.9.0
+        `on_scroll_start`, `on_scroll_move` and `on_scroll_stop` events are
+        now dispatched when scrolling to handle nested ScrollViews.
+
     .. versionchanged:: 1.7.0
         `auto_scroll`, `scroll_friction`, `scroll_moves`, `scroll_stoptime' has
         been deprecated, use :attr:`effect_cls` instead.
@@ -415,6 +427,8 @@ class ScrollView(StencilView):
         if value:
             value.bind(size=self._set_viewport_size)
             self.viewport_size = value.size
+
+    __events__ = ('on_scroll_start', 'on_scroll_move', 'on_scroll_stop')
 
     def __init__(self, **kwargs):
         self._touch = None
