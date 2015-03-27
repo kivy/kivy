@@ -361,6 +361,7 @@ class RecycleView(RelativeLayout):
 
     # internals
     _previous_adapter = None
+    _previous_layout_manager = None
     can_scroll_x = BooleanProperty(False)
     can_scroll_y = BooleanProperty(True)
     layout_size = ListProperty([1, 1])
@@ -419,7 +420,7 @@ class RecycleView(RelativeLayout):
         self._previous_layout_manager = lm
         self.can_scroll_x = lm.can_scroll_horizontally()
         self.can_scroll_y = lm.can_scroll_vertically()
-        lm.invalidate()
+        self.request_layout()
 
     @property
     def current_adapter(self):
