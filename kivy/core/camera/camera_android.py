@@ -3,6 +3,7 @@ from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from kivy.graphics import Fbo, BindTexture, Rectangle
 from kivy.core.camera import CameraBase
+from kivy.graphics.opengl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
 
 
 Camera = autoclass('android.hardware.Camera')
@@ -85,3 +86,15 @@ class CameraAndroid(CameraBase):
         A dummy placeholder (the image is already in GPU) to be consistent with other providers.
         """
         self.dispatch('on_texture')
+
+    @property
+    def frame_data(self):
+        """
+        Image data of current frame, in RGB format
+        """
+        ##buf = self._texture.pixels  # very slow
+        ##buf = self._fbo.pixels  # still slow
+        self._fbo.bind()
+        buf = glReadPixels(0, 0, self._resolution[0], self._resolution[1], GL_RGB, GL_UNSIGNED_BYTE)
+        self._fbo.release()
+        return buf
