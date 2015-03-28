@@ -78,4 +78,10 @@ class CameraAndroid(CameraBase):
         if self._texture is None:
             self._texture = self._fbo.texture
             self.dispatch('on_load')
+        self._copy_to_gpu()
+
+    def _copy_to_gpu(self):
+        """
+        A dummy placeholder (the image is already in GPU) to be consistent with other providers.
+        """
         self.dispatch('on_texture')
