@@ -307,8 +307,7 @@ class WindowBase(EventDispatcher):
     def _get_size(self):
         r = self._rotation
         w, h = self._size
-        density = self._density
-        if hasattr(self._win, '_get_gl_size'):
+        if self._density != 1:
             w, h = self._win._get_gl_size()
         if self.softinput_mode == 'resize':
             h -= self.keyboard_height
@@ -366,10 +365,13 @@ class WindowBase(EventDispatcher):
 
     # make some property read-only
     def _get_width(self):
+        _size = self._size
+        if self._density != 1:
+            _size = self._win._get_gl_size()
         r = self._rotation
         if r == 0 or r == 180:
-            return self._size[0]
-        return self._size[1]
+            return _size[0]
+        return _size[1]
 
     width = AliasProperty(_get_width, None, bind=('_rotation', '_size'))
     '''Rotated window width.
@@ -380,10 +382,13 @@ class WindowBase(EventDispatcher):
     def _get_height(self):
         '''Rotated window height'''
         r = self._rotation
+        _size = self._size
+        if self._density != 1:
+            _size = self._win._get_gl_size()
         kb = self.keyboard_height if self.softinput_mode == 'resize' else 0
         if r == 0 or r == 180:
-            return self._size[1] - kb
-        return self._size[0] - kb
+            return _size[1] - kb
+        return _size[0] - kb
 
     height = AliasProperty(_get_height, None, bind=('_rotation', '_size'))
     '''Rotated window height.
