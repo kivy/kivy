@@ -33,22 +33,8 @@ class CameraAndroid(CameraBase):
         self._surface_texture = SurfaceTexture(int(self._camera_texture.id))
         self._android_camera.setPreviewTexture(self._surface_texture)
 
-    def start(self):
-        super(CameraAndroid, self).start()
-        self._android_camera.startPreview()
-        Clock.unschedule(self._update)
-        Clock.schedule_interval(self._update, 1./self.fps)
-
-    def stop(self):
-        super(CameraAndroid, self).stop()
-        Clock.unschedule(self._update)
-        self._android_camera.stopPreview()
-
-    def _update(self, dt):
-        self._surface_texture.updateTexImage()
-
-        fbo = Fbo(size=self._resolution)
-        fbo.shader.fs = '''
+        self._fbo = Fbo(size=self._resolution)
+        self._fbo.shader.fs = '''
             #extension GL_OES_EGL_image_external : require
             #ifdef GL_ES
                 precision highp float;
@@ -67,10 +53,29 @@ class CameraAndroid(CameraBase):
                 gl_FragColor = texture2D(texture1, tex_coord0);
             }
         '''
-        with fbo:
+
+    def _refresh_fbo(self):
+        self._fbo.clear()
+        with self._fbo:
             BindTexture(texture=self._camera_texture, index=1)
             Rectangle(size=self._resolution)
-        fbo.draw()
-        self._texture = fbo.texture
-        self.dispatch('on_load')
+        self._fbo.draw()
+
+    def start(self):
+        super(CameraAndroid, self).start()
+        self._android_camera.startPreview()
+        Clock.unschedule(self._update)
+        Clock.schedule_interval(self._update, 1./self.fps)
+
+    def stop(self):
+        super(CameraAndroid, self).stop()
+        Clock.unschedule(self._update)
+        self._android_camera.stopPreview()
+
+    def _update(self, dt):
+        self._surface_texture.updateTexImage()
+        self._refresh_fbo()
+        if self._texture is None:
+            self._texture = self._fbo.texture
+            self.dispatch('on_load')
         self.dispatch('on_texture')
