@@ -7,7 +7,7 @@ from kivy.core.camera import CameraBase
 
 Camera = autoclass('android.hardware.Camera')
 SurfaceTexture = autoclass('android.graphics.SurfaceTexture')
-GL_TEXTURE_EXTERNAL_OES = 36197
+GL_TEXTURE_EXTERNAL_OES = autoclass('android.opengl.GLES11Ext').GL_TEXTURE_EXTERNAL_OES
 
 
 class CameraAndroid(CameraBase):
