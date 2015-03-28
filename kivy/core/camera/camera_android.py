@@ -1,27 +1,13 @@
-from jnius import autoclass, PythonJavaClass, java_method
+from jnius import autoclass
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
+from kivy.graphics import Fbo, BindTexture, Rectangle
 from kivy.core.camera import CameraBase
 
 
 Camera = autoclass('android.hardware.Camera')
 SurfaceTexture = autoclass('android.graphics.SurfaceTexture')
-ImageFormat = autoclass('android.graphics.ImageFormat')
-
-
-class PreviewCallback(PythonJavaClass):
-    """
-    Interface used to get back the preview frame of the Android Camera
-    """
-    __javainterfaces__ = ('android.hardware.Camera$PreviewCallback', )
-
-    def __init__(self, callback):
-        super(PreviewCallback, self).__init__()
-        self.callback = callback
-
-    @java_method('([BLandroid/hardware/Camera;)V')
-    def onPreviewFrame(self, data, camera):
-        self.callback(data, camera)
+GL_TEXTURE_EXTERNAL_OES = 36197
 
 
 class CameraAndroid(CameraBase):
@@ -31,8 +17,6 @@ class CameraAndroid(CameraBase):
 
     def __init__(self, **kwargs):
         self._android_camera = None
-        self._surface_texture = SurfaceTexture(-1)
-        self._preview_cb = PreviewCallback(self._on_preview_frame)
         super(CameraAndroid, self).__init__(**kwargs)
 
     def init_camera(self):
@@ -42,42 +26,51 @@ class CameraAndroid(CameraBase):
         params.setPreviewSize(width, height)
         self._android_camera.setParameters(params)
         #self._android_camera.setDisplayOrientation()
+        self.fps = 30.
 
-        pf = params.getPreviewFormat()
-        assert(pf == ImageFormat.NV21)  # default format is NV21
-        bpp = ImageFormat.getBitsPerPixel(pf) / 8.
-        for k in range(2):  # double buffer
-            buf = '\x00' * int(width * height * bpp)
-            self._android_camera.addCallbackBuffer(buf)
-
+        self._camera_texture = Texture(width=width, height=height, target=GL_TEXTURE_EXTERNAL_OES, colorfmt='rgba')
+        self._camera_texture.bind()
+        self._surface_texture = SurfaceTexture(int(self._camera_texture.id))
         self._android_camera.setPreviewTexture(self._surface_texture)
-        self._android_camera.setPreviewCallbackWithBuffer(self._preview_cb)
-
-    def _on_preview_frame(self, data, camera):
-        import numpy as np
-        import cv2
-
-        buf = data.tostring()
-        self._android_camera.addCallbackBuffer(data)  # add buffer back for reuse
-        w, h = self._resolution
-        buf = np.fromstring(buf, 'uint8').reshape((h+h/2, w))
-        self._buffer = cv2.cvtColor(buf, 92).tostring()  # NV21 -> RGB
-        Clock.schedule_once(self._update)
 
     def start(self):
         super(CameraAndroid, self).start()
         self._android_camera.startPreview()
+        Clock.unschedule(self._update)
+        Clock.schedule_interval(self._update, 1./self.fps)
 
     def stop(self):
-        self._android_camera.stopPreview()
         super(CameraAndroid, self).stop()
+        Clock.unschedule(self._update)
+        self._android_camera.stopPreview()
 
     def _update(self, dt):
-        if self._buffer is None:
-            return
-        if self._texture is None:
-            self._texture = Texture.create(size=self._resolution, colorfmt=self._format)
-            self._texture.flip_vertical()
-            self.dispatch('on_load')
-        self._copy_to_gpu()
+        self._surface_texture.updateTexImage()
 
+        fbo = Fbo(size=self._resolution)
+        fbo.shader.fs = '''
+            #extension GL_OES_EGL_image_external : require
+            #ifdef GL_ES
+                precision highp float;
+            #endif
+
+            /* Outputs from the vertex shader */
+            varying vec4 frag_color;
+            varying vec2 tex_coord0;
+
+            /* uniform texture samplers */
+            uniform sampler2D texture0;
+            uniform samplerExternalOES texture1;
+
+            void main()
+            {
+                gl_FragColor = texture2D(texture1, tex_coord0);
+            }
+        '''
+        with fbo:
+            BindTexture(texture=self._camera_texture, index=1)
+            Rectangle(size=self._resolution)
+        fbo.draw()
+        self._texture = fbo.texture
+        self.dispatch('on_load')
+        self.dispatch('on_texture')
