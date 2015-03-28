@@ -268,6 +268,7 @@ class WindowBase(EventDispatcher):
     __instance = None
     __initialized = False
     _fake_fullscreen = False
+    _density = None
 
     # private properties
     _size = ListProperty([0, 0])
@@ -306,6 +307,8 @@ class WindowBase(EventDispatcher):
     def _get_size(self):
         r = self._rotation
         w, h = self._size
+        if self._density != 1:
+            w, h = self._win._get_gl_size()
         if self.softinput_mode == 'resize':
             h -= self.keyboard_height
         if r in (0, 180):
@@ -324,6 +327,7 @@ class WindowBase(EventDispatcher):
             return True
         else:
             return False
+
     size = AliasProperty(_get_size, _set_size, bind=('_size', ))
     '''Get the rotated size of the window. If :attr:`rotation` is set, then the
     size will change to reflect the rotation.
@@ -361,10 +365,13 @@ class WindowBase(EventDispatcher):
 
     # make some property read-only
     def _get_width(self):
+        _size = self._size
+        if self._density != 1:
+            _size = self._win._get_gl_size()
         r = self._rotation
         if r == 0 or r == 180:
-            return self._size[0]
-        return self._size[1]
+            return _size[0]
+        return _size[1]
 
     width = AliasProperty(_get_width, None, bind=('_rotation', '_size'))
     '''Rotated window width.
@@ -375,10 +382,13 @@ class WindowBase(EventDispatcher):
     def _get_height(self):
         '''Rotated window height'''
         r = self._rotation
+        _size = self._size
+        if self._density != 1:
+            _size = self._win._get_gl_size()
         kb = self.keyboard_height if self.softinput_mode == 'resize' else 0
         if r == 0 or r == 180:
-            return self._size[1] - kb
-        return self._size[0] - kb
+            return _size[1] - kb
+        return _size[0] - kb
 
     height = AliasProperty(_get_height, None, bind=('_rotation', '_size'))
     '''Rotated window height.
@@ -885,6 +895,8 @@ class WindowBase(EventDispatcher):
         '''
         if me.is_touch:
             w, h = self.system_size
+            if platform == 'ios':
+                w, h = self.size
             me.scale_for_screen(w, h, rotation=self._rotation,
                                 smode=self.softinput_mode,
                                 kheight=self.keyboard_height)
@@ -942,6 +954,8 @@ class WindowBase(EventDispatcher):
         from math import radians
 
         w, h = self.system_size
+        if hasattr(self._win, '_get_gl_size'):
+            w, h = self.size
 
         smode = self.softinput_mode
         kheight = self.keyboard_height

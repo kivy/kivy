@@ -18,6 +18,7 @@ __all__ = ('WindowSDL2', )
 from os.path import join
 from kivy import kivy_data_dir
 from kivy.logger import Logger
+from kivy import metrics
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.clock import Clock
 from kivy.config import Config
@@ -79,6 +80,7 @@ class SDL2MotionEvent(MotionEvent):
         self.is_touch = True
         self.profile = ('pos', )
         self.sx, self.sy = args
+        win = EventLoop.window
         super(SDL2MotionEvent, self).depack(args)
 
 
@@ -160,16 +162,21 @@ class WindowSDL(WindowBase):
                 pos = self.left, self.top
 
             # setup !
-            w, h = self._size
+            w, h = self.system_size
             resizable = Config.getboolean('graphics', 'resizable')
-            self._size = self._win.setup_window(pos[0], pos[1], w, h,
-                                             self.borderless, self.fullscreen,
-                                             resizable)
+            self.system_size = _size = self._win.setup_window(
+                pos[0], pos[1], w, h, self.borderless,
+                self.fullscreen, resizable)
+            sz = self.size[0]
+            self._density = density = sz / _size[0]
+            if self._is_desktop and self.size[0] != _size[0]:
+                self.dpi = density * 96.
+
             # never stay with a None pos, application using w.center
             # will be fired.
             self._pos = (0, 0)
         else:
-            w, h = self._size
+            w, h = self.system_size
             self._win.resize_window(w, h)
             self._win.set_border_state(self.borderless)
             self._win.set_fullscreen_mode(self.fullscreen)
@@ -264,6 +271,17 @@ class WindowSDL(WindowBase):
         self._win.flip()
         super(WindowSDL, self).flip()
 
+    def _fix_mouse_pos(self, x, y):
+        density = self._density
+        y -= 1
+        if self._is_desktop and self.size[0] != self._size[0]:
+            x, y = x * density, (y * density) - self.system_size[1]
+            #y = self.system_size[1] - y
+            self.mouse_pos = x, y
+        else:
+            self.mouse_pos = x, self.system_size[1] - y
+        return x, y
+
     def _mainloop(self):
         EventLoop.idle()
 
@@ -293,7 +311,7 @@ class WindowSDL(WindowBase):
 
             elif action == 'mousemotion':
                 x, y = args
-                self.mouse_pos = x, self.system_size[1] - y
+                x, y = self._fix_mouse_pos(x, y)
                 self._mouse_x = x
                 self._mouse_y = y
                 # don't dispatch motion if no button are pressed
@@ -304,6 +322,7 @@ class WindowSDL(WindowBase):
 
             elif action in ('mousebuttondown', 'mousebuttonup'):
                 x, y, button = args
+                x, y = self._fix_mouse_pos(x, y)
                 btn = 'left'
                 if button == 3:
                     btn = 'right'
@@ -345,8 +364,7 @@ class WindowSDL(WindowBase):
                 self.dispatch('on_dropfile', dropfile[0])
             # video resize
             elif action == 'windowresized':
-                if platform != "ios":
-                    self._size = args
+                self._size = self._win.window_size
                 # don't use trigger here, we want to delay the resize event
                 cb = self._do_resize
                 Clock.unschedule(cb)
@@ -456,12 +474,9 @@ class WindowSDL(WindowBase):
                 Logger.trace('WindowSDL: Unhandled event %s' % str(event))
 
     def _do_resize(self, dt):
-        Logger.debug('Window: Resize window to %s' % str(self._size))
-        if platform == "ios":
-            self._size = self._win.resize_display_mode(*self._size)
-        else:
-            self._win.resize_display_mode(*self._size)
-        self.dispatch('on_resize', *self._size)
+        Logger.debug('Window: Resize window to %s' % str(self.size))
+        self._win.resize_window(*self._size)
+        self.dispatch('on_resize', *self.size)
 
     def do_pause(self):
         # should go to app pause mode.
@@ -499,7 +514,7 @@ class WindowSDL(WindowBase):
     def mainloop(self):
         # don't known why, but pygame required a resize event
         # for opengl, before mainloop... window reinit ?
-        self.dispatch('on_resize', *self.size)
+        #self.dispatch('on_resize', *self.size)
 
         while not EventLoop.quit and EventLoop.status == 'started':
             try:
