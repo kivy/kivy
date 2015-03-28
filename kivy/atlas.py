@@ -151,6 +151,13 @@ CoreImage = None
 class Atlas(EventDispatcher):
     '''Manage texture atlas. See module documentation for more information.
     '''
+    
+    '''List of original atlas textures (which contain the :attr:`textures`).
+
+    :attr:`original_atlas_textures` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [].
+    '''
+    original_atlas_textures = ListProperty([])
 
     textures = DictProperty({})
     '''List of available textures within the atlas.
@@ -201,12 +208,14 @@ class Atlas(EventDispatcher):
 
             # load the image
             ci = CoreImage(subfilename)
-
+            atlas_texture = ci.texture
+            original_atlas_textures.append(atlas_texture)
+            
             # for all the uid, load the image, get the region, and put
             # it in our dict.
             for meta_id, meta_coords in ids.items():
                 x, y, w, h = meta_coords
-                textures[meta_id] = ci.texture.get_region(*meta_coords)
+                textures[meta_id] = atlas_texture.get_region(*meta_coords)
 
         self.textures = textures
 
