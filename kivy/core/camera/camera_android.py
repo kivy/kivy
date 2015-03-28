@@ -29,7 +29,7 @@ class CameraAndroid(CameraBase):
         self.fps = 30.
 
         self._camera_texture = Texture(width=width, height=height, target=GL_TEXTURE_EXTERNAL_OES, colorfmt='rgba')
-        self._camera_texture.bind()
+        #self._camera_texture.bind()
         self._surface_texture = SurfaceTexture(int(self._camera_texture.id))
         self._android_camera.setPreviewTexture(self._surface_texture)
 
@@ -57,7 +57,7 @@ class CameraAndroid(CameraBase):
     def _refresh_fbo(self):
         self._fbo.clear()
         with self._fbo:
-            BindTexture(texture=self._camera_texture, index=1)
+            #BindTexture(texture=self._camera_texture, index=1)
             Rectangle(size=self._resolution)
         self._fbo.draw()
 
