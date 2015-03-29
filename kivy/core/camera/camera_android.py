@@ -133,11 +133,13 @@ class CameraAndroid(CameraBase):
         """
         Image data of current frame, in RGB format
         """
+        with self._buflock:
+            if self._buffer is None:
+                return None
+            buf = self._buffer.tostring()
+
         import numpy as np
         import cv2
-
-        with self._buflock:
-            buf = self._buffer.tostring()
         w, h = self._resolution
         buf = np.fromstring(buf, 'uint8').reshape((h+h/2, w))
         buf = cv2.cvtColor(buf, 92).tostring()  # NV21 -> RGB
