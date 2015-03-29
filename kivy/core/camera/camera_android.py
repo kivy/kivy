@@ -1,14 +1,30 @@
-from jnius import autoclass
+from jnius import autoclass, PythonJavaClass, java_method
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from kivy.graphics import Fbo, BindTexture, Rectangle
 from kivy.core.camera import CameraBase
-from kivy.graphics.opengl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+import threading
 
 
 Camera = autoclass('android.hardware.Camera')
 SurfaceTexture = autoclass('android.graphics.SurfaceTexture')
 GL_TEXTURE_EXTERNAL_OES = autoclass('android.opengl.GLES11Ext').GL_TEXTURE_EXTERNAL_OES
+ImageFormat = autoclass('android.graphics.ImageFormat')
+
+
+class PreviewCallback(PythonJavaClass):
+    """
+    Interface used to get back the preview frame of the Android Camera
+    """
+    __javainterfaces__ = ('android.hardware.Camera$PreviewCallback', )
+
+    def __init__(self, callback):
+        super(PreviewCallback, self).__init__()
+        self._callback = callback
+
+    @java_method('([BLandroid/hardware/Camera;)V')
+    def onPreviewFrame(self, data, camera):
+        self._callback(data, camera)
 
 
 class CameraAndroid(CameraBase):
@@ -18,6 +34,8 @@ class CameraAndroid(CameraBase):
 
     def __init__(self, **kwargs):
         self._android_camera = None
+        self._preview_cb = PreviewCallback(self._on_preview_frame)
+        self._buflock = threading.Lock()
         super(CameraAndroid, self).__init__(**kwargs)
 
     def init_camera(self):
@@ -28,6 +46,14 @@ class CameraAndroid(CameraBase):
         self._android_camera.setParameters(params)
         #self._android_camera.setDisplayOrientation()
         self.fps = 30.
+
+        pf = params.getPreviewFormat()
+        assert(pf == ImageFormat.NV21)  # default format is NV21
+        bufsize = int(ImageFormat.getBitsPerPixel(pf) / 8. * width * height)
+        for k in range(2):  # double buffer
+            buf = '\x00' * bufsize
+            self._android_camera.addCallbackBuffer(buf)
+        self._android_camera.setPreviewCallbackWithBuffer(self._preview_cb)
 
         self._camera_texture = Texture(width=width, height=height, target=GL_TEXTURE_EXTERNAL_OES, colorfmt='rgba')
         #self._camera_texture.bind()
@@ -54,6 +80,11 @@ class CameraAndroid(CameraBase):
                 gl_FragColor = texture2D(texture1, tex_coord0);
             }
         '''
+
+    def _on_preview_frame(self, data, camera):
+        with self._buflock:
+            self._android_camera.addCallbackBuffer(self._buffer)  # add buffer back for reuse
+            self._buffer = data
 
     def _refresh_fbo(self):
         self._fbo.clear()
@@ -92,9 +123,12 @@ class CameraAndroid(CameraBase):
         """
         Image data of current frame, in RGB format
         """
-        ##buf = self._texture.pixels  # very slow
-        ##buf = self._fbo.pixels  # still slow
-        self._fbo.bind()
-        buf = glReadPixels(0, 0, self._resolution[0], self._resolution[1], GL_RGB, GL_UNSIGNED_BYTE)
-        self._fbo.release()
+        import numpy as np
+        import cv2
+
+        with self._buflock:
+            buf = self._buffer.tostring()
+        w, h = self._resolution
+        buf = np.fromstring(buf, 'uint8').reshape((h+h/2, w))
+        buf = cv2.cvtColor(buf, 92).tostring()  # NV21 -> RGB
         return buf
