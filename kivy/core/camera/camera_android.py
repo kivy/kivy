@@ -49,11 +49,7 @@ class CameraAndroid(CameraBase):
 
         pf = params.getPreviewFormat()
         assert(pf == ImageFormat.NV21)  # default format is NV21
-        bufsize = int(ImageFormat.getBitsPerPixel(pf) / 8. * width * height)
-        for k in range(2):  # double buffer
-            buf = '\x00' * bufsize
-            self._android_camera.addCallbackBuffer(buf)
-        self._android_camera.setPreviewCallbackWithBuffer(self._preview_cb)
+        self._bufsize = int(ImageFormat.getBitsPerPixel(pf) / 8. * width * height)
 
         self._camera_texture = Texture(width=width, height=height, target=GL_TEXTURE_EXTERNAL_OES, colorfmt='rgba')
         #self._camera_texture.bind()
@@ -83,8 +79,10 @@ class CameraAndroid(CameraBase):
 
     def _on_preview_frame(self, data, camera):
         with self._buflock:
-            self._android_camera.addCallbackBuffer(self._buffer)  # add buffer back for reuse
+            if self._buffer is not None:
+                self._android_camera.addCallbackBuffer(self._buffer)  # add buffer back for reuse
             self._buffer = data
+        #print self._buffer, len(self.frame_data)  # check if frame grabbing works
 
     def _refresh_fbo(self):
         self._fbo.clear()
@@ -95,6 +93,14 @@ class CameraAndroid(CameraBase):
 
     def start(self):
         super(CameraAndroid, self).start()
+
+        with self._buflock:
+            self._buffer = None
+        for k in range(2):  # double buffer
+            buf = '\x00' * self._bufsize
+            self._android_camera.addCallbackBuffer(buf)
+        self._android_camera.setPreviewCallbackWithBuffer(self._preview_cb)
+
         self._android_camera.startPreview()
         Clock.unschedule(self._update)
         Clock.schedule_interval(self._update, 1./self.fps)
@@ -103,6 +109,10 @@ class CameraAndroid(CameraBase):
         super(CameraAndroid, self).stop()
         Clock.unschedule(self._update)
         self._android_camera.stopPreview()
+
+        self._android_camera.setPreviewCallbackWithBuffer(None)  # buffer queue cleared as well, to be recreated on next start
+        with self._buflock:
+            self._buffer = None
 
     def _update(self, dt):
         self._surface_texture.updateTexImage()
