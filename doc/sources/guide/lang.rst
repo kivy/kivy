@@ -77,22 +77,18 @@ There are two special syntax to define values for the whole Kv context:
 To import something from python::
 
     #:import name x.y.z
+    #:import isdir os.path.isdir
+    #:import np numpy
+
 
 Is equivalent to::
 
     from x.y import z as name
+    from os.path import isdir
+    import numpy as np
 
 in python.
 
-Additional examples::
-
-    #:import isdir os.path.isdir
-    #:import np numpy
-
-Are equivalent to::
-
-    import os.path.isdir
-    import numpy as np
 
 To set a global value::
 
