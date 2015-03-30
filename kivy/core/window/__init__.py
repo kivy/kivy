@@ -268,7 +268,8 @@ class WindowBase(EventDispatcher):
     __instance = None
     __initialized = False
     _fake_fullscreen = False
-    _density = None
+    _density = 1
+    _win = None
 
     # private properties
     _size = ListProperty([0, 0])
@@ -954,7 +955,10 @@ class WindowBase(EventDispatcher):
         from math import radians
 
         w, h = self.system_size
-        if hasattr(self._win, '_get_gl_size'):
+        # FIXME this is breaking the separation between the base and
+        # implementation. It should not happen, as now SDL2 implementation only
+        # got this.
+        if hasattr(self, "_win") and hasattr(self._win, '_get_gl_size'):
             w, h = self.size
 
         smode = self.softinput_mode
