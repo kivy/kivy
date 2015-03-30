@@ -21,11 +21,11 @@ cdef class _WindowSDL2Storage:
         raise RuntimeError(<bytes> SDL_GetError())
 
     def setup_window(self, x, y, width, height, borderless, fullscreen,
-                     resizable):
+                     resizable, state):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
         IF USE_IOS:
-            self.win_flags |= SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_ALLOW_HIGHDPI
+            self.win_flags |= SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP
         ELSE:
             if resizable:
                 self.win_flags |= SDL_WINDOW_RESIZABLE
@@ -35,8 +35,14 @@ cdef class _WindowSDL2Storage:
                 self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
             elif fullscreen is True:
                 self.win_flags |= SDL_WINDOW_FULLSCREEN
+        if state == 'maximized':
+            self.win_flags |= SDL_WINDOW_MAXIMIZED
+        elif state == 'minimized':
+            self.win_flags |= SDL_WINDOW_MINIMIZED
+        elif state == 'hidden':
+            self.win_flags |= SDL_WINDOW_HIDDEN
 
-        if SDL_Init(SDL_INIT_VIDEO| SDL_INIT_JOYSTICK) < 0:
+        if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
             self.die()
 
         # Set default orientation (force landscape for now)
