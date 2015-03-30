@@ -84,6 +84,16 @@ Is equivalent to::
 
 in python.
 
+Additional examples::
+
+    #:import isdir os.path.isdir
+    #:import np numpy
+
+Are equivalent to::
+
+    import os.path.isdir
+    import numpy as np
+
 To set a global value::
 
     #:set name value
