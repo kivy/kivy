@@ -80,7 +80,6 @@ To import something from python::
     #:import isdir os.path.isdir
     #:import np numpy
 
-
 Is equivalent to::
 
     from x.y import z as name
@@ -88,7 +87,6 @@ Is equivalent to::
     import numpy as np
 
 in python.
-
 
 To set a global value::
 
