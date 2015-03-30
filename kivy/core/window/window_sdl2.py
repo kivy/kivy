@@ -528,9 +528,6 @@ class WindowSDL(WindowBase):
                 else:
                     pass
 
-        # force deletion of window
-        self._win.teardown_window()
-
     #
     # Pygame wrapper
     #
