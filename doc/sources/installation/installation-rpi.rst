@@ -3,7 +3,11 @@
 Installation on Raspberry Pi
 ============================
 
-You can install Kivy manually, or you can download and boot KivyPie on the RaspberryPI. Both options are described below.
+You can install Kivy manually, or you can download and boot KivyPie on the
+Raspberry Pi. Both options are described below.
+
+Note that Kivy has been tested with the original Raspberry Pi Model A/B. No
+guarantee is made that it will work on a Raspberry Pi 2.
 
 
 Manual installation
@@ -12,6 +16,11 @@ Manual installation
 #. Add APT sources for Gstreamer 1.0 in `/etc/apt/sources.list`::
 
     deb http://vontaene.de/raspbian-updates/ . main
+
+#. Add APT key for vontaene.de::
+
+    gpg --recv-keys 0C667A3E
+    gpg -a --export 0C667A3E | sudo apt-key add -
     
 #. Install the dependencies::
 
@@ -50,7 +59,11 @@ Manual installation
 KivyPie distribution
 --------------------
 
-KivyPie is a compact and lightweight Raspbian based distribution that comes with Kivy installed and ready to run. It is the result of applying the manual installation steps described above, with a few more extra tools. You can download the image from http://kivypie.mitako.eu/kivy-download.html and boot it on a Raspberry PI.
+KivyPie is a compact and lightweight Raspbian based distribution that comes
+with Kivy installed and ready to run. It is the result of applying the manual
+installation steps described above, with a few more extra tools. You can
+download the image from http://kivypie.mitako.eu/kivy-download.html and boot
+it on a Raspberry PI.
 
 
 Running the demo
