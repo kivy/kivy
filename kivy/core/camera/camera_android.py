@@ -128,19 +128,30 @@ class CameraAndroid(CameraBase):
         """
         self.dispatch('on_texture')
 
-    @property
-    def frame_data(self):
+    def grab_frame(self):
         """
-        Image data of current frame, in RGB format
+        Grab current frame (thread-safe, minimal overhead)
         """
         with self._buflock:
             if self._buffer is None:
                 return None
             buf = self._buffer.tostring()
+            return buf
 
+    def decode_frame(self, buf):
+        """
+        Decode image data from grabbed frame
+        """
         import numpy as np
-        import cv2
+        from cv2 import cvtColor
+
         w, h = self._resolution
-        buf = np.fromstring(buf, 'uint8').reshape((h+h/2, w))
-        buf = cv2.cvtColor(buf, 92).tostring()  # NV21 -> RGB
-        return buf
+        arr = np.fromstring(buf, 'uint8').reshape((h+h/2, w))
+        arr = cvtColor(arr, 93)  # NV21 -> BGR
+        return arr
+
+    def read_frame(self):
+        """
+        Grab and decode frame in one call
+        """
+        return self.decode_frame(self.grab_frame())
