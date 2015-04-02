@@ -169,7 +169,9 @@ class WindowSDL(WindowBase):
             self.system_size = _size = self._win.setup_window(
                 pos[0], pos[1], w, h, self.borderless,
                 self.fullscreen, resizable, state)
-            sz = self.size[0]
+
+            # calculate density
+            sz = self._win._get_gl_size()[0]
             self._density = density = sz / _size[0]
             if self._is_desktop and self.size[0] != _size[0]:
                 self.dpi = density * 96.
