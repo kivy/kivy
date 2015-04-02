@@ -8,9 +8,10 @@ import sys
 
 from copy import deepcopy
 import os
-from os.path import join, dirname, sep, exists, basename
-from os import walk, environ
-from distutils.core import setup
+from os.path import join, dirname, sep, exists, basename, isdir, abspath
+from shutil import copy2
+from os import walk, environ, makedirs, listdir
+from setuptools import setup
 from distutils.extension import Extension
 from distutils.version import LooseVersion
 from collections import OrderedDict
@@ -66,6 +67,18 @@ def pkgconfig(*packages, **kw):
             continue
         kw.setdefault(flag, []).append(token[2:].decode('utf-8'))
     return kw
+
+
+def copy_files(src, dst):
+    if not exists(dst):
+        makedirs(dst)
+    for item in listdir(src):
+        s = join(src, item)
+        d = join(dst, item)
+        if isdir(s):
+            copy_files(s, d)
+        else:
+            copy2(s, d)
 
 
 # -----------------------------------------------------------------------------
@@ -197,6 +210,7 @@ if not have_cython:
 
 # the build path where kivy is being compiled
 src_path = build_path = dirname(__file__)
+kivy_binary_deps = environ.get('KIVY_BINARY_DEPS')
 
 
 class KivyBuildExt(build_ext):
@@ -258,6 +272,11 @@ class KivyBuildExt(build_ext):
         if c != 'msvc':
             for e in self.extensions:
                 e.extra_link_args += ['-lm']
+
+        if kivy_binary_deps is not None and isdir(kivy_binary_deps):
+            print('Copying kivy binary deps from {} to {}'.
+                  format(kivy_binary_deps, expand(build_path)))
+            copy_files(kivy_binary_deps, expand(build_path))
 
         build_ext.build_extensions(self)
 
@@ -787,7 +806,7 @@ ext_modules = get_extensions_from_sources(sources)
 data_file_prefix = 'share/kivy-'
 examples = {}
 examples_allowed_ext = ('readme', 'py', 'wav', 'png', 'jpg', 'svg', 'json',
-                        'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl', 'kv')
+                        'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl', 'kv', 'mpg')
 for root, subFolders, files in walk('examples'):
     for fn in files:
         ext = fn.split('.')[-1].lower()
@@ -840,6 +859,7 @@ setup(
         'kivy.modules',
         'kivy.network',
         'kivy.storage',
+        'kivy.tests',
         'kivy.tools',
         'kivy.tools.packaging',
         'kivy.tools.packaging.pyinstaller_hooks',
@@ -869,6 +889,11 @@ setup(
         'data/glsl/*.png',
         'data/glsl/*.vs',
         'data/glsl/*.fs',
+        'tests/*.zip',
+        'tests/*.kv',
+        'tests/*.png',
+        'tests/*.ttf',
+        'tests/*.ogg',
         'tools/highlight/*.vim',
         'tools/highlight/*.el',
         'tools/packaging/README.txt',
