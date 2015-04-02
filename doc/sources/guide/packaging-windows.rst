@@ -18,7 +18,9 @@ Requirements
 ------------
 
     * Latest Kivy (the whole portable package, not only the github sourcecode)
-    * `PyInstaller 2.1 <http://www.pyinstaller.org/#Downloads>`_
+    * `PyInstaller 2.1 <http://www.pyinstaller.org/#Downloads>`_::
+	
+		pip install pyinstaller
 
 .. _Create-the-spec-file:
 
@@ -33,14 +35,14 @@ the main file is named `main.py`.
 #. Go to the pyinstaller 2.1 directory and create the initial spec::
 
     cd pyinstaller-2.1
-    python pyinstaller.py --name touchtracer ..\kivy\examples\demo\touchtracer\main.py
+    pyinstaller --name touchtracer ..\kivy\examples\demo\touchtracer\main.py
 
    You can also add an `icon.ico` file to the application folder in order to create an icon
    for the executable. If you don't have a .ico file available, you can convert your
    `icon.png` file to ico using the web app `ConvertICO <http://www.convertico.com>`_.
    Save the `icon.ico` in the touchtracer directory and type::
 
-    python pyinstaller.py --name touchtracer --icon ..\kivy\examples\demo\touchtracer\icon.ico ..\kivy\examples\demo\touchtracer\main.py
+    pyinstaller --name touchtracer --icon ..\kivy\examples\demo\touchtracer\icon.ico ..\kivy\examples\demo\touchtracer\main.py
 
    For more options, please consult the
    `PyInstaller 2 Manual <http://www.pyinstaller.org/export/v2.1/project/doc/Manual.html?format=raw>`_.
@@ -54,18 +56,24 @@ the main file is named `main.py`.
     from kivy.tools.packaging.pyinstaller_hooks import install_hooks
     install_hooks(globals())
 
-   In the `Analysis()` function, remove the `hookspath=None` parameter.
+#. In the `Analysis()` function, remove the `hookspath=None` parameter.
    If you don't do this, the kivy package hook will not be used at all.
 
-   Then you need to change the `COLLECT()` call to add the data for touchtracer
-   (`touchtracer.kv`, `particle.png`, ...). Change the line to add a `Tree()`
-   object. This Tree will search and add every file found in the touchtracer
-   directory to your final package::
+#. You now need to enable the data files to be packaged into the output. At the top of
+   your spec file, add a function to collect the kv and png files::
+   
+	   def addDataFiles():
+		allFiles = Tree('../kivy/examples/demo/touchtracer/')
+		extraDatas = []
+		for file in allFiles:
+			if file[0].endswith('.kv') | file[0].endswith('.png'):
+				print "Adding datafile: " + file[0]
+				extraDatas.append(file)
+		return extraDatas
 
-    coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
-                   a.binaries,
-                   #...
-                   )
+   After the call to the Analysis function, append the data to it::
+	
+		a.datas += addDataFiles()
 
 #. We are done. Your spec is ready to be executed!
 
@@ -78,7 +86,7 @@ Build the spec
 #. Go to the pyinstaller directory, and build the spec::
 
     cd pyinstaller-2.1
-    python pyinstaller.py touchtracer\touchtracer.spec
+    pyinstaller touchtracer\touchtracer.spec
 
 #. The package will be in the `touchtracer\\dist\\touchtracer` directory.
 
@@ -113,7 +121,7 @@ Following is an example of how to bundle the videoplayer at `kivy/examples/widge
 From kivy.bat::
 
     cd pyinstaller-2.1
-    python pyinstaller.py --name gstvideo ..\kivy\examples\widgets\videoplayer.py
+    pyinstaller --name gstvideo ..\kivy\examples\widgets\videoplayer.py
 
 Now edit the spec file. At the top of the file add::
 
@@ -141,7 +149,7 @@ to::
 This will include gstreamer and the example video files in examples/widgets.
 To build, run::
 
-    python pyinstaller.py gstvideo/gstvideo.spec
+    pyinstaller gstvideo/gstvideo.spec
 
 Then you should find gstvideo.exe in PyInstaller-2.1/gstvideo/dist/gstvideo,
 which when run will play a video.
