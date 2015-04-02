@@ -44,7 +44,7 @@ class FileChooserUnicodeTestCase(unittest.TestCase):
         \xc3\xa0\xc2\xa4\xc2\xb5\xc3\xa0\xc2\xa5\xe2\x82\xactestb',
         b'oor\xff\xff\xff\xff\xee\xfe\xef\x81\x8D\x99testb']
         self.ufiles = [join(basepathu, f) for f in ufiles]
-        self.bfiles = [join(basepathb, f) for f in bfiles]
+        self.bfiles = [join(basepathb, f) for f in bfiles] if PY2 else []
         if not os.path.isdir(basepathu):
             os.mkdir(basepathu)
         for f in self.ufiles:
@@ -79,11 +79,13 @@ class FileChooserUnicodeTestCase(unittest.TestCase):
         # unicode encoding to be able to compare to returned unicode
         for f in self.exitsfiles:
             self.assertIn(f, files)
-        wid = FileChooserListView(path=self.basepathb)
-        Clock.tick()
-        files = [join(self.basepathb, f) for f in wid.files]
-        for f in self.bfiles:
-            self.assertIn(f, files)
+
+        if PY2:
+            wid = FileChooserListView(path=self.basepathb)
+            Clock.tick()
+            files = [join(self.basepathb, f) for f in wid.files]
+            for f in self.bfiles:
+                self.assertIn(f, files)
 
     def tearDown(self):
         if self.skip_test:
