@@ -212,11 +212,10 @@ Depends: ${misc:Depends},
          python3-kivy-common (= ${binary:Version}),
          python3-kivy-bin (= ${binary:Version}),
          python3-docutils,
-         python3-pygame,
          python3-pygments,
          python-gst0.10
 Provides: ${python3:Provides}
-Suggests: python-pygame3,
+Suggests: python3-pygame,
 Description: Kivy - Multimedia / Multitouch framework - Python 3.x modules
  Kivy is an open source library for developing multi-touch applications. It is
  completely cross platform (Linux/OSX/Win/Android) and released under the terms
