@@ -31,7 +31,7 @@ Build-Depends: debhelper (>= 7.0.50~), dh-python, pkg-config,
 # LaTex
  texlive-latex-base, texlive-latex-recommended, texlive-latex-extra, texlive-fonts-extra, texlive-fonts-recommended,
 # Raises an ImportError if not installed
- python-pygments, python-pygame,
+ python-pygments, python3-pygments,
 Standards-Version: 3.9.1
 Homepage: http://kivy.org/
 Vcs-Git:  https://github.com/kivy/kivy.git
@@ -213,9 +213,9 @@ Depends: ${misc:Depends},
          python3-kivy-bin (= ${binary:Version}),
          python3-docutils,
          python3-pygments,
-         python-gst0.10
 Provides: ${python3:Provides}
-Suggests: python3-pygame,
+Suggests: ${python3:Suggests},
+          python3-pygame,
 Description: Kivy - Multimedia / Multitouch framework - Python 3.x modules
  Kivy is an open source library for developing multi-touch applications. It is
  completely cross platform (Linux/OSX/Win/Android) and released under the terms
