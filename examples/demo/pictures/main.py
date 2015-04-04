@@ -11,7 +11,7 @@ photos.
 The photos are loaded from the local images directory, while the background
 picture is from the data shipped with kivy in kivy/data/images/background.jpg.
 The file pictures.kv describes the interface and the file shadow32.png is
-the boarder to make the images looks like framed photographs. Finally,
+the border to make the images look like framed photographs. Finally,
 the file android.txt is used to package the application for use with the
 Kivy Launcher Android application.
 
