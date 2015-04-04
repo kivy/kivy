@@ -14,10 +14,10 @@ export DH_VERBOSE=1
 
 override_dh_auto_build:
 	for PYX in $(shell pyversions -i) $(shell py3versions -r) ; do \
+	    $(MAKE) clean; \
 	    $(MAKE) build PYTHON=$$PYX; \
-	done
-
-	cd doc && PYTHONPATH=.. make html
+	done; \
+	cd doc && PYTHONPATH=.. make PYTHON=$$PYX html
 
 override_dh_auto_install:
 	for PYX in $(shell pyversions -i) $(shell py3versions -r) ; do \
