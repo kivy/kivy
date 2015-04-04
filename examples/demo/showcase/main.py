@@ -9,7 +9,7 @@ first demonstration is the accordion layout. You can see, but not
 edit, the kv language code for any screen by pressing the bug or
 'show source' icon. Scroll through the demonstrations using the
 left and right icons in the top right or selecting from the menu
-bar. This showcases dozens of features.
+bar.
 
 The file showcase.kv describes the main container, while each demonstration
 pane is described in a separate .kv file in the data/screens directory.
