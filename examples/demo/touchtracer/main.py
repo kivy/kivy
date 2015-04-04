@@ -3,15 +3,15 @@
 Touch Tracer Line Drawing Demonstration
 =======================================
 
-The demonstrates tracking each touch registered to a device. You should
+This demonstrates tracking each touch registered to a device. You should
 see a basic background image. When you press and hold the mouse, you
-should see a cross-hairs with the coordinates written next to them. As
+should see cross-hairs with the coordinates written next to them. As
 you drag, it leaves a trail. Additional information, like pressure,
 will be shown if they are in your device's touch.profile.
 
 This program specifies an icon, the file icon.png, in its App subclass.
-It also uses the particle.png file as source for drawing the trails, which
-white on transparent. The file touchtracer.kv describes the application.
+It also uses the particle.png file as the source for drawing the trails which
+are white on transparent. The file touchtracer.kv describes the application.
 
 The file android.txt is used to package the application for use with the
 Kivy Launcher Android application. For Android devices, you can
