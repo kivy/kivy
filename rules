@@ -19,6 +19,7 @@ override_dh_auto_build:
 	    $(MAKE) distclean; \
 	done
 
+	$(MAKE) build
 	cd doc && PYTHONPATH=.. make html
 
 #override_dh_auto_install:
