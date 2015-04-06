@@ -13,16 +13,19 @@ export DH_VERBOSE=1
 	dh $@ --with python2,python3
 
 override_dh_auto_build:
-	rm -rf $(CURDIR)/debian/tmp-build
-	for PYX in $(shell pyversions -i) $(shell py3versions -r) ; do \
-	    $(MAKE) clean; \
-	    $(MAKE) build PYTHON=$$PYX; \
-	    $(MAKE) install PYTHON=$$PYX INSTALL_ROOT=$(CURDIR)/debian/tmp-build INSTALL_PREFIX=/usr INSTALL_LAYOUT=deb; \
-	done; \
-	cd doc && PYTHONPATH=.. make PYTHON=$$PYX html
+	echo "Skipping any builds - doing them on install..."
+
+override_dh_installdocs:
+	$(MAKE) build
+	cd doc && PYTHONPATH=.. make html
+	dh_installdocs
+	$(MAKE) distclean
 
 override_dh_auto_install:
-	mv $(CURDIR)/debian/tmp-build $(CURDIR)/debian/tmp
+	for PYX in $(shell pyversions -i) $(shell py3versions -r) ; do \
+	    $(MAKE) install PYTHON=$$PYX INSTALL_ROOT=$(CURDIR)/debian/tmp INSTALL_PREFIX=/usr INSTALL_LAYOUT=deb; \
+	    $(MAKE) distclean; \
+	done
 
 override_dh_auto_test:
 	#xvfb-run -s "+extension GLX" dh_auto_test
