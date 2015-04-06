@@ -209,7 +209,7 @@ class Atlas(EventDispatcher):
             # load the image
             ci = CoreImage(subfilename)
             atlas_texture = ci.texture
-            original_atlas_textures.append(atlas_texture)
+            self.original_atlas_textures.append(atlas_texture)
             
             # for all the uid, load the image, get the region, and put
             # it in our dict.
