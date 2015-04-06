@@ -15,6 +15,9 @@ export DH_VERBOSE=1
 override_dh_auto_build:
 	$(MAKE) build
 	cd doc && PYTHONPATH=.. make html
+	mkdir -p build/doc-html
+	cp -rfv doc/build/html build/doc-html
+	$(MAKE) distclean
 
 override_dh_auto_install:
 	for PYX in $(shell pyversions -i) $(shell py3versions -r) ; do \
