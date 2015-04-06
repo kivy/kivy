@@ -15,8 +15,8 @@ export DH_VERBOSE=1
 override_dh_auto_build:
 	$(MAKE) build
 	cd doc && PYTHONPATH=.. make html
-	mkdir -p build/doc-html
-	cp -rfv doc/build/html build/doc-html
+	mkdir -p build/doc
+	cp -rfv doc/build/html build/doc
 	$(MAKE) distclean
 
 override_dh_auto_install:
