@@ -12,6 +12,9 @@ export DH_VERBOSE=1
 %:
 	dh $@ --with python2,python3
 
+override_dh_auto_build:
+	echo "Skipping any builds - doing them on install..."
+
 override_dh_installdocs:
 	$(MAKE) build
 	cd doc && PYTHONPATH=.. make html
