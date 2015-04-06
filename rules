@@ -22,7 +22,8 @@ override_dh_auto_build:
 	$(MAKE) build
 	cd doc && PYTHONPATH=.. make html
 
-#override_dh_auto_install:
+override_dh_auto_install:
+	echo "! INSTALLATION ALREADY DONE !
 #	for PYX in $(shell pyversions -i) $(shell py3versions -r) ; do \
 #	    $(MAKE) install PYTHON=$$PYX INSTALL_ROOT=$(CURDIR)/debian/tmp INSTALL_PREFIX=/usr INSTALL_LAYOUT=deb; \
 #	done
