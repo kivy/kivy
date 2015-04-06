@@ -12,11 +12,10 @@ export DH_VERBOSE=1
 %:
 	dh $@ --with python2,python3
 
-override_dh_auto_build:
+override_dh_installdocs:
 	$(MAKE) build
 	cd doc && PYTHONPATH=.. make html
-	mkdir -p build/doc
-	cp -rfv doc/build/html build/doc
+	dh_installdocs
 	$(MAKE) distclean
 
 override_dh_auto_install:
