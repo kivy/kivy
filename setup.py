@@ -9,7 +9,6 @@ import sys
 from copy import deepcopy
 import os
 from os.path import join, dirname, sep, exists, basename, isdir, abspath
-from shutil import copy2
 from os import walk, environ, makedirs, listdir
 from setuptools import setup
 from distutils.extension import Extension
@@ -67,18 +66,6 @@ def pkgconfig(*packages, **kw):
             continue
         kw.setdefault(flag, []).append(token[2:].decode('utf-8'))
     return kw
-
-
-def copy_files(src, dst):
-    if not exists(dst):
-        makedirs(dst)
-    for item in listdir(src):
-        s = join(src, item)
-        d = join(dst, item)
-        if isdir(s):
-            copy_files(s, d)
-        else:
-            copy2(s, d)
 
 
 # -----------------------------------------------------------------------------
