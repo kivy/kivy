@@ -210,7 +210,6 @@ if not have_cython:
 
 # the build path where kivy is being compiled
 src_path = build_path = dirname(__file__)
-kivy_binary_deps = environ.get('KIVY_BINARY_DEPS')
 
 
 class KivyBuildExt(build_ext):
@@ -272,11 +271,6 @@ class KivyBuildExt(build_ext):
         if c != 'msvc':
             for e in self.extensions:
                 e.extra_link_args += ['-lm']
-
-        if kivy_binary_deps is not None and isdir(kivy_binary_deps):
-            print('Copying kivy binary deps from {} to {}'.
-                  format(kivy_binary_deps, expand(build_path)))
-            copy_files(kivy_binary_deps, expand(build_path))
 
         build_ext.build_extensions(self)
 
@@ -818,6 +812,14 @@ for root, subFolders, files in walk('examples'):
             examples[directory] = []
         examples[directory].append(filename)
 
+binary_deps = []
+binary_deps_path = join(src_path, 'kivy', 'binary_deps')
+if isdir(binary_deps_path):
+    for root, dirnames, filenames in walk(binary_deps_path):
+        for fname in filenames:
+            binary_deps.append(
+                join(root.replace(binary_deps_path, 'binary_deps'), fname))
+
 # -----------------------------------------------------------------------------
 # setup !
 setup(
@@ -902,7 +904,7 @@ setup(
         'tools/packaging/win32/README.txt',
         'tools/packaging/osx/Info.plist',
         'tools/packaging/osx/InfoPlist.strings',
-        'tools/packaging/osx/kivy.sh']},
+        'tools/packaging/osx/kivy.sh'] + binary_deps},
     data_files=list(examples.items()),
     classifiers=[
         'Development Status :: 5 - Production/Stable',

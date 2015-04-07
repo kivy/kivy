@@ -33,8 +33,8 @@ __version__ = '1.9.1-dev'
 import sys
 import shutil
 from getopt import getopt, GetoptError
-from os import environ, mkdir
-from os.path import dirname, join, basename, exists, expanduser
+from os import environ, mkdir, pathsep
+from os.path import dirname, join, basename, exists, expanduser, isdir
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
 
@@ -223,6 +223,9 @@ kivy_exts_dir = environ.get('KIVY_EXTS_DIR',
 #: Kivy data directory
 kivy_data_dir = environ.get('KIVY_DATA_DIR',
                             join(kivy_base_dir, 'data'))
+#: Kivy binary deps directory
+kivy_binary_deps_dir = environ.get('KIVY_BINARY_DEPS',
+                            join(kivy_base_dir, 'binary_deps'))
 #: Kivy glsl shader directory
 kivy_shader_dir = join(kivy_data_dir, 'glsl')
 #: Kivy icons config path (don't remove the last '')
@@ -377,6 +380,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                              'configuration file:', str(e))
         Logger.info('Core: Kivy configuration saved.')
         sys.exit(0)
+
+    # add kivy_binary_deps_dir if it exists
+    if exists(kivy_binary_deps_dir):
+        environ["PATH"] = kivy_binary_deps_dir + pathsep + environ["PATH"]
 
     # configure all activated modules
     from kivy.modules import Modules
