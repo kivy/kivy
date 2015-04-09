@@ -895,7 +895,7 @@ class WindowBase(EventDispatcher):
         '''
         if me.is_touch:
             w, h = self.system_size
-            if platform == 'ios':
+            if platform == 'ios' or self._density != 1:
                 w, h = self.size
             me.scale_for_screen(w, h, rotation=self._rotation,
                                 smode=self.softinput_mode,
