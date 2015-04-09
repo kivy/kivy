@@ -1,7 +1,7 @@
 from jnius import autoclass, PythonJavaClass, java_method
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
-from kivy.graphics import Fbo, BindTexture, Rectangle
+from kivy.graphics import Fbo, Callback, Rectangle
 from kivy.core.camera import CameraBase
 import threading
 
@@ -52,7 +52,6 @@ class CameraAndroid(CameraBase):
         self._bufsize = int(ImageFormat.getBitsPerPixel(pf) / 8. * width * height)
 
         self._camera_texture = Texture(width=width, height=height, target=GL_TEXTURE_EXTERNAL_OES, colorfmt='rgba')
-        #self._camera_texture.bind()
         self._surface_texture = SurfaceTexture(int(self._camera_texture.id))
         self._android_camera.setPreviewTexture(self._surface_texture)
 
@@ -76,6 +75,9 @@ class CameraAndroid(CameraBase):
                 gl_FragColor = texture2D(texture1, tex_coord0);
             }
         '''
+        with self._fbo:
+            self._texture_cb = Callback(lambda instr: self._camera_texture.bind)
+            Rectangle(size=self._resolution)
 
     def _on_preview_frame(self, data, camera):
         with self._buflock:
@@ -85,10 +87,7 @@ class CameraAndroid(CameraBase):
         #print self._buffer, len(self.frame_data)  # check if frame grabbing works
 
     def _refresh_fbo(self):
-        self._fbo.clear()
-        with self._fbo:
-            #BindTexture(texture=self._camera_texture, index=1)
-            Rectangle(size=self._resolution)
+        self._texture_cb.ask_update()
         self._fbo.draw()
 
     def start(self):
