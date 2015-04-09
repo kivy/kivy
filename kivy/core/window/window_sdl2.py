@@ -292,14 +292,8 @@ class WindowSDL(WindowBase):
         super(WindowSDL, self).flip()
 
     def _fix_mouse_pos(self, x, y):
-        density = self._density
         y -= 1
-        if self._is_desktop and self.size[0] != self._size[0]:
-            x, y = x * density, (y * density) - self.system_size[1]
-            #y = self.system_size[1] - y
-            self.mouse_pos = x, y
-        else:
-            self.mouse_pos = x, self.system_size[1] - y
+        self.mouse_pos = x, self.system_size[1] - y
         return x, y
 
     def _mainloop(self):
