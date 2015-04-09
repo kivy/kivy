@@ -10,15 +10,15 @@ from copy import deepcopy
 import os
 from os.path import join, dirname, sep, exists, basename, isdir, abspath
 from os import walk, environ, makedirs, listdir
-from distutils.extension import Extension
 from distutils.version import LooseVersion
 from collections import OrderedDict
 from time import sleep
 
 if environ.get('KIVY_USE_SETUPTOOLS'):
-    from setuptools import setup
+    from setuptools import setup, Extension
 else:
     from distutils.core import setup
+    from distutils.extension import Extension
 
 
 if sys.version > '3':
