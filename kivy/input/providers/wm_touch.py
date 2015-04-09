@@ -216,6 +216,7 @@ else:
                                             sizeof(TOUCHINPUT))
             for i in range(wParam):
                 self.touch_events.appendleft(touches[i])
+            windll.user32.CloseTouchInputHandle(HANDLE(lParam))
             return True
 
         # filter fake mouse events, because touch and stylus
