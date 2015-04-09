@@ -184,6 +184,7 @@ __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
            'FallOutTransition', 'RiseInTransition', 'NoTransition')
 
 from kivy.compat import iteritems
+from kivy.compat import string_types
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
