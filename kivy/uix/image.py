@@ -73,7 +73,9 @@ class Image(Widget):
     '''
 
     texture = ObjectProperty(None, allownone=True)
-    '''Texture object of the image.
+    '''Texture object of the image. The texture represents the original, loaded
+    image texture. It is streched and positioned during rendering according to the
+    :attr:`allow_stretch` and :attr:`keep_ratio` properties.
 
     Depending of the texture creation, the value will be a
     :class:`~kivy.graphics.texture.Texture` or a
@@ -84,7 +86,8 @@ class Image(Widget):
     '''
 
     texture_size = ListProperty([0, 0])
-    '''Texture size of the image.
+    '''Texture size of the image. This represents the original, loaded image
+    texture size.
 
     .. warning::
 
