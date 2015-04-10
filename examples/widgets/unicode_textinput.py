@@ -3,6 +3,7 @@
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import StringProperty, ObjectProperty
+from kivy.core.text import Label as CoreLabel
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.spinner import SpinnerOption
@@ -13,11 +14,9 @@ import os
 Builder.load_string('''
 #: import utils kivy
 #: import os os
-#: import font pygame.font
 #: import Factory kivy.factory.Factory
 <FntSpinnerOption>
-    fnt_name: font.match_font(self.text)
-    font_name: self.fnt_name if self.fnt_name else self.font_name
+    font_name: self.text if self.text else self.font_name
 
 <Unicode_TextInput>
     orientation: 'vertical'
@@ -28,11 +27,8 @@ Builder.load_string('''
         Spinner:
             id: fnt_spnr
             text: 'DroidSansMono'
-            fnt_name:
-                (font.match_font(self.text) if font.match_font(self.text)
-                else '')
-            font_name: self.fnt_name if self.fnt_name else self.font_name
-            values: sorted(font.get_fonts())
+            font_name: self.text if self.text else self.font_name
+            values: app.get_font_list
             option_cls: Factory.FntSpinnerOption
         Spinner:
             id: fntsz_spnr
@@ -215,11 +211,29 @@ Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער 
             size_hint=(0.9, 0.9))
         self._popup.open()
 
+from kivy.utils import reify
 
 class unicode_app(App):
 
     def build(self):
         return Unicode_TextInput()
+
+    @reify
+    def get_font_list(self):
+        '''Get a list of all the fonts available on this system.
+        '''
+
+        fonts_path = CoreLabel.get_system_fonts_dir()
+        flist = []
+
+        for fdir in fonts_path:
+            for fpath in sorted(os.listdir(fdir)):
+                if not '.' in fpath:
+                    continue
+                font, ext = fpath.rsplit('.')
+                if ext == 'ttf':
+                    flist.append(font)
+        return sorted(flist)
 
 
 if __name__ == '__main__':
