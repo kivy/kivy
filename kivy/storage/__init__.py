@@ -67,7 +67,7 @@ asynchronous version.
 
 For example, the *get* method has a `callback` parameter. If set, the
 `callback` will be used to return the result to the user when available:
-the request will be asynchronous. If the `callback` is None, then the
+the request will be asynchronous.  If the `callback` is None, then the
 request will be synchronous and the result will be returned directly.
 
 
@@ -132,10 +132,13 @@ class AbstractStore(EventDispatcher):
         super(AbstractStore, self).__init__(**kwargs)
         self.store_load()
 
-    def exists(self, key):
+    def exists(self, key, callback=None):
         '''Check if a key exists in the store.
         '''
-        return self.store_exists(key)
+        if callback:
+            self.async_exists(callback,key)
+        else:
+            return self.store_exists(key)
 
     def async_exists(self, callback, key):
         '''Asynchronous version of :meth:`exists`.
@@ -151,11 +154,14 @@ class AbstractStore(EventDispatcher):
         self._schedule(self.store_exists_async,
                        key=key, callback=callback)
 
-    def get(self, key):
+    def get(self, key, callback=None):
         '''Get the key/value pairs stored at `key`. If the key is not found, a
         `KeyError` exception will be thrown.
         '''
-        return self.store_get(key)
+        if callback:
+            self.async_get(callback,key)
+        else:
+            return self.store_get(key)
 
     def async_get(self, callback, key):
         '''Asynchronous version of :meth:`get`.
@@ -170,14 +176,17 @@ class AbstractStore(EventDispatcher):
         '''
         self._schedule(self.store_get_async, key=key, callback=callback)
 
-    def put(self, key, **values):
+    def put(self, key, callback=None, **values):
         '''Put new key/value pairs (given in *values*) into the storage. Any
         existing key/value pairs will be removed.
         '''
-        need_sync = self.store_put(key, values)
-        if need_sync:
-            self.store_sync()
-        return need_sync
+        if callback:
+            self.async_put(callback,key,values)
+        else:
+            need_sync = self.store_put(key, values)
+            if need_sync:
+                self.store_sync()
+            return need_sync
 
     def async_put(self, callback, key, **values):
         '''Asynchronous version of :meth:`put`.
@@ -194,13 +203,16 @@ class AbstractStore(EventDispatcher):
         self._schedule(self.store_put_async,
                        key=key, value=values, callback=callback)
 
-    def delete(self, key):
+    def delete(self, key, callback=None):
         '''Delete a key from the storage. If the key is not found, a `KeyError`
         exception will be thrown.'''
-        need_sync = self.store_delete(key)
-        if need_sync:
-            self.store_sync()
-        return need_sync
+        if callback:
+            self.async_delete(callback,key)
+        else:
+            need_sync = self.store_delete(key)
+            if need_sync:
+                self.store_sync()
+            return need_sync
 
     def async_delete(self, callback, key):
         '''Asynchronous version of :meth:`delete`.
@@ -217,7 +229,7 @@ class AbstractStore(EventDispatcher):
         self._schedule(self.store_delete_async, key=key,
                        callback=callback)
 
-    def find(self, **filters):
+    def find(self, callback=None, **filters):
         '''Return all the entries matching the filters. The entries are
         returned through a generator as a list of (key, entry) pairs
         where *entry* is a dict of key/value pairs ::
@@ -233,7 +245,10 @@ class AbstractStore(EventDispatcher):
             # get only the entry from (key, entry)
             entries = list((x[1] for x in store.find(name='Mathieu')))
         '''
-        return self.store_find(filters)
+        if callback:
+            self.async_find(callback,filters)
+        else:
+            return self.store_find(filters)
 
     def async_find(self, callback, **filters):
         '''Asynchronous version of :meth:`find`.
@@ -253,30 +268,39 @@ class AbstractStore(EventDispatcher):
         self._schedule(self.store_find_async,
                        callback=callback, filters=filters)
 
-    def keys(self):
+    def keys(self, callback=None):
         '''Return a list of all the keys in the storage.
         '''
-        return self.store_keys()
+        if callback:
+            self.async_keys(callback)
+        else:
+            return self.store_keys()
 
     def async_keys(self, callback):
         '''Asynchronously return all the keys in the storage.
         '''
         self._schedule(self.store_keys_async, callback=callback)
 
-    def count(self):
+    def count(self, callback=None):
         '''Return the number of entries in the storage.
         '''
-        return self.store_count()
+        if callback:
+            self.async_count(callback)
+        else:
+            return self.store_count()
 
     def async_count(self, callback):
         '''Asynchronously return the number of entries in the storage.
         '''
         self._schedule(self.store_count_async, callback=callback)
 
-    def clear(self):
+    def clear(self, callback=None):
         '''Wipe the whole storage.
         '''
-        return self.store_clear()
+        if callback:
+            self.async_clear(callback)
+        else:
+            return self.store_clear()
 
     def async_clear(self, callback):
         '''Asynchronous version of :meth:`clear`.
@@ -343,54 +367,54 @@ class AbstractStore(EventDispatcher):
         for key in self.store_keys():
             self.store_delete(key)
 
-    def store_get_async(self, key, callback):
+    def store_get_async(self, dt, key, callback):
         try:
             value = self.store_get(key)
             callback(self, key, value)
         except KeyError:
             callback(self, key, None)
 
-    def store_put_async(self, key, value, callback):
+    def store_put_async(self, dt, key, value, callback):
         try:
             value = self.store_put(key, value)
             callback(self, key, value)
         except:
             callback(self, key, None)
 
-    def store_exists_async(self, key, callback):
+    def store_exists_async(self, dt, key, callback):
         try:
             value = self.store_exists(key)
             callback(self, key, value)
         except:
             callback(self, key, None)
 
-    def store_delete_async(self, key, callback):
+    def store_delete_async(self, dt, key, callback):
         try:
             value = self.store_delete(key)
             callback(self, key, value)
         except:
             callback(self, key, None)
 
-    def store_find_async(self, filters, callback):
+    def store_find_async(self, dt, filters, callback):
         for key, entry in self.store_find(filters):
             callback(self, filters, key, entry)
         callback(self, filters, None, None)
 
-    def store_count_async(self, callback):
+    def store_count_async(self, dt, callback):
         try:
             value = self.store_count()
             callback(self, value)
         except:
             callback(self, 0)
 
-    def store_keys_async(self, callback):
+    def store_keys_async(self, dt, callback):
         try:
             keys = self.store_keys()
             callback(self, keys)
         except:
             callback(self, [])
 
-    def store_clear_async(self, callback):
+    def store_clear_async(self, dt, callback):
         self.store_clear()
         callback(self)
 
@@ -401,3 +425,4 @@ class AbstractStore(EventDispatcher):
     def _schedule(self, cb, **kwargs):
         # XXX not entirely sure about the best value (0 or -1).
         Clock.schedule_once(partial(cb, **kwargs), 0)
+
