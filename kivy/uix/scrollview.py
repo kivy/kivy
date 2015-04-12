@@ -119,7 +119,7 @@ from kivy.config import Config
 from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.uix.stencilview import StencilView
-from kivy.metrics import sp
+from kivy.metrics import sp, dp
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
     ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty
@@ -828,6 +828,39 @@ class ScrollView(StencilView):
             return True
 
         return self._get_uid() in touch.ud
+
+    def scroll_to(self, widget, threshold_x=10, threshold_y=10, animate=True):
+        if not self.parent:
+            return
+
+        pos = self.parent.to_widget(*widget.to_window(*widget.pos))
+        cor = self.parent.to_widget(*widget.to_window(widget.right,
+                                                      widget.top))
+
+        dx = dy = 0
+
+        if pos[1] < self.y:
+            dy = self.y - pos[1] + dp(threshold_y)
+        elif cor[1] > self.top:
+            dy = self.top - cor[1] - dp(threshold_y)
+
+        if pos[0] < self.x:
+            dx = self.x - pos[0] + dp(threshold_x)
+        elif cor[0] > self.right:
+            dx = self.right - cor[0] - dp(threshold_x)
+
+        dsx, dsy = self.convert_distance_to_scroll(dx, dy)
+        sxp = min(1, max(0, self.scroll_x - dsx))
+        syp = min(1, max(0, self.scroll_y - dsy))
+
+        if animate:
+            if animate is True:
+                animate = {'d': 0.2, 't': 'out_quad'}
+            Animation.stop_all(self, 'scroll_x', 'scroll_y')
+            Animation(scroll_x=sxp, scroll_y=syp, **animate).start(self)
+        else:
+            self.scroll_x = sxp
+            self.scroll_y = syp
 
     def convert_distance_to_scroll(self, dx, dy):
         '''Convert a distance in pixels to a scroll distance, depending on the
