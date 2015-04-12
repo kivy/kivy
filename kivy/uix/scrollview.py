@@ -829,9 +829,20 @@ class ScrollView(StencilView):
 
         return self._get_uid() in touch.ud
 
-    def scroll_to(self, widget, threshold_x=10, threshold_y=10, animate=True):
+    def scroll_to(self, widget, padding=10, animate=True):
+        '''Scrolls the viewport to ensure that the given widget is visible,
+        optionally with padding and animation. If animate is True (the
+        default), then the default animation parameters will be used.
+        Otherwise, it should be a dict containing arguments to pass to
+        :class:`~kivy.animation.Animation` constructor.
+
+        .. versionadded:: 1.9.1
+        '''
         if not self.parent:
             return
+
+        if isinstance(padding, (int, float)):
+            padding = (padding, padding)
 
         pos = self.parent.to_widget(*widget.to_window(*widget.pos))
         cor = self.parent.to_widget(*widget.to_window(widget.right,
@@ -840,14 +851,14 @@ class ScrollView(StencilView):
         dx = dy = 0
 
         if pos[1] < self.y:
-            dy = self.y - pos[1] + dp(threshold_y)
+            dy = self.y - pos[1] + dp(padding[1])
         elif cor[1] > self.top:
-            dy = self.top - cor[1] - dp(threshold_y)
+            dy = self.top - cor[1] - dp(padding[1])
 
         if pos[0] < self.x:
-            dx = self.x - pos[0] + dp(threshold_x)
+            dx = self.x - pos[0] + dp(padding[0])
         elif cor[0] > self.right:
-            dx = self.right - cor[0] - dp(threshold_x)
+            dx = self.right - cor[0] - dp(padding[0])
 
         dsx, dsy = self.convert_distance_to_scroll(dx, dy)
         sxp = min(1, max(0, self.scroll_x - dsx))
