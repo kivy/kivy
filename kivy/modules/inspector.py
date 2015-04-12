@@ -51,12 +51,15 @@ To remove the Inspector, you can do the following::
     inspector.stop(Window, button)
 
 '''
+
 __all__ = ('start', 'stop', 'create_inspector')
 
 import kivy
 kivy.require('1.0.9')
 
 import weakref
+from functools import partial
+from itertools import chain
 from kivy.animation import Animation
 from kivy.logger import Logger
 from kivy.uix.widget import Widget
@@ -65,26 +68,26 @@ from kivy.uix.label import Label
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.textinput import TextInput
 from kivy.uix.image import Image
-from kivy.uix.treeview import TreeViewNode
+from kivy.uix.treeview import TreeViewNode, TreeView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.modalview import ModalView
-from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix, \
-    Translate, Rotate, Scale
+from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix
+from kivy.graphics.context_instructions import Transform
+from kivy.graphics.transformation import Matrix
 from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
     NumericProperty, StringProperty, OptionProperty, \
     ReferenceListProperty, AliasProperty, VariableListProperty
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
-from functools import partial
-from itertools import chain
 from kivy.lang import Builder
-from kivy.vector import Vector
+
 
 Builder.load_string('''
 <Inspector>:
     layout: layout
+    widgettree: widgettree
     treeview: treeview
     content: content
     BoxLayout:
@@ -149,14 +152,41 @@ Builder.load_string('''
             ScrollView:
                 scroll_type: ['bars', 'content']
                 bar_width: 10
-                TreeView:
-                    id: treeview
-                    size_hint_y: None
-                    hide_root: True
-                    height: self.minimum_height
+                size_hint_x: 0.0001
 
-            ScrollView:
-                id: content
+                WidgetTree:
+                    id: widgettree
+                    hide_root: True
+                    size_hint: None, None
+                    height: self.minimum_height
+                    width: max(self.parent.width, self.minimum_width)
+                    selected_widget: root.widget
+                    on_select_widget: root.highlight_widget(args[1])
+
+            Splitter:
+                sizeable_from: 'left'
+                min_size: self.parent.width / 2
+                max_size: self.parent.width
+
+                BoxLayout:
+                    ScrollView:
+                        scroll_type: ['bars', 'content']
+                        bar_width: 10
+                        TreeView:
+                            id: treeview
+                            size_hint_y: None
+                            hide_root: True
+                            height: self.minimum_height
+
+                    Splitter:
+                        sizeable_from: 'left'
+                        keep_within_parent: True
+                        rescale_with_parent: True
+                        max_size: self.parent.width / 2
+                        min_size: 0
+
+                        ScrollView:
+                            id: content
 
 <TreeViewProperty>:
     height: max(lkey.texture_size[1], ltext.texture_size[1])
@@ -171,6 +201,32 @@ Builder.load_string('''
         text: [repr(getattr(root.widget, root.key, '')), root.refresh][0]\
                 if root.widget else ''
         text_size: (self.width, None)
+
+<-TreeViewWidget>:
+    height: self.texture_size[1] + sp(4)
+    size_hint_x: None
+    width: self.texture_size[0] + sp(4)
+
+    canvas.before:
+        Color:
+            rgba: self.color_selected if self.is_selected else (0, 0, 0, 0)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: 1, 1, 1, int(not self.is_leaf)
+        Rectangle:
+            source: 'atlas://data/images/defaulttheme/tree_%s' % ('opened' if self.is_open else 'closed')
+            size: 16, 16
+            pos: self.x - 20, self.center_y - 8
+
+    canvas:
+        Color:
+            rgba: self.disabled_color if self.disabled else (self.color if not self.markup else (1, 1, 1, 1))
+        Rectangle:
+            texture: self.texture
+            size: self.texture_size
+            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 ''')
 
 
@@ -196,11 +252,68 @@ class TreeViewProperty(BoxLayout, TreeViewNode):
     refresh = BooleanProperty(False)
 
 
+class TreeViewWidget(Label, TreeViewNode):
+    widget = ObjectProperty(None)
+
+
+class WidgetTree(TreeView):
+    selected_widget = ObjectProperty(None, allownone=True)
+
+    __events__ = ('on_select_widget',)
+
+    def __init__(self, **kwargs):
+        super(WidgetTree, self).__init__(**kwargs)
+        self.update_scroll = Clock.create_trigger(self._update_scroll)
+
+    def find_node_by_widget(self, widget):
+        for node in self.iterate_all_nodes():
+            if not node.parent_node:
+                continue
+            if node.widget == widget:
+                return node
+        return None
+
+    def update_selected_widget(self, widget):
+        if widget:
+            node = self.find_node_by_widget(widget)
+            if node:
+                self.select_node(node, False)
+                while node and isinstance(node, TreeViewWidget):
+                    if not node.is_open:
+                        self.toggle_node(node)
+                    node = node.parent_node
+
+    def on_selected_widget(self, inst, widget):
+        if widget:
+            self.update_selected_widget(widget)
+            self.update_scroll()
+
+    def select_node(self, node, select_widget=True):
+        super(WidgetTree, self).select_node(node)
+        if select_widget:
+            try:
+                self.dispatch('on_select_widget', node.widget.__self__)
+            except ReferenceError:
+                pass
+
+    def on_select_widget(self, widget):
+        pass
+
+    def _update_scroll(self, *args):
+        node = self._selected_node
+        if not node:
+            return
+
+        self.parent.scroll_to(node)
+
+
 class Inspector(FloatLayout):
 
     widget = ObjectProperty(None, allownone=True)
 
     layout = ObjectProperty(None)
+
+    widgettree = ObjectProperty(None)
 
     treeview = ObjectProperty(None)
 
@@ -221,9 +334,7 @@ class Inspector(FloatLayout):
         with self.canvas.before:
             self.gcolor = Color(1, 0, 0, .25)
             PushMatrix()
-            self.gtranslate = Translate(0, 0, 0)
-            self.grotate = Rotate(0, 0, 0, 1)
-            self.gscale = Scale(1.)
+            self.gtransform = Transform(Matrix())
             self.grect = Rectangle(size=(0, 0))
             PopMatrix()
         Clock.schedule_interval(self.update_widget_graphics, 0)
@@ -291,31 +402,10 @@ class Inspector(FloatLayout):
         if self.widget is None:
             self.grect.size = 0, 0
             return
-        gr = self.grect
-        widget = self.widget
-
-        # determine rotation
-        a = Vector(1, 0)
-        if widget is self.win:
-            b = Vector(widget.to_window(0, 0))
-            c = Vector(widget.to_window(1, 0))
-        else:
-            b = Vector(widget.to_window(*widget.to_parent(0, 0)))
-            c = Vector(widget.to_window(*widget.to_parent(1, 0))) - b
-        angle = -a.angle(c)
-
-        # determine scale
-        scale = c.length()
-
-        # apply transform
-        gr.size = widget.size
-        if widget is self.win:
-            self.gtranslate.xy = Vector(widget.to_window(0, 0))
-        else:
-            self.gtranslate.xy = Vector(widget.to_window(*widget.pos))
-        self.grotate.angle = angle
-        # fix warning about scale property deprecation
-        self.gscale.xyz = (scale,) * 3
+        self.grect.size = self.widget.size
+        matrix = self.widget.get_window_matrix()
+        if self.gtransform.matrix.get() != matrix.get():
+            self.gtransform.matrix = matrix
 
     def toggle_position(self, button):
         to_bottom = button.text == 'Move to Bottom'
@@ -376,6 +466,8 @@ class Inspector(FloatLayout):
             else:
                 Animation(y=self.height - 60, t='out_quad', d=.3).start(
                     self.layout)
+            Clock.schedule_interval(self.update_widget_tree, 1)
+            self.update_widget_tree()
 
     def animation_close(self, instance, value):
         if self.activated is False:
@@ -383,9 +475,14 @@ class Inspector(FloatLayout):
             self.win.remove_widget(self)
             self.content.clear_widgets()
             treeview = self.treeview
-            for node in list(treeview.iterate_all_nodes())[:]:
+            for node in list(treeview.iterate_all_nodes()):
                 node.widget_ref = None
                 treeview.remove_node(node)
+            self._window_node = None
+            Clock.unschedule(self.update_widget_tree)
+            widgettree = self.widgettree
+            for node in list(widgettree.iterate_all_nodes()):
+                widgettree.remove_node(node)
             Logger.info('Inspector: inspector deactivated')
 
     def show_widget_info(self):
@@ -566,6 +663,37 @@ class Inspector(FloatLayout):
             setattr(widget, key, instance.text)
         except:
             pass
+
+    def _update_widget_tree_node(self, node, widget, is_open=False):
+        tree = self.widgettree
+        update_nodes = []
+        nodes = {}
+        for cnode in node.nodes[:]:
+            nodes[cnode.widget] = cnode
+            tree.remove_node(cnode)
+        for child in widget.children:
+            if child is self:
+                continue
+            if child in nodes:
+                cnode = tree.add_node(nodes[child], node)
+            else:
+                cnode = tree.add_node(TreeViewWidget(text=child.__class__.__name__, widget=child.proxy_ref, is_open=is_open), node)
+            update_nodes.append((cnode, child))
+        return update_nodes
+
+    def update_widget_tree(self, *args):
+        if not hasattr(self, '_window_node') or not self._window_node:
+            self._window_node = self.widgettree.add_node(
+                TreeViewWidget(text='Window', widget=self.win, is_open=True))
+
+        nodes = self._update_widget_tree_node(self._window_node, self.win, is_open=True)
+        while nodes:
+            ntmp = nodes[:]
+            nodes = []
+            for node in ntmp:
+                nodes += self._update_widget_tree_node(*node)
+
+        self.widgettree.update_selected_widget(self.widget)
 
 
 def create_inspector(win, ctx, *l):
