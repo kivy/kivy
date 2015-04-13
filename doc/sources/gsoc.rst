@@ -194,7 +194,7 @@ working with communicating between Python and an API in a different language.
     plyer and implementation of some or all of the new facades to be 
     decided with the student.
     
-  - **Mentors**: Ben Rousch, Sebastian Popute
+  - **Mentors**: Gabriel Pettier, Sebastian Popute
   - **Requirements**: Access to Linux, Windows, OS X, iOS device,  
     Android device.
   - **Task level**: Intermediate
