@@ -36,6 +36,7 @@ _kivy_modules = [
     'pygame.image',
     'pygame.display',
     'pygame',
+    'xml.etree.cElementTree',
 
     # external modules
     'kivy.cache',
@@ -78,6 +79,7 @@ _kivy_modules = [
     'kivy.graphics.vbo',
     'kivy.graphics.vertex',
     'kivy.graphics.vertex_instructions',
+    'kivy.graphics.tesselator',
     'kivy.properties',
 
     # core
