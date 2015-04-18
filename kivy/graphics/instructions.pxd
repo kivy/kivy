@@ -26,7 +26,7 @@ cdef class Instruction(ObjectWithUid):
     cdef object __weakref__
     cdef object __proxy_ref
 
-    cdef void apply(self)
+    cdef int apply(self) except -1
     IF DEBUG:
         cdef int flag_update(self, int do_parent=?, list _instrs=?) except -1
     ELSE:
@@ -58,9 +58,9 @@ cdef class ContextInstruction(Instruction):
     cdef list context_pop
 
     cdef RenderContext get_context(self)
-    cdef void set_state(self, str name, value) except *
-    cdef void push_state(self, str name) except *
-    cdef void pop_state(self, str name) except *
+    cdef int set_state(self, str name, value) except -1
+    cdef int push_state(self, str name) except -1
+    cdef int pop_state(self, str name) except -1
 
 
 from context_instructions cimport BindTexture
@@ -80,8 +80,8 @@ cdef class Callback(Instruction):
     cdef Shader _shader
     cdef object func
     cdef int _reset_context
-    cdef void apply(self)
-    cdef void enter(self)
+    cdef int apply(self) except -1
+    cdef int enter(self) except -1
 
 
 
@@ -99,7 +99,7 @@ cdef class Canvas(CanvasBase):
     cpdef add(self, Instruction c)
     cpdef remove(self, Instruction c)
     cpdef draw(self)
-    cdef void apply(self)
+    cdef int apply(self) except -1
 
 
 cdef class RenderContext(Canvas):
@@ -113,14 +113,14 @@ cdef class RenderContext(Canvas):
     cdef void set_texture(self, int index, Texture texture)
     cdef void set_state(self, str name, value, int apply_now=?)
     cdef get_state(self, str name)
-    cdef void set_states(self, dict states) except *
-    cdef void push_state(self, str name) except *
-    cdef void push_states(self, list names) except *
-    cdef void pop_state(self, str name) except *
-    cdef void pop_states(self, list names) except *
-    cdef void enter(self) except *
-    cdef void leave(self) except *
-    cdef void apply(self) except *
+    cdef int set_states(self, dict states) except -1
+    cdef int push_state(self, str name) except -1
+    cdef int push_states(self, list names) except -1
+    cdef int pop_state(self, str name) except -1
+    cdef int pop_states(self, list names) except -1
+    cdef int enter(self) except -1
+    cdef int leave(self) except -1
+    cdef int apply(self) except -1
     cpdef draw(self)
     cdef void reload(self)
 

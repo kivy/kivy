@@ -230,13 +230,14 @@ cdef class Shader:
         '''
         glUseProgram(0)
 
-    cdef void set_uniform(self, str name, value):
+    cdef int set_uniform(self, str name, value) except -1:
         if name in self.uniform_values and self.uniform_values[name] == value:
-            return
+            return 0
         self.uniform_values[name] = value
         self.upload_uniform(name, value)
+        return 0
 
-    cdef void upload_uniform(self, str name, value):
+    cdef int upload_uniform(self, str name, value) except -1:
         '''Pass a uniform variable to the shader.
         '''
         cdef long vec_size, index, x, y
@@ -255,7 +256,7 @@ cdef class Shader:
         #Logger.debug('Shader: uploading uniform %s (loc=%d, value=%r)' % (name, loc, value))
         if loc == -1:
             #Logger.debug('Shader: -> ignored')
-            return
+            return 0
         #Logger.debug('Shader: -> (gl:%d) %s' % (glGetError(), str(value)))
 
         if val_type is Matrix:
@@ -414,6 +415,7 @@ cdef class Shader:
                     free(int_list)
         else:
             raise Exception('for <%s>, type not handled <%s>' % (name, val_type))
+        return 0
 
     cdef void upload_uniform_matrix(self, int loc, Matrix value):
         cdef GLfloat mat[16]
@@ -421,7 +423,7 @@ cdef class Shader:
             mat[x] = <GLfloat>value.mat[x]
         glUniformMatrix4fv(loc, 1, False, mat)
 
-    cdef int get_uniform_loc(self, str name):
+    cdef int get_uniform_loc(self, str name) except *:
         cdef bytes c_name = name.encode('utf-8')
         cdef int loc = glGetUniformLocation(self.program, c_name)
         self.uniform_locations[name] = loc
@@ -462,11 +464,12 @@ cdef class Shader:
         # save for the next run.
         self._current_vertex_format = vertex_format
 
-    cdef void build(self):
+    cdef int build(self) except -1:
         self.build_vertex()
         self.build_fragment()
+        return 0
 
-    cdef void build_vertex(self, int link=1):
+    cdef int build_vertex(self, int link=1) except -1:
         if self.vertex_shader is not None:
             glDetachShader(self.program, self.vertex_shader.shader)
             self.vertex_shader = None
@@ -475,8 +478,9 @@ cdef class Shader:
             glAttachShader(self.program, self.vertex_shader.shader)
         if link:
             self.link_program()
+        return 0
 
-    cdef void build_fragment(self, int link=1):
+    cdef int build_fragment(self, int link=1) except -1:
         if self.fragment_shader is not None:
             glDetachShader(self.program, self.fragment_shader.shader)
             self.fragment_shader = None
@@ -486,9 +490,9 @@ cdef class Shader:
         if link:
             self.link_program()
 
-    cdef void link_program(self):
+    cdef int link_program(self) except -1:
         if self.vertex_shader is None or self.fragment_shader is None:
-            return
+            return 0
 
         # XXX to ensure that shader is ok, read error state right now.
         glGetError()
@@ -503,6 +507,7 @@ cdef class Shader:
             self._success = 0
             raise Exception('Shader didnt link, check info log.')
         self._success = 1
+        return 0
 
     cdef int is_linked(self):
         cdef GLint result = 0
