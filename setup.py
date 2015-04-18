@@ -33,11 +33,7 @@ MIN_CYTHON_STRING = '0.20'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
 MAX_CYTHON_STRING = '0.22'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
-CYTHON_UNSUPPORTED = (
-    # LooseVersion('0.22'),
-    # LooseVersion('0.22.beta0'),
-    # LooseVersion('0.22.alpha0'),
-)
+CYTHON_UNSUPPORTED = (, )
 
 
 def getoutput(cmd):
