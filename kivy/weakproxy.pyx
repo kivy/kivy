@@ -288,5 +288,5 @@ cdef class WeakProxy(object):
         return unicode(self.__ref())
 
     def __repr__(self):
-        return b'<WeakProxy to {!r}>'.format(self.__ref())
+        return '<WeakProxy to {!r}>'.format(self.__ref())
 
