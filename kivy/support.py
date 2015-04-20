@@ -218,7 +218,7 @@ def install_twisted_reactor(**kwargs):
         '''Shutdown the twisted reactor main loop
         '''
         if reactor.threadpool:
-            Logger.info("Support: Stooping twisted threads")
+            Logger.info("Support: Stopping twisted threads")
             reactor.threadpool.stop()
         Logger.info("Support: Shutting down twisted reactor")
         reactor._mainLoopShutdown()
