@@ -63,7 +63,7 @@ class ClipboardAndroid(ClipboardBase):
             primary_clip = clippy.getPrimaryClip()
             if primary_clip and clippy.getPrimaryClipDescription().hasMimeType(
                     ClipDescription.MIMETYPE_TEXT_PLAIN):
-                data = primary_clip.getItemAt(0).getText().toString()
+                data = primary_clip.getItemAt(0).getText()
             else:
                 # TODO: non text data types Not yet implemented
                 data = ''
