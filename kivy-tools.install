@@ -1,5 +1,46 @@
 # moved to kivy-garden/garden
 # usr/bin/garden
 
-usr/lib/python2.7/dist-packages/kivy/tools
-usr/lib/python3/dist-packages/kivy/tools
+## Python2
+# Tools
+usr/lib/python2.7/dist-packages/kivy/tools/*.py
+usr/lib/python2.7/dist-packages/kivy/tools/extensions/*.py
+usr/lib/python2.7/dist-packages/kivy/tools/highlight/__init__.py
+usr/lib/python2.7/dist-packages/kivy/tools/highlight/*.el
+usr/lib/python2.7/dist-packages/kivy/tools/highlight/*.vim
+usr/lib/python2.7/dist-packages/kivy/tools/packaging/README.txt
+usr/lib/python2.7/dist-packages/kivy/tools/packaging/*.py
+usr/lib/python2.7/dist-packages/kivy/tools/packaging/osx/Info.plist
+usr/lib/python2.7/dist-packages/kivy/tools/packaging/osx/InfoPlist.strings
+usr/lib/python2.7/dist-packages/kivy/tools/packaging/osx/kivy.sh
+usr/lib/python2.7/dist-packages/kivy/tools/packaging/pyinstaller_hooks/*.py
+usr/lib/python2.7/dist-packages/kivy/tools/packaging/win32/README.txt
+# Tests
+usr/lib/python2.7/dist-packages/kivy/tests/*.py
+usr/lib/python2.7/dist-packages/kivy/tests/*.pyc
+usr/lib/python2.7/dist-packages/kivy/tests/sample1.ogg
+usr/lib/python2.7/dist-packages/kivy/tests/test_button.png
+usr/lib/python2.7/dist-packages/kivy/tests/unicode_font.zip
+usr/lib/python2.7/dist-packages/kivy/tests/unicode_files.zip
+
+## Python3
+# Tools
+usr/lib/python3/dist-packages/kivy/tools/*.py
+usr/lib/python3/dist-packages/kivy/tools/extensions/*.py
+usr/lib/python3/dist-packages/kivy/tools/highlight/*.py
+usr/lib/python3/dist-packages/kivy/tools/highlight/*.el
+usr/lib/python3/dist-packages/kivy/tools/highlight/*.vim
+usr/lib/python3/dist-packages/kivy/tools/packaging/README.txt
+usr/lib/python3/dist-packages/kivy/tools/packaging/*.py
+usr/lib/python3/dist-packages/kivy/tools/packaging/osx/Info.plist
+usr/lib/python3/dist-packages/kivy/tools/packaging/osx/InfoPlist.strings
+usr/lib/python3/dist-packages/kivy/tools/packaging/osx/kivy.sh
+usr/lib/python3/dist-packages/kivy/tools/packaging/pyinstaller_hooks/*.py
+usr/lib/python3/dist-packages/kivy/tools/packaging/win32/README.txt
+# Tests
+usr/lib/python3/dist-packages/kivy/tests/*.py
+usr/lib/python3/dist-packages/kivy/tests/*.pyc
+usr/lib/python3/dist-packages/kivy/tests/sample1.ogg
+usr/lib/python3/dist-packages/kivy/tests/test_button.png
+usr/lib/python3/dist-packages/kivy/tests/unicode_font.zip
+usr/lib/python3/dist-packages/kivy/tests/unicode_files.zip
