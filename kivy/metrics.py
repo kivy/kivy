@@ -200,12 +200,9 @@ class MetricsBase(object):
             # 0.75 is for mapping the same density as android tablet
             import ios
             return ios.get_scale() * 0.75
-        elif platform == 'macosx':
-            from kivy.base import EventLoop
-            EventLoop.ensure_window()
-            return  EventLoop.window.dpi / 96.
-
-        return 1.0
+        from kivy.base import EventLoop
+        EventLoop.ensure_window()
+        return  EventLoop.window.dpi / 96.
 
     @reify
     def fontscale(self):

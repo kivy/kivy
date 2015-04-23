@@ -189,8 +189,19 @@ class WindowSDL(WindowBase):
             # calculate density
             sz = self._win._get_gl_size()[0]
             self._density = density = sz / _size[0]
-            if self._is_desktop and self.size[0] != _size[0]:
-                self.dpi = density * 96.
+            if self._is_desktop:
+                if self.size[0] != _size[0]:
+                    self.dpi = density * 96.
+                elif platform == 'win':
+                    import platform as plat
+                    if plat.system() == 'Windows' and float(plat.release()) >= 8:
+                        # Only run on windows 8.1 or higher to check high dpi monitors
+                        import ctypes
+                        user32 = ctypes.windll.user32
+                        w_curr = user32.GetSystemMetrics(0)
+                        user32.SetProcessDPIAware()
+                        w_phys = user32.GetSystemMetrics(0)
+                        self.dpi = round(w_phys*96/w_curr, 0)
 
             # never stay with a None pos, application using w.center
             # will be fired.
