@@ -308,6 +308,8 @@ class WindowSDL(WindowBase):
 
             action, args = event[0], event[1:]
             if action == 'quit':
+                if self.dispatch('on_request_close'):
+                    continue
                 EventLoop.quit = True
                 self.close()
                 break
@@ -426,11 +428,13 @@ class WindowSDL(WindowBase):
                     SDLK_F2: 283, SDLK_F3: 284, SDLK_F4: 285, SDLK_F5: 286,
                     SDLK_F6: 287, SDLK_F7: 288, SDLK_F8: 289, SDLK_F9: 290,
                     SDLK_F10: 291, SDLK_F11: 292, SDLK_F12: 293, SDLK_F13: 294,
-                    SDLK_F14: 295, SDLK_F15: 296, SDLK_KEYPADNUM: 300, SDLK_KP_DEVIDE: 267,
-                    SDLK_KP_MULTIPLY: 268, SDLK_KP_MINUS: 269, SDLK_KP_PLUS: 270,
-                    SDLK_KP_ENTER: 271, SDLK_KP_DOT: 266, SDLK_KP_0: 256, SDLK_KP_1: 257,
-                    SDLK_KP_2: 258, SDLK_KP_3: 259, SDLK_KP_4: 260, SDLK_KP_5: 261,
-                    SDLK_KP_6: 262, SDLK_KP_7: 263, SDLK_KP_8: 264, SDLK_KP_9:265 }
+                    SDLK_F14: 295, SDLK_F15: 296, SDLK_KEYPADNUM: 300,
+                    SDLK_KP_DEVIDE: 267, SDLK_KP_MULTIPLY: 268,
+                    SDLK_KP_MINUS: 269, SDLK_KP_PLUS: 270, SDLK_KP_ENTER: 271,
+                    SDLK_KP_DOT: 266, SDLK_KP_0: 256, SDLK_KP_1: 257,
+                    SDLK_KP_2: 258, SDLK_KP_3: 259, SDLK_KP_4: 260,
+                    SDLK_KP_5: 261, SDLK_KP_6: 262, SDLK_KP_7: 263,
+                    SDLK_KP_8: 264, SDLK_KP_9: 265}
 
                 if platform == 'ios':
                     # XXX ios keyboard suck, when backspace is hit, the delete
