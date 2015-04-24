@@ -1,4 +1,5 @@
-'''Label
+'''
+Label
 =====
 
 The :class:`Label` widget is for rendering text. It supports ascii and unicode
