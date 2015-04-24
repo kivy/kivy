@@ -1,5 +1,4 @@
-'''
-Label
+'''Label
 =====
 
 The :class:`Label` widget is for rendering text. It supports ascii and unicode
@@ -29,11 +28,12 @@ the number of pixels pushed to the GPU. By default, this text image is
 only large enough to contain the characters and is positioned in the
 centre of the Label.
 
-In order for the alignment properties to take effect, the simplest solution
-is to set the :attr:`text_size`, which specifies the size of the bounding
-box within which text is aligned. For instance, the following code binds
-this size to the size of the Label, so text will be aligned within the
-widget bounds.
+In order for the alignment properties to take effect, the simplest
+solution is to set the :attr:`text_size`, which specifies the size of
+the bounding box within which text is aligned. For instance, the
+following code binds this size to the size of the Label, so text will
+be aligned within the widget bounds. This will also automatically wrap
+the text of the Label to remain within within this area.
 
 .. code-block:: python
 
