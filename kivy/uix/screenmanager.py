@@ -126,26 +126,6 @@ example, this can be accomplished like so::
     """)
 
 
-Advanced Usage
---------------
-
-From 1.8.0, you can now switch dynamically to a new screen, change the
-transition options and remove the previous one by using
-:meth:`~ScreenManager.switch_to`::
-
-    sm = ScreenManager()
-    screens = [Screen(name='Title {}'.format(i)) for i in range(4)]
-
-    sm.switch_to(screens[0])
-    # later
-    sm.switch_to(screens[1], direction='right')
-
-Note that this method adds the screen to the :class:`ScreenManager` instance
-and should not be used if your screens have already been added to this
-instance. To switch to a screen which is already added, you should use the
-:attr:`~ScreenManager.current` property.
-
-
 Changing transitions
 --------------------
 
@@ -177,6 +157,25 @@ You can easily switch transitions by changing the
     To be more concrete, if you see sharp edged text during the animation, it's
     normal.
 
+
+Advanced Usage
+--------------
+
+From 1.8.0, you can switch dynamically to a new screen, optionally with
+a custom transition. Current screen can also be removed after switching to new
+screen.
+:meth:`~ScreenManager.switch_to`::
+
+    sm = ScreenManager()
+    screens = [Screen(name='Title {}'.format(i)) for i in range(4)]
+
+    sm.switch_to(screens[0])
+    # later
+    sm.switch_to(screens[1], transition=FadeTransition())
+    # later
+    sm.switch_to(screens[0])
+
+Note that this method behavior has changed significantly as of 1.9.1.
 '''
 
 __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
@@ -185,6 +184,7 @@ __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
            'FallOutTransition', 'RiseInTransition', 'NoTransition')
 
 from kivy.compat import iteritems
+from kivy.compat import string_types
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
@@ -874,9 +874,7 @@ class ScreenManager(FloatLayout):
         if screen.manager:
             if screen.manager is self:
                 raise ScreenManagerException(
-                    'Screen already managed by this ScreenManager (are you '
-                    'calling `switch_to` when you should be setting '
-                    '`current`?)')
+                    'Screen already managed by this ScreenManager')
             raise ScreenManagerException(
                 'Screen already managed by another ScreenManager.')
         screen.manager = self
@@ -983,69 +981,108 @@ class ScreenManager(FloatLayout):
             return
 
     def switch_to(self, screen, **options):
-        '''Add a new screen to the ScreenManager and switch to it. The previous
-        screen will be removed from the children. `options` are the
-        :attr:`transition` options that will be changed before the animation
-        happens.
+        '''Switch to screen.
 
-        If no previous screens are available, the screen will be used as the
-        main one::
+        Given ``screen`` can be either a screen instance or a screen name as
+        string.
 
-            sm = ScreenManager()
-            sm.switch_to(screen1)
-            # later
-            sm.switch_to(screen2, direction='left')
-            # later
-            sm.switch_to(screen3, direction='right', duration=1.)
+        If screen instance is given and not child of manager yet, it gets added
+        as long as no screen with same name already exists.
 
-        If any animation is in progress, it will be stopped and replaced by
-        this one: you should avoid this because the animation will just look
-        weird. Use either :meth:`switch_to` or :attr:`current` but not both.
+        If screen name is given, corresponding screen must already be contained
+        in manager.
 
-        The `screen` name will be changed if there is any conflict with the
-        current screen.
+        ``options`` might contain a :attr:`remove` flag, which causes the
+        already displayed screen to be removed after switching to given screen.
+
+        :attr:`transition` instance can be given in ``options`` to use a
+        custom transition for this screen switch.
+
+        Remaining ``options`` are applied on given ``transition``.
+
+        Be aware that the behavior of this function has changed significantly
+        as of 1.9.1.
 
         .. versionadded: 1.8.0
         '''
+        # screen must be given
         assert(screen is not None)
+        # flag whether to add given screen
+        add_screen = False
+        # remember currently displayed screen
+        current_screen = self.current_screen
+        # screen instance given
+        if isinstance(screen, Screen):
+            # given screen already displayed
+            if current_screen is screen:
+                return
+            screen_name = screen.name
+            # screen not contained in self
+            if screen not in self.screens:
+                # screen with name already contained
+                if self.has_screen(screen_name):
+                    raise ScreenManagerException(
+                        'Screen with name {0} already exists'.format(
+                            screen_name
+                        )
+                    )
+                # screen needs to be added
+                add_screen = True
+        # no screen instance
+        else:
+            # screen name expected
+            if not isinstance(screen, string_types):
+                raise ScreenManagerException(
+                    'Given screen must be either Screen instance or screen '
+                    'name as string'
+                )
+            screen_name = screen
+            # no screen with given name in self
+            if not self.has_screen(screen_name):
+                raise ScreenManagerException(
+                    'No screen found for given screen name'
+                )
+            # given screen already displayed
+            if current_screen and current_screen.name == screen_name:
+                return
+        # option whether to remove previous screen
+        remove_prev = options.pop("remove", False)
+        # custom transition to use
+        custom_transition = options.pop("transition", None)
+        # remember original transition
+        orgin_transition = self.transition
+        # use custom transition if given
+        if custom_transition:
+            # update transition options
+            for key, value in iteritems(options):
+                setattr(custom_transition, key, value)
+            # set transition
+            self.transition = custom_transition
 
-        if not isinstance(screen, Screen):
-            raise ScreenManagerException(
-                'ScreenManager accepts only Screen widget.')
+        def finish_screen_switch(transition):
+            # remove previous screen
+            if remove_prev and current_screen in self.children:
+                self.remove_widget(current_screen)
+            # reset transition
+            if custom_transition:
+                self.transition = orgin_transition
+            # unbind callback
+            transition.unbind(on_complete=finish_screen_switch)
 
-        # stop any transition that might be happening already
-        self.transition.stop()
-
-        # ensure the screen name will be unique
-        if screen not in self.children:
-            if self.has_screen(screen.name):
-                screen.name = self._generate_screen_name()
-
-        # change the transition if given explicitly
-        old_transition = self.transition
-        specified_transition = options.pop("transition", None)
-        if specified_transition:
-            self.transition = specified_transition
-
-        # change the transition options
-        for key, value in iteritems(options):
-            setattr(self.transition, key, value)
-
-        # add and leave if we are set as the current screen
-        self.add_widget(screen)
-        if self.current_screen is screen:
-            return
-
-        old_current = self.current_screen
-
-        def remove_old_screen(transition):
-            if old_current in self.children:
-                self.remove_widget(old_current)
-                self.transition = old_transition
-            transition.unbind(on_complete=remove_old_screen)
-        self.transition.bind(on_complete=remove_old_screen)
-
-        self.current = screen.name
+        # bind callback
+        self.transition.bind(on_complete=finish_screen_switch)
+        # add screen if necessary
+        if add_screen:
+            # initial display
+            initial = self.current is None
+            # add screen
+            self.add_widget(screen)
+            # current gets set on add_widget if initial display
+            if not initial:
+                self.current = screen_name
+        # set current screen
+        else:
+            self.current = screen_name
 
     def _generate_screen_name(self):
         i = 0
