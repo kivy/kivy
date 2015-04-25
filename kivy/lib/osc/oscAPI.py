@@ -239,30 +239,30 @@ def listen(ipAddr='127.0.0.1', port=9001):
     defaults to ipAddr='127.0.0.1', port 9001
     '''
     global oscThreads
-    id = '%s:%d' % (ipAddr, port)
-    if id in oscThreads:
+    _id = '%s:%d' % (ipAddr, port)
+    if _id in oscThreads:
         return
-    Logger.debug('OSC: Start thread <%s>' % id)
-    oscThreads[id] = OSCServer(ipAddr=ipAddr, port=port)
-    oscThreads[id].start()
-    return id
+    Logger.debug('OSC: Start thread <%s>' % _id)
+    oscThreads[_id] = OSCServer(ipAddr=ipAddr, port=port)
+    oscThreads[_id].start()
+    return _id
 
 
-def dontListen(id = None):
+def dontListen(_id = None):
     '''closes the socket and kills the thread
     '''
     global oscThreads
-    if id and id in oscThreads:
-        ids = [id]
+    if _id and _id in oscThreads:
+        ids = [_id]
     else:
         ids = list(oscThreads.keys())
-    for id in ids:
-        #oscThreads[id].socket.close()
-        Logger.debug('OSC: Stop thread <%s>' % id)
-        oscThreads[id].isRunning = False
-        oscThreads[id].join()
-        Logger.debug('OSC: Stop thread <%s> finished' % id)
-        del oscThreads[id]
+    for _id in ids:
+        #oscThreads[_id].socket.close()
+        Logger.debug('OSC: Stop thread <%s>' % _id)
+        oscThreads[_id].isRunning = False
+        oscThreads[_id].join()
+        Logger.debug('OSC: Stop thread <%s> finished' % _id)
+        del oscThreads[_id]
 
 if __name__ == '__main__':
     # example of how to use oscAPI
