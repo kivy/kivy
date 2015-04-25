@@ -40,4 +40,4 @@ environ['KIVY_EMBED'] = '1'
 #    if identifier == 'pygame_icon.tiff':
 #        raise IOError()
 #    return _original_getResource(identifier, *args, **kwargs)
-pygame.pkgdata.getResource = getResource
+#pygame.pkgdata.getResource = getResource
