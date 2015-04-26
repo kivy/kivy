@@ -657,8 +657,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires a SDL2 window provider and is currently only supported
-            on desktop platforms.
+            This feature requires a SDL2 window provider and is currently only
+            supported on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -674,8 +674,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires a SDL2 window provider and is currently only supported
-            on desktop platforms.
+            This feature requires a SDL2 window provider and is currently only
+            supported on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -690,8 +690,9 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 1.9.0
 
-            This feature requires a SDL2 window provider and is currently only supported
-            on desktop platforms.
+        ..note::
+            This feature requires a SDL2 window provider and is currently only
+            supported on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -707,8 +708,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires a SDL2 window provider and is currently only supported
-            on desktop platforms.
+            This feature requires a SDL2 window provider and is currently only
+            supported on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -724,8 +725,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires a SDL2 window provider and is currently only supported
-            on desktop platforms.
+            This feature requires a SDL2 window provider and is currently only
+            supported on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
