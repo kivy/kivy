@@ -657,7 +657,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature works with the SDL2 window provider only.
+            This feature requires a SDL2 window provider and is currently only supported
+            on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -673,7 +674,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature works with the SDL2 window provider only.
+            This feature requires a SDL2 window provider and is currently only supported
+            on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -688,8 +690,8 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 1.9.0
 
-        .. note::
-            This feature works with the SDL2 window provider only.
+            This feature requires a SDL2 window provider and is currently only supported
+            on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -705,7 +707,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature works with the SDL2 window provider only.
+            This feature requires a SDL2 window provider and is currently only supported
+            on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -721,7 +724,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature works with the SDL2 window provider only.
+            This feature requires a SDL2 window provider and is currently only supported
+            on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
