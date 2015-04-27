@@ -28,20 +28,3 @@ environ['KIVY_DATA_DIR'] = join(root, 'data')
 environ['KIVY_EXTS_DIR'] = join(root, 'extensions')
 environ['KIVY_MODULES_DIR'] = join(root, 'modules')
 environ['KIVY_EMBED'] = '1'
-
-if 'pygame' in (
-        getenv('KIVY_WINDOW'), getenv('KIVY_IMAGE'),
-        getenv('KIVY_TEXT'), getenv('KIVY_AUDIO'),
-        getenv('KIVY_CLIPBOARD')):
-
-    # Monkey-patch pygame to get around an issue with Pygame window icon and
-    # PyInstaller 2.1. See kivy issue #1638
-
-    def getResource(identifier, *args, **kwargs):
-        if identifier == 'pygame_icon.tiff':
-            raise IOError()
-        return _original_getResource(identifier, *args, **kwargs)
-
-    import pygame.pkgdata
-    _original_getResource = pygame.pkgdata.getResource
-    pygame.pkgdata.getResource = getResource

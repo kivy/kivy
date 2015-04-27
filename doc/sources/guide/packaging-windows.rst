@@ -82,6 +82,24 @@ the main file is named `main.py`.
 
     Tree([f for f in os.environ.get('KIVY_SDL2_PATH', '').split(';') if 'bin' in f][0])
 
+.. note::
+
+    Until 1.9.0, the windows distribution used PyGame for the core providers.
+    From 1.9.0 and on, the windows distribution uses SDL2 instead and does not
+    come with a PyGame installation. If you're using the 1.8.0 package with 1.9.0
+    or later code, or if you're using the 1.9.0 or later package, but downloaded
+    and need PyGame in your packaging app, you'll have to add the following code
+    to your spec file due to kivy issue #1638. After the imports add the following::
+
+        def getResource(identifier, *args, **kwargs):
+            if identifier == 'pygame_icon.tiff':
+                raise IOError()
+            return _original_getResource(identifier, *args, **kwargs)
+
+        import pygame.pkgdata
+        _original_getResource = pygame.pkgdata.getResource
+        pygame.pkgdata.getResource = getResource
+
 #. We are done. Your spec is ready to be executed!
 
 .. _Build-the-spec:
