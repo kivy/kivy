@@ -338,7 +338,7 @@ class VideoPlayer(GridLayout):
         video.state = 'play'
 
     :attr:`state` is an :class:`~kivy.properties.OptionProperty` and defaults
-    to 'play'.
+    to 'stop'.
     '''
 
     play = BooleanProperty(False)
