@@ -1,7 +1,7 @@
 Kivy
 ====
 
-<img align="right" height="256" src="https://raw.githubusercontent.com/kivy/kivy/master/kivy/data/logo/kivy-icon-dark-256.png"/>
+<img align="right" height="256" src="https://raw.githubusercontent.com/kivy/kivy/master/kivy/data/logo/kivy-icon-256.png"/>
 
 Innovative User Interfaces Made Easy.
 
