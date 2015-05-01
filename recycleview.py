@@ -101,7 +101,7 @@ class RecycleAdapter(EventDispatcher):
 
             # we are not in the dirty list, just take one and reuse it.
             if dirty_views[viewclass]:
-                previous_index = dirty_views[viewclass].keys()[-1]
+                previous_index = tuple(dirty_views[viewclass].keys())[-1]
                 view = dirty_views[viewclass].pop(previous_index)
                 # update view data
                 item = self[index]
@@ -265,7 +265,7 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
             scrollview.do_scroll_x = False
             scrollview.do_scroll_y = True
             container.size = scrollview.width, self.computed_size
-        print self.orientation, container.size
+        print(self.orientation, container.size)
 
     def compute_visible_views(self, container, scrollview):
         """(internal) Determine the views that need to be showed in the current
