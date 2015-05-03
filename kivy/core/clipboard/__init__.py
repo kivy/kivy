@@ -155,7 +155,7 @@ CutBuffer = None
 if platform == 'linux':
     try:
         from kivy.core.clipboard.clipboard_xsel import ClipboardXsel
-    except ImportError:
+    except Exception:
         pass
     else:
         if isinstance(Clipboard, ClipboardXsel):
