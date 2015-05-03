@@ -849,7 +849,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
     property proxy_ref:
         '''Default implementation of proxy_ref, returns self.
-        ..versionadded:: 1.9.0
+        .. versionadded:: 1.9.0
         '''
         def __get__(self):
             return self

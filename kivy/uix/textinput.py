@@ -2485,7 +2485,7 @@ class TextInput(FocusBehavior, Widget):
     text. This can also be used by the IME to setup the current word being
     edited
 
-    ..versionadded:: 1.9.0
+    .. versionadded:: 1.9.0
 
     :attr:`suggestion_text` is a :class:`~kivy.properties.StringProperty`
     defaults to `''`

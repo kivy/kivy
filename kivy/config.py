@@ -299,7 +299,7 @@ class ConfigParser(PythonConfigParser, object):
         `name`: string
             The name of the instance. See :attr:`name`. Defaults to `''`.
 
-    ..versionchanged:: 1.9.0
+    .. versionchanged:: 1.9.0
         Each ConfigParser can now be named, :attr:`name`. You can get the
         ConfigParser associated with a name using :meth:`get_configparser`.
         In addition, you can now control the config values with
