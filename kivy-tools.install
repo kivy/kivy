@@ -3,7 +3,6 @@
 
 ## Python2
 # Tools
-usr/lib/python2.7/dist-packages/kivy/tests/*.kv
 usr/lib/python2.7/dist-packages/kivy/tools/*.py
 usr/lib/python2.7/dist-packages/kivy/tools/*.pyc
 usr/lib/python2.7/dist-packages/kivy/tools/extensions/*.py
@@ -22,6 +21,7 @@ usr/lib/python2.7/dist-packages/kivy/tools/packaging/pyinstaller_hooks/*.py
 usr/lib/python2.7/dist-packages/kivy/tools/packaging/pyinstaller_hooks/*.pyc
 usr/lib/python2.7/dist-packages/kivy/tools/packaging/win32/README.txt
 # Tests
+usr/lib/python2.7/dist-packages/kivy/tests/*.kv
 usr/lib/python2.7/dist-packages/kivy/tests/*.py
 usr/lib/python2.7/dist-packages/kivy/tests/*.pyc
 usr/lib/python2.7/dist-packages/kivy/tests/sample1.ogg
@@ -31,8 +31,8 @@ usr/lib/python2.7/dist-packages/kivy/tests/unicode_files.zip
 
 ## Python3
 # Tools
-usr/lib/python3/dist-packages/kivy/tools/*.kv
 usr/lib/python3/dist-packages/kivy/tools/*.py
+usr/lib/python3/dist-packages/kivy/tools/__pycache__/*.cpython-*.pyc
 usr/lib/python3/dist-packages/kivy/tools/extensions/*.py
 usr/lib/python3/dist-packages/kivy/tools/extensions/__pycache__/*.cpython-*.pyc
 usr/lib/python3/dist-packages/kivy/tools/highlight/*.py
@@ -49,8 +49,8 @@ usr/lib/python3/dist-packages/kivy/tools/packaging/pyinstaller_hooks/*.py
 usr/lib/python3/dist-packages/kivy/tools/packaging/pyinstaller_hooks/__pycache__/*.cpython-*.pyc
 usr/lib/python3/dist-packages/kivy/tools/packaging/win32/README.txt
 # Tests
+usr/lib/python3/dist-packages/kivy/tests/*.kv
 usr/lib/python3/dist-packages/kivy/tests/*.py
-usr/lib/python3/dist-packages/kivy/tests/*.pyc
 usr/lib/python3/dist-packages/kivy/tests/__pycache__/*.cpython-*.pyc
 usr/lib/python3/dist-packages/kivy/tests/sample1.ogg
 usr/lib/python3/dist-packages/kivy/tests/test_button.png
