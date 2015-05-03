@@ -439,7 +439,7 @@ class WindowBase(EventDispatcher):
     when 'resize' The window is resized and the contents scaled to fit the
     remaining space.
 
-    ..versionadded::1.9.0
+    .. versionadded:: 1.9.0
 
     :attr:`softinput_mode` is a :class:`OptionProperty` defaults to None.
 
@@ -471,7 +471,7 @@ class WindowBase(EventDispatcher):
     '''Rerturns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
-    ..versionadded:: 1.9.0
+    .. versionadded:: 1.9.0
 
     :attr:`keyboard_height` is a read-only :class:`AliasProperty` defaults to 0.
     '''
@@ -690,7 +690,7 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 1.9.0
 
-        ..note::
+        .. note::
             This feature requires a SDL2 window provider and is currently only
             supported on desktop platforms.
 
@@ -1109,7 +1109,7 @@ class WindowBase(EventDispatcher):
         '''Event called when keyboard is used.
 
         .. warning::
-            Some providers may omit `scancode`, `codepoint` and/or `modifier`!
+            Some providers may omit `scancode`, `codepoint` and/or `modifier`.
         '''
         if 'unicode' in kwargs:
             Logger.warning("The use of the unicode parameter is deprecated, "
@@ -1161,7 +1161,7 @@ class WindowBase(EventDispatcher):
         character or multiple ones, this event supports handling multiple
         characters.
 
-        ..versionadded:: 1.9.0
+        .. versionadded:: 1.9.0
         '''
         pass
 
