@@ -140,7 +140,7 @@ import json
 from os.path import basename, dirname, join, splitext
 from kivy.event import EventDispatcher
 from kivy.logger import Logger
-from kivy.properties import AliasProperty, DictProperty
+from kivy.properties import AliasProperty, DictProperty, ListProperty
 import os
 
 
@@ -152,12 +152,14 @@ class Atlas(EventDispatcher):
     '''Manage texture atlas. See module documentation for more information.
     '''
     
+    original_textures = ListProperty([])
     '''List of original atlas textures (which contain the :attr:`textures`).
 
-    :attr:`original_atlas_textures` is a :class:`~kivy.properties.ListProperty`
-    and defaults to [].
+    :attr:`original_textures` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [].
+
+    .. versionadded:: 1.9.1
     '''
-    original_atlas_textures = ListProperty([])
 
     textures = DictProperty({})
     '''List of available textures within the atlas.
