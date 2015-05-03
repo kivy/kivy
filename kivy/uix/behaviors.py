@@ -1565,11 +1565,13 @@ class CodeNavigationBehavior(EventDispatcher):
 
     def _move_cursor_word_left(self, index=None):
         pos = index or self.cursor_index()
-        text = self.text
         pos -= 1
 
         if pos == 0:
             return 0, 0
+
+        col, row = self.get_cursor_from_index(pos)
+        lines = self._lines
 
         ucase = string.ascii_uppercase
         lcase = string.ascii_lowercase
@@ -1578,7 +1580,8 @@ class CodeNavigationBehavior(EventDispatcher):
 
         mode = 'normal'
 
-        c = text[pos]
+        rline = lines[row]
+        c = rline[col] if len(rline) > col else '\n'
         if c in ws:
             mode = 'ws'
         elif c == '_':
@@ -1588,26 +1591,32 @@ class CodeNavigationBehavior(EventDispatcher):
         elif c not in ucase:
             mode = 'camel'
 
-        while 0 < pos:
+        while True:
+            if col == -1:
+                if row == 0:
+                    return 0, 0
+                row -= 1
+                rline = lines[row]
+                col = len(rline)
             lc = c
-            c = text[pos]
+            c = rline[col] if len(rline) > col else '\n'
             if c == '\n':
                 if lc not in ws:
-                    pos += 1
+                    col += 1
                 break
             if mode in ('normal', 'camel') and c in ws:
-                pos += 1
+                col += 1
                 break
             if mode in ('normal', 'camel') and c in punct:
-                pos += 1
+                col += 1
                 break
             if mode == 'camel' and c in ucase:
                 break
             if mode == 'punct' and (c == '_' or c not in punct):
-                pos += 1
+                col += 1
                 break
             if mode == 'us' and c != '_' and (c in punct or c in ws):
-                pos += 1
+                col += 1
                 break
 
             if mode == 'us' and c != '_':
@@ -1620,17 +1629,24 @@ class CodeNavigationBehavior(EventDispatcher):
                 else 'punct' if c in punct
                 else 'camel')
 
-            pos -= 1
+            col -= 1
 
-        return self.get_cursor_from_index(max(0, pos))
+        if col > len(rline):
+            if row == len(lines) - 1:
+                return row, len(lines[row])
+            row += 1
+            col = 0
+
+        return col, row
 
     def _move_cursor_word_right(self, index=None):
         pos = index or self.cursor_index()
-        text = self.text
-        pmax = len(text)
+        col, row = self.get_cursor_from_index(pos)
+        lines = self._lines
+        mrow = len(lines) - 1
 
-        if pos == pmax:
-            return self.cursor
+        if row == mrow and col == len(lines[row]):
+            return col, row
 
         ucase = string.ascii_uppercase
         lcase = string.ascii_lowercase
@@ -1639,7 +1655,8 @@ class CodeNavigationBehavior(EventDispatcher):
 
         mode = 'normal'
 
-        c = text[pos]
+        rline = lines[row]
+        c = rline[col] if len(rline) > col else '\n'
         if c in ws:
             mode = 'ws'
         elif c == '_':
@@ -1671,13 +1688,17 @@ class CodeNavigationBehavior(EventDispatcher):
             if mode != 'punct' and c != '_' and c in punct:
                 break
 
-            pos += 1
+            col += 1
 
-            if pos == pmax:
-                break
+            if col > len(rline):
+                if row == mrow:
+                    return len(rline), mrow
+                row += 1
+                rline = lines[row]
+                col = 0
 
-            c = text[pos]
+            c = rline[col] if len(rline) > col else '\n'
             if c == '\n':
                 break
 
-        return self.get_cursor_from_index(max(0, min(pmax, pos)))
+        return col, row
