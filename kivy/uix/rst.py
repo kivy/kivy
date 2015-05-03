@@ -952,7 +952,7 @@ class _Visitor(nodes.NodeVisitor):
                 image = RstImage(source=uri)
 
             align = node.get('align', 'center')
-            root = AnchorLayout(size_hint_y=None, anchor_x=align, height=1)
+            root = AnchorLayout(size_hint_y=None, anchor_x=align, height=image.height)
             image.bind(height=root.setter('height'))
             root.add_widget(image)
             self.current.add_widget(root)
