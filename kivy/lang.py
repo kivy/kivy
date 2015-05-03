@@ -556,7 +556,7 @@ will react to the *on_touch_down* event.:
 
 We can see that the size and size_hint attribute are exactly the same.
 More than that, the callback in on_touch_down and the image are changing.
-Theses can be the variable part of the template that we can put into a context.
+These can be the variable part of the template that we can put into a context.
 Let's try to create a template for the Image:
 
 .. code-block:: kv
