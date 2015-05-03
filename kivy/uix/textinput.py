@@ -873,40 +873,74 @@ class TextInput(FocusBehavior, Widget):
         pos = index or self.cursor_index()
         if pos == 0:
             return self.cursor
-        matches = list(self._re_whitespace.finditer(self.text, 0, pos - 1))
-        if not matches:
-            pos = 0
-        else:
+        lines = self._lines
+        col, row = self.get_cursor_from_index(pos)
+        if col == 0:
+            row -= 1
+            col = len(lines[row])
+        while True:
+            matches = list(self._re_whitespace.finditer(lines[row], 0, col))
+            if not matches:
+                if col == 0:
+                    if row == 0:
+                        return 0, 0
+                    row -= 1
+                    col = len(lines[row])
+                    continue
+                return 0, row
             match = matches[-1]
             mpos = match.end()
-            if mpos == pos - 1:
+            if mpos == col:
                 if len(matches) > 1:
                     match = matches[-2]
                     mpos = match.end()
                 else:
-                    mpos = 0
-            pos = mpos
-        return self.get_cursor_from_index(max(0, pos))
+                    if match.start() == 0:
+                        if row == 0:
+                            return 0, 0
+                        row -= 1
+                        col = len(lines[row])
+                        continue
+                    return 0, row
+            col = mpos
+            return col, row
 
     def _move_cursor_word_right(self, index=None):
         pos = index or self.cursor_index()
-        pmax = len(self.text)
-        if pos == pmax:
-            return self.cursor
-        matches = list(self._re_whitespace.finditer(self.text, pos + 1))
-        if not matches:
-            pos = pmax
-        else:
+        col, row = self.get_cursor_from_index(pos)
+        lines = self._lines
+        mrow = len(lines) - 1
+        if row == mrow and col == len(lines[row]):
+            return col, row
+        if col == len(lines[row]):
+            row += 1
+            col = 0
+        while True:
+            matches = list(self._re_whitespace.finditer(lines[row], col))
+            if not matches:
+                if col == len(lines[row]):
+                    if row == mrow:
+                        return col, row
+                    row += 1
+                    col = 0
+                    continue
+                return len(lines[row]), row
             match = matches[0]
             mpos = match.start()
-            if mpos == pos + 1:
+            if mpos == col:
                 if len(matches) > 1:
                     match = matches[1]
                     mpos = match.start()
                 else:
-                    mpos = pmax
-            pos = mpos
-        return self.get_cursor_from_index(max(0, min(pmax, pos)))
+                    if match.end() == len(lines[row]):
+                        if row == mrow:
+                            return col, row
+                        row += 1
+                        col = 0
+                        continue
+                    return len(lines[row]), row
+            col = mpos
+            return col, row
 
     def _expand_range(self, ifrom, ito=None):
         if ito is None:
