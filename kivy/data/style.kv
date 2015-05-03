@@ -589,49 +589,68 @@
     temp_width: 0
     temp_height: 0
 
+<ActionPreviousButton@Button>:
+    background_normal: 'atlas://data/images/defaulttheme/action_item'
+    background_down: 'atlas://data/images/defaulttheme/action_item_down'
+
 <ActionPrevious>:
     size_hint_x: 1
-    minimum_width: '100sp'
+    minimum_width: layout.minimum_width + min(sp(100), title.width)
     important: True
-    BoxLayout:
-        orientation: 'horizontal'
+    GridLayout:
+        id: layout
+        rows: 1
         pos: root.pos
-        size: root.size
-        ActionPreviousImage:
-            id: prev_icon_image
-            source: root.previous_image
-            opacity: 1 if root.with_previous else 0
-            allow_stretch: True
+        size_hint_x: None
+        width: self.minimum_width
+        ActionPreviousButton:
+            on_press: root.dispatch('on_press')
+            on_release: root.dispatch('on_release')
             size_hint_x: None
-            temp_width: root.previous_image_width or dp(prev_icon_image.texture_size[0])
-            temp_height: root.previous_image_height or dp(prev_icon_image.texture_size[1])
-            width:
-                (self.temp_width if self.temp_height <= self.height else \
-                self.temp_width * (self.height / self.temp_height)) \
-                if self.texture else dp(8)
-            mipmap: root.mipmap
-        ActionPreviousImage:
-            id: app_icon_image
-            source: root.app_icon
-            allow_stretch: True
-            size_hint_x: None
-            temp_width: root.app_icon_width or dp(app_icon_image.texture_size[0])
-            temp_height: root.app_icon_height or dp(app_icon_image.texture_size[1])
-            width:
-                (self.temp_width if self.temp_height <= self.height else \
-                self.temp_width * (self.height / self.temp_height)) \
-                if self.texture else dp(8)
-            mipmap: root.mipmap
-        Widget:
-            size_hint_x: None
-            width: '5sp'
-        Label:
-            text: root.title
-            text_size: self.size
-            color: root.color
-            shorten: True
-            halign: 'left'
-            valign: 'middle'
+            width: prevlayout.width
+            GridLayout:
+                id: prevlayout
+                rows: 1
+                width: self.minimum_width
+                height: self.parent.height
+                pos: self.parent.pos
+                ActionPreviousImage:
+                    id: prev_icon_image
+                    source: root.previous_image
+                    opacity: 1 if root.with_previous else 0
+                    allow_stretch: True
+                    size_hint_x: None
+                    temp_width: root.previous_image_width or dp(prev_icon_image.texture_size[0])
+                    temp_height: root.previous_image_height or dp(prev_icon_image.texture_size[1])
+                    width:
+                        (self.temp_width if self.temp_height <= self.height else \
+                        self.temp_width * (self.height / self.temp_height)) \
+                        if self.texture else dp(8)
+                    mipmap: root.mipmap
+                ActionPreviousImage:
+                    id: app_icon_image
+                    source: root.app_icon
+                    allow_stretch: True
+                    size_hint_x: None
+                    temp_width: root.app_icon_width or dp(app_icon_image.texture_size[0])
+                    temp_height: root.app_icon_height or dp(app_icon_image.texture_size[1])
+                    width:
+                        (self.temp_width if self.temp_height <= self.height else \
+                        self.temp_width * (self.height / self.temp_height)) \
+                        if self.texture else dp(8)
+                    mipmap: root.mipmap
+                Widget:
+                    size_hint_x: None
+                    width: '5sp'
+    Label:
+        id: title
+        text: root.title
+        text_size: self.size
+        color: root.color
+        shorten: True
+        shorten_from: 'right'
+        halign: 'left'
+        valign: 'middle'
 
 <ActionGroup>:
     background_normal: 'atlas://data/images/defaulttheme/action_group'

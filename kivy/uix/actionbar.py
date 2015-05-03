@@ -307,7 +307,7 @@ class ActionGroup(ActionItem, Spinner):
         children = ddn.container.children
 
         if children:
-            ddn.width = max(self.width, max(c.minimum_width for c in children))
+            ddn.width = max([self.width, children[0].minimum_width])
         else:
             ddn.width = self.width
 
