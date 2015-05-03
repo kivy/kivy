@@ -38,6 +38,7 @@ from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.spinner import Spinner
+from kivy.uix.label import Label
 from kivy.config import Config
 from kivy.properties import ObjectProperty, NumericProperty, \
     BooleanProperty, StringProperty, ListProperty, OptionProperty
@@ -206,6 +207,12 @@ class ActionToggleButton(ActionItem, ToggleButton):
 
 class ActionCheck(ActionItem, CheckBox):
     '''ActionCheck class, see module documentation for more information.
+    '''
+    pass
+
+
+class ActionLabel(ActionItem, Label):
+    '''ActionLabel class, see module documentation for more information.
     '''
     pass
 

@@ -578,6 +578,10 @@
         pos: root.x + dp(4), root.y + dp(4)
         size: root.width - dp(8), root.height - sp(8)
 
+<ActionLabel>:
+    size_hint_x: None if not root.inside_group else 1
+    width: self.texture_size[0] + dp(32)
+
 <ActionGroup>:
     size_hint_x: None
     width: self.texture_size[0] + dp(32)
