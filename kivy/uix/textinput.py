@@ -450,6 +450,7 @@ class TextInput(FocusBehavior, Widget):
         self.selection_text = u''
         self._selection_from = None
         self._selection_to = None
+        self._selection_callback = None
         self._handle_left = None
         self._handle_right = None
         self._handle_middle = None
@@ -759,8 +760,8 @@ class TextInput(FocusBehavior, Widget):
                 self.cursor = _get_cusror_from_index(x_item['redo_command'])
                 self.do_backspace(from_undo=True)
             elif undo_type == 'shiftln':
-                direction, sindex, eindex, cursor = x_item['redo_command'][1:]
-                self._shift_lines(direction, sindex, eindex, cursor, True)
+                direction, rows, cursor = x_item['redo_command'][1:]
+                self._shift_lines(direction, rows, cursor, True)
             else:
                 # delsel
                 ci, sci = x_item['redo_command']
@@ -798,8 +799,8 @@ class TextInput(FocusBehavior, Widget):
                 substring = x_item['undo_command'][2:][0]
                 self.insert_text(substring, True)
             elif undo_type == 'shiftln':
-                direction, sindex, eindex, cursor = x_item['undo_command'][1:]
-                self._shift_lines(direction, sindex, eindex, cursor, True)
+                direction, rows, cursor = x_item['undo_command'][1:]
+                self._shift_lines(direction, rows, cursor, True)
             else:
                 # delsel
                 substring = x_item['undo_command'][2:][0]
@@ -945,62 +946,100 @@ class TextInput(FocusBehavior, Widget):
     def _expand_range(self, ifrom, ito=None):
         if ito is None:
             ito = ifrom
-        text = self.text
-        l_text = len(text)
-        if ifrom > 0:
-            ifrom = text.rfind('\n', 0, ifrom) + 1
-        if ito < l_text:
-            ito = text.find('\n', ito)
-            if ito == -1:
-                ito = l_text
-        return ifrom, ito
+        rfrom = self.get_cursor_from_index(ifrom)[1]
+        rtcol, rto = self.get_cursor_from_index(ito)
+        rfrom, rto = self._expand_rows(rfrom, rto + 1 if rtcol else rto)
 
-    def _shift_lines(self, direction, sindex=None, eindex=None, old_cursor=None, from_undo=False):
+        return (self.cursor_index((0, rfrom)),
+                self.cursor_index((0, rto)))
+
+    def _expand_rows(self, rfrom, rto=None):
+        if rto is None or rto == rfrom:
+            rto = rfrom + 1
+        lines = self._lines
+        flags = list(reversed(self._lines_flags))
+        while rfrom > 0 and not (flags[rfrom - 1] & FL_IS_NEWLINE):
+            rfrom -= 1
+        rmax = len(lines) - 1
+        while 0 < rto < rmax and not (flags[rto - 1] & FL_IS_NEWLINE):
+            rto += 1
+        return max(0, rfrom), min(rmax, rto)
+
+    def _shift_lines(self, direction, rows=None, old_cursor=None, from_undo=False):
+        if self._selection_callback:
+            if from_undo:
+                self._selection_callback.cancel()
+            else:
+                return
+        lines = self._lines
+        flags = list(reversed(self._lines_flags))
+        labels = self._lines_labels
+        rects = self._lines_rects
         orig_cursor = self.cursor
+        sel = None
         if old_cursor is not None:
             self.cursor = old_cursor
 
-        cindex = self.cursor_index()
+        if not rows:
+            sindex = self.selection_from
+            eindex = self.selection_to
+            if (sindex or eindex) and sindex != eindex:
+                sindex, eindex = tuple(sorted((sindex, eindex)))
+                sindex, eindex = self._expand_range(sindex, eindex)
+            else:
+                sindex, eindex = self._expand_range(self.cursor_index())
+            srow = self.get_cursor_from_index(sindex)[1]
+            erow = self.get_cursor_from_index(eindex)[1]
+            sel = sindex, eindex
 
-        sindex = self.selection_from if sindex is None else sindex
-        eindex = self.selection_to if eindex is None else eindex
-        sel = None
-        if (sindex or eindex) and sindex != eindex:
-            sindex, eindex = tuple(sorted((sindex, eindex)))
-            sindex, eindex = self._expand_range(sindex, eindex)
-            sel = tuple(sorted((sindex, eindex)))
-        else:
-            index = self.cursor_index()
-            sindex, eindex = self._expand_range(index)
+            if direction < 0 and srow > 0:
+                psrow, perow = self._expand_rows(srow - 1)
+                rows = ((srow, erow), (psrow, perow))
+            elif direction > 0 and erow < len(lines) - 1:
+                psrow, perow = self._expand_rows(erow)
+                rows = ((srow, erow), (psrow, perow))
 
-        text = self.text
-        moved = False
-        l_text = len(text)
-        if direction < 0 and sindex > 0:
-            psindex, peindex = self._expand_range(sindex - 1)
-            text = text[0:psindex] + text[sindex:eindex] + u'\n' + text[psindex:peindex] + text[eindex:]
-            moved = True
-            cindex -= peindex - psindex + 1
-            sel = tuple(sorted((psindex, psindex + eindex - sindex)))
-        elif direction > 0 and eindex < l_text - 1:
-            psindex, peindex = self._expand_range(eindex + 1)
-            text = text[0:sindex] + text[psindex:peindex] + u'\n' + text[sindex:eindex] + text[peindex:]
-            moved = True
-            cindex += peindex - psindex + 1
-            sel = tuple(sorted((peindex - (eindex - sindex), peindex)))
-
-        if moved:
-            self._refresh_text(text)
-            self.cursor = self.get_cursor_from_index(cindex)
+        if rows:
+            (srow, erow), (psrow, perow) = rows
+            if direction < 0:
+                m1srow, m1erow = psrow, perow
+                m2srow, m2erow = srow, erow
+                cdiff = psrow - perow
+                xdiff = srow - erow
+            else:
+                m1srow, m1erow = srow, erow
+                m2srow, m2erow = psrow, perow
+                cdiff = perow - psrow
+                xdiff = erow - srow
+            self._lines_flags = list(reversed(
+                flags[:m1srow] + flags[m2srow:m2erow] + flags[m1srow:m1erow] +
+                flags[m2erow:]))
+            self._lines = (lines[:m1srow] + lines[m2srow:m2erow] +
+                           lines[m1srow:m1erow] + lines[m2erow:])
+            self._lines_labels = (labels[:m1srow] + labels[m2srow:m2erow] +
+                                  labels[m1srow:m1erow] + labels[m2erow:])
+            self._lines_rects = (rects[:m1srow] + rects[m2srow:m2erow] +
+                                 rects[m1srow:m1erow] + rects[m2erow:])
+            self._trigger_update_graphics()
+            csrow = srow + cdiff
+            cerow = erow + cdiff
+            sel = (self.cursor_index((0, csrow)),
+                   self.cursor_index((0, cerow)))
+            self.cursor = self.cursor_col, self.cursor_row + cdiff
             if not from_undo:
+                undo_rows = ((srow + cdiff, erow + cdiff),
+                             (psrow - xdiff, perow - xdiff))
                 self._undo.append({
-                    'undo_command': ('shiftln', direction * -1, sel[0], sel[1], self.cursor),
-                    'redo_command': ('shiftln', direction, sindex, eindex, orig_cursor)
+                    'undo_command': ('shiftln', direction * -1, undo_rows, self.cursor),
+                    'redo_command': ('shiftln', direction, rows, orig_cursor),
                 })
                 self._redo = []
 
         if sel:
-            Clock.schedule_once(lambda dt: self.select_text(*sel))
+            def cb(dt):
+                self.select_text(*sel)
+                self._selection_callback = None
+            self._selection_callback = Clock.schedule_once(cb)
 
     def do_cursor_movement(self, action, control=False, alt=False):
         '''Move the cursor relative to it's current position.
