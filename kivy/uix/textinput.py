@@ -181,6 +181,7 @@ FL_IS_NEWLINE = 0x01
 
 # late binding
 Clipboard = None
+CutBuffer = None
 MarkupLabel = None
 _platform = platform
 
@@ -505,6 +506,8 @@ class TextInput(FocusBehavior, Widget):
             self._position_handles)
         self._trigger_show_handles = Clock.create_trigger(
             self._show_handles, .05)
+        self._trigger_update_cutbuffer = Clock.create_trigger(
+            self._update_cutbuffer)
         self._trigger_refresh_line_options()
         self._trigger_refresh_text()
 
@@ -513,6 +516,9 @@ class TextInput(FocusBehavior, Widget):
 
         # when the gl context is reloaded, trigger the text rendering again.
         _textinput_list.append(ref(self, TextInput._reload_remove_observer))
+
+        if platform == 'linux':
+            self._ensure_clipboard()
 
     def on_text_validate(self):
         pass
@@ -1091,6 +1097,11 @@ class TextInput(FocusBehavior, Widget):
             self._selection_touch = touch
             self._selection_from = self._selection_to = self.cursor_index()
             self._update_selection()
+
+        if CutBuffer and 'button' in touch.profile and touch.button == 'middle':
+            self.insert_text(CutBuffer.get_cutbuffer())
+            return True
+
         return False
 
     def on_touch_move(self, touch):
@@ -1393,9 +1404,9 @@ class TextInput(FocusBehavior, Widget):
             self._hide_handles(win)
 
     def _ensure_clipboard(self):
-        global Clipboard
+        global Clipboard, CutBuffer
         if not Clipboard:
-            from kivy.core.clipboard import Clipboard
+            from kivy.core.clipboard import Clipboard, CutBuffer
 
     def cut(self):
         ''' Copy current selection to clipboard then delete it from TextInput.
@@ -1436,6 +1447,9 @@ class TextInput(FocusBehavior, Widget):
         data = Clipboard.paste()
         self.delete_selection()
         self.insert_text(data)
+
+    def _update_cutbuffer(self, *args):
+        CutBuffer.set_cutbuffer(self.selection_text)
 
     def _get_text_width(self, text, tab_width, _label_cached):
         # Return the width of a text, according to the current line options
@@ -2548,8 +2562,11 @@ class TextInput(FocusBehavior, Widget):
     '''
 
     def on_selection_text(self, instance, value):
-        if value and self.use_handles:
-            self._trigger_show_handles()
+        if value:
+            if self.use_handles:
+                self._trigger_show_handles()
+            if CutBuffer and not self.password:
+                self._trigger_update_cutbuffer()
 
     def _get_text(self, encode=True):
         lf = self._lines_flags

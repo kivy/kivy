@@ -29,5 +29,16 @@ class ClipboardXsel(ClipboardBase):
         p = subprocess.Popen(['xsel', '-bi'], stdin=subprocess.PIPE)
         p.communicate(data)
 
+    def get_cutbuffer(self):
+        p = subprocess.Popen(['xsel', '-po'], stdout=subprocess.PIPE)
+        data, _ = p.communicate()
+        return data.decode('utf8')
+
+    def set_cutbuffer(self, data):
+        if not isinstance(data, bytes):
+            data = data.encode('utf8')
+        p = subprocess.Popen(['xsel', '-pi'], stdin=subprocess.PIPE)
+        p.communicate(data)
+
     def get_types(self):
         return [u'text/plain']
