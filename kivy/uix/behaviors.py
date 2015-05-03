@@ -93,7 +93,7 @@ class ButtonBehavior(object):
     '''This determines if the widget fires a `on_release` event if
     the touch_up is outside the widget.
 
-    ..versionadded:: 1.9.0
+    .. versionadded:: 1.9.0
 
     :attr:`always_release` is a :class:`~kivy.properties.BooleanProperty`,
     defaults to `True`.
@@ -213,7 +213,7 @@ class ToggleButtonBehavior(ButtonBehavior):
     '''This specifies whether the checkbox in group allows everything to
     be deselected.
 
-    ..versionadded::1.9.0
+    .. versionadded:: 1.9.0
 
     :attr:`allow_no_selection` is a :class:`BooleanProperty` defaults to
     `True`

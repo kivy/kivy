@@ -275,7 +275,7 @@ class VKeyboard(Scatter):
     '''Filename of the key background image for use when no touches are active
     on the widget and vkeyboard is disabled.
 
-    ..versionadded:: 1.8.0
+    .. versionadded:: 1.8.0
 
     :attr:`key_disabled_background_normal` a
     :class:`~kivy.properties.StringProperty` and defaults to
