@@ -1,5 +1,5 @@
 '''
-Stencil instructions
+Scissor Instructions
 ====================
 
 .. versionadded:: 1.9.1
