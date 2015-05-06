@@ -196,7 +196,7 @@ Lets extend this application a bit, say a simple UserName/Password page.
     if __name__ == '__main__':
         MyApp().run()
 
-At the next line we import a :class:`~kivy.uix.gridlayout.Gridlayout`::
+At line 2 we import a :class:`~kivy.uix.gridlayout.Gridlayout`::
 
     from kivy.uix.gridlayout import GridLayout
 
