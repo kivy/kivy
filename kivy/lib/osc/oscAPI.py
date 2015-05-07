@@ -43,6 +43,7 @@ try:
     Logger.info('OSC: using <multiprocessing> for socket')
 except:
     use_multiprocessing = False
+    from collections import deque
     from threading import Thread
     Logger.info('OSC: using <thread> for socket')
 
@@ -54,17 +55,13 @@ oscLock        = Lock()
 if use_multiprocessing:
     def _readQueue(thread_id=None):
         global oscThreads
-        for id in oscThreads:
-            if thread_id is not None:
-                if id != thread_id:
-                    continue
-            thread = oscThreads[id]
-            try:
-                while True:
-                    message = thread.queue.get_nowait()
-                    thread.addressManager.handle(message)
-            except:
-                pass
+        thread = oscThreads[thread_id]
+        try:
+            while True:
+                message = thread.queue.get_nowait()
+                thread.addressManager.handle(message)
+        except:
+            pass
 
     class _OSCServer(Process):
         def __init__(self, **kwargs):
@@ -80,29 +77,38 @@ if use_multiprocessing:
 
         def _get_isRunning(self):
             return self._isRunning.value
+
         def _set_isRunning(self, value):
             self._isRunning.value = value
         isRunning = property(_get_isRunning, _set_isRunning)
 
         def _get_haveSocket(self):
             return self._haveSocket.value
+
         def _set_haveSocket(self, value):
             self._haveSocket.value = value
         haveSocket = property(_get_haveSocket, _set_haveSocket)
 else:
     def _readQueue(thread_id=None):
-        pass
+        thread = oscThreads[thread_id]
+
+        q = thread.queue
+        h = thread.addressManager.handle
+
+        while q:
+            h(q.popleft())
 
     class _OSCServer(Thread):
         def __init__(self, **kwargs):
             Thread.__init__(self)
             self.addressManager = OSC.CallbackManager()
-            self.daemon     = True
-            self.isRunning  = True
+            self.queue = deque()
+            self.daemon = True
+            self.isRunning = True
             self.haveSocket = False
 
         def _queue_message(self, message):
-            self.addressManager.handle(message)
+            self.queue.append(message)
 
 
 def init() :
@@ -233,30 +239,30 @@ def listen(ipAddr='127.0.0.1', port=9001):
     defaults to ipAddr='127.0.0.1', port 9001
     '''
     global oscThreads
-    id = '%s:%d' % (ipAddr, port)
-    if id in oscThreads:
+    thread_id = '%s:%d' % (ipAddr, port)
+    if thread_id in oscThreads:
         return
-    Logger.debug('OSC: Start thread <%s>' % id)
-    oscThreads[id] = OSCServer(ipAddr=ipAddr, port=port)
-    oscThreads[id].start()
-    return id
+    Logger.debug('OSC: Start thread <%s>' % thread_id)
+    oscThreads[thread_id] = OSCServer(ipAddr=ipAddr, port=port)
+    oscThreads[thread_id].start()
+    return thread_id
 
 
-def dontListen(id = None):
+def dontListen(thread_id = None):
     '''closes the socket and kills the thread
     '''
     global oscThreads
-    if id and id in oscThreads:
-        ids = [id]
+    if thread_id and thread_id in oscThreads:
+        ids = [thread_id]
     else:
         ids = list(oscThreads.keys())
-    for id in ids:
-        #oscThreads[id].socket.close()
-        Logger.debug('OSC: Stop thread <%s>' % id)
-        oscThreads[id].isRunning = False
-        oscThreads[id].join()
-        Logger.debug('OSC: Stop thread <%s> finished' % id)
-        del oscThreads[id]
+    for thread_id in ids:
+        #oscThreads[thread_id].socket.close()
+        Logger.debug('OSC: Stop thread <%s>' % thread_id)
+        oscThreads[thread_id].isRunning = False
+        oscThreads[thread_id].join()
+        Logger.debug('OSC: Stop thread <%s> finished' % thread_id)
+        del oscThreads[thread_id]
 
 if __name__ == '__main__':
     # example of how to use oscAPI

@@ -38,4 +38,4 @@ class ClipboardDbusKlipper(ClipboardBase):
 
     def get_types(self):
         self.init()
-        return 'text/plain'
+        return [u'text/plain']

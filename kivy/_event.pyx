@@ -849,7 +849,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
     property proxy_ref:
         '''Default implementation of proxy_ref, returns self.
-        ..versionadded:: 1.9.0
+        .. versionadded:: 1.9.0
         '''
         def __get__(self):
             return self
@@ -1125,7 +1125,7 @@ cdef class EventObservers:
         scheduled to be executed is immediatly locked, so that we know where to
         stop, in case new callbacks are added.
         '''
-        cdef BoundCallback callback, final, next
+        cdef BoundCallback callback, final
         cdef object f, result
         cdef BoundLock current_lock, last_lock
         cdef int done = 0, res = 0, reverse = self.dispatch_reverse
@@ -1146,24 +1146,24 @@ cdef class EventObservers:
 
         while not done and callback is not None:
             done = final is callback
-            next = callback.prev if reverse else callback.next
 
             if callback.lock == deleted:
-                callback = next
+                callback = callback.prev if reverse else callback.next
                 continue
-            if callback.is_ref:
-                f = callback.func()
-                if f is None:
-                    self.remove_callback(callback)
-                    callback = next
-                    continue
-            else:
-                f = callback.func
 
             # save the lock state (currently only either locked or unlocked)
             current_lock = callback.lock
             if current_lock == unlocked:  # and lock it if unlocked
                 callback.lock = locked
+
+            if callback.is_ref:
+                f = callback.func()
+                if f is None:
+                    self.remove_callback(callback, current_lock == unlocked)
+                    callback = callback.prev if reverse else callback.next
+                    continue
+            else:
+                f = callback.func
 
             result = self._dispatch(
                 f, callback.largs, callback.kwargs, obj, value, largs, kwargs)
@@ -1176,7 +1176,7 @@ cdef class EventObservers:
 
             if result and stop_on_true:
                 res = done = 1
-            callback = next
+            callback = callback.prev if reverse else callback.next
 
         # now unlock/delete the final callback if we locked it
         if last_lock == unlocked:

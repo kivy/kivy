@@ -26,6 +26,7 @@ Usage example::
 
 __all__ = ('ClipboardBase', 'Clipboard')
 
+from kivy import Logger
 from kivy.core import core_select_lib
 from kivy.utils import platform
 from kivy.setupconfig import USE_SDL2
@@ -59,10 +60,10 @@ class ClipboardBase(object):
 
         if platform == 'win':
             self._clip_mime_type = 'text/plain;charset=utf-8'
-            # windows clipboard uses a utf-16 encoding
-            self._encoding = 'utf-16'
+            # windows clipboard uses a utf-16 little endian encoding
+            self._encoding = 'utf-16-le'
         elif platform == 'linux':
-            self._clip_mime_type = 'UTF8_STRING'
+            self._clip_mime_type = 'text/plain;charset=utf-8'
             self._encoding = 'utf-8'
         else:
             self._clip_mime_type = 'text/plain'
@@ -91,7 +92,10 @@ class ClipboardBase(object):
         # so as to avoid putting spurious data after the end.
         # MS windows issue.
         self._ensure_clipboard()
-        data = data.encode(self._encoding) + b'\x00'
+        if not isinstance(data, bytes):
+            data = data.encode(self._encoding)
+        if platform == 'win':
+            data += b'\x00'
         self.put(data, self._clip_mime_type)
 
     def _paste(self):
@@ -107,7 +111,8 @@ class ClipboardBase(object):
             # decode only if we don't have unicode
             # we would still need to decode from utf-16 (windows)
             # data is of type bytes in PY3
-            data = data.decode(self._encoding, 'ignore')
+            if isinstance(data, bytes):
+                data = data.decode(self._encoding, 'ignore')
             # remove null strings mostly a windows issue
             data = data.replace(u'\x00', u'')
             return data
@@ -128,10 +133,15 @@ elif platform == 'win':
 elif platform == 'linux':
     _clipboards.append(
         ('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
+    _clipboards.append(
+        ('gtk3', 'clipboard_gtk3', 'ClipboardGtk3'))
+    _clipboards.append(
+        ('xsel', 'clipboard_xsel', 'ClipboardXsel'))
 
 if USE_SDL2:
-    _clipboards.append(
-        ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
+    if platform != 'linux':
+        _clipboards.append(
+            ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
 else:
     _clipboards.append(
         ('pygame', 'clipboard_pygame', 'ClipboardPygame'))
@@ -140,4 +150,16 @@ _clipboards.append(
     ('dummy', 'clipboard_dummy', 'ClipboardDummy'))
 
 Clipboard = core_select_lib('clipboard', _clipboards, True)
+CutBuffer = None
 
+if platform == 'linux':
+    try:
+        from kivy.core.clipboard.clipboard_xsel import ClipboardXsel
+    except Exception:
+        pass
+    else:
+        if isinstance(Clipboard, ClipboardXsel):
+            CutBuffer = Clipboard
+        else:
+            CutBuffer = ClipboardXsel()
+        Logger.info('CutBuffer: cut buffer support enabled')

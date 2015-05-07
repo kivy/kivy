@@ -290,7 +290,7 @@ change to 'Release me!'.
 More precisely, the kivy language parser detects all substrings of the form
 `X.a.b` where `X` is `self` or `root` or `app` or a known id, and `a` and `b`
 are properties: it then adds the appropriate dependencies to cause the
-the constraint to be reevaluated whenever something changes.  For example,
+the constraint to be reevaluated whenever something changes. For example,
 this works exactly as expected::
 
     <IndexedExample>:
@@ -309,7 +309,7 @@ constraint::
 
     <GoodExample>:
         alpha: self.a.b[self.c.d]
-        beta:  self.alpha.e.f
+        beta: self.alpha.e.f
 
 
 Graphical Instructions
@@ -556,7 +556,7 @@ will react to the *on_touch_down* event.:
 
 We can see that the size and size_hint attribute are exactly the same.
 More than that, the callback in on_touch_down and the image are changing.
-Theses can be the variable part of the template that we can put into a context.
+These can be the variable part of the template that we can put into a context.
 Let's try to create a template for the Image:
 
 .. code-block:: kv

@@ -191,17 +191,17 @@ Gallery
 This gallery contains:
 
     * Examples from the examples/ directory that show specific capabilities of
-      different libraries and attributes of Kivy.
-    * Demonstrations from the examples/demos/ directory that explore many
-      Kivy abilities.
+      different libraries and features of Kivy.
+    * Demonstrations from the examples/demos/ directory that explore many of
+      Kivy's abilities.
 
 There are more Kivy programs elsewhere:
 
-    * Tutorials_ walk through the development of complete Kivy applications.
+    * Tutorials_ walks through the development of complete Kivy applications.
     * Unit tests found in the source code under the subdirectory kivy/tests/
       can also be useful.
 
-We hope your journey in to learning Kivy is exciting and fun!
+We hope your journey into learning Kivy is exciting and fun!
 
 '''
     output = [gallery_top]

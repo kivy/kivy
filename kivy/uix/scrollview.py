@@ -119,7 +119,7 @@ from kivy.config import Config
 from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.uix.stencilview import StencilView
-from kivy.metrics import sp
+from kivy.metrics import sp, dp
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
     ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty
@@ -134,6 +134,18 @@ if Config:
 
 class ScrollView(StencilView):
     '''ScrollView class. See module documentation for more information.
+
+    :Events:
+        `on_scroll_start`
+            Generic event fired when scrolling starts from touch.
+        `on_scroll_move`
+            Generic event fired when scrolling move from touch.
+        `on_scroll_stop`
+            Generic event fired when scrolling stops from touch.
+
+    .. versionchanged:: 1.9.0
+        `on_scroll_start`, `on_scroll_move` and `on_scroll_stop` events are
+        now dispatched when scrolling to handle nested ScrollViews.
 
     .. versionchanged:: 1.7.0
         `auto_scroll`, `scroll_friction`, `scroll_moves`, `scroll_stoptime' has
@@ -416,6 +428,8 @@ class ScrollView(StencilView):
             value.bind(size=self._set_viewport_size)
             self.viewport_size = value.size
 
+    __events__ = ('on_scroll_start', 'on_scroll_move', 'on_scroll_stop')
+
     def __init__(self, **kwargs):
         self._touch = None
         self._trigger_update_from_scroll = Clock.create_trigger(
@@ -539,7 +553,6 @@ class ScrollView(StencilView):
     def _apply_transform(self, m):
         tx, ty = self.g_translate.xy
         m.translate(tx, ty, 0)
-        m.translate(self.x, self.y, 0)
         return super(ScrollView, self)._apply_transform(m)
 
     def simulate_touch_down(self, touch):
@@ -815,6 +828,50 @@ class ScrollView(StencilView):
             return True
 
         return self._get_uid() in touch.ud
+
+    def scroll_to(self, widget, padding=10, animate=True):
+        '''Scrolls the viewport to ensure that the given widget is visible,
+        optionally with padding and animation. If animate is True (the
+        default), then the default animation parameters will be used.
+        Otherwise, it should be a dict containing arguments to pass to
+        :class:`~kivy.animation.Animation` constructor.
+
+        .. versionadded:: 1.9.1
+        '''
+        if not self.parent:
+            return
+
+        if isinstance(padding, (int, float)):
+            padding = (padding, padding)
+
+        pos = self.parent.to_widget(*widget.to_window(*widget.pos))
+        cor = self.parent.to_widget(*widget.to_window(widget.right,
+                                                      widget.top))
+
+        dx = dy = 0
+
+        if pos[1] < self.y:
+            dy = self.y - pos[1] + dp(padding[1])
+        elif cor[1] > self.top:
+            dy = self.top - cor[1] - dp(padding[1])
+
+        if pos[0] < self.x:
+            dx = self.x - pos[0] + dp(padding[0])
+        elif cor[0] > self.right:
+            dx = self.right - cor[0] - dp(padding[0])
+
+        dsx, dsy = self.convert_distance_to_scroll(dx, dy)
+        sxp = min(1, max(0, self.scroll_x - dsx))
+        syp = min(1, max(0, self.scroll_y - dsy))
+
+        if animate:
+            if animate is True:
+                animate = {'d': 0.2, 't': 'out_quad'}
+            Animation.stop_all(self, 'scroll_x', 'scroll_y')
+            Animation(scroll_x=sxp, scroll_y=syp, **animate).start(self)
+        else:
+            self.scroll_x = sxp
+            self.scroll_y = syp
 
     def convert_distance_to_scroll(self, dx, dy):
         '''Convert a distance in pixels to a scroll distance, depending on the

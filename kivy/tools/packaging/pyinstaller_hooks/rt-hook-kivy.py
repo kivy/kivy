@@ -1,5 +1,5 @@
 from os.path import join, dirname
-from os import environ, chdir, putenv
+from os import environ, chdir, putenv, getenv
 import sys
 
 root = 'kivy_install'
@@ -28,15 +28,3 @@ environ['KIVY_DATA_DIR'] = join(root, 'data')
 environ['KIVY_EXTS_DIR'] = join(root, 'extensions')
 environ['KIVY_MODULES_DIR'] = join(root, 'modules')
 environ['KIVY_EMBED'] = '1'
-
-# Monkey-patch pygame to get around an issue with Pygame window icon and
-# PyInstaller 2.1. See kivy issue #1638
-import pygame.pkgdata
-_original_getResource = pygame.pkgdata.getResource
-
-
-def getResource(identifier, *args, **kwargs):
-    if identifier == 'pygame_icon.tiff':
-        raise IOError()
-    return _original_getResource(identifier, *args, **kwargs)
-pygame.pkgdata.getResource = getResource

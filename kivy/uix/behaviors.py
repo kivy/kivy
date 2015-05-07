@@ -89,6 +89,16 @@ class ButtonBehavior(object):
     :attr:`MIN_STATE_TIME` is a float.
     '''
 
+    always_release = BooleanProperty(True)
+    '''This determines if the widget fires a `on_release` event if
+    the touch_up is outside the widget.
+
+    .. versionadded:: 1.9.0
+
+    :attr:`always_release` is a :class:`~kivy.properties.BooleanProperty`,
+    defaults to `True`.
+    '''
+
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
@@ -138,6 +148,12 @@ class ButtonBehavior(object):
         assert(self in touch.ud)
         touch.ungrab(self)
         self.last_touch = touch
+
+        if (not self.always_release
+                and not self.collide_point(*touch.pos)):
+            self.state = 'normal'
+            return
+
         touchtime = time() - self.__touch_time
         if touchtime < self.MIN_STATE_TIME:
             self.__state_event = Clock.schedule_once(
@@ -197,7 +213,7 @@ class ToggleButtonBehavior(ButtonBehavior):
     '''This specifies whether the checkbox in group allows everything to
     be deselected.
 
-    ..versionadded::1.9.0
+    .. versionadded:: 1.9.0
 
     :attr:`allow_no_selection` is a :class:`BooleanProperty` defaults to
     `True`
@@ -795,13 +811,15 @@ class FocusBehavior(object):
             # keyboard shouldn't have been released here, see keyboard warning
         keyboards[keyboard] = self
         keyboard.bind(on_key_down=self.keyboard_on_key_down,
-                      on_key_up=self.keyboard_on_key_up)
+                      on_key_up=self.keyboard_on_key_up,
+                      on_textinput=self.keyboard_on_textinput)
 
     def _unbind_keyboard(self):
         keyboard = self._keyboard
         if keyboard:
             keyboard.unbind(on_key_down=self.keyboard_on_key_down,
-                            on_key_up=self.keyboard_on_key_up)
+                            on_key_up=self.keyboard_on_key_up,
+                            on_textinput=self.keyboard_on_textinput)
             if self._requested_keyboard:
                 keyboard.release()
                 self._keyboard = None
@@ -809,6 +827,9 @@ class FocusBehavior(object):
                 del FocusBehavior._keyboards[keyboard]
             else:
                 FocusBehavior._keyboards[keyboard] = None
+
+    def keyboard_on_textinput(self, window, text):
+        pass
 
     def _keyboard_released(self):
         self.focus = False

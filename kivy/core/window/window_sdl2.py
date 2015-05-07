@@ -18,6 +18,7 @@ __all__ = ('WindowSDL2', )
 from os.path import join
 from kivy import kivy_data_dir
 from kivy.logger import Logger
+from kivy import metrics
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.clock import Clock
 from kivy.config import Config
@@ -53,6 +54,41 @@ SDLK_HOME = 1073741898
 SDLK_END = 1073741901
 SDLK_PAGEUP = 1073741899
 SDLK_PAGEDOWN = 1073741902
+SDLK_SUPER = 1073742051
+SDLK_CAPS = 1073741881
+SDLK_INSERT = 1073741897
+SDLK_KEYPADNUM = 1073741907
+SDLK_KP_DEVIDE = 1073741908
+SDLK_KP_MULTIPLY = 1073741909
+SDLK_KP_MINUS = 1073741910
+SDLK_KP_PLUS = 1073741911
+SDLK_KP_ENTER = 1073741912
+SDLK_KP_1 = 1073741913
+SDLK_KP_2 = 1073741914
+SDLK_KP_3 = 1073741915
+SDLK_KP_4 = 1073741916
+SDLK_KP_5 = 1073741917
+SDLK_KP_6 = 1073741918
+SDLK_KP_7 = 1073741919
+SDLK_KP_8 = 1073741920
+SDLK_KP_9 = 1073741921
+SDLK_KP_0 = 1073741922
+SDLK_KP_DOT = 1073741923
+SDLK_F1 = 1073741882
+SDLK_F2 = 1073741883
+SDLK_F3 = 1073741884
+SDLK_F4 = 1073741885
+SDLK_F5 = 1073741886
+SDLK_F6 = 1073741887
+SDLK_F7 = 1073741888
+SDLK_F8 = 1073741889
+SDLK_F9 = 1073741890
+SDLK_F10 = 1073741891
+SDLK_F11 = 1073741892
+SDLK_F12 = 1073741893
+SDLK_F13 = 1073741894
+SDLK_F14 = 1073741895
+SDLK_F15 = 1073741896
 
 
 class SDL2MotionEvent(MotionEvent):
@@ -60,6 +96,7 @@ class SDL2MotionEvent(MotionEvent):
         self.is_touch = True
         self.profile = ('pos', )
         self.sx, self.sy = args
+        win = EventLoop.window
         super(SDL2MotionEvent, self).depack(args)
 
 
@@ -77,8 +114,7 @@ class SDL2MotionEventProvider(MotionEventProvider):
                 return
 
             action, fid, x, y = value
-            x = x / 32768.
-            y = 1 - (y / 32768.)
+            y = 1 - y
             if fid not in touchmap:
                 touchmap[fid] = me = SDL2MotionEvent('sdl', fid, (x, y))
             else:
@@ -142,16 +178,25 @@ class WindowSDL(WindowBase):
                 pos = self.left, self.top
 
             # setup !
-            w, h = self._size
+            w, h = self.system_size
             resizable = Config.getboolean('graphics', 'resizable')
-            gl_size = self._win.setup_window(pos[0], pos[1], w, h,
-                                             self.borderless, self.fullscreen,
-                                             resizable)
+            state = (Config.get('graphics', 'window_state')
+                     if self._is_desktop else None)
+            self.system_size = _size = self._win.setup_window(
+                pos[0], pos[1], w, h, self.borderless,
+                self.fullscreen, resizable, state)
+
+            # calculate density
+            sz = self._win._get_gl_size()[0]
+            self._density = density = sz / _size[0]
+            if self._is_desktop and self.size[0] != _size[0]:
+                self.dpi = density * 96.
+
             # never stay with a None pos, application using w.center
             # will be fired.
             self._pos = (0, 0)
         else:
-            w, h = self._size
+            w, h = self.system_size
             self._win.resize_window(w, h)
             self._win.set_border_state(self.borderless)
             self._win.set_fullscreen_mode(self.fullscreen)
@@ -246,6 +291,11 @@ class WindowSDL(WindowBase):
         self._win.flip()
         super(WindowSDL, self).flip()
 
+    def _fix_mouse_pos(self, x, y):
+        y -= 1
+        self.mouse_pos = x, self.system_size[1] - y
+        return x, y
+
     def _mainloop(self):
         EventLoop.idle()
 
@@ -258,6 +308,8 @@ class WindowSDL(WindowBase):
 
             action, args = event[0], event[1:]
             if action == 'quit':
+                if self.dispatch('on_request_close'):
+                    continue
                 EventLoop.quit = True
                 self.close()
                 break
@@ -269,12 +321,13 @@ class WindowSDL(WindowBase):
                 # We have a conflict of using either the mouse or the finger.
                 # Right now, we have no mechanism that we could use to know
                 # which is the preferred one for the application.
-                #SDL2MotionEventProvider.q.appendleft(event)
+                if platform == "ios":
+                    SDL2MotionEventProvider.q.appendleft(event)
                 pass
 
             elif action == 'mousemotion':
                 x, y = args
-                self.mouse_pos = x, self.system_size[1] - y
+                x, y = self._fix_mouse_pos(x, y)
                 self._mouse_x = x
                 self._mouse_y = y
                 # don't dispatch motion if no button are pressed
@@ -285,6 +338,7 @@ class WindowSDL(WindowBase):
 
             elif action in ('mousebuttondown', 'mousebuttonup'):
                 x, y, button = args
+                x, y = self._fix_mouse_pos(x, y)
                 btn = 'left'
                 if button == 3:
                     btn = 'right'
@@ -326,7 +380,7 @@ class WindowSDL(WindowBase):
                 self.dispatch('on_dropfile', dropfile[0])
             # video resize
             elif action == 'windowresized':
-                self._size = args
+                self._size = self._win.window_size
                 # don't use trigger here, we want to delay the resize event
                 cb = self._do_resize
                 Clock.unschedule(cb)
@@ -363,27 +417,24 @@ class WindowSDL(WindowBase):
 
             elif action in ('keydown', 'keyup'):
                 mod, key, scancode, kstr = args
-                if mod in self._meta_keys:
-                    try:
-                        kstr = unichr(key)
-                    except ValueError:
-                        pass
 
                 key_swap = {
-                            SDLK_LEFT: 276,
-                            SDLK_RIGHT: 275,
-                            SDLK_UP: 273,
-                            SDLK_DOWN: 274,
-                            SDLK_HOME: 278,
-                            SDLK_END: 279,
-                            SDLK_PAGEDOWN: 281,
-                            SDLK_PAGEUP: 280,
-                            SDLK_SHIFTL: 303,
-                            SDLK_SHIFTR: 304,
-                            SDLK_LCTRL: KMOD_LCTRL,
-                            SDLK_RCTRL: KMOD_RCTRL,
-                            SDLK_LALT: KMOD_LALT,
-                            SDLK_RALT: KMOD_RALT}
+                    SDLK_LEFT: 276, SDLK_RIGHT: 275, SDLK_UP: 273,
+                    SDLK_DOWN: 274, SDLK_HOME: 278, SDLK_END: 279,
+                    SDLK_PAGEDOWN: 281, SDLK_PAGEUP: 280, SDLK_SHIFTR: 303,
+                    SDLK_SHIFTL: 304, SDLK_SUPER: 309, SDLK_LCTRL: 305,
+                    SDLK_RCTRL: 306, SDLK_LALT: 308, SDLK_RALT: 307,
+                    SDLK_CAPS: 301, SDLK_INSERT: 277, SDLK_F1: 282,
+                    SDLK_F2: 283, SDLK_F3: 284, SDLK_F4: 285, SDLK_F5: 286,
+                    SDLK_F6: 287, SDLK_F7: 288, SDLK_F8: 289, SDLK_F9: 290,
+                    SDLK_F10: 291, SDLK_F11: 292, SDLK_F12: 293, SDLK_F13: 294,
+                    SDLK_F14: 295, SDLK_F15: 296, SDLK_KEYPADNUM: 300,
+                    SDLK_KP_DEVIDE: 267, SDLK_KP_MULTIPLY: 268,
+                    SDLK_KP_MINUS: 269, SDLK_KP_PLUS: 270, SDLK_KP_ENTER: 271,
+                    SDLK_KP_DOT: 266, SDLK_KP_0: 256, SDLK_KP_1: 257,
+                    SDLK_KP_2: 258, SDLK_KP_3: 259, SDLK_KP_4: 260,
+                    SDLK_KP_5: 261, SDLK_KP_6: 262, SDLK_KP_7: 263,
+                    SDLK_KP_8: 264, SDLK_KP_9: 265}
 
                 if platform == 'ios':
                     # XXX ios keyboard suck, when backspace is hit, the delete
@@ -400,9 +451,17 @@ class WindowSDL(WindowBase):
                 else:
                     self._update_modifiers(mod)  # ignore the key, it
                                                  # has been released
-                if 'shift' in self._modifiers and key\
-                        not in self.command_keys.keys():
-                    return
+
+                # if mod in self._meta_keys:
+                if (key not in self._modifiers and
+                    key not in self.command_keys.keys()):
+                    try:
+                        kstr = unichr(key)
+                    except ValueError:
+                        pass
+                #if 'shift' in self._modifiers and key\
+                #        not in self.command_keys.keys():
+                #    return
 
                 if action == 'keyup':
                     self.dispatch('on_key_up', key, scancode)
@@ -418,26 +477,28 @@ class WindowSDL(WindowBase):
                               self.modifiers)
 
             elif action == 'textinput':
-                key = args[0][0]
+                text = args[0]
+                self.dispatch('on_textinput', text)
                 # XXX on IOS, keydown/up don't send unicode anymore.
                 # With latest sdl, the text is sent over textinput
                 # Right now, redo keydown/up, but we need to seperate both call
                 # too. (and adapt on_key_* API.)
-                self.dispatch('on_key_down', key, None, args[0],
-                              self.modifiers)
-                self.dispatch('on_keyboard', None, None, args[0],
-                              self.modifiers)
-                self.dispatch('on_key_up', key, None, args[0],
-                              self.modifiers)
+                #self.dispatch()
+                #self.dispatch('on_key_down', key, None, args[0],
+                #              self.modifiers)
+                #self.dispatch('on_keyboard', None, None, args[0],
+                #              self.modifiers)
+                #self.dispatch('on_key_up', key, None, args[0],
+                #              self.modifiers)
 
             # unhandled event !
             else:
                 Logger.trace('WindowSDL: Unhandled event %s' % str(event))
 
     def _do_resize(self, dt):
-        Logger.debug('Window: Resize window to %s' % str(self._size))
-        self._win.resize_display_mode(*self._size)
-        self.dispatch('on_resize', *self._size)
+        Logger.debug('Window: Resize window to %s' % str(self.size))
+        self._win.resize_window(*self._size)
+        self.dispatch('on_resize', *self.size)
 
     def do_pause(self):
         # should go to app pause mode.
@@ -475,7 +536,7 @@ class WindowSDL(WindowBase):
     def mainloop(self):
         # don't known why, but pygame required a resize event
         # for opengl, before mainloop... window reinit ?
-        self.dispatch('on_resize', *self.size)
+        #self.dispatch('on_resize', *self.size)
 
         while not EventLoop.quit and EventLoop.status == 'started':
             try:
@@ -488,9 +549,6 @@ class WindowSDL(WindowBase):
                     raise
                 else:
                     pass
-
-        # force deletion of window
-        self._win.teardown_window()
 
     #
     # Pygame wrapper

@@ -4,8 +4,8 @@ Suite of Application Builders
 
 This explores different methods of starting an application. If you run
 this without a command line parameter, you should see a menu in your terminal.
-For example, you can rerun this with 'r' command to pick a random method.
-There are lots of logging options to make this easier to debug: execution
+You can also run this with a 'r' parameter to pick a random method.
+There are lots of logging options to make this easier to debug: the execution
 order may not be obvious. Each time you run the command, only one kivy
 application is created.
 
@@ -137,8 +137,8 @@ Try using one of these:
    d - Use a kv file from a different directory
    f - Use a kv file with the widget object
    p - Use prebuilt widget inside a layout
-   s - Use a kiva language string to create the widget
-   r - pick one of the demos at random.
+   s - Use a kivy language string to create the widget
+   r - pick one of the options at random.
 
    h - show this help message.
 

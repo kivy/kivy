@@ -97,7 +97,7 @@ class KineticEffect(EventDispatcher):
     '''Velocity below this quantity is normalized to 0. In other words,
     any motion whose velocity falls below this number is stopped.
 
-    .. versionadded::1.8.0
+    .. versionadded:: 1.8.0
 
     :attr:`min_velocity` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.5.

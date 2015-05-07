@@ -181,6 +181,8 @@ FL_IS_NEWLINE = 0x01
 
 # late binding
 Clipboard = None
+CutBuffer = None
+MarkupLabel = None
 _platform = platform
 
 # for reloading, we need to keep a list of textinput to retrigger the rendering
@@ -241,7 +243,8 @@ class Selector(ButtonBehavior, Image):
 
     def transform_touch(self, touch):
         matrix = self.matrix.inverse()
-        touch.apply_transform_2d(lambda x, y: matrix.transform_point(x, y, 0)[:2])
+        touch.apply_transform_2d(
+            lambda x, y: matrix.transform_point(x, y, 0)[:2])
 
     def on_window_touch_down(self, win, touch):
         if self.parent is not win:
@@ -296,7 +299,8 @@ class TextInputCutCopyPaste(Bubble):
 
     def transform_touch(self, touch):
         matrix = self.matrix.inverse()
-        touch.apply_transform_2d(lambda x, y: matrix.transform_point(x, y, 0)[:2])
+        touch.apply_transform_2d(
+            lambda x, y: matrix.transform_point(x, y, 0)[:2])
 
     def on_touch_down(self, touch):
         try:
@@ -502,6 +506,8 @@ class TextInput(FocusBehavior, Widget):
             self._position_handles)
         self._trigger_show_handles = Clock.create_trigger(
             self._show_handles, .05)
+        self._trigger_update_cutbuffer = Clock.create_trigger(
+            self._update_cutbuffer)
         self._trigger_refresh_line_options()
         self._trigger_refresh_text()
 
@@ -510,6 +516,9 @@ class TextInput(FocusBehavior, Widget):
 
         # when the gl context is reloaded, trigger the text rendering again.
         _textinput_list.append(ref(self, TextInput._reload_remove_observer))
+
+        if platform == 'linux':
+            self._ensure_clipboard()
 
     def on_text_validate(self):
         pass
@@ -1088,6 +1097,11 @@ class TextInput(FocusBehavior, Widget):
             self._selection_touch = touch
             self._selection_from = self._selection_to = self.cursor_index()
             self._update_selection()
+
+        if CutBuffer and 'button' in touch.profile and touch.button == 'middle':
+            self.insert_text(CutBuffer.get_cutbuffer())
+            return True
+
         return False
 
     def on_touch_move(self, touch):
@@ -1390,9 +1404,9 @@ class TextInput(FocusBehavior, Widget):
             self._hide_handles(win)
 
     def _ensure_clipboard(self):
-        global Clipboard
+        global Clipboard, CutBuffer
         if not Clipboard:
-            from kivy.core.clipboard import Clipboard
+            from kivy.core.clipboard import Clipboard, CutBuffer
 
     def cut(self):
         ''' Copy current selection to clipboard then delete it from TextInput.
@@ -1433,6 +1447,9 @@ class TextInput(FocusBehavior, Widget):
         data = Clipboard.paste()
         self.delete_selection()
         self.insert_text(data)
+
+    def _update_cutbuffer(self, *args):
+        CutBuffer.set_cutbuffer(self.selection_text)
 
     def _get_text_width(self, text, tab_width, _label_cached):
         # Return the width of a text, according to the current line options
@@ -2011,10 +2028,11 @@ class TextInput(FocusBehavior, Widget):
             # pygame seems to pass \x01 as the unicode for ctrl+a
             # checking for modifiers ensures conflict resolution.
 
-            if not modifiers and ord(text[0]) == 1:
+            first_char = ord(text[0])
+            if not modifiers and first_char == 1:
                 self._command_mode = True
                 self._command = ''
-            if not modifiers and ord(text[0]) == 2:
+            if not modifiers and first_char == 2:
                 self._command_mode = False
                 self._command = self._command[1:]
 
@@ -2023,7 +2041,7 @@ class TextInput(FocusBehavior, Widget):
                 return
 
             _command = self._command
-            if _command and ord(text) == 2:
+            if _command and first_char == 2:
                 from_undo = True
                 _command, data = _command.split(':')
                 self._command = ''
@@ -2067,6 +2085,9 @@ class TextInput(FocusBehavior, Widget):
                 elif key == ord('r'):  # redo
                     self.do_redo()
             else:
+                if EventLoop.window.__class__.__module__ == \
+                    'kivy.core.window.window_sdl2':
+                    return
                 if self._selection:
                     self.delete_selection()
                 self.insert_text(text)
@@ -2095,6 +2116,11 @@ class TextInput(FocusBehavior, Widget):
         if k:
             key = (None, None, k, 1)
             self._key_up(key)
+
+    def keyboard_on_textinput(self, window, text):
+        if self._selection:
+            self.delete_selection()
+        self.insert_text(text, False)
 
     def on_hint_text(self, instance, value):
         self._refresh_hint_text()
@@ -2467,6 +2493,43 @@ class TextInput(FocusBehavior, Widget):
     and defaults to True on mobile OS's, False on desktop OS's.
     '''
 
+    suggestion_text = StringProperty('')
+    '''Shows a suggestion text/word from currentcursor position onwards,
+    that can be used as a possible completion. Usefull for suggesting completion
+    text. This can also be used by the IME to setup the current word being
+    edited
+
+    .. versionadded:: 1.9.0
+
+    :attr:`suggestion_text` is a :class:`~kivy.properties.StringProperty`
+    defaults to `''`
+    '''
+
+    def on_suggestion_text(self, instance, value):
+        global MarkupLabel
+        if not MarkupLabel:
+            from kivy.core.text.markup import MarkupLabel
+
+        cursor_pos = self.cursor_pos
+        txt = self._lines[self.cursor_row]
+        cr = self.cursor_row
+        kw = self._get_line_options()
+        rct = self._lines_rects[cr]
+
+        lbl = text = None
+        if value:
+            lbl = MarkupLabel(
+                text=txt + "[b]{}[/b]".format(value), **kw)
+        else:
+            lbl = Label(**kw)
+            text = txt
+
+        lbl.refresh()
+
+        self._lines_labels[cr] = lbl.texture
+        rct.size = lbl.size
+        self._update_graphics()
+
     def get_sel_from(self):
         return self._selection_from
 
@@ -2475,8 +2538,8 @@ class TextInput(FocusBehavior, Widget):
     the cursor index where the selection started.
 
     .. versionchanged:: 1.4.0
-        :attr:`selection_from` is an :class:`~kivy.properties.AliasProperty` and
-        defaults to None, readonly.
+        :attr:`selection_from` is an :class:`~kivy.properties.AliasProperty`
+        and defaults to None, readonly.
     '''
 
     def get_sel_to(self):
@@ -2499,8 +2562,11 @@ class TextInput(FocusBehavior, Widget):
     '''
 
     def on_selection_text(self, instance, value):
-        if value and self.use_handles:
-            self._trigger_show_handles()
+        if value:
+            if self.use_handles:
+                self._trigger_show_handles()
+            if CutBuffer and not self.password:
+                self._trigger_update_cutbuffer()
 
     def _get_text(self, encode=True):
         lf = self._lines_flags
@@ -2707,14 +2773,23 @@ class TextInput(FocusBehavior, Widget):
 if __name__ == '__main__':
     from kivy.app import App
     from kivy.uix.boxlayout import BoxLayout
+    from kivy.lang import Builder
 
     class TextInputApp(App):
 
         def build(self):
+
+            Builder.load_string('''
+<TextInput>
+    on_text:
+        self.suggestion_text = ''
+        self.suggestion_text = 'ion_text'
+
+''')
             root = BoxLayout(orientation='vertical')
             textinput = TextInput(multiline=True, use_bubble=True,
                                   use_handles=True)
-            textinput.text = __doc__
+            #textinput.text = __doc__
             root.add_widget(textinput)
             textinput2 = TextInput(multiline=False, text='monoline textinput',
                                    size_hint=(1, None), height=30)

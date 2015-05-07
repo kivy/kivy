@@ -57,13 +57,13 @@ class ClipboardAndroid(ClipboardBase):
     def _get(self, mimetype='text/plain'):
         clippy = PythonActivity._clipboard
         if sdk < 11:
-            data = clippy.getText().toString()
+            data = clippy.getText()
         else:
             ClipDescription = autoclass('android.content.ClipDescription')
             primary_clip = clippy.getPrimaryClip()
             if primary_clip and clippy.getPrimaryClipDescription().hasMimeType(
                     ClipDescription.MIMETYPE_TEXT_PLAIN):
-                data = primary_clip.getItemAt(0).getText().toString()
+                data = primary_clip.getItemAt(0).getText()
             else:
                 # TODO: non text data types Not yet implemented
                 data = ''

@@ -728,7 +728,6 @@ if USE_SDL2:
 else:
     label_libs += [('pygame', 'text_pygame', 'LabelPygame')]
 label_libs += [
-    ('sdlttf', 'text_sdlttf', 'LabelSDLttf'),
     ('pil', 'text_pil', 'LabelPIL')]
 Label = core_select_lib('text', label_libs)
 

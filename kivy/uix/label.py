@@ -1,5 +1,4 @@
-'''
-Label
+'''Label
 =====
 
 The :class:`Label` widget is for rendering text. It supports ascii and unicode
@@ -16,6 +15,38 @@ strings::
 
     # size
     l = Label(text='Hello world', font_size='20sp')
+
+Text alignment
+--------------
+
+The :class:`Label` has :attr:`halign` and :attr:`valign` properties to
+control the alignment of its text, but by default these have no effect
+and the text is always centered within the Label. This is for
+efficiency; the text is aligned only within the pixel drawing of the
+characters, which should normally be as small as possible to minimise
+the number of pixels pushed to the GPU. By default, this text image is
+only just large enough to contain the characters and is positioned in the
+center of the Label.
+
+In order for the alignment properties to take effect, the simplest
+solution is to set the :attr:`text_size`, which specifies the size of
+the bounding box within which text is aligned. For instance, the
+following code binds this size to the size of the Label, so text will
+be aligned within the widget bounds. This will also automatically wrap
+the text of the Label to remain within this area.
+
+.. code-block:: python
+
+    # in Python
+    from kivy.uix.label import Label
+    class MyLabel(Label):
+        pass
+
+    # in kv
+    <MyLabel>:
+        text_size: self.size
+        halign: 'right'
+        valign: 'middle'
 
 Markup text
 -----------

@@ -95,7 +95,7 @@ selector to a specific implementation.
 KIVY_WINDOW
     Implementation to use for creating the Window
 
-    Values: pygame, x11, sdl, egl_rpi
+    Values: pygame, x11, sdl2, egl_rpi
 
 KIVY_TEXT
     Implementation to use for rendering text
@@ -110,7 +110,7 @@ KIVY_VIDEO
 KIVY_AUDIO
     Implementation to use for playing audio
 
-    Values: gstplayer, pygst, sdl, pygame
+    Values: gstplayer, pygst, ffpyplayer, sdl2, pygame
 
 KIVY_IMAGE
     Implementation to use for reading image
