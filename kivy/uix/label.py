@@ -16,8 +16,8 @@ strings::
     # size
     l = Label(text='Hello world', font_size='20sp')
 
-Text alignment
---------------
+Text alignment and wrapping
+---------------------------
 
 The :class:`Label` has :attr:`halign` and :attr:`valign` properties to
 control the alignment of its text, but by default these have no effect
