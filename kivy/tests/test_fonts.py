@@ -19,3 +19,12 @@ class FontTestCase(unittest.TestCase):
         lbl = Label(font_name=self.font_name)
         lbl.refresh()
         self.assertNotEqual(lbl.get_extents(''), None)
+
+    def tearDown(self):
+        import os
+        if os.path.exists(self.font_name):
+            try:
+                os.unlink(self.font_name)
+            except:
+                pass
+

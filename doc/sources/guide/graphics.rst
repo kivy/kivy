@@ -7,9 +7,9 @@ Introduction to Canvas
 ----------------------
 
 Widgets graphical representation is done using a canvas, which you can see both
-as an unlimited drawing board, and as a set of drawing instructions, there are
+as an unlimited drawing board, and as a set of drawing instructions. There are
 numerous different instructions you can apply (add) to your canvas, but there
-is two main kind of them:
+are two main kinds of them:
 
 - :mod:`context instructions <kivy.graphics.context_instructions>`
 - :mod:`vertex instructions <kivy.graphics.vertex_instructions>`
@@ -44,8 +44,8 @@ To add a canvas instruction to a widget, you use the canvas context:
 Context instructions
 --------------------
 
-Context instructions manipulate the opengl context, you can rotate, translate,
-and scale your canvas, attach a texture or change the drawing color, this one
+Context instructions manipulate the opengl context. You can rotate, translate,
+and scale your canvas. You can also attach a texture or change the drawing color. This one
 is the most commonly used, but others are really useful too::
 
    with self.canvas.before:
@@ -54,7 +54,7 @@ is the most commonly used, but others are really useful too::
 Drawing instructions
 --------------------
 
-Drawing instructions are ranging from very simple ones, to draw a line or a
+Drawing instructions range from very simple ones, like drawing a line or a
 polygon, to more complex ones, like meshes or bezier curves::
 
     with self.canvas:
@@ -103,5 +103,5 @@ Or you can clean your canvas and start fresh::
             with self.canvas:
                 self.rect = Rectangle(pos=self.pos, size=self.size)
 
-Note that updating the instructions is considered the best practise as it
+Note that updating the instructions is considered the best practice as it
 involves less overhead and avoids creating new instructions.

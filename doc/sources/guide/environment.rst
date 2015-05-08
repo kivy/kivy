@@ -52,6 +52,12 @@ KIVY_SDL2_PATH
 
     .. versionadded:: 1.9.0
 
+    .. warning::
+
+        Must be used during the compilation of Kivy. It is not required for the
+        execution.
+
+
 Configuration
 -------------
 
@@ -68,6 +74,17 @@ KIVY_NO_FILELOG
 KIVY_NO_CONSOLELOG
     If set, logs will be not print on the console
 
+KIVY_NO_ARGS
+    If set, the argument passed in command line will not be parsed and used by Kivy.
+    Ie, you can safely make a script or an app with your own arguments without
+    requiring the `--` delimiter::
+
+        import os
+        os.environ["KIVY_NO_ARGS"] = "1"
+        import kivy
+
+    .. versionadded:: 1.9.0
+
 Restrict core to specific implementation
 ----------------------------------------
 
@@ -78,7 +95,7 @@ selector to a specific implementation.
 KIVY_WINDOW
     Implementation to use for creating the Window
 
-    Values: pygame, x11, sdl, egl_rpi
+    Values: pygame, x11, sdl2, egl_rpi
 
 KIVY_TEXT
     Implementation to use for rendering text
@@ -93,7 +110,7 @@ KIVY_VIDEO
 KIVY_AUDIO
     Implementation to use for playing audio
 
-    Values: gstplayer, pygst, sdl, pygame
+    Values: gstplayer, pygst, ffpyplayer, sdl2, pygame
 
 KIVY_IMAGE
     Implementation to use for reading image

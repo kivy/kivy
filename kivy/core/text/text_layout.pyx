@@ -6,7 +6,6 @@ An internal module for laying out text according to options and constraints.
 This is not part of the API and may change at any time.
 '''
 
-import string
 
 __all__ = ('layout_text', 'LayoutWord', 'LayoutLine')
 
@@ -107,13 +106,18 @@ cdef inline LayoutLine add_line(object text, int lw, int lh, LayoutLine line,
         This assumes that global h is accurate and includes the text previously
         added to the line.
         '''
-        cdef int old_lh = line.h
+        cdef int old_lh = line.h, count = len(lines), add_h
         if lw:
             line.words.append(LayoutWord(options, lw, lh, text))
             line.w += lw
+
         line.h = max(int(lh * line_height), line.h)
+        if count:
+            add_h = line.h
+        else:
+            add_h = max(lh, line.h)
         # if we're appending to existing line don't add height twice
-        h[0] = h[0] + line.h - old_lh
+        h[0] = h[0] + add_h - old_lh
         w[0] = max(w[0], line.w + 2 * xpad)
         if strip:
             final_strip(line)
@@ -148,7 +152,7 @@ cdef inline void final_strip(LayoutLine line):
             line.w -= last_word.lw  # likely 0
             continue
 
-        stripped = last_word.text.rstrip(string.whitespace)  # ends with space
+        stripped = last_word.text.rstrip()  # ends with space
         # subtract ending space length
         diff = ((len(last_word.text) - len(stripped)) *
                 last_word.options['space_width'])
@@ -167,7 +171,7 @@ cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
 
     cdef list new_lines
     cdef int s, lw, lh, old_lh, i = -1, n
-    cdef int lhh, k, pos
+    cdef int lhh, k, pos, add_h
     cdef object line, val = False, indices
     cdef LayoutLine _line
 
@@ -188,10 +192,10 @@ cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
             k = n - 1
         if strip:
             if not _line.w:  # no proceeding text: strip leading
-                line = line.lstrip(string.whitespace)
+                line = line.lstrip()
             # ends this line so right strip
             if complete or (dwn and n > 1 or not dwn and pos > 1):
-                line = line.rstrip(string.whitespace)
+                line = line.rstrip()
         lw, lh = get_extents(line)
 
         old_lh = _line.h
@@ -199,12 +203,19 @@ cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
             _line.words.append(LayoutWord(options, lw, lh, line))
             _line.w += lw
             _line.h = max(int(lh * line_height), _line.h)
+            if pos == 1:  # still first line
+                add_h = max(lh, _line.h)
+            else:
+                add_h = _line.h
         elif strip and (complete or (dwn and n > 1 or not dwn and pos > 1)):
             # if we finish this line, make sure it doesn't end in spaces
             final_strip(_line)
+            add_h = _line.h
+        else:
+            add_h = _line.h
 
         w = max(w, _line.w + 2 * xpad)
-        h += _line.h - old_lh
+        h += add_h - old_lh
 
     # now do the remaining lines
     indices = range(s, k) if dwn else reversed(range(s, k))
@@ -218,17 +229,23 @@ cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
         # the last line is only stripped from left
         if strip:
             if complete or (dwn and i < n - 1 or not dwn and i > s):
-                line = line.strip(string.whitespace)
+                line = line.strip()
             else:
-                line = line.lstrip(string.whitespace)
+                line = line.lstrip()
         lw, lh = get_extents(line)
+
         lhh = int(lh * line_height)
-        if uh != -1 and h + lhh > uh and pos:  # too high
+        if pos:
+            add_h = lhh
+        else:  # for the first line, always use full height
+            add_h = lh
+        if uh != -1 and h + add_h > uh and pos:  # too high
             i += -1 if dwn else 1
             break
+
         pos += 1
         w = max(w, int(lw + 2 * xpad))
-        h += lhh
+        h += add_h
         if lw:
             _line = LayoutLine(0, 0, lw, lhh, 1, 0, [LayoutWord(options, lw,
                                                                 lh, line)])
@@ -373,6 +390,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
     cdef int max_lines = int(options.get('max_lines', 0))
     cdef float line_height = options['line_height']
     cdef int strip = options['strip'] or options['halign'][-1] == 'y'
+    cdef int ref_strip = options['strip_reflow']
     cdef int w = size[0], h = size[1]  # width and height of the texture so far
     cdef list new_lines
     cdef int s, lw = -1, lh = -1, old_lh, i = -1, n, m, e
@@ -423,11 +441,12 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
                 _line = lines.pop(pos)
 
         line = new_lines[i]
-        if strip:
-            if not _line.w:  # there's no proceeding text, so strip leading
-                line = line.lstrip(string.whitespace)
-            if ends_line:
-                line = line.rstrip(string.whitespace)
+        # there's no proceeding text, so strip leading
+        if not _line.w and (strip or ref_strip and _line.line_wrap):
+            line = line.lstrip()
+        if strip and ends_line:
+            line = line.rstrip()
+
         k = len(line)
         if not k:  # just add empty line if empty
             _line.is_last_line = ends_line  # nothing will be appended
@@ -449,7 +468,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
             # find next space or end, if end don't keep checking
             if e != k:
                 # leading spaces
-                if strip and s == m and not _line.w and line[s] == ' ':
+                if s == m and not _line.w and line[s] == ' ' and (strip or ref_strip and _line.line_wrap):
                     s = m = s + 1
                     # trailing spaces were stripped, so end is always not space
                     continue
@@ -474,8 +493,8 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
                 # if there's already some text, commit and go next line
                 if s != m:
                     _do_last_line = 1
-                    if strip and line[m - 1] == ' ':
-                        ln = line[s:m].rstrip(string.whitespace)
+                    if (strip or ref_strip) and line[m - 1] == ' ':
+                        ln = line[s:m].rstrip()
                         lww, lhh = get_extents(ln)
                     else:
                         ln = line[s:m]
@@ -494,8 +513,8 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
 
                 # try to fit word on new line, if it doesn't fit we'll
                 # have to break the word into as many lines needed
-                if strip:
-                    s = e - len(line[s:e].lstrip(string.whitespace))
+                if strip or ref_strip and _line.line_wrap:
+                    s = e - len(line[s:e].lstrip())
                 if s == e:  # if it was only a stripped space, move on
                     m = s
                     continue
@@ -528,7 +547,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
             else:   # the word fits
                 # don't allow leading spaces on empty lines
                 #if strip and m == s and line[s:e] == ' ' and not _line.w:
-                if strip and line[s:e] == ' ' and not _line.w:
+                if (strip or ref_strip and _line.line_wrap) and line[s:e] == ' ' and not _line.w:
                     s = m = e
                     continue
                 m = e
@@ -550,23 +569,22 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
             del lines[max_lines:]
         else:
             del lines[:max(0, len(lines) - max_lines)]
+
     # now make sure we don't have lines outside specified height
     k = len(lines)
     if k > 1 and uh != -1 and h > uh:
         val = True
-        if dwn:
-            h = ypad * 2 + lines[0].h
-            i = 1  # ith line may not fit anymore, 0:i lines do fit
-            while i < k and h + lines[i].h <= uh:
-                h += lines[i].h
-                i += 1
-            del lines[i:]
-        else:
-            h = ypad * 2 + lines[-1].h
-            i = k - 2  # ith line may not fit anymore, i+1:end lines do fit
-            while i >= 0 and h + lines[i].h <= uh:
-                h += lines[i].h
+        if dwn:  # remove from last line going up
+            i = k -1  # will removing the ith line make it fit?
+            while i > 0 and h > uh:
+                h -= lines[i].h
                 i -= 1
-            del lines[:i + 1]
+            del lines[i + 1:]  # we stopped when keeping the ith line still fits
+        else:  # remove from first line going down
+            i = 0  # will removing the ith line make it fit?
+            while i < k - 1 and h > uh:
+                h -= lines[i].h
+                i += 1
+            del lines[:i]
 
     return w, h, val

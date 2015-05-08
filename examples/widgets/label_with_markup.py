@@ -11,6 +11,7 @@ Label:
     font_size: '64pt'
 ''')
 
+
 class LabelWithMarkup(App):
     def build(self):
         return root

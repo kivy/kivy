@@ -25,6 +25,8 @@ from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
 from kivy.utils import platform, reify
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
+from kivy.setupconfig import USE_SDL2
+from kivy.graphics.transformation import Matrix
 
 # late import
 VKeyboard = None
@@ -52,16 +54,18 @@ class Keyboard(EventDispatcher):
 
     '''
 
-    # Keycodes mapping, between str <-> int. Theses keycode are
+    # Keycodes mapping, between str <-> int. These keycodes are
     # currently taken from pygame.key. But when a new provider will be
-    # used, it must do the translation to theses keycodes too.
+    # used, it must do the translation to these keycodes too.
     keycodes = {
         # specials keys
-        'backspace': 8, 'tab': 9, 'enter': 13, 'shift': 304, 'ctrl': 306,
+        'backspace': 8, 'tab': 9, 'enter': 13, 'rshift': 303, 'shift': 304,
+        'alt': 308, 'rctrl': 306, 'lctrl': 305,
+        'super': 309, 'alt-gr': 307, 'compose': 311, 'pipe': 310,
         'capslock': 301, 'escape': 27, 'spacebar': 32, 'pageup': 280,
         'pagedown': 281, 'end': 279, 'home': 278, 'left': 276, 'up':
         273, 'right': 275, 'down': 274, 'insert': 277, 'delete': 127,
-        'numlock': 300, 'screenlock': 145, 'pause': 19,
+        'numlock': 300, 'print': 144, 'screenlock': 145, 'pause': 19,
 
         # a-z keys
         'a': 97, 'b': 98, 'c': 99, 'd': 100, 'e': 101, 'f': 102, 'g': 103,
@@ -78,7 +82,7 @@ class Keyboard(EventDispatcher):
         'numpad4': 260, 'numpad5': 261, 'numpad6': 262, 'numpad7': 263,
         'numpad8': 264, 'numpad9': 265, 'numpaddecimal': 266,
         'numpaddivide': 267, 'numpadmul': 268, 'numpadsubstract': 269,
-        'numpadadd': 270,
+        'numpadadd': 270, 'numpadenter': 271,
 
         # F1-15
         'f1': 282, 'f2': 283, 'f3': 284, 'f4': 285, 'f5': 286, 'f6': 287,
@@ -109,7 +113,7 @@ class Keyboard(EventDispatcher):
         'é': 233, 'è': 232,
     }
 
-    __events__ = ('on_key_down', 'on_key_up')
+    __events__ = ('on_key_down', 'on_key_up', 'on_textinput')
 
     def __init__(self, **kwargs):
         super(Keyboard, self).__init__()
@@ -132,12 +136,18 @@ class Keyboard(EventDispatcher):
     def on_key_up(self, keycode):
         pass
 
+    def on_textinput(self, text):
+        pass
+
     def release(self):
         '''Call this method to release the current keyboard.
         This will ensure that the keyboard is no longer attached to your
         callback.'''
         if self.window:
             self.window.release_keyboard(self.target)
+
+    def _on_window_textinput(self, instance, text):
+        return self.dispatch('on_textinput', text)
 
     def _on_window_key_down(self, instance, keycode, scancode, text,
                             modifiers):
@@ -162,6 +172,9 @@ class Keyboard(EventDispatcher):
             keycode = text
         keycode = (self.string_to_keycode(keycode), keycode)
         return self.dispatch('on_key_up', keycode)
+
+    def _on_vkeyboard_textinput(self, instance, text):
+        return self.dispatch('on_textinput', text)
 
     def string_to_keycode(self, value):
         '''Convert a string to a keycode number according to the
@@ -255,6 +268,7 @@ class WindowBase(EventDispatcher):
     __instance = None
     __initialized = False
     _fake_fullscreen = False
+    _density = 1
 
     # private properties
     _size = ListProperty([0, 0])
@@ -293,6 +307,8 @@ class WindowBase(EventDispatcher):
     def _get_size(self):
         r = self._rotation
         w, h = self._size
+        if self._density != 1:
+            w, h = self._win._get_gl_size()
         if self.softinput_mode == 'resize':
             h -= self.keyboard_height
         if r in (0, 180):
@@ -311,6 +327,7 @@ class WindowBase(EventDispatcher):
             return True
         else:
             return False
+
     size = AliasProperty(_get_size, _set_size, bind=('_size', ))
     '''Get the rotated size of the window. If :attr:`rotation` is set, then the
     size will change to reflect the rotation.
@@ -348,10 +365,13 @@ class WindowBase(EventDispatcher):
 
     # make some property read-only
     def _get_width(self):
+        _size = self._size
+        if self._density != 1:
+            _size = self._win._get_gl_size()
         r = self._rotation
         if r == 0 or r == 180:
-            return self._size[0]
-        return self._size[1]
+            return _size[0]
+        return _size[1]
 
     width = AliasProperty(_get_width, None, bind=('_rotation', '_size'))
     '''Rotated window width.
@@ -362,10 +382,13 @@ class WindowBase(EventDispatcher):
     def _get_height(self):
         '''Rotated window height'''
         r = self._rotation
+        _size = self._size
+        if self._density != 1:
+            _size = self._win._get_gl_size()
         kb = self.keyboard_height if self.softinput_mode == 'resize' else 0
         if r == 0 or r == 180:
-            return self._size[1] - kb
-        return self._size[0] - kb
+            return _size[1] - kb
+        return _size[0] - kb
 
     height = AliasProperty(_get_height, None, bind=('_rotation', '_size'))
     '''Rotated window height.
@@ -416,7 +439,7 @@ class WindowBase(EventDispatcher):
     when 'resize' The window is resized and the contents scaled to fit the
     remaining space.
 
-    ..versionadded::1.9.0
+    .. versionadded:: 1.9.0
 
     :attr:`softinput_mode` is a :class:`OptionProperty` defaults to None.
 
@@ -448,7 +471,7 @@ class WindowBase(EventDispatcher):
     '''Rerturns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
-    ..versionadded:: 1.9.0
+    .. versionadded:: 1.9.0
 
     :attr:`keyboard_height` is a read-only :class:`AliasProperty` defaults to 0.
     '''
@@ -505,12 +528,13 @@ class WindowBase(EventDispatcher):
     canvas = ObjectProperty(None)
     title = StringProperty('Kivy')
 
-    __events__ = ('on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
-                  'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
-                  'on_mouse_down', 'on_mouse_move', 'on_mouse_up',
-                  'on_keyboard', 'on_key_down', 'on_key_up', 'on_dropfile',
-                  'on_request_close', 'on_joy_axis', 'on_joy_hat',
-                  'on_joy_ball', 'on_joy_button_down', "on_joy_button_up")
+    __events__ = (
+        'on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
+        'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
+        'on_mouse_down', 'on_mouse_move', 'on_mouse_up', 'on_keyboard',
+        'on_key_down', 'on_key_up', 'on_textinput', 'on_dropfile',
+        'on_request_close', 'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
+        'on_joy_button_down', "on_joy_button_up")
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -519,11 +543,11 @@ class WindowBase(EventDispatcher):
 
     def __init__(self, **kwargs):
 
-        kwargs.setdefault('force', False)
+        force = kwargs.pop('force', False)
 
         # don't init window 2 times,
         # except if force is specified
-        if WindowBase.__instance is not None and not kwargs.get('force'):
+        if WindowBase.__instance is not None and not force:
             return
 
         self.initialized = False
@@ -633,7 +657,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature works with the SDL2 window provider only.
+            This feature requires a SDL2 window provider and is currently only
+            supported on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -649,7 +674,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature works with the SDL2 window provider only.
+            This feature requires a SDL2 window provider and is currently only
+            supported on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -665,7 +691,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature works with the SDL2 window provider only.
+            This feature requires a SDL2 window provider and is currently only
+            supported on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -681,7 +708,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature works with the SDL2 window provider only.
+            This feature requires a SDL2 window provider and is currently only
+            supported on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -697,7 +725,8 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature works with the SDL2 window provider only.
+            This feature requires a SDL2 window provider and is currently only
+            supported on desktop platforms.
 
         .. warning::
             This code is still experimental, and its API may be subject to
@@ -775,11 +804,13 @@ class WindowBase(EventDispatcher):
     def _update_childsize(self, instance, value):
         self.update_childsize([instance])
 
-    def add_widget(self, widget):
+    def add_widget(self, widget, canvas=None):
         '''Add a widget to a window'''
         widget.parent = self
         self.children.insert(0, widget)
-        self.canvas.add(widget.canvas)
+        canvas = self.canvas.before if canvas == 'before' else \
+            self.canvas.after if canvas == 'after' else self.canvas
+        canvas.add(widget.canvas)
         self.update_childsize([widget])
         widget.bind(
             pos_hint=self._update_childsize,
@@ -793,7 +824,12 @@ class WindowBase(EventDispatcher):
         if not widget in self.children:
             return
         self.children.remove(widget)
-        self.canvas.remove(widget.canvas)
+        if widget.canvas in self.canvas.children:
+            self.canvas.remove(widget.canvas)
+        elif widget.canvas in self.canvas.after.children:
+            self.canvas.after.remove(widget.canvas)
+        elif widget.canvas in self.canvas.before.children:
+            self.canvas.before.remove(widget.canvas)
         widget.parent = None
         widget.unbind(
             pos_hint=self._update_childsize,
@@ -832,6 +868,14 @@ class WindowBase(EventDispatcher):
     def to_window(self, x, y, initial=True, relative=False):
         return (x, y)
 
+    def _apply_transform(self, m):
+        return m
+
+    def get_window_matrix(self, x=0, y=0):
+        m = Matrix()
+        m.translate(x, y, 0)
+        return m
+
     def get_root_window(self):
         return self
 
@@ -856,6 +900,8 @@ class WindowBase(EventDispatcher):
         '''
         if me.is_touch:
             w, h = self.system_size
+            if platform == 'ios' or self._density != 1:
+                w, h = self.size
             me.scale_for_screen(w, h, rotation=self._rotation,
                                 smode=self.softinput_mode,
                                 kheight=self.keyboard_height)
@@ -913,6 +959,8 @@ class WindowBase(EventDispatcher):
         from math import radians
 
         w, h = self.system_size
+        if self._density != 1:
+            w, h = self.size
 
         smode = self.softinput_mode
         kheight = self.keyboard_height
@@ -1061,7 +1109,7 @@ class WindowBase(EventDispatcher):
         '''Event called when keyboard is used.
 
         .. warning::
-            Some providers may omit `scancode`, `codepoint` and/or `modifier`!
+            Some providers may omit `scancode`, `codepoint` and/or `modifier`.
         '''
         if 'unicode' in kwargs:
             Logger.warning("The use of the unicode parameter is deprecated, "
@@ -1078,6 +1126,7 @@ class WindowBase(EventDispatcher):
                     stopTouchApp()
                     self.close()
                     return True
+
     if Config:
         on_keyboard.exit_on_escape = Config.getboolean('kivy', 'exit_on_escape')
 
@@ -1105,6 +1154,16 @@ class WindowBase(EventDispatcher):
                            "and will be removed in future versions. Use "
                            "codepoint instead, which has identical "
                            "semantics.")
+
+    def on_textinput(self, text):
+        '''Event called whem text: i.e. alpha numeric non control keys or set
+        of keys is entered. As it is not gaurenteed whether we get one
+        character or multiple ones, this event supports handling multiple
+        characters.
+
+        .. versionadded:: 1.9.0
+        '''
+        pass
 
     def on_dropfile(self, filename):
         '''Event called when a file is dropped on the application.
@@ -1139,7 +1198,8 @@ class WindowBase(EventDispatcher):
         sk = self._system_keyboard
         self.bind(
             on_key_down=sk._on_window_key_down,
-            on_key_up=sk._on_window_key_up)
+            on_key_up=sk._on_window_key_up,
+            on_textinput=sk._on_window_textinput)
 
         # use the device's real keyboard
         self.use_syskeyboard = True
@@ -1280,7 +1340,8 @@ class WindowBase(EventDispatcher):
                 keyboard = Keyboard(widget=vkeyboard, window=self)
                 vkeyboard.bind(
                     on_key_down=keyboard._on_vkeyboard_key_down,
-                    on_key_up=keyboard._on_vkeyboard_key_up)
+                    on_key_up=keyboard._on_vkeyboard_key_up,
+                    on_textinput=keyboard._on_vkeyboard_textinput)
                 self._keyboards[key] = keyboard
             else:
                 keyboard = self._keyboards[key]
@@ -1306,10 +1367,12 @@ class WindowBase(EventDispatcher):
         if self.allow_vkeyboard and self.use_syskeyboard:
             self.unbind(
                 on_key_down=keyboard._on_window_key_down,
-                on_key_up=keyboard._on_window_key_up)
+                on_key_up=keyboard._on_window_key_up,
+                on_textinput=keyboard._on_window_textinput)
             self.bind(
                 on_key_down=keyboard._on_window_key_down,
-                on_key_up=keyboard._on_window_key_up)
+                on_key_up=keyboard._on_window_key_up,
+                on_textinput=keyboard._on_window_textinput)
 
         return keyboard
 
@@ -1340,10 +1403,14 @@ class WindowBase(EventDispatcher):
             return True
 
 #: Instance of a :class:`WindowBase` implementation
-Window = core_select_lib('window', (
-    ('egl_rpi', 'window_egl_rpi', 'WindowEglRpi'),
-    ('pygame', 'window_pygame', 'WindowPygame'),
-    ('sdl', 'window_sdl', 'WindowSDL'),
-    ('sdl2', 'window_sdl2', 'WindowSDL'),
-    ('x11', 'window_x11', 'WindowX11'),
-), True)
+window_impl = []
+if platform == 'linux':
+    window_impl += [('egl_rpi', 'window_egl_rpi', 'WindowEglRpi')]
+if USE_SDL2:
+    window_impl += [('sdl2', 'window_sdl2', 'WindowSDL')]
+else:
+    window_impl += [
+        ('pygame', 'window_pygame', 'WindowPygame')]
+if platform == 'linux':
+    window_impl += [('x11', 'window_x11', 'WindowX11')]
+Window = core_select_lib('window', window_impl, True)

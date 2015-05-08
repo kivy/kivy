@@ -50,7 +50,7 @@ from kivy.properties import (
 from os import listdir
 from os.path import (
     basename, join, sep, normpath, expanduser, altsep,
-    splitdrive, realpath, getsize, isdir)
+    splitdrive, realpath, getsize, isdir, abspath, pardir)
 from fnmatch import fnmatch
 import collections
 
@@ -263,7 +263,6 @@ class FileChooserController(FloatLayout):
             root is refreshed.
         `on_subentry_to_entry`: entry, parent
             Fired when a sub-entry is added to an existing entry.
-        `on_remove_subentry`: entry, parent
             Fired when entries are removed from an entry, usually when
             a node is closed.
         `on_submit`: selection, touch
@@ -572,7 +571,9 @@ class FileChooserController(FloatLayout):
         except OSError:
             entry.locked = True
         else:
-            self.path = join(self.path, entry.path)
+            # If entry.path is to jump to previous directory, update path with
+            # parent directory
+            self.path = abspath(join(self.path, entry.path))
             self.selection = []
 
     def _apply_filters(self, files):
@@ -805,7 +806,7 @@ class FileChooserListView(FileChooserController):
 
     .. versionadded:: 1.9.0
     '''
-    pass
+    _ENTRY_TEMPLATE = 'FileListEntry'
 
 
 class FileChooserIconView(FileChooserController):
@@ -813,7 +814,7 @@ class FileChooserIconView(FileChooserController):
 
     .. versionadded:: 1.9.0
     '''
-    pass
+    _ENTRY_TEMPLATE = 'FileIconEntry'
 
 
 class FileChooser(FileChooserController):

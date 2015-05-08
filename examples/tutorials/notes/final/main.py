@@ -54,7 +54,6 @@ class MutableTextInput(FloatLayout):
             self.view()
 
 
-
 class NoteView(Screen):
 
     note_index = NumericProperty()

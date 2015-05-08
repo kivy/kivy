@@ -10,9 +10,10 @@ class AnimationTestCase(unittest.TestCase):
         from kivy.uix.video import Video
         from kivy.clock import Clock
         from kivy.base import runTouchApp, stopTouchApp
-        from os.path import join, dirname
+        from os.path import join, dirname, abspath
         here = dirname(__file__)
-        source = join(here, "..", "..", "examples", "widgets", "softboy.avi")
+        source = abspath(join(
+            here, "..", "..", "examples", "widgets", "softboy.mpg"))
         video = Video(source=source, play=True)
         Clock.schedule_once(lambda x: stopTouchApp(), 1)
 

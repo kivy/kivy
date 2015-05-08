@@ -78,3 +78,13 @@ Hints and tips
     to easily restore your machine to it's previous state should you have the
     need.
  
+#. Insufficient memory
+
+    Assigning the Virtual Machine insufficient memory may result in the
+    compile failing with cryptic errors, such as:
+    
+        arm-linux-androideabi-gcc: Internal error: Killed (program cc1)
+
+    If this occurs, please check the amount of free memory in the Kivy VM and
+    increase the amount of RAM allocated to it if required.
+ 

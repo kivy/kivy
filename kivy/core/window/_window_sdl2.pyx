@@ -1,6 +1,8 @@
 include "../../../kivy/lib/sdl2.pxi"
+include "../../../kivy/graphics/config.pxi"
 
 from libc.string cimport memcpy
+from os import environ
 
 cdef class _WindowSDL2Storage:
     cdef SDL_Window *win
@@ -19,27 +21,43 @@ cdef class _WindowSDL2Storage:
         raise RuntimeError(<bytes> SDL_GetError())
 
     def setup_window(self, x, y, width, height, borderless, fullscreen,
-                     resizable, shaped=False):
-        self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
-        if resizable:
-            self.win_flags |= SDL_WINDOW_RESIZABLE
-        if borderless or shaped:
-            self.win_flags |= SDL_WINDOW_BORDERLESS
-        if fullscreen == 'auto':
-            self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
-        elif fullscreen is True:
-            self.win_flags |= SDL_WINDOW_FULLSCREEN
+                     resizable, state):
+        self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
-        if SDL_Init(SDL_INIT_VIDEO| SDL_INIT_JOYSTICK) < 0:
+        IF USE_IOS:
+            self.win_flags |= SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP
+        ELSE:
+            if resizable:
+                self.win_flags |= SDL_WINDOW_RESIZABLE
+            if borderless:
+                self.win_flags |= SDL_WINDOW_BORDERLESS
+            if fullscreen == 'auto':
+                self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
+            elif fullscreen is True:
+                self.win_flags |= SDL_WINDOW_FULLSCREEN
+        if state == 'maximized':
+            self.win_flags |= SDL_WINDOW_MAXIMIZED
+        elif state == 'minimized':
+            self.win_flags |= SDL_WINDOW_MINIMIZED
+        elif state == 'hidden':
+            self.win_flags |= SDL_WINDOW_HIDDEN
+
+        if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
             self.die()
 
-        '''
         # Set default orientation (force landscape for now)
         cdef bytes orientations
-        orientations = <bytes>environ.get('KIVY_ORIENTATION',
-                'LandscapeLeft LandscapeRight');
-        SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations);
-        '''
+        if PY3:
+            orientations = bytes(environ.get('KIVY_ORIENTATION',
+                'LandscapeLeft LandscapeRight'), encoding='utf8')
+        elif USE_IOS:
+            # ios should use all if available
+            orientations = <bytes>environ.get('KIVY_ORIENTATION',
+                'LandscapeLeft LandscapeRight Portrait PortraitUpsideDown')
+        else:
+            orientations = <bytes>environ.get('KIVY_ORIENTATION',
+                'LandscapeLeft LandscapeRight')
+        SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations)
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
@@ -56,17 +74,8 @@ cdef class _WindowSDL2Storage:
         if y is None:
             y = SDL_WINDOWPOS_UNDEFINED
 
-        if not shaped:
-            self.win = SDL_CreateWindow(NULL, x, y, width, height,
-                                        self.win_flags)
-        else:
-            self.win = SDL_CreateShapedWindow(NULL, x, y, width, height,
-                                              self.win_flags)
-            #shape_mode = SDL_WindowShapeMode()
-            #shape_mode.mode = ShapeModeColorKey
-            #shape_mode.parameters.colorKey = (0, 0, 0, 255)
-            #SDL_SetWindowShape(Self.win, circle_sf, shape_mode)
-
+        self.win = SDL_CreateWindow(NULL, x, y, width, height,
+                                    self.win_flags)
         if not self.win:
             self.die()
 
@@ -76,23 +85,38 @@ cdef class _WindowSDL2Storage:
         self.ctx = SDL_GL_CreateContext(self.win)
         if not self.ctx:
             self.die()
-        cdef SDL_DisplayMode mode
-        SDL_GetWindowDisplayMode(self.win, &mode)
         SDL_JoystickOpen(0)
 
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
-        return mode.w, mode.h
+        cdef int w, h
+        SDL_GetWindowSize(self.win, &w, &h)
+        return w, h
+
+    def _get_gl_size(self):
+        cdef int w, h
+        SDL_GL_GetDrawableSize(self.win, &w, &h)
+        return w, h
 
     def resize_display_mode(self, w, h):
         cdef SDL_DisplayMode mode
+        cdef int draw_w, draw_h 
         SDL_GetWindowDisplayMode(self.win, &mode)
-        mode.w = w
-        mode.h = h
-        SDL_SetWindowDisplayMode(self.win, &mode)
-        SDL_GetWindowDisplayMode(self.win, &mode)
+        if USE_IOS:
+            SDL_GL_GetDrawableSize(self.win, &draw_w, &draw_h)
+            mode.w = draw_w
+            mode.h = draw_h
+            SDL_SetWindowDisplayMode(self.win, &mode)
+        else:
+            mode.w = w
+            mode.h = h
+            SDL_SetWindowDisplayMode(self.win, &mode)
+            SDL_GetWindowDisplayMode(self.win, &mode)
+
+        return mode.w, mode.h
 
     def resize_window(self, w, h):
-        SDL_SetWindowSize(self.win, w, h)
+        if self.window_size != [w, h]:
+            SDL_SetWindowSize(self.win, w, h)
 
     def maximize_window(self):
         SDL_MaximizeWindow(self.win)
@@ -119,7 +143,8 @@ cdef class _WindowSDL2Storage:
             mode = SDL_WINDOW_FULLSCREEN
         else:
             mode = False
-        SDL_SetWindowFullscreen(self.win, mode)
+        IF not USE_IOS:
+            SDL_SetWindowFullscreen(self.win, mode)
 
     def set_window_title(self, str title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
@@ -230,22 +255,20 @@ cdef class _WindowSDL2Storage:
             elif event.window.event == SDL_WINDOWEVENT_MOVED:
                 action = ('windowmoved', event.window.data1, event.window.data2)
             else:
-                if __debug__:
-                    print('receive unknown sdl window event', event.type)
+                #    print('receive unknown sdl window event', event.type)
                 pass
             return action
         elif event.type == SDL_KEYDOWN or event.type == SDL_KEYUP:
             action = 'keydown' if event.type == SDL_KEYDOWN else 'keyup'
             mod = event.key.keysym.mod
-            scancode = event.key.keysym.get('scancode', '')
+            scancode = event.key.keysym.scancode
             key = event.key.keysym.sym
             return (action, mod, key, scancode, None)
         elif event.type == SDL_TEXTINPUT:
             s = event.text.text.decode('utf-8')
             return ('textinput', s)
         else:
-            if __debug__:
-                print('receive unknown sdl event', event.type)
+            #    print('receive unknown sdl event', event.type)
             pass
 
     def flip(self):
@@ -262,6 +285,11 @@ cdef class _WindowSDL2Storage:
         cdef SDL_Surface *flipped_surface = flipVert(surface)
         IMG_SavePNG(flipped_surface, real_filename)
 
+    property window_size:
+        def __get__(self):
+            cdef int w, h
+            SDL_GetWindowSize(self.win, &w, &h)
+            return [w, h]
 
 
 # Based on the example at

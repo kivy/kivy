@@ -1,8 +1,10 @@
 from kivy.uix.scatter import Scatter
 from kivy.app import App
 
+
 class MyScatter(Scatter):
     pass
+
 
 class ScatterApp(App):
     def build(self):

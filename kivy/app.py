@@ -3,7 +3,7 @@ Application
 ===========
 
 The :class:`App` class is the base for creating Kivy applications.
-Think of it as your main entry point into the Kivy run loop.  In most
+Think of it as your main entry point into the Kivy run loop. In most
 cases, you subclass this class and make your own app. You create an
 instance of your specific app class and then, when you are ready to
 start the application's life cycle, you call your instance's
@@ -264,13 +264,8 @@ Pause mode
 
 .. versionadded:: 1.1.0
 
-.. warning::
-
-    This mode is experimental, and designed for phones/tablets. There are some
-    cases where your application could crash on resume.
-
 On tablets and phones, the user can switch at any moment to another
-application.  By default, your application will close and the
+application. By default, your application will close and the
 :meth:`App.on_stop` event will be fired.
 
 If you support Pause mode, when switching to another application, your
@@ -406,6 +401,10 @@ class App(EventDispatcher):
             class MyApp(App):
                 icon = 'customicon.png'
 
+         Recommended 256x256 or 1024x1024? for GNU/Linux and Mac OSX
+         32x32 for Windows7 or less. <= 256x256 for windows 8
+         256x256 does work (on Windows 8 at least), but is scaled
+         down and doesn't look as good as a 32x32 icon.
     '''
 
     use_kivy_settings = True
@@ -419,7 +418,7 @@ class App(EventDispatcher):
     settings_cls = ObjectProperty(None)
     '''.. versionadded:: 1.8.0
 
-    The class to used to construct the settings panel and
+    The class used to construct the settings panel and
     the instance passed to :meth:`build_config`. You should
     use either :class:`~kivy.uix.settings.Settings` or one of the provided
     subclasses with different layouts

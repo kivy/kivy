@@ -13,6 +13,7 @@ from kivy.app import App
 from kivy.uix.scatter import ScatterPlane
 from kivy.uix.label import Label
 
+
 class LabelMipmapTest(App):
     def build(self):
         s = ScatterPlane(scale=.5)

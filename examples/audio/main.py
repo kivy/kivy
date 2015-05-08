@@ -2,6 +2,10 @@
 Audio example
 =============
 
+This example plays sounds of different formats. You should see a grid of
+buttons labelled with filenames. Clicking on the buttons will play, or
+restart, each sound. Not all sound formats will play on all platforms.
+
 All the sounds are from the http://woolyss.com/chipmusic-samples.php
 "THE FREESOUND PROJECT", Under Creative Commons Sampling Plus 1.0 License.
 

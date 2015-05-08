@@ -40,6 +40,8 @@ from kivy.compat import PY2
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
     AliasProperty, BooleanProperty
+from kivy.utils import platform
+from kivy.setupconfig import USE_SDL2
 
 
 class SoundLoader:
@@ -192,7 +194,8 @@ class Sound(EventDispatcher):
 # Little trick here, don't activate gstreamer on window
 # seem to have lot of crackle or something...
 audio_libs = []
-
+if platform in ('macosx', 'ios'):
+    audio_libs += [('avplayer', 'audio_avplayer')]
 # from now on, prefer our gstplayer instead of gi/pygst.
 try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA
@@ -202,7 +205,9 @@ except ImportError:
     if PY2:
         audio_libs += [('pygst', 'audio_pygst')]
 audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]
-audio_libs += [('sdl', 'audio_sdl')]
-audio_libs += [('pygame', 'audio_pygame')]
+if USE_SDL2:
+    audio_libs += [('sdl2', 'audio_sdl2')]
+else:
+    audio_libs += [('pygame', 'audio_pygame')]
 
 core_register_libs('audio', audio_libs)

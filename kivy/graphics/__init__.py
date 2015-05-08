@@ -71,7 +71,7 @@ and VertexBatch:
 - Texture: if the texture has a source (an image file or atlas), the image
   is reloaded from the source and reuploaded to the GPU.
 
-You should cover theses cases yourself:
+You should cover these cases yourself:
 
 - Textures without a source: if you manually created a texture and manually
   blit data / a buffer to it, you must handle the reloading yourself. Check the
@@ -99,6 +99,7 @@ from kivy.graphics.stencil_instructions import StencilPop, StencilPush, \
     StencilUse, StencilUnUse
 from kivy.graphics.gl_instructions import ClearColor, ClearBuffers
 from kivy.graphics.fbo import Fbo
+from kivy.graphics.scissor_instructions import  ScissorPush, ScissorPop
 
 # very hacky way to avoid pyflakes warning...
 __all__ = (Bezier.__name__, BindTexture.__name__, BorderImage.__name__,

@@ -36,12 +36,13 @@ __all__ = ('CodeInput', )
 
 from pygments import highlight
 from pygments import lexers
+from pygments import styles
 from pygments.formatters import BBCodeFormatter
 
 from kivy.uix.textinput import TextInput
 from kivy.core.text.markup import MarkupLabel as Label
 from kivy.cache import Cache
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, OptionProperty
 from kivy.utils import get_hex_from_color
 
 Cache_get = Cache.get
@@ -62,8 +63,32 @@ class CodeInput(TextInput):
     defaults to `PythonLexer`.
     '''
 
+    style_name = OptionProperty(
+        'default', options=list(styles.get_all_styles())
+    )
+    '''Name of the pygments style to use for formatting.
+
+    :attr:`style_name` is an :class:`~kivy.properties.OptionProperty`
+    and defaults to ``'default'``.
+
+    '''
+
+    style = ObjectProperty(None)
+    '''The pygments style object to use for formatting.
+
+    When ``style_name`` is set, this will be changed to the
+    corresponding style object.
+
+    :attr:`style` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to ``None``
+
+    '''
+
     def __init__(self, **kwargs):
-        self.formatter = BBCodeFormatter()
+        stylename = kwargs.get('style_name', 'default')
+        style = kwargs['style'] if 'style' in kwargs \
+            else styles.get_style_by_name(stylename)
+        self.formatter = BBCodeFormatter(style=style)
         self.lexer = lexers.PythonLexer()
         self.text_color = '#000000'
         self._label_cached = Label()
@@ -83,6 +108,13 @@ class CodeInput(TextInput):
         self.foreground_color = [1, 1, 1, .999]
         if not kwargs.get('background_color'):
             self.background_color = [.9, .92, .92, 1]
+
+    def on_style_name(self, *args):
+        self.style = styles.get_style_by_name(self.style_name)
+
+    def on_style(self, *args):
+        self.formatter = BBCodeFormatter(style=self.style)
+        self._trigger_update_graphics()
 
     def _create_line_label(self, text, hint=False):
         # Create a label from a text, using line options

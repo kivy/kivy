@@ -73,6 +73,7 @@ class SvgWidget(Scatter):
 
         self.size = svg.width, svg.height
 
+
 class SvgApp(App):
 
     def build(self):
@@ -98,7 +99,8 @@ class SvgApp(App):
 
         if 1:
             #from kivy.uix.image import Image
-            #root.add_widget(Image(source='data/logo/kivy-icon-512.png', size=(800, 600)))
+            #root.add_widget(Image(source='data/logo/kivy-icon-512.png',
+            #                      size=(800, 600)))
 
             filenames = sys.argv[1:]
             if not filenames:
@@ -132,7 +134,6 @@ class SvgApp(App):
             effect.add_widget(Button(text='Hello World'))
             effect.add_widget(Slider(pos=(200, 200)))
 
-
         control_ui = Builder.load_string(smaa_ui)
         self.root.add_widget(control_ui)
 
@@ -151,4 +152,3 @@ class SvgApp(App):
 
 if __name__ == '__main__':
     SvgApp().run()
-

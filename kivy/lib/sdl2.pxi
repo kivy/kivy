@@ -30,6 +30,8 @@ cdef extern from "SDL.h":
         SDL_PIXELFORMAT_ARGB8888
         SDL_PIXELFORMAT_RGBA8888
         SDL_PIXELFORMAT_RGB888
+        SDL_PIXELFORMAT_ABGR8888
+        SDL_PIXELFORMAT_BGR888
 
     ctypedef enum SDL_GLattr:
         SDL_GL_RED_SIZE
@@ -213,6 +215,7 @@ cdef extern from "SDL.h":
         SDL_WINDOW_MOUSE_FOCUS = 0x00000400     #,        /**< window has mouse focus */
         SDL_WINDOW_FOREIGN = 0x00000800         #            /**< window not created by SDL */
         SDL_WINDOW_FULLSCREEN_DESKTOP
+        SDL_WINDOW_ALLOW_HIGHDPI
 
     cdef struct SDL_DropEvent:
         Uint32 type
@@ -221,35 +224,33 @@ cdef extern from "SDL.h":
 
     cdef struct SDL_MouseMotionEvent:
         Uint32 type
+        Uint32 timestamp
         Uint32 windowID
-        Uint8 state
-        Uint8 padding1
-        Uint8 padding2
-        Uint8 padding3
-        int x
-        int y
-        int xrel
-        int yrel
+        Uint32 which
+        Uint32 state
+        Sint32 x
+        Sint32 y
+        Sint32 xrel
+        Sint32 yrel
 
     cdef struct SDL_MouseButtonEvent:
         Uint32 type
+        Uint32 timestamp
         Uint32 windowID
+        Uint32 which
         Uint8 button
         Uint8 state
-        Uint8 padding1
-        Uint8 padding2
-        int x
-        int y
+        Uint8 clicks
+        Sint32 x
+        Sint32 y
 
     cdef struct SDL_WindowEvent:
         Uint32 type
+        Uint32 timestamp
         Uint32 windowID
         Uint8 event
-        Uint8 padding1
-        Uint8 padding2
-        Uint8 padding3
-        int data1
-        int data2
+        Sint32 data1
+        Sint32 data2
 
     ctypedef Sint64 SDL_TouchID
     ctypedef Sint64 SDL_FingerID
@@ -259,16 +260,11 @@ cdef extern from "SDL.h":
         Uint32 windowID
         SDL_TouchID touchId
         SDL_FingerID fingerId
-        Uint8 state
-        Uint8 padding1
-        Uint8 padding2
-        Uint8 padding3
-        Uint16 x
-        Uint16 y
-        Sint16 dx
-        Sint16 dy
-        Uint16 pressure
-
+        float x
+        float y
+        float dx
+        float dy
+        float pressure
 
     cdef struct SDL_Keysym:
         SDL_Scancode scancode       # SDL physical key code - see ::SDL_Scancode for details */
@@ -282,8 +278,6 @@ cdef extern from "SDL.h":
         Uint32 windowID     # The window with keyboard focus, if any
         Uint8 state         # ::SDL_PRESSED or ::SDL_RELEASED
         Uint8 repeat        # Non-zero if this is a key repeat
-        Uint8 padding2 
-        Uint8 padding3 
         SDL_Keysym keysym   # The key that was pressed or released
 
     cdef struct SDL_TextEditingEvent:
@@ -341,8 +335,6 @@ cdef extern from "SDL.h":
         void *data2
 
     cdef struct SDL_SysWMEvent:
-        pass
-    cdef struct SDL_TouchFingerEvent:
         pass
     cdef struct SDL_TouchButtonEvent:
         pass
@@ -412,8 +404,10 @@ cdef extern from "SDL.h":
         KMOD_MODE
         KMOD_RESERVED
 
-    cdef enum SDL_Scancode:
+    ctypedef enum SDL_Scancode:
         pass
+
+    cdef char *SDL_HINT_ORIENTATIONS
 
     cdef int SDL_QUERY               = -1
     cdef int SDL_IGNORE              =  0
@@ -449,7 +443,6 @@ cdef extern from "SDL.h":
     cdef void SDL_GetWindowSize(SDL_Window * window, int *w, int *h)
     cdef Uint32 SDL_GetWindowFlags(SDL_Window * window)
     cdef SDL_Window * SDL_CreateWindow(char *title, int x, int y, int w, int h, Uint32 flags)
-    cdef SDL_Window * SDL_CreateShapedWindow(char *title, int x, int y, int w, int h, Uint32 flags)
     cdef void SDL_DestroyWindow (SDL_Window * window)
     cdef int SDL_SetRenderDrawColor(SDL_Renderer * renderer, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
     cdef int SDL_RenderClear(SDL_Renderer * renderer)
@@ -457,6 +450,9 @@ cdef extern from "SDL.h":
     cdef int SDL_GetTextureBlendMode(SDL_Texture * texture, SDL_BlendMode *blendMode)
     cdef SDL_Surface * SDL_CreateRGBSurfaceFrom(void *pixels, int width, int height, int depth, int pitch, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
     cdef SDL_Surface* SDL_ConvertSurface(SDL_Surface* src, SDL_PixelFormat* fmt, Uint32 flags)
+    cdef SDL_Surface* SDL_ConvertSurfaceFormat(SDL_Surface* src, Uint32
+            pixel_format, Uint32 flags)
+    cdef const char* SDL_GetPixelFormatName(Uint32 format)
     cdef int SDL_Init(Uint32 flags)
     cdef void SDL_Quit()
     cdef int SDL_EnableUNICODE(int enable)
@@ -574,6 +570,7 @@ cdef extern from "SDL.h":
     cdef void SDL_SetTextInputRect(SDL_Rect *rect)
     cdef SDL_bool SDL_HasScreenKeyboardSupport()
     cdef SDL_bool SDL_IsScreenKeyboardShown(SDL_Window *window)
+    cdef void SDL_GL_GetDrawableSize(SDL_Window *window, int *w, int *h)
 
     # Sound audio formats
     Uint16 AUDIO_U8     #0x0008  /**< Unsigned 8-bit samples */
@@ -591,6 +588,9 @@ cdef extern from "SDL.h":
     Uint16 AUDIO_F32MSB #0x9120  /**< As above, but big-endian byte order */
     Uint16 AUDIO_F32    #AUDIO_F32LSB
 
+cdef extern from "SDL_shape.h":
+    cdef SDL_Window * SDL_CreateShapedWindow(char *title, unsigned int x,
+            unsigned int y, unsigned int w, unsigned int h, Uint32 flags)
 
 cdef extern from "SDL_image.h":
     ctypedef enum IMG_InitFlags:
@@ -752,12 +752,15 @@ cdef extern from "SDL_ttf.h":
     # Get the kerning size of two glyphs */
     cdef int TTF_GetFontKerningSize(TTF_Font *font, int prev_index, int index)
 
+cdef extern from "SDL_audio.h":
+    cdef int AUDIO_S16SYS
+
 cdef extern from "SDL_mixer.h":
     cdef struct Mix_Chunk:
         int allocated
         Uint8 *abuf
         Uint32 alen
-        Uint8 volum
+        Uint8 volume
     ctypedef struct Mix_Music:
         pass
     ctypedef enum Mix_Fading: 

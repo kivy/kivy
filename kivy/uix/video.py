@@ -129,7 +129,7 @@ class Video(Image):
 
     def __init__(self, **kwargs):
         self._video = None
-        super(Image, self).__init__(**kwargs)
+        super(Video, self).__init__(**kwargs)
         self.bind(source=self._trigger_video_load)
 
         if "eos" in kwargs:

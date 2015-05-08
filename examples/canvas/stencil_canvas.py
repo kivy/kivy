@@ -3,8 +3,8 @@ Stencil demo
 ============
 
 This is a test of the stencil graphics instruction inside the stencil view
-widget. When you use a stencil, every draw outside the bounding box of the
-stencil view will be avoid. All the graphics will draw only in the stencil view.
+widget. When you use a stencil, nothing will be drawn outside the bounding
+box. All the graphics will draw only in the stencil view.
 
 You can "draw" a stencil view by touch & draw. The touch down will set the
 position, and the drag will set the size.
@@ -31,7 +31,7 @@ class StencilTestWidget(StencilView):
         self.size = (1, 1)
 
     def on_touch_move(self, touch):
-        self.size = (touch.x-touch.ox, touch.y-touch.oy)
+        self.size = (touch.x - touch.ox, touch.y - touch.oy)
 
 
 class StencilCanvasApp(App):

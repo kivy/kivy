@@ -38,9 +38,8 @@ def save(filename, w, h, fmt, pixels, flipped):
     IMG_SavePNG(image, c_filename)
     SDL_FreeSurface(image)
 
-def load(filename):
-    cdef bytes c_filename = filename.encode('utf-8')
-    cdef SDL_Surface *image = IMG_Load(c_filename)
+
+cdef load_from_surface(SDL_Surface *image):
     cdef SDL_Surface *image2 = NULL
     cdef SDL_Surface *fimage = NULL
     cdef SDL_PixelFormat pf
@@ -48,7 +47,6 @@ def load(filename):
 
     try:
         if image == NULL:
-            #print 'UNABLE TO LOAD O_o?'
             return None
 
         fmt = ''
@@ -63,28 +61,16 @@ def load(filename):
         # some opengl card.
 
         if fmt not in ('rgb', 'rgba'):
-            #print 'origin image format'
-            #print '  format', image.format.format
-            #print '  bytesperpixel', image.format.BytesPerPixel
-            #print '  bitsperpixel', image.format.BitsPerPixel
-
-            memset(&pf, 0, sizeof(pf))
-            pf.BitsPerPixel = 8
-            pf.Rmask = 0xff
-            pf.Gmask = 0xff00
-            pf.Bmask = 0xff0000
             if fmt == 'rgb':
-                pf.format = SDL_PIXELFORMAT_RGB888
-                pf.BytesPerPixel = 3
+                pf.format = SDL_PIXELFORMAT_BGR888
+                fmt = 'rgb'
             else:
-                pf.format = SDL_PIXELFORMAT_RGBA8888
-                pf.BytesPerPixel = 4
-                pf.Amask = 0xff000000
+                pf.format = SDL_PIXELFORMAT_ABGR8888
+                fmt = 'rgba'
 
-            image2 = SDL_ConvertSurface(image, &pf, 0)
+            image2 = SDL_ConvertSurfaceFormat(image, pf.format, 0)
             if image2 == NULL:
-                #print 'UNABLE TO CONVERT O_o?'
-                return None
+                return
 
             fimage = image2
         else:
@@ -104,7 +90,38 @@ def load(filename):
         return (fimage.w, fimage.h, fmt, pixels, fimage.pitch)
 
     finally:
-        if image:
-            SDL_FreeSurface(image)
         if image2:
             SDL_FreeSurface(image2)
+
+
+def load_from_filename(filename):
+    cdef bytes c_filename = filename.encode('utf-8')
+    cdef SDL_Surface *image = IMG_Load(c_filename)
+    if image == NULL:
+        return
+    try:
+        return load_from_surface(image)
+    finally:
+        if image:
+            SDL_FreeSurface(image)
+
+def load_from_memory(bytes data):
+    cdef SDL_RWops *rw = NULL
+    cdef SDL_Surface *image = NULL
+    cdef char *c_data = data
+
+    rw = SDL_RWFromMem(c_data, len(data))
+    if rw == NULL:
+        return
+
+    image = IMG_Load_RW(rw, 0)
+    if image == NULL:
+        return
+
+    try:
+        return load_from_surface(image)
+    finally:
+        if image:
+            SDL_FreeSurface(image)
+        if rw:
+            SDL_FreeRW(rw)

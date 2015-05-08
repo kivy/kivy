@@ -79,7 +79,7 @@ popup from closing by explictly returning True from your callback::
 __all__ = ('Popup', 'PopupException')
 
 from kivy.uix.modalview import ModalView
-from kivy.properties import (StringProperty, ObjectProperty,
+from kivy.properties import (StringProperty, ObjectProperty, OptionProperty,
                              NumericProperty, ListProperty)
 
 
@@ -116,6 +116,25 @@ class Popup(ModalView):
 
     :attr:`title_size` is a :class:`~kivy.properties.NumericProperty` and
     defaults to '14sp'.
+    '''
+
+    title_align = OptionProperty('left',
+                                 options=['left', 'center', 'right', 'justify'])
+    '''Horizontal alignment of the title.
+
+    .. versionadded:: 1.9.0
+
+    :attr:`title_align` is a :class:`~kivy.properties.OptionProperty` and
+    defaults to 'left'. Available options are left, middle, right and justify.
+    '''
+
+    title_font = StringProperty('DroidSans')
+    '''Font used to render the title text.
+
+    .. versionadded:: 1.9.0
+
+    :attr:`title_font` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'DroidSans'.
     '''
 
     content = ObjectProperty(None)
@@ -166,9 +185,6 @@ class Popup(ModalView):
             super(Popup, self).add_widget(widget)
 
     def on_content(self, instance, value):
-        if not hasattr(value, 'popup'):
-            value.create_property('popup')
-        value.popup = self
         if self._container:
             self._container.clear_widgets()
             self._container.add_widget(value)

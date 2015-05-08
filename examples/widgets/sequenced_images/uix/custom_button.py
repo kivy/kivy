@@ -5,27 +5,20 @@ from kivy.factory import Factory
 from kivy.uix.label import Label
 from kivy.uix.image import Image
 from kivy.graphics import *
-from kivy.properties import StringProperty, OptionProperty,\
-                             ObjectProperty, BooleanProperty
+from kivy.properties import StringProperty, OptionProperty, \
+                            ObjectProperty, BooleanProperty
 
 
 class AnimatedButton(Label):
 
     state = OptionProperty('normal', options=('normal', 'down'))
-
     allow_stretch = BooleanProperty(True)
-
     keep_ratio = BooleanProperty(False)
-
     border = ObjectProperty(None)
-
     anim_delay = ObjectProperty(None)
-
     background_normal = StringProperty(
-            'atlas://data/images/defaulttheme/button')
-
+        'atlas://data/images/defaulttheme/button')
     texture_background = ObjectProperty(None)
-
     background_down = StringProperty(
             'atlas://data/images/defaulttheme/button_pressed')
 
@@ -37,22 +30,28 @@ class AnimatedButton(Label):
         #borderImage.border by default is ...
         self.border = (16, 16, 16, 16)
         #Image to display depending on state
-        self.img = Image(source = self.background_normal,
-                        allow_stretch = self.allow_stretch,
-                        keep_ratio = self.keep_ratio, mipmap = True)
+        self.img = Image(
+            source=self.background_normal,
+            allow_stretch=self.allow_stretch,
+            keep_ratio=self.keep_ratio,
+            mipmap=True)
+
         #reset animation if anim_delay is changed
         def anim_reset(*l):
             self.img.anim_delay = self.anim_delay
-        self.bind(anim_delay = anim_reset)
+
+        self.bind(anim_delay=anim_reset)
         self.anim_delay = .1
         #update self.texture when image.texture changes
-        self.img.bind(texture = self.on_tex_changed)
+        self.img.bind(texture=self.on_tex_changed)
         self.on_tex_changed()
+
         #update image source when background image is changed
         def background_changed(*l):
             self.img.source = self.background_normal
             self.anim_delay = .1
-        self.bind(background_normal = background_changed)
+
+        self.bind(background_normal=background_changed)
 
     def on_tex_changed(self, *largs):
         self.texture_background = self.img.texture

@@ -15,7 +15,14 @@ do::
 .. note::
 
     The behavior class must always be _before_ the widget class. If you don't
-    specify the inheritance in this order, the behavior will not work.
+    specify the inheritance in this order, the behavior will not work because
+    the behavior methods are overwritten by the class method listed first.
+
+    Similarly, if you combine a behavior class with a class which
+    requires the use of the methods also defined by the behavior class, the
+    resulting class may not function properly. E.g. combining a ButtonBehavior
+    with a Slider, both of which require the on_touch_up methods, the resulting
+    class will not work.
 
 '''
 
@@ -31,7 +38,7 @@ from kivy.base import EventLoop
 from kivy.logger import Logger
 from functools import partial
 from weakref import ref
-from time import clock, time
+from time import time
 import string
 
 # When we are generating documentation, Config doesn't exist
@@ -80,6 +87,16 @@ class ButtonBehavior(object):
     `'down'` state.
 
     :attr:`MIN_STATE_TIME` is a float.
+    '''
+
+    always_release = BooleanProperty(True)
+    '''This determines if the widget fires a `on_release` event if
+    the touch_up is outside the widget.
+
+    .. versionadded:: 1.9.0
+
+    :attr:`always_release` is a :class:`~kivy.properties.BooleanProperty`,
+    defaults to `True`.
     '''
 
     def __init__(self, **kwargs):
@@ -131,6 +148,12 @@ class ButtonBehavior(object):
         assert(self in touch.ud)
         touch.ungrab(self)
         self.last_touch = touch
+
+        if (not self.always_release
+                and not self.collide_point(*touch.pos)):
+            self.state = 'normal'
+            return
+
         touchtime = time() - self.__touch_time
         if touchtime < self.MIN_STATE_TIME:
             self.__state_event = Clock.schedule_once(
@@ -190,7 +213,7 @@ class ToggleButtonBehavior(ButtonBehavior):
     '''This specifies whether the checkbox in group allows everything to
     be deselected.
 
-    ..versionadded::1.9.0
+    .. versionadded:: 1.9.0
 
     :attr:`allow_no_selection` is a :class:`BooleanProperty` defaults to
     `True`
@@ -467,7 +490,7 @@ class FocusBehavior(object):
     node holds a (weak) reference to the instance before it and after it,
     as visualized when cycling through the nodes using tab (forward) or
     shift+tab (backward). If previous or next widget is not specified,
-    :attr:`focus_next` and :attr:`focus_previous` default to `None`,
+    :attr:`focus_next` and :attr:`focus_previous` defaults to `None`,
     which means that the children list and parents are walked to find
     the next focusable widget, unless :attr:`focus_next` or
     :attr:`focus_previous` is set to the `StopIteration` class, in which case
@@ -494,7 +517,6 @@ class FocusBehavior(object):
         future version.
     '''
 
-    _focus_win = None
     _requested_keyboard = False
     _keyboard = ObjectProperty(None, allownone=True)
     _keyboards = {}
@@ -517,17 +539,17 @@ class FocusBehavior(object):
     '''
 
     def _set_keyboard(self, value):
-        focused = self.focused
+        focus = self.focus
         keyboard = self._keyboard
         keyboards = FocusBehavior._keyboards
         if keyboard:
-            self.focused = False    # this'll unbind
+            self.focus = False    # this'll unbind
             if self._keyboard:  # remove assigned keyboard from dict
                 del keyboards[keyboard]
         if value and not value in keyboards:
             keyboards[value] = None
         self._keyboard = value
-        self.focused = focused
+        self.focus = focus
 
     def _get_keyboard(self):
         return self._keyboard
@@ -574,7 +596,7 @@ class FocusBehavior(object):
 
         When an instance has focus, setting keyboard to None will remove the
         current keyboard, but will then try to get a keyboard back. It is
-        better to set :attr:`focused` to False.
+        better to set :attr:`focus` to False.
 
     .. warning:
 
@@ -595,7 +617,7 @@ class FocusBehavior(object):
     :mod:`~kivy.config`), False otherwise.
     '''
 
-    focused = BooleanProperty(False)
+    focus = BooleanProperty(False)
     '''Whether the instance currently has focus.
 
     Setting it to True, will bind to and/or request the keyboard, and input
@@ -604,8 +626,19 @@ class FocusBehavior(object):
     have its focus, so focusing one will automatically unfocus the other
     instance holding its focus.
 
+    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty`, defaults to
+    False.
+    '''
+
+    focused = focus
+    '''An alias of :attr:`focus`.
+
     :attr:`focused` is a :class:`~kivy.properties.BooleanProperty`, defaults to
     False.
+
+    .. warning::
+        :attr:`focused` is an alias of :attr:`focus` and will be removed in
+        2.0.0.
     '''
 
     def _set_on_focus_next(self, instance, value):
@@ -738,16 +771,16 @@ class FocusBehavior(object):
         super(FocusBehavior, self).__init__(**kwargs)
 
         self._keyboard_mode = _keyboard_mode
-        self.bind(focused=self._on_focused, disabled=self._on_focusable,
+        self.bind(focus=self._on_focus, disabled=self._on_focusable,
                   is_focusable=self._on_focusable,
                   focus_next=self._set_on_focus_next,
                   focus_previous=self._set_on_focus_previous)
 
     def _on_focusable(self, instance, value):
         if self.disabled or not self.is_focusable:
-            self.focused = False
+            self.focus = False
 
-    def _on_focused(self, instance, value, *largs):
+    def _on_focus(self, instance, value, *largs):
         if self.keyboard_mode == 'auto':
             if value:
                 self._bind_keyboard()
@@ -756,17 +789,10 @@ class FocusBehavior(object):
 
     def _ensure_keyboard(self):
         if self._keyboard is None:
-            win = self._focus_win
-            if not win:
-                self._focus_win = win = EventLoop.window
-            if not win:
-                Logger.warning('FocusBehavior: '
-                'Cannot focus the element, unable to get root window')
-                return
             self._requested_keyboard = True
             keyboard = self._keyboard =\
-                win.request_keyboard(self._keyboard_released, self,
-                                     input_type=self.input_type)
+                EventLoop.window.request_keyboard(
+                    self._keyboard_released, self, input_type=self.input_type)
             keyboards = FocusBehavior._keyboards
             if keyboard not in keyboards:
                 keyboards[keyboard] = None
@@ -776,22 +802,24 @@ class FocusBehavior(object):
         keyboard = self._keyboard
 
         if not keyboard or self.disabled or not self.is_focusable:
-            self.focused = False
+            self.focus = False
             return
         keyboards = FocusBehavior._keyboards
         old_focus = keyboards[keyboard]  # keyboard should be in dict
         if old_focus:
-            old_focus.focused = False
+            old_focus.focus = False
             # keyboard shouldn't have been released here, see keyboard warning
         keyboards[keyboard] = self
         keyboard.bind(on_key_down=self.keyboard_on_key_down,
-                      on_key_up=self.keyboard_on_key_up)
+                      on_key_up=self.keyboard_on_key_up,
+                      on_textinput=self.keyboard_on_textinput)
 
     def _unbind_keyboard(self):
         keyboard = self._keyboard
         if keyboard:
             keyboard.unbind(on_key_down=self.keyboard_on_key_down,
-                            on_key_up=self.keyboard_on_key_up)
+                            on_key_up=self.keyboard_on_key_up,
+                            on_textinput=self.keyboard_on_textinput)
             if self._requested_keyboard:
                 keyboard.release()
                 self._keyboard = None
@@ -800,8 +828,11 @@ class FocusBehavior(object):
             else:
                 FocusBehavior._keyboards[keyboard] = None
 
+    def keyboard_on_textinput(self, window, text):
+        pass
+
     def _keyboard_released(self):
-        self.focused = False
+        self.focus = False
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -809,7 +840,7 @@ class FocusBehavior(object):
         if (not self.disabled and self.is_focusable and
             ('button' not in touch.profile or
              not touch.button.startswith('scroll'))):
-            self.focused = True
+            self.focus = True
             FocusBehavior.ignored_touch.append(touch)
         return super(FocusBehavior, self).on_touch_down(touch)
 
@@ -824,7 +855,7 @@ class FocusBehavior(object):
         for focusable in list(FocusBehavior._keyboards.values()):
             if focusable is None or not focusable.unfocus_on_touch:
                 continue
-            focusable.focused = False
+            focusable.focus = False
 
     def _get_focus_next(self, focus_dir):
         current = self
@@ -876,12 +907,10 @@ class FocusBehavior(object):
             else:
                 next = self._get_focus_next('focus_next')
             if next:
-                self.focused = False
+                self.focus = False
 
-                def _fn(dt):
-                    next.focused = True
+                next.focus = True
 
-                Clock.schedule_once(_fn)
             return True
         return False
 
@@ -900,7 +929,7 @@ class FocusBehavior(object):
         See :meth:`on_key_down`
         '''
         if keycode[1] == 'escape':
-            self.focused = False
+            self.focus = False
             return True
         return False
 
@@ -1169,11 +1198,11 @@ class CompoundSelectionBehavior(object):
             keys.append(scancode[1])
         else:
             if scancode[1] in self._printable:
-                if clock() - self._last_key_time <= 1.:
+                if time() - self._last_key_time <= 1.:
                     self._word_filter += scancode[1]
                 else:
                     self._word_filter = scancode[1]
-                self._last_key_time = clock()
+                self._last_key_time = time()
                 node, idx = self.goto_node(self._word_filter, node_src,
                                            idx_src)
             else:

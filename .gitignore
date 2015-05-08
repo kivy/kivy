@@ -11,7 +11,11 @@ Kivy.egg-info
 *.kpf
 build/*
 doc/build
+doc/autobuild.py-done*
 doc/sources/api-*.rst
+doc/sources/examples/gen__*.rst
+doc/sources/examples/gallery.rst
+doc/sources/examples/index.rst
 kivy/*.c
 kivy/*.pyd
 kivy/core/text/text_layout.c
@@ -36,11 +40,12 @@ python
 python.exe
 .idea
 dist
+htmlcov
 
 MANIFEST
 
 kivy/core/image/img_imageio.c
-kivy/core/audio/audio_sdl.c
+kivy/core/audio/audio_sdl2.c
 kivy/core/text/text_sdlttf.c
 kivy/core/window/window_x11.c
 kivy/lib/vidcore_lite/bcm.c
@@ -53,7 +58,12 @@ kivy/core/window/_window_sdl2.c
 # PyDev
 .project
 .pydevproject
+.settings/
 
 # Virtualenv
 venv
 
+
+kivy/setupconfig.py
+
+kivy/core/clipboard/_clipboard_sdl2.c

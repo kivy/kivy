@@ -50,7 +50,7 @@ cdef extern from "X11/Xutil.h":
         XButtonEvent xbutton
 
 cdef extern int x11_create_window(int width, int height, int x, int y, \
-        int resizable, int fullscreen, int border, int above, char *title)
+        int resizable, int fullscreen, int border, int above, int CWOR, char *title)
 cdef extern void x11_gl_swap()
 cdef extern int x11_idle()
 cdef extern int x11_get_width()
@@ -147,6 +147,7 @@ class WindowX11(WindowBase):
         fullscreen = False
         border = True
         above = False
+        CWOR = False
         size = list(self.system_size)
         if self.fullscreen == 'fake':
             fullscreen = True
@@ -168,8 +169,17 @@ class WindowX11(WindowBase):
         if 'KIVY_WINDOW_ABOVE' in environ:
             above = True
 
+        # Sets CWOverrideRedirect in x11.
+        # This can lead to unknown effects depending on your
+        # system-configuration as the WindowManager will loos the control
+        # about this window. (In most cases the window then just gets placed
+        # above all other windows without any decoration)
+        if 'KIVY_WINDOW_X11_CWOR' in environ:
+            CWOR = True
+
         if x11_create_window(size[0], size[1], pos[0], pos[1],
-                resizable, fullscreen, border, above, <char *><bytes>self.title) < 0:
+                resizable, fullscreen, border, above, CWOR,
+                <char *><bytes>self.title) < 0:
             Logger.critical('WinX11: Unable to create the window')
             return
 

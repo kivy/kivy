@@ -413,14 +413,13 @@ cdef class EventDispatcher(ObjectWithUid):
             if __name__ == "__main__":
                 DemoApp().run()
 
-        When binding a function to an event, a
+        When binding a function to an event or property, a
         :class:`kivy.weakmethod.WeakMethod` of the callback is saved, and
         when dispatching the callback is removed if the callback reference
-        becomes invalid. For properties, the actual callback is saved.
+        becomes invalid.
 
-        Another difference between binding to an event vs a property; when
-        binding to a property, if this callback has already been bound to this
-        property, it won't be added again. For events, we don't do this check.
+        If a callback has already been bound to a given event or property,
+        it won't be added again.
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps
@@ -432,23 +431,22 @@ cdef class EventDispatcher(ObjectWithUid):
                 if observers is None:
                     continue
                 # convert the handler to a weak method
-                observers.fast_bind(WeakMethod(value), None, None, 1)
+                observers.bind(WeakMethod(value), 1)
             else:
                 ps = self.__storage[key]
-                ps.observers.bind(value)
+                ps.observers.bind(WeakMethod(value), 1)
 
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions with similar usage as
         :meth:`bind`.
 
-        One difference between unbinding from
-        an event vs. property, is that when unbinding from an event, we
-        stop after the first callback match. For properties, we remove all
-        matching callbacks.
+        If a callback has been bound to a given event or property multiple
+        times, only the first occurrence will be unbound.
 
-        Note, a callback bound with :meth:`fast_bind` without any largs or
-        kwargs is equivalent to one bound with :meth:`bind` so either
-        :meth:`unbind` or :meth:`fast_unbind` will unbind it.
+        .. note::
+            
+            This method may fail to unbind a callback bound with
+            :meth:`fast_bind; you should use :meth:`fast_unbind` instead.
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps
@@ -462,7 +460,7 @@ cdef class EventDispatcher(ObjectWithUid):
                 observers.unbind(value, 1, 1)
             else:
                 ps = self.__storage[key]
-                ps.observers.unbind(value, 0, 0)
+                ps.observers.unbind(value, 1, 1)
 
     def fast_bind(self, name, func, *largs, **kwargs):
         '''A method for faster binding. This method is somewhat different than
@@ -794,7 +792,7 @@ cdef class EventDispatcher(ObjectWithUid):
             ret[x] = p[x]
         return ret
 
-    def create_property(self, name, value=None):
+    def create_property(self, name, value=None, *largs, **kwargs):
         '''Create a new property at runtime.
 
         .. versionadded:: 1.0.9
@@ -807,6 +805,9 @@ cdef class EventDispatcher(ObjectWithUid):
         .. versionchanged:: 1.9.0
             In the past, if `value` was of type `bool`, a `NumericProperty`
             would be created, now a `BooleanProperty` is created.
+
+            Also, now and positional and keyword arguments are passed to the
+            property when created.
 
         .. warning::
 
@@ -827,18 +828,20 @@ cdef class EventDispatcher(ObjectWithUid):
         >>> print(mywidget.custom)
         True
         '''
+        if value is None:  # shortcut
+            prop = ObjectProperty(None, *largs, **kwargs)
         if isinstance(value, bool):
-            prop = BooleanProperty(value)
+            prop = BooleanProperty(value, *largs, **kwargs)
         elif isinstance(value, (int, float)):
-            prop = NumericProperty(value)
+            prop = NumericProperty(value, *largs, **kwargs)
         elif isinstance(value, string_types):
-            prop = StringProperty(value)
+            prop = StringProperty(value, *largs, **kwargs)
         elif isinstance(value, (list, tuple)):
-            prop = ListProperty(value)
+            prop = ListProperty(value, *largs, **kwargs)
         elif isinstance(value, dict):
-            prop = DictProperty(value)
+            prop = DictProperty(value, *largs, **kwargs)
         else:
-            prop = ObjectProperty(value)
+            prop = ObjectProperty(value, *largs, **kwargs)
         prop.link(self, name)
         prop.link_deps(self, name)
         self.__properties[name] = prop
@@ -846,7 +849,7 @@ cdef class EventDispatcher(ObjectWithUid):
 
     property proxy_ref:
         '''Default implementation of proxy_ref, returns self.
-        ..versionadded:: 1.9.0
+        .. versionadded:: 1.9.0
         '''
         def __get__(self):
             return self
@@ -879,7 +882,7 @@ cdef class EventObservers:
         self.last_callback = self.first_callback = None
         self.uid = 1  # start with 1 so uid is always evaluated to True
 
-    cdef inline void bind(self, object observer) except *:
+    cdef inline void bind(self, object observer, int is_ref=0) except *:
         '''Bind the observer to the event. If this observer has already been
         bound, we don't add it again.
         '''
@@ -887,12 +890,18 @@ cdef class EventObservers:
         cdef BoundCallback new_callback
 
         while callback is not None:
+            if is_ref and not callback.is_ref:
+                cb_equal = callback.func == observer()
+            elif callback.is_ref and not is_ref:
+                cb_equal = callback.func() == observer
+            else:
+                cb_equal = callback.func == observer
             if (callback.lock != deleted and callback.largs is None and
-                callback.kwargs is None and callback.func == observer):
+                callback.kwargs is None and cb_equal):
                 return
             callback = callback.next
 
-        new_callback = BoundCallback(observer, None, None, 0)
+        new_callback = BoundCallback(observer, None, None, is_ref)
         if self.first_callback is None:
             self.last_callback = self.first_callback = new_callback
         else:
@@ -1116,7 +1125,7 @@ cdef class EventObservers:
         scheduled to be executed is immediatly locked, so that we know where to
         stop, in case new callbacks are added.
         '''
-        cdef BoundCallback callback, final, next
+        cdef BoundCallback callback, final
         cdef object f, result
         cdef BoundLock current_lock, last_lock
         cdef int done = 0, res = 0, reverse = self.dispatch_reverse
@@ -1137,24 +1146,24 @@ cdef class EventObservers:
 
         while not done and callback is not None:
             done = final is callback
-            next = callback.prev if reverse else callback.next
 
             if callback.lock == deleted:
-                callback = next
+                callback = callback.prev if reverse else callback.next
                 continue
-            if callback.is_ref:
-                f = callback.func()
-                if f is None:
-                    self.remove_callback(callback)
-                    callback = next
-                    continue
-            else:
-                f = callback.func
 
             # save the lock state (currently only either locked or unlocked)
             current_lock = callback.lock
             if current_lock == unlocked:  # and lock it if unlocked
                 callback.lock = locked
+
+            if callback.is_ref:
+                f = callback.func()
+                if f is None:
+                    self.remove_callback(callback, current_lock == unlocked)
+                    callback = callback.prev if reverse else callback.next
+                    continue
+            else:
+                f = callback.func
 
             result = self._dispatch(
                 f, callback.largs, callback.kwargs, obj, value, largs, kwargs)
@@ -1167,7 +1176,7 @@ cdef class EventObservers:
 
             if result and stop_on_true:
                 res = done = 1
-            callback = next
+            callback = callback.prev if reverse else callback.next
 
         # now unlock/delete the final callback if we locked it
         if last_lock == unlocked:

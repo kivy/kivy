@@ -210,9 +210,8 @@ class StackLayout(Layout):
         sizes = []
         for c in reversed(self.children):
             if c.size_hint[outerattr]:
-                c.size[outerattr] = max(
-                    1, c.size_hint[outerattr] *
-                       (selfsize[outerattr] - padding_v))
+                c.size[outerattr] = max(1,
+                    c.size_hint[outerattr] * (selfsize[outerattr] - padding_v))
 
             # does the widget fit in the row/column?
             ccount = len(lc)

@@ -67,7 +67,7 @@ asynchronous version.
 
 For example, the *get* method has a `callback` parameter. If set, the
 `callback` will be used to return the result to the user when available:
-the request will be asynchronous.  If the `callback` is None, then the
+the request will be asynchronous. If the `callback` is None, then the
 request will be synchronous and the result will be returned directly.
 
 
@@ -352,7 +352,7 @@ class AbstractStore(EventDispatcher):
 
     def store_put_async(self, key, value, callback):
         try:
-            value = self.store_put(key, value)
+            value = self.put(key, **value)
             callback(self, key, value)
         except:
             callback(self, key, None)
@@ -366,7 +366,7 @@ class AbstractStore(EventDispatcher):
 
     def store_delete_async(self, key, callback):
         try:
-            value = self.store_delete(key)
+            value = self.delete(key)
             callback(self, key, value)
         except:
             callback(self, key, None)
@@ -398,6 +398,6 @@ class AbstractStore(EventDispatcher):
     # Privates
     #
 
-    def _schedule(self, callback, **kwargs):
+    def _schedule(self, cb, **kwargs):
         # XXX not entirely sure about the best value (0 or -1).
-        Clock.schedule_once(partial(callback, **kwargs), 0)
+        Clock.schedule_once(lambda dt: cb(**kwargs), 0)

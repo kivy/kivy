@@ -24,7 +24,9 @@ class ClipboardWindows(ClipboardBase):
         user32.OpenClipboard(0)
         # 1 is CF_TEXT
         pcontents = user32.GetClipboardData(13)
-        data = c_wchar_p(pcontents).value.encode('utf-16')
+        if not pcontents:
+            return ''
+        data = c_wchar_p(pcontents).value.encode(self._encoding)
         #ctypes.windll.kernel32.GlobalUnlock(pcontents)
         user32.CloseClipboard()
         return data
@@ -43,5 +45,3 @@ class ClipboardWindows(ClipboardBase):
 
     def get_types(self):
         return list('text/plain',)
-
-

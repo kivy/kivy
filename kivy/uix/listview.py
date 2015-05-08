@@ -794,13 +794,13 @@ class ListView(AbstractView, EventDispatcher):
     :class:`~kivy.uix.abstractview.AbstractView` class.
 
     :class:`~kivy.uix.listview.ListView` also subclasses
-    :class:`EventDispatcher` for scrolling.  The event *on_scroll_complete* is
+    :class:`EventDispatcher` for scrolling. The event *on_scroll_complete* is
     used in refreshing the main view.
 
     For a simple list of string items, without selection, use
     :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`. For list items
     that respond to selection, ranging from simple items to advanced
-    composites, use :class:`~kivy.adapters.listadapter.ListAdapter`.  For an
+    composites, use :class:`~kivy.adapters.listadapter.ListAdapter`. For an
     alternate powerful adapter, use
     :class:`~kivy.adapters.dictadapter.DictAdapter`, rounding out the choice
     for designing highly interactive lists.

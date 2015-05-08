@@ -233,7 +233,7 @@ This also applies to the position of sub-widgets. Instead of positioning a
     Prior to version 1.7.0, the :class:`RelativeLayout` was implemented as a
     :class:`~kivy.uix.floatlayout.FloatLayout` inside a
     :class:`~kivy.uix.scatter.Scatter`. This behaviour/widget has
-    been renamed to `ScatterLayout`.  The :class:`RelativeLayout` now only
+    been renamed to `ScatterLayout`. The :class:`RelativeLayout` now only
     supports relative positions (and can't be rotated, scaled or translated on
     a multitouch system using two or more fingers). This was done so that the
     implementation could be optimized and avoid the heavier calculations of
@@ -264,6 +264,10 @@ class RelativeLayout(FloatLayout):
 
     def to_local(self, x, y, **k):
         return (x - self.x, y - self.y)
+
+    def _apply_transform(self, m):
+        m.translate(self.x, self.y, 0)
+        return super(RelativeLayout, self)._apply_transform(m)
 
     def on_touch_down(self, touch):
         x, y = touch.x, touch.y

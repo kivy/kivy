@@ -25,6 +25,7 @@ __all__ = (
 import sys
 from kivy.config import Config
 from kivy.logger import Logger
+from kivy.utils import platform
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
@@ -234,6 +235,8 @@ class EventLoopBase(EventDispatcher):
             if wid != root_window and root_window is not None:
                 me.push()
                 w, h = root_window.system_size
+                if platform == 'ios' or root_window._density != 1:
+                    w, h = root_window.size
                 kheight = root_window.keyboard_height
                 smode = root_window.softinput_mode
                 me.scale_for_screen(w, h, rotation=root_window.rotation,

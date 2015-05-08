@@ -71,6 +71,7 @@ BoxLayout:
                 text: 'Michaelangelo Smith'
 '''
 
+
 class ShortenText(App):
     def build(self):
         return Builder.load_string(kv)

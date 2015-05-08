@@ -57,7 +57,7 @@ class Cache(object):
             'timeout': timeout}
         Cache._objects[category] = {}
         Logger.debug(
-            'Cache: register <%s> with limit=%s, timeout=%ss' %
+            'Cache: register <%s> with limit=%s, timeout=%s' %
             (category, str(limit), str(timeout)))
 
     @staticmethod

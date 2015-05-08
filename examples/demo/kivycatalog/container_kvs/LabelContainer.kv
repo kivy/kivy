@@ -3,19 +3,20 @@
 GridLayout:
     cols: 1
     Label:
-        text: "Label 1"
+        text: "Label crowded by size hint"
         size_hint_y: .2
     Label:
-        text: "Label with\nmultiple lines"
-        size_hint_y: .2
+        text: 'Label with\nmultiple\nlines'
+        size_hint_y: .4
     Label:
-        font_size: '62sp'
+        font_size: '48sp'
         text: "Label [color=ff3333][sub]with[/sub][/color] [color=3333ff][b]mark[sup]up[/sup][/b][/color]"
         markup: True
     Button:
-        text: 'Label in a button'
+        text: 'Labels in buttons'
     GridLayout:
         cols: 2
+        size_hint_y: 3
         Button:
             text: 'Left aligned at middle'
             padding: 10, 10
@@ -28,6 +29,27 @@ GridLayout:
             halign: 'right'
             valign: 'top'
             text_size: self.size
+        Button:
+            text: 'Left aligned with no padding'
+            halign: 'left'
+            valign: 'middle'
+            text_size: self.size
+        Button:
+            text:  'Multiple\nbold italic centered\nlines'
+            halign: 'center'
+            valign: 'middle'
+            bold: True
+            italic: True
+            text_size: self.size
+        Button:
+            text: 'multiple\nspaced lines\ncentered'
+            padding: 10, 10
+            halign: 'center'
+            valign: 'middle'
+            line_height: 1.5
+            text_size: self.size
+        Button:
+            text: 'button without\npadding\nor align'
     Label:
         text: "Label with [ref=reference]reference[/ref]"
         markup: True
@@ -37,4 +59,4 @@ GridLayout:
         bold: True
         font_name: "data/fonts/DroidSansMono.ttf"
         font_size: 32
-        valign: "bottom"
+        valign: 'bottom'

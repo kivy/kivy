@@ -287,6 +287,30 @@ The Button text changes with the state of the button. By default, the button
 text will be 'Plop world', but when the button is being pressed, the text will
 change to 'Release me!'.
 
+More precisely, the kivy language parser detects all substrings of the form
+`X.a.b` where `X` is `self` or `root` or `app` or a known id, and `a` and `b`
+are properties: it then adds the appropriate dependencies to cause the
+the constraint to be reevaluated whenever something changes. For example,
+this works exactly as expected::
+
+    <IndexedExample>:
+        beta: self.a.b[self.c.d]
+
+However, due to limitations in the parser which hopefully may be lifted in the
+future, the following doesn't work::
+
+    <BadExample>:
+        beta: self.a.b[self.c.d].e.f
+
+indeed the `.e.f` part is not recognized because it doesn't follow the expected
+pattern, and so, does not result in an appropriate dependency being setup.
+Instead, an intermediate property should be introduced to allow the following
+constraint::
+
+    <GoodExample>:
+        alpha: self.a.b[self.c.d]
+        beta: self.alpha.e.f
+
 
 Graphical Instructions
 ----------------------
@@ -382,7 +406,7 @@ to subclass. The Python equivalent would have been:
         pass
 
 Any new properties, usually added in python code, should be declared
-first.  If the property doesn't exist in the dynamic class, it will be
+first. If the property doesn't exist in the dynamic class, it will be
 automatically created as an :class:`~kivy.properties.ObjectProperty`
 (pre 1.8.0) or as an appropriate typed property (from version
 1.8.0).
@@ -397,7 +421,7 @@ automatically created as an :class:`~kivy.properties.ObjectProperty`
     default value `"world"`. Lists, tuples, dictionaries and strings are
     supported.
 
-Let's illustrate the usage of theses dynamic classes with an
+Let's illustrate the usage of these dynamic classes with an
 implementation of a basic Image button. We could derive our classes from
 the Button and just add a property for the image filename:
 
@@ -532,7 +556,7 @@ will react to the *on_touch_down* event.:
 
 We can see that the size and size_hint attribute are exactly the same.
 More than that, the callback in on_touch_down and the image are changing.
-Theses can be the variable part of the template that we can put into a context.
+These can be the variable part of the template that we can put into a context.
 Let's try to create a template for the Image:
 
 .. code-block:: kv
@@ -759,6 +783,7 @@ import re
 import sys
 import traceback
 import imp
+import types
 from re import sub, findall
 from os import environ
 from os.path import join, exists, basename
@@ -797,6 +822,11 @@ lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 lang_tr = re.compile('(_\()')
 
+# class types to check with isinstance
+if PY2:
+    _cls_type = (type, types.ClassType)
+else:
+    _cls_type = (type, )
 
 # all the widget handlers, used to correctly unbind all the callbacks then the
 # widget is deleted
@@ -1191,6 +1221,9 @@ class Parser(object):
                                 'Language extension (.kv)'.format(ref))
                     break
                 if ref in __KV_INCLUDES__:
+                    if not os.path.isfile(ref):
+                        raise ParserException(self, ln,
+                            'Invalid or unknown file: {0}'.format(ref))
                     if not force_load:
                         Logger.warn('WARNING: {0} has already been included!'
                                     .format(ref))
@@ -1200,9 +1233,7 @@ class Parser(object):
                                     .format(ref))
                         Builder.unload_file(ref)
                         Builder.load_file(ref)
-                if not os.path.isfile(ref):
-                    raise ParserException(self, ln, 'Invalid or unknown file: '
-                                                    '{0}'.format(ref))
+                        continue
                 Logger.debug('Including file: {0}'.format(0))
                 __KV_INCLUDES__.append(ref)
                 Builder.load_file(ref)
@@ -1499,21 +1530,21 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
             The function to be called args, `args` on bound callback.
     '''
     # first remove all the old bound functions from `s` and down.
-    j = s - 1
-    for f, k, fun, uid in bound[j:]:
+    for f, k, fun, uid in bound[s:]:
         if fun is None:
             continue
         try:
             f.unbind_uid(k, uid)
         except ReferenceError:
             pass
-    del bound[j:]
+    del bound[s:]
 
     # find the first attr from which we need to start rebinding.
-    if len(bound):
-        f = bound[-1][0]
-    else:  # if it's the very first attr, we start with the base.
-        f = base
+    f = getattr(*bound[-1][:2])
+    if f is None:
+        fn(args, None, None)
+        return
+    s += 1
     append = bound.append
 
     # bind all attrs, except last to update_intermediates
@@ -1596,8 +1627,10 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                         was_bound = True
                     else:
                         append([f.proxy_ref, val, None, None])
-                else:
+                elif not isinstance(f, _cls_type):
                     append([getattr(f, 'proxy_ref', f), val, None, None])
+                else:
+                    append([f, val, None, None])
                 f = getattr(f, val, None)
                 if f is None:
                     break
@@ -1700,7 +1733,7 @@ class BuilderBase(object):
         '''
 
         # try to see if there is a compiled version of the kv first
-        pyfn = filename.replace(".kv", "_kv.py")
+        pyfn = filename + ".py"
         pyfn = resource_find(pyfn) or pyfn
         if exists(pyfn):
             Logger.info('Builder: load file %s (compiled, py)' % pyfn)
@@ -1915,6 +1948,12 @@ class BuilderBase(object):
         Factory_is_template = Factory.is_template
         for crule in rule.children:
             cname = crule.name
+
+            if cname in ('canvas', 'canvas.before', 'canvas.after'):
+                raise ParserException(
+                    crule.ctx, crule.line,
+                    'Canvas instructions added in kv must '
+                    'be declared before child widgets.')
 
             # depending if the child rule is a template or not, we are not
             # having the same approach

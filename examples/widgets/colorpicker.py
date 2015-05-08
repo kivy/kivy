@@ -18,12 +18,12 @@ Builder.load_string('''
     # as soon as the image is loaded, ensure that the center is changed
     # to the center of the screen.
     on_size: self.center = app.main_root_widget.center
-    size: image.size
+    size: img.size
     size_hint: None, None
-    on_touch_down: if self.collide_point(*args[1].pos): app.current_image = image
+    on_touch_down: if self.collide_point(*args[1].pos): app.current_image = img
 
     Image:
-        id: image
+        id: img
         source: root.source
 
         # create initial image to be 400 pixels width
@@ -32,12 +32,12 @@ Builder.load_string('''
         # add shadow background
         canvas.before:
             Color:
-                rgba: 1,1,1,1
+                rgba: 1, 1, 1, 1
             BorderImage:
                 source: '../demo/pictures/shadow32.png'
-                border: (36,36,36,36)
-                size:(self.width+72, self.height+72)
-                pos: (-36,-36)
+                border: (36, 36, 36, 36)
+                size:(self.width + 72, self.height + 72)
+                pos: (-36, -36)
 
 <ColorSelector>:
     color: 1, 1, 1, 1
@@ -77,7 +77,9 @@ Builder.load_string('''
         valign: 'middle'
         halign: 'center'
         height: self.texture.size[1] if self.texture else 10
-        text: 'Selected Image:\\n' + app.current_image.source.split(os.sep)[2] if app.current_image else 'None'
+        text:
+            ("Selected Image:\\n' + app.current_image.source.split(os.sep)[2] "
+            "if app.current_image else 'None'")
     Button:
         text: 'Brush'
         size_hint_y: None
@@ -111,6 +113,8 @@ Builder.load_string('''
         LeftPanel:
 
 ''')
+
+
 def calculate_points(x1, y1, x2, y2, steps=5):
     dx = x2 - x1
     dy = y2 - y1
@@ -126,8 +130,10 @@ def calculate_points(x1, y1, x2, y2, steps=5):
         o.extend([lastx, lasty])
     return o
 
+
 class ColorSelector(Popup):
     pass
+
 
 class Picture(Scatter):
 
@@ -146,13 +152,13 @@ class Picture(Scatter):
             return super(Picture, self).on_touch_down(touch)
         ud = touch.ud
         ud['group'] = g = str(touch.uid)
-        _pos =list(self.ids.image.to_widget(*touch.pos))
+        _pos = list(self.ids.img.to_widget(*touch.pos))
         _pos[0] += self.parent.x
-        with self.ids.image.canvas.after:
+        with self.ids.img.canvas.after:
             ud['color'] = Color(*_app.color_selector.color, group=g)
             ud['lines'] = Point(points=(_pos),
-                                source='../examples/demo/touchtracer/particle.png',
-                                pointsize=5, group=g)
+                            source='../examples/demo/touchtracer/particle.png',
+                            pointsize=5, group=g)
         touch.grab(self)
         return True
 
@@ -163,7 +169,7 @@ class Picture(Scatter):
         if _app.color_mode[0] == 'c' or not self.collide_point(*touch.pos):
             return super(Picture, self).on_touch_move(touch)
         ud = touch.ud
-        _pos =list(self.ids.image.to_widget(*touch.pos))
+        _pos = list(self.ids.img.to_widget(*touch.pos))
         _pos[0] += self.parent.x
         points = ud['lines'].points
         oldx, oldy = points[-2], points[-1]
@@ -172,7 +178,7 @@ class Picture(Scatter):
             try:
                 lp = ud['lines'].add_point
                 for idx in range(0, len(points), 2):
-                    lp(points[idx], points[idx+1])
+                    lp(points[idx], points[idx + 1])
             except GraphicException:
                 pass
 
@@ -190,16 +196,15 @@ class Picture(Scatter):
 class MainRootWidget(BoxLayout):
 
     clent_area = ObjectProperty(None)
-    '''The Client Area in which all editing is Done
-    '''
+    # The Client Area in which all editing is Done
 
     def on_parent(self, instance, parent):
         if parent:
             _dir = join(dirname(__file__), 'lists/fruit_images/')
             for image in list(walk(_dir))[0][2]:
                 if image.find('512') > -1:
-                    self.client_area.add_widget(Picture(
-                                                        source=_dir+image))
+                    self.client_area.add_widget(Picture(source=_dir + image))
+
 
 class MainApp(App):
 
@@ -214,7 +219,6 @@ class MainApp(App):
     '''This defines the current mode `brush` or `cursor`. `brush` mode allows
     adding brush strokes to the currently selected Image.
     '''
-
 
     def build(self):
         self.color_selector = ColorSelector()

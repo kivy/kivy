@@ -130,7 +130,7 @@ Wrap mode         Supported     Supported     No
 
 If you create a NPOT texture, we first check whether your hardware
 supports it by checking the extensions GL_ARB_texture_non_power_of_two or
-OES_texture_npot. If none of theses are available, we create the nearest
+OES_texture_npot. If none of these are available, we create the nearest
 POT texture that can contain your NPOT texture. The :meth:`Texture.create` will
 return a :class:`TextureRegion` instead.
 
@@ -226,6 +226,7 @@ include "img_tools.pxi"
 
 cimport cython
 from os import environ
+from kivy.utils import platform
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.context cimport get_context
 
@@ -234,7 +235,8 @@ IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.opengl_utils cimport *
 
-cdef int gles_limts = int(environ.get('KIVY_GLES_LIMITS', 1))
+cdef int gles_limts = int(environ.get(
+    'KIVY_GLES_LIMITS', int(platform not in ('win', 'macosx', 'linux'))))
 
 # update flags
 cdef int TI_MIN_FILTER      = 1 << 0
@@ -530,7 +532,7 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
             Color format of the texture. Can be 'rgba' or 'rgb',
             'luminance' or 'luminance_alpha'. On desktop, additionnal values are
             available: 'red', 'rg'.
-        `icolorfmt`: str, default to the value of `colorfmt`
+        `icolorfmt`: str, defaults to the value of `colorfmt`
             Internal format storage of the texture. Can be 'rgba' or 'rgb',
             'luminance' or 'luminance_alpha'. On desktop, additionnal values are
             available: 'r8', 'rg8', 'rgba8'.
@@ -892,12 +894,14 @@ cdef class Texture:
             if colorfmt.lower() != self.colorfmt.lower():
                 raise Exception((
                     "GLES LIMIT: Cannot blit with a different colorfmt than "
-                    "the created texture. (texture has {}, you passed {})"
+                    "the created texture. (texture has {}, you passed {}). "
+                    "Consider setting KIVY_GLES_LIMITS"
                     ).format(self.colorfmt, colorfmt))
             if bufferfmt.lower() != self.bufferfmt.lower():
                 raise Exception((
                     "GLES LIMIT: Cannot blit with a different bufferfmt than "
-                    "the created texture. (texture has {}, you passed {})"
+                    "the created texture. (texture has {}, you passed {}). "
+                    "Consider setting KIVY_GLES_LIMITS"
                     ).format(self.bufferfmt, bufferfmt))
 
         # bind the texture, and create anything that should be created at this
@@ -1106,7 +1110,7 @@ cdef class Texture:
 
         .. versionchanged:: 1.8.0
 
-            Parameter `flipped` added, default to True. All the OpenGL Texture
+            Parameter `flipped` added, defaults to True. All the OpenGL Texture
             are readed from bottom / left, it need to be flipped before saving.
             If you don't want to flip the image, set flipped to False.
         '''

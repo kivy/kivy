@@ -2,13 +2,14 @@
 Weak Method
 ===========
 
-The :class:`WeakMethod` is used in the Clock class to allow a reference
-to a bound method that permits the associated object to be garbage collected.
-Check examples/core/clock_method.py for more information.
+The :class:`WeakMethod` is used by the :class:`~kivy.clock.Clock` class to
+allow references to a bound method that permits the associated object to
+be garbage collected. Please refer to
+`examples/core/clock_method.py` for more information.
 
 This WeakMethod class is taken from the recipe
 http://code.activestate.com/recipes/81253/, based on the nicodemus version.
-(thanks to him !)
+Many thanks nicodemus!
 '''
 
 import weakref

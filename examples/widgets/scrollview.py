@@ -29,8 +29,7 @@ class ScrollViewApp(App):
 
         # create a scroll view, with a size < size of the grid
         root = ScrollView(size_hint=(None, None), size=(500, 320),
-                pos_hint={'center_x': .5, 'center_y': .5}
-                , do_scroll_x=False)
+                pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
         root.add_widget(layout)
 
         return root

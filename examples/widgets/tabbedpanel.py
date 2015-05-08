@@ -31,12 +31,16 @@ Builder.load_string("""
     TabbedPanelItem:
         text: 'tab3'
         RstDocument:
-            text: '\\n'.join(("Hello world", "-----------", "You are in the third tab."))
+            text:
+                '\\n'.join(("Hello world", "-----------",
+                "You are in the third tab."))
 
 """)
 
+
 class Test(TabbedPanel):
     pass
+
 
 class TabbedPanelApp(App):
     def build(self):

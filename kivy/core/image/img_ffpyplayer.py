@@ -24,7 +24,7 @@ logger_func = {'quiet': Logger.critical, 'panic': Logger.critical,
 def _log_callback(message, level):
     message = message.strip()
     if message:
-        logger_func[level]('ImageLoaderFFPy: {}'.format(message))
+        logger_func[level]('ffpyplayer: {}'.format(message))
 
 if not get_log_callback():
     set_log_callback(_log_callback)

@@ -6,7 +6,8 @@ import os
 
 filename = sys.argv[1]
 if "PROFILE" in os.environ:
-    import pstats, cProfile
+    import pstats
+    import cProfile
     cProfile.runctx("Svg(filename)", globals(), locals(), "Profile.prof")
     s = pstats.Stats("Profile.prof")
     s.sort_stats("time").print_callers()

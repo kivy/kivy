@@ -34,10 +34,20 @@ class ImageLoaderPygame(ImageLoaderBase):
     def can_save():
         return True
 
+    @staticmethod
+    def can_load_memory():
+        return True
+
     def load(self, filename):
+        if not filename:
+            import traceback
+            traceback.print_stack()
+            return
         try:
             im = None
-            if isfile(filename):
+            if self._inline:
+                im = pygame.image.load(filename, 'x.{}'.format(self._ext))
+            elif isfile(filename):
                 with open(filename, 'rb') as fd:
                     im = pygame.image.load(fd)
             elif isinstance(filename, bytes):
@@ -51,8 +61,8 @@ class ImageLoaderPygame(ImageLoaderBase):
             if im is None:
                 im = pygame.image.load(filename)
         except:
-            Logger.warning(type(filename)('Image: Unable to load image <%s>')
-                           % filename)
+            #Logger.warning(type(filename)('Image: Unable to load image <%s>')
+            #               % filename)
             raise
 
         fmt = ''
@@ -78,7 +88,8 @@ class ImageLoaderPygame(ImageLoaderBase):
             im = imc
 
         # update internals
-        self.filename = filename
+        if not self._inline:
+            self.filename = filename
         data = pygame.image.tostring(im, fmt.upper())
         return [ImageData(im.get_width(), im.get_height(),
                 fmt, data, source=filename)]

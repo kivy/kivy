@@ -60,7 +60,8 @@ if __name__ == '__main__':
     exclude_dirs = ['/lib', '/coverage', '/pep8', '/doc']
     exclude_files = ['kivy/gesture.py', 'osx/build.py', 'win32/build.py',
                      'kivy/tools/stub-gl-debug.py',
-                     'kivy/modules/webdebugger.py']
+                     'kivy/modules/webdebugger.py',
+                     'kivy/modules/_webdebugger.py']
     for target in targets:
         if isdir(target):
             if htmlmode:

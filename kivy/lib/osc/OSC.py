@@ -101,7 +101,10 @@ class OSCMessage:
         return self.getBinary()
 
 def readString(data):
-    length   = string.find(data,"\0")
+    if isinstance(data, str):
+        length = string.find(data, '\0')
+    else:
+        length = data.find(bytes("\0", 'ascii'))
     nextData = int(math.ceil((length+1) / 4.0) * 4)
     return (data[0:length], data[nextData:])
 
@@ -179,6 +182,8 @@ def OSCArgument(data):
 
     if isinstance(data, string_types):
         OSCstringLength = math.ceil((len(data)+1) / 4.0) * 4
+        if not isinstance(data, bytes):
+            data = data.encode('utf-8')
         binary = struct.pack(">%ds" % (OSCstringLength), data)
         tag = "s"
     elif isinstance(data, float):

@@ -46,7 +46,7 @@ cdef class EventObservers:
     # The uid to assign to the next bound callback.
     cdef object uid
 
-    cdef inline void bind(self, object observer) except *
+    cdef inline void bind(self, object observer, int is_ref=*) except *
     cdef inline object fast_bind(self, object observer, tuple largs, dict kwargs, int is_ref)
     cdef inline void unbind(self, object observer, int is_ref, int stop_on_first) except *
     cdef inline void fast_unbind(self, object observer, tuple largs, dict kwargs) except *

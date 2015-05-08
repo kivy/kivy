@@ -17,6 +17,7 @@ cdef class Context:
     cdef object lr_fbo_rb
     cdef object lr_fbo_fb
     cdef object lr_shadersource
+    cdef list lr_shader
 
     cdef void register_texture(self, Texture texture)
     cdef void register_canvas(self, Canvas canvas)

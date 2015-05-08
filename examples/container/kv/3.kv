@@ -1,0 +1,30 @@
+#:kivy 1.8.0
+#:import datetime datetime
+
+RootWidget:
+
+	# import container
+    container: container
+
+	# fill the container
+    BoxLayout:
+        id: container
+		orientation: 'vertical'
+		padding: 0
+		spacing: 3
+
+		Label:
+            text: 'screen-3'
+
+
+        BoxLayout:
+            orientation: 'horizontal'
+            padding: 0
+            spacing: 1
+            size_hint: 1,0.1
+
+            # weiter button
+            Button:
+                size_hint: 0.2,1
+                text: 'next'
+                on_release: app.next_screen('1')

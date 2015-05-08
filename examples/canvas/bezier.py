@@ -1,4 +1,15 @@
 #!/usr/bin/env python
+'''
+Bezier Example
+==============
+
+This example shows a closed Bezier curve computed from a polygon. You
+should see a purple polygon, a red bezier curve computed from the polygon,
+and two sliders. You can drag points on the polygon to recompute the curve.
+The two sliders control the dash length of the dashed lines making up the two
+shapes.
+
+'''
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.slider import Slider
@@ -9,10 +20,10 @@ class BezierTest(FloatLayout):
 
     def __init__(self, points=[], loop=False, *args, **kwargs):
         super(BezierTest, self).__init__(*args, **kwargs)
-        self.d = 10
+        self.d = 10  # pixel tolerance when clicking on a point
         self.points = points
         self.loop = loop
-        self.current_point = None
+        self.current_point = None  # index of point being dragged
 
         with self.canvas:
             Color(1.0, 0.0, 0.0)
@@ -26,7 +37,7 @@ class BezierTest(FloatLayout):
 
             Color(1.0, 0.0, 1.0)
             self.line = Line(
-                    points=self.points+self.points[:2],
+                    points=self.points + self.points[:2],
                     dash_offset=10,
                     dash_length=100)
 
@@ -50,10 +61,10 @@ class BezierTest(FloatLayout):
 
     def on_touch_down(self, touch):
         if self.collide_point(touch.pos[0], touch.pos[1]):
-            for i, p in enumerate(list(zip(self.points[::2], self.points[1::2]))):
-                if (
-                        abs(touch.pos[0] - self.pos[0] - p[0]) < self.d and
-                        abs(touch.pos[1] - self.pos[1] - p[1]) < self.d):
+            for i, p in enumerate(list(zip(self.points[::2],
+                                           self.points[1::2]))):
+                if (abs(touch.pos[0] - self.pos[0] - p[0]) < self.d and
+                    abs(touch.pos[1] - self.pos[1] - p[1]) < self.d):
                     self.current_point = i + 1
                     return True
             return super(BezierTest, self).on_touch_down(touch)

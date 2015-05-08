@@ -272,14 +272,12 @@
                 text_size: self.size
                 halign: 'left'
                 bold: True
-                font_name: 'data/fonts/DroidSans-Bold.ttf'
             Label:
                 text: 'Size'
                 text_size: self.size
                 size_hint_x: None
                 halign: 'right'
                 bold: True
-                font_name: 'data/fonts/DroidSans-Bold.ttf'
             Widget:
                 # Just for spacing
                 width: 10
@@ -488,7 +486,7 @@
 <Popup>:
     _container: container
     GridLayout:
-        padding: 12
+        padding: '12dp'
         cols: 1
         size_hint: None, None
         pos: root.pos
@@ -498,13 +496,15 @@
             text: root.title
             color: root.title_color
             size_hint_y: None
-            height: self.texture_size[1] + 16
-            text_size: self.width - 16, None
+            height: self.texture_size[1] + dp(16)
+            text_size: self.width - dp(16), None
             font_size: root.title_size
+            font_name: root.title_font
+            halign: root.title_align
 
         Widget:
             size_hint_y: None
-            height: 4
+            height: dp(4)
             canvas:
                 Color:
                     rgba: root.separator_color
@@ -573,6 +573,7 @@
     color: self.color[:3] + [0 if (root.icon and not root.inside_group) else 1]
 
     Image:
+        allow_stretch: True
         opacity: 1 if (root.icon and not root.inside_group) else 0
         source: root.icon
         mipmap: root.mipmap
@@ -586,6 +587,10 @@
 <ActionCheck>:
     background_normal: 'atlas://data/images/defaulttheme/action_bar' if self.inside_group else 'atlas://data/images/defaulttheme/action_item'
 
+<ActionPreviousImage@Image>:
+    temp_width: 0
+    temp_height: 0
+
 <ActionPrevious>:
     size_hint_x: 1
     minimum_width: '100sp'
@@ -594,18 +599,30 @@
         orientation: 'horizontal'
         pos: root.pos
         size: root.size
-        Image:
+        ActionPreviousImage:
+            id: prev_icon_image
             source: root.previous_image
             opacity: 1 if root.with_previous else 0
             allow_stretch: True
             size_hint_x: None
-            width: self.texture_size[0] if root.with_previous else dp(8)
+            temp_width: root.previous_image_width or dp(prev_icon_image.texture_size[0])
+            temp_height: root.previous_image_height or dp(prev_icon_image.texture_size[1])
+            width:
+                (self.temp_width if self.temp_height <= self.height else \
+                self.temp_width * (self.height / self.temp_height)) \
+                if self.texture else dp(8)
             mipmap: root.mipmap
-        Image:
+        ActionPreviousImage:
+            id: app_icon_image
             source: root.app_icon
             allow_stretch: True
             size_hint_x: None
-            width: min(self.height, self.texture_size[0]) if self.texture else self.height
+            temp_width: root.app_icon_width or dp(app_icon_image.texture_size[0])
+            temp_height: root.app_icon_height or dp(app_icon_image.texture_size[1])
+            width:
+                (self.temp_width if self.temp_height <= self.height else \
+                self.temp_width * (self.height / self.temp_height)) \
+                if self.texture else dp(8)
             mipmap: root.mipmap
         Widget:
             size_hint_x: None
@@ -943,14 +960,16 @@
 
 <VideoPlayerPreview>:
     pos_hint: {'x': 0, 'y': 0}
+    image_overlay_play: 'atlas://data/images/defaulttheme/player-play-overlay'
+    image_loading: 'atlas://data/images/image-loading.gif'
     Image:
         source: root.source
         color: (.5, .5, .5, 1)
         pos_hint: {'x': 0, 'y': 0}
-
     Image:
-        source: 'atlas://data/images/defaulttheme/player-play-overlay' if not root.click_done else 'data/images/image-loading.gif'
+        source: root.image_overlay_play if not root.click_done else root.image_loading
         pos_hint: {'x': 0, 'y': 0}
+
 
 <VideoPlayerAnnotation>:
     canvas.before:
@@ -1014,11 +1033,29 @@
 # =============================================================================
 
 <CheckBox>:
+    _checkbox_state_image:
+        self.background_checkbox_down \
+        if self.active else self.background_checkbox_normal
+    _checkbox_disabled_image:
+        self.background_checkbox_disabled_down \
+        if self.active else self.background_checkbox_disabled_normal
+    _radio_state_image:
+        self.background_radio_down \
+        if self.active else self.background_radio_normal
+    _radio_disabled_image:
+        self.background_radio_disabled_down \
+        if self.active else self.background_radio_disabled_normal
+    _checkbox_image:
+        self._checkbox_disabled_image \
+        if self.disabled else self._checkbox_state_image
+    _radio_image:
+        self._radio_disabled_image \
+        if self.disabled else self._radio_state_image
     canvas:
         Color:
             rgb: 1, 1, 1
         Rectangle:
-            source: 'atlas://data/images/defaulttheme/checkbox%s%s_%s' % (('_radio' if self.group else ''), ('_disabled' if self.disabled else ''), ('on' if self.active else 'off'))
+            source: self._radio_image if self.group else self._checkbox_image
             size: sp(32), sp(32)
             pos: int(self.center_x - sp(16)), int(self.center_y - sp(16))
 

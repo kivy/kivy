@@ -11,8 +11,9 @@ Color Picker
 
 
 The ColorPicker widget allows a user to select a color from a chromatic
-wheel where pinch and zoom can be used to change the selected color. Sliders
-and TextInputs are also provided for entering the RGBA/HSV/HEX values directly.
+wheel where pinch and zoom can be used to change the wheel's saturation.
+Sliders and TextInputs are also provided for entering the RGBA/HSV/HEX values
+directly.
 
 Usage::
 
@@ -428,7 +429,7 @@ class ColorPicker(RelativeLayout):
     def _update_clr(self, dt):
         mode, clr_idx, text = self._upd_clr_list
         try:
-            text = max(0, min(254, float(text)))
+            text = min(255, max(0, float(text)))
             if mode == 'rgb':
                 self.color[clr_idx] = float(text) / 255.
             else:

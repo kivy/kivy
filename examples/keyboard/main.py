@@ -22,8 +22,7 @@ from kivy import require
 # custom json files from the app folder
 require("1.8.0")
 
-Builder.load_string(
-'''
+Builder.load_string('''
 <KeyboardScreen>:
     displayLabel: displayLabel
     kbContainer: kbContainer

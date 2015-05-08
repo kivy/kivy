@@ -66,8 +66,10 @@ IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.logger import Logger
 from kivy.graphics.texture cimport Texture
+from kivy.utils import platform
 
-cdef int gles_limts = int(environ.get('KIVY_GLES_LIMITS', 1))
+cdef int gles_limts = int(environ.get(
+    'KIVY_GLES_LIMITS', int(platform not in ('win', 'macosx', 'linux'))))
 
 
 class GraphicException(Exception):
@@ -463,8 +465,8 @@ cdef class Mesh(VertexInstruction):
         def __set__(self, value):
             if gles_limts and len(value) > 65535:
                 raise GraphicException(
-                    'Cannot upload more than 65535 indices'
-                    '(OpenGL ES 2 limitation)')
+                    'Cannot upload more than 65535 indices (OpenGL ES 2'
+                    ' limitation - consider setting KIVY_GLES_LIMITS)')
             self._indices = list(value)
             self.flag_update()
 
@@ -831,13 +833,22 @@ cdef class BorderImage(Rectangle):
         `border`: list
             Border information in the format (top, right, bottom, left).
             Each value is in pixels.
+
+        `auto_scale`: bool
+            If the BorderImage's size is less than the sum of it's
+            borders, horizontally or vertically, and this property is
+            set to True, the borders will be rescaled to accomodate for
+            the smaller size.
+            .. versionadded:: 1.9.1
     '''
     cdef list _border
+    cdef int _auto_scale
 
     def __init__(self, **kwargs):
         Rectangle.__init__(self, **kwargs)
         v = kwargs.get('border')
         self.border = v if v is not None else (10, 10, 10, 10)
+        self.auto_scale = kwargs.get('auto_scale', False)
 
     cdef void build(self):
         if not self.texture:
@@ -874,13 +885,21 @@ cdef class BorderImage(Rectangle):
         tb[2] = b2 / th * tch
         tb[3] = b3 / tw * tcw
 
+        cdef float sb0, sb1, sb2, sb3
+        if self.auto_scale:
+            sb0 = min((b0/th) * h, b0)
+            sb1 = min((b1/tw) * w, b1)
+            sb2 = min((b2/th) * h, b2)
+            sb3 = min((b3/tw) * w, b3)
+        else:
+            sb0, sb1, sb2, sb3 = b0, b1, b2, b3
 
         # horizontal and vertical sections
         cdef float hs[4]
         cdef float vs[4]
         hs[0] = x;            vs[0] = y
-        hs[1] = x + b3;       vs[1] = y + b0
-        hs[2] = x + w - b1;   vs[2] = y + h - b2
+        hs[1] = x + sb3;       vs[1] = y + sb0
+        hs[2] = x + w - sb1;   vs[2] = y + h - sb2
         hs[3] = x + w;        vs[3] = y + h
 
         cdef float ths[4]
@@ -947,6 +966,16 @@ cdef class BorderImage(Rectangle):
             self._border = list(b)
             self.flag_update()
 
+    property auto_scale:
+        '''Property for setting if the corners are automatically scaled
+        when the BorderImage is too small.
+        '''
+        def __get__(self):
+            return self._auto_scale
+
+        def __set__(self, value):
+            self._auto_scale = int(bool(value))
+            self.flag_update()
 
 cdef class Ellipse(Rectangle):
     '''A 2D ellipse.

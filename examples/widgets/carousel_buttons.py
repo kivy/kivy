@@ -33,8 +33,10 @@ Builder.load_string('''
             root.parent.parent.load_next()
 ''')
 
+
 class Page(GridLayout):
     pass
+
 
 class TestApp(App):
     def build(self):

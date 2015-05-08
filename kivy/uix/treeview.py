@@ -321,10 +321,12 @@ class TreeView(Widget):
                 'The node must be a subclass of TreeViewNode')
         parent = node.parent_node
         if parent is not None:
+            if node == self._selected_node:
+                node.is_selected = False
+                self._selected_node = None
             nodes = parent.nodes
             if node in nodes:
                 nodes.remove(node)
-                self._selected_node = None
             parent.is_leaf = not bool(len(nodes))
             node.parent_node = None
             node.unbind(size=self._trigger_layout)
@@ -445,8 +447,7 @@ class TreeView(Widget):
         for node in self.iterate_open_nodes(self.root):
             node.odd = False if count % 2 else True
             count += 1
-            min_width = max(min_width, node.width + self.indent_level +
-                            node.level * self.indent_level)
+            min_width = max(min_width, node.right - self.x)
             min_height += node.height
         self.minimum_size = (min_width, min_height)
 

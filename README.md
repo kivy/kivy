@@ -20,8 +20,8 @@ by many projects managed by the Kivy organisation.
 
 [![Kivy's Coverage](https://coveralls.io/repos/kivy/kivy/badge.png?branch=master)](https://coveralls.io/r/kivy/kivy?branch=master) [![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=42681)](https://www.bountysource.com/trackers/42681-kivy?utm_source=42681&utm_medium=shield&utm_campaign=TRACKER_BADGE)
 
-Installation, Documentation, Examples
--------------------------------------
+Installation, Documentation and Examples
+----------------------------------------
 
 Extensive installation instructions as well as tutorials and general
 documentation, including an API reference, can be found at: http://kivy.org/docs/
@@ -43,14 +43,14 @@ We also have an IRC channel:
 * Port    : 6667, 6697 (SSL only)
 * Channel : #kivy
 
-Contribution
--------
+Contributing
+------------
 
 We love pull requests and discussing novel ideas. Check out our
 contribution guide (http://kivy.org/docs/contribute.html) and
 feel free to improve Kivy.
 
-The following mailing list and IRC channel is used exclusively for
+The following mailing list and IRC channel are used exclusively for
 discussions about developing the Kivy framework and its sister projects:
 
 * Dev Group : https://groups.google.com/group/kivy-dev

@@ -3,8 +3,13 @@
 Utils
 =====
 
+The Utils module provides a selection of general utility functions and classes
+that may be useful for various applications. These include maths, color,
+algebraic and platform functions.
+
 .. versionchanged:: 1.6.0
-    The OrderedDict class has been removed. Use the collections.OrderedDict.
+    The OrderedDict class has been removed. Use collections.OrderedDict
+    instead.
 
 '''
 
@@ -18,9 +23,6 @@ __all__ = ('intersection', 'difference', 'strtotuple',
 from os import environ
 from sys import platform as _sys_platform
 from re import match, split
-
-_platform_android = None
-_platform_ios = None
 
 
 def boundary(value, minvalue, maxvalue):
@@ -182,7 +184,7 @@ class SafeList(list):
     @deprecated
     def iterate(self, reverse=False):
         if reverse:
-            return reversed(iter(self))
+            return iter(reversed(self))
         return iter(self)
 
 
@@ -211,13 +213,13 @@ class QueryDict(dict):
 
 
 def format_bytes_to_human(size, precision=2):
-    '''Format a bytes value to a human readable representation (B, KB, MB...).
+    '''Format a byte value to a human readable representation (B, KB, MB...).
 
     .. versionadded:: 1.0.8
 
     :Parameters:
         `size`: int
-            Number that represents a bytes value
+            Number that represents the bytes value
         `precision`: int, defaults to 2
             Precision after the comma
 
@@ -240,7 +242,10 @@ def format_bytes_to_human(size, precision=2):
 class Platform(object):
     # refactored to class to allow module function to be replaced
     # with module variable
-    _platform = None
+
+    def __init__(self):
+        self._platform_ios = None
+        self._platform_android = None
 
     @deprecated
     def __call__(self):
@@ -265,23 +270,19 @@ class Platform(object):
         return self._get_platform().__hash__()
 
     def _get_platform(self):
-        if self._platform is not None:
-            return self._platform
-        global _platform_ios, _platform_android
-
-        if _platform_android is None:
+        if self._platform_android is None:
             # ANDROID_ARGUMENT and ANDROID_PRIVATE are 2 environment variables
             # from python-for-android project
-            _platform_android = 'ANDROID_ARGUMENT' in environ
+            self._platform_android = 'ANDROID_ARGUMENT' in environ
 
-        if _platform_ios is None:
-            _platform_ios = (environ.get('KIVY_BUILD', '') == 'ios')
+        if self._platform_ios is None:
+            self._platform_ios = (environ.get('KIVY_BUILD', '') == 'ios')
 
         # On android, _sys_platform return 'linux2', so prefer to check the
         # import of Android module than trying to rely on _sys_platform.
-        if _platform_android is True:
+        if self._platform_android is True:
             return 'android'
-        elif _platform_ios is True:
+        elif self._platform_ios is True:
             return 'ios'
         elif _sys_platform in ('win32', 'cygwin'):
             return 'win'
@@ -294,27 +295,21 @@ class Platform(object):
 
 platform = Platform()
 '''
-.. versionadded:: 1.3.0
-
-Deprecated since 1.8.0:  Use platform as variable instaed of a function.\n
-Calling platform() will return one of: *win*, *linux*, *android*, *macosx*,
-*ios* or *unknown*.
-
-.. versionchanged:: 1.8.0
-
-`platform` also behaves like a regular variable in comparisons like so::
+platform is a string describing the current Operating System. It is one
+of: *win*, *linux*, *android*, *macosx*, *ios* or *unknown*.
+You can use it as follows::
 
     from kivy import platform
     if platform == 'linux':
         do_linux_things()
     if platform() == 'linux': # triggers deprecation warning
         do_more_linux_things()
-    foo = {'linux' : do_linux_things}
-    foo[platform]() # calls do_linux_things
-    p = platform # assigns to a module object
-    if p == 'android':
-        do_android_things()
-    p += 'some string' # error!
+
+.. versionadded:: 1.3.0
+
+.. versionchanged:: 1.8.0
+
+    platform is now a variable instead of a  function.
 
 '''
 
@@ -330,7 +325,7 @@ def escape_markup(text):
 
     .. versionadded:: 1.3.0
     '''
-    return text.replace('[', '&bl;').replace(']', '&br;').replace('&', '&amp;')
+    return text.replace('&', '&amp;').replace('[', '&bl;').replace(']', '&br;')
 
 
 class reify(object):
@@ -344,6 +339,15 @@ class reify(object):
     attribute creation on objects that are meant to be immutable.
 
     Taken from the `Pyramid project <https://pypi.python.org/pypi/pyramid/>`_.
+
+    To use this as a decorator::
+
+         @reify
+         def lazy(self):
+              ...
+              return hard_to_compute_int
+         first_time = self.lazy   # lazy is reify obj, reify.__get__() runs
+         second_time = self.lazy  # lazy is hard_to_compute_int
     '''
 
     def __init__(self, func):

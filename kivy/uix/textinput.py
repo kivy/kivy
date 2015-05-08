@@ -66,6 +66,9 @@ get notified of focus changes::
     textinput = TextInput()
     textinput.bind(focus=on_focus)
 
+See :class:`~kivy.uix.behaviors.FocusBehavior` from which :class:`TextInput`
+inherits for more details.
+
 
 Selection
 ---------
@@ -154,7 +157,8 @@ from kivy.utils import boundary, platform
 from kivy.uix.behaviors import FocusBehavior
 
 from kivy.core.text import Label
-from kivy.graphics import Color, Rectangle
+from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix, Callback
+from kivy.graphics.context_instructions import Transform
 from kivy.graphics.texture import Texture
 
 from kivy.uix.widget import Widget
@@ -177,6 +181,8 @@ FL_IS_NEWLINE = 0x01
 
 # late binding
 Clipboard = None
+CutBuffer = None
+MarkupLabel = None
 _platform = platform
 
 # for reloading, we need to keep a list of textinput to retrigger the rendering
@@ -212,15 +218,41 @@ class Selector(ButtonBehavior, Image):
     # Internal class for managing the selection Handles.
 
     window = ObjectProperty()
+    target = ObjectProperty()
+    matrix = ObjectProperty()
 
     def __init__(self, **kwargs):
         super(Selector, self).__init__(**kwargs)
         self.window.bind(on_touch_down=self.on_window_touch_down)
+        self.matrix = self.target.get_window_matrix()
+
+        with self.canvas.before:
+            Callback(self.update_transform)
+            PushMatrix()
+            self.transform = Transform()
+
+        with self.canvas.after:
+            PopMatrix()
+
+    def update_transform(self, cb):
+        m = self.target.get_window_matrix()
+        if self.matrix != m:
+            self.matrix = m
+            self.transform.identity()
+            self.transform.transform(self.matrix)
+
+    def transform_touch(self, touch):
+        matrix = self.matrix.inverse()
+        touch.apply_transform_2d(
+            lambda x, y: matrix.transform_point(x, y, 0)[:2])
 
     def on_window_touch_down(self, win, touch):
+        if self.parent is not win:
+            return
+
         try:
             touch.push()
-            touch.apply_transform_2d(self.to_widget)
+            self.transform_touch(touch)
             self._touch_diff = self.top - touch.y
             if self.collide_point(*touch.pos):
                 FocusBehavior.ignored_touch.append(touch)
@@ -242,15 +274,43 @@ class TextInputCutCopyPaste(Bubble):
     but_paste = ObjectProperty(None)
     but_selectall = ObjectProperty(None)
 
+    matrix = ObjectProperty(None)
+
     def __init__(self, **kwargs):
         self.mode = 'normal'
         super(TextInputCutCopyPaste, self).__init__(**kwargs)
         Clock.schedule_interval(self._check_parent, .5)
+        self.matrix = self.textinput.get_window_matrix()
+
+        with self.canvas.before:
+            Callback(self.update_transform)
+            PushMatrix()
+            self.transform = Transform()
+
+        with self.canvas.after:
+            PopMatrix()
+
+    def update_transform(self, cb):
+        m = self.textinput.get_window_matrix()
+        if self.matrix != m:
+            self.matrix = m
+            self.transform.identity()
+            self.transform.transform(self.matrix)
+
+    def transform_touch(self, touch):
+        matrix = self.matrix.inverse()
+        touch.apply_transform_2d(
+            lambda x, y: matrix.transform_point(x, y, 0)[:2])
 
     def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            FocusBehavior.ignored_touch.append(touch)
-        return super(TextInputCutCopyPaste, self).on_touch_down(touch)
+        try:
+            touch.push()
+            self.transform_touch(touch)
+            if self.collide_point(*touch.pos):
+                FocusBehavior.ignored_touch.append(touch)
+            return super(TextInputCutCopyPaste, self).on_touch_down(touch)
+        finally:
+            touch.pop()
 
     def on_textinput(self, instance, value):
         global Clipboard
@@ -354,17 +414,23 @@ class TextInput(FocusBehavior, Widget):
         on the next clock cycle using
         :meth:`~kivy.clock.ClockBase.schedule_once`.
 
-    .. note::
-        :attr:`~kivy.uix.behaviors.FocusBehavior.keyboard_mode`,
-        :meth:`~kivy.uix.behaviors.FocusBehavior.show_keyboard`,
-        :meth:`~kivy.uix.behaviors.FocusBehavior.hide_keyboard`,
-        and :attr:`~kivy.uix.behaviors.FocusBehavior.input_type`,
-        have been removed from :class:`TextInput` since they are now inherited
-        from :class:`~kivy.uix.behaviors.FocusBehavior`.
+    .. Note::
+        Selection is cancelled when TextInput is focused. If you need to
+        show selection when TextInput is focused, you should delay
+        (use Clock.schedule) the call to the functions for selecting
+        text (select_all, select_text).
 
     .. versionchanged:: 1.9.0
         :class:`TextInput` now inherits from
         :class:`~kivy.uix.behaviors.FocusBehavior`.
+
+        :attr:`~kivy.uix.behaviors.FocusBehavior.keyboard_mode`,
+        :meth:`~kivy.uix.behaviors.FocusBehavior.show_keyboard`,
+        :meth:`~kivy.uix.behaviors.FocusBehavior.hide_keyboard`,
+        :meth:`~kivy.uix.behaviors.FocusBehavior.focus`,
+        and :attr:`~kivy.uix.behaviors.FocusBehavior.input_type`,
+        have been removed from :class:`TextInput` since they already inherit
+        them from :class:`~kivy.uix.behaviors.FocusBehavior`.
 
     .. versionchanged:: 1.7.0
         `on_double_tap`, `on_triple_tap` and `on_quad_touch` events added.
@@ -375,7 +441,6 @@ class TextInput(FocusBehavior, Widget):
 
     def __init__(self, **kwargs):
         self.is_focusable = kwargs.get('is_focusable', True)
-        self._win = None
         self._cursor_blink_time = Clock.get_time()
         self._cursor = [0, 0]
         self._selection = False
@@ -422,9 +487,6 @@ class TextInput(FocusBehavior, Widget):
         self.bind(font_size=self._trigger_refresh_line_options,
                   font_name=self._trigger_refresh_line_options)
 
-        def set_focused(instance, value):
-            self.focused = value
-
         def handle_readonly(instance, value):
             if value and (not _is_desktop or not self.allow_copy):
                 self.is_focusable = False
@@ -436,14 +498,16 @@ class TextInput(FocusBehavior, Widget):
                   size=self._update_text_options,
                   password=self._update_text_options)
 
-        self.bind(pos=self._trigger_update_graphics, focus=set_focused,
-                  readonly=handle_readonly)
+        self.bind(pos=self._trigger_update_graphics,
+                  readonly=handle_readonly, focus=self._on_textinput_focused)
         handle_readonly(self, self.readonly)
 
         self._trigger_position_handles = Clock.create_trigger(
             self._position_handles)
         self._trigger_show_handles = Clock.create_trigger(
             self._show_handles, .05)
+        self._trigger_update_cutbuffer = Clock.create_trigger(
+            self._update_cutbuffer)
         self._trigger_refresh_line_options()
         self._trigger_refresh_text()
 
@@ -452,6 +516,9 @@ class TextInput(FocusBehavior, Widget):
 
         # when the gl context is reloaded, trigger the text rendering again.
         _textinput_list.append(ref(self, TextInput._reload_remove_observer))
+
+        if platform == 'linux':
+            self._ensure_clipboard()
 
     def on_text_validate(self):
         pass
@@ -580,7 +647,7 @@ class TextInput(FocusBehavior, Widget):
             if not substring:
                 return
 
-        self._hide_handles(self._win)
+        self._hide_handles(EventLoop.window)
 
         if not from_undo and self.multiline and self.auto_indent \
                 and substring == u'\n':
@@ -656,7 +723,7 @@ class TextInput(FocusBehavior, Widget):
         .. versionadded:: 1.3.0
 
         This action re-does any command that has been un-done by
-        do_undo/ctrl+z.  This function is automatically called when
+        do_undo/ctrl+z. This function is automatically called when
         `ctrl+r` keys are pressed.
         '''
         try:
@@ -866,7 +933,7 @@ class TextInput(FocusBehavior, Widget):
         '''
         if self.readonly:
             return
-        self._hide_handles(self._win)
+        self._hide_handles(EventLoop.window)
         scrl_x = self.scroll_x
         scrl_y = self.scroll_y
         cc, cr = self.cursor
@@ -934,9 +1001,9 @@ class TextInput(FocusBehavior, Widget):
     #
     def long_touch(self, dt):
         if self._selection_to == self._selection_from:
-            self._show_cut_copy_paste(self._long_touch_pos,
-                                      self._win,
-                                      mode='paste')
+            pos = self.to_local(*self._long_touch_pos, relative=True)
+            self._show_cut_copy_paste(
+                pos, EventLoop.window, mode='paste')
 
     def on_double_tap(self):
         '''This event is dispatched when a double tap happens
@@ -980,10 +1047,6 @@ class TextInput(FocusBehavior, Widget):
         if self.disabled:
             return
 
-        for child in self.children[:]:
-            if child.on_touch_down(touch):
-                return True
-
         touch_pos = touch.pos
         if not self.collide_point(*touch_pos):
             return False
@@ -1023,15 +1086,7 @@ class TextInput(FocusBehavior, Widget):
         if self._touch_count == 4:
             self.dispatch('on_quad_touch')
 
-        win = self._win
-        if not win:
-            self._win = win = EventLoop.window
-        if not win:
-            Logger.warning('Textinput: '
-                           'Cannot show bubble, unable to get root window')
-            return True
-
-        self._hide_cut_copy_paste(self._win)
+        self._hide_cut_copy_paste(EventLoop.window)
         # schedule long touch for paste
         self._long_touch_pos = touch.pos
         Clock.schedule_once(self.long_touch, .5)
@@ -1042,6 +1097,11 @@ class TextInput(FocusBehavior, Widget):
             self._selection_touch = touch
             self._selection_from = self._selection_to = self.cursor_index()
             self._update_selection()
+
+        if CutBuffer and 'button' in touch.profile and touch.button == 'middle':
+            self.insert_text(CutBuffer.get_cutbuffer())
+            return True
+
         return False
 
     def on_touch_move(self, touch):
@@ -1074,7 +1134,7 @@ class TextInput(FocusBehavior, Widget):
             self._selection_to = self.cursor_index()
             self._update_selection(True)
             # show Bubble
-            win = self._win
+            win = EventLoop.window
             if self._selection_to != self._selection_from:
                 self._show_cut_copy_paste(touch.pos, win)
             elif self.use_handles:
@@ -1084,13 +1144,14 @@ class TextInput(FocusBehavior, Widget):
                     self._handle_middle = handle_middle = Selector(
                         source=self.handle_image_middle,
                         window=win,
+                        target=self,
                         size_hint=(None, None),
                         size=('45dp', '45dp'))
                     handle_middle.bind(on_press=self._handle_pressed,
                                        on_touch_move=self._handle_move,
                                        on_release=self._handle_released)
                 if not self._handle_middle.parent and self.text:
-                    self.add_widget(handle_middle, canvas='after')
+                    EventLoop.window.add_widget(handle_middle, canvas='after')
                 self._position_handles(mode='middle')
             return True
 
@@ -1107,7 +1168,9 @@ class TextInput(FocusBehavior, Widget):
 
         self._update_selection()
         self._show_cut_copy_paste(
-            (instance.center_x, instance.top + self.line_height), self._win)
+            (instance.right if instance is self._handle_left else instance.x,
+             instance.top + self.line_height),
+            EventLoop.window)
 
     def _handle_move(self, instance, touch):
         if touch.grab_current != instance:
@@ -1117,7 +1180,13 @@ class TextInput(FocusBehavior, Widget):
         handle_left = self._handle_left
         handle_middle = self._handle_middle
 
-        x, y = touch.pos
+        try:
+            touch.push()
+            touch.apply_transform_2d(self.to_widget)
+            x, y = touch.pos
+        finally:
+            touch.pop()
+
         cursor = get_cursor(
             x,
             y + instance._touch_diff + (self.line_height / 2))
@@ -1150,7 +1219,7 @@ class TextInput(FocusBehavior, Widget):
         handle_middle = self._handle_middle
         if handle_middle:
             hp_mid = self.cursor_pos
-            pos = hp_mid
+            pos = self.to_local(*hp_mid, relative=True)
             handle_middle.x = pos[0] - handle_middle.width / 2
             handle_middle.top = pos[1] - lh
         if mode[0] == 'm':
@@ -1160,47 +1229,43 @@ class TextInput(FocusBehavior, Widget):
         if not group:
             return
 
-        if not self._win:
-            self._set_window()
-        self.remove_widget(self._handle_middle)
+        EventLoop.window.remove_widget(self._handle_middle)
 
         handle_left = self._handle_left
         if not handle_left:
             return
         hp_left = group[2].pos
-        handle_left.pos = hp_left
+        handle_left.pos = self.to_local(*hp_left, relative=True)
         handle_left.x -= handle_left.width
         handle_left.y -= handle_left.height
 
         handle_right = self._handle_right
         last_rect = group[-1]
         hp_right = last_rect.pos[0], last_rect.pos[1]
-        x, y = hp_right
+        x, y = self.to_local(*hp_right, relative=True)
         handle_right.x = x + last_rect.size[0]
         handle_right.y = y - handle_right.height
 
     def _hide_handles(self, win=None):
-        win = win or self._win
+        win = win or EventLoop.window
         if win is None:
             return
-        self.remove_widget(self._handle_right)
-        self.remove_widget(self._handle_left)
-        self.remove_widget(self._handle_middle)
+        win.remove_widget(self._handle_right)
+        win.remove_widget(self._handle_left)
+        win.remove_widget(self._handle_middle)
 
     def _show_handles(self, dt):
         if not self.use_handles or not self.text:
             return
 
-        win = self._win
-        if not win:
-            self._set_window()
-            win = self._win
+        win = EventLoop.window
 
         handle_right = self._handle_right
         handle_left = self._handle_left
         if self._handle_left is None:
             self._handle_left = handle_left = Selector(
                 source=self.handle_image_left,
+                target=self,
                 window=win,
                 size_hint=(None, None),
                 size=('45dp', '45dp'))
@@ -1209,6 +1274,7 @@ class TextInput(FocusBehavior, Widget):
                              on_release=self._handle_released)
             self._handle_right = handle_right = Selector(
                 source=self.handle_image_right,
+                target=self,
                 window=win,
                 size_hint=(None, None),
                 size=('45dp', '45dp'))
@@ -1225,8 +1291,8 @@ class TextInput(FocusBehavior, Widget):
         self._trigger_position_handles()
         if self.selection_from != self.selection_to:
             self._handle_left.opacity = self._handle_right.opacity = 0
-            self.add_widget(self._handle_left, canvas='after')
-            self.add_widget(self._handle_right, canvas='after')
+            win.add_widget(self._handle_left, canvas='after')
+            win.add_widget(self._handle_right, canvas='after')
             anim = Animation(opacity=1, d=.4)
             anim.start(self._handle_right)
             anim.start(self._handle_left)
@@ -1242,10 +1308,11 @@ class TextInput(FocusBehavior, Widget):
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
             self.bind(parent=partial(self._show_cut_copy_paste,
                                      pos, win, True))
-            self._win.bind(size=lambda *args: self._hide_cut_copy_paste(win))
+            win.bind(
+                size=lambda *args: self._hide_cut_copy_paste(win))
             self.bind(cursor_pos=lambda *args: self._hide_cut_copy_paste(win))
         else:
-            self.remove_widget(bubble)
+            win.remove_widget(bubble)
             if not self.parent:
                 return
         if parent_changed:
@@ -1298,7 +1365,7 @@ class TextInput(FocusBehavior, Widget):
         bubble.mode = mode
         Animation.cancel_all(bubble)
         bubble.opacity = 0
-        self.add_widget(bubble, canvas='after')
+        win.add_widget(bubble, canvas='after')
         Animation(opacity=1, d=.225).start(bubble)
 
     def _hide_cut_copy_paste(self, win=None):
@@ -1318,15 +1385,10 @@ class TextInput(FocusBehavior, Widget):
         if wr in _textinput_list:
             _textinput_list.remove(wr)
 
-    def on_focused(self, instance, value, *largs):
+    def _on_textinput_focused(self, instance, value, *largs):
         self.focus = value
 
-        win = self._win
-        if not win:
-            self._win = win = EventLoop.window
-        if not win:
-            Logger.warning('Textinput: unable to get root window')
-            return
+        win = EventLoop.window
         self.cancel_selection()
         self._hide_cut_copy_paste(win)
 
@@ -1340,12 +1402,11 @@ class TextInput(FocusBehavior, Widget):
         else:
             Clock.unschedule(self._do_blink_cursor)
             self._hide_handles(win)
-            self._win = None
 
     def _ensure_clipboard(self):
-        global Clipboard
+        global Clipboard, CutBuffer
         if not Clipboard:
-            from kivy.core.clipboard import Clipboard
+            from kivy.core.clipboard import Clipboard, CutBuffer
 
     def cut(self):
         ''' Copy current selection to clipboard then delete it from TextInput.
@@ -1386,6 +1447,9 @@ class TextInput(FocusBehavior, Widget):
         data = Clipboard.paste()
         self.delete_selection()
         self.insert_text(data)
+
+    def _update_cutbuffer(self, *args):
+        CutBuffer.set_cutbuffer(self.selection_text)
 
     def _get_text_width(self, text, tab_width, _label_cached):
         # Return the width of a text, according to the current line options
@@ -1782,7 +1846,7 @@ class TextInput(FocusBehavior, Widget):
         if texture is None:
             # FIXME right now, we can't render very long line...
             # if we move on "VBO" version as fallback, we won't need to
-            # do this.  try to found the maximum text we can handle
+            # do this. try to found the maximum text we can handle
             label = None
             label_len = len(ntext)
             ld = None
@@ -1933,7 +1997,7 @@ class TextInput(FocusBehavior, Widget):
         # Keycodes on OSX:
         ctrl, cmd = 64, 1024
         key, key_str = keycode
-        win = self._win
+        win = EventLoop.window
 
         # This allows *either* ctrl *or* cmd, but not both.
         is_shortcut = (modifiers == ['ctrl'] or (
@@ -1950,24 +2014,25 @@ class TextInput(FocusBehavior, Widget):
                 if is_shortcut and key == ord('c'):
                     self.copy()
             elif key == 27:
-                self.focused = False
+                self.focus = False
             return True
 
         if text and not is_interesting_key:
 
             self._hide_handles(win)
             self._hide_cut_copy_paste(win)
-            self.remove_widget(self._handle_middle)
+            win.remove_widget(self._handle_middle)
 
             # check for command modes
             # we use \x01INFO\x02 to get info from IME on mobiles
             # pygame seems to pass \x01 as the unicode for ctrl+a
             # checking for modifiers ensures conflict resolution.
 
-            if not modifiers and ord(text[0]) == 1:
+            first_char = ord(text[0])
+            if not modifiers and first_char == 1:
                 self._command_mode = True
                 self._command = ''
-            if not modifiers and ord(text[0]) == 2:
+            if not modifiers and first_char == 2:
                 self._command_mode = False
                 self._command = self._command[1:]
 
@@ -1976,7 +2041,7 @@ class TextInput(FocusBehavior, Widget):
                 return
 
             _command = self._command
-            if _command and ord(text) == 2:
+            if _command and first_char == 2:
                 from_undo = True
                 _command, data = _command.split(':')
                 self._command = ''
@@ -2020,6 +2085,9 @@ class TextInput(FocusBehavior, Widget):
                 elif key == ord('r'):  # redo
                     self.do_redo()
             else:
+                if EventLoop.window.__class__.__module__ == \
+                    'kivy.core.window.window_sdl2':
+                    return
                 if self._selection:
                     self.delete_selection()
                 self.insert_text(text)
@@ -2031,7 +2099,7 @@ class TextInput(FocusBehavior, Widget):
             self._hide_handles(win)
 
         if key == 27:  # escape
-            self.focused = False
+            self.focus = False
             return True
         elif key == 9:  # tab
             self.insert_text(u'\t')
@@ -2048,6 +2116,11 @@ class TextInput(FocusBehavior, Widget):
         if k:
             key = (None, None, k, 1)
             self._key_up(key)
+
+    def keyboard_on_textinput(self, window, text):
+        if self._selection:
+            self.delete_selection()
+        self.insert_text(text, False)
 
     def on_hint_text(self, instance, value):
         self._refresh_hint_text()
@@ -2420,6 +2493,43 @@ class TextInput(FocusBehavior, Widget):
     and defaults to True on mobile OS's, False on desktop OS's.
     '''
 
+    suggestion_text = StringProperty('')
+    '''Shows a suggestion text/word from currentcursor position onwards,
+    that can be used as a possible completion. Usefull for suggesting completion
+    text. This can also be used by the IME to setup the current word being
+    edited
+
+    .. versionadded:: 1.9.0
+
+    :attr:`suggestion_text` is a :class:`~kivy.properties.StringProperty`
+    defaults to `''`
+    '''
+
+    def on_suggestion_text(self, instance, value):
+        global MarkupLabel
+        if not MarkupLabel:
+            from kivy.core.text.markup import MarkupLabel
+
+        cursor_pos = self.cursor_pos
+        txt = self._lines[self.cursor_row]
+        cr = self.cursor_row
+        kw = self._get_line_options()
+        rct = self._lines_rects[cr]
+
+        lbl = text = None
+        if value:
+            lbl = MarkupLabel(
+                text=txt + "[b]{}[/b]".format(value), **kw)
+        else:
+            lbl = Label(**kw)
+            text = txt
+
+        lbl.refresh()
+
+        self._lines_labels[cr] = lbl.texture
+        rct.size = lbl.size
+        self._update_graphics()
+
     def get_sel_from(self):
         return self._selection_from
 
@@ -2428,8 +2538,8 @@ class TextInput(FocusBehavior, Widget):
     the cursor index where the selection started.
 
     .. versionchanged:: 1.4.0
-        :attr:`selection_from` is an :class:`~kivy.properties.AliasProperty` and
-        defaults to None, readonly.
+        :attr:`selection_from` is an :class:`~kivy.properties.AliasProperty`
+        and defaults to None, readonly.
     '''
 
     def get_sel_to(self):
@@ -2452,28 +2562,11 @@ class TextInput(FocusBehavior, Widget):
     '''
 
     def on_selection_text(self, instance, value):
-        if value and self.use_handles:
-            self._trigger_show_handles()
-
-    focus = BooleanProperty(False)
-    '''If focus is True, the keyboard will be requested and you can start
-    entering text into the textinput.
-
-    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults
-    to False.
-
-    .. Note::
-            Selection is cancelled when TextInput is focused. If you need to
-            show selection when TextInput is focused, you should delay
-            (use Clock.schedule) the call to the functions for selecting
-            text (select_all, select_text).
-
-    ..versionchanged:: 1.9.0
-        :class:`TextInput` now inherits from
-        :class:`~kivy.uix.behaviors.FocusBehavior` and :attr:`focus` is now
-        an alias for :attr:`focused`. Setting either one will also set the
-        other.
-    '''
+        if value:
+            if self.use_handles:
+                self._trigger_show_handles()
+            if CutBuffer and not self.password:
+                self._trigger_update_cutbuffer()
 
     def _get_text(self, encode=True):
         lf = self._lines_flags
@@ -2680,14 +2773,23 @@ class TextInput(FocusBehavior, Widget):
 if __name__ == '__main__':
     from kivy.app import App
     from kivy.uix.boxlayout import BoxLayout
+    from kivy.lang import Builder
 
     class TextInputApp(App):
 
         def build(self):
+
+            Builder.load_string('''
+<TextInput>
+    on_text:
+        self.suggestion_text = ''
+        self.suggestion_text = 'ion_text'
+
+''')
             root = BoxLayout(orientation='vertical')
             textinput = TextInput(multiline=True, use_bubble=True,
                                   use_handles=True)
-            textinput.text = __doc__
+            #textinput.text = __doc__
             root.add_widget(textinput)
             textinput2 = TextInput(multiline=False, text='monoline textinput',
                                    size_hint=(1, None), height=30)
