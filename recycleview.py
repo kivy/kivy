@@ -436,7 +436,8 @@ class RecycleView(RelativeLayout):
     def on_adapter_data_changed(self, instance):
         if self.current_adapter != instance:
             return
-        self.request_layout()
+        self.ids.layout.clear_widgets()
+        self.request_layout(full=True)
 
     def on_adapter_view_refresh_layout(self, instance, index, view):
         self.current_layout_manager.refresh_view_layout(index, view)
