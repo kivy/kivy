@@ -381,7 +381,8 @@ class RecycleView(RelativeLayout):
 
     def do_layout(self, *args):
         super(RecycleView, self).do_layout(*args)
-        self.refresh_from_data(True)
+        if self.data:
+            self.refresh_from_data(True)
 
     def refresh_from_data(self, force=False):
         """The data has changed, update the RecycleView internals
