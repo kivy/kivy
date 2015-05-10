@@ -211,7 +211,7 @@ class Label(Widget):
                         'halign', 'valign', 'padding_x', 'padding_y',
                         'text_size', 'shorten', 'mipmap', 'markup',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
-                        'split_str', 'unicode_errors')
+                        'split_str', 'unicode_errors', 'color')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -279,7 +279,7 @@ class Label(Widget):
                 self.anchors, self._label._anchors = {}, {}
         else:
             if mrkup:
-                text = self._label.text
+                text = self.text
                 # we must strip here, otherwise, if the last line is empty,
                 # markup will retain the last empty line since it only strips
                 # line by line within markup
