@@ -550,10 +550,10 @@ class ScrollView(StencilView):
         tx, ty = self.g_translate.xy
         return x + tx, y + ty
 
-    def _apply_transform(self, m):
+    def _apply_transform(self, m, pos=None):
         tx, ty = self.g_translate.xy
         m.translate(tx, ty, 0)
-        return super(ScrollView, self)._apply_transform(m)
+        return super(ScrollView, self)._apply_transform(m, (0, 0))
 
     def simulate_touch_down(self, touch):
         # at this point the touch is in parent coords
