@@ -265,9 +265,9 @@ class RelativeLayout(FloatLayout):
     def to_local(self, x, y, **k):
         return (x - self.x, y - self.y)
 
-    def _apply_transform(self, m):
+    def _apply_transform(self, m, pos=None):
         m.translate(self.x, self.y, 0)
-        return super(RelativeLayout, self)._apply_transform(m)
+        return super(RelativeLayout, self)._apply_transform(m, (0, 0))
 
     def on_touch_down(self, touch):
         x, y = touch.x, touch.y
