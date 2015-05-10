@@ -269,8 +269,11 @@ class WidgetTree(TreeView):
         for node in self.iterate_all_nodes():
             if not node.parent_node:
                 continue
-            if node.widget == widget:
-                return node
+            try:
+                if node.widget == widget:
+                    return node
+            except ReferenceError:
+                pass
         return None
 
     def update_selected_widget(self, widget):
@@ -669,7 +672,11 @@ class Inspector(FloatLayout):
         update_nodes = []
         nodes = {}
         for cnode in node.nodes[:]:
-            nodes[cnode.widget] = cnode
+            try:
+                nodes[cnode.widget] = cnode
+            except ReferenceError:
+                # widget no longer exists, just remove it
+                pass
             tree.remove_node(cnode)
         for child in widget.children:
             if child is self:
