@@ -27,7 +27,6 @@ editor.kv
     :literal:
 
 '''
-from kivy.uix.screenmanager import ScreenManager, Screen
 
 __all__ = ('FileChooserListView', 'FileChooserIconView',
            'FileChooserListLayout', 'FileChooserIconLayout',
@@ -44,6 +43,8 @@ from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.utils import platform as core_platform
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import (
     StringProperty, ListProperty, BooleanProperty, ObjectProperty,
     NumericProperty, OptionProperty, AliasProperty)
@@ -248,7 +249,7 @@ class FileChooserIconLayout(FileChooserLayout):
         self.ids.scrollview.scroll_y = 1.0
 
 
-class FileChooserController(FloatLayout):
+class FileChooserController(RelativeLayout):
     '''Base for implementing a FileChooser. Don't use this class directly, but
     prefer using an implementation such as the :class:`FileChooser`,
     :class:`FileChooserListView` or :class:`FileChooserIconView`.
@@ -958,7 +959,6 @@ class FileChooser(FileChooserController):
 
 if __name__ == '__main__':
     from kivy.app import App
-    from kivy.lang import Builder
     from pprint import pprint
     import textwrap
     import sys
