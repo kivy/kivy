@@ -17,12 +17,12 @@ class RootWidget(BoxLayout):
         # print out the given parameter
         print(status)
         # check the status of the switch by referring on the id
-        if self.ids['my_switch'].active is True:
+        if self.ids.my_switch.active is True:
             # set the text of the label by referring on the id
-            self.ids['my_label'].text = 'Switch is ON'
+            self.ids.my_label.text = 'Switch is ON'
         else:
             # set the text of the label by referring on the id
-            self.ids['my_label'].text = 'Switch is OFF'
+            self.ids.my_label.text = 'Switch is OFF'
 
 
 class TestApp(App):
