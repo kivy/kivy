@@ -2,8 +2,8 @@
 Float Layout
 ============
 
-The :class:`FloatLayout` class honors only the :attr:`Widget.pos_hint` and
-:attr:`Widget.size_hint` attributes.
+:class:`FloatLayout` honors the :attr:`~kivy.uix.widget.Widget.pos_hint`
+and the :attr:`~kivy.uix.widget.Widget.size_hint` properties of its children.
 
 .. only:: html
 
