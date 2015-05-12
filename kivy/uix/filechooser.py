@@ -476,7 +476,7 @@ class FileChooserController(RelativeLayout):
     def on_touch_up(self, touch):
         # don't respond to touchs outside self
         if not self.collide_point(*touch.pos):
-            return True
+            return
         if self.disabled:
             return True
         return super(FileChooserController, self).on_touch_up(touch)
