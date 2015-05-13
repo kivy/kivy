@@ -211,10 +211,11 @@ class Label(Widget):
                         'halign', 'valign', 'padding_x', 'padding_y',
                         'text_size', 'shorten', 'mipmap', 'markup',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
-                        'split_str', 'unicode_errors', 'color')
+                        'split_str', 'unicode_errors')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
+        self._trigger_markup_color = partial(self._trigger_texture_update, 'color')
         super(Label, self).__init__(**kwargs)
 
         # bind all the property for recreating the texture
@@ -229,6 +230,12 @@ class Label(Widget):
 
         # force the texture creation
         self._trigger_texture()
+
+    def on_markup(self, inst, markup):
+        if markup:
+            self.bind(color=self._trigger_markup_color)
+        else:
+            self.unbind(color=self._trigger_markup_color)
 
     def _create_label(self):
         # create the core label class according to markup value
