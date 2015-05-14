@@ -3,6 +3,7 @@ include "../../../kivy/graphics/config.pxi"
 
 from libc.string cimport memcpy
 from os import environ
+from kivy.config import Config
 
 cdef class _WindowSDL2Storage:
     cdef SDL_Window *win
@@ -68,6 +69,11 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
         SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
+
+        multisamples = Config.getint('graphics', 'multisamples')
+        if multisamples > 0:
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, min(multisamples, 8))
 
         if x is None:
             x = SDL_WINDOWPOS_UNDEFINED
