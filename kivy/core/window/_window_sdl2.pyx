@@ -70,18 +70,32 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
         SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
 
-        multisamples = Config.getint('graphics', 'multisamples')
-        if multisamples > 0:
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, min(multisamples, 8))
-
         if x is None:
             x = SDL_WINDOWPOS_UNDEFINED
         if y is None:
             y = SDL_WINDOWPOS_UNDEFINED
-
-        self.win = SDL_CreateWindow(NULL, x, y, width, height,
-                                    self.win_flags)
+        
+        # Multisampling:
+        # (The number of samples is limited to 4, because greater values 
+        # aren't supported with some video drivers.)
+        cdef int multisamples
+        multisamples = Config.getint('graphics', 'multisamples')
+        if multisamples > 0:
+            # try to create window with multisampling:
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, min(multisamples, 4))
+            self.win = SDL_CreateWindow(NULL, x, y, width, height,
+                                        self.win_flags)
+            if not self.win:
+                # if an error occured, create window without multisampling:
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
+                self.win = SDL_CreateWindow(NULL, x, y, width, height,
+                                            self.win_flags)
+        else:
+            self.win = SDL_CreateWindow(NULL, x, y, width, height,
+                                        self.win_flags)
+                
         if not self.win:
             self.die()
 
@@ -92,7 +106,7 @@ cdef class _WindowSDL2Storage:
         if not self.ctx:
             self.die()
         SDL_JoystickOpen(0)
-
+        
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
         cdef int w, h
         SDL_GetWindowSize(self.win, &w, &h)
