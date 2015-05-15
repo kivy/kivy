@@ -38,7 +38,11 @@ class CameraAndroid(CameraBase):
         self._buflock = threading.Lock()
         super(CameraAndroid, self).__init__(**kwargs)
 
+    def __del__(self):
+        self._release_camera()
+
     def init_camera(self):
+        self._release_camera()
         self._android_camera = Camera.open(self._index)
         params = self._android_camera.getParameters()
         width, height = self._resolution
@@ -78,6 +82,17 @@ class CameraAndroid(CameraBase):
         with self._fbo:
             self._texture_cb = Callback(lambda instr: self._camera_texture.bind)
             Rectangle(size=self._resolution)
+
+    def _release_camera(self):
+        if self._android_camera is None:
+            return
+
+        self.stop()
+        self._android_camera.release()
+        self._android_camera = None
+
+        self._texture = None  # clear texture and it'll be reset in `_update` pointing to new FBO
+        del self._fbo, self._surface_texture, self._camera_texture
 
     def _on_preview_frame(self, data, camera):
         with self._buflock:
