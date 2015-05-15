@@ -154,3 +154,10 @@ class CameraAndroid(CameraBase):
         Grab and decode frame in one call
         """
         return self.decode_frame(self.grab_frame())
+
+    @staticmethod
+    def get_camera_count():
+        """
+        Get the number of available cameras.
+        """
+        return Camera.getNumberOfCameras()
