@@ -262,13 +262,10 @@ class GridLayout(Layout):
             pos=self._trigger_layout)
 
     def get_max_widgets(self):
-        if self.cols and not self.rows:
+        if self.cols and self.rows:
+            return self.rows * self.cols
+        else:
             return None
-        if self.rows and not self.cols:
-            return None
-        if not self.cols and not self.rows:
-            return None
-        return self.rows * self.cols
 
     def on_children(self, instance, value):
         # if that makes impossible to construct things with deffered method,
