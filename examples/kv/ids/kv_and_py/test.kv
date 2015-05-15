@@ -1,0 +1,11 @@
+#:kivy 1.8.0
+
+RootWidget:
+    BoxLayout:
+        orientation: 'vertical'
+        Switch:
+            id: my_switch
+            on_active: root.first_function(self.active)
+        Label:
+            id: my_label
+            text: 'This text will be changed by the python file'
