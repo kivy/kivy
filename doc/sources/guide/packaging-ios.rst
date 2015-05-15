@@ -67,15 +67,24 @@ We provide a script that creates an initial Xcode project to start with. In the
 command line below, replace `test` with your project name. It must be a
 name without any spaces or illegal characters::
 
-    $ # ./toolchain.py create /path/to/your/appdir
-    $ ./toolchain.py create /Users/tito/code/kivy/examples/demo/touchtracer
+    $ # ./toolchain.py create <title> <app_directory>
+    $ ./toolchain.py create Touchtracer ~/code/kivy/examples/demo/touchtracer
 
 .. Note::
     You must use a fully qualified path to your application directory.
 
-Now you can open the Xcode project::
+A directory named `<title>-ios` will be created, with an Xcode project in it.
+You can open the Xcode project::
 
     $ open touchtracer-ios/touchtracer.xcodeproj
+
+Then click on `Play`, and enjoy.
+
+.. Note::
+
+    Everytime you press `Play`, your application directory will be synced to
+    the `<title>-ios/YourApp` directory. Don't make changes in the -ios
+    directory directly.
 
 Updating an Xcode project
 -------------------------
