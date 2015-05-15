@@ -1,14 +1,15 @@
 '''
-The use of id in .kv
-==================================
+The use of id in KV
+===================
 
 This small example shows how to refer from one widget
-on an other widget within .kv
+to another within KV.
 '''
-from kivy.app import App
 
 import kivy
 kivy.require('1.8.0')
+
+from kivy.app import App
 
 
 class TestApp(App):
