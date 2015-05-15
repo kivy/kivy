@@ -154,7 +154,11 @@ class CameraAndroid(CameraBase):
 
     def decode_frame(self, buf):
         """
-        Decode image data from grabbed frame
+        Decode image data from grabbed frame.
+
+        This method depends on OpenCV and NumPy - however it is only used for fetching the current
+        frame as a NumPy array, and not required when this :class:`CameraAndroid` provider is simply
+        used by a :class:`~kivy.uix.camera.Camera` widget.
         """
         import numpy as np
         from cv2 import cvtColor
