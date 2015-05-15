@@ -48,7 +48,7 @@ class CameraAndroid(CameraBase):
         width, height = self._resolution
         params.setPreviewSize(width, height)
         self._android_camera.setParameters(params)
-        #self._android_camera.setDisplayOrientation()
+        # self._android_camera.setDisplayOrientation()
         self.fps = 30.
 
         pf = params.getPreviewFormat()
@@ -99,7 +99,7 @@ class CameraAndroid(CameraBase):
             if self._buffer is not None:
                 self._android_camera.addCallbackBuffer(self._buffer)  # add buffer back for reuse
             self._buffer = data
-        #print self._buffer, len(self.frame_data)  # check if frame grabbing works
+        # print self._buffer, len(self.frame_data)  # check if frame grabbing works
 
     def _refresh_fbo(self):
         self._texture_cb.ask_update()
@@ -124,7 +124,8 @@ class CameraAndroid(CameraBase):
         Clock.unschedule(self._update)
         self._android_camera.stopPreview()
 
-        self._android_camera.setPreviewCallbackWithBuffer(None)  # buffer queue cleared as well, to be recreated on next start
+        self._android_camera.setPreviewCallbackWithBuffer(None)
+        # buffer queue cleared as well, to be recreated on next start
         with self._buflock:
             self._buffer = None
 
