@@ -147,6 +147,8 @@ cdef class Line(VertexInstruction):
             self.circle = kwargs['circle']
         if 'rectangle' in kwargs:
             self.rectangle = kwargs['rectangle']
+        if 'rounded_rectangle' in kwargs:
+            self.rounded_rectangle = kwargs['rounded_rectangle']
         if 'bezier' in kwargs:
             self.bezier = kwargs['bezier']
 
