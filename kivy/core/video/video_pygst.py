@@ -175,6 +175,14 @@ class VideoPyGst(VideoBase):
             uri = 'file:' + pathname2url(path.realpath(uri))
         return uri
 
+    def _get_uri_subs(self):
+        uri = self.subtitle
+        if not uri:
+            return
+        if not '://' in uri:
+            uri = 'file:' + pathname2url(path.realpath(uri))
+        return uri
+
     def _get_position(self):
         try:
             value, fmt = self._appsink.query_position(gst.FORMAT_TIME)
@@ -195,3 +203,7 @@ class VideoPyGst(VideoBase):
     def _set_volume(self, volume):
         self._playbin.set_property('volume', volume)
         self._volume = volume
+
+    def load_sub(self, file_or_url):
+        '''Load subtitle file on the actual video'''
+        self._playbin.set_property("suburi", self._get_uri_subs)

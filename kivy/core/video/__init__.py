@@ -81,6 +81,7 @@ class VideoBase(EventDispatcher):
             Logger.warning("'pause' is deprecated. Use 'stop' instead.")
             self.eos = 'stop'
         self.filename = kwargs.get('filename')
+        self.subtitle = None
 
         Clock.schedule_interval(self._update, 1 / 30.)
 
@@ -199,6 +200,10 @@ class VideoBase(EventDispatcher):
     def unload(self):
         '''Unload the actual video'''
         self._state = ''
+
+    def load_sub(self, file_or_url):
+        '''Load the video from the current filename'''
+        self.subtitle = file_or_url
 
 
 # Load the appropriate provider
