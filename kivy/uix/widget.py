@@ -218,6 +218,12 @@ class WidgetMetaclass(type):
 WidgetBase = WidgetMetaclass('WidgetBase', (EventDispatcher, ), {})
 
 
+def dispatch_on_kv_done(widget, src):
+    for w in widget.children:
+        dispatch_on_kv_done(w, src)
+    widget.dispatch('on_kv_done', src)
+
+
 class Widget(WidgetBase):
     '''Widget class. See module documentation for more information.
 
@@ -247,7 +253,9 @@ class Widget(WidgetBase):
     '''
 
     __metaclass__ = WidgetMetaclass
-    __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
+    __events__ = (
+        'on_touch_down', 'on_touch_move', 'on_touch_up', 'on_kv_apply',
+        'on_kv_done')
     _proxy_ref = None
 
     def __init__(self, **kwargs):
@@ -276,6 +284,10 @@ class Widget(WidgetBase):
         for argument in kwargs:
             if argument[:3] == 'on_':
                 self.bind(**{argument: kwargs[argument]})
+
+        if '__builder_created' not in kwargs:
+            self.dispatch('on_kv_apply', self)
+            dispatch_on_kv_done(self, self)
 
     @property
     def proxy_ref(self):
@@ -401,6 +413,12 @@ class Widget(WidgetBase):
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True
+
+    def on_kv_apply(self, root):
+        pass
+
+    def on_kv_done(self, root):
+        pass
 
     def on_disabled(self, instance, value):
         for child in self.children:
