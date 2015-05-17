@@ -1996,13 +1996,9 @@ class BuilderBase(object):
                     rctx['ids'][crule.id] = child
 
             else:
-                # we got a "normal" rule, construct it manually
-                # we can't construct it without __no_builder=True, because the
-                # previous implementation was doing the add_widget() before
-                # apply(), and so, we could use "self.parent".
-                child = cls(__no_builder=True)
-                widget.add_widget(child)
-                self.apply(child)
+                # previous implementations were doing the add_widget() before
+                # apply() so we could use "self.parent".
+                child = cls(parent=widget)
                 self._apply_rule(child, crule, rootrule)
 
         # append the properties and handlers to our final resolution task
