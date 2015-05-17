@@ -176,7 +176,7 @@ class VideoPyGst(VideoBase):
         return uri
 
     def _get_uri_subs(self):
-        uri = self.subtitle
+        uri = self.subtitulo
         if not uri:
             return
         if not '://' in uri:
@@ -204,6 +204,12 @@ class VideoPyGst(VideoBase):
         self._playbin.set_property('volume', volume)
         self._volume = volume
 
-    def load_sub(self, file_or_url):
+    def load_sub(self):
         '''Load subtitle file on the actual video'''
-        self._playbin.set_property("suburi", self._get_uri_subs)
+        self._playbin.set_property("suburi", self._get_uri_subs())
+
+    def load_audio_track(self):
+        self._playbin.set_property('current-audio', self.audio_track)
+
+    def load_sub_track(self):
+        self._playbin.set_property('current-text', self.subtitle_track)
