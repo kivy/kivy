@@ -1476,7 +1476,7 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
 
 
 def call_fn(args, instance, v):
-    element, key, value, rule, idmap = args
+    _, element, key, value, rule, idmap = args
     if __debug__:
         trace('Builder: call_fn %s, key=%s, value=%r, %r' % (
             element, key, value, rule.value))
@@ -1539,8 +1539,8 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
             The function to be called args, `args` on bound callback.
     '''
     # first remove all the old bound functions from `s` and down.
-    for f, k, fun, uid in bound[s:]:
-        if fun is None:
+    for f, k, uid in bound[s:]:
+        if uid is None:
             continue
         try:
             f.unbind_uid(k, uid)
@@ -1560,19 +1560,16 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     for val in keys[s:-1]:
         # if we need to dynamically rebind, bindm otherwise just
         # add the attr to the list
-        if isinstance(f, (EventDispatcher, Observable)):
-            prop = f.property(val, True)
-            if prop is not None and getattr(prop, 'rebind', False):
-                # fast_bind should not dispatch, otherwise
-                # update_intermediates might be called in the middle
-                # here messing things up
-                uid = f.fast_bind(
-                    val, update_intermediates, base, keys, bound, s, fn, args)
-                append([f.proxy_ref, val, update_intermediates, uid])
-            else:
-                append([f.proxy_ref, val, None, None])
+        if (isinstance(f, (EventDispatcher, Observable)) and
+            f.rebind_property(val)):
+            # fast_bind should not dispatch, otherwise
+            # update_intermediates might be called in the middle
+            # here messing things up
+            uid = f.fast_bind(
+                val, update_intermediates, base, keys, bound, s, fn, args)
+            append([f.proxy_ref, val, uid])
         else:
-            append([getattr(f, 'proxy_ref', f), val, None, None])
+            append([None, None, None])
 
         f = getattr(f, val, None)
         if f is None:
@@ -1584,7 +1581,7 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     if isinstance(f, (EventDispatcher, Observable)):
         uid = f.fast_bind(keys[-1], fn, args)
         if uid:
-            append([f.proxy_ref, keys[-1], fn, uid])
+            append([f.proxy_ref, keys[-1], uid])
     # when we rebind we have to update the
     # rule with the most recent value, otherwise, the value might be wrong
     # and wouldn't be updated since we might not have tracked it before.
@@ -1601,11 +1598,11 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     # we need a hash for when delayed, so we don't execute duplicate canvas
     # callbacks from the same handler during a sync op
     if delayed:
-        fn = delayed_call_fn
-        args = [element, key, value, rule, idmap, None]  # see _delayed_start
+        fn = delayed_call_fn  # see _delayed_start
+        args = [call_fn, element, key, value, rule, idmap, None]
     else:
         fn = call_fn
-        args = (element, key, value, rule, idmap)
+        args = (call_fn, element, key, value, rule, idmap)
 
     # bind every key.value
     if rule.watched_keys is not None:
@@ -1613,7 +1610,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
             base = idmap.get(keys[0])
             if base is None:
                 continue
-            f = base = getattr(base, 'proxy_ref', base)
+            f = base
             bound = []
             was_bound = False
             append = bound.append
@@ -1621,25 +1618,20 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
             # bind all attrs, except last to update_intermediates
             k = 1
             for val in keys[1:-1]:
-                # if we need to dynamically rebind, bindm otherwise
+                # if we need to dynamically rebind, bind otherwise
                 # just add the attr to the list
-                if isinstance(f, (EventDispatcher, Observable)):
-                    prop = f.property(val, True)
-                    if prop is not None and getattr(prop, 'rebind', False):
-                        # fast_bind should not dispatch, otherwise
-                        # update_intermediates might be called in the middle
-                        # here messing things up
-                        uid = f.fast_bind(
-                            val, update_intermediates, base, keys, bound, k,
-                            fn, args)
-                        append([f.proxy_ref, val, update_intermediates, uid])
-                        was_bound = True
-                    else:
-                        append([f.proxy_ref, val, None, None])
-                elif not isinstance(f, _cls_type):
-                    append([getattr(f, 'proxy_ref', f), val, None, None])
+                if (isinstance(f, (EventDispatcher, Observable)) and
+                    f.rebind_property(val)):
+                    # fast_bind should not dispatch, otherwise
+                    # update_intermediates might be called in the middle
+                    # here messing things up
+                    uid = f.fast_bind(
+                        val, update_intermediates, base, keys, bound, k,
+                        fn, args)
+                    append([f.proxy_ref, val, uid])
+                    was_bound = True
                 else:
-                    append([f, val, None, None])
+                    append([None, None, None])
                 f = getattr(f, val, None)
                 if f is None:
                     break
@@ -1650,7 +1642,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
             if isinstance(f, (EventDispatcher, Observable)):
                 uid = f.fast_bind(keys[-1], fn, args)  # f is not None
                 if uid:
-                    append([f.proxy_ref, keys[-1], fn, uid])
+                    append([f.proxy_ref, keys[-1], uid])
                     was_bound = True
             if was_bound:
                 handler_append(bound)
@@ -2106,7 +2098,11 @@ class BuilderBase(object):
             # is this try/except still needed? yes, in case widget died in this
             # frame after the call was scheduled
             try:
-                call_fn(next_args[:-1], None, None)
+                f = next_args[0]
+                if f is call_fn:
+                    call_fn(next_args[:-1], None, None)
+                else:
+                    f(*next_args[1:-1])
             except ReferenceError:
                 pass
             args = next_args
@@ -2125,7 +2121,7 @@ class BuilderBase(object):
         if uid not in _handlers:
             return
         for callbacks in _handlers[uid]:
-            for f, k, fn, bound_uid in callbacks:
+            for f, k, bound_uid in callbacks:
                 if not bound_uid:  # it's not a kivy prop.
                     continue
                 try:
