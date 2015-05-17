@@ -14,6 +14,7 @@ cdef class EventDispatcher(ObjectWithUid):
     cdef dict __properties
     cdef dict __storage
     cdef object __weakref__
+    cpdef rebind_property(self, name)
     cpdef dict properties(self)
 
 

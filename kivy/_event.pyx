@@ -156,6 +156,9 @@ cdef class Observable(ObjectWithUid):
             except KeyError:
                 pass
 
+    def rebind_property(self, name):
+        return False
+
     property proxy_ref:
         def __get__(self):
             return self
@@ -444,7 +447,7 @@ cdef class EventDispatcher(ObjectWithUid):
         times, only the first occurrence will be unbound.
 
         .. note::
-            
+
             This method may fail to unbind a callback bound with
             :meth:`fast_bind; you should use :meth:`fast_unbind` instead.
         '''
@@ -773,6 +776,12 @@ cdef class EventDispatcher(ObjectWithUid):
             return self.__properties.get(name, None)
         else:
             return self.__properties[name]
+
+    cpdef rebind_property(self, name):
+        cdef Property prop = self.__properties.get(name, None)
+        if prop is None:
+            return None
+        return prop.rebind
 
     cpdef dict properties(EventDispatcher self):
         '''Return all the properties in the class in a dictionary of
