@@ -1734,14 +1734,18 @@ class BuilderBase(object):
         '''
 
         # try to see if there is a compiled version of the kv first
-        pyfn = filename + ".py"
+        pyfn = splitext(filename)[0] + ".kvc"
         pyfn = resource_find(pyfn) or pyfn
         if exists(pyfn):
             Logger.info('Builder: load file %s (compiled, py)' % pyfn)
-            mod = imp.load_source(
-                "kivy.lang.{}".format(basename(pyfn.replace(".", "__"))),
-                pyfn)
-            return mod.get_root()
+            try:
+                mod = imp.load_source(
+                    "kivy.lang.{}".format(splitext(basename(pyfn))[0]), pyfn)
+                return mod.get_root()
+            except Exception as e:
+                Logger.exception(str(e))
+                Logger.exception(
+                    'Failed to import {}, falling back to parser'.format(pyfn))
 
         filename = resource_find(filename) or filename
         if __debug__:
