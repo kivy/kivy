@@ -48,6 +48,13 @@ The language consists of several constructs that you can use:
         styling the content of a list (e.g. icon on the left, text on the
         right). They are now deprecated by dynamic classes.
 
+    ..note::
+
+        -Document required methods, e.g. rebind_property, fast_bind, unbind_uid.
+        -Also how proxy_ref can be used by obj that don't want kv to keep a ref.
+        -That all graphics instructs are exec delayed.
+        -It has dispatch method, children and parent props.
+
 
 Syntax of a kv File
 -------------------
@@ -773,7 +780,6 @@ will first be unloaded and then reloaded again. For example:
                 size: (self.size[0]/4, self.size[1]/4)
 
 '''
-import os
 
 __all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException', 'Parser',
            'ParserException')
@@ -786,7 +792,7 @@ import imp
 import types
 from re import sub, findall
 from os import environ
-from os.path import join, exists, basename
+from os.path import join, exists, basename, splitext
 from copy import copy
 from types import CodeType
 from functools import partial
@@ -817,7 +823,10 @@ Cache.register('kv.lang')
 __KV_INCLUDES__ = []
 
 # precompile regexp expression
-lang_str = re.compile('([\'"][^\'"]*[\'"])')
+lang_str = re.compile(
+    '((?:\'\'\'(?:[^(?:\'\'\')]|\\\'\'\')*?\'\'\')|'
+    '(?:\'(?:[^\']|\\\')*?\')|'
+    '(?:"(?:[^"]|\\")*?"))')
 lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 lang_tr = re.compile('(_\()')
