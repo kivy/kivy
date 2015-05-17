@@ -303,6 +303,7 @@ cdef class Property:
         self.errorvalue = None
         self.errorhandler = None
         self.errorvalue_set = 0
+        self.rebind = 0
 
 
     def __init__(self, defaultvalue, **kw):

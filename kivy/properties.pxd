@@ -25,6 +25,7 @@ cdef class Property:
     cdef object errorhandler
     cdef int errorvalue_set
     cdef public object defaultvalue
+    cdef public int rebind
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage)
     cpdef link(self, EventDispatcher obj, str name)
     cpdef link_deps(self, EventDispatcher obj, str name)
@@ -51,11 +52,10 @@ cdef class ListProperty(Property):
     pass
 
 cdef class DictProperty(Property):
-    cdef public int rebind
+    pass
 
 cdef class ObjectProperty(Property):
     cdef object baseclass
-    cdef public int rebind
 
 cdef class BooleanProperty(Property):
     pass
@@ -81,7 +81,6 @@ cdef class AliasProperty(Property):
     cdef object setter
     cdef list bind_objects
     cdef int use_cache
-    cdef public int rebind
     cpdef trigger_change(self, EventDispatcher obj, value)
 
 cdef class VariableListProperty(Property):
