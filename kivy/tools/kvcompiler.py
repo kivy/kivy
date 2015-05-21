@@ -85,7 +85,34 @@ def _execute_directive(cmd):
             globals()[alias] = mod
         except ImportError:
             return
+
+
+def update_intermediates(*l):
+    pass
 '''
+
+
+def argmax(iter):
+    return sorted(enumerate(iter), key=lambda x: x[1])[-1][0]
+
+
+def argmin(iter):
+    return sorted(enumerate(iter), key=lambda x: x[1])[0][0]
+
+
+def partition_tree_roots(adjacency):
+    N = len(adjacency)
+    assert N
+    assert all([len(col) == N for col in adjacency])
+    roots = []
+
+    # partition into disjointed trees
+    for c, col in enumerate(adjacency):
+        if sum(col) == 0:
+            roots.append(c)
+    # if we didn't find any roots, pick the one with least incoming edges
+    if not roots:
+        roots.append(argmin(map(sum, adjacency)))
 
 
 def _find_maxline(line, rule):
@@ -248,7 +275,6 @@ class LazyFmt(object):
 
     def __repr__(self):
         return self.__str__()
-
 
 
 class RuleContext(object):
@@ -481,49 +507,6 @@ class RuleContext(object):
         return ret
 
     @property
-    def property_dispatch(self):
-        if self.rule_type != 'widget':
-            return []
-        tab = self.tab
-        ptest = self.compiler.property_test
-        sname = self.name
-        props = self.rule.properties
-
-        ret = {}
-        for name, prop in props.items():
-            code = [
-                LazyFmt('prop = {}("{}", quiet=True)', ptest.use(sname), name),
-                'if prop is not None:',
-                '{}prop.dispatch({})'.format(tab, sname)
-            ]
-            ret[name] = (prop.line, code)
-        for rule in self.rule.handlers:
-            name = rule.name[3:]
-            if name in ret and ret[name][0] > rule.line:
-                continue
-            code = [
-                LazyFmt('prop = {}("{}", quiet=True)', ptest.use(sname), name),
-                'if prop is not None:',
-                '{}prop.dispatch({})'.format(tab, sname)
-            ]
-            ret[name] = (rule.line, code)
-
-        if self.rule.children:
-            ret['children'] = (-1, [
-                LazyFmt('{}("children", quiet=True).dispatch({})',
-                        ptest.use(sname), sname)])
-        if self.parent:
-            ret['parent'] = (-2, [
-                LazyFmt('{}("parent", quiet=True).dispatch({})',
-                        ptest.use(sname), sname)])
-            ret['on_kv_apply'] = (
-                1 + max([0] + [l[0] for l in ret.values()]),
-                ['{}.dispatch("on_kv_apply", root)'.format(sname)])
-
-        ret = ret.values()
-        return [val[1] for val in sorted(ret, key=lambda x: x[0])]
-
-    @property
     def property_handlers(self):
         ids_map = self.ids_map
         tab = self.tab
@@ -632,6 +615,8 @@ class PyCompiler(object):
 
     base_types = ['EventDispatcher', 'Observable']
 
+    assume_dispatch_prop = False
+
     # temporary, per rule variables
     code = None
 
@@ -642,8 +627,6 @@ class PyCompiler(object):
     root = None
 
     obj_names = None
-
-    watcher_map = None
 
     proxy = None
 
@@ -696,7 +679,6 @@ class PyCompiler(object):
         obj_names = self.obj_names = set([rule.name for rule in rules])
         obj_names.add('app')
         self.root = root = rules[0]
-        self.watcher_map = {(v, ): v for v in obj_names}
         self.proxy = proxy = LazyString(
             dec=(None, '{0}_ref = {0}.proxy_ref'),
             use=('{}.proxy_ref', '{}_ref'))
@@ -755,11 +737,29 @@ class PyCompiler(object):
             on_handlers_code.extend(pcode)
             on_handlers.extend(bindings)
 
-        code['bindings'] = self.compile_bindings(rules, handlers, on_handlers)
+        code['bindings'], dispatchers = self.compile_bindings(rules, handlers, on_handlers)
 
         dispatching = code['dispatching']
-        for rule in rules:
-            dispatching.append(rule.property_dispatch)
+        for (root_obj, obj, key), (idx, bidx) in dispatchers.items():
+            if obj not in obj_names:
+                dcode = [
+                    'try:',
+                    '{0}if dispatch_objs[{1}] is not None and {2} == {2}_bound[{3}][3]:'.format(tab, idx, obj, bidx),
+                    '{0}dispatch_objs[{1}][1].dispatch_stale({2}, dispatch_objs[{1}][2])'.format(tab * 2, idx, obj),
+                    'except ReferenceError:',
+                    '{}pass'.format(tab)
+                ]
+            else:
+                dcode = [
+                    'if dispatch_objs[{}] is not None:'.format(idx),
+                    '{0}dispatch_objs[{1}][1].dispatch_stale({2}, dispatch_objs[{1}][2])'.format(tab, idx, obj)
+                ]
+            dispatching.append(dcode)
+        for rule in rules[1:]:
+            if rule.rule_type != 'widget':
+                continue
+            dispatching.append(['{}.dispatch("on_kv_apply", root)'.format(rule.name)])
+
         return code, root.f_name
 
     def format_code(self, code):
@@ -860,147 +860,252 @@ class PyCompiler(object):
 
             yield leaves, nodes, level, watchers[:level + 1]
 
-    def get_obj_name(self, objs, code=None, make_alias=False):
-        ctx = self.watcher_map
-        objs = tuple(objs)
-        if objs in ctx:
-            return ctx[objs]
+    def append_dispatcher(
+            self, watchers, curr_obj, key, dispatch_idxs, depth, bind_code,
+            next_pos, check_prop=False):
+        '''if check_prop we'll check if the prop exists, otherwise we'll assume
+        it has been checked through trying to bind (fast_bind returns 0 if
+        the prop has not beed found) and we'll check if the bound suceeded.
+        '''
+        tab = self.tab
+        puse = self.property_test.use
+        elem = watchers[0], curr_obj, key
+        if elem not in dispatch_idxs:
+            l = len(dispatch_idxs)
+            dispatch_idxs[elem] = l, next_pos
 
-        # start from the end i.e. for x.y.z.a.b.c start from b and check if
-        # x.y.z.a.b has been aliased to e.g. x_y_z_a_b until we reach just x
-        # which must be in the ctx then do e.g. x_y_z_a_b_c = x_y_z.a.b.c
-        # if only x_y_z has already been aliased. Because get_obj_name is called
-        # with objs from the root of the tree down this'll work.
-        for i in range(len(objs) - 2, -1, -1):
-            if objs[:i + 1] in ctx:
-                if not make_alias:
-                    return '{}.{}'.format(ctx[objs[:i + 1]], '.'.join(objs[i + 1:]))
-                ctx[objs] = name = 'obj_{}'.format('_'.join(objs))
-                code.append('{} = {}.{}'.format(name, ctx[objs[:i + 1]], '.'.join(objs[i + 1:])))
-                return name
-        assert False
+            if not check_prop:
+                bind_code.append(
+                    LazyFmt('{}if bound[{}][5]:', tab * depth, next_pos))
+                depth += 1
+
+            quiet = ', quiet=True' if check_prop else ''
+            bind_code.append(LazyFmt(
+                '{}prop = {}("{}"{})', tab * depth, puse(curr_obj), key,
+                quiet))
+
+            if check_prop:
+                bind_code.append(LazyFmt('{}if prop is not None:', tab * depth))
+                depth += 1
+            bind_code.append(LazyFmt(
+                '{}dispatch_objs[{}] = [{}, prop, prop.dispatch_count({})]',
+                tab * depth, l, curr_obj, curr_obj))
+
+    def append_bindings(
+            self, do_bind, leaves, next_pos, unbind_idxs, curr_obj, bind_nodes,
+            nodes, depth, bind_code, bind, start, p_use, cpos, pos,
+            watchers, dispatch_idxs, **kwargs):
+        '''Emits the fast_bind code for the leaves and nodes. It binds to every
+        leaf and node coming off from the current object at this level and
+        saves the function and args for later rebinding. If not do_bind,
+        it doesn't do the actual binding but just saves the args.
+        '''
+        ptest = self.property_test
+        tab = self.tab
+        # for every leaf, we need to save the target func and its args and bind
+        # to that func if it's observable (i.e. do_bind=true)
+        for sname, name, key, f, fargs, delayed in leaves:
+            assert fargs
+            unbind_idxs[sname].append(next_pos)
+
+            args = ''
+            # when delayed, it's a graphics instruction so we delay callback
+            if delayed:
+                f = 'delayed_call_fn'
+                save_args = '({}, )'.format(delayed)
+                args = delayed
+            elif len(fargs) == 1:
+                save_args = LazyFmt('({}, )', p_use(fargs[0]))
+                if do_bind:
+                    args = p_use(fargs[0])
+            else:
+                save_args = LazyFmt('{}', map(p_use, fargs))
+                if do_bind:
+                    args = LazyFmt(
+                        ', '.join(['{}', ] * len(fargs)), *map(p_use, fargs))
+
+            # binding code (obj.fast_bind(...)), and proxy to object
+            code = LazyFmt(
+                '{}("{}", {}, {})', bind.use(curr_obj), key, f, args)
+            if not do_bind:  # when not do_bind, just save args and don't
+                obj = code = None
+            else:
+                obj = p_use(curr_obj)
+
+            bind_code.append(LazyFmt(
+                '{}bound[{}] = [None, None, {}, {}, "{}", {}, {}, {}]',
+                tab * depth, next_pos, cpos, obj, key, code, f, save_args))
+            if do_bind:
+                self.append_dispatcher(
+                    watchers, curr_obj, key, dispatch_idxs, depth, bind_code,
+                    next_pos)
+            next_pos += 1
+
+        # cache checking of rebind for each prop when setting rebinding
+        if bind_nodes and len(bind_nodes) > 1:
+            bind_code.append(
+                '{}rebind_property = {}.rebind_property'.
+                format(tab * depth, curr_obj))
+            rebind_property = 'rebind_property'
+        else:
+            rebind_property = '{}.rebind_property'.format(curr_obj)
+        # when rebinding, it's all under an additonal `if rebind_prop` level
+        ldepth = depth + 1 if do_bind else depth
+
+        # now bind the update_intermediats all the intermediate nodes
+        for k, (node, N, _) in enumerate(nodes if bind_nodes else []):
+            assert N
+            if do_bind:
+                bind_code.append(       # if obj.rebind_property("prop_name"):
+                    '{}if {}("{}"):'.
+                    format(tab * depth, rebind_property, node))
+                code = LazyFmt(  # the actual obj.fast_bind(node, ...)
+                    '{}("{}", update_intermediates, bound, {})',
+                    bind.use(curr_obj), node, next_pos)
+                # now bind and save the args
+                bind_code.append(LazyFmt(
+                    '{}bound[{}] = [{}, {}, {}, {}, "{}", {}, '
+                    'update_intermediates, (bound, {})]',
+                    tab * ldepth, next_pos, start[k], start[k] + N - 1, cpos,
+                    p_use(curr_obj), node, code, next_pos))
+
+                self.append_dispatcher(
+                    watchers, curr_obj, node, dispatch_idxs, ldepth, bind_code,
+                    next_pos)
+                bind_code.append('{}else:'.format(tab * depth))
+
+            # if it wasn't rebind_property(...) still save in case a obj in
+            # the tree above changes and we need the args to rebind
+            bind_code.append(LazyFmt(
+                '{}bound[{}] = [{}, {}, {}, None, "{}", None, '
+                'update_intermediates, (bound, {})]', tab * ldepth, next_pos,
+                start[k], start[k] + N - 1, cpos, node, next_pos))
+
+            # now save the pos of the callback bound to this node
+            pos[tuple(watchers) + (node, )] = next_pos
+            next_pos += 1
+        return next_pos
 
     def compile_bindings(self, rules, handlers, on_handlers):
         tab = self.tab
         proxy, proxy_maybe = self.proxy, self.proxy_maybe
         on_objs = defaultdict(list)
         ret = []
-        watcher_map = self.watcher_map
         rebind = self.rebind
+        prop_test = self.property_test
         obj_names = self.obj_names
-        obj_name_f = self.get_obj_name
-        has_nodes = False
-        p_use = lambda x: (proxy if x in obj_names else proxy_maybe).use(x)
+        obj_name = lambda x: 'obj_' + '_'.join(x) if len(x) > 1 else root_name
+        unbind_idxs = defaultdict(list)
+        p_use = lambda x: (proxy if x in obj_names or level else proxy_maybe).use(x)
         if len(self.base_types) > 1:
             base_types = '({})'.format(', '.join(self.base_types))
         else:
             base_types = self.base_types[0]
         bind = LazyString(
             dec=(None, 'bind = {}.fast_bind'), use=('{}.fast_bind', 'bind'))
+        dispatch_idxs = OrderedDict()
 
         # just sort the on_xx events by the objs they bind to (e.g. root, g1)
         for rule_name, prop_name, f, fargs in on_handlers:
             on_objs[rule_name].append((prop_name, f, fargs))
 
+        # for every iter of the loop, we pick a node in topological depth first
+        # order and we look at nodes and leaves that hang off. Leaves are bound
+        # to final callbacks x_hn, nodes are bound to intermediats if rebind
+        # each object in bound is tuple of
+        # (start, end, parent, obj, key (in its parent), uid, f, args)
         for i, (leaves, nodes, level, watchers) in enumerate(
                 self.walk_bindings(handlers)):
             assert nodes or leaves
             bind_code = []
             root_name = watchers[0]
-            if not level:
-                # imported base names are mapped to themselves, no aliasing
-                if (root_name, ) not in watcher_map:
-                    watcher_map[(root_name, )] = root_name
-
-            if rebind and not level:
-                has_nodes = bool(nodes)  # does it have nodes that need rebind?
+            curr_obj = obj_name(watchers)
+            bind_nodes = rebind and nodes
+            reached_end = not nodes
             on_bindings = not level and on_objs[root_name]  # any on_xxx?
-            make_alias = (  # if more than 1 access, make alias for this node
-                rebind and has_nodes or
-                len(nodes) + bool(leaves or on_bindings) > 1)
-            curr_obj = obj_name_f(watchers, bind_code, make_alias=make_alias)
-            if rebind and curr_obj not in obj_names:
-                bind_code.append(proxy_maybe.dec(curr_obj, add=False))
 
-            if has_nodes and rebind and not level:
-                pos = {tuple(watchers): 'None'}
-                N = sum([n[1] for n in nodes])
-                # start, end, parent, obj, key (in its parent), uid, f, args
-                bind_code.append('bound = [None, ] * {}'.format(N))
-                bind_code.append('was_none = False')
+            if not level:
+                pos = {}
+                # if not rebind, only leaves are bound otherwise everything is
+                idx = 1 if rebind else 2
+                N = sum([n[idx] for n in nodes]) + len(leaves)
+                bind_code.append(
+                    '{}_bound = bound = [None, ] * {}'.format(root_name, N))
                 next_pos = 0
-                cpos = 'None'
-            elif has_nodes and rebind:
-                cpos = pos[tuple(watchers)]
+                if root_name not in obj_names:
+                    self.code['proxies'].append(proxy_maybe.dec(root_name, add=False))
 
-            otab = ''
-            if level or curr_obj not in obj_names:
-                otab = tab
-                bind_code.append(
-                    LazyFmt('if isinstance({}, {}):', curr_obj, base_types))
-            bind_code.append(
-                LazyFmt('{}{}', otab, bind.dec(curr_obj, add=False)))
-
-            for sname, name, key, f, fargs, delayed in leaves:
-                assert fargs
-                if delayed:
-                    f = 'delayed_call_fn'
-                    code = LazyFmt(
-                        '{}("{}", {}, {})',
-                        bind.use(curr_obj), key, f, delayed)
-                else:
-                    code = '{}("{}", {}{})'.format(
-                        '{}', key, f, ', {}' * len(fargs))
-                    code = LazyFmt(code, bind.use(curr_obj), *map(p_use, fargs))
-
-                if has_nodes and rebind and level:
-                    rcode = (
-                        '{0}bound[{1}] = [None, None, {2}, {4}, "{3}", {4}, '
-                        '{5}, {5}]'.format(otab, next_pos, cpos, key, '{}', f))
-                    if delayed:
-                        save_args = '({}, )'.format(delayed)
-                    elif len(fargs) == 1:
-                        save_args = LazyFmt('({}, )', p_use(fargs[0]))
-                    else:
-                        save_args = LazyFmt('{}', map(p_use, fargs))
-                    rcode = LazyFmt(rcode, p_use(curr_obj), code, save_args)
-                    next_pos += 1
-                else:
-                    rcode = LazyFmt('{}{}', otab, code)
-                bind_code.append(rcode)
-
-            rtab = otab + tab
+            cpos = pos.get(tuple(watchers), None)  # pos of parent in bound
             sizes = [node[1] - 1 for node in nodes]
-            start = [sum(map(len, sizes[:k])) + len(nodes) + next_pos
+            start = [sum(map(len, sizes[:k])) + len(nodes) + next_pos + len(leaves)
                      for k in range(len(nodes))]
-            for k, (node, N, L) in enumerate(nodes if has_nodes and rebind else []):
-                assert N
-                bind_code.append(
-                    '{}if {}.rebind_property("{}"):'.
-                    format(otab, curr_obj, node))
-                code = LazyFmt(
-                    '{}("{}", update_intermediates, bound, {})',
-                    bind.use(curr_obj), node, next_pos)
-                rcode = (
-                    '{0}bound[{1}] = [{2}, {3}, {4}, {6}, "{5}", {6}, '
-                    'update_intermediates, (bound, {1})]'.format(
-                        rtab, next_pos, start[k], start[k] + N - 1, cpos,
-                        node, '{}'))
 
-                rcode = LazyFmt(rcode, p_use(curr_obj), code)
-                pos[tuple(watchers) + (node, )] = next_pos
-                next_pos += 1
-                bind_code.append(rcode)
+            # get the next object a (if the parent wasn't already none)
+            depth = 0
+            # did we have a parent that may be none? Then check on it
+            if level > 1 or level == 1 and watchers[0] not in obj_names:
+                if nodes:
+                    bind_code.append(LazyFmt('if {} is None:', obj_name(watchers[:-1])))
+                    bind_code.append(LazyFmt('{}{} = None', tab, curr_obj))
+                    bind_code.append('else:')
+                else:
+                    bind_code.append(LazyFmt('if {} is not None:', obj_name(watchers[:-1])))
+                depth = 1
 
+            if level:
+                bind_code.append(LazyFmt(
+                    '{}{} = {}.{}', tab * depth, curr_obj,
+                    obj_name(watchers[:-1]), watchers[-1]))
+            if level or curr_obj not in obj_names:
+                bind_code.append(LazyFmt(
+                    '{0}if {1} is not None and isinstance({1}, {2}):',
+                    tab * depth, curr_obj, base_types))
+                depth += 1
+                bind_code.append(LazyFmt(
+                    '{}{}', tab * depth, proxy.dec(curr_obj, add=False)))
+            bind_code.append(
+                LazyFmt('{}{}', tab * depth, bind.dec(curr_obj, add=False)))
+            bind_code.append(LazyFmt(
+                '{}{}', tab * depth, prop_test.dec(curr_obj, add=False)))
 
             if on_bindings:  # on_xxx binds on obj.xxx, where obj is one of rules
                 for prop_name, f, fargs in on_bindings:
-                    code = '{}{}("{}", {}{})'.format(
-                        otab, '{}', prop_name, f, ', {}' * len(fargs))
+                    code = '{}("{}", {}{})'.format(
+                        '{}', prop_name, f, ', {}' * len(fargs))
                     bind_code.append(
                         LazyFmt(code, bind.use(curr_obj), *map(p_use, fargs)))
+                    self.append_dispatcher(
+                        watchers, curr_obj, prop_name, dispatch_idxs, 0,
+                        bind_code, next_pos, check_prop=True)
                 on_objs.pop(root_name)
             ret.append(bind_code)
+
+            lcls = locals().copy()
+            del lcls['self']
+            old_next_pos = next_pos
+            next_pos = self.append_bindings(True, **lcls)
+
+            if rebind and level:
+                depth = 1
+                next_pos = old_next_pos
+                bind_code.append(
+                    'if bound[{}] is not None and bound[{}] is None:'.
+                    format(cpos, next_pos))
+                lcls = locals().copy()
+                del lcls['self']
+                next_pos = self.append_bindings(False, **lcls)
+
+            if reached_end:
+                for sname, idxs in unbind_idxs.items():
+                    assert idxs
+                    if len(idxs) == 1:
+                        idxs = '({}, )'.format(idxs[0])
+                    else:
+                        idxs = str(tuple(sorted(set(idxs))))
+                    bind_code.append(
+                        '_handlers[{}.uid].append((bound, {}))'.
+                        format(sname, idxs))
+                unbind_idxs = defaultdict(list)
 
         # now finish the on_xxx not bound with props
         for rule_name, binds in on_objs.items():  # rule_name is always level 0
@@ -1014,8 +1119,14 @@ class PyCompiler(object):
                     '{}', prop_name, f, ', {}' * len(fargs))
                 bind_code.append(
                     LazyFmt(code, bind.use(rule_name), *map(p_use, fargs)))
+                self.append_dispatcher(
+                        [rule_name], rule_name, prop_name, dispatch_idxs, 0,
+                        bind_code, None, check_prop=True)
             ret.append(bind_code)
-        return ret
+
+        if dispatch_idxs:
+            ret.insert(0, 'dispatch_objs = [None, ] * {}'.format(len(dispatch_idxs)))
+        return ret, dispatch_idxs
 
     def compile_root(self, root):
         tab = self.tab
@@ -1114,6 +1225,7 @@ class CyCompiler(PyCompiler):
 
 if __name__ == "__main__":
     import codecs
+    import sys
     from os.path import splitext
     fn = len(sys.argv) > 1 and sys.argv[1] or r'..\data\style.kv'
     with codecs.open(fn) as fd:
