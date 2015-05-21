@@ -30,6 +30,7 @@ from libc.string cimport memset
 from functools import partial
 from collections import defaultdict
 from kivy.weakmethod import WeakMethod
+from kivy.weakproxy import WeakProxy
 from kivy.compat import string_types
 from kivy.properties cimport (Property, PropertyStorage, ObjectProperty,
     NumericProperty, StringProperty, ListProperty, DictProperty,
@@ -39,6 +40,16 @@ cdef int widget_uid = 0
 cdef dict cache_properties = {}
 cdef dict cache_events = {}
 cdef dict cache_events_handlers = {}
+
+
+# References to all the eventdispatcher destructors (partial method with  uid as key).
+cdef dict _eventdispatcher_destructors = {}
+
+def _destructor_callback(callback, uid, r):
+    del _eventdispatcher_destructors[uid]
+    if callback is not None:
+        callback(uid, r)
+
 
 def _get_bases(cls):
     for base in cls.__bases__:
@@ -163,6 +174,10 @@ cdef class Observable(ObjectWithUid):
         def __get__(self):
             return self
 
+    property __self__:
+        def __get__(self):
+            return self
+
 
 cdef class EventDispatcher(ObjectWithUid):
     '''Generic event dispatcher interface.
@@ -178,6 +193,7 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef Property attr
         cdef basestring k
 
+        self.proxy_callback = self._proxy_ref = None
         self.__event_stack = {}
         self.__storage = {}
 
@@ -857,11 +873,33 @@ cdef class EventDispatcher(ObjectWithUid):
         setattr(self.__class__, name, prop)
 
     property proxy_ref:
-        '''Default implementation of proxy_ref, returns self.
-        .. versionadded:: 1.9.0
+        '''Return a proxy reference to the object, i.e. without creating a
+        reference to the EventDispatcher. See `weakref.proxy
+        <http://docs.python.org/2/library/weakref.html?highlight\
+        =proxy#weakref.proxy>`_ for more information.
+
+        .. versionchanged:: 1.9.1
         '''
         def __get__(self):
+            _proxy_ref = self._proxy_ref
+            if _proxy_ref is not None:
+                return _proxy_ref
+
+            f = partial(_destructor_callback, self.proxy_callback, self.uid)
+            self._proxy_ref = _proxy_ref = WeakProxy(self, f)
+            # Only f should be enough here, but it appears that is a very
+            # specific case, the proxy destructor is not called if both f and
+            # _proxy_ref are not together in a tuple.
+            _eventdispatcher_destructors[self.uid] = (f, _proxy_ref)
+            return _proxy_ref
+
+    property __self__:
+        def __get__(self):
             return self
+
+    property __hash__:
+        def __get__(self):
+            return hash(self)
 
 
 cdef class BoundCallback:

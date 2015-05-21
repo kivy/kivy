@@ -14,6 +14,12 @@ cdef class EventDispatcher(ObjectWithUid):
     cdef dict __properties
     cdef dict __storage
     cdef object __weakref__
+    cdef object _proxy_ref
+    cdef public object proxy_callback
+    '''A callback, which if set will be called by the proxy when the event
+    dispatcher dies, if a proxy_ref has been created. The callback takes two
+    parameters, the event dispatcher uid, and the r.
+    '''
     cpdef rebind_property(self, name)
     cpdef dict properties(self)
 
