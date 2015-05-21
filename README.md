@@ -12,7 +12,7 @@ and deployable.
 
 Kivy is written in Python and [Cython](http://cython.org/), based on OpenGL ES
 2, supports various input devices and has an extensive widget library. With the
-same codebase, you can target Windows, OSX, Linux, Android and iOS. All our
+same codebase, you can target Windows, OS X, Linux, Android and iOS. All our
 widgets are built with multitouch support.
 
 Kivy is MIT licensed, actively developed by a great community and is supported
@@ -91,11 +91,11 @@ Licenses
 
 - Kivy is released under the terms of the MIT License. Please refer to the
   LICENSE file.
-- The provided fonts DroidSans.ttf and DroidSansMono.ttf are licensed and
+- The provided fonts DroidSans and DroidSansMono are licensed and
   distributed under the terms of the
   [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+  The DejaVuSans (used for the virtual keyboard) license can be viewed
+  [here](http://dejavu-fonts.org/wiki/License).
 - The current UI design has been adapted from Moblintouch theme's SVGs
   and is licensed under the terms of the
   [LGPLv2.1](http://www.gnu.org/licenses/old-licenses/lgpl-2.1).
-
-
