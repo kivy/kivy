@@ -21,6 +21,7 @@ cdef class EventDispatcher(ObjectWithUid):
     parameters, the event dispatcher uid, and the r.
     '''
     cpdef rebind_property(self, name)
+    cpdef dispatch_count(self, basestring event_type)
     cpdef dict properties(self)
 
 
@@ -52,6 +53,8 @@ cdef class EventObservers:
     cdef BoundCallback last_callback
     # The uid to assign to the next bound callback.
     cdef object uid
+    # the number of time it has been dispatched
+    cdef int count
 
     cdef inline void bind(self, object observer, int is_ref=*) except *
     cdef inline object fast_bind(self, object observer, tuple largs, dict kwargs, int is_ref)

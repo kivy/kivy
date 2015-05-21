@@ -34,12 +34,14 @@ cdef class Property:
     cpdef unbind(self, EventDispatcher obj, observer)
     cpdef fast_unbind(self, EventDispatcher obj, observer, tuple largs=*, dict kwargs=*)
     cpdef unbind_uid(self, EventDispatcher obj, object uid)
+    cpdef dispatch_count(self, EventDispatcher obj)
     cdef compare_value(self, a, b)
     cpdef set(self, EventDispatcher obj, value)
     cpdef get(self, EventDispatcher obj)
     cdef check(self, EventDispatcher obj, x)
     cdef convert(self, EventDispatcher obj, x)
     cpdef dispatch(self, EventDispatcher obj)
+    cpdef dispatch_stale(self, EventDispatcher obj, int count)
 
 cdef class NumericProperty(Property):
     cdef float parse_str(self, EventDispatcher obj, value)

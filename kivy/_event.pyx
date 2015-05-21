@@ -167,6 +167,18 @@ cdef class Observable(ObjectWithUid):
             except KeyError:
                 pass
 
+    def property(self, name, quiet=False):
+        pass
+
+    def dispatch_count(self, basestring event_type):
+        return 0
+
+    def dispatch_stale(self, basestring event_type, int count, *largs, **kwargs):
+        pass
+
+    def dispatch(self, basestring event_type, *largs, **kwargs):
+        pass
+
     def rebind_property(self, name):
         return False
 
@@ -717,6 +729,22 @@ cdef class EventDispatcher(ObjectWithUid):
         handler = getattr(self, event_type)
         return handler(*largs, **kwargs)
 
+    cpdef dispatch_count(self, basestring event_type):
+        cdef EventObservers observers = self.__event_stack[event_type]
+        return observers.count
+
+    def dispatch_stale(
+            self, basestring event_type, int count, *largs, **kwargs):
+        cdef EventObservers observers = self.__event_stack[event_type]
+        if observers.count != count:
+            return True
+
+        if observers.dispatch(self, None, largs, kwargs, 1):
+            return True
+
+        handler = getattr(self, event_type)
+        return handler(*largs, **kwargs)
+
     def dispatch_generic(self, basestring event_type, *largs, **kwargs):
         if event_type in self.__event_stack:
             return self.dispatch(event_type, *largs, **kwargs)
@@ -928,6 +956,7 @@ cdef class EventObservers:
         self.dispatch_value = dispatch_value
         self.last_callback = self.first_callback = None
         self.uid = 1  # start with 1 so uid is always evaluated to True
+        self.count = 0
 
     cdef inline void bind(self, object observer, int is_ref=0) except *:
         '''Bind the observer to the event. If this observer has already been
@@ -1176,6 +1205,7 @@ cdef class EventObservers:
         cdef object f, result
         cdef BoundLock current_lock, last_lock
         cdef int done = 0, res = 0, reverse = self.dispatch_reverse
+        self.count += 1
 
         if reverse:  # dispatch starting from last until first
             callback = self.last_callback  # start callback
