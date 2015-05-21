@@ -3,20 +3,21 @@ Kivy
 
 <img align="right" height="256" src="https://raw.githubusercontent.com/kivy/kivy/master/kivy/data/logo/kivy-icon-256.png"/>
 
-Innovative User Interfaces Made Easy.
+Innovative user interfaces made easy.
 
-Kivy is a [Python](https://www.python.org) framework for the development of
-multi-touch enabled media rich applications. The aim is to allow for quick and
-easy interaction design and rapid prototyping whilst making your code reusable
-and deployable.
+Kivy is an open source, cross-platform [Python](https://www.python.org)
+framework for the development of applications that make use of innovative,
+multi-touch user interfaces.
+The aim is to allow for quick and easy interaction design and rapid prototyping
+whilst making your code reusable and deployable.
 
 Kivy is written in Python and [Cython](http://cython.org/), based on OpenGL ES
 2, supports various input devices and has an extensive widget library. With the
-same codebase, you can target Windows, OS X, Linux, Android and iOS. All our
+same codebase, you can target Windows, OS X, Linux, Android and iOS. All Kivy
 widgets are built with multitouch support.
 
 Kivy is MIT licensed, actively developed by a great community and is supported
-by many projects managed by the Kivy organisation.
+by many projects managed by the [Kivy Organization](http://kivy.org/#organization).
 
 [![Kivy's Coverage](https://coveralls.io/repos/kivy/kivy/badge.png?branch=master)](https://coveralls.io/r/kivy/kivy?branch=master) [![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=42681)](https://www.bountysource.com/trackers/42681-kivy?utm_source=42681&utm_medium=shield&utm_campaign=TRACKER_BADGE)
 
@@ -24,10 +25,10 @@ Installation, Documentation and Examples
 ----------------------------------------
 
 Extensive installation instructions as well as tutorials and general
-documentation, including an API reference, can be found at: http://kivy.org/docs/
+documentation, including an API reference, can be found at: http://kivy.org/docs/.
+An offline [PDF version](http://kivy.org/docs/pdf/Kivy-latest.pdf) is also available.
 
-An offline version in PDF format is also available.
-Kivy ships with a bunch of examples that can be found in the examples/ folder.
+Kivy ships with many examples which can be found in the `examples` folder.
 
 Support
 -------
@@ -47,7 +48,7 @@ Contributing
 ------------
 
 We love pull requests and discussing novel ideas. Check out our
-contribution guide (http://kivy.org/docs/contribute.html) and
+[contribution guide](http://kivy.org/docs/contribute.html) and
 feel free to improve Kivy.
 
 The following mailing list and IRC channel are used exclusively for
@@ -62,10 +63,8 @@ IRC channel:
 * Port    : 6667, 6697 (SSL only)
 * Channel : #kivy-dev
 
-Other projects
+Sister projects
 ---------------
-
-Have a look at our complementary projects:
 
 - [Buildozer](http://github.com/kivy/buildozer): A robot that will do
   everything needed to package your application for iOS and Android. Ask him,
