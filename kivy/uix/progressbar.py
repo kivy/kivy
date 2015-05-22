@@ -25,6 +25,7 @@ To use it, simply assign a value to indicate the current progress::
 
 __all__ = ('ProgressBar', )
 
+from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, AliasProperty
 
@@ -43,6 +44,10 @@ class ProgressBar(Widget):
         return self._value
 
     def _set_value(self, value):
+        if value is None:
+            self._value = value
+            Clock.schedule_once(self._increment_time)
+            return True
         value = max(0, min(self.max, value))
         if value != self._value:
             self._value = value
@@ -57,15 +62,33 @@ class ProgressBar(Widget):
 
     .. versionchanged:: 1.6.0
         The value is now limited to between 0 and :attr:`max`.
+        
+    .. versionchanged:: 2.0.0
+        The value can now be None. Such value will set the :class:`ProgressBar`
+        to indeterminate mode.
     '''
+    
+    _time = NumericProperty(0.)
+    
+    def _increment_time(self, dt):
+        if self.value is None:
+           self._time += Clock.frametime
+           Clock.schedule_once(self._increment_time)
+        else:
+           self._time = 0
+           
 
     def get_norm_value(self):
+        if self.value is None:
+            return self.value
         d = self.max
         if d == 0:
             return 0
         return self.value / float(d)
 
     def set_norm_value(self, value):
+        if value is None:
+            self.value = value
         self.value = value * self.max
 
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
@@ -79,6 +102,10 @@ class ProgressBar(Widget):
         0.5
 
     :attr:`value_normalized` is an :class:`~kivy.properties.AliasProperty`.
+    
+    .. versionchanged:: 2.0.0
+    The normalized value can now be None. Such value will set the
+    :class:`ProgressBar` to indeterminate mode.
     '''
 
     max = NumericProperty(100.)
@@ -90,6 +117,9 @@ class ProgressBar(Widget):
 
 
 if __name__ == '__main__':
-
+    from kivy.uix.boxlayout import BoxLayout
     from kivy.base import runTouchApp
-    runTouchApp(ProgressBar(value=50))
+    bl = BoxLayout(orientation='vertical')
+    bl.add_widget(ProgressBar(value=50))
+    bl.add_widget(ProgressBar(value=None))
+    runTouchApp(bl)
