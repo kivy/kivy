@@ -38,6 +38,8 @@ class ProgressBar(Widget):
 
     def __init__(self, **kwargs):
         self._value = 0.
+        self._relsize = 0.2
+        self._period = 2.0
         super(ProgressBar, self).__init__(**kwargs)
 
     def _get_value(self):
