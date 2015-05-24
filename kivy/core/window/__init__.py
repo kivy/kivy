@@ -448,16 +448,24 @@ class WindowBase(EventDispatcher):
     _keyboard_changed = BooleanProperty(False)
 
     def _upd_kbd_height(self, *kargs):
+        # this method is called on global layout events
+        # therefore we must clear the keyboard height cache
+        self._cached_keyboard_height = None
         self._keyboard_changed = not self._keyboard_changed
 
     def _get_ios_kheight(self):
         return 0
 
     def _get_android_kheight(self):
+        # if we already know the keyboard height, use the cached value
+        # this cache is cleared by global layout events
+        if self._cached_keyboard_height is not None:
+            return self._cached_keyboard_height
         global android
         if not android:
             import android
-        return android.get_keyboard_height()
+        h = self._cached_keyboard_height = android.get_keyboard_height()
+        return h
 
     def _get_kheight(self):
         if platform == 'android':
@@ -552,6 +560,9 @@ class WindowBase(EventDispatcher):
 
         self.initialized = False
         self._is_desktop = Config.getboolean('kivy', 'desktop')
+
+        # cache the keyboard height (but clear it on global layout events)
+        self._cached_keyboard_height = None
 
         # create a trigger for update/create the window when one of window
         # property changes
