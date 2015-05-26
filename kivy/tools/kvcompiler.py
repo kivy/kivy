@@ -14,6 +14,8 @@ from collections import OrderedDict, defaultdict
 from kivy.lang import Parser, lang_str, Builder
 from re import match, compile, sub, split
 from functools import partial
+from os.path import abspath
+import kivy
 
 rule_handler = 0
 rule_on_handler = 0
@@ -931,6 +933,7 @@ class KVCompiler(object):
     def format_code(self):
         ret = []
         tab = self.tab
+        root = self.root.rule
         def flatten(groups, depth=0):
             if isinstance(groups, (LazyFmt, LazyEval)):
                 group = str(groups)
@@ -949,6 +952,8 @@ class KVCompiler(object):
             push_empty(ret)
         if ret:
             push_empty(ret, 2)
+
+        ret.append('# {} L{}'.format(root.name, root.line))
 
         missing = self.missing
         if missing:
@@ -1008,7 +1013,9 @@ class KVCompiler(object):
                 ret.extend(flatten(lines, depth=1))
                 push_empty(ret)
 
-        lines = [line for line in ret if line.strip()]
+        lines = [
+            line for line in ret if line.strip() and
+            not line.strip().startswith('#')]
         if len(lines) == 1:
             ret.insert(ret.index(lines[0]) + 1, '{}pass'.format(tab))
         return ret
@@ -1347,7 +1354,7 @@ class KVCompiler(object):
         code = (
             'def get_root():\n'
             '{0}widget = Factory.get("{1}")()\n'
-            '{0}{2}(widget)\n'
+            '{0}{2}(widget, None)\n'
             '{0}return widget').format(tab, root.name, f_name)
         return compiled_rule, code
 
@@ -1408,7 +1415,7 @@ class KVCompiler(object):
             [c[1] for c in template.ctx.sourcecode[minline:maxline + 1]])
         return ["Builder.load_string('''", code, "''')"]
 
-    def compile(self, parser, rule_opts={}, **kwargs):
+    def compile(self, parser, file_hash, rule_opts={}, **kwargs):
         cython = kwargs.get('cython', KVCompiler.cython)
         for opts in rule_opts.values():
             if cython:
@@ -1439,10 +1446,15 @@ class KVCompiler(object):
         else:
             otype = str(tuple(base_types))
 
+        ver = '__version__ = "{}"'.format(kivy.__version__)
+        source = '__source_file__ = r"{}"'.format(abspath(parser.filename))
+        src_hash = '__source_hash__ = b"{}"'.format(file_hash)
+
+        lines = [ver, source, src_hash]
         if cython:
-            lines = [cyheader_imports, cyheader_globals]
+            lines += [cyheader_imports, cyheader_globals]
         else:
-            lines = [pyheader_imports, pyheader_globals]
+            lines += [pyheader_imports, pyheader_globals]
         lines += [rebind_callback_str.format('{}', otype), '']
 
         lines.extend(self.compile_directives(parser.directives))
@@ -1489,16 +1501,16 @@ class KVCompiler(object):
         else:
             lines.extend(['', ''])
         lines.append(root_code)
-        lines[1] = lines[1].format(rule_uid)
+        lines[4] = lines[4].format(rule_uid)
 
         for name, cls, template in parser.templates:
             lines.extend(['', ''])
             lines.extend(self.generate_template(name, template))
 
-        lines.insert(0, "# Generated from {} at {}".format(
-            parser.filename, datetime.datetime.now()))
+        lines.insert(0, "# Compiled from {} at {}".format(
+            abspath(parser.filename), datetime.datetime.now()))
 
-        lines = [l + "\n" for l in lines if l is not None]
+        lines = [l for l in lines if l is not None]
         return lines, not cython
 
 

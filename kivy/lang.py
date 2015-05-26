@@ -790,6 +790,7 @@ import sys
 import traceback
 import imp
 import types
+import hashlib
 from re import sub, findall
 from os import environ
 from os.path import join, exists, basename, splitext
@@ -1732,18 +1733,20 @@ class BuilderBase(object):
         '''Root rule uses name `Root`.
         '''
         from kivy.tools.kvcompiler import KVCompiler
-        with open(filename) as fd:
+        with codecs.open(filename) as fd:
             content = fd.read()
+        h = hashlib.sha256(content).hexdigest()
+
         parser = Parser(content=content, filename=filename)
         compiler = KVCompiler()
-        lines, pure_py = compiler.compile(parser, rule_opts, **kwargs)
+        lines, pure_py = compiler.compile(parser, h, rule_opts, **kwargs)
 
         if dest is None:
             dest = splitext(filename)[0] + ('.kvc' if pure_py else '.pyx')
         if not overwrite and exists(dest):
             raise IOError('{} already exists'.format(dest))
         with codecs.open(dest, "w") as fd:
-            fd.writelines(lines)
+            fd.writelines([l + '\n' for l in lines])
         return dest
 
     def load_file(self, filename, **kwargs):
@@ -1758,19 +1761,20 @@ class BuilderBase(object):
 
         # try to see if there is a compiled version of the kv first
         base_name = splitext(filename)[0]
-        pyfn = base_name + ".kvc"
-        cyfn = base_name + ".pyd"
+        is_source = filename.endswith('.kv')
+        pyfn = base_name + ".kvc"  # python compiled
+        cyfn = base_name + ".pyd"  # cython compiled
         fn = resource_find(cyfn) or cyfn
         if not exists(fn):
             fn = resource_find(pyfn) or pyfn
 
-        if exists(fn):
+        if exists(fn):  # cython or python exists
             if fn in self.files:
                 Logger.warning(
                     'Lang: The file {} is already loaded; '
                     'you might get unwanted behavior.'.format(fn))
 
-            Logger.info('Builder: load file %s (compiled, py)' % fn)
+            Logger.info('Builder: load file {} (compiled, py)'.format(fn))
             # get the file params required to import it
             for desc in imp.get_suffixes():
                 if (fn[-3:] == 'kvc' and desc[0] == '.py' or
@@ -1778,14 +1782,26 @@ class BuilderBase(object):
                     break
 
             try:
+                # does the source file exist, or did we get a compiled file?
+                if is_source:
+                    with codecs.open(filename) as fd:  # read the source file hash
+                        h = hashlib.sha256(fd.read()).hexdigest()
+
                 with codecs.open(fn, desc[1]) as fh:
                     mod = imp.load_module(
                         'kivy.lang.{}'.format(basename(base_name)), fh, fn,
                         desc)
 
+                if is_source:  # does the source hash match the file's?
+                    if mod.__source_hash__ != h:
+                        raise Exception(
+                            'Compiled file "{}" is out of date with the '
+                            'source file "{}"'.format(fn, filename))
+
                 self.compiled_rules.extend(
                     [(s, r, prev, filename) for (s, r, prev) in mod.rules])
                 self.files.append(filename)
+                self._clear_matchcache()
                 return mod.get_root()
             except Exception as e:
                 Logger.exception(
