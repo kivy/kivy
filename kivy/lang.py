@@ -1715,6 +1715,8 @@ class BuilderBase(object):
 
     _match_cache = {}
 
+    kv_ext = ('.kv', '.kvc', '.pyd')
+
     def __init__(self):
         super(BuilderBase, self).__init__()
         self.files = []
@@ -1722,6 +1724,27 @@ class BuilderBase(object):
         self.templates = {}
         self.rules = []
         self.rulectx = {}
+        # 4-tuple, selector, rule, avoid_previous_rules, filename
+        self.compiled_rules = []
+
+    def compile_kv(
+            self, filename, dest=None, overwrite=True, rule_opts={}, **kwargs):
+        '''Root rule uses name `Root`.
+        '''
+        from kivy.tools.kvcompiler import KVCompiler
+        with open(filename) as fd:
+            content = fd.read()
+        parser = Parser(content=content, filename=filename)
+        compiler = KVCompiler()
+        lines, pure_py = compiler.compile(parser, rule_opts, **kwargs)
+
+        if dest is None:
+            dest = splitext(filename)[0] + ('.kvc' if pure_py else '.pyx')
+        if not overwrite and exists(dest):
+            raise IOError('{} already exists'.format(dest))
+        with codecs.open(dest, "w") as fd:
+            fd.writelines(lines)
+        return dest
 
     def load_file(self, filename, **kwargs):
         '''Insert a file into the language builder and return the root widget
@@ -1734,18 +1757,40 @@ class BuilderBase(object):
         '''
 
         # try to see if there is a compiled version of the kv first
-        pyfn = splitext(filename)[0] + ".kvc"
-        pyfn = resource_find(pyfn) or pyfn
-        if exists(pyfn):
-            Logger.info('Builder: load file %s (compiled, py)' % pyfn)
+        base_name = splitext(filename)[0]
+        pyfn = base_name + ".kvc"
+        cyfn = base_name + ".pyd"
+        fn = resource_find(cyfn) or cyfn
+        if not exists(fn):
+            fn = resource_find(pyfn) or pyfn
+
+        if exists(fn):
+            if fn in self.files:
+                Logger.warning(
+                    'Lang: The file {} is already loaded; '
+                    'you might get unwanted behavior.'.format(fn))
+
+            Logger.info('Builder: load file %s (compiled, py)' % fn)
+            # get the file params required to import it
+            for desc in imp.get_suffixes():
+                if (fn[-3:] == 'kvc' and desc[0] == '.py' or
+                    fn[-3:] == 'pyd' and desc[0] == '.pyd'):
+                    break
+
             try:
-                mod = imp.load_source(
-                    "kivy.lang.{}".format(splitext(basename(pyfn))[0]), pyfn)
+                with codecs.open(fn, desc[1]) as fh:
+                    mod = imp.load_module(
+                        'kivy.lang.{}'.format(basename(base_name)), fh, fn,
+                        desc)
+
+                self.compiled_rules.extend(
+                    [(s, r, prev, filename) for (s, r, prev) in mod.rules])
+                self.files.append(filename)
                 return mod.get_root()
             except Exception as e:
-                Logger.exception(str(e))
                 Logger.exception(
-                    'Failed to import {}, falling back to parser'.format(pyfn))
+                    'Failed to import {}, falling back to parser'.format(fn))
+                Logger.exception(str(e))
 
         filename = resource_find(filename) or filename
         if __debug__:
@@ -1778,6 +1823,8 @@ class BuilderBase(object):
         '''
         # remove rules and templates
         self.rules = [x for x in self.rules if x[1].ctx.filename != filename]
+        self.compiled_rules = [
+            x for x in self.compiled_rules if x[3] != filename]
         self._clear_matchcache()
         templates = {}
         for x, y in self.templates.items():
@@ -1877,19 +1924,18 @@ class BuilderBase(object):
         self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
         return widget
 
-    def apply(self, widget):
+    def apply(self, widget, builder_created=None):
         '''Search all the rules that match the widget and apply them.
         '''
-        rules = self.match(widget)
+        rules, compiled_rules = self.match(widget)
         if __debug__:
             trace('Builder: Found %d rules for %s' % (len(rules), widget))
-        if not rules:
+        if not rules and not compiled_rules:
             return
+        for rule in compiled_rules:
+            rule(widget, builder_created)
         for rule in rules:
-            if isinstance(rule, ParserRule):
-                self._apply_rule(widget, rule, rule)
-            else:
-                rule(widget)
+            self._apply_rule(widget, rule, rule)
 
     def _clear_matchcache(self):
         BuilderBase._match_cache = {}
@@ -2074,14 +2120,23 @@ class BuilderBase(object):
         k = (widget.__class__, widget.id, tuple(widget.cls))
         if k in cache:
             return cache[k]
+
         rules = []
         for selector, rule in self.rules:
             if selector.match(widget):
                 if rule.avoid_previous_rules:
                     del rules[:]
                 rules.append(rule)
-        cache[k] = rules
-        return rules
+
+        compiled_rules = []
+        for selector, rule, avoid_previous_rules, _ in self.compiled_rules:
+            if selector.match(widget):
+                if avoid_previous_rules:
+                    del rules[:]
+                    del compiled_rules[:]
+                compiled_rules.append(rule)
+        cache[k] = rules, compiled_rules
+        return rules, compiled_rules
 
     def sync(self):
         '''Execute all the waiting operations, such as the execution of all the
@@ -2120,15 +2175,58 @@ class BuilderBase(object):
         '''
         if uid not in _handlers:
             return
+        return
+
         for callbacks in _handlers[uid]:
-            for f, k, bound_uid in callbacks:
-                if not bound_uid:  # it's not a kivy prop.
-                    continue
-                try:
-                    f.unbind_uid(k, bound_uid)
-                except ReferenceError:
-                    # proxy widget is already gone, that's cool :)
-                    pass
+            if callbacks.__class__ is not tuple:
+                for callback in callbacks:
+                    if len(callback) == 3:  # unbind
+                        f, k, bound_uid = callback
+                        if not bound_uid:  # it's not a kivy prop.
+                            continue
+                        try:
+                            f.unbind_uid(k, bound_uid)
+                        except ReferenceError:
+                            # proxy widget is already gone, that's cool :)
+                            pass
+            else:
+                l, idxs = callbacks  # list of bound and leaf idxs in it
+                pidx = None
+                # unbind the leaves setting the dead widget's prop
+                for i in idxs:
+                    item = l[i]
+                    if item is None:
+                        continue
+
+                    pidx, p, key, bid = item[2:6]
+                    # if it doesn't have a parent, we're good
+                    if p is None:
+                        continue
+                    try:
+                        p.unbind_uid(key, bid)
+                    except ReferenceError:
+                        pass
+                    l[i] = None
+
+                # go up parent levels and unbind all the rebinds if all the
+                # leaves below that parent are dead
+                while True:
+                    if pidx is None or l[pidx] is None:  # no parent
+                        break
+                    pidx_old = pidx
+                    s, e, pidx, p, key, bid = l[pidx][:6]  # next parent
+                    # if there are stil unbound leaves don't unbind parent
+                    # node in case we need to rebind the bound leaves
+                    if any(l[s:e]):
+                        break
+
+                    if bid:  # unbind parent's rebind
+                        try:
+                            p.unbind_uid(key, bid)
+                        except ReferenceError:
+                            pass
+                    l[pidx_old] = None
+
         del _handlers[uid]
 
     def _build_canvas(self, canvas, widget, rule, rootrule):
