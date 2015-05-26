@@ -11,7 +11,7 @@ __all__ = []
 import datetime
 from types import CodeType
 from collections import OrderedDict, defaultdict
-from kivy.lang import Parser, lang_str
+from kivy.lang import Parser, lang_str, Builder
 from re import match, compile, sub, split
 from functools import partial
 
@@ -24,14 +24,19 @@ import kivy.metrics as Metrics
 from kivy.factory import Factory
 from kivy.lang import (
     Builder, ParserSelectorName, _handlers, ProxyApp, delayed_call_fn)
-from kivy.event import EventDispatcher, Observable
 from kivy import require
+from functools import partial
+'''
+
+pyheader_imports = header_imports + \
+    '''from kivy.event import EventDispatcher, Observable'''
+
+cyheader_imports = header_imports + '''
+from kivy._event cimport EventDispatcher, Observable
+from kivy.properties cimport Property
 '''
 
 header_gloabls = '''
-_mc = [None, ] * {}
-_includes = []
-
 app = ProxyApp()
 pt = Metrics.pt
 inch = Metrics.inch
@@ -41,54 +46,99 @@ dp = Metrics.dp
 sp = Metrics.sp
 '''
 
-header_directives = '''
-def _execute_directive(cmd):
-    import sys
-    # small version without error handling of directives
-    # temporary, until the compiler analyse and do the work
-    cmd = cmd.strip()
-    if cmd[:4] == 'set ':
-        name, value = cmd[4:].strip().split(' ', 1)
-        globals()[name] = eval(value)
-    elif cmd[:8] == 'include ':
-        ref = cmd[8:].strip()
-        force_load = False
-        if ref[:6] == 'force ':
-            ref = ref[6:].strip()
-            force_load = True
-        if ref[-3:] != '.kv':
+pyheader_globals = header_gloabls + '''
+_mc = [None, ] * {}
+'''
+
+cyheader_globals = header_gloabls + '''
+cdef list _mc = [None, ] * {}
+'''
+
+rebind_callback_str = '''
+def rebind_callback(bound, i, instance, value):
+    # bound[i] and p cannot be None b/c it dispatched
+    s, e, pidx, p, key, _, _, _ = bound[i]
+    # we need to rebind all children of root (p.key). First check if the value
+    # actually changed - i.e. whether p.key is the same as `value`. p.key is
+    # the parent of p.key.x and is stored as the parent of the first child of
+    # p.key, so find the first child of p.key (p.key.x) and use its 1st child
+    # `s` is the first direct child of p.key (s, e) are all the (indirect)
+    # children
+    try:
+        if value == bound[s][3]:
             return
-        if ref in _includes:
-            if not force_load:
-                return
-            Builder.unload_file(ref)
-            Builder.load_file(ref)
-        else:
-            _includes.append(ref)
-            Builder.load_file(ref)
-    elif cmd[:7] == 'import ':
-        package = cmd[7:].strip()
-        l = package.split(' ')
-        if len(l) != 2:
-            return
-        alias, package = l
-        try:
-            if package not in sys.modules:
-                try:
-                    mod = __import__(package)
-                except ImportError:
-                    mod = __import__('.'.join(package.split('.')[:-1]))
-                for part in package.split('.')[1:]:
-                    mod = getattr(mod, part)
+    except ReferenceError:
+        pass
+    # now, everything must have a non-None parent idx since p.key is the root
+    # also, since p.key was rebind, every node below it will have bound[node]
+    # not be None, even if it was not bound in case it would have rebind
+
+    # now unbind all the children, and along the way set each parent value
+    # to be the new parent in the p.key.x.y.z... tree. cache the values here.
+    # keys are the index of the parent
+    parent = {0}
+    p = getattr(p, key)  # next parent
+    if p is None or not isinstance(object, {1}):
+        parent[i] = p, None, None, None, None
+    else:
+        parent[i] = p, p.proxy_ref, p.fast_bind, p.property, p.rebind_property
+
+    dispatch = [None, ] * (e - s)
+    for k, node in enumerate(range(s, e)):
+        node_s, node_e, pidx, p, key, bid, f, args = blist = bound[i]
+        # node_s/e being None means it's a leaf with no children
+        if bid:  # unbind parent's rebind
+            try:
+                p.unbind_uid(key, bid)
+            except ReferenceError:
+                pass
+
+        p, pref, bind, prop_get, rebind_prop = parent[pidx]
+        # decide whether we can bind to this object
+        if bind is not None and node_s is None:  # a leaf
+            blist[3] = pref
+            uid = blist[5] = bind(key, f, *args)
+            if uid:  # it is a kivy prop
+                prop = prop_get(key)
+                dispatch[k] = (
+                    node, p, prop.dispatch_stale, prop.dispatch_count(p))
+            continue
+        elif bind is not None and rebind_prop(key):  # a rebind node
+            blist[3] = pref
+            blist[5] = bind(key, f, *args)
+            if uid:  # it is a kivy prop
+                prop = prop_get(key)
+                dispatch[k] = (
+                    node, p, prop.dispatch_stale, prop.dispatch_count(p))
+        else:  # either no obj, or obj but no rebind and it's not a leaf
+            blist[3] = blist[5] = None
+            if node_s is None:
+                continue
+
+        # if the key is a leaf, don't save the key as a parent b/c it has no
+        # children, hence the continue above
+        if node not in parent:
+            if p is None:  # our parent is already None
+                parent[node] = (None, None, None, None, None)
             else:
-                mod = sys.modules[package]
-            globals()[alias] = mod
-        except ImportError:
-            return
+                p = getattr(p, key)  # next parent
+                if p is None or not isinstance(object, (EventDispatcher, )):
+                    parent[node] = p, None, None, None, None
+                else:
+                    parent[node] = (
+                        p, p.proxy_ref, p.fast_bind, p.property,
+                        p.rebind_property)
 
+    for item in dispatch:
+        if item is None:
+            continue
+        i, p, dispatch_stale, count = item
 
-def update_intermediates(*l):
-    pass
+        try:
+            if p == bound[i][3]:
+                dispatch_stale(p, count)
+        except ReferenceError:
+            pass
 '''
 
 
@@ -113,6 +163,20 @@ def partition_tree_roots(adjacency):
     # if we didn't find any roots, pick the one with least incoming edges
     if not roots:
         roots.append(argmin(map(sum, adjacency)))
+
+
+def make_tuple(objs):
+    if not len(objs):
+        return '()'
+    elif len(objs) == 1:
+        return '({}, )'.format(objs[0])
+    else:
+        return '({})'.format(', '.join(objs))
+
+
+def push_empty(lines, max_empty=1):
+    if [l for l in lines[-max_empty:] if l.strip()]:
+        lines.append('')
 
 
 def _find_maxline(line, rule):
@@ -310,7 +374,7 @@ class RuleContext(object):
     count = 0
     '''The number associated with this object, see :attr:`name`. It is assigned
     uniquely for each rule (object) within the children objects of root kv
-    rule. It is assigned by :class:`PyCompiler` according to the topological
+    rule. It is assigned by :class:`KVCompiler` according to the topological
     ordering.
     '''
 
@@ -379,16 +443,6 @@ class RuleContext(object):
         return self.name if self.rule_type == 'widget' else self.parent.name
 
     @property
-    def f_name(self):
-        '''The name of the compiled function generated for this root rule.
-        The format is `_rn`, where `n` is :attr:`f_num`.
-
-        Should only be called for a root rule, i.e. one whose :attr:`parent` is
-        None.
-        '''
-        return '_r{}'.format(self.f_num)
-
-    @property
     def f_num(self):
         '''The number given to the compiled function generated for this root
         rule. It is uniquely generated for all the compiled rules.
@@ -418,15 +472,16 @@ class RuleContext(object):
     @property
     def creation_instructions(self):
         parent = self.parent
+        fuse = self.compiler.factory_obj.use
 
         rule = self.rule
         rule_type = self.rule_type
         if rule_type == 'widget':
             ret = []
             if parent is not None:  # don't create if applying rule to root
-                ret.append(
-                    '{} = Factory.{}(parent={}, __builder_created=True)'.
-                    format(self.name, self.rule.name, parent.name))
+                ret.append(LazyFmt(
+                    '{} = {}(parent={}, __builder_created=bfuncs)', self.name,
+                    fuse(self.rule.name), parent.name))
             if rule.canvas_root and len(rule.canvas_root.children) > 1:
                 ret.append(
                     '{0}_canvas_root_add = {0}.canvas.add'.format(self.name))
@@ -438,7 +493,7 @@ class RuleContext(object):
                            format(self.name))
             return ret
         return [
-            '{} = Factory.{}()'.format(self.name, self.rule.name),
+            LazyFmt('{} = {}()', self.name, fuse(self.rule.name)),
             '{}({})'.format(self.parent_add_child, self.name)]
 
     @property
@@ -481,7 +536,8 @@ class RuleContext(object):
 
     @property
     def missing_properties(self):
-        assert self.rule_type == 'widget'
+        if self.rule_type != 'widget':
+            return []
         tab = self.tab
         self_name = self.name
         fix_rule_ids = self.fix_rule_ids
@@ -520,6 +576,7 @@ class RuleContext(object):
         sname = self.name
         inits = []
         lit_init = []
+        delayed_init = []
 
         for name, prop in self.rule.properties.items():
             keys = prop.watched_keys
@@ -556,7 +613,7 @@ class RuleContext(object):
                 code = '{} = [{}{}, None]'.format(delayed, f, ', {}' * len(fargs))
                 objs = [(proxy if arg in observables else
                          proxy_maybe).use(arg) for arg in fargs]
-                inits.append([
+                delayed_init.append([
                     LazyFmt(code, *objs),
                     'delayed_call_fn({}, None, None)'.format(delayed)])
 
@@ -565,7 +622,7 @@ class RuleContext(object):
                  delayed)
                 for k in keys])
             rule_handler += 1
-        return funcs, bindings, inits, lit_init
+        return funcs, bindings, inits, lit_init, delayed_init
 
     @property
     def property_on_handlers(self):
@@ -606,7 +663,7 @@ class RuleContext(object):
         return funcs, args
 
 
-class PyCompiler(object):
+class KVCompiler(object):
 
     # compiler options
     tab = '    '
@@ -615,10 +672,13 @@ class PyCompiler(object):
 
     base_types = ['EventDispatcher', 'Observable']
 
-    assume_dispatch_prop = False
+    event_dispatcher_type = False
+    '''When True, assumes no observable, no overwriting of fast_bind etc.
+    '''
+
+    cython = False
 
     # temporary, per rule variables
-    code = None
 
     rules = None
 
@@ -628,11 +688,68 @@ class PyCompiler(object):
 
     obj_names = None
 
+    root_names = None
+    '''All the root names that have been bound, includes e.g. import names.
+    '''
+
+    # LazyString
     proxy = None
 
     proxy_maybe = None
 
     property_test = None
+
+    factory_obj = None
+
+    # info about the rule
+
+    has_bindings = False
+
+    has_dispatching = False
+
+    has_missing = False
+
+    has_children = False
+
+    # stores compiled code
+
+    missing_dec = []
+
+    func_def = []
+
+    factory_obj_code = []
+
+    func_bind_def = []
+
+    func_dispatch_def = []
+
+    missing_check = []
+
+    missing_check_set = []
+
+    creation = []
+
+    missing = []
+
+    handlers = []
+
+    on_handlers = []
+
+    prop_init = []
+
+    prop_lit_init = []
+
+    prop_delay_init = []
+
+    proxies = []
+
+    prop_init_return = []
+
+    bindings = []
+
+    dispatch_creation = []
+
+    dispatching = []
 
     def walk_children(self, rule, parent=None, rule_type='widget'):
         walk = self.walk_children
@@ -675,10 +792,16 @@ class PyCompiler(object):
         rules, ids = self.get_children(rule)
         self.rules = rules
         self.ids = ids
+        self.has_bindings = self.has_missing = self.has_dispatching = False
+        self.prop_init_return = self.func_bind_def = \
+            self.dispatch_creation = self.func_dispatch_def = []
         tab = self.tab
         obj_names = self.obj_names = set([rule.name for rule in rules])
+        self.root_names = set()
         obj_names.add('app')
         self.root = root = rules[0]
+        fnum = root.f_num
+        fname = '_r{}'.format(fnum)
         self.proxy = proxy = LazyString(
             dec=(None, '{0}_ref = {0}.proxy_ref'),
             use=('{}.proxy_ref', '{}_ref'))
@@ -688,81 +811,124 @@ class PyCompiler(object):
         self.property_test = prop_test = LazyString(
             dec=(None, '{0}_get_prop = {0}.property'),
             use=('{}.property', '{}_get_prop'))
+        self.factory_obj = factory_obj = LazyString(
+            dec=(None, 'cls_{0} = Factory.{0}'),
+            use=('Factory.{}', 'cls_{}'))
 
-        self.code = code = {
-            'missing_dec': '_mc[{}] = set()'.format(root.f_num),
-            'func_def': 'def {}(root):'.format(root.f_name),
-            'missing_check': 'if root.__class__ not in _mc[{}]:'.format(root.f_num),
-            'missing_check_set': '{}_mc[{}].add(root.__class__)'.format(tab, root.f_num),
-            'creation': [],
-            'missing': [],
-            'handlers': [],
-            'on_handlers': [],
-            'prop_init': [],
-            'prop_lit_init': [],
-            'proxies': [proxy.dec(val, add=False) for val in sorted(obj_names)],
-            'bindings': [],
-            'dispath_prop_test': [prop_test.dec(val, add=False) for val in sorted(obj_names)],
-            'dispatching': [],
-            'avoid_previous_rules': '{}.avoid_previous_rules = {}'.format(root.f_name, root.rule.avoid_previous_rules)
-            }
+        self.missing_dec = '_mc[{}] = set()'.format(root.f_num)
+        self.missing_check = 'if root.__class__ not in _mc[{}]:'.\
+            format(root.f_num)
+        self.missing_check_set = '{}_mc[{}].add(root.__class__)'.\
+            format(tab, root.f_num)
+        self.proxies = [proxy.dec(val, add=False) for val in sorted(obj_names)]
 
-        creation = code['creation']
+        objs = OrderedDict()
+        for rule in rules[1:]:
+            objs[rule.rule.name] = None
+        self.factory_obj_code = [factory_obj.dec(r, add=False) for r in objs]
+
+        self.creation = creation = []
+        self.has_children = len(rules) > 1
         for rule in rules:
             inst = rule.creation_instructions
             if inst:
                 creation.append(inst)
 
-        missing = code['missing']
+        self.missing = missing = []
         for rule in rules:
-            if rule.rule_type != 'widget':
-                continue
             inst = rule.missing_properties
             if inst:
+                self.has_missing = True
                 missing.append(inst)
 
-        handlers_code = code['handlers']
-        on_handlers_code = code['on_handlers']
+        self.handlers = handlers_code = []
+        self.on_handlers = on_handlers_code = []
         handlers = []
         on_handlers = []
-        init_code = code['prop_init']
-        lit_init_code = code['prop_lit_init']
+        self.prop_init = init_code = []
+        self.prop_lit_init = lit_init_code = []
+        self.prop_delay_init = delay_init_code = []
         for rule in rules:
-            pcode, bindings, inits, lit_init = rule.property_handlers
+            pcode, bindings, inits, linit, dinit = rule.property_handlers
             handlers_code.extend(pcode)
             handlers.extend(bindings)
             init_code.append(inits)
-            lit_init_code.append(lit_init)
+            lit_init_code.append(linit)
+            delay_init_code.append(dinit)
             pcode, bindings = rule.property_on_handlers
             on_handlers_code.extend(pcode)
             on_handlers.extend(bindings)
 
-        code['bindings'], dispatchers = self.compile_bindings(rules, handlers, on_handlers)
+        self.bindings, dispatchers = \
+            self.compile_bindings(rules, handlers, on_handlers)
+        self.rules_callbacks(dispatchers, fnum, fname)
+        return fname, root.rule.avoid_previous_rules
 
-        dispatching = code['dispatching']
+    def rules_callbacks(self, dispatchers, fnum, fname):
+        self.dispatching = dispatching = []
+        obj_names = self.obj_names
+        tab = self.tab
+        root_names = list(self.root_names)
+
+        self.func_def = code = ['def {}(root, builder_created):'.format(fname)]
+        if not self.has_children and not self.has_bindings:
+            return
+
+        code.append(
+            '{}bfuncs = [] if builder_created is None else builder_created'.
+            format(tab))
+        names = sorted(set(root_names + list(obj_names)))
+        widgets = [r.name for r in self.rules[1:] if r.rule_type == 'widget']
+        bfunc = '_b{}'.format(fnum)
+
+        self.prop_init_return = [
+            'if builder_created is None:',
+            '{}bfuncs = [f() for f in bfuncs]'.format(tab),
+            '{}bfuncs.append({}({}))'.format(tab, bfunc, ', '.join(names)),
+            '{}bfuncs = [f() for f in reversed(bfuncs)]'.format(tab),
+            '{}for children in reversed(bfuncs):'.format(tab),
+            '{}for child in children:'.format(tab * 2),
+            '{}child.dispatch("on_kv_apply", root)'.format(tab * 3),
+            'else:',
+            '{}bfuncs.append(partial({}))'.format(tab, ', '.join([bfunc] + names))
+        ]
+        self.func_bind_def = ['def {}({}):'.format(bfunc, ', '.join(names))]
+
+        bound = ['{}_bound'.format(obj) for obj in root_names]
+        dfunc = '_d{}'.format(fnum)
+        if not self.has_dispatching:
+            self.dispatch_creation = ['return tuple']
+            return
+
+        self.dispatch_creation = \
+            'return partial({}, dispatch_objs, {})'.format(
+                ', '.join([dfunc] + bound), make_tuple(widgets))
+
+        self.func_dispatch_def = ['def {}({}):'.format(
+            dfunc, ', '.join(bound + ['dispatch_objs', 'widgets']))
+        ]
+
         for (root_obj, obj, key), (idx, bidx) in dispatchers.items():
             if obj not in obj_names:
-                dcode = [
-                    'try:',
-                    '{0}if dispatch_objs[{1}] is not None and {2} == {2}_bound[{3}][3]:'.format(tab, idx, obj, bidx),
-                    '{0}dispatch_objs[{1}][1].dispatch_stale({2}, dispatch_objs[{1}][2])'.format(tab * 2, idx, obj),
-                    'except ReferenceError:',
-                    '{}pass'.format(tab)
+                code = [
+                    'if dispatch_objs[{}] is not None:'.format(idx),
+                    '{}obj, prop, count = dispatch_objs[{}]'.format(tab, idx),
+                    '{}try:'.format(tab),
+                    '{}if obj == {}_bound[{}][3]:'.format(tab * 2, root_obj, bidx),
+                    '{}prop.dispatch_stale(obj, count)'.format(tab * 3),
+                    '{}except ReferenceError:'.format(tab),
+                    '{}pass'.format(tab * 2)
                 ]
             else:
-                dcode = [
+                code = [
                     'if dispatch_objs[{}] is not None:'.format(idx),
-                    '{0}dispatch_objs[{1}][1].dispatch_stale({2}, dispatch_objs[{1}][2])'.format(tab, idx, obj)
+                    '{}obj, prop, count = dispatch_objs[{}]'.format(tab, idx),
+                    '{}prop.dispatch_stale(obj, count)'.format(tab)
                 ]
-            dispatching.append(dcode)
-        for rule in rules[1:]:
-            if rule.rule_type != 'widget':
-                continue
-            dispatching.append(['{}.dispatch("on_kv_apply", root)'.format(rule.name)])
+            dispatching.append(code)
+        dispatching.append(['return widgets'])
 
-        return code, root.f_name
-
-    def format_code(self, code):
+    def format_code(self):
         ret = []
         tab = self.tab
         def flatten(groups, depth=0):
@@ -777,47 +943,74 @@ class PyCompiler(object):
             else:
                 return [tab * depth + groups]
 
-        for handler in code['handlers'] + code['on_handlers']:
+        for handler in self.handlers + self.on_handlers:
             for line in handler:
                 ret.extend(flatten(line))
-            ret.append('')
+            push_empty(ret)
         if ret:
-            ret.append('')
+            push_empty(ret, 2)
 
-        missing = code['missing']
+        missing = self.missing
         if missing:
-            ret.append(code['missing_dec'])
-        ret.append(code['func_def'])
-        for create in code['creation']:
-            ret.extend(flatten(create, depth=1))
-            ret.append('')
+            ret.append(self.missing_dec)
+
+        func_def = flatten(self.func_def)
+        ret.extend(func_def)
+        if len([l for l in func_def if l.strip()]) > 1:
+            push_empty(ret)
+
+        for lines in self.factory_obj_code:
+            ret.extend(flatten(lines, depth=1))
+        push_empty(ret)
+
+        for lines in self.creation:
+            ret.extend(flatten(lines, depth=1))
+            push_empty(ret)
 
         if missing:
-            ret.append(tab + code['missing_check'])
+            ret.append(tab + self.missing_check)
             for i, inst in enumerate(missing):
                 ret.extend(flatten(inst, depth=2))
-                if i < len(missing) - 1:
-                    ret.append('')
-            ret.append(tab + code['missing_check_set'])
-            ret.append('')
+                push_empty(ret)
+            ret.append(tab + self.missing_check_set)
+            push_empty(ret)
 
-        for section, post_line in (
-                (code['proxies'], 0), (code['prop_lit_init'], 1),
-                (code['prop_init'], 1), (code['bindings'], 1),
-                (code['dispath_prop_test'], 0), (code['dispatching'], 1)):
-            if not section:
-                continue
-            for lines in section:
-                values = flatten(lines, depth=1)
-                ret.extend(values)
-                if post_line and values:
-                    ret.append('')
-            if not post_line and ret[-1] != '':
-                ret.append('')
+        for lines in self.prop_lit_init + self.prop_init:
+            ret.extend(flatten(lines, depth=1))
+            push_empty(ret)
 
-        if [line for line in ret if line] == [code['func_def']]:
-            ret.insert(1, '{}pass'.format(tab))
-        ret.append(code['avoid_previous_rules'])
+        if self.prop_init_return:
+            ret.extend(flatten(self.prop_init_return, depth=1))
+            push_empty(ret)
+            ret.extend(flatten(self.func_bind_def, depth=0))
+
+            for lines in self.proxies:
+                ret.extend(flatten(lines, depth=1))
+            push_empty(ret)
+
+            for lines in self.prop_delay_init:
+                ret.extend(flatten(lines, depth=1))
+                push_empty(ret)
+
+            for lines in self.bindings:
+                ret.extend(flatten(lines, depth=1))
+                push_empty(ret)
+
+            ret.extend(flatten(self.dispatch_creation, depth=1))
+            push_empty(ret)
+            ret.extend(flatten(self.func_dispatch_def, depth=0))
+
+            for lines in self.dispatching:
+                ret.extend(flatten(lines, depth=1))
+                push_empty(ret)
+        else:
+            for lines in self.prop_delay_init:
+                ret.extend(flatten(lines, depth=1))
+                push_empty(ret)
+
+        lines = [line for line in ret if line.strip()]
+        if len(lines) == 1:
+            ret.insert(ret.index(lines[0]) + 1, '{}pass'.format(tab))
         return ret
 
     def walk_bindings(self, handlers):
@@ -902,6 +1095,14 @@ class PyCompiler(object):
         '''
         ptest = self.property_test
         tab = self.tab
+        not_delayed = set()
+        for _, _, key, _, _, delayed in leaves:
+            if not delayed:
+                not_delayed.add(key)
+        if bind_nodes:
+            for node, _, _ in nodes:
+                not_delayed.add(node)
+
         # for every leaf, we need to save the target func and its args and bind
         # to that func if it's observable (i.e. do_bind=true)
         for sname, name, key, f, fargs, delayed in leaves:
@@ -935,7 +1136,7 @@ class PyCompiler(object):
             bind_code.append(LazyFmt(
                 '{}bound[{}] = [None, None, {}, {}, "{}", {}, {}, {}]',
                 tab * depth, next_pos, cpos, obj, key, code, f, save_args))
-            if do_bind:
+            if do_bind and name in not_delayed:
                 self.append_dispatcher(
                     watchers, curr_obj, key, dispatch_idxs, depth, bind_code,
                     next_pos)
@@ -960,25 +1161,26 @@ class PyCompiler(object):
                     '{}if {}("{}"):'.
                     format(tab * depth, rebind_property, node))
                 code = LazyFmt(  # the actual obj.fast_bind(node, ...)
-                    '{}("{}", update_intermediates, bound, {})',
+                    '{}("{}", rebind_callback, bound, {})',
                     bind.use(curr_obj), node, next_pos)
                 # now bind and save the args
                 bind_code.append(LazyFmt(
                     '{}bound[{}] = [{}, {}, {}, {}, "{}", {}, '
-                    'update_intermediates, (bound, {})]',
+                    'rebind_callback, (bound, {})]',
                     tab * ldepth, next_pos, start[k], start[k] + N - 1, cpos,
                     p_use(curr_obj), node, code, next_pos))
 
-                self.append_dispatcher(
-                    watchers, curr_obj, node, dispatch_idxs, ldepth, bind_code,
-                    next_pos)
+                if node in not_delayed:
+                    self.append_dispatcher(
+                        watchers, curr_obj, node, dispatch_idxs, ldepth,
+                        bind_code, next_pos)
                 bind_code.append('{}else:'.format(tab * depth))
 
             # if it wasn't rebind_property(...) still save in case a obj in
             # the tree above changes and we need the args to rebind
             bind_code.append(LazyFmt(
                 '{}bound[{}] = [{}, {}, {}, None, "{}", None, '
-                'update_intermediates, (bound, {})]', tab * ldepth, next_pos,
+                'rebind_callback, (bound, {})]', tab * ldepth, next_pos,
                 start[k], start[k] + N - 1, cpos, node, next_pos))
 
             # now save the pos of the callback bound to this node
@@ -994,6 +1196,8 @@ class PyCompiler(object):
         rebind = self.rebind
         prop_test = self.property_test
         obj_names = self.obj_names
+        root_names = self.root_names
+        has_proxy = set()
         obj_name = lambda x: 'obj_' + '_'.join(x) if len(x) > 1 else root_name
         unbind_idxs = defaultdict(list)
         p_use = lambda x: (proxy if x in obj_names or level else proxy_maybe).use(x)
@@ -1025,6 +1229,8 @@ class PyCompiler(object):
             on_bindings = not level and on_objs[root_name]  # any on_xxx?
 
             if not level:
+                root_names.add(root_name)
+                self.has_bindings = True
                 pos = {}
                 # if not rebind, only leaves are bound otherwise everything is
                 idx = 1 if rebind else 2
@@ -1033,7 +1239,8 @@ class PyCompiler(object):
                     '{}_bound = bound = [None, ] * {}'.format(root_name, N))
                 next_pos = 0
                 if root_name not in obj_names:
-                    self.code['proxies'].append(proxy_maybe.dec(root_name, add=False))
+                    self.proxies.append(proxy_maybe.dec(root_name, add=False))
+                    has_proxy.add(root_name)
 
             cpos = pos.get(tuple(watchers), None)  # pos of parent in bound
             sizes = [node[1] - 1 for node in nodes]
@@ -1061,8 +1268,9 @@ class PyCompiler(object):
                     '{0}if {1} is not None and isinstance({1}, {2}):',
                     tab * depth, curr_obj, base_types))
                 depth += 1
-                bind_code.append(LazyFmt(
-                    '{}{}', tab * depth, proxy.dec(curr_obj, add=False)))
+                if curr_obj not in has_proxy:
+                    bind_code.append(LazyFmt(
+                        '{}{}', tab * depth, proxy.dec(curr_obj, add=False)))
             bind_code.append(
                 LazyFmt('{}{}', tab * depth, bind.dec(curr_obj, add=False)))
             bind_code.append(LazyFmt(
@@ -1126,6 +1334,7 @@ class PyCompiler(object):
 
         if dispatch_idxs:
             ret.insert(0, 'dispatch_objs = [None, ] * {}'.format(len(dispatch_idxs)))
+            self.has_dispatching = True
         return ret, dispatch_idxs
 
     def compile_root(self, root):
@@ -1133,8 +1342,8 @@ class PyCompiler(object):
         if not root:
             return None, 'def get_root():\n{}pass'.format(tab)
 
-        code, f_name = self.compile_rule(root)
-        compiled_rule = self.format_code(code)
+        f_name, _ = self.compile_rule(root)
+        compiled_rule = self.format_code()
         code = (
             'def get_root():\n'
             '{0}widget = Factory.get("{1}")()\n'
@@ -1143,13 +1352,44 @@ class PyCompiler(object):
         return compiled_rule, code
 
     def compile_directives(self, directives):
+        includes = set()
         ret = ['# directives']
+
         for directive in directives:
-            d = directive[1]
-            if d[:5] == "kivy ":
-                ret.append('require("{}")'.format(d[5:].strip()))
-            else:
-                ret.append('_execute_directive("{}")'.format(d))
+            cmd = directive[1].strip()
+            if cmd[:5] == "kivy ":
+                ret.append('require("{}")'.format(cmd[5:].strip()))
+
+            elif cmd[:7] == 'import ':
+                package = cmd[7:].strip().split(' ')
+                if len(package) != 2:
+                    raise Exception('Bad import format "{}"'.format(cmd))
+                alias, package = package
+                ret.append('import {} as {}'.format(package, alias))
+
+            elif cmd[:4] == 'set ':
+                name, value = cmd[4:].strip().split(' ', 1)
+                ret.append('{} = {}'.format(name, value))
+
+            elif cmd[:8] == 'include ':
+                ref = cmd[8:].strip()
+                force_load = False
+                if ref[:6] == 'force ':
+                    ref = ref[6:].strip()
+                    force_load = True
+
+                if ref[-3:] not in Builder.kv_ext:
+                    raise Exception(
+                        '"{}" is not a recognized kv file type'.format(ref))
+
+                if ref in includes:
+                    if not force_load:
+                        continue
+                    ret.append('Builder.unload_file({})'.format(ref))
+                    ret.append('Builder.load_file({})'.format(ref))
+                else:
+                    includes.add(ref)
+                    ret.append('Builder.load_file({})'.format(ref))
         return ret
 
     def compile_dynamic_classes(self, classes):
@@ -1168,35 +1408,81 @@ class PyCompiler(object):
             [c[1] for c in template.ctx.sourcecode[minline:maxline + 1]])
         return ["Builder.load_string('''", code, "''')"]
 
-    def compile(self, parser):
-        lines = [header_imports, header_gloabls, header_directives, '']
+    def compile(self, parser, rule_opts={}, **kwargs):
+        cython = kwargs.get('cython', KVCompiler.cython)
+        for opts in rule_opts.values():
+            if cython:
+                break
+            cython = opts.get('cython')
+
+        defaults_opts = {
+            'tab': KVCompiler.tab, 'rebind': KVCompiler.rebind,
+            'base_types': KVCompiler.base_types,
+            'event_dispatcher_type': KVCompiler.event_dispatcher_type,
+            'cython': KVCompiler.cython
+        }
+
+        for keys in [kwargs.keys()] + [x.keys() for x in rule_opts.values()]:
+            for key in keys:
+                if key not in defaults_opts:
+                    raise KeyError('Unrecognized option "{}"'.format(key))
+        defaults_opts.update(kwargs)
+
+        # make sure that the rebind callback uses all types in all rules
+        base_types = OrderedDict()
+        for d in [defaults_opts] + rule_opts.values():
+            for o_type in d.get('base_types', []):
+                base_types[o_type] = None
+        base_types = base_types.keys()
+        if len(base_types) == 1:
+            otype = '({}, )'.format(base_types[0])
+        else:
+            otype = str(tuple(base_types))
+
+        if cython:
+            lines = [cyheader_imports, cyheader_globals]
+        else:
+            lines = [pyheader_imports, pyheader_globals]
+        lines += [rebind_callback_str.format('{}', otype), '']
+
         lines.extend(self.compile_directives(parser.directives))
 
         selectors_map = OrderedDict()
         for key, rule in parser.rules:
-            print key
             if rule in selectors_map:
                 selectors_map[rule].append(key)
                 continue
-            code, f_name = self.compile_rule(rule)
-            compiled_rule = self.format_code(code)
-            selectors_map[rule] = [f_name, key]
+
+            opts = defaults_opts.copy()
+            opts.update(rule_opts.get(key, {}))
+            for k, v in opts.items():
+                setattr(self, k, v)
+
+            f_name, avoid_previous_rules = self.compile_rule(rule)
+            compiled_rule = self.format_code()
+            selectors_map[rule] = [f_name, avoid_previous_rules, key]
             lines.append('\n')
             lines.extend(compiled_rule)
 
         lines.extend(
             [''] + self.compile_dynamic_classes(parser.dynamic_classes) + [''])
 
-        lines.append('# registration')
-        lines.append('badd = Builder.rules.append')
+        tab = defaults_opts['tab']
+        lines.append('# registration (selector, rule, avoid_previous_rules)')
+        lines.append('rules = (')
         for item in selectors_map.values():
-            rule_name = item[0]
-            selectors = item[1:]
+            rule_name, avoid_previous_rules = item[:2]
+            selectors = item[2:]
             for selector in selectors:
-                lines.append('badd(({}("{}"), {}))'.format(
-                    selector.__class__.__name__, selector.key,
-                    rule_name))
+                lines.append('{}({}("{}"), {}, {}),'.format(
+                    tab, selector.__class__.__name__, selector.key,
+                    rule_name, avoid_previous_rules))
+        lines.append(')')
 
+        opts = defaults_opts.copy()
+        opts.update(rule_opts.get('Root', {}))
+        for k, v in opts.items():
+            setattr(self, k, v)
         rule_code, root_code = self.compile_root(parser.root)
         if rule_code:
             lines.extend(['' ''] + rule_code + ['', ''])
@@ -1213,25 +1499,11 @@ class PyCompiler(object):
             parser.filename, datetime.datetime.now()))
 
         lines = [l + "\n" for l in lines if l is not None]
-        return lines
-
-
-class CyCompiler(PyCompiler):
-
-    event_dispatcher_type = False
-    '''When True, assumes no observable, no overwriting of fast_bind etc.
-    '''
+        return lines, not cython
 
 
 if __name__ == "__main__":
-    import codecs
     import sys
-    from os.path import splitext
+    from kivy.lang import Builder
     fn = len(sys.argv) > 1 and sys.argv[1] or r'..\data\style.kv'
-    with codecs.open(fn) as fd:
-        content = fd.read()
-    parser = Parser(content=content, filename=fn)
-    compiler = PyCompiler()
-    lines = compiler.compile(parser)
-    with codecs.open(splitext(fn)[0] + '.kvc', "w") as fd:
-        fd.writelines(lines)
+    Builder.compile_kv(fn)
