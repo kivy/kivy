@@ -909,25 +909,23 @@ cdef class EventDispatcher(ObjectWithUid):
         .. versionchanged:: 1.9.1
         '''
         def __get__(self):
-            _proxy_ref = self._proxy_ref
-            if _proxy_ref is not None:
-                return _proxy_ref
+            if self._proxy_ref is not None:
+                return self._proxy_ref
 
             f = partial(_destructor_callback, self.proxy_callback, self.uid)
-            self._proxy_ref = _proxy_ref = WeakProxy(self, f)
+            self._proxy_ref = WeakProxy(self, f)
             # Only f should be enough here, but it appears that is a very
             # specific case, the proxy destructor is not called if both f and
             # _proxy_ref are not together in a tuple.
-            _eventdispatcher_destructors[self.uid] = (f, _proxy_ref)
-            return _proxy_ref
+            _eventdispatcher_destructors[self.uid] = (f, self._proxy_ref)
+            return self._proxy_ref
 
     property __self__:
         def __get__(self):
             return self
 
-    property __hash__:
-        def __get__(self):
-            return hash(self)
+    def __hash__(self):
+        return id(self)
 
 
 cdef class BoundCallback:
