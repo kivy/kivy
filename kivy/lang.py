@@ -1749,6 +1749,27 @@ class BuilderBase(object):
             fd.writelines([l + '\n' for l in lines])
         return dest
 
+    def compile_load_string(self, string, rule_opts={}, **kwargs):
+        '''Insert a string into the Language Builder and return the root widget
+        (if defined) of the kv string.
+        '''
+        from kivy.tools.kvcompiler import KVCompiler
+        parser = Parser(content=string, filename='<string>')
+        compiler = KVCompiler()
+        lines, pure_py = compiler.compile(parser, '<string>', rule_opts, **kwargs)
+        if not pure_py:
+            raise Exception(
+                'Cannot dynamically compile and load cython code from string.')
+
+        code = '\n'.join(lines)
+        glbls = {}
+        exec(code, glbls)
+
+        self.compiled_rules.extend(
+            [(s, r, prev, '<string>') for (s, r, prev) in glbls['rules']])
+        self._clear_matchcache()
+        return glbls['get_root']()
+
     def load_file(self, filename, **kwargs):
         '''Insert a file into the language builder and return the root widget
         (if defined) of the kv file.
