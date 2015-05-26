@@ -255,6 +255,7 @@ class Widget(WidgetBase):
             self._context = get_current_context()
 
         parent = kwargs.pop('parent', None)
+        self.proxy_callback = _widget_destructor
 
         super(Widget, self).__init__(**kwargs)
 
@@ -265,17 +266,16 @@ class Widget(WidgetBase):
         if parent is not None:
             parent.add_widget(self)
         # Apply all the styles.
+        builder_created = kwargs.get('__builder_created')
         if '__no_builder' not in kwargs:
-            Builder.apply(self)
+            Builder.apply(self, builder_created)
+            if builder_created is None:
+                self.dispatch('on_kv_apply', self)
 
         # Bind all the events.
         for argument in kwargs:
             if argument[:3] == 'on_':
                 self.bind(**{argument: kwargs[argument]})
-
-        if '__builder_created' not in kwargs:
-            self.dispatch('on_kv_apply', self)
-            dispatch_on_kv_done(self, self)
 
     #
     # Collision
