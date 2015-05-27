@@ -1737,10 +1737,19 @@ class BuilderBase(object):
             content = fd.read()
         h = hashlib.sha256(content).hexdigest()
 
+        # remove bom ?
+        if PY2:
+            if content.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+                raise ValueError('Unsupported UTF16 for kv files.')
+            if content.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
+                raise ValueError('Unsupported UTF32 for kv files.')
+            if content.startswith(codecs.BOM_UTF8):
+                content = content[len(codecs.BOM_UTF8):]
         parser = Parser(content=content, filename=filename)
         compiler = KVCompiler()
         lines, pure_py = compiler.compile(parser, h, rule_opts, **kwargs)
 
+        lines.insert(0, '# -*- coding: utf-8 -*-\n')
         if dest is None:
             dest = splitext(filename)[0] + ('.kvc' if pure_py else '.pyx')
         if not overwrite and exists(dest):
