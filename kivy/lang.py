@@ -825,9 +825,9 @@ __KV_INCLUDES__ = []
 
 # precompile regexp expression
 lang_str = re.compile(
-    '((?:\'\'\'(?:[^(?:\'\'\')]|\\\'\'\')*?\'\'\')|'
-    '(?:\'(?:[^\']|\\\')*?\')|'
-    '(?:"(?:[^"]|\\")*?"))')
+    "((?:'''.*?''')|"
+    "(?:(?:(?<!')|''')'(?:[^']|\\\\')+?'(?:(?!')|'''))|"
+    '(?:"(?:[^"]|\\\\")*?"))', re.DOTALL)
 lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 lang_tr = re.compile('(_\()')
