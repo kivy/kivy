@@ -426,7 +426,7 @@ class WindowBase(EventDispatcher):
     degrees.
     '''
 
-    softinput_mode = OptionProperty('', options=('', 'pan', 'scale', 'resize'))
+    softinput_mode = OptionProperty('', options=('', 'below_target', 'pan', 'scale', 'resize'))
     '''This specifies the behavior of window contents on display of soft
     keyboard on mobile platform. Can be one of '', 'pan', 'scale', 'resize'.
 
@@ -438,6 +438,11 @@ class WindowBase(EventDispatcher):
 
     when 'resize' The window is resized and the contents scaled to fit the
     remaining space.
+    
+    When 'below_target', the window moves below the current target widget
+    requesting the keyboard.
+
+    .. versionchanged::1.9.1
 
     .. versionadded:: 1.9.0
 
@@ -449,6 +454,7 @@ class WindowBase(EventDispatcher):
 
     def _upd_kbd_height(self, *kargs):
         self._keyboard_changed = not self._keyboard_changed
+        self.update_viewport()
 
     def _get_ios_kheight(self):
         return 0
@@ -964,6 +970,8 @@ class WindowBase(EventDispatcher):
             w, h = self.size
 
         smode = self.softinput_mode
+        target = self._system_keyboard.target
+        targettop = target.to_window(0, target.y)[1] if target else 0
         kheight = self.keyboard_height
 
         w2, h2 = w / 2., h / 2.
@@ -971,8 +979,10 @@ class WindowBase(EventDispatcher):
 
         x, y = 0, 0
         _h = h
-        if smode:
+        if smode == 'pan':
             y = kheight
+        elif smode == 'below_target':
+            y = 0 if kheight < targettop else (kheight - targettop) + dp(9)
         if smode == 'scale':
             _h -= kheight
 
