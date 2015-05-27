@@ -426,7 +426,8 @@ class WindowBase(EventDispatcher):
     degrees.
     '''
 
-    softinput_mode = OptionProperty('', options=('', 'below_target', 'pan', 'scale', 'resize'))
+    softinput_mode = OptionProperty('', options=(
+        '', 'below_target', 'pan', 'scale', 'resize'))
     '''This specifies the behavior of window contents on display of soft
     keyboard on mobile platform. Can be one of '', 'pan', 'scale', 'resize'.
 
@@ -439,8 +440,8 @@ class WindowBase(EventDispatcher):
     when 'resize' The window is resized and the contents scaled to fit the
     remaining space.
     
-    When 'below_target', the window moves below the current target widget
-    requesting the keyboard.
+    When 'below_target', the window pans so that the current target TextInput
+    widget requesting the keyboard is presented just above the soft Keyboard.
 
     .. versionchanged::1.9.1
 
