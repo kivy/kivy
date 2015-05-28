@@ -82,11 +82,12 @@ Here is an example, in kv style::
     Rectangle:
         size: 900, 900
 
-    StencilUnUse:
-        # new in kivy 1.3.0, remove the mask previously added
-        Rectangle:
-            pos: 100, 100
-            size: 100, 100
+    StencilUnUse
+
+    # you must redraw the stencil mask to remove it
+    Rectangle:
+        pos: 100, 100
+        size: 100, 100
 
     StencilPop
 
