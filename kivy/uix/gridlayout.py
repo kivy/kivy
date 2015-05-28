@@ -246,7 +246,6 @@ class GridLayout(Layout):
     def __init__(self, **kwargs):
         self._cols = self._rows = None
         super(GridLayout, self).__init__(**kwargs)
-
         self.bind(
             col_default_width=self._trigger_layout,
             row_default_height=self._trigger_layout,
@@ -259,6 +258,7 @@ class GridLayout(Layout):
             padding=self._trigger_layout,
             children=self._trigger_layout,
             size=self._trigger_layout,
+            pos_hint=self._trigger_layout,
             pos=self._trigger_layout)
 
     def get_max_widgets(self):
@@ -329,10 +329,13 @@ class GridLayout(Layout):
                 if shw is None:
                     cols[col] = nmax(cols[col], w)
                 else:
+                    Logger.warning('The value of cols_sh[col] is ' + str(cols_sh[col])+ " shw " + str(shw))
                     cols_sh[col] = nmax(cols_sh[col], shw)
+
                 if shh is None:
                     rows[row] = nmax(rows[row], h)
                 else:
+                    Logger.warning('The value of rows_sh[row] is ' + str(rows_sh[row])+ " shh " + str(shh))
                     rows_sh[row] = nmax(rows_sh[row], shh)
 
                 # next child
@@ -433,8 +436,28 @@ class GridLayout(Layout):
                 c = children[i]
                 c.x = x
                 c.y = y - row_height
-                c.width = col_width
-                c.height = row_height
+                # pos
+                for key, value in c.pos_hint.items():
+                    if key == 'x':
+                        c.x = x + value * col_width
+                    elif key == 'right':
+                        c.right = x + value * col_width
+                    elif key == 'pos':
+                        c.pos = x + value[0] * col_width, y + value[1] * row_height
+                    elif key == 'y':
+                        c.y = y + value * row_height
+                    elif key == 'top':
+                        c.top = y + value * row_height
+                    elif key == 'center':
+                        c.center = x + value[0] * col_width, y + value[1] * row_height
+                    elif key == 'center_x':
+                        c.center_x = x + value * col_width
+                    elif key == 'center_y':
+                        c.center_y = y + value * row_height
+		if c.size_hint_x is not None:
+                    c.width = col_width
+                if c.size_hint_y is not None:
+                    c.height = row_height
                 i = i - 1
                 x = x + col_width + spacing_x
             y -= row_height + spacing_y
