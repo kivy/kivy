@@ -121,6 +121,7 @@ cdef class Line(VertexInstruction):
     cdef tuple _mode_args
 
     def __init__(self, **kwargs):
+        print "This is a line"
         VertexInstruction.__init__(self, **kwargs)
         v = kwargs.get('points')
         self.points = v if v is not None else []
@@ -165,8 +166,10 @@ cdef class Line(VertexInstruction):
             self.prebuild_bezier()
         if self._width == 1.0:
             self.build_legacy()
+            print "legacy being built"
         else:
             self.build_extended()
+            print "extended being built"
 
     cdef void ensure_stencil(self):
         if self._stencil_rect == None:
@@ -207,7 +210,9 @@ cdef class Line(VertexInstruction):
         cdef float tex_x
         cdef char *buf = NULL
         cdef Texture texture = self.texture
-
+        
+        print p
+        
         if count < 2:
             self.batch.clear_data()
             return
@@ -277,6 +282,8 @@ cdef class Line(VertexInstruction):
         cdef int cap
         cdef char *buf = NULL
         cdef Texture texture = self.texture
+
+        print p
 
         self._bxmin = 999999999
         self._bymin = 999999999
@@ -1188,7 +1195,6 @@ cdef class Line(VertexInstruction):
             self._bezier_precision = int(value)
             self.flag_update()
 
-
 cdef class SmoothLine(Line):
     '''Experimental line using over-draw method to get better antialiasing
     results. It has few drawbacks:
@@ -1206,11 +1212,10 @@ cdef class SmoothLine(Line):
 
     .. versionadded:: 1.9.0
     '''
-
     cdef float _owidth
 
     def __init__(self, **kwargs):
-        VertexInstruction.__init__(self, **kwargs)
+        Line.__init__(self, **kwargs)
         self._owidth = kwargs.get("overdraw_width") or 1.2
         self.batch.set_mode("triangles")
         self.texture = self.premultiplied_texture()
@@ -1237,7 +1242,6 @@ cdef class SmoothLine(Line):
             self.prebuild_rounded_rectangle()
         elif self._mode == LINE_MODE_BEZIER:
             self.prebuild_bezier()
-
         self.build_smooth()
 
     cdef void apply(self):
@@ -1245,6 +1249,8 @@ cdef class SmoothLine(Line):
         return
 
     cdef void build_smooth(self):
+        print "Enter build_smooth"
+        print self.points
         cdef:
             list p = self.points
             float width = max(0, (self._width - 1.))
@@ -1256,7 +1262,8 @@ cdef class SmoothLine(Line):
             float cos1, sin1, cos2, sin2, ocos1, ocos2, osin1, osin2
             long index, vindex, vcount, icount, iv, ii, max_vindex, count
             unsigned short i0, i1, i2, i3, i4, i5, i6, i7
-
+        print "The points after"
+        print p
         iv = vindex = 0
         count = len(p) / 2
         if count < 2:
@@ -1492,4 +1499,3 @@ cdef class SmoothLine(Line):
                 raise GraphicException('Invalid width value, must be > 0')
             self._owidth = value
             self.flag_update()
-
