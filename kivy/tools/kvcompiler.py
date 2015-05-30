@@ -599,10 +599,10 @@ class RuleContext(object):
 
             func = ['def {}({}):'.format(f, ', '.join(fargs + ['*args']))]
             for arg, count in used_ids.items():
-                if count <= 1:
+                if count < 1:
                     continue
                 func.append('{0}{1} = {1}.__self__'.format(tab, arg))
-            func.append('{}{}'.format(tab, code))
+            func.extend(['{}{}'.format(tab, line) for line in code.splitlines()])
             funcs.append(func)
 
             # if it's a graphics instruction we bind to delay function that
@@ -637,27 +637,19 @@ class RuleContext(object):
         sname = self.name
 
         for rule in self.rule.handlers:
-            lines = []
-            ids_count = defaultdict(int)
-            # XXX is splitting+retab a problem if multiline string is allowed?
-            for line in rule.value.splitlines():
-                code, used_ids = fix_rule_ids(line)
-                lines.append(code)
-                for key, count in used_ids.items():
-                    ids_count[key] += count
+            code, used_ids = fix_rule_ids(rule.value)
 
             keys = rule.watched_keys
             keys = [(ids_map.get(k[0], k[0])) for k in (keys if keys else [])]
             f = 'on_{}_h{}'.format(rule.name, rule_on_handler)
-            fargs = sorted(set(ids_count.keys()).union(set(keys)))
+            fargs = sorted(set(used_ids.keys()).union(set(keys)))
 
             func_code = ['def {}({}):'.format(f, ', '.join(fargs + ['*args']))]
-            for arg, count in ids_count.items():
-                if count <= 1:
+            for arg, count in used_ids.items():
+                if count < 1:
                     continue
                 func_code.append('{0}{1} = {1}.__self__'.format(tab, arg))
-            for line in lines:
-                func_code.append('{}{}'.format(tab, line))
+            func_code.extend(['{}{}'.format(tab, line) for line in code.splitlines()])
 
             funcs.append(func_code)
             args.append((sname, rule.name, f, fargs))
@@ -689,6 +681,9 @@ class KVCompiler(object):
     root = None
 
     obj_names = None
+    '''A set of the names of all the known object, these are the names of the
+    widget and graphical children (whether they have an `id`), root, and app.
+    '''
 
     root_names = None
     '''All the root names that have been bound, includes e.g. import names.
@@ -1094,7 +1089,7 @@ class KVCompiler(object):
     def append_bindings(
             self, do_bind, leaves, next_pos, unbind_idxs, curr_obj, bind_nodes,
             nodes, depth, bind_code, bind, start, p_use, cpos, pos,
-            watchers, dispatch_idxs, **kwargs):
+            watchers, dispatch_idxs, level, **kwargs):
         '''Emits the fast_bind code for the leaves and nodes. It binds to every
         leaf and node coming off from the current object at this level and
         saves the function and args for later rebinding. If not do_bind,
@@ -1181,19 +1176,35 @@ class KVCompiler(object):
                     self.append_dispatcher(
                         watchers, curr_obj, node, dispatch_idxs, ldepth,
                         bind_code, next_pos)
-                bind_code.append('{}else:'.format(tab * depth))
+                if level:  # see below
+                    bind_code.append('{}else:'.format(tab * depth))
 
             # if it wasn't rebind_property(...) still save in case a obj in
-            # the tree above changes and we need the args to rebind
-            bind_code.append(LazyFmt(
-                '{}bound[{}] = [{}, {}, {}, None, "{}", None, '
-                'rebind_callback, (bound, {})]', tab * ldepth, next_pos,
-                start[k], start[k] + N - 1, cpos, node, next_pos))
+            # the tree above changes and we need the args to rebind. But
+            # that's only possible if we're below root level
+            if level:
+                bind_code.append(LazyFmt(
+                    '{}bound[{}] = [{}, {}, {}, None, "{}", None, '
+                    'rebind_callback, (bound, {})]', tab * ldepth, next_pos,
+                    start[k], start[k] + N - 1, cpos, node, next_pos))
 
             # now save the pos of the callback bound to this node
             pos[tuple(watchers) + (node, )] = next_pos
             next_pos += 1
         return next_pos
+
+    def get_child_start_idxs(self, nodes, leaves, next_pos):
+        # given a node, bound stores first all the direct children of the
+        # node sequentially, then for each of its direct nodes all the
+        # children of that node.
+        # sizes is the number of nodes/leaves hanging off from each of the
+        # direct nodes of the current node
+        sizes = [node[1] - 1 for node in nodes]
+        # start stores for each direct node from the current node, the idx
+        # of that direct node's first child
+        start = [sum(map(len, sizes[:k])) + len(nodes) + next_pos + len(leaves)
+                 for k in range(len(nodes))]
+        return start
 
     def compile_bindings(self, rules, handlers, on_handlers):
         tab = self.tab
@@ -1204,10 +1215,10 @@ class KVCompiler(object):
         prop_test = self.property_test
         obj_names = self.obj_names
         root_names = self.root_names
-        has_proxy = set()
+        #has_proxy = set()  # contains all tree roots that have been given a proxy
         obj_name = lambda x: 'obj_' + '_'.join(x) if len(x) > 1 else root_name
         unbind_idxs = defaultdict(list)
-        p_use = lambda x: (proxy if x in obj_names or level else proxy_maybe).use(x)
+        p_use = lambda x: proxy.use(x) if x in obj_names or level else x
         if len(self.base_types) > 1:
             base_types = '({})'.format(', '.join(self.base_types))
         else:
@@ -1221,10 +1232,12 @@ class KVCompiler(object):
             on_objs[rule_name].append((prop_name, f, fargs))
 
         # for every iter of the loop, we pick a node in topological depth first
-        # order and we look at nodes and leaves that hang off. Leaves are bound
-        # to final callbacks x_hn, nodes are bound to intermediats if rebind
+        # order and we look at nodes and leaves that hang off. Leaves are binds
+        # to final callbacks x_hn, nodes are binds to intermediats if rebind.
         # each object in bound is tuple of
         # (start, end, parent, obj, key (in its parent), uid, f, args)
+        # watchers is the paths starting from root to the nodes and leaves
+        # hanging from the node that the watchers path leads to (watchers[-1])
         for i, (leaves, nodes, level, watchers) in enumerate(
                 self.walk_bindings(handlers)):
             assert nodes or leaves
@@ -1235,55 +1248,83 @@ class KVCompiler(object):
             reached_end = not nodes
             on_bindings = not level and on_objs[root_name]  # any on_xxx?
 
+            # a root level is the root of a new tree, e.g. label in label.obj.name
+            # level is the distance to the child of the current node node from
+            # the root (zero if we're the root)
             if not level:
                 root_names.add(root_name)
                 self.has_bindings = True
-                pos = {}
+                pos = {}  # the index in bound to any node
                 # if not rebind, only leaves are bound otherwise everything is
+                # node[1] is the number of nodes hanging of from node,
+                # node[2] is the number of all leaves reachable from node
                 idx = 1 if rebind else 2
+                # N is the total number of bindable nodes/leaves from root
                 N = sum([n[idx] for n in nodes]) + len(leaves)
+                # e.g. root_bound = bound = [None, ] * 70
                 bind_code.append(
                     '{}_bound = bound = [None, ] * {}'.format(root_name, N))
-                next_pos = 0
-                if root_name not in obj_names:
-                    self.proxies.append(proxy_maybe.dec(root_name, add=False))
-                    has_proxy.add(root_name)
+                next_pos = 0  # index in bound of current node binding
+                #has_proxy.add(root_name)
+                #if root_name not in obj_names:
+                    # we found another root that is not an `id` or `app`
+                    #self.proxies.append(proxy_maybe.dec(root_name, add=False))
+            else:
+                parent = obj_name(watchers[:-1])  # name of parent of this node
 
-            cpos = pos.get(tuple(watchers), None)  # pos of parent in bound
-            sizes = [node[1] - 1 for node in nodes]
-            start = [sum(map(len, sizes[:k])) + len(nodes) + next_pos + len(leaves)
-                     for k in range(len(nodes))]
+            # pos of the node that is the parent of the leaves/nodes in bound
+            cpos = pos.get(tuple(watchers), None)
+            start = self.get_child_start_idxs(nodes, leaves, next_pos)
 
-            # get the next object a (if the parent wasn't already none)
-            depth = 0
-            # did we have a parent that may be none? Then check on it
-            if level > 1 or level == 1 and watchers[0] not in obj_names:
+            # given the current node, we need to bind all the leaves (and
+            # nodes if rebind)
+            depth = 0  # num tabs
+            # did the current node have a parent that may be none? if we're at
+            # level <= 1, e.g. 1 when the current node is y from x.y then the
+            # parent x cannot be None since we created it, unless it's not an
+            # `id` or `app`. If we're at zeroth level, there's no parent
+            if level > 1 or level == 1 and root_name not in obj_names:
+                # if we have just leaves and the parent is None then we don't
+                # create an alias for this Node b/c it won't be used but if
+                # there are nodes, create the alias = None for lower leaves
                 if nodes:
-                    bind_code.append(LazyFmt('if {} is None:', obj_name(watchers[:-1])))
+                    bind_code.append(LazyFmt('if {} is None:', parent))
                     bind_code.append(LazyFmt('{}{} = None', tab, curr_obj))
                     bind_code.append('else:')
                 else:
-                    bind_code.append(LazyFmt('if {} is not None:', obj_name(watchers[:-1])))
+                    bind_code.append(LazyFmt('if {} is not None:', parent))
                 depth = 1
+            # now, if the parent could not be None or if it could and we're
+            # under an `if` making sure the code is exec if it's not None
 
+            # make alias for current node from the non-None parent, only needed
+            # if we're not a root level node, which doesn't need an alias
             if level:
                 bind_code.append(LazyFmt(
-                    '{}{} = {}.{}', tab * depth, curr_obj,
-                    obj_name(watchers[:-1]), watchers[-1]))
+                    '{}{} = {}.{}', tab * depth, curr_obj, parent,
+                    watchers[-1]))
+            # we have an alias for the current node. But is its value None?
+            # at root level, root could be None if it's not a recognized name
+            # e.g. an imported variable name so add a check if it's None
             if level or curr_obj not in obj_names:
-                bind_code.append(LazyFmt(
-                    '{0}if {1} is not None and isinstance({1}, {2}):',
-                    tab * depth, curr_obj, base_types))
-                depth += 1
-                if curr_obj not in has_proxy:
+                # if no leaves, there must be some nodes, but if not rebind,
+                # then we don't need anything with the nodes so skip following
+                if leaves or bind_nodes:
                     bind_code.append(LazyFmt(
-                        '{}{}', tab * depth, proxy.dec(curr_obj, add=False)))
+                        '{0}if {1} is not None and isinstance({1}, {2}):',
+                        tab * depth, curr_obj, base_types))
+                    depth += 1
+                    if level:
+                        bind_code.append(LazyFmt(
+                            '{}{}', tab * depth, proxy.dec(curr_obj, add=False)))
+            # alias bind = fast_bind for this node
             bind_code.append(
                 LazyFmt('{}{}', tab * depth, bind.dec(curr_obj, add=False)))
             bind_code.append(LazyFmt(
                 '{}{}', tab * depth, prop_test.dec(curr_obj, add=False)))
 
-            if on_bindings:  # on_xxx binds on obj.xxx, where obj is one of rules
+            # if we're at root level and there are on_xxx events bind them
+            if on_bindings:
                 for prop_name, f, fargs in on_bindings:
                     code = '{}("{}", {}{})'.format(
                         '{}', prop_name, f, ', {}' * len(fargs))
@@ -1295,11 +1336,14 @@ class KVCompiler(object):
                 on_objs.pop(root_name)
             ret.append(bind_code)
 
-            lcls = locals().copy()
+            lcls = locals().copy()  # now bind the leaves and nodes
             del lcls['self']
             old_next_pos = next_pos
             next_pos = self.append_bindings(True, **lcls)
 
+            # if rebind, even if the parent or the node is None, if there was
+            # a rebind = True in our parent tree, we need to save all the args
+            # in case later we will be rebound to non-None object.
             if rebind and level:
                 depth = 1
                 next_pos = old_next_pos
