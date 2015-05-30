@@ -129,7 +129,7 @@ that wants to know about them and react to them.
 
 In order to provide the maximimum flexibility, Kivy dispatches the events to
 all the widgets and lets them decide how to react to them. If you only want
-to respond to touch events inside the widget, you simply check.::
+to respond to touch events inside the widget, you simply check::
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
