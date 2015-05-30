@@ -4,6 +4,109 @@ Kivy language compiler
 
 .. author:: Mathieu Virbel <mat@kivy.org>, Matthew Einhorn <moiein2000@gmail.com>
 
+
+Instantiation
+===================
+
+When a widget is created using the syntax `w = WidgetClass()`, the KV rules
+associated with the class `WidgetClass` are applied to the instance before
+it returns from its `__init__` method. The KV rules are applied in a specific
+sequence of operations, some of which are batched. Consider the following KV
+rules::
+
+    <MyWidgetA@Widget>:
+        width: 10
+        prop: wid.myself
+        height: self.width
+        Button:
+            id: wid
+            myself: self
+            MyWidgetC
+            canvas:
+                Color:
+                    rgba: 1, 0, 1, 1
+                Rectangle:
+                    size: 10, 10
+        MyWidgetB
+
+    <MyWidgetB@Widget>:
+        size_hint: None, None
+        BoxLayout:
+            MyWidgetC
+        canvas:
+            Line
+
+    <MyWidgetC@Widget>:
+        Label
+        FloatLayout
+            GridLayout
+
+
+We can convert these rules to the following widget/graphics children tree
+
+.. image:: images/kvrules1.png
+    :align: right
+
+Overall, when `w = MyWidgetA()` is executed and python calls its `__init__`
+method, 4 steps occur:
+
+#. __Initialization step__: For each KV rule that can be reached from the root
+   `MyWidgetA` rule, all the widgets and graphics instructions are created.
+   Also, all the _widget_ properties defined in the rules, e.g.
+   `prop: prop_value` are initialized to those values.
+#. __Binding step__: All the _graphics_ properties defined in the rules, e.g.
+   `rgba: rgba_value` are initialized to those values. Followed by the creation
+   of the bindings for every rule defined in KV, e.g. `prop: prop_value`, or
+   `on_prop: do_func()`.
+
+
+# For every widget or graphics instruction encountered in the rule
+1. Walk through the widget tree generated from the kv rules associated with
+   `the current widget` starting with `MyWidgetA` in a depth first manner.
+
+
+
+
+Property Creation
+-----------------
+
+The first time a widget of any class type is created, we ensure that all the
+properties set by the KV rule for that class exists - whether they are kivy or
+python properties.
+
+Consider the following KV rule::
+
+    <RuleA@Label>:
+        prop1: self.text
+        prop2: 0.42
+
+When the first `RuleA` is created, we check whether `prop1` and `prop2` exists
+as attributes of the RuleA instance - whether as a proper kivy property or a
+python property. If any don't exist, they are created dynamically as kivy
+properties.
+
+For such dynamically created properties, if the value of the rule
+is a literal as described below, the type of the property created
+is matched as close to the type of the value of the rule as possible
+(e.g. a NumericProperty is created for 0.42) and the property is initialized
+to that value. Otherwise, a `ObjectProperty` initialized to `None` is created.
+
+
+Initialization
+---------------
+
+After the widgets and graphics instructions are created, and after we ensure
+all properties set by the rules exist, the initialization step begins.
+
+Initialization is split into three periods; literal initialization, non-literal
+initialization, and grahical initilization.
+
+
+Graphics Instructions
+=====================
+
+They are not instantly exec but are delayed.
+
 '''
 
 __all__ = []
