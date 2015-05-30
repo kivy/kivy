@@ -127,7 +127,7 @@ This requirement becomes very restrictive when working with touch input.
 Swipes, pinches and long presses may well originate from outside of the widget
 that wants to know about them and react to them.
 
-In order to provide the maximimum flexibility, Kivy dispatches the events to
+In order to provide the maximum flexibility, Kivy dispatches the events to
 all the widgets and lets them decide how to react to them. If you only want
 to respond to touch events inside the widget, you simply check::
 
