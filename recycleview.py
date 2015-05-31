@@ -226,6 +226,7 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
     # internal
     computed_sizes = []
     computed_positions = []
+    computed_size = 0
 
     def can_scroll_horizontally(self):
         return self.orientation == "horizontal"
