@@ -1,44 +1,29 @@
-#!/usr/bin/env python
-"""
-demonstrate adding a FigureCanvasGTK3Agg widget to a Gtk.ScrolledWindow
-using GTK3 accessed via pygobject
-"""
-'''
-from gi.repository import Gtk
+from kivy.app import App
+from inkcanvas import InkCanvas
+from kivy.uix.button import Button
+from kivy.uix.boxlayout import BoxLayout
+import inkcanvas
 
-from matplotlib.figure import Figure
-from numpy import arange, sin, pi
-from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
+class InkCanvasTest(App):
+    title = 'InkCanvas'
+    inkc = InkCanvas()
+    
+    def callback(self, instance):
+        if self.inkc.mode == InkCanvas.Mode.draw:
+            self.inkc.mode = InkCanvas.Mode.erase
+        elif self.inkc.mode == InkCanvas.Mode.erase:
+            self.inkc.mode = InkCanvas.Mode.draw
 
-win = Gtk.Window()
-win.connect("delete-event", Gtk.main_quit)
-win.set_default_size(400, 300)
-win.set_title("Embedding in GTK")
+    def build(self):
+        layout = BoxLayout(orientation = 'vertical')
+        btn = Button(text='Change Mode', size_hint = (1,.15))
+        btn.bind(on_press=self.callback)
+        layout.add_widget(btn)
+        layout.add_widget(self.inkc)
+        return layout
+    
+    def on_pause(self):
+        return True
 
-f = Figure(figsize=(5, 4), dpi=100)
-a = f.add_subplot(111)
-t = arange(0.0, 3.0, 0.01)
-s = sin(2*pi*t)
-a.plot(t, s)
-
-sw = Gtk.ScrolledWindow()
-win.add(sw)
-# A scrolled window border goes outside the scrollbars and viewport
-sw.set_border_width(10)
-
-canvas = FigureCanvas(f)  # a Gtk.DrawingArea
-canvas.set_size_request(800, 600)
-sw.add_with_viewport(canvas)
-
-win.show_all()
-Gtk.main()
-'''
-from point import Point
-
-a = Point(2,4)
-b = Point(2,3)
-
-if a == b:
-    print "they are equal"
-else:
-    print "they are not equal"
+if __name__ == '__main__':
+    InkCanvasTest().run()
