@@ -57,8 +57,8 @@ cdef class Instruction(ObjectWithUid):
         if self.parent:
             self.parent.add(self)
 
-    cdef void apply(self):
-        pass
+    cdef int apply(self) except -1:
+        return 0
 
     IF DEBUG:
         cdef int flag_update(self, int do_parent=1, list _instrs=None) except -1:
@@ -145,7 +145,7 @@ cdef class InstructionGroup(Instruction):
         else:
             self.compiler = GraphicsCompiler()
 
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         cdef Instruction c
         cdef list children
         if self.compiler is not None:
@@ -161,6 +161,7 @@ cdef class InstructionGroup(Instruction):
         else:
             for c in self.children:
                 c.apply()
+        return 0
 
     cdef void build(self):
         self.compiled_children = self.compiler.compile(self)
@@ -246,7 +247,7 @@ cdef class ContextInstruction(Instruction):
         cdef RenderContext context = getActiveContext()
         return context
 
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         cdef RenderContext context = self.get_context()
         if self.context_push:
             context.push_states(self.context_push)
@@ -254,19 +255,19 @@ cdef class ContextInstruction(Instruction):
             context.set_states(self.context_state)
         if self.context_pop:
             context.pop_states(self.context_pop)
+        return 0
 
-    cdef void set_state(self, str name, value):
+    cdef int set_state(self, str name, value) except -1:
         self.context_state[name] = value
         self.flag_update()
 
-    cdef void push_state(self, str name):
+    cdef int push_state(self, str name) except -1:
         self.context_push.append(name)
         self.flag_update()
 
-    cdef void pop_state(self, str name):
+    cdef int pop_state(self, str name) except -1:
         self.context_pop.append(name)
         self.flag_update()
-
 
 cdef class VertexInstruction(Instruction):
     '''The VertexInstruction class is the base for all graphics instructions
@@ -400,11 +401,12 @@ cdef class VertexInstruction(Instruction):
     cdef void build(self):
         pass
 
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         if self.flags & GI_NEEDS_UPDATE:
             self.build()
             self.flag_update_done()
         self.batch.draw()
+        return 0
 
 
 cdef class Callback(Instruction):
@@ -466,7 +468,7 @@ cdef class Callback(Instruction):
         '''
         self.flag_update()
 
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         cdef RenderContext rcx
         cdef Context ctx
         cdef Shader shader
@@ -512,9 +514,11 @@ cdef class Callback(Instruction):
                 rcx.set_texture(index, texture)
 
             reset_gl_context()
+        return 0
 
-    cdef void enter(self):
+    cdef int enter(self) except -1:
         self._shader.use()
+        return 0
 
     property reset_context:
         '''Set this to True if you want to reset the OpenGL context for Kivy
@@ -597,7 +601,7 @@ cdef class Canvas(CanvasBase):
         '''
         self.apply()
 
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         cdef float opacity = self._opacity
         cdef float rc_opacity
         cdef RenderContext rc
@@ -609,6 +613,7 @@ cdef class Canvas(CanvasBase):
         InstructionGroup.apply(self)
         if opacity != 1.0:
             rc.pop_state('opacity')
+        return 0
 
     cpdef add(self, Instruction c):
         # the after group must remain the last one.
@@ -786,29 +791,29 @@ cdef class RenderContext(Canvas):
     cdef get_state(self, str name):
         return self.state_stacks[name][-1]
 
-    cdef void set_states(self, dict states):
+    cdef int set_states(self, dict states) except -1:
         cdef str name
         for name, value in states.iteritems():
             self.set_state(name, value)
 
-    cdef void push_state(self, str name):
+    cdef int push_state(self, str name) except -1:
         stack = self.state_stacks[name]
         stack.append(stack[-1])
         self.flag_update()
 
-    cdef void push_states(self, list names):
+    cdef int push_states(self, list names) except -1:
         cdef str name
         for name in names:
             self.push_state(name)
 
-    cdef void pop_state(self, str name):
+    cdef int pop_state(self, str name) except -1:
         stack = self.state_stacks[name]
         oldvalue = stack.pop()
         if oldvalue != stack[-1]:
             self.set_state(name, stack[-1])
             self.flag_update()
 
-    cdef void pop_states(self, list names):
+    cdef int pop_states(self, list names) except -1:
         cdef str name
         for name in names:
             self.pop_state(name)
@@ -828,13 +833,15 @@ cdef class RenderContext(Canvas):
         texture.bind()
         self.flag_update()
 
-    cdef void enter(self):
+    cdef int enter(self) except -1:
         self._shader.use()
+        return 0
 
-    cdef void leave(self):
+    cdef int leave(self) except -1:
         self._shader.stop()
+        return 0
 
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         cdef list keys
         if PY2:
             keys = self.state_stacks.keys()
@@ -856,6 +863,8 @@ cdef class RenderContext(Canvas):
         self.pop_states(keys)
         popActiveContext()
         self.flag_update_done()
+
+        return 0
 
     cdef void reload(self):
         pushActiveContext(self)

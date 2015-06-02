@@ -176,10 +176,10 @@ cdef class Line(VertexInstruction):
             self._stencil_use = StencilUse(op='lequal')
             self._stencil_unuse = StencilUnUse()
 
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         if self._width == 1.:
             VertexInstruction.apply(self)
-            return
+            return 0
 
         cdef double alpha = getActiveContext()['color'][-1]
         self._use_stencil = alpha < 1
@@ -197,6 +197,7 @@ cdef class Line(VertexInstruction):
             self._stencil_pop.apply()
         else:
             VertexInstruction.apply(self)
+        return 0
 
     cdef void build_legacy(self):
         cdef int i
@@ -1240,9 +1241,9 @@ cdef class SmoothLine(Line):
 
         self.build_smooth()
 
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         VertexInstruction.apply(self)
-        return
+        return 0
 
     cdef void build_smooth(self):
         cdef:

@@ -344,7 +344,7 @@ cdef class BindTexture(ContextInstruction):
 
         self.index = kwargs.get('index', 0)
 
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         cdef RenderContext context = self.get_context()
         context.set_texture(self._index, self._texture)
 
@@ -458,7 +458,7 @@ cdef class ApplyContextMatrix(ContextInstruction):
         self.target_stack = kwargs.get('target_stack', 'modelview_mat')
         self.source_stack = kwargs.get('source_stack', 'modelview_mat')
 
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         cdef RenderContext context = self.get_context()
         m = context.get_state(self._target_stack)
         m = m.multiply(context.get_state(self._source_stack))
@@ -494,7 +494,7 @@ cdef class UpdateNormalMatrix(ContextInstruction):
 
     .. versionadded:: 1.6.0
     '''
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         cdef RenderContext context = self.get_context()
         mvm = context.get_state('modelview_mat')
         context.set_state('normal_mat', mvm.normal_matrix())
@@ -509,7 +509,7 @@ cdef class MatrixInstruction(ContextInstruction):
         self.stack = kwargs.get('stack', 'modelview_mat')
         self._matrix = None
 
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         '''Apply the matrix of this instance to the
         context model view matrix.
         '''

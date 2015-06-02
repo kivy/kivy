@@ -323,12 +323,13 @@ cdef class Fbo(RenderContext):
         else:
             glClear(GL_COLOR_BUFFER_BIT)
 
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         if self.flags & GI_NEEDS_UPDATE:
             self.bind()
             RenderContext.apply(self)
             self.release()
             self.flag_update_done()
+        return 0
 
     cdef void reload(self):
         # recreate the framebuffer, without deleting it. the deletion is not

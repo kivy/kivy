@@ -127,7 +127,7 @@ cdef class StencilPush(Instruction):
     '''Push the stencil stack. See the module documentation for more
     information.
     '''
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         global _stencil_level, _stencil_in_push
         if _stencil_in_push:
             raise Exception('Cannot use StencilPush inside another '
@@ -147,11 +147,12 @@ cdef class StencilPush(Instruction):
         glStencilFunc(GL_ALWAYS, 0, 0)
         glStencilOp(GL_INCR, GL_INCR, GL_INCR)
         glColorMask(0, 0, 0, 0)
+        return 0
 
 cdef class StencilPop(Instruction):
     '''Pop the stencil stack. See the module documentation for more information.
     '''
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         global _stencil_level, _stencil_in_push
         if _stencil_level == 0:
             raise Exception('Too much StencilPop (stack underflow)')
@@ -160,10 +161,11 @@ cdef class StencilPop(Instruction):
         glColorMask(1, 1, 1, 1)
         if _stencil_level == 0:
             glDisable(GL_STENCIL_TEST)
-            return
+            return 0
         # reset for previous
         glStencilFunc(GL_EQUAL, _stencil_level, 0xff)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+        return 0
 
 
 cdef class StencilUse(Instruction):
@@ -177,12 +179,13 @@ cdef class StencilUse(Instruction):
         else:
             self._op = GL_EQUAL
 
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         global _stencil_in_push
         _stencil_in_push = 0
         glColorMask(1, 1, 1, 1)
         glStencilFunc(self._op, _stencil_level, 0xff)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+        return 0
 
     property func_op:
         '''Determine the stencil operation to use for glStencilFunc(). Can be
@@ -208,7 +211,8 @@ cdef class StencilUse(Instruction):
 cdef class StencilUnUse(Instruction):
     '''Use current stencil buffer to unset the mask.
     '''
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         glStencilFunc(GL_ALWAYS, 0, 0)
         glStencilOp(GL_DECR, GL_DECR, GL_DECR)
         glColorMask(0, 0, 0, 0)
+        return 0
