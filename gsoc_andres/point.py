@@ -1,4 +1,20 @@
+from math import sqrt
+
 class Point:
+    
+    '''
+    Point
+    ===================
+    
+    This class identifies a point with 2D coordinates x and y::
+    
+        # Create a Point
+        pointA = Point(2,3)
+        pointB = Point(4,5)
+        distance = pointA.distance_to(pointB)
+    
+    '''
+    
     '''Default Constructor'''
     def __init__(self, x, y):
         self.X = x
@@ -41,3 +57,7 @@ class Point:
     def clone(self):
         '''Return a copy of this point'''
         return Point(self.X, self.Y)
+    
+    def distance_to(self, p):
+        '''Calculate euclidean distance between two points.'''
+        return sqrt(pow(self.X - p.X, 2.0) + pow(self.Y - p.Y, 2.0))
