@@ -13,7 +13,7 @@ endif
 
 syn match kivyPreProc       /#:.*/
 syn match kivyComment       /#.*/
-syn match kivyRule          /<\I\i*\(,\s*\I\i*\)*>:/
+syn match kivyRule          /<-?\I\i*\([,@]\s*\I\i*\)*>:/
 syn match kivyAttribute     /\<\I\i*\>/ nextgroup=kivyValue
 
 syn include @pyth $VIMRUNTIME/syntax/python.vim
