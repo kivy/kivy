@@ -474,7 +474,7 @@ class TabbedPanel(GridLayout):
 
         super(TabbedPanel, self).__init__(**kwargs)
 
-        self.bind(size=self._reposition_tabs)
+        self.fast_bind('size', self._reposition_tabs)
         if not self.do_default_tab:
             Clock.schedule_once(self._switch_to_first_tab)
             return

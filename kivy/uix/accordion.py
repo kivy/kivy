@@ -257,10 +257,12 @@ class AccordionItem(FloatLayout):
         self._trigger_title = Clock.create_trigger(self._update_title, -1)
         self._anim_collapse = None
         super(AccordionItem, self).__init__(**kwargs)
-        self.bind(title=self._trigger_title,
-                  title_template=self._trigger_title,
-                  title_args=self._trigger_title)
-        self._trigger_title()
+        trigger_title = self._trigger_title
+        fbind = self.fast_bind
+        fbind('title', trigger_title)
+        fbind('title_template', trigger_title)
+        fbind('title_args', trigger_title)
+        trigger_title()
 
     def add_widget(self, widget):
         if self.container is None:
@@ -357,13 +359,14 @@ class Accordion(Widget):
 
     def __init__(self, **kwargs):
         super(Accordion, self).__init__(**kwargs)
-        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
-        self.bind(
-            orientation=self._trigger_layout,
-            children=self._trigger_layout,
-            size=self._trigger_layout,
-            pos=self._trigger_layout,
-            min_space=self._trigger_layout)
+        update = self._trigger_layout = \
+            Clock.create_trigger(self._do_layout, -1)
+        fbind = self.fast_bind
+        fbind('orientation', update)
+        fbind('children', update)
+        fbind('size', update)
+        fbind('pos', update)
+        fbind('min_space', update)
 
     def add_widget(self, widget, *largs):
         if not isinstance(widget, AccordionItem):
