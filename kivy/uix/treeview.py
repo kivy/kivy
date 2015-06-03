@@ -275,7 +275,7 @@ class TreeView(Widget):
         fbind('pos', trigger)
         fbind('size', trigger)
         fbind('indent_level', trigger)
-        fnind('indent_start', trigger)
+        fbind('indent_start', trigger)
         trigger()
 
     def add_node(self, node, parent=None):
