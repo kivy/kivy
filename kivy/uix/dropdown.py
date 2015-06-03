@@ -186,7 +186,7 @@ class DropDown(ScrollView):
             super(DropDown, self).add_widget(c)
             self.on_container(self, c)
         Window.bind(on_key_down=self.on_key_down)
-        self.bind(size=self._reposition)
+        self.fast_bind('size', self._reposition)
 
     def on_key_down(self, instance, key, scancode, codepoint, modifiers):
         if key == 27 and self.get_parent_window():

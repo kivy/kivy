@@ -180,9 +180,10 @@ class ListAdapter(Adapter, EventDispatcher):
     def __init__(self, **kwargs):
         super(ListAdapter, self).__init__(**kwargs)
 
-        self.bind(selection_mode=self.selection_mode_changed,
-                  allow_empty_selection=self.check_for_empty_selection,
-                  data=self.update_for_new_data)
+        fbind = self.fast_bind
+        fbind('selection_mode', self.selection_mode_changed)
+        fbind('allow_empty_selection', self.check_for_empty_selection)
+        fbind('data', self.update_for_new_data)
 
         self.update_for_new_data()
 

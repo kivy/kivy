@@ -163,9 +163,12 @@ class VideoPlayerProgressBar(ProgressBar):
         self.bubble_label = Factory.Label(text='0:00')
         self.bubble.add_widget(self.bubble_label)
         self.add_widget(self.bubble)
-        self.bind(pos=self._update_bubble,
-                  size=self._update_bubble,
-                  seek=self._update_bubble)
+
+        update = self._update_bubble
+        fbind = self.fast_bind
+        fbind('pos', update)
+        fbind('size', update)
+        fbind('seek', update)
 
     def on_video(self, instance, value):
         self.video.bind(position=self._update_bubble,

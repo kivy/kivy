@@ -66,13 +66,14 @@ class PageLayout(Layout):
     def __init__(self, **kwargs):
         super(PageLayout, self).__init__(**kwargs)
 
-        self.bind(
-            border=self._trigger_layout,
-            page=self._trigger_layout,
-            parent=self._trigger_layout,
-            children=self._trigger_layout,
-            size=self._trigger_layout,
-            pos=self._trigger_layout)
+        trigger = self._trigger_layout
+        fbind = self.fast_bind
+        fbind('border', trigger)
+        fbind('page', trigger)
+        fbind('parent', trigger)
+        fbind('children', trigger)
+        fbind('size', trigger)
+        fbind('pos', trigger)
 
     def do_layout(self, *largs):
         l_children = len(self.children) - 1

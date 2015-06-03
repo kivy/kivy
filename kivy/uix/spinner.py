@@ -106,12 +106,13 @@ class Spinner(Button):
     def __init__(self, **kwargs):
         self._dropdown = None
         super(Spinner, self).__init__(**kwargs)
-        self.bind(
-            on_release=self._toggle_dropdown,
-            dropdown_cls=self._build_dropdown,
-            option_cls=self._build_dropdown,
-            values=self._update_dropdown)
-        self._build_dropdown()
+        fbind = self.fast_bind
+        build_dropdown = self._build_dropdown
+        fbind('on_release', self._toggle_dropdown)
+        fbind('dropdown_cls', build_dropdown)
+        fbind('option_cls', build_dropdown)
+        fbind('values', self._update_dropdown)
+        build_dropdown()
 
     def _build_dropdown(self, *largs):
         if self._dropdown:

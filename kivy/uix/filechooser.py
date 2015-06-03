@@ -226,7 +226,7 @@ class FileChooserListLayout(FileChooserLayout):
 
     def __init__(self, **kwargs):
         super(FileChooserListLayout, self).__init__(**kwargs)
-        self.bind(on_entries_cleared=self.scroll_to_top)
+        self.fast_bind('on_entries_cleared', self.scroll_to_top)
 
     def scroll_to_top(self, *args):
         self.ids.scrollview.scroll_y = 1.0
@@ -243,7 +243,7 @@ class FileChooserIconLayout(FileChooserLayout):
 
     def __init__(self, **kwargs):
         super(FileChooserIconLayout, self).__init__(**kwargs)
-        self.bind(on_entries_cleared=self.scroll_to_top)
+        self.fast_bind('on_entries_cleared', self.scroll_to_top)
 
     def scroll_to_top(self, *args):
         self.ids.scrollview.scroll_y = 1.0
@@ -456,14 +456,16 @@ class FileChooserController(RelativeLayout):
         super(FileChooserController, self).__init__(**kwargs)
 
         self._items = []
-        self.bind(selection=self._update_item_selection)
+        fbind = self.fast_bind
+        fbind('selection', self._update_item_selection)
 
         self._previous_path = [self.path]
-        self.bind(path=self._save_previous_path)
-        self.bind(path=self._trigger_update,
-                  filters=self._trigger_update,
-                  rootpath=self._trigger_update)
-        self._trigger_update()
+        fbind('path', self._save_previous_path)
+        update = self._trigger_update
+        fbind('path', update)
+        fbind('filters', update)
+        fbind('rootpath', update)
+        update()
 
     def on_touch_down(self, touch):
         # don't respond to touchs outside self
@@ -874,7 +876,7 @@ class FileChooser(FileChooserController):
 
         self.trigger_update_view = Clock.create_trigger(self.update_view)
 
-        self.bind(view_mode=self.trigger_update_view)
+        self.fast_bind('view_mode', self.trigger_update_view)
 
     def add_widget(self, widget, **kwargs):
         if widget is self._progress:
