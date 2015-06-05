@@ -174,7 +174,7 @@ cdef class ScissorPush(Instruction):
             )
         self._rect = Rect(self._x, self._y, self._width, self._height)
 
-    cdef int apply(self):
+    cdef int apply(self) except -1:
         cdef Rect rect = self._rect
         cdef Rect new_scissor_rect
         cdef Rect back
@@ -196,7 +196,7 @@ cdef class ScissorPop(Instruction):
     the drawing you wish to be clipped.
     '''
 
-    cdef int apply(self):
+    cdef int apply(self) except -1:
         scissor_stack.pop()
         cdef Rect new_scissor_rect
         if scissor_stack.empty:
