@@ -265,7 +265,6 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
             scrollview.do_scroll_x = False
             scrollview.do_scroll_y = True
             container.size = scrollview.width, self.computed_size
-        print(self.orientation, container.size)
 
     def compute_visible_views(self, container, scrollview):
         """(internal) Determine the views that need to be showed in the current
