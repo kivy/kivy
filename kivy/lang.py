@@ -1496,6 +1496,21 @@ def delayed_call_fn(args, instance, v):
         _delayed_start = args
 
 
+def undo_bindings(bound):
+    for f, k, uid in bound:
+        if fun is None:
+            continue
+        try:
+            f.unbind_uid(k, uid)
+        except ReferenceError:
+            pass
+
+
+def undo_bindings_list(bounds):
+    for bound in bounds:
+        undo_bindings(bound)
+
+
 def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     ''' Function that is called when an intermediate property is updated
     and `rebind` of that property is True. In that case, we unbind
@@ -1534,13 +1549,7 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
             The function to be called args, `args` on bound callback.
     '''
     # first remove all the old bound functions from `s` and down.
-    for f, k, fun, uid in bound[s:]:
-        if fun is None:
-            continue
-        try:
-            f.unbind_uid(k, uid)
-        except ReferenceError:
-            pass
+    undo_bindings(bound[s:])
     del bound[s:]
 
     # find the first attr from which we need to start rebinding.
@@ -1598,14 +1607,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     # posting a new one.  there should be at most one constraint for any
     # property iself/key.
     if current_constraint_bounds:
-        for bound in current_constraint_bounds:
-            for f, k, fn, bound_uid in bound:
-                if fn is None:
-                    continue
-                try:
-                    f.unbind_uid(k, bound_uid)
-                except ReferenceError:
-                    pass
+        undo_bindings_list(current_constraint_bounds)
         del current_constraint_bounds[:]
     # at this point current_constraint_bounds is an empty list
 
