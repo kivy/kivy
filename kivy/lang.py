@@ -831,6 +831,11 @@ else:
 # widget is deleted
 _handlers = defaultdict(list)
 
+# uid -> propname -> [bound]
+# used to correctly unbind callbacks when one rule's property constraint
+# overrides another
+_constraints = defaultdict(lambda:defaultdict(list))
+
 
 class ProxyApp(object):
     # proxy app object
@@ -1587,6 +1592,22 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     idmap.update(global_idmap)
     idmap['self'] = iself.proxy_ref
     handler_append = _handlers[iself.uid].append
+    current_constraint_bounds = _constraints[iself.uid][key]
+
+    # if there is already a constraint on iself/key then remove it before
+    # posting a new one.  there should be at most one constraint for any
+    # property iself/key.
+    if current_constraint_bounds:
+        for bound in current_constraint_bounds:
+            for f, k, fn, bound_uid in bound:
+                if fn is None:
+                    continue
+                try:
+                    f.unbind_uid(k, bound_uid)
+                except ReferenceError:
+                    pass
+        del current_constraint_bounds[:]
+    # at this point current_constraint_bounds is an empty list
 
     # we need a hash for when delayed, so we don't execute duplicate canvas
     # callbacks from the same handler during a sync op
@@ -1644,6 +1665,8 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                     was_bound = True
             if was_bound:
                 handler_append(bound)
+            if bound:
+                current_constraint_bounds.append(bound)
 
     try:
         return eval(value, idmap)
@@ -2107,6 +2130,8 @@ class BuilderBase(object):
                     # proxy widget is already gone, that's cool :)
                     pass
         del _handlers[uid]
+        if uid in _constraints:
+            del _constraints[uid]
 
     def _build_canvas(self, canvas, widget, rule, rootrule):
         global Instruction
