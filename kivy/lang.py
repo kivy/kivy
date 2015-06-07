@@ -1497,7 +1497,7 @@ def delayed_call_fn(args, instance, v):
 
 
 def undo_bindings(bound):
-    for f, k, uid in bound:
+    for f, k, fun, uid in bound:
         if fun is None:
             continue
         try:
@@ -1507,8 +1507,17 @@ def undo_bindings(bound):
 
 
 def undo_bindings_list(bounds):
-    for bound in bounds:
-        undo_bindings(bound)
+    if bounds:
+        for bound in bounds:
+            undo_bindings(bound)
+
+
+def clear_constraint(widget, key):
+    bindings = _constraints[widget.uid][key]
+    if bindings:
+        undo_bindings_list(bindings)
+        del bindings[:]
+    return bindings
 
 
 def update_intermediates(base, keys, bound, s, fn, args, instance, value):
@@ -1601,15 +1610,11 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     idmap.update(global_idmap)
     idmap['self'] = iself.proxy_ref
     handler_append = _handlers[iself.uid].append
-    current_constraint_bounds = _constraints[iself.uid][key]
 
     # if there is already a constraint on iself/key then remove it before
     # posting a new one.  there should be at most one constraint for any
     # property iself/key.
-    if current_constraint_bounds:
-        undo_bindings_list(current_constraint_bounds)
-        del current_constraint_bounds[:]
-    # at this point current_constraint_bounds is an empty list
+    current_constraint_bindings = clear_constraint(iself, key)
 
     # we need a hash for when delayed, so we don't execute duplicate canvas
     # callbacks from the same handler during a sync op
@@ -1668,7 +1673,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
             if was_bound:
                 handler_append(bound)
             if bound:
-                current_constraint_bounds.append(bound)
+                current_constraint_bindings.append(bound)
 
     try:
         return eval(value, idmap)
@@ -2034,6 +2039,8 @@ class BuilderBase(object):
                     if type(value) is CodeType:
                         value = create_handler(widget_set, widget_set, key,
                                                value, rule, rctx['ids'])
+                    else:
+                        clear_constraint(widget_set, key)
                     setattr(widget_set, key, value)
         except Exception as e:
             if rule is not None:
