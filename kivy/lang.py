@@ -1614,7 +1614,8 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     # if there is already a constraint on iself/key then remove it before
     # posting a new one.  there should be at most one constraint for any
     # property iself/key.
-    current_constraint_bindings = clear_constraint(iself, key)
+    if not delayed:
+        current_constraint_bindings = clear_constraint(iself, key)
 
     # we need a hash for when delayed, so we don't execute duplicate canvas
     # callbacks from the same handler during a sync op
@@ -1672,7 +1673,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                     was_bound = True
             if was_bound:
                 handler_append(bound)
-            if bound:
+            if bound and not delayed:
                 current_constraint_bindings.append(bound)
 
     try:
