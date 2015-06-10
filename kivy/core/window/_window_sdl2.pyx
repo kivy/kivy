@@ -118,6 +118,9 @@ cdef class _WindowSDL2Storage:
         if self.window_size != [w, h]:
             SDL_SetWindowSize(self.win, w, h)
 
+    def set_minimum_size(self, w, h):
+        SDL_SetWindowMinimumSize(self.win, w, h)
+
     def maximize_window(self):
         SDL_MaximizeWindow(self.win)
 
