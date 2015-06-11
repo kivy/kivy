@@ -61,7 +61,7 @@ class DictAdapter(ListAdapter):
 
         super(DictAdapter, self).__init__(**kwargs)
 
-        self.bind(sorted_keys=self.initialize_sorted_keys)
+        self.fast_bind('sorted_keys', self.initialize_sorted_keys)
 
     def bind_triggers_to_view(self, func):
         self.bind(sorted_keys=func)

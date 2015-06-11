@@ -100,14 +100,15 @@ class BoxLayout(Layout):
 
     def __init__(self, **kwargs):
         super(BoxLayout, self).__init__(**kwargs)
-        self.bind(
-            spacing=self._trigger_layout,
-            padding=self._trigger_layout,
-            children=self._trigger_layout,
-            orientation=self._trigger_layout,
-            parent=self._trigger_layout,
-            size=self._trigger_layout,
-            pos=self._trigger_layout)
+        update = self._trigger_layout
+        fbind = self.fast_bind
+        fbind('spacing', update)
+        fbind('padding', update)
+        fbind('children', update)
+        fbind('orientation', update)
+        fbind('parent', update)
+        fbind('size', update)
+        fbind('pos', update)
 
     def do_layout(self, *largs):
         # optimize layout by preventing looking at the same attribute in a loop

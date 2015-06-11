@@ -269,12 +269,14 @@ class TreeView(Widget):
         for key, value in self.root_options.items():
             setattr(tvlabel, key, value)
         self._root = self.add_node(tvlabel, None)
-        self.bind(
-            pos=self._trigger_layout,
-            size=self._trigger_layout,
-            indent_level=self._trigger_layout,
-            indent_start=self._trigger_layout)
-        self._trigger_layout()
+
+        trigger = self._trigger_layout
+        fbind = self.fast_bind
+        fbind('pos', trigger)
+        fbind('size', trigger)
+        fbind('indent_level', trigger)
+        fbind('indent_start', trigger)
+        trigger()
 
     def add_node(self, node, parent=None):
         '''Add a new node to the tree.
@@ -301,7 +303,7 @@ class TreeView(Widget):
             parent.nodes.append(node)
             node.parent_node = parent
             node.level = parent.level + 1
-        node.bind(size=self._trigger_layout)
+        node.fast_bind('size', self._trigger_layout)
         self._trigger_layout()
         return node
 
@@ -329,7 +331,7 @@ class TreeView(Widget):
                 nodes.remove(node)
             parent.is_leaf = not bool(len(nodes))
             node.parent_node = None
-            node.unbind(size=self._trigger_layout)
+            node.fast_unbind('size', self._trigger_layout)
             self._trigger_layout()
 
     def on_node_expand(self, node):

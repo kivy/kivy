@@ -835,11 +835,13 @@ cdef class BorderImage(Rectangle):
             Each value is in pixels.
 
         `auto_scale`: bool
+            .. versionadded:: 1.9.1
+
             If the BorderImage's size is less than the sum of it's
             borders, horizontally or vertically, and this property is
             set to True, the borders will be rescaled to accomodate for
             the smaller size.
-            .. versionadded:: 1.9.1
+
     '''
     cdef list _border
     cdef int _auto_scale

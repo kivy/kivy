@@ -460,19 +460,24 @@ class ScrollView(StencilView):
             self.effect_x = effect_cls(target_widget=self._viewport)
         if self.effect_y is None and effect_cls is not None:
             self.effect_y = effect_cls(target_widget=self._viewport)
-        self.bind(
-            width=self._update_effect_x_bounds,
-            height=self._update_effect_y_bounds,
-            viewport_size=self._update_effect_bounds,
-            _viewport=self._update_effect_widget,
-            scroll_x=self._trigger_update_from_scroll,
-            scroll_y=self._trigger_update_from_scroll,
-            pos=self._trigger_update_from_scroll,
-            size=self._trigger_update_from_scroll)
 
-        self._update_effect_widget()
-        self._update_effect_x_bounds()
-        self._update_effect_y_bounds()
+        trigger_update_from_scroll = self._trigger_update_from_scroll
+        update_effect_widget = self._update_effect_widget
+        update_effect_x_bounds = self._update_effect_x_bounds
+        update_effect_y_bounds = self._update_effect_y_bounds
+        fbind = self.fast_bind
+        fbind('width', update_effect_x_bounds)
+        fbind('height', update_effect_y_bounds)
+        fbind('viewport_size', self._update_effect_bounds)
+        fbind('_viewport', update_effect_widget)
+        fbind('scroll_x', trigger_update_from_scroll)
+        fbind('scroll_y', trigger_update_from_scroll)
+        fbind('pos', trigger_update_from_scroll)
+        fbind('size', trigger_update_from_scroll)
+
+        update_effect_widget()
+        update_effect_x_bounds()
+        update_effect_y_bounds()
 
     def on_effect_x(self, instance, value):
         if value:
@@ -933,15 +938,15 @@ class ScrollView(StencilView):
         # New in 1.2.0, show bar when scrolling happens and (changed in 1.9.0)
         # fade to bar_inactive_color when no scroll is happening.
         Clock.unschedule(self._bind_inactive_bar_color)
-        self.unbind(bar_inactive_color=self._change_bar_color)
+        self.fast_unbind('bar_inactive_color', self._change_bar_color)
         Animation.stop_all(self, '_bar_color')
-        self.bind(bar_color=self._change_bar_color)
+        self.fast_bind('bar_color', self._change_bar_color)
         self._bar_color = self.bar_color
         Clock.schedule_once(self._bind_inactive_bar_color, .5)
 
     def _bind_inactive_bar_color(self, *l):
-        self.unbind(bar_color=self._change_bar_color)
-        self.bind(bar_inactive_color=self._change_bar_color)
+        self.fast_unbind('bar_color', self._change_bar_color)
+        self.fast_bind('bar_inactive_color', self._change_bar_color)
         Animation(
             _bar_color=self.bar_inactive_color, d=.5, t='out_quart').start(self)
 

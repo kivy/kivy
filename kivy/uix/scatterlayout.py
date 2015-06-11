@@ -65,7 +65,7 @@ class ScatterLayout(Scatter):
         if self.content.size != self.size:
             self.content.size = self.size
         super(ScatterLayout, self).add_widget(self.content)
-        self.bind(size=self.update_size)
+        self.fast_bind('size', self.update_size)
 
     def update_size(self, instance, size):
         self.content.size = size

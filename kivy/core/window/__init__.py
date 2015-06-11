@@ -19,6 +19,7 @@ from kivy.config import Config
 from kivy.logger import Logger
 from kivy.base import EventLoop, stopTouchApp
 from kivy.modules import Modules
+from kivy.metrics import dp
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
     NumericProperty, OptionProperty, StringProperty, BooleanProperty
