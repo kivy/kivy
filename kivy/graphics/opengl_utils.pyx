@@ -18,6 +18,9 @@ cimport c_opengl
 from kivy.logger import Logger
 from kivy.utils import platform
 from kivy.graphics.opengl import _GL_GET_SIZE
+from kivy.graphics.c_opengl cimport glGetError
+DEF LOG_GL_DEBUG = 1
+
 
 
 cdef list _gl_extensions = []
@@ -290,4 +293,9 @@ cpdef int gl_get_version_minor():
         gl_get_version()
     return _gl_version_minor
 
-
+cdef inline void log_gl_error(str note):
+    if LOG_GL_DEBUG:
+        ret = glGetError()
+        if ret:
+            Logger.error("OpenGL Error: {note} {ret1} / {ret2}".format(
+                note=note, ret1=ret, ret2=hex(ret)))
