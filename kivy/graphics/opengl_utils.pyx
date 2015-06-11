@@ -22,7 +22,6 @@ from kivy.graphics.c_opengl cimport glGetError
 DEF LOG_GL_DEBUG = 1
 
 
-
 cdef list _gl_extensions = []
 cdef dict _gl_caps = {}
 cdef tuple _gl_texture_fmts = (
