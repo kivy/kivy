@@ -252,8 +252,7 @@ cdef class Shader:
         cdef GLenum ret
         loc = self.uniform_locations.get(name, -1)
         if loc == -1:
-            loc = self.get_uniform_loc(name)            
-
+            loc = self.get_uniform_loc(name)
         #Logger.debug('Shader: uploading uniform %s (loc=%d, value=%r)' % (name, loc, value))
         if loc == -1:
             #Logger.debug('Shader: -> ignored')
