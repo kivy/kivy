@@ -143,8 +143,6 @@ def get_includes():
     return [join(root_dir, 'graphics')]
 
 
-
-
 def kivy_register_post_configuration(callback):
     '''Register a function to be called when kivy_configure() is called.
 
