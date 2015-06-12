@@ -61,6 +61,7 @@ __all__ = ('Shader', )
 
 include "config.pxi"
 include "common.pxi"
+include "gl_debug_logger.pxi"
 
 from os.path import join
 from kivy.graphics.c_opengl cimport *
@@ -426,6 +427,9 @@ cdef class Shader:
     cdef int get_uniform_loc(self, str name) except *:
         cdef bytes c_name = name.encode('utf-8')
         cdef int loc = glGetUniformLocation(self.program, c_name)
+        log_gl_error(
+            'Shader.get_uniform_loc-glGetUniformLocation ({name})'.format(
+            name=name))
         self.uniform_locations[name] = loc
         return loc
 
