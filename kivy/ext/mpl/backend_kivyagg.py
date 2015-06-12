@@ -119,7 +119,21 @@ def new_figure_manager_given_figure(num, figure):
     return manager
 
 
-class FigureCanvasKivyAgg(FigureCanvasAgg, Widget):
+class MPLWidget(Widget):
+    __events__ = ('on_button_press_event',)
+
+    def __init__(self, **kwargs):
+        super(MPLWidget, self).__init__(**kwargs)
+
+    def on_touch_down(self, touch):
+        self.dispatch('on_button_press_event', touch.x, touch.y, self)
+
+    def on_button_press_event(self, x, y, button, dblclick=False,
+                              gui_event=None):
+        pass
+
+
+class FigureCanvasKivyAgg(FigureCanvasAgg, MPLWidget):
     """
     The canvas the figure renders into. Calls the draw and print fig
     methods, creates the renderers, etc...
@@ -140,7 +154,7 @@ class FigureCanvasKivyAgg(FigureCanvasAgg, Widget):
             print('FigureCanvasKivyAgg: ', figure)
         #super(FigureCanvasKivyAgg, self).__init__(figure, **kwargs)
         FigureCanvasAgg.__init__(self, figure)
-        Widget.__init__(self, **kwargs)
+        MPLWidget.__init__(self, **kwargs)
         self.figure = figure
         self.blit()
 

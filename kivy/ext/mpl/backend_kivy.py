@@ -278,6 +278,7 @@ class FigureCanvasKivy(FigureCanvasKivyAgg):
         if _debug:
             print('FigureCanvasKivy: ', figure)
         super(FigureCanvasKivy, self).__init__(figure, **kwargs)
+        self.bind(on_button_press_event = self.button_press_event)
         _create_App(self)
 
 #     def draw(self):
@@ -297,6 +298,11 @@ class FigureCanvasKivy(FigureCanvasKivyAgg):
     # you should add it to the class-scope filetypes dictionary as follows:
     filetypes = FigureCanvasBase.filetypes.copy()
     filetypes['foo'] = 'My magic Foo format'
+
+    def button_press_event(self, instance, x, y, dblclick=False, gui_event=None):
+        if _debug:
+            print('button pressed at', x, y, instance)
+        FigureCanvasKivyAgg.button_press_event(self, x, y, instance, dblclick=dblclick, guiEvent=gui_event)
 
     def print_foo(self, filename, *args, **kwargs):
         """

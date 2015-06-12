@@ -8,6 +8,8 @@ import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 
+def press(event):
+    print('press released from test', event.x, event.y, event.button)
 
 N = 5
 menMeans = (20, 35, 30, 35, 27)
@@ -17,6 +19,7 @@ ind = np.arange(N)  # the x locations for the groups
 width = 0.35       # the width of the bars
 
 figure, ax = plt.subplots()
+figure.canvas.mpl_connect('button_press_event', press)
 fig1 = plt.gcf()
 rects1 = ax.bar(ind, menMeans, width, color='r', yerr=menStd)
 
