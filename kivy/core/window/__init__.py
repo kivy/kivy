@@ -213,8 +213,13 @@ class WindowBase(EventDispatcher):
             Height of the window.
         `minimum_width`: int
             Minimum width of the window
+            
+            .. versionadded:: 1.9.1
+            
         `minimum_height`: int
             Minimum height of the window
+            
+            .. versionadded:: 1.9.1
 
     :Events:
         `on_motion`: etype, motionevent
