@@ -72,7 +72,7 @@ from kivy.graphics.context cimport get_context
 from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy import kivy_shader_dir
-
+from kivy.graphics.opengl_utils cimport log_gl_error
 
 cdef str header_vs = ''
 cdef str header_fs = ''
@@ -426,6 +426,9 @@ cdef class Shader:
     cdef int get_uniform_loc(self, str name) except *:
         cdef bytes c_name = name.encode('utf-8')
         cdef int loc = glGetUniformLocation(self.program, c_name)
+        log_gl_error(
+            'Shader.get_uniform_loc-glGetUniformLocation ({name})'.format(
+                name=name))
         self.uniform_locations[name] = loc
         return loc
 
