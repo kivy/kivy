@@ -90,12 +90,16 @@ if kivy_ios_root is not None:
     platform = 'ios'
 if exists('/opt/vc/include/bcm_host.h'):
     platform = 'rpi'
+if exists('/usr/lib/arm-linux-gnueabihf/libMali.so'):
+    platform = 'mali'
 
 # -----------------------------------------------------------------------------
 # Detect options
 #
 c_options = OrderedDict()
 c_options['use_rpi'] = platform == 'rpi'
+c_options['use_mali'] = platform == 'mali'
+c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_debug'] = False
 c_options['use_glew'] = False
@@ -300,7 +304,7 @@ except ImportError:
     print('User distribution detected, avoid portable command.')
 
 # Detect which opengl version headers to use
-if platform in ('android', 'darwin', 'ios', 'rpi'):
+if platform in ('android', 'darwin', 'ios', 'rpi', 'mali'):
     c_options['use_opengl_es2'] = True
 elif platform == 'win32':
     print('Windows platform detected, force GLEW usage.')
@@ -514,6 +518,12 @@ def determine_gl_flags():
             '/opt/vc/include/interface/vmcs_host/linux']
         flags['library_dirs'] = ['/opt/vc/lib']
         flags['libraries'] = ['bcm_host', 'EGL', 'GLESv2']
+    elif platform == 'mali':
+        flags['include_dirs'] = ['/usr/include/']
+        flags['library_dirs'] = ['/usr/lib/arm-linux-gnueabihf']
+        flags['libraries'] = ['GLESv2']
+        c_options['use_x11'] = True
+        c_options['use_egl'] = True
     else:
         flags['libraries'] = ['GL']
     if c_options['use_glew']:
@@ -723,6 +733,11 @@ if c_options['use_rpi']:
             base_flags, gl_flags)
 
 if c_options['use_x11']:
+    libs = ['Xrender', 'X11']
+    if c_options['use_egl']:
+        libs += ['EGL']
+    else:
+        libs += ['GL']
     sources['core/window/window_x11.pyx'] = merge(
         base_flags, gl_flags, {
             # FIXME add an option to depend on them but not compile them
@@ -732,7 +747,7 @@ if c_options['use_x11']:
             #'depends': [
             #    'core/window/window_x11_keytab.c',
             #    'core/window/window_x11_core.c'],
-            'libraries': ['Xrender', 'X11']})
+            'libraries': libs})
 
 if c_options['use_gstreamer']:
     sources['lib/gstplayer/_gstplayer.pyx'] = merge(

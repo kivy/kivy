@@ -74,7 +74,6 @@ from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy import kivy_shader_dir
 
-
 cdef str header_vs = ''
 cdef str header_fs = ''
 cdef str default_vs = ''
