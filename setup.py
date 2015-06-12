@@ -110,7 +110,7 @@ c_options['use_x11'] = False
 c_options['use_gstreamer'] = None
 c_options['use_avfoundation'] = platform == 'darwin'
 c_options['use_osx_frameworks'] = platform == 'darwin'
-c_options['hide_gl_log'] = False
+c_options['debug_gl'] = False
 
 # now check if environ is changing the default values
 for key in list(c_options.keys()):

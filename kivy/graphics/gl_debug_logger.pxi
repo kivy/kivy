@@ -3,7 +3,7 @@ from kivy.logger import Logger
 include "config.pxi"
 
 cdef inline void log_gl_error(str note):
-    IF not HIDE_GL_LOG:
+    IF DEBUG_GL:
         ret = glGetError()
         if ret:
             Logger.error("OpenGL Error: {note} {ret1} / {ret2}".format(
