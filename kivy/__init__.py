@@ -134,6 +134,16 @@ def kivy_configure():
     for callback in __kivy_post_configuration:
         callback()
 
+def get_includes():
+    '''Retrieves the directories containing includes needed to build new Cython
+    modules with Kivy as a dependency. Currently returns the location of the 
+    kivy.graphics module.
+    '''
+    root_dir = dirname(__file__)
+    return [join(root_dir, 'graphics')]
+
+
+
 
 def kivy_register_post_configuration(callback):
     '''Register a function to be called when kivy_configure() is called.
