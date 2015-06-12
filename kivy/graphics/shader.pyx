@@ -212,6 +212,7 @@ cdef class Shader:
         '''Use the shader.
         '''
         glUseProgram(self.program)
+        log_gl_error('Shader.use-glUseProgram')
         for k, v in self.uniform_values.iteritems():
             self.upload_uniform(k, v)
         IF USE_GLEW == 1:
@@ -229,6 +230,7 @@ cdef class Shader:
         '''Stop using the shader.
         '''
         glUseProgram(0)
+        log_gl_error('Shader.stop-glUseProgram')
 
     cdef int set_uniform(self, str name, value) except -1:
         if name in self.uniform_values and self.uniform_values[name] == value:
@@ -263,8 +265,10 @@ cdef class Shader:
             self.upload_uniform_matrix(loc, value)
         elif val_type is int:
             glUniform1i(loc, value)
+            log_gl_error('Shader.upload_uniform-glUniform1i')
         elif val_type is float:
             glUniform1f(loc, value)
+            log_gl_error('Shader.upload_uniform-glUniform1f')
         elif val_type is list:
             list_value = value
             val_type = type(list_value[0])
@@ -273,12 +277,15 @@ cdef class Shader:
                 if vec_size == 2:
                     f1, f2 = list_value
                     glUniform2f(loc, f1, f2)
+                    log_gl_error('Shader.upload_uniform-glUniform2f')
                 elif vec_size == 3:
                     f1, f2, f3 = list_value
                     glUniform3f(loc, f1, f2, f3)
+                    log_gl_error('Shader.upload_uniform-glUniform3f')
                 elif vec_size == 4:
                     f1, f2, f3, f4 = list_value
                     glUniform4f(loc, f1, f2, f3, f4)
+                    log_gl_error('Shader.upload_uniform-glUniform4f')
                 else:
                     float_list = <GLfloat *>malloc(vec_size * sizeof(GLfloat))
                     if float_list is NULL:
@@ -286,17 +293,21 @@ cdef class Shader:
                     for index in xrange(vec_size):
                         float_list[index] = <GLfloat>list_value[index]
                     glUniform1fv(loc, <GLint>vec_size, float_list)
+                    log_gl_error('Shader.upload_uniform-glUniform1fv')
                     free(float_list)
             elif val_type is int:
                 if vec_size == 2:
                     i1, i2 = list_value
                     glUniform2i(loc, i1, i2)
+                    log_gl_error('Shader.upload_uniform-glUniform2i')
                 elif vec_size == 3:
                     i1, i2, i3 = list_value
                     glUniform3i(loc, i1, i2, i3)
+                    log_gl_error('Shader.upload_uniform-glUniform3i')
                 elif vec_size == 4:
                     i1, i2, i3, i4 = list_value
                     glUniform4i(loc, i1, i2, i3, i4)
+                    log_gl_error('Shader.upload_uniform-glUniform4i')
                 else:
                     int_list = <int *>malloc(vec_size * sizeof(GLint))
                     if int_list is NULL:
@@ -304,6 +315,7 @@ cdef class Shader:
                     for index in xrange(vec_size):
                         int_list[index] = <GLint>list_value[index]
                     glUniform1iv(loc, <GLint>vec_size, int_list)
+                    log_gl_error('Shader.upload_uniform-glUniform1iv')
                     free(int_list)
             elif val_type is list:
                 list_size = <int>len(value)
@@ -319,10 +331,13 @@ cdef class Shader:
                             float_list[vec_size * x + y] = <GLfloat>value[x][y]
                     if vec_size == 2:
                         glUniform2fv(loc, list_size, float_list)
+                        log_gl_error('Shader.upload_uniform-glUniform2fv')
                     elif vec_size == 3:
                         glUniform3fv(loc, list_size, float_list)
+                        log_gl_error('Shader.upload_uniform-glUniform3fv')
                     elif vec_size == 4:
                         glUniform4fv(loc, list_size, float_list)
+                        log_gl_error('Shader.upload_uniform-glUniform4fv')
                     else:
                         Logger.debug(
                             'Shader: unsupported {}x{} float array'.format(
@@ -338,10 +353,13 @@ cdef class Shader:
                             int_list[vec_size * x + y] = <GLint>value[x][y]
                     if vec_size == 2:
                         glUniform2iv(loc, list_size, int_list)
+                        log_gl_error('Shader.upload_uniform-glUniform2iv')
                     elif vec_size == 3:
                         glUniform3iv(loc, list_size, int_list)
+                        log_gl_error('Shader.upload_uniform-glUniform3iv')
                     elif vec_size == 4:
                         glUniform4iv(loc, list_size, int_list)
+                        log_gl_error('Shader.upload_uniform-glUniform4iv')
                     else:
                         Logger.debug(
                             'Shader: unsupported {}x{} int array'.format(
@@ -355,22 +373,28 @@ cdef class Shader:
                 if vec_size == 2:
                     f1, f2 = tuple_value
                     glUniform2f(loc, f1, f2)
+                    log_gl_error('Shader.upload_uniform-glUniform2f')
                 elif vec_size == 3:
                     f1, f2, f3 = tuple_value
                     glUniform3f(loc, f1, f2, f3)
+                    log_gl_error('Shader.upload_uniform-glUniform3f')
                 elif vec_size == 4:
                     f1, f2, f3, f4 = tuple_value
                     glUniform4f(loc, f1, f2, f3, f4)
+                    log_gl_error('Shader.upload_uniform-glUniform4f')
             elif val_type is int:
                 if vec_size == 2:
                     i1, i2 = tuple_value
                     glUniform2i(loc, i1, i2)
+                    log_gl_error('Shader.upload_uniform-glUniform2i')
                 elif vec_size == 3:
                     i1, i2, i3 = tuple_value
                     glUniform3i(loc, i1, i2, i3)
+                    log_gl_error('Shader.upload_uniform-glUniform3i')
                 elif vec_size == 4:
                     i1, i2, i3, i4 = tuple_value
                     glUniform4i(loc, i1, i2, i3, i4)
+                    log_gl_error('Shader.upload_uniform-glUniform4i')
             elif val_type is list:
                 list_size = <int>len(value)
                 vec_size = len(value[0])
@@ -385,10 +409,13 @@ cdef class Shader:
                             float_list[vec_size * x + y] = <GLfloat>value[x][y]
                     if vec_size == 2:
                         glUniform2fv(loc, list_size, float_list)
+                        log_gl_error('Shader.upload_uniform-glUniform2fv')
                     elif vec_size == 3:
                         glUniform3fv(loc, list_size, float_list)
+                        log_gl_error('Shader.upload_uniform-glUniform3fv')
                     elif vec_size == 4:
                         glUniform4fv(loc, list_size, float_list)
+                        log_gl_error('Shader.upload_uniform-glUniform4fv')
                     else:
                         Logger.debug(
                             'Shader: unsupported {}x{} float array'.format(
@@ -404,10 +431,13 @@ cdef class Shader:
                             int_list[vec_size * x + y] = <GLint>value[x][y]
                     if vec_size == 2:
                         glUniform2iv(loc, list_size, int_list)
+                        log_gl_error('Shader.upload_uniform-glUniform2iv')
                     elif vec_size == 3:
                         glUniform3iv(loc, list_size, int_list)
+                        log_gl_error('Shader.upload_uniform-glUniform3iv')
                     elif vec_size == 4:
                         glUniform4iv(loc, list_size, int_list)
+                        log_gl_error('Shader.upload_uniform-glUniform4iv')
                     else:
                         Logger.debug(
                             'Shader: unsupported {}x{} int array'.format(
@@ -422,6 +452,7 @@ cdef class Shader:
         for x in xrange(16):
             mat[x] = <GLfloat>value.mat[x]
         glUniformMatrix4fv(loc, 1, False, mat)
+        log_gl_error('Shader.upload_uniform_matrix-glUniformMatrix4fv')
 
     cdef int get_uniform_loc(self, str name) except *:
         cdef bytes c_name = name.encode('utf-8')
@@ -452,6 +483,8 @@ cdef class Shader:
                 if attr.per_vertex == 0:
                     continue
                 glDisableVertexAttribArray(attr.index)
+                log_gl_error(
+                    'Shader.bind_vertex_format-glDisableVertexAttribArray')
 
         # bind the new vertex format
         if vertex_format:
@@ -463,6 +496,8 @@ cdef class Shader:
                 name = <bytes>attr.name
                 attr.index = glGetAttribLocation(self.program, <char *>name)
                 glEnableVertexAttribArray(attr.index)
+                log_gl_error(
+                    'Shader.bind_vertex_format-glEnableVertexAttribArray')
 
         # save for the next run.
         self._current_vertex_format = vertex_format
@@ -475,10 +510,12 @@ cdef class Shader:
     cdef int build_vertex(self, int link=1) except -1:
         if self.vertex_shader is not None:
             glDetachShader(self.program, self.vertex_shader.shader)
+            log_gl_error('Shader.build_vertex-glDetachShader')
             self.vertex_shader = None
         self.vertex_shader = self.compile_shader(self.vert_src, GL_VERTEX_SHADER)
         if self.vertex_shader is not None:
             glAttachShader(self.program, self.vertex_shader.shader)
+            log_gl_error('Shader.build_vertex-glAttachShader')
         if link:
             self.link_program()
         return 0
@@ -486,10 +523,12 @@ cdef class Shader:
     cdef int build_fragment(self, int link=1) except -1:
         if self.fragment_shader is not None:
             glDetachShader(self.program, self.fragment_shader.shader)
+            log_gl_error('Shader.build_fragment-glDetachShader')
             self.fragment_shader = None
         self.fragment_shader = self.compile_shader(self.frag_src, GL_FRAGMENT_SHADER)
         if self.fragment_shader is not None:
             glAttachShader(self.program, self.fragment_shader.shader)
+            log_gl_error('Shader.build_fragment-glAttachShader')
         if link:
             self.link_program()
 
