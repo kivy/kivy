@@ -884,6 +884,7 @@ setup(
         'core/text/*.pxi',
         'graphics/*.pxd',
         'graphics/*.pxi',
+        'graphics/*.h',
         'lib/vidcore_lite/*.pxd',
         'lib/vidcore_lite/*.pxi',
         'data/*.kv',
