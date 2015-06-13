@@ -83,6 +83,7 @@ try:
     from kivy.graphics import Rectangle
     from kivy.uix.widget import Widget
     from kivy.uix.floatlayout import FloatLayout
+    from kivy.core.window import Window
     from kivy.base import EventLoop
 except ImportError:
     raise ImportError("this backend requires Kivy to be installed.")
@@ -277,8 +278,15 @@ class FigureCanvasKivy(FigureCanvasKivyAgg):
     def __init__(self, figure, **kwargs):
         if _debug:
             print('FigureCanvasKivy: ', figure)
+        
+        self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
+        self._keyboard.bind(on_key_down = self._on_keyboard_down)
+        self._keyboard.bind(on_key_up = self._on_keyboard_up)
+        Window.bind(mouse_pos = self._on_mouse_pos)
+        Window.bind(on_close = self._on_close)
+        self.bind(size = self._on_size_changed)
+        
         super(FigureCanvasKivy, self).__init__(figure, **kwargs)
-        self.bind(on_button_press_event = self.button_press_event)
         _create_App(self)
 
 #     def draw(self):
@@ -286,8 +294,6 @@ class FigureCanvasKivy(FigureCanvasKivyAgg):
 #         Draw the figure using the KivyRenderer
 #         """
 
-        #renderer = RendererKivy(self.figure.dpi)
-        #self.figure.draw(renderer)
         #renderer = RendererKivy(self.figure.dpi)
         #self.figure.draw(renderer)
 
@@ -298,11 +304,53 @@ class FigureCanvasKivy(FigureCanvasKivyAgg):
     # you should add it to the class-scope filetypes dictionary as follows:
     filetypes = FigureCanvasBase.filetypes.copy()
     filetypes['foo'] = 'My magic Foo format'
+    
+    def on_touch_down(self, touch):
+        if super(FigureCanvasKivy, self).on_touch_down(touch):
+            return True
+        if self.collide_point(*touch.pos):
+            touch.grab(self)
+            if(touch.button == "scrollup" or touch.button == "scrolldown"):
+                FigureCanvasKivyAgg.scroll_event(self, touch.x, touch.y, 5, guiEvent = None)
+            else:
+                FigureCanvasKivyAgg.button_press_event(self, touch.x, touch.y, self, dblclick=False, guiEvent=None)
 
-    def button_press_event(self, instance, x, y, dblclick=False, gui_event=None):
-        if _debug:
-            print('button pressed at', x, y, instance)
-        FigureCanvasKivyAgg.button_press_event(self, x, y, instance, dblclick=dblclick, guiEvent=gui_event)
+    def on_touch_up(self, touch):
+        if touch.grab_current is self:
+            if(touch.button == "scrollup" or touch.button == "scrolldown"):
+                FigureCanvasKivyAgg.scroll_event(self, touch.x, touch.y, 5, guiEvent = None)
+            else:
+                FigureCanvasKivyAgg.button_release_event(self, touch.x, touch.y, self, guiEvent=None)
+            touch.ungrab(self)
+        else:
+            return super(FigureCanvasKivy, self).on_touch_up(touch)
+
+    def _keyboard_closed(self):
+        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        self._keyboard = None
+
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        FigureCanvasKivyAgg.key_press_event(self, keycode[1], guiEvent = None)
+        return True
+
+    def _on_keyboard_up(self, keyboard, keycode):
+        FigureCanvasKivyAgg.key_release_event(self, keycode[1], guiEvent = None)
+        return True
+
+    def _on_mouse_pos(self, *args):
+        pos = args[1]
+        inside = self.collide_point(*pos)
+        FigureCanvasKivyAgg.motion_notify_event(self, pos[0], pos[1], guiEvent=None)
+        if self.collide_point(pos[0], pos[1]):
+            FigureCanvasKivyAgg.enter_notify_event(self, guiEvent=None, xy=None)
+        else:
+            FigureCanvasKivyAgg.leave_notify_event(self, guiEvent=None)
+
+    def _on_size_changed(self, *args):
+        FigureCanvasKivyAgg.resize_event(self)
+
+    def _on_close(self, *args):
+        FigureCanvasKivyAgg.close_event(self, guiEvent=None)
 
     def print_foo(self, filename, *args, **kwargs):
         """
@@ -323,9 +371,7 @@ class FigureManagerKivy(FigureManagerBase):
 
     For non interactive backends, the base class does all the work
     """
-    
-    
-    
+
     def show(self):
         global app
         app.run()
