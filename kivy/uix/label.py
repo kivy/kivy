@@ -16,12 +16,50 @@ strings::
     # size
     l = Label(text='Hello world', font_size='20sp')
 
+.. _kivy-uix-label-sizing-and-text-content:
+
+Sizing and text content
+---------------------------
+
+By default, the size of :class:`Label` is not affected by :attr:`~Label.text`
+content and the text is not affected by the size. In order to control
+sizing, you must specify :attr:`~Label.text_size` to constrain the text
+and/or bind :attr:`~Label.size` to :attr:`~Label.texture_size` to grow with
+the text.
+
+For example, this label's size will be set to the text content
+(plus :attr:`~Label.padding`):
+
+.. code-block:: python
+
+    Label:
+        size: self.texture_size
+
+This label's text will wrap at the specified width and be clipped to the height:
+
+.. code-block:: python
+
+    Label:
+        text_size: cm(6), cm(4)
+
+.. note:: The :attr:`~Label.shorten` and :attr:`~Label.max_lines` attributes
+ control how overflowing text behaves.
+
+Combine these concepts to create a Label that can grow vertically but wraps the
+text at a certain width:
+
+.. code-block:: python
+
+    Label:
+        text_size: root.width, None
+        size: self.texture_size
+
 Text alignment and wrapping
 ---------------------------
 
-The :class:`Label` has :attr:`halign` and :attr:`valign` properties to
-control the alignment of its text, but by default these have no effect
-and the text is always centered within the Label. This is for
+The :class:`Label` has :attr:`~Label.halign` and :attr:`~Label.valign`
+properties to control the alignment of its text, but by default these have
+no effect and the text is always centered within the Label. This is for
 efficiency; the text is aligned only within the pixel drawing of the
 characters, which should normally be as small as possible to minimise
 the number of pixels pushed to the GPU. By default, this text image is
@@ -29,7 +67,7 @@ only just large enough to contain the characters and is positioned in the
 center of the Label.
 
 In order for the alignment properties to take effect, the simplest
-solution is to set the :attr:`text_size`, which specifies the size of
+solution is to set the :attr:`~Label.text_size`, which specifies the size of
 the bounding box within which text is aligned. For instance, the
 following code binds this size to the size of the Label, so text will
 be aligned within the widget bounds. This will also automatically wrap
