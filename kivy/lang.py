@@ -648,6 +648,43 @@ and in my.kv:
 MyWidget will now have a Color and Rectangle instruction in its canvas
 without any of the instructions inherited from the Label.
 
+Redefining a widget's property style
+------------------------------------
+
+Similar to :ref:`Redefining a widget's style`, sometimes we would like to
+inherit from a widget, keep all its KV defined styles, except for the style
+applied to a specific property. For example, we would
+like to inherit from a :class:`~kivy.uix.button.Button`, but we would also
+like to set our own `state_image`, rather then relying on the
+`background_normal` and `background_down` values. We can achieve this by
+prepending a dash (-) before the `state_image` property name in the .kv style
+definition.
+
+In myapp.py:
+
+.. code-block:: python
+
+    class MyWidget(Button):
+
+        new_background = StringProperty('my_background.png')
+
+and in my.kv:
+
+.. code-block:: kv
+
+    <MyWidget>:
+        -state_image: self.new_background
+
+MyWidget will now have a `state_image` background set only by `new_background`,
+and not by any previous styles that may have set `state_image`.
+
+.. note::
+
+    Although the previous rules are cleared, they are still applied during
+    widget constrction, and are only removed when the new rule with the dash
+    is reached. This means that initially, previous rules could be used to set
+    the property.
+
 Lang Directives
 ---------------
 
@@ -932,9 +969,9 @@ class ParserRuleProperty(object):
     '''
 
     __slots__ = ('ctx', 'line', 'name', 'value', 'co_value',
-                 'watched_keys', 'mode', 'count')
+                 'watched_keys', 'mode', 'count', 'ignore_prev')
 
-    def __init__(self, ctx, line, name, value):
+    def __init__(self, ctx, line, name, value, ignore_prev=False):
         super(ParserRuleProperty, self).__init__()
         #: Associated parser
         self.ctx = ctx
@@ -952,6 +989,8 @@ class ParserRuleProperty(object):
         self.watched_keys = None
         #: Stats
         self.count = 0
+        #: whether previous rules targeting name should be cleared
+        self.ignore_prev = ignore_prev
 
     def precompile(self):
         name = self.name
@@ -1379,7 +1418,14 @@ class Parser(object):
                 # It's a class, add to the current object as a children
                 current_property = None
                 name = x[0]
+                ignore_prev = name[0] == '-'
+                if ignore_prev:
+                    name = name[1:]
+
                 if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+':
+                    if ignore_prev:
+                        raise ParserException(
+                            self, ln, 'clear previous, `-`, not allowed here')
                     _objects, _lines = self.parse_level(
                         level + 1, lines[i:], spaces)
                     current_object.children = _objects
@@ -1404,14 +1450,20 @@ class Parser(object):
                                 'Invalid id, cannot be "self" or "root"')
                         current_object.id = value
                     elif len(value):
-                        rule = ParserRuleProperty(self, ln, name, value)
+                        rule = ParserRuleProperty(
+                            self, ln, name, value, ignore_prev)
                         if name[:3] == 'on_':
                             current_object.handlers.append(rule)
                         else:
+                            ignore_prev = False
                             current_object.properties[name] = rule
                     else:
                         current_property = name
                         current_propobject = None
+
+                    if ignore_prev:  # it wasn't consumed
+                        raise ParserException(
+                            self, ln, 'clear previous, `-`, not allowed here')
 
             # Two more levels?
             elif count == indent + 2 * spaces:
@@ -1989,6 +2041,10 @@ class BuilderBase(object):
         if rule.properties:
             rctx['set'].append((widget.proxy_ref,
                                 list(rule.properties.values())))
+            for key, crule in rule.properties.items():
+                # clear previously applied rules if asked
+                if crule.ignore_prev:
+                    Builder.unbind_property(widget, key)
         if rule.handlers:
             rctx['hdl'].append((widget.proxy_ref, rule.handlers))
 
