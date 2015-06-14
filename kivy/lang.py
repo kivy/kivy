@@ -829,7 +829,7 @@ else:
 
 # all the widget handlers, used to correctly unbind all the callbacks then the
 # widget is deleted
-_handlers = defaultdict(list)
+_handlers = defaultdict(partial(defaultdict, list))
 
 
 class ProxyApp(object):
@@ -1586,7 +1586,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     idmap = copy(idmap)
     idmap.update(global_idmap)
     idmap['self'] = iself.proxy_ref
-    handler_append = _handlers[iself.uid].append
+    handler_append = _handlers[iself.uid][key].append
 
     # we need a hash for when delayed, so we don't execute duplicate canvas
     # callbacks from the same handler during a sync op
@@ -2088,16 +2088,91 @@ class BuilderBase(object):
         _delayed_start = None
 
     def unbind_widget(self, uid):
-        '''(internal) Unbind all the handlers created by the rules of the
+        '''Unbind all the handlers created by the KV rules of the
         widget. The :attr:`kivy.uix.widget.Widget.uid` is passed here
-        instead of the widget itself, because we are using it in the
+        instead of the widget itself, because Builder is using it in the
         widget destructor.
+
+        This effectively clearls all the KV rules associated with this widget.
+        For example::
+
+            >>> w = Builder.load_string(\'''
+            ... Widget:
+            ...     height: self.width / 2. if self.disabled else self.width
+            ...     x: self.y + 50
+            ... \''')
+            >>> w.size
+            [100, 100]
+            >>> w.pos
+            [50, 0]
+            >>> w.width = 500
+            >>> w.size
+            [500, 500]
+            >>> Builder.unbind_widget(w.uid)
+            >>> w.width = 222
+            >>> w.y = 500
+            >>> w.size
+            [222, 500]
+            >>> w.pos
+            [50, 500]
 
         .. versionadded:: 1.7.2
         '''
         if uid not in _handlers:
             return
-        for callbacks in _handlers[uid]:
+        for prop_callbacks in _handlers[uid].values():
+            for callbacks in prop_callbacks:
+                for f, k, fn, bound_uid in callbacks:
+                    if fn is None:  # it's not a kivy prop.
+                        continue
+                    try:
+                        f.unbind_uid(k, bound_uid)
+                    except ReferenceError:
+                        # proxy widget is already gone, that's cool :)
+                        pass
+        del _handlers[uid]
+
+    def unbind_property(self, widget, name):
+        '''Unbind the handlers created by all the rules of the widget that set
+        the name.
+
+        This effectively clears all the rules of widget that take the form::
+
+            name: rule
+
+        For examples::
+
+            >>> w = Builder.load_string(\'''
+            ... Widget:
+            ...     height: self.width / 2. if self.disabled else self.width
+            ...     x: self.y + 50
+            ... \''')
+            >>> w.size
+            [100, 100]
+            >>> w.pos
+            [50, 0]
+            >>> w.width = 500
+            >>> w.size
+            [500, 500]
+            >>> Builder.unbind_property(w, 'height')
+            >>> w.width = 222
+            >>> w.size
+            [222, 500]
+            >>> w.y = 500
+            >>> w.pos
+            [550, 500]
+
+        .. versionadded:: 1.9.1
+        '''
+        uid = widget.uid
+        if uid not in _handlers:
+            return
+
+        prop_handlers = _handlers[uid]
+        if name not in prop_handlers:
+            return
+
+        for callbacks in prop_handlers[name]:
             for f, k, fn, bound_uid in callbacks:
                 if fn is None:  # it's not a kivy prop.
                     continue
@@ -2106,7 +2181,9 @@ class BuilderBase(object):
                 except ReferenceError:
                     # proxy widget is already gone, that's cool :)
                     pass
-        del _handlers[uid]
+        del prop_handlers[name]
+        if not prop_handlers:
+            del _handlers[uid]
 
     def _build_canvas(self, canvas, widget, rule, rootrule):
         global Instruction
