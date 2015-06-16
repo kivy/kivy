@@ -163,18 +163,57 @@ propogated before taking action. You can use the
                 Clock.schedule_once(lambda dt: self.on_touch_down(touch, True))
                 return super(MyLabel, self).on_touch_down(touch)
 
+Usage of :attr:`Widget.center`, :attr:`Widget.right`, and :attr:`Widget.top`
+----------------------------------------------------------------------------
+
+A common mistake when using one of the computed properties such as
+:attr:`Widget.right` is to use it to make a widget follow its parent with a
+KV rule such as `right: self.parent.right`. Consider, for example:
+
+.. code-block:: python
+
+    FloatLayout:
+        id: layout
+        width: 100
+        Widget:
+            id: wid
+            right: layout.right
+
+The (mistaken) expectation is that this rule ensures that wid's right will
+always be whatever layout's right is - that is wid.right and layout.right will
+always be identical. In actual fact, this rule only says that "whenever
+layout's `right` changes, wid's right will be set to that value". The
+difference being that as long as `layout.right` doesn't change, `wid.right`
+could be anything, even a value that will make them different.
+
+Specifically, for the KV code above, consider the following example::
+
+    >>> print(layout.right, wid.right)
+    (100, 100)
+    >>> wid.x = 200
+    >>> print(layout.right, wid.right)
+    (100, 300)
+
+As can be seen, initially they are in sync, however, when we change `wid.x`
+they go out of sync because `layout.right` is not changed and the rule is not
+triggered.
+
+The proper way to make the widget follow its parent's right is to use
+:attr:`Widget.pos_hint`. If instead of `right: layout.right` we did
+`pos_hint: {'right': 1}`, then the widgets right will always be set to be
+at the parent's right at each layout update.
 '''
-from kivy.graphics.transformation import Matrix
 
 __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
-from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
-                             ReferenceListProperty, ObjectProperty,
-                             ListProperty, DictProperty, BooleanProperty)
-from kivy.graphics import (Canvas, Translate, Fbo, ClearColor, ClearBuffers,
-                            Scale)
+from kivy.properties import (
+    NumericProperty, StringProperty, AliasProperty, ReferenceListProperty,
+    ObjectProperty, ListProperty, DictProperty, BooleanProperty)
+from kivy.graphics import (
+    Canvas, Translate, Fbo, ClearColor, ClearBuffers, Scale)
+from kivy.graphics.transformation import Matrix
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
