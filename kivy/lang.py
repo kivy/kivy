@@ -801,6 +801,7 @@ from kivy.context import register_context
 from kivy.resources import resource_find
 import kivy.metrics as Metrics
 from kivy._event import Observable, EventDispatcher
+from kivy.css_selectors import parse_css_selector
 
 
 trace = Logger.trace
@@ -816,7 +817,7 @@ Cache.register('kv.lang')
 __KV_INCLUDES__ = []
 
 # precompile regexp expression
-lang_str = re.compile('([\'"][^\'"]*[\'"])')
+lang_str = re.compile('(\'(?:[^\'"]|\\.)*\'|"(?:[^\'"]|\\.)*")')
 lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 lang_tr = re.compile('(_\()')
@@ -1012,6 +1013,10 @@ class ParserRule(object):
 
     def __init__(self, ctx, line, name, level):
         super(ParserRule, self).__init__()
+        # contextual rules are always top-level even when they were
+        # specified using nesting (for convenience)
+        if name.startswith("<<"):
+            level=0
         #: Level of the rule in the kv
         self.level = level
         #: Associated parser
@@ -1043,6 +1048,14 @@ class ParserRule(object):
             self._detect_selectors()
         else:
             self._forbid_selectors()
+
+    # for css selectors: when a widget is kv-lang created, then it has
+    # no useful properties at rule selection time; in that case, better
+    # also look for them in the rule itself.
+    @property
+    def cls(self):
+        p = self.properties.get('cls', None)
+        return (p.co_value or ()) if p else ()
 
     def precompile(self):
         for x in self.properties.values():
@@ -1099,6 +1112,15 @@ class ParserRule(object):
         if name[0] != '<' or name[-1] != '>':
             raise ParserException(self.ctx, self.line,
                                   'Invalid rule (must be inside <>)')
+
+        if name.startswith("<<"):
+            if not name.endswith(">>"):
+                raise ParserException(self.ctx, self.line,
+                                      'Invalid contextual selector rule (should end with >>)')
+            name = name[2:-2]
+            crule = parse_css_selector(name)
+            self.ctx.rules.append((crule, self))
+            return
 
         # if the very first name start with a -, avoid previous rules
         name = name[1:-1]
@@ -1168,7 +1190,8 @@ class Parser(object):
         list(range(ord('0'), ord('9') + 1)) + [ord('_')])
 
     __slots__ = ('rules', 'templates', 'root', 'sourcecode',
-                 'directives', 'filename', 'dynamic_classes')
+                 'directives', 'filename', 'dynamic_classes',
+                 'nested_css_rules')
 
     def __init__(self, **kwargs):
         super(Parser, self).__init__()
@@ -1178,6 +1201,7 @@ class Parser(object):
         self.sourcecode = []
         self.directives = []
         self.dynamic_classes = {}
+        self.nested_css_rules = []
         self.filename = kwargs.get('filename', None)
         content = kwargs.get('content', None)
         if content is None:
@@ -1311,7 +1335,7 @@ class Parser(object):
             if not stripped:
                 lines.remove((ln, line))
 
-    def parse_level(self, level, lines, spaces=0):
+    def parse_level(self, level, lines, spaces=0, current_cssobject=None):
         '''Parse the current level (level * spaces) indentation.
         '''
         indent = spaces * level if spaces > 0 else 0
@@ -1363,12 +1387,24 @@ class Parser(object):
                 # if it's not a root rule, then we got some restriction
                 # aka, a valid name, without point or everything else
                 if count != 0:
-                    if False in [ord(z) in Parser.PROP_RANGE for z in name]:
+                    if name.startswith("<<"):
+                        if not current_cssobject:
+                            raise ParserException(
+                                self, ln,
+                                'a contextual rule must be top-level or nested within another contextual rule')
+                        else:
+                            # nested contextual rule: add the selector of the containing
+                            # rule as a prefix
+                            name = " ".join((current_cssobject.name[:-2], name[2:]))
+                    elif False in [ord(z) in Parser.PROP_RANGE for z in name]:
                         raise ParserException(self, ln, 'Invalid class name')
 
-                current_object = ParserRule(self, ln, x[0], rlevel)
+                current_object = ParserRule(self, ln, name, rlevel)
                 current_property = None
-                objects.append(current_object)
+                if level > 0 and name.startswith("<<"):
+                    self.nested_css_rules.append(current_object)
+                else:
+                    objects.append(current_object)
 
             # Next level, is it a property or an object ?
             elif count == indent + spaces:
@@ -1376,15 +1412,21 @@ class Parser(object):
                 if not len(x[0]):
                     raise ParserException(self, ln, 'Identifier missing')
 
-                # It's a class, add to the current object as a children
                 current_property = None
                 name = x[0]
-                if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+':
+                if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+' or name.startswith("<<"):
+                    # It's a class, add to the current object as a children
                     _objects, _lines = self.parse_level(
-                        level + 1, lines[i:], spaces)
+                        level + 1, lines[i:], spaces,
+                        current_cssobject=current_object if current_object.name.startswith("<<") else None)
                     current_object.children = _objects
                     lines = _lines
                     i = 0
+                    # if we are at the top-level and nested contextual rules have been encountered
+                    # then tack them on to the end of top-level objects
+                    if level==0 and self.nested_css_rules:
+                        objects.extend(self.nested_css_rules)
+                        self.nested_css_rules = []
 
                 # It's a property
                 else:
@@ -1656,6 +1698,8 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
 
 class ParserSelector(object):
 
+    css_selector = False
+
     def __init__(self, key):
         self.key = key.lower()
 
@@ -1703,6 +1747,32 @@ class ParserSelectorName(ParserSelector):
         return self.key in parents[cls]
 
 
+class CSSCtx(list):
+    '''
+    a :class:`CSSCtx` object is a stack of :class:`Wdiget` objects,
+    and represents the context for matching a CSS selector.  The current
+    widget (the one which is targeted) is in the top-most element.
+    '''
+
+    __slots__ = ()
+
+    def __init__(self, initializer=None):
+        if initializer is None:
+            # create an empty context
+            super(CSSCtx, self).__init__()
+        elif isinstance(initializer, Widget):
+            # initialize a context with the hierarchy of widgets
+            # down to the one provided as argument
+            super(CSSCtx, self).__init__()
+            while initializer:
+                self.append(initializer)
+                initializer = initializer.parent
+            self.reverse()
+        else:
+            # initialize a new context using an existing one
+            super(CSSCtx, self).__init__(initializer)
+
+
 class BuilderBase(object):
     '''The Builder is responsible for creating a :class:`Parser` for parsing a
     kv file, merging the results into its internal rules, templates, etc.
@@ -1720,6 +1790,18 @@ class BuilderBase(object):
         self.templates = {}
         self.rules = []
         self.rulectx = {}
+        self._have_css_rules = None
+        self.css_stack = CSSCtx()
+
+    @property
+    def have_css_rules(self):
+        # having css rules means the cache cannot be used since rules are
+        # selected may depend on context
+        b = self._have_css_rules
+        if b is None:
+            b = self._have_css_rules = any(r[0].css_selector for r in self.rules)
+            self._clear_matchcache()
+        return b
 
     def load_file(self, filename, **kwargs):
         '''Insert a file into the language builder and return the root widget
@@ -1773,6 +1855,9 @@ class BuilderBase(object):
         # unregister all the dynamic classes
         Factory.unregister_from_filename(filename)
 
+        self._have_css_rules = None
+        self._clear_matchcache()
+
     def load_string(self, string, **kwargs):
         '''Insert a string into the Language Builder and return the root widget
         (if defined) of the kv string.
@@ -1824,11 +1909,13 @@ class BuilderBase(object):
                 self.files.append(fn)
 
             if parser.root:
-                widget = Factory.get(parser.root.name)()
-                self._apply_rule(widget, parser.root, parser.root)
+                widget = Factory.get(parser.root.name)(__no_builder=True)
+                self.apply(widget, parser.root, parser.root)
                 return widget
         finally:
             self._current_filename = None
+            self._have_css_rules = None
+            self._clear_matchcache()
 
     def template(self, *args, **ctx):
         '''Create a specialized template using a specific context.
@@ -1860,16 +1947,50 @@ class BuilderBase(object):
         self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
         return widget
 
-    def apply(self, widget):
+    def apply(self, widget, crule=None, rootrule=None, css_ctx=None):
         '''Search all the rules that match the widget and apply them.
         '''
-        rules = self.match(widget)
-        if __debug__:
-            trace('Builder: Found %d rules for %s' % (len(rules), widget))
-        if not rules:
-            return
-        for rule in rules:
-            self._apply_rule(widget, rule, rule)
+        have_css_rules = self.have_css_rules
+        if have_css_rules and css_ctx is not None:
+            reset_css_stack = True
+            saved_css_stack = self.css_stack
+            self.css_stack = CSSCtx(css_ctx)
+        else:
+            reset_css_stack = False
+        try:
+            # if at all possible, set the widget's id and cls properties
+            # so that they can be used for matching
+            if crule:
+                if not widget.id and crule.id:
+                    widget.id = crule.id
+                if not widget.cls and crule.cls:
+                    widget.cls = crule.cls
+            if have_css_rules:
+                self.css_stack.append(widget)
+            rules = self.match(widget)
+            if have_css_rules:
+                if not widget.id:
+                    for rule in rules:
+                        if rule.id:
+                            widget.id = rule.id
+                            break
+                if not widget.cls:
+                    for rule in rules:
+                        if rule.cls:
+                            widget.cls = rule.cls
+                            break
+            if __debug__:
+                trace('Builder: Found %d rules for %s' % (len(rules), widget))
+            if rules:
+                for rule in rules:
+                    self._apply_rule(widget, rule, rule)
+            if crule and rootrule:
+                self._apply_rule(widget, crule, rootrule)
+        finally:
+            if reset_css_stack:
+                self.css_stack = saved_css_stack
+            elif have_css_rules:
+                self.css_stack.pop()
 
     def _clear_matchcache(self):
         BuilderBase._match_cache = {}
@@ -1982,8 +2103,7 @@ class BuilderBase(object):
                 # apply(), and so, we could use "self.parent".
                 child = cls(__no_builder=True)
                 widget.add_widget(child)
-                self.apply(child)
-                self._apply_rule(child, crule, rootrule)
+                self.apply(child, crule, rootrule)
 
         # append the properties and handlers to our final resolution task
         if rule.properties:
@@ -2056,12 +2176,20 @@ class BuilderBase(object):
         if k in cache:
             return cache[k]
         rules = []
+        have_css_rules = self.have_css_rules
+        ctx = self.css_stack
+        assert not have_css_rules or len(ctx) > 0
         for selector, rule in self.rules:
-            if selector.match(widget):
+            if selector.css_selector:
+                if selector.match(ctx, len(ctx)-1):
+                    rules.append(rule)
+            elif selector.match(widget):
                 if rule.avoid_previous_rules:
                     del rules[:]
                 rules.append(rule)
-        cache[k] = rules
+        # don't populate the cache if there are contextual selection rules
+        if not have_css_rules:
+            cache[k] = rules
         return rules
 
     def sync(self):
