@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # a bar plot with errorbars
 import matplotlib
-# matplotlib.use('GTKAgg')
+#matplotlib.use('Qt4Agg')
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -43,7 +43,7 @@ menStd = (2, 3, 4, 1, 2)
 ind = np.arange(N)  # the x locations for the groups
 width = 0.35       # the width of the bars
 
-figure, ax = plt.subplots()
+figure, ax = plt.subplots(figsize = (5, 5), dpi = 100)
 
 figure.canvas.mpl_connect('button_press_event', press)
 figure.canvas.mpl_connect('button_release_event', release)
@@ -82,4 +82,6 @@ autolabel(rects1)
 autolabel(rects2)
 
 plt.draw()
+#fig1.set_size_inches(18.5, 10.5, forward = True)
+
 plt.show()

@@ -43,7 +43,7 @@ autolabel(rects1)
 autolabel(rects2)
 
 canvas = FigureCanvas(fig)
-#canvas.blit(Bbox(np.array([[0, 0], [400, 400]], np.int32)))
+canvas.blit(Bbox(np.array([[0, 0], [400, 400]], np.int32)))
 canvas.draw()
 
 class MatplotlibTest(App):

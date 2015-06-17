@@ -1,67 +1,3 @@
-"""
-This is a fully functional do nothing backend to provide a template to
-backend writers.  It is fully functional in that you can select it as
-a backend with
-
-  import matplotlib
-  matplotlib.use('Template')
-
-and your matplotlib scripts will (should!) run without error, though
-no output is produced.  This provides a nice starting point for
-backend writers because you can selectively implement methods
-(draw_rectangle, draw_lines, etc...) and slowly see your figure come
-to life w/o having to have a full blown implementation before getting
-any results.
-
-Copy this to backend_xxx.py and replace all instances of 'template'
-with 'xxx'.  Then implement the class methods and functions below, and
-add 'xxx' to the switchyard in matplotlib/backends/__init__.py and
-'xxx' to the backends list in the validate_backend methon in
-matplotlib/__init__.py and you're off.  You can use your backend with::
-
-  import matplotlib
-  matplotlib.use('xxx')
-  from pylab import *
-  plot([1,2,3])
-  show()
-
-matplotlib also supports external backends, so you can place you can
-use any module in your PYTHONPATH with the syntax::
-
-  import matplotlib
-  matplotlib.use('module://my_backend')
-
-where my_backend.py is your module name.  This syntax is also
-recognized in the rc file and in the -d argument in pylab, e.g.,::
-
-  python simple_plot.py -dmodule://my_backend
-
-If your backend implements support for saving figures (i.e. has a print_xyz()
-method) you can register it as the default handler for a given file type
-
-  from matplotlib.backend_bases import register_backend
-  register_backend('xyz', 'my_backend', 'XYZ File Format')
-  ...
-  plt.savefig("figure.xyz")
-
-The files that are most relevant to backend_writers are
-
-  matplotlib/backends/backend_your_backend.py
-  matplotlib/backend_bases.py
-  matplotlib/backends/__init__.py
-  matplotlib/__init__.py
-  matplotlib/_pylab_helpers.py
-
-Naming Conventions
-
-  * classes Upper or MixedUpperCase
-
-  * varables lower or lowerUpper
-
-  * functions lower or underscore_separated
-
-"""
-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -73,20 +9,22 @@ from matplotlib.backend_bases import RendererBase, GraphicsContextBase,\
      FigureManagerBase, FigureCanvasBase
 from matplotlib.figure import Figure
 from matplotlib.transforms import Bbox
-from backend_kivyagg import FigureCanvasKivyAgg
 from matplotlib.backend_bases import ShowBase
 
 try:
     import kivy
-    from kivy.app import App
-    from kivy.graphics.texture import Texture
-    from kivy.graphics import Rectangle
-    from kivy.uix.widget import Widget
-    from kivy.uix.floatlayout import FloatLayout
-    from kivy.core.window import Window
-    from kivy.base import EventLoop
 except ImportError:
     raise ImportError("this backend requires Kivy to be installed.")
+
+from kivy.app import App
+from kivy.graphics.texture import Texture
+from kivy.graphics import Rectangle
+from kivy.uix.widget import Widget
+from kivy.uix.floatlayout import FloatLayout
+from kivy.core.window import Window
+from kivy.base import EventLoop
+from kivy.ext.mpl.backend_kivyagg import FigureCanvasKivyAgg
+from kivy.uix.behaviors import FocusBehavior
 
 try:
     kivy.require('1.9.0') # I would need to check which release of Kivy would be the best suitable.
@@ -94,7 +32,6 @@ except AttributeError:
     raise ImportError(
         "kivy version too old -- it must have require_version")
 
-from PIL import Image
 EventLoop.ensure_window()
 
 _debug = True
@@ -223,6 +160,32 @@ def draw_if_interactive():
         if figManager is not None:
             figManager.canvas.draw_idle()
 
+# class Show(ShowBase):
+#     def mainloop(self):
+#         needmain = not wx.App.IsMainLoopRunning()
+#         if needmain:
+#             wxapp = wx.GetApp()
+#             if wxapp is not None:
+#                 wxapp.MainLoop()
+# 
+# class Show(ShowBase):
+#     def mainloop(self):
+#         # allow KeyboardInterrupt exceptions to close the plot window.
+#         signal.signal(signal.SIGINT, signal.SIG_DFL)
+#         global qApp
+#         qApp.exec_()
+# 
+# class Show(ShowBase):
+#     def mainloop(self):
+#         if Gtk.main_level() == 0:
+#             Gtk.main()
+
+# class Show(ShowBase):
+#     def mainloop(self):
+#         
+
+# show = Show()
+
 def show():
     """
     For image backends - is not required
@@ -259,7 +222,7 @@ def new_figure_manager_given_figure(num, figure):
     return manager
 
 
-class FigureCanvasKivy(FigureCanvasKivyAgg):
+class FigureCanvasKivy(FigureCanvasKivyAgg, FocusBehavior):
     """
     The canvas the figure renders into.  Calls the draw and print fig
     methods, creates the renderers, etc...
@@ -278,15 +241,12 @@ class FigureCanvasKivy(FigureCanvasKivyAgg):
     def __init__(self, figure, **kwargs):
         if _debug:
             print('FigureCanvasKivy: ', figure)
-        
-        self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
-        self._keyboard.bind(on_key_down = self._on_keyboard_down)
-        self._keyboard.bind(on_key_up = self._on_keyboard_up)
         Window.bind(mouse_pos = self._on_mouse_pos)
-        Window.bind(on_close = self._on_close)
         self.bind(size = self._on_size_changed)
-        
-        super(FigureCanvasKivy, self).__init__(figure, **kwargs)
+        self.flag = True
+        #super(FigureCanvasKivy, self).__init__(figure, **kwargs)
+        FocusBehavior.__init__(self, **kwargs)
+        FigureCanvasKivyAgg.__init__(self, figure, **kwargs)
         _create_App(self)
 
 #     def draw(self):
@@ -296,24 +256,34 @@ class FigureCanvasKivy(FigureCanvasKivyAgg):
 
         #renderer = RendererKivy(self.figure.dpi)
         #self.figure.draw(renderer)
-
-    # You should provide a print_xxx function for every file format
-    # you can write.
-
-    # If the file type is not in the base set of filetypes,
-    # you should add it to the class-scope filetypes dictionary as follows:
-    filetypes = FigureCanvasBase.filetypes.copy()
-    filetypes['foo'] = 'My magic Foo format'
     
     def on_touch_down(self, touch):
         if super(FigureCanvasKivy, self).on_touch_down(touch):
             return True
+        FigureCanvasKivyAgg.motion_notify_event(self, touch.x, touch.y, guiEvent=None)
         if self.collide_point(*touch.pos):
             touch.grab(self)
             if(touch.button == "scrollup" or touch.button == "scrolldown"):
                 FigureCanvasKivyAgg.scroll_event(self, touch.x, touch.y, 5, guiEvent = None)
             else:
                 FigureCanvasKivyAgg.button_press_event(self, touch.x, touch.y, self, dblclick=False, guiEvent=None)
+            if self.flag:
+                FigureCanvasKivyAgg.enter_notify_event(self, guiEvent=None, xy=None)
+        else:
+            if not self.flag:
+                FigureCanvasKivyAgg.leave_notify_event(self, guiEvent=None)
+        return True
+
+    def on_touch_move(self, touch):
+        inside = self.collide_point(touch.x, touch.y)        
+        FigureCanvasKivyAgg.motion_notify_event(self, touch.x, touch.y, guiEvent=None)
+        if inside and self.flag:
+            FigureCanvasKivyAgg.enter_notify_event(self, guiEvent=None, xy=None)
+            self.flag = False
+        elif not inside and not self.flag:
+            FigureCanvasKivyAgg.leave_notify_event(self, guiEvent=None)
+            self.flag = True
+        return True
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
@@ -324,46 +294,40 @@ class FigureCanvasKivy(FigureCanvasKivyAgg):
             touch.ungrab(self)
         else:
             return super(FigureCanvasKivy, self).on_touch_up(touch)
+        return True
 
-    def _keyboard_closed(self):
-        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
-        self._keyboard = None
-
-    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+    def keyboard_on_key_down(self, window, keycode, text, modifiers):
+        print(keycode[1])
         FigureCanvasKivyAgg.key_press_event(self, keycode[1], guiEvent = None)
-        return True
+        return super(FocusBehavior, self).keyboard_on_key_down(self, window, keycode, text, modifiers)
 
-    def _on_keyboard_up(self, keyboard, keycode):
+    def keyboard_on_key_up(self, window, keycode):
         FigureCanvasKivyAgg.key_release_event(self, keycode[1], guiEvent = None)
-        return True
+        return super(FocusBehavior, self).keyboard_on_key_up(self, window, keycode)
 
     def _on_mouse_pos(self, *args):
         pos = args[1]
         inside = self.collide_point(*pos)
         FigureCanvasKivyAgg.motion_notify_event(self, pos[0], pos[1], guiEvent=None)
-        if self.collide_point(pos[0], pos[1]):
+        if inside and self.flag:
             FigureCanvasKivyAgg.enter_notify_event(self, guiEvent=None, xy=None)
-        else:
+            self.flag = False
+        elif not inside and not self.flag:
             FigureCanvasKivyAgg.leave_notify_event(self, guiEvent=None)
+            self.flag = True
 
     def _on_size_changed(self, *args):
+        w, h = self.size
+        dpival = self.figure.dpi
+        winch = w / dpival
+        hinch = h / dpival
+        self.figure.set_size_inches(winch, hinch)
         FigureCanvasKivyAgg.resize_event(self)
+        self.draw()
 
-    def _on_close(self, *args):
-        FigureCanvasKivyAgg.close_event(self, guiEvent=None)
+    def close_event(self, guiEvent=None):
+        FigureCanvasKivyAgg.close_event(self, guiEvent=guiEvent)
 
-    def print_foo(self, filename, *args, **kwargs):
-        """
-        Write out format foo.  The dpi, facecolor and edgecolor are restored
-        to their original values after this call, so you don't need to
-        save and restore them.
-        """
-        l,b,w,h = self.figure.bbox.bounds
-        im = Image.frombuffer('RGBA', (w,h), self.get_renderer().buffer_rgba(), "raw", "RGBA", 0, 1)
-        im.save(filename)
-
-    def get_default_filetype(self):
-        return 'foo'
 
 class FigureManagerKivy(FigureManagerBase):
     """
@@ -371,11 +335,27 @@ class FigureManagerKivy(FigureManagerBase):
 
     For non interactive backends, the base class does all the work
     """
+    
+    def __init__(self, canvas, num):
+        if _debug:
+            print('FigureManagerKivy: ', canvas)
+        super(FigureManagerKivy, self).__init__(canvas, num)
 
     def show(self):
         global app
         app.run()
 
+    def get_window_title(self):
+        return EventLoop.window.title
+
+    def set_window_title(self, title):
+        EventLoop.window.title = title
+
+    def resize(self, w, h):
+        Window.size(w, h)
+
+    def destroy(self):
+        EventLoop.close()
 ########################################################################
 #
 # Now just provide the standard names that backend.__init__ is expecting

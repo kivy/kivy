@@ -1,67 +1,3 @@
-"""
-This is a fully functional do nothing backend to provide a template to
-backend writers. It is fully functional in that you can select it as
-a backend with
-
-  import matplotlib
-  matplotlib.use('Template')
-
-and your matplotlib scripts will (should!) run without error, though
-no output is produced. This provides a nice starting point for
-backend writers because you can selectively implement methods
-(draw_rectangle, draw_lines, etc...) and slowly see your figure come
-to life w/o having to have a full blown implementation before getting
-any results.
-
-Copy this to backend_xxx.py and replace all instances of 'template'
-with 'xxx'. Then implement the class methods and functions below, and
-add 'xxx' to the switchyard in matplotlib/backends/__init__.py and
-'xxx' to the backends list in the validate_backend methon in
-matplotlib/__init__.py and you're off. You can use your backend with::
-
-  import matplotlib
-  matplotlib.use('xxx')
-  from pylab import *
-  plot([1,2,3])
-  show()
-
-matplotlib also supports external backends, so you can place you can
-use any module in your PYTHONPATH with the syntax::
-
-  import matplotlib
-  matplotlib.use('module://my_backend')
-
-where my_backend.py is your module name. This syntax is also
-recognized in the rc file and in the -d argument in pylab, e.g.,::
-
-  python simple_plot.py -dmodule://my_backend
-
-If your backend implements support for saving figures (i.e. has a print_xyz()
-method) you can register it as the default handler for a given file type
-
-  from matplotlib.backend_bases import register_backend
-  register_backend('xyz', 'my_backend', 'XYZ File Format')
-  ...
-  plt.savefig("figure.xyz")
-
-The files that are most relevant to backend_writers are
-
-  matplotlib/backends/backend_your_backend.py
-  matplotlib/backend_bases.py
-  matplotlib/backends/__init__.py
-  matplotlib/__init__.py
-  matplotlib/_pylab_helpers.py
-
-Naming Conventions
-
-  * classes Upper or MixedUpperCase
-
-  * varables lower or lowerUpper
-
-  * functions lower or underscore_separated
-
-"""
-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -74,16 +10,19 @@ from matplotlib.backend_bases import RendererBase, GraphicsContextBase,\
 from matplotlib.figure import Figure
 from matplotlib.transforms import Bbox
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from kivy.input.motionevent import MotionEvent
+from matplotlib.backend_bases import register_backend
+from kivy.uix.behaviors import FocusBehavior
 
 try:
     import kivy
-    from kivy.graphics.texture import Texture
-    from kivy.graphics import Rectangle
-    from kivy.uix.widget import Widget
-    from kivy.base import EventLoop
 except ImportError:
     raise ImportError("this backend requires Kivy to be installed.")
+
+from kivy.graphics.texture import Texture
+from kivy.graphics import Rectangle
+from kivy.uix.widget import Widget
+from kivy.base import EventLoop
+from kivy.core.image import Image
 
 try:
     kivy.require('1.9.0')
@@ -91,38 +30,22 @@ except AttributeError:
     raise ImportError(
         "kivy version too old -- it must have require_version")
 
-from PIL import Image
 EventLoop.ensure_window()
+register_backend('png', 'backend_kivyagg', 'PNG File Format')
 
 _debug = True
 
-
-def new_figure_manager(num, *args, **kwargs):
-    """
-    Create a new figure manager instance
-    """
-    # if a main-level app must be created, this (and
-    # new_figure_manager_given_figure) is the usual place to
-    # do it -- see backend_wx, backend_wxagg and backend_tkagg for
-    # examples. Not all GUIs require explicit instantiation of a
-    # main-level app (egg backend_gtk, backend_gtkagg) for pylab
-    FigureClass = kwargs.pop('FigureClass', Figure)
-    thisFig = FigureClass(*args, **kwargs)
-    return new_figure_manager_given_figure(num, thisFig)
-
-
-def new_figure_manager_given_figure(num, figure):
-    """
-    Create a new figure manager instance for the given figure.
-    """
-    canvas = FigureCanvasKivyAgg(figure)
-    manager = FigureManagerKivyAgg(canvas, num)
-    return manager
-
+'''
+Backend KivyAgg
+===================
+This set of classes implement an interface in Kivy for matplotlib.
+It uses the canonical Agg renderer which returns a static image,
+which is placed on a texture in Kivy.::
+'''
 
 class FigureCanvasKivyAgg(FigureCanvasAgg, Widget):
     """
-    The canvas the figure renders into. Calls the draw and print fig
+    A widget where the figure renders into. Calls the draw and print fig
     methods, creates the renderers, etc...
 
     Public attribute
@@ -139,17 +62,19 @@ class FigureCanvasKivyAgg(FigureCanvasAgg, Widget):
     def __init__(self, figure, **kwargs):
         if _debug:
             print('FigureCanvasKivyAgg: ', figure)
-        #super(FigureCanvasKivyAgg, self).__init__(figure, **kwargs)
-        FigureCanvasAgg.__init__(self, figure)
+        #super(FigureCanvasKivyAgg, self).__init__(**kwargs)
         Widget.__init__(self, **kwargs)
-        self.figure = figure
+        FigureCanvasAgg.__init__(self, figure)
+        self.img = None
+        self.img_texture = None
         self.blit()
 
     def draw(self):
-        """
+        '''
         Draw the figure using the renderer
-        """
+        '''
         FigureCanvasAgg.draw(self)
+        update = False
         if self.blitbox is None:
             l, b, w, h = self.figure.bbox.bounds
             w, h = int(w), int(h)
@@ -161,10 +86,18 @@ class FigureCanvasKivyAgg(FigureCanvasAgg, Widget):
             h = int(t) - int(b)
             t = int(b) + h
             reg = self.copy_from_bbox(bbox)
-            buf_rgba = reg.to_string_argb()
-        texture = Texture.create(size=(w, h))
+            buf_rgba = reg.to_string()
+        if self.img_texture is not None:
+            oldw,oldh = self.img_texture.size
+            if oldw != w or oldh != h:
+                update = True
+        if update or self.img_texture is None:
+            texture = Texture.create(size=(w, h))
+            texture.flip_vertical()
+        else:
+            texture = self.img_texture
         texture.blit_buffer(buf_rgba, colorfmt='rgba', bufferfmt='ubyte')
-        texture.flip_vertical()
+        self.img_texture = texture
         with self.canvas:
             Rectangle(texture=texture, pos=self.pos, size=(w, h))
         #renderer = RendererKivyAgg(self.figure.dpi)
@@ -176,34 +109,37 @@ class FigureCanvasKivyAgg(FigureCanvasAgg, Widget):
     # If the file type is not in the base set of filetypes,
     # you should add it to the class-scope filetypes dictionary as follows:
     filetypes = FigureCanvasBase.filetypes.copy()
-    filetypes['foo'] = 'My magic Foo format'
+    filetypes['png'] = 'My image format'
 
     def blit(self, bbox=None):
-        # If bbox is None, blit the entire canvas to the widget. Otherwise
-        # blit only the area defined by the bbox.
+        '''
+        If bbox is None, blit the entire canvas to the widget. Otherwise
+        blit only the area defined by the bbox.
+        '''
         self.blitbox = bbox
 
-    def print_foo(self, filename, *args, **kwargs):
-        """
-        Write out format foo. The dpi, facecolor and edgecolor are restored
+    def print_png(self, filename, *args, **kwargs):
+        '''
+        Write out format png. The dpi, facecolor and edgecolor are restored
         to their original values after this call, so you don't need to
         save and restore them.
-        """
+        '''
         l, b, w, h = self.figure.bbox.bounds
-        im = Image.frombuffer('RGBA', (w, h), self.get_renderer().buffer_rgba(),
-                              "raw", "RGBA", 0, 1)
-        im.save(filename)
+        texture = Texture.create(size=(w, h))
+        texture.blit_buffer(self.get_renderer().buffer_rgba(), colorfmt='rgba', bufferfmt='ubyte')
+        texture.flip_vertical()
+        img = Image(texture)
+        img.save(filename)
 
     def get_default_filetype(self):
-        return 'foo'
+        return 'png'
 
 
 class FigureManagerKivyAgg(FigureManagerBase):
-    """
+    '''
     Wrap everything up into a window for the pylab interface
-
     For non interactive backends, the base class does all the work
-    """
+    '''
     pass
 
 ########################################################################

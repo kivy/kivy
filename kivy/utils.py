@@ -24,6 +24,44 @@ from os import environ
 from sys import platform as _sys_platform
 from re import match, split
 
+color_dictionary = {}
+color_dictionary['aliceblue'] = (0.941176, 0.972549, 1)
+color_dictionary['antiquewhite'] = (0.980392, 0.921569, 0.843137)
+color_dictionary['aquamarine'] = (0.498039, 1, 0.831373)
+color_dictionary['azure'] = (0.941176, 1, 1)
+color_dictionary['beige'] = (0.960784, 0.960784, 0.862745)
+color_dictionary['black'] = (0, 0, 0)
+color_dictionary['blanchedalmond'] = (1, 0.921569, 0.803922)
+color_dictionary['blue'] = (0, 0, 1)
+color_dictionary['blueviolet'] = (0.541176, 0.168627, 0.886275)
+color_dictionary['brown'] = (0.647059, 0.164706, 0.164706)
+color_dictionary['burlywood'] = (0.870588, 0.721569, 0.529412)
+color_dictionary['cadetblue'] = (0.372549, 0.619608, 0.627451)
+color_dictionary['chartreuse'] = (0.498039, 1, 0)
+color_dictionary['chocolate'] = (0.823529, 0.411765, 0.117647)
+color_dictionary['coral'] = (1, 0.498039, 0.313725)
+color_dictionary['cornflowerblue'] = (0.392157, 0.584314, 0.929412)
+color_dictionary['cornsilk'] = (1, 0.972549, 0.862745)
+color_dictionary['crimson'] = (0.862745, 0.0784314, 0.235294)
+color_dictionary['cyan'] = (0, 1, 1)
+color_dictionary['darkblue'] = (0, 0, 0.545098)
+color_dictionary['darkcyan'] = (0, 0.545098, 0.545098)
+color_dictionary['darkgoldenrod'] = (0.721569, 0.52549, 0.0431373)
+color_dictionary['darkgray'] = (0.662745, 0.662745, 0.662745)
+color_dictionary['darkgreen'] = (0, 0.392157, 0)
+color_dictionary['darkgrey'] = (0.662745, 0.662745, 0.662745)
+color_dictionary['darkkhaki'] = (0.741176, 0.717647, 0.419608)
+color_dictionary['darkmagenta'] = (0.545098, 0, 0.545098)
+color_dictionary['darkolivegreen'] = (0.333333, 0.419608, 0.184314)
+color_dictionary['darkorange'] = (1, 0.54902, 0)
+color_dictionary['darkorchid'] = (0.6, 0.196078, 0.8)
+color_dictionary['darkred'] = (0.545098, 0, 0)
+color_dictionary['green'] = (0, 1, 0)
+color_dictionary['grey'] = (0.745098, 0.745098, 0.745098)
+color_dictionary['indigo'] = (0.294118, 0, 0.509804)
+color_dictionary['yellow'] = (1, 1, 0)
+color_dictionary['white'] = (1, 1, 1)
+
 
 def boundary(value, minvalue, maxvalue):
     '''Limit a value between a minvalue and maxvalue.'''
