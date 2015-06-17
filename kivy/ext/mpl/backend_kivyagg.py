@@ -12,6 +12,7 @@ from matplotlib.transforms import Bbox
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.backend_bases import register_backend
 from kivy.uix.behaviors import FocusBehavior
+from kivy.event import EventDispatcher
 
 try:
     import kivy
@@ -43,6 +44,7 @@ It uses the canonical Agg renderer which returns a static image,
 which is placed on a texture in Kivy.::
 '''
 
+
 class FigureCanvasKivyAgg(FigureCanvasAgg, Widget):
     """
     A widget where the figure renders into. Calls the draw and print fig
@@ -62,7 +64,7 @@ class FigureCanvasKivyAgg(FigureCanvasAgg, Widget):
     def __init__(self, figure, **kwargs):
         if _debug:
             print('FigureCanvasKivyAgg: ', figure)
-        #super(FigureCanvasKivyAgg, self).__init__(**kwargs)
+        #super(FigureCanvasKivyAgg, self).__init__(figure, **kwargs)
         Widget.__init__(self, **kwargs)
         FigureCanvasAgg.__init__(self, figure)
         self.img = None
@@ -88,7 +90,7 @@ class FigureCanvasKivyAgg(FigureCanvasAgg, Widget):
             reg = self.copy_from_bbox(bbox)
             buf_rgba = reg.to_string()
         if self.img_texture is not None:
-            oldw,oldh = self.img_texture.size
+            oldw, oldh = self.img_texture.size
             if oldw != w or oldh != h:
                 update = True
         if update or self.img_texture is None:
@@ -126,7 +128,8 @@ class FigureCanvasKivyAgg(FigureCanvasAgg, Widget):
         '''
         l, b, w, h = self.figure.bbox.bounds
         texture = Texture.create(size=(w, h))
-        texture.blit_buffer(self.get_renderer().buffer_rgba(), colorfmt='rgba', bufferfmt='ubyte')
+        texture.blit_buffer(self.get_renderer().buffer_rgba(), colorfmt='rgba',
+                            bufferfmt='ubyte')
         texture.flip_vertical()
         img = Image(texture)
         img.save(filename)

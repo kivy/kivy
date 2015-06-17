@@ -38,21 +38,29 @@ _debug = True
 
 app = None
 
+
+class MPLKivyApp(App):
+
+    def __init__(self, **kwargs):
+        super(MPLKivyApp, self).__init__(**kwargs)
+        self.figure = kwargs['figure']
+
+    def build(self):
+        return self.figure
+
+    def on_pause(self):
+        return App.on_pause(self)
+
+    def on_resume(self):
+        App.on_resume(self)
+
+
 def _create_App(fig_canvas):
     global app
-
-    class TestApp(App):
-        def build(self):
-            fl = FloatLayout()
-            fl.add_widget(fig_canvas)
-            return fl
-    
     if app is None:
         if _debug:
             print("Starting up Kivy Application")
-        app = TestApp()
-    
-
+        app = MPLKivyApp(figure = fig_canvas)
 
 class RendererKivy(RendererBase):
     """
@@ -180,24 +188,24 @@ def draw_if_interactive():
 #         if Gtk.main_level() == 0:
 #             Gtk.main()
 
-# class Show(ShowBase):
-#     def mainloop(self):
-#         
+class Show(ShowBase):
+    def mainloop(self):
+        global app
+        app.run()
 
-# show = Show()
+show = Show()
 
-def show():
-    """
-    For image backends - is not required
-    For GUI backends - show() is usually the last line of a pylab script and
-    tells the backend that it is time to draw.  In interactive mode, this may
-    be a do nothing func.  See the GTK backend for an example of how to handle
-    interactive versus batch mode
-    """
-    for manager in Gcf.get_all_fig_managers():
-        # do something to display the GUI
-        manager.show()
-
+# def show():
+#     """
+#     For image backends - is not required
+#     For GUI backends - show() is usually the last line of a pylab script and
+#     tells the backend that it is time to draw.  In interactive mode, this may
+#     be a do nothing func.  See the GTK backend for an example of how to handle
+#     interactive versus batch mode
+#     """
+#     for manager in Gcf.get_all_fig_managers():
+#         # do something to display the GUI
+#         manager.show()
 
 def new_figure_manager(num, *args, **kwargs):
     """
@@ -218,6 +226,7 @@ def new_figure_manager_given_figure(num, figure):
     Create a new figure manager instance for the given figure.
     """
     canvas = FigureCanvasKivy(figure)
+    _create_App(canvas)
     manager = FigureManagerKivy(canvas, num)
     return manager
 
@@ -247,7 +256,6 @@ class FigureCanvasKivy(FigureCanvasKivyAgg, FocusBehavior):
         #super(FigureCanvasKivy, self).__init__(figure, **kwargs)
         FocusBehavior.__init__(self, **kwargs)
         FigureCanvasKivyAgg.__init__(self, figure, **kwargs)
-        _create_App(self)
 
 #     def draw(self):
 #         """
@@ -328,6 +336,10 @@ class FigureCanvasKivy(FigureCanvasKivyAgg, FocusBehavior):
     def close_event(self, guiEvent=None):
         FigureCanvasKivyAgg.close_event(self, guiEvent=guiEvent)
 
+    def draw_idle(self, *args, **kwargs):
+        EventLoop.idle()
+        self.draw()
+
 
 class FigureManagerKivy(FigureManagerBase):
     """
@@ -342,8 +354,7 @@ class FigureManagerKivy(FigureManagerBase):
         super(FigureManagerKivy, self).__init__(canvas, num)
 
     def show(self):
-        global app
-        app.run()
+        self.canvas.draw()
 
     def get_window_title(self):
         return EventLoop.window.title
