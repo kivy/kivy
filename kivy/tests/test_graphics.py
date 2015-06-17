@@ -104,3 +104,11 @@ class FBOInstructionTestCase(GraphicUnitTest):
         import pygame
         surface = pygame.image.fromstring(data, (512, 512), 'RGBA', True)
         pygame.image.save(surface, "results.png")
+
+
+class TransformationsTestCase(unittest.TestCase):
+
+    def test_identity_creation(self):
+        from kivy.graphics import LoadIdentity
+        mat = LoadIdentity()
+        self.assertTrue(mat.stack)
