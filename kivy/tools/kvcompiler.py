@@ -107,6 +107,16 @@ Graphics Instructions
 
 They are not instantly exec but are delayed.
 
+
+Proxy refs
+==========
+direct refs are not stored
+
+TODO:
+
+#. Should args be initialized when the properties are executed so that they are
+   available in that context? Can they be set to None, or do we actually have
+   to set them to their real values? Which costs perfs.
 '''
 
 __all__ = []
@@ -115,7 +125,7 @@ import datetime
 from types import CodeType
 from collections import OrderedDict, defaultdict
 from kivy.lang import Parser, lang_str, Builder
-from re import match, compile, sub, split
+from re import match, sub, split, compile as re_compile
 from functools import partial
 from os.path import abspath
 import kivy
@@ -124,13 +134,18 @@ rule_handler = 0
 rule_on_handler = 0
 rule_uid = 0
 
+triquote_pat = r"(?<!\\)'''"
+typed_str = re_compile('.*?([rbuRBU]*)$')
+
 header_imports = '''
-import kivy.metrics as Metrics
+import kivy.metrics as __Metrics
 from kivy.factory import Factory
+from kivy.lang import Builder
 from kivy.lang import (
-    Builder, ParserSelectorName, _handlers, ProxyApp, delayed_call_fn)
-from kivy import require
-from functools import partial
+    ParserSelectorName as __ParserSelectorName, _handlers as __handlers,
+    ProxyApp as __ProxyApp, delayed_call_fn as __delayed_call_fn)
+from kivy import require as __require
+from functools import partial as __partial
 '''
 
 pyheader_imports = header_imports + \
@@ -142,25 +157,25 @@ from kivy.properties cimport Property
 '''
 
 header_gloabls = '''
-app = ProxyApp()
-pt = Metrics.pt
-inch = Metrics.inch
-cm = Metrics.cm
-mm = Metrics.mm
-dp = Metrics.dp
-sp = Metrics.sp
+app = __ProxyApp()
+pt = __Metrics.pt
+inch = __Metrics.inch
+cm = __Metrics.cm
+mm = __Metrics.mm
+dp = __Metrics.dp
+sp = __Metrics.sp
 '''
 
 pyheader_globals = header_gloabls + '''
-_mc = [None, ] * {}
+__mc = [None, ] * {}
 '''
 
 cyheader_globals = header_gloabls + '''
-cdef list _mc = [None, ] * {}
+cdef list __mc = [None, ] * {}
 '''
 
 rebind_callback_str = '''
-def rebind_callback(bound, i, instance, value):
+def __rebind_callback(bound, i, instance, value):
     # bound[i] and p cannot be None b/c it dispatched
     s, e, pidx, p, key, _, _, _ = bound[i]
     # we need to rebind all children of root (p.key). First check if the value
@@ -245,6 +260,100 @@ def rebind_callback(bound, i, instance, value):
         except ReferenceError:
             pass
 '''
+
+return_args_str = '''
+def __return_args(args):
+    return args
+'''
+
+
+def break_multiline_code(code):
+    '''e.g.::
+
+        >>> s = '1 + self.width * 2'
+        >>> break_multiline_code(s)
+        ['1 + self.width * 2']
+        >>> s = "self.text + 'whateves'"
+        >>> break_multiline_code(s)
+        ["self.text + 'whateves'"]
+        >>> s = \'''self.text + rb\\'\\'\\'
+        ... they ran a lot
+        ... the next day they couldn't walk at all
+        ... \\'\\'\\' + self.sleepy
+        ... \'''
+        >>> break_multiline_code(s)
+        ["self.text + rb\'''\''' + (rb\'''\\n\'''", "rb\'''they ran a \
+lot\\n\'''", "rb\'''the next day they couldn't walk at all\\n\'''", \
+"rb\'''\''') + self.sleepy"]
+    '''
+    res = []
+    last_line = ''
+    vals = split(lang_str, code)
+
+    for i, val in enumerate(vals):
+        if not val:
+            continue
+        # splitlines doesn't add empty line if val ends with newline, so we
+        # will have to check and start a new line if it does end with one
+        lines = val.splitlines()
+
+        # whole string/code is contained in current line
+        if len(lines) == 1:
+            last_line += lines[0]  # don't keep newline from `val`
+            if val.endswith('\n') or val.endswith('\r'):
+                res.append(last_line)
+                last_line = ''
+            continue
+
+        # this is pure code part, just add it to result
+        if not i % 2:
+            res.append(last_line + lines[0])
+            res.extend(lines[1:-1])
+            last_line = lines[-1]
+            if val.endswith('\n') or val.endswith('\r'):
+                res.append(last_line)
+                last_line = ''
+            continue
+
+        # for string, we split the string into a string per line
+        if val.startswith('"""'):
+            quote = '"""'
+        elif val.startswith('"'):
+            quote = '"'
+        elif val.startswith("'''"):
+            quote = "'''"
+        else:
+            assert val.startswith("'")
+            quote = "'"
+        # now find whether it has a type, e.g. r''
+        tp = ''
+        m = match(typed_str, last_line)
+        if m is not None:
+            tp = m.group(1)
+
+        # for a multiline spanning string, keep the original newline types
+        lines = val.splitlines(True)
+        # add a parenthesis so it can be broken up
+        res.append('{0}{2}{2} + ({1}{3}{2}'.
+                   format(last_line, tp, quote, lines[0]))
+        for line in lines[1:-1]:
+            res.append(tp + quote + line + quote)
+        last_line = tp + quote + lines[-1] + ')'
+        # final string never ends with newline, so need to check
+
+    if last_line:
+        res.append(last_line)
+    return res
+
+
+def safe_comment(code, linenum):
+    lines = [sub(triquote_pat, r"\'''", l) for l in code.splitlines()]
+    if not lines:
+        return lines
+
+    lines[0] = "'''Line {}: {}".format(linenum, lines[0])
+    lines[-1] = lines[-1] + " '''"
+    return lines
 
 
 def argmax(iter):
@@ -434,16 +543,23 @@ class LazyFmt(object):
         <class 'kivy.tools.kvcompiler.LazyFmt'>
     '''
 
+    hidden_groups = set()
+
     def __init__(self, text, *largs, **kwargs):
+        self.group = kwargs.get('group')
         self.text = text
         self.largs = largs
         self.kwargs = kwargs
 
     def __str__(self):
+        if self.group in LazyFmt.hidden_groups:
+            return ''
         return self.text.format(*self.largs, **self.kwargs)
 
     def __repr__(self):
         return self.__str__()
+
+DocFmt = partial(LazyFmt, group='doc')
 
 
 class RuleContext(object):
@@ -548,6 +664,15 @@ class RuleContext(object):
         return self.name if self.rule_type == 'widget' else self.parent.name
 
     @property
+    def doc_name(self):
+        names = []
+        obj = self
+        while obj is not None:
+            names.append(obj.rule.name)
+            obj = obj.parent
+        return ' -> '.join(names[::-1])
+
+    @property
     def f_num(self):
         '''The number given to the compiled function generated for this root
         rule. It is uniquely generated for all the compiled rules.
@@ -572,7 +697,7 @@ class RuleContext(object):
             return '{}.{}.add'.format(
                 self.parent.name, rule_type.replace('_root', '').replace('_', '.'))
         else:
-            return '{}_{}_add'.format(self.parent.name, rule_type)
+            return '__add_{}_{}'.format(self.parent.name, rule_type)
 
     @property
     def creation_instructions(self):
@@ -584,27 +709,30 @@ class RuleContext(object):
         if rule_type == 'widget':
             ret = []
             if parent is not None:  # don't create if applying rule to root
+                ret.append(DocFmt("'''Line {}: {}'''", rule.line, self.doc_name))
                 ret.append(LazyFmt(
-                    '{} = {}(parent={}, __builder_created=bfuncs)', self.name,
-                    fuse(self.rule.name), parent.name))
+                    '{} = {}(parent={}, __builder_created=__bfuncs)', self.name,
+                    fuse(rule.name), parent.name))
             if rule.canvas_root and len(rule.canvas_root.children) > 1:
                 ret.append(
-                    '{0}_canvas_root_add = {0}.canvas.add'.format(self.name))
+                    '__add_{0}_canvas_root = {0}.canvas.add'.format(self.name))
             if rule.canvas_before and len(rule.canvas_before.children) > 1:
-                ret.append('{0}_canvas_before_add = {0}.canvas.before.add'.
+                ret.append('__add_{0}_canvas_before = {0}.canvas.before.add'.
                            format(self.name))
             if rule.canvas_after and len(rule.canvas_after.children) > 1:
-                ret.append('{0}_canvas_after_add = {0}.canvas.after.add'.
+                ret.append('__add_{0}_canvas_after = {0}.canvas.after.add'.
                            format(self.name))
             return ret
         return [
+            DocFmt("'''Line {}: {}'''", rule.line, self.doc_name),
             LazyFmt('{} = {}()', self.name, fuse(self.rule.name)),
             '{}({})'.format(self.parent_add_child, self.name)]
 
     @property
     def ids_map(self):
-        '''Everything that is given an id (i.e. id: value), self, app, and
-        root.
+        '''Everything that is given an id (i.e. id: value), as well as self,
+        app, and root. For graphics instructions, self maps to the proper
+        parent widget name.
         '''
         if self._ids_map is None:
             self._ids_map = name_map = {k: v.name for k, v in self.ids.items()}
@@ -620,7 +748,7 @@ class RuleContext(object):
         ids_map = self.ids_map
         used_ids = defaultdict(int)
         if self._ids_pat is None:
-            self._ids_pat = pat = compile(
+            self._ids_pat = pat = re_compile(
                 '([^a-zA-Z_ 0-9\.]|(?:[^\. ] +)|^)({})([^a-zA-Z_0-9]|$)'.
                 format('|'.join(self.ids_map.keys())))
         else:
@@ -646,25 +774,35 @@ class RuleContext(object):
         tab = self.tab
         self_name = self.name
         fix_rule_ids = self.fix_rule_ids
+        dname = self.doc_name
 
         props = []
-        for name, prop in self.rule.properties.items():
-            value = prop.co_value
-            if type(value) is CodeType:
-                value = None
+        for prop_name, prop in self.rule.properties.items():
+            value = prop.value
+            if type(prop.co_value) is CodeType:
+                code = 'None'
             else:
-                value, _ = fix_rule_ids(prop.value)
-            props.append((name, value))
+                code, _ = fix_rule_ids(value)  # fix e.g. self naming
+
+            comment = [
+                DocFmt('{}', l) for l in
+                safe_comment('{} @ {}: '.format(dname, prop_name) + value, prop.line)]
+            props.append((prop_name, code, comment))
 
         ret = []
+        # do we need to cache the create_property method?
         if len(props) > 1:
-            ret.append('{0}_create_property = {0}.create_property'.format(self_name))
-            create_prop = '{0}_create_property'.format(self_name)
+            ret.append(['__create_property_{0} = {0}.create_property'.format(self_name)])
+            create_prop = '__create_property_{0}'.format(self_name)
         else:
             create_prop = '{0}.create_property'.format(self_name)
-        for name, value in props:
-            ret.append('if not hasattr({}, "{}"):'.format(self_name, name))
-            ret.append('{}{}("{}", ({}))'.format(tab, create_prop, name, value))
+
+        for name, code, comment in props:
+            code = '{}("{}", ({}))'.format(create_prop, name, code)
+            code = ['{}{}'.format(tab, l) for l in break_multiline_code(code)]
+            ret.append(
+                comment +
+                ['if not hasattr({}, "{}"):'.format(self_name, name)] + code)
         return ret
 
     @property
@@ -682,49 +820,67 @@ class RuleContext(object):
         inits = []
         lit_init = []
         delayed_init = []
+        dname = self.doc_name
 
-        for name, prop in self.rule.properties.items():
+        for prop_name, prop in self.rule.properties.items():
             keys = prop.watched_keys
-            # e.g. for `prop: self`
+            lnum = prop.line
+            value = prop.value
+            # used_ids is the names of known widgets (i.e. with __self__ attr)
+            # in the fixed code
+            code, used_ids = fix_ids(value)
+            code = '{}.{} = {}'.format(sname, prop_name, code)
+            code = break_multiline_code(code)
+            comment = [
+                DocFmt('{}', l) for l in
+                safe_comment('{} @ {}: '.format(dname, prop_name) + value, lnum)]
+
+            # if the rule doesn't bind anything (e.g. `prop: self`), or it's
+            # not a CodeType - we consider it a literal
             if not keys or type(prop.co_value) is not CodeType:
-                lit_init.append('{}.{} = {}'.format(sname, name, fix_ids(prop.value)[0]))
+                lit_init.append(comment + code)
                 continue
             for key in keys:
                 assert len(key) > 1  # only x.y or deeper can bind
 
-            f = '{}_h{}'.format(name, rule_handler)
-            # everything given an id is mapped to fixed name, other things,
-            # since no id they must
-            fargs = sorted(set([(ids_map.get(k[0], k[0]))
-                                for k in keys] + [sname]))
-            code, used_ids = fix_ids(prop.value)
-            code = '{}.{} = {}'.format(sname, name, code)
+            f = '__h{}_{}'.format(rule_handler, prop_name)  # function name
+            # args to the callback. But first ensure e.g. self etc. is mapped
+            # to the correct name, e.g. w4 (espeically for graphics instruct.)
+            # fargs may include args that are not known (e.g. global names)
+            fargs = sorted(set([(ids_map.get(k[0], k[0])) for k in keys] + [sname]))
 
             func = ['def {}({}):'.format(f, ', '.join(fargs + ['*args']))]
+            func.extend([DocFmt('{}{}', tab, l) for l in comment])
+
+            # do e.g. objname = objname.__self__ for better perf
             for arg, count in used_ids.items():
                 if count < 1:
                     continue
                 func.append('{0}{1} = {1}.__self__'.format(tab, arg))
-            func.extend(['{}{}'.format(tab, line) for line in code.splitlines()])
+
+            func.extend(['{}{}'.format(tab, line) for line in code])
             funcs.append(func)
 
             # if it's a graphics instruction we bind to delay function that
             # takes the args as args. See _delayed_start in lang.py.
             if self.rule_type == 'widget':
-                inits.append([code])
+                inits.append(comment + code)
                 delayed = None
             else:
-                delayed = 'delayed_{}'.format(f)
+                # if it's delayed, we only shcedule a call, but don't init
+                delayed = '__delayed_{}'.format(f)  # list that stores args
                 code = '{} = [{}{}, None]'.format(delayed, f, ', {}' * len(fargs))
                 objs = [(proxy if arg in observables else
                          proxy_maybe).use(arg) for arg in fargs]
-                delayed_init.append([
+                delayed_init.append(comment + [
                     LazyFmt(code, *objs),
-                    'delayed_call_fn({}, None, None)'.format(delayed)])
+                    '__delayed_call_fn({}, None, None)'.format(delayed)
+                ])
 
+            # add all the (fixed) keys and args to which we need to bind
             bindings.extend([
-                (sname, name, f, fargs, [ids_map.get(k[0], k[0])] + k[1:],
-                 delayed)
+                (sname, prop_name, f, fargs, [ids_map.get(k[0], k[0])] + k[1:],
+                 delayed, comment)
                 for k in keys])
             rule_handler += 1
         return funcs, bindings, inits, lit_init, delayed_init
@@ -738,24 +894,36 @@ class RuleContext(object):
         funcs = []
         args = []
         sname = self.name
+        dname = self.doc_name
 
         for rule in self.rule.handlers:
-            code, used_ids = fix_rule_ids(rule.value)
-
             keys = rule.watched_keys
+            value = rule.value
+            ev_name = rule.name
+            # used_ids is the names of known widgets (i.e. with __self__ attr)
+            # in the fixed code
+            code, used_ids = fix_rule_ids(value)
+            code = break_multiline_code(code)
+            comment = [DocFmt('{}', l) for l in safe_comment(
+                '{} @ {}: '.format(dname, ev_name) + value, rule.line)]
+
             keys = [(ids_map.get(k[0], k[0])) for k in (keys if keys else [])]
-            f = 'on_{}_h{}'.format(rule.name, rule_on_handler)
+            f = '__h{}_{}'.format(rule_on_handler, ev_name)  # func name
+            # args to the callback. But first ensure e.g. self etc. is mapped
+            # to the correct name, e.g. w4 (espeically for graphics instruct.)
             fargs = sorted(set(used_ids.keys()).union(set(keys)))
 
             func_code = ['def {}({}):'.format(f, ', '.join(fargs + ['*args']))]
+            func_code.extend([DocFmt('{}{}', tab, l) for l in comment])
+            # do e.g. objname = objname.__self__ for better perf
             for arg, count in used_ids.items():
                 if count < 1:
                     continue
                 func_code.append('{0}{1} = {1}.__self__'.format(tab, arg))
-            func_code.extend(['{}{}'.format(tab, line) for line in code.splitlines()])
+            func_code.extend(['{}{}'.format(tab, line) for line in code])
 
             funcs.append(func_code)
-            args.append((sname, rule.name, f, fargs))
+            args.append((sname, ev_name, f, fargs, comment, code))
             rule_on_handler += 1
         return funcs, args
 
@@ -775,6 +943,10 @@ class KVCompiler(object):
 
     cython = False
 
+    include_doc = True
+
+    batch_bind = True
+
     # temporary, per rule variables
 
     rules = None
@@ -784,12 +956,16 @@ class KVCompiler(object):
     root = None
 
     obj_names = None
-    '''A set of the names of all the known object, these are the names of the
-    widget and graphical children (whether they have an `id`), root, and app.
+    '''A set of the variable names of all the known objects; these are the
+    names of the widget and graphical children that were created (whether they
+    have an `id`, e.g. `root`, `w1`, etc.), as well as `app`.
     '''
 
     root_names = None
     '''All the root names that have been bound, includes e.g. import names.
+    E.g. in `state: varname.state`, `varname` could be a created child or a
+    imported global name, either way if `varname` is used when binding it's
+    included here.
     '''
 
     # LazyString
@@ -797,19 +973,19 @@ class KVCompiler(object):
 
     proxy_maybe = None
 
-    property_test = None
-
     factory_obj = None
+
+    fast_bind_alias = None
 
     # info about the rule
 
     has_bindings = False
 
-    has_dispatching = False
-
     has_missing = False
+    '''Whether this rule may have missing properties at all (i.e. at least one
+    widget child has a rule like `prop: prop_value`). '''
 
-    has_children = False
+    on_inits_map = None
 
     # stores compiled code
 
@@ -821,7 +997,7 @@ class KVCompiler(object):
 
     func_bind_def = []
 
-    func_dispatch_def = []
+    func_on_init_def = []
 
     missing_check = []
 
@@ -832,8 +1008,10 @@ class KVCompiler(object):
     missing = []
 
     handlers = []
+    '''Stores the function handlers bound to `prop: value` type rules. '''
 
     on_handlers = []
+    '''Stores the function handlers bound to `on_prop: value` type rules. '''
 
     prop_init = []
 
@@ -847,11 +1025,27 @@ class KVCompiler(object):
 
     bindings = []
 
-    dispatch_creation = []
+    on_init_creation = []
 
-    dispatching = []
+    on_init_return = []
+
+    handlers_initial_count = []
+
+    on_handlers_inits = []
+
+    on_handlers_bind = []
 
     def walk_children(self, rule, parent=None, rule_type='widget'):
+        '''Iterates through all the widgets and graphics instructions defined
+        by the rule. It walks through the all the widgets, canvas before,
+        canvas, and canvas after in that order and for each instance returns a
+        3-tuple containing :class:`~kivy.lang.ParserRule`,
+        the rule type with values similar to :attr:`RuleContext.rule_type`, and
+        the parent :class:`~kivy.lang.ParserRule` of the current rule.
+
+        The order walked for each :attr:`RuleContext.rule_type` is depth first,
+        similar to the order they are declared.
+        '''
         walk = self.walk_children
         yield rule, rule_type, parent
 
@@ -872,9 +1066,20 @@ class KVCompiler(object):
                     yield val
 
     def get_children(self, root_rule):
+        '''Starting from the root rule, it walks all the children rules with
+        :method:`walk_children` and creates a :class:`RuleContext` instance for
+        each rule.
+
+        :returns:
+
+            2-tuple (`children`, `ids`). `Children` is the list of all the
+            created :class:`RuleContext`, and `ids` is a mapping from the id
+            name given to the rule if it's a widget, to its
+            :class:`RuleContext` instance.
+        '''
         ids = {}
         children = []
-        rule_ctxs = {}
+        rule_ctxs = {}  # ParserRule -> RuleContext mapping
         tab = self.tab
 
         for i, (rule, rule_type, parent) in enumerate(
@@ -889,150 +1094,198 @@ class KVCompiler(object):
         return children, ids
 
     def compile_rule(self, rule):
+        '''Resets all the relavent class attributes and compiles and
+        intitilizes all the code attrbutes with compiled code.
+
+        :returns:
+
+            2-tuple of `(fname, avoid_previous_rules)`, where fname is the
+            rule's function name, and avoid_previous_rules is a boolean
+            that applies to this rule.
+        '''
+        # clear stuff from previous runs
+        self.has_bindings = self.has_missing = False
+        self.prop_init_return = self.func_bind_def = \
+            self.on_init_creation = self.func_on_init_def = \
+            self.handlers_initial_count = self.on_handlers_inits = \
+            self.on_handlers_bind = self.on_init_return = []
+        inits_map = self.on_inits_map = {}
+        tab = self.tab
+
+        # get all the children rules in a linear order
         rules, ids = self.get_children(rule)
         self.rules = rules
         self.ids = ids
-        self.has_bindings = self.has_missing = self.has_dispatching = False
-        self.prop_init_return = self.func_bind_def = \
-            self.dispatch_creation = self.func_dispatch_def = []
-        tab = self.tab
+        # get the names of the objects to be created as well as root and app
         obj_names = self.obj_names = set([rule.name for rule in rules])
-        self.root_names = set()
         obj_names.add('app')
-        self.root = root = rules[0]
-        fnum = root.f_num
-        fname = '_r{}'.format(fnum)
-        self.proxy = proxy = LazyString(
-            dec=(None, '{0}_ref = {0}.proxy_ref'),
-            use=('{}.proxy_ref', '{}_ref'))
-        self.proxy_maybe = LazyString(
-            dec=(None, '{0}_ref = getattr({0}, "proxy_ref", {0})'),
-            use=('getattr({0}, "proxy_ref", {0})', '{0}_ref'))
-        self.property_test = prop_test = LazyString(
-            dec=(None, '{0}_get_prop = {0}.property'),
-            use=('{}.property', '{}_get_prop'))
-        self.factory_obj = factory_obj = LazyString(
-            dec=(None, 'cls_{0} = Factory.{0}'),
-            use=('Factory.{}', 'cls_{}'))
 
-        self.missing_dec = '_mc[{}] = set()'.format(root.f_num)
-        self.missing_check = 'if root.__class__ not in _mc[{}]:'.\
+        # clear the known root (`x` in `prop: x.y.z`) names
+        self.root_names = root_names = set()
+        self.root = root = rules[0]  # root rule
+        fnum = root.f_num  # number of this root function
+        fname = '__r{}'.format(fnum)  # and function name of the root function
+
+        # create the potential alias types
+        self.proxy = proxy = LazyString(
+            dec=(None, '__ref_{0} = {0}.proxy_ref'),
+            use=('{}.proxy_ref', '__ref_{}'))
+        self.proxy_maybe = LazyString(
+            dec=(None, '__ref_{0} = getattr({0}, "proxy_ref", {0})'),
+            use=('getattr({0}, "proxy_ref", {0})', '__ref_{}'))
+        self.factory_obj = factory_obj = LazyString(
+            dec=(None, '__cls_{0} = Factory.{0}'),
+            use=('Factory.{}', '__cls_{}'))
+        self.fast_bind_alias = LazyString(
+            dec=(None, '__bind_{0} = {0}.fast_bind'), use=('{}.fast_bind', '__bind_{}'))
+
+        # init set that keeps track of classes we already instantiated before
+        self.missing_dec = '__mc[{}] = set()'.format(root.f_num)
+        # checks whether the root rule class hsa been instantiated before
+        self.missing_check = 'if root.__class__ not in __mc[{}]:'.\
             format(root.f_num)
-        self.missing_check_set = '{}_mc[{}].add(root.__class__)'.\
+        # and add the class once it has been instantiated
+        self.missing_check_set = '{}__mc[{}].add(root.__class__)'.\
             format(tab, root.f_num)
+
+        # init it to decleration of proxies to the known EventDispatchers
         self.proxies = [proxy.dec(val, add=False) for val in sorted(obj_names)]
 
+        # ordered set of the class names so we can alias multiused classes
+        # these are e.g. Rectangle, Label and other classes that we instantiate
         objs = OrderedDict()
         for rule in rules[1:]:
             objs[rule.rule.name] = None
         self.factory_obj_code = [factory_obj.dec(r, add=False) for r in objs]
 
         self.creation = creation = []
-        self.has_children = len(rules) > 1
+        # create all children widgets and graphics
         for rule in rules:
             inst = rule.creation_instructions
             if inst:
                 creation.append(inst)
 
+        # check and ensure the missing properties are created
         self.missing = missing = []
         for rule in rules:
             inst = rule.missing_properties
             if inst:
-                self.has_missing = True
+                self.has_missing = True  # there's at least one property
                 missing.append(inst)
 
+        # handler function defs and code bodies
         self.handlers = handlers_code = []
         self.on_handlers = on_handlers_code = []
+        # the bindings for the handlers
         handlers = []
         on_handlers = []
+        # inits that init the prop values
         self.prop_init = init_code = []
         self.prop_lit_init = lit_init_code = []
         self.prop_delay_init = delay_init_code = []
+        # for every rule, get the inits, handler functions, and bindings
         for rule in rules:
+            # get the function defs and bindings for prop: val
             pcode, bindings, inits, linit, dinit = rule.property_handlers
             handlers_code.extend(pcode)
             handlers.extend(bindings)
-            init_code.append(inits)
-            lit_init_code.append(linit)
-            delay_init_code.append(dinit)
+
+            # get the literal, non-lit, and graphical init code
+            init_code.extend(inits)
+            lit_init_code.extend(linit)
+            delay_init_code.extend(dinit)
+
+            # get the function defs and bindings for on_prop: val
             pcode, bindings = rule.property_on_handlers
             on_handlers_code.extend(pcode)
             on_handlers.extend(bindings)
 
-        self.bindings, dispatchers = \
-            self.compile_bindings(rules, handlers, on_handlers)
-        self.rules_callbacks(dispatchers, fnum, fname)
+        # compile all the handler bindings
+        self.bindings = self.compile_bindings(rules, handlers, on_handlers)
+        self.generate_on_code(on_handlers)
+
+        # the function definition that applies the rule
+        self.func_def = code = [
+            'def {}(root, builder_created):'.format(fname),
+            '{}args = None'.format(tab)
+            ]
+
+        # the names of all the widgets created
+        widgets = [r.name for r in self.rules[1:] if r.rule_type == 'widget']
+        wgts_str = make_tuple(widgets)
+        if self.batch_bind and (widgets or self.has_bindings):
+            code.append(
+                '{}__bfuncs = [] if builder_created is None else builder_created'.
+                format(tab))
+            # the names of all the known objects, including imported ones
+            names = sorted(set(list(root_names) + list(obj_names)))
+            if inits_map:
+                names += ['__on_init']
+            # the bind function name
+            bfunc = '__b{}'.format(fnum)
+
+            # at the end of rule apllication do the bind and dispatch steps
+            self.prop_init_return = [
+                'if builder_created is None:',
+                '{}__bfuncs = [f() for f in __bfuncs]'.format(tab),
+                '{}__bfuncs.append({}({}))'.format(tab, bfunc, ', '.join(names)),
+                '{}__bfuncs = [f() for f in reversed(__bfuncs)]'.format(tab),
+                '{}for __children in reversed(__bfuncs):'.format(tab),
+                '{}for __child in __children:'.format(tab * 2),
+                '{}__child.dispatch("on_kv_apply", root)'.format(tab * 3),
+                'else:',
+                '{}__bfuncs.append(__partial({}))'.format(tab, ', '.join([bfunc] + names))
+            ]
+            # pass all the objects to bind function
+            self.func_bind_def = ['def {}({}):'.format(bfunc, ', '.join(names))]
+
+            # dispatch function name
+            dfunc = '__d{}'.format(fnum)
+            # if there are no init and on_handlers to exec, then just
+            # return the widgets that need to have on_kv_apply done one them
+            if not self.on_handlers_inits and not self.prop_init:
+                if widgets:
+                    self.on_init_creation = [
+                        'return __partial(__return_args, {})'.
+                        format(wgts_str)]
+                else:
+                    self.on_init_creation = ['return tuple']
+            else:
+                # otherwise, create the dispatch function
+                self.on_init_creation = (
+                    'return __partial({})'.format(', '.join([dfunc] + names)))
+                # and generate that func def
+                self.func_on_init_def = [
+                    'def {}({}):'.format(dfunc, ', '.join(names)),
+                    '{}args = None'.format(tab)
+                ]
+                # and create that func return
+                self.on_init_return = ['return {}'.format(wgts_str)]
+        elif widgets:
+            lines = self.on_init_return = []
+            for obj in widgets:
+                lines.append('{}.dispatch("on_kv_apply", root)'.format(obj))
+
         return fname, root.rule.avoid_previous_rules
 
-    def rules_callbacks(self, dispatchers, fnum, fname):
-        self.dispatching = dispatching = []
-        obj_names = self.obj_names
-        tab = self.tab
-        root_names = list(self.root_names)
-
-        self.func_def = code = ['def {}(root, builder_created):'.format(fname)]
-        if not self.has_children and not self.has_bindings:
-            return
-
-        code.append(
-            '{}bfuncs = [] if builder_created is None else builder_created'.
-            format(tab))
-        names = sorted(set(root_names + list(obj_names)))
-        widgets = [r.name for r in self.rules[1:] if r.rule_type == 'widget']
-        bfunc = '_b{}'.format(fnum)
-
-        self.prop_init_return = [
-            'if builder_created is None:',
-            '{}bfuncs = [f() for f in bfuncs]'.format(tab),
-            '{}bfuncs.append({}({}))'.format(tab, bfunc, ', '.join(names)),
-            '{}bfuncs = [f() for f in reversed(bfuncs)]'.format(tab),
-            '{}for children in reversed(bfuncs):'.format(tab),
-            '{}for child in children:'.format(tab * 2),
-            '{}child.dispatch("on_kv_apply", root)'.format(tab * 3),
-            'else:',
-            '{}bfuncs.append(partial({}))'.format(tab, ', '.join([bfunc] + names))
-        ]
-        self.func_bind_def = ['def {}({}):'.format(bfunc, ', '.join(names))]
-
-        bound = ['{}_bound'.format(obj) for obj in root_names]
-        dfunc = '_d{}'.format(fnum)
-        if not self.has_dispatching:
-            self.dispatch_creation = ['return tuple']
-            return
-
-        self.dispatch_creation = \
-            'return partial({}, dispatch_objs, {})'.format(
-                ', '.join([dfunc] + bound), make_tuple(widgets))
-
-        self.func_dispatch_def = ['def {}({}):'.format(
-            dfunc, ', '.join(bound + ['dispatch_objs', 'widgets']))
-        ]
-
-        for (root_obj, obj, key), (idx, bidx) in dispatchers.items():
-            if obj not in obj_names:
-                code = [
-                    'if dispatch_objs[{}] is not None:'.format(idx),
-                    '{}obj, prop, count = dispatch_objs[{}]'.format(tab, idx),
-                    '{}try:'.format(tab),
-                    '{}if obj == {}_bound[{}][3]:'.format(tab * 2, root_obj, bidx),
-                    '{}prop.dispatch_stale(obj, count)'.format(tab * 3),
-                    '{}except ReferenceError:'.format(tab),
-                    '{}pass'.format(tab * 2)
-                ]
-            else:
-                code = [
-                    'if dispatch_objs[{}] is not None:'.format(idx),
-                    '{}obj, prop, count = dispatch_objs[{}]'.format(tab, idx),
-                    '{}prop.dispatch_stale(obj, count)'.format(tab)
-                ]
-            dispatching.append(code)
-        dispatching.append(['return widgets'])
-
     def format_code(self):
+        '''Combines all the compiled code into a final list of strings, where
+        each string is a single code line.
+        '''
         ret = []
         tab = self.tab
         root = self.root.rule
+        try:
+            LazyFmt.hidden_groups.remove('doc')
+        except KeyError:
+            pass
+        if not self.include_doc:
+            LazyFmt.hidden_groups.add('doc')
         def flatten(groups, depth=0):
+            '''Flatten the possible recursive list of lists of strings into a
+            flat list of strings. Also adds tabs to the resulting code.
+            Depth is the tab depth of the resulting code.
+            '''
             if isinstance(groups, (LazyFmt, LazyEval)):
                 group = str(groups)
                 return [tab * depth + group] if group.strip() else []
@@ -1044,32 +1297,39 @@ class KVCompiler(object):
             else:
                 return [tab * depth + groups]
 
+        # add the handler functions
         for handler in self.handlers + self.on_handlers:
             for line in handler:
                 ret.extend(flatten(line))
-            push_empty(ret)
-        if ret:
+            push_empty(ret)  # separate the handlers with one line
+        if ret:  # after the handlers keep two blank lines
             push_empty(ret, 2)
 
+        # document the rule
         ret.append('# {} L{}'.format(root.name, root.line))
 
+        # add the missing property set() variable
         missing = self.missing
         if missing:
             ret.append(self.missing_dec)
 
+        # add the rule function defintion
         func_def = flatten(self.func_def)
         ret.extend(func_def)
         if len([l for l in func_def if l.strip()]) > 1:
             push_empty(ret)
 
+        # the aliases for the children classes
         for lines in self.factory_obj_code:
             ret.extend(flatten(lines, depth=1))
         push_empty(ret)
 
+        # now create the children
         for lines in self.creation:
             ret.extend(flatten(lines, depth=1))
             push_empty(ret)
 
+        # add the missing check and missing creation
         if missing:
             ret.append(tab + self.missing_check)
             for i, inst in enumerate(missing):
@@ -1078,50 +1338,64 @@ class KVCompiler(object):
             ret.append(tab + self.missing_check_set)
             push_empty(ret)
 
-        for lines in self.prop_lit_init + self.prop_init:
+        # and then save the state of the on_handlers and init lits and non-lits
+        for lines in (
+                self.handlers_initial_count + self.prop_lit_init +
+                self.prop_init):
             ret.extend(flatten(lines, depth=1))
             push_empty(ret)
 
-        if self.prop_init_return:
-            ret.extend(flatten(self.prop_init_return, depth=1))
+        # add the on_kv_apply code if it exists
+        ret.extend(flatten(self.prop_init_return, depth=1))
+        push_empty(ret)
+        # add the bind func def
+        ret.extend(flatten(self.func_bind_def, depth=0))
+
+        # add the proxy alias for storing in bound rules
+        for lines in self.proxies:
+            ret.extend(flatten(lines, depth=1))
+        push_empty(ret)
+
+        # schedule the graphics inits that were delayed
+        for lines in self.prop_delay_init:
+            ret.extend(flatten(lines, depth=1))
             push_empty(ret)
-            ret.extend(flatten(self.func_bind_def, depth=0))
 
-            for lines in self.proxies:
-                ret.extend(flatten(lines, depth=1))
+        # add the bindings
+        for lines in self.bindings + self.on_handlers_bind:
+            ret.extend(flatten(lines, depth=1))
             push_empty(ret)
 
-            for lines in self.prop_delay_init:
-                ret.extend(flatten(lines, depth=1))
-                push_empty(ret)
+        # add the return code that returns the dispatch callback
+        ret.extend(flatten(self.on_init_creation, depth=1))
+        push_empty(ret)
+        # add that dispatch func if it exists
+        ret.extend(flatten(self.func_on_init_def, depth=0))
 
-            for lines in self.bindings:
-                ret.extend(flatten(lines, depth=1))
-                push_empty(ret)
-
-            ret.extend(flatten(self.dispatch_creation, depth=1))
+        # now re-init the non-lits and dispatch the on_handlers
+        init = self.prop_init if self.bindings else []
+        for lines in init + self.on_handlers_inits:
+            ret.extend(flatten(lines, depth=1))
             push_empty(ret)
-            ret.extend(flatten(self.func_dispatch_def, depth=0))
 
-            for lines in self.dispatching:
-                ret.extend(flatten(lines, depth=1))
-                push_empty(ret)
-        else:
-            for lines in self.prop_delay_init:
-                ret.extend(flatten(lines, depth=1))
-                push_empty(ret)
+        # now return the widgets that need to have on_kv_apply on them
+        ret.extend(flatten(self.on_init_return, depth=1))
 
+        # check whether there was any code at all in the func
         lines = [
             line for line in ret if line.strip() and
             not line.strip().startswith('#')]
+        # if it's just a func def, add pass
         if len(lines) == 1:
             ret.insert(ret.index(lines[0]) + 1, '{}pass'.format(tab))
         return ret
 
     def walk_bindings(self, handlers):
+        '''Walks in a sometimes ending circle.
+        '''
         objs = defaultdict(list)
         for rule in handlers:
-            root_watcher = rule[-2][0]
+            root_watcher = rule[-3][0]
             objs[root_watcher].append((0, ) + rule)
         # get the values of objs sorted by root_watcher keys in reverse
         bindings = [x[1] for x in sorted(objs.items(), key=lambda x: x[0])][::-1]
@@ -1136,13 +1410,13 @@ class KVCompiler(object):
             leaves = []
             objs = defaultdict(list)
             # all have the same level and for all the watchers[level] are the same
-            for level, sname, name, f, fargs, watchers, delayed in last:
+            for level, sname, name, f, fargs, watchers, delayed, comment in last:
                 assert len(watchers) - level - 1 >= 1  # rem is at least on from this level
                 # we're at end - 1 of watchers so it's just e.g. a prop name
                 if len(watchers) - level - 1 == 1:
-                    leaves.append((sname, name, watchers[-1], f, fargs, delayed))
+                    leaves.append((sname, name, watchers[-1], f, fargs, delayed, comment))
                 else:
-                    objs[watchers[level + 1]].append((level + 1, sname, name, f, fargs, watchers, delayed))
+                    objs[watchers[level + 1]].append((level + 1, sname, name, f, fargs, watchers, delayed, comment))
 
             sorted_objs = sorted(objs.items(), key=lambda x: x[0])[::-1]
             bindings.extend([x[1] for x in sorted_objs])
@@ -1151,57 +1425,123 @@ class KVCompiler(object):
                 # the paths start at next level and go down the tree. All paths
                 # must be unique (rebind), but leaves are individually bound.
                 # So #nodes is len unique paths excluding leaves + # leaves
-                paths = [elem[-2][elem[0] + 1:-1] for elem in values]  # leaves
+                paths = [elem[-3][elem[0] + 1:-2] for elem in values]  # leaves
                 unique_paths = set([tuple(elem) for elem in paths])
                 N = sum(map(len, unique_paths)) + len(paths) + 1  # + itself
                 nodes.append((key, N, len(paths)))
 
             yield leaves, nodes, level, watchers[:level + 1]
 
-    def append_dispatcher(
-            self, watchers, curr_obj, key, dispatch_idxs, depth, bind_code,
-            next_pos, check_prop=False):
-        '''if check_prop we'll check if the prop exists, otherwise we'll assume
-        it has been checked through trying to bind (fast_bind returns 0 if
-        the prop has not beed found) and we'll check if the bound suceeded.
+    def generate_on_code(self, on_handlers):
+        '''Generates the initial count checking, bindings, and final rule
+        evaluation based on these counts for all the on_prop rules.
         '''
         tab = self.tab
-        puse = self.property_test.use
-        elem = watchers[0], curr_obj, key
-        if elem not in dispatch_idxs:
-            l = len(dispatch_idxs)
-            dispatch_idxs[elem] = l, next_pos
+        tab2 = tab * 2
+        obj_names = self.obj_names
+        root_names = self.root_names
+        proxy = self.proxy
+        p_use = lambda x: proxy.use(x) if x in obj_names or level else x
+        bind = self.fast_bind_alias
 
-            if not check_prop:
-                bind_code.append(
-                    LazyFmt('{}if bound[{}][5]:', tab * depth, next_pos))
-                depth += 1
+        prop_test = LazyString(
+            dec=(None, '__get_prop_{0} = {0}.property'),
+            use=('{}.property', '__get_prop_{}'))
+        puse = prop_test.use
+        pdec = prop_test.dec
+        # a keys are widget objs names, values are dicts whose keys are the
+        # event names of obj (i.e. on_event_name) and values are the goods
+        objs = OrderedDict()
+        mapping = self.on_inits_map
+        inits = self.on_handlers_inits = []
+        count = self.handlers_initial_count = []
+        bind_code = self.on_handlers_bind = []
 
-            quiet = ', quiet=True' if check_prop else ''
-            bind_code.append(LazyFmt(
-                '{}prop = {}("{}"{})', tab * depth, puse(curr_obj), key,
-                quiet))
+        # first sort the objects and events
+        for sname, ev_name, f, fargs, comment, code in on_handlers:
+            ev_name = ev_name[3:]
+            if sname not in objs:
+                objs[sname] = OrderedDict()
+            obj = objs[sname]
+            if ev_name not in obj:
+                obj[ev_name] = []
+            obj[ev_name].append((f, fargs, comment, code))
 
-            if check_prop:
-                bind_code.append(LazyFmt('{}if prop is not None:', tab * depth))
-                depth += 1
-            bind_code.append(LazyFmt(
-                '{}dispatch_objs[{}] = [{}, prop, prop.dispatch_count({})]',
-                tab * depth, l, curr_obj, curr_obj))
+        # generate the instructions
+        for obj, events in objs.items():
+            count.append([pdec(obj, add=False)])
+            if obj not in root_names:
+                bind_code.append([bind.dec(obj, add=False)])
+            for ev_name, items in events.items():
+                i = mapping[(obj, ev_name)] = len(mapping)
+                lines_count = []
+                cappnd = lines_count.append
+                lines_init = []
+                iappnd = lines_init.append
+                lines_bind = []
+                bappnd = lines_bind.append
+
+                # go through all the on_prop rules for property prop
+                for f, fargs, comment, _ in items:
+                    lines_count.extend(comment)  # add the doc comments
+                    lines_init.extend(comment)
+                    lines_bind.extend(comment)
+
+                    # create the bindings that exec the on_xxx code
+                    obj_bind = bind.use(obj)
+                    proxies = map(p_use, fargs)
+                    # check the on_event is actually a property
+                    bappnd('__prop_init = __on_init[{}]'.format(i))
+                    bappnd('if __prop_init is None:')
+                    # it wasn't so bind to the event
+                    line = '{}{}("on_{}", {}{})'.format(
+                        tab, '{}', ev_name, f, ', {}' * len(fargs))
+                    bappnd(LazyFmt(line, obj_bind, *proxies))
+
+                    bappnd('else:')  # it was a property so bind to the prop
+                    line = '{}{}("{}", {}{})'.format(
+                        tab, '{}', ev_name, f, ', {}' * len(fargs))
+                    bappnd(LazyFmt(line, obj_bind, *proxies))
+                    # and save the current count for later
+                    bappnd('{}__prop_init[2] = __prop_init[0].dispatch_count({})'.
+                           format(tab, obj))
+
+                # at init check if it's a prop and get the initial count
+                cappnd(LazyFmt('__prop = {}("{}", quiet=True)', puse(obj), ev_name))
+                cappnd('if __prop is not None:')
+                cappnd('{}__on_init[{}] = [__prop, __prop.dispatch_count({}), None]'.format(tab, i, obj))
+
+                # at dispatch, exec code if the property value changed earlier
+                iappnd('if __on_init[{}] is not None:'.format(i))
+                iappnd('{}__prop, s, e = __on_init[{}]'.format(tab, i))
+                iappnd('{}if s != e and __prop.dispatch_count({}) == e:'.format(tab, obj))
+                # add the code
+                for _, _, _, code in items:
+                    lines_init.extend([LazyFmt('{}{}', tab2, l) for l in code])
+
+                count.append(lines_count)
+                inits.append(lines_init)
+                bind_code.append(lines_bind)
+
+        # the list that will hold the on_xx dispatch count
+        if mapping:
+            count.insert(0, ['__on_init = [None, ] * {}'.format(len(mapping))])
+        self.has_bindings = self.has_bindings or len(mapping)
 
     def append_bindings(
             self, do_bind, leaves, next_pos, unbind_idxs, curr_obj, bind_nodes,
             nodes, depth, bind_code, bind, start, p_use, cpos, pos,
-            watchers, dispatch_idxs, level, **kwargs):
+            watchers, level, **kwargs):
         '''Emits the fast_bind code for the leaves and nodes. It binds to every
         leaf and node coming off from the current object at this level and
         saves the function and args for later rebinding. If not do_bind,
-        it doesn't do the actual binding but just saves the args.
+        it doesn't do the actual binding but just saves the args. This is
+        needed when the parent is e.g. None but we need to save the args for
+        later maybe rebinding.
         '''
-        ptest = self.property_test
         tab = self.tab
         not_delayed = set()
-        for _, _, key, _, _, delayed in leaves:
+        for _, _, key, _, _, delayed, comment in leaves:
             if not delayed:
                 not_delayed.add(key)
         if bind_nodes:
@@ -1210,14 +1550,14 @@ class KVCompiler(object):
 
         # for every leaf, we need to save the target func and its args and bind
         # to that func if it's observable (i.e. do_bind=true)
-        for sname, name, key, f, fargs, delayed in leaves:
+        for sname, name, key, f, fargs, delayed, comment in leaves:
             assert fargs
             unbind_idxs[sname].append(next_pos)
 
             args = ''
             # when delayed, it's a graphics instruction so we delay callback
             if delayed:
-                f = 'delayed_call_fn'
+                f = '__delayed_call_fn'
                 save_args = '({}, )'.format(delayed)
                 args = delayed
             elif len(fargs) == 1:
@@ -1239,20 +1579,16 @@ class KVCompiler(object):
                 obj = p_use(curr_obj)
 
             bind_code.append(LazyFmt(
-                '{}bound[{}] = [None, None, {}, {}, "{}", {}, {}, {}]',
+                '{}__bound[{}] = [None, None, {}, {}, "{}", {}, {}, {}]',
                 tab * depth, next_pos, cpos, obj, key, code, f, save_args))
-            if do_bind and name in not_delayed:
-                self.append_dispatcher(
-                    watchers, curr_obj, key, dispatch_idxs, depth, bind_code,
-                    next_pos)
             next_pos += 1
 
         # cache checking of rebind for each prop when setting rebinding
         if bind_nodes and len(bind_nodes) > 1:
             bind_code.append(
-                '{}rebind_property = {}.rebind_property'.
+                '{}__rebind_property = {}.rebind_property'.
                 format(tab * depth, curr_obj))
-            rebind_property = 'rebind_property'
+            rebind_property = '__rebind_property'
         else:
             rebind_property = '{}.rebind_property'.format(curr_obj)
         # when rebinding, it's all under an additonal `if rebind_prop` level
@@ -1266,19 +1602,15 @@ class KVCompiler(object):
                     '{}if {}("{}"):'.
                     format(tab * depth, rebind_property, node))
                 code = LazyFmt(  # the actual obj.fast_bind(node, ...)
-                    '{}("{}", rebind_callback, bound, {})',
+                    '{}("{}", __rebind_callback, __bound, {})',
                     bind.use(curr_obj), node, next_pos)
                 # now bind and save the args
                 bind_code.append(LazyFmt(
-                    '{}bound[{}] = [{}, {}, {}, {}, "{}", {}, '
-                    'rebind_callback, (bound, {})]',
+                    '{}__bound[{}] = [{}, {}, {}, {}, "{}", {}, '
+                    '__rebind_callback, (__bound, {})]',
                     tab * ldepth, next_pos, start[k], start[k] + N - 1, cpos,
                     p_use(curr_obj), node, code, next_pos))
 
-                if node in not_delayed:
-                    self.append_dispatcher(
-                        watchers, curr_obj, node, dispatch_idxs, ldepth,
-                        bind_code, next_pos)
                 if level:  # see below
                     bind_code.append('{}else:'.format(tab * depth))
 
@@ -1287,8 +1619,8 @@ class KVCompiler(object):
             # that's only possible if we're below root level
             if level:
                 bind_code.append(LazyFmt(
-                    '{}bound[{}] = [{}, {}, {}, None, "{}", None, '
-                    'rebind_callback, (bound, {})]', tab * ldepth, next_pos,
+                    '{}__bound[{}] = [{}, {}, {}, None, "{}", None, '
+                    '__rebind_callback, (__bound, {})]', tab * ldepth, next_pos,
                     start[k], start[k] + N - 1, cpos, node, next_pos))
 
             # now save the pos of the callback bound to this node
@@ -1312,10 +1644,8 @@ class KVCompiler(object):
     def compile_bindings(self, rules, handlers, on_handlers):
         tab = self.tab
         proxy, proxy_maybe = self.proxy, self.proxy_maybe
-        on_objs = defaultdict(list)
         ret = []
         rebind = self.rebind
-        prop_test = self.property_test
         obj_names = self.obj_names
         root_names = self.root_names
         #has_proxy = set()  # contains all tree roots that have been given a proxy
@@ -1326,13 +1656,7 @@ class KVCompiler(object):
             base_types = '({})'.format(', '.join(self.base_types))
         else:
             base_types = self.base_types[0]
-        bind = LazyString(
-            dec=(None, 'bind = {}.fast_bind'), use=('{}.fast_bind', 'bind'))
-        dispatch_idxs = OrderedDict()
-
-        # just sort the on_xx events by the objs they bind to (e.g. root, g1)
-        for rule_name, prop_name, f, fargs in on_handlers:
-            on_objs[rule_name].append((prop_name, f, fargs))
+        bind = self.fast_bind_alias
 
         # for every iter of the loop, we pick a node in topological depth first
         # order and we look at nodes and leaves that hang off. Leaves are binds
@@ -1349,7 +1673,6 @@ class KVCompiler(object):
             curr_obj = obj_name(watchers)
             bind_nodes = rebind and nodes
             reached_end = not nodes
-            on_bindings = not level and on_objs[root_name]  # any on_xxx?
 
             # a root level is the root of a new tree, e.g. label in label.obj.name
             # level is the distance to the child of the current node node from
@@ -1366,7 +1689,7 @@ class KVCompiler(object):
                 N = sum([n[idx] for n in nodes]) + len(leaves)
                 # e.g. root_bound = bound = [None, ] * 70
                 bind_code.append(
-                    '{}_bound = bound = [None, ] * {}'.format(root_name, N))
+                    '__bound = [None, ] * {}'.format(N))
                 next_pos = 0  # index in bound of current node binding
                 #has_proxy.add(root_name)
                 #if root_name not in obj_names:
@@ -1423,20 +1746,8 @@ class KVCompiler(object):
             # alias bind = fast_bind for this node
             bind_code.append(
                 LazyFmt('{}{}', tab * depth, bind.dec(curr_obj, add=False)))
-            bind_code.append(LazyFmt(
-                '{}{}', tab * depth, prop_test.dec(curr_obj, add=False)))
 
             # if we're at root level and there are on_xxx events bind them
-            if on_bindings:
-                for prop_name, f, fargs in on_bindings:
-                    code = '{}("{}", {}{})'.format(
-                        '{}', prop_name, f, ', {}' * len(fargs))
-                    bind_code.append(
-                        LazyFmt(code, bind.use(curr_obj), *map(p_use, fargs)))
-                    self.append_dispatcher(
-                        watchers, curr_obj, prop_name, dispatch_idxs, 0,
-                        bind_code, next_pos, check_prop=True)
-                on_objs.pop(root_name)
             ret.append(bind_code)
 
             lcls = locals().copy()  # now bind the leaves and nodes
@@ -1451,7 +1762,7 @@ class KVCompiler(object):
                 depth = 1
                 next_pos = old_next_pos
                 bind_code.append(
-                    'if bound[{}] is not None and bound[{}] is None:'.
+                    'if __bound[{}] is not None and __bound[{}] is None:'.
                     format(cpos, next_pos))
                 lcls = locals().copy()
                 del lcls['self']
@@ -1465,31 +1776,10 @@ class KVCompiler(object):
                     else:
                         idxs = str(tuple(sorted(set(idxs))))
                     bind_code.append(
-                        '_handlers[{}.uid].append((bound, {}))'.
+                        '__handlers[{}.uid].append((__bound, {}))'.
                         format(sname, idxs))
                 unbind_idxs = defaultdict(list)
-
-        # now finish the on_xxx not bound with props
-        for rule_name, binds in on_objs.items():  # rule_name is always level 0
-            if not binds:
-                continue
-            bind_code = []
-            bind_code.append(bind.dec(rule_name, add=False))
-
-            for prop_name, f, fargs in binds:
-                code = '{}("{}", {}{})'.format(
-                    '{}', prop_name, f, ', {}' * len(fargs))
-                bind_code.append(
-                    LazyFmt(code, bind.use(rule_name), *map(p_use, fargs)))
-                self.append_dispatcher(
-                        [rule_name], rule_name, prop_name, dispatch_idxs, 0,
-                        bind_code, None, check_prop=True)
-            ret.append(bind_code)
-
-        if dispatch_idxs:
-            ret.insert(0, 'dispatch_objs = [None, ] * {}'.format(len(dispatch_idxs)))
-            self.has_dispatching = True
-        return ret, dispatch_idxs
+        return ret
 
     def compile_root(self, root):
         tab = self.tab
@@ -1513,7 +1803,7 @@ class KVCompiler(object):
         for directive in directives:
             cmd = directive[1].strip()
             if cmd[:5] == "kivy ":
-                ret.append('require("{}")'.format(cmd[5:].strip()))
+                ret.append('__require("{}")'.format(cmd[5:].strip()))
 
             elif cmd[:7] == 'import ':
                 package = cmd[7:].strip().split(' ')
@@ -1583,7 +1873,9 @@ class KVCompiler(object):
             'tab': KVCompiler.tab, 'rebind': KVCompiler.rebind,
             'base_types': KVCompiler.base_types,
             'event_dispatcher_type': KVCompiler.event_dispatcher_type,
-            'cython': KVCompiler.cython
+            'cython': KVCompiler.cython,
+            'include_doc': KVCompiler.include_doc,
+            'batch_bind': KVCompiler.batch_bind
         }
 
         for keys in [kwargs.keys()] + [x.keys() for x in rule_opts.values()]:
@@ -1612,7 +1904,9 @@ class KVCompiler(object):
             lines += [cyheader_imports, cyheader_globals]
         else:
             lines += [pyheader_imports, pyheader_globals]
-        lines += [rebind_callback_str.format('{}', otype), '']
+        lines += [
+            rebind_callback_str.format('{}', otype), '',
+            return_args_str, '']
 
         lines.extend(self.compile_directives(parser.directives))
 
@@ -1630,8 +1924,9 @@ class KVCompiler(object):
             f_name, avoid_previous_rules = self.compile_rule(rule)
             compiled_rule = self.format_code()
             selectors_map[rule] = [f_name, avoid_previous_rules, key]
-            lines.append('\n')
+            push_empty(lines, 2)
             lines.extend(compiled_rule)
+            push_empty(lines, 2)
 
         lines.extend(
             [''] + self.compile_dynamic_classes(parser.dynamic_classes) + [''])
@@ -1643,7 +1938,7 @@ class KVCompiler(object):
             rule_name, avoid_previous_rules = item[:2]
             selectors = item[2:]
             for selector in selectors:
-                lines.append('{}({}("{}"), {}, {}),'.format(
+                lines.append('{}(__{}("{}"), {}, {}),'.format(
                     tab, selector.__class__.__name__, selector.key,
                     rule_name, avoid_previous_rules))
         lines.append(')')
