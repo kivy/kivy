@@ -135,7 +135,6 @@ class Touchtracer(FloatLayout):
         label.pos = touch.pos
         label.size = label.texture_size[0] + 20, label.texture_size[1] + 20
 
-
 class TouchtracerApp(App):
     title = 'Touchtracer'
     icon = 'icon.png'

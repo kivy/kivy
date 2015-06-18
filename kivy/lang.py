@@ -1422,7 +1422,7 @@ class Parser(object):
                 if ignore_prev:
                     name = name[1:]
 
-                if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+':
+                if ord(name[0]) in Parser.CLASS_RANGE:
                     if ignore_prev:
                         raise ParserException(
                             self, ln, 'clear previous, `-`, not allowed here')
