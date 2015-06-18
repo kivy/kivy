@@ -155,6 +155,13 @@ class WindowSDL(WindowBase):
                     280: 'pgup',
                     281: 'pgdown'}
         self._mouse_buttons_down = set()
+        self.bind(
+            minimum_width=self._restrict_window,
+            minimum_height=self._restrict_window)
+
+    def _restrict_window(self, *args):
+        self._win.set_minimum_size(self.minimum_width, self.minimum_height)
+        
 
     def create_window(self, *largs):
         if self._fake_fullscreen:

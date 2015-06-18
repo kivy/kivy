@@ -212,14 +212,9 @@ class WindowBase(EventDispatcher):
         `height`: int
             Height of the window.
         `minimum_width`: int
-            Minimum width of the window
-            
-            .. versionadded:: 1.9.1
-            
+            Minimum width of the window (only works for sdl2 window provider).
         `minimum_height`: int
-            Minimum height of the window
-            
-            .. versionadded:: 1.9.1
+            Minimum height of the window (only works for sdl2 window provider).
 
     :Events:
         `on_motion`: etype, motionevent
@@ -339,7 +334,16 @@ class WindowBase(EventDispatcher):
             return False
 
     minimum_width = NumericProperty(0)
+    '''The minimum_width to restrict the window to.
+
+    .. versionadded:: 1.9.1
+    '''
+
     minimum_height = NumericProperty(0)
+    '''The minimum_height to restrict the window to.
+
+    .. versionadded:: 1.9.1
+    '''
 
     size = AliasProperty(_get_size, _set_size, bind=('_size', ))
     '''Get the rotated size of the window. If :attr:`rotation` is set, then the
