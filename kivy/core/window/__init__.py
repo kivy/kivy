@@ -211,6 +211,15 @@ class WindowBase(EventDispatcher):
             Width of the window.
         `height`: int
             Height of the window.
+        `minimum_width`: int
+            Minimum width of the window
+            
+            .. versionadded:: 1.9.1
+            
+        `minimum_height`: int
+            Minimum height of the window
+            
+            .. versionadded:: 1.9.1
 
     :Events:
         `on_motion`: etype, motionevent
@@ -328,6 +337,9 @@ class WindowBase(EventDispatcher):
             return True
         else:
             return False
+
+    minimum_width = NumericProperty(0)
+    minimum_height = NumericProperty(0)
 
     size = AliasProperty(_get_size, _set_size, bind=('_size', ))
     '''Get the rotated size of the window. If :attr:`rotation` is set, then the
@@ -583,6 +595,10 @@ class WindowBase(EventDispatcher):
             kwargs['width'] = Config.getint('graphics', 'width')
         if 'height' not in kwargs:
             kwargs['height'] = Config.getint('graphics', 'height')
+        if 'minimum_width' not in kwargs:
+            kwargs['minimum_width'] = Config.getint('graphics', 'minimum_width')
+        if 'minimum_height' not in kwargs:
+            kwargs['minimum_height'] = Config.getint('graphics', 'minimum_height')
         if 'rotation' not in kwargs:
             kwargs['rotation'] = Config.getint('graphics', 'rotation')
         if 'position' not in kwargs:
