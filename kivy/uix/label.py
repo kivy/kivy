@@ -58,30 +58,22 @@ Text alignment and wrapping
 ---------------------------
 
 The :class:`Label` has :attr:`~Label.halign` and :attr:`~Label.valign`
-properties to control the alignment of its text, but by default these have
-no effect and the text is always centered within the Label. This is for
-efficiency; the text is aligned only within the pixel drawing of the
-characters, which should normally be as small as possible to minimise
-the number of pixels pushed to the GPU. By default, this text image is
-only just large enough to contain the characters and is positioned in the
-center of the Label.
+properties to control the alignment of its text. However, by default the text
+image (:attr:`~Label.texture`) is only just large enough to contain the
+characters and is positioned in the center of the Label. The valign property
+will have no effect and halign will only have an effect if your text has
+newlines; a single line of text will appear to be centered even though halign is
+set to left (by default).
 
-In order for the alignment properties to take effect, the simplest
-solution is to set the :attr:`~Label.text_size`, which specifies the size of
-the bounding box within which text is aligned. For instance, the
-following code binds this size to the size of the Label, so text will
-be aligned within the widget bounds. This will also automatically wrap
-the text of the Label to remain within this area.
+In order for the alignment properties to take effect, set the
+:attr:`~Label.text_size`, which specifies the size of the bounding box within
+which text is aligned. For instance, the following code binds this size to the
+size of the Label, so text will be aligned within the widget bounds. This
+will also automatically wrap the text of the Label to remain within this area.
 
 .. code-block:: python
 
-    # in Python
-    from kivy.uix.label import Label
-    class MyLabel(Label):
-        pass
-
-    # in kv
-    <MyLabel>:
+    Label:
         text_size: self.size
         halign: 'right'
         valign: 'middle'
