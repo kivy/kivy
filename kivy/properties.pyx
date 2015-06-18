@@ -410,10 +410,10 @@ cdef class Property:
 
     cdef compare_value(self, a, b):
         try:
-            return a == b
+            return bool(a == b)
         except Exception as e:
             Logger.warn(
-                'Value comparison failed for {} with "{}". Consider setting '
+                'Property: Value comparison failed for {} with "{}". Consider setting '
                 'force_dispatch to True to avoid this.'.format(self, e))
             return False
 
