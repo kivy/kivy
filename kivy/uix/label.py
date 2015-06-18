@@ -215,7 +215,6 @@ class Label(Widget):
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
-        self._trigger_markup_color = partial(self._trigger_texture_update, 'color')
         super(Label, self).__init__(**kwargs)
 
         # bind all the property for recreating the texture
@@ -228,14 +227,18 @@ class Label(Widget):
         self._label = None
         self._create_label()
 
+        fbind('markup', self._bind_for_markup)
+        if self.markup:
+            self._bind_for_markup(self, self.markup)
+
         # force the texture creation
         self._trigger_texture()
 
-    def on_markup(self, inst, markup):
+    def _bind_for_markup(self, inst, markup):
         if markup:
-            self.fast_bind('color', self._trigger_markup_color)
+            self.fast_bind('color', self._trigger_texture_update, 'color')
         else:
-            self.fast_unbind('color', self._trigger_markup_color)
+            self.fast_unbind('color', self._trigger_texture_update, 'color')
 
     def _create_label(self):
         # create the core label class according to markup value
