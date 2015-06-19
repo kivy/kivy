@@ -150,6 +150,9 @@ class WindowPygame(WindowBase):
             else:
                 raise CoreCriticalException(e.message)
 
+        if pygame.RESIZABLE & self.flags:
+            self._pygame_set_mode()
+
         info = pygame.display.Info()
         self._size = (info.current_w, info.current_h)
         #self.dispatch('on_resize', *self._size)

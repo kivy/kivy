@@ -177,9 +177,12 @@ class Splitter(BoxLayout):
         self._container = None
         self._strip = None
         super(Splitter, self).__init__(**kwargs)
-        self.bind(max_size=self._do_size,
-                  min_size=self._do_size,
-                  parent=self._rebind_parent)
+
+        do_size = self._do_size
+        fbind = self.fast_bind
+        fbind('max_size', do_size)
+        fbind('min_size', do_size)
+        fbind('parent', self._rebind_parent)
 
     def on_sizable_from(self, instance, sizable_from):
         if not instance._container:

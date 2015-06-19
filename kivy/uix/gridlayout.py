@@ -246,29 +246,26 @@ class GridLayout(Layout):
     def __init__(self, **kwargs):
         self._cols = self._rows = None
         super(GridLayout, self).__init__(**kwargs)
-
-        self.bind(
-            col_default_width=self._trigger_layout,
-            row_default_height=self._trigger_layout,
-            col_force_default=self._trigger_layout,
-            row_force_default=self._trigger_layout,
-            cols=self._trigger_layout,
-            rows=self._trigger_layout,
-            parent=self._trigger_layout,
-            spacing=self._trigger_layout,
-            padding=self._trigger_layout,
-            children=self._trigger_layout,
-            size=self._trigger_layout,
-            pos=self._trigger_layout)
+        fbind = self.fast_bind
+        update = self._trigger_layout
+        fbind('col_default_width', update)
+        fbind('row_default_height', update)
+        fbind('col_force_default', update)
+        fbind('row_force_default', update)
+        fbind('cols', update)
+        fbind('rows', update)
+        fbind('parent', update)
+        fbind('spacing', update)
+        fbind('padding', update)
+        fbind('children', update)
+        fbind('size', update)
+        fbind('pos', update)
 
     def get_max_widgets(self):
-        if self.cols and not self.rows:
+        if self.cols and self.rows:
+            return self.rows * self.cols
+        else:
             return None
-        if self.rows and not self.cols:
-            return None
-        if not self.cols and not self.rows:
-            return None
-        return self.rows * self.cols
 
     def on_children(self, instance, value):
         # if that makes impossible to construct things with deffered method,

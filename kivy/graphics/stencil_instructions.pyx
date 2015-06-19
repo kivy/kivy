@@ -82,11 +82,12 @@ Here is an example, in kv style::
     Rectangle:
         size: 900, 900
 
-    StencilUnUse:
-        # new in kivy 1.3.0, remove the mask previously added
-        Rectangle:
-            pos: 100, 100
-            size: 100, 100
+    StencilUnUse
+
+    # you must redraw the stencil mask to remove it
+    Rectangle:
+        pos: 100, 100
+        size: 100, 100
 
     StencilPop
 
@@ -96,6 +97,7 @@ __all__ = ('StencilPush', 'StencilPop', 'StencilUse', 'StencilUnUse')
 
 include "config.pxi"
 include "opcodes.pxi"
+include "gl_debug_logger.pxi"
 
 from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
@@ -126,7 +128,7 @@ cdef class StencilPush(Instruction):
     '''Push the stencil stack. See the module documentation for more
     information.
     '''
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         global _stencil_level, _stencil_in_push
         if _stencil_in_push:
             raise Exception('Cannot use StencilPush inside another '
@@ -136,33 +138,46 @@ cdef class StencilPush(Instruction):
 
         if _stencil_level == 1:
             glStencilMask(0xff)
+            log_gl_error('StencilPush.apply-glStencilMask')
             glClearStencil(0)
+            log_gl_error('StencilPush.apply-glClearStencil')
             glClear(GL_STENCIL_BUFFER_BIT)
+            log_gl_error('StencilPush.apply-glClear(GL_STENCIL_BUFFER_BIT)')
         if _stencil_level > 128:
             raise Exception('Cannot push more than 128 level of stencil.'
                             ' (stack overflow)')
 
         glEnable(GL_STENCIL_TEST)
+        log_gl_error('StencilPush.apply-glEnable(GL_STENCIL_TEST)')
         glStencilFunc(GL_ALWAYS, 0, 0)
+        log_gl_error('StencilPush.apply-glStencilFunc')
         glStencilOp(GL_INCR, GL_INCR, GL_INCR)
+        log_gl_error('StencilPush.apply-glStencilOp')
         glColorMask(0, 0, 0, 0)
+        log_gl_error('StencilPush.apply-glColorMask')
+        return 0
 
 cdef class StencilPop(Instruction):
     '''Pop the stencil stack. See the module documentation for more information.
     '''
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         global _stencil_level, _stencil_in_push
         if _stencil_level == 0:
             raise Exception('Too much StencilPop (stack underflow)')
         _stencil_level -= 1
         _stencil_in_push = 0
         glColorMask(1, 1, 1, 1)
+        log_gl_error('StencilPop.apply-glColorMask')
         if _stencil_level == 0:
             glDisable(GL_STENCIL_TEST)
-            return
+            log_gl_error('StencilPop.apply-glDisable')
+            return 0
         # reset for previous
         glStencilFunc(GL_EQUAL, _stencil_level, 0xff)
+        log_gl_error('StencilPop.apply-glStencilFunc')
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+        log_gl_error('StencilPop.apply-glStencilOp')
+        return 0
 
 
 cdef class StencilUse(Instruction):
@@ -176,12 +191,16 @@ cdef class StencilUse(Instruction):
         else:
             self._op = GL_EQUAL
 
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         global _stencil_in_push
         _stencil_in_push = 0
         glColorMask(1, 1, 1, 1)
+        log_gl_error('StencilUse.apply-glColorMask')
         glStencilFunc(self._op, _stencil_level, 0xff)
+        log_gl_error('StencilUse.apply-glStencilFunc')
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+        log_gl_error('StencilUse.apply-glStencilOp')
+        return 0
 
     property func_op:
         '''Determine the stencil operation to use for glStencilFunc(). Can be
@@ -207,7 +226,11 @@ cdef class StencilUse(Instruction):
 cdef class StencilUnUse(Instruction):
     '''Use current stencil buffer to unset the mask.
     '''
-    cdef void apply(self):
+    cdef int apply(self) except -1:
         glStencilFunc(GL_ALWAYS, 0, 0)
+        log_gl_error('StencilUnUse.apply-glStencilFunc')
         glStencilOp(GL_DECR, GL_DECR, GL_DECR)
+        log_gl_error('StencilUnUse.apply-glStencilOp')
         glColorMask(0, 0, 0, 0)
+        log_gl_error('StencilUnUse.apply-glColorMask')
+        return 0

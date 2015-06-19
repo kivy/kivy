@@ -1,0 +1,11 @@
+#:kivy 1.8.0
+
+BoxLayout:
+    orientation: 'vertical'
+    TextInput:
+        # setting the id of the widget
+        id: my_id
+        text: 'The text of the label is set within kivy'
+    Label:
+        # showing the text of the textinput by referring on the id
+        text: my_id.text

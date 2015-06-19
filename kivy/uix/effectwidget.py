@@ -378,9 +378,11 @@ class EffectBase(EventDispatcher):
 
     def __init__(self, *args, **kwargs):
         super(EffectBase, self).__init__(*args, **kwargs)
-        self.bind(fbo=self.set_fbo_shader)
-        self.bind(glsl=self.set_fbo_shader)
-        self.bind(source=self._load_from_source)
+        fbind = self.fast_bind
+        fbo_shader = self.set_fbo_shader
+        fbind('fbo', fbo_shader)
+        fbind('glsl', fbo_shader)
+        fbind('source', self._load_from_source)
 
     def set_fbo_shader(self, *args):
         '''Sets the :class:`~kivy.graphics.Fbo`'s shader by splicing
@@ -434,7 +436,7 @@ class AdvancedEffectBase(EffectBase):
 
     def __init__(self, *args, **kwargs):
         super(AdvancedEffectBase, self).__init__(*args, **kwargs)
-        self.bind(uniforms=self._update_uniforms)
+        self.fast_bind('uniforms', self._update_uniforms)
 
     def _update_uniforms(self, *args):
         if self.fbo is None:
@@ -656,9 +658,11 @@ class EffectWidget(RelativeLayout):
 
         Clock.schedule_interval(self._update_glsl, 0)
 
-        self.bind(size=self.refresh_fbo_setup,
-                  effects=self.refresh_fbo_setup,
-                  background_color=self._refresh_background_color)
+        fbind = self.fast_bind
+        fbo_setup = self.refresh_fbo_setup
+        fbind('size', fbo_setup)
+        fbind('effects', fbo_setup)
+        fbind('background_color', self._refresh_background_color)
 
         self.refresh_fbo_setup()
         self._refresh_background_color()  # In case thi was changed in kwargs

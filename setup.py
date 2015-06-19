@@ -12,6 +12,7 @@ from os.path import join, dirname, sep, exists, basename, isdir, abspath
 from os import walk, environ, makedirs, listdir
 from distutils.version import LooseVersion
 from collections import OrderedDict
+from subprocess import check_output
 from time import sleep
 
 if environ.get('KIVY_USE_SETUPTOOLS'):
@@ -35,13 +36,9 @@ if PY3:  # fix error with py3's LooseVersion comparisons
 
 MIN_CYTHON_STRING = '0.20'
 MIN_CYTHON_VERSION = LooseVersion(MIN_CYTHON_STRING)
-MAX_CYTHON_STRING = '0.21.2'
+MAX_CYTHON_STRING = '0.22'
 MAX_CYTHON_VERSION = LooseVersion(MAX_CYTHON_STRING)
-CYTHON_UNSUPPORTED = (
-    LooseVersion('0.22'),
-    LooseVersion('0.22.beta0'),
-    LooseVersion('0.22.alpha0'),
-)
+CYTHON_UNSUPPORTED = ()
 
 
 def getoutput(cmd):
@@ -93,12 +90,16 @@ if kivy_ios_root is not None:
     platform = 'ios'
 if exists('/opt/vc/include/bcm_host.h'):
     platform = 'rpi'
+if exists('/usr/lib/arm-linux-gnueabihf/libMali.so'):
+    platform = 'mali'
 
 # -----------------------------------------------------------------------------
 # Detect options
 #
 c_options = OrderedDict()
 c_options['use_rpi'] = platform == 'rpi'
+c_options['use_mali'] = platform == 'mali'
+c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_debug'] = False
 c_options['use_glew'] = False
@@ -109,6 +110,7 @@ c_options['use_x11'] = False
 c_options['use_gstreamer'] = None
 c_options['use_avfoundation'] = platform == 'darwin'
 c_options['use_osx_frameworks'] = platform == 'darwin'
+c_options['debug_gl'] = False
 
 # now check if environ is changing the default values
 for key in list(c_options.keys()):
@@ -302,7 +304,7 @@ except ImportError:
     print('User distribution detected, avoid portable command.')
 
 # Detect which opengl version headers to use
-if platform in ('android', 'darwin', 'ios', 'rpi'):
+if platform in ('android', 'darwin', 'ios', 'rpi', 'mali'):
     c_options['use_opengl_es2'] = True
 elif platform == 'win32':
     print('Windows platform detected, force GLEW usage.')
@@ -318,7 +320,7 @@ else:
             c_options['use_opengl_es2'] = False
         else:
             # auto detection of GLES headers
-            default_header_dirs = ['/usr/include', '/usr/local/include']
+            default_header_dirs = ['/usr/include', join(environ.get('LOCALBASE', '/usr/local'), 'include')]
             c_options['use_opengl_es2'] = False
             for hdir in default_header_dirs:
                 filename = join(hdir, 'GLES2', 'gl2.h')
@@ -465,6 +467,9 @@ def determine_base_flags():
         flags['include_dirs'] += [sysroot]
         flags['extra_compile_args'] += ['-isysroot', sysroot]
         flags['extra_link_args'] += ['-isysroot', sysroot]
+    elif platform.startswith('freebsd'):
+        flags['include_dirs'] += [join(environ.get('LOCALBASE', '/usr/local'), 'include')]
+        flags['extra_link_args'] += ['-L', join(environ.get('LOCALBASE', '/usr/local'), 'lib')]
     elif platform == 'darwin':
         v = os.uname()
         if v[2] >= '13.0.0':
@@ -498,8 +503,6 @@ def determine_gl_flags():
         flags['extra_link_args'] = ['-framework', 'OpenGL', '-arch', osx_arch]
         flags['extra_compile_args'] = ['-arch', osx_arch]
     elif platform.startswith('freebsd'):
-        flags['include_dirs'] = ['/usr/local/include']
-        flags['extra_link_args'] = ['-L', '/usr/local/lib']
         flags['libraries'] = ['GL']
     elif platform.startswith('openbsd'):
         flags['include_dirs'] = ['/usr/X11R6/include']
@@ -515,6 +518,12 @@ def determine_gl_flags():
             '/opt/vc/include/interface/vmcs_host/linux']
         flags['library_dirs'] = ['/opt/vc/lib']
         flags['libraries'] = ['bcm_host', 'EGL', 'GLESv2']
+    elif platform == 'mali':
+        flags['include_dirs'] = ['/usr/include/']
+        flags['library_dirs'] = ['/usr/lib/arm-linux-gnueabihf']
+        flags['libraries'] = ['GLESv2']
+        c_options['use_x11'] = True
+        c_options['use_egl'] = True
     else:
         flags['libraries'] = ['GL']
     if c_options['use_glew']:
@@ -724,6 +733,11 @@ if c_options['use_rpi']:
             base_flags, gl_flags)
 
 if c_options['use_x11']:
+    libs = ['Xrender', 'X11']
+    if c_options['use_egl']:
+        libs += ['EGL']
+    else:
+        libs += ['GL']
     sources['core/window/window_x11.pyx'] = merge(
         base_flags, gl_flags, {
             # FIXME add an option to depend on them but not compile them
@@ -733,7 +747,7 @@ if c_options['use_x11']:
             #'depends': [
             #    'core/window/window_x11_keytab.c',
             #    'core/window/window_x11_core.c'],
-            'libraries': ['Xrender', 'X11']})
+            'libraries': libs})
 
 if c_options['use_gstreamer']:
     sources['lib/gstplayer/_gstplayer.pyx'] = merge(

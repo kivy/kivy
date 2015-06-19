@@ -84,9 +84,11 @@ class Camera(Image):
         super(Camera, self).__init__(**kwargs)
         if self.index == -1:
             self.index = 0
-        self.bind(index=self._on_index,
-                  resolution=self._on_index)
-        self._on_index()
+        on_index = self._on_index
+        fbind = self.fast_bind
+        fbind('index', on_index)
+        fbind('resolution', on_index)
+        on_index()
 
     def on_tex(self, *l):
         self.canvas.ask_update()

@@ -111,6 +111,35 @@ evaluates to True. For all touch events, you automatically have the X and Y
 positions available, scaled to the Window width and height. In other words, all
 touch events have the ``'pos'`` profile.
 
+Touch event basics
+~~~~~~~~~~~~~~~~~~
+
+By default, touch events are dispatched to all currently displayed widgets.
+This means widgets recieve the touch event whether it occurs within their
+physical area or not.
+
+This can be counter intuitive if you have experience with other GUI toolkits.
+These typically divide the screen into geometric areas and only dispatch
+touch or mouse events to the widget if the coordinate lies within the
+widgets area.
+
+This requirement becomes very restrictive when working with touch input.
+Swipes, pinches and long presses may well originate from outside of the widget
+that wants to know about them and react to them.
+
+In order to provide the maximum flexibility, Kivy dispatches the events to
+all the widgets and lets them decide how to react to them. If you only want
+to respond to touch events inside the widget, you simply check::
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            # The touch has occurred inside the widgets area. Do stuff!
+            pass
+
+            
+Coordinates
+~~~~~~~~~~~
+
 You must take care of matrix transformation in your touch as soon as you use
 a widget with matrix transformation. Some widgets such as 
 :class:`~kivy.uix.scatter.Scatter` have their own matrix transformation,

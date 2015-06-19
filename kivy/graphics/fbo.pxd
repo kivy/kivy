@@ -24,7 +24,7 @@ cdef class Fbo(RenderContext):
 
     cdef void create_fbo(self)
     cdef void delete_fbo(self)
-    cdef void apply(self)
+    cdef int apply(self) except -1
     cdef void raise_exception(self, str message, int status=?)
     cdef str resolve_status(self, int status)
     cdef void reload(self)

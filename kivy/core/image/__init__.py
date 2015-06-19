@@ -11,8 +11,8 @@ In-memory image loading
 
 .. versionadded:: 1.9.0
 
-    Official support for in-memory loading. Not all the providers supports it,
-    but at the moment, pygame, pil and imageio works.
+    Official support for in-memory loading. Not all the providers support it,
+    but at the moment SDL2, pygame, pil and imageio works.
 
 To load an image with a filename, you usually do::
 

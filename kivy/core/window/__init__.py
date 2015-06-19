@@ -19,6 +19,7 @@ from kivy.config import Config
 from kivy.logger import Logger
 from kivy.base import EventLoop, stopTouchApp
 from kivy.modules import Modules
+from kivy.metrics import dp
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
     NumericProperty, OptionProperty, StringProperty, BooleanProperty
@@ -210,6 +211,10 @@ class WindowBase(EventDispatcher):
             Width of the window.
         `height`: int
             Height of the window.
+        `minimum_width`: int
+            Minimum width of the window (only works for sdl2 window provider).
+        `minimum_height`: int
+            Minimum height of the window (only works for sdl2 window provider).
 
     :Events:
         `on_motion`: etype, motionevent
@@ -328,6 +333,18 @@ class WindowBase(EventDispatcher):
         else:
             return False
 
+    minimum_width = NumericProperty(0)
+    '''The minimum_width to restrict the window to.
+
+    .. versionadded:: 1.9.1
+    '''
+
+    minimum_height = NumericProperty(0)
+    '''The minimum_height to restrict the window to.
+
+    .. versionadded:: 1.9.1
+    '''
+
     size = AliasProperty(_get_size, _set_size, bind=('_size', ))
     '''Get the rotated size of the window. If :attr:`rotation` is set, then the
     size will change to reflect the rotation.
@@ -426,7 +443,8 @@ class WindowBase(EventDispatcher):
     degrees.
     '''
 
-    softinput_mode = OptionProperty('', options=('', 'pan', 'scale', 'resize'))
+    softinput_mode = OptionProperty('', options=(
+        '', 'below_target', 'pan', 'scale', 'resize'))
     '''This specifies the behavior of window contents on display of soft
     keyboard on mobile platform. Can be one of '', 'pan', 'scale', 'resize'.
 
@@ -438,6 +456,11 @@ class WindowBase(EventDispatcher):
 
     when 'resize' The window is resized and the contents scaled to fit the
     remaining space.
+    
+    When 'below_target', the window pans so that the current target TextInput
+    widget requesting the keyboard is presented just above the soft Keyboard.
+
+    .. versionchanged::1.9.1
 
     .. versionadded:: 1.9.0
 
@@ -449,6 +472,7 @@ class WindowBase(EventDispatcher):
 
     def _upd_kbd_height(self, *kargs):
         self._keyboard_changed = not self._keyboard_changed
+        self.update_viewport()
 
     def _get_ios_kheight(self):
         return 0
@@ -467,7 +491,8 @@ class WindowBase(EventDispatcher):
         return 0
 
     keyboard_height = AliasProperty(_get_kheight, None,
-                                    bind=('_keyboard_changed',))
+                                    bind=('_keyboard_changed',),
+                                    cache=True)
     '''Rerturns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
@@ -574,6 +599,10 @@ class WindowBase(EventDispatcher):
             kwargs['width'] = Config.getint('graphics', 'width')
         if 'height' not in kwargs:
             kwargs['height'] = Config.getint('graphics', 'height')
+        if 'minimum_width' not in kwargs:
+            kwargs['minimum_width'] = Config.getint('graphics', 'minimum_width')
+        if 'minimum_height' not in kwargs:
+            kwargs['minimum_height'] = Config.getint('graphics', 'minimum_height')
         if 'rotation' not in kwargs:
             kwargs['rotation'] = Config.getint('graphics', 'rotation')
         if 'position' not in kwargs:
@@ -963,6 +992,8 @@ class WindowBase(EventDispatcher):
             w, h = self.size
 
         smode = self.softinput_mode
+        target = self._system_keyboard.target
+        targettop = target.to_window(0, target.y)[1] if target else 0
         kheight = self.keyboard_height
 
         w2, h2 = w / 2., h / 2.
@@ -970,8 +1001,10 @@ class WindowBase(EventDispatcher):
 
         x, y = 0, 0
         _h = h
-        if smode:
+        if smode == 'pan':
             y = kheight
+        elif smode == 'below_target':
+            y = 0 if kheight < targettop else (kheight - targettop) + dp(9)
         if smode == 'scale':
             _h -= kheight
 

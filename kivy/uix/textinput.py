@@ -484,35 +484,40 @@ class TextInput(FocusBehavior, Widget):
 
         super(TextInput, self).__init__(**kwargs)
 
-        self.bind(font_size=self._trigger_refresh_line_options,
-                  font_name=self._trigger_refresh_line_options)
+        fbind = self.fast_bind
+        refresh_line_options = self._trigger_refresh_line_options
+        update_text_options = self._update_text_options
+
+        fbind('font_size', refresh_line_options)
+        fbind('font_name', refresh_line_options)
 
         def handle_readonly(instance, value):
             if value and (not _is_desktop or not self.allow_copy):
                 self.is_focusable = False
 
-        self.bind(padding=self._update_text_options,
-                  tab_width=self._update_text_options,
-                  font_size=self._update_text_options,
-                  font_name=self._update_text_options,
-                  size=self._update_text_options,
-                  password=self._update_text_options)
+        fbind('padding', update_text_options)
+        fbind('tab_width', update_text_options)
+        fbind('font_size', update_text_options)
+        fbind('font_name', update_text_options)
+        fbind('size', update_text_options)
+        fbind('password', update_text_options)
 
-        self.bind(pos=self._trigger_update_graphics,
-                  readonly=handle_readonly, focus=self._on_textinput_focused)
+        fbind('pos', self._trigger_update_graphics)
+        fbind('readonly', handle_readonly)
+        fbind('focus', self._on_textinput_focused)
         handle_readonly(self, self.readonly)
 
-        self._trigger_position_handles = Clock.create_trigger(
+        handles = self._trigger_position_handles = Clock.create_trigger(
             self._position_handles)
         self._trigger_show_handles = Clock.create_trigger(
             self._show_handles, .05)
         self._trigger_update_cutbuffer = Clock.create_trigger(
             self._update_cutbuffer)
-        self._trigger_refresh_line_options()
+        refresh_line_options()
         self._trigger_refresh_text()
 
-        self.bind(pos=self._trigger_position_handles,
-                  size=self._trigger_position_handles)
+        fbind('pos', handles)
+        fbind('size', handles)
 
         # when the gl context is reloaded, trigger the text rendering again.
         _textinput_list.append(ref(self, TextInput._reload_remove_observer))
@@ -1306,8 +1311,7 @@ class TextInput(FocusBehavior, Widget):
         bubble = self._bubble
         if bubble is None:
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
-            self.bind(parent=partial(self._show_cut_copy_paste,
-                                     pos, win, True))
+            self.fast_bind('parent', self._show_cut_copy_paste, pos, win, True)
             win.bind(
                 size=lambda *args: self._hide_cut_copy_paste(win))
             self.bind(cursor_pos=lambda *args: self._hide_cut_copy_paste(win))

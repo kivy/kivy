@@ -114,8 +114,8 @@ Available configuration tokens
 :graphics:
     `borderless`: int , one of 0 or 1
         If set to `1`, removes the window border/decoration.
-    `window_state`: string , one of 'visible', 'hidden', 'maximized'
-    or 'minimized'
+    `window_state`: string , one of 'visible', 'hidden', 'maximized' \
+                    or 'minimized'
         Sets the window state, defaults to 'visible'. This option is available
         only for the SDL2 window provider and it should be used on desktop
         OSes.
@@ -162,6 +162,10 @@ Available configuration tokens
     `width`: int
         Width of the :class:`~kivy.core.window.Window`, not used if
         `fullscreen` is set to `auto`.
+    `minimum_width`: int
+        Minimum width to restrict the window to. (sdl2 only)
+    `minimun_height`: int
+        Minimum height to restrict the window to. (sdl2 only)
 
 :input:
 
@@ -279,7 +283,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 13
+KIVY_CONFIG_VERSION = 14
 
 Config = None
 '''Kivy configuration object. Its :attr:`~kivy.config.ConfigParser.name` is
@@ -751,7 +755,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 12:
             Config.set('graphics', 'window_state', 'visible')
-
+	elif version == 13:
+            Config.set('graphics', 'minimum_width', '0')
+            Config.set('graphics', 'minimum_height', '0')
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
         #

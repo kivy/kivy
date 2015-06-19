@@ -105,7 +105,7 @@ class ButtonBehavior(object):
         super(ButtonBehavior, self).__init__(**kwargs)
         self.__state_event = None
         self.__touch_time = None
-        self.bind(state=self.cancel_event)
+        self.fast_bind('state', self.cancel_event)
 
     def _do_press(self):
         self.state = 'down'
@@ -771,10 +771,12 @@ class FocusBehavior(object):
         super(FocusBehavior, self).__init__(**kwargs)
 
         self._keyboard_mode = _keyboard_mode
-        self.bind(focus=self._on_focus, disabled=self._on_focusable,
-                  is_focusable=self._on_focusable,
-                  focus_next=self._set_on_focus_next,
-                  focus_previous=self._set_on_focus_previous)
+        fbind = self.fast_bind
+        fbind('focus', self._on_focus)
+        fbind('disabled', self._on_focusable)
+        fbind('is_focusable', self._on_focusable)
+        fbind('focus_next', self._set_on_focus_next)
+        fbind('focus_previous', self._set_on_focus_previous)
 
     def _on_focusable(self, instance, value):
         if self.disabled or not self.is_focusable:
@@ -1108,10 +1110,14 @@ class CompoundSelectionBehavior(object):
         def ensure_single_select(*l):
             if (not self.multiselect) and len(self.selected_nodes) > 1:
                 self.clear_selection()
-        self._update_counts()
-        self.bind(multiselect=ensure_single_select,
-        page_count=self._update_counts, up_count=self._update_counts,
-        right_count=self._update_counts, scroll_count=self._update_counts)
+        update_counts = self._update_counts
+        update_counts()
+        fbind = self.fast_bind
+        fbind('multiselect', ensure_single_select)
+        fbind('page_count', update_counts)
+        fbind('up_count', update_counts)
+        fbind('right_count', update_counts)
+        fbind('scroll_count', update_counts)
 
     def select_with_touch(self, node, touch=None):
         '''(internal) Processes a touch on the node. This should be called by

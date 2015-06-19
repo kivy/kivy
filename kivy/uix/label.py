@@ -16,34 +16,64 @@ strings::
     # size
     l = Label(text='Hello world', font_size='20sp')
 
-Text alignment
---------------
+.. _kivy-uix-label-sizing-and-text-content:
 
-The :class:`Label` has :attr:`halign` and :attr:`valign` properties to
-control the alignment of its text, but by default these have no effect
-and the text is always centered within the Label. This is for
-efficiency; the text is aligned only within the pixel drawing of the
-characters, which should normally be as small as possible to minimise
-the number of pixels pushed to the GPU. By default, this text image is
-only just large enough to contain the characters and is positioned in the
-center of the Label.
+Sizing and text content
+---------------------------
 
-In order for the alignment properties to take effect, the simplest
-solution is to set the :attr:`text_size`, which specifies the size of
-the bounding box within which text is aligned. For instance, the
-following code binds this size to the size of the Label, so text will
-be aligned within the widget bounds. This will also automatically wrap
-the text of the Label to remain within this area.
+By default, the size of :class:`Label` is not affected by :attr:`~Label.text`
+content and the text is not affected by the size. In order to control
+sizing, you must specify :attr:`~Label.text_size` to constrain the text
+and/or bind :attr:`~Label.size` to :attr:`~Label.texture_size` to grow with
+the text.
+
+For example, this label's size will be set to the text content
+(plus :attr:`~Label.padding`):
 
 .. code-block:: python
 
-    # in Python
-    from kivy.uix.label import Label
-    class MyLabel(Label):
-        pass
+    Label:
+        size: self.texture_size
 
-    # in kv
-    <MyLabel>:
+This label's text will wrap at the specified width and be clipped to the height:
+
+.. code-block:: python
+
+    Label:
+        text_size: cm(6), cm(4)
+
+.. note:: The :attr:`~Label.shorten` and :attr:`~Label.max_lines` attributes
+ control how overflowing text behaves.
+
+Combine these concepts to create a Label that can grow vertically but wraps the
+text at a certain width:
+
+.. code-block:: python
+
+    Label:
+        text_size: root.width, None
+        size: self.texture_size
+
+Text alignment and wrapping
+---------------------------
+
+The :class:`Label` has :attr:`~Label.halign` and :attr:`~Label.valign`
+properties to control the alignment of its text. However, by default the text
+image (:attr:`~Label.texture`) is only just large enough to contain the
+characters and is positioned in the center of the Label. The valign property
+will have no effect and halign will only have an effect if your text has
+newlines; a single line of text will appear to be centered even though halign is
+set to left (by default).
+
+In order for the alignment properties to take effect, set the
+:attr:`~Label.text_size`, which specifies the size of the bounding box within
+which text is aligned. For instance, the following code binds this size to the
+size of the Label, so text will be aligned within the widget bounds. This
+will also automatically wrap the text of the Label to remain within this area.
+
+.. code-block:: python
+
+    Label:
         text_size: self.size
         halign: 'right'
         valign: 'middle'
@@ -219,16 +249,26 @@ class Label(Widget):
 
         # bind all the property for recreating the texture
         d = Label._font_properties
-        dkw = {}
+        fbind = self.fast_bind
+        update = self._trigger_texture_update
         for x in d:
-            dkw[x] = partial(self._trigger_texture_update, x)
-        self.bind(**dkw)
+            fbind(x, update, x)
 
         self._label = None
         self._create_label()
 
+        fbind('markup', self._bind_for_markup)
+        if self.markup:
+            self._bind_for_markup(self, self.markup)
+
         # force the texture creation
         self._trigger_texture()
+
+    def _bind_for_markup(self, inst, markup):
+        if markup:
+            self.fast_bind('color', self._trigger_texture_update, 'color')
+        else:
+            self.fast_unbind('color', self._trigger_texture_update, 'color')
 
     def _create_label(self):
         # create the core label class according to markup value
@@ -279,7 +319,7 @@ class Label(Widget):
                 self.anchors, self._label._anchors = {}, {}
         else:
             if mrkup:
-                text = self._label.text
+                text = self.text
                 # we must strip here, otherwise, if the last line is empty,
                 # markup will retain the last empty line since it only strips
                 # line by line within markup

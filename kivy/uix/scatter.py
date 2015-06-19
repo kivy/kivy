@@ -390,9 +390,9 @@ class Scatter(Widget):
         p = self.transform_inv.transform_point(x, y, 0)
         return (p[0], p[1])
 
-    def _apply_transform(self, m):
+    def _apply_transform(self, m, pos=None):
         m = self.transform.multiply(m)
-        return super(Scatter, self)._apply_transform(m)
+        return super(Scatter, self)._apply_transform(m, (0, 0))
 
     def apply_transform(self, trans, post_multiply=False, anchor=(0, 0)):
         '''

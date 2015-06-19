@@ -2,8 +2,8 @@
 Float Layout
 ============
 
-The :class:`FloatLayout` class honors only the :attr:`Widget.pos_hint` and
-:attr:`Widget.size_hint` attributes.
+:class:`FloatLayout` honors the :attr:`~kivy.uix.widget.Widget.pos_hint`
+and the :attr:`~kivy.uix.widget.Widget.size_hint` properties of its children.
 
 .. only:: html
 
@@ -64,12 +64,13 @@ class FloatLayout(Layout):
     def __init__(self, **kwargs):
         kwargs.setdefault('size', (1, 1))
         super(FloatLayout, self).__init__(**kwargs)
-        self.bind(
-            children=self._trigger_layout,
-            pos=self._trigger_layout,
-            pos_hint=self._trigger_layout,
-            size_hint=self._trigger_layout,
-            size=self._trigger_layout)
+        fbind = self.fast_bind
+        update = self._trigger_layout
+        fbind('children', update)
+        fbind('pos', update)
+        fbind('pos_hint', update)
+        fbind('size_hint', update)
+        fbind('size', update)
 
     def do_layout(self, *largs, **kwargs):
         # optimization, until the size is 1, 1, don't do layout

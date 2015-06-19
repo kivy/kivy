@@ -1391,7 +1391,7 @@ class Parser(object):
                 # It's a class, add to the current object as a children
                 current_property = None
                 name = x[0]
-                if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+':
+                if ord(name[0]) in Parser.CLASS_RANGE:
                     _objects, _lines = self.parse_level(
                         level + 1, lines[i:], spaces)
                     current_object.children = _objects
