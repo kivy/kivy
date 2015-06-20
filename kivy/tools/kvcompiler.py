@@ -121,6 +121,8 @@ TODO:
 
 __all__ = []
 
+__version__ = '0.1'
+
 import datetime
 from types import CodeType
 from collections import OrderedDict, defaultdict
@@ -131,28 +133,42 @@ from os.path import abspath
 import kivy
 
 rule_handler = 0
+'''The global count of the number of `__hn_prop` callback functions for rules
+of the form `prop: value` that has been created. `n`, is the current value of
+`rule_handler`.
+'''
 rule_on_handler = 0
+'''The global count of the number of `__hn_on_prop` callback functions for
+rules of the form `on_prop: do_x()` that has been created. `n`, is the current
+value of `rule_on_handler`.
+'''
 rule_uid = 0
+'''The global count of the number of rule application functions created so
+far. I.e. each `__rn` function created for a KV root rule e.g. `<MyRule>:...`
+increments this. `n`, is the current value of `rule_uid`.
+'''
 
 triquote_pat = r"(?<!\\)'''"
+# Group that matches the string prefixes, e.g. rb"string"
 typed_str = re_compile('.*?([rbuRBU]*)$')
 
 header_imports = '''
 import kivy.metrics as __Metrics
 from kivy.factory import Factory
-from kivy.lang import Builder
 from kivy.lang import (
     ParserSelectorName as __ParserSelectorName, _handlers as __handlers,
-    ProxyApp as __ProxyApp, delayed_call_fn as __delayed_call_fn)
+    ProxyApp as __ProxyApp, delayed_call_fn as __delayed_call_fn,
+    Builder as __Builder)
 from kivy import require as __require
 from functools import partial as __partial
 '''
 
 pyheader_imports = header_imports + \
-    '''from kivy.event import EventDispatcher, Observable'''
+    '''from kivy.event import EventDispatcher as __EventDispatcher, Observable as __Observable'''
 
 cyheader_imports = header_imports + '''
-from kivy._event cimport EventDispatcher, Observable
+from kivy._event cimport EventDispatcher as __EventDispatcher
+from kivy._event cimport Observable as __Observable
 from kivy.properties cimport Property
 '''
 
@@ -176,6 +192,10 @@ cdef list __mc = [None, ] * {}
 
 rebind_callback_str = '''
 def __rebind_callback(bound, i, instance, value):
+    # bound is the list containing all the binds associated with a particular
+    # root instance and its children nodes, e.g. `prop: root.obj`, bound
+    # will contain all the binds that start with `root`. i is the bind index in
+    # bound that triggered the rebind callback.
     # bound[i] and p cannot be None b/c it dispatched
     s, e, pidx, p, key, _, _, _ = bound[i]
     # we need to rebind all children of root (p.key). First check if the value
@@ -196,69 +216,57 @@ def __rebind_callback(bound, i, instance, value):
     # now unbind all the children, and along the way set each parent value
     # to be the new parent in the p.key.x.y.z... tree. cache the values here.
     # keys are the index of the parent
-    parent = {0}
+    parent = {{}}
     p = getattr(p, key)  # next parent
-    if p is None or not isinstance(object, {1}):
-        parent[i] = p, None, None, None, None
+    if p is None or not isinstance(object, {0}):
+        parent[i] = p, None, None, None
     else:
-        parent[i] = p, p.proxy_ref, p.fast_bind, p.property, p.rebind_property
+        parent[i] = p, p.proxy_ref, p.fast_bind, p.rebind_property
 
-    dispatch = [None, ] * (e - s)
+    dispatch = {{}}
+
     for k, node in enumerate(range(s, e)):
-        node_s, node_e, pidx, p, key, bid, f, args = blist = bound[i]
+        # get the info stored for this bind
+        node_s, node_e, pidx, p, key, buid, f, args = blist = bound[i]
         # node_s/e being None means it's a leaf with no children
-        if bid:  # unbind parent's rebind
+        if buid:  # unbind parent's rebind
             try:
-                p.unbind_uid(key, bid)
+                p.unbind_uid(key, buid)
             except ReferenceError:
                 pass
 
-        p, pref, bind, prop_get, rebind_prop = parent[pidx]
+        p, pref, bind, rebind_prop = parent[pidx]
         # decide whether we can bind to this object
         if bind is not None and node_s is None:  # a leaf
-            blist[3] = pref
-            uid = blist[5] = bind(key, f, *args)
-            if uid:  # it is a kivy prop
-                prop = prop_get(key)
-                dispatch[k] = (
-                    node, p, prop.dispatch_stale, prop.dispatch_count(p))
+            # replace the previous bind with the new object and bind
+            blist[3] = pref  # new object ref
+            blist[5] = bind(key, f, *args)  # bind leaf again
+            dispatch[f] = args
             continue
         elif bind is not None and rebind_prop(key):  # a rebind node
             blist[3] = pref
             blist[5] = bind(key, f, *args)
-            if uid:  # it is a kivy prop
-                prop = prop_get(key)
-                dispatch[k] = (
-                    node, p, prop.dispatch_stale, prop.dispatch_count(p))
-        else:  # either no obj, or obj but no rebind and it's not a leaf
+        else:  # either None obj, or obj but no rebind and it's not a leaf
             blist[3] = blist[5] = None
             if node_s is None:
                 continue
 
         # if the key is a leaf, don't save the key as a parent b/c it has no
-        # children, hence the continue above
+        # children, hence the continue above so now, we are at rebind node
+        # so we need to save this node for our children as their parent
         if node not in parent:
             if p is None:  # our parent is already None
-                parent[node] = (None, None, None, None, None)
+                parent[node] = (None, None, None, None)
             else:
                 p = getattr(p, key)  # next parent
-                if p is None or not isinstance(object, (EventDispatcher, )):
+                if p is None or not isinstance(object, {0}):
                     parent[node] = p, None, None, None, None
                 else:
                     parent[node] = (
-                        p, p.proxy_ref, p.fast_bind, p.property,
-                        p.rebind_property)
+                        p, p.proxy_ref, p.fast_bind, p.rebind_property)
 
-    for item in dispatch:
-        if item is None:
-            continue
-        i, p, dispatch_stale, count = item
-
-        try:
-            if p == bound[i][3]:
-                dispatch_stale(p, count)
-        except ReferenceError:
-            pass
+    for f, args in dispatch.items():
+        f(*(args + (None, None)))
 '''
 
 return_args_str = '''
@@ -268,7 +276,10 @@ def __return_args(args):
 
 
 def break_multiline_code(code):
-    '''e.g.::
+    '''Breaks a string containing (possibly multi-line) code into individual
+    lines, while ensuring it's still legal python. E.g. strings that span
+    multiple lines are broken into per-line quoted strings with the proper
+    prefixes. For example::
 
         >>> s = '1 + self.width * 2'
         >>> break_multiline_code(s)
@@ -347,6 +358,22 @@ lot\\n\'''", "rb\'''the next day they couldn't walk at all\\n\'''", \
 
 
 def safe_comment(code, linenum):
+    '''Takes any string representing code and returns a list of strings that
+    when printed as one string per line will envelope the code as a single or
+    multiline string.
+
+    The resulting string also includes formatting indicating the source
+    code line (linenum) from which the code originates. For example::
+
+        >>> safe_comment('name = "55"', 7)
+        ['\\'\\'\\'Line 7: name = "55" \\'\\'\\'']
+        >>> safe_comment('val = 44', 7)
+        ["\'''Line 7: val = 44 \'''"]
+        >>> safe_comment('val = (1, 2,\\n3, 4)', 7)
+        ["\'''Line 7: val = (1, 2,", "3, 4) \'''"]
+        >>> safe_comment("val = (1, \'''fruits\\nand veggies\''')", 7)
+        ["\'''Line 7: val = (1, \\\\\'''fruits", "and veggies\\\\\''') \'''"]
+    '''
     lines = [sub(triquote_pat, r"\'''", l) for l in code.splitlines()]
     if not lines:
         return lines
@@ -356,30 +383,16 @@ def safe_comment(code, linenum):
     return lines
 
 
-def argmax(iter):
-    return sorted(enumerate(iter), key=lambda x: x[1])[-1][0]
-
-
-def argmin(iter):
-    return sorted(enumerate(iter), key=lambda x: x[1])[0][0]
-
-
-def partition_tree_roots(adjacency):
-    N = len(adjacency)
-    assert N
-    assert all([len(col) == N for col in adjacency])
-    roots = []
-
-    # partition into disjointed trees
-    for c, col in enumerate(adjacency):
-        if sum(col) == 0:
-            roots.append(c)
-    # if we didn't find any roots, pick the one with least incoming edges
-    if not roots:
-        roots.append(argmin(map(sum, adjacency)))
-
-
 def make_tuple(objs):
+    '''Create a string tuple from the string objects in objs. For example::
+
+        >>> make_tuple([])
+        '()'
+        >>> make_tuple(['1', ])
+        '(1, )'
+        >>> make_tuple(['1', '3'])
+        '(1, 3)'
+    '''
     if not len(objs):
         return '()'
     elif len(objs) == 1:
@@ -389,26 +402,45 @@ def make_tuple(objs):
 
 
 def push_empty(lines, max_empty=1):
+    '''Adds an empty line to the `lines` list, if all the last `max_empty`
+    items in `lines`, when stripped are not the empty string. For example::
+
+        >>> lines = ['a', 'b']
+        >>> push_empty(lines, max_empty=1)
+        >>> lines
+        ['a', 'b', '']
+        >>> push_empty(lines, max_empty=1)
+        >>> lines
+        ['a', 'b', '']
+        >>> push_empty(lines, max_empty=2)
+        >>> lines
+        ['a', 'b', '', '']
+    '''
     if [l for l in lines[-max_empty:] if l.strip()]:
         lines.append('')
 
 
-def _find_maxline(line, rule):
+def find_maxline(line, rule):
+    '''Finds the last line of the rule.
+    '''
     line = max(line, rule.line)
     for child in rule.children:
-        line = max(line, _find_maxline(line, child))
+        line = max(line, find_maxline(line, child))
     for prop in rule.properties.values():
         line = max(line, prop.line)
     if rule.canvas_root:
-        line = max(line, _find_maxline(line, rule.canvas_root))
+        line = max(line, find_maxline(line, rule.canvas_root))
     if rule.canvas_before:
-        line = max(line, _find_maxline(line, rule.canvas_before))
+        line = max(line, find_maxline(line, rule.canvas_before))
     if rule.canvas_after:
-        line = max(line, _find_maxline(line, rule.canvas_after))
+        line = max(line, find_maxline(line, rule.canvas_after))
     return line
 
 
 def larger_than_one(options, n):
+    '''Takes `options` and returns the first element of `options` if `n` is
+    less than or equal to 1, other it returns the second element.
+    '''
     if n <= 1:
         return options[0]
     return options[1]
@@ -484,10 +516,10 @@ class LazyString(object):
 
     def __getattr__(self, name):
         if name in self.selections:
-            return partial(self.get, name)
+            return partial(self._get, name)
         raise AttributeError(name)
 
-    def get(self, selection, value, add=True):
+    def _get(self, selection, value, add=True):
         if selection not in self.selections:
             raise AttributeError(selection)
         if not isinstance(value, (list, tuple)):
@@ -508,6 +540,9 @@ class LazyString(object):
 
 
 class LazyEval(object):
+    '''Returned by :class:`LazyString`, and when evaluated as a string, returns
+    a value based on the usage in :class:`LazyString`.
+    '''
 
     lazy_str = None
 
@@ -541,6 +576,12 @@ class LazyFmt(object):
         'Why are you creating me?'
         >>> type(val)
         <class 'kivy.tools.kvcompiler.LazyFmt'>
+
+    The instance also takes a `group` keyword argument, and if the value of
+    `group` is in :attr:`hidden_groups`, then the instance evaluates to the
+    empty string. This is useful by setting :attr:`hidden_groups` of the class,
+    e.g. `LazyFmt.hidden_groups.add('doc')`, all the instances whose group
+    is `'doc'`, will now evaluate to the empty string.
     '''
 
     hidden_groups = set()
@@ -572,11 +613,17 @@ class RuleContext(object):
 
     See the class properties for the init parameters.
 
-    The rule is that whenever a property of function returns a list of code
-    strings, the shallowest code is indented at indent of zero. It's the
-    responsibility of the calling code to then re-indent the returned code
-    to the appropriate level based on the required indent of the shallowest
-    level.
+    The rule is that whenever a property or function returns a list of code
+    strings, the shallowest code in the list is indented at indent of zero.
+    It's the responsibility of the calling code to then re-indent the returned
+    code to the appropriate level based on the required indent of the
+    shallowest level.
+
+    For example, if we return a `if` statement meant to be in a function,
+    although in the final code the `if` will be at a indent of a single tab
+    and the contents under the `if` will have two tabs, when returned here,
+    because `if` is the shallowest level, `if` will not be indented, while its
+    contents will be indented by one tab.
     '''
 
     rule = None
@@ -594,7 +641,7 @@ class RuleContext(object):
 
     count = 0
     '''The number associated with this object, see :attr:`name`. It is assigned
-    uniquely for each rule (object) within the children objects of root kv
+    uniquely for each rule (object) within the children objects of the root kv
     rule. It is assigned by :class:`KVCompiler` according to the topological
     ordering.
     '''
@@ -613,8 +660,14 @@ class RuleContext(object):
     '''
 
     tab = 0
+    '''The number of spaces represented by a tab. Automatically set by
+    :attr:`KVCompiler.tab`.
+    '''
 
     compiler = None
+    '''The :class:`KVCompiler` instance that created this :class:`RuleContext`
+    instance.
+    '''
 
     _root_f_num = None  # cached value of :attr:`f_num`
 
@@ -642,15 +695,16 @@ class RuleContext(object):
     def name(self):
         '''The compiled name given to the rule object. Its form is either:
 
-        #. `root` for the root widget with no parent,
+        #. `root` for the root widget with no parent (even if it has a KV id),
         #. `xn` for objects with no `id` given in kv, or
-        #. `xn_id` for objects with kv ids.
+        #. `xn_id` for objects with kv ids, where `id` is the KV id given.
 
         `x` above is either `g`, or `w` for graphics and widget objects,
         respectively. `n` above is the value of :attr:`count`.
 
         By mangeling the names in the compiled code, it is ensured that names
-        given in kv will never clash with other parts of the compiled code.
+        given in kv will never clash with other parts of the compiled code,
+        since nothing there is allowed to start with `w`, `g`, or root.
         '''
         if self.parent is None:
             return 'root'
@@ -661,10 +715,24 @@ class RuleContext(object):
 
     @property
     def self_name(self):
+        '''If :attr:`rule_type` is `'widget'` it returns :attr:`name` of this
+        rule, otherwise it returns the :attr:`name` of the widget in which
+        this graphics instruction is child of, i.e. :attr:`parent`.
+        '''
         return self.name if self.rule_type == 'widget' else self.parent.name
 
     @property
     def doc_name(self):
+        '''Returns a representation for the docs of the name of the class of
+        this rule. For example::
+
+            <MyRule>:
+                Widget:
+                    Label:
+                        prop: prop_value
+
+        The `Label` rule would be returned as `MyRule -> Widget -> Label`.
+        '''
         names = []
         obj = self
         while obj is not None:
@@ -674,11 +742,12 @@ class RuleContext(object):
 
     @property
     def f_num(self):
-        '''The number given to the compiled function generated for this root
-        rule. It is uniquely generated for all the compiled rules.
+        '''The number given to the compiled function generated for the root
+        rule associated with this rule.
 
-        Should only be called for a root rule, i.e. one whose :attr:`parent` is
-        None.
+        This only makes sense when read for a :class:`RuleContext` that is a
+        root rule, i.e. its :attr:`parent` is None. It is uniquely generated
+        for all the compiled root rules.
         '''
         if self._root_f_num is None and self.parent is None:
             global rule_uid
@@ -688,7 +757,12 @@ class RuleContext(object):
 
     @property
     def parent_add_child(self):
-        '''
+        '''Returns the code string used to add graphics to its parent's
+        canvas (e.g. obj.canvas.add). This can only be called for
+        :class:`RuleContext` representing graphical rules.
+
+        Depending whether the instruction is a only child, a alias or the
+        direct canvas add method is returned.
         '''
         assert self.parent is not None
         rule_type = self.rule_type
@@ -701,6 +775,14 @@ class RuleContext(object):
 
     @property
     def creation_instructions(self):
+        '''Returns the code string list used to create the object represented
+        by this :attr:`RuleContext`, if it's not the root rule.
+
+        It also creates the alias for adding graphics to this widget, if it's
+        a widget, used by :attr:`parent_add_child` (e.g.
+        `__add_obj_canvas_root = obj.canvas.add`). Widgets are added to their
+        parents using the `parent` keyword.
+        '''
         parent = self.parent
         fuse = self.compiler.factory_obj.use
 
@@ -710,9 +792,10 @@ class RuleContext(object):
             ret = []
             if parent is not None:  # don't create if applying rule to root
                 ret.append(DocFmt("'''Line {}: {}'''", rule.line, self.doc_name))
+                batch = ', __builder_created=__bfuncs' if self.compiler.batch_bind else ''
                 ret.append(LazyFmt(
-                    '{} = {}(parent={}, __builder_created=__bfuncs)', self.name,
-                    fuse(rule.name), parent.name))
+                    '{} = {}(parent={}{})', self.name, fuse(rule.name),
+                    parent.name, batch))
             if rule.canvas_root and len(rule.canvas_root.children) > 1:
                 ret.append(
                     '__add_{0}_canvas_root = {0}.canvas.add'.format(self.name))
@@ -730,9 +813,13 @@ class RuleContext(object):
 
     @property
     def ids_map(self):
-        '''Everything that is given an id (i.e. id: value), as well as self,
-        app, and root. For graphics instructions, self maps to the proper
-        parent widget name.
+        '''Returns a dictionary mapping ids to the actual widget name given to
+        the widget when created. E.g. `id: label` gets converted to e.g.
+        `w2_label = Label()`, so the dict would map `w2_label` to `label`.
+
+        Everything that is given an id (i.e. id: value) throughout this
+        root rule context, as well as `self`, `app`, and `root` is a key in the dict.
+        `self` always maps to :attr:`self_name`.
         '''
         if self._ids_map is None:
             self._ids_map = name_map = {k: v.name for k, v in self.ids.items()}
@@ -745,6 +832,28 @@ class RuleContext(object):
         return self._ids_map
 
     def fix_rule_ids(self, rule_text):
+        '''Takes a KV rule as `rule_text` and for each key of the keys of
+        :attr:`ids_map`, if the key is found in `rule_text` they are replaced
+        by the corresponding value in :attr:`ids_map`.
+
+        For example, for ::
+
+            <MyRule>:
+                Label:
+                    id: label
+                    text: str(self.size)
+
+        `label.text = str(self.size)` will become e.g.
+        `w2_label.text = str(w2_label.size)`.
+
+        :returns:
+
+            A 2-tuple; the first element is a string respresenting `rule_text`
+            that has been fixed as described, and the second element is a
+            dict whose keys are the keys of :attr:`ids_map` found in
+            `rule_text`, and its values are the number of times they were
+            found there.
+        '''
         ids_map = self.ids_map
         used_ids = defaultdict(int)
         if self._ids_pat is None:
@@ -769,6 +878,13 @@ class RuleContext(object):
 
     @property
     def missing_properties(self):
+        '''Returns the code string list that checks whether any properties
+        that are being set by a KV rule, e.g. `prop: value`, don't exist, and
+        then creates these as kivy properties.
+
+        For graphical children this returns an empty list, because they don't
+        have kivy properties.
+        '''
         if self.rule_type != 'widget':
             return []
         tab = self.tab
@@ -807,6 +923,36 @@ class RuleContext(object):
 
     @property
     def property_handlers(self):
+        '''Returns a 5-tuple of `(funcs, bindings, inits, lit_init,
+        delayed_init)` that contains the code for handling `prop: value` type
+        KV rules associated with widget :attr:`name`. This is returned whether
+        it's a graphical or widget instance attribute being set by the rule.
+
+        `funcs`: is the function definitions and code of the `__h` functions
+            bound and called to execute the KV rule and set the property.
+        `bindings`: is a list of 7-tuples `(sname, prop_name, f, fargs,
+            keys, delayed, comment)` use to create the bindings.
+            `sname`: is :attr:`self_name`.
+            `prop_name`: is the property name being set by the rule.
+            `f`: is the function name in `funcs` associated with the rule.
+            `fargs`: is the list of objects (e.g. widgets) that need to be
+                passed to the function `f` upon a callback.
+            `keys`: is a list of an attribute chain that the rule binds to.
+                E.g. `prop: self.obj.name or self.cls.value`, will add two
+                tuples to `bindings` whose respective `keys` are `['self',
+                'obj', 'name']`, and `['self', 'cls', 'value']`.
+            `delayed`: is None if a widget instance attribute is set, otherwise
+                a graphical attribute is set and this is of the form
+                `__delayed_xxx` and is the list passed to `__delayed_call_fn`
+                for scheduling a graphical update.
+            `comment`: is a list of strings containing the comments describing
+                the KV code that generated this rule.
+        `inits`: is the list of code that initializes non-literals rules.
+        `lit_init`: is the list of code that initializes literal rules (e.g.
+            `prop: self` or `prop: 2.5`).
+        `delayed_init`: is the code that schedules the initilization of rules
+            that set attributes of graphics children using `__delayed_call_fn`.
+        '''
         ids_map = self.ids_map
         tab = self.tab
         global rule_handler
@@ -887,6 +1033,26 @@ class RuleContext(object):
 
     @property
     def property_on_handlers(self):
+        '''Returns a 2-tuple of `(funcs, args)` that contains the code for
+        handling `on_prop: do_x()` type KV rules associated with widget
+        :attr:`name`.
+
+        `funcs`: is the function definitions and code of the `__hx_on_prop`
+            functions bound and called to execute the KV rule when the property
+            changes.
+        `args`: is a list of 6-tuples `(sname, ev_name, f, fargs, comment,
+            code` use to create the bindings.
+            `sname`: is :attr:`self_name`.
+            `ev_name`: is the on_property or event name that triggers the rule.
+            `f`: is the function name in `funcs` associated with the rule.
+            `fargs`: is the list of objects (e.g. widgets) that need to be
+                passed to the function `f` upon a callback.
+            `comment`: is a list of strings containing the comments describing
+                the KV code that generated this rule.
+            `code`: is the inlined code of the rule used when all the rules are
+                finished being applied in order to execute the rule if the prop
+                or event was triggered during rule application.
+        '''
         ids_map = self.ids_map
         tab = self.tab
         global rule_on_handler
@@ -929,23 +1095,73 @@ class RuleContext(object):
 
 
 class KVCompiler(object):
+    '''Class that takes parsed KV rules and generates python code from these
+    rules.
+    '''
 
     # compiler options
     tab = '    '
+    '''The string to use whenever a tab is required. Defaults to 4 spaces.
+    '''
 
     rebind = True
+    '''Whether `rebind` as described in
+    :class:`~kivy.properties.ObjectProperty` is assumed to always be False
+    for all the objects enncountered in KV rules. If `False`, we can perform
+    certain optimizations, but then no rebinding will be done.
+
+    Defaults to True.
+    '''
 
     base_types = ['EventDispatcher', 'Observable']
+    '''The base class types used when checking whether a object found in a KV
+    rule can be bound to, by checking whether it's an instance of any of these
+    base types. Any class listed here must have `fast_bind` and related
+    methods. By reducing the number of classes listed, performace can be
+    improved.
+
+    Defaults to `['EventDispatcher', 'Observable']`.
+    '''
 
     event_dispatcher_type = False
-    '''When True, assumes no observable, no overwriting of fast_bind etc.
+    '''**Not implemented** cython option.
+    When True, assumes only EventDispatcher and no Observable, and that the
+    fast_bind methods has not been overwritten.
     '''
 
     cython = False
+    '''**Not implemented** cython option.
+    Whether to compile the code to cython.
+    '''
 
     include_doc = True
+    '''Whether doc strings will be included in the compiled code. Not
+    including it will reduce the compiled code size.
+
+    Defaults to True.
+    '''
 
     batch_bind = True
+    '''**Temporary experimental method**
+
+    A temporary option that swicthes betweeen two fundemental ways of doing the
+    executaion order of KV bindings.
+
+    When `False`, bindings occur mostly like in the past, except for some
+    optimizations.
+
+    When `True`, bindings will batched across all the KV rules, even rules
+    defined in other compiled files (if it was compiled with batch_bind=True).
+    Consider the following KV rules::
+
+        <RuleA@BoxLayout>:
+            Label:
+                my_pos: root.pos
+
+        <RuleB@Button>:
+            RuleA:
+                markup: self.disabled and self.text
+    '''
 
     # temporary, per rule variables
 
@@ -1206,16 +1422,14 @@ class KVCompiler(object):
 
         # the function definition that applies the rule
         self.func_def = code = [
-            'def {}(root, builder_created):'.format(fname),
-            '{}args = None'.format(tab)
-            ]
+            'def {}(root, __builder_created):'.format(fname)]
 
         # the names of all the widgets created
         widgets = [r.name for r in self.rules[1:] if r.rule_type == 'widget']
         wgts_str = make_tuple(widgets)
         if self.batch_bind and (widgets or self.has_bindings):
             code.append(
-                '{}__bfuncs = [] if builder_created is None else builder_created'.
+                '{}__bfuncs = [] if __builder_created is None else __builder_created'.
                 format(tab))
             # the names of all the known objects, including imported ones
             names = sorted(set(list(root_names) + list(obj_names)))
@@ -1226,7 +1440,7 @@ class KVCompiler(object):
 
             # at the end of rule apllication do the bind and dispatch steps
             self.prop_init_return = [
-                'if builder_created is None:',
+                'if __builder_created is None:',
                 '{}__bfuncs = [f() for f in __bfuncs]'.format(tab),
                 '{}__bfuncs.append({}({}))'.format(tab, bfunc, ', '.join(names)),
                 '{}__bfuncs = [f() for f in reversed(__bfuncs)]'.format(tab),
@@ -1256,9 +1470,7 @@ class KVCompiler(object):
                     'return __partial({})'.format(', '.join([dfunc] + names)))
                 # and generate that func def
                 self.func_on_init_def = [
-                    'def {}({}):'.format(dfunc, ', '.join(names)),
-                    '{}args = None'.format(tab)
-                ]
+                    'def {}({}):'.format(dfunc, ', '.join(names))]
                 # and create that func return
                 self.on_init_return = ['return {}'.format(wgts_str)]
         elif widgets:
@@ -1316,6 +1528,8 @@ class KVCompiler(object):
         # add the rule function defintion
         func_def = flatten(self.func_def)
         ret.extend(func_def)
+        if self.prop_init or self.prop_lit_init:
+            ret.append('{}args = None, None'.format(tab))
         if len([l for l in func_def if l.strip()]) > 1:
             push_empty(ret)
 
@@ -1374,9 +1588,16 @@ class KVCompiler(object):
 
         # now re-init the non-lits and dispatch the on_handlers
         init = self.prop_init if self.bindings else []
-        for lines in init + self.on_handlers_inits:
-            ret.extend(flatten(lines, depth=1))
-            push_empty(ret)
+
+        if self.bindings and self.prop_init:
+            for lines in ['args = None, None'] + self.prop_init:
+                ret.extend(flatten(lines, depth=1))
+                push_empty(ret)
+
+        if self.on_handlers_inits:
+            for lines in ['args = None,'] + self.on_handlers_inits:
+                ret.extend(flatten(lines, depth=1))
+                push_empty(ret)
 
         # now return the widgets that need to have on_kv_apply on them
         ret.extend(flatten(self.on_init_return, depth=1))
@@ -1652,10 +1873,11 @@ class KVCompiler(object):
         obj_name = lambda x: 'obj_' + '_'.join(x) if len(x) > 1 else root_name
         unbind_idxs = defaultdict(list)
         p_use = lambda x: proxy.use(x) if x in obj_names or level else x
-        if len(self.base_types) > 1:
-            base_types = '({})'.format(', '.join(self.base_types))
+        base_types = ['__' + b for b in self.base_types]
+        if len(base_types) > 1:
+            base_types = '({})'.format(', '.join(base_types))
         else:
-            base_types = self.base_types[0]
+            base_types = base_types[0]
         bind = self.fast_bind_alias
 
         # for every iter of the loop, we pick a node in topological depth first
@@ -1839,28 +2061,29 @@ class KVCompiler(object):
                 if ref in includes:
                     if not force_load:
                         continue
-                    ret.append('Builder.unload_file({})'.format(ref))
-                    ret.append('Builder.load_file({})'.format(ref))
+                    ret.append('__Builder.unload_file({})'.format(ref))
+                    ret.append('__Builder.load_file({})'.format(ref))
                 else:
                     includes.add(ref)
-                    ret.append('Builder.load_file({})'.format(ref))
+                    ret.append('__Builder.load_file({})'.format(ref))
         return ret
 
     def compile_dynamic_classes(self, classes):
         ret = ['# register dynamic classes']
         for dname, dbases in classes.items():
-            ret.append('Factory.register("{}", baseclasses="{}")'.
-                       format(dname, dbases))
+            ret.append(
+                'Factory.register("{}", baseclasses="{}", filename=__file__, '
+                'warn=True)'.format(dname, dbases))
         return ret
 
     def generate_template(self, name, template):
         # template compilation is not supported at all, so rely on the current
         # interpreted language.
         minline = template.line
-        maxline = _find_maxline(minline, template)
+        maxline = find_maxline(minline, template)
         code = "\n".join(
             [c[1] for c in template.ctx.sourcecode[minline:maxline + 1]])
-        return ["Builder.load_string('''", code, "''')"]
+        return ["__Builder.load_string('''", code, "''')"]
 
     def compile(self, parser, file_hash, rule_opts={}, **kwargs):
         cython = kwargs.get('cython', KVCompiler.cython)
@@ -1885,28 +2108,25 @@ class KVCompiler(object):
         defaults_opts.update(kwargs)
 
         # make sure that the rebind callback uses all types in all rules
+        # so pick the maximum provided base types from all options
+        # use OrderedDict as ordered set.
         base_types = OrderedDict()
         for d in [defaults_opts] + rule_opts.values():
             for o_type in d.get('base_types', []):
                 base_types[o_type] = None
-        base_types = base_types.keys()
-        if len(base_types) == 1:
-            otype = '({}, )'.format(base_types[0])
-        else:
-            otype = str(tuple(base_types))
+        otype = make_tuple(['__' + b for b in base_types.keys()])
 
-        ver = '__version__ = "{}"'.format(kivy.__version__)
+        ver = '__version__ = "{}"'.format(__version__)
+        kver = '__kivy_version__ = "{}"'.format(kivy.__version__)
         source = '__source_file__ = r"{}"'.format(abspath(parser.filename))
         src_hash = '__source_hash__ = b"{}"'.format(file_hash)
 
-        lines = [ver, source, src_hash]
+        lines = [ver, kver, source, src_hash]
         if cython:
             lines += [cyheader_imports, cyheader_globals]
         else:
             lines += [pyheader_imports, pyheader_globals]
-        lines += [
-            rebind_callback_str.format('{}', otype), '',
-            return_args_str, '']
+        lines += [rebind_callback_str.format(otype), '', return_args_str, '']
 
         lines.extend(self.compile_directives(parser.directives))
 
@@ -1953,7 +2173,7 @@ class KVCompiler(object):
         else:
             lines.extend(['', ''])
         lines.append(root_code)
-        lines[4] = lines[4].format(rule_uid)
+        lines[5] = lines[5].format(rule_uid)
 
         for name, cls, template in parser.templates:
             lines.extend(['', ''])

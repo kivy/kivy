@@ -1772,7 +1772,7 @@ class BuilderBase(object):
                 'Cannot dynamically compile and load cython code from string.')
 
         code = '\n'.join(lines)
-        glbls = {}
+        glbls = {'__file__': '<string>'}
         exec(code, glbls)
 
         self.compiled_rules.extend(
@@ -1783,6 +1783,9 @@ class BuilderBase(object):
     def load_file(self, filename, **kwargs):
         '''Insert a file into the language builder and return the root widget
         (if defined) of the kv file.
+
+        Compiled files are imported as kivy.lang.compiled_mod_filename, where
+        filename is the full path to `filename`.
 
         :parameters:
             `rulesonly`: bool, defaults to False
@@ -1815,12 +1818,12 @@ class BuilderBase(object):
             try:
                 # does the source file exist, or did we get a compiled file?
                 if is_source:
-                    with codecs.open(filename) as fd:  # read the source file hash
+                    with codecs.open(filename) as fd:  # get the source hash
                         h = hashlib.sha256(fd.read()).hexdigest()
 
                 with codecs.open(fn, desc[1]) as fh:
                     mod = imp.load_module(
-                        'kivy.lang.{}'.format(basename(base_name)), fh, fn,
+                        'kivy.lang.compiled_mod_{}'.format(base_name), fh, fn,
                         desc)
 
                 if is_source:  # does the source hash match the file's?
