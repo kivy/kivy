@@ -58,6 +58,7 @@ import kivy.support
 import kivy.input.recorder
 import kivy.interactive
 import kivy.garden
+import kivy.tools.kvcompiler
 from kivy.factory import Factory
 
 # check for silenced build
