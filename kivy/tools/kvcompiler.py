@@ -1430,7 +1430,7 @@ class KVCompiler(object):
             on_handlers.extend(bindings)
 
         # compile all the handler bindings
-        self.bindings = self.compile_bindings(rules, handlers, on_handlers)
+        self.bindings = self.compile_bindings(rules, handlers)
         self.generate_on_code(on_handlers)
 
         # the function definition that applies the rule
@@ -1753,7 +1753,12 @@ class KVCompiler(object):
                 # at dispatch, exec code if the property value changed earlier
                 iappnd('if __on_init[{}] is not None:'.format(i))
                 iappnd('{}__prop, s, e = __on_init[{}]'.format(tab, i))
-                iappnd('{}if s != e and __prop.dispatch_count({}) == e:'.format(tab, obj))
+                if ev_name == 'parent' or ev_name == 'children':
+                    iappnd('{}__count = __prop.dispatch_count({})'.format(tab, obj))
+                    # if e.g. parent has been changed at all, we should trigger
+                    iappnd('{}if __count and __count == e:'.format(tab, obj))
+                else:
+                    iappnd('{}if s != e and __prop.dispatch_count({}) == e:'.format(tab, obj))
                 # add the code
                 for _, _, _, code in items:
                     lines_init.extend([LazyFmt('{}{}', tab2, l) for l in code])
@@ -1880,7 +1885,7 @@ class KVCompiler(object):
                  for k in range(len(nodes))]
         return start
 
-    def compile_bindings(self, rules, handlers, on_handlers):
+    def compile_bindings(self, rules, handlers):
         tab = self.tab
         proxy, proxy_maybe = self.proxy, self.proxy_maybe
         ret = []
