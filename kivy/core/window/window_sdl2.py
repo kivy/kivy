@@ -155,13 +155,12 @@ class WindowSDL(WindowBase):
                     280: 'pgup',
                     281: 'pgdown'}
         self._mouse_buttons_down = set()
-        self.bind(
-            minimum_width=self._restrict_window,
-            minimum_height=self._restrict_window)
+
+        self.bind(minimum_width=self._restrict_window,
+                  minimum_height=self._restrict_window)
 
     def _restrict_window(self, *args):
         self._win.set_minimum_size(self.minimum_width, self.minimum_height)
-        
 
     def create_window(self, *largs):
         if self._fake_fullscreen:
@@ -173,8 +172,8 @@ class WindowSDL(WindowBase):
         if self.fullscreen == 'fake':
             self.borderless = self._fake_fullscreen = True
             Logger.warning("The 'fake' fullscreen option has been "
-                            "deprecated, use Window.borderless or the "
-                            "borderless Config option instead.")
+                           "deprecated, use Window.borderless or the "
+                           "borderless Config option instead.")
 
         if not self.initialized:
 
@@ -201,14 +200,14 @@ class WindowSDL(WindowBase):
             # never stay with a None pos, application using w.center
             # will be fired.
             self._pos = (0, 0)
+            if self.minimum_width or self.minimum_height:
+                self._win.set_minimum_size(self.minimum_width,
+                                           self.minimum_height)
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
             self._win.set_border_state(self.borderless)
             self._win.set_fullscreen_mode(self.fullscreen)
-
-        if self.minimum_width and self.minimum_height:
-            self._win.set_minimum_size(self.minimum_width, self.minimum_height)
 
         super(WindowSDL, self).create_window()
 
