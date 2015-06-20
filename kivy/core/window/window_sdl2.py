@@ -200,14 +200,14 @@ class WindowSDL(WindowBase):
             # never stay with a None pos, application using w.center
             # will be fired.
             self._pos = (0, 0)
+            if self.minimum_width or self.minimum_height:
+                self._win.set_minimum_size(self.minimum_width,
+                                           self.minimum_height)
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
             self._win.set_border_state(self.borderless)
             self._win.set_fullscreen_mode(self.fullscreen)
-
-        if self.minimum_width or self.minimum_height:
-            self._win.set_minimum_size(self.minimum_width, self.minimum_height)
 
         super(WindowSDL, self).create_window()
 
