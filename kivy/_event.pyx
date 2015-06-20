@@ -173,9 +173,6 @@ cdef class Observable(ObjectWithUid):
     def dispatch_count(self, basestring event_type):
         return 0
 
-    def dispatch_stale(self, basestring event_type, int count, *largs, **kwargs):
-        pass
-
     def dispatch(self, basestring event_type, *largs, **kwargs):
         pass
 
@@ -732,18 +729,6 @@ cdef class EventDispatcher(ObjectWithUid):
     cpdef dispatch_count(self, basestring event_type):
         cdef EventObservers observers = self.__event_stack[event_type]
         return observers.count
-
-    def dispatch_stale(
-            self, basestring event_type, int count, *largs, **kwargs):
-        cdef EventObservers observers = self.__event_stack[event_type]
-        if observers.count != count:
-            return True
-
-        if observers.dispatch(self, None, largs, kwargs, 1):
-            return True
-
-        handler = getattr(self, event_type)
-        return handler(*largs, **kwargs)
 
     def dispatch_generic(self, basestring event_type, *largs, **kwargs):
         if event_type in self.__event_stack:

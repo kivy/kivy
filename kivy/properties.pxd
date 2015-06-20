@@ -41,7 +41,6 @@ cdef class Property:
     cdef check(self, EventDispatcher obj, x)
     cdef convert(self, EventDispatcher obj, x)
     cpdef dispatch(self, EventDispatcher obj)
-    cpdef dispatch_stale(self, EventDispatcher obj, int count)
 
 cdef class NumericProperty(Property):
     cdef float parse_str(self, EventDispatcher obj, value)

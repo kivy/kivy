@@ -488,12 +488,6 @@ cdef class Property:
         cdef PropertyStorage ps = obj.__storage[self._name]
         ps.observers.dispatch(obj, ps.value, None, None, 0)
 
-    cpdef dispatch_stale(self, EventDispatcher obj, int count):
-        cdef PropertyStorage ps = obj.__storage[self._name]
-        if count != ps.observers.count:
-            return True
-        ps.observers.dispatch(obj, ps.value, None, None, 0)
-
 
 cdef class NumericProperty(Property):
     '''Property that represents a numeric value.
