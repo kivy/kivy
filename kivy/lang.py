@@ -793,7 +793,7 @@ import types
 import hashlib
 from re import sub, findall
 from os import environ
-from os.path import join, exists, basename, splitext
+from os.path import join, exists, basename, splitext, isfile
 from copy import copy
 from types import CodeType
 from functools import partial
@@ -1753,7 +1753,7 @@ class BuilderBase(object):
         lines.insert(0, '# -*- coding: utf-8 -*-\n')
         if dest is None:
             dest = splitext(filename)[0] + ('.kvc' if pure_py else '.pyx')
-        if not overwrite and exists(dest):
+        if not overwrite and isfile(dest):
             raise IOError('{} already exists'.format(dest))
         with codecs.open(dest, "w") as fd:
             fd.writelines([l + '\n' for l in lines])
