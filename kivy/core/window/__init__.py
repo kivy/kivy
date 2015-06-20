@@ -334,15 +334,21 @@ class WindowBase(EventDispatcher):
             return False
 
     minimum_width = NumericProperty(0)
-    '''The minimum_width to restrict the window to.
+    '''The minimum width to restrict the window to.
 
     .. versionadded:: 1.9.1
+
+    :attr:`minimum_width` is a :class:`~kivy.properties.NumericProperty`,
+    defaults to 0.
     '''
 
     minimum_height = NumericProperty(0)
-    '''The minimum_height to restrict the window to.
+    '''The minimum height to restrict the window to.
 
     .. versionadded:: 1.9.1
+
+    :attr:`minimum_height` is a :class:`~kivy.properties.NumericProperty`,
+    defaults to 0.
     '''
 
     size = AliasProperty(_get_size, _set_size, bind=('_size', ))

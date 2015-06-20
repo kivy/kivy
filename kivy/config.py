@@ -755,12 +755,14 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 12:
             Config.set('graphics', 'window_state', 'visible')
-	elif version == 13:
+
+        elif version == 13:
             Config.set('graphics', 'minimum_width', '0')
             Config.set('graphics', 'minimum_height', '0')
-        #elif version == 1:
-        #   # add here the command for upgrading from configuration 0 to 1
-        #
+
+        # elif version == 1:
+        #    # add here the command for upgrading from configuration 0 to 1
+
         else:
             # for future.
             break
