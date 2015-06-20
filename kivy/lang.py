@@ -1732,6 +1732,8 @@ class BuilderBase(object):
     def compile_kv(
             self, filename, dest=None, overwrite=True, rule_opts={}, **kwargs):
         '''Root rule uses name `Root`.
+        The only issue when mixing compiled code with uncompiled code is that
+        `avoid_previous_rules` takes affect per type.
         '''
         from kivy.tools.kvcompiler import KVCompiler
         with codecs.open(filename) as fd:
@@ -2182,7 +2184,6 @@ class BuilderBase(object):
         for selector, rule, avoid_previous_rules, _ in self.compiled_rules:
             if selector.match(widget):
                 if avoid_previous_rules:
-                    del rules[:]
                     del compiled_rules[:]
                 compiled_rules.append(rule)
         cache[k] = rules, compiled_rules
