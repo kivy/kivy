@@ -14,7 +14,7 @@ applications as quickly and easily as possible.
 With Kivy, you can take full advantage of the dynamic nature of Python. There
 are thousands of high-quality, free libraries that can be integrated in your
 application. At the same time, performance-critical parts are implemented
-in the C language.
+using `Cython <http://cython.org/>`_.
 
 See http://kivy.org for more information.
 '''
