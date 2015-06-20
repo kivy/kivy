@@ -1251,6 +1251,8 @@ class KVCompiler(object):
 
     on_handlers_bind = []
 
+    widget_ids_code = []
+
     def walk_children(self, rule, parent=None, rule_type='widget'):
         '''Iterates through all the widgets and graphics instructions defined
         by the rule. It walks through the all the widgets, canvas before,
@@ -1380,6 +1382,17 @@ class KVCompiler(object):
             inst = rule.creation_instructions
             if inst:
                 creation.append(inst)
+
+        widget_ids = [
+            '["{}"] = {}.proxy_ref'.format(rule.rule.id, rule.name)
+            for rule in rules if rule.rule.id]
+        if not widget_ids:
+            self.widget_ids_code = []
+        elif len(widget_ids) == 1:
+            self.widget_ids_code = ['root.ids{}'.format(widget_ids[0])]
+        else:
+            widget_ids = ['__ids' + w for w in widget_ids]
+            self.widget_ids_code = ['__ids = root.ids'] + widget_ids
 
         # check and ensure the missing properties are created
         self.missing = missing = []
@@ -1542,6 +1555,11 @@ class KVCompiler(object):
         for lines in self.creation:
             ret.extend(flatten(lines, depth=1))
             push_empty(ret)
+
+        # now create the children
+        for lines in self.widget_ids_code:
+            ret.extend(flatten(lines, depth=1))
+        push_empty(ret)
 
         # add the missing check and missing creation
         if missing:
