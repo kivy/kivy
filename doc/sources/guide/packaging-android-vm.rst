@@ -20,7 +20,7 @@ Getting started
 ---------------
 
 #. Download the disc image from `here <http://kivy.org/#download>`_, in the
-   *Virtual Machine* section. It is aproximately 1GB.
+   *Virtual Machine* section. The download is >2GB (6GB after extracted).
    Extract the file and remember the location of the extracted vdi file.
 
 #. Download the version of VirtualBox for your machine from the
@@ -28,7 +28,7 @@ Getting started
    and install it.
 
 #. Start VirtualBox, click on "New" in the left top. Then select "linux" and
-   "Ubuntu 32".
+   "Ubuntu 64-bit".
 
 #. Under "Hard drive", choose "Use an existing virtual hard drive file".
    Search for your vdi file and select it.
