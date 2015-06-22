@@ -74,8 +74,8 @@ class Image(Widget):
 
     texture = ObjectProperty(None, allownone=True)
     '''Texture object of the image. The texture represents the original, loaded
-    image texture. It is streched and positioned during rendering according to the
-    :attr:`allow_stretch` and :attr:`keep_ratio` properties.
+    image texture. It is streched and positioned during rendering according to
+    the :attr:`allow_stretch` and :attr:`keep_ratio` properties.
 
     Depending of the texture creation, the value will be a
     :class:`~kivy.graphics.texture.Texture` or a

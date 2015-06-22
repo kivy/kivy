@@ -846,7 +846,8 @@ class Widget(WidgetBase):
 
     def _apply_transform(self, m, pos=None):
         if self.parent:
-            x, y = self.parent.to_widget(relative=True, *self.to_window(*(pos or self.pos)))
+            x, y = self.parent.to_widget(relative=True,
+                                         *self.to_window(*(pos or self.pos)))
             m.translate(x, y, 0)
             m = self.parent._apply_transform(m) if self.parent else m
         return m

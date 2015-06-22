@@ -462,7 +462,7 @@ class WindowBase(EventDispatcher):
 
     when 'resize' The window is resized and the contents scaled to fit the
     remaining space.
-    
+
     When 'below_target', the window pans so that the current target TextInput
     widget requesting the keyboard is presented just above the soft Keyboard.
 
@@ -504,7 +504,8 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.9.0
 
-    :attr:`keyboard_height` is a read-only :class:`AliasProperty` defaults to 0.
+    :attr:`keyboard_height` is a read-only :class:`AliasProperty`,
+    defaults to 0.
     '''
 
     def _set_system_size(self, size):
@@ -606,9 +607,11 @@ class WindowBase(EventDispatcher):
         if 'height' not in kwargs:
             kwargs['height'] = Config.getint('graphics', 'height')
         if 'minimum_width' not in kwargs:
-            kwargs['minimum_width'] = Config.getint('graphics', 'minimum_width')
+            kwargs['minimum_width'] = Config.getint('graphics',
+                                                    'minimum_width')
         if 'minimum_height' not in kwargs:
-            kwargs['minimum_height'] = Config.getint('graphics', 'minimum_height')
+            kwargs['minimum_height'] = Config.getint('graphics',
+                                                     'minimum_height')
         if 'rotation' not in kwargs:
             kwargs['rotation'] = Config.getint('graphics', 'rotation')
         if 'position' not in kwargs:
