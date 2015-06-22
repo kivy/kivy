@@ -410,7 +410,7 @@ def __rebind_callback(bound, i, instance, value):
     # keys are the index of the parent
     parent = {{}}
     p = getattr(p, key)  # next parent
-    if p is None or not isinstance(object, {0}):
+    if p is None or not isinstance(p, {0}):
         parent[i] = p, None, None, None
     else:
         parent[i] = p, p.proxy_ref, p.fast_bind, p.rebind_property
@@ -419,7 +419,7 @@ def __rebind_callback(bound, i, instance, value):
 
     for k, node in enumerate(range(s, e)):
         # get the info stored for this bind
-        node_s, node_e, pidx, p, key, buid, f, args = blist = bound[i]
+        node_s, node_e, pidx, p, key, buid, f, args = blist = bound[node]
         # node_s/e being None means it's a leaf with no children
         if buid:  # unbind parent's rebind
             try:
@@ -451,7 +451,7 @@ def __rebind_callback(bound, i, instance, value):
                 parent[node] = (None, None, None, None)
             else:
                 p = getattr(p, key)  # next parent
-                if p is None or not isinstance(object, {0}):
+                if p is None or not isinstance(p, {0}):
                     parent[node] = p, None, None, None, None
                 else:
                     parent[node] = (
