@@ -4,16 +4,37 @@ python:
   - "3.4"
 # command to install dependencies
 before_install:
+  - export PYTHONPATH=$PYTHONPATH:$(pwd)
+  - yes | sudo add-apt-repository ppa:zoogie/sdl2-snapshots
+  - yes | sudo add-apt-repository ppa:gstreamer-developers/ppa
   - sudo apt-get update
-  - sudo apt-get install python-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl1.2-dev libsmpeg-dev python-numpy libportmidi-dev ffmpeg libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libx11-6 libX11-dev
-  - sudo apt-get install python-setuptools python-opengl gstreamer0.10-plugins-good build-essential libgl1-mesa-dev libgles2-mesa-dev mercurial
+  - sudo apt-get install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev
+  - sudo apt-get install python-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl1.2-dev libsmpeg-dev python-numpy libportmidi-dev ffmpeg libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libx11-6 libX11-dev libmtdev-dev
+  - sudo apt-get install python-setuptools python-opengl libgstreamer1.0-dev gstreamer1.0-pulseaudio gstreamer1.0-tools gstreamer1.0-plugins-good build-essential libgl1-mesa-dev libgles2-mesa-dev mercurial
   - sudo apt-get install xvfb
 
 install:
   - pip install hg+http://bitbucket.org/pygame/pygame
-  - pip install --upgrade cython pillow
+  - pip install --upgrade cython pillow nose coverage
+  - pip install sphinxcontrib-blockdiag sphinxcontrib-seqdiag
+  - pip install sphinxcontrib-actdiag sphinxcontrib-nwdiag
   - make
+  - make html
+
+before_script:
+    - export DISPLAY=:99.0
+    - /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX
 
 # command to run tests
 script:
-  - xvfb-run -s "+extension GLX" make test
+  - make style
+  # - make test
+
+notifications:
+  irc:
+    channels:
+      - "chat.freenode.net#kivy-dev"
+    on_success: change
+    on_failure: change
+    use_notice: true
+    skip_join: true
