@@ -787,6 +787,7 @@ __all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException', 'Parser',
 import codecs
 import re
 import sys
+import __builtin__
 import traceback
 import imp
 import types
@@ -798,6 +799,13 @@ from copy import copy
 from types import CodeType
 from functools import partial
 from collections import OrderedDict, defaultdict
+
+try:
+    from io import StringIO, BytesIO
+    buffer_types = (StringIO, BytesIO)
+except ImportError:
+    from io import StringIO
+    buffer_types = StringIO
 
 from kivy.factory import Factory
 from kivy.logger import Logger
@@ -1242,8 +1250,7 @@ class Parser(object):
                     else:
                         Logger.debug('Reloading {0} because include was forced.'
                                     .format(ref))
-                        Builder.unload_file(ref)
-                        Builder.load_file(ref)
+                        Builder.load_file(ref, reload=True)
                         continue
                 Logger.debug('Including file: {0}'.format(0))
                 __KV_INCLUDES__.append(ref)
@@ -1731,9 +1738,70 @@ class BuilderBase(object):
 
     def compile_kv(
             self, filename, dest=None, overwrite=True, rule_opts={}, **kwargs):
-        '''Root rule uses name `Root`.
-        The only issue when mixing compiled code with uncompiled code is that
-        `avoid_previous_rules` takes affect per type.
+        '''
+        .. warning::
+
+            This function is highly experimental and its usage and code output
+            may change at any time in the future without notice, as long as
+            this warning is here.
+
+        Compiled a KV source file into compiled pure-python code. To load the
+        compiled code, call :attr:`load_file` with either `filename` or
+        the returned filename containing the compiled code.
+
+        :Parameters:
+
+            `filename`: string type
+                The path to the KV source file to be compiled.
+            `dest`: None, a filename, or a buffer object. Defaults to None.
+                - If it's a filename string, it's the name of the file to which
+                  the compiled code will be written. Its extension should be
+                  either `.kvc`, or `.pyx`.
+                - If it's `None`, `filename`'s extension will be replaced with
+                  `.kvc`, or `.pyx` and used as the output file.
+                - If it's a BytesIO or StringIO object, the compiled code will
+                  be written to that buffer object.
+            `overwrite`: bool, defaults to True.
+                If `dest` is None or a filename, and that file already exists,
+                whether to overwrite it. If False, an exception will be raised
+                if the file already exists.
+            `rule_opts`: dict, defaults to the empty dict.
+                The keys are rule names, e.g. `'MyRule'` for a
+                `<MyRule@Widget>` KV type rule. The values are dicts for those
+                rules and whose keys/values overwrite the default compiler
+                options for that rule. See `**kwargs` for the possible compiler
+                options.
+            `**kwargs`:
+                Keys and values that specifcy the default options for the
+                compiler options. The possible keywords are the possbible
+                compiler options, which are
+                :attr:`~kivy.tools.kvcompiler.KVCompiler.tab`,
+                :attr:`~kivy.tools.kvcompiler.KVCompiler.rebind`,
+                :attr:`~kivy.tools.kvcompiler.KVCompiler.base_types`,
+                :attr:`~kivy.tools.kvcompiler.KVCompiler.include_doc`, and
+                :attr:`~kivy.tools.kvcompiler.KVCompiler.batch_bind`.
+                If any of these options are not specificed the default
+                values are taken from
+                :attr:`~kivy.tools.kvcompiler.KVCompiler`.
+
+        :returns:
+            The filename of the file into which the compiled code was written
+            if `dest` is not a buffer object, otherwise, the buffer object.
+
+        For example::
+
+            >>> Builder.compile_kv(r'style.kv', tab='  ')
+            'style.kvc'
+
+        .. note::
+            It is safe to mix compiled code with uncompiled code, however,
+            other than the inherent differences between the resulting rules,
+            `avoid_previous_rules` takes affect per type. That is marking a
+            rule e.g. `<-MyRule@Button>` to clear previous rules, will only
+            clear previous compiled rules if the current rule is compiled,
+            otherwise it'll only clear previous uncompiled rules.
+
+        .. versionadded:: 1.9.2
         '''
         from kivy.tools.kvcompiler import KVCompiler
         with codecs.open(filename) as fd:
@@ -1755,15 +1823,56 @@ class BuilderBase(object):
         lines.insert(0, '# -*- coding: utf-8 -*-\n')
         if dest is None:
             dest = splitext(filename)[0] + ('.kvc' if pure_py else '.pyx')
-        if not overwrite and isfile(dest):
+        elif isinstance(dest, buffer_types):
+            dest.writelines([l + '\n' for l in lines])
+            return dest
+        if not overwrite and exists(dest):
             raise IOError('{} already exists'.format(dest))
         with codecs.open(dest, "w") as fd:
             fd.writelines([l + '\n' for l in lines])
         return dest
 
-    def compile_load_string(self, string, rule_opts={}, **kwargs):
-        '''Insert a string into the Language Builder and return the root widget
-        (if defined) of the kv string.
+    def compile_load_string(
+            self, string, rulesonly=False, rule_opts={}, **kwargs):
+        '''
+        .. warning::
+
+            This function is highly experimental and its usage and code output
+            may change at any time in the future without notice, as long as
+            this warning is here.
+
+        Similar to :attr:`load_string`, but it dynamically compiles the
+        rules using :class:`~kivy.tools.kvcompiler.KVCompiler` and adds it
+        to the rules. See :attr:`compile_kv`
+
+        :Parameters:
+
+            `string`:
+                String containing KV rules.
+            `rulesonly`: bool, defaults to False
+                If True, the Builder will raise an exception if you have a root
+                widget inside the definition.
+            `rule_opts`:
+                Similar to `rule_opts` in :meth:`compile_kv`.
+            `**kwargs`:
+                Similar to `**kwargs` in :meth:`compile_kv`.
+
+        :returns:
+            A widget, if there's a widget instantiation rule in the `string`,
+            otherwise None.
+
+        For example::
+
+            w = Builder.compile_load_string(\'''
+            BoxLayout:
+                Label:
+                    text: 'a'
+                Label:
+                    text: 'b'
+
+            \''', tab='  ')
+
+        .. versionadded:: 1.9.2
         '''
         from kivy.tools.kvcompiler import KVCompiler
         parser = Parser(content=string, filename='<string>')
@@ -1780,21 +1889,30 @@ class BuilderBase(object):
         self.compiled_rules.extend(
             [(s, r, prev, '<string>') for (s, r, prev) in glbls['rules']])
         self._clear_matchcache()
-        return glbls['get_root']()
+        root = glbls['get_root']()
+        if rulesonly and root is not None:
+            raise Exception('The string also contains non-rules directives')
+        return root
 
-    def load_file(self, filename, **kwargs):
-        '''Insert a file into the language builder and return the root widget
-        (if defined) of the kv file.
-
-        Compiled files are imported as kivy.lang.compiled_mod_filename, where
-        filename is the full path to `filename`.
+    def load_file(self, filename, reload=False, **kwargs):
+        '''Insert a file into the language builder and returns the root widget
+        (if defined) of the kv file. If the `filename` is a compiled KV file
+        or a compiled file exists for `filename`, the compiled file is
+        imported instead.
 
         :parameters:
             `rulesonly`: bool, defaults to False
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
-        '''
+            `reload`: bool, defaults to False
+                If True, Builder will first unload and then reload the
+                file if it was already loaded.
 
+        .. versionchanged:: 1.9.2
+            `reload` has been added.
+        '''
+        if reload:
+            self.unload_file(filename)
         # try to see if there is a compiled version of the kv first
         base_name = splitext(filename)[0]
         is_source = filename.endswith('.kv')
@@ -1824,9 +1942,11 @@ class BuilderBase(object):
                         h = hashlib.sha256(fd.read()).hexdigest()
 
                 with codecs.open(fn, desc[1]) as fh:
-                    mod = imp.load_module(
-                        'kivy.lang.compiled_mod_{}'.format(base_name), fh, fn,
-                        desc)
+                    mod_name = 'kivy.lang._compiled_mod_{}'.format(
+                        filename.replace('.', '_'))
+                    mod = imp.load_module(mod_name, fh, fn, desc)
+                    if reload and mod_name in sys.modules:
+                        mod = __builtin__.reload(sys.modules[mod_name])
 
                 if is_source:  # does the source hash match the file's?
                     if mod.__source_hash__ != h:
@@ -1838,7 +1958,13 @@ class BuilderBase(object):
                     [(s, r, prev, filename) for (s, r, prev) in mod.rules])
                 self.files.append(filename)
                 self._clear_matchcache()
-                return mod.get_root()
+                root = mod.get_root()
+
+                if kwargs.get('rulesonly', False) and root is not None:
+                    raise Exception(
+                        'The file <{}> contain also non-rules directives'.
+                        format(filename))
+                return root
             except Exception as e:
                 Logger.exception(
                     'Failed to import {}, falling back to parser'.format(fn))
@@ -1872,6 +1998,12 @@ class BuilderBase(object):
             This will not remove rules or templates already applied/used on
             current widgets. It will only effect the next widgets creation or
             template invocation.
+
+        .. warning::
+
+            When unloading a compiled file, the rules are removed, but the code
+            is not entirely unloaded, consequently, to load the compiled file
+            again, `reload` will have to be set to `True` in :meth:`load_file`.
         '''
         # remove rules and templates
         self.rules = [x for x in self.rules if x[1].ctx.filename != filename]
@@ -2373,3 +2505,4 @@ if 'KIVY_PROFILE_LANG' in environ:
         print('Profiling written at builder_stats.html')
 
     atexit.register(dump_builder_stats)
+9

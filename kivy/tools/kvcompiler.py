@@ -4,6 +4,171 @@ Kivy language compiler
 
 .. author:: Mathieu Virbel <mat@kivy.org>, Matthew Einhorn <moiein2000@gmail.com>
 
+.. warning::
+
+    This function is highly experimental and its usage and code output
+    may change at any time in the future without notice, as long as this
+    warning is here.
+
+How to use
+==========
+
+See :meth:`~kivy.lang.BuilderBase.compile_kv`,
+:meth:`~kivy.lang.BuilderBase.compile_load_string`,
+and :meth:`~kivy.lang.BuilderBase.load_file`.
+
+
+Batch Binding
+=============
+
+An explanation of :attr:`KVCompiler.batch_bind`.
+
+When `False`, bindings occur mostly like in the past, except for some
+    optimizations.
+
+    When `True`, bindings will batched across all the KV rules, even rules
+    defined in other compiled files (if it was compiled with batch_bind=True).
+    Consider the following KV rules::
+
+        <RuleA@BoxLayout>:
+            Label:
+                my_size: root.size
+
+        <RuleB@Button>:
+            RuleA:
+                on_parent: self.size = 25, 25
+                size: self.x + 1, self.y + 1
+
+    When `RuleB is created with e.g. `RuleB()`, if `batch_bind` is False, the
+    following occurs to the `RuleA` child object:
+
+    #. The `RuleaA` object is created by `RuleaB`.
+    #. The `<RuleA@BoxLayout>` rule is applied.
+    #. The `<RuleB@Button>` rules are applied to `RuleA`.
+    #. For each rule, when it was applied, the following overall steps occured
+       during rule application.
+       #. The rule's children are created (e.g. `Label` in `RuleA`)
+       #. All the propertiy rules that are set by literals (e.g.
+          `size_hint: None, None`, or `prop: self`) are initialized to those
+          values.
+       #. All the propertiy rules that are set by non-literals (e.g.
+          `size: self.x + 25, self.y + 33`) are initialized to those values.
+       #. All the required bindings are created.
+       #. All the non-literal property rules (e.g.
+          `size: self.x + 25, self.y + 33`) are re-evaluated to ensure non
+          are stale.
+       #. All the `on_prop` rules (e.g. `on_parent: self.size = 25, 25`) that
+          should have been triggered during the previous stages are triggered.
+       Specifically, all these steps were done for RuleA using it's
+       `<RuleA@BoxLayout>` rule followed by all the steps for its rules from
+       `<RuleB@Button>`.
+
+    Consider the following example based on the above code that demonstrates
+    this::
+
+        class MyLabel(Label):
+            my_size = ListProperty([])
+
+            def __init__(self, **kwargs):
+                super(MyLabel, self).__init__(**kwargs)
+                def do_my_size(*l):
+                    print(self.my_size)
+                self.bind(my_size=do_my_size)
+
+        w = Builder.compile_load_string(\'''
+        <RuleA@BoxLayout>:
+            MyLabel:
+                my_size: root.size
+
+        <RuleB@Button>:
+            RuleA:
+                on_parent: self.size = 25, 25
+                size: self.x + 1, self.y + 1
+
+        RuleB
+        \''', batch_bind=False)
+
+    When executed as such, or if `Builder.load_string` is used, it outputs the
+    following::
+
+        [100, 100]
+        [1, 1]
+        [25, 25]
+
+    The reason is that: first, for the initialiation phase of `RuleA`,
+    `my_size` gets set to the value of `root.size` which is `100, 100` and is
+    then set to track `root.size`.
+
+    Then, the `RuleB` is applied and size is initialized to
+    `size: self.x + 1, self.y + 1`, hence the `1, 1`, and finally, at the end,
+    `on_parent: self.size = 25, 25` is executed resulting in `25, 25` being the
+    value of `my_size`.
+
+    On the other hand, if `batch_bind=True` was used instead in the code above,
+    the output of the above code would just be::
+
+        [100, 100]
+        [25, 25]
+
+    That's because with `batch_bind` True, rule application is batched as three
+    phases: initilization, binding, and post-initialization. In particular, we
+    gather all the KV rules, including inherited rules both for the root
+    widget and all its children and perform each phase on all the rules bfore
+    going to the next phase. Specifically, when `RuleB is created with e.g.
+    `RuleB()`, the following occurs to the `RuleA` child object:
+
+    #. The `RuleaA` object is created by `RuleaB`.
+    #. In the initilization step, we combine the `<RuleA@BoxLayout>` rules and
+       the `<RuleB@Button>` RuleA applicable rules and do the following overall
+       steps.
+       #. The rule's children are created (e.g. `Label` in `RuleA`)
+       #. All the propertiy rules that are set by literals (like in
+          `batch_bind=False`) are initialized to those values.
+       #. All the propertiy rules that are set by non-literals
+          are initialized to those values.
+    #. In the binding phase we create the bindings for all the rules.
+    #. In the third phase, post initilization is done as follows:
+       #. All the non-literal property rules are re-evaluated to ensure non
+          are stale.
+       #. All the `on_prop` rules (e.g. `on_parent: self.size = 25, 25`) that
+          should have been triggered during the previous stages are triggered.
+
+    The order of the three phases is also specific as followes.
+    #. In the initialization phase, inherited rules are apllied first. E.g.
+       initialization of `<RuleA@BoxLayout>` is done before `<RuleB@Button>`.
+    #. The binding phase order followes exactly as the initialiation order.
+    #. The post initilization order is the reverse of the initialization order.
+       That is, inhertied rules are post initialized after derived rules.
+       Specifically, `<RuleB@Button>` is post initialized, followed by
+       `<RuleA@BoxLayout>`.
+
+    The justification for this order is that for initialization, it's expected
+    that parent rules are initilized before children rules as is done
+    currently. However, the goal of post nitilization is to trigger and update
+    the rules that need to be updated. It is more common in KV that children
+    are  sized or follow the properties of the parents than the reverse.
+    Similarly, it should be expected that newer rules drive previous rules
+    more than the opposite (this argument is not very strong). Consequently,
+    updating the rules from staring with the newer rules is probably more
+    efficient (see the example how that plays out).
+
+    Consequently, during the initialization step we `my_size` is set to the
+    current value of `root.size` (which is `100, 100`), and `size` is set first
+    to `100, 100`, the default, and then to `self.x + 1, self.y + 1`. However,
+    because no bindings has been created, `my_size` is not yet tracking `size`
+    so it's value is not changed when `size` is changed.
+
+    Finally, during post-initialization, `size` is again updated to
+    `size: self.x + 1, self.y + 1`, but since it already had the value of
+    `1, 1` it's not dispatched and doesn't update `my_size`. Then,
+    `on_parent: self.size = 25, 25` is executed setting the size to `25, 25`,
+    hence the print. Finally, `my_size: root.size` is agin evaluated, but
+    it doesn't change `my_size`.
+
+    The overall result is that `batch_bind=True` resulted in less dispatching
+    and property updating during initilization and binding creation.
+
+
 
 Instantiation
 ===================
@@ -116,7 +281,12 @@ TODO:
 
 #. Should args be initialized when the properties are executed so that they are
    available in that context? Can they be set to None, or do we actually have
-   to set them to their real values? Which costs perfs.
+   to set them to their real values? Which costs perfs. In the past it was
+   None.
+#. Clean up and doc :class:`KVCompiler`.
+#. Decide whether to batch bind.
+#. Try cython again.
+#. Add docs to binding in compiled code.
 '''
 
 __all__ = []
@@ -1144,23 +1314,8 @@ class KVCompiler(object):
     batch_bind = True
     '''**Temporary experimental method**
 
-    A temporary option that swicthes betweeen two fundemental ways of doing the
-    executaion order of KV bindings.
-
-    When `False`, bindings occur mostly like in the past, except for some
-    optimizations.
-
-    When `True`, bindings will batched across all the KV rules, even rules
-    defined in other compiled files (if it was compiled with batch_bind=True).
-    Consider the following KV rules::
-
-        <RuleA@BoxLayout>:
-            Label:
-                my_pos: root.pos
-
-        <RuleB@Button>:
-            RuleA:
-                markup: self.disabled and self.text
+    A temporary option that switches betweeen two fundemental ways of doing the
+    executaion order of KV bindings. See :ref:`Batch Binding`.
     '''
 
     # temporary, per rule variables
@@ -2084,8 +2239,7 @@ class KVCompiler(object):
                 if ref in includes:
                     if not force_load:
                         continue
-                    ret.append('__Builder.unload_file({})'.format(ref))
-                    ret.append('__Builder.load_file({})'.format(ref))
+                    ret.append('__Builder.load_file({}, reload=True)'.format(ref))
                 else:
                     includes.add(ref)
                     ret.append('__Builder.load_file({})'.format(ref))
@@ -2109,6 +2263,7 @@ class KVCompiler(object):
         return ["__Builder.load_string('''", code, "''')"]
 
     def compile(self, parser, file_hash, rule_opts={}, **kwargs):
+        rule_opts = {k.lower(): v for k, v in rule_opts.items()}
         cython = kwargs.get('cython', KVCompiler.cython)
         for opts in rule_opts.values():
             if cython:
@@ -2153,6 +2308,19 @@ class KVCompiler(object):
 
         lines.extend(self.compile_directives(parser.directives))
 
+        # ensure the rules with multiple keys all have the same options
+        rule_seen = {}
+        for key, rule in parser.rules:
+            key = key.key.lstrip('-')
+            if rule in rule_seen:
+                old_key = rule_seen[rule]
+                opts = rule_opts[old_key]
+                opts.update(rule_opts.get(key, {}))
+                rule_opts[key] = opts
+                continue
+            rule_opts[key] = rule_opts.get(key, {})
+            rule_seen[rule] = key
+
         selectors_map = OrderedDict()
         for key, rule in parser.rules:
             if rule in selectors_map:
@@ -2160,7 +2328,7 @@ class KVCompiler(object):
                 continue
 
             opts = defaults_opts.copy()
-            opts.update(rule_opts.get(key, {}))
+            opts.update(rule_opts[key.key.lstrip('-')])
             for k, v in opts.items():
                 setattr(self, k, v)
 
