@@ -21,18 +21,18 @@ from kivy.graphics.texture import Texture
 from kivy.graphics import Rectangle
 from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
-from kivy.core.window import Window
-from kivy.base import EventLoop
-from kivy.ext.mpl.backend_kivyagg import FigureCanvasKivyAgg
+#from kivy.ext.mpl.backend_kivyagg import FigureCanvasKivyAgg
 from kivy.uix.behaviors import FocusBehavior
+from kivy.base import EventLoop
+from kivy.graphics import Color, Line
 
-try:
-    kivy.require('1.9.0') # I would need to check which release of Kivy would be the best suitable.
-except AttributeError:
-    raise ImportError(
-        "kivy version too old -- it must have require_version")
+# try:
+#     kivy.require('1.9.0') # I would need to check which release of Kivy would be the best suitable.
+# except AttributeError:
+#     raise ImportError(
+#         "kivy version too old -- it must have require_version")
 
-EventLoop.ensure_window()
+# EventLoop.ensure_window()
 
 _debug = True
 
@@ -40,21 +40,21 @@ app = None
 
 
 class MPLKivyApp(App):
-
+ 
     def __init__(self, **kwargs):
         super(MPLKivyApp, self).__init__(**kwargs)
         self.figure = kwargs['figure']
-
+ 
     def build(self):
         return self.figure
-
+ 
     def on_pause(self):
         return App.on_pause(self)
-
+ 
     def on_resume(self):
         App.on_resume(self)
-
-
+ 
+ 
 def _create_App(fig_canvas):
     global app
     if app is None:
@@ -70,11 +70,22 @@ class RendererKivy(RendererBase):
     writing a new backend. Refer to backend_bases.RendererBase for
     documentation of the classes methods.
     """
-    def __init__(self, dpi):
+    def __init__(self, dpi, widget):
         self.dpi = dpi
+        self.widget = widget
 
     def draw_path(self, gc, path, transform, rgbFace=None):
-        pass
+        print(path)
+        print(gc)
+        points_line = []
+        for points, code in path.iter_segments(transform):
+            points_line.append(points[0])
+            points_line.append(points[1])
+        print(points_line)
+        with self.widget.canvas:
+            Color(1.0, 0.5, 0.5)
+            Line(points=points_line, width=2.0)
+        
 
     # draw_markers is optional, and we get more correct relative
     # timings by leaving it out.  backend implementers concerned with
@@ -168,31 +179,13 @@ def draw_if_interactive():
         if figManager is not None:
             figManager.canvas.draw_idle()
 
-# class Show(ShowBase):
-#     def mainloop(self):
-#         needmain = not wx.App.IsMainLoopRunning()
-#         if needmain:
-#             wxapp = wx.GetApp()
-#             if wxapp is not None:
-#                 wxapp.MainLoop()
-# 
-# class Show(ShowBase):
-#     def mainloop(self):
-#         # allow KeyboardInterrupt exceptions to close the plot window.
-#         signal.signal(signal.SIGINT, signal.SIG_DFL)
-#         global qApp
-#         qApp.exec_()
-# 
-# class Show(ShowBase):
-#     def mainloop(self):
-#         if Gtk.main_level() == 0:
-#             Gtk.main()
-
 class Show(ShowBase):
     def mainloop(self):
+        print("calling show")
         global app
-        app.run()
-
+        if app is not None:
+            app.run()
+  
 show = Show()
 
 # def show():
@@ -226,12 +219,13 @@ def new_figure_manager_given_figure(num, figure):
     Create a new figure manager instance for the given figure.
     """
     canvas = FigureCanvasKivy(figure)
+    canvas.draw()
     _create_App(canvas)
     manager = FigureManagerKivy(canvas, num)
+    #manager.show()
     return manager
 
-
-class FigureCanvasKivy(FigureCanvasKivyAgg, FocusBehavior):
+class FigureCanvasKivy(FigureCanvasBase, Widget, FocusBehavior):
     """
     The canvas the figure renders into.  Calls the draw and print fig
     methods, creates the renderers, etc...
@@ -248,57 +242,61 @@ class FigureCanvasKivy(FigureCanvasKivyAgg, FocusBehavior):
     """
     
     def __init__(self, figure, **kwargs):
+        
+        #from kivy.core.window import Window
+        
         if _debug:
             print('FigureCanvasKivy: ', figure)
-        Window.bind(mouse_pos = self._on_mouse_pos)
+        #Window.bind(mouse_pos = self._on_mouse_pos)
         self.bind(size = self._on_size_changed)
-        self.flag = True
+        self.inside_figure = True
+        self.figure = figure
         #super(FigureCanvasKivy, self).__init__(figure, **kwargs)
         FocusBehavior.__init__(self, **kwargs)
-        FigureCanvasKivyAgg.__init__(self, figure, **kwargs)
+        FigureCanvasBase.__init__(self, figure, **kwargs)
+        Widget.__init__(self, **kwargs)
 
-#     def draw(self):
-#         """
-#         Draw the figure using the KivyRenderer
-#         """
+    def draw(self):
+        """
+        Draw the figure using the KivyRenderer
+        """
+        renderer = RendererKivy(self.figure.dpi, self)
+        self.figure.draw(renderer)
 
-        #renderer = RendererKivy(self.figure.dpi)
-        #self.figure.draw(renderer)
-    
     def on_touch_down(self, touch):
         if super(FigureCanvasKivy, self).on_touch_down(touch):
             return True
-        FigureCanvasKivyAgg.motion_notify_event(self, touch.x, touch.y, guiEvent=None)
+        FigureCanvasBase.motion_notify_event(self, touch.x, touch.y, guiEvent=None)
         if self.collide_point(*touch.pos):
             touch.grab(self)
             if(touch.button == "scrollup" or touch.button == "scrolldown"):
-                FigureCanvasKivyAgg.scroll_event(self, touch.x, touch.y, 5, guiEvent = None)
+                FigureCanvasBase.scroll_event(self, touch.x, touch.y, 5, guiEvent = None)
             else:
-                FigureCanvasKivyAgg.button_press_event(self, touch.x, touch.y, self, dblclick=False, guiEvent=None)
-            if self.flag:
-                FigureCanvasKivyAgg.enter_notify_event(self, guiEvent=None, xy=None)
+                FigureCanvasBase.button_press_event(self, touch.x, touch.y, self, dblclick=False, guiEvent=None)
+            if self.inside_figure:
+                FigureCanvasBase.enter_notify_event(self, guiEvent=None, xy=None)
         else:
-            if not self.flag:
-                FigureCanvasKivyAgg.leave_notify_event(self, guiEvent=None)
+            if not self.inside_figure:
+                FigureCanvasBase.leave_notify_event(self, guiEvent=None)
         return True
 
     def on_touch_move(self, touch):
         inside = self.collide_point(touch.x, touch.y)        
-        FigureCanvasKivyAgg.motion_notify_event(self, touch.x, touch.y, guiEvent=None)
-        if inside and self.flag:
-            FigureCanvasKivyAgg.enter_notify_event(self, guiEvent=None, xy=None)
-            self.flag = False
-        elif not inside and not self.flag:
-            FigureCanvasKivyAgg.leave_notify_event(self, guiEvent=None)
-            self.flag = True
+        FigureCanvasBase.motion_notify_event(self, touch.x, touch.y, guiEvent=None)
+        if inside and self.inside_figure:
+            FigureCanvasBase.enter_notify_event(self, guiEvent=None, xy=None)
+            self.inside_figure = False
+        elif not inside and not self.inside_figure:
+            FigureCanvasBase.leave_notify_event(self, guiEvent=None)
+            self.inside_figure = True
         return True
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
             if(touch.button == "scrollup" or touch.button == "scrolldown"):
-                FigureCanvasKivyAgg.scroll_event(self, touch.x, touch.y, 5, guiEvent = None)
+                FigureCanvasBase.scroll_event(self, touch.x, touch.y, 5, guiEvent = None)
             else:
-                FigureCanvasKivyAgg.button_release_event(self, touch.x, touch.y, self, guiEvent=None)
+                FigureCanvasBase.button_release_event(self, touch.x, touch.y, self, guiEvent=None)
             touch.ungrab(self)
         else:
             return super(FigureCanvasKivy, self).on_touch_up(touch)
@@ -306,23 +304,23 @@ class FigureCanvasKivy(FigureCanvasKivyAgg, FocusBehavior):
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         print(keycode[1])
-        FigureCanvasKivyAgg.key_press_event(self, keycode[1], guiEvent = None)
+        FigureCanvasBase.key_press_event(self, keycode[1], guiEvent = None)
         return super(FocusBehavior, self).keyboard_on_key_down(self, window, keycode, text, modifiers)
 
     def keyboard_on_key_up(self, window, keycode):
-        FigureCanvasKivyAgg.key_release_event(self, keycode[1], guiEvent = None)
+        FigureCanvasBase.key_release_event(self, keycode[1], guiEvent = None)
         return super(FocusBehavior, self).keyboard_on_key_up(self, window, keycode)
 
     def _on_mouse_pos(self, *args):
         pos = args[1]
         inside = self.collide_point(*pos)
-        FigureCanvasKivyAgg.motion_notify_event(self, pos[0], pos[1], guiEvent=None)
-        if inside and self.flag:
-            FigureCanvasKivyAgg.enter_notify_event(self, guiEvent=None, xy=None)
-            self.flag = False
-        elif not inside and not self.flag:
-            FigureCanvasKivyAgg.leave_notify_event(self, guiEvent=None)
-            self.flag = True
+        FigureCanvasBase.motion_notify_event(self, pos[0], pos[1], guiEvent=None)
+        if inside and self.inside_figure:
+            FigureCanvasBase.enter_notify_event(self, guiEvent=None, xy=None)
+            self.inside_figure = False
+        elif not inside and not self.inside_figure:
+            FigureCanvasBase.leave_notify_event(self, guiEvent=None)
+            self.inside_figure = True
 
     def _on_size_changed(self, *args):
         w, h = self.size
@@ -330,15 +328,38 @@ class FigureCanvasKivy(FigureCanvasKivyAgg, FocusBehavior):
         winch = w / dpival
         hinch = h / dpival
         self.figure.set_size_inches(winch, hinch)
-        FigureCanvasKivyAgg.resize_event(self)
+        FigureCanvasBase.resize_event(self)
         self.draw()
 
     def close_event(self, guiEvent=None):
-        FigureCanvasKivyAgg.close_event(self, guiEvent=guiEvent)
+        FigureCanvasBase.close_event(self, guiEvent=guiEvent)
 
-    def draw_idle(self, *args, **kwargs):
-        EventLoop.idle()
-        self.draw()
+    filetypes = FigureCanvasBase.filetypes.copy()
+    filetypes['png'] = 'My image format'
+
+    def blit(self, bbox=None):
+        '''
+        If bbox is None, blit the entire canvas to the widget. Otherwise
+        blit only the area defined by the bbox.
+        '''
+        self.blitbox = bbox
+
+    def print_png(self, filename, *args, **kwargs):
+        '''
+        Write out format png. The dpi, facecolor and edgecolor are restored
+        to their original values after this call, so you don't need to
+        save and restore them.
+        '''
+        l, b, w, h = self.figure.bbox.bounds
+        texture = Texture.create(size=(w, h))
+        texture.blit_buffer(self.get_renderer().buffer_rgba(), colorfmt='rgba',
+                            bufferfmt='ubyte')
+        texture.flip_vertical()
+        img = Image(texture)
+        img.save(filename)
+
+    def get_default_filetype(self):
+        return 'png'
 
 
 class FigureManagerKivy(FigureManagerBase):
@@ -354,7 +375,9 @@ class FigureManagerKivy(FigureManagerBase):
         super(FigureManagerKivy, self).__init__(canvas, num)
 
     def show(self):
-        self.canvas.draw()
+        global app
+        if app is not None:
+            app.run()
 
     def get_window_title(self):
         return EventLoop.window.title
@@ -366,7 +389,9 @@ class FigureManagerKivy(FigureManagerBase):
         Window.size(w, h)
 
     def destroy(self):
-        EventLoop.close()
+        global app
+        if app is not None:
+            app.stop()
 ########################################################################
 #
 # Now just provide the standard names that backend.__init__ is expecting
