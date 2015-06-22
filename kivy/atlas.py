@@ -151,7 +151,7 @@ CoreImage = None
 class Atlas(EventDispatcher):
     '''Manage texture atlas. See module documentation for more information.
     '''
-    
+
     original_textures = ListProperty([])
     '''List of original atlas textures (which contain the :attr:`textures`).
 
@@ -212,7 +212,7 @@ class Atlas(EventDispatcher):
             ci = CoreImage(subfilename)
             atlas_texture = ci.texture
             self.original_textures.append(atlas_texture)
-            
+
             # for all the uid, load the image, get the region, and put
             # it in our dict.
             for meta_id, meta_coords in ids.items():

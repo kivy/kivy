@@ -260,17 +260,23 @@ Builder.load_string("""
         Color:
             rgba: 1, 1, 1, int(not self.is_leaf)
         Rectangle:
-            source: 'atlas://data/images/defaulttheme/tree_%s' % ('opened' if self.is_open else 'closed')
+            source:
+                ('atlas://data/images/defaulttheme/tree_%s' %
+                ('opened' if self.is_open else 'closed'))
             size: 16, 16
             pos: self.x - 20, self.center_y - 8
 
     canvas:
         Color:
-            rgba: self.disabled_color if self.disabled else (self.color if not self.markup else (1, 1, 1, 1))
+            rgba:
+                (self.disabled_color if self.disabled else
+                (self.color if not self.markup else (1, 1, 1, 1)))
         Rectangle:
             texture: self.texture
             size: self.texture_size
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
+            pos:
+                (int(self.center_x - self.texture_size[0] / 2.),
+                int(self.center_y - self.texture_size[1] / 2.))
 
 """)
 
@@ -752,8 +758,7 @@ class Console(RelativeLayout):
     #: Array of addons that will be created at Console creation
     addons = [  # ConsoleAddonMode,
         ConsoleAddonSelect, ConsoleAddonFps, ConsoleAddonWidgetPanel,
-        ConsoleAddonWidgetTree, ConsoleAddonBreadcrumb
-    ]
+        ConsoleAddonWidgetTree, ConsoleAddonBreadcrumb]
 
     #: Display mode of the Console, either docked at the bottom, or as a
     #: floating window.

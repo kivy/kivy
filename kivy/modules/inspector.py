@@ -216,17 +216,23 @@ Builder.load_string('''
         Color:
             rgba: 1, 1, 1, int(not self.is_leaf)
         Rectangle:
-            source: 'atlas://data/images/defaulttheme/tree_%s' % ('opened' if self.is_open else 'closed')
+            source:
+                ('atlas://data/images/defaulttheme/tree_%s' %
+                ('opened' if self.is_open else 'closed'))
             size: 16, 16
             pos: self.x - 20, self.center_y - 8
 
     canvas:
         Color:
-            rgba: self.disabled_color if self.disabled else (self.color if not self.markup else (1, 1, 1, 1))
+            rgba:
+                (self.disabled_color if self.disabled else
+                (self.color if not self.markup else (1, 1, 1, 1)))
         Rectangle:
             texture: self.texture
             size: self.texture_size
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
+            pos:
+                (int(self.center_x - self.texture_size[0] / 2.),
+                int(self.center_y - self.texture_size[1] / 2.))
 ''')
 
 
@@ -684,7 +690,9 @@ class Inspector(FloatLayout):
             if child in nodes:
                 cnode = tree.add_node(nodes[child], node)
             else:
-                cnode = tree.add_node(TreeViewWidget(text=child.__class__.__name__, widget=child.proxy_ref, is_open=is_open), node)
+                cnode = tree.add_node(TreeViewWidget(
+                    text=child.__class__.__name__, widget=child.proxy_ref,
+                    is_open=is_open), node)
             update_nodes.append((cnode, child))
         return update_nodes
 
@@ -693,7 +701,8 @@ class Inspector(FloatLayout):
             self._window_node = self.widgettree.add_node(
                 TreeViewWidget(text='Window', widget=self.win, is_open=True))
 
-        nodes = self._update_widget_tree_node(self._window_node, self.win, is_open=True)
+        nodes = self._update_widget_tree_node(self._window_node, self.win,
+                                              is_open=True)
         while nodes:
             ntmp = nodes[:]
             nodes = []
@@ -705,8 +714,8 @@ class Inspector(FloatLayout):
 
 def create_inspector(win, ctx, *l):
     '''Create an Inspector instance attached to the *ctx* and bound to the
-    Windows :meth:`~kivy.core.window.WindowBase.on_keyboard` event for capturing
-    the keyboard shortcut.
+    Windows :meth:`~kivy.core.window.WindowBase.on_keyboard` event for
+    capturing the keyboard shortcut.
 
         :Parameters:
             `win`: A :class:`Window <kivy.core.window.WindowBase>`
