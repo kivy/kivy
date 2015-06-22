@@ -45,13 +45,13 @@ When `False`, bindings occur mostly like in the past, except for some
     #. The `RuleaA` object is created by `RuleaB`.
     #. The `<RuleA@BoxLayout>` rule is applied.
     #. The `<RuleB@Button>` rules are applied to `RuleA`.
-    #. For each rule, when it was applied, the following overall steps occured
+    #. For each rule, when it was applied, the following overall steps occurred
        during rule application.
        #. The rule's children are created (e.g. `Label` in `RuleA`)
-       #. All the propertiy rules that are set by literals (e.g.
+       #. All the property rules that are set by literals (e.g.
           `size_hint: None, None`, or `prop: self`) are initialized to those
           values.
-       #. All the propertiy rules that are set by non-literals (e.g.
+       #. All the property rules that are set by non-literals (e.g.
           `size: self.x + 25, self.y + 33`) are initialized to those values.
        #. All the required bindings are created.
        #. All the non-literal property rules (e.g.
@@ -59,6 +59,16 @@ When `False`, bindings occur mostly like in the past, except for some
           are stale.
        #. All the `on_prop` rules (e.g. `on_parent: self.size = 25, 25`) that
           should have been triggered during the previous stages are triggered.
+       #. For every child widget of the current root rule, e.g. `RuleA` for
+          `<RuleB@Button>` and `Label` for `<RuleA@BoxLayout>`, the
+          `on_kv_apply` event is dispatched indicating that the current rule
+          is done. In each case, the root object of the current rule (e.g.
+          `RuleB` and `RuleA`, respectively) is the parameter to the
+          event. When this event is dispatched, we're guaranteed that all the
+          rules to the object being dispatched is done, but the rules to e.g.
+          its parents may not be fully applied yet.
+       #. The root rule dispatches `on_kv_apply` to itself indicating that its
+          rules are done.
        Specifically, all these steps were done for RuleA using it's
        `<RuleA@BoxLayout>` rule followed by all the steps for its rules from
        `<RuleB@Button>`.
@@ -95,7 +105,7 @@ When `False`, bindings occur mostly like in the past, except for some
         [1, 1]
         [25, 25]
 
-    The reason is that: first, for the initialiation phase of `RuleA`,
+    The reason is that: first, for the initialization phase of `RuleA`,
     `my_size` gets set to the value of `root.size` which is `100, 100` and is
     then set to track `root.size`.
 
@@ -111,40 +121,50 @@ When `False`, bindings occur mostly like in the past, except for some
         [25, 25]
 
     That's because with `batch_bind` True, rule application is batched as three
-    phases: initilization, binding, and post-initialization. In particular, we
+    phases: initialization, binding, and post-initialization. In particular, we
     gather all the KV rules, including inherited rules both for the root
     widget and all its children and perform each phase on all the rules bfore
     going to the next phase. Specifically, when `RuleB is created with e.g.
     `RuleB()`, the following occurs to the `RuleA` child object:
 
     #. The `RuleaA` object is created by `RuleaB`.
-    #. In the initilization step, we combine the `<RuleA@BoxLayout>` rules and
+    #. In the initialization step, we combine the `<RuleA@BoxLayout>` rules and
        the `<RuleB@Button>` RuleA applicable rules and do the following overall
        steps.
        #. The rule's children are created (e.g. `Label` in `RuleA`)
-       #. All the propertiy rules that are set by literals (like in
+       #. All the property rules that are set by literals (like in
           `batch_bind=False`) are initialized to those values.
-       #. All the propertiy rules that are set by non-literals
+       #. All the property rules that are set by non-literals
           are initialized to those values.
     #. In the binding phase we create the bindings for all the rules.
-    #. In the third phase, post initilization is done as follows:
+    #. In the third phase, post initialization is done as follows:
        #. All the non-literal property rules are re-evaluated to ensure non
           are stale.
        #. All the `on_prop` rules (e.g. `on_parent: self.size = 25, 25`) that
           should have been triggered during the previous stages are triggered.
+       #. For every child widget of all the rules, e.g. `RuleA` and `Label` the
+          `on_kv_apply` event is dispatched indicating that **ALL** the rules
+          are done being applied. For all, the root object of the topmost rule
+          (the `RuleB` object above) is the parameter to the
+          event. When this event is dispatched, we're guaranteed that all the
+          rules to the object and its parents are done. That means **ALL** KV
+          rules that are applicable to the widget and all its children
+          are fully applied.
+       #. The root rule (`RuleB` above) dispatches `on_kv_apply` to itself
+          in `__init__` indicating that its rules are done.
 
-    The order of the three phases is also specific as followes.
-    #. In the initialization phase, inherited rules are apllied first. E.g.
+    The order of the three phases is also specific as follows.
+    #. In the initialization phase, inherited rules are applied first. E.g.
        initialization of `<RuleA@BoxLayout>` is done before `<RuleB@Button>`.
-    #. The binding phase order followes exactly as the initialiation order.
-    #. The post initilization order is the reverse of the initialization order.
-       That is, inhertied rules are post initialized after derived rules.
+    #. The binding phase order follows exactly as the initialization order.
+    #. The post initialization order is the reverse of the initialization order.
+       That is, inherited rules are post initialized after derived rules.
        Specifically, `<RuleB@Button>` is post initialized, followed by
        `<RuleA@BoxLayout>`.
 
     The justification for this order is that for initialization, it's expected
-    that parent rules are initilized before children rules as is done
-    currently. However, the goal of post nitilization is to trigger and update
+    that parent rules are initialized before children rules as is done
+    currently. However, the goal of post initialization is to trigger and update
     the rules that need to be updated. It is more common in KV that children
     are  sized or follow the properties of the parents than the reverse.
     Similarly, it should be expected that newer rules drive previous rules
@@ -162,11 +182,11 @@ When `False`, bindings occur mostly like in the past, except for some
     `size: self.x + 1, self.y + 1`, but since it already had the value of
     `1, 1` it's not dispatched and doesn't update `my_size`. Then,
     `on_parent: self.size = 25, 25` is executed setting the size to `25, 25`,
-    hence the print. Finally, `my_size: root.size` is agin evaluated, but
+    hence the print. Finally, `my_size: root.size` is again evaluated, but
     it doesn't change `my_size`.
 
     The overall result is that `batch_bind=True` resulted in less dispatching
-    and property updating during initilization and binding creation.
+    and property updating during initialization and binding creation.
 
 
 
@@ -264,7 +284,7 @@ After the widgets and graphics instructions are created, and after we ensure
 all properties set by the rules exist, the initialization step begins.
 
 Initialization is split into three periods; literal initialization, non-literal
-initialization, and grahical initilization.
+initialization, and graphical initialization.
 
 
 Graphics Instructions
