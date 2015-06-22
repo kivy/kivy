@@ -11,7 +11,7 @@ before_install:
 
 install:
   - pip install hg+http://bitbucket.org/pygame/pygame
-  - pip install --upgrade cython pil --use-mirrors
+  - pip install --upgrade cython pil
   - make
 
 # command to run tests
