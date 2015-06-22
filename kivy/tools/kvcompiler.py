@@ -289,7 +289,9 @@ TODO:
 #. Add docs to binding in compiled code.
 '''
 
-__all__ = []
+__all__ = (
+    'KVCompiler', 'LazyFmt', 'LazyEval', 'LazyString', 'push_empty',
+    'break_multiline_code', 'safe_comment', 'make_tuple', 'RuleContext')
 
 __version__ = '0.1'
 

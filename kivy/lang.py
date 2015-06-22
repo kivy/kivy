@@ -48,13 +48,6 @@ The language consists of several constructs that you can use:
         styling the content of a list (e.g. icon on the left, text on the
         right). They are now deprecated by dynamic classes.
 
-    ..note::
-
-        -Document required methods, e.g. rebind_property, fast_bind, unbind_uid.
-        -Also how proxy_ref can be used by obj that don't want kv to keep a ref.
-        -That all graphics instructs are exec delayed.
-        -It has dispatch method, children and parent props.
-
 
 Syntax of a kv File
 -------------------
