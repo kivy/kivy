@@ -1193,7 +1193,7 @@ class CompoundSelectionBehavior(object):
 
         if scancode[1] == 'shift':
             self._shift_down = True
-        elif scancode[1] == 'ctrl':
+        elif scancode[1] in ('ctrl', 'lctrl', 'rctrl'):
             self._ctrl_down = True
         elif (multi and 'ctrl' in modifiers and scancode[1] in ('a', 'A')
               and scancode[1] not in keys):
@@ -1239,7 +1239,7 @@ class CompoundSelectionBehavior(object):
         '''
         if scancode[1] == 'shift':
             self._shift_down = False
-        elif scancode[1] == 'ctrl':
+        elif scancode[1] in ('ctrl', 'lctrl', 'rctrl'):
             self._ctrl_down = False
         else:
             try:
