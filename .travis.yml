@@ -14,7 +14,6 @@ install:
   - sudo apt-get install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base
   - sudo apt-get install python-dev libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libx11-6 libX11-dev libmtdev-dev
   - sudo apt-get install python-setuptools python-opengl build-essential libgl1-mesa-dev libgles2-mesa-dev
-
   - sudo apt-get install xvfb pulseaudio
   - pip install -U cython pillow nose coverage
   - pip install -U sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag
@@ -34,7 +33,7 @@ notifications:
   irc:
     channels:
       - chat.freenode.net#kivy-dev
-    on_success: change
-    on_failure: change
+    on_success: never
+    on_failure: always
     use_notice: true
     skip_join: true
