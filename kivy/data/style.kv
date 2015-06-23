@@ -993,25 +993,28 @@
     GridLayout:
         rows: 1
         size_hint_y: None
-        height: 44
+        height: '44dp'
 
         VideoPlayerStop:
             size_hint_x: None
             video: root
-            width: 44
+            width: '44dp'
             source: root.image_stop
+            allow_stretch: True
 
         VideoPlayerPlayPause:
             size_hint_x: None
             video: root
-            width: 44
+            width: '44dp'
             source: root.image_pause if root.state == 'play' else root.image_play
+            allow_stretch: True
 
         VideoPlayerVolume:
             video: root
             size_hint_x: None
-            width: 44
+            width: '44dp'
             source: root.image_volumehigh if root.volume > 0.8 else (root.image_volumemedium if root.volume > 0.4 else (root.image_volumelow if root.volume > 0 else root.image_volumemuted))
+            allow_stretch: True
 
         Widget:
             size_hint_x: None

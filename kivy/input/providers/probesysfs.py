@@ -120,10 +120,11 @@ else:
                 evpath = None
                 for prop in devprops.splitlines():
                     prop = prop.strip()
-                    if prop.startswith('Device Enabled') and prop.endswith('0'):
+                    if (prop.startswith(b'Device Enabled') and
+                            prop.endswith(b'0')):
                         evpath = None
                         break
-                    if prop.startswith('Device Node'):
+                    if prop.startswith(b'Device Node'):
                         try:
                             evpath = prop.split('"')[1]
                         except Exception:

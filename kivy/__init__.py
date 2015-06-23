@@ -3,8 +3,8 @@ Kivy framework
 ==============
 
 Kivy is an open source library for developing multi-touch applications. It is
-completely cross-platform (Linux/OSX/Win) and released under the terms of the
-MIT License.
+cross-platform (Linux/OSX/Windows/Android/iOS) and released under
+the terms of the `MIT License <https://en.wikipedia.org/wiki/MIT_License>`_.
 
 It comes with native support for many multi-touch input devices, a growing
 library of multi-touch aware widgets and hardware accelerated OpenGL drawing.
@@ -14,7 +14,7 @@ applications as quickly and easily as possible.
 With Kivy, you can take full advantage of the dynamic nature of Python. There
 are thousands of high-quality, free libraries that can be integrated in your
 application. At the same time, performance-critical parts are implemented
-in the C language.
+using `Cython <http://cython.org/>`_.
 
 See http://kivy.org for more information.
 '''
@@ -190,7 +190,8 @@ kivy_options = {
         'gstplayer', 'pygame', 'gi', 'pygst', 'ffpyplayer', 'sdl2',
         'avplayer'),
     'image': ('tex', 'imageio', 'dds', 'gif', 'sdl2', 'pygame', 'pil', 'ffpy'),
-    'camera': ('opencv', 'gi', 'pygst', 'videocapture', 'avfoundation', 'android'),
+    'camera': ('opencv', 'gi', 'pygst', 'videocapture', 'avfoundation',
+               'android'),
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': (
         'android', 'winctypes', 'xsel', 'xclip', 'dbusklipper', 'nspaste',

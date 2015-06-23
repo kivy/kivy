@@ -18,7 +18,7 @@ you should only be using this directly if your needs aren't fulfilled by the
 
 Usage example::
 
-    from kivy.core.label import Label as CoreLabel
+    from kivy.core.text import Label as CoreLabel
 
     ...
     ...

@@ -522,6 +522,7 @@ cdef extern from "SDL.h":
     cdef void SDL_GetWindowPosition(SDL_Window * window, int *x, int *y)
     cdef void SDL_SetWindowSize(SDL_Window * window, int w, int h)
     cdef void SDL_GetWindowSize(SDL_Window * window, int *w, int *h)
+    cdef void SDL_SetWindowMinimumSize(SDL_Window * window, int min_w, int min_h)
     cdef void SDL_SetWindowBordered(SDL_Window * window, SDL_bool bordered)
     cdef void SDL_ShowWindow(SDL_Window * window)
     cdef void SDL_HideWindow(SDL_Window * window)
