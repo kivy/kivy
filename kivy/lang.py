@@ -831,6 +831,11 @@ else:
 # widget is deleted
 _handlers = defaultdict(list)
 
+# uid -> propname -> [bound]
+# used to correctly unbind callbacks when one rule's property constraint
+# overrides another
+_constraints = defaultdict(lambda:defaultdict(list))
+
 
 class ProxyApp(object):
     # proxy app object
@@ -1491,6 +1496,30 @@ def delayed_call_fn(args, instance, v):
         _delayed_start = args
 
 
+def undo_bindings(bound):
+    for f, k, fun, uid in bound:
+        if fun is None:
+            continue
+        try:
+            f.unbind_uid(k, uid)
+        except ReferenceError:
+            pass
+
+
+def undo_bindings_list(bounds):
+    if bounds:
+        for bound in bounds:
+            undo_bindings(bound)
+
+
+def clear_constraint(widget, key):
+    bindings = _constraints[widget.uid][key]
+    if bindings:
+        undo_bindings_list(bindings)
+        del bindings[:]
+    return bindings
+
+
 def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     ''' Function that is called when an intermediate property is updated
     and `rebind` of that property is True. In that case, we unbind
@@ -1529,13 +1558,7 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
             The function to be called args, `args` on bound callback.
     '''
     # first remove all the old bound functions from `s` and down.
-    for f, k, fun, uid in bound[s:]:
-        if fun is None:
-            continue
-        try:
-            f.unbind_uid(k, uid)
-        except ReferenceError:
-            pass
+    undo_bindings(bound[s:])
     del bound[s:]
 
     # find the first attr from which we need to start rebinding.
@@ -1587,6 +1610,12 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     idmap.update(global_idmap)
     idmap['self'] = iself.proxy_ref
     handler_append = _handlers[iself.uid].append
+
+    # if there is already a constraint on iself/key then remove it before
+    # posting a new one.  there should be at most one constraint for any
+    # property iself/key.
+    if not delayed:
+        current_constraint_bindings = clear_constraint(iself, key)
 
     # we need a hash for when delayed, so we don't execute duplicate canvas
     # callbacks from the same handler during a sync op
@@ -1644,6 +1673,8 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                     was_bound = True
             if was_bound:
                 handler_append(bound)
+            if bound and not delayed:
+                current_constraint_bindings.append(bound)
 
     try:
         return eval(value, idmap)
@@ -2009,6 +2040,8 @@ class BuilderBase(object):
                     if type(value) is CodeType:
                         value = create_handler(widget_set, widget_set, key,
                                                value, rule, rctx['ids'])
+                    else:
+                        clear_constraint(widget_set, key)
                     setattr(widget_set, key, value)
         except Exception as e:
             if rule is not None:
@@ -2107,6 +2140,8 @@ class BuilderBase(object):
                     # proxy widget is already gone, that's cool :)
                     pass
         del _handlers[uid]
+        if uid in _constraints:
+            del _constraints[uid]
 
     def _build_canvas(self, canvas, widget, rule, rootrule):
         global Instruction
