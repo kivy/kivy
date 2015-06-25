@@ -29,7 +29,7 @@ cdef class Property:
     cpdef link(self, EventDispatcher obj, str name)
     cpdef link_deps(self, EventDispatcher obj, str name)
     cpdef bind(self, EventDispatcher obj, observer)
-    cpdef fbind(self, EventDispatcher obj, observer, tuple largs=*, dict kwargs=*)
+    cpdef fbind(self, EventDispatcher obj, observer, int ref, tuple largs=*, dict kwargs=*)
     cpdef unbind(self, EventDispatcher obj, observer)
     cpdef funbind(self, EventDispatcher obj, observer, tuple largs=*, dict kwargs=*)
     cpdef unbind_uid(self, EventDispatcher obj, object uid)

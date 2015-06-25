@@ -368,22 +368,25 @@ cdef class Property:
         '''Add a new observer to be called only when the value is changed.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.observers.bind(WeakMethod(observer), 1)
+        ps.observers.bind(WeakMethod(observer), observer, 1)
 
-    cpdef fbind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
+    cpdef fbind(self, EventDispatcher obj, observer, int ref, tuple largs=(), dict kwargs={}):
         '''Similar to bind, except it doesn't check if the observer already
         exists. It also expands and forwards largs and kwargs to the callback.
         funbind or unbind_uid should be called when unbinding.
         It returns a unique positive uid to be used with unbind_uid.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        return ps.observers.fbind(observer, largs, kwargs, 0)
+        if ref:
+            return ps.observers.fbind(WeakMethod(observer), largs, kwargs, 1)
+        else:
+            return ps.observers.fbind(observer, largs, kwargs, 0)
 
     cpdef unbind(self, EventDispatcher obj, observer):
         '''Remove the observer from our widget observer list.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.observers.unbind(observer, 1, 0)
+        ps.observers.unbind(observer, 0)
 
     cpdef funbind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
         '''Remove the observer from our widget observer list bound with
