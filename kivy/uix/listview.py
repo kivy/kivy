@@ -895,7 +895,7 @@ class ListView(AbstractView, EventDispatcher):
         self._trigger_reset_populate = \
             Clock.create_trigger(self._reset_spopulate, -1)
 
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('size', populate)
         fbind('pos', populate)
         fbind('item_strings', self.item_strings_changed)

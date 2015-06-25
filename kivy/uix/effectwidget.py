@@ -378,7 +378,7 @@ class EffectBase(EventDispatcher):
 
     def __init__(self, *args, **kwargs):
         super(EffectBase, self).__init__(*args, **kwargs)
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbo_shader = self.set_fbo_shader
         fbind('fbo', fbo_shader)
         fbind('glsl', fbo_shader)
@@ -436,7 +436,7 @@ class AdvancedEffectBase(EffectBase):
 
     def __init__(self, *args, **kwargs):
         super(AdvancedEffectBase, self).__init__(*args, **kwargs)
-        self.fast_bind('uniforms', self._update_uniforms)
+        self.fbind('uniforms', self._update_uniforms)
 
     def _update_uniforms(self, *args):
         if self.fbo is None:
@@ -658,7 +658,7 @@ class EffectWidget(RelativeLayout):
 
         Clock.schedule_interval(self._update_glsl, 0)
 
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbo_setup = self.refresh_fbo_setup
         fbind('size', fbo_setup)
         fbind('effects', fbo_setup)

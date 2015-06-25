@@ -253,7 +253,7 @@ class RelativeLayout(FloatLayout):
 
     def __init__(self, **kw):
         super(RelativeLayout, self).__init__(**kw)
-        funbind = self.fast_unbind
+        funbind = self.funbind
         trigger = self._trigger_layout
         funbind('pos', trigger)
         funbind('pos_hint', trigger)

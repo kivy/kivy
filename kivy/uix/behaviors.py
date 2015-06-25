@@ -105,7 +105,7 @@ class ButtonBehavior(object):
         super(ButtonBehavior, self).__init__(**kwargs)
         self.__state_event = None
         self.__touch_time = None
-        self.fast_bind('state', self.cancel_event)
+        self.fbind('state', self.cancel_event)
 
     def _do_press(self):
         self.state = 'down'
@@ -771,7 +771,7 @@ class FocusBehavior(object):
         super(FocusBehavior, self).__init__(**kwargs)
 
         self._keyboard_mode = _keyboard_mode
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('focus', self._on_focus)
         fbind('disabled', self._on_focusable)
         fbind('is_focusable', self._on_focusable)
@@ -1112,7 +1112,7 @@ class CompoundSelectionBehavior(object):
                 self.clear_selection()
         update_counts = self._update_counts
         update_counts()
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('multiselect', ensure_single_select)
         fbind('page_count', update_counts)
         fbind('up_count', update_counts)
