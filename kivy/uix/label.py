@@ -249,7 +249,7 @@ class Label(Widget):
 
         # bind all the property for recreating the texture
         d = Label._font_properties
-        fbind = self.fast_bind
+        fbind = self.fbind
         update = self._trigger_texture_update
         for x in d:
             fbind(x, update, x)
@@ -266,9 +266,9 @@ class Label(Widget):
 
     def _bind_for_markup(self, inst, markup):
         if markup:
-            self.fast_bind('color', self._trigger_texture_update, 'color')
+            self.fbind('color', self._trigger_texture_update, 'color')
         else:
-            self.fast_unbind('color', self._trigger_texture_update, 'color')
+            self.funbind('color', self._trigger_texture_update, 'color')
 
     def _create_label(self):
         # create the core label class according to markup value

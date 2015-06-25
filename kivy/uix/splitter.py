@@ -179,7 +179,7 @@ class Splitter(BoxLayout):
         super(Splitter, self).__init__(**kwargs)
 
         do_size = self._do_size
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('max_size', do_size)
         fbind('min_size', do_size)
         fbind('parent', self._rebind_parent)

@@ -338,7 +338,7 @@ class VKeyboard(Scatter):
             self._load_layouts)
         layout = self._trigger_load_layout = Clock.create_trigger(
             self._load_layout)
-        fbind = self.fast_bind
+        fbind = self.fbind
 
         fbind('docked', self.setup_mode)
         fbind('have_shift', layout_mode)
