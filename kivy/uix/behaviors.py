@@ -105,7 +105,7 @@ class ButtonBehavior(object):
         super(ButtonBehavior, self).__init__(**kwargs)
         self.__state_event = None
         self.__touch_time = None
-        self.fast_bind('state', self.cancel_event)
+        self.fbind('state', self.cancel_event)
 
     def _do_press(self):
         self.state = 'down'
@@ -771,7 +771,7 @@ class FocusBehavior(object):
         super(FocusBehavior, self).__init__(**kwargs)
 
         self._keyboard_mode = _keyboard_mode
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('focus', self._on_focus)
         fbind('disabled', self._on_focusable)
         fbind('is_focusable', self._on_focusable)
@@ -1112,7 +1112,7 @@ class CompoundSelectionBehavior(object):
                 self.clear_selection()
         update_counts = self._update_counts
         update_counts()
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('multiselect', ensure_single_select)
         fbind('page_count', update_counts)
         fbind('up_count', update_counts)
@@ -1193,7 +1193,7 @@ class CompoundSelectionBehavior(object):
 
         if scancode[1] == 'shift':
             self._shift_down = True
-        elif scancode[1] == 'ctrl':
+        elif scancode[1] in ('ctrl', 'lctrl', 'rctrl'):
             self._ctrl_down = True
         elif (multi and 'ctrl' in modifiers and scancode[1] in ('a', 'A')
               and scancode[1] not in keys):
@@ -1239,7 +1239,7 @@ class CompoundSelectionBehavior(object):
         '''
         if scancode[1] == 'shift':
             self._shift_down = False
-        elif scancode[1] == 'ctrl':
+        elif scancode[1] in ('ctrl', 'lctrl', 'rctrl'):
             self._ctrl_down = False
         else:
             try:

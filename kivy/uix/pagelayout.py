@@ -67,7 +67,7 @@ class PageLayout(Layout):
         super(PageLayout, self).__init__(**kwargs)
 
         trigger = self._trigger_layout
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('border', trigger)
         fbind('page', trigger)
         fbind('parent', trigger)

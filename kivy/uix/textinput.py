@@ -484,7 +484,7 @@ class TextInput(FocusBehavior, Widget):
 
         super(TextInput, self).__init__(**kwargs)
 
-        fbind = self.fast_bind
+        fbind = self.fbind
         refresh_line_options = self._trigger_refresh_line_options
         update_text_options = self._update_text_options
 
@@ -1311,7 +1311,7 @@ class TextInput(FocusBehavior, Widget):
         bubble = self._bubble
         if bubble is None:
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
-            self.fast_bind('parent', self._show_cut_copy_paste, pos, win, True)
+            self.fbind('parent', self._show_cut_copy_paste, pos, win, True)
             win.bind(
                 size=lambda *args: self._hide_cut_copy_paste(win))
             self.bind(cursor_pos=lambda *args: self._hide_cut_copy_paste(win))

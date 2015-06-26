@@ -1513,7 +1513,7 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
         `bound`
             A list 4-tuples, each tuple being (widget, attr, callback, uid)
             representing callback functions bound to the attributed `attr`
-            of `widget`. `uid` is returned by `fast_bind` when binding.
+            of `widget`. `uid` is returned by `fbind` when binding.
             The callback may be None, in which case the attr
             was not bound, but is there to be able to walk the attr tree.
             E.g. in the example above, if `b` was not an eventdispatcher,
@@ -1553,10 +1553,10 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
         if isinstance(f, (EventDispatcher, Observable)):
             prop = f.property(val, True)
             if prop is not None and getattr(prop, 'rebind', False):
-                # fast_bind should not dispatch, otherwise
+                # fbind should not dispatch, otherwise
                 # update_intermediates might be called in the middle
                 # here messing things up
-                uid = f.fast_bind(
+                uid = f.fbind(
                     val, update_intermediates, base, keys, bound, s, fn, args)
                 append([f.proxy_ref, val, update_intermediates, uid])
             else:
@@ -1572,7 +1572,7 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     # for the last attr we bind directly to the setting function,
     # because that attr sets the value of the rule.
     if isinstance(f, (EventDispatcher, Observable)):
-        uid = f.fast_bind(keys[-1], fn, args)
+        uid = f.fbind(keys[-1], fn, args)
         if uid:
             append([f.proxy_ref, keys[-1], fn, uid])
     # when we rebind we have to update the
@@ -1616,10 +1616,10 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                 if isinstance(f, (EventDispatcher, Observable)):
                     prop = f.property(val, True)
                     if prop is not None and getattr(prop, 'rebind', False):
-                        # fast_bind should not dispatch, otherwise
+                        # fbind should not dispatch, otherwise
                         # update_intermediates might be called in the middle
                         # here messing things up
-                        uid = f.fast_bind(
+                        uid = f.fbind(
                             val, update_intermediates, base, keys, bound, k,
                             fn, args)
                         append([f.proxy_ref, val, update_intermediates, uid])
@@ -1638,7 +1638,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
             # for the last attr we bind directly to the setting
             # function, because that attr sets the value of the rule.
             if isinstance(f, (EventDispatcher, Observable)):
-                uid = f.fast_bind(keys[-1], fn, args)  # f is not None
+                uid = f.fbind(keys[-1], fn, args)  # f is not None
                 if uid:
                     append([f.proxy_ref, keys[-1], fn, uid])
                     was_bound = True
@@ -2031,7 +2031,7 @@ class BuilderBase(object):
                     idmap = copy(global_idmap)
                     idmap.update(rctx['ids'])
                     idmap['self'] = widget_set.proxy_ref
-                    if not widget_set.fast_bind(key, custom_callback, crule,
+                    if not widget_set.fbind(key, custom_callback, crule,
                                                 idmap):
                         raise AttributeError(key)
                     #hack for on_parent

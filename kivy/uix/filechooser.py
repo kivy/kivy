@@ -226,7 +226,7 @@ class FileChooserListLayout(FileChooserLayout):
 
     def __init__(self, **kwargs):
         super(FileChooserListLayout, self).__init__(**kwargs)
-        self.fast_bind('on_entries_cleared', self.scroll_to_top)
+        self.fbind('on_entries_cleared', self.scroll_to_top)
 
     def scroll_to_top(self, *args):
         self.ids.scrollview.scroll_y = 1.0
@@ -243,7 +243,7 @@ class FileChooserIconLayout(FileChooserLayout):
 
     def __init__(self, **kwargs):
         super(FileChooserIconLayout, self).__init__(**kwargs)
-        self.fast_bind('on_entries_cleared', self.scroll_to_top)
+        self.fbind('on_entries_cleared', self.scroll_to_top)
 
     def scroll_to_top(self, *args):
         self.ids.scrollview.scroll_y = 1.0
@@ -456,7 +456,7 @@ class FileChooserController(RelativeLayout):
         super(FileChooserController, self).__init__(**kwargs)
 
         self._items = []
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('selection', self._update_item_selection)
 
         self._previous_path = [self.path]
@@ -876,7 +876,7 @@ class FileChooser(FileChooserController):
 
         self.trigger_update_view = Clock.create_trigger(self.update_view)
 
-        self.fast_bind('view_mode', self.trigger_update_view)
+        self.fbind('view_mode', self.trigger_update_view)
 
     def add_widget(self, widget, **kwargs):
         if widget is self._progress:

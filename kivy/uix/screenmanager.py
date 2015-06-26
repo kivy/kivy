@@ -860,7 +860,7 @@ class ScreenManager(FloatLayout):
 
     def __init__(self, **kwargs):
         super(ScreenManager, self).__init__(**kwargs)
-        self.fast_bind('pos', self._update_pos)
+        self.fbind('pos', self._update_pos)
 
     def _screen_name_changed(self, screen, name):
         self.property('screen_names').dispatch(self)

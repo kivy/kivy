@@ -209,6 +209,7 @@ from kivy.config import ConfigParser
 from functools import partial
 from kivy.clock import Clock
 from kivy.weakmethod import WeakMethod
+from kivy.logger import Logger
 
 cdef float g_dpi = -1
 cdef float g_density = -1
@@ -282,11 +283,11 @@ cdef class Property:
             If set, it will replace an invalid property value (overrides
             errorhandler).
 
-            If the paramters include `force_dispatch`, it should be a boolean.
-            If True, the property event will be dispatched even if the new
-            value matches the old value (by default identical values are not
-            dispatched to avoid infinite recursion in two-way binds). Be
-            careful, this is for advanced use only.
+            If the parameters include `force_dispatch`, it should be a boolean.
+            If True, no value comparison will be done, so the property event
+            will be dispatched even if the new value matches the old value (by
+            default identical values are not dispatched to avoid infinite
+            recursion in two-way binds). Be careful, this is for advanced use only.
 
     .. versionchanged:: 1.4.2
         Parameters errorhandler and errorvalue added
@@ -321,6 +322,12 @@ cdef class Property:
     property name:
         def __get__(self):
             return self._name
+
+    def __repr__(self):
+        return '<{} name={}>'.format(self.__class__.__name__, self._name)
+
+    def __str__(self):
+        return '<{} name={}>'.format(self.__class__.__name__, self._name)
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
         storage.value = self.convert(obj, self.defaultvalue)
@@ -361,34 +368,37 @@ cdef class Property:
         '''Add a new observer to be called only when the value is changed.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.observers.bind(WeakMethod(observer), 1)
+        ps.observers.bind(WeakMethod(observer), observer, 1)
 
-    cpdef fast_bind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
+    cpdef fbind(self, EventDispatcher obj, observer, int ref, tuple largs=(), dict kwargs={}):
         '''Similar to bind, except it doesn't check if the observer already
         exists. It also expands and forwards largs and kwargs to the callback.
-        fast_unbind or unbind_uid should be called when unbinding.
+        funbind or unbind_uid should be called when unbinding.
         It returns a unique positive uid to be used with unbind_uid.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        return ps.observers.fast_bind(observer, largs, kwargs, 0)
+        if ref:
+            return ps.observers.fbind(WeakMethod(observer), largs, kwargs, 1)
+        else:
+            return ps.observers.fbind(observer, largs, kwargs, 0)
 
     cpdef unbind(self, EventDispatcher obj, observer):
         '''Remove the observer from our widget observer list.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.observers.unbind(observer, 1, 0)
+        ps.observers.unbind(observer, 0)
 
-    cpdef fast_unbind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
+    cpdef funbind(self, EventDispatcher obj, observer, tuple largs=(), dict kwargs={}):
         '''Remove the observer from our widget observer list bound with
-        fast_bind. It removes the first match it finds, as opposed to unbind
+        fbind. It removes the first match it finds, as opposed to unbind
         which searches for all matches.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.observers.fast_unbind(observer, largs, kwargs)
+        ps.observers.funbind(observer, largs, kwargs)
 
     cpdef unbind_uid(self, EventDispatcher obj, object uid):
         '''Remove the observer from our widget observer list bound with
-        fast_bind using the uid.
+        fbind using the uid.
         '''
         cdef PropertyStorage ps = obj.__storage[self._name]
         ps.observers.unbind_uid(uid)
@@ -402,7 +412,13 @@ cdef class Property:
         return self.get(obj)
 
     cdef compare_value(self, a, b):
-        return a == b
+        try:
+            return bool(a == b)
+        except Exception as e:
+            Logger.warn(
+                'Property: Value comparison failed for {} with "{}". Consider setting '
+                'force_dispatch to True to avoid this.'.format(self, e))
+            return False
 
     cpdef set(self, EventDispatcher obj, value):
         '''Set a new value for the property.
@@ -516,6 +532,9 @@ cdef class NumericProperty(Property):
         storage.numeric_fmt = 'px'
         Property.init_storage(self, obj, storage)
 
+    cdef compare_value(self, a, b):
+        return a == b
+
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
@@ -572,6 +591,9 @@ cdef class StringProperty(Property):
 
     def __init__(self, defaultvalue='', **kw):
         super(StringProperty, self).__init__(defaultvalue, **kw)
+
+    cdef compare_value(self, a, b):
+        return a == b
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
@@ -1015,6 +1037,9 @@ cdef class BoundedNumericProperty(Property):
         if ps.bnum_use_max == 2:
             return ps.bnum_f_max
 
+    cdef compare_value(self, a, b):
+        return a == b
+
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
@@ -1170,7 +1195,7 @@ cdef class ReferenceListProperty(Property):
         cdef Property prop
         Property.link_deps(self, obj, name)
         for prop in self.properties:
-            prop.fast_bind(obj, self.trigger_change)
+            prop.fbind(obj, self.trigger_change, 0)
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -1323,7 +1348,7 @@ cdef class AliasProperty(Property):
         cdef Property oprop
         for prop in self.bind_objects:
             oprop = getattr(obj.__class__, prop)
-            oprop.fast_bind(obj, self.trigger_change)
+            oprop.fbind(obj, self.trigger_change, 0)
 
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -1398,6 +1423,9 @@ cdef class VariableListProperty(Property):
         Property.link(self, obj, name)
         cdef PropertyStorage ps = obj.__storage[self._name]
         ps.value = ObservableList(self, obj, ps.value)
+
+    cdef compare_value(self, a, b):
+        return a == b
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
