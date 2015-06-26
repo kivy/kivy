@@ -64,7 +64,8 @@ class ClipboardAndroid(ClipboardBase):
             primary_clip = clippy.getPrimaryClip()
             if primary_clip:
                 try:
-                    data = primary_clip.getItemAt(0).coerceToText(PythonActivity.mActivity)
+                    data = primary_clip.getItemAt(0).coerceToText(
+                        PythonActivity.mActivity)
                 except Exception:
                     Logger.exception('Clipboard: failed to paste')
                     data = ''
