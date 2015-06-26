@@ -20,12 +20,17 @@ from kivy.app import App
 from kivy.graphics.texture import Texture
 from kivy.graphics import Rectangle
 from kivy.uix.widget import Widget
+from kivy.uix.label import Label
 from kivy.uix.floatlayout import FloatLayout
-#from kivy.ext.mpl.backend_kivyagg import FigureCanvasKivyAgg
 from kivy.uix.behaviors import FocusBehavior
 from kivy.base import EventLoop
 from kivy.graphics import Color, Line
+from kivy.graphics import Rotate, Translate
+from kivy.graphics.context_instructions import PopMatrix, PushMatrix
+from kivy.logger import Logger
+from kivy.graphics import Mesh
 
+from math import cos, sin, pi
 # try:
 #     kivy.require('1.9.0') # I would need to check which release of
 #     Kivy would be the best suitable.
@@ -77,16 +82,81 @@ class RendererKivy(RendererBase):
         self.widget = widget
 
     def draw_path(self, gc, path, transform, rgbFace=None):
-        print(path)
-        print(gc)
         points_line = []
-        for points, code in path.iter_segments(transform):
-            points_line.append(points[0])
-            points_line.append(points[1])
-        print(points_line)
-        with self.widget.canvas:
-            Color(1.0, 0.5, 0.5)
-            Line(points=points_line, width=2.0)
+        polygons = path.to_polygons(transform, self.widget.width,
+                                    self.widget.height)
+        for polygon in polygons:
+            x_list = []
+            y_list = []
+            for x, y in polygon:
+                x_list.append(int(x))
+                y_list.append(int(y))
+                points_line.append(int(x))
+                points_line.append(int(y))
+            with self.widget.canvas:
+                if rgbFace is not None:
+                    Color(*rgbFace)
+                    Mesh(vertices=self._regular_polygon(1.0, len(polygon),
+                        x_list, y_list), indices=range(len(polygon)),
+                         mode=str('triangle_fan'))
+                else:
+                    Color(*gc.get_rgb())
+                    Line(points=points_line, width=1.0,
+                         dash_length=gc.line['dash_length'],
+                         dash_offset=gc.line['dash_offset'],
+                         dash_joint=gc.line['joint_style'])
+
+    def _regular_polygon(self, radius, sides, x, y):
+        r = radius
+        a = 2 * pi / sides
+        vertices = []
+        for i in xrange(sides):
+            vertices += [
+                x[i] + cos(i * a) * r,
+                y[i] + sin(i * a) * r,
+                cos(i * a),
+                sin(i * a),
+            ]
+        return vertices
+
+    def draw_image(self, gc, x, y, im):
+        print('draw_image', gc, x, y, im)
+
+    def draw_text(self, gc, x, y, s, prop, angle, ismath=False, mtext=None):
+        print('properties')
+        print(prop)
+        print(s)
+        x, y = float(x), float(y)
+        if x < 0 or y < 0:
+            return
+
+#         label = Label(text='[color=0000ff]'+str(s)+'[/color]',
+#                 pos=(x,y), markup=True)
+#         self.widget.add_widget(label)
+
+        dx = 51
+        dy = 51
+
+        label = Label(text='[color=000000]' + s + '[/color]',
+                      pos=(x - dx, y - dy), markup=True)
+
+        if angle not in (0, 90):
+            Logger.warning('backend_kivy: unable to draw text at angles ' +
+                          'other than 0 or 90')
+        elif ismath:  # Not sure yet what is special about this.
+            self.widget.add_widget(label)
+        elif angle == 90:
+            with label.canvas.before:
+                PushMatrix()
+                label.rot = Rotate()
+                label.rot.angle = 90
+                label.rot.origin = label.center
+                label.rot.axis = (0, 0, 1)
+            with label.canvas.after:
+                PopMatrix()
+            self.widget.add_widget(label)
+        else:
+            self.widget.add_widget(label)
 
     # draw_markers is optional, and we get more correct relative
     # timings by leaving it out. backend implementers concerned with
@@ -112,23 +182,17 @@ class RendererKivy(RendererBase):
 #                        antialiased, edgecolors):
 #         pass
 
-    def draw_image(self, gc, x, y, im):
-        pass
-
-    def draw_text(self, gc, x, y, s, prop, angle, ismath=False, mtext=None):
-        pass
-
     def flipy(self):
-        return True
+        return False
 
     def get_canvas_width_height(self):
-        return 100, 100
+        return self.widget.width, self.widget.height
 
     def get_text_width_height_descent(self, s, prop, ismath):
         return 1, 1, 1
 
     def new_gc(self):
-        return GraphicsContextKivy()
+        return GraphicsContextKivy(self.widget)
 
     def points_to_pixels(self, points):
         # if backend doesn't have dpi, e.g., postscript or svg
@@ -159,7 +223,64 @@ class GraphicsContextKivy(GraphicsContextBase):
     interval, e.g., (0.5, 0.0, 1.0). You may need to map this to colors
     appropriate for your backend.
     """
-    pass
+
+    _capd = {
+        'butt': 'square',
+        'projecting': 'square',
+        'round': 'round',
+    }
+
+    def __init__(self, renderer):
+        #super(GraphicsContextBase, self).__init__()
+        GraphicsContextBase.__init__(self)
+        self.renderer = renderer
+        self.line = {}
+        self.line['cap_style'] = self.get_capstyle()
+        self.line['joint_style'] = self.get_joinstyle()
+        self.line['dash_offset'] = 0
+        self.line['dash_length'] = 1
+
+    def set_capstyle(self, cs):
+        GraphicsContextBase.set_capstyle(self, cs)
+        self.line['cap_style'] = self._capd[self._capstyle]
+
+    def set_joinstyle(self, js):
+        GraphicsContextBase.set_joinstyle(self, js)
+        self.line['join_style'] = js
+
+    def set_clip_rectangle(self, rectangle):
+        GraphicsContextBase.set_clip_rectangle(self, rectangle)
+        if rectangle is None:
+            return
+        l, b, w, h = rectangle.bounds
+        self.rectangle = (int(l), self.renderer.height - int(b + h) + 1,
+                     int(w), int(h))
+
+    def set_dashes(self, dash_offset, dash_list):
+        GraphicsContextBase.set_dashes(self, dash_offset, dash_list)
+        # dash_list is a list with numbers denoting the number of points
+        # in a dash and if it is on or off.
+        if dash_list is not None:
+            self.line['dash_offset'] = dash_offset
+            self.line['dash_length'] = dash_list[0]
+            # needs improvement since kivy seems not to support
+            # dashes with different lengths and offsets
+
+    def set_foreground(self, fg, isRGBA=False):
+        GraphicsContextBase.set_foreground(self, fg, isRGBA=isRGBA)
+        with self.renderer.canvas.before:
+            Color(*self.get_rgb())
+            Rectangle(pos=self.renderer.pos, size=self.renderer.size)
+
+    def set_graylevel(self, frac):
+        GraphicsContextBase.set_graylevel(self, frac)
+        with self.renderer.canvas.before:
+            Color(*self.get_rgb())
+            Rectangle(pos=self.renderer.pos, size=self.renderer.size)
+
+    def set_linewidth(self, w):
+        GraphicsContextBase.set_linewidth(self, w)
+        self.line['width'] = w
 
 ########################################################################
 #
