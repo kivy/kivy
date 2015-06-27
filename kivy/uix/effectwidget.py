@@ -350,13 +350,13 @@ vec4 effect( vec4 color, sampler2D buf0, vec2 texCoords, vec2 coords)
 class EffectBase(EventDispatcher):
     '''The base class for GLSL effects. It simply returns its input.
 
-    See module documentation for more details.
+    See the module documentation for more details.
 
     '''
 
     glsl = StringProperty(effect_trivial)
-    '''The glsl string defining your effect function, see module
-    documentation for more details.
+    '''The glsl string defining your effect function. See the
+    module documentation for more details.
 
     :attr:`glsl` is a :class:`~kivy.properties.StringProperty` and
     defaults to
@@ -573,7 +573,7 @@ class FXAAEffect(EffectBase):
 
 class EffectFbo(Fbo):
     '''An :class:`~kivy.graphics.Fbo` with extra facility to
-    attempt setting a new shader, see :meth:`set_fs`.
+    attempt setting a new shader. See :meth:`set_fs`.
     '''
     def __init__(self, *args, **kwargs):
         super(EffectFbo, self).__init__(*args, **kwargs)
@@ -581,7 +581,7 @@ class EffectFbo(Fbo):
 
     def set_fs(self, value):
         '''Attempt to set the fragment shader to the given value.
-        If setting the shader fails, resets the old one and raises an
+        If setting the shader fails, it preserves the old one and raises an
         exception.
         '''
         shader = self.shader
