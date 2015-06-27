@@ -12,7 +12,7 @@ graphical effects to
 its children. It works by rendering to a series of
 :class:`~kivy.graphics.Fbo` instances with custom opengl fragment shaders.
 As such, effects can freely do almost anything, from inverting the
-colors of the widget, to antialiasing, to emulating the appearance of a
+colors of the widget, to anti-aliasing, to emulating the appearance of a
 crt monitor!
 
 The basic usage is as follows::
@@ -30,36 +30,39 @@ full glsl shader, you provide a single function that takes
 some inputs based on the screen (current pixel color, current widget
 texture etc.). See the sections below for more information.
 
-.. note:: It is not efficient to resize an :class:`EffectWidget`, as
-          each :class:`~kivy.graphics.Fbo` is recreated every time.
-          If you need to resize frequently, consider doing things a
-          different way.
+Usage Guidelines
+----------------
 
-.. note:: Although some effects have adjustable parameters, it is
-          *not* efficient to animate these, as the entire
-          shader is reconstructed every time. You should use glsl
-          uniform variables instead. The :class:`AdvancedEffectBase`
-          may make this easier.
+It is not efficient to resize an :class:`EffectWidget`, as
+the :class:`~kivy.graphics.Fbo` is recreated on each resize event.
+If you need to resize frequently, consider doing things a different
+way.
+
+Although some effects have adjustable parameters, it is
+*not* efficient to animate these, as the entire
+shader is reconstructed every time. You should use glsl
+uniform variables instead. The :class:`AdvancedEffectBase`
+may make this easier.
 
 .. note:: The :class:`EffectWidget` *cannot* draw outside its own
-          widget area (pos -> pos + size), any child widgets
+          widget area (pos -> pos + size). Any child widgets
           overlapping the boundary will be cut off at this point.
 
 Provided Effects
 ----------------
 
 The module comes with several pre-written effects. Some have
-adjustable properties (e.g. blur radius), see the individual
+adjustable properties (e.g. blur radius). Please see the individual
 effect documentation for more details.
 
 - :class:`MonochromeEffect` - makes the widget grayscale.
 - :class:`InvertEffect` - inverts the widget colors.
-- :class:`ChannelMixEffect` - swaps around color channels.
+- :class:`ChannelMixEffect` - swaps color channels.
 - :class:`ScanlinesEffect` - displays flickering scanlines.
 - :class:`PixelateEffect` - pixelates the image.
 - :class:`HorizontalBlurEffect` - Gaussuan blurs horizontally.
 - :class:`VerticalBlurEffect` - Gaussuan blurs vertically.
-- :class:`FXAAEffect` - applies a very basic AA.
+- :class:`FXAAEffect` - applies a very basic anti-aliasing.
 
 Creating Effects
 ----------------
@@ -562,7 +565,7 @@ class VerticalBlurEffect(EffectBase):
 
 
 class FXAAEffect(EffectBase):
-    '''Applies very simple antialiasing via fxaa.'''
+    '''Applies very simple anti-aliasing via fxaa.'''
     def __init__(self, *args, **kwargs):
         super(FXAAEffect, self).__init__(*args, **kwargs)
         self.glsl = effect_fxaa
