@@ -416,14 +416,14 @@ class AdvancedEffectBase(EffectBase):
     '''An :class:`EffectBase` with additional behavior to easily
     set and update uniform variables in your shader.
 
-    This class is provided for convenience if implementing your own
-    effects, it is not used by any of those provided with Kivy.
+    This class is provided for convenience when implementing your own
+    effects: it is not used by any of those provided with Kivy.
 
     In addition to your base glsl string that must be provided as
     normal, the :class:`AdvancedEffectBase` has an extra property
     :attr:`uniforms`, a dictionary of name-value pairs. Whenever
-    a value is changed, the new values for the uniform variable with
-    the given name are uploaded to the shader.
+    a value is changed, the new value for the uniform variable is
+    uploaded to the shader.
 
     You must still manually declare your uniform variables at the top
     of your glsl string.
@@ -572,8 +572,8 @@ class FXAAEffect(EffectBase):
 
 
 class EffectFbo(Fbo):
-    '''An :class:`~kivy.graphics.Fbo` with extra facility to
-    attempt setting a new shader. See :meth:`set_fs`.
+    '''An :class:`~kivy.graphics.Fbo` with extra functionality that allows
+    attempts to set a new shader. See :meth:`set_fs`.
     '''
     def __init__(self, *args, **kwargs):
         super(EffectFbo, self).__init__(*args, **kwargs)
@@ -581,8 +581,8 @@ class EffectFbo(Fbo):
 
     def set_fs(self, value):
         '''Attempt to set the fragment shader to the given value.
-        If setting the shader fails, it preserves the old one and raises an
-        exception.
+        If setting the shader fails, the existing one is preserved and an
+        exception is raised.
         '''
         shader = self.shader
         old_value = shader.fs
@@ -595,7 +595,7 @@ class EffectFbo(Fbo):
 class EffectWidget(RelativeLayout):
     '''
     Widget with the ability to apply a series of graphical effects to
-    its children. See module documentation for full information on
+    its children. See the module documentation for more information on
     setting effects and creating your own.
     '''
 
@@ -608,7 +608,7 @@ class EffectWidget(RelativeLayout):
     '''
 
     texture = ObjectProperty(None)
-    '''The output texture of our final :class:`~kivy.graphics.Fbo` after
+    '''The output texture of the final :class:`~kivy.graphics.Fbo` after
     all effects have been applied.
 
     texture is an :class:`~kivy.properties.ObjectProperty` and defaults
@@ -617,21 +617,21 @@ class EffectWidget(RelativeLayout):
 
     effects = ListProperty([])
     '''List of all the effects to be applied. These should all be
-    instances of :class:`EffectBase`.
+    instances or subclasses of :class:`EffectBase`.
 
     effects is a :class:`ListProperty` and defaults to [].
     '''
 
     fbo_list = ListProperty([])
-    '''(internal) list of all the fbos that are being used to apply
+    '''(internal) List of all the fbos that are being used to apply
     the effects.
 
     fbo_list is a :class:`ListProperty` and defaults to [].
     '''
 
     _bound_effects = ListProperty([])
-    '''(internal) list of effect classes that have been given an fbo to
-    manage. This is necessary so that the fbo can be removed it the
+    '''(internal) List of effect classes that have been given an fbo to
+    manage. This is necessary so that the fbo can be removed if the
     effect is no longer in use.
 
     _bound_effects is a :class:`ListProperty` and defaults to [].
