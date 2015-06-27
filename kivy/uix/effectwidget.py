@@ -375,7 +375,7 @@ class EffectBase(EventDispatcher):
     '''The fbo currently using this effect. The :class:`EffectBase`
     automatically handles this.
 
-    :attr:`fbo` is a :class:`~kivy.properties.ObjectProperty` and
+    :attr:`fbo` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
     '''
 
