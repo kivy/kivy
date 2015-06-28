@@ -92,6 +92,9 @@ cdef class _WindowSDL2Storage:
         SDL_GetWindowSize(self.win, &w, &h)
         return w, h
 
+    def show_cursor(self, value):
+        SDL_ShowCursor(value)
+
     def _get_gl_size(self):
         cdef int w, h
         SDL_GL_GetDrawableSize(self.win, &w, &h)

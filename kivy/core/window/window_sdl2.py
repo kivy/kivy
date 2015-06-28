@@ -210,6 +210,9 @@ class WindowSDL(WindowBase):
             self._win.set_fullscreen_mode(self.fullscreen)
 
         super(WindowSDL, self).create_window()
+        # set mouse visibility
+        self._win.show_cursor(
+            Config.getboolean('graphics', 'show_cursor'))
 
         if self.initialized:
             return
