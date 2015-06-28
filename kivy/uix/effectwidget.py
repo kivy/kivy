@@ -21,6 +21,14 @@ The basic usage is as follows::
     w.add_widget(Button(text='Hello!')
     w.effects = [InvertEffect(), HorizontalBlurEffect(size=2.0)]
 
+The equivalent in kv would be::
+
+    #: import ew kivy.uix.effectwidget
+    EffectWidget:
+        effects: ew.InvertEffect(), ew.HorizontalBlurEffect(size=2.0)
+        Button:
+            text: 'Hello!'
+
 The effects can be a list of effects of any length, and they will be
 applied sequentially.
 
