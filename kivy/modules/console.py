@@ -775,9 +775,9 @@ class Console(RelativeLayout):
     activated = BooleanProperty(False)
 
     def __init__(self, **kwargs):
+        self.win = kwargs.pop('win', None)
         super(Console, self).__init__(**kwargs)
         self.avoid_bring_to_top = False
-        self.win = kwargs.get('win')
         with self.canvas.before:
             self.gcolor = Color(1, 0, 0, .25)
             PushMatrix()
