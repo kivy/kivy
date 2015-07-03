@@ -10,6 +10,7 @@ from matplotlib.backend_bases import RendererBase, GraphicsContextBase,\
 from matplotlib.figure import Figure
 from matplotlib.transforms import Bbox
 from matplotlib.backend_bases import ShowBase
+from matplotlib.mathtext import MathTextParser
 
 try:
     import kivy
@@ -24,6 +25,7 @@ from kivy.uix.label import Label
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.behaviors import FocusBehavior
 from kivy.base import EventLoop
+from kivy.core.text import Label as CoreLabel
 from kivy.graphics import Color, Line
 from kivy.graphics import Rotate, Translate
 from kivy.graphics.context_instructions import PopMatrix, PushMatrix
@@ -80,6 +82,8 @@ class RendererKivy(RendererBase):
     def __init__(self, dpi, widget):
         self.dpi = dpi
         self.widget = widget
+        self.mathtext_parser = MathTextParser("Agg")
+        self.list_goraud_triangles = []
 
     def draw_path(self, gc, path, transform, rgbFace=None):
         points_line = []
@@ -122,41 +126,46 @@ class RendererKivy(RendererBase):
     def draw_image(self, gc, x, y, im):
         print('draw_image', gc, x, y, im)
 
+    ''' Under development '''
+    def draw_gouraud_triangle(self, gc, points, colors, transform):
+        assert len(points) == len(colors)
+        assert points.ndim == 3
+        assert points.shape[1] == 3
+        assert points.shape[2] == 2
+        assert colors.ndim == 3
+        assert colors.shape[1] == 3
+        assert colors.shape[2] == 4
+
+        shape = points.shape
+        points = points.reshape((shape[0] * shape[1], 2))
+        tpoints = trans.transform(points)
+        tpoints = tpoints.reshape(shape)
+        name = self.list_goraud_triangles.append((tpoints, colors))
+
     def draw_text(self, gc, x, y, s, prop, angle, ismath=False, mtext=None):
-        print('properties')
-        print(prop)
-        print(s)
+        if ismath:
+            s = self.strip_math(s)  # remove latex formatting from mathtext
         x, y = float(x), float(y)
         if x < 0 or y < 0:
             return
-
-#         label = Label(text='[color=0000ff]'+str(s)+'[/color]',
-#                 pos=(x,y), markup=True)
-#         self.widget.add_widget(label)
-
-        dx = 51
-        dy = 51
-
-        label = Label(text='[color=000000]' + s + '[/color]',
-                      pos=(x - dx, y - dy), markup=True)
-
-        if angle not in (0, 90):
-            Logger.warning('backend_kivy: unable to draw text at angles ' +
-                          'other than 0 or 90')
-        elif ismath:  # Not sure yet what is special about this.
-            self.widget.add_widget(label)
-        elif angle == 90:
-            with label.canvas.before:
+        plot_text = CoreLabel(font_size=prop.get_size_in_points(),
+                              font_name=prop.get_name())
+        plot_text.text = str(s.encode("utf-8"))
+        if(prop.get_style() == 'italic'):
+            plot_text.italic = True
+        if(prop.get_weight() > 500):
+            plot_text.bold = True
+        plot_text.refresh()
+        with self.widget.canvas:
+            if isinstance(angle, float):
                 PushMatrix()
-                label.rot = Rotate()
-                label.rot.angle = 90
-                label.rot.origin = label.center
-                label.rot.axis = (0, 0, 1)
-            with label.canvas.after:
+                Rotate(angle=angle, origin=(x, y))
+                Rectangle(pos=(x, y), texture=plot_text.texture,
+                          size=plot_text.texture.size)
                 PopMatrix()
-            self.widget.add_widget(label)
-        else:
-            self.widget.add_widget(label)
+            else:
+                Rectangle(pos=(x, y), texture=plot_text.texture,
+                          size=plot_text.texture.size)
 
     # draw_markers is optional, and we get more correct relative
     # timings by leaving it out. backend implementers concerned with
@@ -189,7 +198,15 @@ class RendererKivy(RendererBase):
         return self.widget.width, self.widget.height
 
     def get_text_width_height_descent(self, s, prop, ismath):
-        return 1, 1, 1
+        if ismath:
+            ox, oy, width, height, descent, font_image, used_characters = \
+                self.mathtext_parser.parse(s, self.dpi, prop)
+            return width, height, descent
+        plot_text = CoreLabel(font_size=prop.get_size_in_points(),
+                              font_name=prop.get_name())
+        plot_text.text = str(s.encode("utf-8"))
+        plot_text.refresh()
+        return plot_text.texture.size[0], plot_text.texture.size[1], 1
 
     def new_gc(self):
         return GraphicsContextKivy(self.widget)
@@ -255,6 +272,7 @@ class GraphicsContextKivy(GraphicsContextBase):
         l, b, w, h = rectangle.bounds
         self.rectangle = (int(l), self.renderer.height - int(b + h) + 1,
                      int(w), int(h))
+#         self._cliprect = Bbox([[100,100],[100,100]])
 
     def set_dashes(self, dash_offset, dash_list):
         GraphicsContextBase.set_dashes(self, dash_offset, dash_list)
