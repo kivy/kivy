@@ -913,6 +913,7 @@ setup(
         'tools/packaging/osx/Info.plist',
         'tools/packaging/osx/InfoPlist.strings',
         'tools/packaging/osx/kivy.sh'] + binary_deps},
+        'tools/gles_compat/*.h',
     data_files=list(examples.items()),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
