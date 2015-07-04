@@ -135,6 +135,17 @@ def kivy_configure():
         callback()
 
 
+def get_includes():
+    '''Retrieves the directories containing includes needed to build new Cython
+    modules with Kivy as a dependency. Currently returns the location of the
+    kivy.graphics module.
+
+    .. versionadded:: 1.9.2
+    '''
+    root_dir = dirname(__file__)
+    return [join(root_dir, 'graphics'), join(root_dir, 'tools', 'gles_compat')]
+
+
 def kivy_register_post_configuration(callback):
     '''Register a function to be called when kivy_configure() is called.
 
@@ -226,7 +237,7 @@ kivy_data_dir = environ.get('KIVY_DATA_DIR',
                             join(kivy_base_dir, 'data'))
 #: Kivy binary deps directory
 kivy_binary_deps_dir = environ.get('KIVY_BINARY_DEPS',
-                            join(kivy_base_dir, 'binary_deps'))
+                                   join(kivy_base_dir, 'binary_deps'))
 #: Kivy glsl shader directory
 kivy_shader_dir = join(kivy_data_dir, 'glsl')
 #: Kivy icons config path (don't remove the last '')
@@ -289,8 +300,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
     # Can be overrided in command line
     if ('KIVY_UNITTEST' not in environ and
-        'KIVY_PACKAGING' not in environ and
-        'KIVY_NO_ARGS' not in environ):
+            'KIVY_PACKAGING' not in environ and
+            'KIVY_NO_ARGS' not in environ):
         # save sys argv, otherwize, gstreamer use it and display help..
         sys_argv = sys.argv
         sys.argv = sys.argv[:1]
@@ -402,4 +413,3 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
 Logger.info('Kivy: v%s' % (__version__))
 Logger.info('Python: v{}'.format(sys.version))
-
