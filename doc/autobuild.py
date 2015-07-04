@@ -42,6 +42,7 @@ import kivy.graphics
 import kivy.graphics.shader
 import kivy.graphics.tesselator
 import kivy.animation
+import kivy.modules.console
 import kivy.modules.keybinding
 import kivy.modules.monitor
 import kivy.modules.touchring

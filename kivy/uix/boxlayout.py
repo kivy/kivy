@@ -101,7 +101,7 @@ class BoxLayout(Layout):
     def __init__(self, **kwargs):
         super(BoxLayout, self).__init__(**kwargs)
         update = self._trigger_layout
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('spacing', update)
         fbind('padding', update)
         fbind('children', update)

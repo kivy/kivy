@@ -7,6 +7,7 @@ Android implementation of Clipboard provider, using Pyjnius.
 
 __all__ = ('ClipboardAndroid', )
 
+from kivy import Logger
 from kivy.core.clipboard import ClipboardBase
 from jnius import autoclass
 from android.runnable import run_on_ui_thread
@@ -61,11 +62,14 @@ class ClipboardAndroid(ClipboardBase):
         else:
             ClipDescription = autoclass('android.content.ClipDescription')
             primary_clip = clippy.getPrimaryClip()
-            if primary_clip and clippy.getPrimaryClipDescription().hasMimeType(
-                    ClipDescription.MIMETYPE_TEXT_PLAIN):
-                data = primary_clip.getItemAt(0).getText()
+            if primary_clip:
+                try:
+                    data = primary_clip.getItemAt(0).coerceToText(
+                        PythonActivity.mActivity)
+                except Exception:
+                    Logger.exception('Clipboard: failed to paste')
+                    data = ''
             else:
-                # TODO: non text data types Not yet implemented
                 data = ''
         return data
 

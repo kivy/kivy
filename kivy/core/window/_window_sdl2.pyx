@@ -92,6 +92,9 @@ cdef class _WindowSDL2Storage:
         SDL_GetWindowSize(self.win, &w, &h)
         return w, h
 
+    def show_cursor(self, value):
+        SDL_ShowCursor(value)
+
     def _get_gl_size(self):
         cdef int w, h
         SDL_GL_GetDrawableSize(self.win, &w, &h)
@@ -117,6 +120,9 @@ cdef class _WindowSDL2Storage:
     def resize_window(self, w, h):
         if self.window_size != [w, h]:
             SDL_SetWindowSize(self.win, w, h)
+
+    def set_minimum_size(self, w, h):
+        SDL_SetWindowMinimumSize(self.win, w, h)
 
     def maximize_window(self):
         SDL_MaximizeWindow(self.win)

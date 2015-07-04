@@ -74,7 +74,7 @@ cdef class Observable(ObjectWithUid):
     '''
 
     def __cinit__(self, *largs, **kwargs):
-        self.__fast_bind_mapping = defaultdict(list)
+        self.__fbind_mapping = defaultdict(list)
         self.bound_uid = 1
 
     def bind(self, **kwargs):
@@ -83,24 +83,24 @@ cdef class Observable(ObjectWithUid):
     def unbind(self, **kwargs):
         pass
 
-    def fast_bind(self, name, func, *largs, **kwargs):
-        '''See :meth:`EventDispatcher.fast_bind`.
+    def fbind(self, name, func, *largs, **kwargs):
+        '''See :meth:`EventDispatcher.fbind`.
 
         .. note::
 
             To keep backward compatibility with derived classes which may have
             inherited from :class:`Observable` before, the
-            :meth:`fast_bind` method was added. The default implementation
-            of :meth:`fast_bind` is to create a partial
+            :meth:`fbind` method was added. The default implementation
+            of :meth:`fbind` is to create a partial
             function that it passes to bind while saving the uid and largs/kwargs.
-            However, :meth:`fast_unbind` (and :meth:`unbind_uid`) are fairly
+            However, :meth:`funbind` (and :meth:`unbind_uid`) are fairly
             inefficient since we have to first lookup this partial function
             using the largs/kwargs or uid and then call :meth:`unbind` on
             the returned function. It is recommended to overwrite
             these methods in derived classes to bind directly for
             better performance.
 
-            Similarly to :meth:`EventDispatcher.fast_bind`, this method returns
+            Similarly to :meth:`EventDispatcher.fbind`, this method returns
             0 on failure and a positive unique uid on success. This uid can be
             used with :meth:`unbind_uid`.
 
@@ -108,19 +108,19 @@ cdef class Observable(ObjectWithUid):
         uid = self.bound_uid
         self.bound_uid += 1
         f = partial(func, *largs, **kwargs)
-        self.__fast_bind_mapping[name].append(((func, largs, kwargs), uid, f))
+        self.__fbind_mapping[name].append(((func, largs, kwargs), uid, f))
         try:
             self.bind(**{name: f})
             return uid
         except KeyError:
             return 0
 
-    def fast_unbind(self, name, func, *largs, **kwargs):
-        '''See :meth:`fast_bind` and :meth:`EventDispatcher.fast_unbind`.
+    def funbind(self, name, func, *largs, **kwargs):
+        '''See :meth:`fbind` and :meth:`EventDispatcher.funbind`.
         '''
         cdef object f = None
         cdef tuple item, val = (func, largs, kwargs)
-        cdef list bound = self.__fast_bind_mapping[name]
+        cdef list bound = self.__fbind_mapping[name]
 
         for i, item in enumerate(bound):
             if item[0] == val:
@@ -135,11 +135,11 @@ cdef class Observable(ObjectWithUid):
                 pass
 
     def unbind_uid(self, name, uid):
-        '''See :meth:`fast_bind` and :meth:`EventDispatcher.unbind_uid`.
+        '''See :meth:`fbind` and :meth:`EventDispatcher.unbind_uid`.
         '''
         cdef object f = None
         cdef tuple item
-        cdef list bound = self.__fast_bind_mapping[name]
+        cdef list bound = self.__fbind_mapping[name]
         if not uid:
             raise ValueError(
                 'uid, {}, that evaluates to False is not valid'.format(uid))
@@ -263,7 +263,7 @@ cdef class EventDispatcher(ObjectWithUid):
         else:
             event_handlers = cache_events_handlers[__cls__]
         for func in event_handlers:
-            self.fast_bind(func[3:], getattr(self, func))
+            self.fbind(func[3:], getattr(self, func))
 
         # Apply the existing arguments to our widget
         for key, value in kwargs.iteritems():
@@ -431,10 +431,10 @@ cdef class EventDispatcher(ObjectWithUid):
                 if observers is None:
                     continue
                 # convert the handler to a weak method
-                observers.bind(WeakMethod(value), 1)
+                observers.bind(WeakMethod(value), value, 1)
             else:
                 ps = self.__storage[key]
-                ps.observers.bind(WeakMethod(value), 1)
+                ps.observers.bind(WeakMethod(value), value, 1)
 
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions with similar usage as
@@ -444,9 +444,11 @@ cdef class EventDispatcher(ObjectWithUid):
         times, only the first occurrence will be unbound.
 
         .. note::
-            
-            This method may fail to unbind a callback bound with
-            :meth:`fast_bind; you should use :meth:`fast_unbind` instead.
+
+            It is safe to use :meth:`unbind` on a function bound with :meth:`fbind`
+            as long as that function was originally bound without any keyword and
+            positional arguments. Otherwise, the function will fail to be unbound
+            and you should use :meth:`funbind` instead.
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps
@@ -457,31 +459,33 @@ cdef class EventDispatcher(ObjectWithUid):
                 if observers is None:
                     continue
                 # it's a ref, and stop on first match
-                observers.unbind(value, 1, 1)
+                observers.unbind(value, 1)
             else:
                 ps = self.__storage[key]
-                ps.observers.unbind(value, 1, 1)
+                ps.observers.unbind(value, 1)
 
-    def fast_bind(self, name, func, *largs, **kwargs):
-        '''A method for faster binding. This method is somewhat different than
-        :meth:`bind` and is meant for more advanced users and internal usage.
-        It can be used as long as the following points are heeded.
+    def fbind(self, name, func, *largs, **kwargs):
+        '''A method for advanced, and typically faster binding. This method is
+        different than :meth:`bind` and is meant for more advanced users and
+        internal usage. It can be used as long as the following points are heeded.
 
-        - As opposed to :meth:`bind`, it does not check that this function and
-          largs/kwargs has not been bound before to this name. So binding
-          the same callback multiple times will just keep adding it.
+        #. As opposed to :meth:`bind`, it does not check that this function and
+           largs/kwargs has not been bound before to this name. So binding
+           the same callback multiple times will just keep adding it.
+        #. Although :meth:`bind` creates a :class:`WeakMethod` of the callback when
+           binding to an event or property, this method stores the callback
+           directly, unless a keyword argument `ref` with value True is provided
+           and then a :class:`WeakMethod` is saved.
+           This is useful when there's no risk of a memory leak by storing the
+           callback directly.
+        #. This method returns a unique positive number if `name` was found and
+           bound, and `0`, otherwise. It does not raise an exception, like
+           :meth:`bind` if the property `name` is not found. If not zero,
+           the uid returned is unique to this `name` and callback and can be
+           used with :meth:`unbind_uid` for unbinding.
 
-        - Although :meth:`bind` creates a :class:`WeakMethod` when
-          binding to an event, this method stores the callback directly.
 
-        - This method returns a unique positive number if `name` was found and
-          bound, and `0`, otherwise. It does not raise an exception, like
-          :meth:`bind` would if the property `name` is not found. If not zero,
-          the uid returned is unique to this `name` can callback and can be
-          used with :meth:`unbind_uid` for unbinding.
-
-
-        When binding a callback with largs and/or kwargs, :meth:`fast_unbind`
+        When binding a callback with largs and/or kwargs, :meth:`funbind`
         must be used for unbinding. If no largs and kwargs are provided,
         :meth:`unbind` may be used as well. :meth:`unbind_uid` can be used in
         either case.
@@ -501,26 +505,26 @@ cdef class EventDispatcher(ObjectWithUid):
                     self.orientation = "vertical"
 
                     btn = Button(text="Normal binding to event")
-                    btn.fast_bind('on_press', self.on_event)
+                    btn.fbind('on_press', self.on_event)
 
                     btn2 = Button(text="Normal binding to a property change")
-                    btn2.fast_bind('state', self.on_property)
+                    btn2.fbind('state', self.on_property)
 
                     btn3 = Button(text="A: Using function with args.")
-                    btn3.fast_bind('on_press', self.on_event_with_args, 'right',
+                    btn3.fbind('on_press', self.on_event_with_args, 'right',
                                    tree='birch', food='apple')
 
                     btn4 = Button(text="Unbind A.")
-                    btn4.fast_bind('on_press', self.unbind_a, btn3)
+                    btn4.fbind('on_press', self.unbind_a, btn3)
 
                     btn5 = Button(text="Use a flexible function")
-                    btn5.fast_bind('on_press', self.on_anything)
+                    btn5.fbind('on_press', self.on_anything)
 
                     btn6 = Button(text="B: Using flexible functions with args. For hardcores.")
-                    btn6.fast_bind('on_press', self.on_anything, "1", "2", monthy="python")
+                    btn6.fbind('on_press', self.on_anything, "1", "2", monthy="python")
 
                     btn7 = Button(text="Force dispatch B with different params")
-                    btn7.fast_bind('on_press', btn6.dispatch, 'on_press', 6, 7, monthy="other python")
+                    btn7.fbind('on_press', btn6.dispatch, 'on_press', 6, 7, monthy="other python")
 
                     for but in [btn, btn2, btn3, btn4, btn5, btn6, btn7]:
                         self.add_widget(but)
@@ -540,7 +544,7 @@ cdef class EventDispatcher(ObjectWithUid):
                     return True
 
                 def unbind_a(self, btn, event):
-                    btn.fast_unbind('on_press', self.on_event_with_args, 'right',
+                    btn.funbind('on_press', self.on_event_with_args, 'right',
                                     tree='birch', food='apple')
 
         .. note::
@@ -551,6 +555,9 @@ cdef class EventDispatcher(ObjectWithUid):
             :class:`Observable` for an example.
 
         .. versionadded:: 1.9.0
+
+        .. versionchanged:: 1.9.1
+            The `ref` keyword argument has been added.
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps
@@ -558,24 +565,34 @@ cdef class EventDispatcher(ObjectWithUid):
         if name[:3] == 'on_':
             observers = self.__event_stack.get(name)
             if observers is not None:
-                return observers.fast_bind(func, largs, kwargs, 0)
+                if kwargs.pop('ref', False):
+                    return observers.fbind(WeakMethod(func), largs, kwargs, 1)
+                else:
+                    return observers.fbind(func, largs, kwargs, 0)
             return 0
         else:
             ps = self.__storage.get(name)
             if ps is None:
                 return 0
-            return ps.observers.fast_bind(func, largs, kwargs, 0)
+            if kwargs.pop('ref', False):
+                return ps.observers.fbind(WeakMethod(func), largs, kwargs, 1)
+            else:
+                return ps.observers.fbind(func, largs, kwargs, 0)
 
-    def fast_unbind(self, name, func, *largs, **kwargs):
-        '''Similar to :meth:`fast_bind`.
+    def funbind(self, name, func, *largs, **kwargs):
+        '''Similar to :meth:`fbind`.
 
-        When unbinding from a property :meth:`unbind` will unbind
-        all callbacks that match the callback, while this method will only
-        unbind the first (as it is assumed that the combination of func and
-        largs/kwargs are uniquely bound).
+        When unbinding, :meth:`unbind` will unbind all callbacks that match the
+        callback, while this method will only unbind the first.
 
         To unbind, the same positional and keyword arguments passed to
-        :meth:`fast_bind` must be passed on to fast_unbind.
+        :meth:`fbind` must be passed on to funbind.
+
+        .. note::
+
+            It is safe to use :meth:`funbind` to unbind a function bound with
+            :meth:`bind` as long as no keyword and positional arguments are
+            provided to :meth:`funbind`.
 
         .. versionadded:: 1.9.0
         '''
@@ -585,27 +602,27 @@ cdef class EventDispatcher(ObjectWithUid):
         if name[:3] == 'on_':
             observers = self.__event_stack.get(name)
             if observers is not None:
-                observers.fast_unbind(func, largs, kwargs)
+                observers.funbind(func, largs, kwargs)
         else:
             ps = self.__storage.get(name)
             if ps is not None:
-                ps.observers.fast_unbind(func, largs, kwargs)
+                ps.observers.funbind(func, largs, kwargs)
 
     def unbind_uid(self, name, uid):
-        '''Uses the uid returned by :meth:`fast_bind` to unbind the callback.
+        '''Uses the uid returned by :meth:`fbind` to unbind the callback.
 
-        This method is much more efficient than :meth:`fast_unbind`. If `uid`
+        This method is much more efficient than :meth:`funbind`. If `uid`
         evaluates to False (e.g. 0) a `ValueError` is raised. Also, only
-        callbacks bound with :meth:`fast_bind` can be unbound with this method.
+        callbacks bound with :meth:`fbind` can be unbound with this method.
 
-        Since each call to :meth:`fast_bind` will generate a unique `uid`,
+        Since each call to :meth:`fbind` will generate a unique `uid`,
         only one callback will be removed. If `uid` is not found among the
         callbacks, no error is raised.
 
         E.g.::
 
             btn6 = Button(text="B: Using flexible functions with args. For hardcores.")
-            uid = btn6.fast_bind('on_press', self.on_anything, "1", "2", monthy="python")
+            uid = btn6.fbind('on_press', self.on_anything, "1", "2", monthy="python")
             if not uid:
                 raise Exception('Binding failed').
             ...
@@ -643,7 +660,7 @@ cdef class EventDispatcher(ObjectWithUid):
                 If True, each element in the list is a 5-tuple of
                 `(callback, largs, kwargs, is_ref, uid)`, where `is_ref` indicates
                 whether `callback` is a weakref, and `uid` is the uid given by
-                :meth:`fast_bind`, or None if :meth:`bind` was used. Defaults to `False`.
+                :meth:`fbind`, or None if :meth:`bind` was used. Defaults to `False`.
 
         :Returns:
             The list of bound callbacks. See `args` for details.
@@ -672,7 +689,7 @@ cdef class EventDispatcher(ObjectWithUid):
         return self.__event_stack.keys()
 
     def dispatch(self, basestring event_type, *largs, **kwargs):
-        '''Dispatch an event across all the handlers added in bind/fast_bind().
+        '''Dispatch an event across all the handlers added in bind/fbind().
         As soon as a handler returns True, the dispatching stops.
 
         The function collects all the positional and keyword arguments and
@@ -882,18 +899,21 @@ cdef class EventObservers:
         self.last_callback = self.first_callback = None
         self.uid = 1  # start with 1 so uid is always evaluated to True
 
-    cdef inline void bind(self, object observer, int is_ref=0) except *:
+    cdef inline void bind(self, object observer, object src_observer, int is_ref) except *:
         '''Bind the observer to the event. If this observer has already been
         bound, we don't add it again.
         '''
         cdef BoundCallback callback = self.first_callback
         cdef BoundCallback new_callback
+        cdef int cb_equal
 
         while callback is not None:
             if is_ref and not callback.is_ref:
-                cb_equal = callback.func == observer()
+                cb_equal = callback.func == src_observer
             elif callback.is_ref and not is_ref:
                 cb_equal = callback.func() == observer
+            elif is_ref:
+                cb_equal = callback.func() == src_observer
             else:
                 cb_equal = callback.func == observer
             if (callback.lock != deleted and callback.largs is None and
@@ -909,7 +929,7 @@ cdef class EventObservers:
             new_callback.prev = self.last_callback
             self.last_callback = new_callback
 
-    cdef inline object fast_bind(self, object observer, tuple largs, dict kwargs,
+    cdef inline object fbind(self, object observer, tuple largs, dict kwargs,
                                int is_ref):
         '''Similar to bind, except it accepts largs, kwargs that is forwards.
         is_ref, if true, will mark the observer that it is a ref so that we
@@ -929,7 +949,7 @@ cdef class EventObservers:
             self.last_callback = new_callback
         return uid
 
-    cdef inline void unbind(self, object observer, int is_ref, int stop_on_first) except *:
+    cdef inline void unbind(self, object observer, int stop_on_first) except *:
         '''Removes the observer. If is_ref, he observers will be derefed before
         comparing to observer, if they are refed. If stop_on_first, after the
         first match we return.
@@ -944,21 +964,21 @@ cdef class EventObservers:
                 continue
 
             # now match the actual callback function
-            if is_ref and callback.is_ref:
+            if callback.is_ref:
                 f = callback.func()
             else:
                 f = callback.func
-            if f != observer and (not (is_ref and callback.is_ref) or f is not None):
+            if f != observer:
                 callback = callback.next
                 continue
 
             self.remove_callback(callback)
             callback = callback.next
 
-            if stop_on_first and f is not None:
+            if stop_on_first:
                 return
 
-    cdef inline void fast_unbind(self, object observer, tuple largs, dict kwargs) except *:
+    cdef inline void funbind(self, object observer, tuple largs, dict kwargs) except *:
         '''Similar to unbind, except we only remove the first match, and
         we don't deref the observers before comparing to observer. The
         largs and kwargs must match the largs and kwargs from when binding.
@@ -968,7 +988,9 @@ cdef class EventObservers:
         kwargs = kwargs if kwargs else None
 
         while callback is not None:
-            if (callback.lock == deleted or callback.func != observer or
+            if (callback.lock == deleted or
+                not callback.is_ref and callback.func != observer or
+                callback.is_ref and callback.func() != observer or
                 callback.largs != largs or callback.kwargs != kwargs):
                 callback = callback.next
                 continue

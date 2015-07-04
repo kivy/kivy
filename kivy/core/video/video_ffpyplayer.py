@@ -112,8 +112,6 @@ class VideoFFPy(VideoBase):
 
     def __del__(self):
         self.unload()
-        if self._log_callback_set:
-            set_log_callback(None)
 
     def _player_callback(self, selector, value):
         if self._ffplayer is None:

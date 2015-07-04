@@ -5,7 +5,7 @@ cdef class ObjectWithUid(object):
 
 
 cdef class Observable(ObjectWithUid):
-    cdef object __fast_bind_mapping
+    cdef object __fbind_mapping
     cdef object bound_uid
 
 
@@ -46,10 +46,10 @@ cdef class EventObservers:
     # The uid to assign to the next bound callback.
     cdef object uid
 
-    cdef inline void bind(self, object observer, int is_ref=*) except *
-    cdef inline object fast_bind(self, object observer, tuple largs, dict kwargs, int is_ref)
-    cdef inline void unbind(self, object observer, int is_ref, int stop_on_first) except *
-    cdef inline void fast_unbind(self, object observer, tuple largs, dict kwargs) except *
+    cdef inline void bind(self, object observer, object src_observer, int is_ref) except *
+    cdef inline object fbind(self, object observer, tuple largs, dict kwargs, int is_ref)
+    cdef inline void unbind(self, object observer, int stop_on_first) except *
+    cdef inline void funbind(self, object observer, tuple largs, dict kwargs) except *
     cdef inline object unbind_uid(self, object uid)
     cdef inline void remove_callback(self, BoundCallback callback, int force=*) except *
     cdef inline object _dispatch(
