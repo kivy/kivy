@@ -402,16 +402,16 @@ class RecycleView(ScrollView):
     '''
 
     def __init__(self, **kwargs):
-        super(RecycleView, self).__init__(**kwargs)
         self._refresh_flags = dict(self._refresh_flags)
         self._refresh_trigger = Clock.create_trigger(self.refresh_views, -1)
 
-        if self._container is None:
-            self.container = RecycleViewLayout(size_hint=(None, None))
         if self._layout_manager is None:
             self.layout_manager = LinearRecycleLayoutManager()
         if self._adapter is None:
             self.adapter = RecycleAdapter()
+        super(RecycleView, self).__init__(**kwargs)
+        if self._container is None:
+            self.container = RecycleViewLayout(size_hint=(None, None))
 
         fbind = self.fbind
         fbind('size', self.trigger_refresh, data_size=True)
