@@ -122,7 +122,11 @@ class RecycleAdapter(EventDispatcher):
 
     def make_view_dirty(self, view, index):
         """(internal) Used to flag the view as dirty, ready to be used for
-        others.
+        others. A dirty view can be reused by just changing the pos/size.
+        So it's assumed that while in dirty view that index stays in sync
+        with the data. If we want to still cache the view but not keep that
+        assumption, use a negative index; it'll keep the view for reuse but
+        does not assume the view is tied to data.
         """
         self.dirty_views[view.__class__][index] = view
 
@@ -136,7 +140,7 @@ class RecycleAdapter(EventDispatcher):
         make_view_dirty = self.make_view_dirty
 
         for index, view in views.items():
-            make_view_dirty(view, index)
+            make_view_dirty(view, -index)
         self.views = {}
 
     def get_views(self, i_start, i_end):
