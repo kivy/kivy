@@ -12,31 +12,24 @@ TODO:
     - update view size when created
     - move all internals to adapter
     - selection
+    - Method to clear cached class instances.
 """
 
 from kivy.compat import string_types
-from kivy.uix.relativelayout import RelativeLayout
-from kivy.lang import Builder
+from kivy.uix.widget import Widget
+from kivy.uix.scrollview import ScrollView
 from kivy.properties import NumericProperty, AliasProperty, StringProperty, \
     ObjectProperty, ListProperty, OptionProperty, BooleanProperty
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
 from kivy.clock import Clock
-
-Builder.load_string("""
-<RecycleView>:
-    ScrollView:
-        id: sv
-        on_scroll_y: root.refresh_from_scroll("y")
-        on_scroll_x: root.refresh_from_scroll("x")
-        on_size: root.request_layout(full=True)
-        RecycleViewLayout:
-            id: layout
-            size_hint: None, None
-""")
+from collections import defaultdict
 
 
-class RecycleViewLayout(RelativeLayout):
+class RecycleViewLayout(Widget):
+    '''We don't want the RecycleViewLayout children's size/pos changes to cause
+    a re-layout because they should only be changed internally.
+    '''
     pass
 
 
@@ -52,7 +45,7 @@ class RecycleAdapter(EventDispatcher):
 
     # internals
     views = {}
-    dirty_views = {}
+    dirty_views = defaultdict(dict)
     recycleview = None
 
     __events__ = ("on_data_changed", )
@@ -131,19 +124,46 @@ class RecycleAdapter(EventDispatcher):
         """(internal) Used to flag the view as dirty, ready to be used for
         others.
         """
-        viewclass = view.__class__
-        if viewclass not in self.dirty_views:
-            self.dirty_views[viewclass] = {index: view}
-        else:
-            self.dirty_views[viewclass][index] = view
+        self.dirty_views[view.__class__][index] = view
 
     def invalidate(self):
         """Invalidate any state of the current adapter, to be ready for a fresh
         start.
         """
-        for index, view in self.views.items():
-            self.make_view_dirty(view, index)
+        views = self.views
+        if not views:
+            return
+        make_view_dirty = self.make_view_dirty
+
+        for index, view in views.items():
+            make_view_dirty(view, index)
         self.views = {}
+
+    def get_views(self, i_start, i_end):
+        current_views = self.views
+        visible_views = {}
+        new_views = []
+        dirty_views = self.dirty_views
+        get_view = self.get_view
+        make_view_dirty = self.make_view_dirty
+
+        # iterate though the visible view
+        # add them into the container if not already done
+        for index in range(i_start, i_end + 1):
+            view = get_view(index)
+            if not view:
+                continue
+
+            visible_views[index] = view
+            current_views.pop(index, None)
+            new_views.append((view, index))
+
+        # put all the hidden view as dirty views
+        for index, view in current_views.items():
+            make_view_dirty(view, index)
+        # save the current visible views
+        self.views = visible_views
+        return new_views, current_views.values()
 
     def on_viewclass(self, instance, value):
         # resolve the real class if it was a string.
@@ -151,12 +171,25 @@ class RecycleAdapter(EventDispatcher):
             self.viewclass = getattr(Factory, value)
 
     def on_data(self, instance, value):
-        # data changed, right now, remove all the widgets.
-        self.dirty_views = {}
-        self.views = {}
-        self.dispatch("on_data_changed")
+        # data changed, if completely new list, remove all the widgets
+        # otherwise list was just edited so it's better to only make it dirty
+        # if only append or extend, we don't have to make everything dirty
+        # because the current items are good, we just need to re-layout
+        # so pass on that info
+        last_op = value.last_op
+        extent = 'data'
 
-    def on_data_changed(self):
+        if not last_op:
+            # if all the data is replaced clear everything now
+            self.dirty_views = defaultdict(dict)
+            self.views = {}
+        elif last_op in ('__delitem__', '__delslice__', 'remove', 'pop'):
+            extent = 'data_size'
+        elif last_op in ('__iadd__', '__imul__', 'append', 'extend'):
+            extent = 'data_add'
+        self.dispatch('on_data_changed', extent=extent)
+
+    def on_data_changed(self, extent):
         pass
 
 
@@ -180,24 +213,19 @@ class RecycleLayoutManager(EventDispatcher):
             self.container.clear_widgets()
         self.container = None
 
-    def can_scroll_horizontally(self):
-        return False
-
-    def can_scroll_vertically(self):
-        return True
-
-    def compute_container_size(self, container, scrollview):
-        """(internal) Calculate the size of the container for the scrollview
-        """
-        pass
-
-    def compute_positions_and_sizes(self, container):
+    def compute_positions_and_sizes(self, append):
         """(internal) Calculate all the views height according to
         default_size, key_size, and then calculate their future positions
         """
         pass
 
-    def compute_visible_views(self, container, scrollview):
+    def recycleview_setup(self):
+        pass
+
+    def compute_visible_views(self, container):
+        pass
+
+    def refresh_view_layout(self, index, view):
         pass
 
     def get_view_position(self, index):
@@ -227,17 +255,12 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
     computed_sizes = []
     computed_positions = []
 
-    def can_scroll_horizontally(self):
-        return self.orientation == "horizontal"
-
-    def can_scroll_vertically(self):
-        return self.orientation == "vertical"
-
-    def compute_positions_and_sizes(self, container):
+    def compute_positions_and_sizes(self, append):
+        recycleview = self.recycleview
         height = 0
         key_size = self.key_size
         default_size = self.default_size
-        data = self.recycleview.current_adapter.data
+        data = recycleview.adapter.data
         self.computed_sizes = [
             item.get(key_size, default_size)
             for item in data
@@ -246,72 +269,63 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
         self.computed_positions = list(
             self._compute_positions(self.computed_sizes))
 
+        if self.orientation == "horizontal":
+            recycleview.container.size = self.computed_size, recycleview.height
+        else:
+            recycleview.container.size = recycleview.width, self.computed_size
+
     def _compute_positions(self, sizes):
         pos = 0
         for size in sizes:
             yield pos
             pos += size
 
-    def setup(self, container, scrollview):
+    def recycleview_setup(self):
         """(internal) Prepare the scrollview and container to receive widgets
         from this layout manager. Means the size of the container, as well as
         the allowed axis of the scrollview need to be set
         """
+        recycleview = self.recycleview
         if self.orientation == "horizontal":
-            scrollview.do_scroll_x = True
-            scrollview.do_scroll_y = False
-            container.size = self.computed_size, scrollview.height
+            recycleview.do_scroll_x = True
+            recycleview.do_scroll_y = False
         else:
-            scrollview.do_scroll_x = False
-            scrollview.do_scroll_y = True
-            container.size = scrollview.width, self.computed_size
+            recycleview.do_scroll_x = False
+            recycleview.do_scroll_y = True
 
-    def compute_visible_views(self, container, scrollview):
+    def compute_visible_views(self):
         """(internal) Determine the views that need to be showed in the current
         scrollview. All the hidden views will be flagged as dirty, and might
         be resued for others views.
         """
         # determine the view to create for the scrollview y / height
+        recycleview = self.recycleview
+        container = recycleview.container
         if self.orientation == "vertical":
-            scroll_y = 1 - (min(1, max(scrollview.scroll_y, 0)))
-            px_start = (container.height - scrollview.height) * scroll_y
-            px_end = px_start + scrollview.height
+            scroll_y = 1 - (min(1, max(recycleview.scroll_y, 0)))
+            px_start = (container.height - recycleview.height) * scroll_y
+            px_end = px_start + recycleview.height
         else:
-            scroll_x = 1 - (min(1, max(scrollview.scroll_x, 0)))
-            px_start = (container.width - scrollview.width) * scroll_x
-            px_end = px_start + scrollview.width
+            scroll_x = 1 - (min(1, max(recycleview.scroll_x, 0)))
+            px_start = (container.width - recycleview.width) * scroll_x
+            px_end = px_start + recycleview.width
 
         # now calculate the view indices we must show
-        i_start = self.get_view_index_at(px_start)
-        i_end = self.get_view_index_at(px_end)
+        at_idx = self.get_view_index_at
+        new, old = recycleview.get_views(at_idx(px_start), at_idx(px_end))
 
-        adapter = self.recycleview.current_adapter
-        current_views = adapter.views
-        visible_views = {}
-        dirty_views = adapter.dirty_views
+        rm = container.remove_widget
+        for widget in old:
+            rm(widget)
 
-        # iterate though the visible view
-        # add them into the container if not already done
-        for index in range(i_start, i_end + 1):
-            view = adapter.get_view(index)
-            if not view:
-                continue
-
-            visible_views[index] = view
-            current_views.pop(index, None)
-
+        refresh_view_layout = self.refresh_view_layout
+        add = container.add_widget
+        for widget, index in new:
             # add to the container if it's not already done
-            if view.parent:
-                continue
-            container.add_widget(view)
-
-        # put all the hidden view as dirty views
-        for index, view in current_views.items():
-            container.remove_widget(view)
-            adapter.make_view_dirty(view, index)
-
-        # save the current visible views
-        adapter.views = visible_views
+            if widget.parent is not None:
+                refresh_view_layout(index, widget)
+            else:
+                add(widget)
 
     def refresh_view_layout(self, index, view):
         """(internal) Refresh the layout of a view. Size and pos are determine
@@ -341,154 +355,232 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
         return index
 
 
-
-class RecycleView(RelativeLayout):
+class RecycleView(ScrollView):
     """RecycleView is a flexible view for providing a limited window into
     a large data set.
 
     See module documentation for more informations.
     """
 
-    adapter = ObjectProperty(None, baseclass=RecycleAdapter)
+    # internals
+    _adapter = None
+    _layout_manager = None
+    _container = None
+    _refresh_trigger = None
+    _refresh_flags = {
+        'recycleview': True, 'data': True, 'data_size': True,
+        'data_add': True, 'view': True
+    }
+    '''These flags indicate how much the view is out of sync and needs to
+    be synchronized with the data. The goal is that the minimum amount
+    of synchronization should be done. The flags are ordered such that for
+    each flag, all the ops required for the proceeding flags are reduced by
+    some known info about the change causing the refresh.
+
+    Meaning of the flags:
+    -recycleview: Initial setup of the recycleview itself. E.g. do_scroll_x.
+        Updates everything.
+    -data: Signal that the data changed and all the attributes/size/pos
+        may have changed so they need to be recomputed and all attrs
+        re-applied. This
+    -data_size: Signal that the pos/size attrs of the data may have changed,
+        new data may have been added, and or old data was removed. However,
+        no existing data attrs was changed, beyond the size/pos values. This
+        means that we don't need to re-apply the data attrs, other than
+        size/pos for existing data insatances because they did not change.
+        Added data will get new class instances and will have their values
+        applied.
+    -data_add: Similar to `data_size`, except that data, if added, was added
+        at the end. This will allow further possible optimizations, but may
+        be implemented as `data_size`.
+    -view: The items visible changed, so we have to move our viewport.
+        Other than viewport, nothing is recalculated.
+    '''
+
+    def __init__(self, **kwargs):
+        super(RecycleView, self).__init__(**kwargs)
+        self._refresh_flags = dict(self._refresh_flags)
+        self._refresh_trigger = Clock.create_trigger(self.refresh_views, -1)
+
+        if self._container is None:
+            self.container = RecycleViewLayout(size_hint=(None, None))
+        if self._layout_manager is None:
+            self.layout_manager = LinearRecycleLayoutManager()
+        if self._adapter is None:
+            self.adapter = RecycleAdapter()
+
+        fbind = self.fbind
+        fbind('size', self.trigger_refresh, data_size=True)
+        fbind('scroll_x', self.trigger_refresh, view=True)
+        fbind('scroll_y', self.trigger_refresh, view=True)
+        self._refresh_trigger()
+
+    def refresh_views(self, *largs, **kwargs):
+        flags = self._refresh_flags
+        flags.update(kwargs)
+        lm = self.layout_manager
+
+        update = flags['recycleview']
+        if update:
+            lm.recycleview_setup()
+        else:
+            update = flags['data']
+
+        if update:
+            self.container.clear_widgets()
+            self.adapter.invalidate()
+        else:
+            update = flags['data_size'] or flags['data_add']
+
+        if update:
+            lm.compute_positions_and_sizes(flags['data_add'])
+            lm.compute_visible_views()
+        elif flags['view']:
+            lm.compute_visible_views()
+
+        flags['recycleview'] = flags['data'] = flags['data_size'] = \
+            flags['data_add'] = flags['view'] = False
+
+    def trigger_refresh(self, *largs, **kwargs):
+        self._refresh_flags.update(kwargs)
+        self._refresh_trigger()
+
+    def on_data_changed(self, *largs, **kwargs):
+        '''Accepts extent as a flag kwarg.
+        '''
+        flags = self._refresh_flags
+        extent = kwargs.get('extent', 'data')
+        if extent not in flags:
+            raise ValueError('{} is not a valid value'.format(extent))
+
+        flags[extent] = True
+        self._refresh_trigger()
+
+    def refresh_view_layout(self, index, view):
+        self.layout_manager.refresh_view_layout(index, view)
+
+    def get_views(self, i_start, i_end):
+        return self.adapter.get_views(i_start, i_end)
+
+    def _get_adapter(self):
+        return self._adapter
+
+    def _set_adapter(self, value):
+        adapter = self._adapter
+        if value is adapter:
+            return
+        if adapter is not None:
+            adapter.detach_recycleview()
+            adapter.funbind('on_data_changed', self.on_data_changed)
+
+        if value is None:
+            self._adapter = adapter = RecycleAdapter()
+        else:
+            if not isinstance(value, RecycleAdapter):
+                raise ValueError(
+                    'Expected object based on RecycleAdapter, got {}'.
+                    format(value.__class__))
+            self._adapter = adapter = value
+
+        adapter.attach_recycleview(self)
+        adapter.fbind('on_data_changed', self.on_data_changed)
+        self.trigger_refresh(data=True)
+        return True
+
+    adapter = AliasProperty(_get_adapter, _set_adapter, cache=False)
     """Adapter responsible for providing views that represent items in a data
     set."""
 
-    layout_manager = ObjectProperty(None, baseclass=RecycleLayoutManager)
+    def _get_layout_manager(self):
+        return self._layout_manager
+
+    def _set_layout_manager(self, value):
+        lm = self._layout_manager
+        if value is lm:
+            return
+        if lm is not None:
+            lm.detach_recycleview()
+
+        if value is None:
+            self._layout_manager = lm = LinearRecycleLayoutManager()
+        else:
+            if not isinstance(value, RecycleLayoutManager):
+                raise ValueError(
+                    'Expected object based on RecycleLayoutManager, got {}'.
+                    format(value.__class__))
+            self._layout_manager = lm = value
+
+        lm.attach_recycleview(self)
+        self.trigger_refresh(data=True)
+        return True
+
+    layout_manager = AliasProperty(
+        _get_layout_manager, _set_layout_manager, cache=False)
     """Layout manager responsible to position views within the recycleview
     """
 
+    def _get_container(self):
+        return self._container
 
-    # internals
-    _previous_adapter = None
-    _previous_layout_manager = None
-    can_scroll_x = BooleanProperty(False)
-    can_scroll_y = BooleanProperty(True)
-    layout_size = ListProperty([1, 1])
-    need_setup = True
-
-    def __init__(self, **kwargs):
-        self.default_adapter = RecycleAdapter()
-        self.default_adapter.attach_recycleview(self)
-        self.default_adapter.bind(
-            on_data_changed=self.on_adapter_data_changed,
-            on_view_refresh_layout=self.on_adapter_view_refresh_layout)
-        self.default_layout_manager = LinearRecycleLayoutManager()
-        self.default_layout_manager.attach_recycleview(self)
-        self.can_scroll_x = self.default_layout_manager.can_scroll_horizontally()
-        self.can_scroll_y = self.default_layout_manager.can_scroll_vertically()
-        super(RecycleView, self).__init__(**kwargs)
-
-    def do_layout(self, *args):
-        super(RecycleView, self).do_layout(*args)
-        if self.data:
-            self.refresh_from_data(True)
-
-    def refresh_from_data(self, force=False):
-        """The data has changed, update the RecycleView internals
-        """
-        if force:
-            self.current_adapter.invalidate()
-            self.current_layout_manager.compute_positions_and_sizes(self.container)
-        if self.need_setup:
-            self.current_layout_manager.setup(self.container, self.ids.sv)
-            self.need_setup = False
-        self.current_layout_manager.compute_visible_views(self.container, self.ids.sv)
-
-    def refresh_from_scroll(self, axis):
-        self.current_layout_manager.compute_visible_views(self.container, self.ids.sv)
-
-    def refresh_view_layout(self, index, view):
-        self.current_layout_manager.refresh_view_layout(index, view)
-
-    def refresh_setup(self):
-        self.need_setup = True
-        self._trigger_layout()
-
-    @property
-    def container(self):
-        return self.ids.layout
-
-    @property
-    def current_layout_manager(self):
-        return self.layout_manager or self.default_layout_manager
-
-    def on_layout_manager(self, instance, value):
-        if self._previous_layout_manager is not None:
-            self._previous_layout_manager.detach_recycleview()
-        lm = self.current_layout_manager
-        lm.attach_recycleview(self)
-        self._previous_layout_manager = lm
-        self.can_scroll_x = lm.can_scroll_horizontally()
-        self.can_scroll_y = lm.can_scroll_vertically()
-        self.request_layout()
-
-    @property
-    def current_adapter(self):
-        return self.adapter or self.default_adapter
-
-    def on_adapter(self, instance, value):
-        if self._previous_adapter is not None:
-            self._previous_adapter.detach_recycleview()
-        self.current_adapter.attach_recycleview(self)
-        self._previous_adapter = self.current_adapter
-
-    def on_adapter_data_changed(self, instance):
-        if self.current_adapter != instance:
+    def _set_container(self, value):
+        container = self._container
+        if value is container:
             return
-        self.ids.layout.clear_widgets()
-        self.request_layout(full=True)
 
-    def on_adapter_view_refresh_layout(self, instance, index, view):
-        self.current_layout_manager.refresh_view_layout(index, view)
+        if container is not None:
+            self.remove_widget(container)
+        if value is None:
+            c = self._container = RecycleViewLayout(size_hint=(None, None))
+        else:
+            c = self._container = value
+        self.add_widget(c)
+        self.trigger_refresh(data_size=True)
+        return True
 
-    def request_layout(self, full=False):
-        """Invalidate the layout manager state and recalculate the views sizes
-        and positions.
-        """
-        if full:
-            self.need_setup = True
-        self._trigger_layout()
+    container = AliasProperty(_get_container, _set_container, cache=False)
+    """Container.
+    """
 
     # or easier way to use
     def _get_data(self):
-        return self.current_adapter.data
+        return self.adapter.data
     def _set_data(self, value):
-        self.current_adapter.data = value
+        self.adapter.data = value
     data = AliasProperty(_get_data, _set_data, bind=["adapter"])
     """Set the data on the current adapter
     """
 
     def _get_viewclass(self):
-        return self.current_adapter.viewclass
+        return self.adapter.viewclass
     def _set_viewclass(self, value):
-        self.current_adapter.viewclass = value
+        self.adapter.viewclass = value
     viewclass = AliasProperty(_get_viewclass, _set_viewclass,
         bind=["adapter"])
     """Set the viewclass on the current adapter
     """
 
     def _get_key_viewclass(self):
-        return self.current_adapter.key_viewclass
+        return self.adapter.key_viewclass
     def _set_key_viewclass(self, value):
-        self.current_adapter.key_viewclass = value
+        self.adapter.key_viewclass = value
     key_viewclass = AliasProperty(_get_key_viewclass, _set_key_viewclass,
         bind=["adapter"])
     """Set the key viewclass on the current adapter
     """
 
     def _get_default_size(self):
-        return self.current_layout_manager.default_size
+        return self.layout_manager.default_size
     def _set_default_size(self, value):
-        self.current_layout_manager.default_size = value
+        self.layout_manager.default_size = value
     default_size = AliasProperty(_get_default_size, _set_default_size,
                                  bind=["layout_manager"])
     """Set the default size on the current `layout_manager`
     """
 
     def _get_key_size(self):
-        return self.current_layout_manager.key_size
+        return self.layout_manager.key_size
     def _set_key_size(self, value):
-        self.current_layout_manager.key_size = value
+        self.layout_manager.key_size = value
     key_size = AliasProperty(_get_key_size, _set_key_size,
                              bind=["layout_manager"])
     """Set the key to look for the size on the current `layout_manager`
