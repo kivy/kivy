@@ -434,9 +434,12 @@ class RecycleView(ScrollView):
 
         if update:
             lm.compute_positions_and_sizes(flags['data_add'])
-            lm.compute_visible_views()
-        elif flags['view']:
-            lm.compute_visible_views()
+
+        if update or flags['view']:
+            if self.data:
+                lm.compute_visible_views()
+            else:
+                self.adapter.invalidate()
 
         flags['recycleview'] = flags['data'] = flags['data_size'] = \
             flags['data_add'] = flags['view'] = False
