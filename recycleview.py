@@ -107,6 +107,7 @@ class RecycleAdapter(EventDispatcher):
         dirty_views = self.dirty_views
         viewclass = self.get_viewclass(index)
         stale = False
+        view = None
 
         if viewclass in dirty_views:
             dirty_class = dirty_views[viewclass]
@@ -122,7 +123,8 @@ class RecycleAdapter(EventDispatcher):
         elif _cached_views[viewclass]:
             # global cache has this class, update data
             view, stale = _cached_views[viewclass].pop(), True
-        else:
+
+        if view is None:
             # create a fresh one
             view = self.create_view(index)
 
@@ -154,6 +156,18 @@ class RecycleAdapter(EventDispatcher):
         the view will be removed from the dirty views as well.
         """
         self.dirty_views[view.__class__][index] = view
+
+    def make_views_dirty(self):
+        '''Makes all the views dirty.
+        '''
+        views = self.views
+        if not views:
+            return
+
+        dirty_views = self.dirty_views
+        for index, view in views.items():
+            dirty_views[view.__class__][index] = view
+        self.views = {}
 
     def invalidate(self):
         """Invalidate any state of the current adapter, to be ready for a fresh
@@ -212,15 +226,15 @@ class RecycleAdapter(EventDispatcher):
             return
 
         last_op = value.last_op
-        extent = 'data'
-        if last_op in ('__delitem__', '__delslice__', 'remove', 'pop'):
-            extent = 'data_size'
-        elif last_op in ('__iadd__', '__imul__', 'append', 'extend'):
+        if last_op in ('__iadd__', '__imul__', 'append', 'extend'):
             extent = 'data_add'
+        else:
+            extent = 'data'
         self.dispatch('on_data_changed', extent=extent)
 
     def on_data_changed(self, extent):
-        pass
+        if extent == 'data':
+            self.invalidate()
 
 
 class RecycleLayoutManager(EventDispatcher):
@@ -458,7 +472,6 @@ class RecycleView(ScrollView):
 
         if update:
             self.container.clear_widgets()
-            self.adapter.invalidate()
         else:
             update = flags['data_size'] or flags['data_add']
 
@@ -468,8 +481,6 @@ class RecycleView(ScrollView):
         if update or flags['viewport']:
             if self.data:
                 lm.compute_visible_views()
-            else:
-                self.adapter.invalidate()
 
         flags['all'] = flags['data'] = flags['data_size'] = \
             flags['data_add'] = flags['viewport'] = False
@@ -481,13 +492,10 @@ class RecycleView(ScrollView):
     def ask_refresh_from_data(self, *largs, **kwargs):
         '''Accepts extent as a flag kwarg.
         '''
-        flags = self._refresh_flags
         extent = kwargs.get('extent', 'data')
-        if extent not in flags:
-            raise ValueError('{} is not a valid value'.format(extent))
-
-        flags[extent] = True
-        self._refresh_trigger()
+        if extent not in ('data', 'data_size', 'data_add'):
+            raise ValueError('{} is not a valid extent'.format(extent))
+        self.adapter.dispatch('on_data_changed', extent=extent)
 
     def ask_refresh_viewport(self, *largs):
         self._refresh_flags['all'] = True
@@ -505,6 +513,10 @@ class RecycleView(ScrollView):
         '''
         return self.adapter.observable_dict()
 
+    def _handle_ask_data_refresh(self, *largs, **kwargs):
+        self._refresh_flags[kwargs['extent']] = True
+        self._refresh_trigger()
+
     def _get_adapter(self):
         return self._adapter
 
@@ -514,7 +526,7 @@ class RecycleView(ScrollView):
             return
         if adapter is not None:
             adapter.detach_recycleview()
-            adapter.funbind('on_data_changed', self.ask_refresh_from_data)
+            adapter.funbind('on_data_changed', self._handle_ask_data_refresh)
 
         if value is None:
             self._adapter = adapter = RecycleAdapter()
@@ -526,7 +538,7 @@ class RecycleView(ScrollView):
             self._adapter = adapter = value
 
         adapter.attach_recycleview(self)
-        adapter.fbind('on_data_changed', self.ask_refresh_from_data)
+        adapter.fbind('on_data_changed', self._handle_ask_data_refresh)
         self.ask_refresh_from_data()
         return True
 
@@ -554,7 +566,8 @@ class RecycleView(ScrollView):
             self._layout_manager = lm = value
 
         lm.attach_recycleview(self)
-        self.ask_refresh_from_data()
+        if self.adapter is not None:
+            self.ask_refresh_from_data()
         return True
 
     layout_manager = AliasProperty(
