@@ -511,7 +511,7 @@ class RecycleView(ScrollView):
     def observable_dict(self):
         '''It's specific to the adapter present when called.
         '''
-        return self.adapter.observable_dict()
+        return self.adapter.observable_dict
 
     def _handle_ask_data_refresh(self, *largs, **kwargs):
         self._refresh_flags[kwargs['extent']] = True
