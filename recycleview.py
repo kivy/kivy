@@ -376,8 +376,8 @@ class RecycleView(ScrollView):
     _container = None
     _refresh_trigger = None
     _refresh_flags = {
-        'recycleview': True, 'data': True, 'data_size': True,
-        'data_add': True, 'view': True
+        'all': True, 'data': True, 'data_size': True,
+        'data_add': True, 'viewport': True
     }
     '''These flags indicate how much the view is out of sync and needs to
     be synchronized with the data. The goal is that the minimum amount
@@ -386,7 +386,7 @@ class RecycleView(ScrollView):
     some known info about the change causing the refresh.
 
     Meaning of the flags:
-    -recycleview: Initial setup of the recycleview itself. E.g. do_scroll_x.
+    -all: Initial setup of the recycleview itself. E.g. do_scroll_x.
         Updates everything.
     -data: Signal that the data changed and all the attributes/size/pos
         may have changed so they need to be recomputed and all attrs
@@ -401,7 +401,7 @@ class RecycleView(ScrollView):
     -data_add: Similar to `data_size`, except that data, if added, was added
         at the end. This will allow further possible optimizations, but may
         be implemented as `data_size`.
-    -view: The items visible changed, so we have to move our viewport.
+    -viewport: The items visible changed, so we have to move our viewport.
         Other than viewport, nothing is recalculated.
     '''
 
@@ -418,9 +418,9 @@ class RecycleView(ScrollView):
             self.container = RecycleViewLayout(size_hint=(None, None))
 
         fbind = self.fbind
-        fbind('size', self.trigger_refresh, data_size=True)
-        fbind('scroll_x', self.trigger_refresh, view=True)
-        fbind('scroll_y', self.trigger_refresh, view=True)
+        fbind('size', self.ask_refresh_from_data, extent=data_size)
+        fbind('scroll_x', self.ask_refresh_viewport)
+        fbind('scroll_y', self.ask_refresh_viewport)
         self._refresh_trigger()
 
     def refresh_views(self, *largs, **kwargs):
@@ -428,7 +428,7 @@ class RecycleView(ScrollView):
         flags.update(kwargs)
         lm = self.layout_manager
 
-        update = flags['recycleview']
+        update = flags['all']
         if update:
             lm.recycleview_setup()
         else:
@@ -443,20 +443,20 @@ class RecycleView(ScrollView):
         if update:
             lm.compute_positions_and_sizes(flags['data_add'])
 
-        if update or flags['view']:
+        if update or flags['viewport']:
             if self.data:
                 lm.compute_visible_views()
             else:
                 self.adapter.invalidate()
 
-        flags['recycleview'] = flags['data'] = flags['data_size'] = \
-            flags['data_add'] = flags['view'] = False
+        flags['all'] = flags['data'] = flags['data_size'] = \
+            flags['data_add'] = flags['viewport'] = False
 
-    def trigger_refresh(self, *largs, **kwargs):
-        self._refresh_flags.update(kwargs)
+    def ask_refresh_all(self, *largs):
+        self._refresh_flags['all'] = True
         self._refresh_trigger()
 
-    def on_data_changed(self, *largs, **kwargs):
+    def ask_refresh_from_data(self, *largs, **kwargs):
         '''Accepts extent as a flag kwarg.
         '''
         flags = self._refresh_flags
@@ -482,7 +482,7 @@ class RecycleView(ScrollView):
             return
         if adapter is not None:
             adapter.detach_recycleview()
-            adapter.funbind('on_data_changed', self.on_data_changed)
+            adapter.funbind('on_data_changed', self.ask_refresh_from_data)
 
         if value is None:
             self._adapter = adapter = RecycleAdapter()
@@ -494,8 +494,8 @@ class RecycleView(ScrollView):
             self._adapter = adapter = value
 
         adapter.attach_recycleview(self)
-        adapter.fbind('on_data_changed', self.on_data_changed)
-        self.trigger_refresh(data=True)
+        adapter.fbind('on_data_changed', self.ask_refresh_from_data)
+        self.ask_refresh_from_data()
         return True
 
     adapter = AliasProperty(_get_adapter, _set_adapter, cache=False)
@@ -522,7 +522,7 @@ class RecycleView(ScrollView):
             self._layout_manager = lm = value
 
         lm.attach_recycleview(self)
-        self.trigger_refresh(data=True)
+        self.ask_refresh_from_data()
         return True
 
     layout_manager = AliasProperty(
@@ -545,7 +545,7 @@ class RecycleView(ScrollView):
         else:
             c = self._container = value
         self.add_widget(c)
-        self.trigger_refresh(data_size=True)
+        self.ask_refresh_from_data(extent='data_size')
         return True
 
     container = AliasProperty(_get_container, _set_container, cache=False)
