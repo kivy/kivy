@@ -69,6 +69,7 @@ class GraphicUnitTest(unittest.TestCase):
 
         # ensure our window is correcly created
         Window.create_window()
+        Window.canvas.clear()
 
     def on_window_flip(self, window):
         '''Internal method to be called when the window have just displayed an
