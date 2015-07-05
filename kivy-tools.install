@@ -7,6 +7,7 @@ usr/lib/python2.7/dist-packages/kivy/tools/*.py
 usr/lib/python2.7/dist-packages/kivy/tools/*.pyc
 usr/lib/python2.7/dist-packages/kivy/tools/extensions/*.py
 usr/lib/python2.7/dist-packages/kivy/tools/extensions/*.pyc
+usr/lib/python2.7/dist-packages/kivy/tools/gles_compat/gl2.h
 usr/lib/python2.7/dist-packages/kivy/tools/highlight/__init__.py
 usr/lib/python2.7/dist-packages/kivy/tools/highlight/__init__.pyc
 usr/lib/python2.7/dist-packages/kivy/tools/highlight/*.el
@@ -35,6 +36,7 @@ usr/lib/python3/dist-packages/kivy/tools/*.py
 usr/lib/python3/dist-packages/kivy/tools/__pycache__/*.cpython-*.pyc
 usr/lib/python3/dist-packages/kivy/tools/extensions/*.py
 usr/lib/python3/dist-packages/kivy/tools/extensions/__pycache__/*.cpython-*.pyc
+usr/lib/python3/dist-packages/kivy/tools/gles_compat/gl2.h
 usr/lib/python3/dist-packages/kivy/tools/highlight/*.py
 usr/lib/python3/dist-packages/kivy/tools/highlight/__pycache__/*.cpython-*.pyc
 usr/lib/python3/dist-packages/kivy/tools/highlight/*.el
