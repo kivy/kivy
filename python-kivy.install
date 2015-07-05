@@ -17,7 +17,7 @@ usr/lib/python2.7/dist-packages/kivy/effects/*.py*
 usr/lib/python2.7/dist-packages/kivy/ext/*.py*
 usr/lib/python2.7/dist-packages/kivy/extras/*.py*
 usr/lib/python2.7/dist-packages/kivy/garden/*.py*
-usr/lib/python2.7/dist-packages/kivy/graphics/config.h
+usr/lib/python2.7/dist-packages/kivy/graphics/*.h
 usr/lib/python2.7/dist-packages/kivy/graphics/*.py*
 usr/lib/python2.7/dist-packages/kivy/graphics/*.pxd
 usr/lib/python2.7/dist-packages/kivy/graphics/*.pxi
