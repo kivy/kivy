@@ -32,6 +32,18 @@ from distutils.version import LooseVersion
 _kivy_has_last_op = LooseVersion(kivy.__version__) >= LooseVersion('1.9.1')
 
 _cached_views = defaultdict(list)
+_cache_count = 0
+_max_cache_size = 1000
+
+def _clean_cache():
+    '''Trims cache to half the size of `_max_cache_size`.
+    '''
+    # all keys will be reduced to max_size.
+    max_size = (_max_cache_size // 2) // len(_cached_views)
+    global _cache_count
+    for cls, instances in _cached_views.items():
+        _cache_count -= max(0, len(instances) - max_size)
+        del instances[max_size:]
 
 
 class RecycleViewLayout(Widget):
@@ -150,8 +162,13 @@ class RecycleAdapter(EventDispatcher):
         views = self.views
         if not views:
             return
+        global _cache_count
         for view in views.values():
             _cached_views[view.__class__].append(view)
+            _cache_count += 1
+
+        if _cache_count >= _max_cache_size:
+            _clean_cache()
         self.views = {}
 
     def get_views(self, i_start, i_end):
@@ -423,7 +440,7 @@ class RecycleView(ScrollView):
             self.container = RecycleViewLayout(size_hint=(None, None))
 
         fbind = self.fbind
-        fbind('size', self.ask_refresh_from_data, extent=data_size)
+        fbind('size', self.ask_refresh_from_data, extent='data_size')
         fbind('scroll_x', self.ask_refresh_viewport)
         fbind('scroll_y', self.ask_refresh_viewport)
         self._refresh_trigger()
