@@ -15,6 +15,7 @@ TODO:
     - Method to clear cached class instances.
 """
 
+import kivy
 from kivy.compat import string_types
 from kivy.uix.widget import Widget
 from kivy.uix.scrollview import ScrollView
@@ -24,6 +25,12 @@ from kivy.event import EventDispatcher
 from kivy.factory import Factory
 from kivy.clock import Clock
 from collections import defaultdict
+from functools import partial
+from distutils.version import LooseVersion
+
+_kivy_has_last_op = LooseVersion(kivy.__version__) >= LooseVersion('1.9.1')
+
+_cached_views = defaultdict(list)
 
 
 class RecycleViewLayout(Widget):
@@ -82,31 +89,33 @@ class RecycleAdapter(EventDispatcher):
 
         dirty_views = self.dirty_views
         viewclass = self.get_viewclass(index)
-        refresh_view_layout = self.recycleview.refresh_view_layout
+        stale = False
+
         if viewclass in dirty_views:
+            dirty_class = dirty_views[viewclass]
+            if index in dirty_class:
+                # we found ourself in the dirty list, no need to update data!
+                view = dirty_class.pop(index)
+            elif _cached_views[viewclass]:
+                # global cache has this class, update data
+                view, stale = _cached_views[viewclass].pop(), True
+            elif dirty_class:
+                # random any dirty view element - update data
+                view, stale = dirty_class.popitem()[1], True
+        elif _cached_views[viewclass]:
+            # global cache has this class, update data
+            view, stale = _cached_views[viewclass].pop(), True
+        else:
+            # create a fresh one
+            view = self.create_view(index)
 
-            # we found ourself in the dirty list, no need to update data!
-            if index in dirty_views[viewclass]:
-                view = dirty_views[viewclass].pop(index)
-                refresh_view_layout(index, view)
-                self.views[index] = view
-                return view
+        if stale is True:
+            item = self[index]
+            for key, value in item.items():
+                setattr(view, key, value)
 
-            # we are not in the dirty list, just take one and reuse it.
-            if dirty_views[viewclass]:
-                previous_index = tuple(dirty_views[viewclass].keys())[-1]
-                view = dirty_views[viewclass].pop(previous_index)
-                # update view data
-                item = self[index]
-                for key, value in item.items():
-                    setattr(view, key, value)
-                refresh_view_layout(index, view)
-                self.views[index] = view
-                return view
-
-        # create a fresh one
-        self.views[index] = view = self.create_view(index)
-        refresh_view_layout(index, view)
+        self.views[index] = view
+        self.recycleview.refresh_view_layout(index, view)
         return view
 
     def get_viewclass(self, index):
@@ -122,11 +131,10 @@ class RecycleAdapter(EventDispatcher):
 
     def make_view_dirty(self, view, index):
         """(internal) Used to flag the view as dirty, ready to be used for
-        others. A dirty view can be reused by just changing the pos/size.
-        So it's assumed that while in dirty view that index stays in sync
-        with the data. If we want to still cache the view but not keep that
-        assumption, use a negative index; it'll keep the view for reuse but
-        does not assume the view is tied to data.
+        others. A dirty view can be reused by the same index by just changing
+        the pos/size. So it's assumed that while in dirty view that index stays
+        in sync with the data. Once the underlying data of this index changes,
+        the view will be removed from the dirty views as well.
         """
         self.dirty_views[view.__class__][index] = view
 
@@ -137,10 +145,8 @@ class RecycleAdapter(EventDispatcher):
         views = self.views
         if not views:
             return
-        make_view_dirty = self.make_view_dirty
-
-        for index, view in views.items():
-            make_view_dirty(view, -index)
+        for view in views.values():
+            _cached_views[view.__class__].append(view)
         self.views = {}
 
     def get_views(self, i_start, i_end):
@@ -175,19 +181,17 @@ class RecycleAdapter(EventDispatcher):
             self.viewclass = getattr(Factory, value)
 
     def on_data(self, instance, value):
-        # data changed, if completely new list, remove all the widgets
-        # otherwise list was just edited so it's better to only make it dirty
-        # if only append or extend, we don't have to make everything dirty
-        # because the current items are good, we just need to re-layout
-        # so pass on that info
+        # data changed, if new list or list edited in unpredictable way, we'll
+        # remove all the widgets. Otherwise if only append or extend, we don't
+        # have to make everything dirty because the current items are good, we
+        # just need to re-layout so pass on that info
+        if not _kivy_has_last_op:
+            self.dispatch('on_data_changed', extent='data')
+            return
+
         last_op = value.last_op
         extent = 'data'
-
-        if not last_op:
-            # if all the data is replaced clear everything now
-            self.dirty_views = defaultdict(dict)
-            self.views = {}
-        elif last_op in ('__delitem__', '__delslice__', 'remove', 'pop'):
+        if last_op in ('__delitem__', '__delslice__', 'remove', 'pop'):
             extent = 'data_size'
         elif last_op in ('__iadd__', '__imul__', 'append', 'extend'):
             extent = 'data_add'
