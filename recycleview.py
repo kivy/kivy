@@ -29,7 +29,7 @@ from collections import defaultdict
 from functools import partial
 from distutils.version import LooseVersion
 
-_kivy_has_last_op = LooseVersion(kivy.__version__) >= LooseVersion('1.9.1')
+_kivy_1_9_1 = LooseVersion(kivy.__version__) >= LooseVersion('1.9.1')
 
 _cached_views = defaultdict(list)
 _cache_count = 0
@@ -221,7 +221,7 @@ class RecycleAdapter(EventDispatcher):
         # remove all the widgets. Otherwise if only append or extend, we don't
         # have to make everything dirty because the current items are good, we
         # just need to re-layout so pass on that info
-        if not _kivy_has_last_op:
+        if not _kivy_1_9_1:
             self.dispatch('on_data_changed', extent='data')
             return
 
@@ -453,7 +453,7 @@ class RecycleView(ScrollView):
         if self._container is None:
             self.container = RecycleViewLayout(size_hint=(None, None))
 
-        fbind = self.fbind
+        fbind = self.fbind if _kivy_1_9_1 else self.fast_bind
         fbind('size', self.ask_refresh_from_data, extent='data_size')
         fbind('scroll_x', self.ask_refresh_viewport)
         fbind('scroll_y', self.ask_refresh_viewport)
@@ -526,7 +526,8 @@ class RecycleView(ScrollView):
             return
         if adapter is not None:
             adapter.detach_recycleview()
-            adapter.funbind('on_data_changed', self._handle_ask_data_refresh)
+            funbind = adapter.funbind if _kivy_1_9_1 else adapter.fast_unbind
+            funbind('on_data_changed', self._handle_ask_data_refresh)
 
         if value is None:
             self._adapter = adapter = RecycleAdapter()
@@ -538,7 +539,8 @@ class RecycleView(ScrollView):
             self._adapter = adapter = value
 
         adapter.attach_recycleview(self)
-        adapter.fbind('on_data_changed', self._handle_ask_data_refresh)
+        fbind = adapter.fbind if _kivy_1_9_1 else adapter.fast_bind
+        fbind('on_data_changed', self._handle_ask_data_refresh)
         self.ask_refresh_from_data()
         return True
 
