@@ -20,7 +20,8 @@ from kivy.compat import string_types
 from kivy.uix.widget import Widget
 from kivy.uix.scrollview import ScrollView
 from kivy.properties import NumericProperty, AliasProperty, StringProperty, \
-    ObjectProperty, ListProperty, OptionProperty, BooleanProperty
+    ObjectProperty, ListProperty, OptionProperty, BooleanProperty, \
+    ObservableDict
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
 from kivy.clock import Clock
@@ -61,6 +62,10 @@ class RecycleAdapter(EventDispatcher):
         """Return the data entry at `index`
         """
         return self.data[index]
+
+    @property
+    def observable_dict(self):
+        return partial(ObservableDict, self.__class__.data, self)
 
     def attach_recycleview(self, rv):
         self.recycleview = rv
@@ -467,11 +472,21 @@ class RecycleView(ScrollView):
         flags[extent] = True
         self._refresh_trigger()
 
+    def ask_refresh_viewport(self, *largs):
+        self._refresh_flags['all'] = True
+        self._refresh_trigger()
+
     def refresh_view_layout(self, index, view):
         self.layout_manager.refresh_view_layout(index, view)
 
     def get_views(self, i_start, i_end):
         return self.adapter.get_views(i_start, i_end)
+
+    @property
+    def observable_dict(self):
+        '''It's specific to the adapter present when called.
+        '''
+        return self.adapter.observable_dict()
 
     def _get_adapter(self):
         return self._adapter
