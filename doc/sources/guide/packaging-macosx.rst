@@ -25,17 +25,6 @@ The `kivy` command must be accessible from the command line.
 
 Thereafter, download and decompress the PyInstaller 2.0 package.
 
-.. warning::
-
-    It seems that the latest PyInstaller has a bug affecting Mach-O binaries.
-    (http://www.pyinstaller.org/ticket/614). To correct the issue, type::
-
-        cd pyinstaller-2.0/PyInstaller/lib/macholib
-        curl -O https://bitbucket.org/ronaldoussoren/macholib/raw/e32d04b5361950a9343ca453d75602b65787f290/macholib/mach_o.py
-        
-    In version 2.1, the issue has already been corrected.
-
-
 .. _mac_Create-the-spec-file:
 
 Create the spec file
@@ -66,12 +55,19 @@ file is named `main.py`. Replace both path/filename according to your system.
    Then, you need to change the `COLLECT()` call to add the data of touchtracer
    (`touchtracer.kv`, `particle.png`, ...). Change the line to add a Tree()
    object. This Tree will search and add every file found in the touchtracer
-   directory to your final package::
+   directory to your final package.
+   
+   You will need to specify to pyinstaller where to look for the frameworks
+   included with kivy too, your COLLECT section should look something like this::
 
     coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
+                   Tree("../../../../../../Applications/Kivy.app/Contents/Frameworks/"),
+                   Tree("../../../../../Applications/Kivy.app/Contents/Frameworks/SDL2_ttf.framework/Versions/A/Frameworks/Freetype.Framework"),
                    a.binaries,
                    #...
                    )
+                   
+Make sure the path to the frameworks is relative to the current directory you are on.
 
 #. We are done. Your spec is ready to be executed!
 
