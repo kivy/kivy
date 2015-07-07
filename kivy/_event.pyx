@@ -241,6 +241,8 @@ cdef class EventDispatcher(ObjectWithUid):
         for event in events:
             self.__event_stack[event] = EventObservers(1, 0)
 
+    _inherits_from_widget = False
+
     def __init__(self, **kwargs):
         cdef basestring func, name, key
         cdef dict properties
@@ -265,7 +267,22 @@ cdef class EventDispatcher(ObjectWithUid):
         for func in event_handlers:
             self.fbind(func[3:], getattr(self, func))
 
-        # Apply the existing arguments to our widget
+        # Apply the existing arguments to our instance
+        #
+        # if the instance is not widget, or is a widget created by a root
+        # rule, then we apply the properties immediately.
+        #
+        # if the instance is a widget not instantiated by a root rule, then
+        # application of properties provided through kwargs should be deferred
+        # until after matching rules have been applied so that the former may
+        # take precedence
+        if not self._inherits_from_widget or '__no_builder' in kwargs:
+            self._apply_kwargs_properties(kwargs)
+        else:
+            self._deferred_kwargs_properties = kwargs
+
+    def _apply_kwargs_properties(self, kwargs):
+        properties = self.properties()
         for key, value in kwargs.iteritems():
             if key in properties:
                 setattr(self, key, value)

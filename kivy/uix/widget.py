@@ -289,6 +289,8 @@ class Widget(WidgetBase):
     __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
     _proxy_ref = None
 
+    _inherits_from_widget = True
+
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
@@ -307,7 +309,20 @@ class Widget(WidgetBase):
         if '__no_builder' not in kwargs:
             #current_root = Builder.idmap.get('root')
             #Builder.idmap['root'] = self
+
+            # normally application of kwargs provided properties is deferred
+            # until after matching rules have been applied so that the former
+            # may take precedence.  however the 'id' and 'cls' properties may
+            # be used during rule matching, so we set them up early before
+            # rule matching.
+            if 'id' in kwargs:
+                self.id = kwargs['id']
+            if 'cls' in kwargs:
+                self.cls = kwargs['cls']
             Builder.apply(self)
+            self._apply_kwargs_properties(self._deferred_kwargs_properties)
+            del self._deferred_kwargs_properties
+            
             #if current_root is not None:
             #    Builder.idmap['root'] = current_root
             #else:
