@@ -309,9 +309,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         try:
             opts, args = getopt(sys_argv[1:], 'hp:fkawFem:sr:dc:', [
                 'help', 'fullscreen', 'windowed', 'fps', 'event',
-                'module=', 'save', 'fake-fullscreen', 'auto-fullscreen', 'multiprocessing-fork',
-                'display=', 'size=', 'rotate=', 'config=', 'debug',
-                'dpi='])
+                'module=', 'save', 'fake-fullscreen', 'auto-fullscreen',
+                'multiprocessing-fork', 'display=', 'size=', 'rotate=',
+                'config=', 'debug', dpi='])
 
         except GetoptError as err:
             Logger.error('Core: %s' % str(err))

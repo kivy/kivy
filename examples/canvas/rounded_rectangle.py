@@ -24,7 +24,8 @@ class RoundedRectangleWidget(Widget):
             # RoundedRectangles of default size 100x100:
 
             # Textured:
-            RoundedRectangle(pos=(175, 400), radius=[0, 50, 0, 50], source=TEXTURE)
+            RoundedRectangle(
+                pos=(175, 400), radius=[0, 50, 0, 50], source=TEXTURE)
 
             # Colored:
             Color(*YELLOW)
@@ -32,7 +33,8 @@ class RoundedRectangleWidget(Widget):
 
             # Textured + Colored
             # Color(.3,.3,.3, 1)
-            RoundedRectangle(pos=(425, 400), radius=[0, 50, 0, 50], source=TEXTURE)
+            RoundedRectangle(
+                pos=(425, 400), radius=[0, 50, 0, 50], source=TEXTURE)
 
             # Possible radius arguments:
             # 1) Same value for each corner
@@ -51,7 +53,8 @@ class RoundedRectangleWidget(Widget):
             RoundedRectangle(pos=(300, 275), radius=[10, 20, 30, 40])
 
             # With different radiuses:
-            RoundedRectangle(pos=(425, 275), radius=[(10, 20), (20, 30), (30, 40), (40, 50)])
+            RoundedRectangle(
+                pos=(425, 275), radius=[(10, 20), (20, 30), (30, 40), (40, 50)])
 
             # Default ellipses
             Color(*WHITE)
@@ -76,11 +79,13 @@ class RoundedRectangleWidget(Widget):
             RoundedRectangle(pos=(425, 150), radius=[9000], segments=1)
 
             # Various sizes
-            # you can cut corners by setting segments to 1
-            # also, you can set different segment count to corners, by using a list
-            # useful for lowering vertex count by using small amount on small corners,
-            # while using bigger amount on bigger corners
-            RoundedRectangle(pos=(50, 25), radius=[40], segments=[1, 1, 10, 10], size=(125, 100))
+            # You can cut corners by setting segments to 1.
+            # You can set different segment count to corners,
+            # by using a list useful for lowering vertex count
+            # by using small amount on small corners, while using
+            # bigger amount on bigger corners.
+            RoundedRectangle(
+                pos=(50, 25), radius=[40], segments=[1, 1, 10, 10], size=(125, 100))
 
             # if radius dimension is 0, then the corner will be sharp (90 degrees)
             # it is also possible to mix tuple values with numeric
