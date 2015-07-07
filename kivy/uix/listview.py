@@ -705,6 +705,9 @@ class CompositeListItem(SelectableView, BoxLayout):
     '''
 
     def __init__(self, **kwargs):
+        cls_dicts = kwargs.pop('cls_dicts')
+        text = kwargs.pop('text', None)
+        index = kwargs['index']
         super(CompositeListItem, self).__init__(**kwargs)
 
         # Example data:
@@ -720,30 +723,27 @@ class CompositeListItem(SelectableView, BoxLayout):
         # There is an index to the data item this composite list item view
         # represents. Get it from kwargs and pass it along to children in the
         # loop below.
-        index = kwargs['index']
 
-        for cls_dict in kwargs['cls_dicts']:
+        for cls_dict in cls_dicts:
             cls = cls_dict['cls']
             cls_kwargs = cls_dict.get('kwargs', None)
 
             if cls_kwargs:
                 cls_kwargs['index'] = index
 
-                if 'selection_target' not in cls_kwargs:
-                    cls_kwargs['selection_target'] = self
-
                 if 'text' not in cls_kwargs:
-                    cls_kwargs['text'] = kwargs['text']
+                    cls_kwargs['text'] = text
 
                 if 'is_representing_cls' in cls_kwargs:
+                    del cls_kwargs['is_representing_cls']
                     self.representing_cls = cls
 
                 self.add_widget(cls(**cls_kwargs))
             else:
                 cls_kwargs = {}
                 cls_kwargs['index'] = index
-                if 'text' in kwargs:
-                    cls_kwargs['text'] = kwargs['text']
+                if text is not None:
+                    cls_kwargs['text'] = text
                 self.add_widget(cls(**cls_kwargs))
 
     def select(self, *args):
