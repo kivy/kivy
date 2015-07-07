@@ -101,6 +101,4 @@ class FBOInstructionTestCase(GraphicUnitTest):
         fbo.draw()
         data = fbo.pixels
 
-        import pygame
-        surface = pygame.image.fromstring(data, (512, 512), 'RGBA', True)
-        pygame.image.save(surface, "results.png")
+        fbo.texture.save('results.png')
