@@ -62,7 +62,7 @@ cdef class Matrix:
     def get(Matrix self):
         '''Retrieve the value of the current as a flat list.
 
-        .. versionadded:: 1.9.0
+        .. versionadded:: 1.9.1
         '''
 
         return (
