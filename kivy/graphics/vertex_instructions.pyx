@@ -1125,7 +1125,7 @@ cdef class Ellipse(Rectangle):
 cdef class RoundedRectangle(Rectangle):
     '''A 2D rounded rectangle.
 
-    .. versionadded:: 1.9.0
+    .. versionadded:: 1.9.1
 
     :Parameters:
         `segments`: int, defaults to 10
