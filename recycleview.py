@@ -305,21 +305,32 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
         key_size = self.key_size
         default_size = self.default_size
         data = recycleview.adapter.data
-        self.computed_sizes = [
-            item.get(key_size, default_size)
-            for item in data
-        ]
-        self.computed_size = sum(self.computed_sizes)
-        self.computed_positions = list(
-            self._compute_positions(self.computed_sizes))
+        if append:
+            sizes = self.computed_sizes
+            pos = self.computed_positions
+            n = len(sizes)
+
+            sizes.extend(
+                [item.get(key_size, default_size) for item in data[n:]]
+            )
+            self.computed_size += sum(sizes[n:])
+            pos.extend(
+                self._compute_positions(sizes[n:], pos[-1] + sizes[n - 1]))
+        else:
+            self.computed_sizes = [
+                item.get(key_size, default_size)
+                for item in data
+            ]
+            self.computed_size = sum(self.computed_sizes)
+            self.computed_positions = list(
+                self._compute_positions(self.computed_sizes))
 
         if self.orientation == "horizontal":
             recycleview.container.size = self.computed_size, recycleview.height
         else:
             recycleview.container.size = recycleview.width, self.computed_size
 
-    def _compute_positions(self, sizes):
-        pos = 0
+    def _compute_positions(self, sizes, pos=0):
         for size in sizes:
             yield pos
             pos += size
@@ -464,6 +475,7 @@ class RecycleView(ScrollView):
         flags.update(kwargs)
         lm = self.layout_manager
 
+        append = False
         update = flags['all']
         if update:
             lm.recycleview_setup()
@@ -473,10 +485,11 @@ class RecycleView(ScrollView):
         if update:
             self.container.clear_widgets()
         else:
+            append = flags['data_add'] and not flags['data_size']
             update = flags['data_size'] or flags['data_add']
 
         if update:
-            lm.compute_positions_and_sizes(flags['data_add'])
+            lm.compute_positions_and_sizes(append)
 
         if update or flags['viewport']:
             if self.data:
