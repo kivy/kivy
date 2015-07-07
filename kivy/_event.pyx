@@ -873,7 +873,7 @@ cdef class EventDispatcher(ObjectWithUid):
         :class:`Property` instance and `prop_name` is the name of the attribute
         of the property.
 
-        .. versionadded:: 1.9.0
+        .. versionadded:: 1.9.1
 
         .. warning::
 
