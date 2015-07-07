@@ -14,6 +14,52 @@ MacOSX platforms.
 
 .. _mac_osx_requirements:
 
+New Method
+----------
+
+Since kivy 1.9 it is now possible to package kivy apps using a new method as described below to make it easier to include frameworks like sdl2 and gstreamer.
+
+Step 1: Make sure you have the Kivy.app(unmodified) from the download page.
+Step 2: run the following commands::
+
+    > mkdir  packaging
+    > cd packaging
+    packaging> git clone https://github.com/kivy/kivy-sdk-packager
+    packaging> cd kivy-sdk-packager/osx
+    osx> rsync -a /Applications/Kivy.app ./Kivy.App
+
+Instead of copying the kivy.app we could also just creat it from scratch using the following command::
+
+    osx> ./create-osx-bundle.sh
+
+You will need to install some dependencies like Platypus for that,  however ideally you don't need to worry about that and you can simply use the kivy.app provided.
+
+Now all you need to do is to include your compiled app into the Kivy.app, simply run the following command::
+
+    osx> ./package-app.sh path/to/your/app
+
+This should compile your app and include all the compiled app into Kivy.app and copy it to `yourapp.app`.
+when you double clickk this app you can see your app run.
+
+This is pretty heavy app right now however you can simply remove the unneeded parts from this package.
+
+For example if you don't use Gstreamer, simply remove it from YourApp.app/Contents/Frameworks.
+Similarly you can remove the examples dir from /Applications/Kivy.app/Contents/Resources/kivy/examples/
+
+This way the whole app can be made to only include the parts that you use inside your app.
+
+You can edit the icons and other settings of your app by editing the YourApp/Contents/info.plist to suit your needs, simply double click this file and make your changes.
+
+Last step is to make a dmg of your app using the following command::
+
+    osx> create-osx-dmg.sh YourApp.app
+
+This should give you a compressed dmg that will even further minimize the size of your distributed app.
+
+
+Pyinstaller Method
+------------------
+
 Requirements
 ------------
 
