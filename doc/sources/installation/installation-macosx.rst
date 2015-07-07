@@ -49,11 +49,12 @@ Step 1. Follow the procedure mentioned above to install kivy stable.
 Step 2. Install the requirements like (sdl2, sdl2_ttf, sdl2_mixerm, gstreamer) as frameworks on your system.
 step 2. Open a terminal and type the following commands into it::
 
+    kivy -m pip install cython
     cd /Applications/Kivy.app/Contents/Resources/
     mv kivy kivy_stable
     git clone http://github.com/kivy/kivy
     cd kivy
-    make
+    kivy setup.py build_ext --inplace
 
 That's it. You now have the latest kivy from github.
 
