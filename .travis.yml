@@ -51,10 +51,9 @@ script:
     fi;
 
 notifications:
-  irc:
-    channels:
-      - chat.freenode.net#kivy-dev
-    on_success: change
+  webhooks:
+    urls:
+      - http://kivy.org:5000/travisevent
+    on_success: always
     on_failure: always
-    use_notice: true
-    skip_join: true
+    on_start: always

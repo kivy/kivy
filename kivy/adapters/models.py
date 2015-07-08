@@ -51,10 +51,10 @@ class SelectableDataItem(object):
     A mixin class containing requirements for selection operations.
     '''
 
-    def __init__(self, **kwargs):
+    def __init__(self, is_selected=False):
         super(SelectableDataItem, self).__init__()
 
-        self._is_selected = kwargs.get('is_selected', False)
+        self._is_selected = is_selected
 
     @property
     def is_selected(self):

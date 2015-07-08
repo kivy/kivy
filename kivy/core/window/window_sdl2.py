@@ -156,11 +156,18 @@ class WindowSDL(WindowBase):
                     281: 'pgdown'}
         self._mouse_buttons_down = set()
 
-        self.bind(minimum_width=self._restrict_window,
-                  minimum_height=self._restrict_window)
+        self.bind(minimum_width=self._set_minimum_size,
+                  minimum_height=self._set_minimum_size)
 
-    def _restrict_window(self, *args):
-        self._win.set_minimum_size(self.minimum_width, self.minimum_height)
+    def _set_minimum_size(self, *args):
+        minimum_width = self.minimum_width
+        minimum_height = self.minimum_height
+        if minimum_width and minimum_height:
+            self._win.set_minimum_size(minimum_width, minimum_height)
+        elif minimum_width or minimum_height:
+            Logger.warning(
+                'Both Window.minimum_width and Window.minimum_height must be '
+                'bigger than 0 for the size restriction to take effect.')
 
     def create_window(self, *largs):
         if self._fake_fullscreen:
@@ -200,9 +207,7 @@ class WindowSDL(WindowBase):
             # never stay with a None pos, application using w.center
             # will be fired.
             self._pos = (0, 0)
-            if self.minimum_width or self.minimum_height:
-                self._win.set_minimum_size(self.minimum_width,
-                                           self.minimum_height)
+            self._set_minimum_size()
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
@@ -210,6 +215,9 @@ class WindowSDL(WindowBase):
             self._win.set_fullscreen_mode(self.fullscreen)
 
         super(WindowSDL, self).create_window()
+        # set mouse visibility
+        self._win.show_cursor(
+            Config.getboolean('graphics', 'show_cursor'))
 
         if self.initialized:
             return

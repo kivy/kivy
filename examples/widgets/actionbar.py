@@ -3,7 +3,7 @@ from kivy.lang import Builder
 
 runTouchApp(Builder.load_string('''
 ActionBar:
-    pos_hint: {'top':1}
+    pos_hint: {'bottom':1}
     ActionView:
         use_separator: True
         ActionPrevious:

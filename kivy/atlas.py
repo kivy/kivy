@@ -270,7 +270,7 @@ class Atlas(EventDispatcher):
             raise
 
         if isinstance(size, (tuple, list)):
-            size_w, size_h = map(int, size)
+            size_w, size_h = list(map(int, size))
         else:
             size_w = size_h = int(size)
 
@@ -431,7 +431,7 @@ if __name__ == '__main__':
     outname = argv[0]
     try:
         if 'x' in argv[1]:
-            size = map(int, argv[1].split('x', 1))
+            size = list(map(int, argv[1].split('x', 1)))
         else:
             size = int(argv[1])
     except ValueError:
