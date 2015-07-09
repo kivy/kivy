@@ -138,7 +138,7 @@ else:
 
                 # all good!
                 Logger.info('MTD: Set custom %s to %d' % (key, int(value)))
-                
+
             if 'rotation' not in self.default_ranges:
                 self.default_ranges['rotation'] = 0
             elif self.default_ranges['rotation'] not in (0, 90, 180, 270):
@@ -252,7 +252,7 @@ else:
             invert_y = int(bool(drs('invert_y', 0)))
             Logger.info('MTD: <%s> axes invertion: X is %d, Y is %d' %
                         (_fn, invert_x, invert_y))
-            
+
             rotation = drs('rotation', 0)
             Logger.info('MTD: <%s> rotation set to %d' %
                         (_fn, rotation))
