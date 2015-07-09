@@ -118,7 +118,7 @@ else:
                 if len(arg) != 2:
                     err = 'MTD: Bad parameter %s: Not in key=value format' %\
                         arg
-                    Logger.error()
+                    Logger.error(err)
                     continue
 
                 # ensure the key exist
