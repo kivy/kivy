@@ -33,6 +33,7 @@ To fix that, you can add these options to the argument line:
 * max_touch_major : width shape maximum
 * min_touch_minor : width shape minimum
 * max_touch_minor : height shape maximum
+* rotation : 0,90,180 or 270 to rotate
 '''
 
 __all__ = ('MTDMotionEventProvider', 'MTDMotionEvent')
