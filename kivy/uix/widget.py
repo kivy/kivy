@@ -297,6 +297,13 @@ class Widget(WidgetBase):
         if not hasattr(self, '_context'):
             self._context = get_current_context()
 
+        no_builder = '__no_builder' in kwargs
+        if no_builder:
+            del kwargs['__no_builder']
+        on_args = {k: v for k, v in kwargs.items() if k[:3] == 'on_'}
+        for key in on_args:
+            del kwargs[key]
+
         super(Widget, self).__init__(**kwargs)
 
         # Create the default canvas if it does not exist.
@@ -304,7 +311,7 @@ class Widget(WidgetBase):
             self.canvas = Canvas(opacity=self.opacity)
 
         # Apply all the styles.
-        if '__no_builder' not in kwargs:
+        if not no_builder:
             #current_root = Builder.idmap.get('root')
             #Builder.idmap['root'] = self
             Builder.apply(self)
@@ -314,9 +321,8 @@ class Widget(WidgetBase):
             #    Builder.idmap.pop('root')
 
         # Bind all the events.
-        for argument in kwargs:
-            if argument[:3] == 'on_':
-                self.bind(**{argument: kwargs[argument]})
+        if on_args:
+            self.bind(**on_args)
 
     @property
     def proxy_ref(self):

@@ -1653,11 +1653,11 @@ cdef class ConfigParserProperty(Property):
         self.last_value = None  # the last string value in the config for this
 
     def __init__(self, defaultvalue, section, key, config, **kw):
+        self.val_type = kw.pop('val_type', None)
+        self.verify = kw.pop('verify', None)
         super(ConfigParserProperty, self).__init__(defaultvalue, **kw)
         self.section = section
         self.key = key
-        self.val_type = kw.get('val_type', None)
-        self.verify = kw.get('verify', None)
 
         if isinstance(config, string_types) and config:
             self.config_name = config

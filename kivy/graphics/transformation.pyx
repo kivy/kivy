@@ -60,8 +60,20 @@ cdef class Matrix:
         self.identity()
 
     def get(Matrix self):
+        '''Retrieve the value of the current as a flat list.
+
+        .. versionadded:: 1.9.1
+        '''
+
+        return (
+            self.mat[0], self.mat[1], self.mat[2], self.mat[3],
+            self.mat[4], self.mat[5], self.mat[6], self.mat[7],
+            self.mat[8], self.mat[9], self.mat[10], self.mat[11],
+            self.mat[12], self.mat[13], self.mat[14], self.mat[15])
+
+    def tolist(Matrix self):
         '''Retrieve the value of the current matrix in numpy format.
-        for example m.get() will return 
+        for example m.tolist() will return 
 
                 [[1.000000, 0.000000, 0.000000, 0.000000],
                 [0.000000, 1.000000, 0.000000, 0.000000],
@@ -73,6 +85,7 @@ cdef class Matrix:
 
         .. versionadded:: 1.9.0
         '''
+
         return (
             (self.mat[0], self.mat[1], self.mat[2], self.mat[3]),
             (self.mat[4], self.mat[5], self.mat[6], self.mat[7]),
@@ -86,24 +99,41 @@ cdef class Matrix:
         '''
         return self.mat[index]
 
-    def set(Matrix self, mat):
-        '''Insert custom values into the matrix in numpy format
-        for example 
-        
-        m.set([
+    def set(Matrix self, flat=None, array=None):
+        '''Insert custom values into the matrix in a flat list format
+        or 4x4 array format like below
+
+        m.set(array=[
             [1.0, 0.0, 0.0, 0.0],
             [0.0, 1.0, 0.0, 0.0],
             [0.0, 0.0, 1.0, 0.0],
             [0.0, 0.0, 0.0, 1.0]])
 
-        will load in the matrix above into the matrix class
-
         .. versionadded:: 1.9.0
         '''
-        self.mat[0], self.mat[1], self.mat[2], self.mat[3] = mat[0]
-        self.mat[4], self.mat[5], self.mat[6], self.mat[7] = mat[1]
-        self.mat[8], self.mat[9], self.mat[10], self.mat[11] = mat[2]
-        self.mat[12], self.mat[13], self.mat[14], self.mat[15] = mat[3]
+        if flat:
+            self.mat[0] = flat[0]
+            self.mat[1] = flat[1]
+            self.mat[2] = flat[2]
+            self.mat[3] = flat[3]
+            self.mat[4] = flat[4]
+            self.mat[5] = flat[5]
+            self.mat[6] = flat[6]
+            self.mat[7] = flat[7]
+            self.mat[8] = flat[8]
+            self.mat[9] = flat[9]
+            self.mat[10] = flat[10]
+            self.mat[11] = flat[11]
+            self.mat[12] = flat[12]
+            self.mat[13] = flat[13]
+            self.mat[14] = flat[14]
+            self.mat[15] = flat[15]
+            return
+
+        self.mat[0], self.mat[1], self.mat[2], self.mat[3] = array[0]
+        self.mat[4], self.mat[5], self.mat[6], self.mat[7] = array[1]
+        self.mat[8], self.mat[9], self.mat[10], self.mat[11] = array[2]
+        self.mat[12], self.mat[13], self.mat[14], self.mat[15] = array[3]
 
     def __setitem__(Matrix self, int index, double value):
         '''given an index and a value update the value at that location

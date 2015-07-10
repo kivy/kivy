@@ -244,12 +244,14 @@ cdef class EventDispatcher(ObjectWithUid):
     def __init__(self, **kwargs):
         cdef basestring func, name, key
         cdef dict properties
-        # object.__init__ takes no parameters as of 2.6; passing kwargs
-        # triggers a DeprecationWarning or worse
-        super(EventDispatcher, self).__init__()
+        cdef list prop_args
 
         # Auto bind on own handler if exist
         properties = self.properties()
+        prop_args = [
+            (k, kwargs.pop(k)) for k in list(kwargs.keys()) if k in properties]
+        super(EventDispatcher, self).__init__(**kwargs)
+
         __cls__ = self.__class__
         if __cls__ not in cache_events_handlers:
             event_handlers = []
@@ -266,9 +268,8 @@ cdef class EventDispatcher(ObjectWithUid):
             self.fbind(func[3:], getattr(self, func))
 
         # Apply the existing arguments to our widget
-        for key, value in kwargs.iteritems():
-            if key in properties:
-                setattr(self, key, value)
+        for key, value in prop_args:
+            setattr(self, key, value)
 
     def register_event_type(self, basestring event_type):
         '''Register an event type with the dispatcher.
@@ -809,7 +810,7 @@ cdef class EventDispatcher(ObjectWithUid):
             ret[x] = p[x]
         return ret
 
-    def create_property(self, name, value=None, *largs, **kwargs):
+    def create_property(self, str name, value=None, *largs, **kwargs):
         '''Create a new property at runtime.
 
         .. versionadded:: 1.0.9
@@ -839,12 +840,15 @@ cdef class EventDispatcher(ObjectWithUid):
                 Default value of the property. Type is also used for creating
                 more appropriate property types. Defaults to None.
 
-        >>> mywidget = Widget()
-        >>> mywidget.create_property('custom')
-        >>> mywidget.custom = True
-        >>> print(mywidget.custom)
-        True
+
+        ::
+            >>> mywidget = Widget()
+            >>> mywidget.create_property('custom')
+            >>> mywidget.custom = True
+            >>> print(mywidget.custom)
+            True
         '''
+        cdef Property prop
         if value is None:  # shortcut
             prop = ObjectProperty(None, *largs, **kwargs)
         if isinstance(value, bool):
@@ -863,6 +867,35 @@ cdef class EventDispatcher(ObjectWithUid):
         prop.link_deps(self, name)
         self.__properties[name] = prop
         setattr(self.__class__, name, prop)
+
+    def apply_property(self, **kwargs):
+        '''Adds properties at runtime to the class. The function accepts
+        keyword arguments of the form `prop_name=prop`, where `prop` is a
+        :class:`Property` instance and `prop_name` is the name of the attribute
+        of the property.
+
+        .. versionadded:: 1.9.1
+
+        .. warning::
+
+            This method is not reccomended for common usage because you should
+            declare the properties in your class instead of using this method.
+
+        For example::
+
+            >>> print(wid.property('sticks', quiet=True))
+            None
+            >>> wid.apply_property(sticks=ObjectProperty(55, max=10))
+            >>> print(wid.property('sticks', quiet=True))
+            <kivy.properties.ObjectProperty object at 0x04303130>
+        '''
+        cdef Property prop
+        cdef str name
+        for name, prop in kwargs.items():
+            prop.link(self, name)
+            prop.link_deps(self, name)
+            self.__properties[name] = prop
+            setattr(self.__class__, name, prop)
 
     property proxy_ref:
         '''Default implementation of proxy_ref, returns self.

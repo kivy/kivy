@@ -21,7 +21,7 @@ cdef class InstructionGroup(Instruction)
 
 cdef class Instruction(ObjectWithUid):
     cdef int flags
-    cdef str group
+    cdef public str group
     cdef InstructionGroup parent
     cdef object __weakref__
     cdef object __proxy_ref

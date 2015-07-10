@@ -14,6 +14,52 @@ MacOSX platforms.
 
 .. _mac_osx_requirements:
 
+New Method
+----------
+
+Since kivy 1.9 it is now possible to package kivy apps using a new method as described below to make it easier to include frameworks like sdl2 and gstreamer.
+
+Step 1: Make sure you have the Kivy.app(unmodified) from the download page.
+Step 2: run the following commands::
+
+    > mkdir  packaging
+    > cd packaging
+    packaging> git clone https://github.com/kivy/kivy-sdk-packager
+    packaging> cd kivy-sdk-packager/osx
+    osx> rsync -a /Applications/Kivy.app ./Kivy.App
+
+Instead of copying the kivy.app we could also just creat it from scratch using the following command::
+
+    osx> ./create-osx-bundle.sh
+
+You will need to install some dependencies like Platypus for that,  however ideally you don't need to worry about that and you can simply use the kivy.app provided.
+
+Now all you need to do is to include your compiled app into the Kivy.app, simply run the following command::
+
+    osx> ./package-app.sh path/to/your/app
+
+This should compile your app and include all the compiled app into Kivy.app and copy it to `yourapp.app`.
+when you double clickk this app you can see your app run.
+
+This is pretty heavy app right now however you can simply remove the unneeded parts from this package.
+
+For example if you don't use Gstreamer, simply remove it from YourApp.app/Contents/Frameworks.
+Similarly you can remove the examples dir from /Applications/Kivy.app/Contents/Resources/kivy/examples/
+
+This way the whole app can be made to only include the parts that you use inside your app.
+
+You can edit the icons and other settings of your app by editing the YourApp/Contents/info.plist to suit your needs, simply double click this file and make your changes.
+
+Last step is to make a dmg of your app using the following command::
+
+    osx> create-osx-dmg.sh YourApp.app
+
+This should give you a compressed dmg that will even further minimize the size of your distributed app.
+
+
+Pyinstaller Method
+------------------
+
 Requirements
 ------------
 
@@ -24,17 +70,6 @@ Please ensure that you have installed the Kivy DMG and installed the `make-symli
 The `kivy` command must be accessible from the command line.
 
 Thereafter, download and decompress the PyInstaller 2.0 package.
-
-.. warning::
-
-    It seems that the latest PyInstaller has a bug affecting Mach-O binaries.
-    (http://www.pyinstaller.org/ticket/614). To correct the issue, type::
-
-        cd pyinstaller-2.0/PyInstaller/lib/macholib
-        curl -O https://bitbucket.org/ronaldoussoren/macholib/raw/e32d04b5361950a9343ca453d75602b65787f290/macholib/mach_o.py
-        
-    In version 2.1, the issue has already been corrected.
-
 
 .. _mac_Create-the-spec-file:
 
@@ -66,12 +101,19 @@ file is named `main.py`. Replace both path/filename according to your system.
    Then, you need to change the `COLLECT()` call to add the data of touchtracer
    (`touchtracer.kv`, `particle.png`, ...). Change the line to add a Tree()
    object. This Tree will search and add every file found in the touchtracer
-   directory to your final package::
+   directory to your final package.
+   
+   You will need to specify to pyinstaller where to look for the frameworks
+   included with kivy too, your COLLECT section should look something like this::
 
     coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
+                   Tree("../../../../../../Applications/Kivy.app/Contents/Frameworks/"),
+                   Tree("../../../../../Applications/Kivy.app/Contents/Frameworks/SDL2_ttf.framework/Versions/A/Frameworks/Freetype.Framework"),
                    a.binaries,
                    #...
                    )
+                   
+Make sure the path to the frameworks is relative to the current directory you are on.
 
 #. We are done. Your spec is ready to be executed!
 

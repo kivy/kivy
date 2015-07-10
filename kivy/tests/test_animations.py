@@ -71,7 +71,10 @@ class AnimationTestCase(unittest.TestCase):
         anim = Animation(x=100)
         anim.start(widget.proxy_ref)
         del widget
-        self.sleep(1.)
+        try:
+            self.sleep(1.)
+        except ReferenceError:
+            pass
 
 
 class SequentialAnimationTestCase(unittest.TestCase):

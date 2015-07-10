@@ -337,9 +337,9 @@ class Inspector(FloatLayout):
     at_bottom = BooleanProperty(True)
 
     def __init__(self, **kwargs):
+        self.win = kwargs.pop('win', None)
         super(Inspector, self).__init__(**kwargs)
         self.avoid_bring_to_top = False
-        self.win = kwargs.get('win')
         with self.canvas.before:
             self.gcolor = Color(1, 0, 0, .25)
             PushMatrix()
