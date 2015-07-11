@@ -38,10 +38,9 @@ from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.spinner import Spinner
-from kivy.uix.label import Label
 from kivy.config import Config
 from kivy.properties import ObjectProperty, NumericProperty, \
-    BooleanProperty, StringProperty, ListProperty, OptionProperty
+    BooleanProperty, StringProperty, ListProperty, OptionProperty, AliasProperty
 from kivy.metrics import sp
 from kivy.lang import Builder
 from functools import partial
@@ -69,6 +68,16 @@ class ActionItem(object):
 
        :attr:`minimum_width` is a :class:`~kivy.properties.NumericProperty` and
        defaults to '90sp'.
+    '''
+
+    def get_pack_width(self):
+        return min(self.minimum_width, self.width)
+
+    pack_width = AliasProperty(get_pack_width, bind=('minimum_width', 'width'))
+    '''(read-only) The actual width to use when packing the item. Equal to the
+       lesser of minimum_width and width.
+
+       :attr:`pack_width` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     important = BooleanProperty(False)
@@ -137,7 +146,7 @@ class ActionButton(Button, ActionItem):
     '''
 
 
-class ActionPrevious(ActionButton):
+class ActionPrevious(BoxLayout, ActionItem):
     '''ActionPrevious class, see module documentation for more information.
     '''
 
@@ -166,6 +175,13 @@ class ActionPrevious(ActionButton):
     '''Height of app_icon image.
     '''
 
+    color = ListProperty([1, 1, 1, 1])
+    '''Text color, in the format (r, g, b, a)
+
+    :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
+    [1, 1, 1, 1].
+    '''
+
     previous_image = StringProperty(
         'atlas://data/images/defaulttheme/previous_normal')
     '''Image for the 'previous' ActionButtons default graphical representation.
@@ -190,9 +206,17 @@ class ActionPrevious(ActionButton):
     '''
 
     def __init__(self, **kwargs):
+        self.register_event_type('on_press')
+        self.register_event_type('on_release')
         super(ActionPrevious, self).__init__(**kwargs)
         if not self.app_icon:
             self.app_icon = 'data/logo/kivy-icon-32.png'
+
+    def on_press(self):
+        pass
+
+    def on_release(self):
+        pass
 
 
 class ActionToggleButton(ActionItem, ToggleButton):
@@ -207,12 +231,6 @@ class ActionToggleButton(ActionItem, ToggleButton):
 
 class ActionCheck(ActionItem, CheckBox):
     '''ActionCheck class, see module documentation for more information.
-    '''
-    pass
-
-
-class ActionLabel(ActionItem, Label):
-    '''ActionLabel class, see module documentation for more information.
     '''
     pass
 
@@ -314,7 +332,7 @@ class ActionGroup(ActionItem, Spinner):
         children = ddn.container.children
 
         if children:
-            ddn.width = max([self.width, children[0].minimum_width])
+            ddn.width = max(self.width, max(c.pack_width for c in children))
         else:
             ddn.width = self.width
 
@@ -504,16 +522,16 @@ class ActionView(BoxLayout):
         total_width = 0
         super_add(self.action_previous)
 
-        width = (self.width - self.overflow_group.minimum_width -
-                 self.action_previous.minimum_width)
+        width = (self.width - self.overflow_group.pack_width -
+                 self.action_previous.pack_width)
 
         if len(self._list_action_items):
             for child in self._list_action_items[1:]:
                 if child.important:
-                    if child.minimum_width + total_width < width:
+                    if child.pack_width + total_width < width:
                         super_add(child)
                         child.inside_group = False
-                        total_width += child.minimum_width
+                        total_width += child.pack_width
                     else:
                         hidden_items.append(child)
                 else:
@@ -523,11 +541,11 @@ class ActionView(BoxLayout):
         # ActionGroup
         if total_width < self.width:
             for group in self._list_action_group:
-                if group.minimum_width + total_width +\
+                if group.pack_width + total_width +\
                    group.separator_width < width:
                     super_add(group)
                     group.show_group()
-                    total_width += (group.minimum_width +
+                    total_width += (group.pack_width +
                                     group.separator_width)
 
                 else:
@@ -537,9 +555,9 @@ class ActionView(BoxLayout):
         # if space is left then display other ActionItems
         if total_width < self.width:
             for child in hidden_items[:]:
-                if child.minimum_width + total_width < width:
+                if child.pack_width + total_width < width:
                     super_add(child, group_index)
-                    total_width += child.minimum_width
+                    total_width += child.pack_width
                     child.inside_group = False
                     hidden_items.remove(child)
 
@@ -566,10 +584,10 @@ class ActionView(BoxLayout):
         # can we display all of them?
         total_width = 0
         for child in self._list_action_items:
-            total_width += child.minimum_width
+            total_width += child.pack_width
         for group in self._list_action_group:
             for child in group.list_action_item:
-                total_width += child.minimum_width
+                total_width += child.pack_width
         if total_width <= self.width:
             if self._state != 'all':
                 self._layout_all()
@@ -578,9 +596,9 @@ class ActionView(BoxLayout):
         # can we display them per group?
         total_width = 0
         for child in self._list_action_items:
-            total_width += child.minimum_width
+            total_width += child.pack_width
         for group in self._list_action_group:
-            total_width += group.minimum_width
+            total_width += group.pack_width
         if total_width < self.width:
             # ok, we can display all the items grouped
             if self._state != 'group':
