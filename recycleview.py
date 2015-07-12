@@ -31,6 +31,11 @@ from distutils.version import LooseVersion
 
 _kivy_1_9_1 = LooseVersion(kivy.__version__) >= LooseVersion('1.9.1')
 
+_view_base_cache = {}
+'''Cache whose keys are classes and values is a boolean indicating whether the
+class inherits from :class:`ViewBaseClass`.
+'''
+
 _cached_views = defaultdict(list)
 _cache_count = 0
 _max_cache_size = 1000
@@ -51,6 +56,49 @@ class RecycleViewLayout(Widget):
     a re-layout because they should only be changed internally.
     '''
     pass
+
+
+class ViewBaseClass(object):
+    '''A optional base class for data views (:attr:`RecycleView`.viewclass).
+    If a view inherits from this class, the class's functions will be called
+    when the view needs to be updated due to a data change or layout update.
+    '''
+
+    def refresh_view_attrs(self, rv, data):
+        '''Called by the :class:`RecycleAdapter` when the view is initially
+        populated with the values from the `data` dictionary for this item.
+
+        :Parameters:
+
+            `rv`: :class:`RecycleView` instance
+                The :class:`RecycleView` that caused the update.
+            `data`: dict
+                The data dict used to populate this view.
+        '''
+        for key, value in data.items():
+            setattr(self, key, value)
+
+    def refresh_view_layout(self, rv, viewport, data, width, height):
+        '''Called when the view's size is updated by the layout manager,
+        :class:`RecycleLayoutManager`.
+
+        :Parameters:
+
+            `rv`: :class:`RecycleView` instance
+                The :class:`RecycleView` that caused the update.
+            `viewport`: 4-tuple
+                The coordinates of the bottom left and top right corners of
+                the current visible area of the :class:`RecycleView`.
+                E.g. 0, 0, 100, 100 for a area of size 100x100 at position
+                0, 0). This may be larger than this view item.
+            `data`: dict
+                The data dict used to populate this view.
+            `width`: float/int
+                The width to which this view should be set.
+            `height`: float/int
+                The height to which this view should be set.
+        '''
+        self.size = width, height
 
 
 class RecycleAdapter(EventDispatcher):
@@ -94,8 +142,14 @@ class RecycleAdapter(EventDispatcher):
         # work for kv-declared classes, and might lead the user to think it can
         # work for reloading as well.
         view = viewclass(**item)
-        for key, value in item.items():
-            setattr(view, key, value)
+        if viewclass not in _view_base_cache:
+            _view_base_cache[viewclass] = isinstance(view, ViewBaseClass)
+
+        if _view_base_cache[viewclass]:
+            view.refresh_view_attrs(self.rv, item)
+        else:
+            for key, value in item.items():
+                setattr(view, key, value)
         return view
 
     def get_view(self, index):
@@ -106,6 +160,7 @@ class RecycleAdapter(EventDispatcher):
 
         dirty_views = self.dirty_views
         viewclass = self.get_viewclass(index)
+        rv = self.recycleview
         stale = False
         view = None
 
@@ -126,15 +181,20 @@ class RecycleAdapter(EventDispatcher):
 
         if view is None:
             # create a fresh one
-            view = self.create_view(index)
+            view = self.create_view(index, viewclass)
 
         if stale is True:
             item = self[index]
-            for key, value in item.items():
-                setattr(view, key, value)
+            if viewclass not in _view_base_cache:
+                _view_base_cache[viewclass] = isinstance(view, ViewBaseClass)
+
+            if _view_base_cache[viewclass]:
+                view.refresh_view_attrs(rv, item)
+            else:
+                for key, value in item.items():
+                    setattr(view, key, value)
 
         self.views[index] = view
-        self.recycleview.refresh_view_layout(index, view)
         return view
 
     def get_viewclass(self, index):
@@ -269,7 +329,7 @@ class RecycleLayoutManager(EventDispatcher):
     def compute_visible_views(self, container):
         pass
 
-    def refresh_view_layout(self, index, view):
+    def refresh_view_layout(self, index, view, data):
         pass
 
     def get_view_position(self, index):
@@ -360,10 +420,12 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
             scroll_y = 1 - (min(1, max(recycleview.scroll_y, 0)))
             px_start = (container.height - recycleview.height) * scroll_y
             px_end = px_start + recycleview.height
+            viewport = 0, px_start, container.width, px_end
         else:
             scroll_x = 1 - (min(1, max(recycleview.scroll_x, 0)))
             px_start = (container.width - recycleview.width) * scroll_x
             px_end = px_start + recycleview.width
+            viewport = px_start, 0, px_end, container.height
 
         # now calculate the view indices we must show
         at_idx = self.get_view_index_at
@@ -375,27 +437,38 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
 
         refresh_view_layout = self.refresh_view_layout
         add = container.add_widget
+        data = recycleview.adapter.data
         for widget, index in new:
             # add to the container if it's not already done
-            if widget.parent is not None:
-                refresh_view_layout(index, widget)
-            else:
+            refresh_view_layout(index, widget, viewport, data[index])
+            if widget.parent is None:
                 add(widget)
 
-    def refresh_view_layout(self, index, view):
+    def refresh_view_layout(self, index, view, viewport, data):
         """(internal) Refresh the layout of a view. Size and pos are determine
         by the `RecycleView` according to the view `index` informations
         """
-        container = self.recycleview.container
+        rv = self.recycleview
+        container = rv.container
         view.size_hint = None, None
+        if view.__class__ not in _view_base_cache:
+            _view_base_cache[view.__class__] = isinstance(view, ViewBaseClass)
+
         if self.orientation == "vertical":
             view.width = container.width
             view.height = h = self.computed_sizes[index]
             view.y = self.computed_size - self.computed_positions[index] - h
+            view.x = 0
         else:
             view.height = container.height
             view.width = w = self.computed_sizes[index]
             view.x = self.computed_size - self.computed_positions[index] - w
+            view.y = 0
+
+        if _view_base_cache[view.__class__]:
+            view.refresh_view_layout(rv, viewport, data, w, h)
+        else:
+            view.size = w, h
 
     def get_view_position(self, index):
         return self.computed_positions[index]
@@ -513,9 +586,6 @@ class RecycleView(ScrollView):
     def ask_refresh_viewport(self, *largs):
         self._refresh_flags['all'] = True
         self._refresh_trigger()
-
-    def refresh_view_layout(self, index, view):
-        self.layout_manager.refresh_view_layout(index, view)
 
     def get_views(self, i_start, i_end):
         return self.adapter.get_views(i_start, i_end)
