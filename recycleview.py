@@ -37,11 +37,16 @@ class inherits from :class:`ViewBaseClass`.
 '''
 
 _cached_views = defaultdict(list)
+'''A size limited cache that contains old views (instances) that are not used.
+Each key is a class whose value is the list of the instances of that class.
+'''
+# current number of unused classes in the class cache
 _cache_count = 0
+# maximum number of items in the class cache
 _max_cache_size = 1000
 
 def _clean_cache():
-    '''Trims cache to half the size of `_max_cache_size`.
+    '''Trims _cached_views cache to half the size of `_max_cache_size`.
     '''
     # all keys will be reduced to max_size.
     max_size = (_max_cache_size // 2) // len(_cached_views)
@@ -52,8 +57,13 @@ def _clean_cache():
 
 
 class RecycleViewLayout(Widget):
-    '''We don't want the RecycleViewLayout children's size/pos changes to cause
-    a re-layout because they should only be changed internally.
+    '''The default :attr:`RecycleView.container` class used by
+    :class:`RecycleView` to contain the widgets that provide the views into
+    the :attr:`RecycleView.data`.
+
+    As the views' size is controlled by the layout managers, we don't want the
+    :RecycleViewLayout children's size/pos changes to cause
+    a re-layout, so it inherits from Widget rather than a layout.
     '''
     pass
 
@@ -103,16 +113,28 @@ class ViewBaseClass(object):
 
 class RecycleAdapter(EventDispatcher):
     """
-    Adapter provide a binding from data set to views that are displayed
-    within a RecyclerView
+    Adapter provides a binding between the data and the view objects that
+    visualize them within a :class:`RecyclerView`.
+
+    :Events:
+        `on_data_changed`:
+            Fired when the :attr:`data` changes.
     """
 
     data = ListProperty()
+    '''See :attr:`RecyclerView.data`. The data for a item at index `i` can
+    also be accessed with :class:`RecycleAdapter` `[i]`.
+    '''
     viewclass = ObjectProperty()
+    '''See :attr:`RecyclerView.viewclass`.
+    '''
     key_viewclass = StringProperty()
+    '''See :attr:`RecyclerView.key_viewclass`.
+    '''
 
     # internals
-    views = {}
+    views = {}  # current displayed items
+    # items whose attrs, except for pos/size is still accurate
     dirty_views = defaultdict(dict)
     recycleview = None
 
@@ -125,6 +147,8 @@ class RecycleAdapter(EventDispatcher):
 
     @property
     def observable_dict(self):
+        '''See :meth:`RecyclerView.observable_dict`.
+        '''
         return partial(ObservableDict, self.__class__.data, self)
 
     def attach_recycleview(self, rv):
@@ -133,10 +157,13 @@ class RecycleAdapter(EventDispatcher):
     def detach_recycleview(self):
         self.recycleview = None
 
-    def create_view(self, index):
-        """Create the view for the `index`
+    def create_view(self, index, viewclass=None):
+        """Creates and initializes the view for the data at `index`. The
+        returned view is synced with the data, except for the pos/size
+        properties.
         """
-        viewclass = self.get_viewclass(index)
+        if viewclass is None:
+            viewclass = self.get_viewclass(index)
         item = self[index]
         # FIXME: we could pass the data though the constructor, but that wont
         # work for kv-declared classes, and might lead the user to think it can
@@ -153,7 +180,10 @@ class RecycleAdapter(EventDispatcher):
         return view
 
     def get_view(self, index):
-        """Return a view instance for the `index`
+        """Returns a view instance for the data at `index`. It looks through
+        the various caches and finally creates a view if it doesn't exist.
+        The returned view is synced with the data, except for the pos/size
+        properties.
         """
         if index in self.views:
             return self.views[index]
@@ -198,27 +228,28 @@ class RecycleAdapter(EventDispatcher):
         return view
 
     def get_viewclass(self, index):
-        """Get the class needed to create the view `index`
+        """Get the class type used to create the view from the data at `index`.
         """
         viewclass = None
         if self.key_viewclass:
             viewclass = self[index].get(self.key_viewclass)
             viewclass = getattr(Factory, viewclass)
-        if not viewclass:
+        if viewclass is None:
             viewclass = self.viewclass
         return viewclass
 
     def make_view_dirty(self, view, index):
         """(internal) Used to flag the view as dirty, ready to be used for
         others. A dirty view can be reused by the same index by just changing
-        the pos/size. So it's assumed that while in dirty view that index stays
+        the pos/size. So it's assumed that while in dirty cache the view stays
         in sync with the data. Once the underlying data of this index changes,
-        the view will be removed from the dirty views as well.
+        the view will be removed from the dirty views as well and moved to the
+        global cahce.
         """
         self.dirty_views[view.__class__][index] = view
 
     def make_views_dirty(self):
-        '''Makes all the views dirty.
+        '''Makes all the views dirty. See :attr:`make_view_dirty`.
         '''
         views = self.views
         if not views:
@@ -230,8 +261,9 @@ class RecycleAdapter(EventDispatcher):
         self.views = {}
 
     def invalidate(self):
-        """Invalidate any state of the current adapter, to be ready for a fresh
-        start.
+        """Moves all the current views into the global cache. As opposed to
+        making a view dirty, this will completely disconnect the view from the
+        data, as it is assumed the data has gone out of sync with the view.
         """
         views = self.views
         if not views:
@@ -246,6 +278,12 @@ class RecycleAdapter(EventDispatcher):
         self.views = {}
 
     def get_views(self, i_start, i_end):
+        '''Gets a 2-tuple of the new and old views for the current viewport.
+        The new views are synced to the data except for the size/pos
+        properties.
+        The old views need to be removed from the layout, and the new views
+        added.
+        '''
         current_views = self.views
         visible_views = {}
         new_views = []
@@ -293,14 +331,32 @@ class RecycleAdapter(EventDispatcher):
         self.dispatch('on_data_changed', extent=extent)
 
     def on_data_changed(self, extent):
+        '''Dispatched when the :attr:`data` changes.
+
+        :Parameters:
+
+            `extent`: str
+                The extent of the changes in the data. Could be one of
+                `'data'`, `'data_size'`, or `'data_add'`.
+
+                `data`: means the data has changed and the views are out of
+                    sync.
+                `data_size`: means that the data has changed, but only such
+                    that we have to re-layout the data. The other non-pos/size
+                    attributes of the data is still in sync with the view.
+                `data_size`: means that new elements has been added to the
+                    data list, but the previously existing data has not been
+                    changed.
+        '''
         if extent == 'data':
             self.invalidate()
 
 
 class RecycleLayoutManager(EventDispatcher):
-    """A RecycleLayoutManager is responsible for measuring and positionning
-    views within a RecycleView as determining the policy for when to recycle
-    item views that are no longer visible to the user.
+    """A RecycleLayoutManager is responsible for positioning views into the
+    :attr:`RecycleView.data` within a :class:`RecycleView`. It adds new views
+    into the data when it becomes visible to the user, and removes them when
+    they leave the visible area.
     """
 
     default_size = NumericProperty("48dp")
@@ -318,8 +374,8 @@ class RecycleLayoutManager(EventDispatcher):
         self.container = None
 
     def compute_positions_and_sizes(self, append):
-        """(internal) Calculate all the views height according to
-        default_size, key_size, and then calculate their future positions
+        """(internal) Calculates the size and future positions of all the
+        views.
         """
         pass
 
@@ -611,6 +667,8 @@ class RecycleView(ScrollView):
             adapter.detach_recycleview()
             funbind = adapter.funbind if _kivy_1_9_1 else adapter.fast_unbind
             funbind('on_data_changed', self._handle_ask_data_refresh)
+            funbind('viewclass', self._dispatch_prop_on_source, 'viewclass')
+            funbind('data', self._dispatch_prop_on_source, 'data')
 
         if value is None:
             self._adapter = adapter = RecycleAdapter()
@@ -624,10 +682,12 @@ class RecycleView(ScrollView):
         adapter.attach_recycleview(self)
         fbind = adapter.fbind if _kivy_1_9_1 else adapter.fast_bind
         fbind('on_data_changed', self._handle_ask_data_refresh)
+        fbind('viewclass', self._dispatch_prop_on_source, 'viewclass')
+        fbind('data', self._dispatch_prop_on_source, 'data')
         self.ask_refresh_from_data()
         return True
 
-    adapter = AliasProperty(_get_adapter, _set_adapter, cache=False)
+    adapter = AliasProperty(_get_adapter, _set_adapter)
     """Adapter responsible for providing views that represent items in a data
     set."""
 
@@ -656,7 +716,7 @@ class RecycleView(ScrollView):
         return True
 
     layout_manager = AliasProperty(
-        _get_layout_manager, _set_layout_manager, cache=False)
+        _get_layout_manager, _set_layout_manager)
     """Layout manager responsible to position views within the recycleview
     """
 
@@ -678,7 +738,7 @@ class RecycleView(ScrollView):
         self.ask_refresh_from_data(extent='data_size')
         return True
 
-    container = AliasProperty(_get_container, _set_container, cache=False)
+    container = AliasProperty(_get_container, _set_container)
     """Container.
     """
 
