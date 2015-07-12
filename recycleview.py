@@ -56,6 +56,10 @@ def _clean_cache():
         del instances[max_size:]
 
 
+class LayoutChangeException(Exception):
+    pass
+
+
 class RecycleViewLayout(Widget):
     '''The default :attr:`RecycleView.container` class used by
     :class:`RecycleView` to contain the widgets that provide the views into
@@ -107,6 +111,12 @@ class ViewBaseClass(object):
                 The width to which this view should be set.
             `height`: float/int
                 The height to which this view should be set.
+
+        :raises:
+            `LayoutChangeException`: If the sizing or data changed during a
+            call to this method, raising a `LayoutChangeException` exception
+            will force a refresh. Useful when data changed and we don't want
+            to layout further since it'll be overwritten again soon.
         '''
         self.size = width, height
 
@@ -606,28 +616,34 @@ class RecycleView(ScrollView):
         flags.update(kwargs)
         lm = self.layout_manager
 
-        append = False
-        update = flags['all']
-        if update:
-            lm.recycleview_setup()
-        else:
-            update = flags['data']
+        try:
+            append = False
+            update = flags['all']
+            if update:
+                flags['all'] = False
+                lm.recycleview_setup()
+            else:
+                update = flags['data']
 
-        if update:
-            self.container.clear_widgets()
-        else:
-            append = flags['data_add'] and not flags['data_size']
-            update = flags['data_size'] or flags['data_add']
+            if update:
+                flags['data'] = False
+                self.container.clear_widgets()
+            else:
+                append = flags['data_add'] and not flags['data_size']
+                update = flags['data_size'] or flags['data_add']
 
-        if update:
-            lm.compute_positions_and_sizes(append)
+            if update:
+                flags['data_size'] = flags['data_add'] = False
+                lm.compute_positions_and_sizes(append)
 
-        if update or flags['viewport']:
-            if self.data:
-                lm.compute_visible_views()
-
-        flags['all'] = flags['data'] = flags['data_size'] = \
-            flags['data_add'] = flags['viewport'] = False
+            if update or flags['viewport']:
+                flags['viewport'] = False
+                if self.data:
+                    lm.compute_visible_views()
+        except LayoutChangeException:
+            # at a minimum we will have to recompute the size
+            flags['data_size'] = True
+            self.refresh_views()
 
     def ask_refresh_all(self, *largs):
         self._refresh_flags['all'] = True
@@ -642,7 +658,7 @@ class RecycleView(ScrollView):
         self.adapter.dispatch('on_data_changed', extent=extent)
 
     def ask_refresh_viewport(self, *largs):
-        self._refresh_flags['all'] = True
+        self._refresh_flags['viewport'] = True
         self._refresh_trigger()
 
     def get_views(self, i_start, i_end):
