@@ -173,7 +173,7 @@ class RecycleAdapter(EventDispatcher):
             _view_base_cache[viewclass] = isinstance(view, ViewBaseClass)
 
         if _view_base_cache[viewclass]:
-            view.refresh_view_attrs(self.rv, item)
+            view.refresh_view_attrs(self.recycleview, item)
         else:
             for key, value in item.items():
                 setattr(view, key, value)
@@ -473,15 +473,17 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
         recycleview = self.recycleview
         container = recycleview.container
         if self.orientation == "vertical":
+            h = container.height
             scroll_y = 1 - (min(1, max(recycleview.scroll_y, 0)))
-            px_start = (container.height - recycleview.height) * scroll_y
+            px_start = (h - recycleview.height) * scroll_y
             px_end = px_start + recycleview.height
-            viewport = 0, px_start, container.width, px_end
+            viewport = 0, h - px_end, container.width, h - px_start
         else:
+            w = container.width
             scroll_x = 1 - (min(1, max(recycleview.scroll_x, 0)))
-            px_start = (container.width - recycleview.width) * scroll_x
+            px_start = (w - recycleview.width) * scroll_x
             px_end = px_start + recycleview.width
-            viewport = px_start, 0, px_end, container.height
+            viewport = w - px_end, 0, w - px_start, container.height
 
         # now calculate the view indices we must show
         at_idx = self.get_view_index_at
