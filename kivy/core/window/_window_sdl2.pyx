@@ -303,8 +303,8 @@ cdef class _WindowSDL2Storage:
             return ('app_didenterbackground', )
         elif event.type == SDL_APP_WILLENTERFOREGROUND:
             return ('app_willenterforeground', )
-        elif event.type == SDL_APP_DIDENTERBACKGROUND:
-            return ('app_didenterbackground', )
+        elif event.type == SDL_APP_DIDENTERFOREGROUND:
+            return ('app_didenterforeground', )
         else:
             #    print('receive unknown sdl event', event.type)
             pass
