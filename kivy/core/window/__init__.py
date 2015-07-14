@@ -268,6 +268,11 @@ class WindowBase(EventDispatcher):
         `on_dropfile`: str
             Fired when a file is dropped on the application.
 
+        `on_memorywarning`:
+            Fired when the platform have memory issue (iOS / Android mostly)
+            You can listen to this one, and clean whatever you can.
+
+            .. versionadded:: 1.9.0
     '''
 
     __instance = None
@@ -566,7 +571,7 @@ class WindowBase(EventDispatcher):
         'on_mouse_down', 'on_mouse_move', 'on_mouse_up', 'on_keyboard',
         'on_key_down', 'on_key_up', 'on_textinput', 'on_dropfile',
         'on_request_close', 'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
-        'on_joy_button_down', "on_joy_button_up")
+        'on_joy_button_down', 'on_joy_button_up', 'on_memorywarning')
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -1218,6 +1223,18 @@ class WindowBase(EventDispatcher):
             (ios, android etc.)
 
         .. versionadded:: 1.2.0
+        '''
+        pass
+
+    def on_memorywarning(self):
+        '''Event called when the platform have memory issue.
+        Your goal is to clear the cache in your app as much as you can,
+        release unused widget, etc.
+
+        Currently, this event is fired only from SDL2 provider, for
+        iOS and Android.
+
+        .. versionadded:: 1.9.0
         '''
         pass
 

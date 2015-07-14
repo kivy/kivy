@@ -150,7 +150,7 @@ cdef extern from "SDL.h":
         SDL_MOUSEBUTTONUP   = 0x402
         SDL_MOUSEWHEEL      = 0x403
         SDL_INPUTMOTION     = 0x500
-        SDL_INPUTBUTTONDOWN 
+        SDL_INPUTBUTTONDOWN
         SDL_INPUTBUTTONUP
         SDL_INPUTWHEEL
         SDL_INPUTPROXIMITYIN
@@ -174,6 +174,12 @@ cdef extern from "SDL.h":
         SDL_EVENT_COMPAT3
         SDL_USEREVENT    = 0x8000
         SDL_LASTEVENT    = 0xFFFF
+        SDL_APP_TERMINATING
+        SDL_APP_LOWMEMORY
+        SDL_APP_WILLENTERBACKGROUND
+        SDL_APP_DIDENTERBACKGROUND
+        SDL_APP_WILLENTERFOREGROUND
+        SDL_APP_DIDENTERFOREGROUND
 
     ctypedef enum SDL_WindowEventID:
         SDL_WINDOWEVENT_NONE           #< Never used */
@@ -270,11 +276,11 @@ cdef extern from "SDL.h":
         SDL_Scancode scancode       # SDL physical key code - see ::SDL_Scancode for details */
         SDL_Keycode sym             # SDL virtual key code - see ::SDL_Keycode for details */
         Uint16 mod                  # current key modifiers */
-        Uint32 unused 
+        Uint32 unused
 
     cdef struct SDL_KeyboardEvent:
         Uint32 type         # ::SDL_KEYDOWN or ::SDL_KEYUP
-        Uint32 timestamp 
+        Uint32 timestamp
         Uint32 windowID     # The window with keyboard focus, if any
         Uint8 state         # ::SDL_PRESSED or ::SDL_RELEASED
         Uint8 repeat        # Non-zero if this is a key repeat
@@ -282,7 +288,7 @@ cdef extern from "SDL.h":
 
     cdef struct SDL_TextEditingEvent:
         Uint32 type                                 # ::SDL_TEXTEDITING */
-        Uint32 timestamp 
+        Uint32 timestamp
         Uint32 windowID                             # The window with keyboard focus, if any */
         char *text                                  # The editing text */
         Sint32 start                                # The start cursor of selected editing text */
@@ -290,7 +296,7 @@ cdef extern from "SDL.h":
 
     cdef struct SDL_TextInputEvent:
         Uint32 type                               # ::SDL_TEXTINPUT */
-        Uint32 timestamp 
+        Uint32 timestamp
         Uint32 windowID                           # The window with keyboard focus, if any */
         char *text                                # The input text */
 
@@ -467,7 +473,7 @@ cdef extern from "SDL.h":
     cdef int SDL_GetRendererInfo(SDL_Renderer *renderer, SDL_RendererInfo *info)
     cdef int SDL_RenderSetViewport(SDL_Renderer * renderer, SDL_Rect * rect)
     cdef int SDL_GetCurrentDisplayMode(int displayIndex, SDL_DisplayMode * mode)
-    cdef int SDL_GetDesktopDisplayMode(int displayIndex, SDL_DisplayMode * mode)    
+    cdef int SDL_GetDesktopDisplayMode(int displayIndex, SDL_DisplayMode * mode)
     cdef int SDL_SetTextureColorMod(SDL_Texture * texture, Uint8 r, Uint8 g, Uint8 b)
     cdef int SDL_SetTextureAlphaMod(SDL_Texture * texture, Uint8 alpha)
     cdef char * SDL_GetError()
@@ -554,7 +560,7 @@ cdef extern from "SDL.h":
     cdef int SDL_GL_GetSwapInterval()
     cdef void SDL_GL_SwapWindow(SDL_Window * window)
     cdef void SDL_GL_DeleteContext(SDL_GLContext context)
-    
+
     cdef SDL_Joystick * SDL_JoystickOpen(int index)
     cdef SDL_Window * SDL_GetKeyboardFocus()
     cdef Uint8 *SDL_GetKeyboardState(int *numkeys)
@@ -765,7 +771,7 @@ cdef extern from "SDL_mixer.h":
         Uint8 volume
     ctypedef struct Mix_Music:
         pass
-    ctypedef enum Mix_Fading: 
+    ctypedef enum Mix_Fading:
         MIX_NO_FADING
         MIX_FADING_OUT
         MIX_FADING_IN

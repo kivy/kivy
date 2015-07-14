@@ -495,17 +495,25 @@ class WindowSDL(WindowBase):
             elif action == 'textinput':
                 text = args[0]
                 self.dispatch('on_textinput', text)
-                # XXX on IOS, keydown/up don't send unicode anymore.
-                # With latest sdl, the text is sent over textinput
-                # Right now, redo keydown/up, but we need to seperate both call
-                # too. (and adapt on_key_* API.)
-                #self.dispatch()
-                #self.dispatch('on_key_down', key, None, args[0],
-                #              self.modifiers)
-                #self.dispatch('on_keyboard', None, None, args[0],
-                #              self.modifiers)
-                #self.dispatch('on_key_up', key, None, args[0],
-                #              self.modifiers)
+
+            elif action == 'app_terminating':
+                pass
+
+            elif action == 'app_lowmemory':
+                self.dispatch('on_memorywarning')
+                pass
+
+            elif action == 'app_willenterbackground':
+                self.do_pause()
+
+            elif action == 'app_didenterbackground':
+                pass
+
+            elif action == 'app_willenterforeground':
+                pass
+
+            elif action == 'app_didenterforeground':
+                pass
 
             # unhandled event !
             else:
@@ -543,6 +551,8 @@ class WindowSDL(WindowBase):
             if action == 'quit':
                 EventLoop.quit = True
                 self.close()
+                break
+            elif action == 'app_willenterforeground':
                 break
             elif action == 'windowrestored':
                 break
@@ -619,4 +629,3 @@ class WindowSDL(WindowBase):
             return False
         if not self._win.is_keyboard_shown():
             self._sdl_keyboard.release()
-

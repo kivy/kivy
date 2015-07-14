@@ -74,9 +74,9 @@ cdef class _WindowSDL2Storage:
             x = SDL_WINDOWPOS_UNDEFINED
         if y is None:
             y = SDL_WINDOWPOS_UNDEFINED
-        
+
         # Multisampling:
-        # (The number of samples is limited to 4, because greater values 
+        # (The number of samples is limited to 4, because greater values
         # aren't supported with some video drivers.)
         cdef int multisamples
         multisamples = Config.getint('graphics', 'multisamples')
@@ -95,7 +95,7 @@ cdef class _WindowSDL2Storage:
         else:
             self.win = SDL_CreateWindow(NULL, x, y, width, height,
                                         self.win_flags)
-                
+
         if not self.win:
             self.die()
 
@@ -106,7 +106,7 @@ cdef class _WindowSDL2Storage:
         if not self.ctx:
             self.die()
         SDL_JoystickOpen(0)
-        
+
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
         cdef int w, h
         SDL_GetWindowSize(self.win, &w, &h)
@@ -122,7 +122,7 @@ cdef class _WindowSDL2Storage:
 
     def resize_display_mode(self, w, h):
         cdef SDL_DisplayMode mode
-        cdef int draw_w, draw_h 
+        cdef int draw_w, draw_h
         SDL_GetWindowDisplayMode(self.win, &mode)
         if USE_IOS:
             SDL_GL_GetDrawableSize(self.win, &draw_w, &draw_h)
@@ -293,6 +293,18 @@ cdef class _WindowSDL2Storage:
         elif event.type == SDL_TEXTINPUT:
             s = event.text.text.decode('utf-8')
             return ('textinput', s)
+        elif event.type == SDL_APP_TERMINATING:
+            return ('app_terminating', )
+        elif event.type == SDL_APP_LOWMEMORY:
+            return ('app_lowmemory', )
+        elif event.type == SDL_APP_WILLENTERBACKGROUND:
+            return ('app_willenterbackground', )
+        elif event.type == SDL_APP_DIDENTERBACKGROUND:
+            return ('app_didenterbackground', )
+        elif event.type == SDL_APP_WILLENTERFOREGROUND:
+            return ('app_willenterforeground', )
+        elif event.type == SDL_APP_DIDENTERBACKGROUND:
+            return ('app_didenterbackground', )
         else:
             #    print('receive unknown sdl event', event.type)
             pass
