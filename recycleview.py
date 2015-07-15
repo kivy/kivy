@@ -33,7 +33,7 @@ _kivy_1_9_1 = LooseVersion(kivy.__version__) >= LooseVersion('1.9.1')
 
 _view_base_cache = {}
 '''Cache whose keys are classes and values is a boolean indicating whether the
-class inherits from :class:`ViewBaseClass`.
+class inherits from :class:`RecycleViewMixin`.
 '''
 
 _cached_views = defaultdict(list)
@@ -72,7 +72,7 @@ class RecycleViewLayout(Widget):
     pass
 
 
-class ViewBaseClass(object):
+class RecycleViewMixin(object):
     '''A optional base class for data views (:attr:`RecycleView`.viewclass).
     If a view inherits from this class, the class's functions will be called
     when the view needs to be updated due to a data change or layout update.
@@ -180,7 +180,7 @@ class RecycleAdapter(EventDispatcher):
         # work for reloading as well.
         view = viewclass(**item)
         if viewclass not in _view_base_cache:
-            _view_base_cache[viewclass] = isinstance(view, ViewBaseClass)
+            _view_base_cache[viewclass] = isinstance(view, RecycleViewMixin)
 
         if _view_base_cache[viewclass]:
             view.refresh_view_attrs(self.recycleview, item)
@@ -226,7 +226,8 @@ class RecycleAdapter(EventDispatcher):
         if stale is True:
             item = self[index]
             if viewclass not in _view_base_cache:
-                _view_base_cache[viewclass] = isinstance(view, ViewBaseClass)
+                _view_base_cache[viewclass] = isinstance(view,
+                                                         RecycleViewMixin)
 
             if _view_base_cache[viewclass]:
                 view.refresh_view_attrs(rv, item)
@@ -520,7 +521,8 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
         container = rv.container
         view.size_hint = None, None
         if view.__class__ not in _view_base_cache:
-            _view_base_cache[view.__class__] = isinstance(view, ViewBaseClass)
+            _view_base_cache[view.__class__] = isinstance(view,
+                                                          RecycleViewMixin)
 
         if self.orientation == "vertical":
             view.width = container.width
