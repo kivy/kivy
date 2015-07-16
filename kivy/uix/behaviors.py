@@ -12,6 +12,29 @@ do::
     class IconButton(ButtonBehavior, Image):
         pass
 
+This would give you an `Image` with the events and properties inherited from
+:class:`ButtonBehavior`. For example, the *on_press* and *on_release* events
+would be fired when appropriate::
+
+    class IconButton(ButtonBehavior, Image):
+        def on_press(self):
+            print("on_press")
+
+Or in kv::
+
+    IconButton:
+        on_press: print('on_press')
+
+Naturally, you could also bind to any property changes the behavior class
+offers::
+
+        def state_changed(*args):
+            print('state changed')
+
+        button = IconButton()
+        button.bind(state=state_changed)
+
+
 .. note::
 
     The behavior class must always be _before_ the widget class. If you don't
