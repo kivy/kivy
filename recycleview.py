@@ -92,7 +92,7 @@ class RecycleViewMixin(object):
         for key, value in data.items():
             setattr(self, key, value)
 
-    def refresh_view_layout(self, rv, viewport, data, width, height):
+    def refresh_view_layout(self, rv, index, pos, size, viewport):
         '''Called when the view's size is updated by the layout manager,
         :class:`RecycleLayoutManager`.
 
@@ -118,7 +118,8 @@ class RecycleViewMixin(object):
             will force a refresh. Useful when data changed and we don't want
             to layout further since it'll be overwritten again soon.
         '''
-        self.size = width, height
+        self.size = size
+        self.pos = pos
 
 
 class RecycleAdapter(EventDispatcher):
@@ -174,6 +175,8 @@ class RecycleAdapter(EventDispatcher):
         """
         if viewclass is None:
             viewclass = self.get_viewclass(index)
+        if viewclass is None:
+            return
         item = self[index]
         # FIXME: we could pass the data though the constructor, but that wont
         # work for kv-declared classes, and might lead the user to think it can
@@ -200,6 +203,8 @@ class RecycleAdapter(EventDispatcher):
 
         dirty_views = self.dirty_views
         viewclass = self.get_viewclass(index)
+        if viewclass is None:
+            return
         rv = self.recycleview
         stale = False
         view = None
@@ -377,11 +382,13 @@ class RecycleLayoutManager(EventDispatcher):
 
     def attach_recycleview(self, rv):
         self.recycleview = rv
+        c = rv.container
+        if c is not None:
+            self.container = c
 
     def detach_recycleview(self):
         self.recycleview = None
-        if self.container:
-            self.container.clear_widgets()
+        self.clear_layout()
         self.container = None
 
     def compute_positions_and_sizes(self, append):
@@ -396,7 +403,7 @@ class RecycleLayoutManager(EventDispatcher):
     def compute_visible_views(self, container):
         pass
 
-    def refresh_view_layout(self, index, view, data):
+    def refresh_view_layout(self, index, view):
         pass
 
     def get_view_position(self, index):
@@ -410,9 +417,13 @@ class RecycleLayoutManager(EventDispatcher):
         pass
 
     def get_view_index_at(self, pos):
-        """Return the view `index` for the `pos` position
+        """Return the view `index` on which position, `pos`, falls.
         """
         pass
+
+    def clear_layout(self):
+        if self.container is not None:
+            self.container.clear_widgets()
 
 
 class LinearRecycleLayoutManager(RecycleLayoutManager):
@@ -506,14 +517,13 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
 
         refresh_view_layout = self.refresh_view_layout
         add = container.add_widget
-        data = recycleview.adapter.data
         for widget, index in new:
             # add to the container if it's not already done
-            refresh_view_layout(index, widget, viewport, data[index])
+            refresh_view_layout(index, widget, viewport)
             if widget.parent is None:
                 add(widget)
 
-    def refresh_view_layout(self, index, view, viewport, data):
+    def refresh_view_layout(self, index, view, viewport):
         """(internal) Refresh the layout of a view. Size and pos are determine
         by the `RecycleView` according to the view `index` informations
         """
@@ -525,20 +535,21 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
                                                           RecycleViewMixin)
 
         if self.orientation == "vertical":
-            view.width = container.width
-            view.height = h = self.computed_sizes[index]
-            view.y = self.computed_size - self.computed_positions[index] - h
-            view.x = 0
+            w = container.width
+            h = self.computed_sizes[index]
+            y = self.computed_size - self.computed_positions[index] - h
+            x = 0
         else:
-            view.height = container.height
-            view.width = w = self.computed_sizes[index]
-            view.x = self.computed_size - self.computed_positions[index] - w
-            view.y = 0
+            h = container.height
+            w = self.computed_sizes[index]
+            x = self.computed_size - self.computed_positions[index] - w
+            y = 0
 
         if _view_base_cache[view.__class__]:
-            view.refresh_view_layout(rv, viewport, data, w, h)
+            view.refresh_view_layout(rv, index, (x, y), (w, h), viewport)
         else:
             view.size = w, h
+            view.pos = x, y
 
     def get_view_position(self, index):
         return self.computed_positions[index]
@@ -629,7 +640,7 @@ class RecycleView(ScrollView):
 
             if update:
                 flags['data'] = False
-                self.container.clear_widgets()
+                self.layout_manager.clear_layout()
             else:
                 append = flags['data_add'] and not flags['data_size']
                 update = flags['data_size'] or flags['data_add']
@@ -672,6 +683,13 @@ class RecycleView(ScrollView):
         '''
         return self.adapter.observable_dict
 
+    def _dispatch_prop_on_source(self, prop_name, *largs):
+        '''Dispatches the prop of this class when the adapter/layout_manager
+        property changes.
+        '''
+        getattr(self.__class__, prop_name).dispatch(self)
+
+
     def _handle_ask_data_refresh(self, *largs, **kwargs):
         self._refresh_flags[kwargs['extent']] = True
         self._refresh_trigger()
@@ -688,6 +706,8 @@ class RecycleView(ScrollView):
             funbind = adapter.funbind if _kivy_1_9_1 else adapter.fast_unbind
             funbind('on_data_changed', self._handle_ask_data_refresh)
             funbind('viewclass', self._dispatch_prop_on_source, 'viewclass')
+            funbind('key_viewclass', self._dispatch_prop_on_source,
+                    'key_viewclass')
             funbind('data', self._dispatch_prop_on_source, 'data')
 
         if value is None:
@@ -703,6 +723,7 @@ class RecycleView(ScrollView):
         fbind = adapter.fbind if _kivy_1_9_1 else adapter.fast_bind
         fbind('on_data_changed', self._handle_ask_data_refresh)
         fbind('viewclass', self._dispatch_prop_on_source, 'viewclass')
+        fbind('key_viewclass', self._dispatch_prop_on_source, 'key_viewclass')
         fbind('data', self._dispatch_prop_on_source, 'data')
         self.ask_refresh_from_data()
         return True
@@ -720,6 +741,10 @@ class RecycleView(ScrollView):
             return
         if lm is not None:
             lm.detach_recycleview()
+            funbind = lm.funbind if _kivy_1_9_1 else lm.fast_unbind
+            funbind('default_size', self._dispatch_prop_on_source,
+                    'default_size')
+            funbind('key_size', self._dispatch_prop_on_source, 'key_size')
 
         if value is None:
             self._layout_manager = lm = LinearRecycleLayoutManager()
@@ -731,6 +756,9 @@ class RecycleView(ScrollView):
             self._layout_manager = lm = value
 
         lm.attach_recycleview(self)
+        fbind = lm.fbind if _kivy_1_9_1 else lm.fast_bind
+        fbind('default_size', self._dispatch_prop_on_source, 'default_size')
+        fbind('key_size', self._dispatch_prop_on_source, 'key_size')
         if self.adapter is not None:
             self.ask_refresh_from_data()
         return True
