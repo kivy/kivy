@@ -108,11 +108,9 @@ class MouseMotionEvent(MotionEvent):
 
             # use same logic as WindowBase.on_motion() so we get correct
             # coordinates when _density != 1
-            w,h = win.effective_size
+            w, h = win.get_effective_size()
 
-            self.scale_for_screen(
-                w, h,
-                rotation=win.rotation)
+            self.scale_for_screen(w, h, rotation=win.rotation)
 
             de[1].pos = self.x - 10, self.y - 10
             self.pop()

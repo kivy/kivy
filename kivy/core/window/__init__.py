@@ -528,20 +528,17 @@ class WindowBase(EventDispatcher):
     '''Real size of the window ignoring rotation.
     '''
 
-    def _get_effective_size(self):
+    def get_effective_size(self):
+        '''On density=1 and non-ios displays, return system_size, else
+        return scaled / rotated size.
+
+        Used by MouseMotionEvent.update_graphics() and WindowBase.on_motion().
+        '''
         w, h = self.system_size
         if platform == 'ios' or self._density != 1:
             w, h = self.size
 
-        return w,h
-
-    effective_size = AliasProperty(_get_effective_size, None)
-    '''On density=1 and non-ios displays, return system_size, else
-    return scaled / rotated size.
-
-    Used by MouseMotionEvent.update_graphics() and WindowBase.on_motion().
-    '''
-
+        return w, h
 
     borderless = BooleanProperty(False)
     '''When set to True, this property removes the window border/decoration.
@@ -957,7 +954,7 @@ class WindowBase(EventDispatcher):
                 The Motion Event currently dispatched.
         '''
         if me.is_touch:
-            w,h = self.effective_size
+            w, h = self.get_effective_size()
             me.scale_for_screen(w, h, rotation=self._rotation,
                                 smode=self.softinput_mode,
                                 kheight=self.keyboard_height)
