@@ -85,15 +85,27 @@ class RoundedRectangleWidget(Widget):
             # by using small amount on small corners, while using
             # bigger amount on bigger corners.
             RoundedRectangle(
-                pos=(50, 25), radius=[40], segments=[1, 1, 10, 10], size=(125, 100))
+                pos=(50, 25),
+                radius=[40],
+                segments=[1, 1, 10, 10],
+                size=(125, 100))
 
-            # if radius dimension is 0, then the corner will be sharp (90 degrees)
-            # it is also possible to mix tuple values with numeric
+            # If radius dimension is 0, then the corner will be sharp
+            # (90 degrees). It is also possible to mix tuple values
+            # with numeric
             Color(*ORANGE)
-            RoundedRectangle(pos=(200, 25), radius=[(40, 20), 45.5, 45.5, 0], segments=[2, 3, 3, 1], size=(125, 100))
+            RoundedRectangle(
+                pos=(200, 25),
+                radius=[(40, 20),
+                45.5, 45.5, 0],
+                segments=[2, 3, 3, 1], size=(125, 100))
 
             Color(*RED)
-            RoundedRectangle(pos=(350, 25), radius=[(40, 40), (40, 40), (20, 20), (20, 20)], segments=[2, 3, 3, 2], size=(150, 100))
+            RoundedRectangle(
+                pos=(350, 25),
+                radius=[(40, 40), (40, 40), (20, 20), (20, 20)],
+                segments=[2, 3, 3, 2],
+                size=(150, 100))
 
 
 class DrawRoundedRectanglesApp(App):

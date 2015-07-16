@@ -5,33 +5,36 @@ Widget class
 The :class:`Widget` class is the base class required to create a Widget.
 This widget class is designed with a couple of principles in mind:
 
-    Event Driven
-        Widget interaction is built on top of events that occur. If a property
-        changes, the widget can respond to the change in the 'on_<propname>'
-        callback. If nothing changes, nothing will be done. That's the main
-        goal of the :class:`~kivy.properties.Property` class.
+* *Event Driven*
 
-    Separate the widget and its graphical representation
-        Widgets don't have a `draw()` method. This is done on purpose: The idea
-        is to allow you to create your own graphical representation outside the
-        widget class.
-        Obviously you can still use all the available properties to do that, so
-        that your representation properly reflects the widget's current state.
-        Every widget has its own :class:`~kivy.graphics.Canvas` that you
-        can use to draw. This separation allows Kivy to run your
-        application in a very efficient manner.
+  Widget interaction is built on top of events that occur. If a property
+  changes, the widget can respond to the change in the 'on_<propname>'
+  callback. If nothing changes, nothing will be done. That's the main
+  goal of the :class:`~kivy.properties.Property` class.
 
-    Bounding Box / Collision
-        Often you want to know if a certain point is within the bounds of your
-        widget. An example would be a button widget where you want to only
-        trigger an action when the button itself is actually touched.
-        For this, you can use the :meth:`Widget.collide_point` method, which
-        will return True if the point you pass to it is inside the axis-aligned
-        bounding box defined by the widget's position and size.
-        If a simple AABB is not sufficient, you can override the method to
-        perform the collision checks with more complex shapes, e.g. a polygon.
-        You can also check if a widget collides with another widget with
-        :meth:`Widget.collide_widget`.
+* *Separation Of Concerns (the widget and its graphical representation)*
+
+  Widgets don't have a `draw()` method. This is done on purpose: The idea
+  is to allow you to create your own graphical representation outside the
+  widget class.
+  Obviously you can still use all the available properties to do that, so
+  that your representation properly reflects the widget's current state.
+  Every widget has its own :class:`~kivy.graphics.Canvas` that you
+  can use to draw. This separation allows Kivy to run your
+  application in a very efficient manner.
+
+* *Bounding Box / Collision*
+
+  Often you want to know if a certain point is within the bounds of your
+  widget. An example would be a button widget where you only want to
+  trigger an action when the button itself is actually touched.
+  For this, you can use the :meth:`Widget.collide_point` method, which
+  will return True if the point you pass to it is inside the axis-aligned
+  bounding box defined by the widget's position and size.
+  If a simple AABB is not sufficient, you can override the method to
+  perform the collision checks with more complex shapes, e.g. a polygon.
+  You can also check if a widget collides with another widget with
+  :meth:`Widget.collide_widget`.
 
 
 We also have some default values and behaviors that you should be aware of:
