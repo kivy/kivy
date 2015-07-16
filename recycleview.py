@@ -497,13 +497,13 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
         if self.orientation == "vertical":
             h = container.height
             scroll_y = 1 - (min(1, max(recycleview.scroll_y, 0)))
-            px_start = (h - recycleview.height) * scroll_y
+            px_start = max(0, (h - recycleview.height) * scroll_y)
             px_end = px_start + recycleview.height
             viewport = 0, h - px_end, container.width, h - px_start
         else:
             w = container.width
             scroll_x = 1 - (min(1, max(recycleview.scroll_x, 0)))
-            px_start = (w - recycleview.width) * scroll_x
+            px_start = max(0, (w - recycleview.width) * scroll_x)
             px_end = px_start + recycleview.width
             viewport = w - px_end, 0, w - px_start, container.height
 
@@ -560,7 +560,7 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
     def get_view_index_at(self, pos):
         for index, c_pos in enumerate(self.computed_positions):
             if c_pos > pos:
-                return index - 1
+                return max(index - 1, 0)
         return index
 
 
