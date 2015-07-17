@@ -44,19 +44,19 @@ To install any module you need to install the module like so::
 
 Installing the dev version
 --------------------------
+Follo the steps:
 
-Step 1. Follow the procedure mentioned above to install kivy stable.
-Step 2. Install the requirements like (sdl2, sdl2_ttf, sdl2_mixerm, gstreamer) as frameworks on your system.
-Step 3. You need to link these frameworks to /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks.Make file will check /Library/Frameworks but Xcode will use its own folder, the second one.
+    Step 1. Follow the procedure mentioned above to install kivy stable.
+    Step 2. Install the requirements like (sdl2, sdl2_ttf, sdl2_mixerm, gstreamer) as frameworks on your system.
+    Step 3. You need to link these frameworks to /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks.Make file will check /Library/Frameworks but Xcode will use its own folder, the second one.
+    step 4. Open a terminal and type the following commands into it::
 
-step 4. Open a terminal and type the following commands into it::
-
-    kivy -m pip install cython
-    cd /Applications/Kivy.app/Contents/Resources/
-    mv kivy kivy_stable
-    git clone http://github.com/kivy/kivy
-    cd kivy
-    kivy setup.py build_ext --inplace
+        kivy -m pip install cython
+        cd /Applications/Kivy.app/Contents/Resources/
+        mv kivy kivy_stable
+        git clone http://github.com/kivy/kivy
+        cd kivy
+        kivy setup.py build_ext --inplace
 
 That's it. You now have the latest kivy from github.
 
