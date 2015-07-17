@@ -5,16 +5,16 @@ Behaviors
 .. versionadded:: 1.8.0
 
 This module implements behaviors that can be mixed with existing base widgets.
-For example, if you want to add a "button" capability to an `Image`, you could
-do::
+For example, if you want to add a "button" capability to an 
+:class:`~kivy.uix.image.Image`, you could do::
 
 
     class IconButton(ButtonBehavior, Image):
         pass
 
-This would give you an `Image` with the events and properties inherited from
-:class:`ButtonBehavior`. For example, the *on_press* and *on_release* events
-would be fired when appropriate::
+This would give you an :class:`~kivy.uix.image.Image` with the events and
+properties inherited from :class:`ButtonBehavior`. For example, the *on_press*
+and *on_release* events would be fired when appropriate::
 
     class IconButton(ButtonBehavior, Image):
         def on_press(self):
