@@ -47,7 +47,9 @@ Installing the dev version
 
 Step 1. Follow the procedure mentioned above to install kivy stable.
 Step 2. Install the requirements like (sdl2, sdl2_ttf, sdl2_mixerm, gstreamer) as frameworks on your system.
-step 2. Open a terminal and type the following commands into it::
+Step 3. You need to link these frameworks to /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks.Make file will check /Library/Frameworks but Xcode will use its own folder, the second one.
+
+step 4. Open a terminal and type the following commands into it::
 
     kivy -m pip install cython
     cd /Applications/Kivy.app/Contents/Resources/
