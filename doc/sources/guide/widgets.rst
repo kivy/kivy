@@ -195,7 +195,7 @@ understanding.
 - |AnchorLayout|
 
 |size_hint| is a |ReferenceListProperty| of
-|size_hint_x| and |size_hint_y|. It excepts values from `0` to `1` or `None`
+|size_hint_x| and |size_hint_y|. It accepts values from `0` to `1` or `None`
 and defaults to `(1, 1)`. This signifies that if the widget is in a layout,
 the layout will allocate it as much place as possible in both directions
 (relative to the layouts size).
