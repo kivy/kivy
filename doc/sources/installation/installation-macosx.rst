@@ -37,7 +37,7 @@ You can just drag and drop your main.py to run your app too.
 Installing modules
 -------------------
 
-Kivy package on osx uses it's own virtual env that is activated when you run your app using `kivy` command.
+Kivy package on osx uses its own virtual env that is activated when you run your app using `kivy` command.
 To install any module you need to install the module like so::
 
     kivy -m pip install <modulename>
