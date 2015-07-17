@@ -44,7 +44,7 @@ To install any module you need to install the module like so::
 
 Installing the dev version
 --------------------------
-Follo the steps:
+Follow these steps:
 
     1. Follow the procedure mentioned above to install kivy stable.
     2. Install the requirements like (sdl2, sdl2_ttf, sdl2_mixerm, gstreamer) as frameworks on your system.
