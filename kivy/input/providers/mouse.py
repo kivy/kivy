@@ -199,7 +199,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         cur.is_double_tap = is_double_tap
         self.touches[id] = cur
         if do_graphics:
-            cur.update_graphics(EventLoop.window, True)
+            cur.update_graphics(EventLoop.window, not (self.disable_multitouch or self.multitouch_on_demenad))
         self.waiting_event.append(('begin', cur))
         return cur
 
