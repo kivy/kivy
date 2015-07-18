@@ -95,7 +95,9 @@ if Config:
 
 
 class ButtonBehavior(object):
-    '''This class encapsulates :class:`~kivy.uix.button.Button` behavior.
+    '''
+    This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
+    :class:`~kivy.uix.button.Button` behavior.
 
     :Events:
         `on_press`
@@ -106,11 +108,12 @@ class ButtonBehavior(object):
     '''
 
     state = OptionProperty('normal', options=('normal', 'down'))
-    '''State of the button, must be one of 'normal' or 'down'.
+    '''The state of the button, must be one of 'normal' or 'down'.
     The state is 'down' only when the button is currently touched/clicked,
-    otherwise 'normal'.
+    otherwise its 'normal'.
 
-    :attr:`state` is an :class:`~kivy.properties.OptionProperty`.
+    :attr:`state` is an :class:`~kivy.properties.OptionProperty` and defaults
+    to 'normal'.
     '''
 
     last_touch = ObjectProperty(None)
@@ -120,24 +123,24 @@ class ButtonBehavior(object):
 
     .. versionadded:: 1.8.0
 
-    :attr:`last_touch` is a :class:`~kivy.properties.ObjectProperty`,
-    defaults to None.
+    :attr:`last_touch` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to `None`.
     '''
 
     MIN_STATE_TIME = 0.035
     '''The minimum period of time which the widget must remain in the
     `'down'` state.
 
-    :attr:`MIN_STATE_TIME` is a float.
+    :attr:`MIN_STATE_TIME` is a float and defaults to 0.035.
     '''
 
     always_release = BooleanProperty(True)
-    '''This determines if the widget fires a `on_release` event if
+    '''This determines whether or not the widget fires an `on_release` event if
     the touch_up is outside the widget.
 
     .. versionadded:: 1.9.0
 
-    :attr:`always_release` is a :class:`~kivy.properties.BooleanProperty`,
+    :attr:`always_release` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to `True`.
     '''
 
@@ -235,7 +238,7 @@ class ButtonBehavior(object):
 
 
 class ToggleButtonBehavior(ButtonBehavior):
-    '''This class encapsulates
+    '''This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
     :class:`~kivy.uix.togglebutton.ToggleButton` behavior. Please see
     the :mod:`~kivy.uix.togglebutton` module documentation for more information.
 
@@ -245,20 +248,21 @@ class ToggleButtonBehavior(ButtonBehavior):
     __groups = {}
 
     group = ObjectProperty(None, allownone=True)
-    '''Group of the button. If None, no group will be used (button is
+    '''Group of the button. If `None`, no group will be used (the button will be
     independent). If specified, :attr:`group` must be a hashable object, like
-    a string. Only one button in a group can be in 'down' state.
+    a string. Only one button in a group can be in a 'down' state.
 
-    :attr:`group` is a :class:`~kivy.properties.ObjectProperty`
+    :attr:`group` is a :class:`~kivy.properties.ObjectProperty` and defaults to
+    `None`.
     '''
 
     allow_no_selection = BooleanProperty(True)
-    '''This specifies whether the checkbox in group allows everything to
-    be deselected.
+    '''This specifies whether the widgets in a group allow no selection i.e.
+    everything to be deselected.
 
     .. versionadded:: 1.9.0
 
-    :attr:`allow_no_selection` is a :class:`BooleanProperty` defaults to
+    :attr:`allow_no_selection` is a :class:`BooleanProperty` and defaults to
     `True`
     '''
 
@@ -318,7 +322,7 @@ class ToggleButtonBehavior(ButtonBehavior):
 
         .. important::
 
-            Always release the result of this method! In doubt, do::
+            Always release the result of this method! If in doubt, do::
 
                 l = ToggleButtonBehavior.get_widgets('mygroup')
                 # do your job
@@ -327,7 +331,7 @@ class ToggleButtonBehavior(ButtonBehavior):
         .. warning::
 
             It's possible that some widgets that you have previously
-            deleted are still in the list. Garbage collector might need
+            deleted are still in the list. The garbage collector might need
             more elements before flushing it. The return of this method
             is informative, you've been warned!
         '''
@@ -519,8 +523,8 @@ class DragBehavior(object):
 
 
 class FocusBehavior(object):
-    '''This class encapsulates and implements keyboard focus behavior.
-    When combined with other
+    '''This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
+    keyboard focus behavior. When combined with other
     FocusBehavior widgets it allows one to cycle focus among them by pressing
     tab. In addition, upon gaining focus the instance will automatically
     receive keyboard input.
@@ -996,7 +1000,8 @@ class FocusBehavior(object):
 
 
 class CompoundSelectionBehavior(object):
-    '''Selection behavior implements the logic behind keyboard and touch
+    '''The Selection behavior `mixin <https://en.wikipedia.org/wiki/Mixin>`_
+    implements the logic behind keyboard and touch
     selection of selectable widgets managed by the derived widget.
     For example, it could be combined with a
     :class:`~kivy.uix.gridlayout.GridLayout` to add selection to the layout.
