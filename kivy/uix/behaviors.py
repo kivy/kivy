@@ -1090,6 +1090,12 @@ class CompoundSelectionBehavior(object):
     defaults to 0.
     '''
 
+    nodes_order_reversed = BooleanProperty(True)
+    ''' (Internal) Indicates whether the the order of nodes as displayed top-
+    down is reversed than their order in :meth:`get_selectable_nodes` (e.g.
+    how the children property is reversed from how it's displayed),
+    '''
+
     _anchor = None  # the last anchor node selected (e.g. shift relative node)
     # the idx may be out of sync
     _anchor_idx = 0  # cache indexs in case list hasn't changed
@@ -1335,8 +1341,7 @@ class CompoundSelectionBehavior(object):
         deselect = self.deselect_node
         nodes = self.selected_nodes
         # empty beforehand so lookup in deselect will be fast
-        self.selected_nodes = []
-        for node in nodes:
+        for node in nodes[:]:
             deselect(node)
 
     def get_selectable_nodes(self):
@@ -1482,5 +1487,6 @@ class CompoundSelectionBehavior(object):
         '''
         try:
             self.selected_nodes.remove(node)
+            return True
         except ValueError:
-            pass
+            return False
