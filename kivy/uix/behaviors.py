@@ -317,12 +317,14 @@ class ToggleButtonBehavior(ButtonBehavior):
 
     @staticmethod
     def get_widgets(groupname):
-        '''Return the widgets contained in a specific group. If the group
-        doesn't exist, an empty list will be returned.
+        '''Return a list of the widgets contained in a specific group. If the
+        group doesn't exist, an empty list will be returned.
 
-        .. important::
+        .. note::
 
-            Always release the result of this method! If in doubt, do::
+            Always release the result of this method! Holding a reference to
+            any of these widgets can prevent them from being garbage collected.
+            If in doubt, do::
 
                 l = ToggleButtonBehavior.get_widgets('mygroup')
                 # do your job
@@ -332,8 +334,7 @@ class ToggleButtonBehavior(ButtonBehavior):
 
             It's possible that some widgets that you have previously
             deleted are still in the list. The garbage collector might need
-            more elements before flushing it. The return of this method
-            is informative, you've been warned!
+            to release other objects before flushing them.
         '''
         groups = ToggleButtonBehavior.__groups
         if groupname not in groups:
@@ -342,7 +343,8 @@ class ToggleButtonBehavior(ButtonBehavior):
 
 
 class DragBehavior(object):
-    '''This class encapsulates Drag behavior. When combined with a widget,
+    '''This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class
+    provides Drag behavior. When combined with a widget,
     dragging in the rectangle defined by :attr:`drag_rectangle` will drag the
     widget.
 
