@@ -403,7 +403,7 @@ class RecycleLayoutManager(EventDispatcher):
     def recycleview_setup(self):
         pass
 
-    def compute_visible_views(self, container):
+    def compute_visible_views(self):
         pass
 
     def refresh_view_layout(self, index, view):
@@ -505,20 +505,26 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
         container = recycleview.container
         if self.orientation == "vertical":
             h = container.height
-            scroll_y = 1 - (min(1, max(recycleview.scroll_y, 0)))
-            px_start = max(0, (h - recycleview.height) * scroll_y)
-            px_end = px_start + recycleview.height
-            viewport = 0, h - px_end, container.width, h - px_start
+            scroll_y = min(1, max(recycleview.scroll_y, 0))
+            px_end = 0, max(0, (h - recycleview.height) * scroll_y)
+            px_start = 0, px_end[1] + min(recycleview.height, h)
+            viewport = 0, px_end[1], container.width, px_start[1]
         else:
             w = container.width
-            scroll_x = 1 - (min(1, max(recycleview.scroll_x, 0)))
-            px_start = max(0, (w - recycleview.width) * scroll_x)
-            px_end = px_start + recycleview.width
-            viewport = w - px_end, 0, w - px_start, container.height
+            scroll_x = min(1, max(recycleview.scroll_x, 0))
+            px_start = max(0, (w - recycleview.width) * scroll_x), 0
+            px_end = px_start[0] + min(recycleview.width, w), 0
+            viewport = px_end[0], 0, px_start[0], container.height
 
         # now calculate the view indices we must show
         at_idx = self.get_view_index_at
-        new, old = recycleview.get_views(at_idx(px_start), at_idx(px_end))
+        s, e, = at_idx(px_start), at_idx(px_end)
+        data = recycleview.data
+        if s is None:
+            s = len(data) - 1
+        if e is None:
+            e = len(data) - 1
+        new, old = recycleview.get_views(s, e)
 
         rm = container.remove_widget
         for widget in old:
@@ -567,9 +573,15 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
         return self.computed_sizes[index]
 
     def get_view_index_at(self, pos):
+        if self.orientation == 'vertical':
+            pos = self.recycleview.container.height - pos[1]
+        else:
+            pos = pos[0]
         for index, c_pos in enumerate(self.computed_positions):
             if c_pos > pos:
                 return max(index - 1, 0)
+        if pos >= self.computed_positions[-1] + self.computed_sizes[-1]:
+            return None
         return index
 
     def show_index_view(self, index):
