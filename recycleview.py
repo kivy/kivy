@@ -325,6 +325,9 @@ class RecycleAdapter(EventDispatcher):
         self.views = visible_views
         return new_views, current_views.values()
 
+    def get_visible_view(self, index):
+        return self.views.get(index)
+
     def on_viewclass(self, instance, value):
         # resolve the real class if it was a string.
         if isinstance(value, string_types):
