@@ -4,10 +4,25 @@ Behaviors
 
 .. versionadded:: 1.8.0
 
-This module implements behaviors that can be mixed with existing base widgets.
-For example, if you want to add a "button" capability to an 
-:class:`~kivy.uix.image.Image`, you could do::
+Behavior mixin classes
+----------------------
 
+This module implements behaviors that can be
+`mixed in <https://en.wikipedia.org/wiki/Mixin>`_
+with existing base widgets. The idea behind these classes is to encapsulate
+properties and events associated with certain types of widgets.
+
+Isolating these properties and events in a mixin class allows you to define your
+own implementation for standard kivy widgets that can act as drop-in
+replacements. This allows you to re-style and re-define widgets as desired
+without breaking compatibility: as long as they implement the behaviors
+correctly, they can simply replace the standard widgets.
+
+Adding behaviors
+----------------
+
+Say you want to add :class:`~kivy.uix.button.Button` capabilities to an
+:class:`~kivy.uix.image.Image`, you could do::
 
     class IconButton(ButtonBehavior, Image):
         pass
@@ -20,13 +35,17 @@ and *on_release* events would be fired when appropriate::
         def on_press(self):
             print("on_press")
 
-Or in kv::
+Or in kv:
+
+.. code-block:: kv
 
     IconButton:
         on_press: print('on_press')
 
 Naturally, you could also bind to any property changes the behavior class
-offers::
+offers:
+
+.. code-block:: python
 
         def state_changed(*args):
             print('state changed')
