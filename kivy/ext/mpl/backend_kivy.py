@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import six
 import os
+import scipy
 import matplotlib
 from matplotlib._pylab_helpers import Gcf
 from matplotlib.backend_bases import RendererBase, GraphicsContextBase,\
@@ -13,6 +14,7 @@ from matplotlib.backend_bases import ShowBase
 from matplotlib.mathtext import MathTextParser
 from matplotlib import rcParams
 from hashlib import md5
+from matplotlib import _png
 
 try:
     import kivy
@@ -35,8 +37,10 @@ from kivy.graphics import Rotate, Translate
 from kivy.graphics.context_instructions import PopMatrix, PushMatrix
 from kivy.logger import Logger
 from kivy.graphics import Mesh
+from kivy.resources import resource_find
 
 import numpy as np
+import io
 
 from math import cos, sin, pi
 # try:
@@ -100,7 +104,7 @@ class RendererKivy(RendererBase):
         for polygon in polygons:
             vertices = []
             for x, y in polygon:
-                vertices += [x, y, 0, 0, ]
+                vertices += [x, y, 100, 100, ]
                 points_line.append(float(x))
                 points_line.append(float(y))
             with self.widget.canvas:
@@ -132,16 +136,10 @@ class RendererKivy(RendererBase):
             h = self.widget.height
         h, w = im.get_size_out()
         rows, cols, image_str = im.as_rgba_str()
-        print(rows)
-        print(cols)
-        image_array = np.fromstring(image_str, np.uint8)
-        print(image_array.shape)
-        print(image_array)
-        image_array.shape = rows, cols, 4
-        print(image_array.shape)
         texture = Texture.create(size=(w, h))
         texture.blit_buffer(image_str, colorfmt='rgba', bufferfmt='ubyte')
         with self.widget.canvas:
+            Color(1.0, 1.0, 1.0, 1.0)
             Rectangle(texture=texture, pos=(x, y), size=(w, h))
 
     def draw_gouraud_triangle(self, gc, points, colors, transform):
@@ -175,7 +173,11 @@ class RendererKivy(RendererBase):
         if ismath:
             self.draw_mathtext(gc, x, y, s, prop, angle)
         else:
-            plot_text = CoreLabel(font_size=prop.get_size_in_points(),
+            font = resource_find(prop.get_name() + ".ttf")
+            if font is None:
+                plot_text = CoreLabel(font_size=prop.get_size_in_points())
+            else:
+                plot_text = CoreLabel(font_size=prop.get_size_in_points(),
                                   font_name=prop.get_name())
             plot_text.text = str(s.encode("utf-8"))
             if(prop.get_style() == 'italic'):
