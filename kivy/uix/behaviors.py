@@ -356,7 +356,10 @@ class DragBehavior(object):
         class DragPopup(DragBehavior, Popup):
             pass
 
-    And in .kv do::
+    And in .kv do:
+
+    .. code-block:: kv
+
         <DragPopup>:
             drag_rectangle: self.x, self.y+self._container.height, self.width,\
             self.height - self._container.height
@@ -369,52 +372,53 @@ class DragBehavior(object):
     drag_distance = NumericProperty(_scroll_distance)
     '''Distance to move before dragging the :class:`DragBehavior`, in pixels.
     As soon as the distance has been traveled, the :class:`DragBehavior` will
-    start to drag, and no touch event will go to children.
+    start to drag, and no touch event will be dispatched to the children.
     It is advisable that you base this value on the dpi of your target device's
     screen.
 
-    :attr:`drag_distance` is a :class:`~kivy.properties.NumericProperty`,
-    defaults to 20 (pixels), according to the default value of scroll_distance
-    in user configuration.
+    :attr:`drag_distance` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to the `scroll_distance` as defined in the user
+    :class:`~kivy.config.Config` (20 pixels by default).
     '''
 
     drag_timeout = NumericProperty(_scroll_timeout)
     '''Timeout allowed to trigger the :attr:`drag_distance`, in milliseconds.
     If the user has not moved :attr:`drag_distance` within the timeout,
-    dragging will be disabled, and the touch event will go to the children.
+    dragging will be disabled, and the touch event will be dispatched to the
+    children.
 
-    :attr:`drag_timeout` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_timeout` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 55 (milliseconds), according to the default value of
-    scroll_timeout in user configuration.
+    `scroll_timeout` in user :class:`~kivy.config.Config`.
     '''
 
     drag_rect_x = NumericProperty(0)
     '''X position of the axis aligned bounding rectangle where dragging
-    is allowed. In window coordinates.
+    is allowed (in window coordinates).
 
-    :attr:`drag_rect_x` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_rect_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
     drag_rect_y = NumericProperty(0)
     '''Y position of the axis aligned bounding rectangle where dragging
-    is allowed. In window coordinates.
+    is allowed (in window coordinates).
 
-    :attr:`drag_rect_Y` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_rect_Y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
     drag_rect_width = NumericProperty(100)
     '''Width of the axis aligned bounding rectangle where dragging is allowed.
 
-    :attr:`drag_rect_width` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_rect_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 100.
     '''
 
     drag_rect_height = NumericProperty(100)
     '''Height of the axis aligned bounding rectangle where dragging is allowed.
 
-    :attr:`drag_rect_height` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`drag_rect_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 100.
     '''
 
