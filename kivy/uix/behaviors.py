@@ -14,7 +14,7 @@ properties and events associated with certain types of widgets.
 
 Isolating these properties and events in a mixin class allows you to define your
 own implementation for standard kivy widgets that can act as drop-in
-replacements. This allows you to re-style and re-define widgets as desired
+replacements. This means you can re-style and re-define widgets as desired
 without breaking compatibility: as long as they implement the behaviors
 correctly, they can simply replace the standard widgets.
 
@@ -95,7 +95,7 @@ if Config:
 
 
 class ButtonBehavior(object):
-    '''Button behavior.
+    '''This class encapsulates :class:`~kivy.uix.button.Button` behavior.
 
     :Events:
         `on_press`
@@ -235,8 +235,9 @@ class ButtonBehavior(object):
 
 
 class ToggleButtonBehavior(ButtonBehavior):
-    '''ToggleButton behavior, see ToggleButton module documentation for more
-    information.
+    '''This class encapsulates
+    :class:`~kivy.uix.togglebutton.ToggleButton` behavior. Please see
+    the :mod:`~kivy.uix.togglebutton` module documentation for more information.
 
     .. versionadded:: 1.8.0
     '''
@@ -337,8 +338,9 @@ class ToggleButtonBehavior(ButtonBehavior):
 
 
 class DragBehavior(object):
-    '''Drag behavior. When combined with a widget, dragging in the rectangle
-    defined by :attr:`drag_rectangle` will drag the widget.
+    '''This class encapsulates Drag behavior. When combined with a widget,
+    dragging in the rectangle defined by :attr:`drag_rectangle` will drag the
+    widget.
 
     For example, to make a popup which is draggable by its title do::
 
@@ -517,7 +519,8 @@ class DragBehavior(object):
 
 
 class FocusBehavior(object):
-    '''Implements keyboard focus behavior. When combined with other
+    '''This class encapsulates and implements keyboard focus behavior.
+    When combined with other
     FocusBehavior widgets it allows one to cycle focus among them by pressing
     tab. In addition, upon gaining focus the instance will automatically
     receive keyboard input.
