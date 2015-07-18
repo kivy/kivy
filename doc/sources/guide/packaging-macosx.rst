@@ -14,37 +14,42 @@ MacOSX platforms.
 
 .. _mac_osx_requirements:
 
-New Method
-----------
+Official Packaging method
+-------------------------
 
-Since kivy 1.9 it is now possible to package kivy apps using a new method as described below to make it easier to include frameworks like sdl2 and gstreamer.
+Due to a lot of problems with including libraries and files on osx with other methods
+we now have a simpler and easier way to package Kivy apps on osx.
 
-Step 1: Make sure you have the Kivy.app(unmodified) from the download page.
-Step 2: run the following commands::
+Since kivy 1.9 kivy package on osx is a self contained portable distribution.
+It is now possible to package kivy apps using the method described below to make
+it easier to include frameworks like sdl2 and gstreamer::
+
+1: Make sure you have the Kivy.app(unmodified) from the download page.
+2: run the following commands::
 
     > mkdir  packaging
     > cd packaging
     packaging> git clone https://github.com/kivy/kivy-sdk-packager
     packaging> cd kivy-sdk-packager/osx
-    osx> rsync -a /Applications/Kivy.app ./Kivy.App
+    osx> cp -a /Applications/Kivy.app ./Kivy.App
 
-Instead of copying the kivy.app we could also just creat it from scratch using the following command::
-
-    osx> ./create-osx-bundle.sh
-
-You will need to install some dependencies like Platypus for that,  however ideally you don't need to worry about that and you can simply use the kivy.app provided.
+This step above is important, you have to make sure to preserve the paths and permissions a command like cp -r will copy but make the appunusable and lead to error later on.
 
 Now all you need to do is to include your compiled app into the Kivy.app, simply run the following command::
 
     osx> ./package-app.sh path/to/your/app
 
-This should compile your app and include all the compiled app into Kivy.app and copy it to `yourapp.app`.
-when you double clickk this app you can see your app run.
+This should copy Kivy.app to `yourapp.app` and include a compiled copy of your app into this package.
 
-This is pretty heavy app right now however you can simply remove the unneeded parts from this package.
+That's it, your self contained package is ready to be deployed!
+
+when you double click this app you can see your app run.
+
+This is a pretty big sized app right now however you can simply remove the unneeded parts from this package.
 
 For example if you don't use Gstreamer, simply remove it from YourApp.app/Contents/Frameworks.
 Similarly you can remove the examples dir from /Applications/Kivy.app/Contents/Resources/kivy/examples/
+or kivyt/tools,  kivy/docs...
 
 This way the whole app can be made to only include the parts that you use inside your app.
 
@@ -57,8 +62,9 @@ Last step is to make a dmg of your app using the following command::
 This should give you a compressed dmg that will even further minimize the size of your distributed app.
 
 
-Pyinstaller Method
-------------------
+
+Unofficial Method using Pyinstaller
+-----------------------------------
 
 Requirements
 ------------
@@ -112,7 +118,11 @@ file is named `main.py`. Replace both path/filename according to your system.
                    a.binaries,
                    #...
                    )
-                   
+
+The Tree inclusion of frameworks is a work around a pyinstaller bug that is not able to find the exact path of libs including @executable_path.
+
+There is a issue open on pyinstaller issue tracker for this. https://github.com/pyinstaller/pyinstaller/issues/1338
+  
 Make sure the path to the frameworks is relative to the current directory you are on.
 
 #. We are done. Your spec is ready to be executed!
