@@ -22,6 +22,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.properties import NumericProperty, AliasProperty, StringProperty, \
     ObjectProperty, ListProperty, OptionProperty, BooleanProperty, \
     ObservableDict
+from kivy.uix.behaviors import CompoundSelectionBehavior
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
 from kivy.clock import Clock
@@ -120,6 +121,9 @@ class RecycleViewMixin(object):
         '''
         self.size = size
         self.pos = pos
+
+    def apply_selection(self, rv, index, is_selected):
+        pass
 
 
 class RecycleAdapter(EventDispatcher):
@@ -369,6 +373,72 @@ class RecycleAdapter(EventDispatcher):
         '''
         if extent == 'data':
             self.invalidate()
+
+
+class LayoutSelectionMixIn(CompoundSelectionBehavior):
+
+    key_selection = StringProperty('')
+    '''The key used to decide whether a view of a data item can be selected
+    with touch or the keyboard. All data items can be selected directly
+    using `select_node`.
+    '''
+
+    _selectable_nodes = []
+    _nodes_map = {}
+
+    def __init__(self, **kwargs):
+        self.nodes_order_reversed = False
+        super(LayoutSelectionMixIn, self).__init__(**kwargs)
+
+    def compute_positions_and_sizes(self, append):
+        # overwrite this method so that when data changes we update
+        # selectable nodes.
+        key = self.key_selection
+        nodes = self._selectable_nodes = [
+            i for i, d in enumerate(self.recycleview.data) if d.get(key)]
+        self._nodes_map = {v: k for k, v in enumerate((nodes))}
+        return super(
+            LayoutSelectionMixIn, self).compute_positions_and_sizes(append)
+
+    def get_selectable_nodes(self):
+        # the indices of the data is used as the nodes
+        return self._selectable_nodes
+
+    def get_index_of_node(self, node, selectable_nodes):
+        # the indices of the data is used as the nodes, so node
+        return self._nodes_map[node]
+
+    def goto_node(self, key, last_node, last_node_idx):
+        node, idx = super(LayoutSelectionMixIn, self).goto_node(
+            key, last_node, last_node_idx)
+        if node is not last_node:
+            self.show_index_view(node)
+        return node, idx
+
+    def select_node(self, node):
+        if super(LayoutSelectionMixIn, self).select_node(node):
+            view = self.recycleview.adapter.get_visible_view(node)
+            if view is not None:
+                self.apply_selection(node, view, True)
+
+    def deselect_node(self, node):
+        if super(LayoutSelectionMixIn, self).deselect_node(node):
+            view = self.recycleview.adapter.get_visible_view(node)
+            if view is not None:
+                self.apply_selection(node, view, False)
+
+    def apply_selection(self, index, view, is_selected):
+        viewclass = view.__class__
+        if viewclass not in _view_base_cache:
+            _view_base_cache[viewclass] = isinstance(view, RecycleViewMixin)
+
+        if _view_base_cache[viewclass]:
+            view.apply_selection(self.recycleview, index, is_selected)
+
+    def refresh_view_layout(self, index, view, viewport):
+        super(LayoutSelectionMixIn, self).refresh_view_layout(index, view,
+                                                              viewport)
+        self.apply_selection(index, view, index in self.selected_nodes)
 
 
 class RecycleLayoutManager(EventDispatcher):
