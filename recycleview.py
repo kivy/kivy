@@ -428,6 +428,12 @@ class RecycleLayoutManager(EventDispatcher):
         if self.container is not None:
             self.container.clear_widgets()
 
+    def show_index_view(self, index):
+        '''Moves the views so that the view corresponding to `index` is
+        visible.
+        '''
+        pass
+
 
 class LinearRecycleLayoutManager(RecycleLayoutManager):
     """Implementation of a `RecycleLayoutManager` for a horizontal or vertical
@@ -565,6 +571,45 @@ class LinearRecycleLayoutManager(RecycleLayoutManager):
             if c_pos > pos:
                 return max(index - 1, 0)
         return index
+
+    def show_index_view(self, index):
+        rv = self.recycleview
+        if self.orientation == "vertical":
+            h = rv.container.height
+            if h <= rv.height:  # all views are visible
+                return
+
+            # convert everything to container coordinates
+            top = h - self.computed_positions[index]
+            bottom = top - self.computed_sizes[index]
+            view_h = h - rv.height
+            view_bot = view_h * min(1, max(rv.scroll_y, 0))
+            view_top = view_bot + rv.height
+
+            if top <= view_top:
+                if bottom >= view_bot:  # it's fully in view
+                    return
+                rv.scroll_y = bottom / float(view_h)
+            else:
+                rv.scroll_y = (top - rv.height) / float(view_h)
+        else:
+            w = rv.container.width
+            if w <= rv.width:  # all views are visible
+                return
+
+            # convert everything to container coordinates
+            left = self.computed_positions[index]
+            right = left + self.computed_sizes[index]
+            view_w = w - rv.width
+            view_left = view_w * min(1, max(rv.scroll_x, 0))
+            view_right = view_left + rv.width
+
+            if left >= view_left:
+                if right <= view_right:  # it's fully in view
+                    return
+                rv.scroll_x = (right - rv.width) / float(view_w)
+            else:
+                rv.scroll_x = left / float(view_w)
 
 
 class RecycleView(ScrollView):
