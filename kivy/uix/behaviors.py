@@ -854,6 +854,9 @@ class FocusBehavior(object):
         if touch in touches:
             touches.remove(touch)
             return
+        if 'button' in touch.profile and touch.button in\
+                ('scrollup', 'scrolldown', 'scrollleft', 'scrollright'):
+            return
         for focusable in list(FocusBehavior._keyboards.values()):
             if focusable is None or not focusable.unfocus_on_touch:
                 continue
@@ -1423,19 +1426,23 @@ class CompoundSelectionBehavior(object):
             return last_node, last_node_idx
         if last_node_idx > end or sister_nodes[last_node_idx] != last_node:
             try:    # just in case
-                last_node_idx = sister_nodes.index(last_node)
+                last_node_idx = self.get_index_of_node(last_node, sister_nodes)
             except ValueError:
                 return last_node, last_node_idx
 
-        try:
-            idx = max(min(-counts[key] + last_node_idx, end), 0)
+        is_reversed = self.nodes_order_reversed
+        if key in counts:
+            count = -counts[key] if is_reversed else counts[key]
+            idx = max(min(count + last_node_idx, end), 0)
             return sister_nodes[idx], idx
-        except KeyError:
-            pass
-        if key == 'home':
-            return sister_nodes[end], end
-        elif key == 'end':
+        elif key == 'home':
+            if is_reversed:
+                return sister_nodes[end], end
             return sister_nodes[0], 0
+        elif key == 'end':
+            if is_reversed:
+                return sister_nodes[0], 0
+            return sister_nodes[end], end
         else:
             return last_node, last_node_idx
 
