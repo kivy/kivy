@@ -1276,7 +1276,8 @@ class CompoundSelectionBehavior(object):
             return sister_nodes[end], end
         if last_idx > end or sister_nodes[last_idx] != last_node:
             try:
-                return last_node, sister_nodes.index(last_node)
+                return last_node, self.get_index_of_node(last_node,
+                                                         sister_nodes)
             except ValueError:
                 return sister_nodes[end], end
         return last_node, last_idx
@@ -1301,13 +1302,13 @@ class CompoundSelectionBehavior(object):
         else:
             if last_idx > end or sister_nodes[last_idx] != last_node:
                 try:
-                    last_idx = sister_nodes.index(last_node)
+                    last_idx = self.get_index_of_node(last_node, sister_nodes)
                 except ValueError:
                     # list changed - cannot do select across them
                     return
         if idx > end or sister_nodes[idx] != node:
             try:    # just in case
-                idx = sister_nodes.index(node)
+                idx = self.get_index_of_node(node, sister_nodes)
             except ValueError:
                 return
 
@@ -1372,6 +1373,12 @@ class CompoundSelectionBehavior(object):
         Defaults to returning :attr:`~kivy.uix.widget.Widget.children`.
         '''
         return self.children
+
+    def get_index_of_node(self, node, selectable_nodes):
+        '''(internal) Returns the index of the `node` within `selectable_nodes`
+        that was returned by :meth:`get_selectable_nodes`.
+        '''
+        return selectable_nodes.index(node)
 
     def goto_node(self, key, last_node, last_node_idx):
         '''(internal) Used by the controller to get the node at the position
