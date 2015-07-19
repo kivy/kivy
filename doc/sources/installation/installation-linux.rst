@@ -142,60 +142,122 @@ Gentoo
    `spell: Standard flag, provide enchant to use spelling in kivy apps.`
 
 
-Using software bundles ( also known as tarballs )
-=================================================
-
-*Providing dependencies*
-~~~~~~~~~~~~~~~~~~~~~~~~
+*Installation in a Virtual Environment*
+=================================================================
 
 
-General
+Common dependencies
+~~~~~~~~~~~~~~~~~~~
+
+
+Cython
 -------
 
-The following software is needed, even if your distribution is not listed above:
 
-- `Python >= 2.7 and Python < 3 <http://www.python.org/>`_
-- `PyGame <http://www.pygame.org/>`_
-- `PyEnchant <http://packages.python.org/pyenchant/>`_
-- `gst-python <http://gstreamer.freedesktop.org/modules/gst-python.html>`_
-- `Cython == 0.20 <http://cython.org/>`_
+Different versions of Kivy have only been tested up to a certain Cython version.
+It may or may not work with a later version.
 
-We prefer to use a package-manager to provide these dependencies.
+========   =============
+Kivy       Cython
+========   =============
+1.8        0.20.2
+1.9        0.21.2
+1.9.1      0.23
+========   =============
 
 
-Ubuntu
-------
+*System dependencies with modern SDL2*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Ubuntu example
+------------------------------
+
 
 ::
 
-    $ sudo apt-get install \
-        pkg-config \
-        python-setuptools \
-        python-pygame \
-        python-opengl \
-        python-gst0.10 \
-        python-enchant \
-        gstreamer0.10-plugins-good \
-        python-dev \
+    # Install necessary system packages
+    sudo apt-get install -y \
+        python-pip \
         build-essential \
-        libgl1-mesa-dev \
-        libgles2-mesa-dev \
-        cython
+        mercurial \
+        git \
+        python \
+        python-dev \
+        ffmpeg \
+        libsdl2-dev \
+        libsdl2-gfx-dev \
+        libsdl2-image-dev \
+        libsdl2-mixer-dev \
+        libsdl2-net-dev \
+        libsdl2-ttf-dev \
+        libportmidi-dev \
+        libswscale-dev \
+        libavformat-dev \
+        libavcodec-dev \
+        zlib1g-dev
 
-*Upgrade Cython ( <= Oneiric [11.10] )*
 
-:Using Cython's daily PPA: ::
+Installation
+------------
 
-    $ sudo add-apt-repository ppa:cython-dev/master-ppa
-    $ sudo apt-get update
-    $ sudo apt-get install cython
 
-.. ``
+::
 
-:Using PIP: ::
+    # Make sure Pip, Virtualenv and Setuptools are updated
+    sudo pip install --upgrade pip virtualenv setuptools
 
-    $ sudo apt-get install python-pip
-    $ sudo pip install --upgrade cython
+    # Create a virtualenv
+    virtualenv --no-site-packages kivyinstall
+
+    # Enter the virtualenv
+    . kivyinstall/bin/activate
+
+    # Use correct Cython version here
+    pip install Cython==0.21.2
+
+    # Install stable version of Kivy into the virtualenv
+    pip install kivy
+    # For the development version of Kivy, use the following command instead
+    # pip install git+https://github.com/kivy/kivy.git@master
+
+Python 3
+--------
+
+
+If you want to use Python 3 you install "python3" and "python3-dev" and then pass
+"-p python3" to virtualenv.
+
+
+*Dependencies with legacy PyGame*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Ubuntu example
+------------------------------
+
+
+::
+
+    # Install necessary system packages
+    sudo apt-get install -y \
+        python-pip \
+        build-essential \
+        mercurial \
+        git \
+        python \
+        python-dev \
+        ffmpeg \
+        libsdl-image1.2-dev \
+        libsdl-mixer1.2-dev \
+        libsdl-ttf2.0-dev \
+        libsmpeg-dev \
+        libsdl1.2-dev \
+        libportmidi-dev \
+        libswscale-dev \
+        libavformat-dev \
+        libavcodec-dev \
+        zlib1g-dev
 
 
 Fedora
@@ -204,14 +266,13 @@ Fedora
 ::
 
     $ sudo yum install \
-        python-distutils-extra \
-        python-enchant \
-        freeglut \
-        PyOpenGL \
+        make \
+        mercurial \
+        automake \
+        gcc \
+        gcc-c++ \
         SDL_ttf-devel \
         SDL_mixer-devel \
-        pygame \
-        pygame-devel \
         khrplatform-devel \
         mesa-libGLES \
         mesa-libGLES-devel \
@@ -219,9 +280,8 @@ Fedora
         gstreamer \
         gstreamer-python \
         mtdev-devel \
+        python-devel \
         python-pip
-    $ sudo pip install --upgrade cython
-    $ sudo pip install pygments
 
 
 OpenSuse
@@ -231,215 +291,55 @@ OpenSuse
 
     $ sudo zypper install \
         python-distutils-extra \
-        python-pygame \
-        python-opengl \
         python-gstreamer-0_10 \
         python-enchant \
         gstreamer-0_10-plugins-good \
         python-devel \
         Mesa-devel \
         python-pip
-    $ zypper install -t pattern devel_C_C++
-    $ sudo pip install --upgrade cython
-    $ sudo pip install pygments
+    $ sudo zypper install -t pattern devel_C_C++
 
 
-Mageia 1 onwards
-----------------
+Installation
+------------
 
 ::
 
-    $ su
-    # urpmi \
-        python-setuptools \
-        python-pygame \
-        python-opengl \
-        gstreamer0.10-python \
-        python-enchant \
-        gstreamer0.10-plugins-good \
-        python-cython \
-        lib64python-devel \
-        lib64mesagl1-devel \
-        lib64mesaegl1-devel \
-        lib64mesaglesv2_2-devel \
-        make \
-        gcc
-    # easy_install pip
-    # pip install --upgrade cython
-    # pip install pygments
+    # Make sure Pip, Virtualenv and Setuptools are updated
+    sudo pip install --upgrade pip virtualenv setuptools
 
+    # Create a virtualenv
+    virtualenv --no-site-packages kivyinstall
 
-*Installation in a Virtual Environment with System Site Packages*
-=================================================================
+    # Enter the virtualenv
+    . kivyinstall/bin/activate
 
-This is a recommended compromise between installing Kivy and its dependencies 
-system wide and installing as much as possible into a virtual environment. 
+    pip install numpy
 
+    pip install Cython==0.21.2
 
-Ubuntu 12.04 with Python 2.7
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Install System-wide Dependencies
---------------------------------
-
-Note that these commands will remove any pre-existing versions of 
-python-virtualenv and replace it with the current version. It will also remove 
-cython, numpy, and pygame installed from your Linux distro's repository and 
-replace them with current versions from pip or the pygame Mercurial repository. 
-
-::
-
-    # Install necessary system packages
-    sudo apt-get install -y \
-        build-essential \
-        mercurial \
-        git \
-        python2.7 \
-        python-setuptools \
-        python-dev \
-        ffmpeg \
-        libsdl-image1.2-dev \
-        libsdl-mixer1.2-dev \
-        libsdl-ttf2.0-dev \
-        libsmpeg-dev \
-        libsdl1.2-dev \
-        libportmidi-dev \
-        libswscale-dev \
-        libavformat-dev \
-        libavcodec-dev \
-        zlib1g-dev
-
-    # Bootstrap a current Python environment
-    sudo apt-get remove --purge -y python-virtualenv python-pip
-    sudo easy_install-2.7 -U pip
-    sudo pip2.7 install -U virtualenv
-
-    # Install current version of Cython
-    sudo apt-get remove --purge -y cython
-    sudo pip2.7 install -U cython
-
-    # Install other PyGame dependencies
-    sudo apt-get remove --purge -y python-numpy
-    sudo pip2.7 install -U numpy
-
-    # Install PyGame
-    sudo apt-get remove --purge python-pygame
-    hg clone https://bitbucket.org/pygame/pygame
-    cd pygame
-    python2.7 setup.py build
-    sudo python2.7 setup.py install
-    cd ..
-    sudo rm -rf pygame
-
-
-Create a Kivy Virtualenv
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    # Create a vitualenv
-    rm -rf venv
-    virtualenv -p python2.7 --system-site-packages venv
+    pip install hg+http://bitbucket.org/pygame/pygame
 
     # Install stable version of Kivy into the virtualenv
-    venv/bin/pip install kivy
+    pip install kivy
     # For the development version of Kivy, use the following command instead
-    # venv/bin/pip install git+https://github.com/kivy/kivy.git@master
-
-    # Install development version of buildozer into the virtualenv
-    venv/bin/pip install git+https://github.com/kivy/buildozer.git@master
-
-    # Install development version of plyer into the virtualenv
-    venv/bin/pip install git+https://github.com/kivy/plyer.git@master
-
-    # Install a couple of dependencies for KivyCatalog
-    venv/bin/pip install -U pygments docutils
+    # pip install git+https://github.com/kivy/kivy.git@master
 
 
-Ubuntu 12.04 with Python 3.3
-----------------------------
-
-Install System-wide Dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Note that these commands will remove any pre-existing versions of 
-python-virtualenv and replace it with the current version. It will also remove 
-cython, numpy, and pygame installed from your Linux distro's repository and 
-replace them with current versions from pip or the pygame Mercurial repository. 
+Install additional Virtualenv packages
+--------------------------------------
 
 ::
 
-    # Bootstrap Python3.3
-    sudo apt-get install python-software-properties
-    sudo add-apt-repository ppa:fkrull/deadsnakes
-    sudo apt-get update
-
-    # Install necessary system packages
-    sudo apt-get install -y \
-        build-essential \
-        mercurial \
-        git \
-        python3.3 \
-        python3.3-dev \
-        ffmpeg \
-        libsdl-image1.2-dev \
-        libsdl-mixer1.2-dev \
-        libsdl-ttf2.0-dev \
-        libsmpeg-dev \
-        libsdl1.2-dev \
-        libportmidi-dev \
-        libswscale-dev \
-        libavformat-dev \
-        libavcodec-dev \
-        zlib1g-dev
-
-    # Bootstrap current setuptools
-    wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -O - | sudo python3.3
-
-    # Bootstrap a current Python environment
-    sudo apt-get remove --purge -y python-virtualenv python-pip
-    sudo easy_install-3.3 -U pip
-    sudo pip3.3 install -U virtualenv
-
-    # Install current version of Cython
-    sudo apt-get remove --purge -y cython
-    sudo pip3.3 install -U cython
-
-    # Install other PyGame dependencies
-    sudo apt-get remove --purge -y python-numpy
-    sudo pip3.3 install -U numpy
-
-    # Install PyGame
-    hg clone https://bitbucket.org/pygame/pygame
-    cd pygame
-    python3.3 setup.py build
-    sudo python3.3 setup.py install
-    cd ..
-    sudo rm -rf pygame
-
-
-Create a Kivy Virtualenv
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    # Create a vitualenv
-    rm -rf venv
-    virtualenv -p python3.3 --system-site-packages venv
-
-    # Install stable version of Kivy into the virtualenv
-    venv/bin/pip install kivy
-    # For the development version of Kivy, use the following command instead
-    # venv/bin/pip install git+https://github.com/kivy/kivy.git@master
-
     # Install development version of buildozer into the virtualenv
-    #venv/bin/pip install git+https://github.com/kivy/buildozer.git@master
+    pip install git+https://github.com/kivy/buildozer.git@master
 
     # Install development version of plyer into the virtualenv
-    venv/bin/pip install git+https://github.com/kivy/plyer.git@master
+    pip install git+https://github.com/kivy/plyer.git@master
 
     # Install a couple of dependencies for KivyCatalog
-    venv/bin/pip install -U pygments docutils
+    pip install -U pygments docutils
+
 
 .. _linux-run-app:
 
