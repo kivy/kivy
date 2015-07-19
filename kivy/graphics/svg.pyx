@@ -32,9 +32,11 @@ from kivy.graphics.vertex_instructions cimport Mesh, StripMesh
 from kivy.graphics.tesselator cimport Tesselator
 from kivy.graphics.texture cimport Texture
 from kivy.graphics.vertex cimport VertexFormat
+from kivy.logger import Logger
 from cpython cimport array
 from array import array
 from cython cimport view
+from time import time
 
 DEF BEZIER_POINTS = 64 # 10
 DEF CIRCLE_POINTS = 64 # 24
@@ -497,6 +499,7 @@ cdef class Svg(RenderContext):
             subdivide Bezier splines. Defaults to 10.
         :param int circle_points: The number of line segments into which to
             subdivide circular and elliptic arcs. Defaults to 10.
+        :param color the default color to use for Svg elements that specify "currentColor" 
         '''
 
         super(Svg, self).__init__(fs=SVG_FS, vs=SVG_VS,
@@ -568,14 +571,24 @@ cdef class Svg(RenderContext):
             return self._anchor_y
 
 
+    '''Set the default color.
+
+    Used for SvgElements that specify "currentColor"
+    '''
+    property color:
+        def __set__(self, color):
+            self.current_color = kv_color_to_int_color(color)
+            self.reload()
+
     property filename:
         '''Filename to load.
 
         The parsing and rendering is done as soon as you set the filename.
         '''
         def __set__(self, filename):
-            print 'loading', filename
+            Logger.info('Svg: Loading {}'.format(filename))
             # check gzip
+            start = time()
             with open(filename, 'rb') as fd:
                 header = fd.read(3)
             if header == '\x1f\x8b\x08':
@@ -584,20 +597,24 @@ cdef class Svg(RenderContext):
             else:
                 fd = open(filename, 'rb')
             try:
-                tree = parse(fd)
+		#save the tree for later reloading
+                self.tree = parse(fd)
+                self.reload()
+                end = time()
+                Logger.info("Svg: Loaded {} in {:.2f}s".format(filename, end - start))
             finally:
                 fd.close()
 
+    cdef void reload(self):
             # parse tree
-            from time import time
             start = time()
-            self.parse_tree(tree)
+            self.parse_tree(self.tree)
             end1 = time()
             with self:
                 self.render()
             end2 = time()
-            print "{}: Parsed in {:.2f}s, rendered in {:.2f}s".format(
-                    filename, end1 - start, end2 - end1)
+            Logger.info("Svg: Parsed in {:.2f}s, rendered in {:.2f}s".format(
+                    end1 - start, end2 - end1))
 
     cdef parse_tree(self, tree):
         root = tree._root
@@ -867,7 +884,7 @@ cdef class Svg(RenderContext):
                 self.arc_to(rx, ry, rotation, arc, sweep, x, y)
 
             else:
-                print 'Warning: unimplemented command {}'.format(command)
+                Logger.warning('Svg: unimplemented command {}'.format(command))
 
             '''
             elif command == 'Q':
