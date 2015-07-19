@@ -574,6 +574,9 @@ cdef class Svg(RenderContext):
     '''Set the default color.
 
     Used for SvgElements that specify "currentColor"
+
+    .. versionadded:: 1.9.1
+
     '''
     property color:
         def __set__(self, color):
