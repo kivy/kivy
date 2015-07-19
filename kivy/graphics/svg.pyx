@@ -586,7 +586,7 @@ cdef class Svg(RenderContext):
         The parsing and rendering is done as soon as you set the filename.
         '''
         def __set__(self, filename):
-            Logger.info('Svg: Loading {}'.format(filename))
+            Logger.debug('Svg: Loading {}'.format(filename))
             # check gzip
             start = time()
             with open(filename, 'rb') as fd:
@@ -601,7 +601,7 @@ cdef class Svg(RenderContext):
                 self.tree = parse(fd)
                 self.reload()
                 end = time()
-                Logger.info("Svg: Loaded {} in {:.2f}s".format(filename, end - start))
+                Logger.debug("Svg: Loaded {} in {:.2f}s".format(filename, end - start))
             finally:
                 fd.close()
 
@@ -613,7 +613,7 @@ cdef class Svg(RenderContext):
             with self:
                 self.render()
             end2 = time()
-            Logger.info("Svg: Parsed in {:.2f}s, rendered in {:.2f}s".format(
+            Logger.debug("Svg: Parsed in {:.2f}s, rendered in {:.2f}s".format(
                     end1 - start, end2 - end1))
 
     cdef parse_tree(self, tree):
