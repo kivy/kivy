@@ -738,8 +738,8 @@ class FocusBehavior(object):
         :attr:`focus_next`, links since the other side will be set
         automatically.
 
-    :attr:`focus_next` is a :class:`~kivy.properties.ObjectProperty`, defaults
-    to `None`.
+    :attr:`focus_next` is a :class:`~kivy.properties.ObjectProperty` and
+    defaults to `None`.
     '''
 
     def _set_on_focus_previous(self, instance, value):
@@ -1098,8 +1098,8 @@ class CompoundSelectionBehavior(object):
     be able to select multiple widgets in the normally expected manner.
     This dominates :attr:`touch_multiselect` when False.
 
-    :attr:`multiselect` is a :class:`~kivy.properties.BooleanProperty`
-    , defaults to False.
+    :attr:`multiselect` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     keyboard_select = BooleanProperty(True)
@@ -1107,7 +1107,7 @@ class CompoundSelectionBehavior(object):
     inputs will be ignored.
 
     :attr:`keyboard_select` is a :class:`~kivy.properties.BooleanProperty`
-    , defaults to True.
+    and defaults to True.
     '''
 
     page_count = NumericProperty(10)
