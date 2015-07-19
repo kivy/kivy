@@ -388,8 +388,8 @@ class DragBehavior(object):
     children.
 
     :attr:`drag_timeout` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 55 (milliseconds), according to the default value of
-    `scroll_timeout` in user :class:`~kivy.config.Config`.
+    defaults to the `scroll_timeout` as defined in the user
+    :class:`~kivy.config.Config` (55 milliseconds by defaut).
     '''
 
     drag_rect_x = NumericProperty(0)
@@ -535,7 +535,7 @@ class FocusBehavior(object):
     tab. In addition, upon gaining focus the instance will automatically
     receive keyboard input.
 
-    Focus, very different then selection, is intimately tied with the keyboard;
+    Focus, very different from selection, is intimately tied with the keyboard;
     each keyboard can focus on zero or one widgets, and each widget can only
     have the focus of one keyboard. However, multiple keyboards can focus
     simultaneously on different widgets. When escape is hit, the widget having
@@ -544,10 +544,10 @@ class FocusBehavior(object):
     In essence, focus is implemented as a doubly linked list, where each
     node holds a (weak) reference to the instance before it and after it,
     as visualized when cycling through the nodes using tab (forward) or
-    shift+tab (backward). If previous or next widget is not specified,
-    :attr:`focus_next` and :attr:`focus_previous` defaults to `None`,
-    which means that the children list and parents are walked to find
-    the next focusable widget, unless :attr:`focus_next` or
+    shift+tab (backward). If a previous or next widget is not specified,
+    :attr:`focus_next` and :attr:`focus_previous` defaults to `None`. This
+    means that the :attr:`~kivy.uix.widget.Widget.children` list and parents are
+    walked to find the next focusable widget, unless :attr:`focus_next` or
     :attr:`focus_previous` is set to the `StopIteration` class, in which case
     focus stops there.
 
@@ -579,7 +579,7 @@ class FocusBehavior(object):
     ignored_touch = []
     '''A list of touches that should not be used to defocus. After on_touch_up,
     every touch that is not in :attr:`ignored_touch` will defocus all the
-    focused widgets, if, the config keyboard mode is not multi. Touches on
+    focused widgets if the config keyboard mode is not multi. Touches on
     focusable widgets that were used to focus are automatically added here.
 
     Example usage::
@@ -590,7 +590,7 @@ class FocusBehavior(object):
                 if self.collide_point(*touch.pos):
                     FocusBehavior.ignored_touch.append(touch)
 
-    Notice that you need to access this as class, not instance variable.
+    Notice that you need to access this as a class, not an instance variable.
     '''
 
     def _set_keyboard(self, value):
@@ -616,27 +616,27 @@ class FocusBehavior(object):
     into and out of focus. If not None, it must be a keyboard, which gets
     bound and unbound from the widget whenever it's in or out of focus. It is
     useful only when more than one keyboard is available, so it is recommended
-    to be set to None when only one keyboard is available
+    to be set to None when only one keyboard is available.
 
-    If more than one keyboard is available, whenever an instance get focused
-    a new keyboard will be requested if None. Unless, the other instances lose
+    If more than one keyboard is available, whenever an instance gets focused
+    a new keyboard will be requested if None. Unless the other instances lose
     focus (e.g. if tab was used), a new keyboard will appear. When this is
     undesired, the keyboard property can be used. For example, if there are
     two users with two keyboards, then each keyboard can be assigned to
     different groups of instances of FocusBehavior, ensuring that within
     each group, only one FocusBehavior will have focus, and will receive input
-    from the correct keyboard. see `keyboard_mode` in :mod:`~kivy.config` for
-    information on the keyboard modes.
+    from the correct keyboard. See `keyboard_mode` in :mod:`~kivy.config` for
+    more information on the keyboard modes.
 
-    :attr:`keyboard` is a :class:`~kivy.properties.AliasProperty`, defaults to
-    None.
+    :attr:`keyboard` is a :class:`~kivy.properties.AliasProperty` and defaults
+    to None.
 
     .. note::
 
         When Config's `keyboard_mode` is multi, each new touch is considered
         a touch by a different user and will focus (if clicked on a
         focusable) with a new keyboard. Already focused elements will not lose
-        their focus (even if clicked on a unfocusable).
+        their focus (even if an unfocusable widget is touched).
 
     .. note:
 
@@ -667,29 +667,29 @@ class FocusBehavior(object):
     '''Whether the instance can become focused. If focused, it'll lose focus
     when set to False.
 
-    :attr:`is_focusable` is a :class:`~kivy.properties.BooleanProperty`,
-    defaults to True on a desktop (i.e. desktop is True in
+    :attr:`is_focusable` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True on a desktop (i.e. `desktop` is True in
     :mod:`~kivy.config`), False otherwise.
     '''
 
     focus = BooleanProperty(False)
     '''Whether the instance currently has focus.
 
-    Setting it to True, will bind to and/or request the keyboard, and input
-    will be forwarded to the instance. Setting it to False, will unbind
+    Setting it to True will bind to and/or request the keyboard, and input
+    will be forwarded to the instance. Setting it to False will unbind
     and/or release the keyboard. For a given keyboard, only one widget can
     have its focus, so focusing one will automatically unfocus the other
     instance holding its focus.
 
-    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty`, defaults to
+    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
     '''
 
     focused = focus
     '''An alias of :attr:`focus`.
 
-    :attr:`focused` is a :class:`~kivy.properties.BooleanProperty`, defaults to
-    False.
+    :attr:`focused` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
 
     .. warning::
         :attr:`focused` is an alias of :attr:`focus` and will be removed in
