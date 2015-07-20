@@ -33,7 +33,7 @@ it easier to include frameworks like sdl2 and gstreamer::
     packaging> cd kivy-sdk-packager/osx
     osx> cp -a /Applications/Kivy.app ./Kivy.App
 
-This step above is important, you have to make sure to preserve the paths and permissions a command like cp -r will copy but make the appunusable and lead to error later on.
+This step above is important, you have to make sure to preserve the paths and permissions. A command like cp -rf will copy but make the app unusable and lead to error later on.
 
 Now all you need to do is to include your compiled app into the Kivy.app, simply run the following command::
 
