@@ -1066,10 +1066,10 @@ class CompoundSelectionBehavior(object):
     selected_nodes = ListProperty([])
     '''The list of selected nodes.
 
-    .. note:
+    .. note::
 
-        Multiple nodes can be selected right after another using e.g. the
-        keyboard, so when listening to :attr:`selected_nodes` one should be
+        Multiple nodes can be selected right after one another e.g. using the
+        keyboard. When listening to :attr:`selected_nodes`, one should be
         aware of this.
 
     :attr:`selected_nodes` is a :class:`~kivy.properties.ListProperty` and
@@ -1078,21 +1078,22 @@ class CompoundSelectionBehavior(object):
 
     touch_multiselect = BooleanProperty(False)
     '''A special touch mode which determines whether touch events, as
-    processed with :meth:`select_with_touch`, will add to the selection the
-    currently touched node, or if it will clear the selection before adding the
+    processed with :meth:`select_with_touch`, will add the currently touched
+    node to the selection, or if it will clear the selection before adding the
     node. This allows the selection of multiple nodes by simply touching them.
-    This is different than :attr:`multiselect`, because when this is True
-    simply touching an unselected node will select it, even if e.g. ctrl is not
-    pressed. If this is False, however, ctrl is required to be held in order to
-    add to selection when :attr:`multiselect` is True.
+
+    This is different from :attr:`multiselect` because when it is True,
+    simply touching an unselected node will select it, even if ctrl is not
+    pressed. If it is False, however, ctrl must be pressed in order to
+    add to the selection when :attr:`multiselect` is True.
 
     .. note::
 
         :attr:`multiselect`, when False, will disable
         :attr:`touch_multiselect`.
 
-    :attr:`touch_multiselect` is a :class:`~kivy.properties.BooleanProperty`,
-    defaults to False.
+    :attr:`touch_multiselect` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to False.
     '''
 
     multiselect = BooleanProperty(False)
@@ -1115,44 +1116,44 @@ class CompoundSelectionBehavior(object):
 
     page_count = NumericProperty(10)
     '''Determines by how much the selected node is moved up or down, relative
-    to position of the last selected node, when pageup (or pagedown) is
+    to the position of the last selected node, when pageup (or pagedown) is
     pressed.
 
-    :attr:`page_count` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`page_count` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 10.
     '''
 
     up_count = NumericProperty(1)
     '''Determines by how much the selected node is moved up or down, relative
-    to position of the last selected node, when the up (or down) arrow on the
-    keyboard is pressed.
+    to the position of the last selected node, when the up (or down) arrow on
+    the keyboard is pressed.
 
-    :attr:`up_count` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`up_count` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
     '''
 
     right_count = NumericProperty(1)
     '''Determines by how much the selected node is moved up or down, relative
-    to position of the last selected node, when the right (or left) arrow on
+    to the position of the last selected node, when the right (or left) arrow on
     the keyboard is pressed.
 
-    :attr:`right_count` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`right_count` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
     '''
 
     scroll_count = NumericProperty(0)
     '''Determines by how much the selected node is moved up or down, relative
-    to position of the last selected node, when the mouse scroll wheel is
+    to the position of the last selected node, when the mouse scroll wheel is
     scrolled.
 
-    :attr:`right_count` is a :class:`~kivy.properties.NumericProperty`,
+    :attr:`right_count` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
     '''
 
     nodes_order_reversed = BooleanProperty(True)
-    ''' (Internal) Indicates whether the the order of nodes as displayed top-
-    down is reversed than their order in :meth:`get_selectable_nodes` (e.g.
-    how the children property is reversed from how it's displayed),
+    ''' (Internal) Indicates whether the order of the nodes as displayed top-
+    down is reversed compared to their order in :meth:`get_selectable_nodes`
+    (e.g. how the children property is reversed compared to how it's displayed).
     '''
 
     _anchor = None  # the last anchor node selected (e.g. shift relative node)
