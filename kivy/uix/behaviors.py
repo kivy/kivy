@@ -718,8 +718,8 @@ class FocusBehavior(object):
 
     focus_next = ObjectProperty(None, allownone=True)
     '''The :class:`FocusBehavior` instance to acquire focus when
-    tab is pressed when this instance has focus, if not `None` or
-    `'StopIteration'`.
+    tab is pressed and this instance has focus, if not `None` or
+    `StopIteration`.
 
     When tab is pressed, focus cycles through all the :class:`FocusBehavior`
     widgets that are linked through :attr:`focus_next` and are focusable. If
@@ -734,11 +734,11 @@ class FocusBehavior(object):
         `StopIteration`. Similarly, if it wasn't None or `StopIteration`, it
         also sets the :attr:`focus_previous` property of the instance
         previously in :attr:`focus_next` to `None`. Therefore, it is only
-        required to set one side of the :attr:`focus_previous`,
-        :attr:`focus_next`, links since the other side will be set
+        required to set one of the :attr:`focus_previous` or
+        :attr:`focus_next` links since the other side will be set
         automatically.
 
-    :attr:`focus_next` is a :class:`~kivy.properties.ObjectProperty` and
+    :attr:`focus_next` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to `None`.
     '''
 
@@ -775,18 +775,18 @@ class FocusBehavior(object):
         `StopIteration`. Similarly, if it wasn't None or `StopIteration`, it
         also sets the :attr:`focus_next` property of the instance previously in
         :attr:`focus_previous` to `None`. Therefore, it is only required
-        to set one side of the :attr:`focus_previous`, :attr:`focus_next`,
+        to set one of the :attr:`focus_previous` or :attr:`focus_next`
         links since the other side will be set automatically.
 
-    :attr:`focus_previous` is a :class:`~kivy.properties.ObjectProperty`,
-    defaults to  `None`.
+    :attr:`focus_previous` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to `None`.
     '''
 
     keyboard_mode = OptionProperty('auto', options=('auto', 'managed'))
-    '''How the keyboard visibility should be managed (auto will have standard
-    behaviour to show/hide on focus, managed requires setting keyboard_visible
-    manually, or calling the helper functions ``show_keyboard()``
-    and ``hide_keyboard()``.
+    '''Determines how the keyboard visibility should be managed. 'auto' will
+    result in the standard behaviour of showing/hiding on focus. 'managed'
+    requires setting the keyboard visibility manually, or calling the helper
+    functions :meth:`show_keyboard` and :meth:`hide_keyboard`.
 
     :attr:`keyboard_mode` is an :class:`~kivy.properties.OptionsProperty` and
     defaults to 'auto'. Can be one of 'auto' or 'managed'.
@@ -801,7 +801,7 @@ class FocusBehavior(object):
 
     :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
     defaults to 'text'. Can be one of 'text', 'number', 'url', 'mail',
-    'datetime', 'tel', 'address'.
+    'datetime', 'tel' or 'address'.
     '''
 
     unfocus_on_touch = BooleanProperty(_keyboard_mode not in
@@ -815,7 +815,7 @@ class FocusBehavior(object):
     clicking on any widget other than this widget, will remove focus form this
     widget.
 
-    :attr:`unfocus_on_touch` is a :class:`~kivy.properties.BooleanProperty`,
+    :attr:`unfocus_on_touch` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to `False` if the `keyboard_mode` in :attr:`~kivy.config.Config`
     is `'multi'` or `'systemandmulti'`, otherwise it defaults to `True`.
     '''
