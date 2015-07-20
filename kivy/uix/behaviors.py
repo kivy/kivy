@@ -909,6 +909,9 @@ class FocusBehavior(object):
         if touch in touches:
             touches.remove(touch)
             return
+        if 'button' in touch.profile and touch.button in\
+                ('scrollup', 'scrolldown', 'scrollleft', 'scrollright'):
+            return
         for focusable in list(FocusBehavior._keyboards.values()):
             if focusable is None or not focusable.unfocus_on_touch:
                 continue
@@ -1146,6 +1149,12 @@ class CompoundSelectionBehavior(object):
     defaults to 0.
     '''
 
+    nodes_order_reversed = BooleanProperty(True)
+    ''' (Internal) Indicates whether the the order of nodes as displayed top-
+    down is reversed than their order in :meth:`get_selectable_nodes` (e.g.
+    how the children property is reversed from how it's displayed),
+    '''
+
     _anchor = None  # the last anchor node selected (e.g. shift relative node)
     # the idx may be out of sync
     _anchor_idx = 0  # cache indexs in case list hasn't changed
@@ -1332,7 +1341,8 @@ class CompoundSelectionBehavior(object):
             return sister_nodes[end], end
         if last_idx > end or sister_nodes[last_idx] != last_node:
             try:
-                return last_node, sister_nodes.index(last_node)
+                return last_node, self.get_index_of_node(last_node,
+                                                         sister_nodes)
             except ValueError:
                 return sister_nodes[end], end
         return last_node, last_idx
@@ -1357,13 +1367,13 @@ class CompoundSelectionBehavior(object):
         else:
             if last_idx > end or sister_nodes[last_idx] != last_node:
                 try:
-                    last_idx = sister_nodes.index(last_node)
+                    last_idx = self.get_index_of_node(last_node, sister_nodes)
                 except ValueError:
                     # list changed - cannot do select across them
                     return
         if idx > end or sister_nodes[idx] != node:
             try:    # just in case
-                idx = sister_nodes.index(node)
+                idx = self.get_index_of_node(node, sister_nodes)
             except ValueError:
                 return
 
@@ -1390,8 +1400,7 @@ class CompoundSelectionBehavior(object):
         deselect = self.deselect_node
         nodes = self.selected_nodes
         # empty beforehand so lookup in deselect will be fast
-        self.selected_nodes = []
-        for node in nodes:
+        for node in nodes[:]:
             deselect(node)
 
     def get_selectable_nodes(self):
@@ -1428,6 +1437,12 @@ class CompoundSelectionBehavior(object):
         Defaults to returning :attr:`~kivy.uix.widget.Widget.children`.
         '''
         return self.children
+
+    def get_index_of_node(self, node, selectable_nodes):
+        '''(internal) Returns the index of the `node` within `selectable_nodes`
+        that was returned by :meth:`get_selectable_nodes`.
+        '''
+        return selectable_nodes.index(node)
 
     def goto_node(self, key, last_node, last_node_idx):
         '''(internal) Used by the controller to get the node at the position
@@ -1467,19 +1482,23 @@ class CompoundSelectionBehavior(object):
             return last_node, last_node_idx
         if last_node_idx > end or sister_nodes[last_node_idx] != last_node:
             try:    # just in case
-                last_node_idx = sister_nodes.index(last_node)
+                last_node_idx = self.get_index_of_node(last_node, sister_nodes)
             except ValueError:
                 return last_node, last_node_idx
 
-        try:
-            idx = max(min(-counts[key] + last_node_idx, end), 0)
+        is_reversed = self.nodes_order_reversed
+        if key in counts:
+            count = -counts[key] if is_reversed else counts[key]
+            idx = max(min(count + last_node_idx, end), 0)
             return sister_nodes[idx], idx
-        except KeyError:
-            pass
-        if key == 'home':
-            return sister_nodes[end], end
-        elif key == 'end':
+        elif key == 'home':
+            if is_reversed:
+                return sister_nodes[end], end
             return sister_nodes[0], 0
+        elif key == 'end':
+            if is_reversed:
+                return sister_nodes[0], 0
+            return sister_nodes[end], end
         else:
             return last_node, last_node_idx
 
@@ -1531,5 +1550,6 @@ class CompoundSelectionBehavior(object):
         '''
         try:
             self.selected_nodes.remove(node)
+            return True
         except ValueError:
-            pass
+            return False

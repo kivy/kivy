@@ -123,6 +123,7 @@ from kivy.metrics import sp, dp
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
     ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty
+from kivy.uix.behaviors import FocusBehavior
 
 
 # When we are generating documentation, Config doesn't exist
@@ -651,6 +652,7 @@ class ScrollView(StencilView):
         # this touch.
         self._touch = touch
         uid = self._get_uid()
+        FocusBehavior.ignored_touch.append(touch)
 
         ud[uid] = {
             'mode': 'unknown',
