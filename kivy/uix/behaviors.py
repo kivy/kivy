@@ -955,8 +955,8 @@ class FocusBehavior(object):
 
         When overwriting the method in the derived widget, super should be
         called to enable tab cycling. If the derived widget wishes to use tab
-        for its own purposes, it can call super at the end after it is done if
-        it didn't consume tab.
+        for its own purposes, it can call super after it has processed the
+        character (if it does not wish to consume the tab).
 
         Similar to other keyboard functions, it should return True if the
         key was consumed.
@@ -983,10 +983,10 @@ class FocusBehavior(object):
 
         When overwriting the method in the derived widget, super should be
         called to enable de-focusing on escape. If the derived widget wishes
-        to use escape for its own purposes, it can call super at the end after
-        it is done if it didn't consume escape.
+        to use escape for its own purposes, it can call super after it has
+        processed the character (if it does not wish to consume the escape).
 
-        See :meth:`on_key_down`
+        See :meth:`keyboard_on_key_down`
         '''
         if keycode[1] == 'escape':
             self.focus = False
