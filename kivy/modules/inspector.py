@@ -192,7 +192,7 @@ Builder.load_string('''
     height: max(lkey.texture_size[1], ltext.texture_size[1])
     Label:
         id: lkey
-        text: root.key
+        text: root.key or ''
         text_size: (self.width, None)
         width: 150
         size_hint_x: None
@@ -256,6 +256,11 @@ class TreeViewProperty(BoxLayout, TreeViewNode):
     inspector = ObjectProperty(None)
 
     refresh = BooleanProperty(False)
+
+    def __init__(self, key=None, widget_ref=None, **kwargs):
+        super(TreeViewProperty, self).__init__(**kwargs)
+        self.key = key
+        self.widget_ref = widget_ref
 
 
 class TreeViewWidget(Label, TreeViewNode):
@@ -522,8 +527,7 @@ class Inspector(FloatLayout):
         node = None
         wk_widget = weakref.ref(widget)
         for key in keys:
-            text = '%s' % key
-            node = TreeViewProperty(text=text, key=key, widget_ref=wk_widget)
+            node = TreeViewProperty(key=key, widget_ref=wk_widget)
             node.bind(is_selected=self.show_property)
             try:
                 widget.bind(**{key: partial(
