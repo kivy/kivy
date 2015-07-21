@@ -34,10 +34,12 @@ from kivy.base import EventLoop
 from kivy.core.text import Label as CoreLabel
 from kivy.graphics import Color, Line
 from kivy.graphics import Rotate, Translate
+from kivy.graphics.tesselator import Tesselator
 from kivy.graphics.context_instructions import PopMatrix, PushMatrix
 from kivy.logger import Logger
 from kivy.graphics import Mesh
 from kivy.resources import resource_find
+from kivy.uix.stencilview import StencilView
 
 import numpy as np
 import io
@@ -96,6 +98,50 @@ class RendererKivy(RendererBase):
         self.mathtext_parser = MathTextParser("Bitmap")
         self.list_goraud_triangles = []
         self._clipd = {}
+        self.clip_rectangles = []
+
+    def contains(self, widget, x, y):
+        ''' Returns whether or not a stroke_point is inside the widget '''
+        left = widget.x
+        bottom = widget.y
+        top = widget.y + widget.height
+        right = widget.x + widget.width
+        return (left <= x <= right and
+                bottom <= y <= top)
+
+    def handle_clip_rectangle(self, gc, x, y):
+        '''It checks whether the point (x,y) collides with any already
+        existent stencil. If so it returns the index position of the
+        stencil it collides with. if the new clip rectangle bounds are
+        None it draws in the canvas otherwise it finds the correspondent
+        stencil or creates a new one for the new graphics instructions.'''
+        collides = self.collides_with_existent_stencil(x, y)
+        if collides > -1:
+            return collides
+        new_bounds = gc.get_clip_rectangle()
+        if new_bounds is not None:
+            x = int(new_bounds.bounds[0])
+            y = int(new_bounds.bounds[1])
+            w = int(new_bounds.bounds[2])
+            h = int(new_bounds.bounds[3])
+            collides = self.collides_with_existent_stencil(x, y)
+            if collides == -1:
+                cliparea = StencilView(pos=(x, y), size=(w, h))
+                self.clip_rectangles.append(cliparea)
+                self.widget.add_widget(cliparea)
+                return len(self.clip_rectangles) - 1
+            else:
+                return collides
+        else:
+            return -2
+
+    def collides_with_existent_stencil(self, x, y):
+        idx = -1
+        for cliparea in self.clip_rectangles:
+            idx += 1
+            if self.contains(cliparea, x, y):
+                return idx
+        return -1
 
     def draw_path(self, gc, path, transform, rgbFace=None):
         points_line = []
@@ -104,26 +150,34 @@ class RendererKivy(RendererBase):
         for polygon in polygons:
             vertices = []
             for x, y in polygon:
-                vertices += [x, y, 100, 100, ]
-                points_line.append(float(x))
-                points_line.append(float(y))
-            with self.widget.canvas:
-                if rgbFace is not None:
-                    Color(*rgbFace)
-                    Mesh(vertices=vertices, indices=range(len(polygon)),
-                         mode=str('triangle_fan'))
-                Color(*gc.get_rgb())
-                Line(points=points_line, width=gc.line['width'],
-                     dash_length=gc.line['dash_length'],
-                     dash_offset=gc.line['dash_offset'],
-                     dash_joint=gc.line['joint_style'])
+                points_line += [float(x), float(y), ]
+            tess = Tesselator()
+            tess.add_contour(points_line)
+            if not tess.tesselate():
+                print("Tesselator didn't work :(")
+                return
+            newclip = self.handle_clip_rectangle(gc, x, y)
+            if newclip > -1:
+                self.draw_graphics(self.clip_rectangles[newclip], gc, tess,
+                                points_line, rgbFace)
+            else:
+                self.draw_graphics(self.widget, gc, tess, points_line, rgbFace)
 
-    def tostring_rgba_minimized(self):
-        extents = self.get_content_extents()
-        bbox = [[extents[0], self.height - (extents[1] + extents[3])],
-                [extents[0] + extents[2], self.height - extents[1]]]
-        region = self.copy_from_bbox(bbox)
-        return np.array(region), extents
+    def draw_graphics(self, widget, gc, polygons, points_line, rgbFace):
+        with widget.canvas:
+            if rgbFace is not None:
+                Color(*rgbFace)
+                for vertices, indices in polygons.meshes:
+                    Mesh(
+                        vertices=vertices,
+                        indices=indices,
+                        mode=str("triangle_fan")
+                    )
+            Color(*gc.get_rgb())
+            Line(points=points_line[:-2], width=int(gc.line['width'] / 2),
+                 dash_length=gc.line['dash_length'],
+                 dash_offset=gc.line['dash_offset'],
+                 dash_joint=gc.line['joint_style'])
 
     def draw_image(self, gc, x, y, im):
         bbox = gc.get_clip_rectangle()
@@ -210,13 +264,10 @@ class RendererKivy(RendererBase):
         with self.widget.canvas:
             Rectangle(texture=texture, pos=(x, y), size=(w, h))
 
-    def start_filter(self):
-        print("Entra en start filter")
-        RendererBase.start_filter(self)
-
-    def stop_filter(self, filter_func):
-        print("Entra en stop filter")
-        RendererBase.stop_filter(self, filter_func)
+    def draw_markers(self, gc, marker_path, marker_trans, path,
+        trans, rgbFace=None):
+        RendererBase.draw_markers(self, gc, marker_path, marker_trans, path,
+                                  trans, rgbFace=rgbFace)
 
     def flipy(self):
         return False
@@ -329,8 +380,8 @@ class GraphicsContextKivy(GraphicsContextBase):
         self.line = {}
         self.line['cap_style'] = self.get_capstyle()
         self.line['joint_style'] = self.get_joinstyle()
-        self.line['dash_offset'] = 0
-        self.line['dash_length'] = 1
+        self.line['dash_offset'] = None
+        self.line['dash_length'] = None
 
     def set_capstyle(self, cs):
         GraphicsContextBase.set_capstyle(self, cs)
@@ -354,8 +405,8 @@ class GraphicsContextKivy(GraphicsContextBase):
         # dash_list is a list with numbers denoting the number of points
         # in a dash and if it is on or off.
         if dash_list is not None:
-            self.line['dash_offset'] = dash_offset
-            self.line['dash_length'] = dash_list[0]
+            self.line['dash_offset'] = int(dash_list[1])
+            self.line['dash_length'] = int(dash_list[0])
             # needs improvement since kivy seems not to support
             # dashes with different lengths and offsets
 
