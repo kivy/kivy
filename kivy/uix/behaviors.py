@@ -1107,8 +1107,8 @@ class CompoundSelectionBehavior(object):
     '''
 
     keyboard_select = BooleanProperty(True)
-    ''' Whether the keybaord can be used for selection. If False, keyboard
-    inputs will be ignored.
+    '''Determines whether the keyboard can be used for selection. If False,
+    keyboard inputs will be ignored.
 
     :attr:`keyboard_select` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True.
@@ -1350,11 +1350,11 @@ class CompoundSelectionBehavior(object):
 
     def _select_range(self, multiselect, keep_anchor, node, idx):
         '''Selects a range between self._anchor and node or idx.
-        If multiselect, it'll add to selection, otherwise it will unselect
-        everything before selecting the range. This is only called if
-        self.multiselect is True.
+        If multiselect is True, it will be added to the selection, otherwise
+        it will unselect everything before selecting the range. This is only
+        called if self.multiselect is True.
         If keep anchor is False, the anchor is moved to node. This should
-        always be True of keyboard selection.
+        always be True for keyboard selection.
         '''
         select = self.select_node
         sister_nodes = self.get_selectable_nodes()
