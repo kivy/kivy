@@ -809,7 +809,7 @@ class FocusBehavior(object):
     '''Whether a instance should lose focus when clicked outside the instance.
 
     When a user clicks on a widget that is focus aware and shares the same
-    keyboard as the this widget (which in the case of only one keyboard, are
+    keyboard as this widget (which in the case of only one keyboard, are
     all focus aware widgets), then as the other widgets gains focus, this
     widget loses focus. In addition to that, if this property is `True`,
     clicking on any widget other than this widget, will remove focus form this
@@ -1241,7 +1241,7 @@ class CompoundSelectionBehavior(object):
                              **kwargs):
         '''Processes a key press. This is called when a key press is to be used
         for selection. Depending on the keyboard keys pressed and the
-        configuration, it could select or deslect nodes or node ranges
+        configuration, it could select or deselect nodes or node ranges
         from the selectable nodes list, :meth:`get_selectable_nodes`.
 
         The parameters are such that it could be bound directly to the
