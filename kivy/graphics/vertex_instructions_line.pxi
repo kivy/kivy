@@ -101,6 +101,9 @@ cdef class Line(VertexInstruction):
     .. versionchanged:: 1.4.1
         `bezier`, `bezier_precision` have been added.
 
+    .. versionchanged:: 1.9.1
+        `dash_list` have been added
+
     '''
     cdef int _cap
     cdef int _cap_precision
@@ -108,6 +111,7 @@ cdef class Line(VertexInstruction):
     cdef int _bezier_precision
     cdef int _joint
     cdef list _points
+    cdef list _dash_list
     cdef float _width
     cdef int _dash_offset, _dash_length
     cdef int _use_stencil
@@ -122,9 +126,11 @@ cdef class Line(VertexInstruction):
     cdef tuple _mode_args
 
     def __init__(self, **kwargs):
-        VertexInstruction.__init__(self, **kwargs)
+        super(Line, self).__init__(**kwargs)
         v = kwargs.get('points')
+        dashes = kwargs.get('dash_list')
         self.points = v if v is not None else []
+        self._dash_list = dashes if dashes is not None else []
         self.batch.set_mode('line_strip')
         self._dash_length = kwargs.get('dash_length') or 1
         self._dash_offset = kwargs.get('dash_offset') or 0
@@ -209,6 +215,9 @@ cdef class Line(VertexInstruction):
         cdef float tex_x
         cdef char *buf = NULL
         cdef Texture texture = self.texture
+        cdef int length
+        cdef int position
+        cdef int total_length
 
         if count < 2:
             self.batch.clear_data()
@@ -219,7 +228,25 @@ cdef class Line(VertexInstruction):
             count += 1
 
         self.batch.set_mode('line_strip')
-        if self._dash_offset != 0:
+        length = sum(self._dash_list) if len(self._dash_list) > 1 else 0
+        if len(self._dash_list) > 1:
+            if texture is None or texture._width != length \
+                or texture._height != 1:
+                self.texture = texture = Texture.create(size=(length, 1))
+                texture.wrap = 'repeat'
+            # create a buffer to fill our texture            
+            buf = <char *>malloc(4 * length)
+            position = 0
+            for idx, val in enumerate(self._dash_list):
+                if idx % 2 == 0:
+                    memset(buf + position, 255, val * 4)
+                else:
+                    memset(buf + position, 0, val * 4)
+                position += val * 4
+            p_str = buf[:position]
+            self.texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
+            free(buf)
+        elif self._dash_offset != 0:
             if texture is None or texture._width != \
                 (self._dash_length + self._dash_offset) or \
                 texture._height != 1:
@@ -250,12 +277,18 @@ cdef class Line(VertexInstruction):
             raise MemoryError('indices')
 
         tex_x = 0
+
+        if len(self._dash_list) > 1:
+            total_length = length
+        else:
+            total_length = self._dash_length + self._dash_offset
+
         for i in xrange(count):
-            if self._dash_offset != 0 and i > 0:
+            if (self._dash_offset != 0 or len(self._dash_list) > 1) and i > 0:
                 tex_x += sqrt(
                         pow(p[i * 2]     - p[(i - 1) * 2], 2)  +
-                        pow(p[i * 2 + 1] - p[(i - 1) * 2 + 1], 2)) / (
-                                self._dash_length + self._dash_offset)
+                        pow(p[i * 2 + 1] - p[(i - 1) * 2 + 1], 2)) /\
+                        (total_length)
 
                 vertices[i].s0 = tex_x
                 vertices[i].t0 = 0
