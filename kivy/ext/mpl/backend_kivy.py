@@ -40,6 +40,7 @@ from kivy.logger import Logger
 from kivy.graphics import Mesh
 from kivy.resources import resource_find
 from kivy.uix.stencilview import StencilView
+from kivy.core.window import Window
 
 import numpy as np
 import io
@@ -164,6 +165,8 @@ class RendererKivy(RendererBase):
                 self.draw_graphics(self.widget, gc, tess, points_line, rgbFace)
 
     def draw_graphics(self, widget, gc, polygons, points_line, rgbFace):
+        if isinstance(gc.line['dash_list'], tuple):
+            gc.line['dash_list'] = list(gc.line['dash_list'])
         with widget.canvas:
             if rgbFace is not None:
                 Color(*rgbFace)
@@ -175,9 +178,10 @@ class RendererKivy(RendererBase):
                     )
             Color(*gc.get_rgb())
             Line(points=points_line[:-2], width=int(gc.line['width'] / 2),
-                 dash_length=gc.line['dash_length'],
-                 dash_offset=gc.line['dash_offset'],
-                 dash_joint=gc.line['joint_style'])
+                dash_length=gc.line['dash_length'],
+                dash_offset=gc.line['dash_offset'],
+                 dash_joint=gc.line['joint_style'],
+                 dash_list=gc.line['dash_list'])
 
     def draw_image(self, gc, x, y, im):
         bbox = gc.get_clip_rectangle()
@@ -382,6 +386,7 @@ class GraphicsContextKivy(GraphicsContextBase):
         self.line['joint_style'] = self.get_joinstyle()
         self.line['dash_offset'] = None
         self.line['dash_length'] = None
+        self.line['dash_list'] = []
 
     def set_capstyle(self, cs):
         GraphicsContextBase.set_capstyle(self, cs)
@@ -405,8 +410,9 @@ class GraphicsContextKivy(GraphicsContextBase):
         # dash_list is a list with numbers denoting the number of points
         # in a dash and if it is on or off.
         if dash_list is not None:
-            self.line['dash_offset'] = int(dash_list[1])
-            self.line['dash_length'] = int(dash_list[0])
+            self.line['dash_list'] = dash_list
+        if dash_offset is not None:
+            self.line['dash_offset'] = int(dash_offset)
             # needs improvement since kivy seems not to support
             # dashes with different lengths and offsets
 
@@ -494,7 +500,7 @@ def new_figure_manager_given_figure(num, figure):
     return manager
 
 
-class FigureCanvasKivy(FigureCanvasBase, Widget, FocusBehavior):
+class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
     """
     The canvas the figure renders into. Calls the draw and print fig
     methods, creates the renderers, etc...
@@ -511,17 +517,13 @@ class FigureCanvasKivy(FigureCanvasBase, Widget, FocusBehavior):
     """
 
     def __init__(self, figure, **kwargs):
-        #from kivy.core.window import Window
         if _debug:
             print('FigureCanvasKivy: ', figure)
-        #Window.bind(mouse_pos=self._on_mouse_pos)
+        Window.bind(mouse_pos=self._on_mouse_pos)
         self.bind(size=self._on_size_changed)
         self.inside_figure = True
         self.figure = figure
-        #super(FigureCanvasKivy, self).__init__(figure, **kwargs)
-        FocusBehavior.__init__(self, **kwargs)
-        FigureCanvasBase.__init__(self, figure, **kwargs)
-        Widget.__init__(self, **kwargs)
+        super(FigureCanvasKivy, self).__init__(figure=self.figure, **kwargs)
 
     def draw(self):
         """
@@ -577,15 +579,13 @@ class FigureCanvasKivy(FigureCanvasBase, Widget, FocusBehavior):
         return True
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
-        print(keycode[1])
         FigureCanvasBase.key_press_event(self, keycode[1], guiEvent=None)
-        return super(FocusBehavior, self).keyboard_on_key_down(self, window,
+        return super(FigureCanvasKivy, self).keyboard_on_key_down(window,
                                                     keycode, text, modifiers)
 
     def keyboard_on_key_up(self, window, keycode):
         FigureCanvasBase.key_release_event(self, keycode[1], guiEvent=None)
-        return super(FocusBehavior, self).keyboard_on_key_up(self,
-                                                        window, keycode)
+        return super(FigureCanvasKivy, self).keyboard_on_key_up(window, keycode)
 
     def _on_mouse_pos(self, *args):
         pos = args[1]
@@ -600,6 +600,7 @@ class FigureCanvasKivy(FigureCanvasBase, Widget, FocusBehavior):
             self.inside_figure = True
 
     def _on_size_changed(self, *args):
+        self.clear_widgets()
         w, h = self.size
         dpival = self.figure.dpi
         winch = w / dpival
