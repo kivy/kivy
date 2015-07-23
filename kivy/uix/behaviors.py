@@ -1428,20 +1428,20 @@ class CompoundSelectionBehavior(object):
             Layouts display their children in the reverse order. That is, the
             contents of :attr:`~kivy.uix.widget.Widget.children` is displayed
             form right to left, bottom to top. Therefore, internally, the
-            indices of the elements returned by this function is reversed to
+            indices of the elements returned by this function are reversed to
             make it work by default for most layouts so that the final result
-            is that e.g. home, although it will select the last element on this
-            list, visually it'll select the first element when counting from
-            top to bottom and left to right. If this behavior is not desired,
-            a reversed list should be returned instead.
+            is consistent e.g. home, although it will select the last element
+            in this list visually, will select the first element when
+            counting from top to bottom and left to right. If this behavior is
+            not desired, a reversed list should be returned instead.
 
         Defaults to returning :attr:`~kivy.uix.widget.Widget.children`.
         '''
         return self.children
 
     def get_index_of_node(self, node, selectable_nodes):
-        '''(internal) Returns the index of the `node` within `selectable_nodes`
-        that was returned by :meth:`get_selectable_nodes`.
+        '''(internal) Returns the index of the `node` within the
+        `selectable_nodes` returned by :meth:`get_selectable_nodes`.
         '''
         return selectable_nodes.index(node)
 
@@ -1449,7 +1449,7 @@ class CompoundSelectionBehavior(object):
         '''(internal) Used by the controller to get the node at the position
         indicated by key. The key can be keyboard inputs, e.g. pageup,
         or scroll inputs from the mouse scroll wheel, e.g. scrollup.
-        Last node is the last node selected and is used to find the resulting
+        'last_node' is the last node selected and is used to find the resulting
         node. For example, if the key is up, the returned node is one node
         up from the last node.
 
@@ -1508,8 +1508,8 @@ class CompoundSelectionBehavior(object):
 
         It is called by the controller when it selects a node and can be
         called from the outside to select a node directly. The derived widget
-        should overwrite this method and change the node to its selected state
-        when this is called
+        should overwrite this method and change the node state to selected
+        when called.
 
         :Parameters:
             `node`
