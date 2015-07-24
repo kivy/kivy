@@ -229,6 +229,7 @@ class ActionToggleButton(ActionItem, ToggleButton):
     Button is in a group, the text will be preferred.
     '''
 
+
 class ActionLabel(ActionItem, Label):
     '''ActionLabel class, see module documentation for more information.
     '''
