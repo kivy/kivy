@@ -30,7 +30,8 @@ class CoreCriticalException(Exception):
     pass
 
 
-def core_select_lib(category, llist, create_instance=False, base='kivy.core', basemodule=None):
+def core_select_lib(category, llist, create_instance=False,
+                    base='kivy.core', basemodule=None):
     if 'KIVY_DOC' in os.environ:
         return
     category = category.lower()
