@@ -68,10 +68,12 @@ class Spinner(Button):
     under the Spinner. The `text` property of the class will be used to
     represent the value.
 
-    The option class requires at least:
+    The option class requires:
 
     - a `text` property, used to display the value.
     - an `on_release` event, used to trigger the option when pressed/touched.
+    - a :attr:`~kivy.uix.widget.Widget.size_hint_y` of None.
+    - the :attr:`~kivy.uix.widget.Widget.height` to be set.
 
     :attr:`option_cls` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to :class:`SpinnerOption`.
