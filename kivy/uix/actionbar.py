@@ -38,6 +38,7 @@ from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.spinner import Spinner
+from kivy.uix.label import Label
 from kivy.config import Config
 from kivy.properties import ObjectProperty, NumericProperty, \
     BooleanProperty, StringProperty, ListProperty, OptionProperty, AliasProperty
@@ -227,6 +228,11 @@ class ActionToggleButton(ActionItem, ToggleButton):
     '''Source image to use when the Button is part of the ActionBar. If the
     Button is in a group, the text will be preferred.
     '''
+
+class ActionLabel(ActionItem, Label):
+    '''ActionLabel class, see module documentation for more information.
+    '''
+    pass
 
 
 class ActionCheck(ActionItem, CheckBox):
