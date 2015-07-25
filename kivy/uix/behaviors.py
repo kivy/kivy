@@ -646,11 +646,12 @@ class FocusBehavior(object):
       typically it's undesirable to link instances which are assigned
       different keyboards.
 
-    * When an instance has focus, setting keyboard to None will remove the
-      current keyboard, but the widget will then immediately try to get
-      another keyboard. It is better to set :attr:`focus` to False.
+    * When a widget has focus, setting its keyboard to None will remove its
+      keyboard, but the widget will then immediately try to get
+      another keyboard. In order to remove its keyboard, rather set its
+      :attr:`focus` to False.
 
-    :attr:`keyboard` is a :class:`~kivy.properties.AliasProperty` and defaults
+    :attr:`keyboard` is an :class:`~kivy.properties.AliasProperty` and defaults
     to None.
 
     .. warning:
