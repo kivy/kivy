@@ -62,9 +62,10 @@ offers:
 
     Similarly, if you combine a behavior class with a class which
     requires the use of the methods also defined by the behavior class, the
-    resulting class may not function properly. E.g. combining a ButtonBehavior
-    with a Slider, both of which require the on_touch_up methods, the resulting
-    class will not work.
+    resulting class may not function properly. For example, when combining the
+    :class:`ButtonBehavior` with a :class:`~kivy.uix.slider.Slider`, both of
+    which use the :meth:`~kivy.uix.widget.Widget.on_touch_up` method,
+    the resulting class may not work properly.
 
 '''
 
@@ -532,7 +533,7 @@ class FocusBehavior(object):
     '''This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
     keyboard focus behavior. When combined with other
     FocusBehavior widgets it allows one to cycle focus among them by pressing
-    tab. In addition, upon gaining focus the instance will automatically
+    tab. In addition, upon gaining focus, the instance will automatically
     receive keyboard input.
 
     Focus, very different from selection, is intimately tied with the keyboard;
@@ -610,7 +611,7 @@ class FocusBehavior(object):
         return self._keyboard
     keyboard = AliasProperty(_get_keyboard, _set_keyboard,
                              bind=('_keyboard', ))
-    '''The keyboard to bind, or bound to the widget when focused.
+    '''The keyboard to bind to (or bound to the widget) when focused.
 
     When None, a keyboard is requested and released whenever the widget comes
     into and out of focus. If not None, it must be a keyboard, which gets
@@ -628,30 +629,29 @@ class FocusBehavior(object):
     from the correct keyboard. See `keyboard_mode` in :mod:`~kivy.config` for
     more information on the keyboard modes.
 
+    **Keyboard and focus behavior**
+
+    When using the keyboard, there are some important default behaviors you
+    should keep in mind.
+
+    * When Config's `keyboard_mode` is multi, each new touch is considered
+      a touch by a different user and will set the focus (if clicked on a
+      focusable) with a new keyboard. Already focused elements will not lose
+      their focus (even if an unfocusable widget is touched).
+
+    * If the keyboard property is set, that keyboard will be used when the
+      instance gets focused. If widgets with different keyboards are linked
+      through :attr:`focus_next` and :attr:`focus_previous`, then as they are
+      tabbed through, different keyboards will become active. Therefore,
+      typically it's undesirable to link instances which are assigned
+      different keyboards.
+
+    * When an instance has focus, setting keyboard to None will remove the
+      current keyboard, but the widget will then immediately try to get
+      another keyboard. It is better to set :attr:`focus` to False.
+
     :attr:`keyboard` is a :class:`~kivy.properties.AliasProperty` and defaults
     to None.
-
-    .. note::
-
-        When Config's `keyboard_mode` is multi, each new touch is considered
-        a touch by a different user and will focus (if clicked on a
-        focusable) with a new keyboard. Already focused elements will not lose
-        their focus (even if an unfocusable widget is touched).
-
-    .. note:
-
-        If the keyboard property is set, that keyboard will be used when the
-        instance gets focused. If widgets with different keyboards are linked
-        through :attr:`focus_next` and :attr:`focus_previous`, then as they are
-        tabbed through, different keyboards will become active. Therefore,
-        typically it's undesirable to link instances which are assigned
-        different keyboards.
-
-    .. note:
-
-        When an instance has focus, setting keyboard to None will remove the
-        current keyboard, but will then try to get a keyboard back. It is
-        better to set :attr:`focus` to False.
 
     .. warning:
 
