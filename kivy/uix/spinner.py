@@ -46,8 +46,9 @@ from kivy.uix.dropdown import DropDown
 
 
 class SpinnerOption(Button):
-    '''Special button used in the dropdown list. We just set the default
-    size_hint_y and height.
+    '''Special button used in the :class:`Spinner` dropdown list. By default,
+    this is just a :class:`~kivy.uix.button.Button` with a size_hint_y of None
+    and a height of :meth:`48dp <kivy.metrics.dp>`.
     '''
     pass
 
