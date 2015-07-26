@@ -483,7 +483,7 @@ cdef class Mesh(VertexInstruction):
 
 
 cdef class Point(VertexInstruction):
-    '''A 2d point or dot..
+    '''A 2d point or dot.
 
     :Parameters:
         `points`: list
