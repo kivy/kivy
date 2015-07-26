@@ -620,7 +620,8 @@ cdef class Point(VertexInstruction):
             self.parent.flag_update()
 
     property points:
-        '''Property for getting/settings points of the triangle.
+        '''Property for getting/settings the center points in the points list.
+        Each pair of coordinates specifies the center of a new point.
         '''
         def __get__(self):
             return self._points
@@ -635,6 +636,8 @@ cdef class Point(VertexInstruction):
 
     property pointsize:
         '''Property for getting/setting point size.
+        The size is measured from the center to the edge, so a value of 1.0
+        means the real size will be 2.0 x 2.0.
         '''
         def __get__(self):
             return self._pointsize
