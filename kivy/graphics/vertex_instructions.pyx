@@ -4,50 +4,51 @@ Vertex Instructions
 
 This module includes all the classes for drawing simple vertex objects.
 
-.. note::
+Updating properties
+-------------------
 
-    The list attributes of the graphics instruction classes (e.g.
-    :attr:`Triangle.points`, :attr:`Mesh.indices` etc.) are not Kivy
-    properties but Python properties. As a consequence, the graphics will only
-    be updated when the list object itself is changed and not when list values
-    are modified.
+The list attributes of the graphics instruction classes (e.g.
+:attr:`Triangle.points`, :attr:`Mesh.indices` etc.) are not Kivy
+properties but Python properties. As a consequence, the graphics will only
+be updated when the list object itself is changed and not when list values
+are modified.
 
-    For example in python:
+For example in python:
 
-    .. code-block:: python
+.. code-block:: python
 
-        class MyWidget(Button):
+    class MyWidget(Button):
 
-            triangle = ObjectProperty(None)
-            def __init__(self, **kwargs):
-                super(MyWidget, self).__init__(**kwargs)
-                with self.canvas:
-                    self.triangle = Triangle(points=[0,0, 100,100, 200,0])
+        triangle = ObjectProperty(None)
+        def __init__(self, **kwargs):
+            super(MyWidget, self).__init__(**kwargs)
+            with self.canvas:
+                self.triangle = Triangle(points=[0,0, 100,100, 200,0])
 
-    and in kv:
+and in kv:
 
-    .. code-block:: kv
+.. code-block:: kv
 
-        <MyWidget>:
-            text: 'Update'
-            on_press:
-                self.triangle.points[3] = 400
+    <MyWidget>:
+        text: 'Update'
+        on_press:
+            self.triangle.points[3] = 400
 
-    Although when the button is pressed the triangle coordinates will be
-    changed, the graphics will not be updated because the list itself has not
-    been changed. Similarly, no updates will occur using any syntax that changes
-    only elements of the list e.g. self.triangle.points[0:2] = [10,10] or
-    self.triangle.points.insert(10) etc.
-    To force an update after a change, the list variable itself must be
-    changed, which in this case can be achieved with:
+Although pressing the button will change the triangle coordinates,
+the graphics will not be updated because the list itself has not
+changed. Similarly, no updates will occur using any syntax that changes
+only elements of the list e.g. self.triangle.points[0:2] = [10,10] or
+self.triangle.points.insert(10) etc.
+To force an update after a change, the list variable itself must be
+changed, which in this case can be achieved with:
 
-    .. code-block:: kv
+.. code-block:: kv
 
-        <MyWidget>:
-            text: 'Update'
-            on_press:
-                self.triangle.points[3] = 400
-                self.triangle.points = self.triangle.points
+    <MyWidget>:
+        text: 'Update'
+        on_press:
+            self.triangle.points[3] = 400
+            self.triangle.points = self.triangle.points
 '''
 
 __all__ = ('Triangle', 'Quad', 'Rectangle', 'RoundedRectangle', 'BorderImage', 'Ellipse',
