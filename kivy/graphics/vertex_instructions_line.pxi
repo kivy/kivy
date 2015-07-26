@@ -43,11 +43,11 @@ cdef class Line(VertexInstruction):
     #. If the :attr:`width` is 1.0, then the standard GL_LINE drawing from
        OpenGL will be used. :attr:`dash_length` and :attr:`dash_offset` will
        work, while properties for cap and joint have no meaning here.
-    #. If the :attr:`width` is > 1.0, then a custom drawing method will be used,
-       based on triangles. :attr:`dash_length` and :attr:`dash_offset` do not
-       work in this mode.
-       Additionally, if the current color has an alpha < 1.0, a stencil will be
-       used internally to draw the line.
+    #. If the :attr:`width` is greater than 1.0, then a custom drawing method,
+       based on triangulation, will be used. :attr:`dash_length` and
+       :attr:`dash_offset` do not work in this mode.
+       Additionally, if the current color has an alpha less than 1.0, a
+       stencil will be used internally to draw the line.
 
     .. image:: images/line-instruction.png
         :align: center
@@ -58,7 +58,7 @@ cdef class Line(VertexInstruction):
         `dash_length`: int
             Length of a segment (if dashed), defaults to 1.
         `dash_offset`: int
-            Offset between the end of a segments and the begining of the
+            Offset between the end of a segment and the begining of the
             next one, defaults to 0. Changing this makes it dashed.
         `width`: float
             Width of the line, defaults to 1.0.
@@ -76,22 +76,22 @@ cdef class Line(VertexInstruction):
         `close`: bool, defaults to False
             If True, the line will be closed.
         `circle`: list
-            If set, the :attr:`points` will be set to build a circle. Check
+            If set, the :attr:`points` will be set to build a circle. See
             :attr:`circle` for more information.
         `ellipse`: list
-            If set, the :attr:`points` will be set to build an ellipse. Check
+            If set, the :attr:`points` will be set to build an ellipse. See
             :attr:`ellipse` for more information.
         `rectangle`: list
-            If set, the :attr:`points` will be set to build a rectangle. Check
+            If set, the :attr:`points` will be set to build a rectangle. See
             :attr:`rectangle` for more information.
         `bezier`: list
-            If set, the :attr:`points` will be set to build a bezier line. Check
+            If set, the :attr:`points` will be set to build a bezier line. See
             :attr:`bezier` for more information.
         `bezier_precision`: int, defaults to 180
             Precision of the Bezier drawing.
 
     .. versionchanged:: 1.0.8
-        `dash_offset` and `dash_length` have been added
+        `dash_offset` and `dash_length` have been added.
 
     .. versionchanged:: 1.4.1
         `width`, `cap`, `joint`, `cap_precision`, `joint_precision`, `close`,
@@ -1196,7 +1196,8 @@ cdef class SmoothLine(Line):
 
     - drawing a line with alpha will probably not have the intended result if
       the line crosses itself.
-    - cap, joint and dash properties are not supported.
+    - :attr:`~Line.cap`, :attr:`~Line.joint` and :attr:`~Line.dash` properties
+      are not supported.
     - it uses a custom texture with a premultiplied alpha.
     - lines under 1px in width are not supported: they will look the same.
 
@@ -1482,7 +1483,7 @@ cdef class SmoothLine(Line):
 
 
     property overdraw_width:
-        '''Determine the overdraw width of the line, defaults to 1.2
+        '''Determine the overdraw width of the line, defaults to 1.2.
         '''
         def __get__(self):
             return self._owidth
