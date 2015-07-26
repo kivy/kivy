@@ -483,13 +483,16 @@ cdef class Mesh(VertexInstruction):
 
 
 cdef class Point(VertexInstruction):
-    '''A 2d point or dot.
+    '''A list of 2d points. Each point is represented as a square with a
+    width/height of 2 times the :attr:`pointsize`.
 
     :Parameters:
         `points`: list
-            List of points in the format (x1, y1, x2, y2...).
+            List of points in the format (x1, y1, x2, y2...), where each pair
+            of coordinates specifies the center of a new point.
         `pointsize`: float, defaults to 1.
-            Size of the point (1. means the real size will be 2).
+            The size of the point, measured from the center to the edge. A
+            value of 1.0 therefore means the real size will be 2.0 x 2.0.
 
     .. warning::
 
