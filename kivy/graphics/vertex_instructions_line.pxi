@@ -1191,19 +1191,18 @@ cdef class Line(VertexInstruction):
 
 
 cdef class SmoothLine(Line):
-    '''Experimental line using over-draw method to get better antialiasing
+    '''Experimental line using over-draw methods to get better anti-aliasing
     results. It has few drawbacks:
 
-    - drawing line with alpha will unlikely doesn't give the intended result if
-      the line cross itself
-    - no cap or joint are supported
-    - it use a custom texture with premultiplied alpha
-    - dash is not supported
-    - line under 1px width are not supported, it will look the same
+    - drawing a line with alpha will probably not have the intended result if
+      the line crosses itself.
+    - cap, joint and dash properties are not supported.
+    - it uses a custom texture with a premultiplied alpha.
+    - lines under 1px in width are not supported: they will look the same.
 
     .. warning::
 
-        This is an unfinished work, experimental, subject to crash.
+        This is an unfinished work, experimental, and subject to crashes.
 
     .. versionadded:: 1.9.0
     '''
