@@ -314,10 +314,9 @@ class DropDown(ScrollView):
         h_bottom = wy - self.height
         h_top = win.height - (wtop + self.height)
         if h_bottom > 0:
-            self.height += wy
+            self.top = wy
         elif h_top > 0:
             self.y = wtop
-            self.height = self.children[0].height
         else:
             # none of both top/bottom have enough place to display the
             # widget at the current size. Take the best side, and fit to
