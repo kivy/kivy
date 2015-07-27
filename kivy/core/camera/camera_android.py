@@ -8,7 +8,8 @@ import threading
 
 Camera = autoclass('android.hardware.Camera')
 SurfaceTexture = autoclass('android.graphics.SurfaceTexture')
-GL_TEXTURE_EXTERNAL_OES = autoclass('android.opengl.GLES11Ext').GL_TEXTURE_EXTERNAL_OES
+GL_TEXTURE_EXTERNAL_OES = autoclass(
+    'android.opengl.GLES11Ext').GL_TEXTURE_EXTERNAL_OES
 ImageFormat = autoclass('android.graphics.ImageFormat')
 
 
@@ -53,9 +54,12 @@ class CameraAndroid(CameraBase):
 
         pf = params.getPreviewFormat()
         assert(pf == ImageFormat.NV21)  # default format is NV21
-        self._bufsize = int(ImageFormat.getBitsPerPixel(pf) / 8. * width * height)
+        self._bufsize = int(ImageFormat.getBitsPerPixel(pf) / 8. *
+                            width * height)
 
-        self._camera_texture = Texture(width=width, height=height, target=GL_TEXTURE_EXTERNAL_OES, colorfmt='rgba')
+        self._camera_texture = Texture(width=width, height=height,
+                                       target=GL_TEXTURE_EXTERNAL_OES,
+                                       colorfmt='rgba')
         self._surface_texture = SurfaceTexture(int(self._camera_texture.id))
         self._android_camera.setPreviewTexture(self._surface_texture)
 
@@ -80,7 +84,8 @@ class CameraAndroid(CameraBase):
             }
         '''
         with self._fbo:
-            self._texture_cb = Callback(lambda instr: self._camera_texture.bind)
+            self._texture_cb = Callback(lambda instr:
+                                        self._camera_texture.bind)
             Rectangle(size=self._resolution)
 
     def _release_camera(self):
@@ -91,15 +96,18 @@ class CameraAndroid(CameraBase):
         self._android_camera.release()
         self._android_camera = None
 
-        self._texture = None  # clear texture and it'll be reset in `_update` pointing to new FBO
+        # clear texture and it'll be reset in `_update` pointing to new FBO
+        self._texture = None
         del self._fbo, self._surface_texture, self._camera_texture
 
     def _on_preview_frame(self, data, camera):
         with self._buflock:
             if self._buffer is not None:
-                self._android_camera.addCallbackBuffer(self._buffer)  # add buffer back for reuse
+                # add buffer back for reuse
+                self._android_camera.addCallbackBuffer(self._buffer)
             self._buffer = data
-        # print self._buffer, len(self.frame_data)  # check if frame grabbing works
+        # check if frame grabbing works
+        # print self._buffer, len(self.frame_data)
 
     def _refresh_fbo(self):
         self._texture_cb.ask_update()
@@ -117,7 +125,7 @@ class CameraAndroid(CameraBase):
 
         self._android_camera.startPreview()
         Clock.unschedule(self._update)
-        Clock.schedule_interval(self._update, 1./self.fps)
+        Clock.schedule_interval(self._update, 1. / self.fps)
 
     def stop(self):
         super(CameraAndroid, self).stop()
@@ -139,7 +147,8 @@ class CameraAndroid(CameraBase):
 
     def _copy_to_gpu(self):
         """
-        A dummy placeholder (the image is already in GPU) to be consistent with other providers.
+        A dummy placeholder (the image is already in GPU) to be consistent
+        with other providers.
         """
         self.dispatch('on_texture')
 
@@ -157,15 +166,16 @@ class CameraAndroid(CameraBase):
         """
         Decode image data from grabbed frame.
 
-        This method depends on OpenCV and NumPy - however it is only used for fetching the current
-        frame as a NumPy array, and not required when this :class:`CameraAndroid` provider is simply
-        used by a :class:`~kivy.uix.camera.Camera` widget.
+        This method depends on OpenCV and NumPy - however it is only used for
+        fetching the current frame as a NumPy array, and not required when
+        this :class:`CameraAndroid` provider is simply used by a
+        :class:`~kivy.uix.camera.Camera` widget.
         """
         import numpy as np
         from cv2 import cvtColor
 
         w, h = self._resolution
-        arr = np.fromstring(buf, 'uint8').reshape((h+h/2, w))
+        arr = np.fromstring(buf, 'uint8').reshape((h + h / 2, w))
         arr = cvtColor(arr, 93)  # NV21 -> BGR
         return arr
 

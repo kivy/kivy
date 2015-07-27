@@ -19,7 +19,7 @@ NSString = autoclass("NSString")
 class SoundAvplayer(Sound):
     @staticmethod
     def extensions():
-        # taken from https://developer.apple.com/library/ios/documentation/MusicAudio/Conceptual/CoreAudioOverview/SupportedAudioFormatsMacOSX/SupportedAudioFormatsMacOSX.html
+        # taken from https://goo.gl/015kvU
         return ("aac", "adts", "aif", "aiff", "aifc", "caf", "mp3", "mp4",
                 "m4a", "snd", "au", "sd2", "wav")
 
@@ -31,7 +31,8 @@ class SoundAvplayer(Sound):
         self.unload()
         fn = NSString.alloc().initWithUTF8String_(self.filename)
         url = NSURL.alloc().initFileURLWithPath_(fn)
-        self._avplayer = AVAudioPlayer.alloc().initWithContentsOfURL_error_(url, None)
+        self._avplayer = AVAudioPlayer.alloc().initWithContentsOfURL_error_(
+            url, None)
 
     def unload(self):
         self.stop()

@@ -268,6 +268,11 @@ class WindowBase(EventDispatcher):
         `on_dropfile`: str
             Fired when a file is dropped on the application.
 
+        `on_memorywarning`:
+            Fired when the platform have memory issue (iOS / Android mostly)
+            You can listen to this one, and clean whatever you can.
+
+            .. versionadded:: 1.9.0
     '''
 
     __instance = None
@@ -462,7 +467,7 @@ class WindowBase(EventDispatcher):
 
     when 'resize' The window is resized and the contents scaled to fit the
     remaining space.
-    
+
     When 'below_target', the window pans so that the current target TextInput
     widget requesting the keyboard is presented just above the soft Keyboard.
 
@@ -504,7 +509,8 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.9.0
 
-    :attr:`keyboard_height` is a read-only :class:`AliasProperty` defaults to 0.
+    :attr:`keyboard_height` is a read-only :class:`AliasProperty`,
+    defaults to 0.
     '''
 
     def _set_system_size(self, size):
@@ -565,7 +571,7 @@ class WindowBase(EventDispatcher):
         'on_mouse_down', 'on_mouse_move', 'on_mouse_up', 'on_keyboard',
         'on_key_down', 'on_key_up', 'on_textinput', 'on_dropfile',
         'on_request_close', 'on_joy_axis', 'on_joy_hat', 'on_joy_ball',
-        'on_joy_button_down', "on_joy_button_up")
+        'on_joy_button_down', 'on_joy_button_up', 'on_memorywarning')
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -606,9 +612,11 @@ class WindowBase(EventDispatcher):
         if 'height' not in kwargs:
             kwargs['height'] = Config.getint('graphics', 'height')
         if 'minimum_width' not in kwargs:
-            kwargs['minimum_width'] = Config.getint('graphics', 'minimum_width')
+            kwargs['minimum_width'] = Config.getint('graphics',
+                                                    'minimum_width')
         if 'minimum_height' not in kwargs:
-            kwargs['minimum_height'] = Config.getint('graphics', 'minimum_height')
+            kwargs['minimum_height'] = Config.getint('graphics',
+                                                     'minimum_height')
         if 'rotation' not in kwargs:
             kwargs['rotation'] = Config.getint('graphics', 'rotation')
         if 'position' not in kwargs:
@@ -1215,6 +1223,18 @@ class WindowBase(EventDispatcher):
             (ios, android etc.)
 
         .. versionadded:: 1.2.0
+        '''
+        pass
+
+    def on_memorywarning(self):
+        '''Event called when the platform have memory issue.
+        Your goal is to clear the cache in your app as much as you can,
+        release unused widget, etc.
+
+        Currently, this event is fired only from SDL2 provider, for
+        iOS and Android.
+
+        .. versionadded:: 1.9.0
         '''
         pass
 

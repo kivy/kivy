@@ -2,36 +2,39 @@
 Widget class
 ============
 
-The :class:`Widget` class is the base class required to create a Widget.
-This widget class is designed with a couple of principles in mind:
+The :class:`Widget` class is the base class required for creating Widgets.
+This widget class was designed with a couple of principles in mind:
 
-    Event Driven
-        Widget interaction is built on top of events that occur. If a property
-        changes, the widget can respond to the change in the 'on_<propname>'
-        callback. If nothing changes, nothing will be done. That's the main
-        goal of the :class:`~kivy.properties.Property` class.
+* *Event Driven*
 
-    Separate the widget and its graphical representation
-        Widgets don't have a `draw()` method. This is done on purpose: The idea
-        is to allow you to create your own graphical representation outside the
-        widget class.
-        Obviously you can still use all the available properties to do that, so
-        that your representation properly reflects the widget's current state.
-        Every widget has its own :class:`~kivy.graphics.Canvas` that you
-        can use to draw. This separation allows Kivy to run your
-        application in a very efficient manner.
+  Widget interaction is built on top of events that occur. If a property
+  changes, the widget can respond to the change in the 'on_<propname>'
+  callback. If nothing changes, nothing will be done. That's the main
+  goal of the :class:`~kivy.properties.Property` class.
 
-    Bounding Box / Collision
-        Often you want to know if a certain point is within the bounds of your
-        widget. An example would be a button widget where you want to only
-        trigger an action when the button itself is actually touched.
-        For this, you can use the :meth:`Widget.collide_point` method, which
-        will return True if the point you pass to it is inside the axis-aligned
-        bounding box defined by the widget's position and size.
-        If a simple AABB is not sufficient, you can override the method to
-        perform the collision checks with more complex shapes, e.g. a polygon.
-        You can also check if a widget collides with another widget with
-        :meth:`Widget.collide_widget`.
+* *Separation Of Concerns (the widget and its graphical representation)*
+
+  Widgets don't have a `draw()` method. This is done on purpose: The idea
+  is to allow you to create your own graphical representation outside the
+  widget class.
+  Obviously you can still use all the available properties to do that, so
+  that your representation properly reflects the widget's current state.
+  Every widget has its own :class:`~kivy.graphics.Canvas` that you
+  can use to draw. This separation allows Kivy to run your
+  application in a very efficient manner.
+
+* *Bounding Box / Collision*
+
+  Often you want to know if a certain point is within the bounds of your
+  widget. An example would be a button widget where you only want to
+  trigger an action when the button itself is actually touched.
+  For this, you can use the :meth:`Widget.collide_point` method, which
+  will return True if the point you pass to it is inside the axis-aligned
+  bounding box defined by the widget's position and size.
+  If a simple AABB is not sufficient, you can override the method to
+  perform the collision checks with more complex shapes, e.g. a polygon.
+  You can also check if a widget collides with another widget with
+  :meth:`Widget.collide_widget`.
 
 
 We also have some default values and behaviors that you should be aware of:
@@ -297,6 +300,13 @@ class Widget(WidgetBase):
         if not hasattr(self, '_context'):
             self._context = get_current_context()
 
+        no_builder = '__no_builder' in kwargs
+        if no_builder:
+            del kwargs['__no_builder']
+        on_args = {k: v for k, v in kwargs.items() if k[:3] == 'on_'}
+        for key in on_args:
+            del kwargs[key]
+
         super(Widget, self).__init__(**kwargs)
 
         # Create the default canvas if it does not exist.
@@ -304,7 +314,7 @@ class Widget(WidgetBase):
             self.canvas = Canvas(opacity=self.opacity)
 
         # Apply all the styles.
-        if '__no_builder' not in kwargs:
+        if not no_builder:
             #current_root = Builder.idmap.get('root')
             #Builder.idmap['root'] = self
             Builder.apply(self)
@@ -314,9 +324,8 @@ class Widget(WidgetBase):
             #    Builder.idmap.pop('root')
 
         # Bind all the events.
-        for argument in kwargs:
-            if argument[:3] == 'on_':
-                self.bind(**{argument: kwargs[argument]})
+        if on_args:
+            self.bind(**on_args)
 
     @property
     def proxy_ref(self):
@@ -846,7 +855,8 @@ class Widget(WidgetBase):
 
     def _apply_transform(self, m, pos=None):
         if self.parent:
-            x, y = self.parent.to_widget(relative=True, *self.to_window(*(pos or self.pos)))
+            x, y = self.parent.to_widget(relative=True,
+                                         *self.to_window(*(pos or self.pos)))
             m.translate(x, y, 0)
             m = self.parent._apply_transform(m) if self.parent else m
         return m

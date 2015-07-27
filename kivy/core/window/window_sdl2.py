@@ -133,6 +133,7 @@ class SDL2MotionEventProvider(MotionEventProvider):
 class WindowSDL(WindowBase):
 
     def __init__(self, **kwargs):
+        self._pause_loop = False
         self._win = _WindowSDL2Storage()
         super(WindowSDL, self).__init__()
         self._mouse_x = self._mouse_y = -1
@@ -156,11 +157,53 @@ class WindowSDL(WindowBase):
                     281: 'pgdown'}
         self._mouse_buttons_down = set()
 
-        self.bind(minimum_width=self._restrict_window,
-                  minimum_height=self._restrict_window)
+        self.bind(minimum_width=self._set_minimum_size,
+                  minimum_height=self._set_minimum_size)
 
-    def _restrict_window(self, *args):
-        self._win.set_minimum_size(self.minimum_width, self.minimum_height)
+    def _set_minimum_size(self, *args):
+        minimum_width = self.minimum_width
+        minimum_height = self.minimum_height
+        if minimum_width and minimum_height:
+            self._win.set_minimum_size(minimum_width, minimum_height)
+        elif minimum_width or minimum_height:
+            Logger.warning(
+                'Both Window.minimum_width and Window.minimum_height must be '
+                'bigger than 0 for the size restriction to take effect.')
+
+    def _event_filter(self, action):
+        from kivy.app import App
+        if action == 'app_terminating':
+            EventLoop.quit = True
+            self.close()
+
+        elif action == 'app_lowmemory':
+            self.dispatch('on_memorywarning')
+
+        elif action == 'app_willenterbackground':
+            from kivy.base import stopTouchApp
+            app = App.get_running_app()
+            if not app:
+                Logger.info('WindowSDL: No running App found, exit.')
+                stopTouchApp()
+                return 0
+
+            if not app.dispatch('on_pause'):
+                Logger.info('WindowSDL: App doesn\'t support pause mode, stop.')
+                stopTouchApp()
+                return 0
+
+            self._pause_loop = True
+
+        elif action == 'app_didenterforeground':
+            # on iOS, the did enter foreground is launched at the start
+            # of the application. in our case, we want it only when the app
+            # is resumed
+            if self._pause_loop:
+                self._pause_loop = False
+                app = App.get_running_app()
+                app.dispatch('on_resume')
+
+        return 0
 
     def create_window(self, *largs):
         if self._fake_fullscreen:
@@ -182,6 +225,9 @@ class WindowSDL(WindowBase):
             elif self.position == 'custom':
                 pos = self.left, self.top
 
+            # ensure we have an event filter
+            self._win.set_event_filter(self._event_filter)
+
             # setup !
             w, h = self.system_size
             resizable = Config.getboolean('graphics', 'resizable')
@@ -200,9 +246,7 @@ class WindowSDL(WindowBase):
             # never stay with a None pos, application using w.center
             # will be fired.
             self._pos = (0, 0)
-            if self.minimum_width or self.minimum_height:
-                self._win.set_minimum_size(self.minimum_width,
-                                           self.minimum_height)
+            self._set_minimum_size()
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
@@ -210,6 +254,9 @@ class WindowSDL(WindowBase):
             self._win.set_fullscreen_mode(self.fullscreen)
 
         super(WindowSDL, self).create_window()
+        # set mouse visibility
+        self._win.show_cursor(
+            Config.getboolean('graphics', 'show_cursor'))
 
         if self.initialized:
             return
@@ -306,6 +353,17 @@ class WindowSDL(WindowBase):
 
     def _mainloop(self):
         EventLoop.idle()
+
+        # for android/iOS, we don't want to have any event nor executing our
+        # main loop while the pause is going on. This loop wait any event (not
+        # handled by the event filter), and remove them from the queue.
+        # Nothing happen during the pause on iOS, except gyroscope value sended
+        # over joystick. So it's safe.
+        while self._pause_loop:
+            self._win.wait_event()
+            if not self._pause_loop:
+                break
+            self._win.poll()
 
         while True:
             event = self._win.poll()
@@ -487,17 +545,6 @@ class WindowSDL(WindowBase):
             elif action == 'textinput':
                 text = args[0]
                 self.dispatch('on_textinput', text)
-                # XXX on IOS, keydown/up don't send unicode anymore.
-                # With latest sdl, the text is sent over textinput
-                # Right now, redo keydown/up, but we need to seperate both call
-                # too. (and adapt on_key_* API.)
-                #self.dispatch()
-                #self.dispatch('on_key_down', key, None, args[0],
-                #              self.modifiers)
-                #self.dispatch('on_keyboard', None, None, args[0],
-                #              self.modifiers)
-                #self.dispatch('on_key_up', key, None, args[0],
-                #              self.modifiers)
 
             # unhandled event !
             else:
@@ -509,7 +556,7 @@ class WindowSDL(WindowBase):
         self.dispatch('on_resize', *self.size)
 
     def do_pause(self):
-        # should go to app pause mode.
+        # should go to app pause mode (desktop style)
         from kivy.app import App
         from kivy.base import stopTouchApp
         app = App.get_running_app()
@@ -535,6 +582,8 @@ class WindowSDL(WindowBase):
             if action == 'quit':
                 EventLoop.quit = True
                 self.close()
+                break
+            elif action == 'app_willenterforeground':
                 break
             elif action == 'windowrestored':
                 break
@@ -611,4 +660,3 @@ class WindowSDL(WindowBase):
             return False
         if not self._win.is_keyboard_shown():
             self._sdl_keyboard.release()
-

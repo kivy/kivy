@@ -66,7 +66,7 @@ class AnchorLayout(Layout):
 
     def __init__(self, **kwargs):
         super(AnchorLayout, self).__init__(**kwargs)
-        fbind = self.fast_bind
+        fbind = self.fbind
         update = self._trigger_layout
         fbind('children', update)
         fbind('parent', update)

@@ -211,7 +211,7 @@ class KivyBuildExt(build_ext):
         retval = build_ext.finalize_options(self)
         global build_path
         if (self.build_lib is not None and exists(self.build_lib) and
-            not self.inplace):
+                not self.inplace):
             build_path = self.build_lib
         return retval
 
@@ -250,8 +250,8 @@ class KivyBuildExt(build_ext):
         config_pxi += 'DEF DEBUG = {0}\n'.format(debug)
         config_py += 'DEBUG = {0}\n'.format(debug)
         for fn, content in (
-            (config_h_fn, config_h), (config_pxi_fn, config_pxi),
-            (config_py_fn, config_py)):
+                (config_h_fn, config_h), (config_pxi_fn, config_pxi),
+                (config_py_fn, config_py)):
             build_fn = expand(build_path, *fn)
             if self.update_if_changed(build_fn, content):
                 print('Updated {}'.format(build_fn))
@@ -320,7 +320,8 @@ else:
             c_options['use_opengl_es2'] = False
         else:
             # auto detection of GLES headers
-            default_header_dirs = ['/usr/include', join(environ.get('LOCALBASE', '/usr/local'), 'include')]
+            default_header_dirs = ['/usr/include', join(
+                environ.get('LOCALBASE', '/usr/local'), 'include')]
             c_options['use_opengl_es2'] = False
             for hdir in default_header_dirs:
                 filename = join(hdir, 'GLES2', 'gl2.h')
@@ -332,7 +333,8 @@ else:
             if not c_options['use_opengl_es2']:
                 print('NOTE: Not found GLES 2.0 headers at: {}'.format(
                     default_header_dirs))
-                print('      Please contact us if your distribution '
+                print(
+                    '      Please contact us if your distribution '
                     'uses an alternative path for the headers.')
 
 print('Using this graphics system: {}'.format(
@@ -468,8 +470,10 @@ def determine_base_flags():
         flags['extra_compile_args'] += ['-isysroot', sysroot]
         flags['extra_link_args'] += ['-isysroot', sysroot]
     elif platform.startswith('freebsd'):
-        flags['include_dirs'] += [join(environ.get('LOCALBASE', '/usr/local'), 'include')]
-        flags['extra_link_args'] += ['-L', join(environ.get('LOCALBASE', '/usr/local'), 'lib')]
+        flags['include_dirs'] += [join(
+            environ.get('LOCALBASE', '/usr/local'), 'include')]
+        flags['extra_link_args'] += ['-L', join(
+            environ.get('LOCALBASE', '/usr/local'), 'lib')]
     elif platform == 'darwin':
         v = os.uname()
         if v[2] >= '13.0.0':
@@ -480,7 +484,8 @@ def determine_base_flags():
             sdk_mac_ver = '.'.join(_platform.mac_ver()[0].split('.')[:2])
             print('Xcode detected at {}, and using MacOSX{} sdk'.format(
                     xcode_dev, sdk_mac_ver))
-            sysroot = join(xcode_dev.decode('utf-8'),
+            sysroot = join(
+                    xcode_dev.decode('utf-8'),
                     'Platforms/MacOSX.platform/Developer/SDKs',
                     'MacOSX{}.sdk'.format(sdk_mac_ver),
                     'System/Library/Frameworks')
@@ -513,7 +518,8 @@ def determine_gl_flags():
         flags['extra_link_args'] = ['-L', join(ndkplatform, 'usr', 'lib')]
         flags['libraries'] = ['GLESv2']
     elif platform == 'rpi':
-        flags['include_dirs'] = ['/opt/vc/include',
+        flags['include_dirs'] = [
+            '/opt/vc/include',
             '/opt/vc/include/interface/vcos/pthreads',
             '/opt/vc/include/interface/vmcs_host/linux']
         flags['library_dirs'] = ['/opt/vc/lib']
@@ -615,7 +621,8 @@ graphics_dependencies = {
     'instructions.pyx': [
         'config.pxi', 'opcodes.pxi', 'c_opengl.pxd', 'c_opengl_debug.pxd',
         'context.pxd', 'common.pxi', 'vertex.pxd', 'transformation.pxd'],
-    'opengl.pyx': ['config.pxi', 'common.pxi', 'c_opengl.pxd', 'gl_redirect.h'],
+    'opengl.pyx': [
+        'config.pxi', 'common.pxi', 'c_opengl.pxd', 'gl_redirect.h'],
     'opengl_utils.pyx': ['opengl_utils_def.pxi', 'c_opengl.pxd'],
     'shader.pxd': ['c_opengl.pxd', 'transformation.pxd', 'vertex.pxd'],
     'shader.pyx': [
@@ -640,8 +647,8 @@ graphics_dependencies = {
     'vertex.pxd': ['c_opengl.pxd'],
     'vertex.pyx': ['config.pxi', 'common.pxi'],
     'vertex_instructions.pyx': [
-        'config.pxi', 'common.pxi', 'vbo.pxd', 'vertex.pxd', 'instructions.pxd',
-        'vertex_instructions.pxd',
+        'config.pxi', 'common.pxi', 'vbo.pxd', 'vertex.pxd',
+        'instructions.pxd', 'vertex_instructions.pxd',
         'c_opengl.pxd', 'c_opengl_debug.pxd', 'texture.pxd',
         'vertex_instructions_line.pxi'],
     'vertex_instructions_line.pxi': ['stencil_instructions.pxd']}
@@ -797,8 +804,8 @@ def get_extensions_from_sources(sources):
         for key, value in flags.items():
             if len(value):
                 flags_clean[key] = value
-        ext_modules.append(CythonExtension(module_name,
-            [pyx] + f_depends + c_depends, **flags_clean))
+        ext_modules.append(CythonExtension(
+            module_name, [pyx] + f_depends + c_depends, **flags_clean))
     return ext_modules
 
 ext_modules = get_extensions_from_sources(sources)
@@ -816,7 +823,7 @@ for root, subFolders, files in walk('examples'):
             continue
         filename = join(root, fn)
         directory = '%s%s' % (data_file_prefix, dirname(filename))
-        if not directory in examples:
+        if directory not in examples:
             examples[directory] = []
         examples[directory].append(filename)
 
@@ -885,6 +892,7 @@ setup(
         'core/text/*.pxi',
         'graphics/*.pxd',
         'graphics/*.pxi',
+        'graphics/*.h',
         'lib/vidcore_lite/*.pxd',
         'lib/vidcore_lite/*.pxi',
         'data/*.kv',
@@ -912,6 +920,7 @@ setup(
         'tools/packaging/win32/README.txt',
         'tools/packaging/osx/Info.plist',
         'tools/packaging/osx/InfoPlist.strings',
+        'tools/gles_compat/*.h',
         'tools/packaging/osx/kivy.sh'] + binary_deps},
     data_files=list(examples.items()),
     classifiers=[

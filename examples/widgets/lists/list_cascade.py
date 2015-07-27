@@ -48,20 +48,20 @@ class FruitsListAdapter(ListAdapter):
 # classes that subclass SelectableDataItem:
 #
 class CategoryItem(SelectableDataItem):
-    def __init__(self, **kwargs):
-        super(CategoryItem, self).__init__(**kwargs)
-        self.name = kwargs.get('name', '')
-        self.fruits = kwargs.get('fruits', [])
-        self.is_selected = kwargs.get('is_selected', False)
+    def __init__(self, name='', fruits=None, is_selected=False, **kwargs):
+        super(CategoryItem, self).__init__(is_selected=is_selected, **kwargs)
+        self.name = name
+        self.fruits = fruits if fruits is not None else []
+        self.is_selected = is_selected
 
 
 class FruitItem(SelectableDataItem):
-    def __init__(self, **kwargs):
-        super(FruitItem, self).__init__(**kwargs)
-        self.name = kwargs.get('name', '')
-        self.serving_size = kwargs.get('Serving Size', '')
-        self.data = kwargs.get('data', [])
-        self.is_selected = kwargs.get('is_selected', False)
+    def __init__(self, name='', data=None, is_selected=False, **kwargs):
+        self.serving_size = kwargs.pop('Serving Size', '')
+        super(FruitItem, self).__init__(is_selected=is_selected, **kwargs)
+        self.name = name
+        self.data = data if data is not None else []
+        self.is_selected = is_selected
 
 
 # To instantiate CategoryItem and FruitItem instances, we use the dictionary-

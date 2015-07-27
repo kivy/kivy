@@ -45,7 +45,7 @@ medical visualization widget).
 So keep these three questions in mind when you design your widgets. Try to
 write them in a minimal and reusable manner (i.e. a widget does exactly
 what its supposed to do and nothing more. If you need more, write more
-widgets or compose other widgets of smaller widgets. We try to adhere to the 
+widgets or compose other widgets of smaller widgets. We try to adhere to the
 `Single Responsibility Principle
 <http://en.wikipedia.org/wiki/Single_responsibility_principle>`_).
 
@@ -90,14 +90,14 @@ just nicely provide the classes defined in the file.
 .. note::
     You may be wondering why you have to import App and Widget separately,
     instead of doing something like ``from kivy import *``. While shorter,
-    this would have the disadvantage of `polluting  your namespace 
+    this would have the disadvantage of `polluting  your namespace
     <http://en.wikipedia.org/wiki/Namespace_%28computer_science%29#Python>`_
     and make the start of the application potentially much slower.
     It can also introduce ambiguity into class and variable naming,
     so is generally frowned upon in the Python community. The way we do it is
     faster and cleaner.
 
-    
+
 
 Adding Behaviour
 ~~~~~~~~~~~~~~~~
@@ -302,26 +302,27 @@ Here's what happens:
       we don't return it directly but bind it to a variable name.
     * Line 27: We create a button widget. It will have a label on it that
       displays the text 'Clear'.
-    * Line 28 & 29: We set up the widget hierarchy by making both the
+    * Line 28: We then bind the button's on_release event (which is fired when
+      the button is pressed and then released) to the
+      `callback function <http://en.wikipedia.org/wiki/Callback_function#Python>`_
+      `clear_canvas` defined on below on Lines 33 & 34.
+    * Line 29 & 30: We set up the widget hierarchy by making both the
       painter and the clearbtn children of the dummy parent widget.
       That means `painter` and `clearbtn` are now siblings in the usual computer
       science tree terminology.
-    * Lines 31 & 32: Up to now, the button did nothing. It was there,
+    * Line 33 & 34: Up to now, the button did nothing. It was there,
       visible, and you could press it, but nothing would happen.
       We change that here: we create a small, throw-away function that is
       going to be our
       `callback function <http://en.wikipedia.org/wiki/Callback_function#Python>`_
       when the button is pressed. The function just clears the painter's
       canvas' contents, making it black again.
-    * Line 33: We bind the button's on_release event (which is fired when
-      the button is pressed and then released) to the callback we just
-      defined.
 
 .. note::
    The Kivy Widget class, by design, is kept simple. There are no general
    properties such as background color and border color. Instead, the examples
    and documentation illustrate how to easily handle such simple things
-   yourself, as we have done here, setting the color for the canvas, and 
+   yourself, as we have done here, setting the color for the canvas, and
    drawing the shape. From a simple start, you can move to more elaborate
    customization. Higher-level built-in widgets, deriving from Widget, such
    as Button, do have convenience properties such as background_color, but
@@ -333,4 +334,3 @@ just a quick introduction. There is much more to discover. We suggest
 taking a short break to let what you just learned sink in. Maybe draw some
 nice pictures to relax? If you feel like you've understood everything and
 are ready for more, we encourage you to read on.
-

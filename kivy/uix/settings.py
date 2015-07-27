@@ -366,7 +366,7 @@ class SettingString(SettingItem):
     def on_panel(self, instance, value):
         if value is None:
             return
-        self.fast_bind('on_release', self._create_popup)
+        self.fbind('on_release', self._create_popup)
 
     def _dismiss(self, *largs):
         if self.textinput:
@@ -443,7 +443,7 @@ class SettingPath(SettingItem):
     def on_panel(self, instance, value):
         if value is None:
             return
-        self.fast_bind('on_release', self._create_popup)
+        self.fbind('on_release', self._create_popup)
 
     def _dismiss(self, *largs):
         if self.textinput:
@@ -540,7 +540,7 @@ class SettingOptions(SettingItem):
     def on_panel(self, instance, value):
         if value is None:
             return
-        self.fast_bind('on_release', self._create_popup)
+        self.fbind('on_release', self._create_popup)
 
     def _set_option(self, instance):
         self.value = instance.text
