@@ -11,11 +11,14 @@ order to change these settings, you can alter this file manually or use
 the Config object. Please see the :ref:`Configure Kivy` section for more
 information.
 
-Note: To avoid instances where the config settings do not work or they are
-not applied before window creation (like setting an initial window size),
-Config.set should be used before importing any modules that affect the
-application window (ie. importing Window). Ideally, these settings should
-be declared right at the start of your main.py script.
+.. note::
+
+    To avoid instances where the config settings do not work or they are
+    not applied before window creation (like setting an initial window size),
+    :meth:`Config.set <kivy.config.ConfigParser.set>` should be used before
+    importing any modules that affect the application window (e.g. importing
+    Window). Ideally, these settings should be declared right at the start of
+    your main.py script.
 
 Usage of the Config object
 --------------------------
