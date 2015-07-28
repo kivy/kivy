@@ -25,7 +25,7 @@ Alternatively, you can save these settings permanently using
 :meth:`Config.set <ConfigParser.set>` then
 :meth:`Config.write <ConfigParser.write>`. In this case, you will need to
 restart the app for the changes to take effect. Note that this approach will
-effect all Kivy apps systemwide.
+effect all Kivy apps system wide.
 
 Usage of the Config object
 --------------------------
