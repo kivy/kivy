@@ -11,14 +11,21 @@ order to change these settings, you can alter this file manually or use
 the Config object. Please see the :ref:`Configure Kivy` section for more
 information.
 
-.. note::
+Applying configurations
+-----------------------
 
-    To avoid instances where the config settings do not work or they are
-    not applied before window creation (like setting an initial window size),
-    :meth:`Config.set <kivy.config.ConfigParser.set>` should be used before
-    importing any modules that affect the application window (e.g. importing
-    Window). Ideally, these settings should be declared right at the start of
-    your main.py script.
+Configuration options control the initialization of the :class:`~kivy.app.App`.
+In order to avoid situations where the config settings do not work or are not
+applied before window creation (like setting an initial window size),
+:meth:`Config.set <kivy.config.ConfigParser.set>` should be used before
+importing any other Kivy modules. Ideally, this means setting them right at
+the start of your main.py script.
+
+Alternatively, you can save these settings permanently using
+:meth:`Config.set <ConfigParser.set>` then
+:meth:`Config.write <ConfigParser.write>`. In this case, you will need to
+restart the app for the changes to take effect. Note that this approach will
+effect all Kivy apps systemwide.
 
 Usage of the Config object
 --------------------------
@@ -235,11 +242,6 @@ Available configuration tokens
     Anything after the = will be passed to the module as arguments.
     Check the specific module's documentation for a list of accepted
     arguments.
-
-.. note::
-
-    These options control only the initalization of the app and a restart
-    is required for value changes to take effect.
 
 .. versionchanged:: 1.9.0
     `borderless` and `window_state` have been added to the graphics section.
