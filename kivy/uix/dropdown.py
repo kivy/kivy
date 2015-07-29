@@ -186,7 +186,7 @@ class DropDown(ScrollView):
             super(DropDown, self).add_widget(c)
             self.on_container(self, c)
         Window.bind(on_key_down=self.on_key_down)
-        self.fast_bind('size', self._reposition)
+        self.fbind('size', self._reposition)
 
     def on_key_down(self, instance, key, scancode, codepoint, modifiers):
         if key == 27 and self.get_parent_window():
@@ -314,9 +314,10 @@ class DropDown(ScrollView):
         h_bottom = wy - self.height
         h_top = win.height - (wtop + self.height)
         if h_bottom > 0:
-            self.top = wy
+            self.height += wy
         elif h_top > 0:
             self.y = wtop
+            self.height = self.children[0].height
         else:
             # none of both top/bottom have enough place to display the
             # widget at the current size. Take the best side, and fit to

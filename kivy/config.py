@@ -11,11 +11,21 @@ order to change these settings, you can alter this file manually or use
 the Config object. Please see the :ref:`Configure Kivy` section for more
 information.
 
-Note: To avoid instances where the config settings do not work or they are
-not applied before window creation (like setting an initial window size),
-Config.set should be used before importing any modules that affect the
-application window (ie. importing Window). Ideally, these settings should
-be declared right at the start of your main.py script.
+Applying configurations
+-----------------------
+
+Configuration options control the initialization of the :class:`~kivy.app.App`.
+In order to avoid situations where the config settings do not work or are not
+applied before window creation (like setting an initial window size),
+:meth:`Config.set <kivy.config.ConfigParser.set>` should be used before
+importing any other Kivy modules. Ideally, this means setting them right at
+the start of your main.py script.
+
+Alternatively, you can save these settings permanently using
+:meth:`Config.set <ConfigParser.set>` then
+:meth:`Config.write <ConfigParser.write>`. In this case, you will need to
+restart the app for the changes to take effect. Note that this approach will
+effect all Kivy apps system wide.
 
 Usage of the Config object
 --------------------------
@@ -162,6 +172,10 @@ Available configuration tokens
     `width`: int
         Width of the :class:`~kivy.core.window.Window`, not used if
         `fullscreen` is set to `auto`.
+    `minimum_width`: int
+        Minimum width to restrict the window to. (sdl2 only)
+    `minimun_height`: int
+        Minimum height to restrict the window to. (sdl2 only)
 
 :input:
 
@@ -229,11 +243,6 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted
     arguments.
 
-.. note::
-
-    These options control only the initalization of the app and a restart
-    is required for value changes to take effect.
-
 .. versionchanged:: 1.9.0
     `borderless` and `window_state` have been added to the graphics section.
     The `fake` setting of the `fullscreen` option has been deprecated,
@@ -279,7 +288,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 13
+KIVY_CONFIG_VERSION = 14
 
 Config = None
 '''Kivy configuration object. Its :attr:`~kivy.config.ConfigParser.name` is
@@ -750,11 +759,15 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('kivy', 'pause_on_minimize', '0')
 
         elif version == 12:
-            Config.set('graphics', 'window_state', 'visible')
+            Config.setdefault('graphics', 'window_state', 'visible')
 
-        #elif version == 1:
-        #   # add here the command for upgrading from configuration 0 to 1
-        #
+        elif version == 13:
+            Config.setdefault('graphics', 'minimum_width', '0')
+            Config.setdefault('graphics', 'minimum_height', '0')
+
+        # elif version == 1:
+        #    # add here the command for upgrading from configuration 0 to 1
+
         else:
             # for future.
             break

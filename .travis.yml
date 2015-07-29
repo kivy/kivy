@@ -1,19 +1,59 @@
 language: python
-python:
-  - "2.6"
-  - "2.7"
-# command to install dependencies
-before_install:
-  - sudo apt-get update
-  - sudo apt-get install python-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl1.2-dev libsmpeg-dev python-numpy libportmidi-dev ffmpeg libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libx11-6 libX11-dev
-  - sudo apt-get install python-setuptools python-opengl gstreamer0.10-plugins-good build-essential libgl1-mesa-dev libgles2-mesa-dev mercurial
-  - sudo apt-get install xvfb
+
+matrix:
+  fast_finish: true
+  include:
+    - python: 2.7
+      env: RUN=unit
+    - python: 3.4
+      env:
+        - RUN=unit COVERALLS=true
+    - python: 3.4
+      env: RUN=pep8
+    - python: 3.4
+      env: RUN=docs
 
 install:
-  - pip install hg+http://bitbucket.org/pygame/pygame
-  - pip install --upgrade cython pil --use-mirrors
-  - make
+  - if [ "${RUN}" != "pep8" ]; then
+      yes | sudo add-apt-repository ppa:zoogie/sdl2-snapshots;
+      yes | sudo add-apt-repository ppa:gstreamer-developers/ppa;
+      sudo apt-get update;
+      sudo apt-get install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev;
+      sudo apt-get install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base;
+      sudo apt-get install python-dev libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libx11-6 libX11-dev libmtdev-dev;
+      sudo apt-get install python-setuptools python-opengl build-essential libgl1-mesa-dev libgles2-mesa-dev;
+      sudo apt-get install xvfb pulseaudio;
+      pip install --upgrade cython pillow nose coveralls;
+      pip install --upgrade sphinxcontrib-blockdiag sphinxcontrib-seqdiag sphinxcontrib-actdiag sphinxcontrib-nwdiag;
+    fi;
 
-# command to run tests
+before_script:
+  - if [ "${RUN}" != "pep8" ]; then
+      export DISPLAY=:99.0;
+      /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX;
+      export PYTHONPATH=$PYTHONPATH:$(pwd);
+    fi;
+
 script:
-  - xvfb-run -s "+extension GLX" make test
+  - set -ev
+  - if [ "${RUN}" == "unit" ]; then
+      make;
+      make test;
+    fi;
+  - if [ "${COVERALLS}" == "true" ]; then
+      coveralls;
+    fi;
+  - if [ "${RUN}" == "pep8" ]; then
+      make style;
+    fi;
+  - if [ "${RUN}" == "docs" ]; then
+      make html;
+    fi;
+
+notifications:
+  webhooks:
+    urls:
+      - http://kivy.org:5000/travisevent
+    on_success: always
+    on_failure: always
+    on_start: always

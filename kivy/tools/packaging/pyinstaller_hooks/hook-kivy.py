@@ -30,12 +30,13 @@ _kivy_modules = [
 
     # sdl2
 
+    # uncomment this if you need to package pygame.
     # pygame
-    'pygame.event',
-    'pygame.video',
-    'pygame.image',
-    'pygame.display',
-    'pygame',
+    #'pygame.event',
+    #'pygame.video',
+    #'pygame.image',
+    #'pygame.display',
+    #'pygame',
     'xml.etree.cElementTree',
 
     # external modules

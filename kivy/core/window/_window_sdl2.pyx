@@ -3,6 +3,14 @@ include "../../../kivy/graphics/config.pxi"
 
 from libc.string cimport memcpy
 from os import environ
+from kivy.config import Config
+
+
+cdef int _event_filter(void *userdata, SDL_Event *event):
+    cdef _WindowSDL2Storage win
+    win = <_WindowSDL2Storage>userdata
+    return win.cb_event_filter(event)
+
 
 cdef class _WindowSDL2Storage:
     cdef SDL_Window *win
@@ -10,12 +18,38 @@ cdef class _WindowSDL2Storage:
     cdef SDL_Surface *surface
     cdef SDL_Surface *icon
     cdef int win_flags
+    cdef object event_filter
 
     def __cinit__(self):
         self.win = NULL
         self.ctx = NULL
         self.surface = NULL
         self.win_flags = 0
+        self.event_filter = None
+
+    def set_event_filter(self, event_filter):
+        self.event_filter = event_filter
+
+    cdef int cb_event_filter(self, SDL_Event *event):
+        # must return 0 to eat the event, 1 to add it into the event queue
+        cdef str name = None
+        if not self.event_filter:
+            return 1
+        if event.type == SDL_APP_TERMINATING:
+            name = 'app_terminating'
+        elif event.type == SDL_APP_LOWMEMORY:
+            name = 'app_lowmemory'
+        elif event.type == SDL_APP_WILLENTERBACKGROUND:
+            name = 'app_willenterbackground'
+        elif event.type == SDL_APP_DIDENTERBACKGROUND:
+            name = 'app_didenterbackground'
+        elif event.type == SDL_APP_WILLENTERFOREGROUND:
+            name = 'app_willenterforeground'
+        elif event.type == SDL_APP_DIDENTERFOREGROUND:
+            name = 'app_didenterforeground'
+        if not name:
+            return 1
+        return self.event_filter(name)
 
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
@@ -74,8 +108,27 @@ cdef class _WindowSDL2Storage:
         if y is None:
             y = SDL_WINDOWPOS_UNDEFINED
 
-        self.win = SDL_CreateWindow(NULL, x, y, width, height,
-                                    self.win_flags)
+        # Multisampling:
+        # (The number of samples is limited to 4, because greater values
+        # aren't supported with some video drivers.)
+        cdef int multisamples
+        multisamples = Config.getint('graphics', 'multisamples')
+        if multisamples > 0:
+            # try to create window with multisampling:
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, min(multisamples, 4))
+            self.win = SDL_CreateWindow(NULL, x, y, width, height,
+                                        self.win_flags)
+            if not self.win:
+                # if an error occured, create window without multisampling:
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
+                self.win = SDL_CreateWindow(NULL, x, y, width, height,
+                                            self.win_flags)
+        else:
+            self.win = SDL_CreateWindow(NULL, x, y, width, height,
+                                        self.win_flags)
+
         if not self.win:
             self.die()
 
@@ -87,10 +140,15 @@ cdef class _WindowSDL2Storage:
             self.die()
         SDL_JoystickOpen(0)
 
+        SDL_SetEventFilter(_event_filter, <void *>self)
+
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
         cdef int w, h
         SDL_GetWindowSize(self.win, &w, &h)
         return w, h
+
+    def show_cursor(self, value):
+        SDL_ShowCursor(value)
 
     def _get_gl_size(self):
         cdef int w, h
@@ -99,7 +157,7 @@ cdef class _WindowSDL2Storage:
 
     def resize_display_mode(self, w, h):
         cdef SDL_DisplayMode mode
-        cdef int draw_w, draw_h 
+        cdef int draw_w, draw_h
         SDL_GetWindowDisplayMode(self.win, &mode)
         if USE_IOS:
             SDL_GL_GetDrawableSize(self.win, &draw_w, &draw_h)
@@ -117,6 +175,9 @@ cdef class _WindowSDL2Storage:
     def resize_window(self, w, h):
         if self.window_size != [w, h]:
             SDL_SetWindowSize(self.win, w, h)
+
+    def set_minimum_size(self, w, h):
+        SDL_SetWindowMinimumSize(self.win, w, h)
 
     def maximize_window(self):
         SDL_MaximizeWindow(self.win)
@@ -168,6 +229,9 @@ cdef class _WindowSDL2Storage:
 
     def is_keyboard_shown(self):
         return SDL_IsTextInputActive()
+
+    def wait_event(self):
+        SDL_WaitEvent(NULL)
 
     def poll(self):
         cdef SDL_Event event

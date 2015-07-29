@@ -169,9 +169,9 @@ class CodeInput(TextInput):
             ntext[0]
             # replace brackets with special chars that aren't highlighted
             # by pygment. can't use &bl; ... cause & is highlighted
-            ntext = ntext.replace(u'[', u'\x01;').replace(u']', u'\x02;')
+            ntext = ntext.replace(u'[', u'\x01').replace(u']', u'\x02')
             ntext = highlight(ntext, self.lexer, self.formatter)
-            ntext = ntext.replace(u'\x01;', u'&bl;').replace(u'\x02;', u'&br;')
+            ntext = ntext.replace(u'\x01', u'&bl;').replace(u'\x02', u'&br;')
             # replace special chars with &bl; and &br;
             ntext = ''.join((u'[color=', str(self.text_color), u']',
                              ntext, u'[/color]'))

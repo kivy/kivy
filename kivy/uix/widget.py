@@ -2,36 +2,39 @@
 Widget class
 ============
 
-The :class:`Widget` class is the base class required to create a Widget.
-This widget class is designed with a couple of principles in mind:
+The :class:`Widget` class is the base class required for creating Widgets.
+This widget class was designed with a couple of principles in mind:
 
-    Event Driven
-        Widget interaction is built on top of events that occur. If a property
-        changes, the widget can respond to the change in the 'on_<propname>'
-        callback. If nothing changes, nothing will be done. That's the main
-        goal of the :class:`~kivy.properties.Property` class.
+* *Event Driven*
 
-    Separate the widget and its graphical representation
-        Widgets don't have a `draw()` method. This is done on purpose: The idea
-        is to allow you to create your own graphical representation outside the
-        widget class.
-        Obviously you can still use all the available properties to do that, so
-        that your representation properly reflects the widget's current state.
-        Every widget has its own :class:`~kivy.graphics.Canvas` that you
-        can use to draw. This separation allows Kivy to run your
-        application in a very efficient manner.
+  Widget interaction is built on top of events that occur. If a property
+  changes, the widget can respond to the change in the 'on_<propname>'
+  callback. If nothing changes, nothing will be done. That's the main
+  goal of the :class:`~kivy.properties.Property` class.
 
-    Bounding Box / Collision
-        Often you want to know if a certain point is within the bounds of your
-        widget. An example would be a button widget where you want to only
-        trigger an action when the button itself is actually touched.
-        For this, you can use the :meth:`Widget.collide_point` method, which
-        will return True if the point you pass to it is inside the axis-aligned
-        bounding box defined by the widget's position and size.
-        If a simple AABB is not sufficient, you can override the method to
-        perform the collision checks with more complex shapes, e.g. a polygon.
-        You can also check if a widget collides with another widget with
-        :meth:`Widget.collide_widget`.
+* *Separation Of Concerns (the widget and its graphical representation)*
+
+  Widgets don't have a `draw()` method. This is done on purpose: The idea
+  is to allow you to create your own graphical representation outside the
+  widget class.
+  Obviously you can still use all the available properties to do that, so
+  that your representation properly reflects the widget's current state.
+  Every widget has its own :class:`~kivy.graphics.Canvas` that you
+  can use to draw. This separation allows Kivy to run your
+  application in a very efficient manner.
+
+* *Bounding Box / Collision*
+
+  Often you want to know if a certain point is within the bounds of your
+  widget. An example would be a button widget where you only want to
+  trigger an action when the button itself is actually touched.
+  For this, you can use the :meth:`Widget.collide_point` method, which
+  will return True if the point you pass to it is inside the axis-aligned
+  bounding box defined by the widget's position and size.
+  If a simple AABB is not sufficient, you can override the method to
+  perform the collision checks with more complex shapes, e.g. a polygon.
+  You can also check if a widget collides with another widget with
+  :meth:`Widget.collide_widget`.
 
 
 We also have some default values and behaviors that you should be aware of:
@@ -163,18 +166,57 @@ propogated before taking action. You can use the
                 Clock.schedule_once(lambda dt: self.on_touch_down(touch, True))
                 return super(MyLabel, self).on_touch_down(touch)
 
+Usage of :attr:`Widget.center`, :attr:`Widget.right`, and :attr:`Widget.top`
+----------------------------------------------------------------------------
+
+A common mistake when using one of the computed properties such as
+:attr:`Widget.right` is to use it to make a widget follow its parent with a
+KV rule such as `right: self.parent.right`. Consider, for example:
+
+.. code-block:: python
+
+    FloatLayout:
+        id: layout
+        width: 100
+        Widget:
+            id: wid
+            right: layout.right
+
+The (mistaken) expectation is that this rule ensures that wid's right will
+always be whatever layout's right is - that is wid.right and layout.right will
+always be identical. In actual fact, this rule only says that "whenever
+layout's `right` changes, wid's right will be set to that value". The
+difference being that as long as `layout.right` doesn't change, `wid.right`
+could be anything, even a value that will make them different.
+
+Specifically, for the KV code above, consider the following example::
+
+    >>> print(layout.right, wid.right)
+    (100, 100)
+    >>> wid.x = 200
+    >>> print(layout.right, wid.right)
+    (100, 300)
+
+As can be seen, initially they are in sync, however, when we change `wid.x`
+they go out of sync because `layout.right` is not changed and the rule is not
+triggered.
+
+The proper way to make the widget follow its parent's right is to use
+:attr:`Widget.pos_hint`. If instead of `right: layout.right` we did
+`pos_hint: {'right': 1}`, then the widgets right will always be set to be
+at the parent's right at each layout update.
 '''
-from kivy.graphics.transformation import Matrix
 
 __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
-from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
-                             ReferenceListProperty, ObjectProperty,
-                             ListProperty, DictProperty, BooleanProperty)
-from kivy.graphics import (Canvas, Translate, Fbo, ClearColor, ClearBuffers,
-                            Scale)
+from kivy.properties import (
+    NumericProperty, StringProperty, AliasProperty, ReferenceListProperty,
+    ObjectProperty, ListProperty, DictProperty, BooleanProperty)
+from kivy.graphics import (
+    Canvas, Translate, Fbo, ClearColor, ClearBuffers, Scale)
+from kivy.graphics.transformation import Matrix
 from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
@@ -258,6 +300,13 @@ class Widget(WidgetBase):
         if not hasattr(self, '_context'):
             self._context = get_current_context()
 
+        no_builder = '__no_builder' in kwargs
+        if no_builder:
+            del kwargs['__no_builder']
+        on_args = {k: v for k, v in kwargs.items() if k[:3] == 'on_'}
+        for key in on_args:
+            del kwargs[key]
+
         super(Widget, self).__init__(**kwargs)
 
         # Create the default canvas if it does not exist.
@@ -265,7 +314,7 @@ class Widget(WidgetBase):
             self.canvas = Canvas(opacity=self.opacity)
 
         # Apply all the styles.
-        if '__no_builder' not in kwargs:
+        if not no_builder:
             #current_root = Builder.idmap.get('root')
             #Builder.idmap['root'] = self
             Builder.apply(self)
@@ -275,9 +324,8 @@ class Widget(WidgetBase):
             #    Builder.idmap.pop('root')
 
         # Bind all the events.
-        for argument in kwargs:
-            if argument[:3] == 'on_':
-                self.bind(**{argument: kwargs[argument]})
+        if on_args:
+            self.bind(**on_args)
 
     @property
     def proxy_ref(self):
@@ -807,7 +855,8 @@ class Widget(WidgetBase):
 
     def _apply_transform(self, m, pos=None):
         if self.parent:
-            x, y = self.parent.to_widget(relative=True, *self.to_window(*(pos or self.pos)))
+            x, y = self.parent.to_widget(relative=True,
+                                         *self.to_window(*(pos or self.pos)))
             m.translate(x, y, 0)
             m = self.parent._apply_transform(m) if self.parent else m
         return m

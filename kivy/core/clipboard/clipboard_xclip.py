@@ -1,5 +1,6 @@
 '''
-Clipboard xclip: an implementation of the Clipboard using xclip command line tool.
+Clipboard xclip: an implementation of the Clipboard using xclip
+command line tool.
 '''
 
 __all__ = ('ClipboardXclip', )

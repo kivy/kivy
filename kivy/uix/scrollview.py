@@ -123,6 +123,7 @@ from kivy.metrics import sp, dp
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
     ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty
+from kivy.uix.behaviors import FocusBehavior
 
 
 # When we are generating documentation, Config doesn't exist
@@ -465,7 +466,7 @@ class ScrollView(StencilView):
         update_effect_widget = self._update_effect_widget
         update_effect_x_bounds = self._update_effect_x_bounds
         update_effect_y_bounds = self._update_effect_y_bounds
-        fbind = self.fast_bind
+        fbind = self.fbind
         fbind('width', update_effect_x_bounds)
         fbind('height', update_effect_y_bounds)
         fbind('viewport_size', self._update_effect_bounds)
@@ -651,6 +652,7 @@ class ScrollView(StencilView):
         # this touch.
         self._touch = touch
         uid = self._get_uid()
+        FocusBehavior.ignored_touch.append(touch)
 
         ud[uid] = {
             'mode': 'unknown',
@@ -938,15 +940,15 @@ class ScrollView(StencilView):
         # New in 1.2.0, show bar when scrolling happens and (changed in 1.9.0)
         # fade to bar_inactive_color when no scroll is happening.
         Clock.unschedule(self._bind_inactive_bar_color)
-        self.fast_unbind('bar_inactive_color', self._change_bar_color)
+        self.funbind('bar_inactive_color', self._change_bar_color)
         Animation.stop_all(self, '_bar_color')
-        self.fast_bind('bar_color', self._change_bar_color)
+        self.fbind('bar_color', self._change_bar_color)
         self._bar_color = self.bar_color
         Clock.schedule_once(self._bind_inactive_bar_color, .5)
 
     def _bind_inactive_bar_color(self, *l):
-        self.fast_unbind('bar_color', self._change_bar_color)
-        self.fast_bind('bar_inactive_color', self._change_bar_color)
+        self.funbind('bar_color', self._change_bar_color)
+        self.fbind('bar_inactive_color', self._change_bar_color)
         Animation(
             _bar_color=self.bar_inactive_color, d=.5, t='out_quart').start(self)
 
