@@ -29,7 +29,8 @@ from kivy.uix.label import Label
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.actionbar import ActionBar, ActionView, \
-                                ActionButton, ActionToggleButton
+                                ActionButton, ActionToggleButton, \
+                                ActionPrevious, ActionOverflow
 from kivy.base import EventLoop
 from kivy.core.text import Label as CoreLabel
 from kivy.graphics import Color, Line
@@ -41,6 +42,10 @@ from kivy.graphics import Mesh
 from kivy.resources import resource_find
 from kivy.uix.stencilview import StencilView
 from kivy.core.window import Window
+from kivy.uix.button import Button
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.relativelayout import RelativeLayout
 
 import numpy as np
 import io
@@ -65,9 +70,16 @@ class MPLKivyApp(App):
     def __init__(self, **kwargs):
         super(MPLKivyApp, self).__init__(**kwargs)
         self.figure = kwargs['figure']
+        self.toolbar = kwargs['toolbar']
 
     def build(self):
-        return self.figure
+        layout = FloatLayout()
+        layout.clear_widgets()
+        self.figure.size_hint_y = 0.9
+        layout.add_widget(self.figure)
+        self.toolbar.size_hint_y = 0.1
+        layout.add_widget(self.toolbar)
+        return layout
 
     def on_pause(self):
         return App.on_pause(self)
@@ -76,12 +88,12 @@ class MPLKivyApp(App):
         App.on_resume(self)
 
 
-def _create_App(fig_canvas):
+def _create_App(fig_canvas, toolbar):
     global app
     if app is None:
         if _debug:
             print("Starting up Kivy Application")
-        app = MPLKivyApp(figure=fig_canvas)
+        app = MPLKivyApp(figure=fig_canvas, toolbar=toolbar)
 
 
 class RendererKivy(RendererBase):
@@ -306,23 +318,30 @@ class RendererKivy(RendererBase):
 class NavigationToolbar2Kivy(NavigationToolbar2):
 
     def __init__(self, canvas, **kwargs):
-        #super(NavigationToolbar2, self).__init__(canvas)
-        NavigationToolbar2.__init__(self, canvas)
+        self.actionbar = ActionBar(pos_hint={'top': 1.0})
+        super(NavigationToolbar2Kivy, self).__init__(canvas)
         self.ctx = None
 
     def _init_toolbar(self):
         basedir = os.path.join(rcParams['datapath'], 'images')
-        actionbar = ActionBar(pos_hint={'bottom': 1.0})
         actionview = ActionView()
-        actionbar.add_widget(actionview)
+        actionprevious = ActionPrevious(title="Navigation", with_previous=False)
+        actionoverflow = ActionOverflow()
+        actionview.add_widget(actionprevious)
+        actionview.add_widget(actionoverflow)
+        actionview.use_separator = True
+        self.actionbar.add_widget(actionview)
         for text, tooltip_text, image_file, callback in self.toolitems:
             if text is None:
                 # insert a separator
                 continue
             fname = os.path.join(basedir, image_file + '.png')
             action_button = ActionButton(text=text, icon=fname)
+            action_button.bind(on_press=getattr(self, callback))
             actionview.add_widget(action_button)
-        self.canvas.add_widget(actionbar, canvas='after')
+
+    def configure_subplots(self):
+        pass
 
 
 class ToolbarKivy(ToolContainerBase, ActionView):
@@ -494,8 +513,8 @@ def new_figure_manager_given_figure(num, figure):
     """
     canvas = FigureCanvasKivy(figure)
     canvas.draw()
-    _create_App(canvas)
     manager = FigureManagerKivy(canvas, num)
+    _create_App(canvas, manager.toolbar.actionbar)
     #manager.show()
     return manager
 
@@ -524,6 +543,7 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
         self.inside_figure = True
         self.figure = figure
         super(FigureCanvasKivy, self).__init__(figure=self.figure, **kwargs)
+        self.focus = True
 
     def draw(self):
         """
@@ -600,7 +620,6 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
             self.inside_figure = True
 
     def _on_size_changed(self, *args):
-        self.clear_widgets()
         w, h = self.size
         dpival = self.figure.dpi
         winch = w / dpival
@@ -652,7 +671,7 @@ class FigureManagerKivy(FigureManagerBase):
             print('FigureManagerKivy: ', canvas)
         super(FigureManagerKivy, self).__init__(canvas, num)
         self.canvas = canvas
-#         self.toolbar = self._get_toolbar()
+        self.toolbar = self._get_toolbar()
 
     def show(self):
         global app
