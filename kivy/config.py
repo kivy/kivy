@@ -291,8 +291,13 @@ _is_rpi = exists('/opt/vc/include/bcm_host.h')
 KIVY_CONFIG_VERSION = 14
 
 Config = None
-'''Kivy configuration object. Its :attr:`~kivy.config.ConfigParser.name` is
-`'kivy'`
+'''The default Kivy configuration object. This is a :class:`ConfigParser`
+instance with the :attr:`~kivy.config.ConfigParser.name` set to 'kivy'.
+
+.. code-block:: python
+
+    Config = ConfigParser(name='kivy')
+
 '''
 
 
