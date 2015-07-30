@@ -30,7 +30,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.actionbar import ActionBar, ActionView, \
                                 ActionButton, ActionToggleButton, \
-                                ActionPrevious, ActionOverflow
+                                ActionPrevious, ActionOverflow, ActionSeparator
 from kivy.base import EventLoop
 from kivy.core.text import Label as CoreLabel
 from kivy.graphics import Color, Line
@@ -73,6 +73,7 @@ class MPLKivyApp(App):
         self.toolbar = kwargs['toolbar']
 
     def build(self):
+        EventLoop.ensure_window()
         layout = FloatLayout()
         layout.clear_widgets()
         self.figure.size_hint_y = 0.9
@@ -333,10 +334,13 @@ class NavigationToolbar2Kivy(NavigationToolbar2):
         self.actionbar.add_widget(actionview)
         for text, tooltip_text, image_file, callback in self.toolitems:
             if text is None:
-                # insert a separator
+                actionview.add_widget(ActionSeparator())
                 continue
             fname = os.path.join(basedir, image_file + '.png')
-            action_button = ActionButton(text=text, icon=fname)
+            if text in ['Pan', 'Zoom']:
+                action_button = ActionToggleButton(text=text, icon=fname)
+            else:
+                action_button = ActionButton(text=text, icon=fname)
             action_button.bind(on_press=getattr(self, callback))
             actionview.add_widget(action_button)
 
@@ -564,14 +568,15 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
                                               touch.y, 5, guiEvent=None)
             else:
                 FigureCanvasBase.button_press_event(self, touch.x, touch.y,
-                                        self, dblclick=False, guiEvent=None)
+                                                self.get_mouse_button(touch),
+                                                dblclick=False, guiEvent=None)
             if self.inside_figure:
                 FigureCanvasBase.enter_notify_event(self, guiEvent=None,
                                                     xy=None)
         else:
             if not self.inside_figure:
                 FigureCanvasBase.leave_notify_event(self, guiEvent=None)
-        return True
+        return False
 
     def on_touch_move(self, touch):
         inside = self.collide_point(touch.x, touch.y)
@@ -583,7 +588,16 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
         elif not inside and not self.inside_figure:
             FigureCanvasBase.leave_notify_event(self, guiEvent=None)
             self.inside_figure = True
-        return True
+        return False
+
+    def get_mouse_button(self, touch):
+        if touch.button == "left":
+            return 1
+        elif touch.button == "middle":
+            return 2
+        elif touch.button == "right":
+            return 3
+        return -1
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
@@ -592,11 +606,11 @@ class FigureCanvasKivy(FocusBehavior, Widget, FigureCanvasBase):
                                               5, guiEvent=None)
             else:
                 FigureCanvasBase.button_release_event(self, touch.x, touch.y,
-                                                      self, guiEvent=None)
+                                                    touch.button, guiEvent=None)
             touch.ungrab(self)
         else:
             return super(FigureCanvasKivy, self).on_touch_up(touch)
-        return True
+        return False
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         FigureCanvasBase.key_press_event(self, keycode[1], guiEvent=None)
