@@ -331,9 +331,9 @@ class ConfigParser(PythonConfigParser, object):
         self.name = name
 
     def add_callback(self, callback, section=None, key=None):
-        '''Add a callback to be called when a specific section/key changed. If
-        you don't specify a section or a key, it will call the callback
-        for all section/keys changes.
+        '''Add a callback to be called when a specific section or key has
+        changed. If you don't specify a section or key, it will call the callback
+        for all section/key changes.
 
         Callbacks will receive 3 arguments: the section, key and value.
 
@@ -417,7 +417,8 @@ class ConfigParser(PythonConfigParser, object):
         return ret
 
     def setall(self, section, keyvalues):
-        '''Set a lot of keys/values in one section at the same time.
+        '''Sets multiple key-value pairs in a section. keyvalues should be a
+        dictionary containing the key-value pairs to be set.
         '''
         for key, value in keyvalues.items():
             self.set(section, key, value)
@@ -430,21 +431,23 @@ class ConfigParser(PythonConfigParser, object):
         return value
 
     def setdefaults(self, section, keyvalues):
-        '''Set a lot of keys/value defaults in one section at the same time.
+        '''Set multiple key-value defaults in a section. keyvalues should be
+        a dictionary containing the new key-value defaults.
         '''
         self.adddefaultsection(section)
         for key, value in keyvalues.items():
             self.setdefault(section, key, value)
 
     def setdefault(self, section, option, value):
-        '''Set the default value of a particular option.
+        '''Set the default value for an option in the specified section.
         '''
         if self.has_option(section, option):
             return
         self.set(section, option, value)
 
     def getdefault(self, section, option, defaultvalue):
-        '''Get an option. If not found, it will return the default value.
+        '''Get the value of an option in the specified section. If not found,
+        it will return the default value.
         '''
         if not self.has_section(section):
             return defaultvalue
@@ -453,8 +456,9 @@ class ConfigParser(PythonConfigParser, object):
         return self.get(section, option)
 
     def getdefaultint(self, section, option, defaultvalue):
-        '''Get an option. If not found, it will return the default value.
-        The return value will be always converted as an integer.
+        '''Get the value of an option in the specified section. If not found,
+        it will return the default value. The value will always be
+        returned as an integer.
 
         .. versionadded:: 1.6.0
         '''
@@ -471,7 +475,7 @@ class ConfigParser(PythonConfigParser, object):
         '''Write the configuration to the last file opened using the
         :meth:`read` method.
 
-        Return True if the write finished successfully.
+        Return True if the write finished successfully, False otherwise.
         '''
         if self.filename is None:
             return False
@@ -557,7 +561,7 @@ class ConfigParser(PythonConfigParser, object):
     @property
     def name(self):
         ''' The name associated with this ConfigParser instance, if not `''`.
-        Defaults to `''`. It can be safely dynamically changed or set to `''`.
+        Defaults to `''`. It can be safely changed dynamically or set to `''`.
 
         When a ConfigParser is given a name, that config object can be
         retrieved using :meth:`get_configparser`. In addition, that config
@@ -795,3 +799,4 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.write()
         except Exception as e:
             Logger.exception('Core: Error while saving default config file')
+ 
