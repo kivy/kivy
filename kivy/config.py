@@ -306,15 +306,16 @@ class ConfigParser(PythonConfigParser, object):
     sections and default values.
 
     By default, the kivy ConfigParser instance, :attr:`~kivy.config.Config`,
-    is given the name `'kivy'` and the ConfigParser instance used by App,
-    :meth:`~kivy.app.App.build_settings`, is given the name `'app'`.
+    is named `'kivy'` and the ConfigParser instance used by the
+    :meth:`App.build_settings <~kivy.app.App.build_settings>` method is named
+    `'app'`.
 
     :Parameters:
         `name`: string
             The name of the instance. See :attr:`name`. Defaults to `''`.
 
     .. versionchanged:: 1.9.0
-        Each ConfigParser can now be named, :attr:`name`. You can get the
+        Each ConfigParser can now be :attr:`named <name>`. You can get the
         ConfigParser associated with a name using :meth:`get_configparser`.
         In addition, you can now control the config values with
         :class:`~kivy.properties.ConfigParserProperty`.
@@ -468,7 +469,7 @@ class ConfigParser(PythonConfigParser, object):
 
     def write(self):
         '''Write the configuration to the last file opened using the
-         :meth:`read` method.
+        :meth:`read` method.
 
         Return True if the write finished successfully.
         '''
@@ -484,7 +485,7 @@ class ConfigParser(PythonConfigParser, object):
 
     def update_config(self, filename, overwrite=False):
         '''Upgrade the configuration based on a new default config file.
-           Overwrite any existing values if overwrite is True.
+        Overwrite any existing values if overwrite is True.
         '''
         pcp = PythonConfigParser()
         pcp.read(filename)
