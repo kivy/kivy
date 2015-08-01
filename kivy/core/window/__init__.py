@@ -528,7 +528,7 @@ class WindowBase(EventDispatcher):
     '''Real size of the window ignoring rotation.
     '''
 
-    def get_effective_size(self):
+    def _get_effective_size(self):
         '''On density=1 and non-ios displays, return system_size, else
         return scaled / rotated size.
 
@@ -954,7 +954,7 @@ class WindowBase(EventDispatcher):
                 The Motion Event currently dispatched.
         '''
         if me.is_touch:
-            w, h = self.get_effective_size()
+            w, h = self._get_effective_size()
             me.scale_for_screen(w, h, rotation=self._rotation,
                                 smode=self.softinput_mode,
                                 kheight=self.keyboard_height)
