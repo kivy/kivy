@@ -49,6 +49,7 @@ cdef class _SurfaceContainer:
 
     def render(self, container, text, x, y):
         cdef TTF_Font *font = _get_font(container)
+        TTF_SetFontHinting(font, TTF_HINTING_LIGHT)
         cdef SDL_Color c
         cdef SDL_Surface *st
         cdef SDL_Rect r
