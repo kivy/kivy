@@ -7,11 +7,12 @@ Action Bar
 .. image:: images/actionbar.png
     :align: right
 
-The ActionBar widget is like Android's ActionBar, where items are stacked
-horizontally.
+The ActionBar widget is like Android's `ActionBar
+<http://developer.android.com/guide/topics/ui/actionbar.html>`_
+, where items are stacked horizontally.
 
-The :class:`ActionBar` will contain one :class:`ActionView` and many
-:class:`ContextualActionView`\s.
+An :class:`ActionBar` contains an :class:`ActionView` with various
+:class:`ContextualActionViews <kivy.uix.actionbar.ContextualActionView>`.
 An :class:`ActionView` will contain an :class:`ActionPrevious` having title,
 app_icon and previous_icon properties. An :class:`ActionView` will contain
 subclasses of :class:`ActionItem`\s. Some predefined ones inlcude an
