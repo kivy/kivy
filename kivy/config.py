@@ -332,8 +332,8 @@ class ConfigParser(PythonConfigParser, object):
 
     def add_callback(self, callback, section=None, key=None):
         '''Add a callback to be called when a specific section or key has
-        changed. If you don't specify a section or key, it will call the callback
-        for all section/key changes.
+        changed. If you don't specify a section or key, it will call the
+        callback for all section/key changes.
 
         Callbacks will receive 3 arguments: the section, key and value.
 
@@ -799,4 +799,4 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.write()
         except Exception as e:
             Logger.exception('Core: Error while saving default config file')
- 
+
