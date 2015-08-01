@@ -271,6 +271,8 @@ class Splitter(BoxLayout):
         self.rescale_parent_proportion()
 
     def rescale_parent_proportion(self, *args):
+        if not self.parent:
+            return
         if self.rescale_with_parent:
             parent_proportion = self._parent_proportion
             if self.sizable_from in ('top', 'bottom'):
