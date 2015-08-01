@@ -302,12 +302,7 @@ class Image(Widget):
             # image will be re-loaded from disk
 
         '''
-        try:
-            self._coreimage.remove_from_cache()
-
-        except AttributeError:
-            pass
-
+        self._coreimage.remove_from_cache()
         olsource = self.source
         self.source = ''
         self.source = olsource
