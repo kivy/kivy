@@ -15,13 +15,13 @@ An :class:`ActionBar` contains an :class:`ActionView` with various
 :class:`ContextualActionViews <kivy.uix.actionbar.ContextualActionView>`.
 An :class:`ActionView` will contain an :class:`ActionPrevious` having title,
 app_icon and previous_icon properties. An :class:`ActionView` will contain
-subclasses of :class:`ActionItem`\s. Some predefined ones inlcude an
+subclasses of :class:`ActionItems <ActionItem>`. Some predefined ones inlcude an
 :class:`ActionButton`, an :class:`ActionToggleButton`, an :class:`ActionCheck`,
 an :class:`ActionSeparator` and an :class:`ActionGroup`.
 
-An :class:`ActionGroup` is used to display :class:`ActionItem`\s in a group.
-An :class:`ActionView` will always display an :class:`ActionGroup` after other
-:class:`ActionItem`\s.
+An :class:`ActionGroup` is used to display :class:`ActionItems <ActionItem>`
+in a group. An :class:`ActionView` will always display an :class:`ActionGroup`
+after other :class:`ActionItems <ActionItem>`.
 An :class:`ActionView` will contain an :class:`ActionOverflow`.
 A :class:`ContextualActionView` is a subclass of an :class:`ActionView`.
 '''
