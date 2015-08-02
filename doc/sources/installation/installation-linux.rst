@@ -160,8 +160,6 @@ The following software is needed, even if your distribution is not listed above:
 - `gst-python <http://gstreamer.freedesktop.org/modules/gst-python.html>`_
 - `Cython == 0.20 <http://cython.org/>`_
 
-Don't install Cython 0.21. It does not work with Kivy 1.8. This bug is fixed in Kivy 1.9, which we're trying to release soon.
-
 We prefer to use a package-manager to provide these dependencies.
 
 
