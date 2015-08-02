@@ -107,7 +107,7 @@ class CodeInputTest(App):
             values=list(map(str, list(range(5, 40)))))
         fnt_size.bind(text=self._update_size)
         fnt_name = Spinner(
-            text='DroidSansMono',
+            text='RobotoMono',
             option_cls=Fnt_SpinnerOption,
             values=sorted(map(str, fonts.get_fonts())))
         fnt_name.bind(text=self._update_font)
@@ -124,7 +124,7 @@ class CodeInputTest(App):
 
         self.codeinput = CodeInput(
             lexer=KivyLexer(),
-            font_name='data/fonts/DroidSansMono.ttf', font_size=12,
+            font_size=12,
             text=example_text)
 
         b.add_widget(self.codeinput)
