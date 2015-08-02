@@ -223,7 +223,7 @@ Builder.load_string('''
         markup: True
         valign: 'top'
         text_size: self.width - 20, None
-        font_name: 'data/fonts/DroidSansMono.ttf'
+        font_name: 'data/fonts/RobotoMono-Regular.ttf'
         color: (0, 0, 0, 1)
 
 <RstList>:
@@ -892,7 +892,7 @@ class _Visitor(nodes.NodeVisitor):
             self.text += '[b]'
 
         elif cls is nodes.literal:
-            self.text += '[font=fonts/DroidSansMono.ttf]'
+            self.text += '[font=fonts/RobotoMono-Regular.ttf]'
 
         elif cls is nodes.block_quote:
             box = RstBlockQuote()

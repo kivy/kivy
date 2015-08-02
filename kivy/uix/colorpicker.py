@@ -366,11 +366,11 @@ class ColorPicker(RelativeLayout):
     See module documentation.
     '''
 
-    font_name = StringProperty('data/fonts/DroidSansMono.ttf')
+    font_name = StringProperty('data/fonts/RobotoMono-Regular.ttf')
     '''Specifies the font used on the ColorPicker.
 
     :attr:`font_name` is a :class:`~kivy.properties.StringProperty` and
-    defaults to 'data/fonts/DroidSansMono.ttf'.
+    defaults to 'data/fonts/RobotoMono-Regular.ttf'.
     '''
 
     color = ListProperty((1, 1, 1, 1))
