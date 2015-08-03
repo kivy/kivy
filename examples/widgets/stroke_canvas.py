@@ -48,11 +48,11 @@ class StrokeCanvasTest(App):
 
     def stroke_collected(self, layout, stroke):
         # Just to visualize the bounding box
-        rect = stroke.get_bounds()
-        with self.inkc.canvas:
-            Color(1, 1, 0, 0.3)
-            Rectangle(pos=(rect.left, rect.bottom),
-                size=(rect.right - rect.left, rect.top - rect.bottom))
+#         rect = stroke.get_bounds()
+#         with self.inkc.canvas:
+#             Color(1, 1, 0, 0.3)
+#             Rectangle(pos=(rect.left, rect.bottom),
+#                 size=(rect.right - rect.left, rect.top - rect.bottom))
         self.strokes_collected.append(stroke)
 #         self.createGraph()
 #         self.inkc.add_widget(self.chart)

@@ -285,8 +285,10 @@ class Stroke(EventDispatcher):
         .. versionadded:: 1.9.0
         '''
         bounds = self.get_bounds()
-        S = bounds.top_left().distance_to(bounds.bottom_right()) / \
+        S = bounds.top_left().distance_to(bounds.bottom_right()) /\
                              self.shortstraw_const
+        print "these are the bounds ", bounds
+        print "This is S value", S
         D = 0.0
         self.sampled_points.append(self.points[0])
         clone_points = self.points[:]
@@ -376,6 +378,10 @@ class Stroke(EventDispatcher):
             d = d + self.sampled_points[i].distance_to(
                                             self.sampled_points[i + 1])
         return d
+
+    def print_distances(self):
+        for i in xrange(1, len(self.sampled_points)):
+            print self.sampled_points[i - 1].distance_to(self.sampled_points[i])
 
     ''' Function to evaluate if there is anny corner missed by false
         corner detection. '''
@@ -509,6 +515,7 @@ class StrokeCanvasBehavior(object):
                 touch.ud['stroke'].points.append(pt)
                 self.add_stroke(touch.ud['stroke'])
                 touch.ud['stroke'].sample_points()
+                touch.ud['stroke'].print_distances()
                 touch.ud['stroke'].get_corners()
 
                 for c in touch.ud['stroke'].corners:
@@ -521,8 +528,10 @@ class StrokeCanvasBehavior(object):
                 points_list = touch.ud['stroke'].filtering()
                 with self.canvas:
                     Color(1, 1, 0)
-                    Line(points=touch.ud['stroke'].get_graphics_line_points(),
-                         width=1.0)
+                    for point in touch.ud['stroke'].sampled_points:
+                        Ellipse(pos=(point.x, point.y), size=(3, 3))
+#                     Line(points=touch.ud['stroke'].get_graphics_line_points(),
+#                          width=1.0)
             elif self.mode == 'erase':
                 pass
             touch.ungrab(self)
