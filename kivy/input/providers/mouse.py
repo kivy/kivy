@@ -105,10 +105,13 @@ class MouseMotionEvent(MotionEvent):
             self.ud._drawelement = de
         if de is not None:
             self.push()
-            self.scale_for_screen(
-                win.system_size[0],
-                win.system_size[1],
-                rotation=win.rotation)
+
+            # use same logic as WindowBase.on_motion() so we get correct
+            # coordinates when _density != 1
+            w, h = win._get_effective_size()
+
+            self.scale_for_screen(w, h, rotation=win.rotation)
+
             de[1].pos = self.x - 10, self.y - 10
             self.pop()
 

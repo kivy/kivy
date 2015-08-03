@@ -2611,7 +2611,7 @@ class TextInput(FocusBehavior, Widget):
     :attr:`text` a :class:`~kivy.properties.StringProperty`.
     '''
 
-    font_name = StringProperty('DroidSans')
+    font_name = StringProperty('Roboto')
     '''Filename of the font to use. The path can be absolute or relative.
     Relative paths are resolved by the :func:`~kivy.resources.resource_find`
     function.
@@ -2630,7 +2630,7 @@ class TextInput(FocusBehavior, Widget):
         .. |unicodechar| image:: images/unicode-char.png
 
     :attr:`font_name` is a :class:`~kivy.properties.StringProperty` and
-    defaults to 'DroidSans'.
+    defaults to 'Roboto'.
     '''
 
     font_size = NumericProperty('15sp')

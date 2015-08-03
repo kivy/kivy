@@ -4,50 +4,51 @@ Vertex Instructions
 
 This module includes all the classes for drawing simple vertex objects.
 
-.. note::
+Updating properties
+-------------------
 
-    The list attributes of the graphics instruction classes (e.g.
-    :attr:`Triangle.points`, :attr:`Mesh.indices` etc.) are not Kivy
-    properties but Python properties. As a consequence, the graphics will only
-    be updated when the list object itself is changed and not when list values
-    are modified.
+The list attributes of the graphics instruction classes (e.g.
+:attr:`Triangle.points`, :attr:`Mesh.indices` etc.) are not Kivy
+properties but Python properties. As a consequence, the graphics will only
+be updated when the list object itself is changed and not when list values
+are modified.
 
-    For example in python:
+For example in python:
 
-    .. code-block:: python
+.. code-block:: python
 
-        class MyWidget(Button):
+    class MyWidget(Button):
 
-            triangle = ObjectProperty(None)
-            def __init__(self, **kwargs):
-                super(MyWidget, self).__init__(**kwargs)
-                with self.canvas:
-                    self.triangle = Triangle(points=[0,0, 100,100, 200,0])
+        triangle = ObjectProperty(None)
+        def __init__(self, **kwargs):
+            super(MyWidget, self).__init__(**kwargs)
+            with self.canvas:
+                self.triangle = Triangle(points=[0,0, 100,100, 200,0])
 
-    and in kv:
+and in kv:
 
-    .. code-block:: kv
+.. code-block:: kv
 
-        <MyWidget>:
-            text: 'Update'
-            on_press:
-                self.triangle.points[3] = 400
+    <MyWidget>:
+        text: 'Update'
+        on_press:
+            self.triangle.points[3] = 400
 
-    Although when the button is pressed the triangle coordinates will be
-    changed, the graphics will not be updated because the list itself has not
-    been changed. Similarly, no updates will occur using any syntax that changes
-    only elements of the list e.g. self.triangle.points[0:2] = [10,10] or
-    self.triangle.points.insert(10) etc.
-    To force an update after a change, the list variable itself must be
-    changed, which in this case can be achieved with:
+Although pressing the button will change the triangle coordinates,
+the graphics will not be updated because the list itself has not
+changed. Similarly, no updates will occur using any syntax that changes
+only elements of the list e.g. self.triangle.points[0:2] = [10,10] or
+self.triangle.points.insert(10) etc.
+To force an update after a change, the list variable itself must be
+changed, which in this case can be achieved with:
 
-    .. code-block:: kv
+.. code-block:: kv
 
-        <MyWidget>:
-            text: 'Update'
-            on_press:
-                self.triangle.points[3] = 400
-                self.triangle.points = self.triangle.points
+    <MyWidget>:
+        text: 'Update'
+        on_press:
+            self.triangle.points[3] = 400
+            self.triangle.points = self.triangle.points
 '''
 
 __all__ = ('Triangle', 'Quad', 'Rectangle', 'RoundedRectangle', 'BorderImage', 'Ellipse',
@@ -483,13 +484,16 @@ cdef class Mesh(VertexInstruction):
 
 
 cdef class Point(VertexInstruction):
-    '''A 2d line.
+    '''A list of 2d points. Each point is represented as a square with a
+    width/height of 2 times the :attr:`pointsize`.
 
     :Parameters:
         `points`: list
-            List of points in the format (x1, y1, x2, y2...).
+            List of points in the format (x1, y1, x2, y2...), where each pair
+            of coordinates specifies the center of a new point.
         `pointsize`: float, defaults to 1.
-            Size of the point (1. means the real size will be 2).
+            The size of the point, measured from the center to the edge. A
+            value of 1.0 therefore means the real size will be 2.0 x 2.0.
 
     .. warning::
 
@@ -617,7 +621,8 @@ cdef class Point(VertexInstruction):
             self.parent.flag_update()
 
     property points:
-        '''Property for getting/settings points of the triangle.
+        '''Property for getting/settings the center points in the points list.
+        Each pair of coordinates specifies the center of a new point.
         '''
         def __get__(self):
             return self._points
@@ -632,6 +637,8 @@ cdef class Point(VertexInstruction):
 
     property pointsize:
         '''Property for getting/setting point size.
+        The size is measured from the center to the edge, so a value of 1.0
+        means the real size will be 2.0 x 2.0.
         '''
         def __get__(self):
             return self._pointsize

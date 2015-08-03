@@ -30,10 +30,12 @@ class CoreCriticalException(Exception):
     pass
 
 
-def core_select_lib(category, llist, create_instance=False, base='kivy.core'):
+def core_select_lib(category, llist, create_instance=False,
+                    base='kivy.core', basemodule=None):
     if 'KIVY_DOC' in os.environ:
         return
     category = category.lower()
+    basemodule = basemodule or category
     libs_ignored = []
     errs = []
     for option, modulename, classname in llist:
@@ -51,7 +53,7 @@ def core_select_lib(category, llist, create_instance=False, base='kivy.core'):
 
             # import module
             mod = __import__(name='{2}.{0}.{1}'.format(
-                category, modulename, base),
+                basemodule, modulename, base),
                 globals=globals(),
                 locals=locals(),
                 fromlist=[modulename], level=0)

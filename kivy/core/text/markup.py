@@ -768,6 +768,7 @@ class MarkupLabel(MarkupLabelBase):
         s = self.get_extents(last_text)
         if len(last_text):
             line1.append(LayoutWord(last_word.options, s[0], s[1], last_text))
+        elps.options = last_word.options
         line1.append(elps)
 
         # now add back the right half

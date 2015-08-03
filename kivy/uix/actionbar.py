@@ -7,20 +7,21 @@ Action Bar
 .. image:: images/actionbar.png
     :align: right
 
-The ActionBar widget is like Android's ActionBar, where items are stacked
-horizontally.
+The ActionBar widget is like Android's `ActionBar
+<http://developer.android.com/guide/topics/ui/actionbar.html>`_
+, where items are stacked horizontally.
 
-The :class:`ActionBar` will contain one :class:`ActionView` and many
-:class:`ContextualActionView`\s.
+An :class:`ActionBar` contains an :class:`ActionView` with various
+:class:`ContextualActionViews <kivy.uix.actionbar.ContextualActionView>`.
 An :class:`ActionView` will contain an :class:`ActionPrevious` having title,
 app_icon and previous_icon properties. An :class:`ActionView` will contain
-subclasses of :class:`ActionItem`\s. Some predefined ones inlcude an
+subclasses of :class:`ActionItems <ActionItem>`. Some predefined ones inlcude an
 :class:`ActionButton`, an :class:`ActionToggleButton`, an :class:`ActionCheck`,
 an :class:`ActionSeparator` and an :class:`ActionGroup`.
 
-An :class:`ActionGroup` is used to display :class:`ActionItem`\s in a group.
-An :class:`ActionView` will always display an :class:`ActionGroup` after other
-:class:`ActionItem`\s.
+An :class:`ActionGroup` is used to display :class:`ActionItems <ActionItem>`
+in a group. An :class:`ActionView` will always display an :class:`ActionGroup`
+after other :class:`ActionItems <ActionItem>`.
 An :class:`ActionView` will contain an :class:`ActionOverflow`.
 A :class:`ContextualActionView` is a subclass of an :class:`ActionView`.
 '''
@@ -38,6 +39,7 @@ from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.spinner import Spinner
+from kivy.uix.label import Label
 from kivy.config import Config
 from kivy.properties import ObjectProperty, NumericProperty, \
     BooleanProperty, StringProperty, ListProperty, OptionProperty, AliasProperty
@@ -227,6 +229,12 @@ class ActionToggleButton(ActionItem, ToggleButton):
     '''Source image to use when the Button is part of the ActionBar. If the
     Button is in a group, the text will be preferred.
     '''
+
+
+class ActionLabel(ActionItem, Label):
+    '''ActionLabel class, see module documentation for more information.
+    '''
+    pass
 
 
 class ActionCheck(ActionItem, CheckBox):

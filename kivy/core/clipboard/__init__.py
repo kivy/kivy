@@ -162,7 +162,8 @@ if platform == 'linux':
     if Clipboard.__class__.__name__ in (c[2] for c in _cutbuffers):
         CutBuffer = Clipboard
     else:
-        CutBuffer = core_select_lib('clipboard', _cutbuffers, True)
+        CutBuffer = core_select_lib('cutbuffer', _cutbuffers, True,
+                                    basemodule='clipboard')
 
     if CutBuffer:
         Logger.info('CutBuffer: cut buffer support enabled')

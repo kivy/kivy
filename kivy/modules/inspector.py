@@ -522,8 +522,7 @@ class Inspector(FloatLayout):
         node = None
         wk_widget = weakref.ref(widget)
         for key in keys:
-            text = '%s' % key
-            node = TreeViewProperty(text=text, key=key, widget_ref=wk_widget)
+            node = TreeViewProperty(key=key, widget_ref=wk_widget)
             node.bind(is_selected=self.show_property)
             try:
                 widget.bind(**{key: partial(
