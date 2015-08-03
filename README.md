@@ -91,7 +91,7 @@ Licenses
 
 - Kivy is released under the terms of the MIT License. Please refer to the
   LICENSE file.
-- The provided fonts DroidSans and DroidSansMono are licensed and
+- The provided fonts Roboto and Roboto Mono are licensed and
   distributed under the terms of the
   [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
   The DejaVuSans (used for the virtual keyboard) license can be viewed

@@ -33,6 +33,7 @@ To fix that, you can add these options to the argument line:
 * max_touch_major : width shape maximum
 * min_touch_minor : width shape minimum
 * max_touch_minor : height shape maximum
+* rotation : 0,90,180 or 270 to rotate
 '''
 
 __all__ = ('MTDMotionEventProvider', 'MTDMotionEvent')
@@ -89,7 +90,8 @@ else:
                    'min_pressure', 'max_pressure',
                    'min_touch_major', 'max_touch_major',
                    'min_touch_minor', 'min_touch_major',
-                   'invert_x', 'invert_y')
+                   'invert_x', 'invert_y',
+                   'rotation')
 
         def __init__(self, device, args):
             super(MTDMotionEventProvider, self).__init__(device, args)
@@ -118,7 +120,7 @@ else:
                 if len(arg) != 2:
                     err = 'MTD: Bad parameter %s: Not in key=value format' %\
                         arg
-                    Logger.error()
+                    Logger.error(err)
                     continue
 
                 # ensure the key exist
@@ -137,6 +139,13 @@ else:
 
                 # all good!
                 Logger.info('MTD: Set custom %s to %d' % (key, int(value)))
+
+            if 'rotation' not in self.default_ranges:
+                self.default_ranges['rotation'] = 0
+            elif self.default_ranges['rotation'] not in (0, 90, 180, 270):
+                Logger.error('HIDInput: invalid rotation value ({})'.format(
+                    self.default_ranges['rotation']))
+                self.default_ranges['rotation'] = 0
 
         def start(self):
             if self.input_fn is None:
@@ -162,6 +171,19 @@ else:
             touches_sent = []
             point = {}
             l_points = {}
+
+            def assign_coord(point, value, invert, coords):
+                cx, cy = coords
+                if invert:
+                    value = 1. - value
+                if rotation == 0:
+                    point[cx] = value
+                elif rotation == 90:
+                    point[cy] = value
+                elif rotation == 180:
+                    point[cx] = 1. - value
+                elif rotation == 270:
+                    point[cy] = 1. - value
 
             def process(points):
                 for args in points:
@@ -232,6 +254,10 @@ else:
             Logger.info('MTD: <%s> axes invertion: X is %d, Y is %d' %
                         (_fn, invert_x, invert_y))
 
+            rotation = drs('rotation', 0)
+            Logger.info('MTD: <%s> rotation set to %d' %
+                        (_fn, rotation))
+
             while _device:
                 # idle as much as we can.
                 while _device.idle(1000):
@@ -259,16 +285,12 @@ else:
                         val = normalize(ev_value,
                                         range_min_position_x,
                                         range_max_position_x)
-                        if invert_x:
-                            val = 1. - val
-                        point['x'] = val
+                        assign_coord(point, val, invert_x, 'xy')
                     elif ev_code == MTDEV_CODE_POSITION_Y:
                         val = 1. - normalize(ev_value,
                                              range_min_position_y,
                                              range_max_position_y)
-                        if invert_y:
-                            val = 1. - val
-                        point['y'] = val
+                        assign_coord(point, val, invert_y, 'yx')
                     elif ev_code == MTDEV_CODE_PRESSURE:
                         point['pressure'] = normalize(ev_value,
                                                       range_min_pressure,

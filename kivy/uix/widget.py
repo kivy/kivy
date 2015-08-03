@@ -2,8 +2,8 @@
 Widget class
 ============
 
-The :class:`Widget` class is the base class required to create a Widget.
-This widget class is designed with a couple of principles in mind:
+The :class:`Widget` class is the base class required for creating Widgets.
+This widget class was designed with a couple of principles in mind:
 
 * *Event Driven*
 

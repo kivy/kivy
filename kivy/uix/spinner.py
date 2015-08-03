@@ -46,8 +46,9 @@ from kivy.uix.dropdown import DropDown
 
 
 class SpinnerOption(Button):
-    '''Special button used in the dropdown list. We just set the default
-    size_hint_y and height.
+    '''Special button used in the :class:`Spinner` dropdown list. By default,
+    this is just a :class:`~kivy.uix.button.Button` with a size_hint_y of None
+    and a height of :meth:`48dp <kivy.metrics.dp>`.
     '''
     pass
 
@@ -68,10 +69,12 @@ class Spinner(Button):
     under the Spinner. The `text` property of the class will be used to
     represent the value.
 
-    The option class requires at least:
+    The option class requires:
 
     - a `text` property, used to display the value.
     - an `on_release` event, used to trigger the option when pressed/touched.
+    - a :attr:`~kivy.uix.widget.Widget.size_hint_y` of None.
+    - the :attr:`~kivy.uix.widget.Widget.height` to be set.
 
     :attr:`option_cls` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to :class:`SpinnerOption`.

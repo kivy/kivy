@@ -75,7 +75,7 @@ Hints and tips
     If you are working on the Kivy development branch, pulling the latest
     version can sometimes break things (as much as we try not to). You can
     guard against this by taking a snapshot before pulling. This allows you
-    to easily restore your machine to it's previous state should you have the
+    to easily restore your machine to its previous state should you have the
     need.
  
 #. Insufficient memory

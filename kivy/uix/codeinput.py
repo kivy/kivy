@@ -43,7 +43,7 @@ from kivy.uix.textinput import TextInput
 from kivy.core.text.markup import MarkupLabel as Label
 from kivy.cache import Cache
 from kivy.properties import ObjectProperty, OptionProperty
-from kivy.utils import get_hex_from_color
+from kivy.utils import get_hex_from_color, get_color_from_hex
 
 Cache_get = Cache.get
 Cache_append = Cache.append
@@ -111,6 +111,8 @@ class CodeInput(TextInput):
 
     def on_style_name(self, *args):
         self.style = styles.get_style_by_name(self.style_name)
+        self.background_color = get_color_from_hex(self.style.background_color)
+        self._trigger_refresh_text()
 
     def on_style(self, *args):
         self.formatter = BBCodeFormatter(style=self.style)
@@ -176,6 +178,8 @@ class CodeInput(TextInput):
             ntext = ''.join((u'[color=', str(self.text_color), u']',
                              ntext, u'[/color]'))
             ntext = ntext.replace(u'\n', u'')
+            # remove possibles extra highlight options
+            ntext = ntext.replace(u'[u]', '').replace(u'[/u]', '')
             return ntext
         except IndexError:
             return ''
@@ -215,7 +219,6 @@ if __name__ == '__main__':
     class CodeInputTest(App):
         def build(self):
             return CodeInput(lexer=KivyLexer(),
-                             font_name='data/fonts/DroidSansMono.ttf',
                              font_size=12,
                              text='''
 #:kivy 1.0

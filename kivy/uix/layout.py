@@ -42,6 +42,11 @@ of the parent's height, do::
     widget.size_hint = (None, 0.3)
     widget.width = 250
 
+Being :class:`Kivy properties <kivy.properties>`, these can also be set via
+constructor arguments::
+
+    widget = Widget(size_hint=(None, 0.3), width=250)
+
 .. versionchanged:: 1.4.1
     The `reposition_child` internal method (made public by mistake) has
     been removed.
