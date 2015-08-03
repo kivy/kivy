@@ -181,7 +181,7 @@ class RecycleAdapter(EventDispatcher):
         # FIXME: we could pass the data though the constructor, but that wont
         # work for kv-declared classes, and might lead the user to think it can
         # work for reloading as well.
-        view = viewclass(**item)
+        view = viewclass()
         if viewclass not in _view_base_cache:
             _view_base_cache[viewclass] = isinstance(view, RecycleViewMixin)
 
