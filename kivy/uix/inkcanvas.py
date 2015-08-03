@@ -1,7 +1,6 @@
 from kivy.properties import OptionProperty, ListProperty, StringProperty, \
                     ObjectProperty, NumericProperty, BooleanProperty
 from kivy.graphics import Color, Line, SmoothLine
-from kivy.utils import color_dictionary, get_color_by_name
 from kivy.event import EventDispatcher
 from math import sqrt
 
@@ -170,7 +169,7 @@ class Stroke(EventDispatcher):
 
     def __init__(self, group_id="", shortstraw_const=40.0, **kwargs):
         super(Stroke, self).__init__(**kwargs)
-        self._color = get_color_by_name(self.color)
+        self._color = (0.0, 0.0, 0.0, 1.0)
         self.group_id = group_id
         self.sampled_points = []
         self.shortstraw_const = shortstraw_const
@@ -201,7 +200,7 @@ class Stroke(EventDispatcher):
 
     def on_color(self, instance, color):
         '''Sets the color when the property change its value'''
-        self._color = get_color_by_name(color)
+        self._color = (0.0, 0.0, 0.0, 1.0)
 
     def is_highlighter(self, alfa):
         '''Change the alpha value in Color, for transparency'''

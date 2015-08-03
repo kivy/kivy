@@ -16,13 +16,25 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.graphics import Color, Rectangle
 from functools import partial
 
-  
+from kivy.ext.mpl.backend_kivy import FigureCanvasKivy as FigureCanvas
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+class StrokeFigureCanvas(StrokeCanvasBehavior, FigureCanvas):
+    def __init__(self, figure, **kwargs):
+        super(StrokeFigureCanvas, self).__init__(figure=figure, **kwargs)
+
 class StrokeCanvasFloat(StrokeCanvasBehavior, FloatLayout):
     pass
 
 
 class StrokeCanvasTest(App):
     title = 'InkCanvas'
+    strokes_collected = []
+    drawn = False
+    fig, ax = None, None
+    chart = None
 
     def callback(self, button, result, *args):
         if self.inkc.mode == 'draw':
@@ -38,6 +50,29 @@ class StrokeCanvasTest(App):
         with self.inkc.canvas:
             Color(1,1,0,0.3)
             Rectangle(pos = (rect.left, rect.bottom), size = (rect.right-rect.left, rect.top - rect.bottom))
+        self.strokes_collected.append(stroke)
+        if len(self.strokes_collected) > 3 and not self.drawn:
+            self.createGraph()
+            self.inkc.add_widget(self.chart)
+            self.drawn = True
+
+    def createGraph(self):
+        ax = self.ax
+        N = 5
+        menMeans = (20, 35, 30, 35, 27)
+        menStd = (2, 3, 4, 1, 2)
+        ind = np.arange(N)  # the x locations for the groups
+        width = 0.35       # the width of the bars
+        self.fig, ax = plt.subplots(figsize=(5, 5), dpi = 100)
+        fig1 = plt.gcf()
+        rects1 = ax.bar(ind, menMeans, width, color='r', yerr=menStd)
+        womenMeans = (25, 32, 34, 20, 25)
+        womenStd = (3, 5, 2, 3, 3)
+        ax.set_ylabel('Scores')
+        ax.set_xticks(ind + width)
+        ax.set_xticklabels(('G1', 'G2', 'G3', 'G4', 'G5'))
+        self.chart = StrokeFigureCanvas(self.fig)
+        self.chart.draw()
 
     def stroke_removed(self, layout, strk):
         pass
@@ -46,7 +81,9 @@ class StrokeCanvasTest(App):
         pass
 
     def build(self):
-        self.inkc = inkc = StrokeCanvasFloat()
+        self.layout = FloatLayout()
+        
+        self.inkc = inkc = StrokeCanvasFloat(size_hint=(1,.85))
         inkc.stroke_color = 'darkblue'
         inkc.stroke_width = 2.0
         inkc.stroke_visibility = True
@@ -55,13 +92,15 @@ class StrokeCanvasTest(App):
         inkc.bind(on_stroke_added = self.stroke_collected)
         inkc.bind(on_stroke_removed = self.stroke_removed)
         inkc.bind(mode = self.mode_changed)
-        btn = Button(text='Draw Mode', size_hint = (1,.15))
+        btn = Button(text='Draw Mode', size_hint = (1,.15), pos_hint={'top': 1.0})
         btn.bind(on_press=partial(self.callback, btn))
-        inkc.add_widget(btn)
+        
         with inkc.canvas.before:
             Color(1,1,1,1)
             self.rect = Rectangle(size = inkc.size, pos = inkc.pos)
-        return inkc
+        self.layout.add_widget(inkc)
+        self.layout.add_widget(btn)
+        return self.layout
     
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos
@@ -72,3 +111,4 @@ class StrokeCanvasTest(App):
   
 if __name__ == '__main__':
     StrokeCanvasTest().run()
+
