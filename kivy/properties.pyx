@@ -87,14 +87,14 @@ Error Handling
 
 If setting a value would otherwise raise a ValueError, you have two options to
 handle the error gracefully within the property. The first option is to use an
-errorvalue parameter. An errorvalue is a substitute for the invalid value.::
+errorvalue parameter. An errorvalue is a substitute for the invalid value::
 
     # simply returns 0 if the value exceeds the bounds
     bnp = BoundedNumericProperty(0, min=-500, max=500, errorvalue=0)
 
 The second option in to use an errorhandler parameter. An errorhandler is a
 callable (single argument function or lambda) which can return a valid
-substitute.::
+substitute::
 
     # returns the boundary value when exceeded
     bnp = BoundedNumericProperty(0, min=-500, max=500,
@@ -108,8 +108,8 @@ Kivy properties are easier to use than the standard ones. See the next chapter
 for examples of how to use them :)
 
 
-Observe Properties changes
---------------------------
+Observe Property changes
+------------------------
 
 As we said in the beginning, Kivy's Properties implement the `Observer pattern
 <http://en.wikipedia.org/wiki/Observer_pattern>`_. That means you can
@@ -150,7 +150,7 @@ class::
 Observe using 'on_<propname>'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you created the class yourself, you can use the 'on_<propname>' callback::
+If you defined the class yourself, you can use the 'on_<propname>' callback::
 
     class MyClass(EventDispatcher):
         a = NumericProperty(1)
