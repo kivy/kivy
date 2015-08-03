@@ -1,6 +1,6 @@
 from kivy.properties import OptionProperty, ListProperty, StringProperty, \
                     ObjectProperty, NumericProperty, BooleanProperty
-from kivy.graphics import Color, Line, SmoothLine
+from kivy.graphics import Color, Line, SmoothLine, Ellipse
 from kivy.event import EventDispatcher
 from math import sqrt
 
@@ -173,6 +173,7 @@ class Stroke(EventDispatcher):
         self.group_id = group_id
         self.sampled_points = []
         self.shortstraw_const = shortstraw_const
+        self.corners = []
 
     def __eq__(self, other):
         '''Override default Equals behaviour'''
@@ -311,6 +312,83 @@ class Stroke(EventDispatcher):
             linepoints.extend([float(point.x), float(point.y)])
         return linepoints
 
+    ''' Return a list of indexes where corners were found from the list
+        of sampled points. '''
+    def get_corners(self):
+        self.corners.append(0)
+        W = 3
+        if len(self.sampled_points) >= 2 * W:
+            straws = [None] * (len(self.sampled_points) - (2 * W))
+            for i in xrange(W, len(self.sampled_points) - W):
+                straws[i - W] = self.sampled_points[i - W].distance_to(
+                                            self.sampled_points[i + W])
+            t = float(sum(straws)) / float(len(straws)) * 0.95
+            for i in xrange(W, len(self.sampled_points) - W):
+                if straws[i - W] < t:
+                    localMin = float("inf")
+                    localMinIndex = i
+                    while i < len(straws) and straws[i - W] < t:
+                        if straws[i - W] < localMin:
+                            localMin = straws[i - W]
+                            localMinIndex = i
+                        i += 1
+                    self.corners.append(localMinIndex)
+            self.corners.append(len(self.sampled_points) - 1)
+            self.corners = [ii for n, ii in enumerate(self.corners)
+                            if ii not in self.corners[:n]]
+            self.post_process_corners()
+
+    ''' Identify wrong corners or missed ones. '''
+    def post_process_corners(self):
+        continuar = False
+        while not continuar:
+            continuar = True
+            for i in xrange(1, len(self.corners)):
+                c1 = self.corners[i - 1]
+                c2 = self.corners[i]
+                if self.is_line(c1, c2):
+                    new_corner = self.halfway_corner(self.corners[:], c1, c2)
+                    if new_corner > c1 and new_corner < c2:
+                        self.corners.insert(i, new_corner)
+                        continuar = False
+        del_indexes = []
+        for i in xrange(1, len(self.corners) - 1):
+            c1 = self.corners[i - 1]
+            c2 = self.corners[i + 1]
+            if self.is_line(c1, c2):
+                del_indexes.append(self.corners[i])
+        self.corners = [i for j, i in enumerate(self.corners)
+                        if j not in del_indexes]
+
+    ''' Returns whether there is a line between two points. '''
+    def is_line(self, a, b):
+        threshold = 0.95
+        distance = self.sampled_points[a].distance_to(self.sampled_points[b])
+        pathdistance = self.path_distance(a, b)
+        if (distance / pathdistance) > threshold:
+            return True
+        else:
+            return False
+
+    def path_distance(self, a, b):
+        d = 0.0
+        for i in xrange(a, b):
+            d = d + self.sampled_points[i].distance_to(
+                                            self.sampled_points[i + 1])
+        return d
+
+    ''' Function to evaluate if there is anny corner missed by false
+        corner detection. '''
+    def halfway_corner(self, corners, a, b):
+        quarter = (b - a) / 2
+        minValue = float("inf")
+        minIndex = -1
+        for i in xrange(a + quarter, b - quarter - 1):
+            if corners[i] < minValue:
+                minValue = corners[i]
+                minIndex = i
+        return minIndex
+
 
 class StrokeCanvasBehavior(object):
     '''StrokeCanvas behavior.
@@ -431,6 +509,15 @@ class StrokeCanvasBehavior(object):
                 touch.ud['stroke'].points.append(pt)
                 self.add_stroke(touch.ud['stroke'])
                 touch.ud['stroke'].sample_points()
+                touch.ud['stroke'].get_corners()
+
+                for c in touch.ud['stroke'].corners:
+                    with self.canvas:
+                        Color(0.0, 0.0, 1.0, 1.0)
+                        Ellipse(pos=(touch.ud['stroke'].sampled_points[c].x,
+                                     touch.ud['stroke'].sampled_points[c].y),
+                                     size=(10, 10))
+
                 points_list = touch.ud['stroke'].filtering()
                 with self.canvas:
                     Color(1, 1, 0)

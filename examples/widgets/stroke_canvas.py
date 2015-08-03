@@ -9,7 +9,8 @@ Additionally, it shows the bounding box of a stroke with a fade rectangle.
 '''
 
 from kivy.app import App
-from kivy.uix.inkcanvas import StrokeCanvasBehavior, Stroke, StrokeRect, StrokePoint
+from kivy.uix.inkcanvas import StrokeCanvasBehavior, Stroke, StrokeRect,\
+        StrokePoint
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -24,6 +25,7 @@ import numpy as np
 class StrokeFigureCanvas(StrokeCanvasBehavior, FigureCanvas):
     def __init__(self, figure, **kwargs):
         super(StrokeFigureCanvas, self).__init__(figure=figure, **kwargs)
+
 
 class StrokeCanvasFloat(StrokeCanvasBehavior, FloatLayout):
     pass
@@ -48,13 +50,12 @@ class StrokeCanvasTest(App):
         # Just to visualize the bounding box
         rect = stroke.get_bounds()
         with self.inkc.canvas:
-            Color(1,1,0,0.3)
-            Rectangle(pos = (rect.left, rect.bottom), size = (rect.right-rect.left, rect.top - rect.bottom))
+            Color(1, 1, 0, 0.3)
+            Rectangle(pos=(rect.left, rect.bottom),
+                size=(rect.right - rect.left, rect.top - rect.bottom))
         self.strokes_collected.append(stroke)
-        if len(self.strokes_collected) > 3 and not self.drawn:
-            self.createGraph()
-            self.inkc.add_widget(self.chart)
-            self.drawn = True
+#         self.createGraph()
+#         self.inkc.add_widget(self.chart)
 
     def createGraph(self):
         ax = self.ax
@@ -76,39 +77,38 @@ class StrokeCanvasTest(App):
 
     def stroke_removed(self, layout, strk):
         pass
-    
+
     def mode_changed(self, instance, value):
         pass
 
     def build(self):
         self.layout = FloatLayout()
-        
-        self.inkc = inkc = StrokeCanvasFloat(size_hint=(1,.85))
+        self.inkc = inkc = StrokeCanvasFloat(size_hint=(1, .85))
         inkc.stroke_color = 'darkblue'
         inkc.stroke_width = 2.0
         inkc.stroke_visibility = True
         inkc.stroke_opacity = 0.8
-        inkc.bind(size=self._update_rect, pos = self._update_rect)
-        inkc.bind(on_stroke_added = self.stroke_collected)
-        inkc.bind(on_stroke_removed = self.stroke_removed)
-        inkc.bind(mode = self.mode_changed)
-        btn = Button(text='Draw Mode', size_hint = (1,.15), pos_hint={'top': 1.0})
+        inkc.bind(size=self._update_rect, pos=self._update_rect)
+        inkc.bind(on_stroke_added=self.stroke_collected)
+        inkc.bind(on_stroke_removed=self.stroke_removed)
+        inkc.bind(mode=self.mode_changed)
+        btn = Button(text='Draw Mode', size_hint=(1, .15),
+                     pos_hint={'top': 1.0})
         btn.bind(on_press=partial(self.callback, btn))
-        
         with inkc.canvas.before:
-            Color(1,1,1,1)
-            self.rect = Rectangle(size = inkc.size, pos = inkc.pos)
+            Color(1.0, 1.0, 1.0, 1.0)
+            self.rect = Rectangle(size=inkc.size, pos=inkc.pos)
         self.layout.add_widget(inkc)
         self.layout.add_widget(btn)
         return self.layout
-    
+
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos
         self.rect.size = instance.size
-      
+
     def on_pause(self):
         return True
-  
+
 if __name__ == '__main__':
     StrokeCanvasTest().run()
 
