@@ -252,12 +252,12 @@ class RendererKivy(RendererBase):
         if ismath:
             self.draw_mathtext(gc, x, y, s, prop, angle)
         else:
-            font = resource_find(prop.get_name() + ".ttf")
-            if font is None:
-                plot_text = CoreLabel(font_size=prop.get_size_in_points())
-            else:
-                plot_text = CoreLabel(font_size=prop.get_size_in_points(),
-                                  font_name=prop.get_name())
+            #font = resource_find(prop.get_name() + ".ttf")
+            #if font is None:
+            plot_text = CoreLabel(font_size=prop.get_size_in_points())
+            #else:
+            #    plot_text = CoreLabel(font_size=prop.get_size_in_points(),
+            #                      font_name=prop.get_name())
             plot_text.text = str(s.encode("utf-8"))
             if(prop.get_style() == 'italic'):
                 plot_text.italic = True
