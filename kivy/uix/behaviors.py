@@ -1561,6 +1561,8 @@ class CompoundSelectionBehavior(object):
 class CodeNavigationBehavior(EventDispatcher):
     '''Code navigation behavior. Modifies navigation behavior in TextInput
     work like an IDE instead of a word processor.
+
+    .. versionadded:: 1.9.1
     '''
 
     def _move_cursor_word_left(self, index=None):

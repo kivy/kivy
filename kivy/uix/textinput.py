@@ -1065,6 +1065,8 @@ class TextInput(FocusBehavior, Widget):
             - alt + cursor_up: shift line(s) up
             - alt + cursor_down: shift line(s) down
 
+        .. versionchanged:: 1.9.1
+
         '''
         pgmove_speed = int(self.height /
             (self.line_height + self.line_spacing) - 1)
@@ -2919,7 +2921,7 @@ class TextInput(FocusBehavior, Widget):
     replace_crlf = BooleanProperty(True)
     '''Automatically replace CRLF with LF.
 
-    .. versionadded:: 1.9.0
+    .. versionadded:: 1.9.1
 
     :attr:`replace_crlf` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
