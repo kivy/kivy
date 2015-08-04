@@ -61,7 +61,9 @@ def new_figure_manager_given_figure(num, figure):
     Create a new figure manager instance for the given figure.
     """
     canvas = FigureCanvasKivyAgg(figure)
+    canvas.draw()
     manager = FigureManagerKivy(canvas, num)
+    _create_App(canvas, manager.toolbar.actionbar)
     return manager
 
 
@@ -84,14 +86,11 @@ class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg, Widget):
     def __init__(self, figure, **kwargs):
         if _debug:
             print('FigureCanvasKivyAgg: ', figure)
-        #super(FigureCanvasKivyAgg, self).__init__(figure, **kwargs)
-        Widget.__init__(self, **kwargs)
-        FigureCanvasKivy.__init__(self, figure)
-        FigureCanvasAgg.__init__(self, figure)
+        self.figure = figure
+        super(FigureCanvasKivyAgg, self).__init__(figure=self.figure, **kwargs)
         self.img = None
         self.img_texture = None
         self.blit()
-        _create_App(self)
 
     def draw(self):
         '''
@@ -126,16 +125,16 @@ class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg, Widget):
         self.img_texture = texture
 
 
-class FigureManagerKivyAgg(FigureManagerBase):
-    '''
-    Wrap everything up into a window for the pylab interface
-    For non interactive backends, the base class does all the work
-    '''
-    def show(self):
-        FigureManagerBase.show(self)
-
-    def destroy(self):
-        FigureManagerBase.destroy(self)
+# class FigureManagerKivyAgg(FigureManagerBase):
+#     '''
+#     Wrap everything up into a window for the pylab interface
+#     For non interactive backends, the base class does all the work
+#     '''
+#     def show(self):
+#         FigureManagerBase.show(self)
+#
+#     def destroy(self):
+#         FigureManagerBase.destroy(self)
 
 ########################################################################
 #
@@ -144,5 +143,5 @@ class FigureManagerKivyAgg(FigureManagerBase):
 ########################################################################
 
 FigureCanvas = FigureCanvasKivyAgg
-FigureManager = FigureManagerKivyAgg
+FigureManager = FigureManagerKivy
 show = kivy.ext.mpl.backend_kivy.show

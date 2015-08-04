@@ -261,7 +261,7 @@ class RendererKivy(RendererBase):
             else:
                 plot_text = CoreLabel(font_size=prop.get_size_in_points(),
                                 font_name=prop.get_name())
-            plot_text.text = str(s.encode("utf-8"))
+            plot_text.text = "{}".format(s.encode("utf-8"))
             if(prop.get_style() == 'italic'):
                 plot_text.italic = True
             if(prop.get_weight() > 500):
