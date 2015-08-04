@@ -11,7 +11,7 @@ from matplotlib.figure import Figure
 from matplotlib.transforms import Bbox
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.backend_bases import register_backend
-
+import numpy as np
 
 try:
     import kivy
@@ -121,8 +121,7 @@ class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg, Widget):
                 Rectangle(texture=texture, pos=self.pos, size=(w, h))
         else:
             texture = self.img_texture
-        
-        texture.blit_buffer(buf_rgba, colorfmt='rgba', bufferfmt='ubyte')
+        texture.blit_buffer(bytes(buf_rgba), colorfmt='rgba', bufferfmt='ubyte')
         self.img_texture = texture
 
 
