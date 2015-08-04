@@ -170,7 +170,9 @@ Binding to properties of properties.
 When binding to a property of a property, for example binding to a numeric
 property of an object saved in a object property, updating the object property
 to point to a new object will not re-bind the numeric property to the
-new object. For example::
+new object. For example:
+
+.. code-block:: kv
 
     <MyWidget>:
         Label:
@@ -1551,7 +1553,9 @@ cdef class ConfigParserProperty(Property):
     the `info` section of the ConfigParser named `example`. Initially, this
     ConfigParser doesn't exist. Then, in `__init__`, a ConfigParser is created
     with name `example`, which is then automatically linked with this property.
-    then in kv::
+    then in kv:
+
+    .. code-block:: kv
 
         BoxLayout:
             TextInput:
