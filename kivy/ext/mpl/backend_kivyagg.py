@@ -121,6 +121,7 @@ class FigureCanvasKivyAgg(FigureCanvasKivy, FigureCanvasAgg, Widget):
                 Rectangle(texture=texture, pos=self.pos, size=(w, h))
         else:
             texture = self.img_texture
+        
         texture.blit_buffer(buf_rgba, colorfmt='rgba', bufferfmt='ubyte')
         self.img_texture = texture
 

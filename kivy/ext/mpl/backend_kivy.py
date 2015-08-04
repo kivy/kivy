@@ -15,6 +15,7 @@ from matplotlib.mathtext import MathTextParser
 from matplotlib import rcParams
 from hashlib import md5
 from matplotlib import _png
+from matplotlib.font_manager import weight_as_number
 
 try:
     import kivy
@@ -261,10 +262,10 @@ class RendererKivy(RendererBase):
             else:
                 plot_text = CoreLabel(font_size=prop.get_size_in_points(),
                                 font_name=prop.get_name())
-            plot_text.text = "{}".format(s.encode("utf-8"))
-            if(prop.get_style() == 'italic'):
+            plot_text.text = "{}".format(s)
+            if prop.get_style() == 'italic':
                 plot_text.italic = True
-            if(prop.get_weight() > 500):
+            if weight_as_number(prop.get_weight()) > 500:
                 plot_text.bold = True
             plot_text.refresh()
             with self.widget.canvas:

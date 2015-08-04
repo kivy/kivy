@@ -107,7 +107,7 @@ cdef class Line(VertexInstruction):
     cdef int _bezier_precision
     cdef int _joint
     cdef list _points
-    cdef list _dash_list;
+    cdef list _dash_list
     cdef float _width
     cdef int _dash_offset, _dash_length
     cdef int _use_stencil
