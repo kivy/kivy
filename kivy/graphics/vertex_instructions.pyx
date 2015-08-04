@@ -851,6 +851,7 @@ cdef class BorderImage(Rectangle):
 
     '''
     cdef list _border
+    cdef list _display_border
     cdef int _auto_scale
 
     def __init__(self, **kwargs):
@@ -858,6 +859,7 @@ cdef class BorderImage(Rectangle):
         v = kwargs.get('border')
         self.border = v if v is not None else (10, 10, 10, 10)
         self.auto_scale = kwargs.get('auto_scale', False)
+        self.display_border = kwargs.get('display_border', [])
 
     cdef void build(self):
         if not self.texture:
@@ -906,6 +908,9 @@ cdef class BorderImage(Rectangle):
         # horizontal and vertical sections
         cdef float hs[4]
         cdef float vs[4]
+        cdef list db = self._display_border
+        if db:
+            sb0, sb1, sb2, sb3 = db
         hs[0] = x;            vs[0] = y
         hs[1] = x + sb3;       vs[1] = y + sb0
         hs[2] = x + w - sb1;   vs[2] = y + h - sb2
@@ -984,6 +989,15 @@ cdef class BorderImage(Rectangle):
 
         def __set__(self, value):
             self._auto_scale = int(bool(value))
+            self.flag_update()
+
+    property display_border:
+        '''Property for getting/setting the border display size.
+        '''
+        def __get__(self):
+            return self._display_border
+        def __set__(self, b):
+            self._display_border = list(b)
             self.flag_update()
 
 cdef class Ellipse(Rectangle):
