@@ -18,7 +18,7 @@ cannot use it directly. We provide some implementations such as:
 
 - :class:`kivy.storage.dictstore.DictStore`: use a python dict as a store
 - :class:`kivy.storage.jsonstore.JsonStore`: use a JSON file as a store
-- :class:`kivy.storage.redistore.RedisStore`: use a `Redis <http://redis.io>`_
+- :class:`kivy.storage.redisstore.RedisStore`: use a `Redis <http://redis.io>`_
   database with `redis-py <https://github.com/andymccurdy/redis-py>`_
 
 
