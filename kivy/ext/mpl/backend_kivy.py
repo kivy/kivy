@@ -7,7 +7,7 @@ import scipy
 import matplotlib
 from matplotlib._pylab_helpers import Gcf
 from matplotlib.backend_bases import RendererBase, GraphicsContextBase,\
-    FigureManagerBase, FigureCanvasBase, NavigationToolbar2, ToolContainerBase
+    FigureManagerBase, FigureCanvasBase, NavigationToolbar2
 from matplotlib.figure import Figure
 from matplotlib.transforms import Bbox
 from matplotlib.backend_bases import ShowBase
@@ -198,7 +198,7 @@ class RendererKivy(RendererBase):
                         mode=str("triangle_fan")
                     )
             Color(*gc.get_rgb())
-            Line(points=points_line[:-2], width=int(gc.line['width'] / 2),
+            Line(points=points_line, width=int(gc.line['width'] / 2),
                 dash_length=gc.line['dash_length'],
                 dash_offset=gc.line['dash_offset'],
                  dash_joint=gc.line['joint_style'],
@@ -376,29 +376,29 @@ class NavigationToolbar2Kivy(NavigationToolbar2):
         self.show_save()
 
 
-class ToolbarKivy(ToolContainerBase, ActionView):
-
-    def __init__(self, toolmanager):
-        ToolContainerBase.__init__(self, toolmanager)
-        ActionView.__init__(self)
-        self._toolitems = {}
-
-    def add_toolitem(self, name, group, position, image, description, toggle):
-        basedir = os.path.join(rcParams['datapath'], 'images')
-        fname = os.path.join(basedir, image_file + '.png')
-        if toggle:
-            tbutton = ActionToggleButton()
-        else:
-            tbutton = ActionButton()
-        tbutton.text = name
-        tbutton.icon = fname
-        self.add_widget(tbutton)
-        signal = tbutton.connect('clicked', self._call_tool, name)
-        self._toolitems.setdefault(name, [])
-        self._toolitems[name].append((tbutton, signal))
-
-    def _call_tool(self, btn, name):
-        self.trigger_tool(name)
+# class ToolbarKivy(ToolContainerBase, ActionView):
+#
+#     def __init__(self, toolmanager):
+#         ToolContainerBase.__init__(self, toolmanager)
+#         ActionView.__init__(self)
+#         self._toolitems = {}
+#
+#     def add_toolitem(self, name, group, position, image, description, toggle):
+#         basedir = os.path.join(rcParams['datapath'], 'images')
+#         fname = os.path.join(basedir, image_file + '.png')
+#         if toggle:
+#             tbutton = ActionToggleButton()
+#         else:
+#             tbutton = ActionButton()
+#         tbutton.text = name
+#         tbutton.icon = fname
+#         self.add_widget(tbutton)
+#         signal = tbutton.connect('clicked', self._call_tool, name)
+#         self._toolitems.setdefault(name, [])
+#         self._toolitems[name].append((tbutton, signal))
+#
+#     def _call_tool(self, btn, name):
+#         self.trigger_tool(name)
 
 
 class GraphicsContextKivy(GraphicsContextBase):
@@ -748,6 +748,6 @@ class FigureManagerKivy(FigureManagerBase):
 #
 ########################################################################
 
-Toolbar = ToolbarKivy
+# Toolbar = ToolbarKivy
 FigureCanvas = FigureCanvasKivy
 FigureManager = FigureManagerKivy
